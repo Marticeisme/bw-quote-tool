@@ -258,10 +258,12 @@ tr:hover td{background:var(--blue-light);}
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Cemetery</div>
   <div class="nav-item highlight" onclick="show('cem-quote',this)">🧮 Quote Builder</div>
+  <div class="nav-item" onclick="show('cem-saved',this)" id="navCemSaved">💾 Saved Cem Quotes</div>
   <div class="nav-item highlight" onclick="show('ric-contract',this)">📄 Pre-Need RIC Contract</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
+  <div class="nav-item" onclick="show('fh-saved',this)" id="navFhSaved">💾 Saved FH Quotes</div>
   <div class="nav-item highlight" onclick="show('ga-contract',this)">📝 Pre-Need Contract (GA)</div>
   <div class="nav-item highlight" onclick="show('cp-contract',this)">📋 Pre-Need Contract (ClearPoint)</div>
 
@@ -1717,13 +1719,6 @@ tr:hover td{background:var(--blue-light);}
         </div>
       </div>
 
-      <!-- Saved Cemetery Quotes -->
-      <div class="q-panel" style="margin-top:20px;background:var(--navy);">
-        <div class="q-panel-header" style="color:#c8a96e;background:rgba(0,0,0,.2);">💾 Saved Cemetery Quotes</div>
-        <div class="q-panel-body" style="padding:14px 18px;">
-          <div id="cemSavedQuotes"><p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p></div>
-        </div>
-      </div>
 
 </div>
 
@@ -2367,13 +2362,6 @@ tr:hover td{background:var(--blue-light);}
         </div>
       </div>
 
-      <!-- Saved Funeral Home Quotes -->
-      <div class="q-panel" style="margin-top:20px;background:var(--navy);">
-        <div class="q-panel-header" style="color:#c8a96e;background:rgba(0,0,0,.2);">💾 Saved Funeral Home Quotes</div>
-        <div class="q-panel-body" style="padding:14px 18px;">
-          <div id="fhSavedQuotes"><p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p></div>
-        </div>
-      </div>
 
   </div>
 </div>
@@ -2395,6 +2383,24 @@ tr:hover td{background:var(--blue-light);}
   </div>
 </div>
 
+
+<!-- ═══ CEM SAVED QUOTES ═══ -->
+<div class="section" id="section-cem-saved">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <h2>Saved Cemetery Quotes</h2>
+  </div>
+  <div id="cemSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the Cemetery Quote Builder and click 💾 Save.</p></div>
+</div>
+
+<!-- ═══ FH SAVED QUOTES ═══ -->
+<div class="section" id="section-fh-saved">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <h2>Saved Funeral Home Quotes</h2>
+  </div>
+  <div id="fhSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the FH Quote Builder and click 💾 Save.</p></div>
+</div>
 
 <!-- ═══ COMBINED QUOTE BUILDER ═══ -->
 <div class="section" id="section-combined-quote">
@@ -7715,26 +7721,32 @@ function persistSavedQuotes() {
 }
 
 function saveCemQuote() {
-  var clientName = (val('cemClientName') || '').trim();
-  var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var label = (clientName || 'Cemetery Quote') + ' -— ' + d;
-  var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
-  _cemSavedQuotes.unshift(snap);
-  if (_cemSavedQuotes.length > 10) _cemSavedQuotes = _cemSavedQuotes.slice(0, 10);
-  renderSavedQuotesList('cem');
-  persistSavedQuotes();
-  showQuoteToast('Saved: ' + (clientName || 'Cemetery Quote'));
+  try {
+    var clientName = (val('cemClientName') || '').trim();
+    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var label = (clientName || 'Cemetery Quote') + ' - ' + d;
+    var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
+    _cemSavedQuotes.unshift(snap);
+    if (_cemSavedQuotes.length > 10) _cemSavedQuotes = _cemSavedQuotes.slice(0, 10);
+    renderSavedQuotesList('cem');
+    persistSavedQuotes();
+    show('cem-saved', el('navCemSaved'));
+    showQuoteToast('Quote saved — viewing saved quotes');
+  } catch(e) { alert('Save failed: ' + e.message); }
 }
 function saveFhQuote() {
-  var clientName = (val('fhClientName') || '').trim();
-  var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var label = (clientName || 'FH Quote') + ' -— ' + d;
-  var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
-  _fhSavedQuotes.unshift(snap);
-  if (_fhSavedQuotes.length > 10) _fhSavedQuotes = _fhSavedQuotes.slice(0, 10);
-  renderSavedQuotesList('fh');
-  persistSavedQuotes();
-  showQuoteToast('Saved: ' + (clientName || 'FH Quote'));
+  try {
+    var clientName = (val('fhClientName') || '').trim();
+    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var label = (clientName || 'FH Quote') + ' - ' + d;
+    var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
+    _fhSavedQuotes.unshift(snap);
+    if (_fhSavedQuotes.length > 10) _fhSavedQuotes = _fhSavedQuotes.slice(0, 10);
+    renderSavedQuotesList('fh');
+    persistSavedQuotes();
+    show('fh-saved', el('navFhSaved'));
+    showQuoteToast('Quote saved — viewing saved quotes');
+  } catch(e) { alert('Save failed: ' + e.message); }
 }
 function deleteSavedQuote(type, id) {
   if (type === 'cem') _cemSavedQuotes = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
@@ -7784,7 +7796,7 @@ function renderSavedQuotesList(type) {
     if (!listEl) return;
     var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
     if (!list.length) {
-      listEl.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p>';
+      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet.</p>';
       return;
     }
     var searchId = type === 'cem' ? 'cemQuoteSearch' : 'fhQuoteSearch';
