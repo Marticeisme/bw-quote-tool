@@ -148,12 +148,58 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
 @media print{body>*{display:none}#printArea{display:block!important;color:#000;font-family:sans-serif;padding:20px}}
 @media(max-width:700px){.meal-grid{grid-template-columns:repeat(2,1fr)}.field-row{grid-template-columns:1fr}header{gap:6px}.nav-btn{padding:5px 8px;font-size:11px}main{padding:12px}}
 @media(max-width:400px){.meal-grid{grid-template-columns:1fr}}
+
+/* ═══ LIGHT MODE ═══ */
+body.light-mode{background:#f0f2f8;color:#1a2744}
+body.light-mode ::-webkit-scrollbar-track{background:#f0f2f8}
+body.light-mode ::-webkit-scrollbar-thumb{background:#c8a96e66}
+body.light-mode .case-card{background:#fff;border-color:#dde3ec}
+body.light-mode .case-card-body{border-color:#eef0f5}
+body.light-mode .case-card-title{color:#1a2744}
+body.light-mode .check-item{background:#f0f3f8}
+body.light-mode .check-item:hover{background:#e4e8f0}
+body.light-mode .check-item.na{background:transparent}
+body.light-mode .check-label{color:#1a2744}
+body.light-mode .check-item.checked .check-label{color:#8fa3b8}
+body.light-mode .checklist-group-title{color:#5a7090}
+body.light-mode .quick-status{background:#f0f2f8;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .quick-status option{background:#fff;color:#1a2744}
+body.light-mode .search-bar input{background:#fff;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .filter-chip{border-color:#cdd5e0;color:#5a7090}
+body.light-mode .field input,.light-mode .field select,.light-mode .field textarea{background:#f5f7fb;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .field select option{background:#fff;color:#1a2744}
+body.light-mode .field label{color:#5a7090}
+body.light-mode .modal{background:#fff;border-color:#c8a96e66}
+body.light-mode .modal-title{color:#b8912a}
+body.light-mode .disp-btn{background:#f0f3f8;border-color:#dde3ec;color:#1a2744}
+body.light-mode .disp-btn:hover{background:#e4e8f0;border-color:#c8a96e}
+body.light-mode .disp-btn .disp-sub{color:#5a7090}
+body.light-mode .section-label{color:#5a7090}
+body.light-mode .tag{border-color:#cdd5e0;color:#5a7090}
+body.light-mode .school-card{background:#fff;border-color:#9b7fd044}
+body.light-mode .meal-day{background:#fff;border-color:#dde3ec}
+body.light-mode .meal-day.today{background:#fef9f0;border-color:#c8a96e66}
+body.light-mode .meal-day-header{color:#5a7090}
+body.light-mode .meal-day.today .meal-day-header{color:#b8912a}
+body.light-mode .event-row{background:#fff;border-color:#dde3ec}
+body.light-mode .add-touchpoint textarea{background:#f5f7fb;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .add-check-row input{background:#f5f7fb;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .touchpoint-entry{background:#fff8ec}
+body.light-mode .misc-item{background:#f0f3f8}
+body.light-mode .misc-item input{color:#1a2744}
+body.light-mode .divider{background:#e4e8f0}
+body.light-mode .due-banner{background:linear-gradient(90deg,#b03a2e10,#c8540a10);border-color:#c8540a30}
+body.light-mode .sync-banner{background:#c8a96e08;border-color:#c8a96e33}
+body.light-mode .btn-secondary{border-color:#cdd5e0;color:#5a7090}
+body.light-mode .week-nav .btn-secondary{border-color:#cdd5e0;color:#5a7090}
+body.light-mode .progress-bar{background:#e4e8f0}
 </style>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
+<script>if(localStorage.getItem('bw:dashMode')==='light')document.body.classList.add('light-mode');</script>
 <div id="toast"></div>
 <div id="printArea"></div>
 
@@ -173,6 +219,7 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
     <button class="user-btn" id="btnAll" onclick="setUser('all')">All Cases</button>
   </div>
   <span id="syncStatus" style="font-size:10px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:4px"><span id="syncDot" style="width:7px;height:7px;border-radius:99px;background:var(--muted);display:inline-block"></span><span id="syncText">Connecting…</span></span>
+  <button id="dashModeBtn" onclick="toggleDashMode()" title="Toggle light/dark mode" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;">🌙</button>
   <button class="gcal-btn" id="gcalBtn" onclick="signInGoogle()">Connect Google Cal</button>
 </header>
 
@@ -1782,6 +1829,22 @@ function saveSchool(){
 }
 function toggleSchool(id){const s=school.find(x=>x.id===id);if(s){s.done=!s.done;save();renderSchool();}}
 function deleteSchool(id){school=school.filter(s=>s.id!==id);save();renderSchool();}
+
+// ═══════════════════════════════════════
+// LIGHT / DARK MODE TOGGLE
+// ═══════════════════════════════════════
+function toggleDashMode(){
+  var isLight=!document.body.classList.contains('light-mode');
+  document.body.classList.toggle('light-mode',isLight);
+  localStorage.setItem('bw:dashMode',isLight?'light':'dark');
+  var btn=document.getElementById('dashModeBtn');
+  if(btn)btn.textContent=isLight?'☀️':'🌙';
+}
+// Sync button icon to current mode on load
+(function(){
+  var btn=document.getElementById('dashModeBtn');
+  if(btn&&document.body.classList.contains('light-mode'))btn.textContent='☀️';
+})();
 
 // ═══════════════════════════════════════
 // INIT
