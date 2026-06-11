@@ -416,6 +416,15 @@ tr:hover td{background:var(--blue-light);}
     <button onclick="toggleCompare()" id="compareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
   </div>
 
+  <!-- Saved Quotes Banner -->
+  <div id="cemSavedBanner" style="display:none;background:var(--navy);border:1px solid rgba(200,169,110,.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="color:#c8a96e;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">💾 Saved Quotes</span>
+      <button onclick="document.getElementById('cemSavedBanner').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:20px;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div id="cemSavedQuotes"></div>
+  </div>
+
   <!-- Compare Panel -->
   <div id="comparePanel" style="display:none;margin-bottom:16px;padding:16px;background:#f0f4ff;border:2px solid var(--navy);border-radius:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -1733,8 +1742,6 @@ tr:hover td{background:var(--blue-light);}
       <button class="btn-export" onclick="saveCemQuote()" title="Save this quote draft">💾 Save</button>
     </div>
 
-    <div id="cemSavedQuotes" style="padding:0 14px 10px;"></div>
-
   </div>
 </div>
 
@@ -1749,6 +1756,16 @@ tr:hover td{background:var(--blue-light);}
     <span>Build a funeral home quote. Merchandise is taxable (10.4%). Professional services, transportation, and cremation services are tax-exempt.</span>
     <button onclick="toggleFhCompare()" id="fhCompareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
   </div>
+
+  <!-- Saved Quotes Banner -->
+  <div id="fhSavedBanner" style="display:none;background:var(--navy);border:1px solid rgba(200,169,110,.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="color:#c8a96e;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">💾 Saved Quotes</span>
+      <button onclick="document.getElementById('fhSavedBanner').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:20px;line-height:1;padding:0;">&times;</button>
+    </div>
+    <div id="fhSavedQuotes"></div>
+  </div>
+
   <!-- FH Compare Panel (top of page, like cemetery) -->
   <div id="fhComparePanel" style="display:none;margin-bottom:16px;padding:16px;background:#f0f4ff;border:2px solid var(--navy);border-radius:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -2376,10 +2393,6 @@ tr:hover td{background:var(--blue-light);}
       <button class="btn-reset" onclick="resetFHQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveFhQuote()" title="Save this quote draft">💾 Save</button>
     </div>
-
-    <div id="fhSavedQuotes" style="padding:0 14px 10px;"></div>
-
-
 
   </div>
 </div>
@@ -7704,26 +7717,30 @@ function persistSavedQuotes() {
 }
 
 function saveCemQuote() {
-  var label = prompt('Name this quote (e.g. Smith Family):', val('cemClientName') || '');
-  if (label === null) return;
-  label = label.trim() || (val('cemClientName') || 'Cemetery Quote');
-  var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: new Date().toLocaleDateString() };
+  var clientName = (val('cemClientName') || '').trim();
+  var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var label = (clientName || 'Cemetery Quote') + ' — ' + d;
+  var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
   _cemSavedQuotes.unshift(snap);
   if (_cemSavedQuotes.length > 20) _cemSavedQuotes = _cemSavedQuotes.slice(0, 20);
   renderSavedQuotesList('cem');
+  var banner = el('cemSavedBanner');
+  if (banner) banner.scrollIntoView({behavior:'smooth', block:'nearest'});
   persistSavedQuotes();
-  showQuoteToast('Quote saved: ' + label);
+  showQuoteToast('Saved: ' + (clientName || 'Cemetery Quote'));
 }
 function saveFhQuote() {
-  var label = prompt('Name this quote:', val('fhClientName') || '');
-  if (label === null) return;
-  label = label.trim() || (val('fhClientName') || 'FH Quote');
-  var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: new Date().toLocaleDateString() };
+  var clientName = (val('fhClientName') || '').trim();
+  var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var label = (clientName || 'FH Quote') + ' — ' + d;
+  var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
   _fhSavedQuotes.unshift(snap);
   if (_fhSavedQuotes.length > 20) _fhSavedQuotes = _fhSavedQuotes.slice(0, 20);
   renderSavedQuotesList('fh');
+  var banner = el('fhSavedBanner');
+  if (banner) banner.scrollIntoView({behavior:'smooth', block:'nearest'});
   persistSavedQuotes();
-  showQuoteToast('Quote saved: ' + label);
+  showQuoteToast('Saved: ' + (clientName || 'FH Quote'));
 }
 function deleteSavedQuote(type, id) {
   if (type === 'cem') _cemSavedQuotes = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
@@ -7771,8 +7788,10 @@ function renderSavedQuotesList(type) {
   try {
     var listEl = el(type === 'cem' ? 'cemSavedQuotes' : 'fhSavedQuotes');
     if (!listEl) return;
+    var banner = el(type === 'cem' ? 'cemSavedBanner' : 'fhSavedBanner');
     var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
-    if (!list.length) { listEl.innerHTML = ''; return; }
+    if (!list.length) { listEl.innerHTML = ''; if (banner) banner.style.display = 'none'; return; }
+    if (banner) banner.style.display = 'block';
     var searchId = type === 'cem' ? 'cemQuoteSearch' : 'fhQuoteSearch';
     var searchEl = el(searchId);
     var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
