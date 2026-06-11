@@ -9467,106 +9467,130 @@ body.dark-mode .summary-line { border-color:#374151; }
 
 <script>
 // ═══ PDF EXPORT ═══
-async function _buildQuotePDF(lines, clientName, subtitle, filePrefix) {
+async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
+  opts = opts || {};
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
   const NAVY   = rgb(26/255,  39/255,  68/255);
   const ORANGE = rgb(192/255, 103/255, 59/255);
   const GOLD   = rgb(184/255, 145/255, 42/255);
-  const WHITE  = rgb(1, 1, 1);
+  const GREEN  = rgb(26/255, 107/255, 69/255);
   const DARK   = rgb(45/255,  51/255,  64/255);
   const MUTED  = rgb(107/255, 115/255, 130/255);
   const LGRAY  = rgb(0.9, 0.9, 0.9);
-  const RED    = rgb(0.55, 0.13, 0.13);
-  const PW = 612, PH = 792, M = 48;
-  const RX = PW - M;
+  const PW = 612, PH = 792, M = 48, RX = 612 - 48;
 
   const doc  = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const reg  = await doc.embedFont(StandardFonts.Helvetica);
   let page, y;
 
+  var dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var vtDate  = new Date(); vtDate.setDate(vtDate.getDate()+30);
+  var vtStr   = 'Quote valid through '+vtDate.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Continuation pages get a minimal header
   function newPage() {
     page = doc.addPage([PW, PH]);
-    page.drawRectangle({ x:0, y:PH-66, width:PW, height:66, color:NAVY });
-    page.drawText('BONNEY WATSON', { x:M, y:PH-30, size:17, font:bold, color:WHITE });
-    page.drawText(subtitle, { x:M, y:PH-50, size:10, font:reg, color:rgb(0.75,0.75,0.75) });
-    y = PH - 84;
+    page.drawText('BONNEY WATSON  \xb7  Washington Memorial Park', {x:M, y:PH-36, size:10, font:bold, color:NAVY});
+    page.drawLine({start:{x:M,y:PH-44},end:{x:RX,y:PH-44},thickness:0.5,color:GOLD});
+    y = PH - 62;
   }
-  function checkY(n) { if (y < n + 60) newPage(); }
+  function checkY(n) { if (y < n + 70) newPage(); }
 
-  newPage();
-  const dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  if (clientName) { page.drawText('Prepared for: '+clientName, {x:M,y,size:11,font:bold,color:DARK}); y-=16; }
-  page.drawText(dateStr, {x:M,y,size:9.5,font:reg,color:MUTED});
-  y -= 24;
-  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:1,color:GOLD});
-  y -= 20;
+  // ── First page full header ──
+  page = doc.addPage([PW, PH]);
+  // Brand: BONNEY WATSON (bold) + · Washington Memorial Park (regular) on same baseline
+  var bwStr = 'BONNEY WATSON';
+  var bwW   = bold.widthOfTextAtSize(bwStr, 17);
+  page.drawText(bwStr, {x:M, y:PH-44, size:17, font:bold, color:NAVY});
+  page.drawText('  \xb7  Washington Memorial Park', {x:M+bwW, y:PH-44, size:17, font:reg, color:NAVY});
+  // Date top-right
+  var dW = reg.widthOfTextAtSize(dateStr, 9.5);
+  page.drawText(dateStr, {x:RX-dW, y:PH-44, size:9.5, font:reg, color:MUTED});
+  // Subtitle left + valid-through right
+  page.drawText(subtitle, {x:M, y:PH-60, size:10, font:reg, color:DARK});
+  var vtW = reg.widthOfTextAtSize(vtStr, 8.5);
+  page.drawText(vtStr, {x:RX-vtW, y:PH-60, size:8.5, font:reg, color:rgb(0.7,0.7,0.7)});
+  // Prepared for
+  var hdrBot = PH - 76;
+  if (clientName) {
+    page.drawText('Prepared for: '+clientName, {x:M, y:hdrBot, size:11, font:bold, color:DARK});
+    hdrBot -= 16;
+  }
+  // Gold rule
+  page.drawLine({start:{x:M,y:hdrBot-4},end:{x:RX,y:hdrBot-4},thickness:1.5,color:GOLD});
+  y = hdrBot - 26;
 
-  const exempt  = lines.filter(function(l){ return !l.taxable && !l.isDiscount && !l.isTax; });
-  const taxable = lines.filter(function(l){ return  l.taxable && !l.isDiscount && !l.isTax; });
-  const discs   = lines.filter(function(l){ return  l.isDiscount; });
-
+  // ── Helpers ──
   function trunc(text, maxPx, f, sz) {
     var t = String(text);
     while (t.length > 4 && f.widthOfTextAtSize(t, sz) > maxPx) t = t.slice(0,-1);
-    return t.length < text.length ? t.trim()+'…' : t;
+    return t.length < String(text).length ? t.trim()+'…' : t;
+  }
+  function fmtMoney(n) {
+    return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
   function drawRow(label, amount, color) {
     checkY(18);
-    var neg = amount < 0;
-    var amtStr = (neg?'-$':'$')+Math.abs(amount).toLocaleString('en-US',{minimumFractionDigits:2});
-    var amtW   = reg.widthOfTextAtSize(amtStr, 10);
+    var amtStr = fmtMoney(amount);
+    var amtW   = bold.widthOfTextAtSize(amtStr, 10);
     var lbl    = trunc(label, RX-M-amtW-20, reg, 10);
-    page.drawText(lbl,    {x:M+6,       y, size:10, font:reg,  color:DARK});
-    page.drawText(amtStr, {x:RX-amtW,   y, size:10, font:reg,  color:color||DARK});
+    page.drawText(lbl,    {x:M+6,     y, size:10, font:reg,  color:DARK});
+    page.drawText(amtStr, {x:RX-amtW, y, size:10, font:bold, color:color||DARK});
     page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
     y -= 18;
   }
   function drawSection(title, items, color) {
     if (!items.length) return;
-    checkY(28);
-    page.drawRectangle({x:M, y:y-16, width:RX-M, height:20, color:rgb(0.94,0.95,0.97)});
-    page.drawText(title.toUpperCase(), {x:M+8, y:y-12, size:8, font:bold, color:NAVY});
-    y -= 26;
+    checkY(30);
+    page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
+    page.drawText(title.toUpperCase(), {x:M, y:y-10, size:8, font:bold, color:ORANGE});
+    y -= 22;
     items.forEach(function(l){ drawRow(l.label, l.amount, color); });
   }
 
-  drawSection('Services & Cemetery Items', exempt);
-  drawSection('Merchandise (Taxable)',     taxable);
-  drawSection('Discounts',                discs, RED);
+  // ── Content ──
+  var exempt  = lines.filter(function(l){ return !l.taxable && !l.isDiscount && !l.isTax; });
+  var taxable = lines.filter(function(l){ return  l.taxable && !l.isDiscount && !l.isTax; });
+  var discs   = lines.filter(function(l){ return  l.isDiscount; });
 
-  checkY(110); y -= 8;
-  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:1.5,color:NAVY}); y -= 20;
+  drawSection(opts.exSection  || 'Tax-Exempt Services',  exempt);
+  drawSection(opts.taxSection || 'Taxable Merchandise',  taxable);
+  drawSection('Discounts', discs, GREEN);
 
+  // Sales tax line in gold
   var exemptSub  = exempt.reduce(function(s,l){return s+l.amount;},0);
   var taxableSub = taxable.reduce(function(s,l){return s+l.amount;},0);
-  var discTotal  = discs.reduce(function(s,l){return s+Math.abs(l.amount);},0);
+  var discAmt    = discs.reduce(function(s,l){return s+Math.abs(l.amount);},0);
   var taxAmt     = Math.round(taxableSub * 0.104 * 100) / 100;
-  var grand      = exemptSub + taxableSub + taxAmt - discTotal;
+  var grand      = (opts.grandTotal != null) ? opts.grandTotal : (exemptSub + taxableSub + taxAmt - discAmt);
 
-  function drawTot(label, amt, isGrand, isDisc) {
-    var f  = isGrand ? bold : reg;
-    var sz = isGrand ? 13 : 10;
-    var col= isGrand ? ORANGE : (isDisc ? RED : MUTED);
-    var str= (isDisc?'-$':'$')+Math.abs(amt).toLocaleString('en-US',{minimumFractionDigits:2});
-    var w  = f.widthOfTextAtSize(str, sz);
-    page.drawText(label, {x:M+6,    y, size:sz, font:f, color:isGrand?DARK:MUTED});
-    page.drawText(str,   {x:RX-w,   y, size:sz, font:f, color:col});
-    y -= sz+9;
+  if (taxAmt > 0) {
+    checkY(18);
+    var taxAmtStr = fmtMoney(taxAmt);
+    var taxAmtW   = reg.widthOfTextAtSize(taxAmtStr, 10);
+    page.drawText('Sales Tax (10.4%)', {x:M+6,       y, size:10, font:reg, color:GOLD});
+    page.drawText(taxAmtStr,           {x:RX-taxAmtW, y, size:10, font:reg, color:GOLD});
+    page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
+    y -= 18;
   }
-  if (exempt.length)  drawTot('Non-Taxable Subtotal', exemptSub,  false, false);
-  if (taxable.length) drawTot('Taxable Subtotal',      taxableSub, false, false);
-  if (taxable.length) drawTot('Sales Tax (10.4%)',     taxAmt,     false, false);
-  if (discs.length)   drawTot('Discounts',             discTotal,  false, true);
-  y -= 6;
-  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:NAVY}); y -= 22;
-  drawTot('TOTAL ESTIMATE', grand, true, false);
 
-  // Footer on every page
-  var pages = doc.getPages();
-  pages.forEach(function(pg) {
+  // Navy rule + total
+  checkY(55); y -= 8;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:NAVY}); y -= 22;
+  var grandStr = fmtMoney(grand);
+  var grandW   = bold.widthOfTextAtSize(grandStr, 20);
+  page.drawText('Total',    {x:M,        y, size:14, font:bold, color:DARK});
+  page.drawText(grandStr,   {x:RX-grandW, y, size:20, font:bold, color:ORANGE});
+  y -= 28;
+  if (taxAmt > 0) {
+    page.drawText('Tax applies to merchandise. Services & transportation are exempt.', {x:M, y, size:8.5, font:reg, color:MUTED});
+  }
+
+  // Footer on all pages
+  doc.getPages().forEach(function(pg) {
     pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:GOLD});
-    pg.drawText('Bonney Watson  ·  21st Ave SW & SW Thistle St, Seattle WA 98166  ·  mmorrison@bonneywatson.com  ·  206-445-9794',{x:M,y:44,size:7.5,font:reg,color:MUTED});
+    pg.drawText('Bonney Watson  \xb7  21st Ave SW & SW Thistle St, Seattle WA 98166  \xb7  mmorrison@bonneywatson.com  \xb7  206-445-9794',{x:M,y:44,size:7.5,font:reg,color:MUTED});
     pg.drawText('Prices valid for 90 days and subject to change without notice. This is an estimate only.',{x:M,y:30,size:7,font:reg,color:rgb(0.7,0.7,0.7)});
   });
 
@@ -9582,13 +9606,22 @@ async function downloadCemQuotePDF() {
   logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
-  await _buildQuotePDF(lines, val('cemClientName')||'', 'Cemetery Services · Price Estimate', 'BW_Cemetery_Quote');
+  var subtitle = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
+  await _buildQuotePDF(lines, val('cemClientName')||'', subtitle, 'BW_Cemetery_Quote', {
+    exSection: 'Services & Cemetery Items',
+    taxSection: 'Merchandise (Taxable)',
+    grandTotal: (typeof _cemTotal !== 'undefined') ? _cemTotal : undefined
+  });
 }
 async function downloadFhQuotePDF() {
   logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
-  await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home · Price Estimate', 'BW_FuneralHome_Quote');
+  await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home Quote', 'BW_FuneralHome_Quote', {
+    exSection: 'Tax-Exempt Services',
+    taxSection: 'Taxable Merchandise',
+    grandTotal: (typeof _fhTotal !== 'undefined') ? _fhTotal : undefined
+  });
 }
 
 // ═══ AUTO-SAVE DRAFT ═══
