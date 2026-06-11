@@ -166,7 +166,7 @@ body.light-mode .quick-status{background:#f0f2f8;border-color:#cdd5e0;color:#1a2
 body.light-mode .quick-status option{background:#fff;color:#1a2744}
 body.light-mode .search-bar input{background:#fff;border-color:#cdd5e0;color:#1a2744}
 body.light-mode .filter-chip{border-color:#cdd5e0;color:#5a7090}
-body.light-mode .field input,.light-mode .field select,.light-mode .field textarea{background:#f5f7fb;border-color:#cdd5e0;color:#1a2744}
+body.light-mode .field input,body.light-mode .field select,body.light-mode .field textarea{background:#f5f7fb;border-color:#cdd5e0;color:#1a2744}
 body.light-mode .field select option{background:#fff;color:#1a2744}
 body.light-mode .field label{color:#5a7090}
 body.light-mode .modal{background:#fff;border-color:#c8a96e66}
@@ -741,7 +741,7 @@ function initFirebase(){
 }
 function safeFBCases(cs){
   return cs.map(function(c){
-    if(!c.checklist) return c;
+    if(!c || typeof c.checklist !== 'object') return c;
     var cl={};
     Object.entries(c.checklist).forEach(function(entry){
       cl[entry[0].replace(/\//g,' & ')]=entry[1];
