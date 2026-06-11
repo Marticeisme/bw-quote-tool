@@ -608,7 +608,7 @@ const PC={High:'#b03a2e',Medium:'#c8540a',Low:'#8fa3b8'};
 const CC={Family:'#c8a96e','Bill/Payment':'#b03a2e',Appointment:'#c8540a',School:'#2e7d57',Other:'#8fa3b8'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MEAL_TYPES=['Dinner'];
-const today=new Date().toISOString().slice(0,10);
+const today=fmtDate(new Date());
 
 const REMINDER_DAYS={'AOC / Direct Cremation':4,'Traditional Service':2,'Viewing & Service':2,'Memorial Service':3,'I.D. Viewing':3,'Graveside Service':3,'Traditional Burial Service':2,'Direct Burial / No Service':3};
 const getRDays=st=>REMINDER_DAYS[st]||4;
@@ -716,7 +716,7 @@ function initFirebase(){
       // Merge incoming data
       cases  = data.cases  || cases;
       tasks  = data.tasks  || tasks;
-      meals  = data.meals  || meals;
+      meals  = data.meals ? normalizeMeals(data.meals) : meals;
       events = data.events || events;
       school = data.school || school;
       recipeLibrary = data.recipeLibrary || recipeLibrary;
@@ -770,7 +770,17 @@ function save(){
   // Cloud sync
   pushToFirebase();
 }
-function fmtDate(d){return d.toISOString().slice(0,10);}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function normalizeMeals(m){
+  if(!m||typeof m!=='object')return {};
+  var out={};
+  Object.keys(m).forEach(function(k){
+    var v=m[k];
+    if(Array.isArray(v))out[k]=v;
+    else if(v&&typeof v==='object')out[k]=Object.values(v);
+  });
+  return out;
+}
 function showToast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.className=ok?'':'error';t.style.display='block';setTimeout(()=>t.style.display='none',3200);}
 
 // ═══════════════════════════════════════
