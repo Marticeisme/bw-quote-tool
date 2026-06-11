@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Morrison Frink Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{--navy:#1a2744;--navyD:#0e1829;--navyL:#223059;--orange:#c8540a;--gold:#c8a96e;--goldL:#dfc08a;--muted:#8fa3b8;--white:#fff;--green:#2e7d57;--red:#b03a2e;--yellow:#b8860b;--purple:#6b4fa0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navyD);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--navyD)}::-webkit-scrollbar-thumb{background:#c8a96e44;border-radius:3px}
+header{background:var(--navy);border-bottom:2px solid #c8a96e33;padding:0 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.logo{padding:11px 0}.logo-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:18px;font-weight:700;line-height:1}.logo-sub{color:var(--muted);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+nav{display:flex;gap:2px;flex-wrap:wrap;padding:7px 0}
+.nav-btn{background:transparent;color:var(--muted);border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px;transition:all .15s}
+.nav-btn.active{background:var(--orange);color:#fff}
+.spacer{flex:1}
+.gcal-btn{background:#c8a96e22;color:var(--gold);border:1px solid #c8a96e44;border-radius:6px;padding:5px 11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;white-space:nowrap}
+.gcal-btn.connected{background:#2e7d5722;color:var(--green);border-color:#2e7d5744}
+.user-switcher{display:flex;gap:3px;background:#ffffff0a;border-radius:8px;padding:3px}
+.user-btn{border:none;border-radius:5px;padding:4px 11px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:all .15s;background:transparent;color:var(--muted)}
+.user-btn.active-martice{background:var(--orange);color:#fff}
+.user-btn.active-chloe{background:var(--purple);color:#fff}
+.user-btn.active-all{background:var(--gold);color:var(--navy)}
+main{padding:18px;max-width:1180px;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+/* Due today banner */
+.due-banner{background:linear-gradient(90deg,#b03a2e22,#c8540a22);border:1px solid #c8540a44;border-radius:10px;padding:11px 16px;margin-bottom:16px;display:none}
+.due-banner.show{display:block}
+.due-banner-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--orange);font-weight:700;margin-bottom:6px}
+.due-item{font-size:13px;color:var(--goldL);padding:3px 0;display:flex;gap:8px;align-items:center}
+/* Search bar */
+.search-bar{position:relative;margin-bottom:14px}
+.search-bar input{width:100%;background:var(--navy);border:1px solid #8fa3b833;border-radius:10px;padding:9px 14px 9px 38px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.search-bar input::placeholder{color:var(--muted)}
+.search-bar::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px}
+/* Filter bar */
+.filter-bar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filter-chip{background:transparent;border:1px solid #8fa3b844;border-radius:99px;padding:4px 12px;cursor:pointer;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
+.filter-chip.active{background:#c8540a22;border-color:var(--orange);color:var(--orange)}
+.count-badge{background:var(--orange);color:#fff;border-radius:99px;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:3px}
+/* Buttons */
+.btn-primary{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:7px 15px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px}
+.btn-chloe{background:var(--purple);color:#fff;border:none;border-radius:8px;padding:7px 15px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid #8fa3b844;border-radius:8px;padding:7px 13px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;font-size:12px}
+.btn-sm{border-radius:6px;padding:3px 9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;white-space:nowrap;border:1px solid transparent}
+.btn-green{background:#2e7d5722;color:var(--green);border:1px solid #2e7d5744;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600}
+/* Case cards */
+.case-card{background:var(--navyL);border-radius:13px;margin-bottom:12px;border:1px solid #ffffff11;overflow:hidden;transition:box-shadow .2s}
+.case-card:hover{box-shadow:0 4px 24px #0006}
+.case-card-header{padding:14px 18px;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.case-card-body{padding:0 18px 16px;border-top:1px solid #ffffff0a;display:none}
+.case-card-body.open{display:block}
+.case-card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600}
+/* Quick status dropdown on card */
+.quick-status{background:#0e1829;border:1px solid #ffffff22;border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 8px;cursor:pointer;outline:none}
+.quick-status option{background:var(--navy)}
+/* Checklist */
+.checklist-group{margin-bottom:12px}
+.checklist-group-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:600}
+.check-item{display:flex;align-items:center;gap:9px;padding:5px 9px;border-radius:7px;margin-bottom:3px;background:#ffffff05;cursor:pointer;transition:background .15s}
+.check-item:hover{background:#ffffff0f}
+.check-item.checked{opacity:.45}
+.check-box{width:17px;height:17px;border-radius:4px;border:2px solid var(--muted);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
+.check-box.done{border-color:var(--green);background:var(--green);color:#fff}
+.check-label{font-size:12px;flex:1}
+.check-item.checked .check-label{text-decoration:line-through;color:var(--muted)}
+.check-date{font-size:10px;color:var(--muted)}
+.check-item.na{opacity:.35;background:transparent}
+.check-item.na .check-label{text-decoration:line-through;color:var(--muted);font-style:italic}
+.na-btn{background:transparent;border:1px solid #8fa3b833;border-radius:4px;padding:1px 5px;font-size:9px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;margin-left:2px;white-space:nowrap}
+.na-btn.active{background:#8fa3b822;color:#fff;border-color:var(--muted)}
+.add-check-row{display:flex;gap:6px;margin-top:6px;align-items:center}
+.add-check-row input{flex:1;background:#0e1829;border:1px solid #8fa3b833;border-radius:6px;padding:4px 9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;outline:none}
+.smart-alert{background:#b03a2e18;border:1px solid #b03a2e44;border-radius:8px;padding:7px 11px;margin-bottom:5px;font-size:11px;color:#e07060;display:flex;gap:7px;align-items:flex-start;line-height:1.4}
+.smart-alert.warn{background:#b8860b18;border-color:#b8860b44;color:#d4a830}
+.school-card{background:var(--navyL);border-radius:11px;padding:13px 16px;margin-bottom:9px;border:1px solid #6b4fa033}
+.school-chip{background:#6b4fa022;color:var(--purple);border:1px solid #6b4fa044;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:600}
+/* Touchpoints */
+.touchpoint-entry{background:#ffffff08;border-radius:8px;padding:9px 13px;margin-bottom:7px;border-left:3px solid var(--gold)}
+.touchpoint-date{font-size:10px;color:var(--gold);font-weight:600;margin-bottom:2px}
+.touchpoint-text{font-size:12px;color:var(--goldL)}
+.add-touchpoint{display:flex;gap:8px;margin-top:8px;align-items:flex-start}
+.add-touchpoint textarea{flex:1;background:#0e1829;border:1px solid #8fa3b844;border-radius:8px;padding:7px 10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;resize:none;height:65px;outline:none}
+/* Reminder badges */
+.reminder-badge{background:#b03a2e22;color:var(--red);border:1px solid #b03a2e44;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:600}
+.reminder-badge.soon{background:#b8860b22;color:var(--yellow);border-color:#b8860b44}
+.reminder-badge.ok{background:#2e7d5722;color:var(--green);border-color:#2e7d5744}
+/* Progress */
+.progress-bar{height:3px;background:#ffffff11;border-radius:99px;margin-top:7px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));border-radius:99px;transition:width .4s}
+/* Owner tags */
+.owner-tag-martice{background:#c8540a22;color:var(--orange);border:1px solid #c8540a44;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:700}
+.owner-tag-chloe{background:#6b4fa022;color:var(--purple);border:1px solid #6b4fa044;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:700}
+.status-badge{border-radius:99px;padding:2px 9px;font-size:10px;font-weight:600}
+.tag{color:var(--muted);font-size:10px;border:1px solid #8fa3b833;border-radius:99px;padding:1px 7px}
+.pay-status{background:#6b4fa022;color:var(--purple);border:1px solid #6b4fa044;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:600}
+.section-label{color:var(--muted);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin:16px 0 7px}
+.empty{text-align:center;padding:45px 20px;color:var(--muted)}.empty-icon{font-size:32px;margin-bottom:10px}
+.divider{height:1px;background:#ffffff0a;margin:12px 0}
+.misc-item{display:flex;align-items:center;gap:8px;background:#ffffff05;border-radius:7px;padding:5px 9px;margin-bottom:4px}
+.misc-item input{flex:1;background:transparent;border:none;color:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;outline:none}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:#000c;z-index:200;align-items:center;justify-content:center;padding:14px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--navyL);border-radius:15px;padding:22px;width:100%;max-width:600px;border:1px solid #c8a96e44;max-height:93vh;overflow-y:auto}
+.modal-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:18px;margin-bottom:16px}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:16px}
+.field{margin-bottom:12px}
+.field label{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;background:#0e1829;border:1px solid #8fa3b844;border-radius:8px;padding:7px 11px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.field textarea{resize:vertical;min-height:110px}
+.field select option{background:var(--navy)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.6);cursor:pointer}
+/* Wizard */
+.wizard-step{display:none}.wizard-step.active{display:block}
+.disp-btn{background:#ffffff08;border:2px solid #ffffff11;border-radius:11px;padding:13px 17px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--white);width:100%;text-align:left;margin-bottom:9px;transition:all .15s}
+.disp-btn:hover{background:#ffffff14;border-color:var(--gold)}
+.disp-btn .disp-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+/* Meals */
+.check-circle{width:20px;height:20px;border-radius:99px;border:2px solid var(--muted);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;transition:all .15s}
+.check-circle.done{border-color:var(--green);background:var(--green)}
+.meal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.meal-day{background:var(--navy);border-radius:9px;padding:9px;border:1px solid #ffffff11;min-height:170px}
+.meal-day.today{background:var(--navyL);border-color:#c8a96e66}
+.meal-day-header{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;margin-bottom:7px;color:var(--muted)}
+.meal-day.today .meal-day-header{color:var(--gold)}
+.meal-type-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.meal-slot{margin-bottom:5px}
+.meal-entry{background:#c8540a18;border-radius:5px;padding:3px 6px;font-size:10px;color:var(--goldL);cursor:pointer;display:flex;align-items:center;gap:3px}
+.meal-entry span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meal-add{background:transparent;border:1px dashed #8fa3b844;border-radius:5px;padding:2px 5px;font-size:9px;color:var(--muted);cursor:pointer;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.meal-sync{margin-top:5px;background:transparent;border:1px solid #c8a96e33;border-radius:5px;padding:2px 6px;font-size:9px;color:var(--gold);cursor:pointer;width:100%;font-family:'DM Sans',sans-serif}
+.week-nav{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.week-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:15px;flex:1;text-align:center}
+.event-row{background:var(--navyL);border-radius:9px;padding:11px 15px;margin-bottom:7px;display:flex;gap:11px;align-items:center;border:1px solid #ffffff11}
+.event-bar{width:4px;height:38px;border-radius:4px;flex-shrink:0}
+.soon-badge{color:var(--orange);font-size:10px;font-weight:600}
+#toast{position:fixed;top:18px;right:18px;z-index:9999;background:var(--green);color:#fff;padding:10px 17px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 20px #0006;display:none;animation:fadeIn .2s}
+#toast.error{background:var(--red)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.sync-banner{background:#c8a96e11;border:1px solid #c8a96e44;border-radius:9px;padding:11px 15px;margin-bottom:16px;font-size:12px;color:var(--goldL);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.sync-banner a{color:var(--gold);font-weight:600}
+/* Print modal */
+#printArea{display:none}
+@media print{body>*{display:none}#printArea{display:block!important;color:#000;font-family:sans-serif;padding:20px}}
+@media(max-width:700px){.meal-grid{grid-template-columns:repeat(2,1fr)}.field-row{grid-template-columns:1fr}header{gap:6px}.nav-btn{padding:5px 8px;font-size:11px}main{padding:12px}}
+@media(max-width:400px){.meal-grid{grid-template-columns:1fr}}
+</style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="toast"></div>
+<div id="printArea"></div>
+
+<header>
+  <div class="logo"><div class="logo-title">Morrison Frink</div><div class="logo-sub">Family Dashboard</div></div>
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('cases')">⚫ Cases</button>
+    <button class="nav-btn" onclick="switchTab('tasks')">✓ Tasks</button>
+    <button class="nav-btn" onclick="switchTab('meals')">🍽 Meals</button>
+    <button class="nav-btn" onclick="switchTab('calendar')">📅 Calendar</button>
+    <button class="nav-btn" onclick="switchTab('school')" style="color:#6b4fa0">🎓 School</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="user-switcher">
+    <button class="user-btn active-martice" id="btnMartice" onclick="setUser('martice')">Martice</button>
+    <button class="user-btn" id="btnChloe" onclick="setUser('chloe')">Chloe</button>
+    <button class="user-btn" id="btnAll" onclick="setUser('all')">All Cases</button>
+  </div>
+  <span id="syncStatus" style="font-size:10px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:4px"><span id="syncDot" style="width:7px;height:7px;border-radius:99px;background:var(--muted);display:inline-block"></span><span id="syncText">Connecting…</span></span>
+  <button class="gcal-btn" id="gcalBtn" onclick="signInGoogle()">Connect Google Cal</button>
+</header>
+
+<main>
+
+  <!-- CASES -->
+  <div class="panel active" id="panel-cases">
+    <!-- Due Today Banner -->
+    <div class="due-banner" id="dueBanner">
+      <div class="due-banner-title">🔴 Due Today / Tomorrow</div>
+      <div id="dueItems"></div>
+    </div>
+    <!-- Search -->
+    <div class="search-bar"><input type="text" id="caseSearch" placeholder="Search cases by name, case #, disc #…" oninput="renderCases()"/></div>
+    <!-- Filters -->
+    <div class="filter-bar" id="caseFilters"></div>
+    <div id="caseList"></div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="panel" id="panel-tasks">
+    <div class="filter-bar" id="taskFilters"></div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- MEALS -->
+  <div class="panel" id="panel-meals">
+    <div class="week-nav">
+      <button class="btn-secondary" onclick="changeWeek(-1)">← Prev</button>
+      <div class="week-title" id="weekLabel"></div>
+      <button class="btn-secondary" style="font-size:10px" onclick="changeWeek(0)">Today</button>
+      <button class="btn-secondary" onclick="changeWeek(1)">Next →</button>
+      <button class="btn-primary" style="font-size:11px;padding:5px 13px" onclick="randomizeDinners()" title="Pick random dinners from library for empty slots">🎲 Randomize</button>
+      <button class="btn-secondary" style="font-size:11px;padding:5px 13px" onclick="toggleRecipeLibrary()">📚 Recipes</button>
+    </div>
+    <div class="meal-grid" id="mealGrid"></div>
+    <!-- Recipe Library (collapsible) -->
+    <div id="recipeLibraryPanel" style="display:none;margin-top:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-family:'Playfair Display',serif;color:var(--gold);font-size:15px;flex:1">Recipe Library</div>
+        <button class="btn-primary" style="font-size:11px;padding:5px 13px" onclick="openRecipeModal()">+ Add Recipe</button>
+      </div>
+      <div id="recipeList"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="panel" id="panel-calendar">
+    <div class="filter-bar"><div class="spacer"></div><button class="btn-primary" onclick="openEventModal()">+ Add Event</button></div>
+    <div id="calList"></div>
+  </div>
+
+  <!-- SCHOOL (Chloe) -->
+  <div class="panel" id="panel-school">
+    <div class="filter-bar" id="schoolFilters"></div>
+    <div id="schoolList"></div>
+  </div>
+</main>
+
+<!-- ═══════════════ CASE MODAL ═══════════════ -->
+<div class="modal-overlay" id="caseModal">
+ <div class="modal" style="max-width:630px">
+  <div class="modal-title" id="caseModalTitle">New Case</div>
+  <!-- Step 1 -->
+  <div class="wizard-step active" id="ws1">
+    <div class="field"><label>Who is adding this case?</label>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="disp-btn" onclick="selectOwner('martice')" style="flex:1">🟠 Martice<div class="disp-sub">Cemetery / Pre-Need</div></button>
+        <button class="disp-btn" onclick="selectOwner('chloe')" style="flex:1">🟣 Chloe<div class="disp-sub">Funeral Director</div></button>
+      </div>
+    </div>
+  </div>
+  <!-- Step 2 -->
+  <div class="wizard-step" id="ws2">
+    <div style="margin-bottom:11px;color:var(--muted);font-size:12px" id="ws2Owner"></div>
+    <div id="marticeTypes">
+      <label style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:7px">Case Type</label>
+      <button class="disp-btn" onclick="selectDisp('RIC')">📄 RIC<div class="disp-sub">Retail Installment Contract — Pre-Need Cemetery</div></button>
+      <button class="disp-btn" onclick="selectDisp('CIRGAS')">📄 CIRGAS<div class="disp-sub">Cemetery Interment Rights, Goods & Services — At-Need</div></button>
+      <button class="disp-btn" onclick="selectDisp('GA Policy')">📋 GA / Forethought Policy<div class="disp-sub">Pre-Need Funeral insurance</div></button>
+      <button class="disp-btn" onclick="selectDisp('Clearpoint Trust')">📋 Clearpoint Trust<div class="disp-sub">Pre-Need Funeral trust</div></button>
+      <button class="disp-btn" onclick="selectDisp('Work Order')">🔧 Work Order<div class="disp-sub">Cemetery work order request</div></button>
+    </div>
+    <div id="chloeDisp" style="display:none">
+      <label style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:7px">Disposition</label>
+      <button class="disp-btn" onclick="selectDisp('Cremation')">🔥 Cremation<div class="disp-sub">Direct or with service</div></button>
+      <button class="disp-btn" onclick="selectDisp('Burial')">⚰️ Burial<div class="disp-sub">Full burial / graveside</div></button>
+    </div>
+    <button class="btn-secondary" onclick="goStep(1)" style="margin-top:6px">← Back</button>
+  </div>
+  <!-- Step 3 -->
+  <div class="wizard-step" id="ws3">
+    <div style="margin-bottom:11px;color:var(--muted);font-size:12px" id="ws3Disp"></div>
+    <label style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:7px">Service Type</label>
+    <div id="serviceTypeList"></div>
+    <button class="btn-secondary" onclick="goStep(2)" style="margin-top:6px">← Back</button>
+  </div>
+  <!-- Step 3b: Checklist picker (Martice confirmed sales) -->
+  <div class="wizard-step" id="ws3b">
+    <div style="margin-bottom:6px;color:var(--gold);font-size:13px;font-weight:600">Select Applicable Checklist Items</div>
+    <div style="margin-bottom:12px;color:var(--muted);font-size:11px">Check the items that apply to this case. Only selected items load, so your progress bar stays accurate. You can add more later.</div>
+    <div id="checklistPicker" style="max-height:50vh;overflow-y:auto;padding-right:4px"></div>
+    <div style="display:flex;gap:9px;justify-content:space-between;margin-top:14px">
+      <button class="btn-secondary" onclick="goStep(3)">← Back</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary" onclick="togglePickerAll(true)">Select All</button>
+        <button class="btn-secondary" onclick="togglePickerAll(false)">Clear All</button>
+        <button class="btn-primary" onclick="confirmChecklistPicker()">Continue →</button>
+      </div>
+    </div>
+  </div>
+  <!-- Step 4: Form -->
+  <div class="wizard-step" id="ws4">
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px" id="ws4Tags"></div>
+    <input type="hidden" id="caseId"/>
+    <div class="field"><label id="lblDecedent">Decedent / Family Name *</label><input type="text" id="cDecedent" placeholder="e.g. Morris, Victoris"/></div>
+    <div class="field-row">
+      <div class="field" id="fldDisc"><label id="lblDisc">Metal Disc #</label><input type="text" id="cDisc" placeholder="27694"/></div>
+      <div class="field"><label id="lblPassare">Passare Case #</label><input type="text" id="cPassare" placeholder="WM-2026-0219"/></div>
+    </div>
+    <div class="field" id="fldPassareLink"><label id="lblPassareLink">Passare Link</label><input type="text" id="cPassareLink" placeholder="https://app.passare.com/..."/></div>
+    <div class="field-row">
+      <div class="field"><label id="lblServiceDate">Service Date</label><input type="date" id="cServiceDate"/></div>
+      <div class="field"><label>Service Time</label><input type="time" id="cServiceTime"/></div>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="cStatus">
+        <option>New</option><option>In Progress</option><option>Pending Family</option><option>Pending Docs</option><option>Pending Payment</option><option>Complete</option>
+      </select>
+    </div>
+    <!-- Chloe payment -->
+    <div id="chloePaySection" style="display:none">
+      <div class="divider"></div>
+      <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:9px">Payment</div>
+      <div class="field"><label>Payment Method</label>
+        <select id="cPayment">
+          <option value="">— Select —</option>
+          <option>Cash</option><option>Credit Card</option><option>Check</option>
+          <option>Global Atlantic Contract</option><option>Clearpoint Contract</option><option>ClaimCheck</option>
+        </select>
+      </div>
+      <div class="field"><label>Payment Status</label>
+        <select id="cPayStatus">
+          <option value="">— Select current status —</option>
+          <option>Waiting for Family Payment</option><option>Pending DocuSign</option>
+          <option>ClaimCheck Form Pending</option><option>Contract Submitted — Awaiting Funds</option>
+          <option>Claim Filed — Awaiting Approval</option><option>Payment Received — Processing</option>
+          <option>Payment Complete</option>
+        </select>
+      </div>
+      <div class="field"><label>Payment Notes</label><input type="text" id="cPayNotes" placeholder="e.g. Submitted 6/4, awaiting GA response" style="min-height:unset"/></div>
+      <div class="divider"></div>
+      <div class="field"><label>Urn / Container Details</label><input type="text" id="cUrn" placeholder="e.g. Slate gray urn / Botanical Reflections 282982" style="min-height:unset"/></div>
+      <div class="field"><label>Casket / Container #</label><input type="text" id="cCasket" placeholder="e.g. Trayview 242414 / minimum cardboard" style="min-height:unset"/></div>
+    </div>
+    <!-- Martice payment -->
+    <div id="marticePaySection" style="display:none">
+      <div class="field"><label>Payment Method</label>
+        <select id="mPayment">
+          <option value="">— Select —</option>
+          <option>Cash</option><option>Credit Card</option><option>Check</option>
+          <option>Financing</option><option>Pre-Need Contract</option><option>Insurance / Policy</option><option>Medicaid / Assistance</option>
+        </select>
+      </div>
+      <div class="field"><label>Payment Status</label>
+        <select id="mPayStatus">
+          <option value="">— Select —</option>
+          <option>Waiting for Family Payment</option><option>Pending DocuSign</option>
+          <option>Payment Plan Active</option><option>Payment Received</option><option>Payment Complete</option>
+        </select>
+      </div>
+      <div class="field"><label>Family Follow-Up Reminder (days)</label>
+        <input type="number" id="mReminderDays" min="1" max="30" value="4" placeholder="4"/>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">How often to be reminded to follow up with this family. Adjust per family — defaults to 4 days.</div>
+      </div>
+    </div>
+    <!-- Work Order extra fields -->
+    <div id="workOrderSection" style="display:none">
+      <div class="divider"></div>
+      <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:9px">Work Order Details</div>
+      <div class="field-row">
+        <div class="field"><label>Full Name of Deceased</label><input type="text" id="woDeceased" placeholder="e.g. John Robert Smith"/></div>
+        <div class="field"><label>Date of Death</label><input type="date" id="woDateOfDeath"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Relationship to Deceased</label><input type="text" id="woRelationship" placeholder="e.g. Son of deceased"/></div>
+        <div class="field"><label>Visiting Family's Name</label><input type="text" id="woVisitingFamily" placeholder="e.g. Smith Family"/></div>
+      </div>
+      <div class="field"><label>Street Address</label><input type="text" id="woStreet" placeholder="123 Main St"/></div>
+      <div class="field-row">
+        <div class="field"><label>City</label><input type="text" id="woCity"/></div>
+        <div class="field"><label>State</label><input type="text" id="woState" placeholder="WA"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>ZIP Code</label><input type="text" id="woZip"/></div>
+        <div class="field"><label>Account / Policy #</label><input type="text" id="woPolicyNum"/></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Email</label><input type="email" id="woEmail"/></div>
+        <div class="field"><label>Phone</label><input type="tel" id="woPhone"/></div>
+      </div>
+      <div class="field"><label>Property Location</label><input type="text" id="woPropertyLocation" placeholder="e.g. Garden 20, Lot 15, Space B"/></div>
+      <div class="field"><label>Remarks</label><textarea id="woRemarks" style="min-height:70px"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Request Taken By</label><input type="text" id="woTakenBy"/></div>
+        <div class="field"><label>FSD</label><input type="text" id="woFSD"/></div>
+      </div>
+    </div>
+    <!-- Martice QUOTE section (RIC/CIRGAS quotes) -->
+    <div id="marticeQuoteSection" style="display:none">
+      <div class="divider"></div>
+      <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">What's Being Quoted</div>
+      <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Check all that apply — saved so you know exactly what was quoted.</div>
+      <div id="quoteCategories" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+      <div class="field" id="fldIntermentDate" style="margin-top:14px;display:none"><label>Interment Date (if family has one in mind)</label><input type="date" id="cIntermentDate"/>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">Optional — tentative date the family mentioned, even if not yet confirmed.</div>
+      </div>
+      <div class="field" style="margin-top:14px"><label>Estimated Quote Total (optional)</label>
+        <input type="text" id="cQuoteEstimate" placeholder="e.g. $8,500"/>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">A ballpark figure to point to — not an exact contract price.</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="field"><label>Notes</label><textarea id="cNotes" placeholder="Initial case notes, family details, special requests…"></textarea></div>
+    <!-- Misc -->
+    <div style="margin-bottom:12px">
+      <label style="display:block;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Misc / Additional Items</label>
+      <div id="miscList"></div>
+      <button type="button" onclick="addMiscItem()" style="background:transparent;border:1px dashed #8fa3b844;border-radius:7px;padding:5px 13px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;width:100%;margin-top:4px">+ Add Item</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="goStep(3)" id="caseBackBtn">← Back</button>
+      <button class="btn-primary" id="caseSaveBtn" onclick="saveCase()">Save Case</button>
+    </div>
+  </div>
+ </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-title" id="taskModalTitle">New Task</div>
+    <input type="hidden" id="taskId"/>
+    <div class="field"><label>Task *</label><input type="text" id="tText" placeholder="What needs to get done?"/></div>
+    <div class="field-row">
+      <div class="field"><label>Priority</label><select id="tPriority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+      <div class="field"><label>Category</label><select id="tCat"><option>Work</option><option>Personal</option><option>Home</option><option>Errand</option></select></div>
+    </div>
+    <div class="field"><label>Due Date</label><input type="date" id="tDue"/></div>
+    <div class="field">
+      <label>Repeat Every (days) — optional</label>
+      <input type="number" id="tRepeatDays" min="1" max="365" placeholder="e.g. 7 for weekly"/>
+      <div style="color:var(--muted);font-size:10px;margin-top:3px">On completion, resets with a new due date and never disappears. Leave blank for one-time tasks.</div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="tNotes" style="min-height:70px"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-title" id="eventModalTitle">New Event</div>
+    <input type="hidden" id="eventId"/>
+    <div class="field"><label>Title *</label><input type="text" id="eTitle"/></div>
+    <div class="field-row">
+      <div class="field"><label>Date *</label><input type="date" id="eDate"/></div>
+      <div class="field"><label>Time</label><input type="time" id="eTime"/></div>
+    </div>
+    <div class="field"><label>Category</label><select id="eCat"><option>Family</option><option>Bill/Payment</option><option>Appointment</option><option>School</option><option>Other</option></select></div>
+    <div class="field"><label>Notes</label><textarea id="eNotes" style="min-height:70px"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('eventModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meal / Dinner Modal -->
+<div class="modal-overlay" id="mealModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title" id="mealModalTitle">Set Dinner</div>
+    <input type="hidden" id="mealDate"/><input type="hidden" id="mealType"/>
+    <!-- Library picker -->
+    <div id="mealLibrarySection" style="margin-bottom:14px">
+      <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">From Recipe Library</div>
+      <div id="mealLibraryPicker" style="display:flex;flex-wrap:wrap;gap:7px;max-height:160px;overflow-y:auto;padding:2px"></div>
+      <div id="mealLibraryEmpty" style="display:none;color:var(--muted);font-size:12px;font-style:italic">No recipes in library yet — add some below.</div>
+    </div>
+    <div class="divider"></div>
+    <!-- Custom / new entry -->
+    <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;margin-top:12px">Or Enter Dinner</div>
+    <div class="field"><input type="text" id="mealText" placeholder="e.g. Chicken stir-fry" onkeydown="if(event.key==='Enter')saveMeal()"/></div>
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="mealSaveToLibrary" style="width:14px;height:14px;accent-color:var(--orange)"/>
+      Save this to my Recipe Library
+    </label>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="clearMealAndClose()">Clear Dinner</button>
+      <button class="btn-secondary" onclick="closeModal('mealModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveMeal()">Set Dinner</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Modal -->
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title" id="recipeModalTitle">New Recipe</div>
+    <input type="hidden" id="recipeId"/>
+    <div class="field"><label>Recipe Title *</label><input type="text" id="rTitle" placeholder="e.g. Lemon Herb Chicken"/></div>
+    <div class="field"><label>Ingredients / Notes</label><textarea id="rIngredients" style="min-height:90px" placeholder="List ingredients or quick prep notes…"></textarea></div>
+    <div class="field"><label>Link (optional)</label><input type="text" id="rLink" placeholder="https://…"/></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('recipeModal')">Cancel</button>
+      <button class="btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- School Modal -->
+<div class="modal-overlay" id="schoolModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="schoolModalTitle">New Assignment</div>
+    <input type="hidden" id="schoolId"/>
+    <div class="field"><label>Assignment / Task *</label><input type="text" id="sTitle" placeholder="e.g. Chapter 5 Quiz, Embalming lab report"/></div>
+    <div class="field-row">
+      <div class="field"><label>Class / Subject</label><input type="text" id="sClass" placeholder="e.g. Mortuary Science 101"/></div>
+      <div class="field"><label>Type</label>
+        <select id="sType">
+          <option>Assignment</option><option>Quiz</option><option>Exam</option>
+          <option>Lab</option><option>Project</option><option>Reading</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Due Date</label><input type="date" id="sDue"/></div>
+      <div class="field"><label>Priority</label>
+        <select id="sPriority"><option>High</option><option selected>Medium</option><option>Low</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="sNotes" style="min-height:70px" placeholder="Notes, reminders, links…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('schoolModal')">Cancel</button>
+      <button style="background:var(--purple);color:#fff;border:none;border-radius:8px;padding:7px 15px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px" onclick="saveSchool()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase Status Modal -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Firebase Sync Status</div>
+    <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:13px">This dashboard syncs in real-time via Firebase Realtime Database across all devices. No setup required.</p>
+    <div style="background:#ffffff05;border-radius:9px;padding:14px;margin-bottom:13px;display:flex;align-items:center;gap:11px">
+      <span id="syncModalDot" style="width:12px;height:12px;border-radius:99px;background:var(--muted);display:inline-block;flex-shrink:0"></span>
+      <span id="syncModalText" style="font-size:13px;color:var(--goldL)">Checking…</span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeModal('syncModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let cases   = JSON.parse(localStorage.getItem('bw:cases4')||'[]');
+let tasks   = JSON.parse(localStorage.getItem('bw:tasks') ||'[]');
+let meals   = JSON.parse(localStorage.getItem('bw:meals') ||'{}');
+let events  = JSON.parse(localStorage.getItem('bw:events')||'[]');
+let school  = JSON.parse(localStorage.getItem('bw:school')||'[]');
+let recipeLibrary = JSON.parse(localStorage.getItem('bw:recipes')||'[]');
+let expandedCards = JSON.parse(localStorage.getItem('bw:expanded')||'{}');
+let gToken=null,weekOffset=0,caseFilter='All',taskFilter='All',activeUser='martice';
+let wOwner='',wDisp='',wServiceType='';
+let wPickedChecklist=null; // Martice confirmed-sale chosen items {group:[texts]}
+
+const CASE_STATUSES=['New','In Progress','Pending Family','Pending Docs','Pending Payment','Complete'];
+const SC={New:'#c8540a','In Progress':'#c8a96e','Pending Family':'#b8860b','Pending Docs':'#8fa3b8','Pending Payment':'#6b4fa0',Complete:'#2e7d57'};
+const PC={High:'#b03a2e',Medium:'#c8540a',Low:'#8fa3b8'};
+const CC={Family:'#c8a96e','Bill/Payment':'#b03a2e',Appointment:'#c8540a',School:'#2e7d57',Other:'#8fa3b8'};
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MEAL_TYPES=['Dinner'];
+const today=new Date().toISOString().slice(0,10);
+
+const REMINDER_DAYS={'AOC / Direct Cremation':4,'Traditional Service':2,'Viewing & Service':2,'Memorial Service':3,'I.D. Viewing':3,'Graveside Service':3,'Traditional Burial Service':2,'Direct Burial / No Service':3};
+const getRDays=st=>REMINDER_DAYS[st]||4;
+
+// Cemetery quote categories for RIC/CIRGAS quotes
+const QUOTE_CATEGORIES=['Property — Garden / Lawn Space','Property — Niche','Property — Mausoleum Crypt','Second / Third Right','Opening & Closing','Vault + Setting','Marker — Granite','Marker — Bronze','Foundation / Install','Inscription','Portrait / Emblem','Scattering Package'];
+const FUNERAL_QUOTE_CATEGORIES=['Professional Services / Funeral Package','Casket Selection','Cremation Services','Urn / Alternative Container','Transportation / Transfer','Memorial Merchandise','Cash Advance Items'];
+
+const CHLOE_CHECKLISTS={
+  Cremation:{
+    'Death Certificates / Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Min Prep','ID View Complete / Photo Uploaded'],
+    Cremation:['Cremation Auth Signed & Uploaded','Cremation Packet Uploaded/Tagged','Witness Cremation Scheduled','Fingerprints Needed?','LegacyTouch Pamphlet to Family','Lock(s) of Hair Released to Family','Urn Ordered','Keepsakes Ordered','Family Notified of Cremation Date','Urn/Keepsakes Released'],
+    'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
+    'Contract / Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
+  },
+  Burial:{
+    'Death Certificates / Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Fully Prepped','Dressed & Casketed'],
+    'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Property in Safe?','PEI Released to Family','Flowers Ordered/Confirmed','Catering Ordered/Confirmed','Cemetery Notified/Scheduled','Escorts Requested/Confirmed','Bagpipes/Butterflies/Doves','Musicians Confirmed','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
+    'Contract / Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
+  }
+};
+// Martice checklists keyed by "Type::Mode" (Confirmed Sale or Quote). Work Order is standalone.
+const MARTICE_CHECKLISTS={
+  'RIC::Confirmed Sale':{
+    'Commission Packet':['Commission Worksheet','RIC Contract (terms & conditions, letter size)','Electronic Document Disclosure & Consent','Copy of Payment','Memorial Order Form','Cemetery Rules & Regulations','CRM Printout','Prices Confirmed By Admin'],
+    'New Property (if applicable)':['Phoenix Property Printout','Chaindex Copy','Affidavit of Heirs'],
+    'Submission':['RIC Documents to Cemetery Office','Property Designation Recorded','Date Submitted to Sales & Mktg Admin'],
+    'Follow-Up':['Marker / Memorial Follow-Up','Family Thank You / Aftercare']
+  },
+  'RIC::Quote':{
+    'Quote Prep':['Property Confirmed/Located','Pricing Confirmed','RIC Quote Prepared','Quote Sent to Family'],
+    'Family Follow-Up':['Initial Contact Made','Follow-Up Call','Second Follow-Up','Decision Check-In']
+  },
+  'CIRGAS::Confirmed Sale':{
+    'Commission Packet':['Commission Worksheet','CIRGAS Contract (terms & conditions, letter size)','Electronic Document Disclosure & Consent','Copy of Payment','Confirmation of Balance Owing (Cemetery Office)','Copy of IOA','Memorial Order Form','Cemetery Rules & Regulations','CRM Printout','Prices Confirmed By Admin'],
+    'New Property (if applicable)':['Phoenix Property Printout','Chaindex Copy','Affidavit of Heirs'],
+    'Submission':['Gave Appropriate Copies to Cemetery Office','Property Designation Recorded'],
+    'Follow-Up':['Marker / Memorial Follow-Up','Family Thank You / Aftercare']
+  },
+  'CIRGAS::Quote':{
+    'Quote Prep':['Property Confirmed/Located','Balance Owing Confirmed','Pricing Confirmed','CIRGAS Quote Prepared','Quote Sent to Family'],
+    'Family Follow-Up':['Initial Contact Made','Follow-Up Call','Second Follow-Up','Decision Check-In']
+  },
+  'GA Policy::Confirmed Sale':{
+    'Commission Packet':['Commission Worksheet','GA Insurance Policy Documents','Electronic Document Disclosure & Consent','Copy of Payment','CRM Printout','Prices Confirmed By Admin'],
+    'Payment Method':['Check Payable to Global Atlantic','GA Credit Card Form + Sec.4 Box Checked','Bank Withdrawal — Section 9 Completed'],
+    'If Applicable':['Cremation Authorization','Power of Attorney','Funeral Package Name in Notes (Required Purchase)'],
+    'Follow-Up':['Policy # Obtained','Family Follow-Up Call']
+  },
+  'GA Policy::Quote':{
+    'Quote Prep':['Needs Assessment Complete','GA Rate Estimate Prepared','Plan Options Presented','Quote Sent to Family'],
+    'Family Follow-Up':['Initial Contact Made','Follow-Up Call','Second Follow-Up','Decision Check-In']
+  },
+  'Clearpoint Trust::Confirmed Sale':{
+    'Commission Packet':['Commission Worksheet','Reason for Trust vs GA Policy Documented','Clearpoint Trust Documents','Non-Guaranteed Box Checked','Electronic Document Disclosure & Consent','Copy of Payment','CRM Printout','Prices Confirmed By Admin'],
+    'Payment Proof':['Imminent? Check Payable to BW / Gravity CC','Cash? Copy of BW Receipt','Check/CC — Copy of Check or Receipt'],
+    'If Applicable':['Cremation Authorization','Power of Attorney'],
+    'Follow-Up':['Family Follow-Up Call']
+  },
+  'Clearpoint Trust::Quote':{
+    'Quote Prep':['Needs Assessment Complete','Trust Estimate Prepared','Plan Options Presented','Quote Sent to Family'],
+    'Family Follow-Up':['Initial Contact Made','Follow-Up Call','Second Follow-Up','Decision Check-In']
+  },
+  'Work Order':{
+    'Request Intake':['Work Order Received','Deceased / Property Info Confirmed','Property Location Located','Account/Policy # Verified'],
+    'Fulfillment':['Work Scheduled','Work In Progress','Work Completed'],
+    'Follow-Up':['Family Notified of Completion','Photo / Confirmation Sent']
+  }
+};
+
+function uid(){return Math.random().toString(36).slice(2,10);}
+
+// ═══════════════════════════════════════
+// FIREBASE SYNC
+// ═══════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyB8y_4mgutskY8W4rJao9HHoAGdBkAumzM",
+  authDomain: "morrison-frink-dashboard.firebaseapp.com",
+  databaseURL: "https://morrison-frink-dashboard-default-rtdb.firebaseio.com",
+  projectId: "morrison-frink-dashboard",
+  storageBucket: "morrison-frink-dashboard.firebasestorage.app",
+  messagingSenderId: "320594168773",
+  appId: "1:320594168773:web:5b2535e83d7fc5b13459ac"
+};
+let fbDB=null, fbReady=false, fbWriting=false, suppressNextSync=false;
+function setSyncStatus(state){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  if(!dot)return;
+  if(state==='synced'){dot.style.background='#2e7d57';txt.textContent='Synced';txt.style.color='#2e7d57';}
+  else if(state==='saving'){dot.style.background='#c8a96e';txt.textContent='Saving…';txt.style.color='#c8a96e';}
+  else if(state==='offline'){dot.style.background='#b03a2e';txt.textContent='Offline (local only)';txt.style.color='#b03a2e';}
+  else {dot.style.background='#8fa3b8';txt.textContent='Connecting…';txt.style.color='#8fa3b8';}
+}
+function initFirebase(){
+  try{
+    firebase.initializeApp(firebaseConfig);
+    fbDB=firebase.database();
+    // Listen for remote changes
+    fbDB.ref('dashboard').on('value', snap=>{
+      const data=snap.val();
+      if(!data){ fbReady=true; setSyncStatus('synced'); return; }
+      if(fbWriting){ return; } // ignore our own write echo
+      // Merge incoming data
+      cases  = data.cases  || cases;
+      tasks  = data.tasks  || tasks;
+      meals  = data.meals  || meals;
+      events = data.events || events;
+      school = data.school || school;
+      recipeLibrary = data.recipeLibrary || recipeLibrary;
+      // Mirror to localStorage as backup
+      localStorage.setItem('bw:cases4',JSON.stringify(cases));
+      localStorage.setItem('bw:tasks',JSON.stringify(tasks));
+      localStorage.setItem('bw:meals',JSON.stringify(meals));
+      localStorage.setItem('bw:events',JSON.stringify(events));
+      localStorage.setItem('bw:school',JSON.stringify(school));
+      localStorage.setItem('bw:recipes',JSON.stringify(recipeLibrary));
+      fbReady=true; setSyncStatus('synced');
+      // Re-render whatever tab is active
+      const active=document.querySelector('.panel.active');
+      if(active){
+        const id=active.id.replace('panel-','');
+        if(id==='cases')renderCases(); else if(id==='tasks')renderTasks();
+        else if(id==='meals')renderMeals(); else if(id==='calendar')renderCalendar();
+        else if(id==='school')renderSchool();
+      }
+    }, err=>{ console.warn('Firebase read error',err); setSyncStatus('offline'); fbReady=true; });
+  }catch(e){ console.warn('Firebase init failed',e); setSyncStatus('offline'); fbReady=true; }
+}
+function pushToFirebase(){
+  if(!fbDB){ return; }
+  fbWriting=true;
+  setSyncStatus('saving');
+  fbDB.ref('dashboard').set({cases,tasks,meals,events,school,recipeLibrary,updatedAt:Date.now(),_secret:'MorrisonFrink2026Secret'})
+    .then(()=>{ setSyncStatus('synced'); setTimeout(()=>{fbWriting=false;},300); })
+    .catch(e=>{ console.warn('Firebase write failed',e); setSyncStatus('offline'); fbWriting=false; });
+}
+
+function save(){
+  // Local backup always
+  localStorage.setItem('bw:cases4',JSON.stringify(cases));
+  localStorage.setItem('bw:tasks',JSON.stringify(tasks));
+  localStorage.setItem('bw:meals',JSON.stringify(meals));
+  localStorage.setItem('bw:events',JSON.stringify(events));
+  localStorage.setItem('bw:school',JSON.stringify(school));
+  localStorage.setItem('bw:recipes',JSON.stringify(recipeLibrary));
+  localStorage.setItem('bw:expanded',JSON.stringify(expandedCards));
+  // Cloud sync
+  pushToFirebase();
+}
+function fmtDate(d){return d.toISOString().slice(0,10);}
+function showToast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.className=ok?'':'error';t.style.display='block';setTimeout(()=>t.style.display='none',3200);}
+
+// ═══════════════════════════════════════
+// USER
+// ═══════════════════════════════════════
+function setUser(u){
+  activeUser=u;
+  document.getElementById('btnMartice').className='user-btn'+(u==='martice'?' active-martice':'');
+  document.getElementById('btnChloe').className='user-btn'+(u==='chloe'?' active-chloe':'');
+  document.getElementById('btnAll').className='user-btn'+(u==='all'?' active-all':'');
+  caseFilter='All'; renderCases();
+}
+
+// ═══════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  ['cases','tasks','meals','calendar','school'].forEach((t,i)=>{ if(t===tab) document.querySelectorAll('.nav-btn')[i].classList.add('active'); });
+  if(tab==='cases') renderCases();
+  if(tab==='tasks') renderTasks();
+  if(tab==='meals') renderMeals();
+  if(tab==='calendar') renderCalendar();
+  if(tab==='school') renderSchool();
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+// Modal backdrop click is intentionally disabled — dismiss via Cancel or Save only.
+
+// ═══════════════════════════════════════
+// GOOGLE CALENDAR
+// ═══════════════════════════════════════
+const CLIENT_ID='490515181027-dmq3c7m52ml221r927mj78mra88pal94.apps.googleusercontent.com';
+function signInGoogle(){
+  const p=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:location.href.split('#')[0],response_type:'token',scope:'https://www.googleapis.com/auth/calendar.events'});
+  const w=window.open('https://accounts.google.com/o/oauth2/v2/auth?'+p,'gcal','width=500,height=600');
+  const t=setInterval(()=>{try{const h=w.location.hash;if(h&&h.includes('access_token')){clearInterval(t);w.close();gToken=new URLSearchParams(h.slice(1)).get('access_token');document.getElementById('gcalBtn').textContent='✓ GCal Connected';document.getElementById('gcalBtn').classList.add('connected');showToast('Google Calendar connected!');}}catch(e){}},500);
+}
+async function pushToGCal(title,dateStr,desc=''){
+  if(!gToken){showToast('Connect Google Calendar first.',false);return;}
+  const s=`${dateStr||today}T09:00:00`,e=`${dateStr||today}T10:00:00`;
+  const r=await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',headers:{Authorization:`Bearer ${gToken}`,'Content-Type':'application/json'},body:JSON.stringify({summary:title,description:desc,start:{dateTime:s,timeZone:'America/Los_Angeles'},end:{dateTime:e,timeZone:'America/Los_Angeles'}})});
+  showToast(r.ok?`"${title}" added to Google Calendar!`:'Calendar push failed.',r.ok);
+}
+function showSyncHelp(){
+  const dot=document.getElementById('syncDot'),txt=document.getElementById('syncText');
+  document.getElementById('syncModalDot').style.background=dot?dot.style.background:'#8fa3b8';
+  document.getElementById('syncModalText').textContent=txt?txt.textContent:'Checking…';
+  openModal('syncModal');
+}
+
+// ═══════════════════════════════════════
+// WIZARD
+// ═══════════════════════════════════════
+function goStep(n){document.querySelectorAll('.wizard-step').forEach(s=>s.classList.remove('active'));document.getElementById('ws'+n).classList.add('active');}
+
+function selectOwner(o){
+  wOwner=o;
+  document.getElementById('ws2Owner').textContent=o==='martice'?'🟠 Martice — Cemetery & Pre-Need':'🟣 Chloe — Funeral Director';
+  document.getElementById('marticeTypes').style.display=o==='martice'?'block':'none';
+  document.getElementById('chloeDisp').style.display=o==='chloe'?'block':'none';
+  goStep(2);
+}
+function selectDisp(d){
+  wDisp=d;
+  if(wOwner==='martice'){
+    if(d==='Work Order'){
+      // Work orders skip the quote/sale step
+      wServiceType='Work Order';
+      populateCaseForm();goStep(4);
+    } else {
+      // Show Quote vs Confirmed Sale choice
+      document.getElementById('ws3Disp').textContent='📄 '+d;
+      document.getElementById('serviceTypeList').innerHTML=
+        `<button class="disp-btn" onclick="selectServiceType('Confirmed Sale')">✅ Confirmed Sale<div class="disp-sub">Full commission packet checklist</div></button>
+         <button class="disp-btn" onclick="selectServiceType('Quote')">💬 Quote<div class="disp-sub">Quote prep + family follow-up steps</div></button>`;
+      goStep(3);
+    }
+  } else {
+    document.getElementById('ws3Disp').textContent=(d==='Cremation'?'🔥':'⚰️')+' '+d;
+    const types=d==='Cremation'?['AOC / Direct Cremation','Traditional Service','Memorial Service','I.D. Viewing','Viewing & Service']:['Traditional Burial Service','Graveside Service','Memorial Service','Direct Burial / No Service'];
+    document.getElementById('serviceTypeList').innerHTML=types.map(st=>`<button class="disp-btn" onclick="selectServiceType('${st}')">${st}<div class="disp-sub">Contact reminder every ${getRDays(st)} days</div></button>`).join('');
+    goStep(3);
+  }
+}
+function selectServiceType(st){
+  wServiceType=st;
+  wPickedChecklist=null;
+  // Martice confirmed sales → checklist picker step first
+  if(wOwner==='martice' && st==='Confirmed Sale' && wDisp!=='Work Order'){
+    renderChecklistPicker();
+    goStep('3b');
+  } else {
+    populateCaseForm();
+    goStep(4);
+  }
+}
+
+// ── Checklist picker for Martice confirmed sales ──
+function renderChecklistPicker(){
+  const key=wDisp+'::Confirmed Sale';
+  const tmpl=MARTICE_CHECKLISTS[key]||{};
+  const wrap=document.getElementById('checklistPicker');
+  wrap.innerHTML=Object.entries(tmpl).map(([group,items])=>{
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:7px;font-weight:600">${group}</div>
+      ${items.map(text=>`<label style="display:flex;align-items:center;gap:8px;background:#ffffff05;border-radius:7px;padding:6px 10px;margin-bottom:4px;cursor:pointer;font-size:12px">
+        <input type="checkbox" class="picker-item" data-group="${group.replace(/"/g,'&quot;')}" value="${text.replace(/"/g,'&quot;')}" checked style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer"/>
+        <span>${text}</span>
+      </label>`).join('')}
+    </div>`;
+  }).join('');
+}
+function togglePickerAll(state){ document.querySelectorAll('.picker-item').forEach(c=>c.checked=state); }
+function confirmChecklistPicker(){
+  // Build picked checklist from checked items, preserving group order
+  const key=wDisp+'::Confirmed Sale';
+  const tmpl=MARTICE_CHECKLISTS[key]||{};
+  const picked={};
+  Object.keys(tmpl).forEach(group=>{
+    const items=Array.from(document.querySelectorAll(`.picker-item[data-group="${group.replace(/"/g,'&quot;')}"]:checked`)).map(c=>c.value);
+    if(items.length) picked[group]=items;
+  });
+  wPickedChecklist=picked;
+  populateCaseForm();
+  goStep(4);
+}
+
+function populateCaseForm(){
+  const rDays=getRDays(wServiceType);
+  const modeLabel = wOwner==='martice' && wServiceType ? wServiceType : '';
+  document.getElementById('ws4Tags').innerHTML=
+    `<span class="${wOwner==='martice'?'owner-tag-martice':'owner-tag-chloe'}">${wOwner==='martice'?'Martice':'Chloe'}</span>
+     <span class="tag">${wDisp}</span>${modeLabel?`<span class="tag" style="${wServiceType==='Quote'?'background:#b8860b22;color:var(--yellow);border-color:#b8860b44':wServiceType==='Confirmed Sale'?'background:#2e7d5722;color:var(--green);border-color:#2e7d5744':''}">${modeLabel}</span>`:''}${wOwner==='chloe'&&wServiceType?`<span class="tag">${wServiceType}</span>`:''}
+     ${wOwner==='chloe'&&wServiceType?`<span class="tag" style="background:#6b4fa022;color:var(--purple);border-color:#6b4fa044">📞 every ${rDays}d</span>`:''}`;
+  document.getElementById('chloePaySection').style.display=wOwner==='chloe'?'block':'none';
+  ['cDecedent','cDisc','cPassare','cPassareLink','cServiceDate','cServiceTime','cNotes','cUrn','cCasket','cPayNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cStatus').value='New';
+  ['cPayment','cPayStatus','mPayment','mPayStatus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const mr=document.getElementById('mReminderDays');if(mr)mr.value='4';
+  const qe=document.getElementById('cQuoteEstimate');if(qe)qe.value='';
+  const idt=document.getElementById('cIntermentDate');if(idt)idt.value='';
+  document.getElementById('caseId').value='';
+  document.getElementById('miscList').innerHTML='';
+  document.getElementById('caseSaveBtn').style.background=wOwner==='chloe'?'var(--purple)':'var(--orange)';
+
+  // Determine if this is a Martice cemetery Quote (RIC or CIRGAS)
+  const isMarticeQuote = wOwner==='martice' && wServiceType==='Quote' && (wDisp==='RIC' || wDisp==='CIRGAS' || wDisp==='GA Policy' || wDisp==='Clearpoint Trust');
+  // Confirmed sale for cemetery contracts (RIC/CIRGAS) — location-only identifier, no payment method
+  const isCemeterySale = wOwner==='martice' && wServiceType==='Confirmed Sale' && (wDisp==='RIC' || wDisp==='CIRGAS');
+  const isWorkOrder = wDisp==='Work Order';
+
+  // Show/hide sections
+  document.getElementById('marticePaySection').style.display=(wOwner==='martice' && !isMarticeQuote && !isWorkOrder)?'block':'none';
+  document.getElementById('marticeQuoteSection').style.display=isMarticeQuote?'block':'none';
+  document.getElementById('workOrderSection').style.display=isWorkOrder?'block':'none';
+  // Payment Method only shows for GA/Clearpoint sales, not cemetery sales
+  const mPayField=document.getElementById('mPayment')?.closest('.field');
+  if(mPayField) mPayField.style.display=isCemeterySale?'none':'';
+  // Clear WO fields when switching away from Work Order
+  if(!isWorkOrder){['woDeceased','woDateOfDeath','woRelationship','woVisitingFamily','woStreet','woCity','woState','woZip','woPolicyNum','woEmail','woPhone','woPropertyLocation','woRemarks','woTakenBy','woFSD'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});}
+
+  // Relabel / hide fields based on owner & mode
+  if(wOwner==='martice'){
+    document.getElementById('lblDecedent').textContent='Purchaser / Family Name *';
+    document.getElementById('lblPassare').textContent='Property Location / Designation';
+    document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
+    document.getElementById('fldPassareLink').style.display='none';
+    if(isMarticeQuote){
+      // Quotes: no contract #, no service/placement date row
+      document.getElementById('fldDisc').style.display='none';
+      document.getElementById('cServiceDate').closest('.field-row').style.display='none';
+      const qCats = (wDisp==='GA Policy'||wDisp==='Clearpoint Trust') ? FUNERAL_QUOTE_CATEGORIES : QUOTE_CATEGORIES;
+      renderQuoteCategories([], qCats);
+      document.getElementById('fldIntermentDate').style.display = wDisp==='CIRGAS' ? 'block' : 'none';
+    } else if(isCemeterySale){
+      // Cemetery confirmed sale: location IS the contract identifier — hide separate Contract # field
+      document.getElementById('fldDisc').style.display='none';
+      document.getElementById('cServiceDate').closest('.field-row').style.display='';
+      document.getElementById('lblServiceDate').textContent='Placement Date (if scheduled)';
+    } else if(isWorkOrder){
+      // Work Order: no contract # field, no payment section
+      document.getElementById('fldDisc').style.display='none';
+      document.getElementById('cServiceDate').closest('.field-row').style.display='';
+      document.getElementById('lblServiceDate').textContent='Requested Date';
+      document.getElementById('lblDecedent').textContent='Family / Requestor Name *';
+    } else {
+      // GA / Clearpoint
+      document.getElementById('fldDisc').style.display='';
+      document.getElementById('cServiceDate').closest('.field-row').style.display='';
+      document.getElementById('lblDisc').textContent='Contract #';
+      document.getElementById('cDisc').placeholder='e.g. GA-2026-0142';
+      document.getElementById('lblServiceDate').textContent='Service / Placement Date';
+    }
+  } else {
+    document.getElementById('fldDisc').style.display='';
+    document.getElementById('cServiceDate').closest('.field-row').style.display='';
+    document.getElementById('lblDecedent').textContent='Decedent / Family Name *';
+    document.getElementById('lblDisc').textContent='Metal Disc #';
+    document.getElementById('cDisc').placeholder='27694';
+    document.getElementById('lblPassare').textContent='Passare Case #';
+    document.getElementById('cPassare').placeholder='WM-2026-0219';
+    document.getElementById('fldPassareLink').style.display='';
+    document.getElementById('lblServiceDate').textContent='Service Date';
+  }
+}
+
+// Render the quote category checkboxes, optionally pre-checking some
+function renderQuoteCategories(selected, cats){
+  cats=cats||QUOTE_CATEGORIES;
+  const wrap=document.getElementById('quoteCategories');
+  if(!wrap)return;
+  wrap.innerHTML=cats.map((cat,i)=>{
+    const checked=selected.includes(cat)?'checked':'';
+    return `<label style="display:flex;align-items:center;gap:7px;background:#ffffff05;border-radius:7px;padding:7px 10px;cursor:pointer;font-size:12px">
+      <input type="checkbox" class="quote-cat" value="${cat}" ${checked} style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer"/>
+      <span>${cat}</span>
+    </label>`;
+  }).join('');
+}
+function getQuoteCategories(){return Array.from(document.querySelectorAll('.quote-cat:checked')).map(c=>c.value);}
+
+function addMiscItem(val=''){
+  const list=document.getElementById('miscList'),id='misc-'+uid(),div=document.createElement('div');
+  div.className='misc-item';div.id=id;
+  div.innerHTML=`<input type="text" placeholder="e.g. Extra death cert requested, flowers from sister…" value="${val}"/><button onclick="document.getElementById('${id}').remove()" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;flex-shrink:0">✕</button>`;
+  list.appendChild(div);
+}
+function getMiscItems(){return Array.from(document.querySelectorAll('#miscList .misc-item input')).map(i=>i.value.trim()).filter(Boolean);}
+
+// ═══════════════════════════════════════
+// QUICK STATUS UPDATE (on card)
+// ═══════════════════════════════════════
+function quickStatus(caseId, val){
+  const c=cases.find(x=>x.id===caseId);
+  if(c){c.status=val;save();renderCases();}
+}
+
+// ═══════════════════════════════════════
+// SAVE CASE
+// ═══════════════════════════════════════
+function openCaseModal(id){
+  wOwner='';wDisp='';wServiceType='';wPickedChecklist=null;
+  if(id){
+    const c=cases.find(x=>x.id===id);
+    wOwner=c.owner;wDisp=c.disp;wServiceType=c.serviceType||'';
+    populateCaseForm();
+    document.getElementById('caseId').value=id;
+    document.getElementById('cDecedent').value=c.decedent||'';
+    document.getElementById('cDisc').value=c.disc||'';
+    document.getElementById('cPassare').value=c.passare||'';
+    document.getElementById('cPassareLink').value=c.passareLink||'';
+    document.getElementById('cServiceDate').value=c.serviceDate||'';
+    document.getElementById('cServiceTime').value=c.serviceTime||'';
+    document.getElementById('cStatus').value=c.status||'New';
+    document.getElementById('cNotes').value=c.notes||'';
+    document.getElementById('miscList').innerHTML='';
+    (c.misc||[]).forEach(m=>addMiscItem(m));
+    if(wOwner==='chloe'){
+      document.getElementById('cPayment').value=c.payment||'';
+      document.getElementById('cPayStatus').value=c.payStatus||'';
+      document.getElementById('cPayNotes').value=c.payNotes||'';
+      document.getElementById('cUrn').value=c.urn||'';
+      document.getElementById('cCasket').value=c.casket||'';
+    } else if(c.disp==='Work Order'){
+      // Restore Work Order fields
+      const wo=c.woData||{};
+      const woMap={deceased:'woDeceased',dateOfDeath:'woDateOfDeath',relationship:'woRelationship',visitingFamily:'woVisitingFamily',street:'woStreet',city:'woCity',state:'woState',zip:'woZip',policyNum:'woPolicyNum',email:'woEmail',phone:'woPhone',propertyLocation:'woPropertyLocation',remarks:'woRemarks',takenBy:'woTakenBy',fsd:'woFSD'};
+      Object.entries(woMap).forEach(([k,elId])=>{const el=document.getElementById(elId);if(el)el.value=wo[k]||'';});
+    } else {
+      const mp=document.getElementById('mPayment'),ms=document.getElementById('mPayStatus');
+      if(mp)mp.value=c.payment||'';if(ms)ms.value=c.payStatus||'';
+      const mr=document.getElementById('mReminderDays');if(mr)mr.value=c.reminderDays||4;
+      // Restore quote data if this is a cemetery quote
+      const isMQuote = c.serviceType==='Quote' && (c.disp==='RIC'||c.disp==='CIRGAS'||c.disp==='GA Policy'||c.disp==='Clearpoint Trust');
+      if(isMQuote){
+        const qCats2=(c.disp==='GA Policy'||c.disp==='Clearpoint Trust')?FUNERAL_QUOTE_CATEGORIES:QUOTE_CATEGORIES;
+        renderQuoteCategories(c.quoteCategories||[], qCats2);
+        const qe=document.getElementById('cQuoteEstimate');if(qe)qe.value=c.quoteEstimate||'';
+        const idt=document.getElementById('cIntermentDate');if(idt)idt.value=c.intermentDate||'';
+      }
+    }
+    document.getElementById('caseBackBtn').style.display='none';
+    document.getElementById('caseModalTitle').textContent='Edit Case';
+    goStep(4);
+  } else {
+    document.getElementById('caseBackBtn').style.display='';
+    document.getElementById('caseModalTitle').textContent='New Case';
+    goStep(1);
+  }
+  openModal('caseModal');
+}
+
+function saveCase(){
+  const decedent=document.getElementById('cDecedent').value.trim();
+  if(!decedent){showToast('Decedent/Family name is required.',false);return;}
+  const id=document.getElementById('caseId').value||uid();
+  const existing=cases.find(c=>c.id===id);
+  let checklist=existing?.checklist||{};
+  if(!existing){
+    let tmpl;
+    if(wOwner==='chloe'){
+      tmpl=CHLOE_CHECKLISTS[wDisp]||{};
+    } else if(wPickedChecklist){
+      // Martice confirmed sale with hand-picked items
+      tmpl=wPickedChecklist;
+    } else {
+      // Martice: Work Order uses its own key; contracts use "Type::Mode"
+      const key = wDisp==='Work Order' ? 'Work Order' : (wDisp+'::'+wServiceType);
+      tmpl=MARTICE_CHECKLISTS[key]||{};
+    }
+    Object.entries(tmpl).forEach(([g,items])=>{checklist[g]=items.map(text=>({text,done:false,na:false,doneAt:null}));});
+    checklist['Misc']=[{text:'(Add misc items as needed)',done:false,na:false,doneAt:null}];
+  }
+  const isChloe=wOwner==='chloe';
+  const isWO=wDisp==='Work Order';
+  // Reminder days: use custom field value if present, else default
+  let rDays = getRDays(wServiceType);
+  const customR = document.getElementById('mReminderDays');
+  if(!isChloe && customR && customR.value && !isWO) rDays=parseInt(customR.value)||4;
+  const isMQuote = wOwner==='martice' && wServiceType==='Quote' && (wDisp==='RIC'||wDisp==='CIRGAS'||wDisp==='GA Policy'||wDisp==='Clearpoint Trust');
+  // For CIRGAS quote, interment date goes into serviceDate so it shows on card/calendar
+  let svcDate=document.getElementById('cServiceDate').value;
+  if(isMQuote && wDisp==='CIRGAS'){ svcDate=document.getElementById('cIntermentDate')?.value||''; }
+  if(isMQuote && wDisp==='RIC'){ svcDate=''; }
+  // Work Order: collect extra fields
+  const woData=isWO?{
+    deceased:document.getElementById('woDeceased')?.value||'',
+    dateOfDeath:document.getElementById('woDateOfDeath')?.value||'',
+    relationship:document.getElementById('woRelationship')?.value||'',
+    visitingFamily:document.getElementById('woVisitingFamily')?.value||'',
+    street:document.getElementById('woStreet')?.value||'',
+    city:document.getElementById('woCity')?.value||'',
+    state:document.getElementById('woState')?.value||'',
+    zip:document.getElementById('woZip')?.value||'',
+    policyNum:document.getElementById('woPolicyNum')?.value||'',
+    email:document.getElementById('woEmail')?.value||'',
+    phone:document.getElementById('woPhone')?.value||'',
+    propertyLocation:document.getElementById('woPropertyLocation')?.value||'',
+    remarks:document.getElementById('woRemarks')?.value||'',
+    takenBy:document.getElementById('woTakenBy')?.value||'',
+    fsd:document.getElementById('woFSD')?.value||''
+  }:null;
+  const obj={id,owner:wOwner,disp:wDisp,serviceType:wServiceType,decedent,
+    disc:document.getElementById('cDisc').value,passare:document.getElementById('cPassare').value,
+    passareLink:document.getElementById('cPassareLink').value,serviceDate:svcDate,
+    serviceTime:document.getElementById('cServiceTime').value,status:document.getElementById('cStatus').value,
+    payment:isChloe?document.getElementById('cPayment').value:(isMQuote||isWO?'':(document.getElementById('mPayment')?.value||'')),
+    payStatus:isChloe?document.getElementById('cPayStatus').value:(isMQuote||isWO?'':(document.getElementById('mPayStatus')?.value||'')),
+    payNotes:isChloe?document.getElementById('cPayNotes').value:'',
+    notes:document.getElementById('cNotes').value,
+    urn:isChloe?document.getElementById('cUrn').value:'',casket:isChloe?document.getElementById('cCasket').value:'',
+    quoteCategories:isMQuote?getQuoteCategories():[],
+    quoteEstimate:isMQuote?(document.getElementById('cQuoteEstimate')?.value||''):'',
+    intermentDate:isMQuote&&wDisp==='CIRGAS'?(document.getElementById('cIntermentDate')?.value||''):'',
+    woData,
+    misc:getMiscItems(),checklist,touchpoints:existing?.touchpoints||[],
+    createdAt:existing?.createdAt||new Date().toISOString(),lastContact:existing?.lastContact||null,
+    reminderDays:rDays};
+  const idx=cases.findIndex(c=>c.id===id);
+  if(idx>=0)cases[idx]=obj;else cases.push(obj);
+  save();closeModal('caseModal');renderCases();showToast('Case saved!');
+}
+function deleteCase(id){if(confirm('Remove this case?')){cases=cases.filter(c=>c.id!==id);delete expandedCards[id];save();renderCases();}}
+
+// ═══════════════════════════════════════
+// CHECKLIST & TOUCHPOINTS
+// ═══════════════════════════════════════
+function toggleCheckItem(caseId,group,idx){
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  const item=c.checklist[group][idx];
+  if(item.na) return; // can't check an N/A item
+  item.done=!item.done;item.doneAt=item.done?new Date().toISOString():null;
+  if(item.done&&item.text.toLowerCase().includes('contact'))c.lastContact=new Date().toISOString();
+  save();renderCaseCard(c);
+}
+
+function toggleNAItem(caseId,group,idx){
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  const item=c.checklist[group][idx];
+  item.na=!item.na;
+  if(item.na){item.done=false;item.doneAt=null;} // un-check if marking N/A
+  save();renderCaseCard(c);
+}
+
+function addChecklistItem(caseId,group){
+  const inputId='newitem-'+caseId+'-'+group.replace(/\W/g,'');
+  const input=document.getElementById(inputId);
+  if(!input) return;
+  const text=input.value.trim();if(!text) return;
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  if(!c.checklist[group]) c.checklist[group]=[];
+  c.checklist[group].push({text,done:false,na:false,doneAt:null});
+  save();renderCaseCard(c);
+}
+
+function deleteChecklistItem(caseId,group,idx){
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  c.checklist[group].splice(idx,1);
+  save();renderCaseCard(c);
+}
+function addTouchpoint(caseId){
+  const ta=document.getElementById('tp-'+caseId);const text=ta.value.trim();if(!text)return;
+  const c=cases.find(x=>x.id===caseId);if(!c)return;
+  c.touchpoints.unshift({text,date:new Date().toISOString()});c.lastContact=new Date().toISOString();
+  save();ta.value='';renderCaseCard(c);
+}
+function renderCaseCard(c){const el=document.getElementById('ccard-'+c.id);if(el)el.outerHTML=buildCaseCardHTML(c);}
+function toggleCard(id){
+  expandedCards[id]=!expandedCards[id];
+  save();
+  const body=document.getElementById('cbody-'+id);
+  if(body)body.classList.toggle('open',!!expandedCards[id]);
+}
+
+// ═══════════════════════════════════════
+// PRINT CASE SUMMARY
+// ═══════════════════════════════════════
+function printCase(id){
+  const c=cases.find(x=>x.id===id);if(!c)return;
+  let total=0,done=0;
+  Object.values(c.checklist||{}).forEach(items=>{items.forEach(i=>{if(!i.na){total++;if(i.done)done++;}});});
+  let checkHTML='';
+  Object.entries(c.checklist||{}).forEach(([group,items])=>{
+    checkHTML+=`<h4 style="margin:12px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#555">${group}</h4>`;
+    items.forEach(item=>{
+      if(item.na){checkHTML+=`<div style="font-size:12px;color:#bbb;font-style:italic;margin-bottom:3px">— ${item.text} (N/A)</div>`;return;}
+      checkHTML+=`<div style="display:flex;gap:8px;margin-bottom:4px;font-size:13px"><span style="color:${item.done?'green':'#aaa'}">${item.done?'☑':'☐'}</span><span style="text-decoration:${item.done?'line-through':'none'};color:${item.done?'#888':'#222'}">${item.text}</span>${item.doneAt?`<span style="color:#aaa;font-size:11px;margin-left:auto">${new Date(item.doneAt).toLocaleDateString()}</span>`:''}</div>`;
+    });
+  });
+  let tpHTML=c.touchpoints.map(tp=>`<div style="margin-bottom:8px;padding:8px 12px;border-left:3px solid #c8a96e;background:#f9f6f0"><div style="font-size:10px;color:#888;margin-bottom:2px">${new Date(tp.date).toLocaleString()}</div><div style="font-size:13px">${tp.text}</div></div>`).join('');
+  const pa=document.getElementById('printArea');
+  pa.innerHTML=`<div style="max-width:750px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #1a2744">
+      <div><div style="font-size:22px;font-weight:700;color:#1a2744">${c.decedent}</div><div style="font-size:13px;color:#555;margin-top:4px">${c.owner==='martice'?'Martice — Cemetery/Pre-Need':'Chloe — Funeral Director'} | ${c.disp}${c.serviceType?' / '+c.serviceType:''}</div></div>
+      <div style="text-align:right;font-size:12px;color:#555"><div>Printed: ${new Date().toLocaleDateString()}</div><div>Status: <strong>${c.status}</strong></div><div>Progress: ${done}/${total} (${total?Math.round(done/total*100):0}%)</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;font-size:13px">
+      ${c.disc?`<div><strong>Metal Disc #:</strong> ${c.disc}</div>`:''}
+      ${c.passare?`<div><strong>Passare Case #:</strong> ${c.passare}</div>`:''}
+      ${c.serviceDate?`<div><strong>Service Date:</strong> ${c.serviceDate}${c.serviceTime?' @ '+c.serviceTime:''}</div>`:''}
+      ${c.payment?`<div><strong>Payment:</strong> ${c.payment}${c.payStatus?' — '+c.payStatus:''}</div>`:''}
+      ${c.urn?`<div><strong>Urn/Container:</strong> ${c.urn}</div>`:''}
+      ${c.casket?`<div><strong>Casket:</strong> ${c.casket}</div>`:''}
+    </div>
+    ${c.notes?`<div style="background:#f5f5f5;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:16px;font-style:italic">${c.notes}</div>`:''}
+    ${c.misc&&c.misc.length?`<div style="margin-bottom:16px"><strong style="font-size:12px;text-transform:uppercase;letter-spacing:1px">Misc</strong><ul style="margin-top:6px;font-size:13px">${c.misc.map(m=>`<li>${m}</li>`).join('')}</ul></div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;color:#1a2744">Checklist</h3>${checkHTML}</div>
+      <div><h3 style="font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;color:#1a2744">Touchpoints</h3>${tpHTML||'<p style="color:#aaa;font-size:13px">No touchpoints logged.</p>'}</div>
+    </div>
+  </div>`;
+  window.print();
+}
+
+// ═══════════════════════════════════════
+// BUILD CASE CARD
+// ═══════════════════════════════════════
+function buildCaseCardHTML(c){
+  const col=SC[c.status]||'#8fa3b8';
+  const ownerTag=c.owner==='martice'?'<span class="owner-tag-martice">Martice</span>':'<span class="owner-tag-chloe">Chloe</span>';
+
+  // Progress — exclude N/A items from total
+  let total=0,done=0;
+  Object.values(c.checklist||{}).forEach(items=>{
+    items.forEach(i=>{ if(!i.na){total++; if(i.done) done++; } });
+  });
+  const pct=total?Math.round(done/total*100):0;
+
+  // Smart item-level reminders (Chloe only)
+  let smartAlertsHTML='';
+  if(c.owner==='chloe'){
+    const ageDays=Math.floor((Date.now()-new Date(c.createdAt))/(864e5));
+    const alerts=[];
+    // Flatten all items for easy lookup
+    const allItems=Object.values(c.checklist||{}).flat();
+    const isDone=text=>allItems.some(i=>i.text===text&&i.done);
+    const isNA=text=>allItems.some(i=>i.text===text&&i.na);
+    const check=(text,threshold,msg,severity='error')=>{
+      if(!isNA(text)&&!isDone(text)&&ageDays>=threshold) alerts.push({msg,severity});
+    };
+    // DC items — should be done within 1 day
+    check('DC Worksheet Signed & Uploaded',1,'DC Worksheet not signed/uploaded — case is '+ageDays+'d old');
+    check('Vitals Entered Into WHALES',1,'Vitals not entered in WHALES — case is '+ageDays+'d old');
+    check('Cremation Auth Signed & Uploaded',1,'Cremation Auth not signed — case is '+ageDays+'d old');
+    check('First Call Signed & Uploaded',1,'First Call not signed — case is '+ageDays+'d old');
+    // Urn/casket — warn after 2 days
+    check('Urn Ordered',2,'Urn not ordered — '+ageDays+'d since case opened','warn');
+    check('Casket Ordered/Delivered',2,'Casket not ordered — '+ageDays+'d since case opened','warn');
+    // Contract — warn after 2 days
+    check('Contract Signed/Uploaded',2,'Contract not signed — '+ageDays+'d since case opened','warn');
+    check('Contract Signed in Passare',2,'Passare contract not signed — '+ageDays+'d since case opened','warn');
+    // Family notification for cremation — 3 days
+    check('Family Notified of Cremation Date',3,'Family not notified of cremation date — '+ageDays+'d since case opened','warn');
+    // DC approved — 2 days
+    check('DC Approved',2,'DC not yet approved — '+ageDays+'d since case opened','warn');
+    // Arrangement recap — 1 day
+    check('Arrangement Recap in Passare',1,'Arrangement recap not in Passare — case is '+ageDays+'d old');
+    // Follow-up email — 1 day
+    check('Follow-Up Email to Family',1,'Follow-up email not sent — case is '+ageDays+'d old');
+    // Urn/keepsakes released — flag if service date has passed
+    if(c.serviceDate&&c.serviceDate<today&&!isDone('Urn/Keepsakes Released')&&!isNA('Urn/Keepsakes Released')){
+      alerts.push({msg:'Service date has passed — urn/keepsakes not yet released',severity:'error'});
+    }
+    if(alerts.length){
+      smartAlertsHTML=`<div style="margin-bottom:12px">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:6px;font-weight:700">⚠ Smart Reminders</div>
+        ${alerts.map(a=>`<div class="smart-alert${a.severity==='warn'?' warn':''}">⚠ ${a.msg}</div>`).join('')}
+      </div>`;
+    }
+  }
+  // Martice smart reminders — quotes especially need follow-up nudges
+  if(c.owner==='martice'){
+    const ageDays=Math.floor((Date.now()-new Date(c.createdAt))/(864e5));
+    const allItems=Object.values(c.checklist||{}).flat();
+    const isDone=text=>allItems.some(i=>i.text===text&&i.done);
+    const isNA=text=>allItems.some(i=>i.text===text&&i.na);
+    const alerts=[];
+    const rD=c.reminderDays||4;
+    const check=(text,threshold,msg,severity='error')=>{ if(!isNA(text)&&!isDone(text)&&ageDays>=threshold) alerts.push({msg,severity}); };
+    if(c.serviceType==='Quote'){
+      check('Quote Sent to Family',1,'Quote not yet sent — case is '+ageDays+'d old');
+      check('Follow-Up Call',rD,'Time to follow up with this family ('+ageDays+'d since quote opened)','warn');
+      check('Decision Check-In',rD*2,'No decision check-in yet — '+ageDays+'d since quote opened','warn');
+    } else if(c.serviceType==='Confirmed Sale'){
+      check('Copy of Payment',2,'Payment copy not collected — '+ageDays+'d since sale opened','warn');
+      check('Prices Confirmed By Admin',2,'Prices not yet confirmed by admin — '+ageDays+'d old','warn');
+      check('Marker / Memorial Follow-Up',5,'Marker/memorial follow-up pending — '+ageDays+'d since sale','warn');
+    } else if(c.disp==='Work Order'){
+      check('Work Completed',3,'Work order not completed — '+ageDays+'d since received','warn');
+      if(isDone('Work Completed')&&!isDone('Family Notified of Completion')&&!isNA('Family Notified of Completion')){
+        alerts.push({msg:'Work completed — family not yet notified',severity:'error'});
+      }
+    }
+    if(alerts.length){
+      smartAlertsHTML=`<div style="margin-bottom:12px">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:6px;font-weight:700">⚠ Smart Reminders</div>
+        ${alerts.map(a=>`<div class="smart-alert${a.severity==='warn'?' warn':''}">⚠ ${a.msg}</div>`).join('')}
+      </div>`;
+    }
+  }
+  const rDays=c.reminderDays||4;
+  let reminderHTML='';
+  if(c.lastContact){
+    const ds=Math.floor((Date.now()-new Date(c.lastContact))/(864e5));
+    if(ds>=rDays)reminderHTML=`<span class="reminder-badge">📞 Overdue ${ds}d (every ${rDays}d)</span>`;
+    else if(ds>=rDays-1)reminderHTML=`<span class="reminder-badge soon">📞 Due tomorrow</span>`;
+    else reminderHTML=`<span class="reminder-badge ok">✓ ${ds}d ago (next in ${rDays-ds}d)</span>`;
+  } else reminderHTML=`<span class="reminder-badge">📞 No contact logged</span>`;
+
+  let payHTML='';
+  if(c.payment){payHTML=`<span style="color:var(--muted);font-size:10px">💳 ${c.payment}</span>`;if(c.payStatus)payHTML+=` <span class="pay-status">${c.payStatus}</span>`;}
+
+  // Quick status select
+  const qsOpts=CASE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('');
+  const qs=`<select class="quick-status" onclick="event.stopPropagation()" onchange="quickStatus('${c.id}',this.value)">${qsOpts}</select>`;
+
+  // Checklist HTML — NA-aware, editable (Chloe only)
+  const isChloeCase = true; // Both Martice and Chloe get editable N/A checklists
+  let checklistHTML='';
+  Object.entries(c.checklist||{}).forEach(([group,items])=>{
+    const groupKey=group.replace(/\W/g,'');
+    checklistHTML+=`<div class="checklist-group"><div class="checklist-group-title">${group}</div>`;
+    items.forEach((item,idx)=>{
+      const naClass=item.na?' na':'';
+      const doneClass=item.done?' checked':'';
+      checklistHTML+=`<div class="check-item${doneClass}${naClass}" onclick="toggleCheckItem('${c.id}','${group.replace(/'/g,"\\'")}',${idx})">
+        <div class="check-box${item.done?' done':''}">${item.done?'✓':''}</div>
+        <span class="check-label">${item.text}</span>
+        ${item.doneAt?`<span class="check-date">${new Date(item.doneAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:''}
+        ${isChloeCase?`<button class="na-btn${item.na?' active':''}" onclick="event.stopPropagation();toggleNAItem('${c.id}','${group.replace(/'/g,"\\'")}',${idx})" title="Mark as Not Applicable">${item.na?'undo N/A':'N/A'}</button>`:''}
+        ${isChloeCase?`<button onclick="event.stopPropagation();deleteChecklistItem('${c.id}','${group.replace(/'/g,"\\'")}',${idx})" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0 2px;flex-shrink:0" title="Remove">✕</button>`:''}
+      </div>`;
+    });
+    // Add item row (Chloe only)
+    if(isChloeCase){
+      checklistHTML+=`<div class="add-check-row">
+        <input id="newitem-${c.id}-${groupKey}" placeholder="+ Add item…" onkeydown="if(event.key==='Enter')addChecklistItem('${c.id}','${group.replace(/'/g,"\\'")}')"/>
+        <button class="btn-green" style="padding:3px 9px;font-size:11px" onclick="addChecklistItem('${c.id}','${group.replace(/'/g,"\\'")}')">Add</button>
+      </div>`;
+    }
+    checklistHTML+='</div>';
+  });
+
+  // Progress label with N/A count
+  const naCount=Object.values(c.checklist||{}).flat().filter(i=>i.na).length;
+  const progressLabel=`${done}/${total} tasks (${pct}%)${naCount>0?` · ${naCount} N/A`:''}`;
+
+  // Misc
+  let miscHTML='';
+  if(c.misc&&c.misc.length){
+    miscHTML=`<div style="margin-top:10px;padding:10px 12px;background:#ffffff05;border-radius:8px"><div class="checklist-group-title" style="margin-bottom:6px">Misc / Additional</div>`;
+    c.misc.forEach(m=>{miscHTML+=`<div style="font-size:12px;color:var(--goldL);padding:2px 0">• ${m}</div>`;});
+    miscHTML+='</div>';
+  }
+
+  // Touchpoints
+  let tpHTML=`<div>`;
+  if(c.touchpoints&&c.touchpoints.length){
+    tpHTML+=c.touchpoints.map(tp=>`<div class="touchpoint-entry"><div class="touchpoint-date">${new Date(tp.date).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}</div><div class="touchpoint-text">${tp.text}</div></div>`).join('');
+  } else tpHTML+=`<div style="color:var(--muted);font-size:12px;font-style:italic;margin-bottom:8px">No touchpoints yet.</div>`;
+  tpHTML+=`<div class="add-touchpoint"><textarea id="tp-${c.id}" placeholder="Log a call, update, or note…"></textarea><button class="btn-green" onclick="addTouchpoint('${c.id}')">+ Log</button></div></div>`;
+
+  const passareBtn=c.passareLink?`<a href="${c.passareLink}" target="_blank" style="background:#8fa3b818;color:var(--muted);border:1px solid #8fa3b844;border-radius:6px;padding:3px 9px;font-size:10px;text-decoration:none;font-family:'DM Sans',sans-serif;white-space:nowrap">🔗 Passare</a>`:'';
+  const isOpen=!!expandedCards[c.id];
+
+  return `<div class="case-card" id="ccard-${c.id}" style="border-color:${col}33">
+    <div class="case-card-header" onclick="toggleCard('${c.id}')">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:5px">
+          <span class="case-card-title">${c.decedent}</span>
+          ${ownerTag}<span class="tag">${c.disp}</span>${c.serviceType?`<span class="tag">${c.serviceType}</span>`:''}
+          ${qs}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          ${c.disc?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'Contract':'Disc'}: ${c.disc}</span>`:''}
+          ${c.passare?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'📍':'Case:'} ${c.passare}</span>`:''}
+          ${c.serviceDate?`<span style="color:var(--goldL);font-size:10px">📅 ${c.serviceDate}${c.serviceTime?' @ '+c.serviceTime:''}</span>`:''}
+          ${c.quoteEstimate?`<span style="color:var(--gold);font-size:11px;font-weight:600">~${c.quoteEstimate}</span>`:''}
+          ${payHTML} ${reminderHTML}
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div style="color:var(--muted);font-size:10px;margin-top:3px">${progressLabel}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;flex-direction:column;align-items:flex-end">
+        ${c.serviceDate?`<button class="btn-sm" style="background:#c8a96e18;color:var(--gold);border-color:#c8a96e44" onclick="event.stopPropagation();pushToGCal('${c.decedent} — ${c.disp}','${c.serviceDate}','')">📅</button>`:''}
+        <button class="btn-sm" style="background:#c8540a18;color:var(--orange);border-color:#c8540a44" onclick="event.stopPropagation();openCaseModal('${c.id}')">Edit</button>
+        <button class="btn-sm" style="background:#2e7d5718;color:var(--green);border-color:#2e7d5744" onclick="event.stopPropagation();printCase('${c.id}')">🖨️</button>
+        <button class="btn-sm" style="background:#8fa3b818;color:var(--muted);border-color:#8fa3b844" onclick="event.stopPropagation();deleteCase('${c.id}')">✕</button>
+        ${passareBtn}
+      </div>
+    </div>
+    <div class="case-card-body${isOpen?' open':''}" id="cbody-${c.id}">
+      ${smartAlertsHTML}
+      ${c.quoteCategories&&c.quoteCategories.length?`<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">What's Being Quoted</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${c.quoteCategories.map(q=>`<span style="background:#c8540a18;color:var(--orange);border:1px solid #c8540a44;border-radius:99px;padding:2px 9px;font-size:11px">${q}</span>`).join('')}</div>
+        ${c.quoteEstimate?`<div style="margin-top:8px"><span style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Estimated Total</span> <span style="font-size:15px;color:var(--gold);font-weight:600;margin-left:6px">${c.quoteEstimate}</span></div>`:''}
+        ${c.intermentDate?`<div style="margin-top:4px;font-size:11px;color:var(--goldL)">Tentative interment: ${c.intermentDate}</div>`:''}
+      </div>`:''}
+      ${c.woData&&c.disp==='Work Order'?`<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Work Order Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+          ${c.woData.deceased?`<div><span style="color:var(--muted);font-size:10px">Deceased: </span>${c.woData.deceased}${c.woData.dateOfDeath?' · '+c.woData.dateOfDeath:''}</div>`:''}
+          ${c.woData.relationship?`<div><span style="color:var(--muted);font-size:10px">Relationship: </span>${c.woData.relationship}</div>`:''}
+          ${c.woData.visitingFamily?`<div><span style="color:var(--muted);font-size:10px">Visiting: </span>${c.woData.visitingFamily}</div>`:''}
+          ${c.woData.phone||c.woData.email?`<div><span style="color:var(--muted);font-size:10px">Contact: </span>${[c.woData.phone,c.woData.email].filter(Boolean).join(' · ')}</div>`:''}
+          ${c.woData.street?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Address: </span>${[c.woData.street,c.woData.city,c.woData.state,c.woData.zip].filter(Boolean).join(', ')}</div>`:''}
+          ${c.woData.policyNum?`<div><span style="color:var(--muted);font-size:10px">Account/Policy: </span>${c.woData.policyNum}</div>`:''}
+          ${c.woData.propertyLocation?`<div><span style="color:var(--muted);font-size:10px">Property: </span>${c.woData.propertyLocation}</div>`:''}
+          ${c.woData.takenBy?`<div><span style="color:var(--muted);font-size:10px">Taken By: </span>${c.woData.takenBy}</div>`:''}
+          ${c.woData.fsd?`<div><span style="color:var(--muted);font-size:10px">FSD: </span>${c.woData.fsd}</div>`:''}
+        </div>
+        ${c.woData.remarks?`<div style="margin-top:8px;color:var(--muted);font-size:12px;font-style:italic">${c.woData.remarks}</div>`:''}
+      </div>`:''}
+      ${c.urn||c.casket||c.payNotes?`<div style="display:flex;gap:18px;flex-wrap:wrap;padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
+        ${c.payNotes?`<div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Payment Notes</div><div style="font-size:12px;margin-top:2px;color:var(--goldL)">${c.payNotes}</div></div>`:''}
+        ${c.urn?`<div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Urn / Container</div><div style="font-size:12px;margin-top:2px">${c.urn}</div></div>`:''}
+        ${c.casket?`<div><div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Casket</div><div style="font-size:12px;margin-top:2px">${c.casket}</div></div>`:''}
+      </div>`:''}
+      ${c.notes?`<div style="color:var(--muted);font-size:12px;font-style:italic;margin-bottom:12px;background:#ffffff05;border-radius:8px;padding:9px 13px">${c.notes}</div>`:''}
+      ${miscHTML}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px">
+        <div><div class="checklist-group-title" style="margin-bottom:8px">CHECKLIST</div>${checklistHTML}</div>
+        <div><div class="checklist-group-title" style="margin-bottom:8px">TOUCHPOINTS / LOG</div>${tpHTML}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// URGENCY SORT
+// ═══════════════════════════════════════
+function urgencyScore(c){
+  if(c.status==='Complete') return 9999;
+  const rDays=c.reminderDays||4;
+  if(!c.lastContact) return 0;
+  const ds=Math.floor((Date.now()-new Date(c.lastContact))/(864e5));
+  if(ds>=rDays) return ds-rDays; // overdue: lower = more urgent
+  return 100+(rDays-ds); // not overdue: higher
+}
+
+// ═══════════════════════════════════════
+// DUE TODAY BANNER
+// ═══════════════════════════════════════
+function renderDueBanner(){
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=fmtDate(tomorrow);
+  const due=cases.filter(c=>c.serviceDate&&(c.serviceDate===today||c.serviceDate===tomorrowStr)&&c.status!=='Complete');
+  const banner=document.getElementById('dueBanner');
+  const items=document.getElementById('dueItems');
+  if(!due.length){banner.classList.remove('show');return;}
+  banner.classList.add('show');
+  items.innerHTML=due.map(c=>`<div class="due-item">
+    <span class="${c.owner==='martice'?'owner-tag-martice':'owner-tag-chloe'}" style="font-size:9px">${c.owner==='martice'?'Martice':'Chloe'}</span>
+    <span>${c.decedent} — ${c.disp}${c.serviceType?' / '+c.serviceType:''}</span>
+    <span style="color:var(--orange);font-size:11px;margin-left:auto">${c.serviceDate===today?'TODAY':'TOMORROW'} ${c.serviceTime?'@ '+c.serviceTime:''}</span>
+  </div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// RENDER CASES
+// ═══════════════════════════════════════
+function renderCases(){
+  renderDueBanner();
+  const search=(document.getElementById('caseSearch')?.value||'').toLowerCase().trim();
+  const pool = activeUser==='all' ? cases : cases.filter(c=>c.owner===activeUser);
+  const bar=document.getElementById('caseFilters');
+  const counts={};CASE_STATUSES.forEach(s=>counts[s]=pool.filter(c=>c.status===s).length);
+
+  let addBtns='';
+  if(activeUser==='martice'||activeUser==='all') addBtns+=`<button class="btn-primary" onclick="openCaseModal_owner('martice')">+ Martice Case</button>`;
+  if(activeUser==='chloe'||activeUser==='all')   addBtns+=`<button class="btn-chloe" onclick="openCaseModal_owner('chloe')" style="margin-left:4px">+ Chloe Case</button>`;
+  if(activeUser==='martice') addBtns=`<button class="btn-primary" onclick="openCaseModal()">+ New Case</button>`;
+  if(activeUser==='chloe')   addBtns=`<button class="btn-chloe" onclick="openCaseModal()">+ New Case</button>`;
+
+  bar.innerHTML=['All',...CASE_STATUSES].map(f=>{
+    const cnt=f==='All'?pool.length:counts[f];
+    const col=f==='All'?'#c8a96e':SC[f];
+    return `<button class="filter-chip${caseFilter===f?' active':''}" onclick="caseFilter='${f}';renderCases()" style="${caseFilter===f?`background:${col}22;border-color:${col};color:${col}`:''}"><span class="count-badge" style="background:${col}">${cnt}</span>${f}</button>`;
+  }).join('')+`<div class="spacer"></div>`+addBtns;
+
+  let filtered=caseFilter==='All'?pool:pool.filter(c=>c.status===caseFilter);
+  if(search) filtered=filtered.filter(c=>(c.decedent||'').toLowerCase().includes(search)||(c.passare||'').toLowerCase().includes(search)||(c.disc||'').toLowerCase().includes(search));
+  // Sort by urgency
+  filtered=[...filtered].sort((a,b)=>urgencyScore(a)-urgencyScore(b));
+
+  const list=document.getElementById('caseList');
+  if(!filtered.length){
+    const who=activeUser==='all'?'anyone':activeUser==='martice'?'Martice':'Chloe';
+    list.innerHTML=`<div class="empty"><div class="empty-icon">${activeUser==='chloe'?'⚱️':'🏛️'}</div>${search?'No cases match your search.':'No '+(caseFilter==='All'?'':caseFilter+' ')+'cases for '+who+'.'}</div>`;
+    return;
+  }
+  list.innerHTML=filtered.map(buildCaseCardHTML).join('');
+}
+
+function openCaseModal_owner(owner){
+  // Pre-select owner in wizard
+  wOwner=owner; wDisp=''; wServiceType='';
+  document.getElementById('caseBackBtn').style.display='';
+  document.getElementById('caseModalTitle').textContent='New Case';
+  goStep(1);
+  // Auto-click owner
+  setTimeout(()=>selectOwner(owner),50);
+  openModal('caseModal');
+}
+
+// ═══════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════
+function renderTasks(){
+  const cats=['All','Work','Personal','Home','Errand'];
+  const bar=document.getElementById('taskFilters');
+  bar.innerHTML=cats.map(c=>`<button class="filter-chip${taskFilter===c?' active':''}" onclick="taskFilter='${c}';renderTasks()">${c}</button>`).join('')+`<div class="spacer"></div><button class="btn-primary" onclick="openTaskModal()">+ Add Task</button>`;
+  const filtered=taskFilter==='All'?tasks:tasks.filter(t=>t.cat===taskFilter);
+  const open_=filtered.filter(t=>!t.done),done_=filtered.filter(t=>t.done);
+  const list=document.getElementById('taskList');
+  if(!open_.length&&!done_.length){list.innerHTML=`<div class="empty"><div class="empty-icon">✓</div>No tasks yet.</div>`;return;}
+  const tr=t=>{const pc=PC[t.priority];
+    return `<div style="background:var(--navyL);border-radius:10px;padding:11px 15px;margin-bottom:8px;border:1px solid ${pc}22;display:flex;gap:11px;align-items:flex-start;opacity:${t.done?.45:1}">
+      <button class="check-circle${t.done?' done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</button>
+      <div style="flex:1">
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <span style="font-weight:500;font-size:13px;text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--muted)':'var(--white)'}">${t.text}</span>
+          <span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px">${t.priority.toUpperCase()}</span>
+          <span class="tag">${t.cat}</span>
+          ${t.repeatDays?`<span style="background:#8fa3b822;color:var(--muted);font-size:10px;border-radius:99px;padding:1px 7px">🔁 every ${t.repeatDays}d</span>`:''}
+        </div>
+        ${t.dueDate?`<div style="color:var(--muted);font-size:11px;margin-top:3px">Due: ${t.dueDate}</div>`:''}
+        ${t.notes?`<div style="color:var(--muted);font-size:11px;margin-top:3px;font-style:italic">${t.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        ${t.dueDate?`<button class="btn-sm" style="background:#c8a96e18;color:var(--gold);border-color:#c8a96e44" onclick="pushToGCal('${t.text.replace(/'/g,"\\'")}','${t.dueDate}','')">📅</button>`:''}
+        <button class="btn-sm" style="background:#c8540a18;color:var(--orange);border-color:#c8540a44" onclick="openTaskModal('${t.id}')">Edit</button>
+        <button class="btn-sm" style="background:#8fa3b818;color:var(--muted);border-color:#8fa3b844" onclick="deleteTask('${t.id}')">✕</button>
+      </div>
+    </div>`;};
+  list.innerHTML=open_.map(tr).join('')+(done_.length?`<div class="section-label">Completed (${done_.length})</div>`+done_.map(tr).join(''):'');
+}
+function openTaskModal(id){
+  const t=id?tasks.find(x=>x.id===id):null;
+  document.getElementById('taskModalTitle').textContent=t?'Edit Task':'New Task';
+  document.getElementById('taskId').value=t?.id||'';document.getElementById('tText').value=t?.text||'';
+  document.getElementById('tPriority').value=t?.priority||'Medium';document.getElementById('tCat').value=t?.cat||'Work';
+  document.getElementById('tDue').value=t?.dueDate||'';document.getElementById('tRepeatDays').value=t?.repeatDays||'';document.getElementById('tNotes').value=t?.notes||'';
+  openModal('taskModal');
+}
+function saveTask(){
+  const text=document.getElementById('tText').value.trim();if(!text){showToast('Task required.',false);return;}
+  const id=document.getElementById('taskId').value||uid();
+  const repeatDays=parseInt(document.getElementById('tRepeatDays').value)||null;
+  const obj={id,text,priority:document.getElementById('tPriority').value,cat:document.getElementById('tCat').value,dueDate:document.getElementById('tDue').value,notes:document.getElementById('tNotes').value,done:false,repeatDays};
+  const idx=tasks.findIndex(t=>t.id===id);if(idx>=0){obj.done=tasks[idx].done;tasks[idx]=obj;}else tasks.push(obj);
+  save();closeModal('taskModal');renderTasks();
+}
+function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  if(!t.done&&t.repeatDays){
+    // Recurring task: reset due date instead of marking done
+    const next=new Date();next.setDate(next.getDate()+t.repeatDays);
+    t.dueDate=fmtDate(next);
+    save();renderTasks();
+  } else {
+    t.done=!t.done;save();renderTasks();
+  }
+}
+function deleteTask(id){tasks=tasks.filter(t=>t.id!==id);save();renderTasks();}
+
+// ═══════════════════════════════════════
+// MEALS
+// ═══════════════════════════════════════
+function getWeekDates(){const now=new Date(),s=new Date(now);s.setDate(now.getDate()-now.getDay()+weekOffset*7);return Array.from({length:7},(_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d;});}
+function changeWeek(dir){weekOffset=dir===0?0:weekOffset+dir;renderMeals();}
+function renderMeals(){
+  const dates=getWeekDates();const s=dates[0],e=dates[6];
+  document.getElementById('weekLabel').textContent=s.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+e.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('mealGrid').innerHTML=dates.map(d=>{
+    const key=fmtDate(d),isToday=key===today;
+    const entry=(meals[key]||[]).find(m=>m.type==='Dinner');
+    const dinnerSlot=entry
+      ?`<div class="meal-entry" style="padding:8px;font-size:12px;min-height:54px;align-items:flex-start" onclick="openMealModal('${key}','Dinner')"><span style="flex:1;white-space:normal;line-height:1.4">${entry.text}</span><span onclick="event.stopPropagation();deleteMeal('${key}','Dinner')" style="color:var(--muted);font-size:10px;cursor:pointer;flex-shrink:0;margin-left:4px">✕</span></div>`
+      :`<button class="meal-add" style="min-height:54px;font-size:11px" onclick="openMealModal('${key}','Dinner')">+ add dinner</button>`;
+    const sum=entry?`Dinner: ${entry.text}`:'';
+    return `<div class="meal-day${isToday?' today':''}"><div class="meal-day-header">${DAYS[d.getDay()]} <span style="font-weight:300;font-size:10px">${d.getDate()}</span></div>${dinnerSlot}${sum?`<button class="meal-sync" onclick="pushToGCal('Meal plan: ${d.toLocaleDateString('en-US',{weekday:'long'})}','${key}','${sum.replace(/'/g,"\\'")}')">📅 Sync</button>`:''}</div>`;
+  }).join('');
+}
+function openMealModal(date,type){
+  const current=(meals[date]||[]).find(m=>m.type===type);
+  document.getElementById('mealModalTitle').textContent=`Dinner — ${new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}`;
+  document.getElementById('mealDate').value=date;
+  document.getElementById('mealType').value=type;
+  document.getElementById('mealText').value=current?.text||'';
+  document.getElementById('mealSaveToLibrary').checked=false;
+  // Populate library picker
+  const picker=document.getElementById('mealLibraryPicker');
+  const empty=document.getElementById('mealLibraryEmpty');
+  if(recipeLibrary.length){
+    empty.style.display='none';
+    picker.style.display='flex';
+    picker.innerHTML=recipeLibrary.map(r=>`<button onclick="pickRecipeForMeal('${r.id}')" style="background:#c8a96e18;border:1px solid #c8a96e44;color:var(--goldL);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif${current?.text===r.title?';outline:2px solid var(--gold)':''}">${r.title}</button>`).join('');
+  } else {
+    empty.style.display='block';
+    picker.style.display='none';
+  }
+  openModal('mealModal');
+  setTimeout(()=>document.getElementById('mealText').focus(),100);
+}
+function pickRecipeForMeal(recipeId){
+  const r=recipeLibrary.find(x=>x.id===recipeId);if(!r)return;
+  document.getElementById('mealText').value=r.title;
+  document.getElementById('mealSaveToLibrary').checked=false;
+}
+function saveMeal(){
+  const date=document.getElementById('mealDate').value,type=document.getElementById('mealType').value,text=document.getElementById('mealText').value.trim();
+  if(!meals[date])meals[date]=[];
+  meals[date]=meals[date].filter(m=>m.type!==type);
+  if(text){
+    meals[date].push({type,text});
+    // Save to library if checked and not already in library
+    if(document.getElementById('mealSaveToLibrary').checked && !recipeLibrary.find(r=>r.title.toLowerCase()===text.toLowerCase())){
+      recipeLibrary.push({id:uid(),title:text,ingredients:'',link:''});
+    }
+  }
+  save();closeModal('mealModal');renderMeals();
+}
+function clearMealAndClose(){
+  const date=document.getElementById('mealDate').value,type=document.getElementById('mealType').value;
+  if(meals[date])meals[date]=meals[date].filter(m=>m.type!==type);
+  save();closeModal('mealModal');renderMeals();
+}
+function deleteMeal(date,type){if(meals[date])meals[date]=meals[date].filter(m=>m.type!==type);save();renderMeals();}
+function randomizeDinners(){
+  if(!recipeLibrary.length){showToast('Add some recipes to the library first!',false);return;}
+  const dates=getWeekDates();
+  dates.forEach(d=>{
+    const key=fmtDate(d);
+    if(!(meals[key]||[]).find(m=>m.type==='Dinner')){
+      const pick=recipeLibrary[Math.floor(Math.random()*recipeLibrary.length)];
+      if(!meals[key])meals[key]=[];
+      meals[key].push({type:'Dinner',text:pick.title});
+    }
+  });
+  save();renderMeals();showToast('Dinners randomized!');
+}
+
+// ═══════════════════════════════════════
+// RECIPE LIBRARY
+// ═══════════════════════════════════════
+function toggleRecipeLibrary(){
+  const panel=document.getElementById('recipeLibraryPanel');
+  const visible=panel.style.display!=='none';
+  panel.style.display=visible?'none':'block';
+  if(!visible)renderRecipeLibrary();
+}
+function renderRecipeLibrary(){
+  const list=document.getElementById('recipeList');
+  if(!recipeLibrary.length){
+    list.innerHTML=`<div class="empty" style="padding:20px"><div class="empty-icon">🍽</div>No recipes yet — add one above!</div>`;
+    return;
+  }
+  list.innerHTML=recipeLibrary.map(r=>`<div style="background:var(--navyL);border-radius:10px;padding:12px 15px;margin-bottom:8px;border:1px solid #c8a96e22;display:flex;gap:11px;align-items:flex-start">
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:13px;color:var(--white);margin-bottom:3px">${r.title}</div>
+      ${r.ingredients?`<div style="color:var(--muted);font-size:11px;font-style:italic;margin-bottom:3px">${r.ingredients.slice(0,120)}${r.ingredients.length>120?'…':''}</div>`:''}
+      ${r.link?`<a href="${r.link}" target="_blank" style="color:var(--gold);font-size:11px;text-decoration:none">🔗 Recipe link</a>`:''}
+    </div>
+    <div style="display:flex;gap:5px;flex-shrink:0">
+      <button class="btn-sm" style="background:#c8540a18;color:var(--orange);border-color:#c8540a44" onclick="openRecipeModal('${r.id}')">Edit</button>
+      <button class="btn-sm" style="background:#8fa3b818;color:var(--muted);border-color:#8fa3b844" onclick="deleteRecipe('${r.id}')">✕</button>
+    </div>
+  </div>`).join('');
+}
+function openRecipeModal(id){
+  const r=id?recipeLibrary.find(x=>x.id===id):null;
+  document.getElementById('recipeModalTitle').textContent=r?'Edit Recipe':'New Recipe';
+  document.getElementById('recipeId').value=r?.id||'';
+  document.getElementById('rTitle').value=r?.title||'';
+  document.getElementById('rIngredients').value=r?.ingredients||'';
+  document.getElementById('rLink').value=r?.link||'';
+  openModal('recipeModal');
+}
+function saveRecipe(){
+  const title=document.getElementById('rTitle').value.trim();if(!title){showToast('Recipe title required.',false);return;}
+  const id=document.getElementById('recipeId').value||uid();
+  const obj={id,title,ingredients:document.getElementById('rIngredients').value,link:document.getElementById('rLink').value};
+  const idx=recipeLibrary.findIndex(r=>r.id===id);if(idx>=0)recipeLibrary[idx]=obj;else recipeLibrary.push(obj);
+  save();closeModal('recipeModal');renderRecipeLibrary();showToast('Recipe saved!');
+}
+function deleteRecipe(id){
+  if(!confirm('Remove this recipe from the library?'))return;
+  recipeLibrary=recipeLibrary.filter(r=>r.id!==id);
+  save();renderRecipeLibrary();
+}
+
+// ═══════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════
+function renderCalendar(){
+  const sorted=[...events].sort((a,b)=>a.date.localeCompare(b.date));
+  const upcoming=sorted.filter(e=>e.date>=today),past=sorted.filter(e=>e.date<today).reverse();
+  const list=document.getElementById('calList');
+  if(!upcoming.length&&!past.length){list.innerHTML=`<div class="empty"><div class="empty-icon">📅</div>No events yet.</div>`;return;}
+  const eRow=e=>{const col=CC[e.cat]||'#8fa3b8';const du=Math.ceil((new Date(e.date)-new Date())/(864e5));
+    return `<div class="event-row" style="border-color:${col}33"><div class="event-bar" style="background:${col}"></div>
+      <div style="flex:1">
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><span style="font-weight:500;font-size:13px">${e.title}</span>
+          <span class="status-badge" style="background:${col}22;color:${col};border:1px solid ${col}44;font-size:10px">${e.cat}</span>
+          ${du>=0&&du<=7?`<span class="soon-badge">in ${du}d</span>`:''}
+        </div>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px">${e.date}${e.time?' at '+e.time:''}</div>
+        ${e.notes?`<div style="color:var(--muted);font-size:11px;margin-top:2px;font-style:italic">${e.notes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn-sm" style="background:#c8a96e18;color:var(--gold);border-color:#c8a96e44" onclick="pushToGCal('${e.title.replace(/'/g,"\\'")}','${e.date}','${(e.notes||'').replace(/'/g,"\\'")}')">📅</button>
+        <button class="btn-sm" style="background:#c8540a18;color:var(--orange);border-color:#c8540a44" onclick="openEventModal('${e.id}')">Edit</button>
+        <button class="btn-sm" style="background:#8fa3b818;color:var(--muted);border-color:#8fa3b844" onclick="deleteEvent('${e.id}')">✕</button>
+      </div>
+    </div>`;};
+  list.innerHTML=(upcoming.length?`<div class="section-label">Upcoming</div>`+upcoming.map(eRow).join(''):'')+(past.length?`<div class="section-label">Past</div><div style="opacity:.5">`+past.map(eRow).join('')+'</div>':'');
+}
+function openEventModal(id){
+  const e=id?events.find(x=>x.id===id):null;
+  document.getElementById('eventModalTitle').textContent=e?'Edit Event':'New Event';
+  document.getElementById('eventId').value=e?.id||'';document.getElementById('eTitle').value=e?.title||'';
+  document.getElementById('eDate').value=e?.date||'';document.getElementById('eTime').value=e?.time||'';
+  document.getElementById('eCat').value=e?.cat||'Family';document.getElementById('eNotes').value=e?.notes||'';
+  openModal('eventModal');
+}
+function saveEvent(){
+  const title=document.getElementById('eTitle').value.trim(),date=document.getElementById('eDate').value;
+  if(!title||!date){showToast('Title and date required.',false);return;}
+  const id=document.getElementById('eventId').value||uid();
+  const obj={id,title,date,time:document.getElementById('eTime').value,cat:document.getElementById('eCat').value,notes:document.getElementById('eNotes').value};
+  const idx=events.findIndex(e=>e.id===id);if(idx>=0)events[idx]=obj;else events.push(obj);
+  save();closeModal('eventModal');renderCalendar();
+}
+function deleteEvent(id){events=events.filter(e=>e.id!==id);save();renderCalendar();}
+
+// ═══════════════════════════════════════
+// SCHOOL (Chloe)
+// ═══════════════════════════════════════
+function renderSchool(){
+  const PRIO_COL={High:'#b03a2e',Medium:'#c8540a',Low:'#8fa3b8'};
+  const bar=document.getElementById('schoolFilters');
+  const open_=school.filter(s=>!s.done),done_=school.filter(s=>s.done);
+  bar.innerHTML=`<div style="color:var(--purple);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px">🎓 Chloe's Schoolwork <span style="background:#6b4fa022;color:var(--purple);border:1px solid #6b4fa044;border-radius:99px;padding:1px 8px;font-size:10px">${open_.length} open</span></div>
+    <div class="spacer"></div>
+    <button style="background:var(--purple);color:#fff;border:none;border-radius:8px;padding:7px 15px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px" onclick="openSchoolModal()">+ Add Assignment</button>`;
+  const list=document.getElementById('schoolList');
+  if(!open_.length&&!done_.length){list.innerHTML=`<div class="empty"><div class="empty-icon">🎓</div>No assignments yet — add one above!</div>`;return;}
+  const sRow=s=>{
+    const pc=PRIO_COL[s.priority]||'#8fa3b8';
+    const daysUntil=s.due?Math.ceil((new Date(s.due)-new Date())/(864e5)):null;
+    const overdue=daysUntil!==null&&daysUntil<0&&!s.done;
+    const dueSoon=daysUntil!==null&&daysUntil<=2&&daysUntil>=0&&!s.done;
+    return `<div class="school-card" style="opacity:${s.done?.5:1}">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <button class="check-circle${s.done?' done':''}" onclick="toggleSchool('${s.id}')" style="margin-top:1px;flex-shrink:0">${s.done?'✓':''}</button>
+        <div style="flex:1">
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-weight:600;font-size:13px;text-decoration:${s.done?'line-through':'none'};color:${s.done?'var(--muted)':'var(--white)'}">${s.title}</span>
+            <span class="school-chip">${s.type}</span>
+            <span style="background:${pc}22;color:${pc};font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px">${s.priority}</span>
+            ${s.class?`<span class="tag">${s.class}</span>`:''}
+          </div>
+          ${s.due?`<div style="font-size:11px;color:${overdue?'var(--red)':dueSoon?'var(--yellow)':'var(--muted)'}">
+            ${overdue?'⚠ Overdue — ':dueSoon?'⚡ Due soon — ':'Due: '}${s.due}${daysUntil!==null&&!s.done?` (${overdue?Math.abs(daysUntil)+'d ago':daysUntil===0?'today':daysUntil+'d away'})`:''}
+          </div>`:''}
+          ${s.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px;font-style:italic">${s.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          ${s.due&&!s.done?`<button class="btn-sm" style="background:#c8a96e18;color:var(--gold);border-color:#c8a96e44" onclick="pushToGCal('📚 ${s.title.replace(/'/g,"\\'")}','${s.due}','${s.class||''}')">📅</button>`:''}
+          <button class="btn-sm" style="background:#6b4fa018;color:var(--purple);border-color:#6b4fa044" onclick="openSchoolModal('${s.id}')">Edit</button>
+          <button class="btn-sm" style="background:#8fa3b818;color:var(--muted);border-color:#8fa3b844" onclick="deleteSchool('${s.id}')">✕</button>
+        </div>
+      </div>
+    </div>`;
+  };
+  list.innerHTML=open_.sort((a,b)=>{
+    // Sort: overdue first, then by due date, then no due date
+    if(!a.due&&!b.due) return 0;
+    if(!a.due) return 1;if(!b.due) return -1;
+    return a.due.localeCompare(b.due);
+  }).map(sRow).join('')+(done_.length?`<div class="section-label">Completed (${done_.length})</div>`+done_.map(sRow).join(''):'');
+}
+
+function openSchoolModal(id){
+  const s=id?school.find(x=>x.id===id):null;
+  document.getElementById('schoolModalTitle').textContent=s?'Edit Assignment':'New Assignment';
+  document.getElementById('schoolId').value=s?.id||'';
+  document.getElementById('sTitle').value=s?.title||'';
+  document.getElementById('sClass').value=s?.class||'';
+  document.getElementById('sType').value=s?.type||'Assignment';
+  document.getElementById('sDue').value=s?.due||'';
+  document.getElementById('sPriority').value=s?.priority||'Medium';
+  document.getElementById('sNotes').value=s?.notes||'';
+  openModal('schoolModal');
+}
+function saveSchool(){
+  const title=document.getElementById('sTitle').value.trim();if(!title){showToast('Title required.',false);return;}
+  const id=document.getElementById('schoolId').value||uid();
+  const obj={id,title,class:document.getElementById('sClass').value,type:document.getElementById('sType').value,
+    due:document.getElementById('sDue').value,priority:document.getElementById('sPriority').value,
+    notes:document.getElementById('sNotes').value,done:false};
+  const idx=school.findIndex(s=>s.id===id);
+  if(idx>=0){obj.done=school[idx].done;school[idx]=obj;}else school.push(obj);
+  save();closeModal('schoolModal');renderSchool();showToast('Assignment saved!');
+}
+function toggleSchool(id){const s=school.find(x=>x.id===id);if(s){s.done=!s.done;save();renderSchool();}}
+function deleteSchool(id){school=school.filter(s=>s.id!==id);save();renderSchool();}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+initFirebase();
+renderCases();
+renderMeals();
+</script>
+</body>
+</html>
