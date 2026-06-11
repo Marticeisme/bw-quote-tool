@@ -1725,7 +1725,7 @@ tr:hover td{background:var(--blue-light);}
       <div class="summary-empty">Select items to build your quote</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="printCemQuote()" title="Print formatted quote">🖨️ Print</button>
+      <button class="btn-print" onclick="downloadCemQuotePDF()" title="Download PDF">📥 Download PDF</button>
       <button class="btn-export" onclick="copyCemSummary()" title="Copy summary to clipboard" id="cemCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetCemQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveCemQuote()" title="Save this quote draft">💾 Save</button>
@@ -2367,7 +2367,7 @@ tr:hover td{background:var(--blue-light);}
       <div class="summary-empty">Select items to build your quote</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="printFhQuote()" title="Print formatted quote">🖨️ Print</button>
+      <button class="btn-print" onclick="downloadFhQuotePDF()" title="Download PDF">📥 Download PDF</button>
       <button class="btn-export" onclick="copyFhSummary()" title="Copy summary to clipboard" id="fhCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetFHQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveFhQuote()" title="Save this quote draft">💾 Save</button>
@@ -9466,6 +9466,131 @@ body.dark-mode .summary-line { border-color:#374151; }
 </style>
 
 <script>
+// ═══ PDF EXPORT ═══
+async function _buildQuotePDF(lines, clientName, subtitle, filePrefix) {
+  const { PDFDocument, rgb, StandardFonts } = PDFLib;
+  const NAVY   = rgb(26/255,  39/255,  68/255);
+  const ORANGE = rgb(192/255, 103/255, 59/255);
+  const GOLD   = rgb(184/255, 145/255, 42/255);
+  const WHITE  = rgb(1, 1, 1);
+  const DARK   = rgb(45/255,  51/255,  64/255);
+  const MUTED  = rgb(107/255, 115/255, 130/255);
+  const LGRAY  = rgb(0.9, 0.9, 0.9);
+  const RED    = rgb(0.55, 0.13, 0.13);
+  const PW = 612, PH = 792, M = 48;
+  const RX = PW - M;
+
+  const doc  = await PDFDocument.create();
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const reg  = await doc.embedFont(StandardFonts.Helvetica);
+  let page, y;
+
+  function newPage() {
+    page = doc.addPage([PW, PH]);
+    page.drawRectangle({ x:0, y:PH-66, width:PW, height:66, color:NAVY });
+    page.drawText('BONNEY WATSON', { x:M, y:PH-30, size:17, font:bold, color:WHITE });
+    page.drawText(subtitle, { x:M, y:PH-50, size:10, font:reg, color:rgb(0.75,0.75,0.75) });
+    y = PH - 84;
+  }
+  function checkY(n) { if (y < n + 60) newPage(); }
+
+  newPage();
+  const dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  if (clientName) { page.drawText('Prepared for: '+clientName, {x:M,y,size:11,font:bold,color:DARK}); y-=16; }
+  page.drawText(dateStr, {x:M,y,size:9.5,font:reg,color:MUTED});
+  y -= 24;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:1,color:GOLD});
+  y -= 20;
+
+  const exempt  = lines.filter(function(l){ return !l.taxable && !l.isDiscount && !l.isTax; });
+  const taxable = lines.filter(function(l){ return  l.taxable && !l.isDiscount && !l.isTax; });
+  const discs   = lines.filter(function(l){ return  l.isDiscount; });
+
+  function trunc(text, maxPx, f, sz) {
+    var t = String(text);
+    while (t.length > 4 && f.widthOfTextAtSize(t, sz) > maxPx) t = t.slice(0,-1);
+    return t.length < text.length ? t.trim()+'…' : t;
+  }
+  function drawRow(label, amount, color) {
+    checkY(18);
+    var neg = amount < 0;
+    var amtStr = (neg?'-$':'$')+Math.abs(amount).toLocaleString('en-US',{minimumFractionDigits:2});
+    var amtW   = reg.widthOfTextAtSize(amtStr, 10);
+    var lbl    = trunc(label, RX-M-amtW-20, reg, 10);
+    page.drawText(lbl,    {x:M+6,       y, size:10, font:reg,  color:DARK});
+    page.drawText(amtStr, {x:RX-amtW,   y, size:10, font:reg,  color:color||DARK});
+    page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
+    y -= 18;
+  }
+  function drawSection(title, items, color) {
+    if (!items.length) return;
+    checkY(28);
+    page.drawRectangle({x:M, y:y-16, width:RX-M, height:20, color:rgb(0.94,0.95,0.97)});
+    page.drawText(title.toUpperCase(), {x:M+8, y:y-12, size:8, font:bold, color:NAVY});
+    y -= 26;
+    items.forEach(function(l){ drawRow(l.label, l.amount, color); });
+  }
+
+  drawSection('Services & Cemetery Items', exempt);
+  drawSection('Merchandise (Taxable)',     taxable);
+  drawSection('Discounts',                discs, RED);
+
+  checkY(110); y -= 8;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:1.5,color:NAVY}); y -= 20;
+
+  var exemptSub  = exempt.reduce(function(s,l){return s+l.amount;},0);
+  var taxableSub = taxable.reduce(function(s,l){return s+l.amount;},0);
+  var discTotal  = discs.reduce(function(s,l){return s+Math.abs(l.amount);},0);
+  var taxAmt     = Math.round(taxableSub * 0.104 * 100) / 100;
+  var grand      = exemptSub + taxableSub + taxAmt - discTotal;
+
+  function drawTot(label, amt, isGrand, isDisc) {
+    var f  = isGrand ? bold : reg;
+    var sz = isGrand ? 13 : 10;
+    var col= isGrand ? ORANGE : (isDisc ? RED : MUTED);
+    var str= (isDisc?'-$':'$')+Math.abs(amt).toLocaleString('en-US',{minimumFractionDigits:2});
+    var w  = f.widthOfTextAtSize(str, sz);
+    page.drawText(label, {x:M+6,    y, size:sz, font:f, color:isGrand?DARK:MUTED});
+    page.drawText(str,   {x:RX-w,   y, size:sz, font:f, color:col});
+    y -= sz+9;
+  }
+  if (exempt.length)  drawTot('Non-Taxable Subtotal', exemptSub,  false, false);
+  if (taxable.length) drawTot('Taxable Subtotal',      taxableSub, false, false);
+  if (taxable.length) drawTot('Sales Tax (10.4%)',     taxAmt,     false, false);
+  if (discs.length)   drawTot('Discounts',             discTotal,  false, true);
+  y -= 6;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:NAVY}); y -= 22;
+  drawTot('TOTAL ESTIMATE', grand, true, false);
+
+  // Footer on every page
+  var pages = doc.getPages();
+  pages.forEach(function(pg) {
+    pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:GOLD});
+    pg.drawText('Bonney Watson  ·  21st Ave SW & SW Thistle St, Seattle WA 98166  ·  mmorrison@bonneywatson.com  ·  206-445-9794',{x:M,y:44,size:7.5,font:reg,color:MUTED});
+    pg.drawText('Prices valid for 90 days and subject to change without notice. This is an estimate only.',{x:M,y:30,size:7,font:reg,color:rgb(0.7,0.7,0.7)});
+  });
+
+  var bytes = await doc.save();
+  var slug  = (clientName||'Quote').replace(/\s+/g,'_').replace(/[^A-Za-z0-9_]/g,'');
+  var a     = document.createElement('a');
+  a.href    = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  a.download= filePrefix+'_'+slug+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+  a.click();
+}
+
+async function downloadCemQuotePDF() {
+  logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
+  var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
+  if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
+  await _buildQuotePDF(lines, val('cemClientName')||'', 'Cemetery Services · Price Estimate', 'BW_Cemetery_Quote');
+}
+async function downloadFhQuotePDF() {
+  logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
+  await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home · Price Estimate', 'BW_FuneralHome_Quote');
+}
+
 // ═══ AUTO-SAVE DRAFT ═══
 (function() {
   var AS_CEM = 'bw_as_cem', AS_FH = 'bw_as_fh', _timer = null;
