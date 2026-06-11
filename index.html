@@ -416,15 +416,6 @@ tr:hover td{background:var(--blue-light);}
     <button onclick="toggleCompare()" id="compareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
   </div>
 
-  <!-- Saved Quotes Banner -->
-  <div id="cemSavedBanner" style="display:none;background:var(--navy);border:1px solid rgba(200,169,110,.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="color:#c8a96e;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">💾 Saved Quotes</span>
-      <button onclick="document.getElementById('cemSavedBanner').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:20px;line-height:1;padding:0;">&times;</button>
-    </div>
-    <div id="cemSavedQuotes"></div>
-  </div>
-
   <!-- Compare Panel -->
   <div id="comparePanel" style="display:none;margin-bottom:16px;padding:16px;background:#f0f4ff;border:2px solid var(--navy);border-radius:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -1725,7 +1716,15 @@ tr:hover td{background:var(--blue-light);}
           <div class="btn-add-line" onclick="addCemLine()">+ Add Custom Line</div>
         </div>
       </div>
-    
+
+      <!-- Saved Cemetery Quotes -->
+      <div class="q-panel" style="margin-top:20px;background:var(--navy);">
+        <div class="q-panel-header" style="color:#c8a96e;background:rgba(0,0,0,.2);">💾 Saved Cemetery Quotes</div>
+        <div class="q-panel-body" style="padding:14px 18px;">
+          <div id="cemSavedQuotes"><p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p></div>
+        </div>
+      </div>
+
 </div>
 
 
@@ -1755,15 +1754,6 @@ tr:hover td{background:var(--blue-light);}
   <div class="callout callout-blue" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span>Build a funeral home quote. Merchandise is taxable (10.4%). Professional services, transportation, and cremation services are tax-exempt.</span>
     <button onclick="toggleFhCompare()" id="fhCompareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
-  </div>
-
-  <!-- Saved Quotes Banner -->
-  <div id="fhSavedBanner" style="display:none;background:var(--navy);border:1px solid rgba(200,169,110,.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="color:#c8a96e;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;">💾 Saved Quotes</span>
-      <button onclick="document.getElementById('fhSavedBanner').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:20px;line-height:1;padding:0;">&times;</button>
-    </div>
-    <div id="fhSavedQuotes"></div>
   </div>
 
   <!-- FH Compare Panel (top of page, like cemetery) -->
@@ -2374,6 +2364,14 @@ tr:hover td{background:var(--blue-light);}
         <div class="q-panel-body">
           <div id="fhDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
           <div class="btn-add-line" onclick="addFhDiscount()">+ Add Discount</div>
+        </div>
+      </div>
+
+      <!-- Saved Funeral Home Quotes -->
+      <div class="q-panel" style="margin-top:20px;background:var(--navy);">
+        <div class="q-panel-header" style="color:#c8a96e;background:rgba(0,0,0,.2);">💾 Saved Funeral Home Quotes</div>
+        <div class="q-panel-body" style="padding:14px 18px;">
+          <div id="fhSavedQuotes"><p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p></div>
         </div>
       </div>
 
@@ -7719,26 +7717,22 @@ function persistSavedQuotes() {
 function saveCemQuote() {
   var clientName = (val('cemClientName') || '').trim();
   var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var label = (clientName || 'Cemetery Quote') + ' — ' + d;
+  var label = (clientName || 'Cemetery Quote') + ' - ' + d;
   var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
   _cemSavedQuotes.unshift(snap);
-  if (_cemSavedQuotes.length > 20) _cemSavedQuotes = _cemSavedQuotes.slice(0, 20);
+  if (_cemSavedQuotes.length > 10) _cemSavedQuotes = _cemSavedQuotes.slice(0, 10);
   renderSavedQuotesList('cem');
-  var banner = el('cemSavedBanner');
-  if (banner) banner.scrollIntoView({behavior:'smooth', block:'nearest'});
   persistSavedQuotes();
   showQuoteToast('Saved: ' + (clientName || 'Cemetery Quote'));
 }
 function saveFhQuote() {
   var clientName = (val('fhClientName') || '').trim();
   var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var label = (clientName || 'FH Quote') + ' — ' + d;
+  var label = (clientName || 'FH Quote') + ' - ' + d;
   var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
   _fhSavedQuotes.unshift(snap);
-  if (_fhSavedQuotes.length > 20) _fhSavedQuotes = _fhSavedQuotes.slice(0, 20);
+  if (_fhSavedQuotes.length > 10) _fhSavedQuotes = _fhSavedQuotes.slice(0, 10);
   renderSavedQuotesList('fh');
-  var banner = el('fhSavedBanner');
-  if (banner) banner.scrollIntoView({behavior:'smooth', block:'nearest'});
   persistSavedQuotes();
   showQuoteToast('Saved: ' + (clientName || 'FH Quote'));
 }
@@ -7788,10 +7782,11 @@ function renderSavedQuotesList(type) {
   try {
     var listEl = el(type === 'cem' ? 'cemSavedQuotes' : 'fhSavedQuotes');
     if (!listEl) return;
-    var banner = el(type === 'cem' ? 'cemSavedBanner' : 'fhSavedBanner');
     var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
-    if (!list.length) { listEl.innerHTML = ''; if (banner) banner.style.display = 'none'; return; }
-    if (banner) banner.style.display = 'block';
+    if (!list.length) {
+      listEl.innerHTML = '<p style="color:rgba(255,255,255,.4);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet — fill in the quote above and click 💾 Save.</p>';
+      return;
+    }
     var searchId = type === 'cem' ? 'cemQuoteSearch' : 'fhQuoteSearch';
     var searchEl = el(searchId);
     var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
@@ -9563,6 +9558,51 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   y -= 28;
   if (taxAmt > 0) {
     page.drawText('Tax applies to merchandise. Services & transportation are exempt.', {x:M, y, size:8.5, font:reg, color:MUTED});
+    y -= 16;
+  }
+
+  // ── Payment Options (cemetery financing) ──
+  if (opts.finData && opts.finData.downAmt > 0 && typeof FIN_TIERS !== 'undefined') {
+    var fd = opts.finData;
+    var finTierKey = fd.tierKey || (fd.downAmt/grand >= 0.25 ? 0.25 : fd.downAmt/grand >= 0.20 ? 0.20 : 0.10);
+    var finTiers   = FIN_TIERS[finTierKey];
+    var finBalance = fd.balance != null ? fd.balance : (grand - fd.downAmt);
+    if (finTiers && finBalance > 0) {
+      checkY(80);
+      y -= 8;
+      page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
+      page.drawText('PAYMENT OPTIONS', {x:M, y:y-10, size:8, font:bold, color:ORANGE});
+      y -= 24;
+      var dpPct = (fd.downAmt/grand*100).toFixed(1);
+      var dpInfo = 'Down payment: ' + fmtMoney(fd.downAmt) + ' (' + dpPct + '%)    Balance financed: ' + fmtMoney(finBalance);
+      page.drawText(dpInfo, {x:M, y, size:9.5, font:reg, color:DARK});
+      y -= 18;
+      // Column positions
+      var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
+      // Header row
+      checkY(16);
+      page.drawRect({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
+      page.drawText('Term',         {x:C1, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Rate',         {x:C2, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Monthly Pmt',  {x:C3, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Total Cost',   {x:C4, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      y -= 18;
+      finTiers.forEach(function(tier, i) {
+        checkY(16);
+        var months = tier[0], rate = tier[1];
+        var monthly   = (typeof finMonthly === 'function') ? finMonthly(finBalance, months, rate) : (rate===0 ? finBalance/months : (finBalance * (rate/12)) / (1 - Math.pow(1+(rate/12), -months)));
+        var totalCost = fd.downAmt + (monthly * months);
+        var isZero    = rate === 0;
+        if (i % 2 === 0) page.drawRect({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+        page.drawText(months + ' months',        {x:C1, y, size:9.5, font:bold, color:DARK});
+        page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
+        page.drawText(fmtMoney(monthly)+'/mo',   {x:C3, y, size:9.5, font:bold, color:NAVY});
+        page.drawText(fmtMoney(totalCost),        {x:C4, y, size:9,   font:reg,  color:MUTED});
+        y -= 17;
+      });
+      page.drawText('Minimum monthly payment $50 · 0% financing requires ACH bank withdrawal', {x:M, y, size:7.5, font:reg, color:MUTED});
+      y -= 14;
+    }
   }
 
   // Footer on all pages
@@ -9599,7 +9639,9 @@ async function downloadCemQuotePDF() {
   await _buildQuotePDF(lines, val('cemClientName')||'', subtitle, 'BW_Cemetery_Quote', {
     exSection: 'Services & Cemetery Items',
     taxSection: 'Merchandise (Taxable)',
-    grandTotal: (typeof _cemTotal !== 'undefined') ? _cemTotal : undefined
+    grandTotal: (typeof _cemTotal !== 'undefined') ? _cemTotal : undefined,
+    finData: (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) ? _finData : null,
+    finShowAll: (typeof _finShowAll !== 'undefined') ? _finShowAll : false
   });
 }
 async function downloadFhQuotePDF() {
