@@ -240,6 +240,7 @@ tr:hover td{background:var(--blue-light);}
   <div class="header-inner">
     <div class="header-title">Bonney Watson · <span>Price Guide</span></div>
     <div class="header-badge">2026</div>
+    <button id="darkModeBtn" onclick="toggleDarkMode()" title="Toggle dark mode" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1;flex-shrink:0;">🌙</button>
     <div class="header-search">
       <span>🔍</span>
       <input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)">
@@ -9443,6 +9444,98 @@ function fhInsCalc() {
   if (cpDate && !cpDate.value) cpDate.value = todayVal;
   var ricDate = document.getElementById('ricContractDate');
   if (ricDate && !ricDate.value) ricDate.value = todayVal;
+})();
+</script>
+
+<style>
+/* DARK MODE */
+body.dark-mode {
+  --offwhite:#111827; --white:#1f2937; --gray-light:#1f2937; --gray-mid:#374151;
+  --text:#e5e7eb; --text-light:#9ca3af; --blue-light:#1e3a5f; --gold-light:#2a2010;
+}
+body.dark-mode .sidebar, body.dark-mode .site-header { background:#0f172a; }
+body.dark-mode .q-panel, body.dark-mode .summary-panel { background:#1f2937; border-color:#374151; }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background:#111827; color:#e5e7eb; border-color:#374151; }
+body.dark-mode .nav-item { color:rgba(255,255,255,.6); }
+body.dark-mode .nav-item.active, body.dark-mode .nav-item:hover { color:#fff; }
+body.dark-mode label { color:#9ca3af; }
+body.dark-mode .section { background:#111827; }
+body.dark-mode .q-panel-header { background:#1a2744; }
+body.dark-mode .summary-fixed { background:#1f2937; border-color:#374151; }
+body.dark-mode .summary-line { border-color:#374151; }
+</style>
+
+<script>
+// ═══ AUTO-SAVE DRAFT ═══
+(function() {
+  var AS_CEM = 'bw_as_cem', AS_FH = 'bw_as_fh', _timer = null;
+
+  function autoSave() {
+    try {
+      if (typeof captureCemState === 'function') localStorage.setItem(AS_CEM, JSON.stringify(captureCemState()));
+      if (typeof captureFhState  === 'function') localStorage.setItem(AS_FH,  JSON.stringify(captureFhState()));
+    } catch(e) {}
+  }
+  function schedule() { clearTimeout(_timer); _timer = setTimeout(autoSave, 1500); }
+  document.addEventListener('input',  schedule);
+  document.addEventListener('change', schedule);
+  document.addEventListener('click',  schedule);
+
+  window.restoreAutosave = function() {
+    try {
+      var cd = JSON.parse(localStorage.getItem(AS_CEM)||'null');
+      var fd = JSON.parse(localStorage.getItem(AS_FH) ||'null');
+      if (cd && cd.fields && cd.fields.length) {
+        if (typeof resetCemQuote === 'function') resetCemQuote();
+        restoreFieldState(cd.fields);
+        restoreCustomLines('cemCustomLines', cd.customLines||[]);
+        restoreDiscountRows('cemDiscountList', cd.discounts||[]);
+        if (typeof cemUpdate === 'function') cemUpdate();
+      }
+      if (fd && fd.fields && fd.fields.length) {
+        if (typeof resetFHQuote === 'function') resetFHQuote();
+        restoreFieldState(fd.fields);
+        restoreCustomLines('fhCustomLines', fd.customLines||[]);
+        restoreDiscountRows('fhDiscountList', fd.discounts||[]);
+        if (fd.urns)    { fhUrns=fd.urns;       if (typeof fhUrnRender    === 'function') fhUrnRender(); }
+        if (fd.flowers) { fhFlowers=fd.flowers;  if (typeof fhFlowerRender === 'function') fhFlowerRender(); }
+        if (typeof fhUpdate === 'function') fhUpdate();
+      }
+    } catch(e) {}
+    window.clearAutosave();
+  };
+
+  window.clearAutosave = function() {
+    localStorage.removeItem(AS_CEM); localStorage.removeItem(AS_FH);
+    var b = document.getElementById('autosave-banner'); if (b) b.remove();
+  };
+
+  window.addEventListener('load', function() {
+    if (!localStorage.getItem(AS_CEM) && !localStorage.getItem(AS_FH)) return;
+    var b = document.createElement('div');
+    b.id = 'autosave-banner';
+    b.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1B2A4A;color:#fff;padding:13px 20px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;gap:12px;font-family:inherit;font-size:13px;white-space:nowrap;';
+    b.innerHTML = '<span>📋 Unsaved quote detected from your last session.</span>'
+      + '<button onclick="restoreAutosave()" style="background:#C0673B;border:none;color:#fff;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px;font-family:inherit;">Restore</button>'
+      + '<button onclick="clearAutosave()" style="background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.65);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;">Dismiss</button>';
+    document.body.appendChild(b);
+  });
+})();
+
+// ═══ DARK MODE ═══
+(function() {
+  var DM_KEY = 'bw_dark_mode';
+  window.toggleDarkMode = function() {
+    var on = !document.body.classList.contains('dark-mode');
+    document.body.classList.toggle('dark-mode', on);
+    localStorage.setItem(DM_KEY, on ? '1' : '');
+    var btn = document.getElementById('darkModeBtn');
+    if (btn) btn.textContent = on ? '☀️' : '🌙';
+  };
+  window.addEventListener('load', function() {
+    var on = !!localStorage.getItem(DM_KEY);
+    if (on) { document.body.classList.add('dark-mode'); var btn=document.getElementById('darkModeBtn'); if(btn) btn.textContent='☀️'; }
+  });
 })();
 </script>
 </body>
