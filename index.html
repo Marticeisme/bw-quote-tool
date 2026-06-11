@@ -9521,6 +9521,18 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   const MUTED  = rgb(107/255, 115/255, 130/255);
   const LGRAY  = rgb(0.9, 0.9, 0.9);
   const PW = 612, PH = 792, M = 48, RX = 612 - 48;
+  // Strip characters WinAnsi (pdf-lib standard fonts) cannot encode
+  function safeText(s){
+    if(s==null)return '';
+    return String(s)
+      .replace(/[‐-―−]/g,'-')
+      .replace(/[‘’]/g,"'")
+      .replace(/[“”]/g,'"')
+      .replace(/…/g,'...')
+      .replace(/·/g,'\xb7')
+      .replace(/ /g,' ')
+      .replace(/[^\x00-\xFF]/g,'');
+  }
 
   const doc  = await PDFDocument.create();
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -9551,13 +9563,13 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   var dW = reg.widthOfTextAtSize(dateStr, 9.5);
   page.drawText(dateStr, {x:RX-dW, y:PH-44, size:9.5, font:reg, color:MUTED});
   // Subtitle left + valid-through right
-  page.drawText(subtitle, {x:M, y:PH-60, size:10, font:reg, color:DARK});
+  page.drawText(safeText(subtitle), {x:M, y:PH-60, size:10, font:reg, color:DARK});
   var vtW = reg.widthOfTextAtSize(vtStr, 8.5);
   page.drawText(vtStr, {x:RX-vtW, y:PH-60, size:8.5, font:reg, color:rgb(0.7,0.7,0.7)});
   // Prepared for
   var hdrBot = PH - 76;
   if (clientName) {
-    page.drawText('Prepared for: '+clientName, {x:M, y:hdrBot, size:11, font:bold, color:DARK});
+    page.drawText('Prepared for: '+safeText(clientName), {x:M, y:hdrBot, size:11, font:bold, color:DARK});
     hdrBot -= 16;
   }
   // Gold rule
@@ -9568,7 +9580,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   function trunc(text, maxPx, f, sz) {
     var t = String(text);
     while (t.length > 4 && f.widthOfTextAtSize(t, sz) > maxPx) t = t.slice(0,-1);
-    return t.length < String(text).length ? t.trim()+'…' : t;
+    return t.length < String(text).length ? t.trim()+'...' : t;
   }
   function fmtMoney(n) {
     return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -9577,7 +9589,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     checkY(18);
     var amtStr = fmtMoney(amount);
     var amtW   = bold.widthOfTextAtSize(amtStr, 10);
-    var lbl    = trunc(label, RX-M-amtW-20, reg, 10);
+    var lbl    = trunc(safeText(label), RX-M-amtW-20, reg, 10);
     page.drawText(lbl,    {x:M+6,     y, size:10, font:reg,  color:DARK});
     page.drawText(amtStr, {x:RX-amtW, y, size:10, font:bold, color:color||DARK});
     page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
