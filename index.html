@@ -210,6 +210,7 @@ tr:hover td{background:var(--blue-light);}
       });
       _fbDB = firebase.database();
       _fbDB.ref('savedQuotes').on('value', function(snap) {
+        if (_fbSavingQuotes) return;
         var data = snap.val() || {};
         function normArr(v){ return Array.isArray(v) ? v : (v && typeof v==='object' ? Object.values(v) : []); }
         _cemSavedQuotes = normArr(data.cem);
@@ -5131,131 +5132,6 @@ function emailFhQuote() {
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
-var _cemSavedQuotes = [];
-var _fhSavedQuotes  = [];
-var CEM_STORAGE_KEY = 'bw_cem_saved_quotes';
-var FH_STORAGE_KEY  = 'bw_fh_saved_quotes';
-
-function loadSavedQuotes() {
-  // Firebase listener keeps _cemSavedQuotes/_fhSavedQuotes in sync automatically
-  renderSavedQuotesList('cem');
-  renderSavedQuotesList('fh');
-}
-
-function persistSavedQuotes(type) {
-  if (window._fbDB) {
-    _fbDB.ref('savedQuotes/cem').set(_cemSavedQuotes);
-    _fbDB.ref('savedQuotes/fh').set(_fhSavedQuotes);
-  }
-}
-
-function exportSavedQuotesBackup() {
-  // Download all saved quotes as a JSON file the user can reimport later
-  var backup = {
-    version: 1,
-    exported: new Date().toISOString(),
-    cemQuotes: _cemSavedQuotes,
-    fhQuotes:  _fhSavedQuotes
-  };
-  var blob = new Blob([JSON.stringify(backup, null, 2)], {type: 'application/json'});
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href   = url;
-  a.download = 'BW_Saved_Quotes_' + new Date().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}).replace(/\//g,'-') + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importSavedQuotesBackup() {
-  var input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var backup = JSON.parse(ev.target.result);
-        if (backup.cemQuotes) {
-          // Merge — avoid duplicates by ID
-          var existingIds = _cemSavedQuotes.map(function(q){return q.id;});
-          backup.cemQuotes.forEach(function(q){
-            if (!existingIds.includes(q.id)) _cemSavedQuotes.unshift(q);
-          });
-        }
-        if (backup.fhQuotes) {
-          var existingIds = _fhSavedQuotes.map(function(q){return q.id;});
-          backup.fhQuotes.forEach(function(q){
-            if (!existingIds.includes(q.id)) _fhSavedQuotes.unshift(q);
-          });
-        }
-        persistSavedQuotes();
-        renderSavedQuotesList('cem');
-        renderSavedQuotesList('fh');
-        alert('Quotes imported successfully.');
-      } catch(err) { alert('Could not read backup file: ' + err.message); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
-function saveCemQuote() {
-  try {
-    var clientName = val('cemClientName') || 'Unnamed';
-    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    var snap = {
-      id: Date.now(),
-      label: clientName + ' – ' + d,
-      total: _cemTotal || 0,
-      lines: JSON.parse(JSON.stringify(_cemLines || [])),
-      notes: val('cemQuoteNotes')
-    };
-    _cemSavedQuotes.unshift(snap);
-    if (_cemSavedQuotes.length > 8) _cemSavedQuotes = _cemSavedQuotes.slice(0, 8);
-    try { localStorage.setItem(CEM_STORAGE_KEY, JSON.stringify(_cemSavedQuotes)); } catch(e) {}
-    renderSavedQuotesList('cem');
-  } catch(e) { console.error('saveCemQuote error:', e); }
-}
-
-function saveFhQuote() {
-  var clientName = val('fhClientName') || 'Unnamed';
-  var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  var snap = {
-    id: Date.now(),
-    label: clientName + ' – ' + d,
-    total: _fhTotal || 0,
-    lines: JSON.parse(JSON.stringify(_fhLines || [])),
-    notes: val('fhQuoteNotes')
-  };
-  _fhSavedQuotes.unshift(snap);
-  if (_fhSavedQuotes.length > 8) _fhSavedQuotes = _fhSavedQuotes.slice(0, 8);
-  try { localStorage.setItem(FH_STORAGE_KEY, JSON.stringify(_fhSavedQuotes)); } catch(e) {}
-  renderSavedQuotesList('fh');
-}
-
-function deleteSavedQuote(type, id) {
-  if (type === 'cem') {
-    _cemSavedQuotes = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
-    persistSavedQuotes();
-  } else {
-    _fhSavedQuotes = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
-    persistSavedQuotes();
-  }
-  renderSavedQuotesList(type);
-}
-
-function printSavedQuote(type, id) {
-  var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
-  var snap = list.find(function(q){ return q.id === id; });
-  if (!snap) return;
-  var text = buildExportText(snap.lines, snap.total, snap.label.split(' – ')[0], type === 'cem' ? (cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote') : 'Funeral Home Quote');
-  var w = window.open('', '_blank');
-  w.document.write('<pre style="font-family:monospace;font-size:12px;padding:24px;white-space:pre-wrap;">' + text + '</pre>');
-  w.document.close(); w.print();
-}
-
 function printCompare() {
   var clientName = val('cemClientName') || '';
   var d = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
@@ -7805,30 +7681,53 @@ function captureFhState() {
 var _cemSavedQuotes = [];
 var _fhSavedQuotes  = [];
 var _savedCompare   = { cem: null, fh: null };
+var _fbSavingQuotes = false;
+
+function showQuoteToast(msg) {
+  var t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2e7d57;color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3);';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },350); },2500);
+}
 
 function persistSavedQuotes() {
-  if (window._fbDB) {
-    _fbDB.ref('savedQuotes/cem').set(_cemSavedQuotes);
-    _fbDB.ref('savedQuotes/fh').set(_fhSavedQuotes);
-  }
+  if (!window._fbDB) return;
+  _fbSavingQuotes = true;
+  _fbDB.ref('savedQuotes').set({
+    cem: _cemSavedQuotes.length ? _cemSavedQuotes : null,
+    fh:  _fhSavedQuotes.length  ? _fhSavedQuotes  : null
+  }).then(function(){ setTimeout(function(){ _fbSavingQuotes = false; }, 500); })
+    .catch(function(e){ console.warn('persistSavedQuotes failed', e); _fbSavingQuotes = false; });
 }
 
 function saveCemQuote() {
   var label = prompt('Name this quote (e.g. Smith Family):', val('cemClientName') || '');
-  if (!label) return;
+  if (label === null) return;
+  label = label.trim() || (val('cemClientName') || 'Cemetery Quote');
   var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: new Date().toLocaleDateString() };
-  _cemSavedQuotes.push(snap); persistSavedQuotes(); renderSavedQuotesList('cem');
+  _cemSavedQuotes.unshift(snap);
+  if (_cemSavedQuotes.length > 20) _cemSavedQuotes = _cemSavedQuotes.slice(0, 20);
+  renderSavedQuotesList('cem');
+  persistSavedQuotes();
+  showQuoteToast('Quote saved: ' + label);
 }
 function saveFhQuote() {
   var label = prompt('Name this quote:', val('fhClientName') || '');
-  if (!label) return;
+  if (label === null) return;
+  label = label.trim() || (val('fhClientName') || 'FH Quote');
   var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: new Date().toLocaleDateString() };
-  _fhSavedQuotes.push(snap); persistSavedQuotes(); renderSavedQuotesList('fh');
+  _fhSavedQuotes.unshift(snap);
+  if (_fhSavedQuotes.length > 20) _fhSavedQuotes = _fhSavedQuotes.slice(0, 20);
+  renderSavedQuotesList('fh');
+  persistSavedQuotes();
+  showQuoteToast('Quote saved: ' + label);
 }
 function deleteSavedQuote(type, id) {
   if (type === 'cem') _cemSavedQuotes = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
   else                _fhSavedQuotes  = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
-  persistSavedQuotes(); renderSavedQuotesList(type);
+  renderSavedQuotesList(type);
+  persistSavedQuotes();
 }
 
 function loadSavedCemQuote(id) {
