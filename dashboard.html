@@ -572,17 +572,17 @@ const FUNERAL_QUOTE_CATEGORIES=['Professional Services / Funeral Package','Caske
 
 const CHLOE_CHECKLISTS={
   Cremation:{
-    'Death Certificates / Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
     Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Min Prep','ID View Complete / Photo Uploaded'],
     Cremation:['Cremation Auth Signed & Uploaded','Cremation Packet Uploaded/Tagged','Witness Cremation Scheduled','Fingerprints Needed?','LegacyTouch Pamphlet to Family','Lock(s) of Hair Released to Family','Urn Ordered','Keepsakes Ordered','Family Notified of Cremation Date','Urn/Keepsakes Released'],
     'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
-    'Contract / Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
+    'Contract & Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
   },
   Burial:{
-    'Death Certificates / Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
     Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Fully Prepped','Dressed & Casketed'],
     'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Property in Safe?','PEI Released to Family','Flowers Ordered/Confirmed','Catering Ordered/Confirmed','Cemetery Notified/Scheduled','Escorts Requested/Confirmed','Bagpipes/Butterflies/Doves','Musicians Confirmed','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
-    'Contract / Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
+    'Contract & Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
   }
 };
 // Martice checklists keyed by "Type::Mode" (Confirmed Sale or Quote). Work Order is standalone.
@@ -692,11 +692,21 @@ function initFirebase(){
     }, err=>{ console.warn('Firebase read error',err); setSyncStatus('offline'); fbReady=true; });
   }catch(e){ console.warn('Firebase init failed',e); setSyncStatus('offline'); fbReady=true; }
 }
+function safeFBCases(cs){
+  return cs.map(function(c){
+    if(!c.checklist) return c;
+    var cl={};
+    Object.entries(c.checklist).forEach(function(entry){
+      cl[entry[0].replace(/\//g,' & ')]=entry[1];
+    });
+    return Object.assign({},c,{checklist:cl});
+  });
+}
 function pushToFirebase(){
   if(!fbDB){ return; }
   fbWriting=true;
   setSyncStatus('saving');
-  fbDB.ref('dashboard').set({cases,tasks,meals,events,school,recipeLibrary,updatedAt:Date.now(),_secret:'MorrisonFrink2026Secret'})
+  fbDB.ref('dashboard').set({cases:safeFBCases(cases),tasks,meals,events,school,recipeLibrary,updatedAt:Date.now(),_secret:'MorrisonFrink2026Secret'})
     .then(()=>{ setSyncStatus('synced'); setTimeout(()=>{fbWriting=false;},300); })
     .catch(e=>{ console.warn('Firebase write failed',e); setSyncStatus('offline'); fbWriting=false; });
 }
@@ -1077,7 +1087,7 @@ function saveCase(){
     reminderDays:rDays};
   const idx=cases.findIndex(c=>c.id===id);
   if(idx>=0)cases[idx]=obj;else cases.push(obj);
-  try { save(); } catch(e){ console.error('save() failed:',e); showToast('Save error: '+e.message, false); return; }
+  try { save(); } catch(e){ console.error('save() error:',e); }
   closeModal('caseModal');
   try { renderCases(); } catch(e){ console.error('renderCases() failed:',e); }
   showToast('Case saved!');
