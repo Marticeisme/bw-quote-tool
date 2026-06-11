@@ -9509,7 +9509,9 @@ body.dark-mode #fhTypeANLabel:has(input:checked) { background:#284878 !important
 <script>
 // ═══ PDF EXPORT ═══
 async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
+  try {
   opts = opts || {};
+  if (typeof PDFLib === 'undefined') throw new Error('PDF library not loaded. Reload the page and try again.');
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
   const NAVY   = rgb(26/255,  39/255,  68/255);
   const ORANGE = rgb(192/255, 103/255, 59/255);
@@ -9636,11 +9638,22 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   });
 
   var bytes = await doc.save();
-  var slug  = (clientName||'Quote').replace(/\s+/g,'_').replace(/[^A-Za-z0-9_]/g,'');
-  var a     = document.createElement('a');
-  a.href    = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
-  a.download= filePrefix+'_'+slug+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+  var defaultSlug = filePrefix+'_'+(clientName||'Quote').replace(/\s+/g,'_').replace(/[^A-Za-z0-9_-]/g,'')+'_'+new Date().toISOString().slice(0,10);
+  var customName  = window.prompt('Save PDF as:', defaultSlug);
+  if (customName === null) return;
+  customName = (customName.trim() || defaultSlug).replace(/\.pdf$/i, '');
+  var url = URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+  var a   = document.createElement('a');
+  a.href  = url;
+  a.download = customName + '.pdf';
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
+  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+  } catch(e) {
+    console.error('PDF generation error:', e);
+    alert('Could not generate PDF: ' + e.message);
+  }
 }
 
 async function downloadCemQuotePDF() {
