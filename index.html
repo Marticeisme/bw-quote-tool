@@ -211,8 +211,9 @@ tr:hover td{background:var(--blue-light);}
       _fbDB = firebase.database();
       _fbDB.ref('savedQuotes').on('value', function(snap) {
         var data = snap.val() || {};
-        _cemSavedQuotes = Array.isArray(data.cem) ? data.cem : [];
-        _fhSavedQuotes  = Array.isArray(data.fh)  ? data.fh  : [];
+        function normArr(v){ return Array.isArray(v) ? v : (v && typeof v==='object' ? Object.values(v) : []); }
+        _cemSavedQuotes = normArr(data.cem);
+        _fhSavedQuotes  = normArr(data.fh);
         if (typeof renderSavedQuotesList === 'function') {
           renderSavedQuotesList('cem');
           renderSavedQuotesList('fh');
