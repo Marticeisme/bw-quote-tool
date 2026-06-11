@@ -1077,7 +1077,10 @@ function saveCase(){
     reminderDays:rDays};
   const idx=cases.findIndex(c=>c.id===id);
   if(idx>=0)cases[idx]=obj;else cases.push(obj);
-  save();closeModal('caseModal');renderCases();showToast('Case saved!');
+  try { save(); } catch(e){ console.error('save() failed:',e); showToast('Save error: '+e.message, false); return; }
+  closeModal('caseModal');
+  try { renderCases(); } catch(e){ console.error('renderCases() failed:',e); }
+  showToast('Case saved!');
 }
 function deleteCase(id){if(confirm('Remove this case?')){cases=cases.filter(c=>c.id!==id);delete expandedCards[id];save();renderCases();}}
 
@@ -1181,7 +1184,8 @@ function buildCaseCardHTML(c){
   // Progress — exclude N/A items from total
   let total=0,done=0;
   Object.values(c.checklist||{}).forEach(items=>{
-    items.forEach(i=>{ if(!i.na){total++; if(i.done) done++; } });
+    if(!Array.isArray(items)) return;
+    items.forEach(i=>{ if(i&&!i.na){total++; if(i.done) done++; } });
   });
   const pct=total?Math.round(done/total*100):0;
 
@@ -1191,7 +1195,7 @@ function buildCaseCardHTML(c){
     const ageDays=Math.floor((Date.now()-new Date(c.createdAt))/(864e5));
     const alerts=[];
     // Flatten all items for easy lookup
-    const allItems=Object.values(c.checklist||{}).flat();
+    const allItems=Object.values(c.checklist||{}).filter(Array.isArray).flat().filter(Boolean);
     const isDone=text=>allItems.some(i=>i.text===text&&i.done);
     const isNA=text=>allItems.some(i=>i.text===text&&i.na);
     const check=(text,threshold,msg,severity='error')=>{
@@ -1230,7 +1234,7 @@ function buildCaseCardHTML(c){
   // Martice smart reminders — quotes especially need follow-up nudges
   if(c.owner==='martice'){
     const ageDays=Math.floor((Date.now()-new Date(c.createdAt))/(864e5));
-    const allItems=Object.values(c.checklist||{}).flat();
+    const allItems=Object.values(c.checklist||{}).filter(Array.isArray).flat().filter(Boolean);
     const isDone=text=>allItems.some(i=>i.text===text&&i.done);
     const isNA=text=>allItems.some(i=>i.text===text&&i.na);
     const alerts=[];
@@ -1277,9 +1281,11 @@ function buildCaseCardHTML(c){
   const isChloeCase = true; // Both Martice and Chloe get editable N/A checklists
   let checklistHTML='';
   Object.entries(c.checklist||{}).forEach(([group,items])=>{
+    if(!Array.isArray(items)) return;
     const groupKey=group.replace(/\W/g,'');
     checklistHTML+=`<div class="checklist-group"><div class="checklist-group-title">${group}</div>`;
     items.forEach((item,idx)=>{
+      if(!item) return;
       const naClass=item.na?' na':'';
       const doneClass=item.done?' checked':'';
       checklistHTML+=`<div class="check-item${doneClass}${naClass}" onclick="toggleCheckItem('${c.id}','${group.replace(/'/g,"\\'")}',${idx})">
@@ -1301,7 +1307,7 @@ function buildCaseCardHTML(c){
   });
 
   // Progress label with N/A count
-  const naCount=Object.values(c.checklist||{}).flat().filter(i=>i.na).length;
+  const naCount=Object.values(c.checklist||{}).filter(Array.isArray).flat().filter(i=>i&&i.na).length;
   const progressLabel=`${done}/${total} tasks (${pct}%)${naCount>0?` · ${naCount} N/A`:''}`;
 
   // Misc
