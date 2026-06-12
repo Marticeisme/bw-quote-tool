@@ -7714,6 +7714,13 @@ function captureCemState() {
   };
 }
 function captureFhState() {
+  var section = el('section-fh-quote');
+  var fieldIds = [];
+  if (section) {
+    section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e) {
+      if (e.id) fieldIds.push(e.id);
+    });
+  }
   var planItems = [];
   var planContainer = el('fhPlanItems');
   if (planContainer) {
@@ -7723,7 +7730,7 @@ function captureFhState() {
     });
   }
   return {
-    fields: captureFieldState(FH_FIELDS || []),
+    fields: captureFieldState(fieldIds),
     customLines: captureCustomLines('fhCustomLines'),
     discounts: captureDiscountRows('fhDiscountList'),
     urns: JSON.parse(JSON.stringify(fhUrns || [])),
