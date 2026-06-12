@@ -350,7 +350,7 @@ Before any future push to dashboard.html:
 
 1. **Syntax check:**
    ```
-   node -e "var fs=require('fs');var h=fs.readFileSync('dashboard.html','utf8');var m=h.match(/<script[\s\S]*?>([\s\S]*?)<\/script>/g);if(m)m.forEach(function(s,i){var src=s.replace(/<script[^>]*>/,'').replace(/<\/script>/,'');try{new Function(src);}catch(e){console.log('ERROR block '+i+': '+e.message);}});console.log('done');"
+   node -e "const fs=require('fs'),vm=require('vm');const src=fs.readFileSync('dashboard.html','utf8');const scripts=[];let m;const re=/<script>([\s\S]*?)<\/script>/g;while((m=re.exec(src))!==null)scripts.push(m[1]);try{new vm.Script(scripts.join('\n'));console.log('Syntax OK');}catch(e){console.error('SYNTAX ERROR:',e.message);}"
    ```
 
 2. **Verify touchpoints** — open a case, log a touchpoint for both Martice and Chloe users.
@@ -364,3 +364,124 @@ Before any future push to dashboard.html:
 6. **`c.caseDetail`** — existing cases don't have this field; always read as `c.caseDetail || {}`.
 
 7. **Sort** — Martice sort only applies when `activeUser === 'martice'`; All Cases view stays urgency-sorted.
+
+---
+
+## Session 3 Changes (2026-06-12) — Commits: a9271c2, e700cd7
+
+---
+
+## Chloe Contact Persons
+
+### What Was Added
+
+A contact section was added to Chloe's case form (both Cremation and Burial dispositions). It appears immediately below the Passare Link field.
+
+**Form behavior:**
+- Primary contact fields are shown directly — no sub-label for primary (it's implied)
+- After the primary block, a prompt asks "Add an additional contact person? [+ Yes] [No, skip]"
+- Clicking Yes appends a new block labeled "Additional Contact N" with a ✕ Remove button, then shows the prompt again underneath
+- Clicking No hides the prompt (no more contacts can be added unless Remove is used)
+- Removing a contact re-shows the prompt for the now-last block
+- Adding is unlimited — chain as many contacts as needed
+
+**Fields per contact block:** First Name, Last Name, Relationship to Decedent, Phone, Email, Mailing Address (Street / City / State / ZIP)
+
+**Card display:**
+- Primary contact name, relationship, phone, email appear at the top of Chloe's case card header (same `.purchaser-row` style as Martice's purchaser display)
+- Additional contacts (index 1+) appear in the expanded card body under an "Additional Contacts" section
+
+**Data storage:**
+- `c.contacts` — array of contact objects, primary at index 0
+- Stored on every save alongside the case object
+- Firebase write path unchanged — `pushToFirebase()` already includes `_secret`
+- Edit restores all fields from saved contacts; prompt starts undismissed so more can be added
+
+**State variables (module-level):**
+- `_ccContacts` — in-memory array of contact data objects
+- `_ccPromptDismissed` — boolean, hides the add-more prompt when No is clicked
+
+### JS Functions Added
+
+| Function | Purpose |
+|---|---|
+| `_ccEsc(s)` | HTML-escape helper for contact field values in rendered blocks |
+| `_ccBlockHTML(idx, d)` | Returns HTML string for one contact block from data object `d` |
+| `_ccPromptHTML()` | Returns HTML string for the Yes/No add-more prompt |
+| `_ccSaveInputs()` | Reads all `.contact-block` DOM elements → updates `_ccContacts` array |
+| `renderChloeContacts()` | Rebuilds `#chloeContactList` innerHTML from `_ccContacts` + prompt |
+| `chloeContactYes()` | Save inputs → push empty contact → re-render |
+| `chloeContactNo()` | Remove prompt DOM element, set `_ccPromptDismissed=true` |
+| `chloeContactRemove(idx)` | Save inputs → splice at idx → re-render with prompt restored |
+| `collectChloeContacts()` | Save inputs → return filtered array (contacts with any filled field) |
+| `initChloeContacts(contacts)` | Initialize form from saved array (or `[{}]` for new cases) |
+
+### Rules Going Forward
+
+- `c.contacts` is Chloe-only — Martice cases always get `contacts: existing?.contacts || []` (preserves if re-edited, otherwise empty)
+- `collectChloeContacts()` filters out entirely blank contacts — a contact with no fields filled is not saved
+- Always call `initChloeContacts([])` in `populateCaseForm()` for new Chloe cases, and `initChloeContacts(c.contacts || [])` in `openCaseModal()` for edits
+- `_ccSaveInputs()` must be called before any structural change (`splice`, `push`) to capture current DOM state before re-render
+- Firebase empty-array rule applies to `contacts` too — guard with `c.contacts && c.contacts.length`
+
+---
+
+## Card Visual Hierarchy / Scannability Pass
+
+### Goals
+
+Make individual cases scannable at a glance: name and status identifiable in under a second without reading every word.
+
+### CSS Changes
+
+**`.case-card-title`** — increased to `19px / font-weight:700 / letter-spacing:-0.3px / line-height:1.2`
+Previously 16px/600 — now clearly dominant over everything else on the card.
+
+**`.quick-status`** (status dropdown) — `font-size:13px; font-weight:600; padding:4px 10px; border-radius:7px`
+Previously 12px, lighter weight. Now visually "second" in the hierarchy.
+
+**`.tag`** (owner, case type, sale type pills) — `font-size:10px; opacity:0.8`
+Reduced visual weight. Still readable but clearly subordinate to name and status.
+
+**`.reminder-badge`** — stripped of pill styling. Now plain colored text:
+```css
+.reminder-badge{color:var(--red);font-size:11px;font-weight:600}        /* overdue */
+.reminder-badge.soon{color:var(--orange)}                                 /* due tomorrow */
+.reminder-badge.ok{color:var(--green);font-weight:400}                   /* ok */
+```
+Previously a red/yellow/green pill badge competing visually with type tags.
+
+**`.purch-name`** — new class for purchaser/contact name spans. Replaces inline `style="color:var(--white);font-weight:500"` so light mode can override it.
+
+### HTML Restructure in `buildCaseCardHTML`
+
+**Before:** Name, owner tag, disp tag, service type tag, not-full badge, and status dropdown all in one `flex-wrap` row.
+
+**After:** Three distinct rows:
+1. **Name row** — `case-card-title` + `not-full-badge` only. No tags, no status.
+2. **Tags + status row** — owner tag, disp tag (type-colored), service type tag on the left; status select pushed `margin-left:auto` to the right. Separated from name by `margin-bottom:8px`.
+3. **Metadata row** — disc #, passare, date, pay info, reminder badge. `margin-top:4px`. Font size bumped from 10px to 11px for readability.
+4. **Progress bar** — `margin-top:8px` for clear visual separation.
+
+### Light Mode Contrast Fix
+
+Added CSS variable scoping on `.case-card` in light mode:
+```css
+body.light-mode .case-card { --muted:#4a6080; --goldL:#b87800; --white:#1a2744 }
+```
+This makes ALL inline `style="color:var(--muted)"` and `color:var(--goldL)"` spans inside a card automatically readable against the white card background, without touching any JS.
+
+Additional light mode rules:
+```css
+body.light-mode .purch-name{color:#1a2744}
+body.light-mode .reminder-badge{color:#b03a2e}
+body.light-mode .reminder-badge.ok{color:#2e7d57}
+body.light-mode .reminder-badge.soon{color:#b87000}
+```
+
+### Rules Going Forward
+
+- The three-row card header structure (name / tags+status / metadata) should be preserved in future card changes
+- Any new inline `color:var(--white)` spans for "primary" text (names) inside cards should use class `.purch-name` instead, so light mode overrides work automatically
+- New "informational" badges (not category/type tags) should use plain colored text, not pill shapes — reserve pill shape for owner, case type, and sale type only
+- Status select stays right-aligned via `margin-left:auto` on its wrapper `<div>` — do not mix it back into the tag row without maintaining that separation
