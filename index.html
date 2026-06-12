@@ -7667,8 +7667,9 @@ function restoreDiscountRows(containerId, rows) {
 
 function captureCemState() {
   var planItems = [];
+  var fields = (typeof CEM_FIELDS !== 'undefined') ? CEM_FIELDS : [];
   return {
-    fields: captureFieldState(CEM_FIELDS || []),
+    fields: captureFieldState(fields),
     customLines: captureCustomLines('cemCustomLines'),
     discounts: captureDiscountRows('cemDiscountList'),
     planItems: planItems,
@@ -9648,12 +9649,19 @@ async function downloadCemQuotePDF() {
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
   var subtitle = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
+  var cemTotal = (typeof _cemTotal !== 'undefined') ? _cemTotal : 0;
+  var pdfFinData = null;
+  if (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) {
+    pdfFinData = _finData;
+  } else if (cemTotal > 0) {
+    var defDown    = Math.ceil(cemTotal * 0.10);
+    pdfFinData = { downAmt: defDown, tierKey: 0.10, balance: cemTotal - defDown };
+  }
   await _buildQuotePDF(lines, val('cemClientName')||'', subtitle, 'BW_Cemetery_Quote', {
     exSection: 'Services & Cemetery Items',
     taxSection: 'Merchandise (Taxable)',
-    grandTotal: (typeof _cemTotal !== 'undefined') ? _cemTotal : undefined,
-    finData: (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) ? _finData : null,
-    finShowAll: (typeof _finShowAll !== 'undefined') ? _finShowAll : false
+    grandTotal: cemTotal || undefined,
+    finData: pdfFinData
   });
 }
 async function downloadFhQuotePDF() {
