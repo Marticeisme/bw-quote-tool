@@ -149,6 +149,44 @@ input[type=date]::-webkit-calendar-picker-indicator,input[type=time]::-webkit-ca
 @media(max-width:700px){.meal-grid{grid-template-columns:repeat(2,1fr)}.field-row{grid-template-columns:1fr}header{gap:6px}.nav-btn{padding:5px 8px;font-size:11px}main{padding:12px}}
 @media(max-width:400px){.meal-grid{grid-template-columns:1fr}}
 
+/* ═══ FONT / SPACING IMPROVEMENTS ═══ */
+body{font-size:14px}
+.case-card-title{font-size:16px}
+.check-label{font-size:13px}
+.checklist-group-title{font-size:11px;letter-spacing:1.5px}
+.touchpoint-text{font-size:13px}
+.touchpoint-date{font-size:11px}
+.nav-btn{font-size:13px;padding:7px 14px}
+.field input,.field select,.field textarea{font-size:14px}
+.field label{font-size:11px}
+.case-card-body{padding:0 20px 18px}
+.case-card-header{padding:16px 20px;gap:14px}
+.tag{font-size:11px;padding:2px 9px}
+.status-badge{font-size:11px;padding:3px 10px}
+.reminder-badge{font-size:11px;padding:3px 10px}
+.btn-sm{font-size:12px;padding:4px 11px}
+.quick-status{font-size:12px}
+.check-item{padding:6px 10px;margin-bottom:4px}
+.add-touchpoint textarea{font-size:13px}
+.touchpoint-entry{padding:10px 14px;margin-bottom:8px}
+/* ═══ MODAL CLOSE BTN ═══ */
+.modal{position:relative}
+.modal-close-btn{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;border-radius:6px;transition:color .15s;z-index:10}
+.modal-close-btn:hover{color:var(--white);background:#ffffff14}
+/* ═══ CASE DETAIL SECTIONS ═══ */
+.detail-section{margin-top:16px;padding-top:14px;border-top:1px solid #ffffff11}
+.detail-section-title{color:var(--gold);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600}
+.copurch-block{display:none;margin-top:10px;padding:12px;background:#ffffff05;border-radius:8px;border:1px solid #ffffff0a}
+.copurch-block.show{display:block}
+.ga-disp-row{display:flex;gap:8px;margin-bottom:10px}
+.ga-disp-btn{background:#ffffff08;border:2px solid #ffffff11;border-radius:9px;padding:10px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--white);flex:1;text-align:left;transition:all .15s}
+.ga-disp-btn.active{border-color:var(--orange);background:#c8540a22}
+.ga-svc-list{display:none;margin-top:4px}
+.ga-svc-list.show{display:block}
+/* ═══ CARD ENHANCEMENTS ═══ */
+.not-full-badge{background:#b03a2e22;color:var(--red);border:1px solid #b03a2e44;border-radius:99px;padding:2px 9px;font-size:10px;font-weight:700}
+.purchaser-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--goldL);margin-top:4px}
+.purchaser-row span{color:var(--muted);font-size:10px}
 /* ═══ LIGHT MODE ═══ */
 body.light-mode{background:#f0f2f8;color:#1a2744}
 body.light-mode ::-webkit-scrollbar-track{background:#f0f2f8}
@@ -282,6 +320,7 @@ body.light-mode .progress-bar{background:#e4e8f0}
 <!-- ═══════════════ CASE MODAL ═══════════════ -->
 <div class="modal-overlay" id="caseModal">
  <div class="modal" style="max-width:630px">
+  <button class="modal-close-btn" id="caseModalCloseBtn" onclick="closeCaseModal()" title="Close">✕</button>
   <div class="modal-title" id="caseModalTitle">New Case</div>
   <!-- Step 1 -->
   <div class="wizard-step active" id="ws1">
@@ -428,6 +467,214 @@ body.light-mode .progress-bar{background:#e4e8f0}
         <div class="field"><label>FSD</label><input type="text" id="woFSD"/></div>
       </div>
     </div>
+    <!-- CIRGAS Confirmed Sale — Family Service Information Sheet -->
+    <div id="cirgasDetailSection" style="display:none">
+      <div class="detail-section">
+        <div class="detail-section-title">Family Service Information</div>
+        <div class="field-row">
+          <div class="field"><label>Contract #</label><input type="text" id="cdContractNum" placeholder="e.g. CIR-2026-0142"/></div>
+          <div class="field"><label>Funeral Home of Origin</label><input type="text" id="cdFhOrigin" placeholder="e.g. Smith Family Funeral Home"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Family Service Director</label><input type="text" id="cdFsd" value="Martice Morrison"/></div>
+          <div class="field"><label>Funeral Director</label><input type="text" id="cdFuneralDirector"/></div>
+        </div>
+        <div class="detail-section-title" style="margin-top:14px">Deceased</div>
+        <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="field"><label>First Name</label><input type="text" id="cdDecFirst"/></div>
+          <div class="field"><label>Middle Name</label><input type="text" id="cdDecMiddle"/></div>
+          <div class="field"><label>Last Name</label><input type="text" id="cdDecLast"/></div>
+        </div>
+        <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="field"><label>Date of Birth</label><input type="date" id="cdDob" oninput="calcCirgasAge()"/></div>
+          <div class="field"><label>Date of Death</label><input type="date" id="cdDod" oninput="calcCirgasAge()"/></div>
+          <div class="field"><label>Age</label><input type="text" id="cdAge" readonly placeholder="auto"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Arrangement Date</label><input type="date" id="cdArrangementDate"/></div>
+          <div class="field"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Funeral Date</label><input type="date" id="cdFuneralDate"/></div>
+          <div class="field"><label>Funeral Time</label><input type="time" id="cdFuneralTime"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Interment Date</label><input type="date" id="cdIntermentDate"/></div>
+          <div class="field"><label>Interment Time</label><input type="time" id="cdIntermentTime"/></div>
+        </div>
+        <div class="detail-section-title" style="margin-top:14px">Purchaser</div>
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="cdPurchName"/></div>
+          <div class="field"><label>Relationship</label><input type="text" id="cdPurchRelationship" placeholder="e.g. Spouse, Son, Daughter"/></div>
+        </div>
+        <div class="field"><label>Street Address</label><input type="text" id="cdPurchStreet"/></div>
+        <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="field"><label>City</label><input type="text" id="cdPurchCity"/></div>
+          <div class="field"><label>State</label><input type="text" id="cdPurchState" placeholder="WA"/></div>
+          <div class="field"><label>ZIP</label><input type="text" id="cdPurchZip"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Home Phone</label><input type="tel" id="cdPurchHomePhone"/></div>
+          <div class="field"><label>Cell Phone</label><input type="tel" id="cdPurchCellPhone"/></div>
+        </div>
+        <div class="field"><label>Email</label><input type="email" id="cdPurchEmail"/></div>
+        <div style="margin-top:10px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--muted)">
+            <input type="checkbox" id="cdHasCoPurch" onchange="document.getElementById('cdCopurchBlock').classList.toggle('show',this.checked)" style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer"/>
+            Add Co-Purchaser
+          </label>
+        </div>
+        <div class="copurch-block" id="cdCopurchBlock">
+          <div class="detail-section-title">Co-Purchaser</div>
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="cdCopurchName"/></div>
+            <div class="field"><label>Relationship</label><input type="text" id="cdCopurchRelationship"/></div>
+          </div>
+          <div class="field"><label>Street Address</label><input type="text" id="cdCopurchStreet"/></div>
+          <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="field"><label>City</label><input type="text" id="cdCopurchCity"/></div>
+            <div class="field"><label>State</label><input type="text" id="cdCopurchState" placeholder="WA"/></div>
+            <div class="field"><label>ZIP</label><input type="text" id="cdCopurchZip"/></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Home Phone</label><input type="tel" id="cdCopurchHomePhone"/></div>
+            <div class="field"><label>Cell Phone</label><input type="tel" id="cdCopurchCellPhone"/></div>
+          </div>
+          <div class="field"><label>Email</label><input type="email" id="cdCopurchEmail"/></div>
+        </div>
+        <div class="detail-section-title" style="margin-top:14px">Property</div>
+        <div class="field-row">
+          <div class="field"><label>Property Location</label><input type="text" id="cdPropertyLocation" placeholder="e.g. Garden 20, Lot 15, Space B"/></div>
+          <div class="field"><label>Vault</label><input type="text" id="cdVault" placeholder="e.g. Wilbert Monolithic"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIC Confirmed Sale -->
+    <div id="ricDetailSection" style="display:none">
+      <div class="detail-section">
+        <div class="detail-section-title">Purchaser</div>
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="rdPurchName"/></div>
+          <div class="field"><label>Relationship</label><input type="text" id="rdPurchRelationship" placeholder="e.g. Self, Spouse"/></div>
+        </div>
+        <div class="field"><label>Street Address</label><input type="text" id="rdPurchStreet"/></div>
+        <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="field"><label>City</label><input type="text" id="rdPurchCity"/></div>
+          <div class="field"><label>State</label><input type="text" id="rdPurchState" placeholder="WA"/></div>
+          <div class="field"><label>ZIP</label><input type="text" id="rdPurchZip"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Phone</label><input type="tel" id="rdPurchPhone"/></div>
+          <div class="field"><label>Email</label><input type="email" id="rdPurchEmail"/></div>
+        </div>
+        <div style="margin-top:10px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--muted)">
+            <input type="checkbox" id="rdHasCoPurch" onchange="document.getElementById('rdCopurchBlock').classList.toggle('show',this.checked)" style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer"/>
+            Add Co-Purchaser
+          </label>
+        </div>
+        <div class="copurch-block" id="rdCopurchBlock">
+          <div class="detail-section-title">Co-Purchaser</div>
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="rdCopurchName"/></div>
+            <div class="field"><label>Relationship</label><input type="text" id="rdCopurchRelationship"/></div>
+          </div>
+          <div class="field"><label>Street Address</label><input type="text" id="rdCopurchStreet"/></div>
+          <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="field"><label>City</label><input type="text" id="rdCopurchCity"/></div>
+            <div class="field"><label>State</label><input type="text" id="rdCopurchState" placeholder="WA"/></div>
+            <div class="field"><label>ZIP</label><input type="text" id="rdCopurchZip"/></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Phone</label><input type="tel" id="rdCopurchPhone"/></div>
+            <div class="field"><label>Email</label><input type="email" id="rdCopurchEmail"/></div>
+          </div>
+        </div>
+        <div class="detail-section" style="margin-top:14px;padding-top:14px">
+          <div class="detail-section-title">Contract Details</div>
+          <div class="field-row">
+            <div class="field"><label>RIC Contract #</label><input type="text" id="rdContractNum" placeholder="e.g. RIC-2026-0089"/></div>
+            <div class="field"><label>For the Benefit Of</label><input type="text" id="rdForBenefitOf"/></div>
+          </div>
+          <div class="field"><label>Property Type</label>
+            <select id="rdPropertyType">
+              <option value="">— Select —</option>
+              <option>Lawn Space</option><option>Mausoleum</option><option>Crypt</option><option>Lawn Crypt</option><option>Niche</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Property Location</label><input type="text" id="rdLocation" placeholder="e.g. Garden 23, Lot 4, Space B"/></div>
+          <div class="field"><label>Payment Amount</label><input type="text" id="rdPaymentAmount" placeholder="e.g. $4,500"/></div>
+          <div style="margin-top:12px;padding:10px 12px;background:#2e7d5718;border:1px solid #2e7d5744;border-radius:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:600;color:var(--green)">
+              <input type="checkbox" id="rdServicesFull" checked style="width:15px;height:15px;accent-color:var(--green);cursor:pointer"/>
+              Services Full?
+            </label>
+            <div id="rdFollowUpRow" style="display:none;gap:8px;align-items:center;flex:1;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--muted)">Auto follow-up in</span>
+              <input type="number" id="rdFollowUpDays" min="1" max="365" value="90" style="width:60px;background:#0e1829;border:1px solid #8fa3b844;border-radius:6px;padding:4px 7px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;outline:none"/>
+              <span style="font-size:11px;color:var(--muted)">days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GA Policy / Clearpoint Trust Confirmed Sale -->
+    <div id="gaDetailSection" style="display:none">
+      <div class="detail-section">
+        <div class="detail-section-title">Funeral Recipient</div>
+        <div class="field-row" style="grid-template-columns:auto 1fr 1fr 1fr">
+          <div class="field"><label>Title</label>
+            <select id="gdRecipTitle" style="min-width:80px">
+              <option value="">—</option><option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Miss</option>
+            </select>
+          </div>
+          <div class="field"><label>First Name</label><input type="text" id="gdRecipFirst"/></div>
+          <div class="field"><label>Middle Name</label><input type="text" id="gdRecipMiddle"/></div>
+          <div class="field"><label>Last Name</label><input type="text" id="gdRecipLast"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Date of Birth</label><input type="date" id="gdRecipDob"/></div>
+          <div class="field"><label>Telephone (incl. area code)</label><input type="tel" id="gdRecipPhone"/></div>
+        </div>
+        <div class="field"><label>Street Address</label><input type="text" id="gdRecipStreet"/></div>
+        <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="field"><label>City</label><input type="text" id="gdRecipCity"/></div>
+          <div class="field"><label>State</label><input type="text" id="gdRecipState" placeholder="WA"/></div>
+          <div class="field"><label>ZIP</label><input type="text" id="gdRecipZip"/></div>
+        </div>
+        <div style="margin-top:10px;margin-bottom:6px">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:var(--muted)">
+            <input type="checkbox" id="gdPurchSameAsRecip" onchange="document.getElementById('gdPurchBlock').style.display=this.checked?'none':'block'" style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer"/>
+            Purchaser same as Funeral Recipient
+          </label>
+        </div>
+        <div id="gdPurchBlock">
+          <div class="detail-section-title" style="margin-top:10px">Purchaser <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--muted)">(complete if other than Funeral Recipient)</span></div>
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="gdPurchName"/></div>
+            <div class="field"><label>Telephone</label><input type="tel" id="gdPurchPhone"/></div>
+          </div>
+          <div class="field"><label>Street Address</label><input type="text" id="gdPurchStreet"/></div>
+          <div class="field-row" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="field"><label>City</label><input type="text" id="gdPurchCity"/></div>
+            <div class="field"><label>State</label><input type="text" id="gdPurchState" placeholder="WA"/></div>
+            <div class="field"><label>ZIP</label><input type="text" id="gdPurchZip"/></div>
+          </div>
+        </div>
+        <div class="detail-section-title" style="margin-top:14px">Disposition</div>
+        <div class="ga-disp-row">
+          <button type="button" class="ga-disp-btn" id="gaDispCasket" onclick="selectGaDisp('Casket Placement')">⚰️ Casket Placement</button>
+          <button type="button" class="ga-disp-btn" id="gaDispCremation" onclick="selectGaDisp('Cremation')">🔥 Cremation</button>
+        </div>
+        <div class="ga-svc-list" id="gaServiceTypeList"></div>
+        <input type="hidden" id="gdDisposition"/>
+        <input type="hidden" id="gdServiceType"/>
+        <div class="field" style="margin-top:12px"><label>Payment Amount</label><input type="text" id="gdPaymentAmount" placeholder="e.g. $12,000"/></div>
+      </div>
+    </div>
+
     <!-- Martice QUOTE section (RIC/CIRGAS quotes) -->
     <div id="marticeQuoteSection" style="display:none">
       <div class="divider"></div>
@@ -619,14 +866,14 @@ const FUNERAL_QUOTE_CATEGORIES=['Professional Services / Funeral Package','Caske
 
 const CHLOE_CHECKLISTS={
   Cremation:{
-    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','Burial Transit Permit Uploaded','DCs Released to Family'],
     Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Min Prep','ID View Complete / Photo Uploaded'],
     Cremation:['Cremation Auth Signed & Uploaded','Cremation Packet Uploaded/Tagged','Witness Cremation Scheduled','Fingerprints Needed?','LegacyTouch Pamphlet to Family','Lock(s) of Hair Released to Family','Urn Ordered','Keepsakes Ordered','Family Notified of Cremation Date','Urn/Keepsakes Released'],
     'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
     'Contract & Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
   },
   Burial:{
-    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','DCs Released to Family'],
+    'Death Certificates & Permits':['DC Worksheet Signed & Uploaded','Admin Tagged for DC Wkst & KCME DA','Vitals Entered Into WHALES','DC Approved','DCs Ordered','Burial Transit Permit Uploaded','DCs Released to Family'],
     Preproom:['Care Team Packet Uploaded/Tagged','Arranger Instructions Uploaded','Degree of Care Signed & Uploaded','First Call Signed & Uploaded','Clothing Received',"Arrangements/Add'l PEI Uploaded",'Embalmed/Fully Prepped','Dressed & Casketed'],
     'Service Details':['Service(s) Scheduled/OMS','Arrangement Recap in Passare','Follow-Up Email to Family','Officiant Confirmed','Check Request Form(s) Uploaded','Obituary - BW Website','Obituary - Newspaper','Casket Ordered/Delivered','Property in Safe?','PEI Released to Family','Flowers Ordered/Confirmed','Catering Ordered/Confirmed','Cemetery Notified/Scheduled','Escorts Requested/Confirmed','Bagpipes/Butterflies/Doves','Musicians Confirmed','Messenger Order Uploaded/Tagged','Livestream Set Up','Tribute Slideshow Test-Run'],
     'Contract & Payment':['PN Research Complete','PN>AN Worksheet Complete/Uploaded','Claim Forms Signed/Uploaded','Contract Signed/Uploaded','Contract Signed in Passare','PIF or Insurance Verification','Payment Options Uploaded','Receipt(s) Uploaded']
@@ -647,7 +894,7 @@ const MARTICE_CHECKLISTS={
   'CIRGAS::Confirmed Sale':{
     'Commission Packet':['Commission Worksheet','CIRGAS Contract (terms & conditions, letter size)','Electronic Document Disclosure & Consent','Copy of Payment','Confirmation of Balance Owing (Cemetery Office)','Copy of IOA','Memorial Order Form','Cemetery Rules & Regulations','CRM Printout','Prices Confirmed By Admin'],
     'New Property (if applicable)':['Phoenix Property Printout','Chaindex Copy','Affidavit of Heirs'],
-    'Submission':['Gave Appropriate Copies to Cemetery Office','Property Designation Recorded'],
+    'Submission':['Gave Appropriate Copies to Cemetery Office','Property Designation Recorded','Blind Check Placed','Blind Check Submitted'],
     'Follow-Up':['Marker / Memorial Follow-Up','Family Thank You / Aftercare']
   },
   'CIRGAS::Quote':{
@@ -680,6 +927,19 @@ const MARTICE_CHECKLISTS={
     'Follow-Up':['Family Notified of Completion','Photo / Confirmation Sent']
   }
 };
+
+// Type-based colors: confirmed sale uses full shade, quote uses lighter shade
+const TYPE_COLORS={
+  'RIC':{sale:'#2a9d8f',quote:'#1e7a6e'},
+  'CIRGAS':{sale:'#3a7ca5',quote:'#2d6080'},
+  'GA Policy':{sale:'#5a8f3c',quote:'#476e2e'},
+  'Clearpoint Trust':{sale:'#7b5ea7',quote:'#5e4780'},
+  'Work Order':{sale:'#c8860a',quote:'#c8860a'}
+};
+function caseTypeColor(c){
+  const tc=TYPE_COLORS[c.disp];if(!tc)return null;
+  return c.serviceType==='Quote'?tc.quote:tc.sale;
+}
 
 function uid(){return Math.random().toString(36).slice(2,10);}
 
@@ -911,6 +1171,166 @@ function confirmChecklistPicker(){
   goStep(4);
 }
 
+// ─── RIC Services Full toggle ───
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id==='rdServicesFull'){
+    document.getElementById('rdFollowUpRow').style.display = e.target.checked ? 'none' : 'flex';
+  }
+});
+
+// ─── GA disposition selector ───
+function selectGaDisp(disp){
+  document.getElementById('gdDisposition').value=disp;
+  document.getElementById('gdServiceType').value='';
+  document.getElementById('gaDispCasket').classList.toggle('active', disp==='Casket Placement');
+  document.getElementById('gaDispCremation').classList.toggle('active', disp==='Cremation');
+  const list = document.getElementById('gaServiceTypeList');
+  const types = disp==='Cremation'
+    ? ['AOC / Direct Cremation','Traditional Service','Memorial Service','I.D. Viewing','Viewing & Service']
+    : ['Traditional Burial Service','Graveside Service','Memorial Service','Direct Burial / No Service'];
+  list.innerHTML = `<div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px">Service Type</div>`
+    + types.map(t=>`<label style="display:flex;align-items:center;gap:7px;background:#ffffff05;border-radius:7px;padding:6px 10px;margin-bottom:4px;cursor:pointer;font-size:13px">
+      <input type="radio" name="gaServiceType" value="${t}" onchange="document.getElementById('gdServiceType').value=this.value" style="accent-color:var(--orange);cursor:pointer"/>
+      ${t}</label>`).join('');
+  list.classList.add('show');
+}
+
+// ─── CIRGAS age auto-calc ───
+function calcCirgasAge(){
+  const dob=document.getElementById('cdDob')?.value, dod=document.getElementById('cdDod')?.value;
+  if(!dob||!dod){document.getElementById('cdAge').value='';return;}
+  const d1=new Date(dob),d2=new Date(dod);
+  let age=d2.getFullYear()-d1.getFullYear();
+  const m=d2.getMonth()-d1.getMonth();
+  if(m<0||(m===0&&d2.getDate()<d1.getDate())) age--;
+  document.getElementById('cdAge').value=age>=0?String(age):'';
+}
+
+// ─── Collect caseDetail from active section ───
+function collectCirgasDetail(){
+  return {
+    contractNum:v('cdContractNum'),fhOrigin:v('cdFhOrigin'),fsd:v('cdFsd'),funeralDirector:v('cdFuneralDirector'),
+    decFirst:v('cdDecFirst'),decMiddle:v('cdDecMiddle'),decLast:v('cdDecLast'),
+    dob:v('cdDob'),dod:v('cdDod'),age:v('cdAge'),
+    arrangementDate:v('cdArrangementDate'),
+    funeralDate:v('cdFuneralDate'),funeralTime:v('cdFuneralTime'),
+    intermentDate:v('cdIntermentDate'),intermentTime:v('cdIntermentTime'),
+    purchName:v('cdPurchName'),purchRelationship:v('cdPurchRelationship'),
+    purchStreet:v('cdPurchStreet'),purchCity:v('cdPurchCity'),purchState:v('cdPurchState'),purchZip:v('cdPurchZip'),
+    purchHomePhone:v('cdPurchHomePhone'),purchCellPhone:v('cdPurchCellPhone'),purchEmail:v('cdPurchEmail'),
+    hasCoPurch:!!document.getElementById('cdHasCoPurch')?.checked,
+    copurchName:v('cdCopurchName'),copurchRelationship:v('cdCopurchRelationship'),
+    copurchStreet:v('cdCopurchStreet'),copurchCity:v('cdCopurchCity'),copurchState:v('cdCopurchState'),copurchZip:v('cdCopurchZip'),
+    copurchHomePhone:v('cdCopurchHomePhone'),copurchCellPhone:v('cdCopurchCellPhone'),copurchEmail:v('cdCopurchEmail'),
+    propertyLocation:v('cdPropertyLocation'),vault:v('cdVault')
+  };
+}
+function collectRicDetail(){
+  return {
+    purchName:v('rdPurchName'),purchRelationship:v('rdPurchRelationship'),
+    purchStreet:v('rdPurchStreet'),purchCity:v('rdPurchCity'),purchState:v('rdPurchState'),purchZip:v('rdPurchZip'),
+    purchPhone:v('rdPurchPhone'),purchEmail:v('rdPurchEmail'),
+    hasCoPurch:!!document.getElementById('rdHasCoPurch')?.checked,
+    copurchName:v('rdCopurchName'),copurchRelationship:v('rdCopurchRelationship'),
+    copurchStreet:v('rdCopurchStreet'),copurchCity:v('rdCopurchCity'),copurchState:v('rdCopurchState'),copurchZip:v('rdCopurchZip'),
+    copurchPhone:v('rdCopurchPhone'),copurchEmail:v('rdCopurchEmail'),
+    contractNum:v('rdContractNum'),forBenefitOf:v('rdForBenefitOf'),
+    propertyType:v('rdPropertyType'),location:v('rdLocation'),paymentAmount:v('rdPaymentAmount'),
+    servicesFull:!!document.getElementById('rdServicesFull')?.checked,
+    followUpDays:parseInt(v('rdFollowUpDays')||'90')
+  };
+}
+function collectGaDetail(){
+  return {
+    recipTitle:v('gdRecipTitle'),recipFirst:v('gdRecipFirst'),recipMiddle:v('gdRecipMiddle'),recipLast:v('gdRecipLast'),
+    recipDob:v('gdRecipDob'),recipPhone:v('gdRecipPhone'),
+    recipStreet:v('gdRecipStreet'),recipCity:v('gdRecipCity'),recipState:v('gdRecipState'),recipZip:v('gdRecipZip'),
+    purchSameAsRecip:!!document.getElementById('gdPurchSameAsRecip')?.checked,
+    purchName:v('gdPurchName'),purchPhone:v('gdPurchPhone'),
+    purchStreet:v('gdPurchStreet'),purchCity:v('gdPurchCity'),purchState:v('gdPurchState'),purchZip:v('gdPurchZip'),
+    disposition:v('gdDisposition'),serviceType:v('gdServiceType'),paymentAmount:v('gdPaymentAmount')
+  };
+}
+function v(id){const el=document.getElementById(id);return el?el.value:'';}
+
+// ─── Restore caseDetail to form fields ───
+function restoreCirgasDetail(d){
+  if(!d)return;
+  ['contractNum','fhOrigin','fsd','funeralDirector','decFirst','decMiddle','decLast','dob','dod','age',
+   'arrangementDate','funeralDate','funeralTime','intermentDate','intermentTime',
+   'purchName','purchRelationship','purchStreet','purchCity','purchState','purchZip','purchHomePhone','purchCellPhone','purchEmail',
+   'copurchName','copurchRelationship','copurchStreet','copurchCity','copurchState','copurchZip','copurchHomePhone','copurchCellPhone','copurchEmail',
+   'propertyLocation','vault'
+  ].forEach(k=>{const el=document.getElementById('cd'+k.charAt(0).toUpperCase()+k.slice(1));if(el)el.value=d[k]||'';});
+  const cpc=document.getElementById('cdHasCoPurch');if(cpc){cpc.checked=!!d.hasCoPurch;document.getElementById('cdCopurchBlock').classList.toggle('show',!!d.hasCoPurch);}
+}
+function restoreRicDetail(d){
+  if(!d)return;
+  ['purchName','purchRelationship','purchStreet','purchCity','purchState','purchZip','purchPhone','purchEmail',
+   'copurchName','copurchRelationship','copurchStreet','copurchCity','copurchState','copurchZip','copurchPhone','copurchEmail',
+   'contractNum','forBenefitOf','propertyType','location','paymentAmount'
+  ].forEach(k=>{const el=document.getElementById('rd'+k.charAt(0).toUpperCase()+k.slice(1));if(el)el.value=d[k]||'';});
+  const rcp=document.getElementById('rdHasCoPurch');if(rcp){rcp.checked=!!d.hasCoPurch;document.getElementById('rdCopurchBlock').classList.toggle('show',!!d.hasCoPurch);}
+  const rsf=document.getElementById('rdServicesFull');if(rsf){rsf.checked=d.servicesFull!==false;document.getElementById('rdFollowUpRow').style.display=d.servicesFull===false?'flex':'none';}
+  const rfd=document.getElementById('rdFollowUpDays');if(rfd)rfd.value=d.followUpDays||90;
+}
+function restoreGaDetail(d){
+  if(!d)return;
+  ['recipTitle','recipFirst','recipMiddle','recipLast','recipDob','recipPhone',
+   'recipStreet','recipCity','recipState','recipZip',
+   'purchName','purchPhone','purchStreet','purchCity','purchState','purchZip','paymentAmount'
+  ].forEach(k=>{const el=document.getElementById('gd'+k.charAt(0).toUpperCase()+k.slice(1));if(el)el.value=d[k]||'';});
+  const gps=document.getElementById('gdPurchSameAsRecip');if(gps){gps.checked=!!d.purchSameAsRecip;document.getElementById('gdPurchBlock').style.display=d.purchSameAsRecip?'none':'block';}
+  if(d.disposition){
+    selectGaDisp(d.disposition);
+    if(d.serviceType){
+      setTimeout(()=>{
+        const radio=document.querySelector(`input[name="gaServiceType"][value="${d.serviceType}"]`);
+        if(radio){radio.checked=true;document.getElementById('gdServiceType').value=d.serviceType;}
+      },50);
+    }
+  }
+}
+
+// ─── Clear detail sections ───
+function clearDetailSections(){
+  ['cdContractNum','cdFhOrigin','cdFsd','cdFuneralDirector','cdDecFirst','cdDecMiddle','cdDecLast',
+   'cdDob','cdDod','cdAge','cdArrangementDate','cdFuneralDate','cdFuneralTime','cdIntermentDate','cdIntermentTime',
+   'cdPurchName','cdPurchRelationship','cdPurchStreet','cdPurchCity','cdPurchState','cdPurchZip',
+   'cdPurchHomePhone','cdPurchCellPhone','cdPurchEmail',
+   'cdCopurchName','cdCopurchRelationship','cdCopurchStreet','cdCopurchCity','cdCopurchState','cdCopurchZip',
+   'cdCopurchHomePhone','cdCopurchCellPhone','cdCopurchEmail','cdPropertyLocation','cdVault',
+   'rdPurchName','rdPurchRelationship','rdPurchStreet','rdPurchCity','rdPurchState','rdPurchZip',
+   'rdPurchPhone','rdPurchEmail','rdCopurchName','rdCopurchRelationship','rdCopurchStreet','rdCopurchCity',
+   'rdCopurchState','rdCopurchZip','rdCopurchPhone','rdCopurchEmail',
+   'rdContractNum','rdForBenefitOf','rdLocation','rdPaymentAmount',
+   'gdRecipFirst','gdRecipMiddle','gdRecipLast','gdRecipDob','gdRecipPhone',
+   'gdRecipStreet','gdRecipCity','gdRecipState','gdRecipZip',
+   'gdPurchName','gdPurchPhone','gdPurchStreet','gdPurchCity','gdPurchState','gdPurchZip','gdPaymentAmount',
+   'gdDisposition','gdServiceType'
+  ].forEach(id=>{const el=document.getElementById(id);if(el)el.value=typeof el.defaultValue!=='undefined'&&el.type==='checkbox'?el.defaultValue:el.tagName==='INPUT'||el.tagName==='TEXTAREA'?'':el.value;});
+  // Reset checkboxes
+  const cdHcp=document.getElementById('cdHasCoPurch');if(cdHcp){cdHcp.checked=false;document.getElementById('cdCopurchBlock').classList.remove('show');}
+  const rdHcp=document.getElementById('rdHasCoPurch');if(rdHcp){rdHcp.checked=false;document.getElementById('rdCopurchBlock').classList.remove('show');}
+  const rdSf=document.getElementById('rdServicesFull');if(rdSf){rdSf.checked=true;document.getElementById('rdFollowUpRow').style.display='none';}
+  const rdFd=document.getElementById('rdFollowUpDays');if(rdFd)rdFd.value='90';
+  const gdPsr=document.getElementById('gdPurchSameAsRecip');if(gdPsr){gdPsr.checked=false;document.getElementById('gdPurchBlock').style.display='block';}
+  document.getElementById('gaDispCasket')?.classList.remove('active');
+  document.getElementById('gaDispCremation')?.classList.remove('active');
+  const gaList=document.getElementById('gaServiceTypeList');if(gaList){gaList.innerHTML='';gaList.classList.remove('show');}
+  const cdFsd=document.getElementById('cdFsd');if(cdFsd)cdFsd.value='Martice Morrison';
+  const rdPt=document.getElementById('rdPropertyType');if(rdPt)rdPt.value='';
+}
+
+function closeCaseModal(){
+  const caseId=document.getElementById('caseId').value;
+  if(!caseId){
+    // Creating new case — confirm before discarding
+    if(!confirm('Discard this case? Your entries will be lost.'))return;
+  }
+  closeModal('caseModal');
+}
+
 function populateCaseForm(){
   const rDays=getRDays(wServiceType);
   const modeLabel = wOwner==='martice' && wServiceType ? wServiceType : '';
@@ -935,47 +1355,69 @@ function populateCaseForm(){
   const isCemeterySale = wOwner==='martice' && wServiceType==='Confirmed Sale' && (wDisp==='RIC' || wDisp==='CIRGAS');
   const isWorkOrder = wDisp==='Work Order';
 
+  const isCirgasSale = wOwner==='martice' && wDisp==='CIRGAS' && wServiceType==='Confirmed Sale';
+  const isRicSale    = wOwner==='martice' && wDisp==='RIC'    && wServiceType==='Confirmed Sale';
+  const isGaSale     = wOwner==='martice' && (wDisp==='GA Policy'||wDisp==='Clearpoint Trust') && wServiceType==='Confirmed Sale';
+  const hasDetailSection = isCirgasSale || isRicSale || isGaSale;
+
   // Show/hide sections
-  document.getElementById('marticePaySection').style.display=(wOwner==='martice' && !isMarticeQuote && !isWorkOrder)?'block':'none';
+  document.getElementById('marticePaySection').style.display=(wOwner==='martice' && !isMarticeQuote && !isWorkOrder && !hasDetailSection)?'block':'none';
   document.getElementById('marticeQuoteSection').style.display=isMarticeQuote?'block':'none';
   document.getElementById('workOrderSection').style.display=isWorkOrder?'block':'none';
-  // Payment Method only shows for GA/Clearpoint sales, not cemetery sales
+  document.getElementById('cirgasDetailSection').style.display=isCirgasSale?'block':'none';
+  document.getElementById('ricDetailSection').style.display=isRicSale?'block':'none';
+  document.getElementById('gaDetailSection').style.display=isGaSale?'block':'none';
+  // Payment Method only shows for GA/Clearpoint sales (handled in detail section), not cemetery sales
   const mPayField=document.getElementById('mPayment')?.closest('.field');
-  if(mPayField) mPayField.style.display=isCemeterySale?'none':'';
+  if(mPayField) mPayField.style.display=(isCemeterySale||hasDetailSection)?'none':'';
   // Clear WO fields when switching away from Work Order
   if(!isWorkOrder){['woDeceased','woDateOfDeath','woRelationship','woVisitingFamily','woStreet','woCity','woState','woZip','woPolicyNum','woEmail','woPhone','woPropertyLocation','woRemarks','woTakenBy','woFSD'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});}
+  clearDetailSections();
 
   // Relabel / hide fields based on owner & mode
   if(wOwner==='martice'){
-    document.getElementById('lblDecedent').textContent='Purchaser / Family Name *';
-    document.getElementById('lblPassare').textContent='Property Location / Designation';
-    document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
+    document.getElementById('lblDecedent').textContent=(isCirgasSale||isRicSale)?'Family Name *':'Purchaser / Family Name *';
     document.getElementById('fldPassareLink').style.display='none';
     if(isMarticeQuote){
-      // Quotes: no contract #, no service/placement date row
       document.getElementById('fldDisc').style.display='none';
       document.getElementById('cServiceDate').closest('.field-row').style.display='none';
-      const qCats = (wDisp==='GA Policy'||wDisp==='Clearpoint Trust') ? FUNERAL_QUOTE_CATEGORIES : QUOTE_CATEGORIES;
-      renderQuoteCategories([], qCats);
-      document.getElementById('fldIntermentDate').style.display = wDisp==='CIRGAS' ? 'block' : 'none';
-    } else if(isCemeterySale){
-      // Cemetery confirmed sale: location IS the contract identifier — hide separate Contract # field
+      const qCats=(wDisp==='GA Policy'||wDisp==='Clearpoint Trust')?FUNERAL_QUOTE_CATEGORIES:QUOTE_CATEGORIES;
+      renderQuoteCategories([],qCats);
+      document.getElementById('fldIntermentDate').style.display=wDisp==='CIRGAS'?'block':'none';
+    } else if(isCirgasSale||isRicSale){
+      // Detail sections handle contract#, location, dates — hide generic top fields
       document.getElementById('fldDisc').style.display='none';
-      document.getElementById('cServiceDate').closest('.field-row').style.display='';
-      document.getElementById('lblServiceDate').textContent='Placement Date (if scheduled)';
+      document.getElementById('lblPassare').textContent='Property Location / Designation';
+      document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
+      const svcRow=document.getElementById('cServiceDate').closest('.field-row');if(svcRow)svcRow.style.display='none';
+    } else if(isGaSale){
+      document.getElementById('fldDisc').style.display='';
+      const svcRow=document.getElementById('cServiceDate').closest('.field-row');if(svcRow)svcRow.style.display='none';
+      document.getElementById('lblDisc').textContent='Contract #';
+      document.getElementById('cDisc').placeholder='e.g. GA-2026-0142';
+      document.getElementById('lblPassare').textContent='Property Location / Designation';
+      document.getElementById('cPassare').placeholder='';
     } else if(isWorkOrder){
-      // Work Order: no contract # field, no payment section
       document.getElementById('fldDisc').style.display='none';
       document.getElementById('cServiceDate').closest('.field-row').style.display='';
       document.getElementById('lblServiceDate').textContent='Requested Date';
       document.getElementById('lblDecedent').textContent='Family / Requestor Name *';
+      document.getElementById('lblPassare').textContent='Property Location / Designation';
+      document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
+    } else if(isCemeterySale){
+      document.getElementById('fldDisc').style.display='none';
+      document.getElementById('cServiceDate').closest('.field-row').style.display='';
+      document.getElementById('lblServiceDate').textContent='Placement Date (if scheduled)';
+      document.getElementById('lblPassare').textContent='Property Location / Designation';
+      document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
     } else {
-      // GA / Clearpoint
       document.getElementById('fldDisc').style.display='';
       document.getElementById('cServiceDate').closest('.field-row').style.display='';
       document.getElementById('lblDisc').textContent='Contract #';
       document.getElementById('cDisc').placeholder='e.g. GA-2026-0142';
       document.getElementById('lblServiceDate').textContent='Service / Placement Date';
+      document.getElementById('lblPassare').textContent='Property Location / Designation';
+      document.getElementById('cPassare').placeholder='e.g. Garden 23, Lot 4, Space B';
     }
   } else {
     document.getElementById('fldDisc').style.display='';
@@ -1064,6 +1506,12 @@ function openCaseModal(id){
         const qe=document.getElementById('cQuoteEstimate');if(qe)qe.value=c.quoteEstimate||'';
         const idt=document.getElementById('cIntermentDate');if(idt)idt.value=c.intermentDate||'';
       }
+      // Restore caseDetail for type-specific forms
+      if(c.caseDetail){
+        if(c.disp==='CIRGAS'&&c.serviceType==='Confirmed Sale') restoreCirgasDetail(c.caseDetail);
+        else if(c.disp==='RIC'&&c.serviceType==='Confirmed Sale') restoreRicDetail(c.caseDetail);
+        else if((c.disp==='GA Policy'||c.disp==='Clearpoint Trust')&&c.serviceType==='Confirmed Sale') setTimeout(()=>restoreGaDetail(c.caseDetail),60);
+      }
     }
     document.getElementById('caseBackBtn').style.display='none';
     document.getElementById('caseModalTitle').textContent='Edit Case';
@@ -1099,15 +1547,35 @@ function saveCase(){
   }
   const isChloe=wOwner==='chloe';
   const isWO=wDisp==='Work Order';
+  const isCirgasSale=wOwner==='martice'&&wDisp==='CIRGAS'&&wServiceType==='Confirmed Sale';
+  const isRicSale=wOwner==='martice'&&wDisp==='RIC'&&wServiceType==='Confirmed Sale';
+  const isGaSale=wOwner==='martice'&&(wDisp==='GA Policy'||wDisp==='Clearpoint Trust')&&wServiceType==='Confirmed Sale';
   // Reminder days: use custom field value if present, else default
   let rDays = getRDays(wServiceType);
   const customR = document.getElementById('mReminderDays');
-  if(!isChloe && customR && customR.value && !isWO) rDays=parseInt(customR.value)||4;
+  if(!isChloe && customR && customR.value && !isWO && !isCirgasSale && !isRicSale && !isGaSale) rDays=parseInt(customR.value)||4;
   const isMQuote = wOwner==='martice' && wServiceType==='Quote' && (wDisp==='RIC'||wDisp==='CIRGAS'||wDisp==='GA Policy'||wDisp==='Clearpoint Trust');
-  // For CIRGAS quote, interment date goes into serviceDate so it shows on card/calendar
+
+  // Collect type-specific detail
+  let caseDetail = existing?.caseDetail || null;
   let svcDate=document.getElementById('cServiceDate').value;
-  if(isMQuote && wDisp==='CIRGAS'){ svcDate=document.getElementById('cIntermentDate')?.value||''; }
-  if(isMQuote && wDisp==='RIC'){ svcDate=''; }
+  let intermentDate='';
+
+  if(isCirgasSale){
+    caseDetail=collectCirgasDetail();
+    svcDate=caseDetail.funeralDate||'';
+    intermentDate=caseDetail.intermentDate||'';
+  } else if(isRicSale){
+    caseDetail=collectRicDetail();
+    svcDate='';
+  } else if(isGaSale){
+    caseDetail=collectGaDetail();
+  } else {
+    // For CIRGAS quote, interment date goes into serviceDate
+    if(isMQuote && wDisp==='CIRGAS'){ svcDate=document.getElementById('cIntermentDate')?.value||''; intermentDate=svcDate; }
+    if(isMQuote && wDisp==='RIC'){ svcDate=''; }
+  }
+
   // Work Order: collect extra fields
   const woData=isWO?{
     deceased:document.getElementById('woDeceased')?.value||'',
@@ -1126,24 +1594,43 @@ function saveCase(){
     takenBy:document.getElementById('woTakenBy')?.value||'',
     fsd:document.getElementById('woFSD')?.value||''
   }:null;
+
+  // Disc: for CIRGAS/RIC sales, pull from detail section
+  let disc=document.getElementById('cDisc').value;
+  if(isCirgasSale) disc=caseDetail.contractNum||'';
+  if(isRicSale) disc=caseDetail.contractNum||'';
+  // Passare/location: for detail-section cases, pull property location from detail
+  let passare=document.getElementById('cPassare').value;
+  if(isCirgasSale) passare=caseDetail.propertyLocation||'';
+  if(isRicSale) passare=caseDetail.location||'';
+
   const obj={id,owner:wOwner,disp:wDisp,serviceType:wServiceType,decedent,
-    disc:document.getElementById('cDisc').value,passare:document.getElementById('cPassare').value,
+    disc,passare,
     passareLink:document.getElementById('cPassareLink').value,serviceDate:svcDate,
     serviceTime:document.getElementById('cServiceTime').value,status:document.getElementById('cStatus').value,
-    payment:isChloe?document.getElementById('cPayment').value:(isMQuote||isWO?'':(document.getElementById('mPayment')?.value||'')),
-    payStatus:isChloe?document.getElementById('cPayStatus').value:(isMQuote||isWO?'':(document.getElementById('mPayStatus')?.value||'')),
+    payment:isChloe?document.getElementById('cPayment').value:(isMQuote||isWO||isGaSale?'':(document.getElementById('mPayment')?.value||'')),
+    payStatus:isChloe?document.getElementById('cPayStatus').value:(isMQuote||isWO||isGaSale?'':(document.getElementById('mPayStatus')?.value||'')),
     payNotes:isChloe?document.getElementById('cPayNotes').value:'',
     notes:document.getElementById('cNotes').value,
     urn:isChloe?document.getElementById('cUrn').value:'',casket:isChloe?document.getElementById('cCasket').value:'',
     quoteCategories:isMQuote?getQuoteCategories():[],
     quoteEstimate:isMQuote?(document.getElementById('cQuoteEstimate')?.value||''):'',
-    intermentDate:isMQuote&&wDisp==='CIRGAS'?(document.getElementById('cIntermentDate')?.value||''):'',
-    woData,
+    intermentDate,
+    caseDetail,woData,
     misc:getMiscItems(),checklist,touchpoints:existing?.touchpoints||[],
     createdAt:existing?.createdAt||new Date().toISOString(),lastContact:existing?.lastContact||null,
     reminderDays:rDays};
   const idx=cases.findIndex(c=>c.id===id);
   if(idx>=0)cases[idx]=obj;else cases.push(obj);
+
+  // RIC "Services not full" → auto-create follow-up task
+  if(isRicSale && caseDetail && caseDetail.servicesFull===false && !existing){
+    const fuDays=caseDetail.followUpDays||90;
+    const fuDate=new Date();fuDate.setDate(fuDate.getDate()+fuDays);
+    const fuDateStr=fuDate.toISOString().slice(0,10);
+    tasks.push({id:uid(),text:'RIC Follow-Up: '+decedent+' — Services Not Full',priority:'High',cat:'Work',dueDate:fuDateStr,notes:'Auto-created: RIC services not full at time of sale.',done:false,createdAt:new Date().toISOString()});
+  }
+
   try { save(); } catch(e){ console.error('save() error:',e); }
   closeModal('caseModal');
   try { renderCases(); } catch(e){ console.error('renderCases() failed:',e); }
@@ -1190,6 +1677,7 @@ function deleteChecklistItem(caseId,group,idx){
 function addTouchpoint(caseId){
   const ta=document.getElementById('tp-'+caseId);const text=ta.value.trim();if(!text)return;
   const c=cases.find(x=>x.id===caseId);if(!c)return;
+  if(!Array.isArray(c.touchpoints))c.touchpoints=[];
   c.touchpoints.unshift({text,date:new Date().toISOString()});c.lastContact=new Date().toISOString();
   save();ta.value='';renderCaseCard(c);
 }
@@ -1246,6 +1734,7 @@ function printCase(id){
 // ═══════════════════════════════════════
 function buildCaseCardHTML(c){
   const col=SC[c.status]||'#8fa3b8';
+  const typeCol=caseTypeColor(c)||col;
   const ownerTag=c.owner==='martice'?'<span class="owner-tag-martice">Martice</span>':'<span class="owner-tag-chloe">Chloe</span>';
 
   // Progress — exclude N/A items from total
@@ -1395,18 +1884,36 @@ function buildCaseCardHTML(c){
   const passareBtn=c.passareLink?`<a href="${c.passareLink}" target="_blank" style="background:#8fa3b818;color:var(--muted);border:1px solid #8fa3b844;border-radius:6px;padding:3px 9px;font-size:10px;text-decoration:none;font-family:'DM Sans',sans-serif;white-space:nowrap">🔗 Passare</a>`:'';
   const isOpen=!!expandedCards[c.id];
 
-  return `<div class="case-card" id="ccard-${c.id}" style="border-color:${col}33">
+  // Purchaser info for detail-section cases
+  const cd=c.caseDetail||{};
+  const purchName=cd.purchName||(cd.recipFirst?[cd.recipTitle,cd.recipFirst,cd.recipMiddle,cd.recipLast].filter(Boolean).join(' '):'');
+  const purchPhone=cd.purchPhone||cd.purchCellPhone||cd.purchHomePhone||cd.recipPhone||'';
+  const purchEmail=cd.purchEmail||cd.recipPhone&&''||'';
+  const hasPurchInfo = !!(purchName||purchPhone||purchEmail);
+  const servicesFull = cd.servicesFull;
+  const notFullBadge = servicesFull===false ? '<span class="not-full-badge">⚠ Services Not Full</span>' : '';
+  // Interment date display for Martice confirmed sales
+  const intermentDisplay = c.intermentDate ? `<span style="color:var(--goldL);font-size:10px">⚰️ Interment: ${c.intermentDate}</span>` : '';
+
+  return `<div class="case-card" id="ccard-${c.id}" style="border-color:${typeCol}55;border-left-color:${typeCol}">
     <div class="case-card-header" onclick="toggleCard('${c.id}')">
       <div style="flex:1;min-width:0">
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:5px">
           <span class="case-card-title">${c.decedent}</span>
-          ${ownerTag}<span class="tag">${c.disp}</span>${c.serviceType?`<span class="tag">${c.serviceType}</span>`:''}
+          ${ownerTag}<span class="tag" style="background:${typeCol}22;color:${typeCol};border-color:${typeCol}55">${c.disp}</span>${c.serviceType?`<span class="tag">${c.serviceType}</span>`:''}
+          ${notFullBadge}
           ${qs}
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${hasPurchInfo?`<div class="purchaser-row">
+          ${purchName?`<span style="color:var(--white);font-weight:500">${purchName}</span>`:''}
+          ${purchPhone?`<span title="Phone">${purchPhone}</span>`:''}
+          ${purchEmail?`<span title="Email">${purchEmail}</span>`:''}
+        </div>`:''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:${hasPurchInfo?'4':'0'}px">
           ${c.disc?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'Contract':'Disc'}: ${c.disc}</span>`:''}
           ${c.passare?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'📍':'Case:'} ${c.passare}</span>`:''}
           ${c.serviceDate?`<span style="color:var(--goldL);font-size:10px">📅 ${c.serviceDate}${c.serviceTime?' @ '+c.serviceTime:''}</span>`:''}
+          ${intermentDisplay}
           ${c.quoteEstimate?`<span style="color:var(--gold);font-size:11px;font-weight:600">~${c.quoteEstimate}</span>`:''}
           ${payHTML} ${reminderHTML}
         </div>
@@ -1429,6 +1936,66 @@ function buildCaseCardHTML(c){
         ${c.quoteEstimate?`<div style="margin-top:8px"><span style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Estimated Total</span> <span style="font-size:15px;color:var(--gold);font-weight:600;margin-left:6px">${c.quoteEstimate}</span></div>`:''}
         ${c.intermentDate?`<div style="margin-top:4px;font-size:11px;color:var(--goldL)">Tentative interment: ${c.intermentDate}</div>`:''}
       </div>`:''}
+      ${c.caseDetail&&(c.disp==='CIRGAS'||c.disp==='RIC'||c.disp==='GA Policy'||c.disp==='Clearpoint Trust')&&c.serviceType==='Confirmed Sale'?(()=>{
+        const d=c.caseDetail;
+        if(c.disp==='CIRGAS'){
+          const decName=[d.decFirst,d.decMiddle,d.decLast].filter(Boolean).join(' ');
+          const fPurch=[d.purchName,d.purchRelationship].filter(Boolean).join(' — ');
+          const fCoPurch=d.hasCoPurch&&d.copurchName?[d.copurchName,d.copurchRelationship].filter(Boolean).join(' — '):'';
+          return `<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px;font-size:12px">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Family Service Information</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              ${d.contractNum?`<div><span style="color:var(--muted);font-size:10px">Contract #: </span>${d.contractNum}</div>`:''}
+              ${d.fhOrigin?`<div><span style="color:var(--muted);font-size:10px">FH of Origin: </span>${d.fhOrigin}</div>`:''}
+              ${d.fsd?`<div><span style="color:var(--muted);font-size:10px">FSD: </span>${d.fsd}</div>`:''}
+              ${d.funeralDirector?`<div><span style="color:var(--muted);font-size:10px">Funeral Director: </span>${d.funeralDirector}</div>`:''}
+              ${decName?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Deceased: </span><strong>${decName}</strong>${d.age?' — Age '+d.age:''}</div>`:''}
+              ${d.dob?`<div><span style="color:var(--muted);font-size:10px">DOB: </span>${d.dob}</div>`:''}
+              ${d.dod?`<div><span style="color:var(--muted);font-size:10px">DOD: </span>${d.dod}</div>`:''}
+              ${d.arrangementDate?`<div><span style="color:var(--muted);font-size:10px">Arrangement: </span>${d.arrangementDate}</div>`:''}
+              ${d.funeralDate?`<div><span style="color:var(--muted);font-size:10px">Funeral: </span>${d.funeralDate}${d.funeralTime?' @ '+d.funeralTime:''}</div>`:''}
+              ${d.intermentDate?`<div><span style="color:var(--muted);font-size:10px">Interment: </span>${d.intermentDate}${d.intermentTime?' @ '+d.intermentTime:''}</div>`:''}
+              ${fPurch?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Purchaser: </span>${fPurch}</div>`:''}
+              ${d.purchPhone||d.purchCellPhone?`<div><span style="color:var(--muted);font-size:10px">Phone: </span>${[d.purchHomePhone,d.purchCellPhone].filter(Boolean).join(' / ')}</div>`:''}
+              ${d.purchEmail?`<div><span style="color:var(--muted);font-size:10px">Email: </span>${d.purchEmail}</div>`:''}
+              ${fCoPurch?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Co-Purchaser: </span>${fCoPurch}</div>`:''}
+              ${d.propertyLocation?`<div><span style="color:var(--muted);font-size:10px">Property: </span>${d.propertyLocation}</div>`:''}
+              ${d.vault?`<div><span style="color:var(--muted);font-size:10px">Vault: </span>${d.vault}</div>`:''}
+            </div>
+          </div>`;
+        } else if(c.disp==='RIC'){
+          const fPurch=[d.purchName,d.purchRelationship].filter(Boolean).join(' — ');
+          return `<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px;font-size:12px">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">RIC Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              ${d.contractNum?`<div><span style="color:var(--muted);font-size:10px">Contract #: </span>${d.contractNum}</div>`:''}
+              ${d.propertyType?`<div><span style="color:var(--muted);font-size:10px">Type: </span>${d.propertyType}</div>`:''}
+              ${d.location?`<div><span style="color:var(--muted);font-size:10px">Location: </span>${d.location}</div>`:''}
+              ${d.forBenefitOf?`<div><span style="color:var(--muted);font-size:10px">For Benefit Of: </span>${d.forBenefitOf}</div>`:''}
+              ${d.paymentAmount?`<div><span style="color:var(--muted);font-size:10px">Payment: </span><strong>${d.paymentAmount}</strong></div>`:''}
+              ${fPurch?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Purchaser: </span>${fPurch}</div>`:''}
+              ${d.purchPhone?`<div><span style="color:var(--muted);font-size:10px">Phone: </span>${d.purchPhone}</div>`:''}
+              ${d.purchEmail?`<div><span style="color:var(--muted);font-size:10px">Email: </span>${d.purchEmail}</div>`:''}
+              ${d.hasCoPurch&&d.copurchName?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Co-Purchaser: </span>${d.copurchName}${d.copurchRelationship?' — '+d.copurchRelationship:''}</div>`:''}
+            </div>
+          </div>`;
+        } else {
+          const recipName=[d.recipTitle,d.recipFirst,d.recipMiddle,d.recipLast].filter(Boolean).join(' ');
+          const pName=d.purchSameAsRecip?'Same as recipient':d.purchName||'';
+          return `<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px;font-size:12px">
+            <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Pre-Need Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              ${recipName?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Funeral Recipient: </span><strong>${recipName}</strong></div>`:''}
+              ${d.recipDob?`<div><span style="color:var(--muted);font-size:10px">DOB: </span>${d.recipDob}</div>`:''}
+              ${d.recipPhone?`<div><span style="color:var(--muted);font-size:10px">Phone: </span>${d.recipPhone}</div>`:''}
+              ${pName?`<div style="grid-column:1/-1"><span style="color:var(--muted);font-size:10px">Purchaser: </span>${pName}</div>`:''}
+              ${d.disposition?`<div><span style="color:var(--muted);font-size:10px">Disposition: </span>${d.disposition}</div>`:''}
+              ${d.serviceType?`<div><span style="color:var(--muted);font-size:10px">Service Type: </span>${d.serviceType}</div>`:''}
+              ${d.paymentAmount?`<div><span style="color:var(--muted);font-size:10px">Payment: </span><strong>${d.paymentAmount}</strong></div>`:''}
+            </div>
+          </div>`;
+        }
+      })():''}
       ${c.woData&&c.disp==='Work Order'?`<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
         <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Work Order Details</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
@@ -1513,8 +2080,18 @@ function renderCases(){
 
   let filtered=caseFilter==='All'?pool:pool.filter(c=>c.status===caseFilter);
   if(search) filtered=filtered.filter(c=>(c.decedent||'').toLowerCase().includes(search)||(c.passare||'').toLowerCase().includes(search)||(c.disc||'').toLowerCase().includes(search));
-  // Sort by urgency
-  filtered=[...filtered].sort((a,b)=>urgencyScore(a)-urgencyScore(b));
+  // Sort: Martice → interment/service date soonest-first (no-date last), then urgency; others → urgency only
+  filtered=[...filtered].sort((a,b)=>{
+    const isM = activeUser==='martice';
+    if(isM){
+      const dateA=a.intermentDate||a.serviceDate||'';
+      const dateB=b.intermentDate||b.serviceDate||'';
+      if(!dateA&&!dateB) return urgencyScore(a)-urgencyScore(b);
+      if(!dateA) return 1; if(!dateB) return -1;
+      if(dateA!==dateB) return dateA.localeCompare(dateB);
+    }
+    return urgencyScore(a)-urgencyScore(b);
+  });
 
   const list=document.getElementById('caseList');
   if(!filtered.length){
