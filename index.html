@@ -7666,13 +7666,21 @@ function restoreDiscountRows(containerId, rows) {
 }
 
 function captureCemState() {
-  var planItems = [];
-  var fields = (typeof CEM_FIELDS !== 'undefined') ? CEM_FIELDS : [];
+  var section = el('section-cem-quote');
+  var fieldIds = [];
+  if (section) {
+    section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e) {
+      if (e.id) fieldIds.push(e.id);
+    });
+  }
   return {
-    fields: captureFieldState(fields),
+    fields: captureFieldState(fieldIds),
     customLines: captureCustomLines('cemCustomLines'),
     discounts: captureDiscountRows('cemDiscountList'),
-    planItems: planItems,
+    inscriptions: JSON.parse(JSON.stringify(typeof inscriptions !== 'undefined' ? inscriptions : [])),
+    vaultItems:   JSON.parse(JSON.stringify(typeof vaultItems   !== 'undefined' ? vaultItems   : [])),
+    bronzeItems:  JSON.parse(JSON.stringify(typeof bronzeItems  !== 'undefined' ? bronzeItems  : [])),
+    markerItems:  JSON.parse(JSON.stringify(typeof markerItems  !== 'undefined' ? markerItems  : [])),
     total: _cemTotal || 0
   };
 }
@@ -7767,9 +7775,13 @@ function loadSavedCemQuote(id) {
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { resetCemQuote(); } catch(e) {}
   var s = snap.state;
-  restoreFieldState(s.fields);
+  restoreFieldState(s.fields || {});
   restoreCustomLines('cemCustomLines', s.customLines || []);
   restoreDiscountRows('cemDiscountList', s.discounts || []);
+  if (s.inscriptions && s.inscriptions.length) { inscriptions = s.inscriptions; if (typeof inscRender  === 'function') inscRender(); }
+  if (s.vaultItems   && s.vaultItems.length)   { vaultItems   = s.vaultItems;   if (typeof vaultRender  === 'function') vaultRender(); }
+  if (s.bronzeItems  && s.bronzeItems.length)  { bronzeItems  = s.bronzeItems;  if (typeof bronzeRender === 'function') bronzeRender(); }
+  if (s.markerItems  && s.markerItems.length)  { markerItems  = s.markerItems;  if (typeof markerRender === 'function') markerRender(); }
   if (typeof cemQuoteTypeChange === 'function') cemQuoteTypeChange();
   cemUpdate();
   show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
@@ -9581,48 +9593,53 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     y -= 16;
   }
 
-  // ── Payment Options (cemetery financing) ──
+  // ── Payment Options (all three financing tiers) ──
   if (opts.finData && opts.finData.downAmt > 0 && typeof FIN_TIERS !== 'undefined') {
-    var fd = opts.finData;
-    var finTierKey = fd.tierKey || (fd.downAmt/grand >= 0.25 ? 0.25 : fd.downAmt/grand >= 0.20 ? 0.20 : 0.10);
-    var finTiers   = FIN_TIERS[finTierKey];
-    var finBalance = fd.balance != null ? fd.balance : (grand - fd.downAmt);
-    if (finTiers && finBalance > 0) {
+    checkY(60);
+    y -= 8;
+    page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
+    page.drawText('PAYMENT OPTIONS', {x:M, y:y-10, size:8, font:bold, color:ORANGE});
+    y -= 26;
+    var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
+    var tierDefs = [
+      {key:0.10, label:'10% Down (Minimum)'},
+      {key:0.20, label:'20% Down'},
+      {key:0.25, label:'25%+ Down'}
+    ];
+    tierDefs.forEach(function(td) {
+      var tiers   = FIN_TIERS[td.key];
+      if (!tiers) return;
+      var downAmt = Math.ceil(grand * td.key);
+      var balance = grand - downAmt;
+      if (balance <= 0) return;
       checkY(80);
-      y -= 8;
-      page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
-      page.drawText('PAYMENT OPTIONS', {x:M, y:y-10, size:8, font:bold, color:ORANGE});
-      y -= 24;
-      var dpPct = (fd.downAmt/grand*100).toFixed(1);
-      var dpInfo = 'Down payment: ' + fmtMoney(fd.downAmt) + ' (' + dpPct + '%)    Balance financed: ' + fmtMoney(finBalance);
-      page.drawText(dpInfo, {x:M, y, size:9.5, font:reg, color:DARK});
-      y -= 18;
-      // Column positions
-      var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
-      // Header row
+      var tierHead = td.label + '  —  Min. Down: ' + fmtMoney(downAmt) + '  |  Balance: ' + fmtMoney(balance);
+      page.drawText(safeText(tierHead), {x:M, y, size:9, font:bold, color:DARK});
+      y -= 16;
       checkY(16);
       page.drawRectangle({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
-      page.drawText('Term',         {x:C1, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Rate',         {x:C2, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Monthly Pmt',  {x:C3, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Total Cost',   {x:C4, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Term',        {x:C1, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Rate',        {x:C2, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Monthly Pmt', {x:C3, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawText('Total Cost',  {x:C4, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
       y -= 18;
-      finTiers.forEach(function(tier, i) {
+      tiers.forEach(function(tier, i) {
         checkY(16);
         var months = tier[0], rate = tier[1];
-        var monthly   = (typeof finMonthly === 'function') ? finMonthly(finBalance, months, rate) : (rate===0 ? finBalance/months : (finBalance * (rate/12)) / (1 - Math.pow(1+(rate/12), -months)));
-        var totalCost = fd.downAmt + (monthly * months);
+        var monthly   = (typeof finMonthly === 'function') ? finMonthly(balance, months, rate) : (rate===0 ? balance/months : (balance*(rate/12))/(1-Math.pow(1+(rate/12),-months)));
+        var totalCost = downAmt + (monthly * months);
         var isZero    = rate === 0;
         if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
-        page.drawText(months + ' months',        {x:C1, y, size:9.5, font:bold, color:DARK});
+        page.drawText(months + ' months',       {x:C1, y, size:9.5, font:bold, color:DARK});
         page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
-        page.drawText(fmtMoney(monthly)+'/mo',   {x:C3, y, size:9.5, font:bold, color:NAVY});
-        page.drawText(fmtMoney(totalCost),        {x:C4, y, size:9,   font:reg,  color:MUTED});
+        page.drawText(fmtMoney(monthly)+'/mo',  {x:C3, y, size:9.5, font:bold, color:NAVY});
+        page.drawText(fmtMoney(totalCost),       {x:C4, y, size:9,   font:reg,  color:MUTED});
         y -= 17;
       });
-      page.drawText('Minimum monthly payment $50 · 0% financing requires ACH bank withdrawal', {x:M, y, size:7.5, font:reg, color:MUTED});
-      y -= 14;
-    }
+      y -= 10;
+    });
+    page.drawText('Minimum monthly payment $50 \xb7 0% financing requires ACH bank withdrawal', {x:M, y, size:7.5, font:reg, color:MUTED});
+    y -= 14;
   }
 
   // Footer on all pages
