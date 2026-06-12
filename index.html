@@ -9594,7 +9594,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
       var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
       // Header row
       checkY(16);
-      page.drawRect({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
+      page.drawRectangle({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
       page.drawText('Term',         {x:C1, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
       page.drawText('Rate',         {x:C2, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
       page.drawText('Monthly Pmt',  {x:C3, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
@@ -9606,7 +9606,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
         var monthly   = (typeof finMonthly === 'function') ? finMonthly(finBalance, months, rate) : (rate===0 ? finBalance/months : (finBalance * (rate/12)) / (1 - Math.pow(1+(rate/12), -months)));
         var totalCost = fd.downAmt + (monthly * months);
         var isZero    = rate === 0;
-        if (i % 2 === 0) page.drawRect({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+        if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
         page.drawText(months + ' months',        {x:C1, y, size:9.5, font:bold, color:DARK});
         page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
         page.drawText(fmtMoney(monthly)+'/mo',   {x:C3, y, size:9.5, font:bold, color:NAVY});
