@@ -7653,15 +7653,45 @@ function restoreCustomLines(containerId, lines) {
 }
 function captureDiscountRows(containerId) {
   var rows = []; var container = el(containerId); if (!container) return rows;
-  container.querySelectorAll('select').forEach(function(sel) { rows.push(sel.value); });
+  container.querySelectorAll('.disc-row').forEach(function(row) {
+    var r = {};
+    row.querySelectorAll('select, input').forEach(function(e) {
+      var key = (e.className || '').split(' ')[0];
+      if (key) r[key] = (e.type === 'checkbox') ? e.checked : e.value;
+    });
+    rows.push(r);
+  });
   return rows;
 }
 function restoreDiscountRows(containerId, rows) {
   if (!rows || !rows.length) return;
   var container = el(containerId); if (!container) return;
-  rows.forEach(function(val, i) {
-    var sels = container.querySelectorAll('select');
-    if (sels[i]) sels[i].value = val;
+  var isCem = containerId === 'cemDiscountList';
+  var addFn = isCem ? (typeof addCemDiscount !== 'undefined' ? addCemDiscount : null)
+                    : (typeof addFhDiscount  !== 'undefined' ? addFhDiscount  : null);
+  if (!addFn) return;
+  rows.forEach(function(r) {
+    if (!r) return;
+    addFn();
+    var discRows = container.querySelectorAll('.disc-row');
+    var row = discRows[discRows.length - 1]; if (!row) return;
+    // Handle old plain-string format (saved as just the select value)
+    if (typeof r === 'string') {
+      var modeEl = row.querySelector('.disc-mode');
+      if (modeEl) { modeEl.value = r; if (isCem && typeof cemDiscModeChange === 'function') cemDiscModeChange(modeEl); }
+      return;
+    }
+    row.querySelectorAll('select, input').forEach(function(e) {
+      var key = (e.className || '').split(' ')[0];
+      if (key && r[key] !== undefined) {
+        if (e.type === 'checkbox') e.checked = !!r[key];
+        else e.value = r[key] || '';
+      }
+    });
+    if (isCem) {
+      var modeEl = row.querySelector('.disc-mode');
+      if (modeEl && typeof cemDiscModeChange === 'function') cemDiscModeChange(modeEl);
+    }
   });
 }
 
@@ -9642,6 +9672,19 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     y -= 14;
   }
 
+  // ── Notes ──
+  if (opts.notes) {
+    checkY(40);
+    y -= 10;
+    page.drawRectangle({x:M, y:y-14, width:3, height:22, color:ORANGE});
+    var notesLabel = 'Notes: ';
+    var notesLabelW = bold.widthOfTextAtSize(notesLabel, 9);
+    var notesText = trunc(safeText(opts.notes), RX-M-14-notesLabelW, reg, 9);
+    page.drawText(notesLabel, {x:M+10, y, size:9, font:bold, color:DARK});
+    page.drawText(notesText,  {x:M+10+notesLabelW, y, size:9, font:reg, color:DARK});
+    y -= 18;
+  }
+
   // Footer on all pages
   doc.getPages().forEach(function(pg) {
     pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:GOLD});
@@ -9685,7 +9728,8 @@ async function downloadCemQuotePDF() {
     exSection: 'Services & Cemetery Items',
     taxSection: 'Merchandise (Taxable)',
     grandTotal: cemTotal || undefined,
-    finData: pdfFinData
+    finData: pdfFinData,
+    notes: val('cemQuoteNotes') || ''
   });
 }
 async function downloadFhQuotePDF() {
@@ -9695,7 +9739,8 @@ async function downloadFhQuotePDF() {
   await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home Quote', 'BW_FuneralHome_Quote', {
     exSection: 'Tax-Exempt Services',
     taxSection: 'Taxable Merchandise',
-    grandTotal: (typeof _fhTotal !== 'undefined') ? _fhTotal : undefined
+    grandTotal: (typeof _fhTotal !== 'undefined') ? _fhTotal : undefined,
+    notes: val('fhQuoteNotes') || ''
   });
 }
 
