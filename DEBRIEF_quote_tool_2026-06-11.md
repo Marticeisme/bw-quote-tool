@@ -293,14 +293,253 @@ page.drawRectangle({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
 
 ---
 
+## Saved Quotes Section — Blank Cards + Name Prompt + Load Navigation (Commits: 18ab886, e072ad7)
+
+### What Was Broken (three separate issues)
+
+**1. Cards completely blank** — `renderSavedQuotesList` used white/transparent CSS colors (`rgba(255,255,255,.5)`, `color:#fff`) designed for a dark sidebar panel. The dedicated saved quotes sections have a white background, so all text was invisible.
+
+**2. No name control on save** — quotes auto-saved with `{clientName} - {date}` label, no way to name them something meaningful before saving.
+
+**3. Load button did nothing** — `loadSavedCemQuote` called `showSection('section-cem-quote')` which doesn't exist. The correct function is `show('cem-quote', navEl)`.
+
+### What Was Fixed
+
+**Cards:** Rewrote `renderSavedQuotesList` card HTML with proper light-mode colors — navy text on white cards with `border`, `border-radius`, `box-shadow`. Buttons use `var(--navy)` and `#f0f2f8` backgrounds.
+
+**Name prompt:**
+```js
+var defaultLabel = (clientName || 'Cemetery Quote') + ' - ' + d;
+var label = window.prompt('Name this quote:', defaultLabel);
+if (label === null) return; // Cancel aborts save
+label = label.trim() || defaultLabel;
+```
+
+**Load navigation:**
+```js
+// Before (function doesn't exist):
+if (typeof showSection === 'function') showSection('section-cem-quote');
+
+// After (correct):
+show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
+```
+
+### Rules Going Forward
+
+- `show(id, navEl)` is the nav function — id is WITHOUT the `section-` prefix. `navEl` can be `document.querySelector('[onclick*="id"]')` when there's no dedicated nav element ID.
+- `renderSavedQuotesList` renders into `#section-cem-saved` / `#section-fh-saved` which have white backgrounds — never use dark/transparent colors there.
+
+---
+
+## Quote Load Coming Up Blank — CEM State Not Captured (Commit: e072ad7)
+
+### What Was Broken
+
+Loading a saved cemetery quote restored nothing — the builder appeared empty. Root causes:
+
+1. **`CEM_FIELDS` never declared** — `captureCemState` used `typeof CEM_FIELDS !== 'undefined' ? CEM_FIELDS : []` which always returned `[]`. `captureFieldState([])` returns `{}` — no fields saved.
+
+2. **JS arrays not saved** — the cemetery quote builder stores selected items in four global arrays: `inscriptions`, `vaultItems`, `bronzeItems`, `markerItems`. None of these were included in the save snapshot.
+
+3. **`restoreDiscountRows` ran before rows existed** — after `resetCemQuote()`, the discount list is empty. The restore tried to find existing `<select>` elements to set, found none, and silently did nothing.
+
+### What Was Fixed
+
+**`captureCemState`:** Dynamically queries all `input[id]`, `select[id]`, `textarea[id]` inside `#section-cem-quote` to build the field list at runtime. Also explicitly saves the four item arrays:
+
+```js
+function captureCemState() {
+  var section = el('section-cem-quote');
+  var fieldIds = [];
+  if (section) {
+    section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e) {
+      if (e.id) fieldIds.push(e.id);
+    });
+  }
+  return {
+    fields: captureFieldState(fieldIds),
+    customLines: captureCustomLines('cemCustomLines'),
+    discounts: captureDiscountRows('cemDiscountList'),
+    inscriptions: JSON.parse(JSON.stringify(typeof inscriptions !== 'undefined' ? inscriptions : [])),
+    vaultItems:   JSON.parse(JSON.stringify(typeof vaultItems   !== 'undefined' ? vaultItems   : [])),
+    bronzeItems:  JSON.parse(JSON.stringify(typeof bronzeItems  !== 'undefined' ? bronzeItems  : [])),
+    markerItems:  JSON.parse(JSON.stringify(typeof markerItems  !== 'undefined' ? markerItems  : [])),
+    total: _cemTotal || 0
+  };
+}
+```
+
+**`loadSavedCemQuote`:** Restores arrays and calls render functions before `cemUpdate()`:
+
+```js
+if (s.inscriptions && s.inscriptions.length) { inscriptions = s.inscriptions; inscRender(); }
+if (s.vaultItems   && s.vaultItems.length)   { vaultItems   = s.vaultItems;   vaultRender(); }
+if (s.bronzeItems  && s.bronzeItems.length)  { bronzeItems  = s.bronzeItems;  bronzeRender(); }
+if (s.markerItems  && s.markerItems.length)  { markerItems  = s.markerItems;  markerRender(); }
+```
+
+### Cem Quote Builder Architecture (critical for future save/load work)
+
+The cemetery quote builder state lives in:
+- **DOM inputs** — selected via dynamic `querySelectorAll` in `captureCemState`
+- **`inscriptions` array** — inscription items added via the UI
+- **`vaultItems` array** — vault items
+- **`bronzeItems` array** — bronze items
+- **`markerItems` array** — marker items
+- **Custom lines** — `.custom-line-row` elements in `#cemCustomLines`
+- **Discounts** — `.disc-row` elements in `#cemDiscountList`
+
+`_cemLines` is the computed OUTPUT of `cemUpdate()` — setting it directly has no effect because `cemUpdate()` rebuilds it from the above sources on the next tick.
+
+### Rules Going Forward
+
+- There is no `CEM_FIELDS` or `FH_FIELDS` constant anywhere in the codebase. Do not reference them.
+- To save/restore cem state, use the dynamic query approach + explicitly save the four arrays.
+- Always call `inscRender()`, `vaultRender()`, `bronzeRender()`, `markerRender()` after restoring their arrays, then call `cemUpdate()` last.
+
+---
+
+## PDF — All Three Payment Tiers (Commit: e072ad7)
+
+### What Was Broken
+
+`_buildQuotePDF` rendered only one payment tier (whichever tier matched `finTierKey`). The UI shows all three tiers (10% / 20% / 25%+), but the PDF only showed one table.
+
+### What Was Fixed
+
+Replaced single-tier rendering with a loop over all three tier definitions:
+
+```js
+var tierDefs = [
+  {key:0.10, label:'10% Down (Minimum)'},
+  {key:0.20, label:'20% Down'},
+  {key:0.25, label:'25%+ Down'}
+];
+tierDefs.forEach(function(td) {
+  var tiers   = FIN_TIERS[td.key];
+  var downAmt = Math.ceil(grand * td.key);
+  var balance = grand - downAmt;
+  // ... renders header line + navy table header + tier rows
+  y -= 10; // spacing between tier blocks
+});
+```
+
+Each tier calculates its own `downAmt` and `balance` from the grand total — not from `_finData` — so all three always render correctly regardless of what the user entered in the financing panel.
+
+---
+
+## PDF — Notes Section (Commit: a300a71)
+
+### What Was Broken
+
+Quote notes (from `#cemQuoteNotes` / `#fhQuoteNotes` textareas) appeared in the print popup but were not passed to `_buildQuotePDF`, so they never showed on downloaded PDFs.
+
+### What Was Fixed
+
+Both download functions now pass `notes`:
+```js
+await _buildQuotePDF(lines, ..., {
+  ...,
+  notes: val('cemQuoteNotes') || ''   // or fhQuoteNotes
+});
+```
+
+`_buildQuotePDF` renders notes between the payment options block and the footer:
+```js
+if (opts.notes) {
+  checkY(40);
+  y -= 10;
+  page.drawRectangle({x:M, y:y-14, width:3, height:22, color:ORANGE}); // left accent bar
+  var notesLabelW = bold.widthOfTextAtSize('Notes: ', 9);
+  page.drawText('Notes: ', {x:M+10, y, size:9, font:bold, color:DARK});
+  page.drawText(trunc(safeText(opts.notes), RX-M-14-notesLabelW, reg, 9), {x:M+10+notesLabelW, y, size:9, font:reg, color:DARK});
+  y -= 18;
+}
+```
+
+Note: long notes are truncated to fit one line. If multi-line notes are needed, text wrapping will need to be added.
+
+---
+
+## Discount Save/Restore (Commit: a300a71)
+
+### What Was Broken
+
+Discounts were lost when loading a saved quote. Two root causes:
+
+1. **`captureDiscountRows` only saved select values** — the discount amount (`disc-amt`) and label (`disc-note`) inputs were ignored.
+
+2. **`restoreDiscountRows` couldn't restore into empty list** — after `resetCemQuote()`, `#cemDiscountList` is empty. The restore tried to find existing `<select>` elements to set values on — found none — silently did nothing.
+
+### Discount Row Structure
+
+**CEM rows** (created by `addCemDiscount()`):
+- `.disc-mode` — select (discount type, including special promotions)
+- `.disc-amt` — number input (amount)
+- `.disc-note` — text input (label)
+
+**FH rows** (created by `addFhDiscount()`):
+- `.disc-applies` — select (all/exempt/taxable)
+- `.disc-mode-fh` — select (percent/flat)
+- `.disc-amt` — number input
+- `.disc-note` — text input
+
+### What Was Fixed
+
+**`captureDiscountRows`** now saves all fields in each `.disc-row` by querying `select` and `input` elements and keying them by their first CSS class name:
+
+```js
+container.querySelectorAll('.disc-row').forEach(function(row) {
+  var r = {};
+  row.querySelectorAll('select, input').forEach(function(e) {
+    var key = (e.className || '').split(' ')[0];
+    if (key) r[key] = (e.type === 'checkbox') ? e.checked : e.value;
+  });
+  rows.push(r);
+});
+```
+
+**`restoreDiscountRows`** now creates new rows first via `addCemDiscount()` / `addFhDiscount()`, then sets all field values. Handles old plain-string format for backward compatibility:
+
+```js
+var addFn = isCem ? addCemDiscount : addFhDiscount;
+rows.forEach(function(r) {
+  addFn(); // creates the row in the DOM
+  var row = container.querySelectorAll('.disc-row')[last];
+  // set all fields by class name key
+  if (isCem) cemDiscModeChange(row.querySelector('.disc-mode')); // show/hide amount field
+});
+```
+
+### Rules Going Forward
+
+- Always create DOM rows before trying to set their values — you can't set values on elements that don't exist yet.
+- CEM and FH discount rows have different structures — they share `captureDiscountRows`/`restoreDiscountRows` but the add function differs. The container ID determines which add function to use.
+
+---
+
 ## Pre-Push Testing Checklist
 
 These steps must be completed before every push — not after the user reports a bug.
 
-1. **Grep for every variable referenced in changed functions** — confirm it is declared somewhere. If not, use a `typeof` guard.
-2. **Run Node.js syntax check:**
+1. **Grep for every variable referenced in changed functions.** Confirm it is declared somewhere in the file. If not, use a `typeof` guard — do NOT assume it exists.
+   ```
+   grep -n "VARIABLE_NAME" index.html
+   ```
+
+2. **Run Node.js syntax check (both files):**
    ```
    node -e "var fs=require('fs'); ['index.html','BW_Quote_Tool_merged_11.html'].forEach(function(f){ var h=fs.readFileSync('C:/Users/Martice/bw-quote-tool/'+f,'utf8'); var m=h.match(/<script[\s\S]*?>([\s\S]*?)<\/script>/g); if(m) m.forEach(function(s){ var src=s.replace(/<script[^>]*>/,'').replace(/<\/script>/,''); try{new Function(src);}catch(e){console.log(f+' ERROR: '+e.message);} }); console.log(f+': OK'); });"
    ```
-3. **Trace the full execution path** of any logic change — not just the function being edited. Follow what every variable is set to at the point it's used.
-4. **Both files must be updated together** — `index.html` and `BW_Quote_Tool_merged_11.html` are always kept in sync. A fix applied to one must be applied to the other before committing.
+
+3. **Trace the full execution path.** Before claiming a fix works, trace what every relevant variable equals at the moment it's used — not just in the function being edited. Follow callers and callees.
+
+4. **Both files must be updated together.** `index.html` and `BW_Quote_Tool_merged_11.html` are always kept in sync. A fix applied to one must be applied to the other before committing.
+
+5. **For save/restore changes:** Verify the save actually captures something by mentally running `captureXxxState()` with a real quote open. Ask: "What does this return if the user has selected a niche and a discount?"
+
+6. **For DOM manipulation:** Verify the target elements exist at the time of the operation. If a function creates elements, make sure you're not trying to set values before calling the create function.
+
+7. **For pdf-lib:** Grep for `drawRect\b` (should be `drawRectangle`). Grep for any other pdf-lib method calls and verify the method exists.
+
+8. **For nav/section changes:** Verify the `show()` call uses the correct id format (WITHOUT `section-` prefix) and that the navEl argument is a real DOM element.
