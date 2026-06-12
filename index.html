@@ -7725,7 +7725,10 @@ function saveCemQuote() {
   try {
     var clientName = (val('cemClientName') || '').trim();
     var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    var label = (clientName || 'Cemetery Quote') + ' - ' + d;
+    var defaultLabel = (clientName || 'Cemetery Quote') + ' - ' + d;
+    var label = window.prompt('Name this quote:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
     _cemSavedQuotes.unshift(snap);
     if (_cemSavedQuotes.length > 10) _cemSavedQuotes = _cemSavedQuotes.slice(0, 10);
@@ -7739,7 +7742,10 @@ function saveFhQuote() {
   try {
     var clientName = (val('fhClientName') || '').trim();
     var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    var label = (clientName || 'FH Quote') + ' - ' + d;
+    var defaultLabel = (clientName || 'FH Quote') + ' - ' + d;
+    var label = window.prompt('Name this quote:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
     _fhSavedQuotes.unshift(snap);
     if (_fhSavedQuotes.length > 10) _fhSavedQuotes = _fhSavedQuotes.slice(0, 10);
@@ -7766,7 +7772,7 @@ function loadSavedCemQuote(id) {
   restoreDiscountRows('cemDiscountList', s.discounts || []);
   if (typeof cemQuoteTypeChange === 'function') cemQuoteTypeChange();
   cemUpdate();
-  if (typeof showSection === 'function') showSection('section-cem-quote');
+  show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
 }
 function loadSavedFhQuote(id) {
   var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
@@ -7789,6 +7795,7 @@ function loadSavedFhQuote(id) {
   }
   fhQuoteTypeChange();
   fhUpdate();
+  show('fh-quote', document.querySelector('[onclick*="fh-quote"]'));
 }
 
 function renderSavedQuotesList(type) {
@@ -7797,7 +7804,7 @@ function renderSavedQuotesList(type) {
     if (!listEl) return;
     var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
     if (!list.length) {
-      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:4px 0;">No saved quotes yet.</p>';
+      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:8px 0;">No saved quotes yet — build a quote and click 💾 Save.</p>';
       return;
     }
     var searchId = type === 'cem' ? 'cemQuoteSearch' : 'fhQuoteSearch';
@@ -7806,33 +7813,33 @@ function renderSavedQuotesList(type) {
     var filtered = q ? list.filter(function(s){ return (s.label||'').toLowerCase().indexOf(q) > -1; }) : list;
     var loadFn = type === 'cem' ? 'loadSavedCemQuote' : 'loadSavedFhQuote';
     var compareId = _savedCompare[type];
-    var compareQ  = compareId ? list.find(function(q){ return q.id === compareId; }) : null;
-    var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-      + '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.5);">Saved Quotes <span style="opacity:.5">('+list.length+')</span></span>'
-      + '<input id="'+searchId+'" type="text" placeholder="Search…" value="'+(q||'')+'" oninput="renderSavedQuotesList(\''+type+'\')"'
-      + ' style="flex:1;padding:3px 7px;font-size:11px;border:1px solid rgba(255,255,255,.2);border-radius:5px;background:rgba(255,255,255,.08);color:#fff;font-family:inherit;"></div>';
-    if (!filtered.length) { html += '<div style="font-size:11px;color:rgba(255,255,255,.4);">No matches</div>'; listEl.innerHTML = html; return; }
-    filtered.forEach(function(q) {
+    var compareQ  = compareId ? list.find(function(x){ return x.id === compareId; }) : null;
+    var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+' saved quote'+(list.length!==1?'s':'')+'</span>'
+      + '<input id="'+searchId+'" type="text" placeholder="Search by name…" value="'+(q||'')+'" oninput="renderSavedQuotesList(\''+type+'\')"'
+      + ' style="flex:1;max-width:260px;padding:5px 10px;font-size:12px;border:1px solid #dde3ec;border-radius:6px;background:#f5f7fb;color:var(--navy);font-family:inherit;"></div>';
+    if (!filtered.length) { html += '<p style="font-size:12px;color:var(--text-light);">No matches.</p>'; listEl.innerHTML = html; return; }
+    filtered.forEach(function(item) {
       var diff = '';
-      if (compareQ && q.id !== compareId) {
-        var delta = q.total - compareQ.total;
-        diff = '<span style="font-size:10px;font-weight:700;color:'+(delta>0?'#f0a0a0':'#7dcfa0')+';margin-left:6px;">'+(delta>0?'+':'')+fmt(delta)+'</span>';
+      if (compareQ && item.id !== compareId) {
+        var delta = item.total - compareQ.total;
+        diff = ' <span style="font-size:11px;font-weight:700;color:'+(delta>0?'#dc2626':'#16a34a')+'">'+(delta>0?'+':'')+fmt(delta)+'</span>';
       }
-      var isBase = q.id === compareId;
-      html += '<div class="saved-quote-item" style="'+(isBase?'border-left:3px solid var(--gold);padding-left:6px;':'')+'">'
-        + '<div style="display:flex;align-items:baseline;gap:4px;flex:1;min-width:0;">'
-        + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">'+(q.label||'')+'</span>'
-        + '<span style="color:rgba(255,255,255,.5);font-size:11px;white-space:nowrap;">'+fmt(q.total)+'</span>'+diff+'</div>'
-        + '<div style="display:flex;gap:3px;margin-top:3px;">'
-        + (q.state ? '<button onclick="'+loadFn+'('+q.id+')" style="padding:2px 7px;font-size:10px;font-weight:700;background:var(--gold);color:var(--navy);border:none;border-radius:4px;cursor:pointer;font-family:inherit;">Load</button>' : '')
-        + '<button onclick="printSavedQuote(\''+type+'\','+q.id+')" style="padding:2px 7px;font-size:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;cursor:pointer;color:rgba(255,255,255,.8);font-family:inherit;">Print</button>'
-        + '<button onclick="savedCompareSelect(\''+type+'\','+q.id+')" style="padding:2px 7px;font-size:10px;background:'+(isBase?'var(--gold)':'rgba(255,255,255,.08)')+';border:1px solid rgba(255,255,255,.2);border-radius:4px;cursor:pointer;color:'+(isBase?'var(--navy)':'rgba(255,255,255,.6)')+';font-family:inherit;">'+(isBase?'★ Base':'⚖')+'</button>'
-        + '<button onclick="deleteSavedQuote(\''+type+'\','+q.id+')" style="padding:2px 7px;font-size:10px;background:none;border:1px solid rgba(255,255,255,.15);border-radius:4px;cursor:pointer;color:#ff9999;font-family:inherit;">✕</button>'
+      var isBase = item.id === compareId;
+      html += '<div style="background:#fff;border:1px solid '+(isBase?'var(--gold)':'#e0e4ed')+';border-left:3px solid '+(isBase?'var(--gold)':'var(--navy)')+';border-radius:8px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);">'
+        + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
+        + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700;color:var(--navy);">'+(item.label||'Untitled')+'</span>'
+        + '<span style="color:#6b7280;font-size:13px;font-weight:600;white-space:nowrap;">'+fmt(item.total)+'</span>'+diff+'</div>'
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">Load Quote</button>' : '')
+        + '<button onclick="printSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#f0f2f8;border:1px solid #dde3ec;border-radius:6px;cursor:pointer;color:var(--navy);font-family:inherit;">Print</button>'
+        + '<button onclick="savedCompareSelect(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:'+(isBase?'var(--gold)':'#f0f2f8')+';border:1px solid '+(isBase?'var(--gold)':'#dde3ec')+';border-radius:6px;cursor:pointer;color:'+(isBase?'#fff':'var(--navy)')+';font-family:inherit;">'+(isBase?'★ Base':'⚖ Compare')+'</button>'
+        + '<button onclick="deleteSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#fff;border:1px solid #fecaca;border-radius:6px;cursor:pointer;color:#dc2626;font-family:inherit;margin-left:auto;">✕ Delete</button>'
         + '</div></div>';
     });
-    html += '<div style="display:flex;gap:6px;margin-top:8px;">'
-      + '<button onclick="exportSavedQuotesBackup()" style="flex:1;padding:5px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:5px;color:rgba(255,255,255,.5);font-size:10px;cursor:pointer;font-family:inherit;">⬇ Export</button>'
-      + '<button onclick="importSavedQuotesBackup()" style="flex:1;padding:5px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:5px;color:rgba(255,255,255,.5);font-size:10px;cursor:pointer;font-family:inherit;">⬆ Import</button></div>';
+    html += '<div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #e8eaf0;">'
+      + '<button onclick="exportSavedQuotesBackup()" style="padding:6px 14px;background:#f5f7fb;border:1px solid #dde3ec;border-radius:6px;color:#6b7280;font-size:11px;cursor:pointer;font-family:inherit;">⬇ Export Backup</button>'
+      + '<button onclick="importSavedQuotesBackup()" style="padding:6px 14px;background:#f5f7fb;border:1px solid #dde3ec;border-radius:6px;color:#6b7280;font-size:11px;cursor:pointer;font-family:inherit;">⬆ Import Backup</button></div>';
     listEl.innerHTML = html;
   } catch(e) { console.error('renderSavedQuotesList', e); }
 }
