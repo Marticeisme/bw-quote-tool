@@ -253,6 +253,46 @@ Two new nav items and full-page sections for saved quotes:
 
 ---
 
+## PDF Crash — page.drawRect is not a function (Commit: 02115ce)
+
+### What Was Broken
+
+Every cemetery PDF download threw: **"Could not generate PDF: page.drawRect is not a function"**
+
+Root cause: pdf-lib's page API uses `page.drawRectangle()`, not `page.drawRect()`. Two calls in the payment options table used the wrong method name:
+- Navy header row background
+- Alternating row stripe (even rows)
+
+Because these calls are inside the `try-catch` wrapper in `_buildQuotePDF`, the error was caught and shown as an alert rather than crashing silently.
+
+### What Was Fixed
+
+Both `index.html` and `BW_Quote_Tool_merged_11.html`:
+
+```js
+// Before (wrong — method does not exist):
+page.drawRect({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
+
+// After (correct pdf-lib API):
+page.drawRectangle({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
+```
+
+### pdf-lib Correct API Reference
+
+| Wrong | Correct |
+|-------|---------|
+| `page.drawRect()` | `page.drawRectangle()` |
+| `page.drawLine()` | `page.drawLine()` ✓ |
+| `page.drawText()` | `page.drawText()` ✓ |
+| `page.drawImage()` | `page.drawImage()` ✓ |
+
+### Rules Going Forward
+
+- **pdf-lib method is `drawRectangle`, not `drawRect`** — grep for `drawRect\b` before pushing any PDF changes to catch this.
+- The try-catch in `_buildQuotePDF` is essential — it converts silent async failures into visible alerts. Keep it.
+
+---
+
 ## Pre-Push Testing Checklist
 
 These steps must be completed before every push — not after the user reports a bug.
