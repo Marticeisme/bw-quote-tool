@@ -187,6 +187,8 @@ body{font-size:14px}
 .not-full-badge{background:#b03a2e22;color:var(--red);border:1px solid #b03a2e44;border-radius:99px;padding:2px 9px;font-size:10px;font-weight:700}
 .purchaser-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--goldL);margin-top:4px}
 .purchaser-row span{color:var(--muted);font-size:10px}
+.contact-block{padding:12px;background:#ffffff04;border-radius:8px;border:1px solid #ffffff09;margin-bottom:10px}
+.contact-add-prompt{display:flex;align-items:center;gap:10px;margin-top:4px;font-size:12px;color:var(--muted)}
 /* ═══ LIGHT MODE ═══ */
 body.light-mode{background:#f0f2f8;color:#1a2744}
 body.light-mode ::-webkit-scrollbar-track{background:#f0f2f8}
@@ -380,6 +382,12 @@ body.light-mode .progress-bar{background:#e4e8f0}
       <div class="field"><label id="lblPassare">Passare Case #</label><input type="text" id="cPassare" placeholder="WM-2026-0219"/></div>
     </div>
     <div class="field" id="fldPassareLink"><label id="lblPassareLink">Passare Link</label><input type="text" id="cPassareLink" placeholder="https://app.passare.com/..."/></div>
+    <!-- Chloe contacts -->
+    <div id="chloeContactSection" style="display:none">
+      <div class="divider"></div>
+      <div style="color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:9px">Contact Person(s)</div>
+      <div id="chloeContactList"></div>
+    </div>
     <div class="field-row">
       <div class="field"><label id="lblServiceDate">Service Date</label><input type="date" id="cServiceDate"/></div>
       <div class="field"><label>Service Time</label><input type="time" id="cServiceTime"/></div>
@@ -1322,6 +1330,62 @@ function clearDetailSections(){
   const rdPt=document.getElementById('rdPropertyType');if(rdPt)rdPt.value='';
 }
 
+// ─── Chloe contact persons ───
+let _ccContacts=[{}];
+let _ccPromptDismissed=false;
+function _ccEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function _ccBlockHTML(idx,d){
+  const isPrimary=idx===0;
+  const removeBtn=isPrimary?'':`<button type="button" onclick="chloeContactRemove(${idx})" style="background:transparent;border:1px solid #ffffff22;color:var(--muted);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;margin-left:auto">✕ Remove</button>`;
+  const header=isPrimary?'':`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div class="detail-section-title" style="margin:0">Additional Contact ${idx}</div>${removeBtn}</div>`;
+  return `<div class="contact-block" data-cc-idx="${idx}">
+    ${header}
+    <div class="field-row">
+      <div class="field"><label>First Name</label><input type="text" class="cc-first" value="${_ccEsc(d.firstName)}"/></div>
+      <div class="field"><label>Last Name</label><input type="text" class="cc-last" value="${_ccEsc(d.lastName)}"/></div>
+    </div>
+    <div class="field"><label>Relationship to Decedent</label><input type="text" class="cc-relationship" value="${_ccEsc(d.relationship)}" placeholder="e.g. Spouse, Son, Daughter"/></div>
+    <div class="field-row">
+      <div class="field"><label>Phone</label><input type="tel" class="cc-phone" value="${_ccEsc(d.phone)}"/></div>
+      <div class="field"><label>Email</label><input type="email" class="cc-email" value="${_ccEsc(d.email)}"/></div>
+    </div>
+    <div class="field"><label>Mailing Address</label><input type="text" class="cc-street" value="${_ccEsc(d.street)}" placeholder="Street address"/></div>
+    <div class="field-row">
+      <div class="field"><label>City</label><input type="text" class="cc-city" value="${_ccEsc(d.city)}"/></div>
+      <div class="field" style="max-width:80px"><label>State</label><input type="text" class="cc-state" value="${_ccEsc(d.state)}" placeholder="WA"/></div>
+      <div class="field" style="max-width:100px"><label>ZIP</label><input type="text" class="cc-zip" value="${_ccEsc(d.zip)}"/></div>
+    </div>
+  </div>`;
+}
+function _ccPromptHTML(){
+  return `<div class="contact-add-prompt" id="chloeContactPrompt">
+    <span>Add an additional contact person?</span>
+    <button type="button" class="btn-secondary" style="padding:3px 12px;font-size:11px" onclick="chloeContactYes()">+ Yes</button>
+    <button type="button" onclick="chloeContactNo()" style="background:transparent;border:1px solid #ffffff22;color:var(--muted);border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit">No, skip</button>
+  </div>`;
+}
+function _ccSaveInputs(){
+  _ccContacts=Array.from(document.querySelectorAll('#chloeContactList .contact-block')).map(b=>({
+    firstName:b.querySelector('.cc-first')?.value||'',lastName:b.querySelector('.cc-last')?.value||'',
+    relationship:b.querySelector('.cc-relationship')?.value||'',phone:b.querySelector('.cc-phone')?.value||'',
+    email:b.querySelector('.cc-email')?.value||'',street:b.querySelector('.cc-street')?.value||'',
+    city:b.querySelector('.cc-city')?.value||'',state:b.querySelector('.cc-state')?.value||'',
+    zip:b.querySelector('.cc-zip')?.value||''
+  }));
+}
+function renderChloeContacts(){
+  const list=document.getElementById('chloeContactList');if(!list)return;
+  list.innerHTML=_ccContacts.map((d,i)=>_ccBlockHTML(i,d)).join('')+(!_ccPromptDismissed?_ccPromptHTML():'');
+}
+function chloeContactYes(){_ccSaveInputs();_ccContacts.push({});_ccPromptDismissed=false;renderChloeContacts();}
+function chloeContactNo(){_ccPromptDismissed=true;const p=document.getElementById('chloeContactPrompt');if(p)p.remove();}
+function chloeContactRemove(idx){_ccSaveInputs();_ccContacts.splice(idx,1);_ccPromptDismissed=false;renderChloeContacts();}
+function collectChloeContacts(){_ccSaveInputs();return _ccContacts.filter(c=>c.firstName||c.lastName||c.phone||c.email);}
+function initChloeContacts(contacts){
+  _ccContacts=contacts&&contacts.length?contacts.map(c=>Object.assign({},c)):[{}];
+  _ccPromptDismissed=false;renderChloeContacts();
+}
+
 function closeCaseModal(){
   const caseId=document.getElementById('caseId').value;
   if(!caseId){
@@ -1339,6 +1403,8 @@ function populateCaseForm(){
      <span class="tag">${wDisp}</span>${modeLabel?`<span class="tag" style="${wServiceType==='Quote'?'background:#b8860b22;color:var(--yellow);border-color:#b8860b44':wServiceType==='Confirmed Sale'?'background:#2e7d5722;color:var(--green);border-color:#2e7d5744':''}">${modeLabel}</span>`:''}${wOwner==='chloe'&&wServiceType?`<span class="tag">${wServiceType}</span>`:''}
      ${wOwner==='chloe'&&wServiceType?`<span class="tag" style="background:#6b4fa022;color:var(--purple);border-color:#6b4fa044">📞 every ${rDays}d</span>`:''}`;
   document.getElementById('chloePaySection').style.display=wOwner==='chloe'?'block':'none';
+  document.getElementById('chloeContactSection').style.display=wOwner==='chloe'?'block':'none';
+  if(wOwner==='chloe')initChloeContacts([]);
   ['cDecedent','cDisc','cPassare','cPassareLink','cServiceDate','cServiceTime','cNotes','cUrn','cCasket','cPayNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('cStatus').value='New';
   ['cPayment','cPayStatus','mPayment','mPayStatus'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1489,6 +1555,7 @@ function openCaseModal(id){
       document.getElementById('cPayNotes').value=c.payNotes||'';
       document.getElementById('cUrn').value=c.urn||'';
       document.getElementById('cCasket').value=c.casket||'';
+      initChloeContacts(c.contacts||[]);
     } else if(c.disp==='Work Order'){
       // Restore Work Order fields
       const wo=c.woData||{};
@@ -1617,6 +1684,7 @@ function saveCase(){
     quoteEstimate:isMQuote?(document.getElementById('cQuoteEstimate')?.value||''):'',
     intermentDate,
     caseDetail,woData,
+    contacts:isChloe?collectChloeContacts():(existing?.contacts||[]),
     misc:getMiscItems(),checklist,touchpoints:existing?.touchpoints||[],
     createdAt:existing?.createdAt||new Date().toISOString(),lastContact:existing?.lastContact||null,
     reminderDays:rDays};
@@ -1892,6 +1960,12 @@ function buildCaseCardHTML(c){
   const hasPurchInfo = !!(purchName||purchPhone||purchEmail);
   const servicesFull = cd.servicesFull;
   const notFullBadge = servicesFull===false ? '<span class="not-full-badge">⚠ Services Not Full</span>' : '';
+  const chloeContact=c.owner==='chloe'&&c.contacts&&c.contacts.length?c.contacts[0]:null;
+  const ccName=chloeContact?[chloeContact.firstName,chloeContact.lastName].filter(Boolean).join(' '):'';
+  const ccPhone=chloeContact?.phone||'';
+  const ccEmail=chloeContact?.email||'';
+  const ccRel=chloeContact?.relationship||'';
+  const hasChloeContact=!!(ccName||ccPhone||ccEmail);
   // Interment date display for Martice confirmed sales
   const intermentDisplay = c.intermentDate ? `<span style="color:var(--goldL);font-size:10px">⚰️ Interment: ${c.intermentDate}</span>` : '';
 
@@ -1909,7 +1983,13 @@ function buildCaseCardHTML(c){
           ${purchPhone?`<span title="Phone">${purchPhone}</span>`:''}
           ${purchEmail?`<span title="Email">${purchEmail}</span>`:''}
         </div>`:''}
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:${hasPurchInfo?'4':'0'}px">
+        ${hasChloeContact?`<div class="purchaser-row">
+          ${ccName?`<span style="color:var(--white);font-weight:500">${ccName}</span>`:''}
+          ${ccRel?`<span title="Relationship">(${ccRel})</span>`:''}
+          ${ccPhone?`<span title="Phone">${ccPhone}</span>`:''}
+          ${ccEmail?`<span title="Email">${ccEmail}</span>`:''}
+        </div>`:''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:${(hasPurchInfo||hasChloeContact)?'4':'0'}px">
           ${c.disc?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'Contract':'Disc'}: ${c.disc}</span>`:''}
           ${c.passare?`<span style="color:var(--muted);font-size:10px">${c.owner==='martice'?'📍':'Case:'} ${c.passare}</span>`:''}
           ${c.serviceDate?`<span style="color:var(--goldL);font-size:10px">📅 ${c.serviceDate}${c.serviceTime?' @ '+c.serviceTime:''}</span>`:''}
@@ -1930,6 +2010,10 @@ function buildCaseCardHTML(c){
     </div>
     <div class="case-card-body${isOpen?' open':''}" id="cbody-${c.id}">
       ${smartAlertsHTML}
+      ${c.owner==='chloe'&&c.contacts&&c.contacts.length>1?`<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
+        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Additional Contacts</div>
+        ${c.contacts.slice(1).map(ct=>{const ctN=[ct.firstName,ct.lastName].filter(Boolean).join(' ');return `<div style="font-size:12px;color:var(--goldL);padding:3px 0">${ctN?`<strong>${ctN}</strong> `:''}${ct.relationship?`<span style="color:var(--muted)">(${ct.relationship})</span> `:''}${ct.phone?ct.phone:''}${ct.email?` · ${ct.email}`:''}</div>`;}).join('')}
+      </div>`:''}
       ${c.quoteCategories&&c.quoteCategories.length?`<div style="padding:11px 0;border-bottom:1px solid #ffffff0a;margin-bottom:11px">
         <div style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">What's Being Quoted</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${c.quoteCategories.map(q=>`<span style="background:#c8540a18;color:var(--orange);border:1px solid #c8540a44;border-radius:99px;padding:2px 9px;font-size:11px">${q}</span>`).join('')}</div>
