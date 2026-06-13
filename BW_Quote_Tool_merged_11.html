@@ -2687,6 +2687,16 @@ tr:hover td{background:var(--blue-light);}
       </div>
     </div>
 
+    <!-- Payment Tier Table (populated by Import from Cemetery Quote) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">📊 All Payment Options — Cemetery Quote Totals</div>
+      <div class="q-panel-body" style="padding:10px 14px;">
+        <div id="ricPaymentTierTable" style="font-size:12px;color:var(--text-light);">
+          <em>Click "Import from Cemetery Quote" above to see all financing tiers here.</em>
+        </div>
+      </div>
+    </div>
+
     <!-- Remarks -->
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">📝 Remarks <span style="font-weight:400;font-size:12px;opacity:.7;">— printed in the Remarks field on the contract</span></div>
@@ -3004,6 +3014,10 @@ tr:hover td{background:var(--blue-light);}
           <div id="cpMonthlyPayDisplay" style="padding:7px 10px;border:1px solid var(--gray-light);border-radius:6px;font-size:13px;margin-top:3px;background:#f5f7fa;color:var(--navy);font-weight:700;min-height:35px;">—</div>
         </div>
       </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button onclick="cpSetPayInFull()" style="padding:6px 14px;background:#f0f2f8;border:1px solid var(--navy);border-radius:6px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:inherit;">✓ Pay in Full</button>
+        <span style="font-size:11px;color:var(--text-light);">Sets down payment = full contract amount, 0 monthly payments</span>
+      </div>
       <div style="font-size:11px;color:var(--text-light);margin-top:8px;">
         Age 85 &amp; younger → up to 36 mo · Age 80 &amp; younger → up to 60 mo · Age 70 &amp; younger → up to 120 mo
       </div>
@@ -3246,6 +3260,17 @@ async function printGAContract() {
   var urns            = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
   var urnTotalAmt     = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
   var urnLabel        = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
+  // Fallback: if no catalog urn in fhUrns, pull from _fhLines (skip "Urn Allowance" plan lines)
+  if (urnTotalAmt === 0) {
+    var urnFbLines = lines.filter(function(l){
+      var lb = l.label.toLowerCase();
+      return (lb.startsWith('urn:') || lb.includes('urn')) && !lb.includes('allowance');
+    });
+    if (urnFbLines.length) {
+      urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
+      urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
+    }
+  }
 
   // What fills "Casket" row on form
   var formCasketPrice, formCasketModel, formCasketModelNum;
@@ -3273,10 +3298,20 @@ async function printGAContract() {
   // ── Build overflow "Other specify" slots ──────────────────────────────────
   // Transportation Other-specify lines (1,2,3) — 3 is reserved for urn in cremation
   var transportOther = [];
-  if (utilityAmt)     transportOther.push({label:'Use of Utility Vehicle', amt: utilityAmt});
-  if (flowerVehAmt)   transportOther.push({label:'Use of Flower Vehicle',  amt: flowerVehAmt});
-  surchLines.forEach(function(l){ transportOther.push({label: l.label.split(' ×')[0], amt: Math.abs(l.amount)}); });
-  if (receptionLine)  transportOther.push({label:'Reception', amt: Math.abs(receptionLine.amount)});
+  if (utilityAmt)   transportOther.push({label:'Use of Utility Vehicle', amt: utilityAmt});
+  if (flowerVehAmt) transportOther.push({label:'Use of Flower Vehicle',  amt: flowerVehAmt});
+
+  // Evening Activity + Reception → combine into one slot (GA form has limited "Other" rows)
+  var eveningLines    = surchLines.filter(function(l){ return l.label.toLowerCase().includes('evening activity'); });
+  var nonEveningSurch = surchLines.filter(function(l){ return !l.label.toLowerCase().includes('evening activity'); });
+  var eveningAmt      = eveningLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+  var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
+  if (eveningAmt > 0 || recAmt > 0) {
+    var combLabel = (eveningAmt > 0 && recAmt > 0) ? 'Evening Activity & Reception'
+                  : eveningAmt > 0 ? 'Evening Activity' : 'Reception';
+    transportOther.push({label: combLabel, amt: eveningAmt + recAmt});
+  }
+  nonEveningSurch.forEach(function(l){ transportOther.push({label: l.label.split(' ×')[0], amt: Math.abs(l.amount)}); });
 
   // Slot 3 reserved for urn if cremation and urn selected
   var urnInOtherSpecify = !isBurial && urnTotalAmt > 0;
@@ -3369,6 +3404,20 @@ async function printGAContract() {
     setTF('State',            'WA');
     setTF('Zip Code',         '98188');
     setTF('Telephone Number', '(206) 445-9794');
+
+    // Funeral Firm Representative — try multiple likely field names
+    setTF('Funeral Firm Representative',     'Martice Morrison');
+    setTF('Funeral Home Representative',     'Martice Morrison');
+    setTF('Preneed Counselor',               'Martice Morrison');
+    setTF('1002-14 - Counselor',             'Martice Morrison');
+    setTF('Representative',                  'Martice Morrison');
+
+    // Purchaser name on page 1 (separate from signature line at bottom)
+    if (purchaser) {
+      setTF('Purchaser',        purchaser);
+      setTF('Purchaser Name',   purchaser);
+      setTF('1002-14 - Purchaser Name', purchaser);
+    }
 
     // Signature fields
     setTF('1002-14 - SIG - Funeral Recipient', insured);
@@ -3513,6 +3562,12 @@ async function printGAContract() {
     if (dateStr) {
       page3.drawText(dateStr, { x: 454, y: 746, size: 10, font: font, color: navy });
     }
+
+    // Funeral Firm Representative on Cash Advance page (page 3)
+    setTF('1002-14 - CA - Representative',     'Martice Morrison');
+    setTF('1002-14 - CA - Funeral Firm Rep',   'Martice Morrison');
+    setTF('Funeral Firm Representative_2',     'Martice Morrison');
+    setTF('Representative_2',                  'Martice Morrison');
 
     // Flatten so Adobe won't re-run calculations
     try { form.flatten(); } catch(fe) { console.warn('flatten:', fe.message); }
@@ -8296,11 +8351,19 @@ async function generateRICContractCore(clientData) {
     // Fill fields — use instanceof not constructor.name (minified bundle mangles class names)
     var fillErrors = [];
     var fillCount  = 0;
+    function sanitizeForPdf(s) {
+      return String(s == null ? '' : s)
+        .replace(/−/g, '-').replace(/–/g, '-').replace(/—/g, '-')
+        .replace(/‘/g, "'").replace(/’/g, "'")
+        .replace(/“/g, '"').replace(/”/g, '"')
+        .replace(/…/g, '...').replace(/×/g, 'x')
+        .replace(/[^\x00-\xFF]/g, '');
+    }
     function setF(name, value) {
       try {
         var f = form.getField(name);
         if (f instanceof PDFLib.PDFTextField) {
-          f.setText(value != null ? String(value) : '');
+          f.setText(value != null ? sanitizeForPdf(String(value)) : '');
           fillCount++;
         } else if (f instanceof PDFLib.PDFDropdown) {
           try { f.select(String(value)); fillCount++; } catch(e) {}
@@ -8623,6 +8686,53 @@ function ricImportFromQuote() {
   if (typeof _cemTotal !== 'undefined' && _cemTotal > 0 && _ricPricing && _ricPricing.total > 0) {
     showTotalsMismatch(_ricPricing.total, _cemTotal, 'RIC Contract');
   }
+
+  // Render full payment tier table so user can pick terms without switching tabs
+  var tierDiv = el('ricPaymentTierTable');
+  if (tierDiv && _ricPricing && _ricPricing.total > 0) {
+    var total = _ricPricing.total;
+    var BW_NAVY = '#1B2A4A', BW_ORANGE = '#C0673B';
+    var tierDefs = [
+      { pct: 0.10, label: '10% Down (Minimum)', key: 0.10 },
+      { pct: 0.20, label: '20% Down',            key: 0.20 },
+      { pct: 0.25, label: '25%+ Down',           key: 0.25 }
+    ];
+    var html = '';
+    tierDefs.forEach(function(td) {
+      var downAmt = Math.ceil(total * td.pct);
+      var balance = total - downAmt;
+      var tiers   = (typeof FIN_TIERS !== 'undefined') ? FIN_TIERS[td.key] : null;
+      if (!tiers) return;
+      var fmt = function(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+      html += '<div style="margin-bottom:16px;">';
+      html += '<div style="font-size:12px;font-weight:700;color:' + BW_NAVY + ';margin-bottom:4px;">'
+        + td.label + ' — Min. Down: <span style="color:' + BW_ORANGE + ';">' + fmt(downAmt) + '</span>'
+        + ' &nbsp;|&nbsp; Balance: <strong>' + fmt(balance) + '</strong></div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+        + '<thead><tr style="background:' + BW_NAVY + ';color:#fff;">'
+        + '<th style="padding:4px 8px;text-align:left;">Term</th>'
+        + '<th style="padding:4px 8px;text-align:right;">Rate</th>'
+        + '<th style="padding:4px 8px;text-align:right;">Monthly</th>'
+        + '<th style="padding:4px 8px;text-align:right;">Total Cost</th>'
+        + '</tr></thead><tbody>';
+      tiers.forEach(function(tier, i) {
+        var months = tier[0], rate = tier[1];
+        var monthly   = (typeof finMonthly === 'function') ? finMonthly(balance, months, rate) : (rate===0 ? balance/months : (balance*(rate/12))/(1-Math.pow(1+(rate/12),-months)));
+        var totalCost = downAmt + (monthly * months);
+        var bg        = i % 2 === 0 ? '#f8f9fa' : '#fff';
+        html += '<tr style="background:' + bg + ';border-bottom:1px solid #e8e4dc;">'
+          + '<td style="padding:5px 8px;font-weight:600;">' + months + ' mo</td>'
+          + '<td style="padding:5px 8px;text-align:right;' + (rate===0 ? 'color:' + BW_ORANGE + ';font-weight:700;' : '') + '">'
+          + (rate===0 ? '0% ✓ ACH' : (rate*100).toFixed(0) + '%') + '</td>'
+          + '<td style="padding:5px 8px;text-align:right;font-weight:700;color:' + BW_NAVY + ';">' + fmt(monthly) + '/mo</td>'
+          + '<td style="padding:5px 8px;text-align:right;color:#555;font-size:11px;">' + fmt(totalCost) + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table></div>';
+    });
+    html += '<div style="font-size:10.5px;color:var(--text-light);margin-top:2px;">Min. monthly $50 · 0% requires ACH bank withdrawal · Down amounts rounded up</div>';
+    tierDiv.innerHTML = html;
+  }
 }
 
 function ricShowPricingSummary() {
@@ -8870,16 +8980,24 @@ function cpClearAll() {
   el('cpMonthlyPayDisplay').textContent = '—';
 }
 
+function cpSetPayInFull() {
+  var fpTotal = typeof _fhTotal !== 'undefined' ? _fhTotal : 0;
+  if (fpTotal <= 0) { alert('Import your Funeral Home Quote first to get the contract total.'); return; }
+  if (el('cpDownPayment'))  el('cpDownPayment').value  = fpTotal.toFixed(2);
+  if (el('cpNumPayments'))  el('cpNumPayments').value  = '0';
+  cpCalcPayment();
+}
+
 function cpCalcPayment() {
   // Calculate monthly payment from FH Quote total + downpayment + num payments
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
-  // Get a rough FPTotal estimate for display purposes
   var fpTotal = typeof _fhTotal !== 'undefined' ? _fhTotal : 0;
   var dp = parseFloat((el('cpDownPayment') || {}).value) || 0;
   var n  = parseInt((el('cpNumPayments') || {}).value)   || 0;
   var disp = el('cpMonthlyPayDisplay');
   if (!disp) return;
-  if (fpTotal > 0 && n > 0 && dp >= 0) {
+  if (n === 0 && dp > 0) {
+    disp.textContent = 'Pay in Full — $' + dp.toFixed(2) + ' · $0.00/mo · 0 payments';
+  } else if (fpTotal > 0 && n > 0 && dp >= 0) {
     var bal = Math.max(0, fpTotal - dp);
     var monthly = bal / n;
     disp.textContent = '$' + monthly.toFixed(2) + ' / mo  (balance $' + bal.toFixed(2) + ')';
@@ -9041,6 +9159,11 @@ async function generateClearPointContract() {
     if (typeof _fhTotal !== 'undefined') showTotalsMismatch(fpTotal, _fhTotal, 'ClearPoint Contract');
 
     // ── Load and fill PDF ─────────────────────────────────────────────────────
+    if (typeof CP_PDF_B64 === 'undefined') {
+      alert('ClearPoint PDF template not loaded.\n\nPlease embed the ClearPoint PDF template (CP_PDF_B64 variable) in the file, then try again.');
+      if (btn) { btn.textContent = '📋 Generate ClearPoint Contract PDF'; btn.disabled = false; }
+      return;
+    }
     var cpBytes  = Uint8Array.from(atob(CP_PDF_B64), function(c){ return c.charCodeAt(0); });
     var fullDoc  = await PDFLib.PDFDocument.load(cpBytes, { ignoreEncryption: true });
     var newDoc   = await PDFLib.PDFDocument.create();
