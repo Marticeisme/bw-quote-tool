@@ -2120,6 +2120,7 @@ tr:hover td{background:var(--blue-light);}
             </div>
             <!-- Hidden real value field used by fhUpdate -->
             <input type="hidden" id="fhCasket">
+            <input type="hidden" id="fhCasketLabel">
             <span id="fhCasketDisp" class="q-price-disp">—</span>
           </div>
           <div id="fhCasketSelected" style="font-size:11px;color:var(--text-light);margin-top:4px;min-height:16px;"></div>
@@ -2728,6 +2729,7 @@ tr:hover td{background:var(--blue-light);}
       <div class="summary-empty">Select items to build your quote</div>
     </div>
     <div class="summary-actions">
+      <button class="btn-print" onclick="downloadCombQuotePDF()" title="Download PDF">📥 PDF</button>
       <button class="btn-print" onclick="printCombQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="emailCombQuote()" title="Email this quote">✉</button>
       <button class="btn-export" onclick="exportCombQuote()" title="Copy to clipboard">Copy</button>
@@ -6406,7 +6408,7 @@ function fhUpdate() {
     var currentItemCount  = el('fhPlanItems').querySelectorAll('.plan-item-row').length;
     var itemDeleted = currentItemCount < originalItemCount;
     var planDiscount = itemDeleted ? 0 : _lockedPlanDiscount * fhPersonQty;
-    if (planDiscount > 0) lines.push({label: 'Plan Discount' + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: -planDiscount, taxable: false, isDiscount: true});
+    if (planDiscount > 0) lines.push({label: 'Package Discount' + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: -planDiscount, taxable: false, isDiscount: true});
     var planNet = planSubtotal - planDiscount;
     el('fhPlanSubtotal').textContent = fmt(planSubtotal);
     el('fhPlanDiscount').textContent = planDiscount > 0 ? '-' + fmt(planDiscount) : '-$0.00';
@@ -6499,11 +6501,12 @@ function fhUpdate() {
     setDisp('fhCountyFeeDisp', cfV * fhPersonQty);
   } else { setDisp('fhCountyFeeDisp', 0); }
 
-  // Casket (taxable) — fhCasket is a hidden input; label lives in fhCasketSearch
+  // Casket (taxable) — price in fhCasket, name persisted in fhCasketLabel
   var casketV = parseFloat(val('fhCasket')) || 0;
   if (casketV) {
-    var casketSearchEl = el('fhCasketSearch');
-    var casketLbl = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : 'Casket';
+    var casketLblEl = el('fhCasketLabel');
+    var casketLbl = (casketLblEl && casketLblEl.value) ? casketLblEl.value
+                  : (el('fhCasketSearch') ? el('fhCasketSearch').value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '') || 'Casket';
     lines.push({label: 'Casket: ' + casketLbl + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: casketV * fhPersonQty, taxable: true});
     setDisp('fhCasketDisp', casketV * fhPersonQty);
   } else { setDisp('fhCasketDisp', 0); }
@@ -7563,18 +7566,20 @@ function casketHighlightRow(opts) {
 }
 function casketSelect(opt) {
   var price = parseFloat(opt.getAttribute('data-price')), label = opt.getAttribute('data-label');
+  var name  = opt.getAttribute('data-name') || label;
   var hidden = el('fhCasket'), input = el('fhCasketSearch'), drop = el('fhCasketDropdown');
   var sel = el('fhCasketSelected');
   if (hidden) hidden.value = price;
+  // Persist the casket name/label for PDF generation
+  var labelHidden = el('fhCasketLabel');
+  if (labelHidden) labelHidden.value = name;
   if (input) {
-    input.value = label;
-    input.style.borderColor = 'var(--navy)';
-    input.style.background = '#f0f4ff';
+    input.value = '';
+    input.style.borderColor = '';
+    input.style.background = '';
   }
-  // Collapse list after selection; clear search
+  // Collapse list after selection
   if (drop) {
-    var inp2 = el('fhCasketSearch');
-    if (inp2) inp2.value = '';
     drop.innerHTML = '';
     drop.style.height = '0';
     drop.style.overflow = 'hidden';
@@ -7589,6 +7594,7 @@ function casketSelect(opt) {
 function casketClear() {
   var h = el('fhCasket'), s = el('fhCasketSearch'), d = el('fhCasketDropdown'), sel = el('fhCasketSelected');
   if (h) h.value = '';
+  if (el('fhCasketLabel')) el('fhCasketLabel').value = '';
   if (s) { s.value = ''; s.style.borderColor = ''; s.style.background = ''; }
   if (d) d.style.display = 'none';
   if (sel) sel.innerHTML = '';
@@ -9671,7 +9677,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
   const NAVY   = rgb(26/255,  39/255,  68/255);
   const ORANGE = rgb(192/255, 103/255, 59/255);
-  const GOLD   = rgb(184/255, 145/255, 42/255);
+  const GOLD   = rgb(200/255, 169/255, 110/255);
   const GREEN  = rgb(26/255, 107/255, 69/255);
   const DARK   = rgb(45/255,  51/255,  64/255);
   const MUTED  = rgb(107/255, 115/255, 130/255);
@@ -9765,9 +9771,22 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   var taxable = lines.filter(function(l){ return  l.taxable && !l.isDiscount && !l.isTax; });
   var discs   = lines.filter(function(l){ return  l.isDiscount; });
 
-  drawSection(opts.exSection  || 'Tax-Exempt Services',  exempt);
-  drawSection(opts.taxSection || 'Taxable Merchandise',  taxable);
-  drawSection('Discounts', discs, GREEN);
+  if (opts.sections && opts.sections.length) {
+    opts.sections.forEach(function(sec) {
+      if (sec.isSeparator) {
+        checkY(28);
+        page.drawRectangle({x:M, y:y-8, width:RX-M, height:22, color:NAVY});
+        page.drawText(safeText(sec.title), {x:M+8, y:y+2, size:9, font:bold, color:rgb(1,1,1)});
+        y -= 28;
+        return;
+      }
+      drawSection(sec.title, sec.items || [], sec.color || (sec.title.match(/Discount/i) ? GREEN : undefined));
+    });
+  } else {
+    drawSection(opts.exSection  || 'Tax-Exempt Services',  exempt);
+    drawSection(opts.taxSection || 'Taxable Merchandise',  taxable);
+    drawSection('Discounts', discs, GREEN);
+  }
 
   // Sales tax line in gold
   var exemptSub  = exempt.reduce(function(s,l){return s+l.amount;},0);
@@ -9865,7 +9884,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   doc.getPages().forEach(function(pg) {
     pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:GOLD});
     pg.drawText('Bonney Watson  \xb7  16445 International Blvd, SeaTac, WA 98188  \xb7  mmorrison@bonneywatson.com  \xb7  206-445-9794',{x:M,y:44,size:7.5,font:reg,color:MUTED});
-    pg.drawText('Prices valid for 90 days and subject to change without notice. This is an estimate only.',{x:M,y:30,size:7,font:reg,color:rgb(0.7,0.7,0.7)});
+    pg.drawText('Prices valid for 30 days and subject to change without notice. This is an estimate only.',{x:M,y:30,size:7,font:reg,color:rgb(0.7,0.7,0.7)});
   });
 
   var bytes = await doc.save();
@@ -9897,26 +9916,87 @@ async function downloadCemQuotePDF() {
   if (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) {
     pdfFinData = _finData;
   } else if (cemTotal > 0) {
-    var defDown    = Math.ceil(cemTotal * 0.10);
+    var defDown = Math.ceil(cemTotal * 0.10);
     pdfFinData = { downAmt: defDown, tierKey: 0.10, balance: cemTotal - defDown };
   }
   await _buildQuotePDF(lines, val('cemClientName')||'', subtitle, 'BW_Cemetery_Quote', {
-    exSection: 'Services & Cemetery Items',
-    taxSection: 'Merchandise (Taxable)',
+    sections:   categorizeCemLines(lines),
     grandTotal: cemTotal || undefined,
-    finData: pdfFinData,
-    notes: val('cemQuoteNotes') || ''
+    finData:    pdfFinData,
+    notes:      val('cemQuoteNotes') || ''
   });
 }
+// ── PDF section categorization helpers ───────────────────────────
+function categorizeFHLines(lines) {
+  function cat(l) {
+    if (l.isDiscount) return 'Discounts';
+    if (l.planItem)   return 'Packages';
+    var lb = l.label;
+    if (/^Casket:|^Cremation Container:/i.test(lb))           return 'Caskets';
+    if (/^Memorial (Package|Collection):|^Memorial.*Pkg/i.test(lb)) return 'Memorial Packages';
+    if (/^Urn:/i.test(lb))                                     return 'Urns';
+    if (/Flowers?:|Floral|Arrangement|Spray|Corsage|Boutonniere/i.test(lb)) return 'Flowers';
+    if (/Transfer|Use of Hearse|Motorcycle Escort|Flower Vehicle|Utility Vehicle/i.test(lb)) return 'Transportation';
+    if (/Death Cert|County|Medical Examiner|Coroner|Permit/i.test(lb)) return 'Cash Advance Items';
+    if (/Basic Services|Embalming|Preparation|Autopsy|Hair Dress|Shelter of Remains/i.test(lb)) return 'Professional Services';
+    if (/Cremation|Mailing of Cremated|Delivery of Remains|Keepsake/i.test(lb)) return 'Cremation Services';
+    if (!l.taxable) return 'Facilities & Equipment';
+    return 'Other Merchandise';
+  }
+  var ORDER = ['Packages','Professional Services','Cremation Services','Facilities & Equipment','Transportation','Caskets','Flowers','Memorial Packages','Urns','Cash Advance Items','Other Merchandise','Discounts'];
+  var groups = {}; ORDER.forEach(function(c){ groups[c] = []; });
+  lines.forEach(function(l){ var c = cat(l); (groups[c] = groups[c]||[]).push(l); });
+  return ORDER.filter(function(c){ return groups[c] && groups[c].length; }).map(function(c){ return {title:c, items:groups[c]}; });
+}
+function categorizeCemLines(lines) {
+  function cat(l) {
+    if (l.isDiscount) return 'Discounts';
+    if (l.isSpace)    return 'Cemetery Property';
+    if (/Endowment Care|ECF/i.test(l.label)) return 'Cemetery Property';
+    if (/Interment|Opening|Closing|Inurnment|Entombment|Recording/i.test(l.label)) return 'Cemetery Services';
+    if (/Vault|Container|Andura|Novato|Hadley|Clifton/i.test(l.label) && !l.isDiscount) return 'Outer Burial Container';
+    if (/Flush|Marker|Monument|Upright|Slant|Granite|Plaque|Bronze/i.test(l.label)) return 'Memorialization';
+    if (!l.taxable) return 'Cemetery Services';
+    return 'Other Merchandise';
+  }
+  var ORDER = ['Cemetery Property','Cemetery Services','Outer Burial Container','Memorialization','Other Merchandise','Discounts'];
+  var groups = {}; ORDER.forEach(function(c){ groups[c] = []; });
+  lines.forEach(function(l){ var c = cat(l); (groups[c] = groups[c]||[]).push(l); });
+  return ORDER.filter(function(c){ return groups[c] && groups[c].length; }).map(function(c){ return {title:c, items:groups[c]}; });
+}
+
 async function downloadFhQuotePDF() {
   logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
   await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home Quote', 'BW_FuneralHome_Quote', {
-    exSection: 'Tax-Exempt Services',
-    taxSection: 'Taxable Merchandise',
+    sections:   categorizeFHLines(lines),
     grandTotal: (typeof _fhTotal !== 'undefined') ? _fhTotal : undefined,
     notes: val('fhQuoteNotes') || ''
+  });
+}
+
+async function downloadCombQuotePDF() {
+  var cemLines = (typeof _combCemLines !== 'undefined' ? _combCemLines : []) || [];
+  var fhLines  = (typeof _combFhLines  !== 'undefined' ? _combFhLines  : []) || [];
+  if (!cemLines.length && !fhLines.length) { alert('Build both quotes first — no items to export.'); return; }
+  var clientName  = (val('cemClientName') || val('fhClientName') || '').trim();
+  var cemTotal    = (typeof _combCemTotal !== 'undefined' ? _combCemTotal : 0);
+  var fhTotalVal  = (typeof _combFhTotal  !== 'undefined' ? _combFhTotal  : 0);
+  var allLines    = cemLines.concat(fhLines);
+  var sections    = [];
+  if (cemLines.length) {
+    sections.push({isSeparator:true, title:'Cemetery Services'});
+    categorizeCemLines(cemLines).forEach(function(s){ sections.push(s); });
+  }
+  if (fhLines.length) {
+    sections.push({isSeparator:true, title:'Funeral Home Services'});
+    categorizeFHLines(fhLines).forEach(function(s){ sections.push(s); });
+  }
+  logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
+  await _buildQuotePDF(allLines, clientName, 'Combined Family Quote — Cemetery & Funeral Home', 'BW_Combined_Quote', {
+    sections:   sections,
+    grandTotal: cemTotal + fhTotalVal
   });
 }
 
