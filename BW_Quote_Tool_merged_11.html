@@ -8295,16 +8295,15 @@ async function generateRICContractCore(clientData) {
     var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care/i) && !l.label.match(/2nd/i); });
     var secRight  = exemptLines.find(function(l){ return l.isSpace && l.label.match(/2nd Right/i) && !l.label.match(/ECF/i); });
     var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right/i) && l.label.match(/ECF/i); });
-    var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment O&C|Entombment/i) && !l.label.match(/ECF|Recording/i); });
+    var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment O&C|Entombment|Interment/i) && !l.label.match(/ECF|Recording/i); });
     var recLines  = exemptLines.filter(function(l){ return l.label.match(/Recording/i); });
 
     // Financials
     var taxableSub    = taxableLines.reduce(function(s,l){ return s+l.amount; }, 0);
     var exemptSub     = exemptLines.reduce(function(s,l){ return s+l.amount; }, 0);
     var discAmt       = discLines.reduce(function(s,l){ return s+l.amount; }, 0);
-    var taxAfterDisc  = Math.max(0, taxableSub - Math.abs(discAmt));
-    var taxAmount     = Math.round(taxAfterDisc * TAX * 100) / 100;
-    var grandTotal    = Math.round((taxAfterDisc + exemptSub + discAmt + taxAmount) * 100) / 100;
+    var taxAmount     = Math.round(taxableSub * TAX * 100) / 100;
+    var grandTotal    = Math.round((exemptSub + taxableSub + discAmt + taxAmount) * 100) / 100;
     var subTotal      = Math.round((exemptSub + taxableSub + discAmt) * 100) / 100;
     var downAmt       = _finData ? (_finData.downAmt  || 0) : 0;
     var finMonths     = _finData ? (_finData.months   || 0) : 0;
