@@ -8554,12 +8554,12 @@ async function generateRICContractCore(clientData) {
     if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1));       setF('Notes 3', vaultSetItem.label);              setF('Taxable5', fmtC(vaultSetItem.amount)); }
     if (overflow1)    { setF('Qty 10','1');                          setF('Other Merch 1 Description', overflow1.label); setF('Taxable6', fmtC(overflow1.amount)); }
     if (overflow2)    { setF('Qty 11','1');                          setF('Other Merch 2 Description', overflow2.label); setF('Taxable7', fmtC(overflow2.amount)); }
-    // Discount
+    // Discount — combine all discount lines into one row
     if (discLines.length) {
-      var dl = discLines[0];
       setF('Qty 12', '1');
-      setF('Discount Notes', compactDiscLabel(dl));
-      setF('Discount', fmtC(dl.amount));
+      var combinedDiscLabel = discLines.map(function(dl) { return compactDiscLabel(dl); }).join(' + ');
+      setF('Discount Notes', combinedDiscLabel);
+      setF('Discount', fmtC(discAmt));
     }
     // Financial summary
     setF('SubTotal',        fmtC(subTotal));
