@@ -8307,7 +8307,7 @@ async function generateRICContractCore(clientData) {
       if (pctM || ocM) {
         var parts = [];
         if (pctM) parts.push(pctM[1] + '% Prop Disc');
-        if (ocM)  { var a = parseInt(ocM[1].replace(/,/g,'')); parts.push((a>=1000?Math.round(a/1000)+'k':'$'+a)+' O/C Disc'); }
+        if (ocM)  { var a = parseInt(ocM[1].replace(/,/g,'')); parts.push('$'+(a>=1000?Math.round(a/1000)+'k':a)+' O/C'); }
         return parts.join(' + ') + (xM ? ' x'+xM[1] : '');
       }
       return lbl.substring(0, 28);
@@ -8342,7 +8342,9 @@ async function generateRICContractCore(clientData) {
     var fpDate = new Date(today); fpDate.setDate(fpDate.getDate() + 54);
     var fpStr  = MONTHS[fpDate.getMonth()] + ' ' + fpDate.getDate() + ', ' + fpDate.getFullYear();
 
-    var hr = today.getHours(), mn = today.getMinutes();
+    // Always use actual wall-clock time (today may be frozen to T12:00 when contractDate is set)
+    var _now = new Date();
+    var hr = _now.getHours(), mn = _now.getMinutes();
     var isAM = hr < 12;
     hr = hr % 12 || 12;
     var timeStr = hr + ':' + (mn < 10 ? '0' : '') + mn;
@@ -8399,11 +8401,13 @@ async function generateRICContractCore(clientData) {
       } catch(e) { fillErrors.push(name + ': ' + e.message); }
     }
 
-    // Hide any button widgets (e.g. "Reset Form" button baked into template)
+    // Remove button widgets (Reset Form, Clear Form) — delete AP stream so flatten stamps nothing
     try {
       form.getFields().forEach(function(f) {
         if (f instanceof PDFLib.PDFButton) {
           f.acroField.getWidgets().forEach(function(w) {
+            w.dict.delete(PDFLib.PDFName.of('AP'));
+            w.dict.set(PDFLib.PDFName.of('Rect'), pdfDoc.context.obj([0, 0, 0, 0]));
             w.dict.set(PDFLib.PDFName.of('F'), PDFLib.PDFNumber.of(2));
           });
         }
@@ -8416,10 +8420,14 @@ async function generateRICContractCore(clientData) {
     var sigDay = ORDINALS[today.getDate()] || String(today.getDate());
     var sigMon = MONTHS[today.getMonth()];
     var sigYr  = String(today.getFullYear());
-    // Shared field names — PDF mirrors these to all signature date lines automatically
+    // Top date (shared where possible)
     setF('Day of the Month', sigDay);
     setF('Text5',   sigMon);
     setF('Year',    sigYr);
+    // Bottom signature blocks use separate fields
+    setF('Text1', sigDay);  // "Signed this ___ day" block
+    setF('Text2', sigDay);  // "Accepted this ___ day" block
+    setF('Text3', sigMon);  // "Accepted" month (also overwrites stray pre-filled "401")
     setF('Name of Purchaser', clientName);
     setF('Description of Interment Rights', location);
     // Notes 5 = Remarks field on the contract
@@ -8496,13 +8504,15 @@ async function generateRICContractCore(clientData) {
 
     function isMarker(l)   { return l.match(/Flush|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
     function isBronze(l)   { return l.match(/Bronze/i); }
-    function isBase(l)     { return l.match(/\bBase\b|Foundation/i); }
+    function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/Vase|core|\d+x\d+\s+base/i); }
     function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|Vase|Block|Urn|Niche/i); }
     function isVault(l)    { return l.match(/Vault|Container|Andura|Novato|Hadley|Clifton/i) && !l.match(/Setting|Install/i); }
     function isVaultSet(l) { return l.match(/Vault Setting|Container Setting/i); }
-    function labelQty(l)   { var m = (l.label||'').match(/[×x]\s*(\d+)/); return m ? parseInt(m[1]) : 1; }
+    // Only match Unicode × (U+00D7) for quantity multipliers — not ASCII x in product dimensions
+    function labelQty(l)   { var m = (l.label||'').match(/[×]\s*(\d+)/); return m ? parseInt(m[1]) : 1; }
 
-    var markerLines   = taxableLines.filter(function(l){ return isMarker(l.label) || isBronze(l.label); });
+    // Exclude install items from marker row — "Flush ... Install" matches both isMarker and isInstall
+    var markerLines   = taxableLines.filter(function(l){ return (isMarker(l.label) || isBronze(l.label)) && !isInstall(l.label); });
     var baseLines     = taxableLines.filter(function(l){ return isBase(l.label); });
     var installLines  = taxableLines.filter(function(l){ return isInstall(l.label); });
     var vaultLines    = taxableLines.filter(function(l){ return isVault(l.label); });
@@ -8529,9 +8539,10 @@ async function generateRICContractCore(clientData) {
     var vaultItem    = combineLines(vaultLines);
     var vaultSetItem = combineLines(vaultSetLines);
 
-    // All overflow combined into single "Other Merchandise" row
-    var overflow1 = overflowLines.length ? combineLines(overflowLines) : null;
-    var overflow2 = null;
+    // Split overflow across both Other Merchandise rows before falling back to repurposing dedicated rows
+    var _half = Math.ceil(overflowLines.length / 2);
+    var overflow1 = overflowLines.length > 0 ? combineLines(overflowLines.slice(0, _half)) : null;
+    var overflow2 = overflowLines.length > _half ? combineLines(overflowLines.slice(_half)) : null;
 
     var markerQty   = markerLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || markerLines.length;
     var vaultQty    = vaultLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultLines.length;
@@ -8597,9 +8608,13 @@ async function generateRICContractCore(clientData) {
       setF('Date of First Payment', ricFpStr);
     }
 
-    // Day phone / email from RIC tab
-    if (clientData && clientData.dayPhone)
+    // Day phone / email — shrink font if email so it fits the narrow field
+    if (clientData && clientData.dayPhone) {
       setF('Day Telephone No', clientData.dayPhone);
+      if ((clientData.dayPhone||'').indexOf('@') >= 0) {
+        try { var _dtf = form.getTextField('Day Telephone No'); _dtf.setFontSize(7); } catch(e) {}
+      }
+    }
 
     // Embed font and update field appearances so values display without clicking
     try {
@@ -10007,14 +10022,21 @@ async function downloadCombQuotePDF() {
     try {
       var cd = JSON.parse(localStorage.getItem(AS_CEM)||'null');
       var fd = JSON.parse(localStorage.getItem(AS_FH) ||'null');
-      if (cd && cd.fields && cd.fields.length) {
+      if (cd && cd.fields) {
         if (typeof resetCemQuote === 'function') resetCemQuote();
         restoreFieldState(cd.fields);
+        // Re-populate dependent dropdowns that require parent value to be set first
+        if (typeof vbPopulateSizes === 'function') vbPopulateSizes();
+        if (cd.fields.qVBSize !== undefined) { var _vbs = el('qVBSize'); if (_vbs) _vbs.value = cd.fields.qVBSize; }
         restoreCustomLines('cemCustomLines', cd.customLines||[]);
         restoreDiscountRows('cemDiscountList', cd.discounts||[]);
+        if (cd.inscriptions) { if (typeof inscriptions !== 'undefined') inscriptions = cd.inscriptions; }
+        if (cd.vaultItems)   { if (typeof vaultItems   !== 'undefined') vaultItems   = cd.vaultItems;   }
+        if (cd.bronzeItems)  { if (typeof bronzeItems  !== 'undefined') bronzeItems  = cd.bronzeItems;  }
+        if (cd.markerItems)  { if (typeof markerItems  !== 'undefined') markerItems  = cd.markerItems;  }
         if (typeof cemUpdate === 'function') cemUpdate();
       }
-      if (fd && fd.fields && fd.fields.length) {
+      if (fd && fd.fields) {
         if (typeof resetFHQuote === 'function') resetFHQuote();
         restoreFieldState(fd.fields);
         restoreCustomLines('fhCustomLines', fd.customLines||[]);
@@ -10023,8 +10045,11 @@ async function downloadCombQuotePDF() {
         if (fd.flowers) { fhFlowers=fd.flowers;  if (typeof fhFlowerRender === 'function') fhFlowerRender(); }
         if (typeof fhUpdate === 'function') fhUpdate();
       }
-    } catch(e) {}
-    window.clearAutosave();
+      window.clearAutosave();
+    } catch(e) {
+      console.error('[Autosave] Restore failed:', e);
+      alert('Session restore failed: ' + e.message + '\nYour data has been preserved — try refreshing.');
+    }
   };
 
   window.clearAutosave = function() {
