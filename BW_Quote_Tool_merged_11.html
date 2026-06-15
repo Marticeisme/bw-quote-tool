@@ -4896,7 +4896,7 @@ function cemUpdate() {
     var vaseQty = qty('qty_vase');
     el('qty_vase_row').style.display = 'flex';
     var vEl = el('qVase');
-    var vLbl = vEl.options[vEl.selectedIndex].text.replace(/ — $[\d,]+$/, '');
+    var vLbl = vEl.options[vEl.selectedIndex].text.replace(/ — \$[\d,]+$/, '');
     lines.push({label: 'Vase: ' + vLbl + (vaseQty > 1 ? ' ×' + vaseQty : ''), amount: vaseV * vaseQty, taxable: true});
     setDisp('disp_vase', vaseV * vaseQty);
   } else { el('qty_vase_row') && (el('qty_vase_row').style.display = 'none'); setDisp('disp_vase', 0); }
@@ -8441,6 +8441,9 @@ async function generateRICContractCore(clientData) {
     if (clientData) {
       var addrStr = clientData.street || '';
       setF('Address', addrStr);
+      setF('City',     clientData.city  || '');
+      setF('State',    clientData.state || 'WA');
+      setF('Zip Code', clientData.zip   || '');
       setF('Phone Number', formatPhone(clientData.phone || ''));
       setF('Day Telephone No', clientData.dayPhone || '');
       setF('Control #', clientData.controlNo || '');
@@ -8461,7 +8464,7 @@ async function generateRICContractCore(clientData) {
       if (clientData.gender2 === 'Female') setF('Check Box8', true);
       setF('Owner Name', ''); // Source field removed
     }
-    setF('Month',   MONTHS[today.getMonth()]);
+    // 'Month' field is at top-left of page — do not write to it (causes stray text)
     setF('Time',    timeStr);
     setF('AM',      isAM);
     setF('PM',      !isAM);
@@ -8504,14 +8507,14 @@ async function generateRICContractCore(clientData) {
     // Discounts on taxable goods go on the Discount line only if they are
     // non-taxable goods discounts; taxable discounts must combine into the merch rows.
 
-    function isMarker(l)   { return l.match(/Flush|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
-    function isBronze(l)   { return l.match(/Bronze/i); }
-    function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/Vase|core|\d+x\d+\s+base/i); }
-    function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|Vase|Block|Urn|Niche/i); }
+    function isMarker(l)   { return l.match(/Flush|Companion|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
+    function isBronze(l)   { return l.match(/Bronze/i) && !l.match(/^Vase:/i); }
+    function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/^Vase|core|\d+x\d+\s+base/i); }
+    function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|^Vase|Block|Urn|Niche/i); }
     function isVault(l)    { return l.match(/Vault|Container|Andura|Novato|Hadley|Clifton/i) && !l.match(/Setting|Install/i); }
     function isVaultSet(l) { return l.match(/Vault Setting|Container Setting/i); }
-    // Only match Unicode × (U+00D7) for quantity multipliers — not ASCII x in product dimensions
-    function labelQty(l)   { var m = (l.label||'').match(/[×]\s*(\d+)/); return m ? parseInt(m[1]) : 1; }
+    // Match × quantity multipliers only at end of label — avoids matching dimensions like "44×14"
+    function labelQty(l)   { var m = (l.label||'').match(/×\s*(\d+)\s*(?:spaces?)?$/); return m ? parseInt(m[1]) : 1; }
 
     // Exclude install items from marker row — "Flush ... Install" matches both isMarker and isInstall
     var markerLines   = taxableLines.filter(function(l){ return (isMarker(l.label) || isBronze(l.label)) && !isInstall(l.label); });
