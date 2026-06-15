@@ -8373,8 +8373,6 @@ async function generateRICContractCore(clientData) {
     var pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false });
     var form   = pdfDoc.getForm();
     console.log('[RIC] Form fields accessible:', form.getFields().length);
-    console.log('[RIC] All field names:\n' + form.getFields().map(function(f,i){ return i+': '+f.getName(); }).join('\n'));
-
     // Fill fields — use instanceof not constructor.name (minified bundle mangles class names)
     var fillErrors = [];
     var fillCount  = 0;
@@ -8418,16 +8416,10 @@ async function generateRICContractCore(clientData) {
     var sigDay = ORDINALS[today.getDate()] || String(today.getDate());
     var sigMon = MONTHS[today.getMonth()];
     var sigYr  = String(today.getFullYear());
+    // Shared field names — PDF mirrors these to all signature date lines automatically
     setF('Day of the Month', sigDay);
     setF('Text5',   sigMon);
     setF('Year',    sigYr);
-    // Bottom signature block ("Signed this ___ day of ___, ___" / "Accepted this ___")
-    setF('Day of the Month_2', sigDay); setF('Text5_2', sigMon); setF('Year_2', sigYr);
-    setF('Day of the Month_3', sigDay); setF('Text5_3', sigMon); setF('Year_3', sigYr);
-    setF('Day_2', sigDay);  setF('Month_2', sigMon);  setF('Year2', sigYr);
-    setF('Day_3', sigDay);  setF('Month_3', sigMon);  setF('Year3', sigYr);
-    setF('Signed Day',   sigDay); setF('Signed Month',   sigMon); setF('Signed Year',   sigYr);
-    setF('Accepted Day', sigDay); setF('Accepted Month', sigMon); setF('Accepted Year', sigYr);
     setF('Name of Purchaser', clientName);
     setF('Description of Interment Rights', location);
     // Notes 5 = Remarks field on the contract
@@ -8439,11 +8431,6 @@ async function generateRICContractCore(clientData) {
     if (clientData) {
       var addrStr = clientData.street || '';
       setF('Address', addrStr);
-      setF('Street',   addrStr);
-      setF('City',     clientData.city  || '');
-      setF('State',    clientData.state || '');
-      setF('Zip',      clientData.zip   || '');
-      setF('Zip Code', clientData.zip   || '');
       setF('Phone Number', formatPhone(clientData.phone || ''));
       setF('Day Telephone No', clientData.dayPhone || '');
       setF('Control #', clientData.controlNo || '');
@@ -8622,7 +8609,7 @@ async function generateRICContractCore(clientData) {
       try { form.updateFieldAppearances(); } catch(e2) {}
     }
 
-    console.log('[RIC] setF calls made:', fillCount, '| errors:', fillErrors.length, fillErrors);
+    console.log('[RIC] setF calls made:', fillCount, '| errors:', fillErrors.length, fillErrors.slice(0,5));
     console.log('[RIC] Saving PDF...');
     if (fillCount === 0) {
       alert('Warning: No fields were set. Check console (F12).\nErrors: ' + fillErrors.slice(0,3).join(', '));
