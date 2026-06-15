@@ -3249,7 +3249,9 @@ async function printGAContract() {
   // ── Casket / Urn ──────────────────────────────────────────────────────────
   var casketPrice     = parseFloat((el('fhCasket') || {}).value || '0') || 0;
   var casketSearchEl  = el('fhCasketSearch');
-  var casketLabel     = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
+  var casketLabel     = (el('fhCasketLabel') && el('fhCasketLabel').value)
+                        ? el('fhCasketLabel').value
+                        : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
   // Extract model # from casket label e.g. "Virgo White/Gold (#279133)"
   var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
   var casketModelNum  = casketModelMatch ? '#' + casketModelMatch[1] : '';
@@ -9155,7 +9157,9 @@ async function generateClearPointContract() {
     // Casket / container / urn
     var casketPrice    = parseFloat((el('fhCasket') || {}).value || '0') || 0;
     var casketSearchEl = el('fhCasketSearch');
-    var casketLabel    = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
+    var casketLabel    = (el('fhCasketLabel') && el('fhCasketLabel').value)
+                         ? el('fhCasketLabel').value
+                         : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
     var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
     var casketModelNum   = casketModelMatch ? '#' + casketModelMatch[1] : '';
     var casketModelName  = casketLabel.replace(/\s*\(#?\d+\)\s*/, '').trim();
