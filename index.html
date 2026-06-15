@@ -8373,6 +8373,7 @@ async function generateRICContractCore(clientData) {
     var pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false });
     var form   = pdfDoc.getForm();
     console.log('[RIC] Form fields accessible:', form.getFields().length);
+    console.log('[RIC] All field names:', form.getFields().map(function(f){ return f.getName(); }));
 
     // Fill fields — use instanceof not constructor.name (minified bundle mangles class names)
     var fillErrors = [];
@@ -8621,7 +8622,7 @@ async function generateRICContractCore(clientData) {
       try { form.updateFieldAppearances(); } catch(e2) {}
     }
 
-    console.log('[RIC] setF calls made:', fillCount, '| errors:', fillErrors.length, fillErrors.slice(0,5));
+    console.log('[RIC] setF calls made:', fillCount, '| errors:', fillErrors.length, fillErrors);
     console.log('[RIC] Saving PDF...');
     if (fillCount === 0) {
       alert('Warning: No fields were set. Check console (F12).\nErrors: ' + fillErrors.slice(0,3).join(', '));
