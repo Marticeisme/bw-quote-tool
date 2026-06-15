@@ -7876,6 +7876,11 @@ function loadSavedCemQuote(id) {
   try { resetCemQuote(); } catch(e) {}
   var s = snap.state;
   restoreFieldState(s.fields || {});
+  // Re-populate dependent dropdowns (restoreFieldState sets values without firing onchange)
+  if (typeof vbPopulateSizes === 'function') vbPopulateSizes();
+  if ((s.fields||{}).qVBSize !== undefined) { var _vbs2 = el('qVBSize'); if (_vbs2) _vbs2.value = s.fields.qVBSize; }
+  if (typeof populatePortraitSizes === 'function') populatePortraitSizes();
+  if ((s.fields||{}).qPortraitSize !== undefined) { var _pp2 = el('qPortraitSize'); if (_pp2) _pp2.value = s.fields.qPortraitSize; }
   restoreCustomLines('cemCustomLines', s.customLines || []);
   restoreDiscountRows('cemDiscountList', s.discounts || []);
   if (s.inscriptions && s.inscriptions.length) { inscriptions = s.inscriptions; if (typeof inscRender  === 'function') inscRender(); }
@@ -10035,6 +10040,8 @@ async function downloadCombQuotePDF() {
         // Re-populate dependent dropdowns that require parent value to be set first
         if (typeof vbPopulateSizes === 'function') vbPopulateSizes();
         if (cd.fields.qVBSize !== undefined) { var _vbs = el('qVBSize'); if (_vbs) _vbs.value = cd.fields.qVBSize; }
+        if (typeof populatePortraitSizes === 'function') populatePortraitSizes();
+        if (cd.fields.qPortraitSize !== undefined) { var _pp = el('qPortraitSize'); if (_pp) _pp.value = cd.fields.qPortraitSize; }
         restoreCustomLines('cemCustomLines', cd.customLines||[]);
         restoreDiscountRows('cemDiscountList', cd.discounts||[]);
         if (cd.inscriptions) { if (typeof inscriptions !== 'undefined') inscriptions = cd.inscriptions; }
