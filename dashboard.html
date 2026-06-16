@@ -2525,11 +2525,34 @@ function toggleDashMode(){
 })();
 
 // ═══════════════════════════════════════
+// DEEP-LINK: #case=CASEID
+// ═══════════════════════════════════════
+function handleDeepLink(){
+  var hash=window.location.hash;
+  if(!hash.startsWith('#case='))return;
+  var id=hash.slice(6);
+  var c=cases.find(function(x){return x.id===id;});
+  if(!c)return;
+  // Expand before render so buildCaseCardHTML picks up the open state
+  expandedCards[id]=true;
+  save();
+  // Switch to the owner's view if the current view wouldn't show this case
+  if(activeUser!=='all'&&activeUser!==c.owner)setUser(c.owner);
+  // Ensure cases tab is active (re-renders with expanded state)
+  switchTab('cases');
+  setTimeout(function(){
+    var el=document.getElementById('ccard-'+id);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+}
+
+// ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
 initFirebase();
 renderCases();
 renderMeals();
+handleDeepLink();
 </script>
 </body>
 </html>
