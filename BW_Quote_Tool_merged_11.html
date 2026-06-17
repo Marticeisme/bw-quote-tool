@@ -2025,6 +2025,7 @@ tr:hover td{background:var(--blue-light);}
             <div class="q-check-row"><input type="checkbox" id="fhSvcCeremony" onchange="fhUpdateD()"><label for="fhSvcCeremony">Ceremony within 30mi (2 directors, 3hr) — $965</label><span class="qty-x">×</span><input type="number" id="fhSvcCeremonyQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
             <div class="q-check-row"><input type="checkbox" id="fhSvcMemorial" onchange="fhUpdateD()"><label for="fhSvcMemorial">Limited Memorial Service (1 director, 3hr) — $445</label><span class="qty-x">×</span><input type="number" id="fhSvcMemorialQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
             <div class="q-check-row"><input type="checkbox" id="fhSvcChapel" onchange="fhUpdateD()"><label for="fhSvcChapel">Chapel Rental (outside funeral home) — $1,955</label><span class="qty-x">×</span><input type="number" id="fhSvcChapelQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
+            <div class="q-check-row"><input type="checkbox" id="fhCeremonyHr" onchange="fhUpdateD()"><label for="fhCeremonyHr">Additional Ceremony Hour — $335/hr</label><span class="qty-x">×</span><input type="number" id="fhCeremonyHrQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           </div>
           <div class="q-group">
             <div class="q-group-label">Surcharges</div>
@@ -2233,6 +2234,13 @@ tr:hover td{background:var(--blue-light);}
             </div>
           </div>
           <div id="fhUrnList" style="margin-top:8px;"></div>
+          <div class="q-group" style="margin-top:10px;">
+            <div class="q-group-label">Engraving Add-Ons (Taxable)</div>
+            <div class="q-check-row"><input type="checkbox" id="fhEngravOptCustom" onchange="fhUpdateD()"><label for="fhEngravOptCustom">Engraving — Options Custom — $100</label></div>
+            <div class="q-check-row"><input type="checkbox" id="fhEngravOptNameDate" onchange="fhUpdateD()"><label for="fhEngravOptNameDate">Engraving — Options Name &amp; Date — $55</label></div>
+            <div class="q-check-row"><input type="checkbox" id="fhEngravOptStd" onchange="fhUpdateD()"><label for="fhEngravOptStd">Engraving — Options Standard — $45</label></div>
+            <div class="q-check-row"><input type="checkbox" id="fhEngravNonOptStd" onchange="fhUpdateD()"><label for="fhEngravNonOptStd">Engraving — Non Options Standard — $150</label></div>
+          </div>
         </div>
       </div>
       <div class="q-panel">
@@ -6457,6 +6465,9 @@ function fhUpdate() {
     if (chk(s.id)) { var q = qty(s.qtyId) * fhPersonQty; lines.push({label: s.label + (q > 1 ? ' \xd7' + q : ''), amount: s.price * q, taxable: false}); }
   });
 
+  // Additional ceremony hour (per-ceremony, not per-person)
+  if (chk('fhCeremonyHr')) { var q=qty('fhCeremonyHrQty'); lines.push({label:'Additional Ceremony Hour'+(q>1?' \xd7'+q:''), amount:335*q, taxable:false}); }
+
   // Surcharges
   if (chk('fhFriSatSun')) { var q=qty('fhFriSatSunQty')*fhPersonQty; lines.push({label:'Fri/Sat/Sun Surcharge'+(q>1?' \xd7'+q:''), amount:655*q, taxable:false}); }
   if (chk('fhHoliday'))   lines.push({label:'Holiday Surcharge', amount:1445*fhPersonQty, taxable:false});
@@ -6543,6 +6554,13 @@ function fhUpdate() {
       lines.push({label: 'Urn: ' + u.name + (totalQty > 1 ? ' \xd7' + totalQty : ''), amount: u.price * totalQty, taxable: true});
     }
   });
+
+  // Urn engraving add-ons (taxable)
+  [{id:'fhEngravOptCustom',   price:100, label:'Engraving — Options Custom'},
+   {id:'fhEngravOptNameDate', price:55,  label:'Engraving — Options Name & Date'},
+   {id:'fhEngravOptStd',      price:45,  label:'Engraving — Options Standard'},
+   {id:'fhEngravNonOptStd',   price:150, label:'Engraving — Non Options Standard'}
+  ].forEach(function(e){ if (chk(e.id)) lines.push({label:e.label, amount:e.price, taxable:true}); });
 
   // Flowers (multi-add) — multiply by person count
   fhFlowers.forEach(function(f) {
@@ -6633,10 +6651,11 @@ function resetFHQuote() {
     var e = el(id); if (e) e.value = '';
   });
   ['fhBasicSvc','fhEmbalming','fhLimitedPrep','fhOtherPrep','fhAutopsy','fhHair','fhShelter','fhLongShelter',
-   'fhSvcFuneral','fhSvcGraveside','fhSvcGravesideSec','fhSvcCeremony','fhSvcMemorial','fhSvcChapel',
+   'fhSvcFuneral','fhSvcGraveside','fhSvcGravesideSec','fhSvcCeremony','fhSvcMemorial','fhSvcChapel','fhCeremonyHr',
    'fhFriSatSun','fhHoliday','fhOvernight','fhEvening','fhTransfer','fhHearse','fhFlowerVeh','fhUtilityVeh',
    'fhCremProcessing','fhWitnessCrem','fhExpedite','fhPrepCrem','fhMailRemains','fhDeliverRemains',
-   'fhStorageRelease','fhKeepsakeTransfer','fhMotoEscort'
+   'fhStorageRelease','fhKeepsakeTransfer','fhMotoEscort',
+   'fhEngravOptCustom','fhEngravOptNameDate','fhEngravOptStd','fhEngravNonOptStd'
   ].forEach(function(id) { var e = el(id); if (e) e.checked = false; });
   el('fhDeathCerts').value = '0';
   ['fhShelterQty','fhLongShelterQty','fhHearseQty','fhMotoEscortQty'].forEach(function(id){ var e=el(id); if(e) e.value=1; });
@@ -6720,7 +6739,7 @@ function combUpdate() {
       else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
       else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
     });
-    html += '<div class="s-line" style="font-weight:700;"><span class="s-lbl">Cemetery Total (incl. tax)</span><span class="s-amt">' + fmt(_combCemTotal) + '</span></div>';
+    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Cemetery Subtotal</span><span class="s-amt">' + fmt(_combCemTotal) + '</span></div>';
     grandTotal += _combCemTotal;
   }
   if (hasFh) {
@@ -6730,7 +6749,7 @@ function combUpdate() {
       else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
       else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
     });
-    html += '<div class="s-line" style="font-weight:700;"><span class="s-lbl">Funeral Home Total (incl. tax)</span><span class="s-amt">' + fmt(_combFhTotal) + '</span></div>';
+    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Funeral Home Subtotal</span><span class="s-amt">' + fmt(_combFhTotal) + '</span></div>';
     grandTotal += _combFhTotal;
   }
   var customLines = [];
@@ -7598,7 +7617,7 @@ function casketClear() {
   if (h) h.value = '';
   if (el('fhCasketLabel')) el('fhCasketLabel').value = '';
   if (s) { s.value = ''; s.style.borderColor = ''; s.style.background = ''; }
-  if (d) d.style.display = 'none';
+  if (d) { d.innerHTML = ''; d.style.height = '0'; d.style.overflow = 'hidden'; }
   if (sel) sel.innerHTML = '';
 }
 
@@ -7695,23 +7714,24 @@ function restoreFieldState(state) {
 function captureCustomLines(containerId) {
   var lines = []; var container = el(containerId); if (!container) return lines;
   container.querySelectorAll('.custom-line-row').forEach(function(row) {
-    var lbl = row.querySelector('.cl-label'), amt = row.querySelector('.cl-amount'), tax = row.querySelector('.cl-taxable');
-    if (lbl && amt) lines.push({ label: lbl.value, amount: amt.value, taxable: tax ? tax.checked : false });
+    var lbl = row.querySelector('.cl-desc'), amt = row.querySelector('.cl-amt'), tax = row.querySelector('.cl-tax');
+    if (lbl && amt) lines.push({ label: lbl.value, amount: amt.value, taxable: tax ? tax.value === 'taxable' : false });
   });
   return lines;
 }
 function restoreCustomLines(containerId, lines) {
   if (!lines || !lines.length) return;
   var container = el(containerId); if (!container) return;
+  // "Add Custom Line" button is the next sibling of the container div
+  var btn = container.nextElementSibling;
   lines.forEach(function(line) {
-    var btn = container.querySelector('.add-custom-line-btn');
     if (btn) btn.click();
     var rows = container.querySelectorAll('.custom-line-row');
     var row = rows[rows.length - 1]; if (!row) return;
-    var lbl = row.querySelector('.cl-label'), amt = row.querySelector('.cl-amount'), tax = row.querySelector('.cl-taxable');
+    var lbl = row.querySelector('.cl-desc'), amt = row.querySelector('.cl-amt'), tax = row.querySelector('.cl-tax');
     if (lbl) lbl.value = line.label || '';
     if (amt) amt.value = line.amount || '';
-    if (tax) tax.checked = !!line.taxable;
+    if (tax) tax.value = line.taxable ? 'taxable' : 'exempt';
   });
 }
 function captureDiscountRows(containerId) {
@@ -9794,6 +9814,17 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
         y -= 28;
         return;
       }
+      if (sec.isSubtotal) {
+        checkY(24);
+        page.drawLine({start:{x:M,y:y+4},end:{x:RX,y:y+4},thickness:1,color:NAVY});
+        y -= 4;
+        var subStr = fmtMoney(sec.amount);
+        var subW   = bold.widthOfTextAtSize(subStr, 11);
+        page.drawText(safeText(sec.label), {x:M+6,     y, size:11, font:bold, color:NAVY});
+        page.drawText(subStr,              {x:RX-subW, y, size:11, font:bold, color:NAVY});
+        y -= 22;
+        return;
+      }
       drawSection(sec.title, sec.items || [], sec.color || (sec.title.match(/Discount/i) ? GREEN : undefined));
     });
   } else {
@@ -10002,10 +10033,12 @@ async function downloadCombQuotePDF() {
   if (cemLines.length) {
     sections.push({isSeparator:true, title:'Cemetery Services'});
     categorizeCemLines(cemLines).forEach(function(s){ sections.push(s); });
+    sections.push({isSubtotal:true, label:'Cemetery Subtotal', amount:cemTotal});
   }
   if (fhLines.length) {
     sections.push({isSeparator:true, title:'Funeral Home Services'});
     categorizeFHLines(fhLines).forEach(function(s){ sections.push(s); });
+    sections.push({isSubtotal:true, label:'Funeral Home Subtotal', amount:fhTotalVal});
   }
   logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
   await _buildQuotePDF(allLines, clientName, 'Combined Family Quote — Cemetery & Funeral Home', 'BW_Combined_Quote', {
