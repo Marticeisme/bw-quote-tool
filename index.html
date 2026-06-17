@@ -2062,6 +2062,7 @@ tr:hover td{background:var(--blue-light);}
           <div class="q-check-row"><input type="checkbox" id="fhMotoEscort" onchange="fhUpdateD()"><label for="fhMotoEscort">Motorcycle Escort — $750</label><span class="qty-x">×</span><input type="number" id="fhMotoEscortQty" class="qty-input" min="1" max="9" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhFlowerVeh" onchange="fhUpdateD()"><label for="fhFlowerVeh">Use of Flower Vehicle — $205</label><span class="qty-x">×</span><input type="number" id="fhFlowerVehQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhUtilityVeh" onchange="fhUpdateD()"><label for="fhUtilityVeh">Use of Utility Vehicle — $205</label><span class="qty-x">×</span><input type="number" id="fhUtilityVehQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
+          <div class="q-check-row"><input type="checkbox" id="fhHorseHearse" onchange="fhUpdateD()"><label for="fhHorseHearse">Horse-Drawn Hearse — $1,650</label></div>
         </div>
       </div>
 
@@ -6491,6 +6492,7 @@ function fhUpdate() {
   if (chk('fhMotoEscort')) { var q=qty('fhMotoEscortQty')*fhPersonQty; lines.push({label:'Motorcycle Escort'+(q>1?' ×'+q:''), amount:750*q, taxable:false}); }
   if (chk('fhFlowerVeh'))  { var q=qty('fhFlowerVehQty')*fhPersonQty; lines.push({label:'Use of Flower Vehicle'+(q>1?' \xd7'+q:''), amount:205*q, taxable:false}); }
   if (chk('fhUtilityVeh')) { var q=qty('fhUtilityVehQty')*fhPersonQty; lines.push({label:'Use of Utility Vehicle'+(q>1?' \xd7'+q:''), amount:205*q, taxable:false}); }
+  if (chk('fhHorseHearse')) lines.push({label:'Horse-Drawn Hearse', amount:1650, taxable:false});
 
   // Cremation
   if (chk('fhCremProcessing')) lines.push({label:'Cremation & Processing', amount:385*fhPersonQty, taxable:false});
@@ -6652,7 +6654,7 @@ function resetFHQuote() {
   });
   ['fhBasicSvc','fhEmbalming','fhLimitedPrep','fhOtherPrep','fhAutopsy','fhHair','fhShelter','fhLongShelter',
    'fhSvcFuneral','fhSvcGraveside','fhSvcGravesideSec','fhSvcCeremony','fhSvcMemorial','fhSvcChapel','fhCeremonyHr',
-   'fhFriSatSun','fhHoliday','fhOvernight','fhEvening','fhTransfer','fhHearse','fhFlowerVeh','fhUtilityVeh',
+   'fhFriSatSun','fhHoliday','fhOvernight','fhEvening','fhTransfer','fhHearse','fhFlowerVeh','fhUtilityVeh','fhHorseHearse',
    'fhCremProcessing','fhWitnessCrem','fhExpedite','fhPrepCrem','fhMailRemains','fhDeliverRemains',
    'fhStorageRelease','fhKeepsakeTransfer','fhMotoEscort',
    'fhEngravOptCustom','fhEngravOptNameDate','fhEngravOptStd','fhEngravNonOptStd'
@@ -9982,7 +9984,7 @@ function categorizeFHLines(lines) {
     if (/^Memorial (Package|Collection):|^Memorial.*Pkg/i.test(lb)) return 'Memorial Packages';
     if (/^Urn:/i.test(lb))                                     return 'Urns';
     if (/Flowers?:|Floral|Arrangement|Spray|Corsage|Boutonniere/i.test(lb)) return 'Flowers';
-    if (/Transfer|Use of Hearse|Motorcycle Escort|Flower Vehicle|Utility Vehicle/i.test(lb)) return 'Transportation';
+    if (/Transfer|Use of Hearse|Horse-Drawn Hearse|Motorcycle Escort|Flower Vehicle|Utility Vehicle/i.test(lb)) return 'Transportation';
     if (/Death Cert|County|Medical Examiner|Coroner|Permit/i.test(lb)) return 'Cash Advance Items';
     if (/Basic Services|Embalming|Preparation|Autopsy|Hair Dress|Shelter of Remains/i.test(lb)) return 'Professional Services';
     if (/Cremation|Mailing of Cremated|Delivery of Remains|Keepsake/i.test(lb)) return 'Cremation Services';
