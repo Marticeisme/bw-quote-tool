@@ -9707,19 +9707,47 @@ body.dark-mode #fhTypeANLabel:has(input:checked) { background:#284878 !important
 
 <script>
 // ═══ PDF EXPORT ═══
+function _getLogoPngBytes() {
+  return new Promise(function(resolve, reject) {
+    try {
+      var svgStr = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308.34 56.42"><path d="M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/><path d="M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/></svg>';
+      var blob = new Blob([svgStr], {type:'image/svg+xml;charset=utf-8'});
+      var url  = URL.createObjectURL(blob);
+      var img  = new Image();
+      img.onload = function() {
+        try {
+          var canvas = document.createElement('canvas');
+          canvas.width  = 926;
+          canvas.height = 170;
+          canvas.getContext('2d').drawImage(img, 0, 0, 926, 170);
+          var dataUrl = canvas.toDataURL('image/png');
+          var b64 = dataUrl.split(',')[1];
+          var bin = atob(b64);
+          var bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          resolve(bytes);
+        } catch(e) { reject(e); }
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); reject(new Error('logo load failed')); };
+      img.src = url;
+    } catch(e) { reject(e); }
+  });
+}
+
 async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   try {
   opts = opts || {};
   if (typeof PDFLib === 'undefined') throw new Error('PDF library not loaded. Reload the page and try again.');
   const { PDFDocument, rgb, StandardFonts } = PDFLib;
-  const NAVY   = rgb(26/255,  39/255,  68/255);
-  const ORANGE = rgb(192/255, 103/255, 59/255);
-  const GOLD   = rgb(200/255, 169/255, 110/255);
-  const GREEN  = rgb(26/255, 107/255, 69/255);
-  const DARK   = rgb(45/255,  51/255,  64/255);
+  const STEEL  = rgb(74/255,  107/255, 138/255);
+  const ORANGE = rgb(200/255, 84/255,  10/255);
+  const DARK   = rgb(34/255,  34/255,  34/255);
   const MUTED  = rgb(107/255, 115/255, 130/255);
-  const LGRAY  = rgb(0.9, 0.9, 0.9);
+  const LGRAY  = rgb(224/255, 224/255, 224/255);
+  const WHITE  = rgb(1, 1, 1);
   const PW = 612, PH = 792, M = 48, RX = 612 - 48;
+  const HEADER_H = 68, LOGO_H = 50, LOGO_W = Math.round(LOGO_H * (308.34 / 56.42));
   // Strip characters WinAnsi (pdf-lib standard fonts) cannot encode
   function safeText(s){
     if(s==null)return '';
@@ -9737,42 +9765,42 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   const reg  = await doc.embedFont(StandardFonts.Helvetica);
   let page, y;
 
+  var logoImage = null;
+  try { var _lpb = await _getLogoPngBytes(); logoImage = await doc.embedPng(_lpb); } catch(e) { console.warn('Logo embed failed:', e); }
+
   var dateStr = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var vtDate  = new Date(); vtDate.setDate(vtDate.getDate()+30);
-  var vtStr   = 'Quote valid through '+vtDate.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var vtStr   = 'Valid thru '+vtDate.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
 
-  // Continuation pages get a minimal header
+  function drawHeader() {
+    page.drawRectangle({x:0, y:PH-HEADER_H, width:PW, height:HEADER_H, color:STEEL});
+    if (logoImage) page.drawImage(logoImage, {x:M, y:PH-HEADER_H+9, width:LOGO_W, height:LOGO_H});
+    var st = safeText(subtitle), stW = bold.widthOfTextAtSize(st, 11);
+    page.drawText(st, {x:RX-stW, y:PH-38, size:11, font:bold, color:WHITE});
+    var dl = dateStr+'  \xb7  '+vtStr, dlW = reg.widthOfTextAtSize(dl, 8);
+    page.drawText(dl, {x:RX-dlW, y:PH-53, size:8, font:reg, color:rgb(0.85,0.9,0.95)});
+  }
+
   function newPage() {
     page = doc.addPage([PW, PH]);
-    page.drawText('BONNEY WATSON  \xb7  Washington Memorial Park', {x:M, y:PH-36, size:10, font:bold, color:NAVY});
-    page.drawLine({start:{x:M,y:PH-44},end:{x:RX,y:PH-44},thickness:0.5,color:GOLD});
-    y = PH - 62;
+    drawHeader();
+    page.drawLine({start:{x:M,y:PH-HEADER_H-10},end:{x:RX,y:PH-HEADER_H-10},thickness:0.5,color:LGRAY});
+    y = PH - HEADER_H - 30;
   }
   function checkY(n) { if (y < n + 70) newPage(); }
 
-  // ── First page full header ──
+  // ── First page ──
   page = doc.addPage([PW, PH]);
-  // Brand: BONNEY WATSON (bold) + · Washington Memorial Park (regular) on same baseline
-  var bwStr = 'BONNEY WATSON';
-  var bwW   = bold.widthOfTextAtSize(bwStr, 17);
-  page.drawText(bwStr, {x:M, y:PH-44, size:17, font:bold, color:NAVY});
-  page.drawText('  \xb7  Washington Memorial Park', {x:M+bwW, y:PH-44, size:17, font:reg, color:NAVY});
-  // Date top-right
-  var dW = reg.widthOfTextAtSize(dateStr, 9.5);
-  page.drawText(dateStr, {x:RX-dW, y:PH-44, size:9.5, font:reg, color:MUTED});
-  // Subtitle left + valid-through right
-  page.drawText(safeText(subtitle), {x:M, y:PH-60, size:10, font:reg, color:DARK});
-  var vtW = reg.widthOfTextAtSize(vtStr, 8.5);
-  page.drawText(vtStr, {x:RX-vtW, y:PH-60, size:8.5, font:reg, color:rgb(0.7,0.7,0.7)});
-  // Prepared for
-  var hdrBot = PH - 76;
+  drawHeader();
+  y = PH - HEADER_H - 14;
   if (clientName) {
-    page.drawText('Prepared for: '+safeText(clientName), {x:M, y:hdrBot, size:11, font:bold, color:DARK});
-    hdrBot -= 16;
+    page.drawText('Prepared for: '+safeText(clientName)+'     Washington Memorial Park', {x:M, y, size:10, font:reg, color:DARK});
+  } else {
+    page.drawText('Washington Memorial Park', {x:M, y, size:10, font:reg, color:DARK});
   }
-  // Gold rule
-  page.drawLine({start:{x:M,y:hdrBot-4},end:{x:RX,y:hdrBot-4},thickness:1.5,color:GOLD});
-  y = hdrBot - 26;
+  y -= 8;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:0.5,color:LGRAY});
+  y -= 18;
 
   // ── Helpers ──
   function trunc(text, maxPx, f, sz) {
@@ -9788,17 +9816,17 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     var amtStr = fmtMoney(amount);
     var amtW   = bold.widthOfTextAtSize(amtStr, 10);
     var lbl    = trunc(safeText(label), RX-M-amtW-20, reg, 10);
-    page.drawText(lbl,    {x:M+6,     y, size:10, font:reg,  color:DARK});
+    page.drawText(lbl,    {x:M+6,     y, size:10, font:reg,  color:color||DARK});
     page.drawText(amtStr, {x:RX-amtW, y, size:10, font:bold, color:color||DARK});
     page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
     y -= 18;
   }
   function drawSection(title, items, color) {
     if (!items.length) return;
-    checkY(30);
-    page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
-    page.drawText(title.toUpperCase(), {x:M, y:y-10, size:8, font:bold, color:ORANGE});
-    y -= 22;
+    checkY(34);
+    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
+    page.drawText(title.toUpperCase(), {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
+    y -= 28;
     items.forEach(function(l){ drawRow(l.label, l.amount, color); });
   }
 
@@ -9811,31 +9839,31 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     opts.sections.forEach(function(sec) {
       if (sec.isSeparator) {
         checkY(28);
-        page.drawRectangle({x:M, y:y-8, width:RX-M, height:22, color:NAVY});
-        page.drawText(safeText(sec.title), {x:M+8, y:y+2, size:9, font:bold, color:rgb(1,1,1)});
+        page.drawRectangle({x:M, y:y-8, width:RX-M, height:22, color:STEEL});
+        page.drawText(safeText(sec.title), {x:M+8, y:y+2, size:9, font:bold, color:WHITE});
         y -= 28;
         return;
       }
       if (sec.isSubtotal) {
         checkY(24);
-        page.drawLine({start:{x:M,y:y+4},end:{x:RX,y:y+4},thickness:1,color:NAVY});
+        page.drawLine({start:{x:M,y:y+4},end:{x:RX,y:y+4},thickness:1,color:STEEL});
         y -= 4;
         var subStr = fmtMoney(sec.amount);
         var subW   = bold.widthOfTextAtSize(subStr, 11);
-        page.drawText(safeText(sec.label), {x:M+6,     y, size:11, font:bold, color:NAVY});
-        page.drawText(subStr,              {x:RX-subW, y, size:11, font:bold, color:NAVY});
+        page.drawText(safeText(sec.label), {x:M+6,     y, size:11, font:bold, color:STEEL});
+        page.drawText(subStr,              {x:RX-subW, y, size:11, font:bold, color:STEEL});
         y -= 22;
         return;
       }
-      drawSection(sec.title, sec.items || [], sec.color || (sec.title.match(/Discount/i) ? GREEN : undefined));
+      drawSection(sec.title, sec.items || [], sec.color || (sec.title.match(/Discount/i) ? ORANGE : undefined));
     });
   } else {
     drawSection(opts.exSection  || 'Tax-Exempt Services',  exempt);
     drawSection(opts.taxSection || 'Taxable Merchandise',  taxable);
-    drawSection('Discounts', discs, GREEN);
+    drawSection('Discounts', discs, ORANGE);
   }
 
-  // Sales tax line in gold
+  // Sales tax
   var exemptSub  = exempt.reduce(function(s,l){return s+l.amount;},0);
   var taxableSub = taxable.reduce(function(s,l){return s+l.amount;},0);
   var discAmt    = discs.reduce(function(s,l){return s+Math.abs(l.amount);},0);
@@ -9846,32 +9874,45 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     checkY(18);
     var taxAmtStr = fmtMoney(taxAmt);
     var taxAmtW   = reg.widthOfTextAtSize(taxAmtStr, 10);
-    page.drawText('Sales Tax (10.4%)', {x:M+6,       y, size:10, font:reg, color:GOLD});
-    page.drawText(taxAmtStr,           {x:RX-taxAmtW, y, size:10, font:reg, color:GOLD});
+    page.drawText('Sales Tax (10.4%)', {x:M+6,        y, size:10, font:reg, color:MUTED});
+    page.drawText(taxAmtStr,           {x:RX-taxAmtW, y, size:10, font:reg, color:MUTED});
     page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
     y -= 18;
   }
 
-  // Navy rule + total
+  // Grand Total
   checkY(55); y -= 8;
-  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:NAVY}); y -= 22;
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:STEEL}); y -= 22;
   var grandStr = fmtMoney(grand);
   var grandW   = bold.widthOfTextAtSize(grandStr, 20);
-  page.drawText('Total',    {x:M,        y, size:14, font:bold, color:DARK});
-  page.drawText(grandStr,   {x:RX-grandW, y, size:20, font:bold, color:ORANGE});
+  page.drawText('Grand Total', {x:M,         y, size:14, font:bold, color:DARK});
+  page.drawText(grandStr,      {x:RX-grandW, y, size:20, font:bold, color:ORANGE});
   y -= 28;
   if (taxAmt > 0) {
     page.drawText('Tax applies to merchandise. Services & transportation are exempt.', {x:M, y, size:8.5, font:reg, color:MUTED});
     y -= 16;
   }
 
-  // ── Payment Options (all three financing tiers) ──
+  // ── Payment Options ──
   if (opts.finData && opts.finData.downAmt > 0 && typeof FIN_TIERS !== 'undefined') {
     checkY(60);
     y -= 8;
-    page.drawLine({start:{x:M,y:y+2},end:{x:RX,y:y+2},thickness:1.5,color:ORANGE});
-    page.drawText('PAYMENT OPTIONS', {x:M, y:y-10, size:8, font:bold, color:ORANGE});
-    y -= 26;
+    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
+    page.drawText('PAYMENT OPTIONS', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
+    y -= 32;
+    var disclosures = [
+      'Minimum down payment for financing is 10%.',
+      'Minimum monthly payment is $50.',
+      'Zero percent financing requires ACH bank withdrawal.',
+      'Early payoff is allowed, which may reduce total finance charges.',
+      'Tiered finance charge rates are the same for any down payment of 25% or more.'
+    ];
+    disclosures.forEach(function(line) {
+      checkY(14);
+      page.drawText(line, {x:M+4, y, size:7.5, font:reg, color:MUTED});
+      y -= 12;
+    });
+    y -= 8;
     var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
     var tierDefs = [
       {key:0.10, label:'10% Down (Minimum)'},
@@ -9884,16 +9925,19 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
       var downAmt = Math.ceil(grand * td.key);
       var balance = grand - downAmt;
       if (balance <= 0) return;
-      checkY(80);
-      var tierHead = td.label + '  —  Min. Down: ' + fmtMoney(downAmt) + '  |  Balance: ' + fmtMoney(balance);
-      page.drawText(safeText(tierHead), {x:M, y, size:9, font:bold, color:DARK});
-      y -= 16;
+      checkY(90);
+      var downInfo = 'Min. Down: '+fmtMoney(downAmt)+'  |  Balance: '+fmtMoney(balance);
+      var diW = reg.widthOfTextAtSize(downInfo, 8);
+      page.drawRectangle({x:M, y:y-6, width:RX-M, height:20, color:STEEL});
+      page.drawText(safeText(td.label), {x:C1,     y:y+2, size:9, font:bold, color:WHITE});
+      page.drawText(downInfo,           {x:RX-diW, y:y+2, size:8, font:reg,  color:rgb(0.85,0.9,0.95)});
+      y -= 22;
       checkY(16);
-      page.drawRectangle({x:M, y:y-4, width:RX-M, height:17, color:NAVY});
-      page.drawText('Term',        {x:C1, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Rate',        {x:C2, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Monthly Pmt', {x:C3, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
-      page.drawText('Total Cost',  {x:C4, y:y+1, size:9, font:bold, color:rgb(1,1,1)});
+      page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
+      page.drawText('Term',           {x:C1, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Rate',           {x:C2, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Monthly Payment',{x:C3, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Total Cost',     {x:C4, y:y+1, size:8.5, font:bold, color:DARK});
       y -= 18;
       tiers.forEach(function(tier, i) {
         checkY(16);
@@ -9901,35 +9945,34 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
         var monthly   = (typeof finMonthly === 'function') ? finMonthly(balance, months, rate) : (rate===0 ? balance/months : (balance*(rate/12))/(1-Math.pow(1+(rate/12),-months)));
         var totalCost = downAmt + (monthly * months);
         var isZero    = rate === 0;
-        if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
-        page.drawText(months + ' months',       {x:C1, y, size:9.5, font:bold, color:DARK});
+        if (isZero) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(1.0,0.96,0.90)});
+        else if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+        page.drawText(months+' months',         {x:C1, y, size:9.5, font:bold, color:DARK});
         page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
-        page.drawText(fmtMoney(monthly)+'/mo',  {x:C3, y, size:9.5, font:bold, color:NAVY});
-        page.drawText(fmtMoney(totalCost),       {x:C4, y, size:9,   font:reg,  color:MUTED});
+        page.drawText(fmtMoney(monthly)+'/mo',  {x:C3, y, size:9.5, font:bold, color:DARK});
+        page.drawText(fmtMoney(totalCost),      {x:C4, y, size:9,   font:reg,  color:MUTED});
         y -= 17;
       });
       y -= 10;
     });
-    page.drawText('Minimum monthly payment $50 \xb7 0% financing requires ACH bank withdrawal', {x:M, y, size:7.5, font:reg, color:MUTED});
-    y -= 14;
   }
 
   // ── Notes ──
-  if (opts.notes) {
-    checkY(40);
+  if (opts.notes && opts.notes.trim()) {
+    checkY(50);
     y -= 10;
-    page.drawRectangle({x:M, y:y-14, width:3, height:22, color:ORANGE});
-    var notesLabel = 'Notes: ';
+    page.drawRectangle({x:M, y:y-18, width:RX-M, height:30, color:rgb(0.97,0.97,0.97), borderColor:LGRAY, borderWidth:0.75});
+    var notesLabel  = 'Notes:  ';
     var notesLabelW = bold.widthOfTextAtSize(notesLabel, 9);
-    var notesText = trunc(safeText(opts.notes), RX-M-14-notesLabelW, reg, 9);
+    var notesText   = trunc(safeText(opts.notes), RX-M-notesLabelW-20, reg, 9);
     page.drawText(notesLabel, {x:M+10, y, size:9, font:bold, color:DARK});
     page.drawText(notesText,  {x:M+10+notesLabelW, y, size:9, font:reg, color:DARK});
-    y -= 18;
+    y -= 24;
   }
 
   // Footer on all pages
   doc.getPages().forEach(function(pg) {
-    pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:GOLD});
+    pg.drawLine({start:{x:M,y:58},end:{x:RX,y:58},thickness:0.5,color:LGRAY});
     pg.drawText('Bonney Watson  \xb7  16445 International Blvd, SeaTac, WA 98188  \xb7  mmorrison@bonneywatson.com  \xb7  206-445-9794',{x:M,y:44,size:7.5,font:reg,color:MUTED});
     pg.drawText('Prices valid for 30 days and subject to change without notice. This is an estimate only.',{x:M,y:30,size:7,font:reg,color:rgb(0.7,0.7,0.7)});
   });
