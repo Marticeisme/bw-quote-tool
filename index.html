@@ -8421,6 +8421,53 @@ async function generateRICContractCore(clientData) {
     var pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false });
     var form   = pdfDoc.getForm();
     console.log('[RIC] Form fields accessible:', form.getFields().length);
+
+    // Strip /AA /C (Calculate) and /AA /F (Format) actions from every widget.
+    // These AcroForm JavaScript actions cause Adobe to overwrite our filled values
+    // (/C) and to re-format pre-formatted strings like "$5,560.00" as raw numbers
+    // (/F), producing the "1.#R" overflow display. We fill all values ourselves so
+    // neither script is needed.
+    (function stripCalcAndFormat(doc) {
+      var PDFName = PDFLib.PDFName, PDFArray = PDFLib.PDFArray, PDFDict = PDFLib.PDFDict;
+      doc.getPages().forEach(function(page) {
+        try {
+          var annotsRef = page.node.get(PDFName.of('Annots'));
+          if (!annotsRef) return;
+          var annots = doc.context.lookup(annotsRef);
+          if (!annots || typeof annots.size !== 'function') return;
+          for (var i = 0; i < annots.size(); i++) {
+            try {
+              var annotObj = doc.context.lookup(annots.get(i));
+              if (!annotObj || typeof annotObj.get !== 'function') continue;
+              // Strip from this widget
+              var aaRef = annotObj.get(PDFName.of('AA'));
+              if (aaRef) {
+                var aa = doc.context.lookup(aaRef);
+                if (aa && typeof aa.delete === 'function') {
+                  aa.delete(PDFName.of('C'));
+                  aa.delete(PDFName.of('F'));
+                }
+              }
+              // Strip from parent field (if widget is a child)
+              var parentRef = annotObj.get(PDFName.of('Parent'));
+              if (parentRef) {
+                var parent = doc.context.lookup(parentRef);
+                if (parent && typeof parent.get === 'function') {
+                  var paaRef = parent.get(PDFName.of('AA'));
+                  if (paaRef) {
+                    var paa = doc.context.lookup(paaRef);
+                    if (paa && typeof paa.delete === 'function') {
+                      paa.delete(PDFName.of('C'));
+                      paa.delete(PDFName.of('F'));
+                    }
+                  }
+                }
+              }
+            } catch(e) {}
+          }
+        } catch(e) {}
+      });
+    })(pdfDoc);
     // Fill fields — use instanceof not constructor.name (minified bundle mangles class names)
     var fillErrors = [];
     var fillCount  = 0;
@@ -8555,7 +8602,8 @@ async function generateRICContractCore(clientData) {
     // Discounts on taxable goods go on the Discount line only if they are
     // non-taxable goods discounts; taxable discounts must combine into the merch rows.
 
-    function isVaseRelated(l) { return l.match(/\bVase\b/i); }
+    // Match only actual vase products — NOT "(No Vase)" in marker labels
+    function isVaseRelated(l) { return /^Vase[:\s]/i.test(l) || /\bVase\s+Block\b/i.test(l); }
     function isMarker(l)   { return l.match(/Flush|Companion|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
     function isBronze(l)   { return l.match(/Bronze/i) && !l.match(/^Vase:/i); }
     function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/^Vase|core|\d+x\d+\s+base/i); }
