@@ -8342,10 +8342,18 @@ async function generateRICContractCore(clientData) {
       var pctM = lbl.match(/(\d+(?:\.\d+)?)\s*%\s*off/i);
       var ocM  = lbl.match(/\$?([\d,]+)\s+(?:Interment\s+O&C|O\/C|Opening|Closing)/i);
       var xM   = lbl.match(/[×x]\s*(\d+)\s*spaces?/i);
+      // Check for per-space breakdown "- $1,000 x 2" (space after dash = per-unit amount)
+      var perSpaceM = lbl.match(/-\s+\$?([\d,]+)\s*[×x]\s*(\d+)/i);
       if (pctM || ocM) {
         var parts = [];
         if (pctM) parts.push(pctM[1] + '% Prop Disc');
-        if (ocM)  { var a = parseInt(ocM[1].replace(/,/g,'')); parts.push('$'+(a>=1000?Math.round(a/1000)+'k':a)+' O/C'); }
+        if (perSpaceM) {
+          var ps = parseInt(perSpaceM[1].replace(/,/g,''));
+          parts.push('$'+(ps>=1000?Math.round(ps/1000)+'k':ps)+' O/C');
+        } else if (ocM) {
+          var a = parseInt(ocM[1].replace(/,/g,''));
+          parts.push('$'+(a>=1000?Math.round(a/1000)+'k':a)+' O/C');
+        }
         return parts.join(' + ') + (xM ? ' x'+xM[1] : '');
       }
       return lbl.substring(0, 28);
@@ -8458,28 +8466,33 @@ async function generateRICContractCore(clientData) {
     var sigDay = ORDINALS[today.getDate()] || String(today.getDate());
     var sigMon = MONTHS[today.getMonth()];
     var sigYr  = String(today.getFullYear());
-    // Top date (shared where possible)
+    // Top contract date — Day of the Month and Year are parent fields with two widgets each:
+    // one in the top date line AND one in the bottom "Signed this ___" block. Setting parent
+    // fills both automatically. Text5 is the top-only month field.
     setF('Day of the Month', sigDay);
     setF('Text5',   sigMon);
     setF('Year',    sigYr);
-    // Bottom signature blocks use separate fields
-    setF('Text1', sigDay);  // "Signed this ___ day" block
-    setF('Text2', sigDay);  // "Accepted this ___ day" block
-    setF('Text3', sigMon);  // "Accepted" month (also overwrites stray pre-filled "401")
-    setF('Name of Purchaser', clientName);
+    // 'Month' field (y≈172) is the bottom signature-block month — set it explicitly.
+    // Text1/Text2 are in the payment schedule rows — do NOT write date values there.
+    // Text3 is the "Page 1 of 2" header — do NOT overwrite it.
+    setF('Month', sigMon);
+    // Purchaser name — combine with co-purchaser when present
+    var purchaserDisplay = clientName;
+    if (clientData && clientData.coPurchaser) purchaserDisplay += ' & ' + clientData.coPurchaser;
+    setF('Name of Purchaser', purchaserDisplay);
     setF('Description of Interment Rights', location);
     // Notes 5 = Remarks field on the contract
     var remarksText = (clientData && clientData.remarks) ? clientData.remarks
       : (clientData && clientData.benefit) ? 'For the benefit of: ' + clientData.benefit
       : 'For the benefit of: ' + clientName;
     setF('Notes 5', remarksText);
-    // Address
+    // Address — City/State/Zip have no separate AcroForm fields in this template;
+    // append them to the street address so the info appears in the PDF.
     if (clientData) {
-      var addrStr = clientData.street || '';
-      setF('Address', addrStr);
-      setF('City',     clientData.city  || '');
-      setF('State',    clientData.state || 'WA');
-      setF('Zip Code', clientData.zip   || '');
+      var addrParts = [clientData.street || ''];
+      var cityStateZip = [clientData.city, clientData.state || 'WA', clientData.zip].filter(Boolean).join(', ');
+      if (cityStateZip) addrParts.push(cityStateZip);
+      setF('Address', addrParts.join(', '));
       setF('Phone Number', formatPhone(clientData.phone || ''));
       setF('Day Telephone No', clientData.dayPhone || '');
       setF('Control #', clientData.controlNo || '');
@@ -8490,7 +8503,7 @@ async function generateRICContractCore(clientData) {
       setF('Check Box11', clientData.lawnCrypt    || false);
       setF('Check Box12', clientData.mausoleum    || false);
       setF('Check Box13', clientData.niche        || false);
-      // Signing info
+      // Signing info — co-purchaser goes to Insured Name (bottom section)
       setF('Date of Birth', clientData.dob1 || '');
       if (clientData.gender1 === 'Male')   setF('Check Box5', true);
       if (clientData.gender1 === 'Female') setF('Check Box6', true);
@@ -8498,9 +8511,8 @@ async function generateRICContractCore(clientData) {
       setF('Date of Birth_2', clientData.dob2 || '');
       if (clientData.gender2 === 'Male')   setF('Check Box7', true);
       if (clientData.gender2 === 'Female') setF('Check Box8', true);
-      setF('Owner Name', ''); // Source field removed
+      setF('Owner Name', '');
     }
-    // 'Month' field is at top-left of page — do not write to it (causes stray text)
     setF('Time',    timeStr);
     setF('AM',      isAM);
     setF('PM',      !isAM);
@@ -8543,25 +8555,29 @@ async function generateRICContractCore(clientData) {
     // Discounts on taxable goods go on the Discount line only if they are
     // non-taxable goods discounts; taxable discounts must combine into the merch rows.
 
+    function isVaseRelated(l) { return l.match(/\bVase\b/i); }
     function isMarker(l)   { return l.match(/Flush|Companion|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
     function isBronze(l)   { return l.match(/Bronze/i) && !l.match(/^Vase:/i); }
     function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/^Vase|core|\d+x\d+\s+base/i); }
     function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|^Vase|Block|Urn|Niche/i); }
     function isVault(l)    { return l.match(/Vault|Container|Andura|Novato|Hadley|Clifton/i) && !l.match(/Setting|Install/i); }
     function isVaultSet(l) { return l.match(/Vault Setting|Container Setting/i); }
-    // Match × quantity multipliers only at end of label — avoids matching dimensions like "44×14"
-    function labelQty(l)   { var m = (l.label||'').match(/×\s*(\d+)\s*(?:spaces?)?$/); return m ? parseInt(m[1]) : 1; }
+    // Match ×N quantity multiplier with required leading whitespace so dimensions like "44×14" don't match
+    function labelQty(l)   { var m = (l.label||'').match(/(?:^|\s)[×x]\s*(\d+)(?:\s|$)/); return m ? parseInt(m[1]) : 1; }
 
-    // Exclude install items from marker row — "Flush ... Install" matches both isMarker and isInstall
-    var markerLines   = taxableLines.filter(function(l){ return (isMarker(l.label) || isBronze(l.label)) && !isInstall(l.label); });
-    var baseLines     = taxableLines.filter(function(l){ return isBase(l.label); });
-    var installLines  = taxableLines.filter(function(l){ return isInstall(l.label); });
-    var vaultLines    = taxableLines.filter(function(l){ return isVault(l.label); });
-    var vaultSetLines = taxableLines.filter(function(l){ return isVaultSet(l.label); });
+    // Categorize: vase items have priority and go to Other Merchandise row 1 as a group
+    var vaseRelatedLines = taxableLines.filter(function(l){ return isVaseRelated(l.label); });
+    var nonVaseLines     = taxableLines.filter(function(l){ return !isVaseRelated(l.label); });
+    // Exclude base items from marker row (bronze-base label shares "Companion" with marker label)
+    var markerLines   = nonVaseLines.filter(function(l){ return (isMarker(l.label) || isBronze(l.label)) && !isInstall(l.label) && !isBase(l.label); });
+    var baseLines     = nonVaseLines.filter(function(l){ return isBase(l.label); });
+    var installLines  = nonVaseLines.filter(function(l){ return isInstall(l.label); });
+    var vaultLines    = nonVaseLines.filter(function(l){ return isVault(l.label); });
+    var vaultSetLines = nonVaseLines.filter(function(l){ return isVaultSet(l.label); });
     var usedLines     = markerLines.concat(baseLines, installLines, vaultLines, vaultSetLines);
-    var overflowLines = taxableLines.filter(function(l){ return usedLines.indexOf(l) === -1; });
+    var otherOverflow = nonVaseLines.filter(function(l){ return usedLines.indexOf(l) === -1; });
 
-    function cleanLabel(s) { return s.replace(/\s*[×x]\s*\d+$/, '').replace(/\s*-\s*Group\s+\d+/i, '').trim(); }
+    function cleanLabel(s) { return s.replace(/\s+[×x]\s*\d+\s*$/, '').replace(/\s*[-—]\s*Group\s+\d+/i, '').trim(); }
     function combineLines(arr) {
       if (!arr.length) return null;
       if (arr.length === 1) return { label: cleanLabel(arr[0].label), amount: arr[0].amount };
@@ -8573,6 +8589,35 @@ async function generateRICContractCore(clientData) {
       }
       return { label: lbl, amount: total };
     }
+    // Format marker label: remove "— Memorial" suffix, "(No Vase)" qualifier, abbreviate "Companion"
+    function formatMarkerLabel(lbl) {
+      return lbl.replace(/\s*[-—]\s*Memorial\s*$/i,'').replace(/\s*\(No\s*Vase\)/gi,'').replace(/\s*\(w\/Vase[^)]*\)/gi,'').replace(/\s+[×x]\s*\d+\s*$/g,'').replace(/Companion/gi,'Comp').trim();
+    }
+    // Format base label: generic "Granite Base" when it's a marker base
+    function formatBaseLabel(lbl) {
+      if (/[-—]\s*Base\s*$/i.test(lbl)) return 'Granite Base';
+      return cleanLabel(lbl);
+    }
+    // Format install label: generic "Marker Install" for marker install fees
+    function formatInstallLabel(lbl) {
+      if (/Install/i.test(lbl) && /Companion|Upright|Slant|Monument|Flush|Marker|Granite/i.test(lbl)) return 'Marker Install';
+      return cleanLabel(lbl);
+    }
+    // Build combined label for vase group, stripping core/base dimension detail
+    function buildVaseLabel(vLines) {
+      var vaseItem = vLines.find(function(l){ return /^Vase:/i.test(l.label); });
+      var hasBlock = vLines.some(function(l){ return /Vase\s+Block/i.test(l.label) && !/Install/i.test(l.label); });
+      var hasInstall = vLines.some(function(l){ return /Install/i.test(l.label); });
+      var vaseName = 'Vase';
+      if (vaseItem) {
+        var clean = vaseItem.label.replace(/^Vase:\s*/i,'').replace(/\s*\([^)]*\)/g,'').replace(/\s*[-—]\s*[A-Z].*/,'').trim();
+        if (clean.length > 2) vaseName = clean + ' Vase';
+      }
+      var parts = [vaseName];
+      if (hasBlock) parts.push('Block');
+      if (hasInstall) parts.push('Install');
+      return parts.join(' + ');
+    }
 
     var markerItem   = combineLines(markerLines);
     var baseItem     = combineLines(baseLines);
@@ -8580,21 +8625,28 @@ async function generateRICContractCore(clientData) {
     var vaultItem    = combineLines(vaultLines);
     var vaultSetItem = combineLines(vaultSetLines);
 
-    // Split overflow across both Other Merchandise rows before falling back to repurposing dedicated rows
-    var _half = Math.ceil(overflowLines.length / 2);
-    var overflow1 = overflowLines.length > 0 ? combineLines(overflowLines.slice(0, _half)) : null;
-    var overflow2 = overflowLines.length > _half ? combineLines(overflowLines.slice(_half)) : null;
+    // overflow1 = all vase-related items combined; overflow2 = remaining other merch
+    var overflow1 = null, overflow2 = null;
+    if (vaseRelatedLines.length) {
+      var _vaseTotal = vaseRelatedLines.reduce(function(s,l){ return s+l.amount; }, 0);
+      overflow1 = { label: buildVaseLabel(vaseRelatedLines), amount: _vaseTotal };
+      overflow2 = otherOverflow.length ? combineLines(otherOverflow) : null;
+    } else {
+      var _half = Math.ceil(otherOverflow.length / 2);
+      overflow1 = otherOverflow.length > 0 ? combineLines(otherOverflow.slice(0, _half)) : null;
+      overflow2 = otherOverflow.length > _half ? combineLines(otherOverflow.slice(_half)) : null;
+    }
 
     var markerQty   = markerLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || markerLines.length;
     var vaultQty    = vaultLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultLines.length;
     var vaultSetQty = vaultSetLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultSetLines.length;
-    if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', markerItem.label);   setF('Taxable1', fmtC(markerItem.amount));   }
-    if (baseItem)     { setF('Qty 6','1');                   setF('Mem Base Description', baseItem.label);     setF('Taxable2', fmtC(baseItem.amount));     }
-    if (installItem)  { setF('Qty 7','1');                           setF('Notes 1', installItem.label);               setF('Taxable3', fmtC(installItem.amount));  }
-    if (vaultItem)    { setF('Qty 8', String(vaultQty||1));          setF('Notes 2', vaultItem.label);                 setF('Taxable4', fmtC(vaultItem.amount));    }
-    if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1));       setF('Notes 3', vaultSetItem.label);              setF('Taxable5', fmtC(vaultSetItem.amount)); }
-    if (overflow1)    { setF('Qty 10','1');                          setF('Other Merch 1 Description', overflow1.label); setF('Taxable6', fmtC(overflow1.amount)); }
-    if (overflow2)    { setF('Qty 11','1');                          setF('Other Merch 2 Description', overflow2.label); setF('Taxable7', fmtC(overflow2.amount)); }
+    if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', formatMarkerLabel(markerItem.label));   setF('Taxable1', fmtC(markerItem.amount));   }
+    if (baseItem)     { setF('Qty 6','1');                   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
+    if (installItem)  { setF('Qty 7','1');                   setF('Notes 1', formatInstallLabel(installItem.label));              setF('Taxable3', fmtC(installItem.amount));  }
+    if (vaultItem)    { setF('Qty 8', String(vaultQty||1));  setF('Notes 2', vaultItem.label);                                   setF('Taxable4', fmtC(vaultItem.amount));    }
+    if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1)); setF('Notes 3', vaultSetItem.label);                              setF('Taxable5', fmtC(vaultSetItem.amount)); }
+    if (overflow1)    { setF('Qty 10','1'); setF('Other Merch 1 Description', overflow1.label); setF('Taxable6', fmtC(overflow1.amount)); }
+    if (overflow2)    { setF('Qty 11','1'); setF('Other Merch 2 Description', overflow2.label); setF('Taxable7', fmtC(overflow2.amount)); }
     // Discount — combine all discount lines into one row
     if (discLines.length) {
       setF('Qty 12', '1');
@@ -8657,6 +8709,27 @@ async function generateRICContractCore(clientData) {
         try { var _dtf = form.getTextField('Day Telephone No'); _dtf.setFontSize(7); } catch(e) {}
       }
     }
+
+    // Narrow currency fields (≈52-57 pt wide) must use font size 8 to prevent Adobe "1.#R" overflow.
+    // Description fields use font size 0 so Adobe auto-sizes to fit longer text.
+    var _narrowCurrencyFields = [
+      'NonTax1','Taxable1','Taxable2','Taxable3','Taxable4','Taxable5','Taxable6','Taxable7',
+      'TotalCP','Sales Tax Amount','Down Payment','Amount Financed','Finance Charge',
+      'Total of Payments','Total Sales Price','Total Sale Price',
+      'FCAmount_TIL','UnpaidBalance_TIL','TotalPayments_TIL','TotalDP_TIL','TotalSalesPrice_TIL',
+      'PaymentAmount1','Sales Tax Percent'
+    ];
+    var _descFields = [
+      'Description of Interment Rights','Memorial Description','Mem Base Description',
+      'Notes 1','Notes 2','Notes 3','Other Merch 1 Description','Other Merch 2 Description',
+      'Notes 5','Discount Description 1','Discount Description 2'
+    ];
+    _narrowCurrencyFields.forEach(function(fn) {
+      try { form.getTextField(fn).setFontSize(8); } catch(e) {}
+    });
+    _descFields.forEach(function(fn) {
+      try { form.getTextField(fn).setFontSize(0); } catch(e) {}
+    });
 
     // Embed font and update field appearances so values display without clicking
     try {
@@ -8865,7 +8938,7 @@ function ricCalcFinancing() {
   var monthly  = 0;
   if (months > 0) {
     if (rate === 0) {
-      monthly = Math.ceil(unpaid / months * 100) / 100;
+      monthly = Math.round(unpaid / months * 100) / 100;
     } else {
       var r = rate / 100 / 12;
       monthly = Math.round(unpaid * r * Math.pow(1+r,months) / (Math.pow(1+r,months)-1) * 100) / 100;
