@@ -35,10 +35,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .sidebar{background:var(--navy-mid);padding:16px 0;position:sticky;top:49px;height:calc(100vh - 49px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
 .nav-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:14px 16px 5px;}
 .nav-item{display:block;padding:7px 16px;color:rgba(255,255,255,.72);font-size:12px;font-weight:400;border-left:3px solid transparent;transition:all .15s;cursor:pointer;user-select:none;}
-.nav-item:hover{color:#fff;background:rgba(255,255,255,.07);border-left-color:var(--gold);}
-.nav-item.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:var(--gold);font-weight:600;}
-.nav-item.highlight{background:rgba(184,145,42,.15);border-left-color:var(--gold);color:var(--gold);font-weight:600;}
-.nav-item.highlight:hover{background:rgba(184,145,42,.25);}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.07);border-left-color:#c8540a;}
+.nav-item.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:#c8540a;font-weight:600;}
+.nav-item.highlight{background:rgba(200,84,10,.12);border-left-color:#c8540a;color:#c8540a;font-weight:600;}
+.nav-item.highlight:hover{background:rgba(200,84,10,.22);}
 
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
@@ -6985,6 +6985,19 @@ function markerRender() {
 }
 
 
+function _finColors() {
+  var dark = document.body.classList.contains('dark-mode');
+  return dark ? {
+    NAVY:'#1e2a42', ORANGE:'#e05c1a', MO:'#e8eaf0', TC:'#8a9ab8',
+    BORDER:'#2a3a54', ROW_ODD:'#1a2236', ROW_EVEN:'#16202e',
+    HDR_TEXT:'#e8eaf0', TIER_TEXT:'#e8eaf0'
+  } : {
+    NAVY:'#1B2A4A', ORANGE:'#C0673B', MO:'#1B2A4A', TC:'#555',
+    BORDER:'#e8e4dc', ROW_ODD:'#f8f9fa', ROW_EVEN:'#fff',
+    HDR_TEXT:'#fff', TIER_TEXT:'#1B2A4A'
+  };
+}
+
 function showAllFinTiers() {
   var total = _cemTotal || 0;
   var finTable = el('finTable');
@@ -6994,7 +7007,7 @@ function showAllFinTiers() {
     return;
   }
 
-  var BW_NAVY = '#1B2A4A', BW_ORANGE = '#C0673B';
+  var C = _finColors();
   var tierDefs = [
     { pct: 0.10, label: '10% Down (Minimum)',   key: 0.10 },
     { pct: 0.20, label: '20% Down',              key: 0.20 },
@@ -7008,12 +7021,12 @@ function showAllFinTiers() {
     var tiers   = FIN_TIERS[td.key];
 
     html += '<div style="margin-bottom:18px;">';
-    html += '<div style="font-size:12px;font-weight:700;color:' + BW_NAVY + ';margin-bottom:5px;">'
-      + td.label + ' — Min. Down: <span style="color:' + BW_ORANGE + ';">' + fmt(downAmt) + '</span>'
+    html += '<div class="tier-hdr-label" style="font-size:12px;font-weight:700;color:' + C.TIER_TEXT + ';margin-bottom:5px;">'
+      + td.label + ' — Min. Down: <span style="color:' + C.ORANGE + ';">' + fmt(downAmt) + '</span>'
       + ' &nbsp;|&nbsp; Balance: <strong>' + fmt(balance) + '</strong></div>';
 
     html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
-      + '<thead><tr style="background:' + BW_NAVY + ';color:#fff;">'
+      + '<thead><tr style="background:' + C.NAVY + ';color:' + C.HDR_TEXT + ';">'
       + '<th style="padding:5px 8px;text-align:left;">Term</th>'
       + '<th style="padding:5px 8px;text-align:right;">Rate</th>'
       + '<th style="padding:5px 8px;text-align:right;">Monthly</th>'
@@ -7025,13 +7038,13 @@ function showAllFinTiers() {
       var monthly   = finMonthly(balance, months, rate);
       var totalCost = downAmt + (monthly * months);
       var isZero    = rate === 0;
-      var bg        = i % 2 === 0 ? '#f8f9fa' : '#fff';
-      html += '<tr style="background:' + bg + ';border-bottom:1px solid #e8e4dc;">'
+      var bg        = i % 2 === 0 ? C.ROW_ODD : C.ROW_EVEN;
+      html += '<tr' + (isZero ? ' class="ach-zero"' : '') + ' style="background:' + bg + ';border-bottom:1px solid ' + C.BORDER + ';">'
         + '<td style="padding:6px 8px;font-weight:600;">' + months + ' mo</td>'
-        + '<td style="padding:6px 8px;text-align:right;' + (isZero ? 'color:' + BW_ORANGE + ';font-weight:700;' : '') + '">'
+        + '<td class="' + (isZero ? 'ach-rate' : '') + '" style="padding:6px 8px;text-align:right;' + (isZero ? 'color:' + C.ORANGE + ';font-weight:700;' : '') + '">'
         + (isZero ? '0% ✓ ACH' : (rate * 100).toFixed(0) + '%') + '</td>'
-        + '<td style="padding:6px 8px;text-align:right;font-weight:700;color:' + BW_NAVY + ';">' + fmt(monthly) + '/mo</td>'
-        + '<td style="padding:6px 8px;text-align:right;color:#555;font-size:11px;">' + fmt(totalCost) + '</td>'
+        + '<td style="padding:6px 8px;text-align:right;font-weight:700;color:' + C.MO + ';">' + fmt(monthly) + '/mo</td>'
+        + '<td style="padding:6px 8px;text-align:right;color:' + C.TC + ';font-size:11px;">' + fmt(totalCost) + '</td>'
         + '</tr>';
     });
 
@@ -7083,14 +7096,14 @@ function cemFinUpdate() {
 
   var tierKey = downPct >= 0.25 ? 0.25 : downPct >= 0.20 ? 0.20 : 0.10;
   var tiers   = FIN_TIERS[tierKey];
-  var BW_NAVY = '#1B2A4A', BW_ORANGE = '#C0673B';
+  var C = _finColors();
 
   var html = '<div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">'
     + (tierKey * 100).toFixed(0) + '% tier applies'
     + (downPct >= 0.25 ? ' (25%+ down)' : '') + ' &nbsp;|&nbsp; Balance: <strong>' + fmt(balance) + '</strong></div>';
 
   html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
-    + '<thead><tr style="background:' + BW_NAVY + ';color:#fff;">'
+    + '<thead><tr style="background:' + C.NAVY + ';color:' + C.HDR_TEXT + ';">'
     + '<th style="padding:6px 8px;text-align:left;">Term</th>'
     + '<th style="padding:6px 8px;text-align:right;">Finance Rate</th>'
     + '<th style="padding:6px 8px;text-align:right;">Monthly Payment</th>'
@@ -7102,13 +7115,13 @@ function cemFinUpdate() {
     var monthly = finMonthly(balance, months, rate);
     var totalCost = downAmt + (monthly * months);
     var isZero = rate === 0;
-    var bg = i % 2 === 0 ? '#f8f9fa' : '#fff';
-    html += '<tr style="background:' + bg + ';border-bottom:1px solid #e8e4dc;">'
+    var bg = i % 2 === 0 ? C.ROW_ODD : C.ROW_EVEN;
+    html += '<tr' + (isZero ? ' class="ach-zero"' : '') + ' style="background:' + bg + ';border-bottom:1px solid ' + C.BORDER + ';">'
       + '<td style="padding:7px 8px;font-weight:600;">' + months + ' months</td>'
-      + '<td style="padding:7px 8px;text-align:right;' + (isZero ? 'color:' + BW_ORANGE + ';font-weight:700;' : '') + '">'
+      + '<td class="' + (isZero ? 'ach-rate' : '') + '" style="padding:7px 8px;text-align:right;' + (isZero ? 'color:' + C.ORANGE + ';font-weight:700;' : '') + '">'
       + (isZero ? '0% ✓ ACH required' : (rate * 100).toFixed(0) + '%') + '</td>'
-      + '<td style="padding:7px 8px;text-align:right;font-weight:700;color:' + BW_NAVY + ';">' + fmt(monthly) + '/mo</td>'
-      + '<td style="padding:7px 8px;text-align:right;color:#555;font-size:11px;">' + fmt(totalCost) + '</td>'
+      + '<td style="padding:7px 8px;text-align:right;font-weight:700;color:' + C.MO + ';">' + fmt(monthly) + '/mo</td>'
+      + '<td style="padding:7px 8px;text-align:right;color:' + C.TC + ';font-size:11px;">' + fmt(totalCost) + '</td>'
       + '</tr>';
   });
 
@@ -8579,8 +8592,8 @@ async function generateRICContractCore(clientData) {
     var markerQty   = markerLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || markerLines.length;
     var vaultQty    = vaultLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultLines.length;
     var vaultSetQty = vaultSetLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultSetLines.length;
-    if (markerItem)   { setF('Qty Memo Type', String(markerQty||1)); setF('Memorial Description', markerItem.label);   setF('Taxable1', fmtC(markerItem.amount));   }
-    if (baseItem)     { setF('Qty Memo Base','1');                   setF('Mem Base Description', baseItem.label);     setF('Taxable2', fmtC(baseItem.amount));     }
+    if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', markerItem.label);   setF('Taxable1', fmtC(markerItem.amount));   }
+    if (baseItem)     { setF('Qty 6','1');                   setF('Mem Base Description', baseItem.label);     setF('Taxable2', fmtC(baseItem.amount));     }
     if (installItem)  { setF('Qty 7','1');                           setF('Notes 1', installItem.label);               setF('Taxable3', fmtC(installItem.amount));  }
     if (vaultItem)    { setF('Qty 8', String(vaultQty||1));          setF('Notes 2', vaultItem.label);                 setF('Taxable4', fmtC(vaultItem.amount));    }
     if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1));       setF('Notes 3', vaultSetItem.label);              setF('Taxable5', fmtC(vaultSetItem.amount)); }
@@ -8595,20 +8608,20 @@ async function generateRICContractCore(clientData) {
     }
     // Financial summary
     setF('SubTotal',        fmtC(subTotal));
-    setF('Tax',             String(Math.round(TAX * 1000) / 10));
+    setF('Tax',             '10.40');
     setF('TaxAmount',       fmtC(taxAmount));
     setF('TotalCP',         fmtC(grandTotal));
-    setF('DPAmount',        downAmt ? fmtC(-downAmt) : '');
-    setF('TotalDP',         downAmt ? fmtC(-downAmt) : '');
+    setF('DPAmount',        downAmt ? fmtC(downAmt) : '');
+    setF('TotalDP',         downAmt ? fmtC(downAmt) : '');
     setF('UnpaidBalance',   fmtC(unpaid));
-    setF('Finance Charge',  '0.00');
+    setF('Finance Charge',  _finData && _finData.rate ? String(Math.round(_finData.rate * 100)) + '.00' : '0.00');
     setF('FCAmount',        '0.00');
     setF('TotalPayments',   fmtC(totPmts));
     setF('Total Sales Price', fmtC(grandTotal));
     setF('FCAmount_TIL',    '0');
     setF('UnpaidBalance_TIL',   fmtC(unpaid));
     setF('TotalPayments_TIL',   fmtC(totPmts));
-    setF('TotalDP_TIL',     downAmt ? fmtC(-downAmt) : '');
+    setF('TotalDP_TIL',     downAmt ? fmtC(downAmt) : '');
     setF('TotalSalesPrice_TIL', fmtC(grandTotal));
     // Payment schedule — use RIC tab fields if available, else auto-calculate
     var ricDown    = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value)   || 0) : downAmt;
@@ -8621,8 +8634,8 @@ async function generateRICContractCore(clientData) {
     var ricTotPmts = (ricMonths && ricRateRaw === 0) ? ricUnpaid : ricMonths ? Math.round(ricMo * ricMonths * 100) / 100 : ricUnpaid;
 
     // Override financial totals with RIC tab values
-    setF('DPAmount',        ricDown ? fmtC(-ricDown) : '');
-    setF('TotalDP',         ricDown ? fmtC(-ricDown) : '');
+    setF('DPAmount',        ricDown ? fmtC(ricDown) : '');
+    setF('TotalDP',         ricDown ? fmtC(ricDown) : '');
     setF('UnpaidBalance',   fmtC(ricUnpaid));
     setF('FCAmount',        '0.00');
     setF('TotalPayments',   fmtC(ricTotPmts));
@@ -8630,9 +8643,10 @@ async function generateRICContractCore(clientData) {
     setF('FCAmount_TIL',    '0');
     setF('UnpaidBalance_TIL',    fmtC(ricUnpaid));
     setF('TotalPayments_TIL',    fmtC(ricTotPmts));
-    setF('TotalDP_TIL',          ricDown ? fmtC(-ricDown) : '');
+    setF('TotalDP_TIL',          ricDown ? fmtC(ricDown) : '');
     setF('TotalSalesPrice_TIL',  fmtC(grandTotal));
     setF('Cash', ricPayMeth);
+    setF('Finance Charge',  String(Math.round(ricRateRaw)) + '.00');
 
     if (ricMonths) {
       setF('Terms', String(ricMonths));
@@ -8661,10 +8675,6 @@ async function generateRICContractCore(clientData) {
     if (fillCount === 0) {
       alert('Warning: No fields were set. Check console (F12).\nErrors: ' + fillErrors.slice(0,3).join(', '));
     }
-
-    // Flatten form fields so Adobe doesn't re-run PDF calculation scripts
-    // (which produce 1.#R / Infinity errors in Adobe Acrobat)
-    try { form.flatten(); } catch(flatErr) { console.warn('[RIC] flatten failed, continuing:', flatErr.message); }
 
     var outBytes = await pdfDoc.save();
     var blob = new Blob([outBytes], { type: 'application/pdf' });
@@ -9649,60 +9659,75 @@ function fhInsCalc() {
 <style>
 /* DARK MODE */
 body.dark-mode {
-  --offwhite:#141824; --white:#1c2236; --gray-light:#1c2236; --gray-mid:#2a3050;
-  --text:#dde1ec; --text-light:#8892a8; --blue-light:#172840; --gold-light:#241c08;
+  --offwhite:#0d1117; --white:#1a2236; --gray-light:#1a2236; --gray-mid:#2a3a54;
+  --text:#e8eaf0; --text-light:#8a9ab8; --blue-light:#0f1f33;
+  --gold:#e05c1a; --gold-light:#1a1008; --orange:#e05c1a; --tax-color:#e09050;
+  background:#0d1117;
 }
-body.dark-mode .sidebar, body.dark-mode .site-header { background:#0c1020; }
-body.dark-mode .section { background:var(--offwhite); }
-body.dark-mode .section-header { border-color:#2a3050; }
-body.dark-mode .section-header h2 { color:#dde1ec; }
-body.dark-mode .section-icon { background:#253052; }
-body.dark-mode .badge { background:#1c2236; color:#6b7a98; }
-body.dark-mode .subsection-title { color:#7a90b8; border-color:#2a3050; }
-body.dark-mode .q-panel { background:#1c2236; border-color:#2a3050; }
-body.dark-mode .q-panel-header { background:#1a2744; color:#fff; }
-body.dark-mode .summary-panel { background:#0e1830; }
-body.dark-mode .summary-fixed { border-color:#2a3050; }
-body.dark-mode .summary-line { border-color:#2a3050; }
-body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background:#10141e; color:#dde1ec; border-color:#2a3050; }
-body.dark-mode label { color:#8892a8; }
-body.dark-mode .nav-item { color:rgba(255,255,255,.62); }
-body.dark-mode .nav-item.active, body.dark-mode .nav-item:hover { color:#fff; background:rgba(255,255,255,.07); }
-body.dark-mode td { border-color:#2a3050; color:#cdd3e4; }
-body.dark-mode tr:nth-child(even) td { background:#161c2c; }
-body.dark-mode tr:hover td { background:#172840; }
-body.dark-mode th { background:#253052; color:#fff; }
-body.dark-mode .price { color:var(--gold) !important; }
-body.dark-mode .qr-card { background:#1c2236; border-color:#2a3050; }
-body.dark-mode .qr-row .qr-val { color:#dde1ec; }
-body.dark-mode .qr-row { border-color:#2a3050; }
-body.dark-mode .callout-blue { background:#172840; border-color:#2c5282; color:#a0c0e0; }
-body.dark-mode .callout-gold { background:#241c08; border-color:#8a6820; color:#c0a040; }
-body.dark-mode .callout-green { background:#0c2018; border-color:#2a6045; color:#5aaa7a; }
-body.dark-mode .tag-info { background:#172840; color:#78b0dc; }
-body.dark-mode .tag-call { background:#241c08; color:#c0a040; }
-body.dark-mode .tag-exempt { background:#0c2018; color:#5aaa7a; }
-body.dark-mode .q-price-disp { color:var(--gold) !important; }
-body.dark-mode [style*="color:var(--navy)"] { color:#8099cc !important; }
-body.dark-mode .pull-result { color:#dde1ec; }
-body.dark-mode .breakdown-line { border-color:#2a3050; }
-body.dark-mode .breakdown-lines { border-color:#2a3050; }
-body.dark-mode .plan-items-area { border-color:#2a3050; }
+body.dark-mode .site-header { background:#111827; }
+body.dark-mode .sidebar { background:#111827; }
+body.dark-mode .nav-label { color:#4a5a78; }
+body.dark-mode .nav-item { color:#8a9ab8; }
+body.dark-mode .nav-item:hover { color:#e8eaf0; background:#1a2236; border-left-color:#e05c1a; }
+body.dark-mode .nav-item.active { color:#e8eaf0; background:#1a2236; border-left-color:#e05c1a; font-weight:600; }
+body.dark-mode .nav-item.highlight { background:rgba(224,92,26,.12); border-left-color:#e05c1a; color:#e05c1a; }
+body.dark-mode .nav-item.highlight:hover { background:rgba(224,92,26,.22); }
+body.dark-mode .section { background:#1a2236; }
+body.dark-mode .section-header { border-color:#2a3a54; }
+body.dark-mode .section-header h2 { color:#e8eaf0; }
+body.dark-mode .section-icon { background:#1e2a42; }
+body.dark-mode .badge { background:#1e2a42; color:#8a9ab8; }
+body.dark-mode .subsection-title { color:#8a9ab8; border-color:#2a3a54; }
+body.dark-mode .q-panel { background:#1a2236; border-color:#2a3a54; }
+body.dark-mode .q-panel-header { background:#1e2a42; color:#e8eaf0; }
+body.dark-mode .summary-panel { background:#111827; }
+body.dark-mode .summary-fixed { border-color:#2a3a54; }
+body.dark-mode .summary-line { border-color:#2a3a54; }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background:#1a2236; color:#e8eaf0; border-color:#2a3a54; }
+body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color:#4a5a78; }
+body.dark-mode label { color:#8a9ab8; }
+body.dark-mode td { border-color:#2a3a54; color:#e8eaf0; }
+body.dark-mode tr:nth-child(even) td { background:#16202e; }
+body.dark-mode tr:hover td { background:#1e2a42; }
+body.dark-mode th { background:#1e2a42; color:#e8eaf0; }
+body.dark-mode .price { color:#e05c1a !important; }
+body.dark-mode .q-price-disp { color:#e05c1a !important; }
+body.dark-mode .qr-card { background:#1a2236; border-color:#2a3a54; }
+body.dark-mode .qr-row .qr-val { color:#e8eaf0; }
+body.dark-mode .qr-row { border-color:#2a3a54; }
+body.dark-mode .callout-blue { background:#0f1f33; border-color:#2a4a70; color:#8abfe0; }
+body.dark-mode .callout-gold { background:#1a100a; border-color:#7a4010; color:#e09050; }
+body.dark-mode .callout-green { background:#0a1e14; border-color:#1a5030; color:#5aaa7a; }
+body.dark-mode .tag-info { background:#0f1f33; color:#6aaad4; }
+body.dark-mode .tag-call { background:#1a100a; color:#e09050; }
+body.dark-mode .tag-exempt { background:#0a1e14; color:#5aaa7a; }
+body.dark-mode [style*="color:var(--navy)"] { color:#8a9ab8 !important; }
+body.dark-mode .pull-result { color:#e8eaf0; }
+body.dark-mode .breakdown-line { border-color:#2a3a54; }
+body.dark-mode .breakdown-lines { border-color:#2a3a54; }
+body.dark-mode .plan-items-area { border-color:#2a3a54; }
 body.dark-mode .plan-item-row .pi-label,
-body.dark-mode .plan-item-row .pi-amount { background:#10141e; border-color:#2a3050; color:#dde1ec; }
-body.dark-mode .plan-totals { color:#6b7a98; border-color:#2a3050; }
-body.dark-mode .disc-row { background:rgba(255,255,255,.025); border-color:#2a3050; }
-body.dark-mode .pcm-group-toggle { border-color:#2a3050; }
-body.dark-mode .btn-add-item { background:#172840; border-color:#2c5282; color:#78b0dc; }
-body.dark-mode .btn-add-line { background:#172840; border-color:#2c5282; color:#78b0dc; }
+body.dark-mode .plan-item-row .pi-amount { background:#1a2236; border-color:#2a3a54; color:#e8eaf0; }
+body.dark-mode .plan-totals { color:#8a9ab8; border-color:#2a3a54; }
+body.dark-mode .disc-row { background:rgba(255,255,255,.02); border-color:#2a3a54; }
+body.dark-mode .pcm-group-toggle { border-color:#2a3a54; }
+body.dark-mode .btn-add-item { background:#1e2a42; border-color:#3a4f70; color:#4a8fd4; }
+body.dark-mode .btn-add-line { background:#1e2a42; border-color:#3a4f70; color:#4a8fd4; }
 body.dark-mode #cemTypePNLabel:has(input:not(:checked)),
 body.dark-mode #cemTypeANLabel:has(input:not(:checked)),
 body.dark-mode #fhTypePNLabel:has(input:not(:checked)),
-body.dark-mode #fhTypeANLabel:has(input:not(:checked)) { background:#1c2236 !important; color:rgba(255,255,255,.45) !important; }
+body.dark-mode #fhTypeANLabel:has(input:not(:checked)) { background:#1a2236 !important; color:rgba(255,255,255,.4) !important; }
 body.dark-mode #cemTypePNLabel:has(input:checked),
 body.dark-mode #cemTypeANLabel:has(input:checked),
 body.dark-mode #fhTypePNLabel:has(input:checked),
-body.dark-mode #fhTypeANLabel:has(input:checked) { background:#284878 !important; color:#fff !important; }
+body.dark-mode #fhTypeANLabel:has(input:checked) { background:#1e2a42 !important; color:#e8eaf0 !important; }
+/* Payment table — override hardcoded inline styles in dark mode */
+body.dark-mode #finTable td, body.dark-mode #finTable th { background-color:#1a2236 !important; color:#e8eaf0 !important; border-color:#2a3a54 !important; }
+body.dark-mode #finTable thead th { background-color:#1e2a42 !important; }
+body.dark-mode #finTable tbody tr:nth-child(even) td { background-color:#16202e !important; }
+body.dark-mode #finTable tbody tr.ach-zero td { background-color:#1a3a2a !important; }
+body.dark-mode #finTable tbody tr.ach-zero td.ach-rate { color:#4aaa6a !important; }
+body.dark-mode #finTable .tier-hdr-label { color:#e8eaf0 !important; }
 </style>
 
 <script>
@@ -10169,6 +10194,10 @@ async function downloadCombQuotePDF() {
     localStorage.setItem(DM_KEY, on ? '1' : '');
     var btn = document.getElementById('darkModeBtn');
     if (btn) btn.textContent = on ? '☀️' : '🌙';
+    // Re-render JS-colored finance tables with new palette
+    var wasShowAll = window._finShowAll;
+    if (typeof cemFinUpdate === 'function') cemFinUpdate();
+    if (wasShowAll && typeof showAllFinTiers === 'function') showAllFinTiers();
   };
   window.addEventListener('load', function() {
     var on = !!localStorage.getItem(DM_KEY);
