@@ -1731,7 +1731,8 @@ tr:hover td{background:#eef3f8;}
       <div class="summary-empty">Select items to build your quote</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="downloadCemQuotePDF()" title="Download PDF">📥 Download PDF</button>
+      <button class="btn-print" onclick="downloadCemQuotePDF()" title="Download PDF">📥 PDF</button>
+      <button class="btn-print" onclick="printCemQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="copyCemSummary()" title="Copy summary to clipboard" id="cemCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetCemQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveCemQuote()" title="Save this quote draft">💾 Save</button>
@@ -2167,50 +2168,55 @@ tr:hover td{background:#eef3f8;}
       <div class="q-panel">
         <div class="q-panel-header">🕯️ Memorial Merchandise (Taxable)</div>
         <div class="q-panel-body">
-          <div class="q-row">
-            <label>Package</label>
-            <select id="fhMemPkg" onchange="fhUpdateD()">
-              <option value="">— None —</option>
-              <optgroup label="── Memorial Packages ──">
-                <option value="605">Distinctly Yours Memorial Package — $605</option>
-                <option value="310">Simply Treasured Memorial Package — $310</option>
-              </optgroup>
-              <optgroup label="── Memorial Boxsets ──">
-                <option value="255">Distinctly Yours Boxset — $255</option>
-                <option value="205">Simply Treasured Boxset — $205</option>
-                <option value="175">Inscribed Memories Boxset — $175</option>
-              </optgroup>
-              <optgroup label="── Individual Stationery ──">
-                <option value="95">Distinctly Yours Register Book — $95</option>
-                <option value="80">Simply Treasured Register Book — $80</option>
-                <option value="60">Standard Register Book — $60</option>
-                <option value="120">Distinctly Yours Service Folders (first 50) — $120</option>
-                <option value="80">Distinctly Yours Service Folders (add'l 50) — $80</option>
-                <option value="80">Simply Treasured Service Folders (first 50) — $80</option>
-                <option value="70">Simply Treasured Service Folders (add'l 50) — $70</option>
-                <option value="55">Standard Service Folders (first 50) — $55</option>
-                <option value="40">Standard Service Folders (add'l 50) — $40</option>
-                <option value="115">Prayer Cards (first 100) — $115</option>
-                <option value="90">Prayer Cards (add'l 100) — $90</option>
-                <option value="25">Distinctly Yours Ack. Cards (box of 25) — $25</option>
-                <option value="15">Simply Treasured Ack. Cards (box of 25) — $15</option>
-                <option value="15">Standard Ack. Cards (box of 25) — $15</option>
-                <option value="5">Bookmarks (per bookmark) — $5</option>
-              </optgroup>
-              <optgroup label="── Other Memorial Merchandise ──">
-                <option value="205">Gather Live Streaming Package — $205</option>
-                <option value="115">Tribute Video Book — $115</option>
-                <option value="90">Tribute Video (first copy) — $90</option>
-                <option value="35">Tribute Video (additional copy) — $35</option>
-                <option value="35">Square Memorial Candle — $35</option>
-                <option value="20">Standard Memorial Candle — $20</option>
-                <option value="50">Hard Cover Photobook — $50</option>
-                <option value="235">Canvas Portrait w/ Ground Shipping — $235</option>
-                <option value="255">Canvas Portrait w/ Next Day Shipping — $255</option>
-              </optgroup>
-            </select>
-            <span id="fhMemPkgDisp" class="q-price-disp">—</span>
+          <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple items — packages, boxsets, stationery, and other memorial merchandise.</div>
+          <div class="q-group">
+            <div class="q-group-label">Select Item</div>
+            <div class="q-row" style="flex-wrap:wrap;gap:6px;align-items:center;">
+              <select id="fhMemPkg" style="flex:1;min-width:180px;">
+                <option value="">— None —</option>
+                <optgroup label="── Memorial Packages ──">
+                  <option value="605">Distinctly Yours Memorial Package — $605</option>
+                  <option value="310">Simply Treasured Memorial Package — $310</option>
+                </optgroup>
+                <optgroup label="── Memorial Boxsets ──">
+                  <option value="255">Distinctly Yours Boxset — $255</option>
+                  <option value="205">Simply Treasured Boxset — $205</option>
+                  <option value="175">Inscribed Memories Boxset — $175</option>
+                </optgroup>
+                <optgroup label="── Individual Stationery ──">
+                  <option value="95">Distinctly Yours Register Book — $95</option>
+                  <option value="80">Simply Treasured Register Book — $80</option>
+                  <option value="60">Standard Register Book — $60</option>
+                  <option value="120">Distinctly Yours Service Folders (first 50) — $120</option>
+                  <option value="80">Distinctly Yours Service Folders (add'l 50) — $80</option>
+                  <option value="80">Simply Treasured Service Folders (first 50) — $80</option>
+                  <option value="70">Simply Treasured Service Folders (add'l 50) — $70</option>
+                  <option value="55">Standard Service Folders (first 50) — $55</option>
+                  <option value="40">Standard Service Folders (add'l 50) — $40</option>
+                  <option value="115">Prayer Cards (first 100) — $115</option>
+                  <option value="90">Prayer Cards (add'l 100) — $90</option>
+                  <option value="25">Distinctly Yours Ack. Cards (box of 25) — $25</option>
+                  <option value="15">Simply Treasured Ack. Cards (box of 25) — $15</option>
+                  <option value="15">Standard Ack. Cards (box of 25) — $15</option>
+                  <option value="5">Bookmarks (per bookmark) — $5</option>
+                </optgroup>
+                <optgroup label="── Other Memorial Merchandise ──">
+                  <option value="205">Gather Live Streaming Package — $205</option>
+                  <option value="115">Tribute Video Book — $115</option>
+                  <option value="90">Tribute Video (first copy) — $90</option>
+                  <option value="35">Tribute Video (additional copy) — $35</option>
+                  <option value="35">Square Memorial Candle — $35</option>
+                  <option value="20">Standard Memorial Candle — $20</option>
+                  <option value="50">Hard Cover Photobook — $50</option>
+                  <option value="235">Canvas Portrait w/ Ground Shipping — $235</option>
+                  <option value="255">Canvas Portrait w/ Next Day Shipping — $255</option>
+                </optgroup>
+              </select>
+              <input type="number" id="fhMemPkgPickQty" min="1" max="99" value="1" style="width:54px;" title="Qty">
+              <button onclick="fhMemPkgAdd()" style="padding:7px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">+ Add</button>
+            </div>
           </div>
+          <div id="fhMemPkgList" style="margin-top:8px;"></div>
         </div>
       </div>
 
@@ -2385,7 +2391,8 @@ tr:hover td{background:#eef3f8;}
       <div class="summary-empty">Select items to build your quote</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="downloadFhQuotePDF()" title="Download PDF">📥 Download PDF</button>
+      <button class="btn-print" onclick="downloadFhQuotePDF()" title="Download PDF">📥 PDF</button>
+      <button class="btn-print" onclick="printFhQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="copyFhSummary()" title="Copy summary to clipboard" id="fhCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetFHQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveFhQuote()" title="Save this quote draft">💾 Save</button>
@@ -5865,56 +5872,67 @@ function printCemQuote() {
   }
 
   var CSS = [
-    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#1B2A4A;font-size:13px;background:#fff;}',
-    'h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.05em;color:#1B2A4A;}',
-    '.sub{font-size:11.5px;color:#555;margin-top:3px;}',
-    '.client{font-size:13px;font-weight:700;color:#1B2A4A;margin-top:5px;}',
-    '.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:10px;border-bottom:2.5px solid #1B2A4A;margin-bottom:18px;}',
-    '.date{font-size:11px;color:#777;text-align:right;}',
-    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#C0673B;',
-    '  background:#fff;padding:8px 0 2px;border-top:2px solid #C0673B;margin-top:12px;margin-bottom:0;}',
+    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#222;font-size:13px;background:#fff;}',
+    '.hdr-bar{background:#3d5a7a;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}',
+    '.hdr-brand{font-size:16px;font-weight:800;letter-spacing:.05em;}',
+    '.hdr-sub{font-size:10px;opacity:.85;margin-top:2px;}',
+    '.hdr-right{text-align:right;font-size:10px;opacity:.85;}',
+    '.client{font-size:13px;font-weight:700;color:#3d5a7a;margin-bottom:14px;}',
+    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:#fff;background:#3d5a7a;padding:5px 8px;margin-top:12px;margin-bottom:0;}',
     'table.lines{width:100%;border-collapse:collapse;margin:0;}',
-    'table.lines td{padding:5px 0;border-bottom:1px solid #E0D9CE;font-size:13px;}',
-    'table.lines td.lbl{color:#1B2A4A;}',
-    'table.lines td.amt{text-align:right;font-weight:600;color:#1B2A4A;white-space:nowrap;}',
+    'table.lines td{padding:5px 8px;border-bottom:1px solid #e4e8ec;font-size:13px;}',
+    'table.lines td.lbl{color:#222;}',
+    'table.lines td.amt{text-align:right;font-weight:600;color:#222;white-space:nowrap;}',
     '.disc td{color:#1a6b45 !important;}',
-    '.tax-row td{color:#4A5568;font-weight:600;}',
+    '.tax-row td{color:#3d5a7a;font-weight:600;font-style:italic;}',
     '.total-row{display:flex;justify-content:space-between;align-items:baseline;',
-    '  border-top:2.5px solid #1B2A4A;margin-top:12px;padding-top:10px;}',
+    '  border-top:2.5px solid #3d5a7a;margin-top:14px;padding-top:10px;}',
     '.total-lbl{font-size:15px;font-weight:700;}',
-    '.total-amt{font-size:22px;font-weight:800;color:#C0673B;}',
+    '.total-amt{font-size:22px;font-weight:800;color:#3d5a7a;}',
     '.tax-note{font-size:10.5px;color:#666;margin-top:5px;}',
-    '.note{font-size:10px;color:#888;margin-top:18px;border-top:1px solid #E0D9CE;padding-top:10px;font-style:italic;}',
-    '.pay-hdr{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#C0673B;',
-    '  border-top:2px solid #C0673B;margin-top:22px;padding:8px 0 4px;}',
-    '.tier-hdr{font-size:11.5px;font-weight:700;color:#1B2A4A;margin:10px 0 4px;}',
+    '.note{font-size:10px;color:#666;margin-top:18px;border-top:1px solid #e4e8ec;padding-top:10px;font-style:italic;}',
+    '.pay-hdr{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:#fff;background:#3d5a7a;margin-top:22px;padding:5px 8px;}',
+    '.tier-hdr{font-size:11.5px;font-weight:700;color:#3d5a7a;margin:10px 0 4px;}',
     'table.pay{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;}',
-    'table.pay thead tr{background:#1B2A4A;color:#fff;}',
+    'table.pay thead tr{background:#3d5a7a;color:#fff;}',
     'table.pay thead th{padding:5px 8px;text-align:left;font-weight:600;}',
     'table.pay thead th:not(:first-child){text-align:right;}',
-    'table.pay tbody tr:nth-child(even){background:#F8F6F2;}',
-    'table.pay tbody td{padding:5px 8px;border-bottom:1px solid #E8E4DC;}',
+    'table.pay tbody tr:nth-child(even){background:#f5f7fa;}',
+    'table.pay tbody td{padding:5px 8px;border-bottom:1px solid #e4e8ec;}',
     'table.pay tbody td:not(:first-child){text-align:right;}',
-    '.ach{color:#C0673B;font-weight:700;}',
+    '.ach{color:#3d5a7a;font-weight:700;}',
     '.pay-note{font-size:10px;color:#888;margin-top:6px;font-style:italic;}',
     '@media print{body{margin:18px;} .no-print{display:none;}}'
   ].join('\n');
 
+  var sections = (typeof categorizeCemLines === 'function') ? categorizeCemLines(lines) : [];
   var linesHTML = '';
-  if (exemptLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Tax-Exempt Services</div><table class="lines">';
-    exemptLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+  sections.forEach(function(sec) {
+    if (!sec.items || !sec.items.length) return;
+    linesHTML += '<div class="section-lbl">' + sec.title + '</div><table class="lines">';
+    sec.items.forEach(function(l) {
+      linesHTML += row(l.label, l.amount, l.isDiscount ? 'disc' : '');
+    });
     linesHTML += '</table>';
-  }
-  if (taxLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Taxable Merchandise</div><table class="lines">';
-    taxLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
-    linesHTML += '</table>';
-  }
-  if (discLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Discounts</div><table class="lines">';
-    discLines.forEach(function(l){ linesHTML += row(l.label, l.amount, 'disc'); });
-    linesHTML += '</table>';
+  });
+  if (!sections.length) {
+    if (exemptLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Tax-Exempt Services</div><table class="lines">';
+      exemptLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+      linesHTML += '</table>';
+    }
+    if (taxLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Taxable Merchandise</div><table class="lines">';
+      taxLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+      linesHTML += '</table>';
+    }
+    if (discLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Discounts</div><table class="lines">';
+      discLines.forEach(function(l){ linesHTML += row(l.label, l.amount, 'disc'); });
+      linesHTML += '</table>';
+    }
   }
   if (tax > 0) {
     linesHTML += '<table class="lines"><tr class="tax-row"><td class="lbl">Sales Tax (10.4%)</td><td class="amt">'+fmtAmt(tax)+'</td></tr></table>';
@@ -5939,11 +5957,11 @@ function printCemQuote() {
   var expiresStr = expires.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var cemNotes = el('cemQuoteNotes') ? el('cemQuoteNotes').value.trim() : '';
   win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cemetery Quote – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write('<div class="hdr">');
-  win.document.write('<div><h1>BONNEY WATSON <span style="color:#C0673B;">&middot;</span> Washington Memorial Park</h1>');
-  win.document.write('<div class="sub">' + (cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote') + '</div>');
+  win.document.write('<div class="hdr-bar">');
+  win.document.write('<div><div class="hdr-brand">BONNEY WATSON &nbsp;&middot;&nbsp; Washington Memorial Park</div>');
+  win.document.write('<div class="hdr-sub">' + (cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote') + '</div></div>');
+  win.document.write('<div class="hdr-right">'+d+'<br>Valid through '+expiresStr+'</div></div>');
   if (clientName) win.document.write('<div class="client">Prepared for: ' + clientName + '</div>');
-  win.document.write('</div><div class="date">'+d+'<br><span style="font-size:10px;color:#aaa;">Quote valid through '+expiresStr+'</span></div></div>');
   win.document.write(linesHTML);
   if (payHTML) win.document.write(payHTML);
   if (cemNotes) win.document.write('<div class="note" style="margin-top:12px;color:#555;font-style:normal;background:#f9f7f3;padding:10px;border-radius:4px;border-left:3px solid #C0673B;"><strong>Notes:</strong> ' + cemNotes + '</div>');
@@ -6022,44 +6040,63 @@ function printFhQuote() {
   }
 
   var CSS = [
-    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#1B2A4A;font-size:13px;background:#fff;}',
-    'h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.05em;color:#1B2A4A;}',
-    '.sub{font-size:11.5px;color:#555;margin-top:3px;}',
-    '.client{font-size:13px;font-weight:700;color:#1B2A4A;margin-top:5px;}',
-    '.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:10px;border-bottom:2.5px solid #1B2A4A;margin-bottom:18px;}',
-    '.date{font-size:11px;color:#777;text-align:right;}',
-    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#C0673B;background:#fff;padding:8px 0 2px;border-top:2px solid #C0673B;margin-top:12px;margin-bottom:0;}',
+    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#222;font-size:13px;background:#fff;}',
+    '.hdr-bar{background:#3d5a7a;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}',
+    '.hdr-brand{font-size:16px;font-weight:800;letter-spacing:.05em;}',
+    '.hdr-sub{font-size:10px;opacity:.85;margin-top:2px;}',
+    '.hdr-right{text-align:right;font-size:10px;opacity:.85;}',
+    '.client{font-size:13px;font-weight:700;color:#3d5a7a;margin-bottom:14px;}',
+    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
+    '  color:#fff;background:#3d5a7a;padding:5px 8px;margin-top:12px;margin-bottom:0;}',
     'table.lines{width:100%;border-collapse:collapse;margin:0;}',
-    'table.lines td{padding:5px 0;border-bottom:1px solid #E0D9CE;font-size:13px;}',
-    'table.lines td.lbl{color:#1B2A4A;font-weight:500;}',
-    'table.lines td.amt{text-align:right;font-weight:700;color:#1B2A4A;white-space:nowrap;}',
+    'table.lines td{padding:5px 8px;border-bottom:1px solid #e4e8ec;font-size:13px;}',
+    'table.lines td.lbl{color:#222;font-weight:500;}',
+    'table.lines td.amt{text-align:right;font-weight:700;color:#222;white-space:nowrap;}',
     '.disc td{color:#1a6b45 !important;}',
-    '.tax-row td{color:#b8912a;font-weight:600;font-style:italic;}',
-    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2.5px solid #1B2A4A;margin-top:12px;padding-top:10px;}',
+    '.tax-row td{color:#3d5a7a;font-weight:600;font-style:italic;}',
+    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2.5px solid #3d5a7a;margin-top:14px;padding-top:10px;}',
     '.total-lbl{font-size:15px;font-weight:700;}',
-    '.total-amt{font-size:22px;font-weight:800;color:#C0673B;}',
+    '.total-amt{font-size:22px;font-weight:800;color:#3d5a7a;}',
     '.tax-note{font-size:10.5px;color:#666;margin-top:5px;}',
-    '.note{font-size:10px;color:#888;margin-top:18px;border-top:1px solid #E0D9CE;padding-top:10px;font-style:italic;}',
+    '.note{font-size:10px;color:#666;margin-top:18px;border-top:1px solid #e4e8ec;padding-top:10px;font-style:italic;}',
+    '.ins-hdr{font-size:14px;font-weight:700;color:#fff;background:#3d5a7a;padding:6px 10px;margin-top:20px;}',
+    'table.pay{width:100%;border-collapse:collapse;font-size:12px;}',
+    'table.pay thead tr{background:#3d5a7a;color:#fff;}',
+    'table.pay thead th{padding:6px 8px;text-align:left;}',
+    'table.pay thead th:not(:first-child){text-align:right;}',
+    'table.pay tbody tr:nth-child(even){background:#f5f7fa;}',
+    'table.pay tbody td{padding:5px 8px;border-bottom:1px solid #e4e8ec;}',
+    'table.pay tbody td:not(:first-child){text-align:right;}',
     '@media print{body{margin:18px;} .no-print{display:none;}}'
   ].join('\n');
 
+  var sections = (typeof categorizeFHLines === 'function') ? categorizeFHLines(lines) : [];
   var linesHTML = '';
-  if (exemptLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Tax-Exempt Services</div><table class="lines">';
-    exemptLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+  sections.forEach(function(sec) {
+    if (!sec.items || !sec.items.length) return;
+    linesHTML += '<div class="section-lbl">' + sec.title + '</div><table class="lines">';
+    sec.items.forEach(function(l) {
+      linesHTML += row(l.label, l.amount, l.isDiscount ? 'disc' : '');
+    });
     linesHTML += '</table>';
+  });
+  if (!sections.length) {
+    if (exemptLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Tax-Exempt Services</div><table class="lines">';
+      exemptLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+      linesHTML += '</table>';
+    }
+    if (taxLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Taxable Merchandise</div><table class="lines">';
+      taxLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
+      linesHTML += '</table>';
+    }
+    if (discLines.length > 0) {
+      linesHTML += '<div class="section-lbl">Discounts</div><table class="lines">';
+      discLines.forEach(function(l){ linesHTML += row(l.label, l.amount, 'disc'); });
+      linesHTML += '</table>';
+    }
   }
-  if (taxLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Taxable Merchandise</div><table class="lines">';
-    taxLines.forEach(function(l){ linesHTML += row(l.label, l.amount); });
-    linesHTML += '</table>';
-  }
-  if (discLines.length > 0) {
-    linesHTML += '<div class="section-lbl">Discounts</div><table class="lines">';
-    discLines.forEach(function(l){ linesHTML += row(l.label, l.amount, 'disc'); });
-    linesHTML += '</table>';
-  }
-
   if (tax > 0) {
     linesHTML += '<table class="lines"><tr class="tax-row"><td class="lbl">Sales Tax (10.4%)</td><td class="amt">'+fmtAmt(tax)+'</td></tr></table>';
   }
@@ -6069,44 +6106,40 @@ function printFhQuote() {
   var fhExpires = new Date(); fhExpires.setDate(fhExpires.getDate() + 30);
   var fhExpiresStr = fhExpires.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var fhNotes = el('fhQuoteNotes') ? el('fhQuoteNotes').value.trim() : '';
-  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Funeral Home Quote – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write('<div class="hdr">');
-  win.document.write('<div><h1>BONNEY WATSON <span style="color:#C0673B;">&middot;</span> Washington Memorial Park</h1>');
-  win.document.write('<div class="sub">Funeral Home Quote</div>');
   var fhClientName = val('fhClientName') || '';
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Funeral Home Quote – Bonney Watson</title><style>'+CSS+'</style></head><body>');
+  win.document.write('<div class="hdr-bar">');
+  win.document.write('<div><div class="hdr-brand">BONNEY WATSON &nbsp;&middot;&nbsp; Washington Memorial Park</div>');
+  win.document.write('<div class="hdr-sub">Funeral Home Quote</div></div>');
+  win.document.write('<div class="hdr-right">'+d+'<br>Valid through '+fhExpiresStr+'</div></div>');
   if (fhClientName) win.document.write('<div class="client">Prepared for: ' + fhClientName + '</div>');
-  win.document.write('</div><div class="date">'+d+'<br><span style="font-size:10px;color:#aaa;">Quote valid through '+fhExpiresStr+'</span></div></div>');
   win.document.write(linesHTML);
-  if (fhNotes) win.document.write('<div class="note" style="margin-top:12px;color:#555;font-style:normal;background:#f9f7f3;padding:10px;border-radius:4px;border-left:3px solid #C0673B;"><strong>Notes:</strong> ' + fhNotes + '</div>');
+  if (fhNotes) win.document.write('<div class="note" style="font-style:normal;background:#f5f7fa;padding:10px;border-radius:4px;border-left:3px solid #3d5a7a;"><strong>Notes:</strong> ' + fhNotes + '</div>');
   // Maxima Insurance Payment Options — include if age is entered
   var insAge = parseInt((el('fhInsAge') || {}).value) || 0;
   var insDown = parseFloat((el('fhInsDown') || {}).value) || 0;
   if (insAge > 0 && typeof _fhTotal !== 'undefined' && _fhTotal > 0) {
     var netBenefit = Math.max(0, _fhTotal - insDown);
-    win.document.write('<div style="margin-top:20px;page-break-inside:avoid;">');
-    win.document.write('<div style="font-size:14px;font-weight:700;color:#1B2A4A;margin-bottom:8px;border-bottom:2px solid #C0673B;padding-bottom:4px;">WA Maxima Insurance Payment Options</div>');
-    win.document.write('<div style="font-size:11px;color:#888;margin-bottom:6px;">Age ' + insAge + ' · Benefit: $' + _fhTotal.toLocaleString("en-US",{minimumFractionDigits:2}) + (insDown > 0 ? ' · Down: $' + insDown.toLocaleString("en-US",{minimumFractionDigits:2}) : '') + ' · GA Maxima Revised, Standard, Underwritten · For illustration only</div>');
-    win.document.write('<table style="width:100%;border-collapse:collapse;font-size:12px;">');
-    win.document.write('<tr style="background:#1B2A4A;color:#fff;"><th style="padding:6px 8px;text-align:left;">Plan</th><th style="padding:6px 8px;text-align:right;">Monthly</th><th style="padding:6px 8px;text-align:right;">Total Paid</th><th style="padding:6px 8px;text-align:right;">Months</th></tr>');
+    win.document.write('<div class="ins-hdr">WA Maxima Insurance Payment Options</div>');
+    win.document.write('<div style="font-size:11px;color:#888;margin:4px 0 8px;">Age ' + insAge + ' · Benefit: $' + _fhTotal.toLocaleString("en-US",{minimumFractionDigits:2}) + (insDown > 0 ? ' · Down: $' + insDown.toLocaleString("en-US",{minimumFractionDigits:2}) : '') + ' · GA Maxima Revised, Standard, Underwritten · For illustration only</div>');
+    win.document.write('<table class="pay"><thead><tr><th>Plan</th><th>Monthly</th><th>Total Paid</th><th>Months</th></tr></thead><tbody>');
     var rates = typeof getMaximaRates === 'function' ? getMaximaRates(insAge) : null;
     if (rates) WA_MAXIMA_PLANS.forEach(function(plan, i) {
       var rate = rates[i];
       if (rate === null || (plan.maxAge && insAge > plan.maxAge)) return;
       var monthly = plan.months === 1 ? netBenefit : Math.round(netBenefit * rate * 100) / 100;
       var totalPaid = plan.months === 1 ? netBenefit : monthly * plan.months;
-      var bg = i % 2 === 0 ? '#f5f3ee' : '#fff';
-      win.document.write('<tr style="background:' + bg + ';border-bottom:1px solid #eee;">');
-      win.document.write('<td style="padding:5px 8px;font-weight:600;">' + plan.name + '</td>');
+      win.document.write('<tr><td style="font-weight:600;">' + plan.name + '</td>');
       if (plan.months === 1) {
-        win.document.write('<td colspan="3" style="padding:5px 8px;text-align:right;font-weight:700;color:#1B2A4A;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + ' one-time</td>');
+        win.document.write('<td colspan="3" style="text-align:right;font-weight:700;color:#3d5a7a;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + ' one-time</td>');
       } else {
-        win.document.write('<td style="padding:5px 8px;text-align:right;font-weight:700;color:#1B2A4A;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + '/mo</td>');
-        win.document.write('<td style="padding:5px 8px;text-align:right;color:#888;">$' + totalPaid.toLocaleString("en-US",{minimumFractionDigits:2}) + '</td>');
-        win.document.write('<td style="padding:5px 8px;text-align:right;color:#888;">' + plan.months + '</td>');
+        win.document.write('<td style="font-weight:700;color:#3d5a7a;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + '/mo</td>');
+        win.document.write('<td>$' + totalPaid.toLocaleString("en-US",{minimumFractionDigits:2}) + '</td>');
+        win.document.write('<td>' + plan.months + '</td>');
       }
       win.document.write('</tr>');
     });
-    win.document.write('</table></div>');
+    win.document.write('</tbody></table>');
   }
 
   win.document.write('<div class="note">This quote is for reference purposes and is valid for 30 days from the date above. All prices subject to change without notice. <strong>Pre-need contracts lock in today\'s prices against future increases.</strong> Please contact Bonney Watson for a formal agreement. Tax rates and fees may vary.</div>');
@@ -6352,6 +6385,46 @@ function fhUrnRender() {
   list.innerHTML = html;
 }
 
+// ── Memorial Merchandise multi-add ────────────────────────────────────────────
+var fhMemPkgs = [];
+
+function fhMemPkgAdd() {
+  var sel = el('fhMemPkg');
+  var price = parseFloat(sel.value);
+  if (!price) return;
+  var name = sel.options[sel.selectedIndex].text.replace(/ — \$[\d,]+$/, '');
+  var qty2 = parseInt(el('fhMemPkgPickQty').value) || 1;
+  var existing = fhMemPkgs.find(function(m){ return m.name === name && m.price === price; });
+  if (existing) { existing.qty += qty2; } else { fhMemPkgs.push({name: name, price: price, qty: qty2}); }
+  sel.value = '';
+  el('fhMemPkgPickQty').value = 1;
+  fhMemPkgRender(); fhUpdate();
+}
+
+function fhMemPkgRemove(idx) { fhMemPkgs.splice(idx, 1); fhMemPkgRender(); fhUpdate(); }
+
+function fhMemPkgQtyChange(idx, val2) {
+  var q = parseInt(val2); if (q < 1) q = 1;
+  fhMemPkgs[idx].qty = q; fhUpdate();
+}
+
+function fhMemPkgRender() {
+  var list = el('fhMemPkgList');
+  if (!list) return;
+  if (!fhMemPkgs.length) { list.innerHTML = ''; return; }
+  var html = '<div style="border-top:1px solid var(--gray-mid);padding-top:8px;">';
+  fhMemPkgs.forEach(function(m, i) {
+    html += '<div class="q-row" style="font-size:12px;align-items:center;gap:6px;flex-wrap:wrap;">'
+      + '<span style="flex:1;min-width:120px;color:var(--text-main);">' + m.name + '</span>'
+      + '<input type="number" value="' + m.qty + '" min="1" max="99" style="width:46px;" oninput="fhMemPkgQtyChange(' + i + ', this.value)">'
+      + '<span style="color:var(--navy);font-weight:600;min-width:62px;text-align:right;">$' + (m.price * m.qty).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
+      + '<button onclick="fhMemPkgRemove(' + i + ')" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;" title="Remove">&times;</button>'
+      + '</div>';
+  });
+  html += '</div>';
+  list.innerHTML = html;
+}
+
 // ── Flower multi-add ──────────────────────────────────────────────────────────
 var fhFlowers = [];
 
@@ -6420,7 +6493,7 @@ function fhUpdate() {
     var currentItemCount  = el('fhPlanItems').querySelectorAll('.plan-item-row').length;
     var itemDeleted = currentItemCount < originalItemCount;
     var planDiscount = itemDeleted ? 0 : _lockedPlanDiscount * fhPersonQty;
-    if (planDiscount > 0) lines.push({label: 'Package Discount' + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: -planDiscount, taxable: false, isDiscount: true});
+    if (planDiscount > 0) lines.push({label: (planData.name || 'Package') + ' Discount' + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: -planDiscount, taxable: false, isDiscount: true});
     var planNet = planSubtotal - planDiscount;
     el('fhPlanSubtotal').textContent = fmt(planSubtotal);
     el('fhPlanDiscount').textContent = planDiscount > 0 ? '-' + fmt(planDiscount) : '-$0.00';
@@ -6541,14 +6614,13 @@ function fhUpdate() {
     setDisp('fhCremContainerDisp', 0);
   }
 
-  // Memorial Package (taxable)
-  var memV = parseFloat(val('fhMemPkg')) || 0;
-  if (memV) {
-    var memEl = el('fhMemPkg');
-    var memLbl = memEl.options[memEl.selectedIndex].text.replace(/ \u2014 \$[\d,]+$/, '');
-    lines.push({label: memLbl + (fhPersonQty > 1 ? ' \xd7' + fhPersonQty : ''), amount: memV * fhPersonQty, taxable: true});
-    setDisp('fhMemPkgDisp', memV * fhPersonQty);
-  } else { setDisp('fhMemPkgDisp', 0); }
+  // Memorial Merchandise (multi-add) — multiply by person count
+  fhMemPkgs.forEach(function(m) {
+    if (m.price > 0 && m.qty > 0) {
+      var totalQty = m.qty * fhPersonQty;
+      lines.push({label: m.name + (totalQty > 1 ? ' ×' + totalQty : ''), amount: m.price * totalQty, taxable: true, memPkg: true});
+    }
+  });
 
   // Urns (multi-add) — multiply each urn qty by person count
   fhUrns.forEach(function(u) {
@@ -6641,6 +6713,7 @@ function addFhLine() {
 function resetFHQuote() {
   fhUrns = []; fhUrnRender();
   fhFlowers = []; fhFlowerRender();
+  fhMemPkgs = []; fhMemPkgRender();
   if (el('fhClientName'))  el('fhClientName').value  = '';
   if (el('fhQuoteNotes')) el('fhQuoteNotes').value = '';
   if (el('fhPersonQty')) el('fhPersonQty').value = 1;
@@ -7829,6 +7902,7 @@ function captureFhState() {
     discounts: captureDiscountRows('fhDiscountList'),
     urns: JSON.parse(JSON.stringify(fhUrns || [])),
     flowers: JSON.parse(JSON.stringify(fhFlowers || [])),
+    memPkgs: JSON.parse(JSON.stringify(fhMemPkgs || [])),
     planItems: planItems,
     activePlanKey: _activePlanKey || '',
     activePlanType: _activePlanType || '',
@@ -7931,6 +8005,7 @@ function loadSavedFhQuote(id) {
   restoreDiscountRows('fhDiscountList', s.discounts || []);
   if (s.urns)    { fhUrns = s.urns; fhUrnRender(); }
   if (s.flowers) { fhFlowers = s.flowers; fhFlowerRender(); }
+  if (s.memPkgs) { fhMemPkgs = s.memPkgs; fhMemPkgRender(); }
   if (s.activePlanKey && s.activePlanType) {
     _activePlanKey = s.activePlanKey; _activePlanType = s.activePlanType;
     _lockedPlanDiscount = s.lockedPlanDiscount || 0;
@@ -10152,20 +10227,20 @@ async function downloadCemQuotePDF() {
 function categorizeFHLines(lines) {
   function cat(l) {
     if (l.isDiscount) return 'Discounts';
-    if (l.planItem)   return 'Packages';
+    if (l.memPkg)     return 'Memorial Packages';
     var lb = l.label;
-    if (/^Casket:|^Cremation Container:/i.test(lb))           return 'Caskets';
-    if (/^Memorial (Package|Collection):|^Memorial.*Pkg/i.test(lb)) return 'Memorial Packages';
-    if (/^Urn:/i.test(lb))                                     return 'Urns';
-    if (/Flowers?:|Floral|Arrangement|Spray|Corsage|Boutonniere/i.test(lb)) return 'Flowers';
+    if (/^Casket:|^Cremation Container:|Cremation Container/i.test(lb)) return 'Caskets';
+    if (/Memorial Package|Memorial Collection|Memorial.*Pkg/i.test(lb)) return 'Memorial Packages';
+    if (/^Urn:|Urn Allowance/i.test(lb))                                return 'Urns';
+    if (/Flowers?:|Floral|Arrangement|Spray|Corsage|Boutonniere|Flower Allowance/i.test(lb)) return 'Flowers';
     if (/Transfer|Use of Hearse|Horse-Drawn Hearse|Motorcycle Escort|Flower Vehicle|Utility Vehicle/i.test(lb)) return 'Transportation';
     if (/Death Cert|County|Medical Examiner|Coroner|Permit/i.test(lb)) return 'Cash Advance Items';
-    if (/Basic Services|Embalming|Preparation|Autopsy|Hair Dress|Shelter of Remains/i.test(lb)) return 'Professional Services';
+    if (/Basic Services|Embalming|Preparation|Autopsy|Hair Dress|Shelter of Remains|Minimum Professional/i.test(lb)) return 'Professional Services';
     if (/Cremation|Mailing of Cremated|Delivery of Remains|Keepsake/i.test(lb)) return 'Cremation Services';
     if (!l.taxable) return 'Facilities & Equipment';
     return 'Other Merchandise';
   }
-  var ORDER = ['Packages','Professional Services','Cremation Services','Facilities & Equipment','Transportation','Caskets','Flowers','Memorial Packages','Urns','Cash Advance Items','Other Merchandise','Discounts'];
+  var ORDER = ['Professional Services','Cremation Services','Facilities & Equipment','Transportation','Caskets','Flowers','Memorial Packages','Urns','Cash Advance Items','Other Merchandise','Discounts'];
   var groups = {}; ORDER.forEach(function(c){ groups[c] = []; });
   lines.forEach(function(l){ var c = cat(l); (groups[c] = groups[c]||[]).push(l); });
   return ORDER.filter(function(c){ return groups[c] && groups[c].length; }).map(function(c){ return {title:c, items:groups[c]}; });
@@ -10177,7 +10252,7 @@ function categorizeCemLines(lines) {
     if (/Endowment Care|ECF/i.test(l.label)) return 'Cemetery Property';
     if (/Interment|Opening|Closing|Inurnment|Entombment|Recording/i.test(l.label)) return 'Cemetery Services';
     if (/Vault|Container|Andura|Novato|Hadley|Clifton/i.test(l.label) && !l.isDiscount) return 'Outer Burial Container';
-    if (/Flush|Marker|Monument|Upright|Slant|Granite|Plaque|Bronze/i.test(l.label)) return 'Memorialization';
+    if (/Flush|Marker|Monument|Upright|Slant|Granite|Plaque|Bronze|Vase| — Memorial| — Base| — Install/i.test(l.label)) return 'Memorialization';
     if (!l.taxable) return 'Cemetery Services';
     return 'Other Merchandise';
   }
@@ -10264,8 +10339,9 @@ async function downloadCombQuotePDF() {
         restoreFieldState(fd.fields);
         restoreCustomLines('fhCustomLines', fd.customLines||[]);
         restoreDiscountRows('fhDiscountList', fd.discounts||[]);
-        if (fd.urns)    { fhUrns=fd.urns;       if (typeof fhUrnRender    === 'function') fhUrnRender(); }
-        if (fd.flowers) { fhFlowers=fd.flowers;  if (typeof fhFlowerRender === 'function') fhFlowerRender(); }
+        if (fd.urns)    { fhUrns=fd.urns;         if (typeof fhUrnRender      === 'function') fhUrnRender(); }
+        if (fd.flowers) { fhFlowers=fd.flowers;   if (typeof fhFlowerRender   === 'function') fhFlowerRender(); }
+        if (fd.memPkgs) { fhMemPkgs=fd.memPkgs;  if (typeof fhMemPkgRender   === 'function') fhMemPkgRender(); }
         if (typeof fhUpdate === 'function') fhUpdate();
       }
       window.clearAutosave();
