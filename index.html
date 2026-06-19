@@ -8428,7 +8428,7 @@ async function generateRICContractCore(clientData) {
     // (/F), producing the "1.#R" overflow display. We fill all values ourselves so
     // neither script is needed.
     (function stripCalcAndFormat(doc) {
-      var PDFName = PDFLib.PDFName, PDFArray = PDFLib.PDFArray, PDFDict = PDFLib.PDFDict;
+      var PDFName = PDFLib.PDFName;
       doc.getPages().forEach(function(page) {
         try {
           var annotsRef = page.node.get(PDFName.of('Annots'));
@@ -8467,6 +8467,14 @@ async function generateRICContractCore(clientData) {
           }
         } catch(e) {}
       });
+      // Also clear /CO (AcroForm calculation order) so Adobe skips the calculation sweep
+      try {
+        var afRef = doc.catalog.get(PDFName.of('AcroForm'));
+        if (afRef) {
+          var af = doc.context.lookup(afRef);
+          if (af && typeof af.delete === 'function') af.delete(PDFName.of('CO'));
+        }
+      } catch(e) {}
     })(pdfDoc);
     // Fill fields — use instanceof not constructor.name (minified bundle mangles class names)
     var fillErrors = [];
@@ -8494,14 +8502,14 @@ async function generateRICContractCore(clientData) {
       } catch(e) { fillErrors.push(name + ': ' + e.message); }
     }
 
-    // Remove button widgets (Reset Form, Clear Form) — delete AP stream so flatten stamps nothing
+    // Reset Form button: visible on screen, non-printing (clear Print flag bit 3)
     try {
       form.getFields().forEach(function(f) {
         if (f instanceof PDFLib.PDFButton) {
           f.acroField.getWidgets().forEach(function(w) {
-            w.dict.delete(PDFLib.PDFName.of('AP'));
-            w.dict.set(PDFLib.PDFName.of('Rect'), pdfDoc.context.obj([0, 0, 0, 0]));
-            w.dict.set(PDFLib.PDFName.of('F'), PDFLib.PDFNumber.of(2));
+            var flags = w.dict.get(PDFLib.PDFName.of('F'));
+            var fVal = flags && typeof flags.value !== 'undefined' ? flags.value : 0;
+            w.dict.set(PDFLib.PDFName.of('F'), PDFLib.PDFNumber.of(fVal & ~4));
           });
         }
       });
@@ -8521,25 +8529,26 @@ async function generateRICContractCore(clientData) {
     setF('Year',    sigYr);
     // 'Month' field (y≈172) is the bottom signature-block month — set it explicitly.
     // Text1/Text2 are in the payment schedule rows — do NOT write date values there.
-    // Text3 is the "Page 1 of 2" header — do NOT overwrite it.
+    // Text3 is the "Page 1 of 2" blue-box header — pdf-lib resets its template value on load,
+    // so we must write it explicitly.
     setF('Month', sigMon);
+    setF('Text3', 'Page 1 of 2');
     // Purchaser name — combine with co-purchaser when present
     var purchaserDisplay = clientName;
     if (clientData && clientData.coPurchaser) purchaserDisplay += ' & ' + clientData.coPurchaser;
     setF('Name of Purchaser', purchaserDisplay);
     setF('Description of Interment Rights', location);
-    // Notes 5 = Remarks field on the contract
-    var remarksText = (clientData && clientData.remarks) ? clientData.remarks
-      : (clientData && clientData.benefit) ? 'For the benefit of: ' + clientData.benefit
-      : 'For the benefit of: ' + clientName;
-    setF('Notes 5', remarksText);
-    // Address — City/State/Zip have no separate AcroForm fields in this template;
-    // append them to the street address so the info appears in the PDF.
+    // Notes 5 = Remarks field — always prepend ACH disclosure (required for 0% financing)
+    var _achDisc = 'ACH bank withdrawals required to receive 0 percent financing and discount if applicable.';
+    var _customRem = clientData ? (clientData.remarks || (clientData.benefit ? 'For the benefit of: ' + clientData.benefit : '')) : '';
+    setF('Notes 5', _customRem ? _achDisc + '\n' + _customRem : _achDisc);
+    // Address — street only in Address field; City/State/Zip in their own fields
+    // (template fields named City, State, Zip Code — setF silently skips if they don't exist)
     if (clientData) {
-      var addrParts = [clientData.street || ''];
-      var cityStateZip = [clientData.city, clientData.state || 'WA', clientData.zip].filter(Boolean).join(', ');
-      if (cityStateZip) addrParts.push(cityStateZip);
-      setF('Address', addrParts.join(', '));
+      setF('Address', clientData.street || '');
+      setF('City',     clientData.city   || '');
+      setF('State',    clientData.state  || 'WA');
+      setF('Zip Code', clientData.zip    || '');
       setF('Phone Number', formatPhone(clientData.phone || ''));
       setF('Day Telephone No', clientData.dayPhone || '');
       setF('Control #', clientData.controlNo || '');
@@ -8637,17 +8646,33 @@ async function generateRICContractCore(clientData) {
       }
       return { label: lbl, amount: total };
     }
-    // Format marker label: remove "— Memorial" suffix, "(No Vase)" qualifier, abbreviate "Companion"
+    // Format marker label: bronze markers end with "— Memorial"; reformat as "DIM Bronze TYPE Marker"
     function formatMarkerLabel(lbl) {
-      return lbl.replace(/\s*[-—]\s*Memorial\s*$/i,'').replace(/\s*\(No\s*Vase\)/gi,'').replace(/\s*\(w\/Vase[^)]*\)/gi,'').replace(/\s+[×x]\s*\d+\s*$/g,'').replace(/Companion/gi,'Comp').trim();
+      var isBronzeM = /[-—]\s*Memorial\s*$/i.test(lbl);
+      var core = lbl
+        .replace(/\s*[-—]\s*Memorial\s*$/i, '')
+        .replace(/\s*\(No\s*Vase\)/gi, '')
+        .replace(/\s*\(w\/Vase[^)]*\)/gi, '')
+        .replace(/\s+[×x]\s*\d+\s*$/g, '')
+        .trim();
+      if (isBronzeM) {
+        var dimM = core.match(/(\d+[×xX]\d+)/);
+        var dim = dimM ? dimM[1].replace(/[×X]/g, 'x') : '';
+        var type = /Companion/i.test(core) ? 'Comp' : /Single/i.test(core) ? 'Single' : '';
+        if (dim && type) return dim + ' Bronze ' + type + ' Marker';
+        if (dim)         return dim + ' Bronze Marker';
+        return core.replace(/Companion/gi, 'Comp');
+      }
+      return core.replace(/Companion/gi, 'Comp');
     }
-    // Format base label: generic "Granite Base" when it's a marker base
+    // Format base label: bronze base ends with "— Base" → "Granite Base for Bronze"
     function formatBaseLabel(lbl) {
-      if (/[-—]\s*Base\s*$/i.test(lbl)) return 'Granite Base';
+      if (/[-—]\s*Base\s*$/i.test(lbl)) return 'Granite Base for Bronze';
       return cleanLabel(lbl);
     }
-    // Format install label: generic "Marker Install" for marker install fees
+    // Format install label: bronze install ends with "— Install" → "Bronze Marker Install"
     function formatInstallLabel(lbl) {
+      if (/[-—]\s*Install\s*$/i.test(lbl)) return 'Bronze Marker Install';
       if (/Install/i.test(lbl) && /Companion|Upright|Slant|Monument|Flush|Marker|Granite/i.test(lbl)) return 'Marker Install';
       return cleanLabel(lbl);
     }
@@ -8758,14 +8783,47 @@ async function generateRICContractCore(clientData) {
       }
     }
 
-    // Narrow currency fields (≈52-57 pt wide) must use font size 8 to prevent Adobe "1.#R" overflow.
-    // Description fields use font size 0 so Adobe auto-sizes to fit longer text.
+    // Propagate parent field /V to unnamed child widgets.
+    // pdf-lib's updateFieldAppearances only processes named fields from the /Fields tree;
+    // unnamed child widgets (e.g. the bottom "Signed this" day at y=172, child of
+    // "Day of the Month") must have their /V set directly so Adobe renders them correctly.
+    (function propagateChildValues(doc) {
+      var PDFName = PDFLib.PDFName;
+      doc.getPages().forEach(function(page) {
+        try {
+          var annotsRef = page.node.get(PDFName.of('Annots'));
+          if (!annotsRef) return;
+          var annots = doc.context.lookup(annotsRef);
+          if (!annots || typeof annots.size !== 'function') return;
+          for (var i = 0; i < annots.size(); i++) {
+            try {
+              var w = doc.context.lookup(annots.get(i));
+              if (!w || typeof w.get !== 'function') continue;
+              if (w.get(PDFName.of('T'))) continue; // skip named fields
+              var parentRef = w.get(PDFName.of('Parent'));
+              if (!parentRef) continue;
+              var parent = doc.context.lookup(parentRef);
+              if (!parent || typeof parent.get !== 'function') continue;
+              var parentV = parent.get(PDFName.of('V'));
+              if (!parentV) continue;
+              var resolved = doc.context.lookup(parentV) || parentV;
+              if (resolved) w.set(PDFName.of('V'), resolved);
+            } catch(e) {}
+          }
+        } catch(e) {}
+      });
+    })(pdfDoc);
+
+    // Narrow currency fields (≈52-57 pt wide): font size 8 so AP stream doesn't clip long values.
+    // /F (Format) actions were stripped above, so "1.#R" is gone — but the AP stream is still
+    // rendered at the field's default font size, which overflows narrow fields at 11pt.
     var _narrowCurrencyFields = [
-      'NonTax1','Taxable1','Taxable2','Taxable3','Taxable4','Taxable5','Taxable6','Taxable7',
-      'TotalCP','Sales Tax Amount','Down Payment','Amount Financed','Finance Charge',
-      'Total of Payments','Total Sales Price','Total Sale Price',
+      'NonTax1','NonTax2','ECF 1','ECF 2',
+      'Taxable1','Taxable2','Taxable3','Taxable4','Taxable5','Taxable6','Taxable7',
+      'TotalCP','Opening/Closing','Recording Fee','Discount',
+      'FCAmount','TaxAmount','DPAmount','TotalDP','UnpaidBalance','TotalPayments','Total Sales Price',
       'FCAmount_TIL','UnpaidBalance_TIL','TotalPayments_TIL','TotalDP_TIL','TotalSalesPrice_TIL',
-      'PaymentAmount1','Sales Tax Percent'
+      'PaymentAmount1','SubTotal'
     ];
     var _descFields = [
       'Description of Interment Rights','Memorial Description','Mem Base Description',
