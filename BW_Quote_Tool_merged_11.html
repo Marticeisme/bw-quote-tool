@@ -3431,12 +3431,57 @@ async function printGAContract() {
     var font  = await fullDoc.embedFont(PDFLib.StandardFonts.Helvetica);
     var navy  = PDFLib.rgb(0.05, 0.1, 0.2);
 
-    // Helper: safe setText
+    // Strip Calculate/Format actions so Adobe does not override our filled values on open
+    var _PDFName = PDFLib.PDFName;
+    fullDoc.getPages().forEach(function(pg) {
+      var annots = pg.node.lookupMaybe(_PDFName.of('Annots'), PDFLib.PDFArray);
+      if (!annots) return;
+      for (var ai = 0; ai < annots.size(); ai++) {
+        try {
+          var w = annots.lookup(ai, PDFLib.PDFDict);
+          if (w.has(_PDFName.of('AA'))) w.delete(_PDFName.of('AA'));
+        } catch(e2) {}
+      }
+    });
+    try {
+      var _acroForm = fullDoc.catalog.lookup(_PDFName.of('AcroForm'), PDFLib.PDFDict);
+      var _fArr = _acroForm && _acroForm.lookupMaybe(_PDFName.of('Fields'), PDFLib.PDFArray);
+      if (_fArr) {
+        (function _stripFields(arr) {
+          for (var fi = 0; fi < arr.size(); fi++) {
+            try {
+              var fd = arr.lookup(fi, PDFLib.PDFDict);
+              if (fd.has(_PDFName.of('AA'))) fd.delete(_PDFName.of('AA'));
+              var kids = fd.lookupMaybe(_PDFName.of('Kids'), PDFLib.PDFArray);
+              if (kids) _stripFields(kids);
+            } catch(e3) {}
+          }
+        })(_fArr);
+      }
+    } catch(e4) {}
+
+    // Helper: safe setText - always writes (clears stale template defaults when value='')
     function setTF(fieldName, value) {
-      if (!value && value !== 0) return;
-      var v = String(value);
+      var v = (value === null || value === undefined) ? '' : String(value);
       try { form.getTextField(fieldName).setText(v); } catch(e) { /* field absent */ }
     }
+    // Clear stale template text that we won't be overwriting
+    ['1002-14 - Other (specify)', '1002-14 - Other - 1',
+     '1002-14 - Other (specify) - 2', '1002-14 - Other - 2',
+     '1002-14 - Other - specify 1', '1002-14 - Other - specify 1 cost',
+     '1002-14 - Other - specify 2', '1002-14 - Other - specify 2 cost',
+     '1002-14 - Other - specify 3', '1002-14 - Other - specify 3 cost',
+     '1002-14 - Required Purchase', '1002-14 - Required Purchase - 1', '1002-14 - Required Purchase - 2',
+     '1002-14 - Visitation Days', '1002-14 - Visitation $ Per',
+     '1002-14 - Miles to Transfer Deceased',
+     '1002-14 - Family Car #', '1002-14 - Family Car $ Per',
+     '1002-14 - Exterior Material and Color', '1002-14 - Interior Material and Color',
+     '1002-14 - Manufacturer', '1002-14 - Model # and Name',
+     '1002-14 - Outer Burial Manufacturer', '1002-14 - Outer Burial Model # and Name',
+     '1002-14 - Outer Burial Material', '1002-14 - Outer Burial Cost',
+     '1002-14 - If Applicable'
+    ].forEach(function(fn) { try { form.getTextField(fn).setText(''); } catch(e) {} });
+
     // Helper: safe check checkbox (value = 'Yes')
     function checkBox(fieldName) {
       try { form.getCheckBox(fieldName).check(); } catch(e) {}
