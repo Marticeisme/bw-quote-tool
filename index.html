@@ -3309,6 +3309,14 @@ async function printGAContract() {
   var casketLabel     = (el('fhCasketLabel') && el('fhCasketLabel').value)
                         ? el('fhCasketLabel').value
                         : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
+  // Fallback: read casket from _fhLines if fhCasket input is empty (e.g. when using GA import)
+  if (!casketPrice) {
+    var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
+    if (casketFallbackLine) {
+      casketPrice = Math.max(0, casketFallbackLine.amount);
+      casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
+    }
+  }
   // Extract model # from casket label e.g. "Virgo White/Gold (#279133)"
   var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
   var casketModelNum  = casketModelMatch ? '#' + casketModelMatch[1] : '';
@@ -3432,11 +3440,12 @@ async function printGAContract() {
     var font  = await fullDoc.embedFont(PDFLib.StandardFonts.Helvetica);
     var navy  = PDFLib.rgb(0.05, 0.1, 0.2);
 
-    // Strip /AA /C (Calculate) and /AA /F (Format) actions — same pattern as RIC contract.
-    // Without this, Adobe runs the template's built-in calculate scripts on open and
-    // overwrites our filled dollar amounts (casket, totals, etc.).
+    // Strip /AA /C (Calculate) and /AA /F (Format) from BOTH page widget annotations
+    // AND from AcroForm field nodes (which are separate objects in this template).
+    // Must hit both or Acrobat still runs Calculate and overwrites our values.
     (function stripGACalcAndFormat(doc) {
       var PDFName = PDFLib.PDFName;
+      // Pass 1: page widget annotations
       doc.getPages().forEach(function(page) {
         try {
           var annotsRef = page.node.get(PDFName.of('Annots'));
@@ -3450,10 +3459,7 @@ async function printGAContract() {
               var aaRef = annotObj.get(PDFName.of('AA'));
               if (aaRef) {
                 var aa = doc.context.lookup(aaRef);
-                if (aa && typeof aa.delete === 'function') {
-                  aa.delete(PDFName.of('C'));
-                  aa.delete(PDFName.of('F'));
-                }
+                if (aa && typeof aa.delete === 'function') { aa.delete(PDFName.of('C')); aa.delete(PDFName.of('F')); }
               }
               var parentRef = annotObj.get(PDFName.of('Parent'));
               if (parentRef) {
@@ -3462,10 +3468,7 @@ async function printGAContract() {
                   var paaRef = parent.get(PDFName.of('AA'));
                   if (paaRef) {
                     var paa = doc.context.lookup(paaRef);
-                    if (paa && typeof paa.delete === 'function') {
-                      paa.delete(PDFName.of('C'));
-                      paa.delete(PDFName.of('F'));
-                    }
+                    if (paa && typeof paa.delete === 'function') { paa.delete(PDFName.of('C')); paa.delete(PDFName.of('F')); }
                   }
                 }
               }
@@ -3473,12 +3476,34 @@ async function printGAContract() {
           }
         } catch(e) {}
       });
-      // Also clear /CO (calculation order) so Adobe skips the calculation sweep entirely
+      // Pass 2: AcroForm field node tree (Calculate can be stored here instead of on widgets)
+      function stripFieldNode(ref) {
+        try {
+          var node = doc.context.lookup(ref);
+          if (!node || typeof node.get !== 'function') return;
+          var aaRef = node.get(PDFName.of('AA'));
+          if (aaRef) {
+            var aa = doc.context.lookup(aaRef);
+            if (aa && typeof aa.delete === 'function') { aa.delete(PDFName.of('C')); aa.delete(PDFName.of('F')); }
+          }
+          var kidsRef = node.get(PDFName.of('Kids'));
+          if (!kidsRef) return;
+          var kids = doc.context.lookup(kidsRef);
+          if (kids && typeof kids.size === 'function') {
+            for (var k = 0; k < kids.size(); k++) stripFieldNode(kids.get(k));
+          }
+        } catch(e) {}
+      }
       try {
         var afRef = doc.catalog.get(PDFName.of('AcroForm'));
-        if (afRef) {
-          var af = doc.context.lookup(afRef);
-          if (af && typeof af.delete === 'function') af.delete(PDFName.of('CO'));
+        var af = afRef && doc.context.lookup(afRef);
+        if (af && typeof af.delete === 'function') {
+          af.delete(PDFName.of('CO'));
+          var fieldsRef = af.get(PDFName.of('Fields'));
+          var fields = fieldsRef && doc.context.lookup(fieldsRef);
+          if (fields && typeof fields.size === 'function') {
+            for (var fi = 0; fi < fields.size(); fi++) stripFieldNode(fields.get(fi));
+          }
         }
       } catch(e) {}
     })(fullDoc);
@@ -3488,10 +3513,42 @@ async function printGAContract() {
       var v = (value === null || value === undefined) ? '' : String(value);
       try { form.getTextField(fieldName).setText(v); } catch(e) { /* field absent */ }
     }
-    // Nuclear clear: wipe every text field to flush stale template defaults
-    form.getFields().forEach(function(f) {
-      try { if (typeof f.getText === 'function' && typeof f.setText === 'function') f.setText(''); } catch(e) {}
-    });
+    // Raw nuclear clear: walk AcroForm tree directly, clear /V + /DV + /AP on all text fields.
+    // Must clear /AP too — otherwise flatten bakes in the stale template appearance even when /V is blank.
+    // Cannot use form.getFields().forEach(f.setText('')) because setText() throws on fields whose
+    // /DA font is not embedded, silently skipping them and leaving stale appearances.
+    // Note: PDFName.encodedName returns 'Tx' NOT '/Tx' — the slash is the PDF syntax, not the name.
+    (function rawClearGA(doc) {
+      var PDFName = PDFLib.PDFName, PDFString = PDFLib.PDFString;
+      function clearNode(ref, inheritedFT) {
+        try {
+          var node = doc.context.lookup(ref);
+          if (!node || typeof node.get !== 'function') return;
+          var ftRef = node.get(PDFName.of('FT'));
+          var ft = ftRef ? ftRef.encodedName : inheritedFT;
+          if (ft === '/Tx') {
+            node.set(PDFName.of('V'), PDFString.of(''));
+            node.delete(PDFName.of('DV'));
+            node.delete(PDFName.of('AP'));
+          }
+          var kidsRef = node.get(PDFName.of('Kids'));
+          if (!kidsRef) return;
+          var kids = doc.context.lookup(kidsRef);
+          if (kids && typeof kids.size === 'function') {
+            for (var k = 0; k < kids.size(); k++) clearNode(kids.get(k), ft);
+          }
+        } catch(e) {}
+      }
+      try {
+        var afRef = doc.catalog.get(PDFName.of('AcroForm'));
+        var af = afRef && doc.context.lookup(afRef);
+        var fieldsRef = af && af.get(PDFName.of('Fields'));
+        var fields = fieldsRef && doc.context.lookup(fieldsRef);
+        if (fields && typeof fields.size === 'function') {
+          for (var i = 0; i < fields.size(); i++) clearNode(fields.get(i), null);
+        }
+      } catch(e) {}
+    })(fullDoc);
 
     // Helper: safe check checkbox (value = 'Yes')
     function checkBox(fieldName) {
@@ -3688,8 +3745,48 @@ async function printGAContract() {
     setTF('Funeral Firm Representative_2',     'Martice Morrison');
     setTF('Representative_2',                  'Martice Morrison');
 
-    // Flatten so Adobe won't re-run calculations
-    try { form.flatten(); } catch(fe) { console.warn('flatten:', fe.message); }
+    // Flatten to bake values into static content so Adobe can't re-run calculations.
+    // Retries after removing orphaned widgets that the GA template contains (PDFRef 1805 0 R etc.)
+    // which cause pdf-lib's findWidgetPage() to throw.
+    (function safeGAFlatten(doc, f, fnt) {
+      try { f.updateFieldAppearances(fnt); } catch(e) {}
+      function removeOrphan(doc, objNum) {
+        var PDFName = PDFLib.PDFName;
+        // Walk any PDFArray and remove the entry with objectNumber === objNum,
+        // recursing into each entry's /Kids. Checks the array entries themselves
+        // (for merged field+widget nodes) AND their Kids (for separate widgets).
+        function walkArr(arr) {
+          if (!arr || typeof arr.size !== 'function') return false;
+          for (var k = 0; k < arr.size(); k++) {
+            var ref = arr.get(k);
+            if (ref && ref.objectNumber === objNum) { arr.remove(k); return true; }
+            try {
+              var node = doc.context.lookup(ref);
+              if (!node || typeof node.get !== 'function') continue;
+              var kidsRef = node.get(PDFName.of('Kids'));
+              if (!kidsRef) continue;
+              var kids = doc.context.lookup(kidsRef);
+              if (walkArr(kids)) return true;
+            } catch(e) {}
+          }
+          return false;
+        }
+        try {
+          var afRef = doc.catalog.get(PDFName.of('AcroForm'));
+          var af = afRef && doc.context.lookup(afRef);
+          var fieldsRef = af && af.get(PDFName.of('Fields'));
+          var fields = fieldsRef && doc.context.lookup(fieldsRef);
+          return walkArr(fields);
+        } catch(e) {}
+        return false;
+      }
+      for (var attempt = 0; attempt < 8; attempt++) {
+        try { f.flatten(); return; } catch(fe) {
+          var m = fe.message.match(/PDFRef (\d+)/);
+          if (!m || !removeOrphan(doc, parseInt(m[1]))) { console.warn('[GA flatten]', fe.message); return; }
+        }
+      }
+    })(fullDoc, form, font);
 
     var filledBytes = await fullDoc.save();
     var blob        = new Blob([filledBytes], { type: 'application/pdf' });
