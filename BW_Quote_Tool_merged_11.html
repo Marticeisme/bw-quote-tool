@@ -3431,34 +3431,56 @@ async function printGAContract() {
     var font  = await fullDoc.embedFont(PDFLib.StandardFonts.Helvetica);
     var navy  = PDFLib.rgb(0.05, 0.1, 0.2);
 
-    // Strip Calculate/Format actions so Adobe does not override our filled values on open
-    var _PDFName = PDFLib.PDFName;
-    fullDoc.getPages().forEach(function(pg) {
-      var annots = pg.node.lookupMaybe(_PDFName.of('Annots'), PDFLib.PDFArray);
-      if (!annots) return;
-      for (var ai = 0; ai < annots.size(); ai++) {
+    // Strip /AA /C (Calculate) and /AA /F (Format) actions — same pattern as RIC contract.
+    // Without this, Adobe runs the template's built-in calculate scripts on open and
+    // overwrites our filled dollar amounts (casket, totals, etc.).
+    (function stripGACalcAndFormat(doc) {
+      var PDFName = PDFLib.PDFName;
+      doc.getPages().forEach(function(page) {
         try {
-          var w = annots.lookup(ai, PDFLib.PDFDict);
-          if (w.has(_PDFName.of('AA'))) w.delete(_PDFName.of('AA'));
-        } catch(e2) {}
-      }
-    });
-    try {
-      var _acroForm = fullDoc.catalog.lookup(_PDFName.of('AcroForm'), PDFLib.PDFDict);
-      var _fArr = _acroForm && _acroForm.lookupMaybe(_PDFName.of('Fields'), PDFLib.PDFArray);
-      if (_fArr) {
-        (function _stripFields(arr) {
-          for (var fi = 0; fi < arr.size(); fi++) {
+          var annotsRef = page.node.get(PDFName.of('Annots'));
+          if (!annotsRef) return;
+          var annots = doc.context.lookup(annotsRef);
+          if (!annots || typeof annots.size !== 'function') return;
+          for (var i = 0; i < annots.size(); i++) {
             try {
-              var fd = arr.lookup(fi, PDFLib.PDFDict);
-              if (fd.has(_PDFName.of('AA'))) fd.delete(_PDFName.of('AA'));
-              var kids = fd.lookupMaybe(_PDFName.of('Kids'), PDFLib.PDFArray);
-              if (kids) _stripFields(kids);
-            } catch(e3) {}
+              var annotObj = doc.context.lookup(annots.get(i));
+              if (!annotObj || typeof annotObj.get !== 'function') continue;
+              var aaRef = annotObj.get(PDFName.of('AA'));
+              if (aaRef) {
+                var aa = doc.context.lookup(aaRef);
+                if (aa && typeof aa.delete === 'function') {
+                  aa.delete(PDFName.of('C'));
+                  aa.delete(PDFName.of('F'));
+                }
+              }
+              var parentRef = annotObj.get(PDFName.of('Parent'));
+              if (parentRef) {
+                var parent = doc.context.lookup(parentRef);
+                if (parent && typeof parent.get === 'function') {
+                  var paaRef = parent.get(PDFName.of('AA'));
+                  if (paaRef) {
+                    var paa = doc.context.lookup(paaRef);
+                    if (paa && typeof paa.delete === 'function') {
+                      paa.delete(PDFName.of('C'));
+                      paa.delete(PDFName.of('F'));
+                    }
+                  }
+                }
+              }
+            } catch(e) {}
           }
-        })(_fArr);
-      }
-    } catch(e4) {}
+        } catch(e) {}
+      });
+      // Also clear /CO (calculation order) so Adobe skips the calculation sweep entirely
+      try {
+        var afRef = doc.catalog.get(PDFName.of('AcroForm'));
+        if (afRef) {
+          var af = doc.context.lookup(afRef);
+          if (af && typeof af.delete === 'function') af.delete(PDFName.of('CO'));
+        }
+      } catch(e) {}
+    })(fullDoc);
 
     // Helper: safe setText - always writes (clears stale template defaults when value='')
     function setTF(fieldName, value) {
@@ -3487,13 +3509,14 @@ async function printGAContract() {
       try { form.getCheckBox(fieldName).check(); } catch(e) {}
     }
     // Helper: select radio (YES or NO)
-    // YES values by group: 1→2, 2→4, 3→6, 4→6, 5→2, 6→4, 7→6, 8→6, 9→4, 10→6, 11→2, 12→4, 13→6, 14→6, 15→6
-    var groupYes = {1:'Choice2',2:'Choice4',3:'Choice6',4:'Choice6',5:'Choice2',6:'Choice4',
-                    7:'Choice6',8:'Choice6',9:'Choice4',10:'Choice6',11:'Choice2',12:'Choice4',
-                    13:'Choice6',14:'Choice6',15:'Choice6'};
-    var groupNo  = {1:'Choice1',2:'Choice3',3:'Choice5',4:'Choice5',5:'Choice1',6:'Choice3',
+    // Verified: Choice1/Choice3/Choice5 are the YES export values in this template;
+    // Choice2/Choice4/Choice6 are NO. (Opposite of what the field names suggest.)
+    var groupYes = {1:'Choice1',2:'Choice3',3:'Choice5',4:'Choice5',5:'Choice1',6:'Choice3',
                     7:'Choice5',8:'Choice5',9:'Choice3',10:'Choice5',11:'Choice1',12:'Choice3',
                     13:'Choice5',14:'Choice5',15:'Choice5'};
+    var groupNo  = {1:'Choice2',2:'Choice4',3:'Choice6',4:'Choice6',5:'Choice2',6:'Choice4',
+                    7:'Choice6',8:'Choice6',9:'Choice4',10:'Choice6',11:'Choice2',12:'Choice4',
+                    13:'Choice6',14:'Choice6',15:'Choice6'};
     function setGroup(n, yes) {
       try {
         form.getRadioGroup('Group' + n).select(yes ? groupYes[n] : groupNo[n]);
@@ -3507,7 +3530,7 @@ async function printGAContract() {
     setTF('City',             'SeaTac');
     setTF('State',            'WA');
     setTF('Zip Code',         '98188');
-    setTF('Telephone Number', '(206) 445-9794');
+    setTF('Telephone Number', '(206) 242-1787');
 
     // Funeral Firm Representative — try multiple likely field names
     setTF('Funeral Firm Representative',     'Martice Morrison');
@@ -3525,7 +3548,7 @@ async function printGAContract() {
 
     // Signature fields
     setTF('1002-14 - SIG - Funeral Recipient', insured);
-    setTF('1002-14 - SIG - Purchaser',         purchaser || insured);
+    setTF('1002-14 - SIG - Purchaser',         purchaser || '');
     setTF('1002-14 - SIG - Funeral Recipient Signature Date', dateStr);
 
     // Disposition checkboxes: Box43=Burial, Box44=Cremation
