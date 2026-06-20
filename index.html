@@ -3405,9 +3405,10 @@ async function printGAContract() {
   var grossGuaranteed = guaranteedServicesTotal + guaranteedMerchandiseTotal;
   var totalGuaranteedFuneral = Math.max(0, grossGuaranteed - planDiscount);
 
-  // Tax: 10.4% on merchandise only (casket/container + urn). Services are not taxable.
-  var taxableBase = formCasketPrice + (isBurial ? urnTotalAmt : 0);
-  var taxAmt      = Math.round(taxableBase * 0.104 * 100) / 100;
+  // Tax: mirror FH quote taxable-flag logic — sum all lines marked taxable:true
+  var taxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
+  var taxDiscAmt  = lines.filter(function(l){ return l.isDiscount && l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+  var taxAmt      = Math.round(Math.max(0, taxableBase - taxDiscAmt) * 0.104 * 100) / 100;
   var guaranteedWithTax = totalGuaranteedFuneral + taxAmt;
 
   var nonGuarTotal = motoEscortAmt + dcAmt + countyFeeAmt;
