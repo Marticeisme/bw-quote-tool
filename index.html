@@ -3125,9 +3125,47 @@ function gaImportFromFH() {
     var now = new Date();
     el('gaContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   }
-  var msg = insured
-    ? '<div style="background:#f5f7fa;padding:8px 12px;border-radius:6px;color:#27ae60;font-weight:600;">✅ Imported: ' + insured + (planType ? ' | Disposition set to ' + (planType==='burial' ? 'Burial' : 'Cremation') : '') + '</div>'
-    : '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">No client name found in Funeral Home Quote. Enter name manually above.</div>';
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var fmtGA = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var dispPos = (typeof _activePlanType !== 'undefined' && _activePlanType) ? (_activePlanType === 'burial' ? 'Burial' : 'Cremation') : null;
+
+  if (!lines.length) {
+    var msg = insured
+      ? '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">' +
+        '✅ Imported: <strong>' + insured + '</strong>' + (dispPos ? ' | Disposition: <strong>' + dispPos + '</strong>' : '') +
+        '<br>⚠️ No Funeral Home Quote items found. Build FH Quote first for full contract data.</div>'
+      : '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">No client name found in Funeral Home Quote. Enter name manually above.</div>';
+    el('gaImportDisplay').innerHTML = msg;
+    return;
+  }
+
+  // Build pricing preview from _fhLines
+  var previewRows = '';
+  var totalAmt = 0;
+  var discAmt = 0;
+  var serviceLines = lines.filter(function(l){ return !l.isDiscount && !l.isTax && l.amount > 0; });
+  var discLines = lines.filter(function(l){ return l.isDiscount; });
+  var taxLines = lines.filter(function(l){ return l.isTax; });
+  serviceLines.forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#334;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;font-weight:600;color:#1B2A4A;">' + fmtGA(l.amount) + '</td></tr>';
+    totalAmt += l.amount;
+  });
+  discLines.forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#c0392b;">Discount: ' + l.label + '</td><td style="padding:2px 6px;text-align:right;font-weight:600;color:#c0392b;">' + fmtGA(l.amount) + '</td></tr>';
+    discAmt += l.amount;
+  });
+  taxLines.forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#888;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;color:#888;">' + fmtGA(l.amount) + '</td></tr>';
+    totalAmt += l.amount;
+  });
+  var grand = (typeof _fhTotal !== 'undefined') ? _fhTotal : (totalAmt + discAmt);
+
+  var msg = '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">' +
+    '<div style="font-weight:700;color:#155724;margin-bottom:6px;">✅ Imported: ' + (insured || '(no name)') + (dispPos ? ' | Disposition: ' + dispPos : '') + '</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;">' + previewRows +
+    '<tr style="border-top:2px solid #1B2A4A;"><td style="padding:4px 6px;font-weight:700;color:#1B2A4A;">Grand Total</td>' +
+    '<td style="padding:4px 6px;text-align:right;font-weight:700;font-size:14px;color:#C0673B;">' + fmtGA(grand) + '</td></tr>' +
+    '</table></div>';
   el('gaImportDisplay').innerHTML = msg;
 }
 
@@ -3381,18 +3419,18 @@ async function printGAContract() {
   if (typeof _fhTotal !== 'undefined') showTotalsMismatch(grandTotal, _fhTotal, 'GA Contract');
 
   // ── PDF generation ────────────────────────────────────────────────────────
+  if (!lines.length) {
+    alert('No Funeral Home Quote data found. Build a Funeral Home Quote first, then use Import from Funeral Home Quote.');
+    return;
+  }
   try {
     var pdfB64    = isBurial ? GA_PDF_BURIAL : GA_PDF_CREMATION;
     var pdfBytes  = Uint8Array.from(atob(pdfB64), function(c){ return c.charCodeAt(0); });
     var fullDoc   = await PDFLib.PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
-    // Extract pages 1, 2, 3 (0-indexed: 0,1,2)
-    var newDoc    = await PDFLib.PDFDocument.create();
-    var copied    = await newDoc.copyPages(fullDoc, [0, 1, 2]);
-    copied.forEach(function(p){ newDoc.addPage(p); });
-
-    var form  = newDoc.getForm();
-    var font  = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    // Work directly on fullDoc so AcroForm fields are accessible
+    var form  = fullDoc.getForm();
+    var font  = await fullDoc.embedFont(PDFLib.StandardFonts.Helvetica);
     var navy  = PDFLib.rgb(0.05, 0.1, 0.2);
 
     // Helper: safe setText
@@ -3578,7 +3616,7 @@ async function printGAContract() {
     setTF('Text46',     fmt$(grandTotal));
 
     // Page 3 draw text for recipient name and date (static text area at top)
-    var page3 = newDoc.getPages()[2];
+    var page3 = fullDoc.getPages()[2];
     if (insured) {
       page3.drawText(insured, { x: 128, y: 746, size: 10, font: font, color: navy });
     }
@@ -3595,7 +3633,7 @@ async function printGAContract() {
     // Flatten so Adobe won't re-run calculations
     try { form.flatten(); } catch(fe) { console.warn('flatten:', fe.message); }
 
-    var filledBytes = await newDoc.save();
+    var filledBytes = await fullDoc.save();
     var blob        = new Blob([filledBytes], { type: 'application/pdf' });
     var url         = URL.createObjectURL(blob);
     var a           = document.createElement('a');
@@ -8786,10 +8824,11 @@ async function generateRICContractCore(clientData) {
     }
 
     var markerQty   = markerLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || markerLines.length;
+    var baseQty     = baseLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || baseLines.length;
     var vaultQty    = vaultLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultLines.length;
     var vaultSetQty = vaultSetLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultSetLines.length;
     if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', formatMarkerLabel(markerItem.label));   setF('Taxable1', fmtC(markerItem.amount));   }
-    if (baseItem)     { setF('Qty 6','1');                   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
+    if (baseItem)     { setF('Qty 6', String(baseQty||1));   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
     if (installItem)  { setF('Qty 7','1');                   setF('Notes 1', formatInstallLabel(installItem.label));              setF('Taxable3', fmtC(installItem.amount));  }
     if (vaultItem)    { setF('Qty 8', String(vaultQty||1));  setF('Notes 2', vaultItem.label);                                   setF('Taxable4', fmtC(vaultItem.amount));    }
     if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1)); setF('Notes 3', vaultSetItem.label);                              setF('Taxable5', fmtC(vaultSetItem.amount)); }
@@ -8882,7 +8921,11 @@ async function generateRICContractCore(clientData) {
               var parentV = parent.get(PDFName.of('V'));
               if (!parentV) continue;
               var resolved = doc.context.lookup(parentV) || parentV;
-              if (resolved) w.set(PDFName.of('V'), resolved);
+              if (resolved) {
+                w.set(PDFName.of('V'), resolved);
+                // Remove stale AP so viewer regenerates appearance from /V
+                try { w.delete(PDFName.of('AP')); } catch(e2) {}
+              }
             } catch(e) {}
           }
         } catch(e) {}
@@ -8903,7 +8946,7 @@ async function generateRICContractCore(clientData) {
     var _descFields = [
       'Description of Interment Rights','Memorial Description','Mem Base Description',
       'Notes 1','Notes 2','Notes 3','Other Merch 1 Description','Other Merch 2 Description',
-      'Notes 5','Discount Description 1','Discount Description 2'
+      'Discount Description 1','Discount Description 2'
     ];
     _narrowCurrencyFields.forEach(function(fn) {
       try { form.getTextField(fn).setFontSize(8); } catch(e) {}
@@ -8911,6 +8954,12 @@ async function generateRICContractCore(clientData) {
     _descFields.forEach(function(fn) {
       try { form.getTextField(fn).setFontSize(0); } catch(e) {}
     });
+    // Remarks (Notes 5): multi-line with fixed readable size so text wraps instead of shrinking
+    try {
+      var remarksField = form.getTextField('Notes 5');
+      remarksField.enableMultiline();
+      remarksField.setFontSize(8);
+    } catch(e) {}
 
     // Embed font and update field appearances so values display without clicking
     try {
@@ -10103,74 +10152,7 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     y -= 16;
   }
 
-  // ── Payment Options ──
-  if (opts.finData && opts.finData.downAmt > 0 && typeof FIN_TIERS !== 'undefined') {
-    checkY(60);
-    y -= 8;
-    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
-    page.drawText('PAYMENT OPTIONS', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
-    y -= 32;
-    // Disclosure block
-    var disclosures = [
-      'Minimum down payment for financing is 10%.',
-      'Minimum monthly payment is $50.',
-      'Zero percent financing requires ACH bank withdrawal.',
-      'Early payoff is allowed, which may reduce total finance charges.',
-      'Tiered finance charge rates are the same for any down payment of 25% or more.'
-    ];
-    disclosures.forEach(function(line) {
-      checkY(14);
-      page.drawText(line, {x:M+4, y, size:7.5, font:reg, color:MUTED});
-      y -= 12;
-    });
-    y -= 8;
-    var C1=M+6, C2=M+80, C3=M+210, C4=M+360;
-    var tierDefs = [
-      {key:0.10, label:'10% Down (Minimum)'},
-      {key:0.20, label:'20% Down'},
-      {key:0.25, label:'25%+ Down'}
-    ];
-    tierDefs.forEach(function(td) {
-      var tiers   = FIN_TIERS[td.key];
-      if (!tiers) return;
-      var downAmt = Math.ceil(grand * td.key);
-      var balance = grand - downAmt;
-      if (balance <= 0) return;
-      checkY(90);
-      // Tier group header — steel blue
-      var downInfo = 'Min. Down: '+fmtMoney(downAmt)+'  |  Balance: '+fmtMoney(balance);
-      var diW = reg.widthOfTextAtSize(downInfo, 8);
-      page.drawRectangle({x:M, y:y-6, width:RX-M, height:20, color:STEEL});
-      page.drawText(safeText(td.label), {x:C1,     y:y+2,  size:9,  font:bold, color:WHITE});
-      page.drawText(downInfo,           {x:RX-diW, y:y+2,  size:8,  font:reg,  color:rgb(0.85,0.9,0.95)});
-      y -= 22;
-      // Column headers
-      checkY(16);
-      page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
-      page.drawText('Term',           {x:C1, y:y+1, size:8.5, font:bold, color:DARK});
-      page.drawText('Rate',           {x:C2, y:y+1, size:8.5, font:bold, color:DARK});
-      page.drawText('Monthly Payment',{x:C3, y:y+1, size:8.5, font:bold, color:DARK});
-      page.drawText('Total Cost',     {x:C4, y:y+1, size:8.5, font:bold, color:DARK});
-      y -= 18;
-      tiers.forEach(function(tier, i) {
-        checkY(16);
-        var months = tier[0], rate = tier[1];
-        var monthly   = (typeof finMonthly === 'function') ? finMonthly(balance, months, rate) : (rate===0 ? balance/months : (balance*(rate/12))/(1-Math.pow(1+(rate/12),-months)));
-        var totalCost = downAmt + (monthly * months);
-        var isZero    = rate === 0;
-        if (isZero) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(1.0,0.96,0.90)});
-        else if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
-        page.drawText(months+' months',         {x:C1, y, size:9.5, font:bold, color:DARK});
-        page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
-        page.drawText(fmtMoney(monthly)+'/mo',  {x:C3, y, size:9.5, font:bold, color:DARK});
-        page.drawText(fmtMoney(totalCost),      {x:C4, y, size:9,   font:reg,  color:MUTED});
-        y -= 17;
-      });
-      y -= 10;
-    });
-  }
-
-  // ── Notes ──
+  // ── Notes (B1: moved before Payment Options) ──
   if (opts.notes && opts.notes.trim()) {
     checkY(50);
     y -= 10;
@@ -10181,6 +10163,132 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     page.drawText(notesLabel, {x:M+10, y, size:9, font:bold, color:DARK});
     page.drawText(notesText,  {x:M+10+notesLabelW, y, size:9, font:reg, color:DARK});
     y -= 24;
+  }
+
+  // ── Payment Options (B2/B3/B4: smart pagination + disclosures with tables) ──
+  if (opts.finData && opts.finData.downAmt > 0 && typeof FIN_TIERS !== 'undefined') {
+    var _C1=M+6, _C2=M+80, _C3=M+210, _C4=M+360;
+    var _tierDefs = [
+      {key:0.10, label:'10% Down (Minimum)'},
+      {key:0.20, label:'20% Down'},
+      {key:0.25, label:'25%+ Down'}
+    ];
+    var _disclosures = [
+      'Minimum down payment for financing is 10%.',
+      'Minimum monthly payment is $50.',
+      'Zero percent financing requires ACH bank withdrawal.',
+      'Early payoff is allowed, which may reduce total finance charges.',
+      'Tiered finance charge rates are the same for any down payment of 25% or more.'
+    ];
+    // B4: estimate full payment block height to decide pagination
+    var _discH = _disclosures.length * 12 + 8;
+    var _tierH = 0;
+    _tierDefs.forEach(function(td) {
+      var _tiers = FIN_TIERS[td.key];
+      if (!_tiers) return;
+      var _dn = Math.ceil(grand * td.key), _bal = grand - _dn;
+      if (_bal <= 0) return;
+      _tierH += 22 + 18 + (_tiers.length * 17) + 10;
+    });
+    var _payBlockH = 40 + _discH + _tierH;
+    // If payment block won't fit cleanly on current page, push it all to a new page
+    if (y - 70 < _payBlockH) { newPage(); } else { y -= 8; }
+    // Payment Options header
+    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
+    page.drawText('PAYMENT OPTIONS', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
+    y -= 32;
+    // B2: Disclosure block rendered WITH the tables (never separated from them)
+    _disclosures.forEach(function(dline) {
+      page.drawText(safeText(dline), {x:M+4, y, size:7.5, font:reg, color:MUTED});
+      y -= 12;
+    });
+    y -= 8;
+    _tierDefs.forEach(function(td) {
+      var tiers   = FIN_TIERS[td.key];
+      if (!tiers) return;
+      var downAmt = Math.ceil(grand * td.key);
+      var balance = grand - downAmt;
+      if (balance <= 0) return;
+      // B3: use safeText and smaller font to prevent right-edge overflow
+      var downInfo = safeText('Min. Down: '+fmtMoney(downAmt)+'  |  Balance: '+fmtMoney(balance));
+      var diSz = 7.5;
+      var diW = reg.widthOfTextAtSize(downInfo, diSz);
+      var labelW = bold.widthOfTextAtSize(safeText(td.label), 9);
+      if (RX - diW < _C1 + labelW + 12) { diSz = 6.5; diW = reg.widthOfTextAtSize(downInfo, diSz); }
+      page.drawRectangle({x:M, y:y-6, width:RX-M, height:20, color:STEEL});
+      page.drawText(safeText(td.label), {x:_C1,    y:y+2, size:9,    font:bold, color:WHITE});
+      page.drawText(downInfo,           {x:RX-diW, y:y+2, size:diSz, font:reg,  color:rgb(0.85,0.9,0.95)});
+      y -= 22;
+      // Column headers
+      page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
+      page.drawText('Term',            {x:_C1, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Rate',            {x:_C2, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Monthly Payment', {x:_C3, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Total Cost',      {x:_C4, y:y+1, size:8.5, font:bold, color:DARK});
+      y -= 18;
+      tiers.forEach(function(tier, i) {
+        var months = tier[0], rate = tier[1];
+        var monthly   = (typeof finMonthly === 'function') ? finMonthly(balance, months, rate) : (rate===0 ? balance/months : (balance*(rate/12))/(1-Math.pow(1+(rate/12),-months)));
+        var totalCost = downAmt + (monthly * months);
+        var isZero    = rate === 0;
+        if (isZero) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(1.0,0.96,0.90)});
+        else if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+        page.drawText(months+' months',         {x:_C1, y, size:9.5, font:bold, color:DARK});
+        page.drawText(isZero ? '0% (ACH req.)' : (rate*100).toFixed(0)+'%', {x:_C2, y, size:9.5, font:reg, color:isZero ? ORANGE : DARK});
+        page.drawText(fmtMoney(monthly)+'/mo',  {x:_C3, y, size:9.5, font:bold, color:DARK});
+        page.drawText(fmtMoney(totalCost),      {x:_C4, y, size:9,   font:reg,  color:MUTED});
+        y -= 17;
+      });
+      y -= 10;
+    });
+  }
+
+  // ── WA Maxima Insurance (C1: FH Quote PDF payment options) ──
+  if (opts.maxima && opts.maxima.age > 0 && typeof WA_MAXIMA_PLANS !== 'undefined' && typeof getMaximaRates === 'function') {
+    var mx = opts.maxima;
+    var mxRates = getMaximaRates(mx.age);
+    if (mxRates) {
+      var mxNet = Math.max(0, mx.total - (mx.down || 0));
+      checkY(60);
+      y -= 8;
+      page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
+      page.drawText('WA MAXIMA INSURANCE PAYMENT OPTIONS', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
+      y -= 32;
+      var mxHeader = safeText('Age ' + mx.age + '  |  Benefit: ' + fmtMoney(mx.total) + (mx.down > 0 ? '  |  Down: ' + fmtMoney(mx.down) : '') + '  |  GA Maxima Revised, Standard, Underwritten  |  For illustration only');
+      page.drawText(mxHeader, {x:M+4, y, size:7.5, font:reg, color:MUTED});
+      y -= 14;
+      checkY(16);
+      page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
+      var mxC1=M+6, mxC2=M+180, mxC3=M+320, mxC4=M+430;
+      page.drawText('Plan',       {x:mxC1, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Monthly',    {x:mxC2, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Total Paid', {x:mxC3, y:y+1, size:8.5, font:bold, color:DARK});
+      page.drawText('Months',     {x:mxC4, y:y+1, size:8.5, font:bold, color:DARK});
+      y -= 18;
+      WA_MAXIMA_PLANS.forEach(function(plan, i) {
+        var rate = mxRates[i];
+        if (rate === null || (plan.maxAge && mx.age > plan.maxAge)) return;
+        checkY(16);
+        var monthly   = plan.months === 1 ? mxNet : Math.round(mxNet * rate * 100) / 100;
+        var totalPaid = plan.months === 1 ? mxNet : monthly * plan.months;
+        if (i % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+        page.drawText(safeText(plan.name), {x:mxC1, y, size:9, font:bold, color:DARK});
+        if (plan.months === 1) {
+          var spStr = fmtMoney(monthly) + ' one-time';
+          var spW = bold.widthOfTextAtSize(safeText(spStr), 9);
+          page.drawText(safeText(spStr), {x:RX-spW, y, size:9, font:bold, color:STEEL});
+        } else {
+          page.drawText(fmtMoney(monthly)+'/mo', {x:mxC2, y, size:9, font:bold, color:STEEL});
+          page.drawText(fmtMoney(totalPaid),      {x:mxC3, y, size:9, font:reg,  color:DARK});
+          page.drawText(String(plan.months),      {x:mxC4, y, size:9, font:reg,  color:MUTED});
+        }
+        y -= 17;
+      });
+      y -= 6;
+      checkY(14);
+      page.drawText('For illustration purposes only. Not a contract or guarantee of insurability.', {x:M+4, y, size:7, font:reg, color:MUTED});
+      y -= 14;
+    }
   }
 
   // Footer on all pages
@@ -10272,10 +10380,20 @@ async function downloadFhQuotePDF() {
   logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
+  var _fhTotalVal = (typeof _fhTotal !== 'undefined') ? _fhTotal : 0;
+  // C1: Collect WA Maxima data if age is entered and table is populated
+  var _mxData = null;
+  var _insAge = parseInt((el('fhInsAge') || {}).value) || 0;
+  var _insDown = parseFloat((el('fhInsDown') || {}).value) || 0;
+  if (_insAge > 0 && _fhTotalVal > 0 && typeof getMaximaRates === 'function') {
+    var _mxRates = getMaximaRates(_insAge);
+    if (_mxRates) { _mxData = { age: _insAge, down: _insDown, total: _fhTotalVal }; }
+  }
   await _buildQuotePDF(lines, val('fhClientName')||'', 'Funeral Home Quote', 'BW_FuneralHome_Quote', {
     sections:   categorizeFHLines(lines),
-    grandTotal: (typeof _fhTotal !== 'undefined') ? _fhTotal : undefined,
-    notes: val('fhQuoteNotes') || ''
+    grandTotal: _fhTotalVal || undefined,
+    notes:      val('fhQuoteNotes') || '',
+    maxima:     _mxData
   });
 }
 
