@@ -3215,8 +3215,8 @@ async function printGAContract() {
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-  function fmt$(n) { return n > 0 ? n.toFixed(2) : ''; }
-  function fmtSigned$(n) { return n !== 0 ? (n < 0 ? '-' : '') + Math.abs(n).toFixed(2) : ''; }
+  function fmt$(n) { return n > 0 ? n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
+  function fmtSigned$(n) { return n !== 0 ? (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
 
   // ── FH Quote data ─────────────────────────────────────────────────────────
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
@@ -3517,7 +3517,7 @@ async function printGAContract() {
     // Must clear /AP too — otherwise flatten bakes in the stale template appearance even when /V is blank.
     // Cannot use form.getFields().forEach(f.setText('')) because setText() throws on fields whose
     // /DA font is not embedded, silently skipping them and leaving stale appearances.
-    // Note: PDFName.encodedName returns 'Tx' NOT '/Tx' — the slash is the PDF syntax, not the name.
+    // Note: PDFName.encodedName returns '/Tx' WITH the slash (confirmed by diagnostic: ftCounts {"/Tx":112, "/Btn":75}).
     (function rawClearGA(doc) {
       var PDFName = PDFLib.PDFName, PDFString = PDFLib.PDFString;
       function clearNode(ref, inheritedFT) {
@@ -3629,9 +3629,9 @@ async function printGAContract() {
     // Visitation
     if (viewingTotal) {
       setTF('1002-14 - Total Visitation', fmt$(viewingTotal));
-      // Parse days from label e.g. "Viewing — Sunday–Thursday (up to 3 hrs)"
-      var viewDays = viewingLine && viewingLine.label.match(/(\d+)\s*day/i);
-      if (viewDays) { setTF('1002-14 - Visitation Days', viewDays[1]); }
+      // Text45 = rate/day field (x=184 y=597), Text48 = days count field (x=275 y=596)
+      setTF('Text45', fmt$(viewingTotal));  // flat fee shown as rate
+      setTF('Text48', '1');                 // 1 session
     }
     if (funeralSvcTotal)  setTF('1002-14 - Funeral Service',     fmt$(funeralSvcTotal));
     if (funeralSvcLines.length > 1) {
