@@ -3272,8 +3272,10 @@ async function printGAContract() {
     return lbl.includes('surcharge') || lbl.includes('overnight activity') || lbl.includes('evening activity');
   });
 
-  // Reception
-  var receptionLine   = findLine('Reception');
+  // Reception: only lines NOT already captured in funeralSvcLines (prevents double-count)
+  var receptionLine   = lines.find(function(l) {
+    return l.label.toLowerCase().includes('reception') && !funeralSvcLines.includes(l);
+  });
 
   // Transportation
   var transferAmt     = amt(findLine('Transfer of Deceased'));
@@ -3401,12 +3403,8 @@ async function printGAContract() {
   var grossGuaranteed = guaranteedServicesTotal + guaranteedMerchandiseTotal;
   var totalGuaranteedFuneral = Math.max(0, grossGuaranteed - planDiscount);
 
-  // Tax: 10.4% only on guaranteed MERCHANDISE (casket/container + urn + other-specify costs)
-  // This matches the PDF's CAW - Guar Sub Tot formula exactly:
-  // CAW - Guar Sub Tot = Casket + Urn + Other-specify-1 + Other-specify-2 + Other-specify-3 + Outer Burial Cost
-  var otherSpecifyCosts = transportOther.slice(0, urnInOtherSpecify ? 2 : 3).reduce(function(s,o){return s+o.amt;},0)
-                        + (urnInOtherSpecify ? urnTotalAmt : 0);
-  var taxableBase = formCasketPrice + (isBurial ? urnTotalAmt : 0) + otherSpecifyCosts;
+  // Tax: 10.4% on merchandise only (casket/container + urn). Services are not taxable.
+  var taxableBase = formCasketPrice + (isBurial ? urnTotalAmt : 0);
   var taxAmt      = Math.round(taxableBase * 0.104 * 100) / 100;
   var guaranteedWithTax = totalGuaranteedFuneral + taxAmt;
 
@@ -3487,22 +3485,10 @@ async function printGAContract() {
       var v = (value === null || value === undefined) ? '' : String(value);
       try { form.getTextField(fieldName).setText(v); } catch(e) { /* field absent */ }
     }
-    // Clear stale template text that we won't be overwriting
-    ['1002-14 - Other (specify)', '1002-14 - Other - 1',
-     '1002-14 - Other (specify) - 2', '1002-14 - Other - 2',
-     '1002-14 - Other - specify 1', '1002-14 - Other - specify 1 cost',
-     '1002-14 - Other - specify 2', '1002-14 - Other - specify 2 cost',
-     '1002-14 - Other - specify 3', '1002-14 - Other - specify 3 cost',
-     '1002-14 - Required Purchase', '1002-14 - Required Purchase - 1', '1002-14 - Required Purchase - 2',
-     '1002-14 - Visitation Days', '1002-14 - Visitation $ Per',
-     '1002-14 - Miles to Transfer Deceased',
-     '1002-14 - Family Car #', '1002-14 - Family Car $ Per',
-     '1002-14 - Exterior Material and Color', '1002-14 - Interior Material and Color',
-     '1002-14 - Manufacturer', '1002-14 - Model # and Name',
-     '1002-14 - Outer Burial Manufacturer', '1002-14 - Outer Burial Model # and Name',
-     '1002-14 - Outer Burial Material', '1002-14 - Outer Burial Cost',
-     '1002-14 - If Applicable'
-    ].forEach(function(fn) { try { form.getTextField(fn).setText(''); } catch(e) {} });
+    // Nuclear clear: wipe every text field to flush stale template defaults
+    form.getFields().forEach(function(f) {
+      try { if (typeof f.getText === 'function' && typeof f.setText === 'function') f.setText(''); } catch(e) {}
+    });
 
     // Helper: safe check checkbox (value = 'Yes')
     function checkBox(fieldName) {
@@ -3525,7 +3511,7 @@ async function printGAContract() {
 
     // ── PAGE 1 FIELDS ────────────────────────────────────────────────────────
     // Funeral firm (static)
-    setTF('Funeral Firm Name',           'Washington Memorial Park & Mortuary, Inc.');
+    setTF('Funeral Firm Name',           'Bonney Watson');
     setTF('Funeral Firm Street Address', '16445 International Blvd.');
     setTF('City',             'SeaTac');
     setTF('State',            'WA');
@@ -3588,6 +3574,9 @@ async function printGAContract() {
       if (viewDays) { setTF('1002-14 - Visitation Days', viewDays[1]); }
     }
     if (funeralSvcTotal)  setTF('1002-14 - Funeral Service',     fmt$(funeralSvcTotal));
+    if (funeralSvcLines.length > 1) {
+      fullDoc.getPages()[0].drawText(funeralSvcLines.length + 'x', { x: 196, y: 572, size: 9, font: font, color: navy });
+    }
     if (gravesideTotal)   setTF('1002-14 - Graveside Service',   fmt$(gravesideTotal));
     if (transferAmt)      setTF('1002-14 - Transfer of Deceased', fmt$(transferAmt));
     if (hearseAmt)        setTF('1002-14 - Hearse',               fmt$(hearseAmt));
@@ -3633,6 +3622,8 @@ async function printGAContract() {
     // Totals
     setTF('1002-14 - Total Services',              fmt$(guaranteedServicesTotal));
     setTF('1002-14 - Total Guaranteed Funeral Price', fmt$(totalGuaranteedFuneral));
+    setTF('Text12', fmt$(nonGuarTotal));   // Total Allowance for Cash Advance Items (page 1)
+    setTF('Text13', fmt$(grandTotal));     // Total Guaranteed and Non-Guaranteed (page 1)
 
     // ── PAGE 3 FIELDS ────────────────────────────────────────────────────────
     // Recipient and date on page 3
@@ -3676,10 +3667,8 @@ async function printGAContract() {
     setTF('CAW Tax %',          '10.4');
     setTF('CAW tax',            fmt$(taxAmt));
     setTF('GUARANTEED TOTAL',   fmt$(guaranteedWithTax));
-    if (nonGuarTotal > 0) {
-      setTF('Text44',   fmt$(nonGuarTotal));
-    }
-    setTF('Text46',     fmt$(grandTotal));
+    setTF('Text44', fmt$(nonGuarTotal));
+    setTF('Text46', fmt$(grandTotal));
 
     // Page 3 draw text for recipient name and date (static text area at top)
     var page3 = fullDoc.getPages()[2];
