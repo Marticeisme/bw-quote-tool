@@ -2533,9 +2533,11 @@ function handleDeepLink(){
   var id=hash.slice(6);
   var c=cases.find(function(x){return x.id===id;});
   if(!c)return;
-  // Expand before render so buildCaseCardHTML picks up the open state
+  // Persist only the expanded-card state — do NOT call save() here because
+  // Firebase hasn't synced yet and a full write would overwrite server-side data
+  // with potentially stale localStorage values.
   expandedCards[id]=true;
-  save();
+  localStorage.setItem('bw:expanded',JSON.stringify(expandedCards));
   // Switch to the owner's view if the current view wouldn't show this case
   if(activeUser!=='all'&&activeUser!==c.owner)setUser(c.owner);
   // Ensure cases tab is active (re-renders with expanded state)
