@@ -3548,6 +3548,31 @@ async function printGAContract() {
           for (var i = 0; i < fields.size(); i++) clearNode(fields.get(i), null);
         }
       } catch(e) {}
+      // Pass 2: clear orphaned /Tx widgets in page /Annots not reached by the AcroForm tree walk above.
+      // These are merged field+widget dicts that live only in /Annots (Casket, Total Services, etc.)
+      // and therefore persist as stale /AP appearances after the AcroForm-tree Pass 1.
+      try {
+        doc.getPages().forEach(function(pg) {
+          try {
+            var annotsRef = pg.node.get(PDFName.of('Annots'));
+            if (!annotsRef) return;
+            var annots = doc.context.lookup(annotsRef);
+            if (!annots || typeof annots.size !== 'function') return;
+            for (var j = 0; j < annots.size(); j++) {
+              try {
+                var w = doc.context.lookup(annots.get(j));
+                if (!w || typeof w.get !== 'function') continue;
+                var wFT = w.get(PDFName.of('FT'));
+                if (wFT && wFT.encodedName === '/Tx') {
+                  w.set(PDFName.of('V'), PDFString.of(''));
+                  w.delete(PDFName.of('DV'));
+                  w.delete(PDFName.of('AP'));
+                }
+              } catch(e) {}
+            }
+          } catch(e) {}
+        });
+      } catch(e) {}
     })(fullDoc);
 
     // Helper: safe check checkbox (value = 'Yes')
@@ -3629,9 +3654,6 @@ async function printGAContract() {
     // Visitation
     if (viewingTotal) {
       setTF('1002-14 - Total Visitation', fmt$(viewingTotal));
-      // Text45 = rate/day field (x=184 y=597), Text48 = days count field (x=275 y=596)
-      setTF('Text45', fmt$(viewingTotal));  // flat fee shown as rate
-      setTF('Text48', '1');                 // 1 session
     }
     if (funeralSvcTotal)  setTF('1002-14 - Funeral Service',     fmt$(funeralSvcTotal));
     if (funeralSvcLines.length > 1) {
@@ -3787,6 +3809,87 @@ async function printGAContract() {
         }
       }
     })(fullDoc, form, font);
+
+    // ── Orphaned-field drawText overlay (page 0 Statement of Goods and Services) ──────────
+    // These widgets exist only in page /Annots, not the AcroForm /Fields tree.
+    // rawClearGA Pass 2 wiped their stale /AP; flatten rendered them blank; overlay correct values now.
+    (function overlayOrphanedFields() {
+      var pg0 = fullDoc.getPages()[0];
+      function dTF(x, y, text, sz) {
+        if (!text) return;
+        pg0.drawText(String(text), { x: x + 2, y: y + 3, size: sz || 9, font: font, color: navy });
+      }
+
+      // Left column: arrangement fee and services
+      if (basicSvc)          dTF(231, 717, fmt$(basicSvc));
+      if (viewingTotal) {
+        dTF(68,  586, '1');                         // 1 session/day count
+        dTF(131, 586, fmt$(viewingTotal));           // rate shown as flat fee
+      }
+      if (cremFeeAmt)        dTF(231, 453, fmt$(cremFeeAmt));
+      if (mailingAmt || deliveryAmt) dTF(231, 482, fmt$(mailingAmt + deliveryAmt));
+      var otherSvcAmt = witnessAmt + expediteAmt + prepCremAmt + storageAmt + keepsakesAmt;
+      if (otherSvcAmt)       dTF(231, 468, fmt$(otherSvcAmt));
+      if (planDiscount > 0)  dTF(485, 438, '(' + fmt$(planDiscount) + ')');
+
+      // Services Other-specify — 2 left-column slots (label x=71, amount x=231)
+      [{rowY: 438}, {rowY: 424}].forEach(function(slot, i) {
+        if (servicesOther[i]) {
+          dTF(71,  slot.rowY, servicesOther[i].label, 7.5);
+          dTF(231, slot.rowY, fmtSigned$(servicesOther[i].amt));
+        }
+      });
+
+      // Right column: casket / urn / manufacturer / model
+      if (formCasketPrice > 0) {
+        dTF(370, 717, fmt$(formCasketPrice));
+        dTF(368, 702, 'Batesville');
+        dTF(391, 687, formCasketModelNum || formCasketModel);
+      }
+      if (!urnInOtherSpecify && urnTotalAmt > 0 && isBurial) {
+        dTF(509, 717, fmt$(urnTotalAmt));
+      }
+
+      // Transport Other-specify — 3 right-column slots (label x=377, amount x=509)
+      var xSlots = transportOther.slice(0, urnInOtherSpecify ? 2 : 3);
+      [{rowY: 541}, {rowY: 526}, {rowY: 511}].forEach(function(slot, i) {
+        if (urnInOtherSpecify && i === 2) {
+          if (urnTotalAmt > 0) {
+            dTF(377, slot.rowY, 'Urn: ' + urnLabel, 7.5);
+            dTF(509, slot.rowY, fmt$(urnTotalAmt));
+          }
+        } else if (xSlots[i]) {
+          dTF(377, slot.rowY, xSlots[i].label, 7.5);
+          dTF(509, slot.rowY, fmt$(xSlots[i].amt));
+        }
+      });
+
+      // Totals
+      dTF(231, 409, fmt$(guaranteedServicesTotal));
+      dTF(509, 497, fmt$(totalGuaranteedFuneral));
+
+      // Strip any remaining widget annotations from all pages so they don't render on top of our text.
+      // After flatten(), AcroForm-tree widgets were already removed; only orphaned ones remain.
+      var PDFName2 = PDFLib.PDFName;
+      fullDoc.getPages().forEach(function(pg) {
+        try {
+          var annotsRef = pg.node.get(PDFName2.of('Annots'));
+          if (!annotsRef) return;
+          var annots = fullDoc.context.lookup(annotsRef);
+          if (!annots || typeof annots.size !== 'function') return;
+          var toRemove = [];
+          for (var i = 0; i < annots.size(); i++) {
+            try {
+              var w = fullDoc.context.lookup(annots.get(i));
+              if (!w || typeof w.get !== 'function') continue;
+              var st = w.get(PDFName2.of('Subtype'));
+              if (st && st.encodedName === '/Widget') toRemove.push(i);
+            } catch(e) {}
+          }
+          for (var j = toRemove.length - 1; j >= 0; j--) annots.remove(toRemove[j]);
+        } catch(e) {}
+      });
+    })();
 
     var filledBytes = await fullDoc.save();
     var blob        = new Blob([filledBytes], { type: 'application/pdf' });
