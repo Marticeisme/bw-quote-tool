@@ -3829,6 +3829,45 @@ async function printGAContract() {
     setTF('Funeral Firm Representative_2',     'Martice Morrison');
     setTF('Representative_2',                  'Martice Morrison');
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 2a — Pages 4, 5, 9 auto-fill / hardcoded constants (no new builder UI).
+    // Field names verified by coordinate correlation against GA Document Quote Tool.pdf.
+    // Names/firm/dates on pages 5 & 7 are SHARED multi-widget fields already filled
+    // above (1002-14 - SIG - Funeral Recipient / - Purchaser / Funeral Firm *, and the
+    // 17-widget Signature Date field), so they populate automatically.
+    // Personal data needing new inputs (sex, phones, addresses, beneficiary, the
+    // health/replacement/producer Y/N questions, producer email/phone) is Phase 2b.
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // Insured DOB (builder stores YYYY-MM-DD) -> MM/DD/YYYY for the insurance form
+    var gaDobStr = '';
+    var _gaDob = (el('gaInsuredDOB') && el('gaInsuredDOB').value) || '';
+    if (_gaDob) { var _dp = _gaDob.split('-'); if (_dp.length === 3) gaDobStr = _dp[1] + '/' + _dp[2] + '/' + _dp[0]; }
+    var gaAgeVal = (el('gaInsuredAge') && el('gaInsuredAge').value) || '';
+
+    // ── Page 4 — Travel Plan by Inman (first signature block only; 2nd is manual) ──
+    setTF('Printed Name', insured);
+    setTF('Date',         dateStr);
+
+    // ── Page 5 — Preneed Life Insurance Application (A4178) ──
+    setTF('A4176-PG1-1', 'Martice Morrison');   // Insurance Producer printed name
+    setTF('A4176-PG1-2', '183881');             // Insurance Producer ID
+    setTF('A4176-PG1-3', 'Y363');               // Firm ID (2 widgets: pages 5 & 7)
+    setTF('A4176-PG1-10', gaDobStr);            // Proposed Insured Date of Birth
+    setTF('A4176-PG1-11', gaAgeVal);            // Proposed Insured Age
+    checkBox('A4176-PG1-34');                    // Prearrangement Type = Guaranteed
+    setTF('A4176-PG1-35', fmt$(totalGuaranteedFuneral)); // Funeral Price (page-1 total)
+
+    // ── Page 9 — Bonney Watson Cremation Authorization (signing block) ──
+    setTF('Transaction Date', dateStr);
+    setTF('Decedent Name',    insured);
+    setTF('Address001',  '16445 International Blvd.');
+    setTF('City001',     'SeaTac');
+    setTF('State001',    'WA');
+    setTF('Zip Code001', '98188');
+    setTF('Phone001',    '(206) 242-1787');
+    setTF('Funeral Home Representative', 'Martice Morrison');
+
     // Render field appearances with an embedded font so values display without a click,
     // and keep the document a fully editable AcroForm (NO flatten — Martice adjusts figures
     // by hand in Acrobat). NeedAppearances tells Adobe to regenerate anything pdf-lib could not.
