@@ -3988,8 +3988,9 @@ async function printGAContract() {
     setTF('A4176-PG2-9',  gv('gaBenefState'));
     setTF('A4176-PG2-10', gv('gaBenefZip'));
 
-    // City & State where signed (Section 8)
+    // City & State where signed (Section 8) — Proposed Insured row, and Owner row if separate
     setTF('A4176-PG2-13', gv('gaSignedLoc'));
+    if (purchaser) setTF('A4176-PG2-16', gv('gaSignedLoc'));
 
     // Yes/No questions — Section 2 (health), Section 5 (replacement), Section 9 (producer)
     setRadioYN('A4176-PG1-32', gv('gaHealthQ1'));
