@@ -3894,14 +3894,8 @@ async function printGAContract() {
     setTF('Text44', fmt$(nonGuarTotal));
     setTF('Text46', fmt$(grandTotal));
 
-    // Page 3 draw text for recipient name and date (static text area at top)
-    var page3 = fullDoc.getPages()[2];
-    if (insured) {
-      page3.drawText(insured, { x: 128, y: 746, size: 10, font: font, color: navy });
-    }
-    if (dateStr) {
-      page3.drawText(dateStr, { x: 454, y: 746, size: 10, font: font, color: navy });
-    }
+    // (Page 3 recipient name + date are filled by the real shared fields
+    //  1002-14 - SIG - Funeral Recipient / Signature Date — no drawText overlay needed.)
 
     // Funeral Firm Representative on Cash Advance page (page 3)
     setTF('1002-14 - CA - Representative',     'Martice Morrison');
