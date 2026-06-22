@@ -3440,30 +3440,26 @@ async function printGAContract() {
     ? countyFeeEl.options[countyFeeEl.selectedIndex].text.replace(/\s*\$[\d,]+\s*$/, '').trim()
     : '';
 
-  // ── Build overflow "Other specify" slots ──────────────────────────────────
-  // Transportation Other-specify lines (1,2,3) — 3 is reserved for urn in cremation
-  var transportOther = [];
-  if (utilityAmt)   transportOther.push({label:'Use of Utility Vehicle', amt: utilityAmt});
-  if (flowerVehAmt) transportOther.push({label:'Use of Flower Vehicle',  amt: flowerVehAmt});
+  // ── Build "Other" groupings ───────────────────────────────────────────────
+  // Vehicles → the dedicated "Other Services/Facilities/Equipment/Service Vehicle"
+  // row (amount only, no label field on that row).
+  var otherServicesVehicleAmt = utilityAmt + flowerVehAmt;
 
-  // Evening Activity + Reception → combine into one slot (GA form has limited "Other" rows)
+  // Evening Activity + Reception + other surcharges + cremation extras → the left
+  // "Other (specify)" rows (each has a label + amount).
   var eveningLines    = surchLines.filter(function(l){ return l.label.toLowerCase().includes('evening activity'); });
   var nonEveningSurch = surchLines.filter(function(l){ return !l.label.toLowerCase().includes('evening activity'); });
   var eveningAmt      = eveningLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
   var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
+
+  var servicesOther = [];
+  if (chapelLine)     servicesOther.push({label:'Chapel Rental', amt: Math.abs(chapelLine.amount)});
   if (eveningAmt > 0 || recAmt > 0) {
     var combLabel = (eveningAmt > 0 && recAmt > 0) ? 'Evening Activity & Reception'
                   : eveningAmt > 0 ? 'Evening Activity' : 'Reception';
-    transportOther.push({label: combLabel, amt: eveningAmt + recAmt});
+    servicesOther.push({label: combLabel, amt: eveningAmt + recAmt});
   }
-  nonEveningSurch.forEach(function(l){ transportOther.push({label: l.label.split(' ×')[0], amt: Math.abs(l.amount)}); });
-
-  // Slot 3 reserved for urn if cremation and urn selected
-  var urnInOtherSpecify = !isBurial && urnTotalAmt > 0;
-
-  // Services Other lines (1,2)
-  var servicesOther = [];
-  if (chapelLine)     servicesOther.push({label:'Chapel Rental', amt: Math.abs(chapelLine.amount)});
+  nonEveningSurch.forEach(function(l){ servicesOther.push({label: l.label.split(' ×')[0], amt: Math.abs(l.amount)}); });
   if (witnessAmt)     servicesOther.push({label:'Family Witness Cremation', amt: witnessAmt});
   if (expediteAmt)    servicesOther.push({label:'Expedite Cremation', amt: expediteAmt});
   if (prepCremAmt)    servicesOther.push({label:'Prep Body for Cremation', amt: prepCremAmt});
@@ -3471,6 +3467,10 @@ async function printGAContract() {
   if (keepsakesAmt)   servicesOther.push({label:'Keepsake Transfer', amt: keepsakesAmt});
   if (deliveryAmt)    servicesOther.push({label:'Delivery of Remains', amt: deliveryAmt});
   if (mailingAmt)     servicesOther.push({label:'Mailing of Cremated Remains', amt: mailingAmt});
+
+  // Right-column "Other - specify" slots reserved for urn (cremation) / merchandise overflow.
+  var urnInOtherSpecify = !isBurial && urnTotalAmt > 0;
+  var transportOther = [];
 
   // ── Totals ────────────────────────────────────────────────────────────────
   var guaranteedServicesTotal =
@@ -3781,12 +3781,7 @@ async function printGAContract() {
       setTF('1002-14 - Embalming - 1', fmt$(shelterAmt || longShelterAmt));
     }
 
-    // Outer burial container (cemetery requires it for burial)
-    if (isBurial) {
-      checkBox('Check Box46');   // Yes – cemetery requires outer container
-    } else {
-      checkBox('Check Box47');   // No
-    }
+    // Outer burial container Yes/No — left blank per Martice (decided at need, not by the tool).
 
     // Visitation
     if (viewingTotal) {
@@ -3802,8 +3797,9 @@ async function printGAContract() {
     if (mailingAmt || deliveryAmt) {
       setTF('1002-14 - Forwarding/Receiving Remains', fmt$(mailingAmt + deliveryAmt));
     }
-    if (witnessAmt || expediteAmt || prepCremAmt || storageAmt || keepsakesAmt) {
-      setTF('1002-14 - Other Services', fmt$(witnessAmt + expediteAmt + prepCremAmt + storageAmt + keepsakesAmt));
+    // "Other Services/Facilities/Equipment/Service Vehicle" row = vehicles (utility/flower)
+    if (otherServicesVehicleAmt > 0) {
+      setTF('1002-14 - Other Services', fmt$(otherServicesVehicleAmt));
     }
 
     // Services Other (specify) lines — 2 slots
@@ -4025,12 +4021,10 @@ async function printGAContract() {
     // Render field appearances with an embedded font so values display without a click,
     // and keep the document a fully editable AcroForm (NO flatten — Martice adjusts figures
     // by hand in Acrobat). NeedAppearances tells Adobe to regenerate anything pdf-lib could not.
+    // Render appearances with an embedded font (mirrors the working RIC tool). Do NOT set
+    // NeedAppearances — it makes Adobe discard these self-contained /AP streams and re-render
+    // from /DA, which blanked the multi-widget shared fields (firm name, recipient, dates).
     try { form.updateFieldAppearances(font); } catch(e) { try { form.updateFieldAppearances(); } catch(e2) {} }
-    try {
-      var _afRef = fullDoc.catalog.get(PDFLib.PDFName.of('AcroForm'));
-      var _af = _afRef && fullDoc.context.lookup(_afRef);
-      if (_af && typeof _af.set === 'function') _af.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True);
-    } catch(e) {}
 
     // Radio-style checkboxes (set after appearance generation so /AS isn't clobbered):
     setExclCheckbox('A4176-PG1-34', '1');                              // Prearrangement Type = Guaranteed
