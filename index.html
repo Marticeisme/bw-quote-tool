@@ -3311,23 +3311,30 @@ async function printGAContract() {
   var embalmingAmt     = amt(findLine('Embalming'));
   var limitedPrepAmt   = amt(findLine('Limited Preparation'));
   var otherPrepAmt     = amt(findLine('Other Preparation of Deceased'));
+  var autopsyAmt       = amt(findLine('Autopsy'));
   var hairAmt          = amt(findLine('Hair Dressing'));
   var shelterAmt       = amt(findLine('Shelter of Remains'));
   var longShelterAmt   = amt(findLine('Long Term Shelter'));
 
-  // Combine all prep-type items into Other Prep field
-  var otherPrepTotal   = otherPrepAmt + hairAmt + limitedPrepAmt;
+  // "Other Preparations" row combines ALL prep-type items (per 2026-06-22 addendum):
+  // Other Prep + Autopsy/Donor Repair + Hair Dressing + Shelter + Long Term Shelter + Limited Prep.
+  var otherPrepTotal   = otherPrepAmt + autopsyAmt + hairAmt + shelterAmt + longShelterAmt + limitedPrepAmt;
+  var ceremonyHourAmt  = amt(findLine('Additional Ceremony Hour'));
 
-  // Viewing / visitation
+  // Viewing / visitation. Exclude discount lines — the plan discount is often named
+  // "Viewing & Funeral Plan (Burial) Discount", which would otherwise be summed here and
+  // zero out the real viewing amount.
   var viewingLines  = lines.filter(function(l){
+    if (l.isDiscount) return false;
     var lbl = l.label.toLowerCase();
     return lbl.includes('viewing') || lbl.includes('visitation');
   });
   var viewingTotal  = Math.max(0, sumLines(viewingLines));
   var viewingLine   = viewingLines[0]; // for days/rate
 
-  // Funeral / ceremony service
+  // Funeral / ceremony service (exclude discount lines for the same reason)
   var funeralSvcLines = lines.filter(function(l){
+    if (l.isDiscount) return false;
     var lbl = l.label.toLowerCase();
     return lbl.includes('funeral ceremony') || lbl.includes('funeral / memorial') ||
            lbl.includes('ceremony within') || lbl.includes('limited memorial') ||
@@ -3336,7 +3343,7 @@ async function printGAContract() {
   var funeralSvcTotal  = Math.max(0, sumLines(funeralSvcLines));
 
   // Graveside
-  var gravesideLines  = lines.filter(function(l){ return l.label.toLowerCase().includes('graveside'); });
+  var gravesideLines  = lines.filter(function(l){ return !l.isDiscount && l.label.toLowerCase().includes('graveside'); });
   var gravesideTotal  = Math.max(0, sumLines(gravesideLines));
 
   // Chapel rental → services Other
@@ -3447,52 +3454,63 @@ async function printGAContract() {
     ? countyFeeEl.options[countyFeeEl.selectedIndex].text.replace(/\s*\$[\d,]+\s*$/, '').trim()
     : '';
 
-  // ── Build "Other" groupings ───────────────────────────────────────────────
+  // ── "Other" groupings (per 2026-06-22 addendum) ────────────────────────────
   // Vehicles → the dedicated "Other Services/Facilities/Equipment/Service Vehicle"
   // row (amount only, no label field on that row).
   var otherServicesVehicleAmt = utilityAmt + flowerVehAmt;
+  var recAmt = receptionLine ? Math.abs(receptionLine.amount) : 0;
 
-  // Evening Activity + Reception + other surcharges + cremation extras → the left
-  // "Other (specify)" rows (each has a label + amount).
-  var eveningLines    = surchLines.filter(function(l){ return l.label.toLowerCase().includes('evening activity'); });
-  var nonEveningSurch = surchLines.filter(function(l){ return !l.label.toLowerCase().includes('evening activity'); });
-  var eveningAmt      = eveningLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
-  var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
+  // LEFT-side "Other (specify)" candidates, in addendum priority order. Each is its own
+  // line if space allows; overflow combines into the last available row. Plan discount is
+  // handled separately at fill time (it always claims its own row as a negative value).
+  var leftOther = [];
+  function pushLeft(label, a){ if (a > 0) leftOther.push({label: label, amt: a}); }
+  pushLeft('Additional Ceremony Hour', ceremonyHourAmt);
+  surchLines.forEach(function(l){ pushLeft(l.label.split(' ×')[0], Math.abs(l.amount)); }); // Fri/Sat/Sun, Holiday, Overnight, Evening
+  if (chapelLine)    pushLeft('Chapel Rental', Math.abs(chapelLine.amount));
+  if (receptionLine) pushLeft(receptionLine.label.split(' ×')[0], recAmt);
+  pushLeft('Mailing of Cremated Remains', mailingAmt);   // per Martice: cremation mailing/delivery → left side
+  pushLeft('Delivery of Remains', deliveryAmt);
+  pushLeft('Family Witness Cremation', witnessAmt);
+  pushLeft('Expedite Cremation', expediteAmt);
+  pushLeft('Prep Prior to Cremation', prepCremAmt);
+  pushLeft('Release from Storage', storageAmt);
+  pushLeft('Keepsake Transfer', keepsakesAmt);
+  // (Push B: assigned custom "left-side" items will be appended here.)
 
-  var servicesOther = [];
-  if (chapelLine)     servicesOther.push({label:'Chapel Rental', amt: Math.abs(chapelLine.amount)});
-  if (eveningAmt > 0 || recAmt > 0) {
-    var combLabel = (eveningAmt > 0 && recAmt > 0) ? 'Evening Activity & Reception'
-                  : eveningAmt > 0 ? 'Evening Activity' : 'Reception';
-    servicesOther.push({label: combLabel, amt: eveningAmt + recAmt});
-  }
-  nonEveningSurch.forEach(function(l){ servicesOther.push({label: l.label.split(' ×')[0], amt: Math.abs(l.amount)}); });
-  if (witnessAmt)     servicesOther.push({label:'Family Witness Cremation', amt: witnessAmt});
-  if (expediteAmt)    servicesOther.push({label:'Expedite Cremation', amt: expediteAmt});
-  if (prepCremAmt)    servicesOther.push({label:'Prep Body for Cremation', amt: prepCremAmt});
-  if (storageAmt)     servicesOther.push({label:'Release from Storage', amt: storageAmt});
-  if (keepsakesAmt)   servicesOther.push({label:'Keepsake Transfer', amt: keepsakesAmt});
-  if (deliveryAmt)    servicesOther.push({label:'Delivery of Remains', amt: deliveryAmt});
-  if (mailingAmt)     servicesOther.push({label:'Mailing of Cremated Remains', amt: mailingAmt});
+  // RIGHT-side "Other (specify)" candidates (merchandise), in addendum priority order.
+  var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
+  var memMerchTotal        = sumLines(lines.filter(function(l){ return l.memPkg; }));
+  var urnEngravTotal       = sumLines(lines.filter(function(l){ return /^engraving/i.test(l.label); }));
+  var rightOther = [];
+  if (flowerAllowanceTotal > 0) rightOther.push({label:'Flower Allowance',     amt: flowerAllowanceTotal});
+  if (memMerchTotal > 0)        rightOther.push({label:'Memorial Merchandise', amt: memMerchTotal});
+  if (urnEngravTotal > 0)       rightOther.push({label:'Urn Engraving',        amt: urnEngravTotal});
+  // (Push B: assigned custom "right-side" items will be appended here.)
+  var rightOtherTotal = flowerAllowanceTotal + memMerchTotal + urnEngravTotal;
 
-  // Right-column "Other - specify" slots reserved for urn (cremation) / merchandise overflow.
-  var urnInOtherSpecify = !isBurial && urnTotalAmt > 0;
-  var transportOther = [];
+  // PAGE 3 (non-guaranteed cash advance) sources
+  var obituaryTotal  = sumLines(lines.filter(function(l){ return /obituary/i.test(l.label); }));
+  var limousineAmt   = amt(findLine('Horse-Drawn Hearse'));        // Page 3 "Limousine" row
+  var flowersP3Total = sumLines(lines.filter(function(l){ return /^Flowers:/i.test(l.label); })); // Loves Buds & Blooms
 
   // ── Totals ────────────────────────────────────────────────────────────────
+  // otherPrepTotal already includes shelter + long-term shelter + autopsy (see above).
   var guaranteedServicesTotal =
-    basicSvc + embalmingAmt + otherPrepTotal + shelterAmt + longShelterAmt +
+    basicSvc + embalmingAmt + otherPrepTotal +
     viewingTotal + funeralSvcTotal + gravesideTotal +
     transferAmt + hearseAmt + utilityAmt + flowerVehAmt +
     cremFeeAmt + mailingAmt + deliveryAmt + storageAmt + keepsakesAmt +
     (chapelLine ? Math.abs(chapelLine.amount) : 0) +
-    witnessAmt + expediteAmt + prepCremAmt +
-    surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0) +
-    (receptionLine ? Math.abs(receptionLine.amount) : 0);
+    witnessAmt + expediteAmt + prepCremAmt + ceremonyHourAmt + recAmt +
+    surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
 
-  var guaranteedMerchandiseTotal = formCasketPrice + urnTotalAmt;
+  // Merchandise = casket/urn + right-side "Other (specify)" merchandise (flower allowance,
+  // memorial merchandise, urn engraving).
+  var guaranteedMerchandiseTotal = formCasketPrice + urnTotalAmt + rightOtherTotal;
   var grossGuaranteed = guaranteedServicesTotal + guaranteedMerchandiseTotal;
   var totalGuaranteedFuneral = Math.max(0, grossGuaranteed - planDiscount);
+  var totalServicesDisplayed = guaranteedServicesTotal - planDiscount; // left column incl. discount row
 
   // Tax: mirror FH quote taxable-flag logic — sum all lines marked taxable:true
   var taxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
@@ -3500,7 +3518,7 @@ async function printGAContract() {
   var taxAmt      = Math.round(Math.max(0, taxableBase - taxDiscAmt) * 0.104 * 100) / 100;
   var guaranteedWithTax = totalGuaranteedFuneral + taxAmt;
 
-  var nonGuarTotal = motoEscortAmt + dcAmt + countyFeeAmt;
+  var nonGuarTotal = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total;
   var grandTotal   = guaranteedWithTax + nonGuarTotal;
 
   // Totals-match check vs FH quote
@@ -3776,17 +3794,15 @@ async function printGAContract() {
       setTF('1002-14 - Manufacturer',       'Batesville');
       setTF('1002-14 - Model # and Name',   formCasketModelNum || formCasketModel);
     }
-    if (urnTotalAmt > 0 && isBurial) {
+    if (urnTotalAmt > 0) {
       setTF('1002-14 - Urn', fmt$(urnTotalAmt));
+      setTF('1002-14 - Outer Burial Model # and Name', urnLabel);  // urn name/item# → OBC section per addendum
     }
 
     // Services
     setTF('1002-14 - Arrangement and Professional', fmt$(basicSvc));
     if (embalmingAmt)    setTF('1002-14 - Embalming',   fmt$(embalmingAmt));
     if (otherPrepTotal)  setTF('1002-14 - Other Prep',  fmt$(otherPrepTotal));
-    if (shelterAmt || longShelterAmt) {
-      setTF('1002-14 - Embalming - 1', fmt$(shelterAmt || longShelterAmt));
-    }
 
     // Outer burial container Yes/No — left blank per Martice (decided at need, not by the tool).
 
@@ -3804,47 +3820,49 @@ async function printGAContract() {
     }
     if (hearseAmt)        setTF('1002-14 - Hearse',               fmt$(hearseAmt));
     if (cremFeeAmt)       setTF('1002-14 - Cremation Fee',        fmt$(cremFeeAmt));
-    if (mailingAmt || deliveryAmt) {
-      setTF('1002-14 - Forwarding/Receiving Remains', fmt$(mailingAmt + deliveryAmt));
-    }
+    // Forwarding/Receiving Remains — left blank (no FH Builder equivalent, per addendum).
     // "Other Services/Facilities/Equipment/Service Vehicle" row = vehicles (utility/flower)
     if (otherServicesVehicleAmt > 0) {
       setTF('1002-14 - Other Services', fmt$(otherServicesVehicleAmt));
     }
 
-    // Services Other (specify) lines — 2 slots
-    ['1002-14 - Other (specify)', '1002-14 - Other (specify) - 2'].forEach(function(lbl, i) {
-      var amtFld = i === 0 ? '1002-14 - Other - 1' : '1002-14 - Other - 2';
-      if (servicesOther[i]) {
-        setTF(lbl,    servicesOther[i].label);
-        setTF(amtFld, fmt$(servicesOther[i].amt));
-      }
-    });
-
-    // Transportation Other-specify lines 1,2 (and optionally 3 for urn/overflow)
-    var transportSlots = transportOther.slice(0, urnInOtherSpecify ? 2 : 3);
-    ['1002-14 - Other - specify 1','1002-14 - Other - specify 2','1002-14 - Other - specify 3'].forEach(function(lbl, i) {
-      var costFld = lbl.replace(' specify ', ' specify ').replace(/\d$/, function(n){ return n; }) + ' cost';
-      // Build correct cost field name
-      var costFldName = '1002-14 - Other - specify ' + (i+1) + ' cost';
-      if (urnInOtherSpecify && i === 2) {
-        // Urn details go in slot 3
-        setTF(lbl,        (urns.length ? 'Urn: ' + urnLabel : ''));
-        setTF(costFldName, fmt$(urnTotalAmt));
-        setTF('1002-14 - Urn', fmt$(urnTotalAmt));
-      } else if (transportSlots[i]) {
-        setTF(lbl,        transportSlots[i].label);
-        setTF(costFldName, fmt$(transportSlots[i].amt));
-      }
-    });
-
-    // Plan discount — put in Required Purchase area as a note if applicable
-    if (planDiscount > 0) {
-      setTF('1002-14 - Required Purchase', '(' + fmt$(planDiscount) + ')');
+    // ── "Other (specify)" rows with overflow/combine (per 2026-06-22 addendum) ──
+    function distributeOther(items, slots) {
+      if (slots <= 0) return [];
+      if (items.length <= slots) return items.slice();
+      var head = items.slice(0, slots - 1);
+      var tail = items.slice(slots - 1);
+      head.push({
+        label: tail.map(function(x){ return x.label; }).join(' + '),
+        amt:   tail.reduce(function(s,x){ return s + x.amt; }, 0)
+      });
+      return head;
     }
+    // LEFT: 2 rows. Plan discount (if any) always claims its own row as a negative value.
+    var leftFields = [
+      {lbl:'1002-14 - Other (specify)',     amtF:'1002-14 - Other - 1'},
+      {lbl:'1002-14 - Other (specify) - 2', amtF:'1002-14 - Other - 2'}
+    ];
+    var leftRows = distributeOther(leftOther, leftFields.length - (planDiscount > 0 ? 1 : 0));
+    if (planDiscount > 0) leftRows.push({label:'Plan Discount', amt: -planDiscount});
+    leftRows.forEach(function(e, i){
+      if (i >= leftFields.length) return;
+      setTF(leftFields[i].lbl,  e.label);
+      setTF(leftFields[i].amtF, e.amt < 0 ? fmtSigned$(e.amt) : fmt$(e.amt));
+    });
+    // RIGHT: 3 rows (merchandise — flower allowance, memorial merchandise, urn engraving)
+    var rightFields = [
+      {lbl:'1002-14 - Other - specify 1', amtF:'1002-14 - Other - specify 1 cost'},
+      {lbl:'1002-14 - Other - specify 2', amtF:'1002-14 - Other - specify 2 cost'},
+      {lbl:'1002-14 - Other - specify 3', amtF:'1002-14 - Other - specify 3 cost'}
+    ];
+    distributeOther(rightOther, rightFields.length).forEach(function(e, i){
+      setTF(rightFields[i].lbl,  e.label);
+      setTF(rightFields[i].amtF, fmt$(e.amt));
+    });
 
     // Totals
-    setTF('1002-14 - Total Services',              fmt$(guaranteedServicesTotal));
+    setTF('1002-14 - Total Services',              fmt$(totalServicesDisplayed));
     setTF('1002-14 - Total Guaranteed Funeral Price', fmt$(totalGuaranteedFuneral));
     setTF('Text12', fmt$(nonGuarTotal));   // Total Allowance for Cash Advance Items (page 1)
     setTF('Text13', fmt$(grandTotal));     // Total Guaranteed and Non-Guaranteed (page 1)
@@ -3856,10 +3874,17 @@ async function printGAContract() {
     // Default all groups to NO, then set YES for items present
     for (var g = 1; g <= 15; g++) { setGroup(g, false); }
 
-    // Obituary → Group1
-    // (not in FH quote - leave NO)
+    // Obituary → Group1 (custom line item named "obituary")
+    if (obituaryTotal > 0) {
+      setGroup(1, true);
+      setTF('Text29', fmt$(obituaryTotal));
+    }
 
-    // Limousine → Group2 (not in FH quote)
+    // Limousine → Group2 (Horse-Drawn Hearse)
+    if (limousineAmt > 0) {
+      setGroup(2, true);
+      setTF('Text30', fmt$(limousineAmt));
+    }
 
     // Death Certificates → Group3
     if (dcQty > 0) {
@@ -3871,7 +3896,11 @@ async function printGAContract() {
 
     // Clergy → Group4 (not in FH quote)
 
-    // Flowers → Group5 (only if non-guaranteed flower item; plan flower allowance is guaranteed)
+    // Flowers → Group5 (Loves Buds & Blooms selections; NOT the Flower Allowance custom line)
+    if (flowersP3Total > 0) {
+      setGroup(5, true);
+      setTF('Text33', fmt$(flowersP3Total));
+    }
 
     // Motorcycle Escort → Group8
     if (motoEscortAmt > 0) {
