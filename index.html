@@ -3395,6 +3395,13 @@ async function printGAContract() {
   var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
   var casketModelNum  = casketModelMatch ? '#' + casketModelMatch[1] : '';
   var casketModelName = casketLabel.replace(/\s*\(#?\d+\)\s*/, '').trim();
+  // FH-quote imports arrive as "Casket: Lynx Brown" (no item #). Look the number up
+  // from the casket catalog by name so "Model # and Name" includes it.
+  if (!casketModelNum && casketModelName && typeof CASKET_DATA !== 'undefined') {
+    var _ckMatch = CASKET_DATA.find(function(c){ return c.n.toLowerCase() === casketModelName.toLowerCase(); })
+                || CASKET_DATA.find(function(c){ return casketModelName.toLowerCase().indexOf(c.n.toLowerCase()) >= 0; });
+    if (_ckMatch && _ckMatch.i) casketModelNum = '#' + _ckMatch.i;
+  }
 
   var cremContEl      = el('fhCremContainer');
   var cremContPrice   = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
