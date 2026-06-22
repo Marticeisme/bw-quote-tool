@@ -2894,7 +2894,7 @@ tr:hover td{background:#eef3f8;}
 
         <!-- Signing location -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <div style="flex:1;min-width:200px;"><label style="font-size:11px;font-weight:600;color:var(--text);">City &amp; State where signed</label><input type="text" id="gaSignedLoc" value="Seattle, WA" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"></div>
+          <div style="flex:1;min-width:200px;"><label style="font-size:11px;font-weight:600;color:var(--text);">City &amp; State where signed</label><input type="text" id="gaSignedLoc" value="SeaTac, WA" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"></div>
         </div>
       </div>
     </details>
@@ -3930,7 +3930,7 @@ async function printGAContract() {
     setTF('A4176-PG1-10', gaDobStr);            // Proposed Insured Date of Birth
     setTF('A4176-PG1-11', gaAgeVal);            // Proposed Insured Age
     // Prearrangement Type = Guaranteed is set after updateFieldAppearances (see setExclCheckbox).
-    setTF('A4176-PG1-35', fmt$(totalGuaranteedFuneral)); // Funeral Price (page-1 total)
+    setTF('A4176-PG1-35', fmt$(grandTotal)); // Funeral Price = grand total (guaranteed + non-guaranteed)
 
     // ── Page 9 — Bonney Watson Cremation Authorization ──
     // The Signed/Relationship/Address/City/State/Zip/Phone block belongs to the AUTHORIZING
@@ -3990,6 +3990,15 @@ async function printGAContract() {
     setTF('A4176-PG2-13', gv('gaSignedLoc'));
     if (purchaser) setTF('A4176-PG2-16', gv('gaSignedLoc'));
 
+    // Page 9 — Authorizing Agent block = the Proposed Insured (self-authorized pre-need).
+    // Relationship is always "Self"; address/phone pull from the insured's page-5 data.
+    setTF('Relationship001', 'Self');
+    setTF('Address001',  gv('gaInsuredStreet'));
+    setTF('City001',     gv('gaInsuredCity'));
+    setTF('State001',    gv('gaInsuredState'));
+    setTF('Zip Code001', gv('gaInsuredZip'));
+    setTF('Phone001',    gv('gaInsuredPhone'));
+
     // Yes/No questions — Section 2 (health), Section 5 (replacement), Section 9 (producer)
     setRadioYN('A4176-PG1-32', gv('gaHealthQ1'));
     setRadioYN('A4176-PG1-33', gv('gaHealthQ2'));
@@ -4021,6 +4030,12 @@ async function printGAContract() {
         });
       } catch(e) {}
     }
+
+    // Shrink fonts where pdf-lib's height-based auto-size overflows the field WIDTH:
+    // the firm street address (page-5 widget is narrow) and the comb-style Producer/Firm IDs.
+    [['Funeral Firm Street Address', 11], ['A4176-PG1-2', 12], ['A4176-PG1-3', 12]].forEach(function(p){
+      try { form.getTextField(p[0]).setFontSize(p[1]); } catch(e) {}
+    });
 
     // Render field appearances with an embedded font so values display without a click,
     // and keep the document a fully editable AcroForm (NO flatten — Martice adjusts figures
