@@ -10630,15 +10630,21 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
       var downAmt = Math.ceil(grand * td.key);
       var balance = grand - downAmt;
       if (balance <= 0) return;
-      // B3: use safeText and smaller font to prevent right-edge overflow
+      // Right-align the Min.Down/Balance text with right PADDING so it never sits flush
+      // against (or past) the steel bar's right edge. The prior fix aligned to exactly RX,
+      // which still rendered the Balance amount touching the edge and looked clipped.
+      // Shrink-to-fit (down to 6pt) guards against very long six-figure amounts overlapping
+      // the tier label.
       var downInfo = safeText('Min. Down: '+fmtMoney(downAmt)+'  |  Balance: '+fmtMoney(balance));
+      var diPad  = 8;
+      var labelW = bold.widthOfTextAtSize(safeText(td.label), 9);
+      var diMaxW = (RX - diPad) - (_C1 + labelW + 12);   // available width right of the label
       var diSz = 7.5;
       var diW = reg.widthOfTextAtSize(downInfo, diSz);
-      var labelW = bold.widthOfTextAtSize(safeText(td.label), 9);
-      if (RX - diW < _C1 + labelW + 12) { diSz = 6.5; diW = reg.widthOfTextAtSize(downInfo, diSz); }
+      while (diW > diMaxW && diSz > 6) { diSz -= 0.5; diW = reg.widthOfTextAtSize(downInfo, diSz); }
       page.drawRectangle({x:M, y:y-6, width:RX-M, height:20, color:STEEL});
-      page.drawText(safeText(td.label), {x:_C1,    y:y+2, size:9,    font:bold, color:WHITE});
-      page.drawText(downInfo,           {x:RX-diW, y:y+2, size:diSz, font:reg,  color:rgb(0.85,0.9,0.95)});
+      page.drawText(safeText(td.label), {x:_C1,             y:y+2, size:9,    font:bold, color:WHITE});
+      page.drawText(downInfo,           {x:RX-diPad-diW,    y:y+2, size:diSz, font:reg,  color:rgb(0.85,0.9,0.95)});
       y -= 22;
       // Column headers
       page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
@@ -10873,10 +10879,12 @@ async function downloadCombQuotePDF() {
         if (cd.fields.qPortraitSize !== undefined) { var _pp = el('qPortraitSize'); if (_pp) _pp.value = cd.fields.qPortraitSize; }
         restoreCustomLines('cemCustomLines', cd.customLines||[]);
         restoreDiscountRows('cemDiscountList', cd.discounts||[]);
-        if (cd.inscriptions) { if (typeof inscriptions !== 'undefined') inscriptions = cd.inscriptions; }
-        if (cd.vaultItems)   { if (typeof vaultItems   !== 'undefined') vaultItems   = cd.vaultItems;   }
-        if (cd.bronzeItems)  { if (typeof bronzeItems  !== 'undefined') bronzeItems  = cd.bronzeItems;  }
-        if (cd.markerItems)  { if (typeof markerItems  !== 'undefined') markerItems  = cd.markerItems;  }
+        // Assign AND re-render each item list (mirrors loadSavedCemQuote). cemUpdate() only
+        // recalcs totals — without these render calls the item rows don't reappear on restore.
+        if (cd.inscriptions) { inscriptions = cd.inscriptions; if (typeof inscRender  === 'function') inscRender();  }
+        if (cd.vaultItems)   { vaultItems   = cd.vaultItems;   if (typeof vaultRender  === 'function') vaultRender();  }
+        if (cd.bronzeItems)  { bronzeItems  = cd.bronzeItems;  if (typeof bronzeRender === 'function') bronzeRender(); }
+        if (cd.markerItems)  { markerItems  = cd.markerItems;  if (typeof markerRender === 'function') markerRender(); }
         if (typeof cemUpdate === 'function') cemUpdate();
       }
       if (fd && fd.fields) {
@@ -10887,6 +10895,22 @@ async function downloadCombQuotePDF() {
         if (fd.urns)    { fhUrns=fd.urns;         if (typeof fhUrnRender      === 'function') fhUrnRender(); }
         if (fd.flowers) { fhFlowers=fd.flowers;   if (typeof fhFlowerRender   === 'function') fhFlowerRender(); }
         if (fd.memPkgs) { fhMemPkgs=fd.memPkgs;  if (typeof fhMemPkgRender   === 'function') fhMemPkgRender(); }
+        // Restore the selected plan + its line items (mirrors loadSavedFhQuote). These were
+        // saved by captureFhState but previously dropped on autosave restore — the cause of
+        // "some line items don't come back".
+        if (fd.activePlanKey && fd.activePlanType) {
+          _activePlanKey = fd.activePlanKey; _activePlanType = fd.activePlanType;
+          _lockedPlanDiscount = fd.lockedPlanDiscount || 0;
+          if (typeof fhPlanChange === 'function') fhPlanChange(fd.activePlanType);
+          if (fd.planItems && fd.planItems.length > 0) {
+            var _pc = el('fhPlanItems');
+            if (_pc && typeof makePlanRow === 'function') {
+              _pc.innerHTML = '';
+              fd.planItems.forEach(function(item){ _pc.appendChild(makePlanRow(item.label, item.amount)); });
+            }
+          }
+        }
+        if (typeof fhQuoteTypeChange === 'function') fhQuoteTypeChange();
         if (typeof fhUpdate === 'function') fhUpdate();
       }
       window.clearAutosave();
