@@ -2886,6 +2886,12 @@ tr:hover td{background:#eef3f8;}
           <div style="flex:1;min-width:240px;"><label style="font-size:11px;font-weight:600;color:var(--text);" title="Insurance Producer Agreement: To the best of my knowledge, replacement of existing coverage is involved.">Producer Q2 — replacement involved (to my knowledge)</label><select id="gaProducerQ2" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"><option value="">—</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
         </div>
 
+        <!-- Sex + premiums-paid-by-other -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
+          <div style="flex:0 0 160px;"><label style="font-size:11px;font-weight:600;color:var(--text);">Proposed Insured — Sex</label><select id="gaSex" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"><option value="">—</option><option value="M">Male</option><option value="F">Female</option></select></div>
+          <div style="flex:1;min-width:240px;"><label style="font-size:11px;font-weight:600;color:var(--text);" title="Will the policy(ies) applied for have any portion of the initial or future premiums paid, or otherwise provided, by anyone other than the Owner?">Premiums paid by anyone other than Owner?</label><select id="gaPaidOther" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"><option value="">—</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+        </div>
+
         <!-- Signing location -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <div style="flex:1;min-width:200px;"><label style="font-size:11px;font-weight:600;color:var(--text);">City &amp; State where signed</label><input type="text" id="gaSignedLoc" value="Seattle, WA" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;"></div>
@@ -3923,7 +3929,7 @@ async function printGAContract() {
     setTF('A4176-PG1-3', 'Y363');               // Firm ID (2 widgets: pages 5 & 7)
     setTF('A4176-PG1-10', gaDobStr);            // Proposed Insured Date of Birth
     setTF('A4176-PG1-11', gaAgeVal);            // Proposed Insured Age
-    checkBox('A4176-PG1-34');                    // Prearrangement Type = Guaranteed
+    // Prearrangement Type = Guaranteed is set after updateFieldAppearances (see setExclCheckbox).
     setTF('A4176-PG1-35', fmt$(totalGuaranteedFuneral)); // Funeral Price (page-1 total)
 
     // ── Page 9 — Bonney Watson Cremation Authorization (signing block) ──
@@ -3993,6 +3999,30 @@ async function printGAContract() {
     setRadioYN('A4176-PG2-18', gv('gaProducerQ1'));
     setRadioYN('A4176-PG2-19', gv('gaProducerQ2'));
 
+    // Exclusive (radio-style) checkbox fields: ONE field with two widgets that have
+    // distinct on-states ("1"/"2") — e.g. Prearrangement Guaranteed/PriceEstimate,
+    // Sex Male/Female, premiums-paid-by-other Yes/No. A plain .check() would target the
+    // wrong widget, so set the field /V plus each widget's /AS explicitly. Applied AFTER
+    // updateFieldAppearances (verified to preserve the "1"/"2"/"Off" appearance streams).
+    function setExclCheckbox(fieldName, onState) {
+      if (!onState) return;
+      try {
+        var PDFName = PDFLib.PDFName;
+        var f = form.getField(fieldName);
+        var ws = f.acroField.getWidgets();
+        f.acroField.dict.set(PDFName.of('V'), PDFName.of(onState));
+        ws.forEach(function(w) {
+          var has = false;
+          try {
+            var ap = w.dict.lookup(PDFName.of('AP'));
+            var n  = ap && ap.lookup(PDFName.of('N'));
+            if (n && typeof n.has === 'function' && n.has(PDFName.of(onState))) has = true;
+          } catch(e) {}
+          w.dict.set(PDFName.of('AS'), PDFName.of(has ? onState : 'Off'));
+        });
+      } catch(e) {}
+    }
+
     // Render field appearances with an embedded font so values display without a click,
     // and keep the document a fully editable AcroForm (NO flatten — Martice adjusts figures
     // by hand in Acrobat). NeedAppearances tells Adobe to regenerate anything pdf-lib could not.
@@ -4002,6 +4032,15 @@ async function printGAContract() {
       var _af = _afRef && fullDoc.context.lookup(_afRef);
       if (_af && typeof _af.set === 'function') _af.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.True);
     } catch(e) {}
+
+    // Radio-style checkboxes (set after appearance generation so /AS isn't clobbered):
+    setExclCheckbox('A4176-PG1-34', '1');                              // Prearrangement Type = Guaranteed
+    var _gaSex = gv('gaSex');
+    if (_gaSex === 'M') setExclCheckbox('A4176-PG1-14', '1');          // Sex = Male
+    else if (_gaSex === 'F') setExclCheckbox('A4176-PG1-14', '2');     // Sex = Female
+    var _gaPaid = gv('gaPaidOther');
+    if (_gaPaid === 'Yes') setExclCheckbox('A4176-PG1-46', '1');       // premiums paid by other = Yes
+    else if (_gaPaid === 'No') setExclCheckbox('A4176-PG1-46', '2');   // = No
 
     var filledBytes = await fullDoc.save();
     var blob        = new Blob([filledBytes], { type: 'application/pdf' });
