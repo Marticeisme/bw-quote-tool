@@ -3532,7 +3532,11 @@ async function printGAContract() {
 
   // RIGHT-side "Other (specify)" candidates (merchandise), in addendum priority order.
   var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
-  var memMerchTotal        = sumLines(lines.filter(function(l){ return l.memPkg; }));
+  // Memorial merchandise: panel items are flagged memPkg; plan-breakout items (e.g. "Simply
+  // Treasured Memorial Package") are not, so also match merchandise names. Exclude custom
+  // lines (those go through the review field) and discounts.
+  var memMerchRe = /memorial package|box ?set|register book|service folder|prayer card|ack\.? card|memorial box/i;
+  var memMerchTotal        = sumLines(lines.filter(function(l){ return !l.isDiscount && (l.memPkg || (!l.custom && memMerchRe.test(l.label))); }));
   var urnEngravTotal       = sumLines(lines.filter(function(l){ return /^engraving/i.test(l.label); }));
   var rightOther = [];
   if (flowerAllowanceTotal > 0) rightOther.push({label:'Flower Allowance',     amt: flowerAllowanceTotal});
@@ -3878,6 +3882,12 @@ async function printGAContract() {
       setTF('1002-14 - Visitation $ Per', fmt$(viewingTotal));  // flat fee shown as rate
     }
     if (funeralSvcTotal)  setTF('1002-14 - Funeral Service',     fmt$(funeralSvcTotal));
+    // The template has a static "2x" printed after "Funeral/Memorial Service" (x128 y573).
+    // Cover it with white; redraw the real count only when more than one service is selected.
+    fullDoc.getPages()[0].drawRectangle({ x: 126, y: 570, width: 14, height: 11, color: PDFLib.rgb(1, 1, 1) });
+    if (funeralSvcLines.length > 1) {
+      fullDoc.getPages()[0].drawText(funeralSvcLines.length + 'x', { x: 128, y: 573, size: 8, font: font, color: navy });
+    }
     if (gravesideTotal)   setTF('1002-14 - Graveside Service',   fmt$(gravesideTotal));
     if (transferAmt) {
       setTF('1002-14 - Transfer of Deceased', fmt$(transferAmt));
@@ -3909,7 +3919,7 @@ async function printGAContract() {
       {lbl:'1002-14 - Other (specify) - 2', amtF:'1002-14 - Other - 2'}
     ];
     var leftRows = distributeOther(leftOther, leftFields.length - (planDiscount > 0 ? 1 : 0));
-    if (planDiscount > 0) leftRows.push({label:'Plan Discount', amt: -planDiscount});
+    if (planDiscount > 0) leftRows.push({label: (discountLine && discountLine.label) ? discountLine.label : 'Plan Discount', amt: -planDiscount});
     leftRows.forEach(function(e, i){
       if (i >= leftFields.length) return;
       setTF(leftFields[i].lbl,  e.label);
@@ -4147,7 +4157,11 @@ async function printGAContract() {
 
     // Shrink fonts where pdf-lib's height-based auto-size overflows the field WIDTH:
     // the firm street address (page-5 widget is narrow) and the comb-style Producer/Firm IDs.
-    [['Funeral Firm Street Address', 11], ['A4176-PG1-2', 12], ['A4176-PG1-3', 12]].forEach(function(p){
+    [['Funeral Firm Street Address', 11], ['A4176-PG1-2', 12], ['A4176-PG1-3', 12],
+     // "Other (specify)" label cells are narrow — keep combined/discount labels from clipping.
+     ['1002-14 - Other (specify)', 7], ['1002-14 - Other (specify) - 2', 7],
+     ['1002-14 - Other - specify 1', 7], ['1002-14 - Other - specify 2', 7], ['1002-14 - Other - specify 3', 7]
+    ].forEach(function(p){
       try { form.getTextField(p[0]).setFontSize(p[1]); } catch(e) {}
     });
 
