@@ -9904,23 +9904,45 @@ function cpImportFromFH() {
     var now = new Date();
     el('cpContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   }
-  var msg = insured
-    ? '<div style="background:#f5f7fa;padding:8px 12px;border-radius:6px;color:#27ae60;font-weight:600;">✅ Imported: ' + insured + (planType ? ' · Disposition: ' + (planType==='burial' ? 'Burial' : 'Cremation') : '') + '</div>'
-    : '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">No client name found. Enter manually above.</div>';
-  el('cpImportDisplay').innerHTML = msg;
-  cpCalcPayment();
+  // Build itemized preview (mirrors gaImportFromFH so Martice can verify pricing before generate)
+  var cpLines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var fmtCP = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var dispPos = planType ? (planType === 'burial' ? 'Burial' : 'Cremation') : null;
 
-  // Totals-match check vs FH quote
-  // CP total = FH total (services + merch + tax + cash advances) from _fhTotal
-  if (typeof _fhTotal !== 'undefined' && _fhTotal > 0) {
-    // Approximate CP total from current FH quote for comparison
-    // Full comparison happens at generate time; here just note if quote has content
-    var cpDisplay = el('cpImportDisplay');
-    if (cpDisplay) {
-      cpDisplay.innerHTML += '<div style="margin-top:6px;font-size:11px;color:var(--text-light);">FH Quote total: <strong>$' 
-        + _fhTotal.toLocaleString('en-US',{minimumFractionDigits:2}) + '</strong> — verify this matches when contract is generated.</div>';
-    }
+  if (!cpLines.length) {
+    el('cpImportDisplay').innerHTML = insured
+      ? '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">' +
+        '✅ Imported: <strong>' + insured + '</strong>' + (dispPos ? ' | Disposition: <strong>' + dispPos + '</strong>' : '') +
+        '<br>⚠️ No Funeral Home Quote items found. Build FH Quote first for full contract data.</div>'
+      : '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">No client name found in Funeral Home Quote. Enter name manually above.</div>';
+    cpCalcPayment();
+    return;
   }
+
+  var previewRows = '';
+  var totalAmt = 0, discAmt = 0;
+  cpLines.filter(function(l){ return !l.isDiscount && !l.isTax && l.amount > 0; }).forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#334;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;font-weight:600;color:#1B2A4A;">' + fmtCP(l.amount) + '</td></tr>';
+    totalAmt += l.amount;
+  });
+  cpLines.filter(function(l){ return l.isDiscount; }).forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#c0392b;">Discount: ' + l.label + '</td><td style="padding:2px 6px;text-align:right;font-weight:600;color:#c0392b;">' + fmtCP(l.amount) + '</td></tr>';
+    discAmt += l.amount;
+  });
+  cpLines.filter(function(l){ return l.isTax; }).forEach(function(l){
+    previewRows += '<tr><td style="padding:2px 6px;color:#888;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;color:#888;">' + fmtCP(l.amount) + '</td></tr>';
+    totalAmt += l.amount;
+  });
+  var grand = (typeof _fhTotal !== 'undefined') ? _fhTotal : (totalAmt + discAmt);
+
+  el('cpImportDisplay').innerHTML =
+    '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">' +
+    '<div style="font-weight:700;color:#155724;margin-bottom:6px;">✅ Imported: ' + (insured || '(no name)') + (dispPos ? ' | Disposition: ' + dispPos : '') + '</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;">' + previewRows +
+    '<tr style="border-top:2px solid #1B2A4A;"><td style="padding:4px 6px;font-weight:700;color:#1B2A4A;">Grand Total</td>' +
+    '<td style="padding:4px 6px;text-align:right;font-weight:700;font-size:14px;color:#C0673B;">' + fmtCP(grand) + '</td></tr>' +
+    '</table></div>';
+  cpCalcPayment();
 }
 
 function cpClearAll() {
