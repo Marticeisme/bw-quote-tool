@@ -9910,11 +9910,9 @@ function cpImportFromFH() {
   var dispPos = planType ? (planType === 'burial' ? 'Burial' : 'Cremation') : null;
 
   if (!cpLines.length) {
-    el('cpImportDisplay').innerHTML = insured
-      ? '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">' +
-        '✅ Imported: <strong>' + insured + '</strong>' + (dispPos ? ' | Disposition: <strong>' + dispPos + '</strong>' : '') +
-        '<br>⚠️ No Funeral Home Quote items found. Build FH Quote first for full contract data.</div>'
-      : '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">No client name found in Funeral Home Quote. Enter name manually above.</div>';
+    el('cpImportDisplay').innerHTML =
+      '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">' +
+      '⚠️ No Funeral Home Quote items found. Build an FH Quote first, then import.</div>';
     cpCalcPayment();
     return;
   }
@@ -10335,7 +10333,12 @@ async function generateClearPointContract() {
     setTF('Date Signed_af_date', dateStr);
 
     // Flatten and download
-    try { form.flatten(); } catch(fe) { console.warn('[CP] flatten:', fe.message); }
+    // Render appearances with an embedded font, keep editable (mirrors GA — flatten left every
+    // filled field blank because the template's /DA fonts aren't embedded).
+    try {
+      var _cpFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      form.updateFieldAppearances(_cpFont);
+    } catch(e) { try { form.updateFieldAppearances(); } catch(e2) {} }
 
     var filledBytes = await newDoc.save();
     var blob  = new Blob([filledBytes], { type: 'application/pdf' });
