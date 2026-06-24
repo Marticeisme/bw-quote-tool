@@ -7077,7 +7077,11 @@ function fhUpdate() {
         }
         // Safety net for edited/manually-added rows (and pre-fix saved quotes): taxable
         // merchandise detected by name even if the label no longer matches a plan item.
-        if (!isTaxable && /\burn\b|casket|memorial package|box ?set|register book|service folder|prayer card|engraving|\bvase\b|keepsake|memento/i.test(lbl)) isTaxable = true;
+        if (!isTaxable) {
+          var lblL = lbl.toLowerCase();
+          if (/\burn\b|casket|memorial package|box ?set|register book|service folder|prayer card|engraving|\bvase\b|keepsake|memento/.test(lblL)) isTaxable = true;
+          else if (lblL.indexOf('flower') >= 0 && lblL.indexOf('vehicle') < 0) isTaxable = true; // flower merchandise/allowance, NOT "Use of Flower Vehicle"
+        }
       }
       var amtTotal = amt * fhPersonQty;
       var lblFull = lbl + (fhPersonQty > 1 ? ' ×' + fhPersonQty : '');
