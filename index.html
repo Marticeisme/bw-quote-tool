@@ -10092,6 +10092,18 @@ async function generateClearPointContract() {
     var urns          = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
     var urnTotalAmt   = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
     var urnLabel      = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
+    // Fallback: when no catalog urn in fhUrns (e.g. urn arrived via the plan breakout),
+    // pull from _fhLines, skipping "Urn Allowance" lines (which are handled separately).
+    if (urnTotalAmt === 0) {
+      var urnFbLines = lines.filter(function(l){
+        var lb = l.label.toLowerCase();
+        return (lb.indexOf('urn:') === 0 || lb.indexOf('urn') >= 0) && lb.indexOf('allowance') < 0 && lb.indexOf('engraving') < 0 && !l.isDiscount;
+      });
+      if (urnFbLines.length) {
+        urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
+        urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
+      }
+    }
     var formCasketPrice = isBurial ? casketPrice : cremContPrice;
     var formCasketModel = isBurial ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName) : cremContLabel;
 
@@ -10230,9 +10242,10 @@ async function generateClearPointContract() {
     setTF('FP',                  fmt$(totalFuneralPrice));
     setTF('CATotal',             fmt$(caTotal));
     setTF('FPTotal',             fmt$(fpTotal));
-    // Single-payment amount: clear the template's leftover -3,550.80 calc default first,
-    // then only fill when there's actually no down payment / payment plan.
-    try { form.getTextField('SinglePaymentAmount').setText(dpVal > 0 ? '' : (fpTotal > 0 ? fmt$(fpTotal) : '')); } catch(e) {}
+    // Single-payment amount: clear the template's leftover -3,550.80 calc default;
+    // fill with the full price when there's no multi-payment plan ("Pay in Full" sets
+    // numPay = 0). Clearing instead of leaving the field alone is what wipes the template default.
+    try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : (fpTotal > 0 ? fmt$(fpTotal) : '')); } catch(e) {}
     setTF('Amount Trusted',      amtTrusted.toFixed(2));
 
     // Multiple payments section
@@ -10336,13 +10349,30 @@ async function generateClearPointContract() {
     setTF('NAME OF FUNERAL ESTABLISHMENT REPRESENTATIVE   Please Print', 'Martice Morrison');
     setTF('Date Signed_af_date', dateStr);
 
-    // Flatten and download
     // Render appearances with an embedded font, keep editable (mirrors GA — flatten left every
     // filled field blank because the template's /DA fonts aren't embedded).
+    var _cpFont;
     try {
-      var _cpFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      _cpFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
       form.updateFieldAppearances(_cpFont);
     } catch(e) { try { form.updateFieldAppearances(); } catch(e2) {} }
+
+    // Disposition / Guaranteed checkbox marks: the template's boxes are tiny (9x8 / 10x11)
+    // and pdf-lib's regenerated checkmark renders thinly inside them. Draw a bolder "X" on
+    // top so the selection is unmistakable.
+    try {
+      var _xBold = await newDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+      var _navy  = PDFLib.rgb(0.05, 0.1, 0.2);
+      function drawX(pageIdx, x, y, sz) {
+        try { newDoc.getPages()[pageIdx].drawText('X', { x: x, y: y, size: sz, font: _xBold, color: _navy }); } catch(e) {}
+      }
+      // Page 3 disposition (page index 2): Burial x=399 y=687, Cremation x=449 y=687, Other x=518 y=687
+      if (isBurial) drawX(2, 400, 688, 9);
+      else          drawX(2, 450, 688, 9);
+      if (!formCasketPrice) drawX(2, 400, 671, 9);   // None
+      // Page 1 guaranteed boxes: G Box x=527 y=683, NG Box x=561 y=682
+      drawX(0, isGuaranteed ? 528 : 562, isGuaranteed ? 684 : 683, 10);
+    } catch(e) {}
 
     var filledBytes = await newDoc.save();
     var blob  = new Blob([filledBytes], { type: 'application/pdf' });
