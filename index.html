@@ -10008,53 +10008,50 @@ async function generateClearPointContract() {
 
   try {
     // ── Helpers ──────────────────────────────────────────────────────────────
-    function fmt$(n) { return n > 0 ? n.toFixed(2) : ''; }
-    function fmtSigned$(n) { return n !== 0 ? n.toFixed(2) : ''; }
+    function fmt$(n) { return n > 0 ? n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
+    function fmtSigned$(n) { return n !== 0 ? (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
 
     // ── Pull FH Quote data ────────────────────────────────────────────────────
     var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
     function findLine(kw) { var k = kw.toLowerCase(); return lines.find(function(l){ return l.label.toLowerCase().includes(k); }); }
     function amt(line) { return line ? Math.max(0, line.amount) : 0; }
 
+    function sumLines(arr){ return arr.reduce(function(s,l){return s+(l.amount||0);},0); }
     var basicSvc       = amt(findLine('Basic Services'));
     var embalmingAmt   = amt(findLine('Embalming'));
-    var otherPrepAmt   = amt(findLine('Other Preparation'));
+    var otherPrepAmt   = amt(findLine('Other Preparation of Deceased'));
+    var autopsyAmt     = amt(findLine('Autopsy'));
     var hairAmt        = amt(findLine('Hair Dressing'));
     var limitedPrepAmt = amt(findLine('Limited Preparation'));
     var shelterAmt     = amt(findLine('Shelter of Remains'));
     var longShelterAmt = amt(findLine('Long Term Shelter'));
+    var otherPrepTotal = otherPrepAmt + autopsyAmt + hairAmt + shelterAmt + longShelterAmt + limitedPrepAmt;
+    var ceremonyHourAmt= amt(findLine('Additional Ceremony Hour'));
     var transferAmt    = amt(findLine('Transfer of Deceased'));
     var hearseAmt      = amt(findLine('Use of Hearse'));
+    var utilityAmt     = amt(findLine('Use of Utility Vehicle'));
+    var flowerVehAmt   = amt(findLine('Use of Flower Vehicle'));
     var cremFeeAmt     = amt(findLine('Cremation & Processing'));
-    var witnessAmt     = amt(findLine('Family Witness Cremation'));
+    var witnessAmt     = amt(findLine('Family Witness'));
     var expediteAmt    = amt(findLine('Expedite Cremation'));
-    var prepCremAmt    = amt(findLine('Preparation of Body Prior'));
+    var prepCremAmt    = amt(findLine('Preparation Prior'));
     var mailingAmt     = amt(findLine('Mailing of Cremated'));
     var deliveryAmt    = amt(findLine('Delivery of Remains'));
     var storageAmt     = amt(findLine('Release from Storage'));
-    var keepsakesAmt   = amt(findLine('Transfer of Remains to Keepsakes'));
-    var chapelAmt      = amt(findLine('Chapel Rental'));
+    var keepsakesAmt   = amt(findLine('Keepsake'));
+    var chapelLine     = findLine('Chapel Rental');
     var motoEscortAmt  = amt(findLine('Motorcycle Escort'));
+    var limousineAmt   = amt(findLine('Horse-Drawn Hearse'));
 
-    var viewingLines = lines.filter(function(l){ var lb = l.label.toLowerCase(); return lb.includes('viewing') || lb.includes('visitation'); });
-    var viewingTotal = viewingLines.reduce(function(s,l){return s+Math.max(0,l.amount);},0);
+    var viewingTotal = Math.max(0, sumLines(lines.filter(function(l){ if(l.isDiscount)return false; var lb=l.label.toLowerCase(); return lb.includes('viewing')||lb.includes('visitation'); })));
+    var funeralSvcLines = lines.filter(function(l){ if(l.isDiscount)return false; var lb=l.label.toLowerCase(); return lb.includes('funeral ceremony')||lb.includes('funeral / memorial')||lb.includes('ceremony within')||lb.includes('limited memorial')||lb.includes('memorial service')||lb.includes('use of facilities'); });
+    var funeralSvcTotal = Math.max(0, sumLines(funeralSvcLines));
+    var gravesideTotal  = Math.max(0, sumLines(lines.filter(function(l){ return !l.isDiscount && l.label.toLowerCase().includes('graveside'); })));
+    var surchLines      = lines.filter(function(l){ var lb=l.label.toLowerCase(); return lb.includes('surcharge')||lb.includes('overnight activity')||lb.includes('evening activity'); });
+    var receptionLine   = lines.find(function(l){ return l.label.toLowerCase().includes('reception') && funeralSvcLines.indexOf(l) < 0; });
+    var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
 
-    var funeralSvcLines = lines.filter(function(l){
-      var lb = l.label.toLowerCase();
-      return lb.includes('funeral ceremony') || lb.includes('funeral / memorial') ||
-             lb.includes('ceremony within')  || lb.includes('limited memorial') ||
-             lb.includes('use of facilities');
-    });
-    var funeralSvcTotal = funeralSvcLines.reduce(function(s,l){return s+Math.max(0,l.amount);},0);
-
-    var gravesideLines  = lines.filter(function(l){ return l.label.toLowerCase().includes('graveside'); });
-    var gravesideTotal  = gravesideLines.reduce(function(s,l){return s+Math.max(0,l.amount);},0);
-
-    var surchLines      = lines.filter(function(l){ var lb = l.label.toLowerCase(); return lb.includes('surcharge') || lb.includes('overnight activity') || lb.includes('evening activity'); });
-    var surchTotal      = surchLines.reduce(function(s,l){return s+Math.abs(l.amount);},0);
-    var receptionAmt    = amt(findLine('Reception'));
-
-    // Casket / container / urn
+    // Casket / container / urn (read from FH builder DOM)
     var casketPrice    = parseFloat((el('fhCasket') || {}).value || '0') || 0;
     var casketSearchEl = el('fhCasketSearch');
     var casketLabel    = (el('fhCasketLabel') && el('fhCasketLabel').value)
@@ -10063,23 +10060,57 @@ async function generateClearPointContract() {
     var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
     var casketModelNum   = casketModelMatch ? '#' + casketModelMatch[1] : '';
     var casketModelName  = casketLabel.replace(/\s*\(#?\d+\)\s*/, '').trim();
-
+    if (!casketModelNum && casketModelName && typeof CASKET_DATA !== 'undefined') {
+      var _ckM = CASKET_DATA.find(function(c){ return c.n.toLowerCase() === casketModelName.toLowerCase(); })
+              || CASKET_DATA.find(function(c){ return casketModelName.toLowerCase().indexOf(c.n.toLowerCase()) >= 0; });
+      if (_ckM && _ckM.i) casketModelNum = '#' + _ckM.i;
+    }
     var cremContEl    = el('fhCremContainer');
     var cremContPrice = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
     var cremContLabel = (cremContEl && cremContEl.selectedIndex > 0)
       ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim() : '';
-
     var urns          = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
     var urnTotalAmt   = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
     var urnLabel      = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
-
-    var fhFlowersList = (typeof fhFlowers !== 'undefined' && Array.isArray(fhFlowers)) ? fhFlowers : [];
-    var flowerAmt     = fhFlowersList.reduce(function(s,f){ return s + f.price * (f.qty||1); }, 0);
-
     var formCasketPrice = isBurial ? casketPrice : cremContPrice;
     var formCasketModel = isBurial ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName) : cremContLabel;
 
+    // Right-side merchandise / allowances (mirror GA)
+    var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
+    var urnAllowanceTotal    = sumLines(lines.filter(function(l){ return /urn allowance/i.test(l.label); }));
+    var memMerchRe = /memorial package|box ?set|register book|service folder|prayer card|ack\.? card|memorial box/i;
+    var memMerchTotal = sumLines(lines.filter(function(l){ return !l.isDiscount && (l.memPkg || (!l.custom && memMerchRe.test(l.label))); }));
+    var urnEngravTotal = sumLines(lines.filter(function(l){ return /^engraving/i.test(l.label); }));
+    var rightMerch = [];
+    if (flowerAllowanceTotal > 0) rightMerch.push({label:'Flower Allowance',     amt: flowerAllowanceTotal});
+    if (memMerchTotal > 0)        rightMerch.push({label:'Memorial Merchandise', amt: memMerchTotal});
+    if (urnEngravTotal > 0)       rightMerch.push({label:'Urn Engraving',        amt: urnEngravTotal});
+    if (urnAllowanceTotal > 0)    rightMerch.push({label:'Urn Allowance',        amt: urnAllowanceTotal});
+    var rightMerchTotal = flowerAllowanceTotal + memMerchTotal + urnEngravTotal + urnAllowanceTotal;
+
+    // Non-guaranteed cash advance sources (mirror GA)
+    var obituaryTotal  = sumLines(lines.filter(function(l){ return /obituary/i.test(l.label); }));
+    var flowersP3Total = sumLines(lines.filter(function(l){ return /^Flowers:/i.test(l.label); }));
+
+    var otherServicesVehicleAmt = utilityAmt + flowerVehAmt;
+
+    // Left "Other (Specify)" candidates (2 rows; plan discount claims its own row)
+    var leftOther = [];
+    function pushLeft(lab, a){ if (a > 0) leftOther.push({label: lab, amt: a}); }
+    pushLeft('Additional Ceremony Hour', ceremonyHourAmt);
+    surchLines.forEach(function(l){ pushLeft(l.label.split(' ×')[0], Math.abs(l.amount)); });
+    if (chapelLine)    pushLeft('Chapel Rental', Math.abs(chapelLine.amount));
+    if (receptionLine) pushLeft(receptionLine.label.split(' ×')[0], recAmt);
+    pushLeft('Mailing of Cremated Remains', mailingAmt);
+    pushLeft('Delivery of Remains', deliveryAmt);
+    pushLeft('Family Witness Cremation', witnessAmt);
+    pushLeft('Expedite Cremation', expediteAmt);
+    pushLeft('Prep Prior to Cremation', prepCremAmt);
+    pushLeft('Release from Storage', storageAmt);
+    pushLeft('Keepsake Transfer', keepsakesAmt);
+
     var planDiscount  = 0;
+    var discountLine  = lines.find(function(l){ return l.isDiscount; });
     lines.filter(function(l){ return l.isDiscount; }).forEach(function(l){ planDiscount += Math.abs(l.amount); });
 
     var dcQty         = parseInt((el('fhDeathCerts') || {}).value || '0') || 0;
@@ -10089,27 +10120,21 @@ async function generateClearPointContract() {
     var countyFeeLbl  = (countyFeeEl && countyFeeEl.selectedIndex > 0)
       ? countyFeeEl.options[countyFeeEl.selectedIndex].text.replace(/\s*\$[\d,]+\s*$/, '').trim() : '';
 
-    // ── Calculate totals ──────────────────────────────────────────────────────
-    var otherPrepTotal = otherPrepAmt + hairAmt + limitedPrepAmt;
-    var cremOtherAmt   = witnessAmt + expediteAmt + prepCremAmt + mailingAmt + deliveryAmt + storageAmt + keepsakesAmt;
-
+    // ── Totals (mirror GA so the ClearPoint grand total reconciles to the FH total) ──
     var servicesTotal =
-      basicSvc + embalmingAmt + otherPrepTotal + shelterAmt + longShelterAmt +
+      basicSvc + embalmingAmt + otherPrepTotal +
       viewingTotal + funeralSvcTotal + gravesideTotal +
-      transferAmt + hearseAmt +
-      cremFeeAmt + cremOtherAmt +
-      chapelAmt + surchTotal + receptionAmt;
-
-    var servicesAfterDiscount = servicesTotal - planDiscount;
-    var totalFuneralPrice     = servicesAfterDiscount + formCasketPrice + urnTotalAmt;
-
-    // Tax per PDF formula: (casket + urn + flowers + motoEscort) * 10.4%
-    var taxableBase = formCasketPrice + urnTotalAmt + flowerAmt;
-    var taxAmt      = Math.round(taxableBase * 0.104 * 100) / 100;
-
-    var caTotal = dcAmt + taxAmt + countyFeeAmt + (motoEscortAmt > 0 ? motoEscortAmt : 0);
-    var fpTotal = totalFuneralPrice + caTotal;
-    var amtTrusted = Math.round(fpTotal * 0.9 * 100) / 100;
+      transferAmt + hearseAmt + otherServicesVehicleAmt + cremFeeAmt +
+      ceremonyHourAmt + recAmt + (chapelLine ? Math.abs(chapelLine.amount) : 0) +
+      mailingAmt + deliveryAmt + witnessAmt + expediteAmt + prepCremAmt + storageAmt + keepsakesAmt +
+      surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+    var servicesAfterDiscount = servicesTotal - planDiscount;          // TOTAL SERVICES (left column incl discount)
+    var totalFuneralPrice     = Math.max(0, servicesTotal + formCasketPrice + urnTotalAmt + rightMerchTotal - planDiscount);
+    var taxAmt      = Math.round(lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0) * 0.104 * 100) / 100;
+    var nonGuar     = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total;
+    var caTotal     = nonGuar + taxAmt;                                 // ClearPoint folds tax into the cash-advance allowance
+    var fpTotal     = totalFuneralPrice + caTotal;
+    var amtTrusted  = Math.round(fpTotal * 0.9 * 100) / 100;
 
     // Payment schedule
     var fpBal      = dpVal > 0 ? Math.max(0, fpTotal - dpVal) : 0;
@@ -10209,31 +10234,38 @@ async function generateClearPointContract() {
     if (isBurial)  { checkCB('Burial');   } else { checkCB('Cremation'); }
     if (!formCasketPrice) { checkCB('None'); }
 
-    // Services
+    // Services (left column)
     setTF('Staff Services',            fmt$(basicSvc));
-    setTF('Additional Staff Services', fmt$(otherPrepTotal));
+    setTF('Additional Staff Services', fmt$(otherPrepTotal)); // no dedicated Other-Prep row; combined prep here
     setTF('Embalming',                 fmt$(embalmingAmt));
-    if (viewingTotal > 0) { setTF('undefined_4', fmt$(viewingTotal)); }
+    if (viewingTotal > 0) {
+      setTF('Visitation', '1');                 // days
+      setTF('Days', fmt$(viewingTotal));         // rate (flat fee)
+      setTF('undefined_4', fmt$(viewingTotal));
+    }
     setTF('undefined_5', fmt$(funeralSvcTotal));
     setTF('undefined_6', fmt$(gravesideTotal));
     if (transferAmt > 0) { setTF('Transfer of Deceased', '30'); setTF('undefined_7', fmt$(transferAmt)); }
     setTF('undefined_10', fmt$(hearseAmt));
-    if (shelterAmt || longShelterAmt) { setTF('undefined_13', fmt$(shelterAmt || longShelterAmt)); }
+    if (otherServicesVehicleAmt > 0) setTF('undefined_13', fmt$(otherServicesVehicleAmt)); // Other Services/Equip/Vehicle
 
-    // Cremation fee → Specify 1 slot
-    if (cremFeeAmt > 0) {
-      setTF('Specify 1', 'Cremation Fee'); setTF('undefined_14', fmt$(cremFeeAmt));
-    } else if (cremOtherAmt > 0) {
-      setTF('Specify 1', 'Cremation Services'); setTF('undefined_14', fmt$(cremOtherAmt));
+    // Left "Other (Specify)" — 2 rows; plan discount claims its own row as a negative value.
+    function distributeOther(items, slots) {
+      if (slots <= 0) return [];
+      if (items.length <= slots) return items.slice();
+      var head = items.slice(0, slots - 1);
+      var tail = items.slice(slots - 1);
+      head.push({ label: tail.map(function(x){return x.label;}).join(' + '), amt: tail.reduce(function(s,x){return s+x.amt;}, 0) });
+      return head;
     }
-
-    // Plan discount OR surcharges/chapel → Specify 2 slot
-    if (planDiscount > 0) {
-      setTF('Specify 2', 'Plan Discount'); setTF('undefined_15', '-' + planDiscount.toFixed(2));
-    } else if (chapelAmt + surchTotal + receptionAmt > 0) {
-      var overflowAmt = chapelAmt + surchTotal + receptionAmt;
-      setTF('Specify 2', 'Additional Services'); setTF('undefined_15', fmt$(overflowAmt));
-    }
+    var cpLeftFields = [['Specify 1','undefined_14'], ['Specify 2','undefined_15']];
+    var cpLeftRows = distributeOther(leftOther, cpLeftFields.length - (planDiscount > 0 ? 1 : 0));
+    if (planDiscount > 0) cpLeftRows.push({label: (discountLine && discountLine.label) ? discountLine.label : 'Plan Discount', amt: -planDiscount});
+    cpLeftRows.forEach(function(e, i){
+      if (i >= cpLeftFields.length) return;
+      setTF(cpLeftFields[i][0], e.label);
+      setTF(cpLeftFields[i][1], e.amt < 0 ? fmtSigned$(e.amt) : fmt$(e.amt));
+    });
 
     // Casket / container
     if (formCasketPrice > 0) {
@@ -10242,10 +10274,19 @@ async function generateClearPointContract() {
       setTF('Model  and Name', formCasketModel);
     }
 
-    // Urn
+    // Urn → "URN ALLOWANCE" row
     if (urnTotalAmt > 0) {
       setTF('fill_58',           fmt$(urnTotalAmt));
       setTF('Model  and Name_2', urnLabel);
+    }
+
+    // Other Merchandise (right) — flower allowance, memorial merchandise, urn engraving, urn allowance.
+    // CP has one merchandise amount field (fill_59) + two description lines; combine into them.
+    if (rightMerchTotal > 0) {
+      var mLabels = rightMerch.map(function(m){ return m.label; });
+      setTF('OTHER MERCHANDISE Specify 1', mLabels.slice(0, 2).join(' + '));
+      if (mLabels.length > 2) setTF('OTHER MERCHANDISE Specify 2', mLabels.slice(2).join(' + '));
+      setTF('fill_59', fmt$(rightMerchTotal));
     }
 
     // Totals
@@ -10253,11 +10294,14 @@ async function generateClearPointContract() {
     setTF('FP',      fmt$(totalFuneralPrice));
 
     // Cash advance items
+    if (obituaryTotal > 0) setTF('Obit', fmt$(obituaryTotal));
     if (dcQty > 0) { setDD('Quantity', 'Qty - ' + dcQty); setTF('DC', fmt$(dcAmt)); }
-    if (taxAmt > 0)        { setTF('Tax',   taxAmt.toFixed(2)); }
-    if (motoEscortAmt > 0) { setTF('ShipC', fmt$(motoEscortAmt)); }
-    if (flowerAmt > 0)     { setTF('Flowers', fmt$(flowerAmt)); }
-    if (countyFeeAmt > 0)  { setTF('Other Specify 2', countyFeeLbl || 'Review Fee'); setTF('OtherAmt2', fmt$(countyFeeAmt)); }
+    if (flowersP3Total > 0) setTF('Flowers', fmt$(flowersP3Total));   // Loves Buds & Blooms
+    if (motoEscortAmt > 0)  setTF('ShipC', fmt$(motoEscortAmt));       // Motorcycle Escort
+    if (taxAmt > 0)         setTF('Tax', fmt$(taxAmt));
+    // Other cash-advance: county/ME fee, then limousine (Horse-Drawn Hearse)
+    if (countyFeeAmt > 0) { setTF('Other Specify 1', countyFeeLbl || 'County / ME Review'); setTF('OtherAmt', fmt$(countyFeeAmt)); }
+    if (limousineAmt > 0) { setTF('Other Specify 2', 'Limousine'); setTF('OtherAmt2', fmt$(limousineAmt)); }
 
     setTF('CATotal', fmt$(caTotal));
     setTF('FPTotal', fmt$(fpTotal));
