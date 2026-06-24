@@ -10304,16 +10304,17 @@ async function generateClearPointContract() {
       setTF(cpLeftFields[i][1], e.amt < 0 ? fmtSigned$(e.amt) : fmt$(e.amt));
     });
 
-    // Casket / container
+    // Casket / container — manufacturer is always Batesville (caskets AND cremation containers)
     if (formCasketPrice > 0) {
       setTF('fill_57',         fmt$(formCasketPrice));
-      setTF('Manufacturer',    isBurial ? 'Batesville' : '');
+      setTF('Manufacturer',    'Batesville');
       setTF('Model  and Name', formCasketModel);
     }
 
-    // Urn → "URN ALLOWANCE" row
+    // Urn → "URN ALLOWANCE" row — also Batesville
     if (urnTotalAmt > 0) {
       setTF('fill_58',           fmt$(urnTotalAmt));
+      setTF('Manufacturer_2',    'Batesville');
       setTF('Model  and Name_2', urnLabel);
     }
 
