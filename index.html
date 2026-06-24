@@ -10243,9 +10243,9 @@ async function generateClearPointContract() {
     setTF('CATotal',             fmt$(caTotal));
     setTF('FPTotal',             fmt$(fpTotal));
     // Single-payment amount: clear the template's leftover -3,550.80 calc default;
-    // fill with the full price when there's no multi-payment plan ("Pay in Full" sets
-    // numPay = 0). Clearing instead of leaving the field alone is what wipes the template default.
-    try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : (fpTotal > 0 ? fmt$(fpTotal) : '')); } catch(e) {}
+    // fill with the full price (displayed as a negative, matching the template's convention)
+    // when there's no multi-payment plan ("Pay in Full" sets numPay = 0).
+    try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : (fpTotal > 0 ? '-' + fmt$(fpTotal) : '')); } catch(e) {}
     setTF('Amount Trusted',      amtTrusted.toFixed(2));
 
     // Multiple payments section
