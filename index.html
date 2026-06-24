@@ -2146,8 +2146,6 @@ tr:hover td{background:#eef3f8;}
                 <option value="1570">Hadley Cremation Container (#279185) — $1,570.00</option>
                 <option value="4695">Clifton – Hardwood Select (#263630) — $4,695</option>
                 <option value="1610">Grey Doeskin Oval – Cloth, Crepe (#147970) — $1,610</option>
-                <option value="1570">Hadley – Hardboard, Crepe (#279185) — $1,570</option>
-                <option value="1195">Novato – Hardboard, Crepe (#279183) — $1,195</option>
               </optgroup>
               <optgroup label="── Alternative Containers ──">
                 <option value="880">Standard Brown — $880</option>
@@ -3532,6 +3530,7 @@ async function printGAContract() {
 
   // RIGHT-side "Other (specify)" candidates (merchandise), in addendum priority order.
   var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
+  var urnAllowanceTotal    = sumLines(lines.filter(function(l){ return /urn allowance/i.test(l.label); }));
   // Memorial merchandise: panel items are flagged memPkg; plan-breakout items (e.g. "Simply
   // Treasured Memorial Package") are not, so also match merchandise names. Exclude custom
   // lines (those go through the review field) and discounts.
@@ -3542,8 +3541,9 @@ async function printGAContract() {
   if (flowerAllowanceTotal > 0) rightOther.push({label:'Flower Allowance',     amt: flowerAllowanceTotal});
   if (memMerchTotal > 0)        rightOther.push({label:'Memorial Merchandise', amt: memMerchTotal});
   if (urnEngravTotal > 0)       rightOther.push({label:'Urn Engraving',        amt: urnEngravTotal});
+  if (urnAllowanceTotal > 0)    rightOther.push({label:'Urn Allowance',        amt: urnAllowanceTotal});
   // (Push B: assigned custom "right-side" items will be appended here.)
-  var rightOtherTotal = flowerAllowanceTotal + memMerchTotal + urnEngravTotal;
+  var rightOtherTotal = flowerAllowanceTotal + urnAllowanceTotal + memMerchTotal + urnEngravTotal;
 
   // PAGE 3 (non-guaranteed cash advance) sources
   var obituaryTotal  = sumLines(lines.filter(function(l){ return /obituary/i.test(l.label); }));
@@ -4413,11 +4413,6 @@ var CASKET_DATA = [
 // ═══ URN DATA ═══
 var URN_DATA = [
   {n:"Aristocrat Urn",i:"100199",p:1920,l:"Aristocrat Urn (#100199) — $1,920.00"},
-  {n:"Lynx Brown",i:"262858",p:1755,l:"Lynx Brown (#262858) — $1,755.00"},
-  {n:"Lynx Light Brown",i:"257923",p:1755,l:"Lynx Light Brown (#257923) — $1,755.00"},
-  {n:"Grey Doeskin Oval Cut Top",i:"147970",p:1600,l:"Grey Doeskin Oval Cut Top (#147970) — $1,600.00"},
-  {n:"Lyra Brown",i:"269152",p:1540,l:"Lyra Brown (#269152) — $1,540.00"},
-  {n:"Lyra Natural",i:"269150",p:1540,l:"Lyra Natural (#269150) — $1,540.00"},
   {n:"Eternal Companion Memento  Chest",i:"197260",p:1295,l:"Eternal Companion Memento  Chest (#197260) — $1,295.00"},
   {n:"Jefferson Urn",i:"100126",p:1295,l:"Jefferson Urn (#100126) — $1,295.00"},
   {n:"Fredericksburg Cherry Dual Urn",i:"100095",p:1195,l:"Fredericksburg Cherry Dual Urn (#100095) — $1,195.00"},
