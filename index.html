@@ -10170,10 +10170,12 @@ async function generateClearPointContract() {
       return;
     }
     var cpBytes  = Uint8Array.from(atob(CP_PDF_B64), function(c){ return c.charCodeAt(0); });
+    // Work directly on the loaded doc so the AcroForm /Fields tree is accessible.
+    // copyPages -> new doc copies widget annotations but NOT the /Fields tree, so
+    // newDoc.getForm() returns empty and every setTF silently no-ops (the bug that
+    // left the generated contract blank).
     var fullDoc  = await PDFLib.PDFDocument.load(cpBytes, { ignoreEncryption: true });
-    var newDoc   = await PDFLib.PDFDocument.create();
-    var copied   = await newDoc.copyPages(fullDoc, [0, 1, 2]);
-    copied.forEach(function(p){ newDoc.addPage(p); });
+    var newDoc   = fullDoc;
 
     var form = newDoc.getForm();
 
@@ -10228,7 +10230,9 @@ async function generateClearPointContract() {
     setTF('FP',                  fmt$(totalFuneralPrice));
     setTF('CATotal',             fmt$(caTotal));
     setTF('FPTotal',             fmt$(fpTotal));
-    setTF('SinglePaymentAmount', fmt$(fpTotal));
+    // Single-payment amount: clear the template's leftover -3,550.80 calc default first,
+    // then only fill when there's actually no down payment / payment plan.
+    try { form.getTextField('SinglePaymentAmount').setText(dpVal > 0 ? '' : (fpTotal > 0 ? fmt$(fpTotal) : '')); } catch(e) {}
     setTF('Amount Trusted',      amtTrusted.toFixed(2));
 
     // Multiple payments section
