@@ -6860,9 +6860,13 @@ var _lockedPlanDiscount = 0;
 var _fhLines = [], _fhTotal = 0;
 var _fhDiscData = null;
 
-function makePlanRow(label, amount) {
+function makePlanRow(label, amount, taxable) {
   var row = document.createElement('div');
   row.className = 'plan-item-row';
+  // Persist the taxable flag ON the row so it survives label edits AND save/restore.
+  // (Previously taxability was re-derived by matching the original label, which broke when
+  // a plan row was edited — e.g. renaming "Urn Allowance" to an actual urn dropped its tax.)
+  if (taxable) row.setAttribute('data-taxable', '1');
   row.innerHTML = '<input type="text" class="pi-label" value="' + label.replace(/"/g,'&quot;') + '" oninput="fhUpdate()">'
     + '<input type="number" class="pi-amount" value="' + amount + '" oninput="fhUpdate()">'
     + '<button class="cl-remove" onclick="this.parentElement.remove();fhUpdate()" title="Remove">×</button>';
@@ -6905,7 +6909,7 @@ function fhPlanChange(type) {
 
   if (planData) {
     planData.items.forEach(function(item) {
-      var row = makePlanRow(item[0], item[1]);
+      var row = makePlanRow(item[0], item[1], !!item[2]);
       planItemsEl.appendChild(row);
     });
     el('fhPlanArea').style.display = 'block';
@@ -7062,10 +7066,18 @@ function fhUpdate() {
       if (!labelEl || !amtEl) return;
       var lbl = labelEl.value || 'Service';
       var amt = parseFloat(amtEl.value) || 0;
-      var isTaxable = false;
-      if (planData && planData.items) {
-        var matchItem = planData.items.find(function(it){ return it[0] === labelEl.defaultValue; });
-        if (matchItem) isTaxable = !!matchItem[2];
+      var isTaxable;
+      if (row.hasAttribute('data-taxable')) {
+        isTaxable = row.getAttribute('data-taxable') === '1';      // flag stored on the row (survives edits)
+      } else {
+        isTaxable = false;                                          // legacy fallback: match original label
+        if (planData && planData.items) {
+          var matchItem = planData.items.find(function(it){ return it[0] === labelEl.defaultValue; });
+          if (matchItem) isTaxable = !!matchItem[2];
+        }
+        // Safety net for edited/manually-added rows (and pre-fix saved quotes): taxable
+        // merchandise detected by name even if the label no longer matches a plan item.
+        if (!isTaxable && /\burn\b|casket|memorial package|box ?set|register book|service folder|prayer card|engraving|\bvase\b|keepsake|memento/i.test(lbl)) isTaxable = true;
       }
       var amtTotal = amt * fhPersonQty;
       var lblFull = lbl + (fhPersonQty > 1 ? ' ×' + fhPersonQty : '');
@@ -8476,7 +8488,7 @@ function captureFhState() {
   if (planContainer) {
     planContainer.querySelectorAll('.plan-item-row').forEach(function(row) {
       var lbl = row.querySelector('.pi-label'), amt = row.querySelector('.pi-amount');
-      if (lbl && amt) planItems.push({ label: lbl.value, amount: amt.value });
+      if (lbl && amt) planItems.push({ label: lbl.value, amount: amt.value, taxable: row.getAttribute('data-taxable') === '1' });
     });
   }
   return {
@@ -8595,7 +8607,7 @@ function loadSavedFhQuote(id) {
     fhPlanChange(s.activePlanType);
     if (s.planItems && s.planItems.length > 0) {
       var container = el('fhPlanItems');
-      if (container) { container.innerHTML = ''; s.planItems.forEach(function(item){ container.appendChild(makePlanRow(item.label, item.amount)); }); }
+      if (container) { container.innerHTML = ''; s.planItems.forEach(function(item){ container.appendChild(makePlanRow(item.label, item.amount, item.taxable)); }); }
     }
   }
   fhQuoteTypeChange();
@@ -11029,7 +11041,7 @@ async function downloadCombQuotePDF() {
             var _pc = el('fhPlanItems');
             if (_pc && typeof makePlanRow === 'function') {
               _pc.innerHTML = '';
-              fd.planItems.forEach(function(item){ _pc.appendChild(makePlanRow(item.label, item.amount)); });
+              fd.planItems.forEach(function(item){ _pc.appendChild(makePlanRow(item.label, item.amount, item.taxable)); });
             }
           }
         }
