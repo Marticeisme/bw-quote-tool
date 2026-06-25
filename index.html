@@ -4931,10 +4931,10 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
     var estMonthly = Math.ceil(estBalance / 60);
-    html += '<div id="estPaymentHint" style="margin-top:8px;padding:7px 10px;background:rgba(200,161,66,.12);border-radius:6px;font-size:11px;color:rgba(255,255,255,.7);line-height:1.5;">'
-      + '<span style="color:var(--navy);font-weight:700;">Est. payment:</span> '
+    html += '<div id="estPaymentHint" style="margin-top:8px;padding:7px 10px;background:rgba(200,161,66,.12);border-radius:6px;font-size:11px;color:var(--navy);line-height:1.5;">'
+      + '<span style="font-weight:700;">Est. payment:</span> '
       + fmt(estDown) + ' down &nbsp;&bull;&nbsp; ~' + fmt(estMonthly) + '/mo'
-      + ' <span style="opacity:.6;">(60 mo · 0% · 10% down · ACH)</span>'
+      + ' <span style="opacity:.75;">(60 mo · 0% · 10% down · ACH)</span>'
       + '</div>';
   }
 
@@ -10992,14 +10992,18 @@ async function downloadCemQuotePDF() {
   logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
-  var subtitle = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
+  var isAtNeed = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed');
+  var subtitle = isAtNeed ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
   var cemTotal = (typeof _cemTotal !== 'undefined') ? _cemTotal : 0;
+  // Payment options only apply to Pre-Need quotes — At-Need is paid in full at time of service.
   var pdfFinData = null;
-  if (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) {
-    pdfFinData = _finData;
-  } else if (cemTotal > 0) {
-    var defDown = Math.ceil(cemTotal * 0.10);
-    pdfFinData = { downAmt: defDown, tierKey: 0.10, balance: cemTotal - defDown };
+  if (!isAtNeed) {
+    if (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) {
+      pdfFinData = _finData;
+    } else if (cemTotal > 0) {
+      var defDown = Math.ceil(cemTotal * 0.10);
+      pdfFinData = { downAmt: defDown, tierKey: 0.10, balance: cemTotal - defDown };
+    }
   }
   await _buildQuotePDF(lines, val('cemClientName')||'', subtitle, 'BW_Cemetery_Quote', {
     sections:   categorizeCemLines(lines),
