@@ -10183,7 +10183,11 @@ async function generateClearPointContract() {
       surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
     var servicesAfterDiscount = servicesTotal - planDiscount;          // TOTAL SERVICES (left column incl discount)
     var totalFuneralPrice     = Math.max(0, servicesTotal + formCasketPrice + urnTotalAmt + rightMerchTotal - planDiscount);
-    var taxAmt      = Math.round(lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0) * 0.104 * 100) / 100;
+    // Tax base = sum of taxable non-discount lines MINUS any discount flagged taxableDiscount
+    // (mirrors GA so taxable discounts properly reduce tax).
+    var _cpTaxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
+    var _cpTaxDiscAmt  = lines.filter(function(l){ return l.isDiscount && l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+    var taxAmt      = Math.round(Math.max(0, _cpTaxableBase - _cpTaxDiscAmt) * 0.104 * 100) / 100;
     var nonGuar     = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total;
     var caTotal     = nonGuar + taxAmt;                                 // ClearPoint folds tax into the cash-advance allowance
     var fpTotal     = totalFuneralPrice + caTotal;
@@ -10267,7 +10271,7 @@ async function generateClearPointContract() {
     // fill with the full price (displayed as a negative, matching the template's convention)
     // when there's no multi-payment plan ("Pay in Full" sets numPay = 0).
     try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : (fpTotal > 0 ? '-' + fmt$(fpTotal) : '')); } catch(e) {}
-    setTF('Amount Trusted',      amtTrusted.toFixed(2));
+    setTF('Amount Trusted',      fmt$(amtTrusted));
 
     // Multiple payments section
     if (dpVal > 0) {
@@ -10446,8 +10450,10 @@ printGAContract = async function() {
     el('gaInsuredName').value = name2;
     // Small delay so browser doesn't block second download
     await new Promise(function(r){ setTimeout(r, 800); });
-    await _origPrintGAContract();
-    el('gaInsuredName').value = origName;
+    // try/finally so the original name is restored even if the second generation throws —
+    // otherwise the UI would be stuck showing Person 2's name after an error.
+    try { await _origPrintGAContract(); }
+    finally { el('gaInsuredName').value = origName; }
   }
 };
 
