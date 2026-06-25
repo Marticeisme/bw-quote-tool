@@ -471,9 +471,14 @@ tr:hover td{background:#eef3f8;}
           <option value="23_uprights|11995|1800">Garden 23 – Gethsemane Uprights $11,995</option>
           <option value="vets|5995|900">Veterans Garden $5,995</option>
         </select>
-        <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-end;">
+          <div style="flex:0 0 80px;"><label style="font-size:10px;color:var(--muted);">Qty (spaces)</label><input type="number" id="cmpB_gardenQty" min="1" max="99" value="1" oninput="calcBTotal()" style="width:100%;padding:6px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;margin-top:2px;"></div>
           <div style="flex:1;"><label style="font-size:10px;color:var(--muted);">Niche Price</label><input type="number" id="cmpB_niche" min="0" placeholder="$0" oninput="calcBTotal()" style="width:100%;padding:6px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;margin-top:2px;"></div>
           <div style="flex:1;"><label style="font-size:10px;color:var(--muted);">Mausoleum Price</label><input type="number" id="cmpB_maus" min="0" placeholder="$0" oninput="calcBTotal()" style="width:100%;padding:6px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;margin-top:2px;"></div>
+        </div>
+        <div style="display:flex;gap:14px;margin-bottom:8px;font-size:11px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--blue);font-weight:600;"><input type="checkbox" id="cmpB_2ndRight" onchange="calcBTotal()" style="accent-color:var(--blue);"> Add 2nd Right? <span style="font-weight:400;color:var(--muted);">(½ space + ½ ECF)</span></label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--blue);font-weight:600;"><input type="checkbox" id="cmpB_3rdRight" onchange="calcBTotal()" style="accent-color:var(--blue);"> Add 3rd Right? <span style="font-weight:400;color:var(--muted);">(½ space + ½ ECF)</span></label>
         </div>
         <div style="margin-bottom:12px;"><label style="font-size:10px;color:var(--muted);">Location (optional)</label><input type="text" id="cmpB_loc" placeholder="e.g. Lot 12, Section B" oninput="calcBTotal()" style="width:100%;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;margin-top:2px;"></div>
 
@@ -5972,6 +5977,9 @@ function cmpBPopulateMarkerSizes() {
 
 function resetOptionB() {
   ['cmpB_garden','cmpB_niche','cmpB_maus','cmpB_loc'].forEach(function(id) { if (el(id)) el(id).value = ''; });
+  if (el('cmpB_gardenQty')) el('cmpB_gardenQty').value = '1';
+  if (el('cmpB_2ndRight'))  el('cmpB_2ndRight').checked = false;
+  if (el('cmpB_3rdRight'))  el('cmpB_3rdRight').checked = false;
   if (el('cmpB_mirror')) { el('cmpB_mirror').checked = false; }
   if (el('cmpB_manualItems')) el('cmpB_manualItems').style.display = 'block';
   ['cmpB_stdBurial','cmpB_stdUrn','cmpB_glassNiche','cmpB_graniteNiche','cmpB_indoorMaus','cmpB_outdoorMaus'].forEach(function(id) { if (el(id)) el(id).checked = false; });
@@ -6039,8 +6047,21 @@ function calcBTotal() {
     var bEcf   = parseFloat(bp[2]) || 0;
     var bSel   = el('cmpB_garden');
     bLabel = bSel.options[bSel.selectedIndex].text.replace(/ \$[\d,]+$/, '');
-    if (bSpace > 0) lines.push({label: bLabel, amount: bSpace, taxable: false, isSpace: true});
-    if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)', amount: bEcf, taxable: false, isSpace: true});
+    // Qty (spaces) — multiplies the base space + ECF (matches qGardenQty in the main builder)
+    var bQty = parseInt((el('cmpB_gardenQty') || {}).value) || 1;
+    if (bQty < 1) bQty = 1;
+    var bSpaceLabel = bLabel + (bQty > 1 ? ' ×' + bQty : '');
+    if (bSpace > 0) lines.push({label: bSpaceLabel, amount: bSpace * bQty, taxable: false, isSpace: true});
+    if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)' + (bQty > 1 ? ' ×' + bQty : ''), amount: bEcf * bQty, taxable: false, isSpace: true});
+    // 2nd / 3rd Right — each adds ½ space + ½ ECF (matches q2ndRight/q3rdRight in the main builder)
+    if (chk('cmpB_2ndRight')) {
+      if (bSpace > 0) lines.push({label: '2nd Right (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '2nd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
+    }
+    if (chk('cmpB_3rdRight')) {
+      if (bSpace > 0) lines.push({label: '3rd Right (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '3rd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
+    }
   } else if (bNicheP > 0) {
     bLabel = 'Niche Space';
     lines.push({label: bLabel, amount: bNicheP, taxable: false, isSpace: true});
