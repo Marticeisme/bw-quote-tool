@@ -10831,12 +10831,12 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     y -= 18;
   }
 
-  // Grand Total
+  // Total (PDF footer line)
   checkY(55); y -= 8;
   page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:STEEL}); y -= 22;
   var grandStr = fmtMoney(grand);
   var grandW   = bold.widthOfTextAtSize(grandStr, 20);
-  page.drawText('Grand Total', {x:M,         y, size:14, font:bold, color:DARK});
+  page.drawText('Total', {x:M,         y, size:14, font:bold, color:DARK});
   page.drawText(grandStr,      {x:RX-grandW, y, size:20, font:bold, color:ORANGE});
   y -= 28;
   if (taxAmt > 0) {
