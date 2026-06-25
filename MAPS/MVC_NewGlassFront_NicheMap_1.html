@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonney Watson — Niche Maps</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#1a3347;--navy-light:#466e86;--gold:#e84610;--gold-light:#f09070;--cream:#f7f4ef;--gb:rgba(232,70,16,0.35);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Jost',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;overflow-x:hidden;}
+  .header{background:linear-gradient(135deg,var(--navy),var(--navy-light));border-bottom:2px solid var(--gold);padding:14px 20px;display:flex;align-items:center;gap:14px;}
+  .hlogo-svg{height:34px;flex-shrink:0;width:auto;}
+  .htxt h1{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--cream);}
+  .htxt p{font-size:10px;font-weight:300;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+  .ptabs{display:flex;background:#0c1c2a;border-bottom:1px solid var(--gb);overflow-x:auto;}
+  .ptab{padding:12px 22px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Jost',sans-serif;}
+  .ptab:hover{color:var(--cream);background:rgba(232,70,16,.06);}
+  .ptab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,70,16,.1);}
+  .psec{display:none;}.psec.active{display:block;}
+  .tabs{display:flex;background:var(--navy-light);border-bottom:1px solid var(--gb);overflow-x:auto;}
+  .tab{padding:10px 18px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Jost',sans-serif;}
+  .tab:hover{color:var(--cream);background:rgba(232,70,16,.08);}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(232,70,16,.12);}
+  .main{padding:14px;}
+  .wview{display:none;}.wview.active{display:block;}
+  .wlabel{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);margin-bottom:2px;margin-top:14px;text-align:center;}
+  .wsub{font-size:10px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;text-align:center;}
+  .gwrap{background:linear-gradient(160deg,#0c1e30,#1a3347 60%,#0a1820);border:1px solid var(--gb);border-radius:8px;padding:20px 24px;overflow-x:auto;max-width:900px;margin:0 auto;}
+
+  /* Niche cell */
+  .n{border-radius:3px;border:1px solid rgba(232,70,16,.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;text-align:center;padding:2px;line-height:1.2;color:rgba(255,255,255,.92);font-size:10px;min-width:0;}
+  .n:hover{transform:scale(1.04);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
+  .pnl{background:#0d111a!important;border-color:rgba(255,255,255,.06)!important;cursor:default;color:rgba(255,255,255,.18);font-size:7px;letter-spacing:.06em;text-transform:uppercase;}
+  .pnl:hover{transform:none!important;box-shadow:none!important;border-color:rgba(255,255,255,.06)!important;}
+  .nid{font-size:8px;opacity:.6;margin-bottom:1px;}
+  .nprice{font-weight:600;font-size:11px;}
+  .ncap{font-size:8px;opacity:.72;margin-top:1px;}
+
+  /* Price colours */
+  .c7{background:linear-gradient(135deg,rgba(50,100,65,.78),rgba(50,100,65,.58));border-color:rgba(50,100,65,.7);}
+  .c8{background:linear-gradient(135deg,rgba(74,124,92,.78),rgba(74,124,92,.58));border-color:rgba(74,124,92,.7);}
+  .c10{background:linear-gradient(135deg,rgba(90,120,170,.75),rgba(90,120,170,.55));border-color:rgba(90,120,170,.68);}
+  .c12{background:linear-gradient(135deg,rgba(80,138,105,.75),rgba(80,138,105,.55));border-color:rgba(80,138,105,.68);}
+  .c14{background:linear-gradient(135deg,rgba(115,105,162,.75),rgba(115,105,162,.55));border-color:rgba(115,105,162,.68);}
+  .c16{background:linear-gradient(135deg,rgba(190,78,10,.78),rgba(190,78,10,.58));border-color:rgba(190,78,10,.7);}
+  .c18{background:linear-gradient(135deg,rgba(170,60,0,.78),rgba(170,60,0,.58));border-color:rgba(170,60,0,.7);}
+  .c20{background:linear-gradient(135deg,rgba(130,25,0,.78),rgba(130,25,0,.58));border-color:rgba(130,25,0,.7);}
+  .c42{background:linear-gradient(135deg,rgba(20,32,60,.96),rgba(10,18,38,.96));border:2px solid var(--gold);}
+  .c48{background:linear-gradient(135deg,rgba(8,14,30,.97),rgba(3,7,18,.97));border:2px solid var(--gold);}
+
+  /* Row label */
+  .rlbl{width:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);}
+
+  /* Legend */
+  .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
+  .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
+  .ls{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
+
+  /* Overhead */
+  .owrap{background:rgba(232,70,16,.05);border:1px solid var(--gb);border-radius:8px;padding:12px;margin-bottom:4px;max-width:900px;margin-left:auto;margin-right:auto;margin-bottom:8px;}
+  .otitle{font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px;}
+  .obox{position:relative;width:240px;height:120px;margin:0 auto;}
+  .ow{position:absolute;background:rgba(232,70,16,.1);border:2px solid rgba(232,70,16,.35);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;transition:all .2s;font-family:'Jost',sans-serif;}
+  .ow:hover,.ow.act{background:rgba(232,70,16,.28);border-color:var(--gold);color:var(--gold);}
+  .ot{top:0;left:26px;right:26px;height:24px;}
+  .ob{bottom:0;left:26px;right:26px;height:24px;}
+  .ol{top:24px;left:0;width:26px;bottom:24px;writing-mode:vertical-rl;transform:rotate(180deg);}
+  .or{top:24px;right:0;width:26px;bottom:24px;writing-mode:vertical-rl;}
+  .oint{position:absolute;top:24px;left:26px;right:26px;bottom:24px;display:flex;align-items:center;justify-content:center;font-size:7px;color:rgba(232,70,16,.22);letter-spacing:.07em;text-transform:uppercase;}
+  .oentry{text-align:center;font-size:9px;color:var(--gold-light);margin-top:5px;}
+
+  /* Fees */
+  .fees{margin-top:14px;background:rgba(232,70,16,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
+  .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
+
+  /* Tooltip */
+  .tt{display:none;position:fixed;background:var(--navy);border:1px solid var(--gold);border-radius:8px;padding:11px 13px;min-width:200px;max-width:260px;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,.6);font-size:11px;pointer-events:none;}
+  .tt.show{display:block;}
+  .ttid{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+  .ttr{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(232,70,16,.1);}
+  .ttr:last-of-type{border:none;}
+  .ttl{color:var(--gold-light);}.ttv{font-weight:600;color:var(--cream);}
+  .tttot{margin-top:6px;padding-top:6px;border-top:1px solid var(--gold);display:flex;justify-content:space-between;}
+  .tttl{color:var(--gold);font-weight:600;}.tttv{color:var(--gold);font-weight:700;font-size:12px;}
+  .ttnote{margin-top:5px;font-size:9px;color:var(--gold-light);opacity:.8;font-style:italic;}
+  .ttdim{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(232,70,16,.25);font-size:9.5px;color:var(--gold);letter-spacing:.02em;}
+</style>
+</head>
+<body>
+<div class="header">
+  <svg class="hlogo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308.34 56.42" aria-label="Bonney Watson">
+    <path d="M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74" transform="translate(-0.83 -0.29)" fill="#e84610"/>
+    <path d="M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51" transform="translate(-0.83 -0.29)" fill="#e84610"/>
+  </svg>
+  <div class="htxt" id="header-txt">
+    <h1>Mountain View Columbarium — New Glass Front Niches</h1>
+    <p>Washington Memorial Park &nbsp;·&nbsp; Center Island Structure</p>
+  </div>
+</div>
+<div class="ptabs">
+  <button class="ptab active" onclick="swProp('mvc')">Mountain View Columbarium</button>
+  <button class="ptab" onclick="swProp('tgn')">Terrace Garden Niches</button>
+</div>
+<div class="tabs" id="mvc-tabs">
+  <button class="tab active" onclick="sw('front')">Front Wall (Entry)</button>
+  <button class="tab" onclick="sw('back')">Back Wall</button>
+  <button class="tab" onclick="sw('north')">North Wall</button>
+  <button class="tab" onclick="sw('south')">South Wall</button>
+</div>
+<div class="main">
+  <div class="psec active" id="psec-mvc">
+  <div class="owrap">
+    <div class="otitle">Structure Orientation — tap a wall to navigate</div>
+    <div class="obox">
+      <div class="ow ot"     id="od-back"  onclick="sw('back')">Back Wall</div>
+      <div class="ow ob act" id="od-front" onclick="sw('front')">Front (Entry)</div>
+      <div class="ow ol"     id="od-north" onclick="sw('north')">North</div>
+      <div class="ow or"     id="od-south" onclick="sw('south')">South</div>
+      <div class="oint">Interior</div>
+    </div>
+    <div class="oentry">▲ Entry Doors</div>
+  </div>
+
+  <div class="wview active" id="wall-front">
+    <div class="wlabel">Front Wall — Entry Side</div>
+    <div class="wsub">A = bottom · G = top · $42K niches span rows E &amp; D · Access panel center rows A–C</div>
+    <div class="gwrap"><div id="fw"></div></div>
+    <div class="legend" id="lg-front"></div>
+  </div>
+  <div class="wview" id="wall-back">
+    <div class="wlabel">Back Wall</div>
+    <div class="wsub">A = bottom · G = top · $48K companion niches span rows E &amp; D</div>
+    <div class="gwrap"><div id="bw"></div></div>
+    <div class="legend" id="lg-back"></div>
+  </div>
+  <div class="wview" id="wall-north">
+    <div class="wlabel">North Wall</div>
+    <div class="wsub">A = bottom · G = top · Same dimensions as South Wall</div>
+    <div class="gwrap"><div id="nw"></div></div>
+    <div class="legend" id="lg-north"></div>
+  </div>
+  <div class="wview" id="wall-south">
+    <div class="wlabel">South Wall</div>
+    <div class="wsub">A = bottom · G = top · Same dimensions as North Wall</div>
+    <div class="gwrap"><div id="sww"></div></div>
+    <div class="legend" id="lg-south"></div>
+  </div>
+
+  <div class="fees">
+    <div class="fi">
+      <span class="fl">Niche Inurnment O&amp;C — $875 ea</span>
+      <span class="fv">Qty: <input type="number" id="oc-qty" min="0" max="4" value="0" style="width:42px;background:rgba(232,70,16,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
+    <div class="fi">
+      <span class="fl">Recording Fee — $235 ea</span>
+      <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="0" style="width:42px;background:rgba(232,70,16,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
+    <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
+    <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
+    <div class="fi"><span class="fl">Companion Niches ($42K/$48K)</span><span class="fv">Up to 4 inurnments</span></div>
+  </div>
+  </div><!-- /psec-mvc -->
+
+  <div class="psec" id="psec-tgn">
+    <div class="wlabel" style="margin-top:0;">Terrace Garden Niches</div>
+    <div class="wsub">A = bottom · E = top · Outdoor granite-front niche wall · Single wall, no sections</div>
+    <div class="gwrap"><div id="tgn"></div></div>
+    <div class="legend" id="lg-tgn"></div>
+
+    <div class="fees">
+      <div class="fi">
+        <span class="fl">Niche Inurnment O&amp;C — $875 ea</span>
+        <span class="fv">Qty: <input type="number" id="tgn-oc-qty" min="0" max="4" value="0" style="width:42px;background:rgba(232,70,16,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQtyTGN()"></span>
+      </div>
+      <div class="fi">
+        <span class="fl">Recording Fee — $235 ea</span>
+        <span class="fv">Qty: <input type="number" id="tgn-rec-qty" min="0" max="4" value="0" style="width:42px;background:rgba(232,70,16,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQtyTGN()"></span>
+      </div>
+      <div class="fi">
+        <span class="fl">Niche Inscription — $660 ea (taxable)</span>
+        <span class="fv">Qty: <input type="number" id="tgn-inscr-qty" min="0" max="4" value="0" style="width:42px;background:rgba(232,70,16,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQtyTGN()"></span>
+      </div>
+      <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
+      <div class="fi"><span class="fl">Sales Tax</span><span class="fv">10.4% — applies to inscription only (taxable merchandise)</span></div>
+      <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
+    </div>
+  </div><!-- /psec-tgn -->
+
+</div>
+<div class="tt" id="ttip"></div>
+
+<script>
+// ── Shared ─────────────────────────────────────────
+const OC=875, RC=235;
+const fm=n=>'$'+n.toLocaleString();
+const ecf=p=>Math.ceil(p*.10);
+const pcMap={7000:'c7',8000:'c8',10000:'c10',12000:'c12',14000:'c14',16000:'c16',18000:'c18',20000:'c20',42000:'c42',48000:'c48'};
+const tiers=[
+  {p:7000,l:'$7,000',c:'c7'},{p:8000,l:'$8,000',c:'c8'},{p:10000,l:'$10,000',c:'c10'},
+  {p:12000,l:'$12,000',c:'c12'},{p:14000,l:'$14,000',c:'c14'},{p:16000,l:'$16,000',c:'c16'},
+  {p:18000,l:'$18,000',c:'c18'},{p:20000,l:'$20,000',c:'c20'},
+  {p:42000,l:'$42,000 — 4-urn',c:'c42'},{p:48000,l:'$48,000 — 4-urn',c:'c48'},
+];
+
+function getOcQty(){ return parseInt(document.getElementById('oc-qty').value)||0; }
+function getRecQty(){ return parseInt(document.getElementById('rec-qty').value)||0; }
+function updateQty(){} // placeholder — tooltips compute live on hover
+
+// ── Terrace Garden specific (adds taxable inscription fee) ──
+const INSCR = 660, TAX = 0.104;
+function getTgnOcQty(){ return parseInt(document.getElementById('tgn-oc-qty').value)||0; }
+function getTgnRecQty(){ return parseInt(document.getElementById('tgn-rec-qty').value)||0; }
+function getTgnInscrQty(){ return parseInt(document.getElementById('tgn-inscr-qty').value)||0; }
+function updateQtyTGN(){}
+
+function buildTooltipTGN(id,price,dim){
+  const e=ecf(price);
+  const ocQty=getTgnOcQty(), recQty=getTgnRecQty();
+  const ocTotal=OC*ocQty, recTotal=RC*recQty;
+  const inscrQty=getTgnInscrQty();
+  let tot=price+e;
+  let rows=`<div class="ttr"><span class="ttl">Niche Price</span><span class="ttv">${fm(price)}</span></div>
+    <div class="ttr"><span class="ttl">ECF (10%)</span><span class="ttv">${fm(e)}</span></div>`;
+  if(ocQty>0){
+    rows+=`<div class="ttr"><span class="ttl">O&C ×${ocQty}</span><span class="ttv">${fm(ocTotal)}</span></div>`;
+    tot+=ocTotal;
+  }
+  if(recQty>0){
+    rows+=`<div class="ttr"><span class="ttl">Recording ×${recQty}</span><span class="ttv">${fm(recTotal)}</span></div>`;
+    tot+=recTotal;
+  }
+  if(inscrQty>0){
+    const inscrSubtotal = INSCR * inscrQty;
+    const inscrTax = Math.round(inscrSubtotal*TAX*100)/100;
+    const inscrTotal = inscrSubtotal + inscrTax;
+    rows+=`<div class="ttr"><span class="ttl">Inscription ×${inscrQty}</span><span class="ttv">${fm(inscrSubtotal)}</span></div>
+      <div class="ttr"><span class="ttl">Sales Tax (10.4%)</span><span class="ttv">$${inscrTax.toFixed(2)}</span></div>`;
+    tot+=inscrTotal;
+  }
+  return `<div class="ttid">Niche ${id}</div>
+    ${rows}
+    <div class="tttot"><span class="tttl">Est. Total</span><span class="tttv">${fm(Math.round(tot))}</span></div>
+    <div class="ttnote">ECF not included in listed price. Inscription is taxable merchandise.</div>
+    ${dim?(()=>{
+      const parts=dim.split(' x ');
+      const w=parts[0]||'', h=(parts[1]||'').replace('"','').trim()+'"';
+      return `<div class="ttdim">Inside Dim: <b>W</b> ${w} &nbsp;×&nbsp; <b>H</b> ${h}</div>`;
+    })():''}`;
+}
+
+function buildTooltipLive(id,price,urn,dim){
+  const e=ecf(price);
+  const ocQty=getOcQty(), recQty=getRecQty();
+  const ocTotal=OC*ocQty, recTotal=RC*recQty;
+  let tot=price+e;
+  let rows=`<div class="ttr"><span class="ttl">Niche Price</span><span class="ttv">${fm(price)}</span></div>
+    <div class="ttr"><span class="ttl">ECF (10%)</span><span class="ttv">${fm(e)}</span></div>`;
+  if(ocQty>0){
+    rows+=`<div class="ttr"><span class="ttl">O&C ×${ocQty}</span><span class="ttv">${fm(ocTotal)}</span></div>`;
+    tot+=ocTotal;
+  }
+  if(recQty>0){
+    rows+=`<div class="ttr"><span class="ttl">Recording ×${recQty}</span><span class="ttv">${fm(recTotal)}</span></div>`;
+    tot+=recTotal;
+  }
+  return `<div class="ttid">Niche ${id}</div>
+    ${rows}
+    <div class="tttot"><span class="tttl">Est. Total</span><span class="tttv">${fm(tot)}</span></div>
+    ${urn>=4?'<div class="ttnote">Companion — up to 4 inurnments</div>':''}
+    <div class="ttnote">ECF not included in listed price.</div>
+    ${dim?(()=>{
+      const parts=dim.split(' x ');
+      const w=parts[0]||'', h=(parts[1]||'').replace('"','').trim()+'"';
+      return `<div class="ttdim">Inside Dim: <b>W</b> ${w} &nbsp;×&nbsp; <b>H</b> ${h}</div>`;
+    })():''}`;
+}
+
+function legend(elId,prices){
+  const s=new Set(prices);let h='';
+  tiers.forEach(t=>{if(s.has(t.p))h+=`<div class="li"><div class="ls ${t.c}"></div><span>${t.l}</span></div>`;});
+  document.getElementById(elId).innerHTML=h;
+}
+
+// Build a wall using CSS grid
+// gridDef = { cols, rowDefs, cells, labels }
+// cols = grid-template-columns string
+// rowDefs = array of {name, h} for each grid row
+// cells = [{id, price, urn, r1, r2, c1, c2}]  (1-indexed, end is exclusive)
+// labels = [{text, r1, r2}]
+function buildGrid(containerId, gridDef){
+  const g = document.createElement('div');
+  const rowStr = gridDef.rowDefs.map(r=>r.h+'px').join(' ');
+  g.style.cssText = `display:grid;grid-template-columns:24px ${gridDef.cols};grid-template-rows:${rowStr};gap:3px;${gridDef.maxWidth ? 'max-width:'+gridDef.maxWidth+';' : ''}margin:0 auto;width:100%;`;
+
+  // Row labels (column 1)
+  gridDef.labels.forEach(lb=>{
+    const d=document.createElement('div');
+    d.className='rlbl';
+    d.style.cssText=`grid-column:1;grid-row:${lb.r1}/${lb.r2};font-size:${lb.fontSize||'13px'};`;
+    d.textContent=lb.text;
+    g.appendChild(d);
+  });
+
+  // Niche cells and panels (columns start at 2 because col 1 is labels)
+  gridDef.cells.forEach(c=>{
+    const d=document.createElement('div');
+    if(c.panel){
+      d.className='n pnl';
+      d.style.cssText=`grid-row:${c.r1}/${c.r2};grid-column:${c.c1+1}/${c.c2+1};`;
+      d.innerHTML='CONTROL<br>PANEL';
+    } else {
+      d.className='n '+(pcMap[c.price]||'c8');
+      d.style.cssText=`grid-row:${c.r1}/${c.r2};grid-column:${c.c1+1}/${c.c2+1};font-size:${c.price>=42000?'10px':'8.5px'};`;
+      d.setAttribute('data-nid',c.id);
+      d.setAttribute('data-price',c.price);
+      d.setAttribute('data-urn',c.urn);
+      if(c.dim) d.setAttribute('data-dim',c.dim);
+      d.onmouseenter=e=>sttLive(e,d);
+      d.onmouseleave=htt;
+      d.onclick=e=>tapLive(e,d);
+      d.innerHTML=`<div class="nid">${c.id}</div><div class="nprice">${fm(c.price)}</div><div class="ncap">${c.urn}-urn</div>`;
+    }
+    g.appendChild(d);
+  });
+
+  document.getElementById(containerId).appendChild(g);
+}
+
+// ══════════════════════════════════════════════════════
+// FRONT WALL
+// 20 sub-columns, sized larger to fill screen. Row heights tuned to match photos.
+// Grid rows: 1=G, 2=F, 3=E, 4=D, 5=C, 6=B, 7=A
+//
+// Column assignments (1-indexed, 20 sub-cols):
+//   Row G: 10 niches, each 2 cols → G-1=1-2, G-2=3-4 ... G-10=19-20
+//   Row F: F-1=1-3, F-2=4-6, F-3=7-9, F-4=10-11, F-5=12-14, F-6=15-17, F-7=18-20
+//   Row E: E-1=1-2, 42K-L=3-6(rows3-4), E-3=7-10, E-4=11-14, 42K-R=15-18(rows3-4), E-7=19-20
+//   Row D: D-1=1-2, [42K=3-6], D-3=7-9, D-4=10-11, D-5=12-14, [42K=15-18], D-7=19-20
+//   Row C: C-1=1-3, C-2=4-6, C-3=7-8, PANEL=9-12(rows5-7), C-4=13-14, C-5=15-17, C-6=18-20
+//   Row B: B-1=1-3, B-2=4-8, B-3=7-8 — wait, need to redo B.
+//     B: B-1=1-2, B-2=3-6, B-3=7-8, PANEL=9-12, B-4=13-14, B-5=15-18, B-6=19-20
+//     Check: 2+4+2+4+2+4+2=20 ✓
+//   Row A: A-1=1-2, A-2=3-4, A-3=5-6, A-4=7-8, PANEL=9-12, A-5=13-14, A-6=15-16, A-7=17-18, A-8=19-20
+//     Check: 2×8 + 4 = 20 ✓
+// ══════════════════════════════════════════════════════
+buildGrid('fw', {
+  cols: 'repeat(20,1fr)',
+  rowDefs: [
+    {name:'G',h:68},{name:'F',h:58},{name:'E',h:58},{name:'D',h:58},
+    {name:'C',h:56},{name:'B',h:50},{name:'A',h:44}
+  ],
+  labels: [
+    {text:'G',r1:1,r2:2},{text:'F',r1:2,r2:3},{text:'E',r1:3,r2:4},
+    {text:'D',r1:4,r2:5},{text:'C',r1:5,r2:6},{text:'B',r1:6,r2:7},{text:'A',r1:7,r2:8}
+  ],
+  cells: [
+    // Row G — 10× $7K, each 2 cols
+    {id:'G-1',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:1,c2:3},
+    {id:'G-2',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:3,c2:5},
+    {id:'G-3',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:5,c2:7},
+    {id:'G-4',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:7,c2:9},
+    {id:'G-5',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:9,c2:11},
+    {id:'G-6',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:11,c2:13},
+    {id:'G-7',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:13,c2:15},
+    {id:'G-8',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:15,c2:17},
+    {id:'G-9',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:17,c2:19},
+    {id:'G-10',dim:'10-7/8" x 12-1/2"',price:7000,urn:2,r1:1,r2:2,c1:19,c2:21},
+    // Row F — 7 niches: 3,3,3,2,3,3,3 = 20
+    {id:'F-1',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:1,c2:4},
+    {id:'F-2',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:4,c2:7},
+    {id:'F-3',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:7,c2:10},
+    {id:'F-4',dim:'10-7/8" x 12-1/2"',price:10000,urn:2,r1:2,r2:3,c1:10,c2:12},
+    {id:'F-5',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:12,c2:15},
+    {id:'F-6',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:15,c2:18},
+    {id:'F-7',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:18,c2:21},
+    // Row E — E-1=2, 42K=4(rows3-4), E-3=4, E-4=4, 42K=4(rows3-4), E-7=2
+    {id:'E-1',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:3,r2:4,c1:1,c2:3},
+    {id:'E&D-2',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:3,c2:7},   // spans E+D
+    {id:'E-3',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:7,c2:11},
+    {id:'E-4',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:11,c2:15},
+    {id:'E&D-6',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:15,c2:19},  // spans E+D
+    {id:'E-7',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:3,r2:4,c1:19,c2:21},
+    // Row D — D-1=2, [42K=3-6], D-3=3, D-4=2, D-5=3, [42K=15-18], D-7=2
+    {id:'D-1',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:4,r2:5,c1:1,c2:3},
+    {id:'D-3',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:7,c2:10},
+    {id:'D-4',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:10,c2:12},
+    {id:'D-5',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:12,c2:15},
+    {id:'D-7',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:4,r2:5,c1:19,c2:21},
+    // CONTROL PANEL — cols 9-12, rows 5-7 (C+B+A)
+    {panel:true,r1:5,r2:8,c1:9,c2:13},
+    // Row C — C-1=3, C-2=3, C-3=2, [PANEL=9-12], C-4=2, C-5=3, C-6=3
+    {id:'C-1',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:1,c2:4},
+    {id:'C-2',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:4,c2:7},
+    {id:'C-3',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:7,c2:9},
+    {id:'C-4',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:13,c2:15},
+    {id:'C-5',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:15,c2:18},
+    {id:'C-6',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:18,c2:21},
+    // Row B — B-1=2, B-2=4, B-3=2, [PANEL], B-4=2, B-5=4, B-6=2
+    {id:'B-1',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:1,c2:3},
+    {id:'B-2',dim:'16-5/16" x 10-1/2"',price:12000,urn:2,r1:6,r2:7,c1:3,c2:7},
+    {id:'B-3',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:7,c2:9},
+    {id:'B-4',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:13,c2:15},
+    {id:'B-5',dim:'16-5/16" x 10-1/2"',price:12000,urn:2,r1:6,r2:7,c1:15,c2:19},
+    {id:'B-6',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:19,c2:21},
+    // Row A — 8× $7K each 2 cols, PANEL 9-12
+    {id:'A-1',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:1,c2:3},
+    {id:'A-2',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:3,c2:5},
+    {id:'A-3',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:5,c2:7},
+    {id:'A-4',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:7,c2:9},
+    {id:'A-5',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:13,c2:15},
+    {id:'A-6',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:15,c2:17},
+    {id:'A-7',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:17,c2:19},
+    {id:'A-8',dim:'10-7/8" x 10-1/2"',price:7000,urn:2,r1:7,r2:8,c1:19,c2:21},
+  ]
+});
+legend('lg-front',[7000,10000,12000,14000,16000,18000,42000]);
+
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// BACK WALL — from annotated image, 20 sub-columns
+// No access panel. Two $48K companions span rows E+D.
+// Same column math as front wall.
+// G: 10×2=20  F: 3+3+3+2+3+3+3=20  E: 2+4+4+4+4+2=20
+// D: 2+[4]+3+2+3+[4]+2=20  C: 3+3+4+4+3+3=20
+// B: 2+4+3+2+3+4+2=20  A: 10×2=20
+// ══════════════════════════════════════════════════════
+buildGrid('bw', {
+  cols: 'repeat(20,1fr)',
+  rowDefs: [
+    {name:'G',h:68},{name:'F',h:58},{name:'E',h:58},{name:'D',h:58},
+    {name:'C',h:56},{name:'B',h:52},{name:'A',h:48}
+  ],
+  labels: [
+    {text:'G',r1:1,r2:2},{text:'F',r1:2,r2:3},{text:'E',r1:3,r2:4},
+    {text:'D',r1:4,r2:5},{text:'C',r1:5,r2:6},{text:'B',r1:6,r2:7},{text:'A',r1:7,r2:8}
+  ],
+  cells: [
+    // Row G — 10× $8K, each 2 sub-cols
+    {id:'G-1',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:1,c2:3},
+    {id:'G-2',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:3,c2:5},
+    {id:'G-3',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:5,c2:7},
+    {id:'G-4',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:7,c2:9},
+    {id:'G-5',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:9,c2:11},
+    {id:'G-6',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:11,c2:13},
+    {id:'G-7',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:13,c2:15},
+    {id:'G-8',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:15,c2:17},
+    {id:'G-9',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:17,c2:19},
+    {id:'G-10',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:19,c2:21},
+    // Row F — 3,3,3,2,3,3,3 = 20. F-4 $12K narrower.
+    {id:'F-1',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:1,c2:4},
+    {id:'F-2',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:4,c2:7},
+    {id:'F-3',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:7,c2:10},
+    {id:'F-4',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:2,r2:3,c1:10,c2:12},
+    {id:'F-5',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:12,c2:15},
+    {id:'F-6',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:15,c2:18},
+    {id:'F-7',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:18,c2:21},
+    // Row E — E-1=2, 48K=4(spans E+D), E-2=4, E-3=4, 48K=4(spans E+D), E-4=2
+    {id:'E-1',dim:'10-7/8" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:1,c2:3},
+    {id:'D&E-2',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:3,c2:7},
+    {id:'E-2',dim:'21-3/4" x 12-1/2"',price:20000,urn:2,r1:3,r2:4,c1:7,c2:11},
+    {id:'E-3',dim:'21-3/4" x 12-1/2"',price:20000,urn:2,r1:3,r2:4,c1:11,c2:15},
+    {id:'D&E-6',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:15,c2:19},
+    {id:'E-4',dim:'10-7/8" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:19,c2:21},
+    // Row D — D-1=2, [48K=3-6], D-3=3, D-4=2, D-5=3, [48K=15-18], D-7=2
+    {id:'D-1',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:1,c2:3},
+    {id:'D-3',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:7,c2:10},
+    {id:'D-4',dim:'10-7/8" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:10,c2:12},
+    {id:'D-5',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:12,c2:15},
+    {id:'D-7',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:19,c2:21},
+    // Row C — C-1=3, C-2=3, C-3=4($20K wider), C-4=4($20K wider), C-5=3, C-6=3
+    {id:'C-1',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:1,c2:4},
+    {id:'C-2',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:4,c2:7},
+    {id:'C-3',dim:'21-3/4" x 10-1/2"',price:20000,urn:2,r1:5,r2:6,c1:7,c2:11},
+    {id:'C-4',dim:'21-3/4" x 10-1/2"',price:20000,urn:2,r1:5,r2:6,c1:11,c2:15},
+    {id:'C-5',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:15,c2:18},
+    {id:'C-6',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:18,c2:21},
+    // Row B — B-1=2($10K), B-2=4($16K), B-3=3($14K), B-4=2($12K), B-5=3($14K), B-6=4($16K), B-7=2($10K)
+    {id:'B-1',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:1,c2:3},
+    {id:'B-2',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:6,r2:7,c1:3,c2:7},
+    {id:'B-3',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:7,c2:10},
+    {id:'B-4',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:6,r2:7,c1:10,c2:12},
+    {id:'B-5',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:12,c2:15},
+    {id:'B-6',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:6,r2:7,c1:15,c2:19},
+    {id:'B-7',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:6,r2:7,c1:19,c2:21},
+    // Row A — 10× $8K, each 2 sub-cols
+    {id:'A-1',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:1,c2:3},
+    {id:'A-2',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:3,c2:5},
+    {id:'A-3',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:5,c2:7},
+    {id:'A-4',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:7,c2:9},
+    {id:'A-5',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:9,c2:11},
+    {id:'A-6',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:11,c2:13},
+    {id:'A-7',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:13,c2:15},
+    {id:'A-8',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:15,c2:17},
+    {id:'A-9',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:17,c2:19},
+    {id:'A-10',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:19,c2:21},
+  ]
+});
+legend('lg-back',[8000,10000,12000,14000,16000,18000,20000,48000]);
+
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// NORTH WALL — short end wall, narrower than front/back
+// G is tallest, F and E also tall, D/C/B/A progressively shorter
+// ══════════════════════════════════════════════════════
+buildGrid('nw', {
+  cols: 'repeat(12,1fr)',
+  maxWidth: '420px',
+  rowDefs: [
+    {name:'G',h:90},{name:'F',h:72},{name:'E',h:66},{name:'D',h:58},
+    {name:'C',h:56},{name:'B',h:50},{name:'A',h:44}
+  ],
+  labels: [
+    {text:'G',r1:1,r2:2},{text:'F',r1:2,r2:3},{text:'E',r1:3,r2:4},
+    {text:'D',r1:4,r2:5},{text:'C',r1:5,r2:6},{text:'B',r1:6,r2:7},{text:'A',r1:7,r2:8}
+  ],
+  cells: [
+    // Row G — 4× $8K, each 3 sub-cols, tallest row
+    {id:'G-1',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:1,c2:4},
+    {id:'G-2',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:4,c2:7},
+    {id:'G-3',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:7,c2:10},
+    {id:'G-4',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:10,c2:13},
+    // Row F — 3× $16K, each 4 sub-cols
+    {id:'F-1',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:1,c2:5},
+    {id:'F-2',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:5,c2:9},
+    {id:'F-3',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:9,c2:13},
+    // Row E — E-1 $18K wider (5), E-2 $14K (4), E-3 $14K (3)
+    {id:'E-1',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:1,c2:6},
+    {id:'E-2',dim:'14-1/2" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:6,c2:10},
+    {id:'E-3',dim:'14-1/2" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:10,c2:13},
+    // Row D — 3× $16K, each 4 sub-cols
+    {id:'D-1',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:1,c2:5},
+    {id:'D-2',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:5,c2:9},
+    {id:'D-3',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:9,c2:13},
+    // Row C — C-1 $18K wider (5), C-2 $14K (4), C-3 $14K (3)
+    {id:'C-1',dim:'21-3/4" x 10-1/2"',price:18000,urn:2,r1:5,r2:6,c1:1,c2:6},
+    {id:'C-2',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:6,c2:10},
+    {id:'C-3',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:10,c2:13},
+    // Row B — 3× $14K, each 4 sub-cols
+    {id:'B-1',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:1,c2:5},
+    {id:'B-2',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:5,c2:9},
+    {id:'B-3',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:9,c2:13},
+    // Row A — 4× $8K, each 3 sub-cols, shortest row
+    {id:'A-1',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:1,c2:4},
+    {id:'A-2',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:4,c2:7},
+    {id:'A-3',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:7,c2:10},
+    {id:'A-4',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:10,c2:13},
+  ]
+});
+legend('lg-north',[8000,14000,16000,18000]);
+
+
+// SOUTH WALL — identical to North
+buildGrid('sww', {
+  cols: 'repeat(12,1fr)',
+  maxWidth: '420px',
+  rowDefs: [
+    {name:'G',h:90},{name:'F',h:72},{name:'E',h:66},{name:'D',h:58},
+    {name:'C',h:56},{name:'B',h:50},{name:'A',h:44}
+  ],
+  labels: [
+    {text:'G',r1:1,r2:2},{text:'F',r1:2,r2:3},{text:'E',r1:3,r2:4},
+    {text:'D',r1:4,r2:5},{text:'C',r1:5,r2:6},{text:'B',r1:6,r2:7},{text:'A',r1:7,r2:8}
+  ],
+  cells: [
+    // Row G — 4× $8K, each 3 sub-cols, tallest row
+    {id:'G-1',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:1,c2:4},
+    {id:'G-2',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:4,c2:7},
+    {id:'G-3',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:7,c2:10},
+    {id:'G-4',dim:'10-7/8" x 12-1/2"',price:8000,urn:2,r1:1,r2:2,c1:10,c2:13},
+    // Row F — 3× $16K, each 4 sub-cols
+    {id:'F-1',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:1,c2:5},
+    {id:'F-2',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:5,c2:9},
+    {id:'F-3',dim:'14-1/2" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:9,c2:13},
+    // Row E — E-1 $18K wider (5), E-2 $14K (4), E-3 $14K (3)
+    {id:'E-1',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:1,c2:6},
+    {id:'E-2',dim:'14-1/2" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:6,c2:10},
+    {id:'E-3',dim:'14-1/2" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:10,c2:13},
+    // Row D — 3× $16K, each 4 sub-cols
+    {id:'D-1',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:1,c2:5},
+    {id:'D-2',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:5,c2:9},
+    {id:'D-3',dim:'14-1/2" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:9,c2:13},
+    // Row C — C-1 $18K wider (5), C-2 $14K (4), C-3 $14K (3)
+    {id:'C-1',dim:'21-3/4" x 10-1/2"',price:18000,urn:2,r1:5,r2:6,c1:1,c2:6},
+    {id:'C-2',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:6,c2:10},
+    {id:'C-3',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:10,c2:13},
+    // Row B — 3× $14K, each 4 sub-cols
+    {id:'B-1',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:1,c2:5},
+    {id:'B-2',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:5,c2:9},
+    {id:'B-3',dim:'14-1/2" x 10-1/2"',price:14000,urn:2,r1:6,r2:7,c1:9,c2:13},
+    // Row A — 4× $8K, each 3 sub-cols, shortest row
+    {id:'A-1',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:1,c2:4},
+    {id:'A-2',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:4,c2:7},
+    {id:'A-3',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:7,c2:10},
+    {id:'A-4',dim:'10-7/8" x 10-1/2"',price:8000,urn:2,r1:7,r2:8,c1:10,c2:13},
+  ]
+});
+legend('lg-south',[8000,14000,16000,18000]);
+
+// ══════════════════════════════════════════════════════
+// TERRACE GARDEN NICHES — single granite wall, outdoor
+// 8 columns × 5 rows, uniform price per row, A=bottom E=top
+// Inside dimension per email: 12.5"W x 12.5"H x 12"D for all niches
+// Row A(bottom)=$12K, B=$14K, C=$16K(center/eye-level), D=$14K, E(top)=$12K
+// ══════════════════════════════════════════════════════
+function buildTGN(){
+  const cols = 'repeat(8,1fr)';
+  const rowH = 64;
+  const rowDefs = [
+    {name:'E',h:rowH},{name:'D',h:rowH},{name:'C',h:rowH},{name:'B',h:rowH},{name:'A',h:rowH}
+  ];
+  const labels = [
+    {text:'E',r1:1,r2:2},{text:'D',r1:2,r2:3},{text:'C',r1:3,r2:4},
+    {text:'B',r1:4,r2:5},{text:'A',r1:5,r2:6}
+  ];
+  const rowPrices = {1:12000, 2:14000, 3:16000, 4:14000, 5:12000}; // grid row 1=E(top) ... 5=A(bottom)
+  const rowLetters = {1:'E',2:'D',3:'C',4:'B',5:'A'};
+  const dim = '12.5" x 12.5"'; // W x H, D=12" noted separately
+
+  const cells = [];
+  for(let r=1; r<=5; r++){
+    for(let c=1; c<=8; c++){
+      cells.push({
+        id: `${rowLetters[r]}-${c}`,
+        price: rowPrices[r],
+        urn: 2,
+        dim: dim,
+        r1: r, r2: r+1, c1: c, c2: c+1
+      });
+    }
+  }
+
+  const g = document.createElement('div');
+  const rowStr = rowDefs.map(r=>r.h+'px').join(' ');
+  g.style.cssText = `display:grid;grid-template-columns:24px ${cols};grid-template-rows:${rowStr};gap:3px;margin:0 auto;max-width:780px;`;
+
+  labels.forEach(lb=>{
+    const d=document.createElement('div');
+    d.className='rlbl';
+    d.style.cssText=`grid-column:1;grid-row:${lb.r1}/${lb.r2};`;
+    d.textContent=lb.text;
+    g.appendChild(d);
+  });
+
+  cells.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='n '+(pcMap[c.price]||'c12');
+    d.style.cssText=`grid-row:${c.r1}/${c.r2};grid-column:${c.c1+1}/${c.c2+1};font-size:10px;`;
+    d.setAttribute('data-nid',c.id);
+    d.setAttribute('data-price',c.price);
+    d.setAttribute('data-dim',c.dim);
+    d.onmouseenter=e=>sttTGN(e,d);
+    d.onmouseleave=htt;
+    d.onclick=e=>tapTGN(e,d);
+    d.innerHTML=`<div class="nid">${c.id}</div><div class="nprice">${fm(c.price)}</div><div class="ncap">2-urn</div>`;
+    g.appendChild(d);
+  });
+
+  document.getElementById('tgn').appendChild(g);
+  legend('lg-tgn',[12000,14000,16000]);
+}
+buildTGN();
+
+// ── Property switching (MVC vs TGN) ──────────────────
+function swProp(p){
+  document.querySelectorAll('.psec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('psec-'+p).classList.add('active');
+  document.querySelectorAll('.ptab').forEach(t=>{
+    if(t.getAttribute('onclick').includes("'"+p+"'")) t.classList.add('active');
+  });
+  const mvcTabs = document.getElementById('mvc-tabs');
+  mvcTabs.style.display = (p==='mvc') ? 'flex' : 'none';
+  const h = document.getElementById('header-txt');
+  if(p==='mvc'){
+    h.innerHTML = '<h1>Mountain View Columbarium — New Glass Front Niches</h1><p>Washington Memorial Park &nbsp;\u00b7&nbsp; Center Island Structure</p>';
+  } else {
+    h.innerHTML = '<h1>Terrace Garden Niches</h1><p>Washington Memorial Park &nbsp;\u00b7&nbsp; Terrace Garden Memorial Path</p>';
+  }
+}
+
+// ── Wall switching ──────────────────────────────────
+function sw(w){
+  document.querySelectorAll('.wview').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ow').forEach(d=>d.classList.remove('act'));
+  document.getElementById('wall-'+w).classList.add('active');
+  document.getElementById('od-'+w).classList.add('act');
+  document.querySelectorAll('.tab').forEach(t=>{
+    if(t.getAttribute('onclick').includes("'"+w+"'")) t.classList.add('active');
+  });
+}
+
+// ── Tooltip ─────────────────────────────────────────
+const tte=document.getElementById('ttip');
+let tton=false;
+function stt(e,el){
+  const r=el.getAttribute('data-tt');if(!r)return;
+  tte.innerHTML=decodeURIComponent(r);tte.classList.add('show');ptt(e);tton=true;
+}
+function sttLive(e,el){
+  const id=el.getAttribute('data-nid'),price=+el.getAttribute('data-price'),urn=+el.getAttribute('data-urn'),dim=el.getAttribute('data-dim');
+  if(!id)return;
+  tte.innerHTML=buildTooltipLive(id,price,urn,dim);
+  tte.classList.add('show');ptt(e);tton=true;
+}
+function htt(){tte.classList.remove('show');tton=false;}
+function ptt(e){
+  const x=e.clientX+14,y=e.clientY+14;
+  const tw=tte.offsetWidth||220,th=tte.offsetHeight||200;
+  tte.style.left=(x+tw>window.innerWidth?x-tw-28:x)+'px';
+  tte.style.top=(y+th>window.innerHeight?y-th-28:y)+'px';
+}
+document.addEventListener('mousemove',e=>{if(tton)ptt(e);});
+function tap(e,el){
+  if(window.innerWidth>=768)return;
+  const r=el.getAttribute('data-tt');if(!r)return;
+  tte.innerHTML=decodeURIComponent(r);
+  const b=el.getBoundingClientRect();
+  tte.style.left=Math.max(8,Math.min(b.left,window.innerWidth-250))+'px';
+  tte.style.top=Math.max(8,b.bottom+6)+'px';
+  tte.classList.add('show');
+  setTimeout(htt,4500);
+}
+function tapLive(e,el){
+  if(window.innerWidth>=768)return;
+  const id=el.getAttribute('data-nid'),price=+el.getAttribute('data-price'),urn=+el.getAttribute('data-urn'),dim=el.getAttribute('data-dim');
+  if(!id)return;
+  tte.innerHTML=buildTooltipLive(id,price,urn,dim);
+  const b=el.getBoundingClientRect();
+  tte.style.left=Math.max(8,Math.min(b.left,window.innerWidth-250))+'px';
+  tte.style.top=Math.max(8,b.bottom+6)+'px';
+  tte.classList.add('show');
+  setTimeout(htt,4500);
+}
+function sttTGN(e,el){
+  const id=el.getAttribute('data-nid'),price=+el.getAttribute('data-price'),dim=el.getAttribute('data-dim');
+  if(!id)return;
+  tte.innerHTML=buildTooltipTGN(id,price,dim);
+  tte.classList.add('show');ptt(e);tton=true;
+}
+function tapTGN(e,el){
+  if(window.innerWidth>=768)return;
+  const id=el.getAttribute('data-nid'),price=+el.getAttribute('data-price'),dim=el.getAttribute('data-dim');
+  if(!id)return;
+  tte.innerHTML=buildTooltipTGN(id,price,dim);
+  const b=el.getBoundingClientRect();
+  tte.style.left=Math.max(8,Math.min(b.left,window.innerWidth-250))+'px';
+  tte.style.top=Math.max(8,b.bottom+6)+'px';
+  tte.classList.add('show');
+  setTimeout(htt,4500);
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.n')&&!e.target.closest('#ttip'))htt();
+});
+</script>
+</body>
+</html>
