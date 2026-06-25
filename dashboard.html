@@ -399,7 +399,7 @@ body.light-mode .progress-bar{background:#e4e8f0}
     </div>
     <div class="field"><label>Status</label>
       <select id="cStatus">
-        <option>New</option><option>In Progress</option><option>Pending Family</option><option>Pending Docs</option><option>Pending Payment</option><option>Complete</option>
+        <option>New</option><option>In Progress</option><option>Pending Family</option><option>Pending Docs</option><option>Pending Payment</option><option id="pmoStatusOpt">Pending Marker Order</option><option>Complete</option>
       </select>
     </div>
     <!-- Chloe payment -->
@@ -862,8 +862,8 @@ let gToken=null,weekOffset=0,caseFilter='All',taskFilter='All',activeUser='marti
 let wOwner='',wDisp='',wServiceType='';
 let wPickedChecklist=null; // Martice confirmed-sale chosen items {group:[texts]}
 
-const CASE_STATUSES=['New','In Progress','Pending Family','Pending Docs','Pending Payment','Complete'];
-const SC={New:'#c8540a','In Progress':'#c8a96e','Pending Family':'#b8860b','Pending Docs':'#8fa3b8','Pending Payment':'#6b4fa0',Complete:'#2e7d57'};
+const CASE_STATUSES=['New','In Progress','Pending Family','Pending Docs','Pending Payment','Pending Marker Order','Complete'];
+const SC={New:'#c8540a','In Progress':'#c8a96e','Pending Family':'#b8860b','Pending Docs':'#8fa3b8','Pending Payment':'#6b4fa0','Pending Marker Order':'#2e86ab',Complete:'#2e7d57'};
 const PC={High:'#b03a2e',Medium:'#c8540a',Low:'#8fa3b8'};
 const CC={Family:'#c8a96e','Bill/Payment':'#b03a2e',Appointment:'#c8540a',School:'#2e7d57',Other:'#8fa3b8'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1501,6 +1501,9 @@ function populateCaseForm(){
     document.getElementById('fldPassareLink').style.display='';
     document.getElementById('lblServiceDate').textContent='Service Date';
   }
+  // Pending Marker Order is CIRGAS-only — hide it in the status select for all other case types
+  const pmoOpt=document.getElementById('pmoStatusOpt');
+  if(pmoOpt) pmoOpt.style.display=wDisp==='CIRGAS'?'':'none';
 }
 
 // Render the quote category checkboxes, optionally pre-checking some
@@ -1903,7 +1906,8 @@ function buildCaseCardHTML(c){
   if(c.payment){payHTML=`<span style="color:var(--muted);font-size:10px">💳 ${c.payment}</span>`;if(c.payStatus)payHTML+=` <span class="pay-status">${c.payStatus}</span>`;}
 
   // Quick status select
-  const qsOpts=CASE_STATUSES.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('');
+  const qsStatuses=CASE_STATUSES.filter(s=>s!=='Pending Marker Order'||c.disp==='CIRGAS');
+  const qsOpts=qsStatuses.map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('');
   const qs=`<select class="quick-status" onclick="event.stopPropagation()" onchange="quickStatus('${c.id}',this.value)">${qsOpts}</select>`;
 
   // Checklist HTML — NA-aware, editable (Chloe only)
@@ -2163,7 +2167,8 @@ function renderCases(){
   if(activeUser==='martice') addBtns=`<button class="btn-primary" onclick="openCaseModal()">+ New Case</button>`;
   if(activeUser==='chloe')   addBtns=`<button class="btn-chloe" onclick="openCaseModal()">+ New Case</button>`;
 
-  bar.innerHTML=['All',...CASE_STATUSES].map(f=>{
+  const visibleStatuses=CASE_STATUSES.filter(s=>s!=='Pending Marker Order'||activeUser!=='chloe');
+  bar.innerHTML=['All',...visibleStatuses].map(f=>{
     const cnt=f==='All'?pool.length:counts[f];
     const col=f==='All'?'#c8a96e':SC[f];
     return `<button class="filter-chip${caseFilter===f?' active':''}" onclick="caseFilter='${f}';renderCases()" style="${caseFilter===f?`background:${col}22;border-color:${col};color:${col}`:''}"><span class="count-badge" style="background:${col}">${cnt}</span>${f}</button>`;
