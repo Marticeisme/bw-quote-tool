@@ -3487,14 +3487,15 @@ async function printGAContract() {
     }
   }
 
-  // What fills "Casket" row on form
+  // What fills the "Casket" row on the form. Prefer whichever the user actually selected:
+  // an actual casket (including for cremation-with-casket workflows like a viewing+cremation
+  // plan using a real casket), else fall back to the cremation container.
   var formCasketPrice, formCasketModel, formCasketModelNum;
-  if (isBurial) {
+  if (casketPrice > 0) {
     formCasketPrice    = casketPrice;
     formCasketModel    = casketModelName;
     formCasketModelNum = casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName;
   } else {
-    // Cremation: cremation container goes in casket slot
     formCasketPrice    = cremContPrice;
     formCasketModel    = cremContLabel;
     formCasketModelNum = cremContLabel;
@@ -10125,8 +10126,12 @@ async function generateClearPointContract() {
         urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
       }
     }
-    var formCasketPrice = isBurial ? casketPrice : cremContPrice;
-    var formCasketModel = isBurial ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName) : cremContLabel;
+    // Prefer an actual casket if one is selected (handles cremation-with-casket workflows
+    // like a viewing+cremation plan using a real casket); else fall back to the cremation
+    // container. (Was: isBurial ? casketPrice : cremContPrice, which dropped the casket on
+    // cremation dispositions.)
+    var formCasketPrice = casketPrice > 0 ? casketPrice : cremContPrice;
+    var formCasketModel = casketPrice > 0 ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName) : cremContLabel;
 
     // Right-side merchandise / allowances (mirror GA)
     var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
