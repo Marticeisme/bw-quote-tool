@@ -2955,6 +2955,7 @@ tr:hover td{background:#eef3f8;}
         <button onclick="cpClearAll()" style="padding:8px 14px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">✕ Clear All</button>
       </div>
       <div id="cpImportDisplay" style="font-size:12px;color:var(--text-light);min-height:20px;">Click "Import" to pull client name, disposition, and pricing from your Funeral Home Quote.</div>
+      <div id="cpCustomReview" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -9962,7 +9963,55 @@ function cpImportFromFH() {
     '<tr style="border-top:2px solid #1B2A4A;"><td style="padding:4px 6px;font-weight:700;color:#1B2A4A;">Total</td>' +
     '<td style="padding:4px 6px;text-align:right;font-weight:700;font-size:14px;color:#C0673B;">' + fmtCP(grand) + '</td></tr>' +
     '</table></div>';
+  cpRenderCustomReview();
   cpCalcPayment();
+}
+
+// ── ClearPoint custom-item review: unrecognized custom line items get a destination dropdown.
+// Mirrors the GA tool so nothing is silently dropped from the ClearPoint contract.
+function cpUnrecognizedCustomLines() {
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  return lines.filter(function(l){
+    return l.custom && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
+  });
+}
+function cpRenderCustomReview() {
+  var box = el('cpCustomReview'); if (!box) return;
+  var items = cpUnrecognizedCustomLines();
+  if (!items.length) { box.innerHTML = ''; return; }
+  // CP destinations: page-3 right OTHER MERCHANDISE block; page-3 left Other(Specify) rows;
+  // page-3 cash-advance Other Specify 1/2 slots; or omit.
+  var opts =
+    '<option value="right">Other Merchandise (right side)</option>' +
+    '<option value="left">Other (Specify) — left side</option>' +
+    '<option value="ca1">Cash Advance — Other (Specify) 1</option>' +
+    '<option value="ca2">Cash Advance — Other (Specify) 2</option>' +
+    '<option value="omit">Omit from contract</option>';
+  var html = '<div style="background:#fff8e6;border:1px solid #e0c46a;border-radius:8px;padding:10px 12px;">'
+    + '<div style="font-weight:700;font-size:12px;color:#7a5c00;margin-bottom:8px;">⚠️ Custom items — choose where each appears on the contract:</div>';
+  items.forEach(function(it){
+    html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">'
+      + '<span style="flex:1;font-size:12px;color:var(--text);" data-cp-cust-label="' + encodeURIComponent(it.label) + '" data-cp-cust-amt="' + it.amount + '">'
+      + (it.label || 'Custom Item') + ' — $' + Math.abs(it.amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
+      + '<select class="cp-cust-dest" style="flex:0 0 240px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:inherit;">' + opts + '</select>'
+      + '</div>';
+  });
+  html += '</div>';
+  box.innerHTML = html;
+}
+function cpGetCustomAssignments() {
+  var box = el('cpCustomReview'); if (!box) return [];
+  var out = [];
+  box.querySelectorAll('.cp-cust-dest').forEach(function(sel){
+    var span = sel.parentNode.querySelector('[data-cp-cust-label]');
+    if (!span) return;
+    out.push({
+      label: decodeURIComponent(span.getAttribute('data-cp-cust-label')),
+      amt:   Math.abs(parseFloat(span.getAttribute('data-cp-cust-amt')) || 0),
+      dest:  sel.value
+    });
+  });
+  return out;
 }
 
 function cpClearAll() {
@@ -9977,6 +10026,7 @@ function cpClearAll() {
   document.querySelector('input[name="cpDisposition"][value="Burial"]').checked = true;
   document.querySelector('input[name="cpGuaranteed"][value="no"]').checked = true;
   el('cpImportDisplay').innerHTML = 'Click "Import" to pull client name, disposition, and pricing from your Funeral Home Quote.';
+  if (el('cpCustomReview')) el('cpCustomReview').innerHTML = '';
   el('cpMonthlyPayDisplay').textContent = '—';
 }
 
@@ -10167,6 +10217,20 @@ async function generateClearPointContract() {
     pushLeft('Release from Storage', storageAmt);
     pushLeft('Keepsake Transfer', keepsakesAmt);
 
+    // Custom-item assignments from the builder review field (mirrors GA so unrecognized
+    // custom FH lines aren't silently dropped). Routes: left / right / ca1 / ca2 / omit.
+    var cpAssignedCA1 = null, cpAssignedCA2 = null;
+    var cpAssignedLeftTotal = 0, cpAssignedRightTotal = 0, cpAssignedCATotal = 0;
+    ((typeof cpGetCustomAssignments === 'function') ? cpGetCustomAssignments() : []).forEach(function(c){
+      if (!c.amt) return;
+      if (c.dest === 'left')        { leftOther.push({label:c.label, amt:c.amt}); cpAssignedLeftTotal  += c.amt; }
+      else if (c.dest === 'right')  { rightMerch.push({label:c.label, amt:c.amt}); cpAssignedRightTotal += c.amt; }
+      else if (c.dest === 'ca1')    { cpAssignedCA1 = c; cpAssignedCATotal += c.amt; }
+      else if (c.dest === 'ca2')    { cpAssignedCA2 = c; cpAssignedCATotal += c.amt; }
+      // 'omit' → intentionally excluded from the contract
+    });
+    rightMerchTotal += cpAssignedRightTotal;
+
     var planDiscount  = 0;
     var discountLine  = lines.find(function(l){ return l.isDiscount; });
     lines.filter(function(l){ return l.isDiscount; }).forEach(function(l){ planDiscount += Math.abs(l.amount); });
@@ -10185,6 +10249,7 @@ async function generateClearPointContract() {
       transferAmt + hearseAmt + otherServicesVehicleAmt + cremFeeAmt +
       ceremonyHourAmt + recAmt + (chapelLine ? Math.abs(chapelLine.amount) : 0) +
       mailingAmt + deliveryAmt + witnessAmt + expediteAmt + prepCremAmt + storageAmt + keepsakesAmt +
+      cpAssignedLeftTotal +
       surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
     var servicesAfterDiscount = servicesTotal - planDiscount;          // TOTAL SERVICES (left column incl discount)
     var totalFuneralPrice     = Math.max(0, servicesTotal + formCasketPrice + urnTotalAmt + rightMerchTotal - planDiscount);
@@ -10193,7 +10258,7 @@ async function generateClearPointContract() {
     var _cpTaxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
     var _cpTaxDiscAmt  = lines.filter(function(l){ return l.isDiscount && l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
     var taxAmt      = Math.round(Math.max(0, _cpTaxableBase - _cpTaxDiscAmt) * 0.104 * 100) / 100;
-    var nonGuar     = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total;
+    var nonGuar     = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total + cpAssignedCATotal;
     var caTotal     = nonGuar + taxAmt;                                 // ClearPoint folds tax into the cash-advance allowance
     var fpTotal     = totalFuneralPrice + caTotal;
     var amtTrusted  = Math.round(fpTotal * 0.9 * 100) / 100;
@@ -10367,9 +10432,15 @@ async function generateClearPointContract() {
     if (flowersP3Total > 0) setTF('Flowers', fmt$(flowersP3Total));   // Loves Buds & Blooms
     if (motoEscortAmt > 0)  setTF('ShipC', fmt$(motoEscortAmt));       // Motorcycle Escort
     if (taxAmt > 0)         setTF('Tax', fmt$(taxAmt));
-    // Other cash-advance: county/ME fee, then limousine (Horse-Drawn Hearse)
-    if (countyFeeAmt > 0) { setTF('Other Specify 1', countyFeeLbl || 'County / ME Review'); setTF('OtherAmt', fmt$(countyFeeAmt)); }
-    if (limousineAmt > 0) { setTF('Other Specify 2', 'Limousine'); setTF('OtherAmt2', fmt$(limousineAmt)); }
+    // Cash-advance Other Specify rows: combine county/limousine with any custom assignments
+    // targeting the same slot. Each row carries a label list + summed amount.
+    var ca1Labels = [], ca1Amt = 0, ca2Labels = [], ca2Amt = 0;
+    if (countyFeeAmt > 0) { ca1Labels.push(countyFeeLbl || 'County / ME Review'); ca1Amt += countyFeeAmt; }
+    if (limousineAmt > 0) { ca2Labels.push('Limousine');                            ca2Amt += limousineAmt; }
+    if (cpAssignedCA1)    { ca1Labels.push(cpAssignedCA1.label);                    ca1Amt += cpAssignedCA1.amt; }
+    if (cpAssignedCA2)    { ca2Labels.push(cpAssignedCA2.label);                    ca2Amt += cpAssignedCA2.amt; }
+    if (ca1Labels.length) { setTF('Other Specify 1', ca1Labels.join(' + ')); setTF('OtherAmt',  fmt$(ca1Amt)); }
+    if (ca2Labels.length) { setTF('Other Specify 2', ca2Labels.join(' + ')); setTF('OtherAmt2', fmt$(ca2Amt)); }
 
     setTF('CATotal', fmt$(caTotal));
     setTF('FPTotal', fmt$(fpTotal));
