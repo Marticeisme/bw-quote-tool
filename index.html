@@ -9237,10 +9237,37 @@ async function generateRICContractCore(clientData) {
     if (clientData && clientData.coPurchaser) purchaserDisplay += ' & ' + clientData.coPurchaser;
     setF('Name of Purchaser', purchaserDisplay);
     setF('Description of Interment Rights', location);
-    // Notes 5 = Remarks field — always prepend ACH disclosure (required for 0% financing)
+    // Remarks — the template has FIVE separate one-line fields (Notes 5-9) stacked
+    // vertically under the "Remarks:" label. Word-wrap the disclosure + custom remarks
+    // across all five so nothing gets clipped on a single line.
     var _achDisc = 'ACH bank withdrawals required to receive 0 percent financing and discount if applicable.';
     var _customRem = clientData ? (clientData.remarks || (clientData.benefit ? 'For the benefit of: ' + clientData.benefit : '')) : '';
-    setF('Notes 5', _customRem ? _achDisc + '\n' + _customRem : _achDisc);
+    var _remarksText = _customRem ? _achDisc + '  ' + _customRem : _achDisc;
+    // Per-line widths (chars): Notes 5 is narrower than 6-9 because "Remarks:" label sits
+    // beside it. Conservative caps at fontSize 8 (Helvetica ~4pt/char average).
+    var _remCaps = [48, 60, 60, 60, 60];   // Notes 5, 6, 7, 8, 9
+    (function wrapRemarks(text, caps) {
+      var words = String(text).replace(/\n+/g, ' ').split(/\s+/).filter(Boolean);
+      var slots = caps.map(function(){ return ''; });
+      var wi = 0;
+      for (var s = 0; s < slots.length && wi < words.length; s++) {
+        var cap = caps[s];
+        while (wi < words.length) {
+          var w = words[wi];
+          var next = slots[s] ? slots[s] + ' ' + w : w;
+          if (next.length > cap) break;
+          slots[s] = next;
+          wi++;
+        }
+        // If the next word alone exceeds the remaining slot's cap, break early to next line.
+        if (!slots[s] && wi < words.length) { slots[s] = words[wi].slice(0, cap); wi++; }
+      }
+      // Any leftover words: append to the last slot (truncated implicitly when filled).
+      while (wi < words.length) { slots[slots.length - 1] += ' ' + words[wi]; wi++; }
+      return slots;
+    })(_remarksText, _remCaps).forEach(function(line, i) {
+      setF('Notes ' + (5 + i), line);
+    });
     // Address — street only in Address field; City/State/Zip in their own fields
     // (template fields named City, State, Zip Code — setF silently skips if they don't exist)
     if (clientData) {
@@ -9540,12 +9567,12 @@ async function generateRICContractCore(clientData) {
     _descFields.forEach(function(fn) {
       try { form.getTextField(fn).setFontSize(0); } catch(e) {}
     });
-    // Remarks (Notes 5): multi-line with fixed readable size so text wraps instead of shrinking
-    try {
-      var remarksField = form.getTextField('Notes 5');
-      remarksField.enableMultiline();
-      remarksField.setFontSize(8);
-    } catch(e) {}
+    // Remarks (Notes 5-9): five separate one-line fields. Use a consistent readable size.
+    // The actual text is already word-wrapped across the five fields above; just size them
+    // so long lines don't auto-shrink.
+    [5, 6, 7, 8, 9].forEach(function(n){
+      try { form.getTextField('Notes ' + n).setFontSize(8); } catch(e) {}
+    });
 
     // Embed font and update field appearances so values display without clicking
     var helvetica;
