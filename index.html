@@ -9060,10 +9060,12 @@ async function generateRICContractCore(clientData) {
     var location   = (clientData && clientData.location) || val('qSpaceLocation') || '';
 
     // Categorise lines
-    var mainSpace = exemptLines.find(function(l){ return l.isSpace && !l.label.match(/2nd|3rd|ECF|Right/i); });
-    var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care/i) && !l.label.match(/2nd/i); });
-    var secRight  = exemptLines.find(function(l){ return l.isSpace && l.label.match(/2nd Right/i) && !l.label.match(/ECF/i); });
-    var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right/i) && l.label.match(/ECF/i); });
+    // Match both "2nd Right" and "Second Right" — the cemetery builder labels them as
+    // "Second Right – ..." while older code (and the Compare-Options builder) used "2nd Right".
+    var mainSpace = exemptLines.find(function(l){ return l.isSpace && !l.label.match(/2nd|3rd|ECF|Right|Second|Third/i); });
+    var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care/i) && !l.label.match(/2nd|Second/i); });
+    var secRight  = exemptLines.find(function(l){ return l.isSpace && (l.isSecondRight || l.label.match(/2nd Right|Second Right/i)) && !l.label.match(/ECF/i); });
+    var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right|Second Right/i) && l.label.match(/ECF/i); });
     var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment O&C|Entombment|Interment/i) && !l.label.match(/ECF|Recording/i); });
     var recLines  = exemptLines.filter(function(l){ return l.label.match(/Recording/i); });
 
@@ -9546,12 +9548,31 @@ async function generateRICContractCore(clientData) {
     } catch(e) {}
 
     // Embed font and update field appearances so values display without clicking
+    var helvetica;
     try {
-      var helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
       form.updateFieldAppearances(helvetica);
     } catch(efua) {
       try { form.updateFieldAppearances(); } catch(e2) {}
     }
+
+    // Draw signing-block day/year overlays — the bottom "Signed this __ day of __" and
+    // "Accepted this __ day of __" lines have NO form widgets for day/year (only Month
+    // is a real field). Coordinates verified via pdfjs text anchors on page 0:
+    //   y=174  "Signed this" at x=23, "day of" at x=125, "Time" at x=338
+    //   y=83   "Accepted this" at x=329, "day of" at x=416
+    try {
+      if (helvetica) {
+        var navyCol = PDFLib.rgb(0.05, 0.1, 0.2);
+        var p0 = pdfDoc.getPages()[0];
+        // Signed block (purchaser)
+        p0.drawText(sigDay, { x: 88,  y: 176, size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigYr,  { x: 290, y: 176, size: 10, font: helvetica, color: navyCol });
+        // Accepted block (counselor / officer)
+        p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigMon + ' ' + sigYr, { x: 446, y: 85, size: 10, font: helvetica, color: navyCol });
+      }
+    } catch(e) { console.warn('[RIC] signing-block overlay:', e.message); }
 
     console.log('[RIC] setF calls made:', fillCount, '| errors:', fillErrors.length, fillErrors.slice(0,5));
     console.log('[RIC] Saving PDF...');
