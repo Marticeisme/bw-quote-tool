@@ -9075,7 +9075,11 @@ async function generateRICContractCore(clientData) {
     var taxableSub    = taxableLines.reduce(function(s,l){ return s+l.amount; }, 0);
     var exemptSub     = exemptLines.reduce(function(s,l){ return s+l.amount; }, 0);
     var discAmt       = discLines.reduce(function(s,l){ return s+l.amount; }, 0);
-    var taxAmount     = Math.round(taxableSub * TAX * 100) / 100;
+    // Tax base = taxable subtotal minus any discount flagged taxableDiscount (e.g. "10% Prop Disc"
+    // applies to taxable merchandise). Was: taxableSub × TAX, which overcharged tax by the
+    // discount × TAX (~$31 on a $299 prop discount).
+    var taxableDiscAmt = discLines.filter(function(l){ return l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+    var taxAmount     = Math.round(Math.max(0, taxableSub - taxableDiscAmt) * TAX * 100) / 100;
     var grandTotal    = Math.round((exemptSub + taxableSub + discAmt + taxAmount) * 100) / 100;
     var subTotal      = Math.round((exemptSub + taxableSub + discAmt) * 100) / 100;
     var downAmt       = _finData ? (_finData.downAmt  || 0) : 0;
@@ -9600,6 +9604,13 @@ async function generateRICContractCore(clientData) {
         // Accepted block (counselor / officer)
         p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
         p0.drawText(sigMon + ' ' + sigYr, { x: 446, y: 85, size: 10, font: helvetica, color: navyCol });
+        // City / State / Zip — no AcroForm fields exist for these on the template;
+        // overlay them just above the Street/City/State/Zip labels at y=859 (verified via pdfjs).
+        if (clientData) {
+          if (clientData.city)  p0.drawText(clientData.city,  { x: 343, y: 870, size: 9, font: helvetica, color: navyCol });
+          if (clientData.state) p0.drawText(clientData.state, { x: 452, y: 870, size: 9, font: helvetica, color: navyCol });
+          if (clientData.zip)   p0.drawText(clientData.zip,   { x: 522, y: 870, size: 9, font: helvetica, color: navyCol });
+        }
       }
     } catch(e) { console.warn('[RIC] signing-block overlay:', e.message); }
 
@@ -9629,12 +9640,20 @@ async function generateRICContractCore(clientData) {
       setA('Payment Check Box 2',     (clientData && clientData.controlNo) || '');
       setA('Ded Month',               (el('ricFirstPmtMonth') && el('ricFirstPmtMonth').value) || '');
       setA('Ded Year',                (el('ricFirstPmtYear')  && el('ricFirstPmtYear').value)  || String(today.getFullYear()));
+      // Account holder fields — fill ONLY the LEFT side (ACH/bank section). The right side
+      // is the Credit Card section (Account Holder Name_2 / Signature Date 2 / Name on Card)
+      // and stays blank since credit card info is never used per Martice.
       setA('Account Holder Name',     purchaserName);
-      setA('Account Holder Name_2',   purchaserName);
       setA('Name of Acct Holder',     purchaserName);
-      setA('Name on Card',            purchaserName);
       setA('Signature Date 1',        todayMDY);
-      setA('Signature Date 2',        todayMDY);
+      // Day-of-month payment checkbox — driven by the RIC first-payment day selector
+      // (only 10/20/25 are valid options per the UI). Field on-states are all "/Yes".
+      var fpDay = (el('ricFirstPmtDay') && el('ricFirstPmtDay').value) || '';
+      try {
+        if      (fpDay === '10') achForm.getCheckBox('Payment Check Box 1').check(); // 10th of the month
+        else if (fpDay === '20') achForm.getCheckBox('Check Box8').check();          // 20th of the month
+        else if (fpDay === '25') achForm.getCheckBox('Payment Check Box 3').check(); // 25th of the Month
+      } catch(e) {}
       try { achForm.updateFieldAppearances(helvetica); } catch(e) {}
       var achPages = await pdfDoc.copyPages(achDoc, achDoc.getPageIndices());
       achPages.forEach(function(p){ pdfDoc.addPage(p); });
