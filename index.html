@@ -9049,11 +9049,13 @@ async function generateRICContractCore(clientData) {
           // Pick the discount-type suffix from the actual label, not a hardcoded "Prop Disc".
           // (Was: always "% Prop Disc" — misleading when a Merchandise or Services discount.)
           var typeStr;
-          if      (/merch/i.test(lbl))             typeStr = 'Merch Disc';
-          else if (/service|svc|o&c|opening|closing/i.test(lbl)) typeStr = 'Svc Disc';
-          else if (/2nd ?right|second ?right/i.test(lbl)) typeStr = '2nd Right Disc';
-          else if (/prop/i.test(lbl))              typeStr = 'Prop Disc';
-          else                                      typeStr = 'Disc';
+          // Order matters: Property comes BEFORE 2nd Right, otherwise
+          // "Property (excluding 2nd Rights)" would mis-tag as 2nd-Right.
+          if      (/merch/i.test(lbl))                            typeStr = 'Merch Disc';
+          else if (/service|svc|o&c|opening|closing/i.test(lbl))  typeStr = 'Svc Disc';
+          else if (/prop/i.test(lbl))                             typeStr = 'Prop Disc';
+          else if (/2nd ?right|second ?right/i.test(lbl))         typeStr = '2nd Right Disc';
+          else                                                     typeStr = 'Disc';
           parts.push(pctM[1] + '% ' + typeStr);
         }
         if (perSpaceM) {
