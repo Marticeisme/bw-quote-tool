@@ -9219,18 +9219,33 @@ async function generateRICContractCore(clientData) {
       } catch(e) { fillErrors.push(name + ': ' + e.message); }
     }
 
-    // Reset Form button: visible on screen, non-printing (clear Print flag bit 3)
-    try {
-      form.getFields().forEach(function(f) {
+    // Reset Form button: REMOVE the widget annotation entirely so it can't print on any
+    // printer/viewer. (Was: clear Print flag bit 3 — which some printers ignored, leaving
+    // a blue box on every printed contract.) The button isn't used in Martice's workflow
+    // anyway — the web tool drives the form, not Adobe's Reset.
+    // Hoisted out of try{} so the appended ACH + Rules forms can reuse it.
+    function dropButtonWidgets(srcDoc, srcForm) {
+      var PN = PDFLib.PDFName;
+      var btnRefs = [];
+      srcForm.getFields().forEach(function(f) {
         if (f instanceof PDFLib.PDFButton) {
-          f.acroField.getWidgets().forEach(function(w) {
-            var flags = w.dict.get(PDFLib.PDFName.of('F'));
-            var fVal = flags && typeof flags.value !== 'undefined' ? flags.value : 0;
-            w.dict.set(PDFLib.PDFName.of('F'), PDFLib.PDFNumber.of(fVal & ~4));
-          });
+          try { f.acroField.getWidgets().forEach(function(w){ btnRefs.push(w.dict); }); } catch(e){}
         }
       });
-    } catch(e) {}
+      srcDoc.getPages().forEach(function(pg) {
+        var ar = pg.node.get(PN.of('Annots'));
+        if (!ar) return;
+        var an = srcDoc.context.lookup(ar);
+        if (!an || typeof an.size !== 'function') return;
+        for (var i = an.size() - 1; i >= 0; i--) {
+          try {
+            var w = srcDoc.context.lookup(an.get(i));
+            if (btnRefs.indexOf(w) >= 0) an.remove(i);
+          } catch(e) {}
+        }
+      });
+    }
+    try { dropButtonWidgets(pdfDoc, form); } catch(e) {}
 
     console.log('[RIC] Lines:', lines.length, '| Exempt:', exemptLines.length, '| Taxable:', taxableLines.length, '| Disc:', discLines.length);
     console.log('[RIC] clientName:', clientName, '| grandTotal:', grandTotal, '| downAmt:', downAmt);
@@ -9667,6 +9682,7 @@ async function generateRICContractCore(clientData) {
         else if (fpDay === '25') achForm.getCheckBox('Payment Check Box 3').check(); // 25th of the Month
       } catch(e) {}
       try { achForm.updateFieldAppearances(helvetica); } catch(e) {}
+      try { dropButtonWidgets(achDoc, achForm); } catch(e) {}
       var achPages = await pdfDoc.copyPages(achDoc, achDoc.getPageIndices());
       achPages.forEach(function(p){ pdfDoc.addPage(p); });
     } catch(e) { console.warn('[RIC] ACH form attach failed:', e.message); }
@@ -9690,6 +9706,7 @@ async function generateRICContractCore(clientData) {
       setR('Phone',            (clientData && clientData.dayPhone) || '');
       setR('Date1_af_date',    todayMDY);
       try { rulesForm.updateFieldAppearances(helvetica); } catch(e) {}
+      try { dropButtonWidgets(rulesDoc, rulesForm); } catch(e) {}
       var rulesPages = await pdfDoc.copyPages(rulesDoc, rulesDoc.getPageIndices());
       rulesPages.forEach(function(p){ pdfDoc.addPage(p); });
     } catch(e) { console.warn('[RIC] Rules form attach failed:', e.message); }
