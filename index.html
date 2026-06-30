@@ -9429,10 +9429,18 @@ async function generateRICContractCore(clientData) {
       if (/[-—]\s*Base\s*$/i.test(lbl)) return 'Granite Base for Bronze';
       return cleanLabel(lbl);
     }
-    // Format install label: bronze install ends with "— Install" → "Bronze Marker Install"
+    // Format install label: cemUpdate appends "— Install" to ALL marker types (bronze AND
+    // granite AND flush, etc.), so we can't infer the material from "ends with Install"
+    // alone. Inspect the label content to pick the correct prefix.
     function formatInstallLabel(lbl) {
-      if (/[-—]\s*Install\s*$/i.test(lbl)) return 'Bronze Marker Install';
-      if (/Install/i.test(lbl) && /Companion|Upright|Slant|Monument|Flush|Marker|Granite/i.test(lbl)) return 'Marker Install';
+      if (/Install/i.test(lbl)) {
+        if      (/bronze/i.test(lbl))                                      return 'Bronze Marker Install';
+        else if (/granite/i.test(lbl))                                     return 'Granite Marker Install';
+        else if (/flush/i.test(lbl))                                       return 'Flush Marker Install';
+        else if (/upright|slant|monument/i.test(lbl))                      return 'Marker Install';
+        else if (/[-—]\s*Install\s*$/i.test(lbl))                          return 'Marker Install';
+        else if (/Companion|Marker|Granite/i.test(lbl))                    return 'Marker Install';
+      }
       return cleanLabel(lbl);
     }
     // Build combined label for vase group, stripping core/base dimension detail
