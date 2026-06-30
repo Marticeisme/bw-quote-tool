@@ -9483,7 +9483,11 @@ async function generateRICContractCore(clientData) {
     var vaultSetQty = vaultSetLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultSetLines.length;
     if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', formatMarkerLabel(markerItem.label));   setF('Taxable1', fmtC(markerItem.amount));   }
     if (baseItem)     { setF('Qty 6', String(baseQty||1));   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
-    if (installItem)  { setF('Qty 7','1');                   setF('Notes 1', formatInstallLabel(installItem.label));              setF('Taxable3', fmtC(installItem.amount));  }
+    // Install row: parse qty from the install line labels (same logic as marker/base/vault),
+    // not the hardcoded '1' that was here. Two markers => qty=2 (was showing 1 with the
+    // correct combined price — the qty "appeared in the wrong box").
+    var installQty   = installLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || installLines.length;
+    if (installItem)  { setF('Qty 7', String(installQty||1)); setF('Notes 1', formatInstallLabel(installItem.label));              setF('Taxable3', fmtC(installItem.amount));  }
     if (vaultItem)    { setF('Qty 8', String(vaultQty||1));  setF('Notes 2', vaultItem.label);                                   setF('Taxable4', fmtC(vaultItem.amount));    }
     if (vaultSetItem) { setF('Qty 9', String(vaultSetQty||1)); setF('Notes 3', vaultSetItem.label);                              setF('Taxable5', fmtC(vaultSetItem.amount)); }
     if (overflow1)    { setF('Qty 10','1'); setF('Other Merch 1 Description', overflow1.label); setF('Taxable6', fmtC(overflow1.amount)); }
