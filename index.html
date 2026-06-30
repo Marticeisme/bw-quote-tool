@@ -9045,7 +9045,17 @@ async function generateRICContractCore(clientData) {
       var perSpaceM = lbl.match(/-\s+\$?([\d,]+)\s*[×x]\s*(\d+)/i);
       if (pctM || ocM) {
         var parts = [];
-        if (pctM) parts.push(pctM[1] + '% Prop Disc');
+        if (pctM) {
+          // Pick the discount-type suffix from the actual label, not a hardcoded "Prop Disc".
+          // (Was: always "% Prop Disc" — misleading when a Merchandise or Services discount.)
+          var typeStr;
+          if      (/merch/i.test(lbl))             typeStr = 'Merch Disc';
+          else if (/service|svc|o&c|opening|closing/i.test(lbl)) typeStr = 'Svc Disc';
+          else if (/2nd ?right|second ?right/i.test(lbl)) typeStr = '2nd Right Disc';
+          else if (/prop/i.test(lbl))              typeStr = 'Prop Disc';
+          else                                      typeStr = 'Disc';
+          parts.push(pctM[1] + '% ' + typeStr);
+        }
         if (perSpaceM) {
           var ps = parseInt(perSpaceM[1].replace(/,/g,''));
           parts.push('$'+(ps>=1000?Math.round(ps/1000)+'k':ps)+' O/C');
