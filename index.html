@@ -216,9 +216,11 @@ tr:hover td{background:#eef3f8;}
         function normArr(v){ return Array.isArray(v) ? v : (v && typeof v==='object' ? Object.values(v) : []); }
         _cemSavedQuotes = normArr(data.cem);
         _fhSavedQuotes  = normArr(data.fh);
+        _ricSavedContracts = normArr(data.ric);
         if (typeof renderSavedQuotesList === 'function') {
           renderSavedQuotesList('cem');
           renderSavedQuotesList('fh');
+          renderSavedQuotesList('ric');
         }
       });
     } catch(e) { console.warn('Firebase init failed', e); }
@@ -261,6 +263,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item highlight" onclick="show('cem-quote',this)">🧮 Quote Builder</div>
   <div class="nav-item" onclick="show('cem-saved',this)" id="navCemSaved">💾 Saved Cem Quotes</div>
   <div class="nav-item highlight" onclick="show('ric-contract',this)">📄 Pre-Need RIC Contract</div>
+  <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved">💾 Saved RICs</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
@@ -2420,6 +2423,15 @@ tr:hover td{background:#eef3f8;}
   <div id="cemSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the Cemetery Quote Builder and click 💾 Save.</p></div>
 </div>
 
+<!-- ═══ RIC SAVED CONTRACTS ═══ -->
+<div class="section" id="section-ric-saved">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <h2>Saved RIC Contracts</h2>
+  </div>
+  <div id="ricSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.</p></div>
+</div>
+
 <!-- ═══ FH SAVED QUOTES ═══ -->
 <div class="section" id="section-fh-saved">
   <div class="section-header">
@@ -2626,6 +2638,10 @@ tr:hover td{background:#eef3f8;}
             <label style="font-size:12px;">Contract Date</label>
             <input type="date" id="ricContractDate" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;font-family:inherit;">
           </div>
+          <div style="flex:1;min-width:140px;">
+            <label style="font-size:12px;">Contract Time <span style="font-weight:400;opacity:.7;">(signing time on PDF)</span></label>
+            <input type="time" id="ricContractTime" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;font-family:inherit;">
+          </div>
         </div>
       </div>
     </div>
@@ -2736,8 +2752,10 @@ tr:hover td{background:#eef3f8;}
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
       <button onclick="generateRICFromTab()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate RIC Contract PDF</button>
+      <button onclick="saveRicContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
       <button onclick="ricClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, payment terms) so you can reopen it later to make a correction — see 💾 Saved RICs in the sidebar.</div>
 
     <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Pre-Need Cemetery RIC only. For At-Need Cemetery use the Excel form. For Pre-Need Funeral use the separate FH PDF.</div>
 
@@ -8565,7 +8583,8 @@ function captureFhState() {
 
 var _cemSavedQuotes = [];
 var _fhSavedQuotes  = [];
-var _savedCompare   = { cem: null, fh: null };
+var _ricSavedContracts = [];
+var _savedCompare   = { cem: null, fh: null, ric: null };
 var _fbSavingQuotes = false;
 
 function showQuoteToast(msg) {
@@ -8581,7 +8600,8 @@ function persistSavedQuotes() {
   _fbSavingQuotes = true;
   _fbDB.ref('savedQuotes').set({
     cem: _cemSavedQuotes.length ? _cemSavedQuotes : null,
-    fh:  _fhSavedQuotes.length  ? _fhSavedQuotes  : null
+    fh:  _fhSavedQuotes.length  ? _fhSavedQuotes  : null,
+    ric: _ricSavedContracts.length ? _ricSavedContracts : null
   }).then(function(){ setTimeout(function(){ _fbSavingQuotes = false; }, 500); })
     .catch(function(e){ console.warn('persistSavedQuotes failed', e); _fbSavingQuotes = false; });
 }
@@ -8620,9 +8640,51 @@ function saveFhQuote() {
     showQuoteToast('Quote saved — viewing saved quotes');
   } catch(e) { alert('Save failed: ' + e.message); }
 }
+function captureRicState() {
+  var section = el('section-ric-contract');
+  var fieldIds = [];
+  if (section) {
+    section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e) {
+      if (e.id) fieldIds.push(e.id);
+    });
+  }
+  return {
+    fields:     captureFieldState(fieldIds),
+    ricPricing: _ricPricing ? JSON.parse(JSON.stringify(_ricPricing)) : null
+  };
+}
+function saveRicContract() {
+  try {
+    if (!el('ricName').value.trim()) { alert('Please enter the purchaser name before saving.'); return; }
+    var clientName = (val('ricName') || '').trim();
+    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var defaultLabel = (clientName || 'RIC Contract') + ' - ' + d;
+    var label = window.prompt('Name this saved RIC:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
+    var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
+    _ricSavedContracts.unshift(snap);
+    if (_ricSavedContracts.length > 10) _ricSavedContracts = _ricSavedContracts.slice(0, 10);
+    renderSavedQuotesList('ric');
+    persistSavedQuotes();
+    show('ric-saved', el('navRicSaved'));
+    showQuoteToast('RIC saved — viewing saved RICs');
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+function loadSavedRicContract(id) {
+  var snap = _ricSavedContracts.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { ricClearAll(); } catch(e) {}
+  var s = snap.state;
+  restoreFieldState(s.fields || {});
+  _ricPricing = s.ricPricing || null;
+  if (_ricPricing) { try { ricShowPricingSummary(); } catch(e) {} }
+  show('ric-contract', document.querySelector('[onclick*="ric-contract"]'));
+}
 function deleteSavedQuote(type, id) {
-  if (type === 'cem') _cemSavedQuotes = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
-  else                _fhSavedQuotes  = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
+  if (type === 'cem')      _cemSavedQuotes     = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
+  else if (type === 'fh')  _fhSavedQuotes      = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
+  else if (type === 'ric') _ricSavedContracts  = _ricSavedContracts.filter(function(q){ return q.id !== id; });
   renderSavedQuotesList(type);
   persistSavedQuotes();
 }
@@ -8676,22 +8738,31 @@ function loadSavedFhQuote(id) {
 
 function renderSavedQuotesList(type) {
   try {
-    var listEl = el(type === 'cem' ? 'cemSavedQuotes' : 'fhSavedQuotes');
+    var containerId, arrRef, searchId, loadFn, emptyMsg;
+    if (type === 'cem') {
+      containerId='cemSavedQuotes'; arrRef=_cemSavedQuotes; searchId='cemQuoteSearch'; loadFn='loadSavedCemQuote';
+      emptyMsg = 'No saved quotes yet — build a quote and click 💾 Save.';
+    } else if (type === 'ric') {
+      containerId='ricSavedQuotes'; arrRef=_ricSavedContracts; searchId='ricQuoteSearch'; loadFn='loadSavedRicContract';
+      emptyMsg = 'No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.';
+    } else {
+      containerId='fhSavedQuotes'; arrRef=_fhSavedQuotes; searchId='fhQuoteSearch'; loadFn='loadSavedFhQuote';
+      emptyMsg = 'No saved quotes yet — build a quote and click 💾 Save.';
+    }
+    var listEl = el(containerId);
     if (!listEl) return;
-    var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
+    var list = arrRef;
     if (!list.length) {
-      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:8px 0;">No saved quotes yet — build a quote and click 💾 Save.</p>';
+      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:8px 0;">' + emptyMsg + '</p>';
       return;
     }
-    var searchId = type === 'cem' ? 'cemQuoteSearch' : 'fhQuoteSearch';
     var searchEl = el(searchId);
     var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
     var filtered = q ? list.filter(function(s){ return (s.label||'').toLowerCase().indexOf(q) > -1; }) : list;
-    var loadFn = type === 'cem' ? 'loadSavedCemQuote' : 'loadSavedFhQuote';
     var compareId = _savedCompare[type];
     var compareQ  = compareId ? list.find(function(x){ return x.id === compareId; }) : null;
     var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
-      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+' saved quote'+(list.length!==1?'s':'')+'</span>'
+      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+(type==='ric'?' saved RIC':' saved quote')+(list.length!==1?'s':'')+'</span>'
       + '<input id="'+searchId+'" type="text" placeholder="Search by name…" value="'+(q||'')+'" oninput="renderSavedQuotesList(\''+type+'\')"'
       + ' style="flex:1;max-width:260px;padding:5px 10px;font-size:12px;border:1px solid #dde3ec;border-radius:6px;background:#f5f7fb;color:var(--navy);font-family:inherit;"></div>';
     if (!filtered.length) { html += '<p style="font-size:12px;color:var(--text-light);">No matches.</p>'; listEl.innerHTML = html; return; }
@@ -8707,7 +8778,7 @@ function renderSavedQuotesList(type) {
         + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700;color:var(--navy);">'+(item.label||'Untitled')+'</span>'
         + '<span style="color:#6b7280;font-size:13px;font-weight:600;white-space:nowrap;">'+fmt(item.total)+'</span>'+diff+'</div>'
         + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">Load Quote</button>' : '')
+        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'+(type==='ric'?'Load RIC':'Load Quote')+'</button>' : '')
         + '<button onclick="printSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#f0f2f8;border:1px solid #dde3ec;border-radius:6px;cursor:pointer;color:var(--navy);font-family:inherit;">Print</button>'
         + '<button onclick="savedCompareSelect(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:'+(isBase?'var(--gold)':'#f0f2f8')+';border:1px solid '+(isBase?'var(--gold)':'#dde3ec')+';border-radius:6px;cursor:pointer;color:'+(isBase?'#fff':'var(--navy)')+';font-family:inherit;">'+(isBase?'★ Base':'⚖ Compare')+'</button>'
         + '<button onclick="deleteSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#fff;border:1px solid #fecaca;border-radius:6px;cursor:pointer;color:#dc2626;font-family:inherit;margin-left:auto;">✕ Delete</button>'
@@ -8724,7 +8795,7 @@ function savedCompareSelect(type, id) {
   renderSavedQuotesList(type);
 }
 function printSavedQuote(type, id) {
-  var list = type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes;
+  var list = type === 'cem' ? _cemSavedQuotes : (type === 'ric' ? _ricSavedContracts : _fhSavedQuotes);
   var snap = list.find(function(q){ return q.id === id; });
   if (!snap) return;
   var expires = new Date(); expires.setDate(expires.getDate()+30);
@@ -8740,7 +8811,7 @@ function printSavedQuote(type, id) {
   win.document.close(); win.print();
 }
 function exportSavedQuotesBackup() {
-  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes });
+  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes, ric: _ricSavedContracts });
   var blob = new Blob([data], { type: 'application/json' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'BW_Quotes_Backup_'+new Date().toISOString().slice(0,10)+'.json';
@@ -8754,8 +8825,9 @@ function importSavedQuotesBackup() {
     reader.onload = function(ev) {
       try {
         var data = JSON.parse(ev.target.result);
-        if (data.cem) { _cemSavedQuotes = data.cem; renderSavedQuotesList('cem'); }
-        if (data.fh)  { _fhSavedQuotes  = data.fh;  renderSavedQuotesList('fh');  }
+        if (data.cem) { _cemSavedQuotes     = data.cem; renderSavedQuotesList('cem'); }
+        if (data.fh)  { _fhSavedQuotes      = data.fh;  renderSavedQuotesList('fh');  }
+        if (data.ric) { _ricSavedContracts  = data.ric; renderSavedQuotesList('ric'); }
         persistSavedQuotes();
         alert('Import successful!');
       } catch(err) { alert('Import failed: ' + err.message); }
@@ -9136,9 +9208,17 @@ async function generateRICContractCore(clientData) {
     var fpDate = new Date(today); fpDate.setDate(fpDate.getDate() + 54);
     var fpStr  = MONTHS[fpDate.getMonth()] + ' ' + fpDate.getDate() + ', ' + fpDate.getFullYear();
 
-    // Always use actual wall-clock time (today may be frozen to T12:00 when contractDate is set)
-    var _now = new Date();
-    var hr = _now.getHours(), mn = _now.getMinutes();
+    // Use the manually-entered Contract Time when provided (e.g. correcting a past RIC
+    // to its original signing time), else fall back to actual wall-clock time.
+    var hr, mn;
+    if (clientData && clientData.contractTime) {
+      var _tParts = clientData.contractTime.split(':');
+      hr = parseInt(_tParts[0], 10) || 0;
+      mn = parseInt(_tParts[1], 10) || 0;
+    } else {
+      var _now = new Date();
+      hr = _now.getHours(); mn = _now.getMinutes();
+    }
     var isAM = hr < 12;
     hr = hr % 12 || 12;
     var timeStr = hr + ':' + (mn < 10 ? '0' : '') + mn;
@@ -10098,6 +10178,7 @@ async function generateRICFromTab() {
       benefit:      el('ricBenefit').value.trim(),
       remarks:      el('ricRemarks') ? el('ricRemarks').value.trim() : '',
       contractDate: el('ricContractDate') ? el('ricContractDate').value : '',
+      contractTime: el('ricContractTime') ? el('ricContractTime').value : '',
       dob1:         el('ricDOB1').value.trim(),
       gender1:      el('ricGender1').value,
       coPurchaser:  el('ricCoPurchaser').value.trim(),
@@ -10975,6 +11056,8 @@ function fhInsCalc() {
   if (cpDate && !cpDate.value) cpDate.value = todayVal;
   var ricDate = document.getElementById('ricContractDate');
   if (ricDate && !ricDate.value) ricDate.value = todayVal;
+  var ricTime = document.getElementById('ricContractTime');
+  if (ricTime && !ricTime.value) ricTime.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
 })();
 </script>
 
