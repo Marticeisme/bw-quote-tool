@@ -9223,6 +9223,14 @@ async function generateRICContractCore(clientData) {
     // printer/viewer. (Was: clear Print flag bit 3 — which some printers ignored, leaving
     // a blue box on every printed contract.) The button isn't used in Martice's workflow
     // anyway — the web tool drives the form, not Adobe's Reset.
+    //
+    // IMPORTANT: must remove the field from BOTH the page's /Annots array AND the
+    // AcroForm's /Fields tree. The widget's own /P key points back at its page, so
+    // removing it only from /Annots leaves a dangling forward-reference (AcroForm still
+    // lists the field; the widget still claims a page via /P; that page no longer lists
+    // it in /Annots). That exact mismatch is what produced Acrobat's "An error exists on
+    // this page" dialog on every RIC PDF after the widget-removal fix landed.
+    //
     // Hoisted out of try{} so the appended ACH + Rules forms can reuse it.
     function dropButtonWidgets(srcDoc, srcForm) {
       var PN = PDFLib.PDFName;
@@ -9232,6 +9240,8 @@ async function generateRICContractCore(clientData) {
           try { f.acroField.getWidgets().forEach(function(w){ btnRefs.push(w.dict); }); } catch(e){}
         }
       });
+      if (!btnRefs.length) return;
+      // 1) Remove from every page's /Annots array.
       srcDoc.getPages().forEach(function(pg) {
         var ar = pg.node.get(PN.of('Annots'));
         if (!ar) return;
@@ -9244,6 +9254,28 @@ async function generateRICContractCore(clientData) {
           } catch(e) {}
         }
       });
+      // 2) Remove from the AcroForm's /Fields tree (recursing into /Kids) so no reference
+      // to the now-pageless widget remains anywhere in the document.
+      try {
+        var afRef = srcDoc.catalog.get(PN.of('AcroForm'));
+        var af = afRef && srcDoc.context.lookup(afRef);
+        var fieldsRef = af && af.get(PN.of('Fields'));
+        var fieldsArr = fieldsRef && srcDoc.context.lookup(fieldsRef);
+        function pruneArr(arr) {
+          if (!arr || typeof arr.size !== 'function') return;
+          for (var i = arr.size() - 1; i >= 0; i--) {
+            try {
+              var node = srcDoc.context.lookup(arr.get(i));
+              if (btnRefs.indexOf(node) >= 0) { arr.remove(i); continue; }
+              if (node && typeof node.get === 'function') {
+                var kidsRef = node.get(PN.of('Kids'));
+                if (kidsRef) pruneArr(srcDoc.context.lookup(kidsRef));
+              }
+            } catch(e) {}
+          }
+        }
+        pruneArr(fieldsArr);
+      } catch(e) {}
     }
     try { dropButtonWidgets(pdfDoc, form); } catch(e) {}
 
