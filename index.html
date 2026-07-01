@@ -217,6 +217,7 @@ tr:hover td{background:#eef3f8;}
         _cemSavedQuotes = normArr(data.cem);
         _fhSavedQuotes  = normArr(data.fh);
         _ricSavedContracts = normArr(data.ric);
+        window._fbQuotesReady = true;
         if (typeof renderSavedQuotesList === 'function') {
           renderSavedQuotesList('cem');
           renderSavedQuotesList('fh');
@@ -8595,8 +8596,17 @@ function showQuoteToast(msg) {
   setTimeout(function(){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },350); },2500);
 }
 
-function persistSavedQuotes() {
+function persistSavedQuotes(_retries) {
   if (!window._fbDB) return;
+  // Local arrays start empty and only reflect the real saved state once the initial
+  // Firebase 'value' listener has fired once. Writing (.set) before that would overwrite
+  // cem/fh/ric with whatever's in memory right now — i.e. wipe out previously-saved quotes
+  // that just hadn't loaded yet. Wait for the first snapshot instead of racing it.
+  if (!window._fbQuotesReady) {
+    _retries = (_retries || 0) + 1;
+    if (_retries > 20) { console.warn('persistSavedQuotes: Firebase never became ready, saving anyway'); }
+    else { setTimeout(function(){ persistSavedQuotes(_retries); }, 300); return; }
+  }
   _fbSavingQuotes = true;
   _fbDB.ref('savedQuotes').set({
     cem: _cemSavedQuotes.length ? _cemSavedQuotes : null,
@@ -9250,20 +9260,17 @@ async function generateRICContractCore(clientData) {
     var form   = pdfDoc.getForm();
     console.log('[RIC] Form fields accessible:', form.getFields().length);
 
-    // Two orphan template fields ("Qty Memo Type", "Qty Memo Base") sit ~13pt above the
-    // Qty 5 / Qty 6 rows (Memorialization Type / Memorial Base). Neither is ever filled by
-    // any code path here, but the template bakes a light-blue /MK background
-    // ([0.878, 0.894, 0.973]) into both widgets — printing as solid blue boxes overlapping
-    // those two rows on every RIC contract. Qty 5/6/7 have no /MK background at all, so
-    // this is template-artifact noise, not a real field. Clear the background + stale
-    // appearance stream (not deleting the widget — avoids the /P-orphan structural issue
-    // from the Reset-button fix); the later updateFieldAppearances() call regenerates a
-    // plain, uncolored appearance since /MK is gone.
+    // "Qty Memo Type" / "Qty Memo Base" are the REAL qty fields for the Memorialization
+    // Type / Memorial Base rows (verified via pdfjs anchor: same y as "Memorialization Type"
+    // and "Memorial Base - Type" labels). The template bakes a light-blue /MK background
+    // ([0.878, 0.894, 0.973]) into both widgets, which prints as a solid blue box unless
+    // cleared. Strip just the background/appearance here (not the value — these get filled
+    // with the marker/base qty further down); the later updateFieldAppearances() call
+    // regenerates a plain, uncolored appearance since /MK is gone.
     try {
       ['Qty Memo Type', 'Qty Memo Base'].forEach(function(fn) {
         try {
           var fld = form.getTextField(fn);
-          fld.setText('');
           fld.acroField.getWidgets().forEach(function(w) {
             w.dict.delete(PDFLib.PDFName.of('MK'));
             w.dict.delete(PDFLib.PDFName.of('AP'));
@@ -9483,15 +9490,19 @@ async function generateRICContractCore(clientData) {
       setF('Check Box11', clientData.lawnCrypt    || false);
       setF('Check Box12', clientData.mausoleum    || false);
       setF('Check Box13', clientData.niche        || false);
-      // Signing info — co-purchaser goes to Insured Name (bottom section)
+      // Signing info
       setF('Date of Birth', clientData.dob1 || '');
       if (clientData.gender1 === 'Male')   setF('Check Box5', true);
       if (clientData.gender1 === 'Female') setF('Check Box6', true);
-      setF('Insured Name', clientData.coPurchaser || '');
       setF('Date of Birth_2', clientData.dob2 || '');
       if (clientData.gender2 === 'Male')   setF('Check Box7', true);
       if (clientData.gender2 === 'Female') setF('Check Box8', true);
-      setF('Owner Name', '');
+      // "Insured Name" / "Owner Name" are the Notice of Cancellation page's two
+      // "Buyer's Name" blanks (left/right, verified via pdfjs label anchor at y=600) —
+      // NOT insurance fields despite the names. Left = purchaser, right = co-purchaser;
+      // previously had these swapped (co-purchaser on the left, purchaser never filled).
+      setF('Insured Name', clientName || '');
+      setF('Owner Name', clientData.coPurchaser || '');
     }
     setF('Time',    timeStr);
     setF('AM',      isAM);
@@ -9646,8 +9657,13 @@ async function generateRICContractCore(clientData) {
     var baseQty     = baseLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || baseLines.length;
     var vaultQty    = vaultLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultLines.length;
     var vaultSetQty = vaultSetLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || vaultSetLines.length;
-    if (markerItem)   { setF('Qty 5', String(markerQty||1)); setF('Memorial Description', formatMarkerLabel(markerItem.label));   setF('Taxable1', fmtC(markerItem.amount));   }
-    if (baseItem)     { setF('Qty 6', String(baseQty||1));   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
+    // Qty field for these two rows is "Qty Memo Type"/"Qty Memo Base" (same y as the
+    // description fields, verified via pdfjs anchor "Memorialization Type"/"Memorial Base -
+    // Type"). "Qty 5"/"Qty 6" sit one row lower, aligned with the blank "Size/Design" and
+    // "Size/Color" sub-rows — filling those instead made the qty print one line below the
+    // marker/base description it belonged to.
+    if (markerItem)   { setF('Qty Memo Type', String(markerQty||1)); setF('Memorial Description', formatMarkerLabel(markerItem.label));   setF('Taxable1', fmtC(markerItem.amount));   }
+    if (baseItem)     { setF('Qty Memo Base', String(baseQty||1));   setF('Mem Base Description', formatBaseLabel(baseItem.label));       setF('Taxable2', fmtC(baseItem.amount));     }
     // Install row: parse qty from the install line labels (same logic as marker/base/vault),
     // not the hardcoded '1' that was here. Two markers => qty=2 (was showing 1 with the
     // correct combined price — the qty "appeared in the wrong box").
@@ -9805,9 +9821,14 @@ async function generateRICContractCore(clientData) {
         // Signed block (purchaser)
         p0.drawText(sigDay, { x: 88,  y: 176, size: 10, font: helvetica, color: navyCol });
         p0.drawText(sigYr,  { x: 290, y: 176, size: 10, font: helvetica, color: navyCol });
-        // Accepted block (counselor / officer)
+        // Accepted block (counselor / officer) — month and year drawn as two separate
+        // strings (not one "Month Year" string) so the year lands in its own space to the
+        // right instead of crowding/overlapping the month, mirroring the Signed block's
+        // separate Month-field + Year-overlay layout. Gap is measured off the month's own
+        // width so it stays correct for both short ("May") and long ("September") names.
         p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigMon + ' ' + sigYr, { x: 446, y: 85, size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigMon, { x: 446, y: 85, size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigYr,  { x: 446 + helvetica.widthOfTextAtSize(sigMon, 10) + 10, y: 85, size: 10, font: helvetica, color: navyCol });
         // City / State / Zip — no AcroForm fields exist for these on the template;
         // overlay them just above the Street/City/State/Zip labels at y=859 (verified via pdfjs).
         if (clientData) {
@@ -9893,6 +9914,18 @@ async function generateRICContractCore(clientData) {
     if (fillCount === 0) {
       alert('Warning: No fields were set. Check console (F12).\nErrors: ' + fillErrors.slice(0,3).join(', '));
     }
+
+    // The template ships with AcroForm NeedAppearances=true, which tells Acrobat to
+    // discard our baked appearance streams and regenerate its own live at render time.
+    // That live regeneration is unreliable for at least one checkbox on this template
+    // (co-purchaser Sex — /AS was correctly set to /Yes but Acrobat rendered it blank);
+    // Check Box5/6 for the purchaser rendered fine. Since updateFieldAppearances() above
+    // already baked correct appearances for every field, force NeedAppearances off so
+    // Acrobat trusts them instead of re-deriving its own.
+    try {
+      var _acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm'));
+      if (_acroForm) _acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
+    } catch(e) {}
 
     var outBytes = await pdfDoc.save();
     var blob = new Blob([outBytes], { type: 'application/pdf' });
