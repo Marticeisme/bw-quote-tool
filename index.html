@@ -9783,7 +9783,7 @@ async function generateRICContractCore(clientData) {
       'PaymentAmount1','SubTotal'
     ];
     var _descFields = [
-      'Description of Interment Rights','Memorial Description','Mem Base Description',
+      'Description of Interment Rights',
       'Notes 1','Notes 2','Notes 3','Other Merch 1 Description','Other Merch 2 Description',
       'Discount Description 1','Discount Description 2'
     ];
@@ -9792,6 +9792,27 @@ async function generateRICContractCore(clientData) {
     });
     _descFields.forEach(function(fn) {
       try { form.getTextField(fn).setFontSize(0); } catch(e) {}
+    });
+    // Memorial/Base description rows: auto-size(0) was picking ~10pt for a typical combined
+    // "Flush 44x20x4 + Flush 28x16x4" label, which runs right up against the 239pt-wide field's
+    // edge. Fix at a smaller size so there's visible margin instead of relying on auto-fit.
+    ['Memorial Description', 'Mem Base Description'].forEach(function(fn) {
+      try { form.getTextField(fn).setFontSize(7); } catch(e) {}
+    });
+    // Both fields start at x=75, but the static row labels ("Memorialization Type" /
+    // "Memorial Base - Type", verified via pdfjs) run to x=119.4 / x=121.6 — well past the
+    // field's own left edge — so the entered text visually overlapped the tail of the label.
+    // Shift each widget's rect right past the label (keeping its right edge fixed) instead of
+    // padding the value with spaces, so it isn't font-size dependent.
+    [['Memorial Description', 119.4], ['Mem Base Description', 121.6]].forEach(function(pair) {
+      try {
+        var fld = form.getTextField(pair[0]);
+        fld.acroField.getWidgets().forEach(function(w) {
+          var r = w.getRectangle();
+          var newX = pair[1] + 3;
+          w.setRectangle({ x: newX, y: r.y, width: (r.x + r.width) - newX, height: r.height });
+        });
+      } catch(e) {}
     });
     // Remarks (Notes 5-9): five separate one-line fields. Use a consistent readable size.
     // The actual text is already word-wrapped across the five fields above; just size them
@@ -9818,17 +9839,23 @@ async function generateRICContractCore(clientData) {
       if (helvetica) {
         var navyCol = PDFLib.rgb(0.05, 0.1, 0.2);
         var p0 = pdfDoc.getPages()[0];
-        // Signed block (purchaser)
+        // Signed block (purchaser) — the template's own printed "," (part of the page's
+        // raster background, not text pdf-lib can see) already sits at ~x=323 between this
+        // Year position and the "Time" field at x=369.7, so no comma needs to be drawn here.
         p0.drawText(sigDay, { x: 88,  y: 176, size: 10, font: helvetica, color: navyCol });
         p0.drawText(sigYr,  { x: 290, y: 176, size: 10, font: helvetica, color: navyCol });
-        // Accepted block (counselor / officer) — month and year drawn as two separate
-        // strings (not one "Month Year" string) so the year lands in its own space to the
-        // right instead of crowding/overlapping the month, mirroring the Signed block's
-        // separate Month-field + Year-overlay layout. Gap is measured off the month's own
-        // width so it stays correct for both short ("May") and long ("September") names.
+        // Accepted block (counselor / officer) — this line has TWO separate blanks plus a
+        // printed "," between them, all baked into the page's raster background (invisible
+        // to pdfjs text/vector extraction, only found by rasterizing the template at 300dpi
+        // and measuring dark-pixel runs): a long Month blank [x=438.7-541.7] then a printed
+        // "," at x=544.8-545.5, then a short Year blank [x=549.6-581.0]. Earlier attempts drew
+        // Year right after Month (crowding it against a comma that was already there) — it
+        // belongs in that separate short blank instead.
+        var _acMonBlankX = 438.7, _acYrBlankX = 549.6, _acYrBlankW = 31.4;
+        var _acYrW = helvetica.widthOfTextAtSize(sigYr, 10);
         p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigMon, { x: 446, y: 85, size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigYr,  { x: 446 + helvetica.widthOfTextAtSize(sigMon, 10) + 10, y: 85, size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigMon, { x: _acMonBlankX + 7, y: 85, size: 10, font: helvetica, color: navyCol });
+        p0.drawText(sigYr,  { x: _acYrBlankX + (_acYrBlankW - _acYrW) / 2, y: 85, size: 10, font: helvetica, color: navyCol });
         // City / State / Zip — no AcroForm fields exist for these on the template;
         // overlay them just above the Street/City/State/Zip labels at y=859 (verified via pdfjs).
         if (clientData) {
