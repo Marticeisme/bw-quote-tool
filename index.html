@@ -217,11 +217,15 @@ tr:hover td{background:#eef3f8;}
         _cemSavedQuotes = normArr(data.cem);
         _fhSavedQuotes  = normArr(data.fh);
         _ricSavedContracts = normArr(data.ric);
+        _gaSavedContracts  = normArr(data.ga);
+        _cpSavedContracts  = normArr(data.cp);
         window._fbQuotesReady = true;
         if (typeof renderSavedQuotesList === 'function') {
           renderSavedQuotesList('cem');
           renderSavedQuotesList('fh');
           renderSavedQuotesList('ric');
+          renderSavedQuotesList('ga');
+          renderSavedQuotesList('cp');
         }
       });
     } catch(e) { console.warn('Firebase init failed', e); }
@@ -270,7 +274,9 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
   <div class="nav-item" onclick="show('fh-saved',this)" id="navFhSaved">💾 Saved FH Quotes</div>
   <div class="nav-item highlight" onclick="show('ga-contract',this)">📝 Pre-Need Contract (GA)</div>
+  <div class="nav-item" onclick="show('ga-saved',this)" id="navGaSaved">💾 Saved GA Contracts</div>
   <div class="nav-item highlight" onclick="show('cp-contract',this)">📋 Pre-Need Contract (ClearPoint)</div>
+  <div class="nav-item" onclick="show('cp-saved',this)" id="navCpSaved">💾 Saved ClearPoint Contracts</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Combined</div>
   <div class="nav-item highlight" onclick="show('combined-quote',this)">🔗 Combined Quote</div>
@@ -364,18 +370,20 @@ tr:hover td{background:#eef3f8;}
 
   </div>
 
-  <!-- June Promotions -->
+  <!-- July Promotions -->
   <div class="q-panel" style="margin-top:14px;border-left:4px solid var(--gold);">
-    <div class="q-panel-header" style="background:linear-gradient(90deg,var(--navy) 0%,#2a3d5c 100%);">🏷️ June 2026 Pre-Need Promotions <span style="font-size:11px;font-weight:400;opacity:.8;">· Expires June 30, 2026</span></div>
+    <div class="q-panel-header" style="background:linear-gradient(90deg,var(--navy) 0%,#2a3d5c 100%);">🏷️ July 2026 Pre-Need Sales Incentives <span style="font-size:11px;font-weight:400;opacity:.8;">· New Property Only · Expires July 31, 2026</span></div>
     <div class="q-panel-body" style="display:flex;gap:24px;flex-wrap:wrap;">
       <div style="flex:1;min-width:260px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:8px;">Standard Pre-Need Incentives</div>
         <div style="font-size:12px;line-height:2.0;color:var(--text);">
-          <span style="color:var(--orange);font-weight:700;">15% off</span> Pre-Need Property <span style="color:var(--text-light);font-size:11px;">(excl. additional rights)</span><br>
-          <span style="color:var(--orange);font-weight:700;">20% off</span> Select Mausoleum Crypts <span style="color:var(--text-light);font-size:11px;">(Rows E, F, G)</span><br>
-          <span style="color:var(--orange);font-weight:700;">$500 off</span> Inurnment Opening &amp; Closing<br>
+          <span style="color:var(--orange);font-weight:700;">10% off</span> Property &amp; Additional Rights<br>
+          <span style="color:var(--orange);font-weight:700;">$500 off</span> Cremation Opening &amp; Closing<br>
           <span style="color:var(--orange);font-weight:700;">$1,000 off</span> Interment Opening &amp; Closing<br>
-          <span style="color:var(--orange);font-weight:700;">10% down · 60 mo · 0%</span> financing <span style="color:var(--text-light);font-size:11px;">(ACH ≥ $50/mo required)</span>
+          <span style="color:var(--orange);font-weight:700;">10% down · 60 mo · 0%</span> financing <span style="color:var(--text-light);font-size:11px;">(ACH withdrawal required)</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:8px;line-height:1.7;">
+          Cannot be combined with any other discount (free Veteran space, etc.) · ECF fees are always required to be paid in full · At-Need property is not eligible.
         </div>
       </div>
       <div style="flex:1;min-width:240px;">
@@ -647,8 +655,8 @@ tr:hover td{background:#eef3f8;}
               <option value="">— None —</option>
               <option value="pct_all">% — All Items</option>
               <option value="flat_all">$ — All Items</option>
-              <option value="may15_burial">Memorial Day — Burial (15%)</option>
-              <option value="may15_crem">Memorial Day — Cremation (15%)</option>
+              <option value="promo_burial">July Incentive — Burial (10%)</option>
+              <option value="promo_crem">July Incentive — Cremation (10%)</option>
               <option value="pct10_svc">10% off Services</option>
               <option value="pct10_merch">10% off Merchandise</option>
             </select>
@@ -1680,12 +1688,12 @@ tr:hover td{background:#eef3f8;}
         <div class="q-panel-header">🏷️ Discounts</div>
         <div class="q-panel-body">
           <div id="aprilPromoNote" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(127,29,29,.07);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.7;">
-            <strong>🇺🇸 Memorial Day Incentives — May 16–31</strong> — Pre-need purchases only<br>
-            • 15% off pre-need property (excluding 2nd rights)<br>
-            • $500 off Inurnment Opening &amp; Closing<br>
+            <strong>🏷️ July 2026 Pre-Need Sales Incentives</strong> — new property only<br>
+            • 10% off Property &amp; Additional Rights<br>
+            • $500 off Cremation Opening &amp; Closing<br>
             • $1,000 off Interment Opening &amp; Closing<br>
             • 0% financing for 60 months with 10% down (ACH required) — <strong>new property PN contracts only</strong><br>
-            <span style="color:#555;font-style:italic;">Cannot be combined with the property-owner goods/services discounts below.</span>
+            <span style="color:#555;font-style:italic;">Cannot be combined with any other discount (free Veteran space, etc.) · ECF fees always required paid in full · At-Need property not eligible · Valid through July 31, 2026.</span>
           </div>
           <div id="cemDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
           <div class="btn-add-line" onclick="addCemDiscount()">+ Add Discount</div>
@@ -1700,7 +1708,7 @@ tr:hover td{background:#eef3f8;}
             <strong>Financing Terms — Effective Jan 1, 2024</strong><br>
             Min. down: 10% · Min. monthly payment: $50 · Max. term: 72 months<br>
             0% financing requires ACH bank withdrawal · 25%+ down: tiered rate applies<br>
-            <span style="color:#7f1d1d;font-weight:700;">🇺🇸 Memorial Day Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through May 31</span>
+            <span style="color:#7f1d1d;font-weight:700;">🏷️ July Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through July 31</span>
           </div>
           <div class="q-row" style="flex-wrap:wrap;gap:10px;align-items:flex-end;">
             <div style="flex:1;min-width:150px;">
@@ -2442,6 +2450,24 @@ tr:hover td{background:#eef3f8;}
   <div id="fhSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the FH Quote Builder and click 💾 Save.</p></div>
 </div>
 
+<!-- ═══ GA SAVED CONTRACTS ═══ -->
+<div class="section" id="section-ga-saved">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <h2>Saved GA Contracts</h2>
+  </div>
+  <div id="gaSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved GA contracts yet — go to the Pre-Need Contract (GA) tab and click 💾 Save Contract.</p></div>
+</div>
+
+<!-- ═══ CLEARPOINT SAVED CONTRACTS ═══ -->
+<div class="section" id="section-cp-saved">
+  <div class="section-header">
+    <div class="section-icon">💾</div>
+    <h2>Saved ClearPoint Contracts</h2>
+  </div>
+  <div id="cpSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved ClearPoint contracts yet — go to the Pre-Need Contract (ClearPoint) tab and click 💾 Save Contract.</p></div>
+</div>
+
 <!-- ═══ COMBINED QUOTE BUILDER ═══ -->
 <div class="section" id="section-combined-quote">
   <div class="section-header">
@@ -2601,7 +2627,7 @@ tr:hover td{background:#eef3f8;}
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div style="flex:1;min-width:160px;">
             <label style="font-size:12px;">Purchaser DOB</label>
-            <input type="text" id="ricDOB1" placeholder="MM/DD/YYYY" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            <input type="date" id="ricDOB1" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
           </div>
           <div style="flex:1;min-width:120px;">
             <label style="font-size:12px;">Gender</label>
@@ -2619,7 +2645,7 @@ tr:hover td{background:#eef3f8;}
           </div>
           <div style="flex:1;min-width:160px;">
             <label style="font-size:12px;">Co-Purchaser DOB</label>
-            <input type="text" id="ricDOB2" placeholder="MM/DD/YYYY" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            <input type="date" id="ricDOB2" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
           </div>
           <div style="flex:1;min-width:120px;">
             <label style="font-size:12px;">Co-Purchaser Gender</label>
@@ -2949,8 +2975,10 @@ tr:hover td{background:#eef3f8;}
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
     <button onclick="printGAContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Filled Contract PDF</button>
+    <button onclick="saveGaContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
     <button onclick="gaClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
+  <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, imported FH pricing) so you can reopen it later — see 💾 Saved GA Contracts in the sidebar.</div>
 
   <div style="font-size:11px;color:var(--text-light);margin-top:10px;">
     Produces a filled, flattened 3-page PDF with all pricing and names pre-filled. Print or save from your browser.<br>
@@ -3161,8 +3189,10 @@ tr:hover td{background:#eef3f8;}
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
     <button onclick="generateClearPointContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Generate ClearPoint Contract PDF</button>
+    <button onclick="saveCpContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
     <button onclick="cpClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
+  <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, imported FH pricing) so you can reopen it later — see 💾 Saved ClearPoint Contracts in the sidebar.</div>
   <div style="font-size:11px;color:var(--text-light);margin-top:10px;">
     Produces a filled, flattened 3-page PDF (Contract · Disclosures · Statement of Goods &amp; Services). SSN fields are left blank for completion at signing.
   </div>
@@ -4956,7 +4986,7 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
     html += '<div class="s-tax-note">Tax applies to merchandise. Services & transportation are exempt.</div>';
   }
 
-  // Estimated monthly payment hint (10% down, 60 months, 0% — Memorial Day promo or standard)
+  // Estimated monthly payment hint (10% down, 60 months, 0% — July promo or standard)
   if (grandTotal > 0 && containerId === 'cemSummary') {
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
@@ -5537,7 +5567,7 @@ function cemUpdate() {
   // ── Multi-Discount ──────────────────────────────────────────────────
   var totalDiscAmt = 0;
   var discLabels = [];
-  var hasMayPromo = false;
+  var hasPromo = false;
   var taxableTotal = lines.filter(function(l){return l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var exemptTotal  = lines.filter(function(l){return !l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var allTotal     = taxableTotal + exemptTotal;
@@ -5545,38 +5575,43 @@ function cemUpdate() {
   el('cemDiscountList').querySelectorAll('.disc-row').forEach(function(row) {
     var mode = row.querySelector('.disc-mode').value;
     if (!mode) return;
-    var isMay = mode.indexOf('may_') === 0;
+    var isPromo = mode.indexOf('promo_') === 0;
     var isQuick = mode === 'percent_exempt_10' || mode === 'percent_taxable_10' || mode === 'flat_2ndright_10pct';
     var valWrap = row.querySelector('.disc-val-wrap');
-    valWrap && (valWrap.className = 'disc-val-wrap' + (isMay || isQuick ? '' : ' show'));
+    valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show'));
     var dAmt = 0, dLabel = '';
-    if (isMay) {
-      hasMayPromo = true;
-      var propPct = mode.indexOf('_20') !== -1 ? 0.20 : 0.15;
+    if (isPromo) {
+      hasPromo = true;
+      // July 2026 incentive: 10% off Property AND Additional Rights (2nd/3rd rights),
+      // unlike the old Memorial Day tiers this one folds rights into the same 10% base.
+      var propPct = 0.10;
       var totalSP = 0;
       if (spacePrice > 0 && gardenQty > 0) totalSP += spacePrice * gardenQty;
       if (nicheP > 0 && nicheQ > 0)        totalSP += nicheP * nicheQ;
       if (mausP > 0 && mausQ > 0)          totalSP += mausP * mausQ;
+      var rightLines10 = lines.filter(function(l){ return l.isSecondRight; });
+      var rightsTotal  = rightLines10.reduce(function(s,l){ return s + l.amount; }, 0);
+      totalSP += rightsTotal;
       var propDisc = totalSP * propPct;
-      var propLbl  = (propPct * 100) + '% off property';
+      var propLbl  = (propPct * 100) + '% off property' + (rightsTotal > 0 ? ' & rights' : '');
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
       var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn/i); });
       var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
-      if (mode.indexOf('may_burial') === 0) {
+      if (mode.indexOf('promo_burial') === 0) {
         var ocQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (mausP > 0 ? mausQ : 0));
         var ocActual = burialOCLines.reduce(function(s,l){return s+l.amount;},0);
         var ocDisc = Math.min(1000 * ocQ, ocActual);
         dAmt = propDisc + ocDisc;
-        dLabel = 'Memorial Day (' + propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Interment O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '') + ')';
-      } else if (mode.indexOf('may_crem') === 0) {
+        dLabel = 'July Incentive (' + propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Interment O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '') + ')';
+      } else if (mode.indexOf('promo_crem') === 0) {
         var inQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (nicheP > 0 ? nicheQ : 0));
         var inurnActual = inurnOCLines.reduce(function(s,l){return s+l.amount;},0);
         var inurnDisc = Math.min(500 * inQ, inurnActual);
         dAmt = propDisc + inurnDisc;
-        dLabel = 'Memorial Day (' + propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Inurnment O&C' + (inQ > 1 ? ' — $500 × ' + inQ + ' spaces' : '') : '') + ')';
+        dLabel = 'July Incentive (' + propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Cremation O&C' + (inQ > 1 ? ' — $500 × ' + inQ + ' spaces' : '') : '') + ')';
       } else {
         dAmt = propDisc;
-        dLabel = 'Memorial Day (' + propLbl + ')';
+        dLabel = 'July Incentive (' + propLbl + ')';
       }
     } else {
       var discAmtEl = row.querySelector('.disc-amt');
@@ -5605,10 +5640,10 @@ function cemUpdate() {
       lines.push({label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc});
     }
   });  // end forEach discount rows
-  if (el('aprilPromoNote')) el('aprilPromoNote').style.display = hasMayPromo ? 'block' : 'none';
+  if (el('aprilPromoNote')) el('aprilPromoNote').style.display = hasPromo ? 'block' : 'none';
   var discAmt   = totalDiscAmt;
   var discLabel = discLabels.join(' | ');
-  var discMode  = hasMayPromo ? 'may_' : (discAmt > 0 ? 'flat_exempt' : '');
+  var discMode  = hasPromo ? 'promo_' : (discAmt > 0 ? 'flat_exempt' : '');
 
   // ── 3rd Party Memorialization ─────────────────────────────────────────────
   var sel3p = el('q3pSize');
@@ -5724,8 +5759,8 @@ function addCemDiscount() {
     + '<optgroup label="All Items"><option value="percent">% — All Items</option><option value="flat">$ — All Items</option></optgroup>'
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
-    + '<optgroup label="🇺🇸 Memorial Day May 16–31 (New Property PN)"><option value="may_burial_15">Memorial Day — Burial/Crypt Placement (15% property)</option><option value="may_crem_15">Memorial Day — Cremation/Inurnment Placement (15% property)</option><option value="may_property_15">Memorial Day — Property Only (15% off)</option></optgroup>'
-    + '<optgroup label="🏠 Property Owners — Goods &amp; Services (May 16–31)"><option value="flat_2ndright_10pct">10% off 2nd Rights</option><option value="percent_exempt_10">10% off Services (O&amp;C + Recording)</option><option value="percent_taxable_10">10% off Merchandise (Taxable)</option></optgroup>'
+    + '<optgroup label="🏷️ July 2026 Incentives (New Property PN)"><option value="promo_burial">July Incentive — Burial/Crypt Placement (10% property + rights)</option><option value="promo_crem">July Incentive — Cremation/Inurnment Placement (10% property + rights)</option><option value="promo_property">July Incentive — Property Only (10% off, incl. additional rights)</option></optgroup>'
+    + '<optgroup label="🏠 Property Owners — Goods &amp; Services"><option value="flat_2ndright_10pct">10% off 2nd Rights</option><option value="percent_exempt_10">10% off Services (O&amp;C + Recording)</option><option value="percent_taxable_10">10% off Merchandise (Taxable)</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
@@ -5738,9 +5773,9 @@ function addCemDiscount() {
 function cemDiscModeChange(sel) {
   var row = sel.closest('.disc-row');
   var wrap = row.querySelector('.disc-val-wrap');
-  var isMay = sel.value.indexOf('may_') === 0;
+  var isPromo = sel.value.indexOf('promo_') === 0;
   var isQuick = sel.value === 'percent_exempt_10' || sel.value === 'percent_taxable_10' || sel.value === 'flat_2ndright_10pct';
-  wrap.className = 'disc-val-wrap' + (isMay || isQuick ? '' : ' show');
+  wrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show');
 }
 
 function addFhDiscount() {
@@ -6209,16 +6244,16 @@ function calcBTotal() {
       var bDiscAmt = 0, bDiscLbl = '';
       if      (bDiscType === 'pct_all')      { bDiscAmt = bAll     * (bDiscVal/100); bDiscLbl = bDiscVal + '% off all items'; }
       else if (bDiscType === 'flat_all')     { bDiscAmt = Math.min(bDiscVal, bAll);  bDiscLbl = 'Discount'; }
-      else if (bDiscType === 'may15_burial') {
+      else if (bDiscType === 'promo_burial') {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bMausP;
         var bOCA = lines.filter(function(l){return l.label.match(/Entombment|Interment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
-        bDiscAmt = bSpV * 0.15 + Math.min(1000, bOCA);
-        bDiscLbl = 'Memorial Day – Burial (15% property + O&C)';
-      } else if (bDiscType === 'may15_crem') {
+        bDiscAmt = bSpV * 0.10 + Math.min(1000, bOCA);
+        bDiscLbl = 'July Incentive – Burial (10% property + O&C)';
+      } else if (bDiscType === 'promo_crem') {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bNicheP;
         var bOCA = lines.filter(function(l){return l.label.match(/Inurnment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
-        bDiscAmt = bSpV * 0.15 + Math.min(500, bOCA);
-        bDiscLbl = 'Memorial Day – Cremation (15% property + O&C)';
+        bDiscAmt = bSpV * 0.10 + Math.min(500, bOCA);
+        bDiscLbl = 'July Incentive – Cremation (10% property + O&C)';
       } else if (bDiscType === 'pct10_svc')  { bDiscAmt = bExempt  * 0.10; bDiscLbl = '10% off Services'; }
       else if   (bDiscType === 'pct10_merch'){ bDiscAmt = bTaxable * 0.10; bDiscLbl = '10% off Merchandise'; }
       if (bDiscAmt > 0) {
@@ -8585,7 +8620,9 @@ function captureFhState() {
 var _cemSavedQuotes = [];
 var _fhSavedQuotes  = [];
 var _ricSavedContracts = [];
-var _savedCompare   = { cem: null, fh: null, ric: null };
+var _gaSavedContracts = [];
+var _cpSavedContracts = [];
+var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null };
 var _fbSavingQuotes = false;
 
 function showQuoteToast(msg) {
@@ -8611,7 +8648,9 @@ function persistSavedQuotes(_retries) {
   _fbDB.ref('savedQuotes').set({
     cem: _cemSavedQuotes.length ? _cemSavedQuotes : null,
     fh:  _fhSavedQuotes.length  ? _fhSavedQuotes  : null,
-    ric: _ricSavedContracts.length ? _ricSavedContracts : null
+    ric: _ricSavedContracts.length ? _ricSavedContracts : null,
+    ga:  _gaSavedContracts.length ? _gaSavedContracts : null,
+    cp:  _cpSavedContracts.length ? _cpSavedContracts : null
   }).then(function(){ setTimeout(function(){ _fbSavingQuotes = false; }, 500); })
     .catch(function(e){ console.warn('persistSavedQuotes failed', e); _fbSavingQuotes = false; });
 }
@@ -8691,10 +8730,132 @@ function loadSavedRicContract(id) {
   if (_ricPricing) { try { ricShowPricingSummary(); } catch(e) {} }
   show('ric-contract', document.querySelector('[onclick*="ric-contract"]'));
 }
+// GA and ClearPoint don't hold their own pricing — printGAContract()/generateClearPointContract()
+// read the live _fhLines/_fhTotal globals at generation time (no _gaPricing/_cpPricing snapshot
+// object like RIC's _ricPricing). So the saved state carries a frozen copy of those globals and
+// restores them on load, same effect as RIC's pricing snapshot, just captured directly.
+function captureGaState() {
+  var section = el('section-ga-contract');
+  var fieldIds = [];
+  if (section) section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e){ if (e.id) fieldIds.push(e.id); });
+  var dispEl = document.querySelector('input[name="gaDisposition"]:checked');
+  return {
+    fields:      captureFieldState(fieldIds),
+    disposition: dispEl ? dispEl.value : 'Burial',
+    fhLines:     (typeof _fhLines !== 'undefined') ? JSON.parse(JSON.stringify(_fhLines)) : [],
+    fhTotal:     (typeof _fhTotal !== 'undefined') ? _fhTotal : 0,
+    customAssignments: (typeof gaGetCustomAssignments === 'function') ? gaGetCustomAssignments() : []
+  };
+}
+function saveGaContract() {
+  try {
+    if (!el('gaInsuredName').value.trim()) { alert('Please enter the Funeral Recipient name before saving.'); return; }
+    var clientName = (val('gaInsuredName') || '').trim();
+    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var defaultLabel = (clientName || 'GA Contract') + ' - ' + d;
+    var label = window.prompt('Name this saved GA contract:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
+    var snap = { id: Date.now(), label: label, total: (typeof _fhTotal !== 'undefined' ? _fhTotal : 0) || 0, state: captureGaState(), date: d };
+    _gaSavedContracts.unshift(snap);
+    if (_gaSavedContracts.length > 10) _gaSavedContracts = _gaSavedContracts.slice(0, 10);
+    renderSavedQuotesList('ga');
+    persistSavedQuotes();
+    show('ga-saved', el('navGaSaved'));
+    showQuoteToast('GA contract saved — viewing saved GA contracts');
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+function loadSavedGaContract(id) {
+  var snap = _gaSavedContracts.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { gaClearAll(); } catch(e) {}
+  var s = snap.state;
+  restoreFieldState(s.fields || {});
+  if (s.disposition) {
+    var radio = document.querySelector('input[name="gaDisposition"][value="'+s.disposition+'"]');
+    if (radio) radio.checked = true;
+  }
+  if (typeof gaToggleCouple === 'function') gaToggleCouple();
+  if (el('gaInsuredDOB') && el('gaInsuredDOB').value && typeof gaComputeAge === 'function') gaComputeAge();
+  if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
+  if (typeof gaRenderCustomReview === 'function') gaRenderCustomReview();
+  if (s.customAssignments && s.customAssignments.length && el('gaCustomReview')) {
+    el('gaCustomReview').querySelectorAll('.ga-cust-dest').forEach(function(sel) {
+      var span = sel.parentNode.querySelector('[data-ga-cust-label]');
+      if (!span) return;
+      var lbl = decodeURIComponent(span.getAttribute('data-ga-cust-label'));
+      var match = s.customAssignments.find(function(a){ return a.label === lbl; });
+      if (match) sel.value = match.dest;
+    });
+  }
+  show('ga-contract', document.querySelector('[onclick*="ga-contract"]'));
+}
+function captureCpState() {
+  var section = el('section-cp-contract');
+  var fieldIds = [];
+  if (section) section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e){ if (e.id) fieldIds.push(e.id); });
+  var dispEl = document.querySelector('input[name="cpDisposition"]:checked');
+  var gtdEl  = document.querySelector('input[name="cpGuaranteed"]:checked');
+  return {
+    fields:       captureFieldState(fieldIds),
+    disposition:  dispEl ? dispEl.value : 'Burial',
+    guaranteed:   gtdEl  ? gtdEl.value  : 'no',
+    fhLines:      (typeof _fhLines !== 'undefined') ? JSON.parse(JSON.stringify(_fhLines)) : [],
+    fhTotal:      (typeof _fhTotal !== 'undefined') ? _fhTotal : 0,
+    customAssignments: (typeof cpGetCustomAssignments === 'function') ? cpGetCustomAssignments() : []
+  };
+}
+function saveCpContract() {
+  try {
+    if (!el('cpLastName').value.trim()) { alert('Please enter the purchaser last name before saving.'); return; }
+    var clientName = ((val('cpFirstName')||'') + ' ' + (val('cpLastName')||'')).trim();
+    var d = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    var defaultLabel = (clientName || 'ClearPoint Contract') + ' - ' + d;
+    var label = window.prompt('Name this saved ClearPoint contract:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
+    var snap = { id: Date.now(), label: label, total: (typeof _fhTotal !== 'undefined' ? _fhTotal : 0) || 0, state: captureCpState(), date: d };
+    _cpSavedContracts.unshift(snap);
+    if (_cpSavedContracts.length > 10) _cpSavedContracts = _cpSavedContracts.slice(0, 10);
+    renderSavedQuotesList('cp');
+    persistSavedQuotes();
+    show('cp-saved', el('navCpSaved'));
+    showQuoteToast('ClearPoint contract saved — viewing saved ClearPoint contracts');
+  } catch(e) { alert('Save failed: ' + e.message); }
+}
+function loadSavedCpContract(id) {
+  var snap = _cpSavedContracts.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { cpClearAll(); } catch(e) {}
+  var s = snap.state;
+  restoreFieldState(s.fields || {});
+  if (s.disposition) {
+    var radio = document.querySelector('input[name="cpDisposition"][value="'+s.disposition+'"]');
+    if (radio) radio.checked = true;
+  }
+  if (s.guaranteed) {
+    var gtdRadio = document.querySelector('input[name="cpGuaranteed"][value="'+s.guaranteed+'"]');
+    if (gtdRadio) gtdRadio.checked = true;
+  }
+  if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
+  if (typeof cpRenderCustomReview === 'function') cpRenderCustomReview();
+  if (s.customAssignments && s.customAssignments.length && el('cpCustomReview')) {
+    el('cpCustomReview').querySelectorAll('.cp-cust-dest').forEach(function(sel) {
+      var span = sel.parentNode.querySelector('[data-cp-cust-label]');
+      if (!span) return;
+      var lbl = decodeURIComponent(span.getAttribute('data-cp-cust-label'));
+      var match = s.customAssignments.find(function(a){ return a.label === lbl; });
+      if (match) sel.value = match.dest;
+    });
+  }
+  show('cp-contract', document.querySelector('[onclick*="cp-contract"]'));
+}
 function deleteSavedQuote(type, id) {
   if (type === 'cem')      _cemSavedQuotes     = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
   else if (type === 'fh')  _fhSavedQuotes      = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
   else if (type === 'ric') _ricSavedContracts  = _ricSavedContracts.filter(function(q){ return q.id !== id; });
+  else if (type === 'ga')  _gaSavedContracts   = _gaSavedContracts.filter(function(q){ return q.id !== id; });
+  else if (type === 'cp')  _cpSavedContracts   = _cpSavedContracts.filter(function(q){ return q.id !== id; });
   renderSavedQuotesList(type);
   persistSavedQuotes();
 }
@@ -8755,6 +8916,12 @@ function renderSavedQuotesList(type) {
     } else if (type === 'ric') {
       containerId='ricSavedQuotes'; arrRef=_ricSavedContracts; searchId='ricQuoteSearch'; loadFn='loadSavedRicContract';
       emptyMsg = 'No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.';
+    } else if (type === 'ga') {
+      containerId='gaSavedQuotes'; arrRef=_gaSavedContracts; searchId='gaQuoteSearch'; loadFn='loadSavedGaContract';
+      emptyMsg = 'No saved GA contracts yet — go to the Pre-Need Contract (GA) tab and click 💾 Save Contract.';
+    } else if (type === 'cp') {
+      containerId='cpSavedQuotes'; arrRef=_cpSavedContracts; searchId='cpQuoteSearch'; loadFn='loadSavedCpContract';
+      emptyMsg = 'No saved ClearPoint contracts yet — go to the Pre-Need Contract (ClearPoint) tab and click 💾 Save Contract.';
     } else {
       containerId='fhSavedQuotes'; arrRef=_fhSavedQuotes; searchId='fhQuoteSearch'; loadFn='loadSavedFhQuote';
       emptyMsg = 'No saved quotes yet — build a quote and click 💾 Save.';
@@ -8772,7 +8939,7 @@ function renderSavedQuotesList(type) {
     var compareId = _savedCompare[type];
     var compareQ  = compareId ? list.find(function(x){ return x.id === compareId; }) : null;
     var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
-      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+(type==='ric'?' saved RIC':' saved quote')+(list.length!==1?'s':'')+'</span>'
+      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+(type==='ric'?' saved RIC':type==='ga'?' saved GA contract':type==='cp'?' saved ClearPoint contract':' saved quote')+(list.length!==1?'s':'')+'</span>'
       + '<input id="'+searchId+'" type="text" placeholder="Search by name…" value="'+(q||'')+'" oninput="renderSavedQuotesList(\''+type+'\')"'
       + ' style="flex:1;max-width:260px;padding:5px 10px;font-size:12px;border:1px solid #dde3ec;border-radius:6px;background:#f5f7fb;color:var(--navy);font-family:inherit;"></div>';
     if (!filtered.length) { html += '<p style="font-size:12px;color:var(--text-light);">No matches.</p>'; listEl.innerHTML = html; return; }
@@ -8788,7 +8955,7 @@ function renderSavedQuotesList(type) {
         + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700;color:var(--navy);">'+(item.label||'Untitled')+'</span>'
         + '<span style="color:#6b7280;font-size:13px;font-weight:600;white-space:nowrap;">'+fmt(item.total)+'</span>'+diff+'</div>'
         + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'+(type==='ric'?'Load RIC':'Load Quote')+'</button>' : '')
+        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'+(type==='ric'?'Load RIC':type==='ga'?'Load GA':type==='cp'?'Load ClearPoint':'Load Quote')+'</button>' : '')
         + '<button onclick="printSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#f0f2f8;border:1px solid #dde3ec;border-radius:6px;cursor:pointer;color:var(--navy);font-family:inherit;">Print</button>'
         + '<button onclick="savedCompareSelect(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:'+(isBase?'var(--gold)':'#f0f2f8')+';border:1px solid '+(isBase?'var(--gold)':'#dde3ec')+';border-radius:6px;cursor:pointer;color:'+(isBase?'#fff':'var(--navy)')+';font-family:inherit;">'+(isBase?'★ Base':'⚖ Compare')+'</button>'
         + '<button onclick="deleteSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#fff;border:1px solid #fecaca;border-radius:6px;cursor:pointer;color:#dc2626;font-family:inherit;margin-left:auto;">✕ Delete</button>'
@@ -8805,7 +8972,7 @@ function savedCompareSelect(type, id) {
   renderSavedQuotesList(type);
 }
 function printSavedQuote(type, id) {
-  var list = type === 'cem' ? _cemSavedQuotes : (type === 'ric' ? _ricSavedContracts : _fhSavedQuotes);
+  var list = type === 'cem' ? _cemSavedQuotes : (type === 'ric' ? _ricSavedContracts : type === 'ga' ? _gaSavedContracts : type === 'cp' ? _cpSavedContracts : _fhSavedQuotes);
   var snap = list.find(function(q){ return q.id === id; });
   if (!snap) return;
   var expires = new Date(); expires.setDate(expires.getDate()+30);
@@ -8821,7 +8988,7 @@ function printSavedQuote(type, id) {
   win.document.close(); win.print();
 }
 function exportSavedQuotesBackup() {
-  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes, ric: _ricSavedContracts });
+  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes, ric: _ricSavedContracts, ga: _gaSavedContracts, cp: _cpSavedContracts });
   var blob = new Blob([data], { type: 'application/json' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'BW_Quotes_Backup_'+new Date().toISOString().slice(0,10)+'.json';
@@ -8838,6 +9005,8 @@ function importSavedQuotesBackup() {
         if (data.cem) { _cemSavedQuotes     = data.cem; renderSavedQuotesList('cem'); }
         if (data.fh)  { _fhSavedQuotes      = data.fh;  renderSavedQuotesList('fh');  }
         if (data.ric) { _ricSavedContracts  = data.ric; renderSavedQuotesList('ric'); }
+        if (data.ga)  { _gaSavedContracts   = data.ga;  renderSavedQuotesList('ga');  }
+        if (data.cp)  { _cpSavedContracts   = data.cp;  renderSavedQuotesList('cp');  }
         persistSavedQuotes();
         alert('Import successful!');
       } catch(err) { alert('Import failed: ' + err.message); }
@@ -10200,6 +10369,15 @@ function ricBuildFirstPmt() {
   if (el('ricFirstPmt')) el('ricFirstPmt').value = built;
 }
 
+// Converts a native <input type="date"> value ("YYYY-MM-DD") to "MM/DD/YYYY" for
+// PDF fields — same conversion the ClearPoint form uses for cpDOB. T12:00:00 avoids
+// the date shifting a day when the browser's timezone is behind UTC.
+function dateInputToMDY(v) {
+  if (!v) return '';
+  var d = new Date(v + 'T12:00:00');
+  return (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getDate().toString().padStart(2,'0') + '/' + d.getFullYear();
+}
+
 async function generateRICFromTab() {
   // Validate
   if (!el('ricName').value.trim()) {
@@ -10239,10 +10417,10 @@ async function generateRICFromTab() {
       remarks:      el('ricRemarks') ? el('ricRemarks').value.trim() : '',
       contractDate: el('ricContractDate') ? el('ricContractDate').value : '',
       contractTime: el('ricContractTime') ? el('ricContractTime').value : '',
-      dob1:         el('ricDOB1').value.trim(),
+      dob1:         dateInputToMDY(el('ricDOB1').value),
       gender1:      el('ricGender1').value,
       coPurchaser:  el('ricCoPurchaser').value.trim(),
-      dob2:         el('ricDOB2').value.trim(),
+      dob2:         dateInputToMDY(el('ricDOB2').value),
       gender2:      el('ricGender2').value,
       counselor:    el('ricCounselor').value.trim() || 'Martice Morrison',
       developed:    el('ricDeveloped').checked,
