@@ -1391,6 +1391,10 @@ tr:hover td{background:#eef3f8;}
               <label style="color:var(--text-light);font-size:11px;">Qty</label>
               <input type="number" id="qty_portrait" min="1" max="99" value="1" oninput="cemUpdateD()" style="width:60px;">
             </div>
+            <div class="q-row" style="margin-top:8px;">
+              <button onclick="portraitAdd()" style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">+ Add Portrait to Quote</button>
+            </div>
+            <div id="portraitList" style="margin-top:6px;"></div>
           </div>
         </div>
       </div>
@@ -5448,23 +5452,16 @@ function cemUpdate() {
     }
   });
 
-  // ── Portrait (Ceramic Steel) ─────────────────────────────────────────
-  var portraitPrice = getPortraitPrice();
-  if (portraitPrice) {
-    var portraitQty = qty('qty_portrait');
-    el('qty_portrait_row').style.display = 'flex';
-    var pShape  = val('qPortraitShape');
-    var pIdx    = val('qPortraitSize');
-    var pFinish = val('qPortraitFinish');
-    var pSizes  = PORTRAIT_DATA[pShape] || [];
-    var pItem   = pSizes[parseInt(pIdx)];
-    var pLabel  = pItem ? pShape + ' ' + pItem.label + (pFinish === 'bw' ? ' B&W' : ' Color') : 'Portrait';
-    lines.push({label: 'Portrait: ' + pLabel + (portraitQty > 1 ? ' ×' + portraitQty : ''), amount: portraitPrice * portraitQty, taxable: true});
-    setDisp('disp_portrait', portraitPrice * portraitQty);
-  } else {
-    el('qty_portrait_row') && (el('qty_portrait_row').style.display = 'none');
-    setDisp('disp_portrait', 0);
-  }
+  // ── Portrait (Ceramic Steel) — multi-add list (mirrors markerItems) ──────
+  // qty_portrait_row stays visible whenever a shape+size is picked, so Qty is ready
+  // for the next "+ Add Portrait to Quote" click; it's no longer a single multiplier.
+  if (getPortraitPrice() !== null) { el('qty_portrait_row').style.display = 'flex'; }
+  else { el('qty_portrait_row') && (el('qty_portrait_row').style.display = 'none'); }
+  portraitItems.forEach(function(p) {
+    if (p.price > 0 && p.qty > 0) {
+      lines.push({label: 'Portrait: ' + p.name + (p.qty > 1 ? ' ×' + p.qty : ''), amount: p.price * p.qty, taxable: true});
+    }
+  });
 
   // ── Crypt-Front Oval Portrait ─────────────────────────────────────
   var cryptOvalV = parseFloat(val('qCryptOval')) || 0;
@@ -6415,6 +6412,7 @@ function resetCemQuote() {
   vaultItems   = []; vaultRender();
   bronzeItems  = []; bronzeRender();
   markerItems  = []; markerRender();
+  portraitItems = []; portraitRender();
   // Clear dynamic UI lists
   el('cemCustomLines').innerHTML = '';
   if (el('cemDiscountList')) el('cemDiscountList').innerHTML = '';
@@ -7680,6 +7678,37 @@ function markerRender() {
   list.innerHTML=html+'</div>';
 }
 
+// ── PCM Ceramic Steel Portrait — multi-add list (mirrors markerItems) ────────
+var portraitItems = [];
+function portraitAdd() {
+  var price = getPortraitPrice();
+  if (!price) return;
+  var shape  = val('qPortraitShape');
+  var sEl    = el('qPortraitSize');
+  var sLbl   = sEl && sEl.value ? sEl.options[sEl.selectedIndex].text : '';
+  var finish = val('qPortraitFinish');
+  var q = parseInt(el('qty_portrait') ? el('qty_portrait').value : 1) || 1;
+  var name = (shape.charAt(0).toUpperCase()+shape.slice(1)) + (sLbl ? ' ' + sLbl : '') + (finish === 'bw' ? ' B&W' : ' Color');
+  portraitItems.push({name:name, price:price, qty:q});
+  portraitRender(); cemUpdate();
+}
+function portraitRemove(i) { portraitItems.splice(i,1); portraitRender(); cemUpdate(); }
+function portraitQtyChange(i,v) { var q=parseInt(v)||1; if(q<1)q=1; portraitItems[i].qty=q; cemUpdate(); }
+function portraitRender() {
+  var list=el('portraitList'); if(!list) return;
+  if(!portraitItems.length){list.innerHTML='';return;}
+  var html='<div style="border-top:1px solid var(--gray-mid);padding-top:6px;">';
+  portraitItems.forEach(function(p,i){
+    html+='<div class="q-row" style="font-size:12px;align-items:center;gap:6px;flex-wrap:wrap;">'
+      +'<span style="flex:1;min-width:140px;color:var(--text-main);">'+p.name+'</span>'
+      +'<input type="number" value="'+p.qty+'" min="1" max="99" style="width:46px;" oninput="portraitQtyChange('+i+',this.value)">'
+      +'<span style="color:var(--navy);font-weight:600;min-width:70px;text-align:right;">$'+(p.price*p.qty).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+      +'<button onclick="portraitRemove('+i+')" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;">&times;</button>'
+      +'</div>';
+  });
+  list.innerHTML=html+'</div>';
+}
+
 
 function _finColors() {
   return {
@@ -8500,6 +8529,7 @@ function captureCemState() {
     vaultItems:   JSON.parse(JSON.stringify(typeof vaultItems   !== 'undefined' ? vaultItems   : [])),
     bronzeItems:  JSON.parse(JSON.stringify(typeof bronzeItems  !== 'undefined' ? bronzeItems  : [])),
     markerItems:  JSON.parse(JSON.stringify(typeof markerItems  !== 'undefined' ? markerItems  : [])),
+    portraitItems: JSON.parse(JSON.stringify(typeof portraitItems !== 'undefined' ? portraitItems : [])),
     total: _cemTotal || 0
   };
 }
@@ -8614,6 +8644,7 @@ function loadSavedCemQuote(id) {
   if (s.vaultItems   && s.vaultItems.length)   { vaultItems   = s.vaultItems;   if (typeof vaultRender  === 'function') vaultRender(); }
   if (s.bronzeItems  && s.bronzeItems.length)  { bronzeItems  = s.bronzeItems;  if (typeof bronzeRender === 'function') bronzeRender(); }
   if (s.markerItems  && s.markerItems.length)  { markerItems  = s.markerItems;  if (typeof markerRender === 'function') markerRender(); }
+  if (s.portraitItems && s.portraitItems.length) { portraitItems = s.portraitItems; if (typeof portraitRender === 'function') portraitRender(); }
   if (typeof cemQuoteTypeChange === 'function') cemQuoteTypeChange();
   cemUpdate();
   show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
@@ -11460,6 +11491,7 @@ async function downloadCombQuotePDF() {
         if (cd.vaultItems)   { vaultItems   = cd.vaultItems;   if (typeof vaultRender  === 'function') vaultRender();  }
         if (cd.bronzeItems)  { bronzeItems  = cd.bronzeItems;  if (typeof bronzeRender === 'function') bronzeRender(); }
         if (cd.markerItems)  { markerItems  = cd.markerItems;  if (typeof markerRender === 'function') markerRender(); }
+        if (cd.portraitItems) { portraitItems = cd.portraitItems; if (typeof portraitRender === 'function') portraitRender(); }
         if (typeof cemUpdate === 'function') cemUpdate();
       }
       if (fd && fd.fields) {
