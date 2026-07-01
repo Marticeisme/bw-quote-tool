@@ -9139,6 +9139,28 @@ async function generateRICContractCore(clientData) {
     var form   = pdfDoc.getForm();
     console.log('[RIC] Form fields accessible:', form.getFields().length);
 
+    // Two orphan template fields ("Qty Memo Type", "Qty Memo Base") sit ~13pt above the
+    // Qty 5 / Qty 6 rows (Memorialization Type / Memorial Base). Neither is ever filled by
+    // any code path here, but the template bakes a light-blue /MK background
+    // ([0.878, 0.894, 0.973]) into both widgets — printing as solid blue boxes overlapping
+    // those two rows on every RIC contract. Qty 5/6/7 have no /MK background at all, so
+    // this is template-artifact noise, not a real field. Clear the background + stale
+    // appearance stream (not deleting the widget — avoids the /P-orphan structural issue
+    // from the Reset-button fix); the later updateFieldAppearances() call regenerates a
+    // plain, uncolored appearance since /MK is gone.
+    try {
+      ['Qty Memo Type', 'Qty Memo Base'].forEach(function(fn) {
+        try {
+          var fld = form.getTextField(fn);
+          fld.setText('');
+          fld.acroField.getWidgets().forEach(function(w) {
+            w.dict.delete(PDFLib.PDFName.of('MK'));
+            w.dict.delete(PDFLib.PDFName.of('AP'));
+          });
+        } catch(e) {}
+      });
+    } catch(e) {}
+
     // Strip /AA /C (Calculate) and /AA /F (Format) actions from every widget.
     // These AcroForm JavaScript actions cause Adobe to overwrite our filled values
     // (/C) and to re-format pre-formatted strings like "$5,560.00" as raw numbers
