@@ -280,6 +280,11 @@ tr:hover td{background:#eef3f8;}
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Combined</div>
   <div class="nav-item highlight" onclick="show('combined-quote',this)">🔗 Combined Quote</div>
+
+  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Checklist</div>
+  <div class="nav-item highlight" onclick="show('ric-checklist',this)">📋 RIC Checklist</div>
+  <div class="nav-item highlight" onclick="show('cp-checklist',this)">📋 ClearPoint Checklist</div>
+  <div class="nav-item highlight" onclick="show('atneed-checklist',this)">📋 At-Need Cemetery Checklist</div>
 </nav>
 
 <!-- MAIN CONTENT -->
@@ -3198,6 +3203,126 @@ tr:hover td{background:#eef3f8;}
   </div>
 </div>
 
+
+<!-- ═══ RIC CHECKLIST ═══ -->
+<div class="section" id="section-ric-checklist">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <h2>Commission Packet Checklist</h2>
+    <span class="badge" style="background:#2e7d32;color:#fff;">RIC (RETAIL INSTALLMENT CONTRACT)</span>
+  </div>
+  <div class="callout callout-blue">
+    Click <strong>Import</strong> to pull purchaser/recipient/date and commissionable sale amounts from your Pre-Need RIC Contract. Every imported number stays editable — correct anything before generating the PDF. Check off documents as you assemble the packet, then click <strong>Generate Checklist PDF</strong>.
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">⬇ Import</div>
+    <div class="q-panel-body">
+      <button class="pull-btn" onclick="riclImport()">⬇ Import from Pre-Need RIC Contract</button>
+      <div id="riclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Generate or load a RIC contract first, then click Import.</div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">📋 Commission Worksheet</div>
+    <div class="q-panel-body" id="riclWorksheetBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">✅ Document Checklist</div>
+    <div class="q-panel-body" id="riclChecklistBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header" style="color:#c8540a;">🖊️ For Sales &amp; Marketing Administrative Assistant</div>
+    <div class="q-panel-body" id="riclAdminBody"></div>
+  </div>
+
+  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="riclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="riclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
+  </div>
+</div>
+
+<!-- ═══ AT-NEED CEMETERY CHECKLIST ═══ -->
+<div class="section" id="section-atneed-checklist">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <h2>Commission Packet Checklist</h2>
+    <span class="badge" style="background:#c0392b;color:#fff;">AT-NEED CEMETERY</span>
+  </div>
+  <div class="callout callout-blue">
+    There's no separate At-Need contract builder — this pulls straight from the <strong>Cemetery Quote Builder</strong> when its Quote Type is set to At-Need. Every imported number stays editable. Check off documents as you assemble the packet, then click <strong>Generate Checklist PDF</strong>.
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">⬇ Import</div>
+    <div class="q-panel-body">
+      <button class="pull-btn" onclick="anclImport()">⬇ Import from Cemetery Quote (At-Need)</button>
+      <div id="anclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Set the Cemetery Quote Builder's Quote Type to At-Need and build the quote first, then click Import.</div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">📋 Commission Worksheet</div>
+    <div class="q-panel-body" id="anclWorksheetBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">✅ Document Checklist</div>
+    <div class="q-panel-body" id="anclChecklistBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header" style="color:#c8540a;">🖊️ For Sales &amp; Marketing Administrative Assistant</div>
+    <div class="q-panel-body" id="anclAdminBody"></div>
+  </div>
+
+  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="anclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="anclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
+  </div>
+</div>
+
+<!-- ═══ CLEARPOINT CHECKLIST ═══ -->
+<div class="section" id="section-cp-checklist">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <h2>Commission Packet Checklist</h2>
+    <span class="badge" style="background:#6a3fa0;color:#fff;">CLEARPOINT TRUST</span>
+  </div>
+  <div class="callout callout-blue">
+    Click <strong>Import</strong> to pull purchaser/recipient/date and the Total Funeral Price from your ClearPoint Contract. Every imported number stays editable. Check off documents as you assemble the packet, then click <strong>Generate Checklist PDF</strong>.
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">⬇ Import</div>
+    <div class="q-panel-body">
+      <button class="pull-btn" onclick="cpclImport()">⬇ Import from ClearPoint Contract</button>
+      <div id="cpclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Generate or load a ClearPoint contract first, then click Import.</div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">📋 Commission Worksheet</div>
+    <div class="q-panel-body" id="cpclWorksheetBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">✅ Document Checklist</div>
+    <div class="q-panel-body" id="cpclChecklistBody"></div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header" style="color:#c8540a;">🖊️ For Sales &amp; Marketing Administrative Assistant</div>
+    <div class="q-panel-body" id="cpclAdminBody"></div>
+  </div>
+
+  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button onclick="cpclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="cpclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
+  </div>
+</div>
 
 <!-- ═══ REFERENCE SECTIONS (simplified tables) ═══ -->
 
@@ -11863,6 +11988,632 @@ async function downloadCombQuotePDF() {
       + '<button onclick="clearAutosave()" style="background:#fff;border:1px solid #c8d4de;color:#5a6a7a;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;">Dismiss</button>';
     document.body.appendChild(b);
   });
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// COMMISSION PACKET CHECKLIST — RIC / At-Need Cemetery / ClearPoint
+// Rates and calculation rules sourced from Commission_Worksheet_2026.xlsx
+// and the signed 2026 Sales Policies & Commission Structure doc. GA is
+// explicitly out of scope (handled automatically elsewhere).
+// ═══════════════════════════════════════════════════════════════
+
+var CL_RATES = {
+  ric:    { crem: 0.15, noncrem: 0.10, merch: 0.05 },
+  atneed: { crem: 0.15, noncrem: 0.08, merch: 0.05 }
+};
+
+// Cremation vs Non-Cremation is decided by the PROPERTY/SPACE TYPE, not by whether the
+// deceased was cremated (confirmed 2026-07-01). Buckets:
+//   Cremation:     Niche Space, Lake Urn Garden, Scattering Gardens
+//   Non-Cremation: Garden/Lawn spaces (incl. Lawn Crypt, Veterans Garden), Mausoleum Crypt
+// 2nd/3rd rights and ECF lines don't carry their own type — they follow whichever single
+// bucket the quote's primary space falls into. If a quote genuinely mixes both cremation
+// and non-cremation property (rare), this picks one bucket for everything; the Commissionable
+// Sale fields are editable so that split can be corrected by hand.
+function clCremationBucket(lines) {
+  var CREM_RE = /lake urn|scattering|ossuary|\bniche\b/i;
+  var spaceLines = (lines || []).filter(function(l){ return l.isSpace && !/ECF/i.test(l.label) && !l.isSecondRight; });
+  return spaceLines.some(function(l){ return CREM_RE.test(l.label); }) ? 'crem' : 'noncrem';
+}
+// Property Commissionable Sale = space price, excluding ECF and excluding discounts.
+// (isSpace lines are never isDiscount, so no separate discount filter needed here.)
+function clPropertyTotal(lines) {
+  return (lines || []).filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
+}
+// Merchandise Commissionable Sale = taxable, non-discount lines, excluding install/setting/
+// inspection/design-review/admin-processing fees that ride alongside the merchandise item.
+var CL_MERCH_EXCLUDE_RE = /install|inspection|design review|admin(?:istrative)? processing/i;
+function clMerchTotal(lines) {
+  return (lines || []).filter(function(l){ return l.taxable && !l.isDiscount && !CL_MERCH_EXCLUDE_RE.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
+}
+
+// "YOU CANNOT HAVE BOTH % & $ ADJ" — clear whichever field the user didn't just type into.
+function clMgrExclusive(justEditedId, otherId) {
+  var justEl = el(justEditedId);
+  var v = justEl ? parseFloat(justEl.value) : NaN;
+  if (!isNaN(v) && v !== 0) { var o = el(otherId); if (o) o.value = ''; }
+}
+// Mirrors the worksheet's O-column formula: base commission (Sale × Rate) plus a manager
+// adjustment on top — either Sale × MGR% or a flat MGR$ amount, never both.
+function clRowCommission(saleId, mgrPctId, mgrDollarId, rate) {
+  var sale = num(saleId), mgrPct = num(mgrPctId), mgrDollar = num(mgrDollarId);
+  var adj = mgrPct !== 0 ? sale * (mgrPct / 100) : (mgrDollar !== 0 ? mgrDollar : 0);
+  return sale * rate + adj;
+}
+
+function clField(id, label, defVal, readonly, placeholder, type) {
+  return '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">' + label + '</label>'
+    + '<input type="' + (type || 'text') + '" id="' + id + '" value="' + (defVal || '') + '" ' + (readonly ? 'readonly' : '') + ' placeholder="' + (placeholder || '') + '"'
+    + ' style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;' + (readonly ? 'background:#f0f2f8;' : '') + '"></div>';
+}
+function clCommRow(prefix, key, label, rate, updateFn) {
+  var saleId = prefix + key + 'Sale', pctId = prefix + key + 'MgrPct', dollarId = prefix + key + 'MgrDollar', commId = prefix + key + 'Comm';
+  return '<tr>'
+    + '<td style="padding:6px 8px;">' + label + '</td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="' + saleId + '" step="0.01" min="0" oninput="' + updateFn + '()" style="width:100px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td style="padding:6px 8px;text-align:center;">' + (rate * 100) + '%</td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="' + pctId + '" step="0.1" oninput="clMgrExclusive(\'' + pctId + '\',\'' + dollarId + '\');' + updateFn + '()" style="width:65px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="' + dollarId + '" step="0.01" oninput="clMgrExclusive(\'' + dollarId + '\',\'' + pctId + '\');' + updateFn + '()" style="width:75px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td id="' + commId + '" style="padding:6px 8px;text-align:center;font-weight:700;color:var(--navy);">$0.00</td>'
+    + '</tr>';
+}
+function clSplitRow(prefix, n, defName, defPct, readonly, updateFn) {
+  var nameId = prefix + 'Split' + n + 'Name', pctId = prefix + 'Split' + n + 'Pct', amtId = prefix + 'Split' + n + 'Amt';
+  return '<tr>'
+    + '<td style="padding:5px 8px;"><input type="text" id="' + nameId + '" value="' + (defName || '') + '" ' + (readonly ? 'readonly' : '') + ' placeholder="FSD name" oninput="' + updateFn + '()" style="width:100%;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;box-sizing:border-box;' + (readonly ? 'background:#f0f2f8;' : '') + '"></td>'
+    + '<td style="padding:5px 8px;"><input type="number" id="' + pctId + '" value="' + defPct + '" min="0" max="100" oninput="' + updateFn + '()" style="width:65px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td id="' + amtId + '" style="padding:5px 8px;text-align:center;">$0.00</td>'
+    + '</tr>';
+}
+// Shared Commission Worksheet layout for RIC + At-Need (identical shape, different rates).
+function clWorksheetHtml(prefix, rates, updateFn, opts) {
+  opts = opts || {};
+  var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">'
+    + clField(prefix + 'FSD', 'Primary FSD', 'Martice Morrison', true)
+    + clField(prefix + 'Purchaser', 'Purchaser Name', '', false)
+    + clField(prefix + 'Recipient', 'Recipient / Deceased Name', '', false)
+    + clField(prefix + 'DateOfSale', 'Date of Sale', '', false)
+    + '</div>'
+    + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
+    + clField(prefix + 'PropDesig', 'Property Designation', '', false, 'Manual entry')
+    + (opts.showPmtReceived ? '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Total Payment Received</label>'
+        + '<input type="number" id="' + prefix + 'PmtReceived" step="0.01" oninput="' + updateFn + '()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>' : '')
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">'
+    + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
+    + '<th style="padding:6px 8px;">Commissionable Sale</th><th style="padding:6px 8px;">Rate</th>'
+    + '<th style="padding:6px 8px;">MGR % Adj</th><th style="padding:6px 8px;">MGR $ Adj</th><th style="padding:6px 8px;">Commission</th></tr></thead><tbody>'
+    + clCommRow(prefix, 'Crem', 'Property: Cremation', rates.crem, updateFn)
+    + clCommRow(prefix, 'Noncrem', 'Property: Non-Cremation', rates.noncrem, updateFn)
+    + clCommRow(prefix, 'Merch', 'Merchandise', rates.merch, updateFn)
+    + '</tbody><tfoot><tr style="font-weight:700;border-top:2px solid var(--navy);"><td colspan="5" style="padding:8px;text-align:right;">Total Commission</td>'
+    + '<td id="' + prefix + 'TotalComm" style="padding:8px;text-align:center;">$0.00</td></tr></tfoot></table>'
+    + (opts.showRewrite ? ('<div style="margin-bottom:14px;padding:10px 12px;background:#fff8e6;border:1px solid #e0c46a;border-radius:8px;">'
+        + '<label style="font-size:12px;"><input type="checkbox" id="' + prefix + 'Rewrite" onchange="' + updateFn + '()"> <strong>Rewrite Stipend applies</strong> <span style="font-weight:400;color:var(--text-light);">(overrides Total Commission above — see "Pre-Need Cemetery Contract Cancellations &amp; Re-Writes" policy)</span></label>'
+        + '<select id="' + prefix + 'RewriteType" onchange="' + updateFn + '()" style="margin-left:10px;padding:4px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">'
+        + '<option value="property">Contract Includes Property — $200</option><option value="merch">Merch/Services Only — $100</option></select></div>') : '')
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:6px;">Commission Splits <span style="font-weight:400;text-transform:none;color:var(--text-light);">— manual, defaults to 100% Primary FSD</span></div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#eef1f6;"><th style="padding:5px 8px;text-align:left;">FSD</th><th style="padding:5px 8px;">Split %</th><th style="padding:5px 8px;">Split $</th></tr></thead><tbody>'
+    + clSplitRow(prefix, 1, 'Martice Morrison', 100, false, updateFn)
+    + clSplitRow(prefix, 2, '', 0, false, updateFn)
+    + clSplitRow(prefix, 3, '', 0, false, updateFn)
+    + clSplitRow(prefix, 4, '', 0, false, updateFn)
+    + '</tbody></table>';
+  return html;
+}
+// Recompute the shared worksheet's totals (RIC + At-Need). Returns the numbers used for PDF export.
+function clWorksheetRecalc(prefix, rates) {
+  var cremComm    = clRowCommission(prefix+'CremSale',    prefix+'CremMgrPct',    prefix+'CremMgrDollar',    rates.crem);
+  var noncremComm = clRowCommission(prefix+'NoncremSale', prefix+'NoncremMgrPct', prefix+'NoncremMgrDollar', rates.noncrem);
+  var merchComm   = clRowCommission(prefix+'MerchSale',   prefix+'MerchMgrPct',   prefix+'MerchMgrDollar',   rates.merch);
+  el(prefix+'CremComm')    && (el(prefix+'CremComm').textContent    = fmt(cremComm));
+  el(prefix+'NoncremComm') && (el(prefix+'NoncremComm').textContent = fmt(noncremComm));
+  el(prefix+'MerchComm')   && (el(prefix+'MerchComm').textContent   = fmt(merchComm));
+  var subtotal = cremComm + noncremComm + merchComm;
+  var isRewrite = chk(prefix+'Rewrite');
+  var rewriteType = val(prefix+'RewriteType');
+  var total = isRewrite ? (rewriteType === 'merch' ? 100 : 200) : subtotal;
+  el(prefix+'TotalComm') && (el(prefix+'TotalComm').textContent = fmt(total));
+  // Commission splits: Primary FSD % auto-fills to 100 - others (floor 0), matching the
+  // worksheet's I25 "=100%-I26-I27-I28" formula; splits 2-4 stay purely manual.
+  var pct2 = num(prefix+'Split2Pct'), pct3 = num(prefix+'Split3Pct'), pct4 = num(prefix+'Split4Pct');
+  var pct1 = Math.max(0, 100 - pct2 - pct3 - pct4);
+  var p1El = el(prefix+'Split1Pct'); if (p1El) p1El.value = pct1;
+  [1,2,3,4].forEach(function(n){
+    var pct = n === 1 ? pct1 : num(prefix+'Split'+n+'Pct');
+    var amtEl = el(prefix+'Split'+n+'Amt');
+    if (amtEl) amtEl.textContent = fmt(total * (pct/100));
+  });
+  return { cremComm: cremComm, noncremComm: noncremComm, merchComm: merchComm, total: total, isRewrite: isRewrite };
+}
+function clAdminHtml(prefix, updateFn) {
+  return '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">'
+    + '<div style="flex:1;min-width:200px;"><label style="font-size:12px;">Prices Confirmed By</label>'
+    + '<input type="text" id="' + prefix + 'PricesConfirmedBy" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>'
+    + '<div style="flex:1;min-width:200px;"><label style="font-size:12px;color:var(--text-light);">Date Submitted to Sales &amp; Mktg Admin Asst. <span style="font-size:10px;">(filled by admin, downstream)</span></label>'
+    + '<input type="date" id="' + prefix + 'DateSubmitted" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>'
+    + '</div>'
+    + '<label style="font-size:12px;">Comments</label>'
+    + '<textarea id="' + prefix + 'Comments" rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;font-family:inherit;"></textarea>';
+}
+// Renders a document checklist from a data array of {label, sub, indent, header, emphasize}.
+// Purely manual — Martice checks these off herself; nothing here is auto-detected.
+function clRenderChecklist(containerId, items, prefix) {
+  var box = el(containerId); if (!box) return;
+  var html = '';
+  items.forEach(function(it, i) {
+    if (it.header) { html += '<div style="font-size:12px;font-weight:600;margin:8px 0 4px;">' + it.header + '</div>'; return; }
+    var cbId = prefix + 'Item' + i;
+    html += '<label style="display:flex;align-items:flex-start;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer;' + (it.indent ? 'margin-left:22px;' : '') + (it.emphasize ? 'color:#b91c1c;font-weight:700;' : '') + '">'
+      + '<input type="checkbox" id="' + cbId + '" style="margin-top:2px;">'
+      + '<span>' + it.label + (it.sub ? '<br><span style="font-size:11px;font-weight:400;color:var(--text-light);">' + it.sub + '</span>' : '') + '</span></label>';
+  });
+  box.innerHTML = html;
+}
+function clChecklistState(items, prefix) {
+  return items.filter(function(it){ return !it.header; }).map(function(it, i) {
+    return { label: it.label, sub: it.sub || '', indent: !!it.indent, emphasize: !!it.emphasize, checked: chk(prefix + 'Item' + items.indexOf(it)) };
+  });
+}
+// index.indexOf(it) above is O(n^2) for long lists but these checklists are ~10-15 items — fine.
+
+var CL_ITEMS_RIC = [
+  {label:'Commission Worksheet'},
+  {label:'RIC Contract', sub:'Including terms & conditions / reduced to letter size'},
+  {label:'Electronic Document Disclosure & Consent', sub:'if applicable'},
+  {label:'Copy of Payment'},
+  {label:'Memorial Order Form'},
+  {label:'Cemetery Rules & Regulations'},
+  {header:'Does contract include new property? Then include:'},
+  {label:'Phoenix Property Print Out', indent:true},
+  {label:'Chaindex Copy', indent:true},
+  {label:'CRM Printout'},
+  {label:'Affidavit of Heirs'}
+];
+var CL_ITEMS_ATNEED = [
+  {label:'Commission Worksheet'},
+  {label:'CIRGAS Contract', sub:'Including terms & conditions / reduced to letter size — confirms the manual/paper contract was completed (no CIRGAS builder in this tool)'},
+  {label:'Electronic Document Disclosure & Consent', sub:'if applicable'},
+  {label:'Copy of Payment'},
+  {label:'Copy of Confirmation of Balance Owing', sub:'From Cemetery Office, or partial calculation from accounting'},
+  {label:'Copy of IOA', sub:'if this is NOT scheduled, use RIC instead'},
+  {label:'Memorial Order Form', sub:'if applicable'},
+  {label:'Cemetery Rules & Regulations'},
+  {header:'Does contract include new property? Then include:'},
+  {label:'Phoenix Property Print Out', indent:true},
+  {label:'Chaindex Copy', indent:true},
+  {label:'CRM Printout'},
+  {label:'Affidavit of Heirs'},
+  {label:'Did you give appropriate copies to Cemetery Office????', emphasize:true}
+];
+var CL_ITEMS_CP = [
+  {label:'Commission Worksheet'},
+  {label:'Electronic Document Disclosure & Consent', sub:'if applicable'},
+  {label:'Copy of Payment', sub:'Imminent: check payable to Bonney Watson, or Credit Card processed thru Gravity Link · Cash: copy of BW receipt · Check/CC: copy of check or receipt'},
+  {label:'CRM Printout'},
+  {label:'Cremation Authorization', sub:'if applicable'},
+  {label:'Power of Attorney', sub:'if applicable'}
+];
+
+// ── RIC Checklist ──
+function riclImport() {
+  var name = val('ricName').trim();
+  if (!name) {
+    el('riclImportDisplay').innerHTML = '<span style="color:#b45309;">No RIC contract found — fill in the Pre-Need RIC Contract tab (at least Purchaser Name) first.</span>';
+    return;
+  }
+  el('riclPurchaser').value   = name;
+  el('riclRecipient').value   = val('ricBenefit').trim();
+  el('riclDateOfSale').value  = val('ricContractDate');
+  el('riclPmtReceived').value = num('ricDownAmt') || 0;
+  var lines = (typeof _ricPricing !== 'undefined' && _ricPricing && _ricPricing.lines) ? _ricPricing.lines : [];
+  if (!lines.length) {
+    el('riclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser/date imported, but no pricing found — use "Import from Cemetery Quote" on the RIC Contract tab first, then re-import here.</span>';
+  } else {
+    var bucket = clCremationBucket(lines);
+    var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
+    el('riclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
+    el('riclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
+    el('riclMerchSale').value   = merchTotal.toFixed(2);
+    el('riclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+  }
+  riclUpdate();
+}
+function riclUpdate() { clWorksheetRecalc('ricl', CL_RATES.ric); }
+function riclClearAll() {
+  ['riclPurchaser','riclRecipient','riclDateOfSale','riclPropDesig','riclPmtReceived',
+   'riclCremSale','riclCremMgrPct','riclCremMgrDollar','riclNoncremSale','riclNoncremMgrPct','riclNoncremMgrDollar',
+   'riclMerchSale','riclMerchMgrPct','riclMerchMgrDollar',
+   'riclSplit2Name','riclSplit2Pct','riclSplit3Name','riclSplit3Pct','riclSplit4Name','riclSplit4Pct',
+   'riclPricesConfirmedBy','riclDateSubmitted','riclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
+  if (el('riclSplit1Pct')) el('riclSplit1Pct').value = 100;
+  if (el('riclRewrite'))   el('riclRewrite').checked = false;
+  clRenderChecklist('riclChecklistBody', CL_ITEMS_RIC, 'ricl');
+  el('riclImportDisplay').innerHTML = 'Generate or load a RIC contract first, then click Import.';
+  riclUpdate();
+}
+function riclGeneratePdf() {
+  var r = clWorksheetRecalc('ricl', CL_RATES.ric);
+  var data = {
+    type: 'RIC', typeLabel: 'RIC (Retail Installment Contract)', typeColorHex: '2e7d32',
+    fsd: val('riclFSD'), purchaser: val('riclPurchaser'), recipient: val('riclRecipient'),
+    dateOfSale: val('riclDateOfSale'), propertyDesignation: val('riclPropDesig'),
+    commRows: [
+      { label: 'Property: Cremation',     sale: num('riclCremSale'),    rate: CL_RATES.ric.crem,    mgrPct: num('riclCremMgrPct'),    mgrDollar: num('riclCremMgrDollar'),    commission: r.cremComm },
+      { label: 'Property: Non-Cremation', sale: num('riclNoncremSale'), rate: CL_RATES.ric.noncrem, mgrPct: num('riclNoncremMgrPct'), mgrDollar: num('riclNoncremMgrDollar'), commission: r.noncremComm },
+      { label: 'Merchandise',             sale: num('riclMerchSale'),   rate: CL_RATES.ric.merch,   mgrPct: num('riclMerchMgrPct'),   mgrDollar: num('riclMerchMgrDollar'),   commission: r.merchComm }
+    ],
+    isRewrite: r.isRewrite, rewriteType: val('riclRewriteType'),
+    totalCommission: r.total,
+    pmtReceived: num('riclPmtReceived'),
+    splits: [1,2,3,4].map(function(n){ return { name: val('riclSplit'+n+'Name'), pct: num('riclSplit'+n+'Pct'), amt: r.total * (num('riclSplit'+n+'Pct')/100) }; }),
+    checklistItems: clChecklistState(CL_ITEMS_RIC, 'ricl'),
+    pricesConfirmedBy: val('riclPricesConfirmedBy'), dateSubmitted: val('riclDateSubmitted'), comments: val('riclComments')
+  };
+  _buildChecklistPDF(data);
+}
+
+// ── At-Need Cemetery Checklist ──
+function anclImport() {
+  var name = val('cemClientName').trim();
+  if (!name) {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">No client name found — fill in the Cemetery Quote Builder (Client Information) first.</span>';
+    return;
+  }
+  if (typeof cemQuoteType === 'function' && cemQuoteType() !== 'atneed') {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Cemetery Quote Builder is set to Pre-Need, not At-Need. Switch its Quote Type to At-Need before importing here.</span>';
+    return;
+  }
+  el('anclPurchaser').value  = name;
+  el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
+  var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
+  if (!lines.length) {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Client name imported, but the Cemetery Quote is empty — add items in the Quote Builder, then re-import here.</span>';
+  } else {
+    var bucket = clCremationBucket(lines);
+    var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
+    el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
+    el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
+    el('anclMerchSale').value   = merchTotal.toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+  }
+  anclUpdate();
+}
+function anclUpdate() { clWorksheetRecalc('ancl', CL_RATES.atneed); }
+function anclClearAll() {
+  ['anclPurchaser','anclRecipient','anclDateOfSale','anclPropDesig',
+   'anclCremSale','anclCremMgrPct','anclCremMgrDollar','anclNoncremSale','anclNoncremMgrPct','anclNoncremMgrDollar',
+   'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar',
+   'anclSplit2Name','anclSplit2Pct','anclSplit3Name','anclSplit3Pct','anclSplit4Name','anclSplit4Pct',
+   'anclPricesConfirmedBy','anclDateSubmitted','anclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
+  if (el('anclSplit1Pct')) el('anclSplit1Pct').value = 100;
+  if (el('anclRewrite'))   el('anclRewrite').checked = false;
+  clRenderChecklist('anclChecklistBody', CL_ITEMS_ATNEED, 'ancl');
+  el('anclImportDisplay').innerHTML = 'Set the Cemetery Quote Builder\'s Quote Type to At-Need and build the quote first, then click Import.';
+  anclUpdate();
+}
+function anclGeneratePdf() {
+  var r = clWorksheetRecalc('ancl', CL_RATES.atneed);
+  var data = {
+    type: 'CIRGAS', typeLabel: 'At-Need Cemetery (CIRGAS)', typeColorHex: 'c0392b',
+    fsd: val('anclFSD'), purchaser: val('anclPurchaser'), recipient: val('anclRecipient'),
+    dateOfSale: val('anclDateOfSale'), propertyDesignation: val('anclPropDesig'),
+    commRows: [
+      { label: 'Property: Cremation',     sale: num('anclCremSale'),    rate: CL_RATES.atneed.crem,    mgrPct: num('anclCremMgrPct'),    mgrDollar: num('anclCremMgrDollar'),    commission: r.cremComm },
+      { label: 'Property: Non-Cremation', sale: num('anclNoncremSale'), rate: CL_RATES.atneed.noncrem, mgrPct: num('anclNoncremMgrPct'), mgrDollar: num('anclNoncremMgrDollar'), commission: r.noncremComm },
+      { label: 'Merchandise',             sale: num('anclMerchSale'),   rate: CL_RATES.atneed.merch,   mgrPct: num('anclMerchMgrPct'),   mgrDollar: num('anclMerchMgrDollar'),   commission: r.merchComm }
+    ],
+    isRewrite: r.isRewrite, rewriteType: val('anclRewriteType'),
+    totalCommission: r.total,
+    splits: [1,2,3,4].map(function(n){ return { name: val('anclSplit'+n+'Name'), pct: num('anclSplit'+n+'Pct'), amt: r.total * (num('anclSplit'+n+'Pct')/100) }; }),
+    checklistItems: clChecklistState(CL_ITEMS_ATNEED, 'ancl'),
+    pricesConfirmedBy: val('anclPricesConfirmedBy'), dateSubmitted: val('anclDateSubmitted'), comments: val('anclComments')
+  };
+  _buildChecklistPDF(data);
+}
+
+// ── ClearPoint Checklist ──
+// Flat 3% commission on Total Funeral Price (excludes cash advance items), capped at the
+// down payment amount. ClearPoint's own PDF generator computes "Total Funeral Price" from
+// many individual DOM fields; rather than duplicating that whole calculation, this estimates
+// cash-advance items from _fhLines by the same label patterns ClearPoint itself uses for its
+// non-guaranteed allowance (death certs, county fee, obituary, limousine, moto escort, P3
+// flowers) and subtracts them from _fhTotal. Pre-filled but editable — verify before printing.
+var CP_CASH_ADVANCE_RE = /Death Cert|County|Medical Examiner|Coroner|Permit|^Obituary|^Flowers:|Limousine|Motorcycle Escort/i;
+function cpclImport() {
+  var first = val('cpFirstName').trim(), last = val('cpLastName').trim();
+  var name = (first + ' ' + last).trim();
+  if (!name) {
+    el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">No ClearPoint contract found — fill in the Pre-Need Contract (ClearPoint) tab (at least the Purchaser name) first.</span>';
+    return;
+  }
+  el('cpclPurchaser').value  = name;
+  el('cpclDateOfSale').value = val('cpContractDate');
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var fhTotal = (typeof _fhTotal !== 'undefined') ? _fhTotal : 0;
+  if (!lines.length || fhTotal <= 0) {
+    el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser/date imported, but no pricing found — build the Funeral Home Quote and import it into ClearPoint first, then re-import here.</span>';
+  } else {
+    var cashAdvance = lines.filter(function(l){ return !l.isDiscount && CP_CASH_ADVANCE_RE.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
+    var commSale = Math.max(0, fhTotal - cashAdvance);
+    el('cpclSale').value = commSale.toFixed(2);
+    el('cpclDownPayment').value = num('cpDownPayment') || 0;
+    el('cpclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Total Funeral Price (excl. cash advance, est.): ' + fmt(commSale) + '. Review/adjust before generating the PDF.</span>';
+  }
+  cpclUpdate();
+}
+function cpclUpdate() {
+  var sale = num('cpclSale'), mgrPct = num('cpclMgrPct'), mgrDollar = num('cpclMgrDollar'), downPmt = num('cpclDownPayment');
+  var base = sale * 0.03;
+  var adj = mgrPct !== 0 ? sale * (mgrPct/100) : (mgrDollar !== 0 ? mgrDollar : 0);
+  var raw = base + adj;
+  var capped = (downPmt > 0) ? Math.min(raw, downPmt) : raw;
+  el('cpclComm') && (el('cpclComm').textContent = fmt(capped));
+  var capNote = el('cpclCapNote');
+  if (capNote) capNote.style.display = (downPmt > 0 && raw > downPmt) ? 'block' : 'none';
+  var pct2 = num('cpclSplit2Pct'), pct3 = num('cpclSplit3Pct'), pct4 = num('cpclSplit4Pct');
+  var pct1 = Math.max(0, 100 - pct2 - pct3 - pct4);
+  if (el('cpclSplit1Pct')) el('cpclSplit1Pct').value = pct1;
+  [1,2,3,4].forEach(function(n){
+    var pct = n === 1 ? pct1 : num('cpclSplit'+n+'Pct');
+    var amtEl = el('cpclSplit'+n+'Amt');
+    if (amtEl) amtEl.textContent = fmt(capped * (pct/100));
+  });
+  return { raw: raw, capped: capped };
+}
+function cpclClearAll() {
+  ['cpclPurchaser','cpclRecipient','cpclDateOfSale','cpclSale','cpclMgrPct','cpclMgrDollar','cpclDownPayment',
+   'cpclSplit2Name','cpclSplit2Pct','cpclSplit3Name','cpclSplit3Pct','cpclSplit4Name','cpclSplit4Pct',
+   'cpclPricesConfirmedBy','cpclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
+  if (el('cpclSplit1Pct')) el('cpclSplit1Pct').value = 100;
+  var tr = document.querySelector('input[name="cpclTrustReason"][value="Trust Policy"]'); if (tr) tr.checked = true;
+  clRenderChecklist('cpclChecklistBody', CL_ITEMS_CP, 'cpcl');
+  el('cpclImportDisplay').innerHTML = 'Generate or load a ClearPoint contract first, then click Import.';
+  cpclUpdate();
+}
+function cpclGeneratePdf() {
+  var r = cpclUpdate();
+  var trustReasonEl = document.querySelector('input[name="cpclTrustReason"]:checked');
+  var data = {
+    type: 'CLEARPOINT', typeLabel: 'ClearPoint Trust', typeColorHex: '6a3fa0',
+    fsd: val('cpclFSD'), purchaser: val('cpclPurchaser'), recipient: val('cpclRecipient'),
+    dateOfSale: val('cpclDateOfSale'), propertyDesignation: '',
+    commRows: [
+      { label: 'Total Funeral Price (excl. cash advance)', sale: num('cpclSale'), rate: 0.03, mgrPct: num('cpclMgrPct'), mgrDollar: num('cpclMgrDollar'), commission: r.raw }
+    ],
+    cpCap: { downPayment: num('cpclDownPayment'), capped: r.capped, wasCapped: r.raw > r.capped },
+    isRewrite: false,
+    totalCommission: r.capped,
+    trustReason: trustReasonEl ? trustReasonEl.value : '',
+    reminder: 'NON-GUARANTEED BOX MUST BE CHECKED!!!',
+    splits: [1,2,3,4].map(function(n){ return { name: val('cpclSplit'+n+'Name'), pct: num('cpclSplit'+n+'Pct'), amt: r.capped * (num('cpclSplit'+n+'Pct')/100) }; }),
+    checklistItems: clChecklistState(CL_ITEMS_CP, 'cpcl'),
+    pricesConfirmedBy: val('cpclPricesConfirmedBy'), dateSubmitted: null, comments: val('cpclComments')
+  };
+  _buildChecklistPDF(data);
+}
+function cpclWorksheetHtml() {
+  var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">'
+    + clField('cpclFSD', 'Primary FSD', 'Martice Morrison', true)
+    + clField('cpclPurchaser', 'Purchaser Name', '', false)
+    + clField('cpclRecipient', 'Recipient / Deceased Name', '', false)
+    + clField('cpclDateOfSale', 'Date of Sale', '', false)
+    + '</div>'
+    + '<div style="margin-bottom:14px;">'
+    + '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Why are you issuing a Trust versus a GA Policy?</label>'
+    + ['Imminent','Not-Qualified for GA Policy','Trust Policy'].map(function(opt){
+        return '<label style="margin-right:16px;font-size:12px;"><input type="radio" name="cpclTrustReason" value="' + opt + '" ' + (opt === 'Trust Policy' ? 'checked' : '') + '> ' + opt + '</label>';
+      }).join('')
+    + '</div>'
+    + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
+    + '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Down Payment Amount <span style="font-size:10px;color:var(--text-light);">(commission cap ceiling)</span></label>'
+    + '<input type="number" id="cpclDownPayment" step="0.01" oninput="cpclUpdate()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>'
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;">'
+    + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
+    + '<th style="padding:6px 8px;">Commissionable Sale</th><th style="padding:6px 8px;">Rate</th>'
+    + '<th style="padding:6px 8px;">MGR % Adj</th><th style="padding:6px 8px;">MGR $ Adj</th><th style="padding:6px 8px;">Commission</th></tr></thead><tbody>'
+    + '<tr><td style="padding:6px 8px;">Funeral Trust <span style="font-size:10px;color:var(--text-light);">(Total Funeral Price, excl. cash advance)</span></td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="cpclSale" step="0.01" min="0" oninput="cpclUpdate()" style="width:100px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td style="padding:6px 8px;text-align:center;">3%</td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="cpclMgrPct" step="0.1" oninput="clMgrExclusive(\'cpclMgrPct\',\'cpclMgrDollar\');cpclUpdate()" style="width:65px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td style="padding:6px 8px;"><input type="number" id="cpclMgrDollar" step="0.01" oninput="clMgrExclusive(\'cpclMgrDollar\',\'cpclMgrPct\');cpclUpdate()" style="width:75px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
+    + '<td id="cpclComm" style="padding:6px 8px;text-align:center;font-weight:700;color:var(--navy);">$0.00</td></tr>'
+    + '</tbody></table>'
+    + '<div id="cpclCapNote" style="display:none;font-size:11px;color:#b45309;background:#fff8e6;border:1px solid #e0c46a;border-radius:6px;padding:6px 10px;margin-bottom:14px;">Commission capped at the down payment amount (3% of sale would exceed it).</div>'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:6px;">Commission Splits <span style="font-weight:400;text-transform:none;color:var(--text-light);">— manual, defaults to 100% Primary FSD</span></div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#eef1f6;"><th style="padding:5px 8px;text-align:left;">FSD</th><th style="padding:5px 8px;">Split %</th><th style="padding:5px 8px;">Split $</th></tr></thead><tbody>'
+    + clSplitRow('cpcl', 1, 'Martice Morrison', 100, false, 'cpclUpdate')
+    + clSplitRow('cpcl', 2, '', 0, false, 'cpclUpdate')
+    + clSplitRow('cpcl', 3, '', 0, false, 'cpclUpdate')
+    + clSplitRow('cpcl', 4, '', 0, false, 'cpclUpdate')
+    + '</tbody></table>';
+  return html;
+}
+
+// Builds the exportable Commission Packet Checklist PDF. Not a replica of the Excel grid —
+// a clean readable layout matching the look of the existing RIC/ClearPoint/CIRGAS checklist
+// PDFs (blue title bar, colored type subtitle, checkbox list, orange admin-section header).
+async function _buildChecklistPDF(data) {
+  try {
+    if (typeof PDFLib === 'undefined') throw new Error('PDF library not loaded. Reload the page and try again.');
+    var PDFDocument = PDFLib.PDFDocument, rgb = PDFLib.rgb, StandardFonts = PDFLib.StandardFonts;
+    var BLUE  = rgb(0.12, 0.35, 0.75);
+    var DARK  = rgb(0.13, 0.13, 0.13);
+    var MUTED = rgb(0.45, 0.45, 0.45);
+    var ORANGE = rgb(0.78, 0.33, 0.04);
+    var LGRAY = rgb(0.88, 0.88, 0.88);
+    var typeColor = (function(){
+      var h = data.typeColorHex;
+      var r = parseInt(h.substr(0,2),16)/255, g = parseInt(h.substr(2,2),16)/255, b = parseInt(h.substr(4,2),16)/255;
+      return rgb(r,g,b);
+    })();
+    function safeText(s) {
+      if (s == null) return '';
+      return String(s).replace(/[‐-―−]/g,'-').replace(/[''']/g,"'").replace(/[""]/g,'"').replace(/…/g,'...').replace(/·/g,'\xb7').replace(/ /g,' ').replace(/[^\x00-\xFF]/g,'');
+    }
+    var doc = await PDFDocument.create();
+    var bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    var reg  = await doc.embedFont(StandardFonts.Helvetica);
+    var PW = 612, PH = 792, M = 48, RX = PW - 48;
+    var page = doc.addPage([PW, PH]);
+    var y = PH - 50;
+
+    page.drawText('COMMISSION PACKET CHECKLIST', {x: M, y: y, size: 18, font: bold, color: BLUE});
+    y -= 8;
+    page.drawRectangle({x: M, y: y, width: RX - M, height: 3, color: BLUE});
+    y -= 26;
+    page.drawText(safeText(data.typeLabel).toUpperCase(), {x: M, y: y, size: 15, font: bold, color: typeColor});
+    y -= 30;
+
+    function fmtMoney(n) { return '$' + (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function labelBox(label, value) {
+      page.drawText(label, {x: M, y: y, size: 10, font: reg, color: DARK});
+      var lw = reg.widthOfTextAtSize(label, 10);
+      page.drawLine({start:{x:M+lw+4,y:y-2}, end:{x:RX,y:y-2}, thickness: 0.7, color: DARK});
+      if (value) page.drawText(safeText(String(value)), {x: M+lw+8, y: y, size: 10, font: reg, color: DARK});
+      y -= 20;
+    }
+    labelBox('FSD:', data.fsd);
+    labelBox('PURCHASER:', data.purchaser);
+    labelBox('RECIPIENT:', data.recipient);
+    labelBox('DATE OF SALE:', data.dateOfSale);
+    if (data.propertyDesignation) labelBox('PROPERTY DESIGNATION:', data.propertyDesignation);
+    y -= 4;
+
+    // Commission Worksheet
+    page.drawRectangle({x: M, y: y-4, width: RX-M, height: 18, color: rgb(0.93,0.94,0.97)});
+    page.drawText('COMMISSION WORKSHEET', {x: M+6, y: y, size: 9.5, font: bold, color: DARK});
+    y -= 22;
+    (data.commRows || []).forEach(function(row) {
+      var adjNote = '';
+      if (row.mgrPct)    adjNote = '  (MGR Adj: ' + (row.mgrPct>0?'+':'') + row.mgrPct + '%)';
+      else if (row.mgrDollar) adjNote = '  (MGR Adj: ' + (row.mgrDollar>0?'+':'') + fmtMoney(row.mgrDollar) + ')';
+      var line = safeText(row.label) + '  —  Sale: ' + fmtMoney(row.sale) + '  \xb7  Rate: ' + (row.rate*100) + '%' + adjNote;
+      page.drawText(line, {x: M+4, y: y, size: 9.5, font: reg, color: DARK});
+      var commStr = fmtMoney(row.commission);
+      var cw = bold.widthOfTextAtSize(commStr, 9.5);
+      page.drawText(commStr, {x: RX-cw, y: y, size: 9.5, font: bold, color: DARK});
+      y -= 16;
+    });
+    if (data.cpCap) {
+      page.drawText('Down Payment (cap): ' + fmtMoney(data.cpCap.downPayment) + (data.cpCap.wasCapped ? '  —  commission capped to this amount' : ''), {x: M+4, y: y, size: 8.5, font: reg, color: MUTED});
+      y -= 16;
+    }
+    if (data.isRewrite) {
+      page.drawText('REWRITE STIPEND APPLIES — overrides commission above (' + (data.rewriteType === 'merch' ? 'Merch/Services Only: $100' : 'Includes Property: $200') + ')', {x: M+4, y: y, size: 9, font: bold, color: ORANGE});
+      y -= 16;
+    }
+    y -= 4;
+    page.drawLine({start:{x:M,y:y},end:{x:RX,y:y},thickness:1, color: DARK});
+    y -= 16;
+    page.drawText('TOTAL COMMISSION', {x: M+4, y: y, size: 11, font: bold, color: DARK});
+    var totStr = fmtMoney(data.totalCommission);
+    var tw = bold.widthOfTextAtSize(totStr, 12);
+    page.drawText(totStr, {x: RX-tw, y: y, size: 12, font: bold, color: BLUE});
+    y -= 26;
+
+    // Commission Splits
+    page.drawText('COMMISSION SPLITS', {x: M, y: y, size: 9, font: bold, color: MUTED});
+    y -= 14;
+    (data.splits || []).forEach(function(s) {
+      if (!s.name && s.pct <= 0) return;
+      var line = safeText(s.name || '(unassigned)') + '  —  ' + s.pct + '%';
+      page.drawText(line, {x: M+4, y: y, size: 9, font: reg, color: DARK});
+      var amtStr = fmtMoney(s.amt);
+      var aw = reg.widthOfTextAtSize(amtStr, 9);
+      page.drawText(amtStr, {x: RX-aw, y: y, size: 9, font: reg, color: DARK});
+      y -= 14;
+    });
+    y -= 10;
+
+    // Document Checklist
+    page.drawRectangle({x: M, y: y-4, width: RX-M, height: 18, color: rgb(0.93,0.94,0.97)});
+    page.drawText('DOCUMENT CHECKLIST', {x: M+6, y: y, size: 9.5, font: bold, color: DARK});
+    y -= 24;
+    if (data.trustReason) {
+      page.drawText('Why issuing a Trust vs GA Policy:  ' + safeText(data.trustReason), {x: M+4, y: y, size: 9.5, font: reg, color: DARK});
+      y -= 16;
+    }
+    (data.checklistItems || []).forEach(function(it) {
+      if (y < 90) { page = doc.addPage([PW, PH]); y = PH - 50; }
+      // Draw an actual box + checkmark instead of a "☑"/"☐" glyph — pdf-lib's standard
+      // WinAnsi-encoded fonts can't encode those Unicode characters and throw at draw time.
+      var boxSize = 9, boxX = M+4, boxY = y - 1;
+      page.drawRectangle({x: boxX, y: boxY, width: boxSize, height: boxSize, borderColor: DARK, borderWidth: 0.8, color: rgb(1,1,1)});
+      if (it.checked) {
+        page.drawLine({start:{x:boxX+1.5, y:boxY+4}, end:{x:boxX+3.5, y:boxY+1.5}, thickness: 1.2, color: DARK});
+        page.drawLine({start:{x:boxX+3.5, y:boxY+1.5}, end:{x:boxX+7.5, y:boxY+8}, thickness: 1.2, color: DARK});
+      }
+      var color = it.emphasize ? rgb(0.72,0.11,0.11) : DARK;
+      page.drawText(safeText(it.label), {x: boxX+boxSize+6, y: y, size: 10, font: it.emphasize ? bold : reg, color: color});
+      y -= 14;
+      if (it.sub) {
+        page.drawText(safeText(it.sub), {x: M+22, y: y, size: 8, font: reg, color: MUTED});
+        y -= 14;
+      }
+    });
+    if (data.reminder) {
+      y -= 6;
+      var remStr = safeText(data.reminder), remW = bold.widthOfTextAtSize(remStr, 11);
+      page.drawRectangle({x: (PW-remW)/2 - 10, y: y-6, width: remW+20, height: 20, color: rgb(0.98,0.92,0.92), borderColor: rgb(0.72,0.11,0.11), borderWidth: 1});
+      page.drawText(remStr, {x: (PW-remW)/2, y: y, size: 11, font: bold, color: rgb(0.72,0.11,0.11)});
+      y -= 26;
+    }
+    y -= 10;
+
+    // Admin section
+    if (y < 130) { page = doc.addPage([PW, PH]); y = PH - 50; }
+    page.drawLine({start:{x:M,y:y},end:{x:RX,y:y},thickness: 2, color: BLUE});
+    y -= 16;
+    page.drawText('FOR SALES & MARKETING ADMINISTRATIVE ASSISTANT', {x: M, y: y, size: 9.5, font: bold, color: ORANGE});
+    y -= 20;
+    labelBox('PRICES CONFIRMED BY:', data.pricesConfirmedBy);
+    if (data.dateSubmitted !== null) labelBox('DATE SUBMITTED:', data.dateSubmitted);
+    y -= 4;
+    page.drawText('Comments', {x: M, y: y, size: 9, font: reg, color: MUTED, opacity: 0.9});
+    y -= 6;
+    page.drawRectangle({x: M, y: y-50, width: RX-M, height: 50, borderColor: DARK, borderWidth: 1, color: rgb(1,1,1)});
+    if (data.comments) {
+      var words = safeText(data.comments).split(/\s+/), cLine = '', cy = y - 12;
+      words.forEach(function(w) {
+        var test = cLine ? cLine + ' ' + w : w;
+        if (reg.widthOfTextAtSize(test, 9) > RX - M - 16) { page.drawText(cLine, {x: M+8, y: cy, size: 9, font: reg, color: DARK}); cLine = w; cy -= 12; }
+        else cLine = test;
+      });
+      if (cLine) page.drawText(cLine, {x: M+8, y: cy, size: 9, font: reg, color: DARK});
+    }
+
+    var bytes = await doc.save();
+    var blob = new Blob([bytes], {type: 'application/pdf'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var slug = (data.purchaser || 'Checklist').replace(/[^a-zA-Z0-9]/g, '_');
+    a.href = url;
+    a.download = data.type + '_Checklist_' + slug + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(err) {
+    console.error('Checklist PDF error:', err);
+    alert('Error generating checklist PDF: ' + err.message);
+  }
+}
+
+(function clInit() {
+  var riclBody = el('riclWorksheetBody');
+  if (!riclBody) return;
+  riclBody.innerHTML             = clWorksheetHtml('ricl', CL_RATES.ric,    'riclUpdate', {showPmtReceived: true,  showRewrite: true});
+  el('anclWorksheetBody').innerHTML = clWorksheetHtml('ancl', CL_RATES.atneed, 'anclUpdate', {showPmtReceived: false, showRewrite: false});
+  el('cpclWorksheetBody').innerHTML = cpclWorksheetHtml();
+  el('riclAdminBody').innerHTML = clAdminHtml('ricl');
+  el('anclAdminBody').innerHTML = clAdminHtml('ancl');
+  el('cpclAdminBody').innerHTML = clAdminHtml('cpcl');
+  clRenderChecklist('riclChecklistBody', CL_ITEMS_RIC, 'ricl');
+  clRenderChecklist('anclChecklistBody', CL_ITEMS_ATNEED, 'ancl');
+  clRenderChecklist('cpclChecklistBody', CL_ITEMS_CP, 'cpcl');
+  var cpclBox = el('cpclChecklistBody');
+  if (cpclBox) cpclBox.innerHTML += '<div style="margin-top:10px;padding:10px 12px;background:#fef2f2;border:2px solid #b91c1c;border-radius:8px;color:#b91c1c;font-weight:700;font-size:13px;text-align:center;">⚠️ NON-GUARANTEED BOX MUST BE CHECKED!!! ⚠️</div>';
+  riclUpdate(); anclUpdate(); cpclUpdate();
 })();
 
 </script>
