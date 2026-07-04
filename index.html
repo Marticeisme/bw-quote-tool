@@ -5764,7 +5764,15 @@ function cemUpdate() {
       else if (mode === 'percent_exempt')       { dAmt = exemptTotal  * (dv/100); dLabel = dn + ' (' + dv + '% exempt)'; }
       else if (mode === 'flat_exempt')          { dAmt = dv > 0 ? Math.min(dv, exemptTotal) : 0; dLabel = dn + ' (exempt only)'; }
       // Property-owner G&S quick discounts (no value field needed)
-      else if (mode === 'percent_exempt_10')    { dAmt = exemptTotal  * 0.10; dLabel = '10% off Services (O&C + Recording)'; }
+      else if (mode === 'percent_exempt_10')    {
+        // Scoped to actual O&C (Interment/Entombment/Inurnment) + Recording Fee lines only —
+        // NOT the whole exempt bucket, which would also sweep in Garden space + ECF (property,
+        // not "services"). Was: dAmt = exemptTotal * 0.10, which over-discounted by ~10x on a
+        // typical quote (found via bug sweep, 2026-07-04).
+        var svcLines = lines.filter(function(l){ return !l.isDiscount && !l.isSpace && /Interment|Entombment|Inurnment|Recording/i.test(l.label); });
+        dAmt = svcLines.reduce(function(s,l){ return s + l.amount * 0.10; }, 0);
+        dLabel = '10% off Services (O&C + Recording)';
+      }
       else if (mode === 'percent_taxable_10')   { dAmt = taxableTotal * 0.10; dLabel = '10% off Merchandise'; }
       else if (mode === 'flat_2ndright_10pct')  {
         var rightLines = lines.filter(function(l){ return l.isSecondRight; });
