@@ -391,13 +391,6 @@ tr:hover td{background:#eef3f8;}
           Cannot be combined with any other discount (free Veteran space, etc.) · ECF fees are always required to be paid in full · At-Need property is not eligible.
         </div>
       </div>
-      <div style="flex:1;min-width:240px;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:8px;">Property Owners — Remaining Goods &amp; Services <span style="font-size:9px;color:var(--text-light);">(not combinable with standard incentives above · discounts below combinable with each other)</span></div>
-        <div style="font-size:12px;line-height:2.0;color:var(--text);">
-          <span style="color:var(--orange);font-weight:700;">10% off</span> Additional Rights
-        </div>
-
-      </div>
     </div>
   </div>
 
@@ -5713,9 +5706,8 @@ function cemUpdate() {
     var mode = row.querySelector('.disc-mode').value;
     if (!mode) return;
     var isPromo = mode.indexOf('promo_') === 0;
-    var isQuick = mode === 'flat_2ndright_10pct';
     var valWrap = row.querySelector('.disc-val-wrap');
-    valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show'));
+    valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo ? '' : ' show'));
     var dAmt = 0, dLabel = '';
     if (isPromo) {
       hasPromo = true;
@@ -5761,12 +5753,6 @@ function cemUpdate() {
       else if (mode === 'flat_taxable')         { dAmt = dv > 0 ? Math.min(dv, taxableTotal) : 0; dLabel = dn + ' (taxable only)'; }
       else if (mode === 'percent_exempt')       { dAmt = exemptTotal  * (dv/100); dLabel = dn + ' (' + dv + '% exempt)'; }
       else if (mode === 'flat_exempt')          { dAmt = dv > 0 ? Math.min(dv, exemptTotal) : 0; dLabel = dn + ' (exempt only)'; }
-      // Property-owner G&S quick discounts (no value field needed)
-      else if (mode === 'flat_2ndright_10pct')  {
-        var rightLines = lines.filter(function(l){ return l.isSecondRight; });
-        dAmt = rightLines.reduce(function(s,l){ return s + l.amount * 0.10; }, 0);
-        dLabel = '2nd / 3rd Right Discount — 10% off space';
-      }
     }
     if (dAmt > 0) {
       totalDiscAmt += dAmt;
@@ -5895,7 +5881,6 @@ function addCemDiscount() {
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
     + '<optgroup label="🏷️ July 2026 Incentives (New Property PN)"><option value="promo_burial">July Incentive — Burial/Crypt Placement (10% property + rights)</option><option value="promo_crem">July Incentive — Cremation/Inurnment Placement (10% property + rights)</option><option value="promo_property">July Incentive — Property Only (10% off, incl. additional rights)</option></optgroup>'
-    + '<optgroup label="🏠 Property Owners — Goods &amp; Services"><option value="flat_2ndright_10pct">10% off 2nd Rights</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
@@ -5909,8 +5894,7 @@ function cemDiscModeChange(sel) {
   var row = sel.closest('.disc-row');
   var wrap = row.querySelector('.disc-val-wrap');
   var isPromo = sel.value.indexOf('promo_') === 0;
-  var isQuick = sel.value === 'flat_2ndright_10pct';
-  wrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show');
+  wrap.className = 'disc-val-wrap' + (isPromo ? '' : ' show');
 }
 
 function addFhDiscount() {
