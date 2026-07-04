@@ -394,9 +394,7 @@ tr:hover td{background:#eef3f8;}
       <div style="flex:1;min-width:240px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:8px;">Property Owners — Remaining Goods &amp; Services <span style="font-size:9px;color:var(--text-light);">(not combinable with standard incentives above · discounts below combinable with each other)</span></div>
         <div style="font-size:12px;line-height:2.0;color:var(--text);">
-          <span style="color:var(--orange);font-weight:700;">10% off</span> Additional Rights<br>
-          <span style="color:var(--orange);font-weight:700;">10% off</span> Services<br>
-          <span style="color:var(--orange);font-weight:700;">10% off</span> Merchandise
+          <span style="color:var(--orange);font-weight:700;">10% off</span> Additional Rights
         </div>
 
       </div>
@@ -5715,7 +5713,7 @@ function cemUpdate() {
     var mode = row.querySelector('.disc-mode').value;
     if (!mode) return;
     var isPromo = mode.indexOf('promo_') === 0;
-    var isQuick = mode === 'percent_taxable_10' || mode === 'flat_2ndright_10pct';
+    var isQuick = mode === 'flat_2ndright_10pct';
     var valWrap = row.querySelector('.disc-val-wrap');
     valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show'));
     var dAmt = 0, dLabel = '';
@@ -5764,7 +5762,6 @@ function cemUpdate() {
       else if (mode === 'percent_exempt')       { dAmt = exemptTotal  * (dv/100); dLabel = dn + ' (' + dv + '% exempt)'; }
       else if (mode === 'flat_exempt')          { dAmt = dv > 0 ? Math.min(dv, exemptTotal) : 0; dLabel = dn + ' (exempt only)'; }
       // Property-owner G&S quick discounts (no value field needed)
-      else if (mode === 'percent_taxable_10')   { dAmt = taxableTotal * 0.10; dLabel = '10% off Merchandise'; }
       else if (mode === 'flat_2ndright_10pct')  {
         var rightLines = lines.filter(function(l){ return l.isSecondRight; });
         dAmt = rightLines.reduce(function(s,l){ return s + l.amount * 0.10; }, 0);
@@ -5774,7 +5771,7 @@ function cemUpdate() {
     if (dAmt > 0) {
       totalDiscAmt += dAmt;
       discLabels.push(dLabel);
-      var isTaxableDisc = (mode === 'percent_taxable' || mode === 'flat_taxable' || mode === 'pct10_merch' || mode === 'percent_taxable_10');
+      var isTaxableDisc = (mode === 'percent_taxable' || mode === 'flat_taxable' || mode === 'pct10_merch');
       lines.push({label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc});
     }
   });  // end forEach discount rows
@@ -5898,7 +5895,7 @@ function addCemDiscount() {
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
     + '<optgroup label="🏷️ July 2026 Incentives (New Property PN)"><option value="promo_burial">July Incentive — Burial/Crypt Placement (10% property + rights)</option><option value="promo_crem">July Incentive — Cremation/Inurnment Placement (10% property + rights)</option><option value="promo_property">July Incentive — Property Only (10% off, incl. additional rights)</option></optgroup>'
-    + '<optgroup label="🏠 Property Owners — Goods &amp; Services"><option value="flat_2ndright_10pct">10% off 2nd Rights</option><option value="percent_taxable_10">10% off Merchandise (Taxable)</option></optgroup>'
+    + '<optgroup label="🏠 Property Owners — Goods &amp; Services"><option value="flat_2ndright_10pct">10% off 2nd Rights</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
@@ -5912,7 +5909,7 @@ function cemDiscModeChange(sel) {
   var row = sel.closest('.disc-row');
   var wrap = row.querySelector('.disc-val-wrap');
   var isPromo = sel.value.indexOf('promo_') === 0;
-  var isQuick = sel.value === 'percent_taxable_10' || sel.value === 'flat_2ndright_10pct';
+  var isQuick = sel.value === 'flat_2ndright_10pct';
   wrap.className = 'disc-val-wrap' + (isPromo || isQuick ? '' : ' show');
 }
 
