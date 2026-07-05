@@ -12020,7 +12020,7 @@ function clPropertyTotal(lines) {
 }
 // Merchandise Commissionable Sale = taxable, non-discount lines, excluding install/setting/
 // inspection/design-review/admin-processing fees that ride alongside the merchandise item.
-var CL_MERCH_EXCLUDE_RE = /install|inspection|design review|admin(?:istrative)? processing/i;
+var CL_MERCH_EXCLUDE_RE = /install|setting|inspection|design review|admin(?:istrative)? processing/i;
 function clMerchTotal(lines) {
   return (lines || []).filter(function(l){ return l.taxable && !l.isDiscount && !CL_MERCH_EXCLUDE_RE.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
 }
