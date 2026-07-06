@@ -2544,6 +2544,7 @@ tr:hover td{background:#eef3f8;}
     </div>
     <div id="combInsResult" style="overflow-x:auto;max-width:100%;"></div>
     <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Cemetery: BW financing tiers. FH: WA Maxima Revised (Global Atlantic). For illustration purposes only — actual rates may vary.</div>
+    <label style="display:block;margin-top:12px;font-size:12px;"><input type="checkbox" id="combIncludePayOpts"> Include this combined payment grid as page 2 of the downloaded PDF</label>
   </div>
 </div>
 </div>
@@ -3655,6 +3656,16 @@ async function printGAContract() {
   var cremContLabel   = (cremContEl && cremContEl.selectedIndex > 0)
     ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim()
     : '';
+  // Fallback: a Direct Cremation PACKAGE bundles its container into the package selection
+  // (fhDirectCremPlan) rather than the standalone fhCremContainer dropdown, which stays on
+  // "— None —" — so pull the container from _fhLines instead when that dropdown is empty.
+  if (!cremContPrice) {
+    var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+    if (cremContFallbackLine) {
+      cremContPrice = Math.max(0, cremContFallbackLine.amount);
+      cremContLabel = cremContFallbackLine.label;
+    }
+  }
 
   var urns            = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
   var urnTotalAmt     = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
@@ -5701,6 +5712,10 @@ function cemUpdate() {
   var taxableTotal = lines.filter(function(l){return l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var exemptTotal  = lines.filter(function(l){return !l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var allTotal     = taxableTotal + exemptTotal;
+  // Property (space) total so far, used below to attribute each discount's property-specific
+  // portion for the Commission Worksheet — clPropertyTotal() must subtract this, per policy
+  // ("Commissionable Sale does not include ECF or discounts applied").
+  var spaceTotalForDisc = lines.filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
 
   el('cemDiscountList').querySelectorAll('.disc-row').forEach(function(row) {
     var mode = row.querySelector('.disc-mode').value;
@@ -5758,7 +5773,26 @@ function cemUpdate() {
       totalDiscAmt += dAmt;
       discLabels.push(dLabel);
       var isTaxableDisc = (mode === 'percent_taxable' || mode === 'flat_taxable' || mode === 'pct10_merch');
-      lines.push({label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc});
+      // Property's share of this specific discount, for the Commission Worksheet's Property
+      // Commissionable Sale (must exclude discounts, per policy). Promo modes already compute
+      // the exact property-only dollar amount (propDisc); the manual %/$ modes proportion it by
+      // property's share of whichever base the discount was computed against — taxable-only
+      // discounts never touch property (which is exempt), so they get zero.
+      var propDiscPortion = 0;
+      if (isPromo) propDiscPortion = propDisc;
+      else if (mode === 'percent' || mode === 'flat')             propDiscPortion = allTotal    > 0 ? (spaceTotalForDisc / allTotal)    * dAmt : 0;
+      else if (mode === 'percent_exempt' || mode === 'flat_exempt') propDiscPortion = exemptTotal > 0 ? (spaceTotalForDisc / exemptTotal) * dAmt : 0;
+      // Structured breakdown of a combined promo discount (property % + a flat O&C/Inurnment
+      // dollar amount), so the RIC output can label each component clearly instead of trying to
+      // regex-parse the prose dLabel back apart (which mislabeled the whole thing "Service
+      // Discount" whenever the sentence merely contained the substring "O&C").
+      lines.push({
+        label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc,
+        propertyDiscPortion: propDiscPortion,
+        propDiscPct:     isPromo ? (propPct * 100) : null,
+        ocDiscAmount:    (isPromo && mode.indexOf('promo_burial') === 0) ? ocDisc    : 0,
+        inurnDiscAmount: (isPromo && mode.indexOf('promo_crem')   === 0) ? inurnDisc : 0
+      });
     }
   });  // end forEach discount rows
   if (el('aprilPromoNote')) el('aprilPromoNote').style.display = hasPromo ? 'block' : 'none';
@@ -5841,9 +5875,13 @@ function cemUpdate() {
   _cemTotal = renderSummary('cemSummary', lines, discAmt, discLabel, discMode);
   if (typeof cemFinUpdate === 'function') cemFinUpdate();
   if (el('comparePanel') && el('comparePanel').style.display !== 'none') updateCompare();
-  // Auto-refresh combined quote if cemetery data was already pulled
+  // Auto-refresh combined quote if cemetery data was already pulled. Calls the sync-only
+  // helper, NOT pullCemetery() — pullCemetery() calls cemUpdate(), which would recurse into
+  // this same branch forever (cemUpdate -> pullCemetery -> cemUpdate -> ...) the moment
+  // _combCemTotal was ever > 0. This RangeError (stack overflow) was silently swallowed by the
+  // catch below every single time, on every keystroke, once the Combined Quote had been pulled.
   if (_combCemTotal > 0 && typeof combUpdate === 'function') {
-    pullCemetery();
+    _syncCombinedCemetery();
   }
   } catch(e) { console.error('cemUpdate error:', e); }
 }
@@ -6995,19 +7033,19 @@ function printCombQuote() {
 var FH_PLANS = {
   direct: {
     '3055c': {name:'Direct Cremation — Customer-Provided Container', price:3055, items:[
-      ['Minimum Professional Staff Services',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
       ['Cremation Fee',385],['Service Savings',-470],['Container (customer-provided)',0,true]
     ]},
     '3535': {name:'Direct Cremation — Trayview Container', price:3535, items:[
-      ['Minimum Professional Staff Services',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
       ['Cremation Fee',385],['Service Savings',-470],['Trayview Cremation Container',480,true]
     ]},
     '3935': {name:'Direct Cremation — Standard Brown Container', price:3935, items:[
-      ['Minimum Professional Staff Services',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
       ['Cremation Fee',385],['Service Savings',-470],['Standard Brown Container',880,true]
     ]},
     '3055b': {name:'Direct Cremation — BW Container (billed separately)', price:3055, items:[
-      ['Minimum Professional Staff Services',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
       ['Cremation Fee',385],['Service Savings',-470],['Container (billed separately)',0,true]
     ]}
   },
@@ -7476,9 +7514,10 @@ function fhUpdate() {
   _fhTotal = renderSummary('fhSummary', lines, discAmt, discLabel, discMode);
   // Update Maxima insurance payment table
   try { fhInsCalc(); } catch(e) {}
-  // Auto-refresh combined quote if FH data was already pulled
+  // Auto-refresh combined quote if FH data was already pulled — see the matching comment in
+  // cemUpdate() for why this must call the sync-only helper, not pullFuneral().
   if (_combFhTotal > 0 && typeof combUpdate === 'function') {
-    pullFuneral();
+    _syncCombinedFuneral();
   }
   } catch(e) { console.error('fhUpdate error:', e); }
 }
@@ -7540,20 +7579,21 @@ function resetFHQuote() {
 var _combCemLines = [], _combCemTotal = 0;
 var _combFhLines  = [], _combFhTotal  = 0;
 
-function pullCemetery() {
-  cemUpdate();
+// Syncs _combCemLines/_combCemTotal from the current _cemLines/_cemTotal and refreshes the
+// Combined Quote display. Does NOT call cemUpdate() — called both from the manual "Pull" button
+// (pullCemetery(), after cemUpdate() has already run) and from cemUpdate()'s own auto-refresh
+// branch. Calling cemUpdate() again from in here would recurse forever the moment a cemetery
+// quote had ever been pulled once (cemUpdate -> pullCemetery -> cemUpdate -> ...).
+function _syncCombinedCemetery() {
+  // _cemLines already includes its own discount line(s), pushed inside cemUpdate() — do not
+  // push _cemDiscData again here, or the discount prints twice on the Combined Quote.
   _combCemLines = _cemLines.slice();
-  // Inject the cemetery discount line if one exists
-  if (_cemDiscData && _cemDiscData.amount > 0) {
-    _combCemLines.push({label: _cemDiscData.label || 'Cemetery Discount', amount: -_cemDiscData.amount, taxable: false, isDiscount: true});
-  }
   _combCemTotal = _cemTotal;
   var dispEl = el('combCemDisp'), breakEl = el('combCemBreakdown');
   if (_cemLines.filter(function(l){return !l.isDiscount;}).length === 0) {
     if (dispEl) dispEl.textContent = '\u2014';
     if (breakEl) breakEl.style.display = 'none';
-    alert('Build your Cemetery quote first, then pull it here.');
-    return;
+    return false;
   }
   if (dispEl) dispEl.textContent = fmt(_combCemTotal);
   if (breakEl) {
@@ -7563,22 +7603,25 @@ function pullCemetery() {
     }).join('');
   }
   combUpdate();
+  return true;
+}
+function pullCemetery() {
+  cemUpdate();
+  if (!_syncCombinedCemetery()) alert('Build your Cemetery quote first, then pull it here.');
 }
 
-function pullFuneral() {
-  fhUpdate();
+// Same pattern as _syncCombinedCemetery() above — see that comment for why this must not call
+// fhUpdate() itself.
+function _syncCombinedFuneral() {
+  // _fhLines already includes its own discount line(s), pushed inside fhUpdate() — do not push
+  // _fhDiscData again here, or the discount prints twice on the Combined Quote.
   _combFhLines = _fhLines.slice();
-  // Inject FH discount line if one exists (stored separately in _fhDiscData)
-  if (_fhDiscData && _fhDiscData.amount > 0) {
-    _combFhLines.push({label: _fhDiscData.label || 'Funeral Home Discount', amount: -_fhDiscData.amount, taxable: false, isDiscount: true});
-  }
   _combFhTotal = _fhTotal;
   var dispEl = el('combFhDisp'), breakEl = el('combFhBreakdown');
   if (_fhLines.filter(function(l){return !l.isDiscount;}).length === 0) {
     if (dispEl) dispEl.textContent = '\u2014';
     if (breakEl) breakEl.style.display = 'none';
-    alert('Build your Funeral Home quote first, then pull it here.');
-    return;
+    return false;
   }
   if (dispEl) dispEl.textContent = fmt(_combFhTotal);
   if (breakEl) {
@@ -7588,6 +7631,11 @@ function pullFuneral() {
     }).join('');
   }
   combUpdate();
+  return true;
+}
+function pullFuneral() {
+  fhUpdate();
+  if (!_syncCombinedFuneral()) alert('Build your Funeral Home quote first, then pull it here.');
 }
 
 function combUpdate() {
@@ -7598,6 +7646,7 @@ function combUpdate() {
   var hasFh  = _combFhLines.filter(function(l){return !l.isDiscount;}).length > 0;
   if (!hasCem && !hasFh) {
     body.innerHTML = '<div class="summary-empty">Pull from both builders to see combined total</div>';
+    if (typeof combInsCalc === 'function') combInsCalc();
     return;
   }
   var html = '', grandTotal = 0;
@@ -7647,6 +7696,7 @@ function combUpdate() {
   }
   html += '<hr class="s-divider"><div class="s-total-row"><span class="s-total-lbl">Combined Total</span><span class="s-total-amt">' + fmt(grandTotal) + '</span></div><div class="s-tax-note">Tax included in each subtotal where applicable.</div>';
   body.innerHTML = html;
+  if (typeof combInsCalc === 'function') combInsCalc();
 }
 
 function addCombLine() {
@@ -9442,35 +9492,28 @@ async function generateRICContractCore(clientData) {
       return String(p || '');
     }
     function compactDiscLabel(dl) {
+      // Promo discounts (July Incentive) carry structured numeric fields — build the label
+      // directly from those instead of regex-parsing the prose dLabel. The old regex only
+      // recognized "Interment O&C" and matched the generic "o&c" substring test for ANY
+      // O&C-mentioning sentence, so a combined Property + Cremation/Inurnment discount got
+      // mislabeled a plain "10% Service Discount" with the $ amount dropped entirely.
+      if (dl.propDiscPct != null) {
+        var parts = [dl.propDiscPct + '% Prop Disc'];
+        if (dl.ocDiscAmount)    parts.push('$' + (dl.ocDiscAmount    >= 1000 ? Math.round(dl.ocDiscAmount/1000)    + 'k' : Math.round(dl.ocDiscAmount))    + ' O/C Disc');
+        if (dl.inurnDiscAmount) parts.push('$' + (dl.inurnDiscAmount >= 1000 ? Math.round(dl.inurnDiscAmount/1000) + 'k' : Math.round(dl.inurnDiscAmount)) + ' Inurnment Disc');
+        return parts.join(' + ');
+      }
       var lbl = sanitizeForPdf(dl.label || '');
-      var pctM = lbl.match(/(\d+(?:\.\d+)?)\s*%\s*off/i);
-      var ocM  = lbl.match(/\$?([\d,]+)\s+(?:Interment\s+O&C|O\/C|Opening|Closing)/i);
-      var xM   = lbl.match(/[×x]\s*(\d+)\s*spaces?/i);
-      // Check for per-space breakdown "- $1,000 x 2" (space after dash = per-unit amount)
-      var perSpaceM = lbl.match(/-\s+\$?([\d,]+)\s*[×x]\s*(\d+)/i);
-      if (pctM || ocM) {
-        var parts = [];
-        if (pctM) {
-          // Pick the discount-type suffix from the actual label, not a hardcoded "Prop Disc".
-          // (Was: always "% Prop Disc" — misleading when a Merchandise or Services discount.)
-          var typeStr;
-          // Order matters: Property comes BEFORE 2nd Right, otherwise
-          // "Property (excluding 2nd Rights)" would mis-tag as 2nd-Right.
-          if      (/merch/i.test(lbl))                            typeStr = 'Merch Disc';
-          else if (/service|svc|o&c|opening|closing/i.test(lbl))  typeStr = 'Svc Disc';
-          else if (/prop/i.test(lbl))                             typeStr = 'Prop Disc';
-          else if (/2nd ?right|second ?right/i.test(lbl))         typeStr = '2nd Right Disc';
-          else                                                     typeStr = 'Disc';
-          parts.push(pctM[1] + '% ' + typeStr);
-        }
-        if (perSpaceM) {
-          var ps = parseInt(perSpaceM[1].replace(/,/g,''));
-          parts.push('$'+(ps>=1000?Math.round(ps/1000)+'k':ps)+' O/C');
-        } else if (ocM) {
-          var a = parseInt(ocM[1].replace(/,/g,''));
-          parts.push('$'+(a>=1000?Math.round(a/1000)+'k':a)+' O/C');
-        }
-        return parts.join(' + ') + (xM ? ' x'+xM[1] : '');
+      var pctM = lbl.match(/(\d+(?:\.\d+)?)\s*%/i);
+      if (pctM) {
+        // Pick the discount-type suffix from the actual label, not a hardcoded "Prop Disc".
+        var typeStr;
+        if      (/merch/i.test(lbl))                    typeStr = 'Merch Disc';
+        else if (/exempt|service|svc/i.test(lbl))       typeStr = 'Svc Disc';
+        else if (/taxable/i.test(lbl))                  typeStr = 'Merch Disc';
+        else if (/2nd ?right|second ?right/i.test(lbl)) typeStr = '2nd Right Disc';
+        else                                             typeStr = 'Disc';
+        return pctM[1] + '% ' + typeStr;
       }
       return lbl.substring(0, 28);
     }
@@ -10220,10 +10263,21 @@ async function generateRICContractCore(clientData) {
       setR('undefined',        (clientData && clientData.city)   || '');   // City field is named "undefined" in the template
       setR('State',            (clientData && clientData.state)  || 'WA');
       setR('Zip',              (clientData && clientData.zip)    || '');
-      setR('Phone',            (clientData && clientData.dayPhone) || '');
+      // Prefer Residence Phone (unambiguous); "Email / Day Phone" is a combined field that often
+      // holds an email address rather than a phone number, so only fall back to it when it
+      // doesn't look like one.
+      var dayPhoneVal = (clientData && clientData.dayPhone) || '';
+      var dayPhoneIfPhone = /@/.test(dayPhoneVal) ? '' : dayPhoneVal;
+      setR('Phone',            (clientData && clientData.phone) || dayPhoneIfPhone);
       setR('Date1_af_date',    todayMDY);
       try { rulesForm.updateFieldAppearances(helvetica); } catch(e) {}
       try { dropButtonWidgets(rulesDoc, rulesForm); } catch(e) {}
+      // Flatten before merging — the main RIC template also has a field literally named
+      // "Address" (though not Phone/State/Zip), and merging live AcroForm fields with the same
+      // name across documents lets the main doc's own (blank) Address value win, blanking out
+      // what we just filled here. Flattening bakes the appearance into the page content, so
+      // there's no field left to collide.
+      try { rulesForm.flatten(); } catch(e) {}
       var rulesPages = await pdfDoc.copyPages(rulesDoc, rulesDoc.getPageIndices());
       rulesPages.forEach(function(p){ pdfDoc.addPage(p); });
     } catch(e) { console.warn('[RIC] Rules form attach failed:', e.message); }
@@ -10289,7 +10343,8 @@ function ricImportFromQuote() {
     total:      _cemTotal,
     finData:    _finData ? JSON.parse(JSON.stringify(_finData)) : null,
     clientName: val('cemClientName') || '',
-    location:   val('qSpaceLocation') || ''
+    location:   val('qSpaceLocation') || '',
+    discLabel:  (typeof _cemDiscData !== 'undefined' && _cemDiscData && _cemDiscData.label) || ''
   };
   // Pre-fill client name and location if blank
   if (!el('ricName').value && _ricPricing.clientName)
@@ -10846,6 +10901,15 @@ async function generateClearPointContract() {
     var casketLabel    = (el('fhCasketLabel') && el('fhCasketLabel').value)
                          ? el('fhCasketLabel').value
                          : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
+    // Fallback: read casket from _fhLines if fhCasket input is empty (e.g. when using GA import)
+    // — mirrors the same fallback in printGAContract().
+    if (!casketPrice) {
+      var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
+      if (casketFallbackLine) {
+        casketPrice = Math.max(0, casketFallbackLine.amount);
+        casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
+      }
+    }
     var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
     var casketModelNum   = casketModelMatch ? '#' + casketModelMatch[1] : '';
     var casketModelName  = casketLabel.replace(/\s*\(#?\d+\)\s*/, '').trim();
@@ -10858,6 +10922,16 @@ async function generateClearPointContract() {
     var cremContPrice = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
     var cremContLabel = (cremContEl && cremContEl.selectedIndex > 0)
       ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim() : '';
+    // Fallback: a Direct Cremation PACKAGE bundles its container into the package selection
+    // (fhDirectCremPlan) rather than the standalone fhCremContainer dropdown, which stays on
+    // "— None —" — so pull the container from _fhLines instead when that dropdown is empty.
+    if (!cremContPrice) {
+      var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+      if (cremContFallbackLine) {
+        cremContPrice = Math.max(0, cremContFallbackLine.amount);
+        cremContLabel = cremContFallbackLine.label;
+      }
+    }
     var urns          = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
     var urnTotalAmt   = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
     var urnLabel      = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
@@ -11173,6 +11247,30 @@ async function generateClearPointContract() {
       drawX(0, isGuaranteed ? 528 : 562, isGuaranteed ? 684 : 683, 10);
     } catch(e) {}
 
+    // ── Cremation Authorization (E3) ──────────────────────────────────────────
+    // ClearPoint's own 3-page template has no Cremation Authorization page — reuse the exact
+    // same page + fill logic already built for GA rather than sourcing a separate template:
+    // it's page index 8 ("Page 9") of the same GA_PDF, verified via its own field widgets
+    // (Transaction Date / Decedent Name / Funeral Home Representative all live there). Only
+    // appended when Cremation is selected. No field-name collisions with ClearPoint's own 106
+    // fields were found, so this can merge in directly without flattening first.
+    if (!isBurial) {
+      try {
+        var gaDoc = await PDFLib.PDFDocument.load(
+          Uint8Array.from(atob(GA_PDF), function(c){ return c.charCodeAt(0); }),
+          { ignoreEncryption: true }
+        );
+        var gaForm = gaDoc.getForm();
+        function setGaT(name, v) { if (v == null || v === '') return; try { gaForm.getTextField(name).setText(String(v)); } catch(e) {} }
+        setGaT('Transaction Date', dateStr);
+        setGaT('Decedent Name', insured);
+        setGaT('Funeral Home Representative', 'Martice Morrison');
+        try { var gaHelv = await gaDoc.embedFont(PDFLib.StandardFonts.Helvetica); gaForm.updateFieldAppearances(gaHelv); } catch(e) {}
+        var cremAuthPages = await newDoc.copyPages(gaDoc, [8]);
+        cremAuthPages.forEach(function(p){ newDoc.addPage(p); });
+      } catch(e) { console.warn('ClearPoint Cremation Authorization page failed:', e.message); }
+    }
+
     var filledBytes = await newDoc.save();
     var blob  = new Blob([filledBytes], { type: 'application/pdf' });
     var url   = URL.createObjectURL(blob);
@@ -11370,39 +11468,138 @@ function fhInsCalc() {
   var benefit = Math.max(0, total - down);
   if (benefit <= 0) { tbl.innerHTML = '<div style="color:var(--text-light);font-size:12px;">Down payment covers the full plan cost.</div>'; return; }
 
-  var html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
-  html += '<tr style="background:var(--navy);color:#fff;">';
-  html += '<th style="padding:8px 10px;text-align:left;border-radius:6px 0 0 0;">Pay Plan</th>';
-  html += '<th style="padding:8px 10px;text-align:right;">Monthly</th>';
-  html += '<th style="padding:8px 10px;text-align:right;">Total Paid</th>';
-  html += '<th style="padding:8px 10px;text-align:right;border-radius:0 6px 0 0;">Months</th></tr>';
+  // Same palette/table structure as the Cemetery payment tables (_finColors(), cemFinUpdate() /
+  // showAllFinTiers()) — this table previously hardcoded its own separate styling (13px font,
+  // 8px/10px padding, var(--navy)/#f8f7f3 zebra) instead of matching them.
+  var C = _finColors();
+  var html = '<div style="font-size:12px;font-weight:700;color:' + C.TIER_TEXT + ';margin-bottom:5px;">Benefit: <span style="color:' + C.ORANGE + ';">' + fmt(total) + '</span>'
+    + (down > 0 ? ' &nbsp;|&nbsp; Down: <strong>' + fmt(down) + '</strong>' : '') + ' &nbsp;|&nbsp; Age: <strong>' + age + '</strong></div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<thead><tr style="background:' + C.NAVY + ';color:' + C.HDR_TEXT + ';">'
+    + '<th style="padding:5px 8px;text-align:left;">Pay Plan</th>'
+    + '<th style="padding:5px 8px;text-align:right;">Monthly</th>'
+    + '<th style="padding:5px 8px;text-align:right;">Total Paid</th>'
+    + '<th style="padding:5px 8px;text-align:right;">Months</th>'
+    + '</tr></thead><tbody>';
 
-  var anyShown = false;
   WA_MAXIMA_PLANS.forEach(function(plan, i) {
     var rate = rates[i];
     if (rate === null || (plan.maxAge && age > plan.maxAge)) return; // plan not available at this age
-    anyShown = true;
     var monthly = plan.months === 1 ? benefit : Math.round(benefit * rate * 100) / 100;
     var totalPaid = plan.months === 1 ? benefit : monthly * plan.months;
-    var bg = i % 2 === 0 ? '#f8f7f3' : '#fff';
-    html += '<tr style="background:' + bg + ';border-bottom:1px solid #eee;">';
-    html += '<td style="padding:8px 10px;font-weight:600;">' + plan.name + '</td>';
+    var bg = i % 2 === 0 ? C.ROW_ODD : C.ROW_EVEN;
+    html += '<tr style="background:' + bg + ';border-bottom:1px solid ' + C.BORDER + ';">'
+      + '<td style="padding:7px 8px;font-weight:700;">' + plan.name + '</td>';
     if (plan.months === 1) {
-      html += '<td style="padding:8px 10px;text-align:right;color:var(--navy);font-weight:700;" colspan="3">$' + monthly.toLocaleString('en-US',{minimumFractionDigits:2}) + ' one-time</td>';
+      html += '<td style="padding:7px 8px;text-align:right;font-weight:700;color:' + C.MO + ';" colspan="3">' + fmt(monthly) + ' one-time</td>';
     } else {
-      html += '<td style="padding:8px 10px;text-align:right;color:var(--navy);font-weight:700;">$' + monthly.toLocaleString('en-US',{minimumFractionDigits:2}) + '/mo</td>';
-      html += '<td style="padding:8px 10px;text-align:right;color:var(--text-light);">$' + totalPaid.toLocaleString('en-US',{minimumFractionDigits:2}) + '</td>';
-      html += '<td style="padding:8px 10px;text-align:right;color:var(--text-light);">' + plan.months + '</td>';
+      html += '<td style="padding:7px 8px;text-align:right;font-weight:700;color:' + C.MO + ';">' + fmt(monthly) + '/mo</td>'
+        + '<td style="padding:7px 8px;text-align:right;color:' + C.TC + ';font-size:11px;">' + fmt(totalPaid) + '</td>'
+        + '<td style="padding:7px 8px;text-align:right;color:' + C.TC + ';font-size:11px;">' + plan.months + '</td>';
     }
     html += '</tr>';
   });
-  html += '</table>';
-
-  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-light);">Benefit: $' + total.toLocaleString('en-US',{minimumFractionDigits:2});
-  if (down > 0) html += ' · Down: $' + down.toLocaleString('en-US',{minimumFractionDigits:2});
-  html += ' · Age: ' + age + '</div>';
+  html += '</tbody></table>';
 
   tbl.innerHTML = html;
+}
+
+// Combined Quote's "Combined Monthly Payment Estimate" — crosses every cemetery financing tier
+// (same tiers/math as cemFinUpdate(), keyed off the down payment entered on the Cemetery Quote
+// tab) against every WA Maxima FH insurance plan (same rates as fhInsCalc(), keyed off the age
+// entered in the FH Quote's WA Maxima panel), so a family sees one combined monthly number for
+// both halves together. Referenced by the UI (#combTargetBudget oninput, "Refresh Payment
+// Options" button) but the function itself didn't exist — restored here.
+// Shared grid computation used by both the on-screen combInsCalc() table and the PDF's page-2
+// payment options (downloadCombQuotePDF() -> opts.combinedPayment) — one source of truth so the
+// two never drift apart. Returns {error} when there isn't enough data, or the full grid.
+function _computeCombinedPaymentGrid() {
+  var cemTotal = (typeof _combCemTotal !== 'undefined') ? _combCemTotal : 0;
+  var fhTotal  = (typeof _combFhTotal  !== 'undefined') ? _combFhTotal  : 0;
+  if (cemTotal <= 0 || fhTotal <= 0) {
+    return { error: 'Pull both a Cemetery quote and a Funeral Home quote to see combined payment options.' };
+  }
+  var cemDownAmt = el('finDownAmt') ? (parseFloat(el('finDownAmt').value) || 0) : 0;
+  var downPct = cemTotal > 0 ? cemDownAmt / cemTotal : 0;
+  if (cemDownAmt <= 0 || downPct < 0.10) {
+    return { error: 'Enter a Cemetery down payment (min. 10%) in the Cemetery Quote’s financing section to see combined options.' };
+  }
+  var age = parseInt((el('fhInsAge') || {}).value) || 0;
+  if (age < 18) {
+    return { error: 'Enter an age in the Funeral Home Quote’s WA Maxima panel to see combined options.' };
+  }
+
+  // Cemetery side — identical tier selection/math to cemFinUpdate().
+  var balance = cemTotal - cemDownAmt;
+  var tierKey = downPct >= 0.25 ? 0.25 : downPct >= 0.20 ? 0.20 : 0.10;
+  var cemOptions = FIN_TIERS[tierKey].map(function(tier) {
+    return { label: tier[0] + ' mo', monthly: finMonthly(balance, tier[0], tier[1]) };
+  });
+
+  // FH side — identical plan selection/math to fhInsCalc().
+  var fhDown = parseFloat((el('fhInsDown') || {}).value) || 0;
+  var rates = getMaximaRates(age);
+  var benefit = Math.max(0, fhTotal - fhDown);
+  var fhOptions = [];
+  WA_MAXIMA_PLANS.forEach(function(plan, i) {
+    var rate = rates[i];
+    if (rate === null) return;
+    // Single Pay is a one-time lump sum, not a recurring charge — folding it into a "combined
+    // monthly" figure the same way as the installment plans would overstate the family's actual
+    // recurring monthly burden by the entire FH benefit amount. Track it separately instead.
+    if (plan.months === 1) { fhOptions.push({ label: plan.name, monthly: 0, oneTime: benefit }); return; }
+    var monthly = Math.round(benefit * rate * 100) / 100;
+    fhOptions.push({ label: plan.name, monthly: monthly });
+  });
+  if (!fhOptions.length) {
+    return { error: 'No WA Maxima plans are available at that age.' };
+  }
+
+  // Build the full grid first so the "closest to budget" cell can be found before rendering —
+  // can't decide a running "closest so far" while streaming out HTML, since a later cell might
+  // beat an earlier one.
+  var grid = fhOptions.map(function(f) {
+    return cemOptions.map(function(c) { return f.monthly + c.monthly; });
+  });
+  var targetBudget = parseFloat((el('combTargetBudget') || {}).value) || 0;
+  var bestRi = -1, bestCi = -1;
+  if (targetBudget > 0) {
+    var bestDiff = Infinity;
+    grid.forEach(function(row, ri) {
+      row.forEach(function(v, ci) {
+        var diff = Math.abs(v - targetBudget);
+        if (diff < bestDiff) { bestDiff = diff; bestRi = ri; bestCi = ci; }
+      });
+    });
+  }
+  return { cemOptions: cemOptions, fhOptions: fhOptions, grid: grid, targetBudget: targetBudget, bestRi: bestRi, bestCi: bestCi };
+}
+
+function combInsCalc() {
+  var result = el('combInsResult');
+  if (!result) return;
+  var data = _computeCombinedPaymentGrid();
+  if (data.error) { result.innerHTML = '<div style="color:var(--text-light);font-size:12px;padding:8px 0;">' + data.error + '</div>'; return; }
+  var cemOptions = data.cemOptions, fhOptions = data.fhOptions, grid = data.grid, targetBudget = data.targetBudget, bestRi = data.bestRi, bestCi = data.bestCi;
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:7px 8px;text-align:left;">FH Plan &#92; Cemetery Term</th>';
+  cemOptions.forEach(function(c){ html += '<th style="padding:7px 8px;text-align:right;">' + c.label + '</th>'; });
+  html += '</tr></thead><tbody>';
+  fhOptions.forEach(function(f, ri) {
+    html += '<tr style="background:' + (ri % 2 === 0 ? '#f8f7f3' : '#fff') + ';border-bottom:1px solid #eee;">'
+      + '<td style="padding:7px 8px;font-weight:600;">' + f.label + (f.oneTime ? ' <span style="font-weight:400;color:var(--text-light);font-size:10.5px;">(' + fmt(f.oneTime) + ' one-time, not monthly)</span>' : '') + '</td>';
+    cemOptions.forEach(function(c, ci) {
+      var isBest = (ri === bestRi && ci === bestCi);
+      html += '<td style="padding:7px 8px;text-align:right;' + (isBest ? 'background:#fff3cd;font-weight:700;border:2px solid var(--orange);' : '') + '">' + fmt(grid[ri][ci]) + '/mo</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  if (targetBudget > 0 && bestRi >= 0) {
+    html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">Closest match to your ' + fmt(targetBudget) + '/mo target is highlighted.</div>';
+  }
+  result.innerHTML = html;
 }
 
 
@@ -11419,6 +11616,26 @@ function fhInsCalc() {
   if (ricDate && !ricDate.value) ricDate.value = todayVal;
   var ricTime = document.getElementById('ricContractTime');
   if (ricTime && !ricTime.value) ricTime.value = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+})();
+
+// ── Phone number auto-formatting (RIC/GA/ClearPoint builders) ────────────
+// Same "no manual punctuation" UX as the DOB auto-formatting elsewhere — strips whatever the
+// user typed down to digits and re-renders it as (XXX) XXX-XXXX on every keystroke. Does NOT
+// touch ricDayPhone — that field is intentionally a combined Email/Day Phone field and can
+// legitimately hold an email address, which this formatting would mangle.
+function formatPhoneInput(inp) {
+  var digits = inp.value.replace(/\D/g, '').slice(0, 10);
+  var formatted = digits;
+  if (digits.length > 6)      formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6);
+  else if (digits.length > 3) formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3);
+  else if (digits.length > 0) formatted = '(' + digits;
+  inp.value = formatted;
+}
+(function initPhoneAutoFormat() {
+  ['ricPhone', 'gaInsuredPhone', 'gaOwnerPhone', 'gaBenefPhone', 'cpPhone', 'cpPhone2'].forEach(function(id) {
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('input', function(){ formatPhoneInput(e); });
+  });
 })();
 </script>
 
@@ -11473,6 +11690,17 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   const WHITE  = rgb(1, 1, 1);
   const PW = 612, PH = 792, M = 48, RX = 612 - 48;
   const HEADER_H = 68, LOGO_H = 50, LOGO_W = Math.round(LOGO_H * (308.34 / 56.42));
+  // Auto-compact mode (Combined Quote only, via opts.autoCompact + opts.rowCount): the main
+  // quote body must always fit on one page regardless of item count, so row height and font
+  // size shrink in tiers based on an estimated row count computed before drawing starts. Other
+  // callers (Cemetery/FH quotes) don't set autoCompact and keep the original fixed 18/10 sizing.
+  var ROW_H = 18, FSZ = 10;
+  if (opts.autoCompact) {
+    var rc = opts.rowCount || 0;
+    if      (rc > 40) { ROW_H = 11; FSZ = 7;   }
+    else if (rc > 28) { ROW_H = 13; FSZ = 8;   }
+    else if (rc > 18) { ROW_H = 15; FSZ = 9;   }
+  }
   // Strip characters WinAnsi (pdf-lib standard fonts) cannot encode
   function safeText(s){
     if(s==null)return '';
@@ -11501,8 +11729,15 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   function drawHeader() {
     page.drawRectangle({x:0, y:PH-HEADER_H, width:PW, height:HEADER_H, color:STEEL});
     if (logoImage) page.drawImage(logoImage, {x:M, y:PH-HEADER_H+9, width:LOGO_W, height:LOGO_H});
-    var st = safeText(subtitle), stW = bold.widthOfTextAtSize(st, 11);
-    page.drawText(st, {x:RX-stW, y:PH-38, size:11, font:bold, color:WHITE});
+    var st = safeText(subtitle);
+    // Right-aligned subtitle text must never run into the logo (x <= M+LOGO_W) — short titles
+    // like "Cemetery Quote" always cleared it at 11pt, but longer ones (e.g. the Combined
+    // Quote's "Combined Family Quote — Cemetery & Funeral Home") don't. Shrink to fit instead
+    // of a fixed size.
+    var maxStW = RX - (M + LOGO_W + 14);
+    var stSize = 11, stW = bold.widthOfTextAtSize(st, stSize);
+    while (stW > maxStW && stSize > 7) { stSize -= 0.5; stW = bold.widthOfTextAtSize(st, stSize); }
+    page.drawText(st, {x:RX-stW, y:PH-38, size:stSize, font:bold, color:WHITE});
     var dl = dateStr+'  \xb7  '+vtStr, dlW = reg.widthOfTextAtSize(dl, 8);
     page.drawText(dl, {x:RX-dlW, y:PH-53, size:8, font:reg, color:rgb(0.85,0.9,0.95)});
   }
@@ -11513,6 +11748,11 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     page.drawLine({start:{x:M,y:PH-HEADER_H-10},end:{x:RX,y:PH-HEADER_H-10},thickness:0.5,color:LGRAY});
     y = PH - HEADER_H - 30;
   }
+  // +70 is a fixed safety cushion protecting the footer (drawn later, at an absolute y=30-58 on
+  // every page, independent of this content flow) — it must stay the same regardless of
+  // compact mode, or the Total block can end up drawn on top of the footer text. What DOES
+  // shrink in compact mode is the "n" argument each caller passes in (how much room THIS
+  // element actually needs), since rows/sections/the Total block itself all render smaller.
   function checkY(n) { if (y < n + 70) newPage(); }
 
   // ── First page ──
@@ -11538,21 +11778,27 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
   function drawRow(label, amount, color) {
-    checkY(18);
+    checkY(ROW_H);
     var amtStr = fmtMoney(amount);
-    var amtW   = bold.widthOfTextAtSize(amtStr, 10);
-    var lbl    = trunc(safeText(label), RX-M-amtW-20, reg, 10);
-    page.drawText(lbl,    {x:M+6,     y, size:10, font:reg,  color:color||DARK});
-    page.drawText(amtStr, {x:RX-amtW, y, size:10, font:bold, color:color||DARK});
-    page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
-    y -= 18;
+    var amtW   = bold.widthOfTextAtSize(amtStr, FSZ);
+    var lbl    = trunc(safeText(label), RX-M-amtW-20, reg, FSZ);
+    page.drawText(lbl,    {x:M+6,     y, size:FSZ, font:reg,  color:color||DARK});
+    page.drawText(amtStr, {x:RX-amtW, y, size:FSZ, font:bold, color:color||DARK});
+    page.drawLine({start:{x:M,y:y-4},end:{x:RX,y:y-4},thickness:0.4,color:LGRAY});
+    y -= ROW_H;
   }
   function drawSection(title, items, color) {
     if (!items.length) return;
-    checkY(34);
-    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
-    page.drawText(title.toUpperCase(), {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
-    y -= 28;
+    var hdrH = opts.autoCompact ? Math.min(22, ROW_H+8) : 28;
+    var hdrBarH = opts.autoCompact ? 16 : 22;
+    var hdrSz = opts.autoCompact ? Math.max(FSZ-0.5, 7) : 8.5;
+    checkY(hdrH);
+    // Bar spans [y-8, y-8+hdrBarH] so the y-5 text baseline always sits a few points above the
+    // bar's bottom edge, regardless of hdrBarH — the previous y-(hdrBarH-12) formula put the
+    // baseline below the bar's bottom edge once hdrBarH shrank below ~18 in compact mode.
+    page.drawRectangle({x:M, y:y-8, width:RX-M, height:hdrBarH, color:STEEL});
+    page.drawText(title.toUpperCase(), {x:M+6, y:y-5, size:hdrSz, font:bold, color:WHITE});
+    y -= hdrH;
     items.forEach(function(l){ drawRow(l.label, l.amount, color); });
   }
 
@@ -11561,24 +11807,27 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   var taxable = lines.filter(function(l){ return  l.taxable && !l.isDiscount && !l.isTax; });
   var discs   = lines.filter(function(l){ return  l.isDiscount; });
 
+  var SEP_H = opts.autoCompact ? Math.min(28, ROW_H+10) : 28;
+  var SUB_H = opts.autoCompact ? Math.min(22, ROW_H+7)  : 22;
+  var SUB_SZ = opts.autoCompact ? Math.max(FSZ, 9) : 11;
   if (opts.sections && opts.sections.length) {
     opts.sections.forEach(function(sec) {
       if (sec.isSeparator) {
-        checkY(28);
+        checkY(SEP_H);
         page.drawRectangle({x:M, y:y-8, width:RX-M, height:22, color:STEEL});
         page.drawText(safeText(sec.title), {x:M+8, y:y+2, size:9, font:bold, color:WHITE});
-        y -= 28;
+        y -= SEP_H;
         return;
       }
       if (sec.isSubtotal) {
-        checkY(24);
+        checkY(SUB_H+2);
         page.drawLine({start:{x:M,y:y+4},end:{x:RX,y:y+4},thickness:1,color:STEEL});
         y -= 4;
         var subStr = fmtMoney(sec.amount);
-        var subW   = bold.widthOfTextAtSize(subStr, 11);
-        page.drawText(safeText(sec.label), {x:M+6,     y, size:11, font:bold, color:STEEL});
-        page.drawText(subStr,              {x:RX-subW, y, size:11, font:bold, color:STEEL});
-        y -= 22;
+        var subW   = bold.widthOfTextAtSize(subStr, SUB_SZ);
+        page.drawText(safeText(sec.label), {x:M+6,     y, size:SUB_SZ, font:bold, color:STEEL});
+        page.drawText(subStr,              {x:RX-subW, y, size:SUB_SZ, font:bold, color:STEEL});
+        y -= SUB_H;
         return;
       }
       drawSection(sec.title, sec.items || [], sec.color || (sec.title.match(/Discount/i) ? ORANGE : undefined));
@@ -11597,26 +11846,31 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   var grand      = (opts.grandTotal != null) ? opts.grandTotal : (exemptSub + taxableSub + taxAmt - discAmt);
 
   if (taxAmt > 0) {
-    checkY(18);
+    checkY(ROW_H);
     var taxAmtStr = fmtMoney(taxAmt);
-    var taxAmtW   = reg.widthOfTextAtSize(taxAmtStr, 10);
-    page.drawText('Sales Tax (10.4%)', {x:M+6,        y, size:10, font:reg, color:MUTED});
-    page.drawText(taxAmtStr,           {x:RX-taxAmtW, y, size:10, font:reg, color:MUTED});
-    page.drawLine({start:{x:M,y:y-5},end:{x:RX,y:y-5},thickness:0.4,color:LGRAY});
-    y -= 18;
+    var taxAmtW   = reg.widthOfTextAtSize(taxAmtStr, FSZ);
+    page.drawText('Sales Tax (10.4%)', {x:M+6,        y, size:FSZ, font:reg, color:MUTED});
+    page.drawText(taxAmtStr,           {x:RX-taxAmtW, y, size:FSZ, font:reg, color:MUTED});
+    page.drawLine({start:{x:M,y:y-4},end:{x:RX,y:y-4},thickness:0.4,color:LGRAY});
+    y -= ROW_H;
   }
 
-  // Total (PDF footer line)
-  checkY(55); y -= 8;
-  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:STEEL}); y -= 22;
+  // Total (PDF footer line) — sized down in autoCompact mode so it needs less actual room
+  // (the checkY buffer itself stays fixed at +70 to protect the footer; only the "n" argument
+  // here — how much space this specific block needs — gets smaller).
+  var totalLblSz = opts.autoCompact ? 12 : 14;
+  var totalAmtSz = opts.autoCompact ? 15 : 20;
+  var totalNoteSz = opts.autoCompact ? 7.5 : 8.5;
+  checkY(opts.autoCompact ? 32 : 55); y -= (opts.autoCompact ? 6 : 8);
+  page.drawLine({start:{x:M,y},end:{x:RX,y},thickness:2,color:STEEL}); y -= (opts.autoCompact ? 16 : 22);
   var grandStr = fmtMoney(grand);
-  var grandW   = bold.widthOfTextAtSize(grandStr, 20);
-  page.drawText('Total', {x:M,         y, size:14, font:bold, color:DARK});
-  page.drawText(grandStr,      {x:RX-grandW, y, size:20, font:bold, color:ORANGE});
-  y -= 28;
+  var grandW   = bold.widthOfTextAtSize(grandStr, totalAmtSz);
+  page.drawText('Total', {x:M,         y, size:totalLblSz, font:bold, color:DARK});
+  page.drawText(grandStr,      {x:RX-grandW, y, size:totalAmtSz, font:bold, color:ORANGE});
+  y -= (opts.autoCompact ? 18 : 28);
   if (taxAmt > 0) {
-    page.drawText('Tax applies to merchandise. Services & transportation are exempt.', {x:M, y, size:8.5, font:reg, color:MUTED});
-    y -= 16;
+    page.drawText('Tax applies to merchandise. Services & transportation are exempt.', {x:M, y, size:totalNoteSz, font:reg, color:MUTED});
+    y -= (opts.autoCompact ? 13 : 16);
   }
 
   // ── Notes (B1: moved before Payment Options) ──
@@ -11630,6 +11884,46 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
     page.drawText(notesLabel, {x:M+10, y, size:9, font:bold, color:DARK});
     page.drawText(notesText,  {x:M+10+notesLabelW, y, size:9, font:reg, color:DARK});
     y -= 24;
+  }
+
+  // ── Combined Payment Options (A4) — always its own page, never interleaved with the main
+  // quote content above, regardless of how much room is left on page 1. ──
+  if (opts.combinedPayment && !opts.combinedPayment.error) {
+    var cp = opts.combinedPayment;
+    newPage();
+    page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
+    page.drawText('COMBINED MONTHLY PAYMENT ESTIMATE', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
+    y -= 32;
+    page.drawText('Cemetery financing tiers crossed with FH insurance plans. For illustration purposes only — actual rates may vary.', {x:M+4, y, size:7.5, font:reg, color:MUTED});
+    y -= 16;
+    var cpCols = cp.cemOptions.length;
+    var cpFirstColW = 190;
+    var cpColW = Math.min(90, (RX - M - cpFirstColW) / Math.max(1, cpCols));
+    checkY(20);
+    page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
+    page.drawText('FH Plan', {x:M+6, y:y+1, size:8.5, font:bold, color:DARK});
+    cp.cemOptions.forEach(function(c, ci) {
+      var cx = M + cpFirstColW + ci*cpColW;
+      page.drawText(c.label, {x:cx, y:y+1, size:8.5, font:bold, color:DARK});
+    });
+    y -= 18;
+    cp.fhOptions.forEach(function(f, ri) {
+      checkY(16);
+      if (ri % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
+      var fLabel = safeText(f.label) + (f.oneTime ? ' (' + fmtMoney(f.oneTime) + ' one-time)' : '');
+      page.drawText(trunc(fLabel, cpFirstColW-8, bold, 8.5), {x:M+6, y, size:8.5, font:bold, color:DARK});
+      cp.cemOptions.forEach(function(c, ci) {
+        var cx = M + cpFirstColW + ci*cpColW;
+        var isBest = (ri === cp.bestRi && ci === cp.bestCi);
+        if (isBest) page.drawRectangle({x:cx-3, y:y-3, width:cpColW-4, height:14, color:rgb(1,0.95,0.8), borderColor:ORANGE, borderWidth:1});
+        page.drawText(fmtMoney(cp.grid[ri][ci])+'/mo', {x:cx, y, size:8, font:isBest?bold:reg, color:isBest?ORANGE:DARK});
+      });
+      y -= 16;
+    });
+    if (cp.targetBudget > 0 && cp.bestRi >= 0) {
+      y -= 8;
+      page.drawText('Closest match to the ' + fmtMoney(cp.targetBudget) + '/mo target is highlighted.', {x:M+4, y, size:8, font:reg, color:MUTED});
+    }
   }
 
   // ── Payment Options (B2/B3/B4: smart pagination + disclosures with tables) ──
@@ -11894,9 +12188,24 @@ async function downloadCombQuotePDF() {
     sections.push({isSubtotal:true, label:'Funeral Home Subtotal', amount:fhTotalVal});
   }
   logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
+  // A4: the main quote must always fit on one page regardless of item count — autoCompact
+  // shrinks row height/font size in tiers based on this estimated row count (see ROW_H/FSZ in
+  // _buildQuotePDF). Payment options, if requested, are rendered as a forced separate page —
+  // never interleaved with the main quote — via opts.combinedPayment below.
+  // Each category section costs its own header row PLUS one row per line item inside it — not
+  // just one row for the section itself, which badly undercounted real content height and let
+  // "fits one page" quotes still spill to page 2.
+  var rowCount = sections.reduce(function(sum, sec) {
+    if (sec.isSeparator || sec.isSubtotal) return sum + 1;
+    return sum + 1 + (sec.items ? sec.items.length : 0);
+  }, 0);
+  var includePayOpts = el('combIncludePayOpts') && el('combIncludePayOpts').checked;
   await _buildQuotePDF(allLines, clientName, 'Combined Family Quote — Cemetery & Funeral Home', 'BW_Combined_Quote', {
-    sections:   sections,
-    grandTotal: cemTotal + fhTotalVal
+    sections:     sections,
+    grandTotal:   cemTotal + fhTotalVal,
+    autoCompact:  true,
+    rowCount:     rowCount,
+    combinedPayment: includePayOpts ? _computeCombinedPaymentGrid() : null
   });
 }
 
@@ -12009,14 +12318,28 @@ var CL_RATES = {
 // and non-cremation property (rare), this picks one bucket for everything; the Commissionable
 // Sale fields are editable so that split can be corrected by hand.
 function clCremationBucket(lines) {
+  var arr = lines || [];
+  // Inurnment O&C (Ground/Boulder/Niche Inurnment — but not "Niche (Non-Inurnment)") or an Urn
+  // Vault in the sale means cremated remains are what's actually being interred, regardless of
+  // the space type sold (e.g. a Standard Lawn Space used for an urn burial) — this takes
+  // priority over the space-type-only detection below.
+  var hasInurnmentOC = arr.some(function(l){ return /inurnment/i.test(l.label) && !/non-inurnment/i.test(l.label); });
+  var hasUrnVault    = arr.some(function(l){ return /urn vault/i.test(l.label); });
+  if (hasInurnmentOC || hasUrnVault) return 'crem';
   var CREM_RE = /lake urn|scattering|ossuary|\bniche\b/i;
-  var spaceLines = (lines || []).filter(function(l){ return l.isSpace && !/ECF/i.test(l.label) && !l.isSecondRight; });
+  var spaceLines = arr.filter(function(l){ return l.isSpace && !/ECF/i.test(l.label) && !l.isSecondRight; });
   return spaceLines.some(function(l){ return CREM_RE.test(l.label); }) ? 'crem' : 'noncrem';
 }
-// Property Commissionable Sale = space price, excluding ECF and excluding discounts.
-// (isSpace lines are never isDiscount, so no separate discount filter needed here.)
+// Property Commissionable Sale = space price, excluding ECF and net of any discount applied to
+// it. isSpace lines are never isDiscount themselves, so the gross total needs the property's
+// share of each discount line (propertyDiscPortion, computed where discounts are applied)
+// subtracted separately — per policy, "Commissionable Sale does not include ECF or discounts
+// applied." Was previously not subtracting anything despite the comment claiming otherwise.
 function clPropertyTotal(lines) {
-  return (lines || []).filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
+  var arr = lines || [];
+  var gross = arr.filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
+  var discPortion = arr.filter(function(l){ return l.isDiscount; }).reduce(function(s,l){ return s + (l.propertyDiscPortion || 0); }, 0);
+  return Math.max(0, gross - discPortion);
 }
 // Merchandise Commissionable Sale = taxable, non-discount lines, excluding install/setting/
 // inspection/design-review/admin-processing fees that ride alongside the merchandise item.
@@ -12071,6 +12394,7 @@ function clWorksheetHtml(prefix, rates, updateFn, opts) {
     + clField(prefix + 'Purchaser', 'Purchaser Name', '', false)
     + clField(prefix + 'Recipient', 'Recipient / Deceased Name', '', false)
     + clField(prefix + 'DateOfSale', 'Date of Sale', '', false)
+    + clField(prefix + 'Promotion', 'Promotion', '', false, 'Auto-fills from applied discount')
     + '</div>'
     + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
     + clField(prefix + 'PropDesig', 'Property Designation', '', false, 'Manual entry')
@@ -12216,9 +12540,14 @@ function riclImport() {
     el('riclImportDisplay').innerHTML = '<span style="color:#b45309;">No RIC contract found — fill in the Pre-Need RIC Contract tab (at least Purchaser Name) first.</span>';
     return;
   }
-  el('riclPurchaser').value   = name;
-  el('riclRecipient').value   = val('ricBenefit').trim();
+  // A Co-Purchaser (e.g. a couple buying property together) flows into both Purchaser and
+  // Recipient — the property/paperwork covers both names, not just the primary signer.
+  var coPurchaser = val('ricCoPurchaser').trim();
+  var namesCombined = coPurchaser ? (name + ' & ' + coPurchaser) : name;
+  el('riclPurchaser').value   = namesCombined;
+  el('riclRecipient').value   = coPurchaser ? namesCombined : val('ricBenefit').trim();
   el('riclDateOfSale').value  = val('ricContractDate');
+  el('riclPromotion').value   = (typeof _ricPricing !== 'undefined' && _ricPricing && _ricPricing.discLabel) || '';
   el('riclPmtReceived').value = num('ricDownAmt') || 0;
   var lines = (typeof _ricPricing !== 'undefined' && _ricPricing && _ricPricing.lines) ? _ricPricing.lines : [];
   if (!lines.length) {
@@ -12235,7 +12564,7 @@ function riclImport() {
 }
 function riclUpdate() { clRenderWorksheetCopyPanel('riclCopyPanel', riclWorksheetData()); }
 function riclClearAll() {
-  ['riclPurchaser','riclRecipient','riclDateOfSale','riclPropDesig','riclPmtReceived',
+  ['riclPurchaser','riclRecipient','riclDateOfSale','riclPromotion','riclPropDesig','riclPmtReceived',
    'riclCremSale','riclCremMgrPct','riclCremMgrDollar','riclNoncremSale','riclNoncremMgrPct','riclNoncremMgrDollar',
    'riclMerchSale','riclMerchMgrPct','riclMerchMgrDollar',
    'riclSplit2Name','riclSplit2Pct','riclSplit3Name','riclSplit3Pct','riclSplit4Name','riclSplit4Pct',
@@ -12268,7 +12597,7 @@ function riclWorksheetData() {
   var r = clWorksheetRecalc('ricl', CL_RATES.ric);
   return {
     type: 'ric', fsd: val('riclFSD'), purchaser: val('riclPurchaser'), recipient: val('riclRecipient'),
-    dateOfSale: val('riclDateOfSale'), pmtReceived: num('riclPmtReceived'),
+    dateOfSale: val('riclDateOfSale'), pmtReceived: num('riclPmtReceived'), promotion: val('riclPromotion'),
     rows: [
       { label: 'Property: Cremation',     sale: num('riclCremSale'),    rate: CL_RATES.ric.crem,    mgrPct: num('riclCremMgrPct'),    mgrDollar: num('riclCremMgrDollar'),    commission: r.cremComm },
       { label: 'Property: Non-Cremation', sale: num('riclNoncremSale'), rate: CL_RATES.ric.noncrem, mgrPct: num('riclNoncremMgrPct'), mgrDollar: num('riclNoncremMgrDollar'), commission: r.noncremComm },
@@ -12292,6 +12621,7 @@ function anclImport() {
   }
   el('anclPurchaser').value  = name;
   el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
+  el('anclPromotion').value  = (typeof _cemDiscData !== 'undefined' && _cemDiscData && _cemDiscData.label) || '';
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Client name imported, but the Cemetery Quote is empty — add items in the Quote Builder, then re-import here.</span>';
@@ -12307,7 +12637,7 @@ function anclImport() {
 }
 function anclUpdate() { clRenderWorksheetCopyPanel('anclCopyPanel', anclWorksheetData()); }
 function anclClearAll() {
-  ['anclPurchaser','anclRecipient','anclDateOfSale','anclPropDesig',
+  ['anclPurchaser','anclRecipient','anclDateOfSale','anclPromotion','anclPropDesig',
    'anclCremSale','anclCremMgrPct','anclCremMgrDollar','anclNoncremSale','anclNoncremMgrPct','anclNoncremMgrDollar',
    'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar',
    'anclSplit2Name','anclSplit2Pct','anclSplit3Name','anclSplit3Pct','anclSplit4Name','anclSplit4Pct',
@@ -12340,7 +12670,7 @@ function anclWorksheetData() {
   var r = clWorksheetRecalc('ancl', CL_RATES.atneed);
   return {
     type: 'atneed', fsd: val('anclFSD'), purchaser: val('anclPurchaser'), recipient: val('anclRecipient'),
-    dateOfSale: val('anclDateOfSale'),
+    dateOfSale: val('anclDateOfSale'), promotion: val('anclPromotion'),
     rows: [
       { label: 'Property: Cremation',     sale: num('anclCremSale'),    rate: CL_RATES.atneed.crem,    mgrPct: num('anclCremMgrPct'),    mgrDollar: num('anclCremMgrDollar'),    commission: r.cremComm },
       { label: 'Property: Non-Cremation', sale: num('anclNoncremSale'), rate: CL_RATES.atneed.noncrem, mgrPct: num('anclNoncremMgrPct'), mgrDollar: num('anclNoncremMgrDollar'), commission: r.noncremComm },
@@ -12360,14 +12690,23 @@ function anclWorksheetData() {
 // flowers) and subtracts them from _fhTotal. Pre-filled but editable — verify before printing.
 var CP_CASH_ADVANCE_RE = /Death Cert|County|Medical Examiner|Coroner|Permit|^Obituary|^Flowers:|Limousine|Motorcycle Escort/i;
 function cpclImport() {
-  var first = val('cpFirstName').trim(), last = val('cpLastName').trim();
-  var name = (first + ' ' + last).trim();
-  if (!name) {
-    el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">No ClearPoint contract found — fill in the Pre-Need Contract (ClearPoint) tab (at least the Purchaser name) first.</span>';
+  // cpFirstName/cpLastName are the Funeral Recipient (Insured) fields on the ClearPoint
+  // contract, NOT the Purchaser — the real Purchaser fields (cpFirstName2/cpLastName2) are
+  // "Complete only if different from Funeral Recipient" and default to the same person when
+  // left blank. This was previously reading the Recipient's name into the Purchaser field and
+  // leaving Recipient blank.
+  var recipFirst = val('cpFirstName').trim(), recipLast = val('cpLastName').trim();
+  var recipient  = (recipFirst + ' ' + recipLast).trim();
+  if (!recipient) {
+    el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">No ClearPoint contract found — fill in the Pre-Need Contract (ClearPoint) tab (at least the Funeral Recipient name) first.</span>';
     return;
   }
-  el('cpclPurchaser').value  = name;
+  var purchFirst = val('cpFirstName2').trim(), purchLast = val('cpLastName2').trim();
+  var purchaser  = (purchFirst + ' ' + purchLast).trim() || recipient;
+  el('cpclPurchaser').value  = purchaser;
+  el('cpclRecipient').value  = recipient;
   el('cpclDateOfSale').value = val('cpContractDate');
+  el('cpclPromotion').value  = (typeof _fhDiscData !== 'undefined' && _fhDiscData && _fhDiscData.label) || '';
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   var fhTotal = (typeof _fhTotal !== 'undefined') ? _fhTotal : 0;
   if (!lines.length || fhTotal <= 0) {
@@ -12377,7 +12716,11 @@ function cpclImport() {
     var commSale = Math.max(0, fhTotal - cashAdvance);
     el('cpclSale').value = commSale.toFixed(2);
     el('cpclDownPayment').value = num('cpDownPayment') || 0;
-    el('cpclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Total Funeral Price (excl. cash advance, est.): ' + fmt(commSale) + '. Review/adjust before generating the PDF.</span>';
+    // "Pay in Full" (cpSetPayInFull()) sets cpNumPayments to '0' and cpDownPayment to the full
+    // Funeral Plan Total — when that's the case, the full amount has already been received.
+    var isPayInFull = val('cpNumPayments') === '0' && num('cpDownPayment') > 0;
+    if (isPayInFull) el('cpclPmtReceived').value = num('cpDownPayment').toFixed(2);
+    el('cpclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + recipient + ' — Total Funeral Price (excl. cash advance, est.): ' + fmt(commSale) + '. Review/adjust before generating the PDF.</span>';
   }
   cpclUpdate();
 }
@@ -12402,7 +12745,7 @@ function cpclUpdate() {
   return { raw: raw, capped: capped };
 }
 function cpclClearAll() {
-  ['cpclPurchaser','cpclRecipient','cpclDateOfSale','cpclSale','cpclMgrPct','cpclMgrDollar','cpclDownPayment',
+  ['cpclPurchaser','cpclRecipient','cpclDateOfSale','cpclPromotion','cpclSale','cpclMgrPct','cpclMgrDollar','cpclDownPayment','cpclPmtReceived',
    'cpclSplit2Name','cpclSplit2Pct','cpclSplit3Name','cpclSplit3Pct','cpclSplit4Name','cpclSplit4Pct',
    'cpclPricesConfirmedBy','cpclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
   if (el('cpclSplit1Pct')) el('cpclSplit1Pct').value = 100;
@@ -12435,7 +12778,7 @@ async function cpclGeneratePdf() {
 function cpclWorksheetData(r) {
   return {
     type: 'clearpoint', fsd: val('cpclFSD'), purchaser: val('cpclPurchaser'), recipient: val('cpclRecipient'),
-    dateOfSale: val('cpclDateOfSale'),
+    dateOfSale: val('cpclDateOfSale'), promotion: val('cpclPromotion'), pmtReceived: num('cpclPmtReceived'),
     rows: [
       { label: 'Funeral Trust (Clearpoint)' + (r.raw > r.capped ? ' — capped at down payment' : ''), sale: num('cpclSale'), rate: 0.03, mgrPct: num('cpclMgrPct'), mgrDollar: num('cpclMgrDollar'), commission: r.capped }
     ],
@@ -12449,6 +12792,7 @@ function cpclWorksheetHtml() {
     + clField('cpclPurchaser', 'Purchaser Name', '', false)
     + clField('cpclRecipient', 'Recipient / Deceased Name', '', false)
     + clField('cpclDateOfSale', 'Date of Sale', '', false)
+    + clField('cpclPromotion', 'Promotion', '', false, 'Auto-fills from applied discount')
     + '</div>'
     + '<div style="margin-bottom:14px;">'
     + '<label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Why are you issuing a Trust versus a GA Policy?</label>'
@@ -12459,6 +12803,8 @@ function cpclWorksheetHtml() {
     + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
     + '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Down Payment Amount <span style="font-size:10px;color:var(--text-light);">(commission cap ceiling)</span></label>'
     + '<input type="number" id="cpclDownPayment" step="0.01" oninput="cpclUpdate()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>'
+    + '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Total Payment Received <span style="font-size:10px;color:var(--text-light);">(auto-fills on Pay in Full)</span></label>'
+    + '<input type="number" id="cpclPmtReceived" step="0.01" oninput="cpclUpdate()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>'
     + '</div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;">'
     + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
@@ -12605,6 +12951,7 @@ async function _fillWorksheetXlsx(data) {
   xml = _xlsxSetCell(xml, 'I5', 's', data.recipient);
   xml = _xlsxSetCell(xml, 'O4', 'n', _xlsxDateSerial(data.dateOfSale));
   if (data.pmtReceived) xml = _xlsxSetCell(xml, 'F6', 'n', data.pmtReceived);
+  if (data.promotion) xml = _xlsxSetCell(xml, 'O6', 's', data.promotion);
   if (data.type === 'ric' && data.isRewrite) {
     // Rewrite Stipend replaces the whole row's commission with a flat $200/$100 regardless of
     // sale amount (per the O16 formula) — matches clWorksheetRecalc() treating it as the sole
@@ -12613,8 +12960,16 @@ async function _fillWorksheetXlsx(data) {
   } else {
     var rowCoords = data.type === 'ric' ? ['16','17','18'] : data.type === 'atneed' ? ['10','11','12'] : ['20'];
     (data.rows || []).forEach(function(row, i) {
-      if (!row.sale) return;
       var coord = rowCoords[i]; if (!coord) return;
+      if (!row.sale) {
+        // The blank template ships with row 10 (AT NEED) pre-selected to "Merchandise" with no
+        // sale amount — a phantom row that shows a 5% rate and $0 commission for no reason.
+        // Explicitly blank the dropdown on any unused row rather than leaving it as-is. Skip
+        // ClearPoint's row 20 — B20 is a fixed "FUNERAL TRUST (CLEARPOINT)" label in the
+        // template, not a dropdown, and must never be blanked.
+        if (data.type !== 'clearpoint') xml = _xlsxSetCell(xml, 'B'+coord, 's', null);
+        return;
+      }
       var dropdownLabel = _xlsxDropdownLabel(row);
       if (dropdownLabel) xml = _xlsxSetCell(xml, 'B'+coord, 's', dropdownLabel);
       xml = _xlsxSetCell(xml, 'F'+coord, 'n', row.sale);
@@ -12664,6 +13019,7 @@ function _clWorksheetCopyText(data) {
   lines.push('Purchaser Name:  ' + (data.purchaser || ''));
   lines.push('Recipient/Deceased Name:  ' + (data.recipient || ''));
   lines.push('Date of Sale:  ' + (data.dateOfSale || ''));
+  if (data.promotion) lines.push('Promotion:  ' + data.promotion);
   if (data.pmtReceived !== undefined) lines.push('Total Payment Received:  ' + fmt(data.pmtReceived));
   lines.push('');
   var sectionLabel = data.type === 'ric' ? 'RETAIL INSTALLMENT CONTRACT section:' : data.type === 'atneed' ? 'AT NEED section:' : 'FUNERAL TRUST (CLEARPOINT) section:';
