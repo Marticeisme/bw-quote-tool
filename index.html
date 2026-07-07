@@ -6651,6 +6651,60 @@ function resetCemQuote() {
   } catch(e) { console.error('resetCemQuote error:', e); cemUpdate(); }
 }
 
+// ═══ SHARED "PRINT" WINDOW STYLING — mirrors _buildQuotePDF's palette/layout exactly (same
+// steel blue, orange discounts, real logo, footer text) so the browser-print preview and the
+// downloaded PDF look like the same document instead of two different designs. ═══
+var _PRINT_STEEL = '#4a6b8a', _PRINT_ORANGE = '#c8540a', _PRINT_DARK = '#222', _PRINT_MUTED = '#6b7382', _PRINT_LGRAY = '#e0e0e0';
+function _printQuoteCSS() {
+  return [
+    'body{font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:0 auto 40px;color:'+_PRINT_DARK+';font-size:13px;background:#fff;}',
+    '.hdr-bar{background:'+_PRINT_STEEL+';color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;}',
+    '.hdr-logo{height:34px;width:auto;display:block;flex-shrink:0;}',
+    '.hdr-right{text-align:right;}',
+    '.hdr-sub{font-size:13px;font-weight:700;}',
+    '.hdr-date{font-size:10.5px;opacity:.85;margin-top:3px;}',
+    '.prep-row{padding:12px 22px;border-bottom:1px solid '+_PRINT_LGRAY+';font-size:12px;color:'+_PRINT_DARK+';}',
+    '.section-lbl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:'+_PRINT_STEEL+';padding:6px 22px;margin-top:16px;}',
+    'table.lines{width:100%;border-collapse:collapse;margin:0;}',
+    'table.lines td{padding:7px 22px;border-bottom:1px solid '+_PRINT_LGRAY+';font-size:13px;}',
+    'table.lines td.lbl{color:'+_PRINT_DARK+';}',
+    'table.lines td.amt{text-align:right;font-weight:700;color:'+_PRINT_DARK+';white-space:nowrap;}',
+    '.disc td{color:'+_PRINT_ORANGE+' !important;font-weight:600;}',
+    '.tax-row td{color:'+_PRINT_MUTED+';font-weight:400;font-style:normal;}',
+    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2.5px solid '+_PRINT_STEEL+';margin:18px 22px 0;padding-top:12px;}',
+    '.total-lbl{font-size:16px;font-weight:700;color:'+_PRINT_DARK+';}',
+    '.total-amt{font-size:24px;font-weight:800;color:'+_PRINT_ORANGE+';}',
+    '.tax-note{font-size:10.5px;color:'+_PRINT_MUTED+';margin:6px 22px 0;}',
+    '.note{font-size:9.5px;color:'+_PRINT_MUTED+';margin:22px 22px 0;padding:14px 0 0;border-top:1px solid '+_PRINT_LGRAY+';}',
+    '.note-fine{font-size:9px;color:#999;margin:4px 22px 0;}',
+    '.pay-hdr{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:'+_PRINT_STEEL+';padding:6px 22px;margin-top:20px;}',
+    '.pay-meta{font-size:10.5px;color:'+_PRINT_MUTED+';margin:8px 22px 6px;}',
+    '.tier-hdr{font-size:12px;font-weight:700;color:'+_PRINT_DARK+';margin:10px 22px 4px;}',
+    'table.pay{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;}',
+    'table.pay thead tr{background:'+_PRINT_STEEL+';color:#fff;}',
+    'table.pay thead th{padding:6px 22px;text-align:left;font-weight:600;}',
+    'table.pay thead th:not(:first-child){text-align:right;padding-left:8px;padding-right:22px;}',
+    'table.pay tbody tr:nth-child(even){background:#f7f8fa;}',
+    'table.pay tbody td{padding:6px 22px;border-bottom:1px solid '+_PRINT_LGRAY+';}',
+    'table.pay tbody td:first-child{font-weight:600;}',
+    'table.pay tbody td:not(:first-child){text-align:right;font-weight:700;color:'+_PRINT_STEEL+';padding-left:8px;padding-right:22px;}',
+    '.ach{color:'+_PRINT_ORANGE+';font-weight:700;}',
+    '.pay-note{font-size:10px;color:#888;margin:6px 22px 0;}',
+    '@media print{body{margin:0;} .no-print{display:none;}}'
+  ].join('\n');
+}
+function _printQuoteHeaderHTML(subtitle, dateStr, validStr) {
+  return '<div class="hdr-bar"><img class="hdr-logo" src="data:image/svg+xml;base64,'+btoa(_BW_LOGO_SVG)+'" alt="Bonney Watson">'
+    + '<div class="hdr-right"><div class="hdr-sub">'+subtitle+'</div><div class="hdr-date">'+dateStr+' &nbsp;\xb7&nbsp; Valid thru '+validStr+'</div></div></div>';
+}
+function _printQuotePrepRowHTML(clientName) {
+  return '<div class="prep-row">' + (clientName ? 'Prepared for: <strong>'+clientName+'</strong> &nbsp;&nbsp;&nbsp; Washington Memorial Park' : 'Washington Memorial Park') + '</div>';
+}
+function _printQuoteFooterHTML() {
+  return '<div class="note">Bonney Watson &nbsp;\xb7&nbsp; 16445 International Blvd, SeaTac, WA 98188 &nbsp;\xb7&nbsp; mmorrison@bonneywatson.com &nbsp;\xb7&nbsp; 206-445-9794</div>'
+    + '<div class="note-fine">Prices valid for 30 days and subject to change without notice. This is an estimate only.</div>';
+}
+
 function printCemQuote() {
   logQuoteHistory('Cemetery', val('cemClientName') || '(unnamed)', _cemTotal || 0);
   var d = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
@@ -6686,41 +6740,7 @@ function printCemQuote() {
     return '<tr class="'+(cls||'')+'"><td class="lbl">'+lbl+'</td><td class="amt">'+fmtAmt(Math.abs(amt))+'</td></tr>';
   }
 
-  var CSS = [
-    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#222;font-size:13px;background:#fff;}',
-    '.hdr-bar{background:#3d5a7a;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}',
-    '.hdr-brand{font-size:16px;font-weight:800;letter-spacing:.05em;}',
-    '.hdr-sub{font-size:10px;opacity:.85;margin-top:2px;}',
-    '.hdr-right{text-align:right;font-size:10px;opacity:.85;}',
-    '.client{font-size:13px;font-weight:700;color:#3d5a7a;margin-bottom:14px;}',
-    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
-    '  color:#fff;background:#3d5a7a;padding:5px 8px;margin-top:12px;margin-bottom:0;}',
-    'table.lines{width:100%;border-collapse:collapse;margin:0;}',
-    'table.lines td{padding:5px 8px;border-bottom:1px solid #e4e8ec;font-size:13px;}',
-    'table.lines td.lbl{color:#222;}',
-    'table.lines td.amt{text-align:right;font-weight:600;color:#222;white-space:nowrap;}',
-    '.disc td{color:#1a6b45 !important;}',
-    '.tax-row td{color:#3d5a7a;font-weight:600;font-style:italic;}',
-    '.total-row{display:flex;justify-content:space-between;align-items:baseline;',
-    '  border-top:2.5px solid #3d5a7a;margin-top:14px;padding-top:10px;}',
-    '.total-lbl{font-size:15px;font-weight:700;}',
-    '.total-amt{font-size:22px;font-weight:800;color:#3d5a7a;}',
-    '.tax-note{font-size:10.5px;color:#666;margin-top:5px;}',
-    '.note{font-size:10px;color:#666;margin-top:18px;border-top:1px solid #e4e8ec;padding-top:10px;font-style:italic;}',
-    '.pay-hdr{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
-    '  color:#fff;background:#3d5a7a;margin-top:22px;padding:5px 8px;}',
-    '.tier-hdr{font-size:11.5px;font-weight:700;color:#3d5a7a;margin:10px 0 4px;}',
-    'table.pay{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;}',
-    'table.pay thead tr{background:#3d5a7a;color:#fff;}',
-    'table.pay thead th{padding:5px 8px;text-align:left;font-weight:600;}',
-    'table.pay thead th:not(:first-child){text-align:right;}',
-    'table.pay tbody tr:nth-child(even){background:#f5f7fa;}',
-    'table.pay tbody td{padding:5px 8px;border-bottom:1px solid #e4e8ec;}',
-    'table.pay tbody td:not(:first-child){text-align:right;}',
-    '.ach{color:#3d5a7a;font-weight:700;}',
-    '.pay-note{font-size:10px;color:#888;margin-top:6px;font-style:italic;}',
-    '@media print{body{margin:18px;} .no-print{display:none;}}'
-  ].join('\n');
+  var CSS = _printQuoteCSS();
 
   var sections = (typeof categorizeCemLines === 'function') ? categorizeCemLines(lines) : [];
   var linesHTML = '';
@@ -6771,26 +6791,21 @@ function printCemQuote() {
   var expires = new Date(); expires.setDate(expires.getDate() + 30);
   var expiresStr = expires.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var cemNotes = el('cemQuoteNotes') ? el('cemQuoteNotes').value.trim() : '';
+  var cemSubtitle = cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
   win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cemetery Quote – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write('<div class="hdr-bar">');
-  win.document.write('<div><div class="hdr-brand">BONNEY WATSON &nbsp;&middot;&nbsp; Washington Memorial Park</div>');
-  win.document.write('<div class="hdr-sub">' + (cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote') + '</div></div>');
-  win.document.write('<div class="hdr-right">'+d+'<br>Valid through '+expiresStr+'</div></div>');
-  if (clientName) win.document.write('<div class="client">Prepared for: ' + clientName + '</div>');
+  win.document.write(_printQuoteHeaderHTML(cemSubtitle, d, expiresStr));
+  win.document.write(_printQuotePrepRowHTML(clientName));
   win.document.write(linesHTML);
   if (payHTML) win.document.write(payHTML);
-  if (cemNotes) win.document.write('<div class="note" style="margin-top:12px;color:#555;font-style:normal;background:#f9f7f3;padding:10px;border-radius:4px;border-left:3px solid #C0673B;"><strong>Notes:</strong> ' + cemNotes + '</div>');
-  var isPN_print = cemQuoteType() === 'preneed';
-  var footerNote = isPN_print ? 'This quote is for reference purposes and is valid for 30 days from the date above. All prices subject to change without notice. <strong>Pre-need contracts lock in today\'s prices against future increases.</strong> Please contact Bonney Watson for a formal agreement. Tax rates and fees may vary.'
-    : 'This quote is for reference purposes. Prices subject to change. Please contact Bonney Watson regarding at-need arrangements. Tax rates and fees may vary.';
-  win.document.write('<div class="note">' + footerNote + '</div>');
+  if (cemNotes) win.document.write('<div class="note" style="border-top:none;padding-top:0;color:#555;background:#f9f7f3;padding:10px;border-radius:4px;border-left:3px solid '+_PRINT_ORANGE+';"><strong>Notes:</strong> ' + cemNotes + '</div>');
+  win.document.write(_printQuoteFooterHTML());
   win.document.write('</body></html>');
   win.document.close(); win.print();
 }
 
 function buildAllTiersPrint(total) {
   if (total <= 0) return '';
-  var NAVY = '#1B2A4A', ORANGE = '#C0673B';
+  var NAVY = _PRINT_STEEL, ORANGE = _PRINT_ORANGE;
   function fmtAmt(n){ return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   var tDefs = [
     {pct:0.10, label:'10% Down (Minimum)', key:0.10},
@@ -6854,36 +6869,7 @@ function printFhQuote() {
     return '<tr class="'+(cls||'')+'"><td class="lbl">'+lbl+'</td><td class="amt">'+fmtAmt(Math.abs(amt))+'</td></tr>';
   }
 
-  var CSS = [
-    'body{font-family:Arial,sans-serif;max-width:680px;margin:36px auto;color:#222;font-size:13px;background:#fff;}',
-    '.hdr-bar{background:#3d5a7a;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}',
-    '.hdr-brand{font-size:16px;font-weight:800;letter-spacing:.05em;}',
-    '.hdr-sub{font-size:10px;opacity:.85;margin-top:2px;}',
-    '.hdr-right{text-align:right;font-size:10px;opacity:.85;}',
-    '.client{font-size:13px;font-weight:700;color:#3d5a7a;margin-bottom:14px;}',
-    '.section-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;',
-    '  color:#fff;background:#3d5a7a;padding:5px 8px;margin-top:12px;margin-bottom:0;}',
-    'table.lines{width:100%;border-collapse:collapse;margin:0;}',
-    'table.lines td{padding:5px 8px;border-bottom:1px solid #e4e8ec;font-size:13px;}',
-    'table.lines td.lbl{color:#222;font-weight:500;}',
-    'table.lines td.amt{text-align:right;font-weight:700;color:#222;white-space:nowrap;}',
-    '.disc td{color:#1a6b45 !important;}',
-    '.tax-row td{color:#3d5a7a;font-weight:600;font-style:italic;}',
-    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2.5px solid #3d5a7a;margin-top:14px;padding-top:10px;}',
-    '.total-lbl{font-size:15px;font-weight:700;}',
-    '.total-amt{font-size:22px;font-weight:800;color:#3d5a7a;}',
-    '.tax-note{font-size:10.5px;color:#666;margin-top:5px;}',
-    '.note{font-size:10px;color:#666;margin-top:18px;border-top:1px solid #e4e8ec;padding-top:10px;font-style:italic;}',
-    '.ins-hdr{font-size:14px;font-weight:700;color:#fff;background:#3d5a7a;padding:6px 10px;margin-top:20px;}',
-    'table.pay{width:100%;border-collapse:collapse;font-size:12px;}',
-    'table.pay thead tr{background:#3d5a7a;color:#fff;}',
-    'table.pay thead th{padding:6px 8px;text-align:left;}',
-    'table.pay thead th:not(:first-child){text-align:right;}',
-    'table.pay tbody tr:nth-child(even){background:#f5f7fa;}',
-    'table.pay tbody td{padding:5px 8px;border-bottom:1px solid #e4e8ec;}',
-    'table.pay tbody td:not(:first-child){text-align:right;}',
-    '@media print{body{margin:18px;} .no-print{display:none;}}'
-  ].join('\n');
+  var CSS = _printQuoteCSS();
 
   var sections = (typeof categorizeFHLines === 'function') ? categorizeFHLines(lines) : [];
   var linesHTML = '';
@@ -6923,20 +6909,17 @@ function printFhQuote() {
   var fhNotes = el('fhQuoteNotes') ? el('fhQuoteNotes').value.trim() : '';
   var fhClientName = val('fhClientName') || '';
   win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Funeral Home Quote – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write('<div class="hdr-bar">');
-  win.document.write('<div><div class="hdr-brand">BONNEY WATSON &nbsp;&middot;&nbsp; Washington Memorial Park</div>');
-  win.document.write('<div class="hdr-sub">Funeral Home Quote</div></div>');
-  win.document.write('<div class="hdr-right">'+d+'<br>Valid through '+fhExpiresStr+'</div></div>');
-  if (fhClientName) win.document.write('<div class="client">Prepared for: ' + fhClientName + '</div>');
+  win.document.write(_printQuoteHeaderHTML('Funeral Home Quote', d, fhExpiresStr));
+  win.document.write(_printQuotePrepRowHTML(fhClientName));
   win.document.write(linesHTML);
-  if (fhNotes) win.document.write('<div class="note" style="font-style:normal;background:#f5f7fa;padding:10px;border-radius:4px;border-left:3px solid #3d5a7a;"><strong>Notes:</strong> ' + fhNotes + '</div>');
+  if (fhNotes) win.document.write('<div class="note" style="border-top:none;padding-top:0;background:#f5f7fa;padding:10px;border-radius:4px;border-left:3px solid '+_PRINT_STEEL+';"><strong>Notes:</strong> ' + fhNotes + '</div>');
   // Maxima Insurance Payment Options — include if age is entered
   var insAge = parseInt((el('fhInsAge') || {}).value) || 0;
   var insDown = parseFloat((el('fhInsDown') || {}).value) || 0;
   if (insAge > 0 && typeof _fhTotal !== 'undefined' && _fhTotal > 0) {
     var netBenefit = Math.max(0, _fhTotal - insDown);
-    win.document.write('<div class="ins-hdr">WA Maxima Insurance Payment Options</div>');
-    win.document.write('<div style="font-size:11px;color:#888;margin:4px 0 8px;">Age ' + insAge + ' · Benefit: $' + _fhTotal.toLocaleString("en-US",{minimumFractionDigits:2}) + (insDown > 0 ? ' · Down: $' + insDown.toLocaleString("en-US",{minimumFractionDigits:2}) : '') + ' · GA Maxima Revised, Standard, Underwritten · For illustration only</div>');
+    win.document.write('<div class="pay-hdr">WA Maxima Insurance Payment Options</div>');
+    win.document.write('<div class="pay-meta">Age ' + insAge + ' &nbsp;\xb7&nbsp; Benefit: $' + _fhTotal.toLocaleString("en-US",{minimumFractionDigits:2}) + (insDown > 0 ? ' &nbsp;\xb7&nbsp; Down: $' + insDown.toLocaleString("en-US",{minimumFractionDigits:2}) : '') + ' &nbsp;\xb7&nbsp; GA Maxima Revised, Standard, Underwritten &nbsp;\xb7&nbsp; For illustration only</div>');
     win.document.write('<table class="pay"><thead><tr><th>Plan</th><th>Monthly</th><th>Total Paid</th><th>Months</th></tr></thead><tbody>');
     var rates = typeof getMaximaRates === 'function' ? getMaximaRates(insAge) : null;
     if (rates) WA_MAXIMA_PLANS.forEach(function(plan, i) {
@@ -6944,20 +6927,20 @@ function printFhQuote() {
       if (rate === null || (plan.maxAge && insAge > plan.maxAge)) return;
       var monthly = plan.months === 1 ? netBenefit : Math.round(netBenefit * rate * 100) / 100;
       var totalPaid = plan.months === 1 ? netBenefit : monthly * plan.months;
-      win.document.write('<tr><td style="font-weight:600;">' + plan.name + '</td>');
+      win.document.write('<tr><td>' + plan.name + '</td>');
       if (plan.months === 1) {
-        win.document.write('<td colspan="3" style="text-align:right;font-weight:700;color:#3d5a7a;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + ' one-time</td>');
+        win.document.write('<td colspan="3">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + ' one-time</td>');
       } else {
-        win.document.write('<td style="font-weight:700;color:#3d5a7a;">$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + '/mo</td>');
-        win.document.write('<td>$' + totalPaid.toLocaleString("en-US",{minimumFractionDigits:2}) + '</td>');
-        win.document.write('<td>' + plan.months + '</td>');
+        win.document.write('<td>$' + monthly.toLocaleString("en-US",{minimumFractionDigits:2}) + '/mo</td>');
+        win.document.write('<td style="color:'+_PRINT_DARK+';font-weight:400;">$' + totalPaid.toLocaleString("en-US",{minimumFractionDigits:2}) + '</td>');
+        win.document.write('<td style="color:'+_PRINT_DARK+';font-weight:400;">' + plan.months + '</td>');
       }
       win.document.write('</tr>');
     });
     win.document.write('</tbody></table>');
   }
 
-  win.document.write('<div class="note">This quote is for reference purposes and is valid for 30 days from the date above. All prices subject to change without notice. <strong>Pre-need contracts lock in today\'s prices against future increases.</strong> Please contact Bonney Watson for a formal agreement. Tax rates and fees may vary.</div>');
+  win.document.write(_printQuoteFooterHTML());
   win.document.write('</body></html>');
   win.document.close(); win.print();
 }
@@ -7880,7 +7863,9 @@ function markerAdd() {
   var sLbl  = sEl && sEl.value ? sEl.options[sEl.selectedIndex].text : '';
   var cLbl  = cEl && cEl.value ? cEl.options[cEl.selectedIndex].text.replace(/ \(.*\)/, '') : '';
   var q = parseInt(el('qty_marker') ? el('qty_marker').value : 1) || 1;
-  var name = type.charAt(0).toUpperCase()+type.slice(1) + (sLbl ? ' ' + sLbl : '') + (cLbl ? ' — ' + cLbl : '');
+  // Include "Granite" on the line itself — size + stone-group color alone (e.g. "Flush 28x16x4
+  // — Group 2") never states the material, which reads ambiguous on a standalone quote/PDF line.
+  var name = type.charAt(0).toUpperCase()+type.slice(1) + ' Granite' + (sLbl ? ' ' + sLbl : '') + (cLbl ? ' — ' + cLbl : '');
   markerItems.push({name:name, price:markerPrice, install:installFee, qty:q});
   markerRender(); cemUpdate();
 }
@@ -8153,9 +8138,8 @@ function finBuildAllTiersPrintBlock(total) {
 
 function finBuildPrintBlock(total, downSel, actualDownAmt) {
   if (!downSel || downSel === '' || total <= 0) return '';
-  var BW_NAVY = '#1B2A4A', BW_ORANGE = '#C0673B';
-  var html = '<div style="margin-top:28px;border-top:2px solid ' + BW_NAVY + ';padding-top:18px;">';
-  html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:' + BW_ORANGE + ';margin-bottom:10px;">Payment Options</div>';
+  var BW_NAVY = _PRINT_STEEL, BW_ORANGE = _PRINT_ORANGE;
+  var html = '<div class="pay-hdr">Payment Options</div><div style="padding:0 22px;">';
 
   var isCustom = downSel === 'custom';
   if (isCustom && _finData) {
@@ -8211,7 +8195,7 @@ function finBuildPrintBlock(total, downSel, actualDownAmt) {
 // Print block for custom down payment (no specific term selected yet — show all options for that tier)
 function buildCustomDownPrint(total, downAmt, tierKey) {
   if (!total || total <= 0 || !downAmt || downAmt <= 0) return '';
-  var BW_NAVY = '#1B2A4A', BW_ORANGE = '#C0673B';
+  var BW_NAVY = _PRINT_STEEL, BW_ORANGE = _PRINT_ORANGE;
   var balance  = total - downAmt;
   var pctLabel = (downAmt / total * 100).toFixed(1) + '%';
   function fmtAmt(n){ return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -8220,8 +8204,7 @@ function buildCustomDownPrint(total, downAmt, tierKey) {
   var tiers = FIN_TIERS[tKey];
   if (!tiers) return '';
 
-  var html = '<div style="margin-top:28px;border-top:2px solid ' + BW_NAVY + ';padding-top:18px;">';
-  html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:' + BW_ORANGE + ';margin-bottom:10px;">Payment Options</div>';
+  var html = '<div class="pay-hdr">Payment Options</div><div style="padding:0 22px;">';
   html += '<p style="font-size:12px;color:#333;margin:0 0 4px;">';
   html += 'Total: <strong>' + fmtAmt(total) + '</strong>';
   html += ' &nbsp;|&nbsp; Down (' + pctLabel + '): <strong>' + fmtAmt(downAmt) + '</strong>';
@@ -11662,10 +11645,13 @@ input[type=checkbox]:focus { outline:2px solid #3d5a7a; outline-offset:2px; }
 
 <script>
 // ═══ PDF EXPORT ═══
+// Shared with the "Print" windows (printCemQuote/printFhQuote) below so the browser-print view
+// uses the exact same wordmark as the downloaded PDF instead of a plain-text "BONNEY WATSON".
+var _BW_LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308.34 56.42"><path d="M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/><path d="M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/></svg>';
 function _getLogoPngBytes() {
   return new Promise(function(resolve, reject) {
     try {
-      var svgStr = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308.34 56.42"><path d="M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" style="fill:#fff"/><path d="M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/><path d="M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51" transform="translate(-0.83 -0.29)" style="fill:#ff5100"/></svg>';
+      var svgStr = _BW_LOGO_SVG;
       var blob = new Blob([svgStr], {type:'image/svg+xml;charset=utf-8'});
       var url  = URL.createObjectURL(blob);
       var img  = new Image();
