@@ -2128,23 +2128,24 @@ tr:hover td{background:#eef3f8;}
       <div class="q-panel">
         <div class="q-panel-header">⚰️ Casket (Taxable)</div>
         <div class="q-panel-body">
-          <div class="q-row">
-            <label>Casket</label>
-            <div style="flex:1;position:relative;">
-              <input type="text" id="fhCasketSearch" placeholder="Search by name or item #…"
-                oninput="casketSearch()" onfocus="casketSearch()"
-                onkeydown="casketKeyNav(event)"
-                autocomplete="off"
-                style="width:100%;padding:10px 12px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;box-sizing:border-box;transition:border-color .2s,background .2s;">
-              <div style="font-size:11px;color:var(--text-light);margin-top:4px;padding:2px 0;">↑↓ scroll · Enter or Tab to select · type to filter</div>
-              <div id="fhCasketDropdown" style="display:block;position:relative;z-index:1;top:0;left:0;right:0;background:#fff;border:1px solid var(--gray-mid);border-top:none;border-radius:0 0 6px 6px;height:0;overflow:hidden;box-shadow:none;scroll-behavior:smooth;margin-top:0;transition:height .15s ease;"></div>
+          <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple caskets. Each casket can have its own quantity.</div>
+          <div class="q-group">
+            <div class="q-group-label">Select Casket</div>
+            <div class="q-row" style="flex-wrap:wrap;gap:6px;align-items:center;">
+              <div style="flex:1;min-width:180px;position:relative;">
+                <input type="text" id="fhCasketSearch" placeholder="Search by name or item #…"
+                  oninput="casketSearch()" onfocus="casketSearch()"
+                  onkeydown="casketKeyNav(event)"
+                  autocomplete="off"
+                  style="width:100%;padding:10px 12px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;box-sizing:border-box;transition:border-color .2s,background .2s;">
+                <div style="font-size:11px;color:var(--text-light);margin-top:4px;padding:2px 0;">↑↓ scroll · Enter to select · Tab to confirm &amp; add · type to filter</div>
+                <div id="fhCasketDropdown" style="display:block;position:relative;z-index:1;top:0;left:0;right:0;background:#fff;border:1px solid var(--gray-mid);border-top:none;border-radius:0 0 6px 6px;height:500px;overflow-y:auto;box-shadow:none;scroll-behavior:smooth;margin-top:0;"></div>
+              </div>
+              <input type="hidden" id="fhCasket"><input type="number" id="fhCasketPickQty" min="1" max="99" value="1" style="width:54px;padding:7px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;" title="Qty">
+              <button onclick="fhCasketAdd()" style="padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">+ Add</button>
             </div>
-            <!-- Hidden real value field used by fhUpdate -->
-            <input type="hidden" id="fhCasket">
-            <input type="hidden" id="fhCasketLabel">
-            <span id="fhCasketDisp" class="q-price-disp">—</span>
           </div>
-          <div id="fhCasketSelected" style="font-size:11px;color:var(--text-light);margin-top:4px;min-height:16px;"></div>
+          <div id="fhCasketList" style="margin-top:8px;"></div>
         </div>
       </div>
 
@@ -3626,12 +3627,14 @@ async function printGAContract() {
   var planDiscount    = discountLine ? Math.abs(discountLine.amount) : 0;
 
   // ── Casket / Urn ──────────────────────────────────────────────────────────
+  // fhCasket/fhCasketSearch are transient staging fields (cleared as soon as "+ Add" commits a
+  // casket into the fhCaskets list — see fhCasketAdd()), so this DOM read is normally empty by
+  // the time a contract is generated; the real source of truth is the "Casket: X" line(s) that
+  // fhUpdate() already pushed into _fhLines, found via the fallback below. GA/ClearPoint's own
+  // forms only have room for one casket, so if more than one was added this takes the first.
   var casketPrice     = parseFloat((el('fhCasket') || {}).value || '0') || 0;
   var casketSearchEl  = el('fhCasketSearch');
-  var casketLabel     = (el('fhCasketLabel') && el('fhCasketLabel').value)
-                        ? el('fhCasketLabel').value
-                        : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
-  // Fallback: read casket from _fhLines if fhCasket input is empty (e.g. when using GA import)
+  var casketLabel     = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
   if (!casketPrice) {
     var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
     if (casketFallbackLine) {
@@ -7194,6 +7197,48 @@ function fhUrnRender() {
   list.innerHTML = html;
 }
 
+// ── Casket multi-add (mirrors Urn multi-add above) ─────────────────────────────
+var fhCaskets = [];
+
+function fhCasketAdd() {
+  var searchEl = el('fhCasketSearch'), hiddenEl = el('fhCasket');
+  var price = hiddenEl ? parseFloat(hiddenEl.value) : 0;
+  if (!price) { if (searchEl) { searchEl.style.borderColor = '#c0392b'; setTimeout(function(){ searchEl.style.borderColor = ''; }, 1200); } return; }
+  var name = searchEl ? searchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : 'Casket';
+  var qty2 = parseInt(el('fhCasketPickQty') ? el('fhCasketPickQty').value : '1') || 1;
+  if (searchEl) { searchEl.value = ''; searchEl.style.borderColor = ''; searchEl.style.background = ''; }
+  if (hiddenEl) hiddenEl.value = '';
+  var dropdown = el('fhCasketDropdown'); if (dropdown) dropdown.style.display = 'none';
+  var existing = fhCaskets.find(function(c){ return c.name === name && c.price === price; });
+  if (existing) { existing.qty = (existing.qty||1) + qty2; }
+  else { fhCaskets.push({ name: name, price: price, qty: qty2 }); }
+  fhCasketRender(); fhUpdateD();
+}
+
+function fhCasketRemove(idx) { fhCaskets.splice(idx, 1); fhCasketRender(); fhUpdate(); }
+
+function fhCasketQtyChange(idx, val2) {
+  var q = parseInt(val2); if (q < 1) q = 1;
+  fhCaskets[idx].qty = q; fhUpdate();
+}
+
+function fhCasketRender() {
+  var list = el('fhCasketList');
+  if (!list) return;
+  if (!fhCaskets.length) { list.innerHTML = ''; return; }
+  var html = '<div style="border-top:1px solid var(--gray-mid);padding-top:8px;">';
+  fhCaskets.forEach(function(c, i) {
+    html += '<div class="q-row" style="font-size:12px;align-items:center;gap:6px;flex-wrap:wrap;">'
+      + '<span style="flex:1;min-width:120px;color:var(--text-main);">' + c.name + '</span>'
+      + '<input type="number" value="' + c.qty + '" min="1" max="99" style="width:46px;" oninput="fhCasketQtyChange(' + i + ', this.value)">'
+      + '<span style="color:var(--navy);font-weight:600;min-width:62px;text-align:right;">$' + (c.price * c.qty).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
+      + '<button onclick="fhCasketRemove(' + i + ')" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;" title="Remove">&times;</button>'
+      + '</div>';
+  });
+  html += '</div>';
+  list.innerHTML = html;
+}
+
 // ── Memorial Merchandise multi-add ────────────────────────────────────────────
 var fhMemPkgs = [];
 
@@ -7411,15 +7456,13 @@ function fhUpdate() {
     setDisp('fhCountyFeeDisp', cfV * fhPersonQty);
   } else { setDisp('fhCountyFeeDisp', 0); }
 
-  // Casket (taxable) — price in fhCasket, name persisted in fhCasketLabel
-  var casketV = parseFloat(val('fhCasket')) || 0;
-  if (casketV) {
-    var casketLblEl = el('fhCasketLabel');
-    var casketLbl = (casketLblEl && casketLblEl.value) ? casketLblEl.value
-                  : (el('fhCasketSearch') ? el('fhCasketSearch').value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '') || 'Casket';
-    lines.push({label: 'Casket: ' + casketLbl + (fhPersonQty > 1 ? ' ×' + fhPersonQty : ''), amount: casketV * fhPersonQty, taxable: true});
-    setDisp('fhCasketDisp', casketV * fhPersonQty);
-  } else { setDisp('fhCasketDisp', 0); }
+  // Casket (multi-add) — multiply each casket qty by person count
+  fhCaskets.forEach(function(c) {
+    if (c.price > 0 && c.qty > 0) {
+      var totalQty = c.qty * fhPersonQty;
+      lines.push({label: 'Casket: ' + c.name + (totalQty > 1 ? ' ×' + totalQty : ''), amount: c.price * totalQty, taxable: true});
+    }
+  });
 
   // Cremation Container (taxable)
   var fhCCv = parseFloat(val('fhCremContainer')) || 0;
@@ -7534,6 +7577,7 @@ function addFhLine() {
 
 function resetFHQuote() {
   fhUrns = []; fhUrnRender();
+  fhCaskets = []; fhCasketRender();
   fhFlowers = []; fhFlowerRender();
   fhMemPkgs = []; fhMemPkgRender();
   if (el('fhClientName'))  el('fhClientName').value  = '';
@@ -7545,7 +7589,7 @@ function resetFHQuote() {
   el('fhPlanItems').innerHTML = '';
   el('fhPlanArea').style.display = 'none';
   _activePlanType = ''; _activePlanKey = ''; _lockedPlanDiscount = 0;
-  ['fhViewing','fhReception','fhCasket','fhCasketLabel','fhCasketSearch','fhCremContainer','fhMemPkg','fhCountyFee','fhDiscType','fhDiscMode','fhUrnPick','fhFlowerPick'].forEach(function(id) {
+  ['fhViewing','fhReception','fhCasket','fhCasketSearch','fhCremContainer','fhMemPkg','fhCountyFee','fhDiscType','fhDiscMode','fhUrnPick','fhFlowerPick'].forEach(function(id) {
     var e = el(id); if (e) e.value = '';
   });
   ['fhBasicSvc','fhEmbalming','fhLimitedPrep','fhOtherPrep','fhAutopsy','fhHair','fhShelter','fhLongShelter',
@@ -8482,7 +8526,9 @@ function fuzzyMatch(query, target) {
   return qt.filter(function(g){ return tt.indexOf(g)>-1; }).length / qt.length > 0.5;
 }
 
-// ── Casket Search ──────────────────────────────────────────────
+// ── Casket Search — mirrors Urn Search below: type to filter, click/Enter/Tab stages the
+// candidate into the search box + hidden price field, then "+ Add" (fhCasketAdd) commits it
+// into the fhCaskets list so multiple distinct caskets can be added, each with its own qty. ──
 var _casketHighlight = -1;
 
 function casketSearch() {
@@ -8492,19 +8538,18 @@ function casketSearch() {
   var q = input.value.trim().toLowerCase();
   var matches = q.length === 0 ? CASKET_DATA.slice(0, 60)
     : CASKET_DATA.filter(function(c){ return fuzzyMatch(q, c.n.toLowerCase()) || c.i.indexOf(q) > -1; });
-  if (!matches.length) { dropdown.innerHTML = '<div style="padding:10px 12px;color:#aaa;font-size:12px;">No matches</div>'; dropdown.style.height='60px'; dropdown.style.overflow='hidden'; return; }
+  if (!matches.length) { dropdown.innerHTML = '<div style="padding:10px 12px;color:#aaa;font-size:12px;">No matches</div>'; dropdown.style.display='block'; return; }
   var html = '';
   matches.forEach(function(c, idx){
     var price = '$'+c.p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     html += '<div class="casket-opt" data-idx="'+idx+'" data-price="'+c.p+'" data-name="'+c.n.replace(/"/g,'&quot;')+'" data-label="'+c.l.replace(/"/g,'&quot;')+'"'
-      +' onmousedown="casketSelect(this)"'
+      +' onmousedown="casketPreSelect(this)"'
       +' style="padding:12px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0ee;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:48px;">'
       +'<span style="color:#1B2A4A;line-height:1.4;"><strong>'+c.n+'</strong><br><span style="color:#999;font-size:11px;font-weight:400;">#'+c.i+'</span></span>'
       +'<span style="color:#C0673B;font-weight:700;white-space:nowrap;font-size:14px;">'+price+'</span></div>';
   });
   dropdown.innerHTML = html;
-  dropdown.style.height = '500px';
-  dropdown.style.overflow = 'auto';
+  dropdown.style.display = 'block';
 }
 
 function casketKeyNav(e) {
@@ -8523,10 +8568,10 @@ function casketKeyNav(e) {
   } else if (e.key === 'Enter' || e.key === 'Tab') {
     if (_casketHighlight >= 0 && opts[_casketHighlight]) {
       e.preventDefault();
-      casketSelect(opts[_casketHighlight]);
+      casketPreSelect(opts[_casketHighlight]);
     }
   } else if (e.key === 'Escape') {
-    
+    dropdown.style.display = 'none';
   }
 }
 
@@ -8537,42 +8582,22 @@ function casketHighlightRow(opts) {
   });
   if (_casketHighlight >= 0) opts[_casketHighlight].scrollIntoView({ block:'nearest' });
 }
-function casketSelect(opt) {
+function casketPreSelect(opt) {
   var price = parseFloat(opt.getAttribute('data-price')), label = opt.getAttribute('data-label');
-  var name  = opt.getAttribute('data-name') || label;
   var hidden = el('fhCasket'), input = el('fhCasketSearch'), drop = el('fhCasketDropdown');
-  var sel = el('fhCasketSelected');
   if (hidden) hidden.value = price;
-  // Persist the casket name/label for PDF generation
-  var labelHidden = el('fhCasketLabel');
-  if (labelHidden) labelHidden.value = name;
   if (input) {
-    input.value = '';
-    input.style.borderColor = '';
-    input.style.background = '';
+    input.value = label;
+    input.style.borderColor = 'var(--navy)';
+    input.style.background = '#f0f4ff';
   }
-  // Collapse list after selection
-  if (drop) {
-    drop.innerHTML = '';
-    drop.style.height = '0';
-    drop.style.overflow = 'hidden';
-  }
-  if (sel) {
-    sel.innerHTML = '<span style="color:var(--navy);font-weight:700;">✓ Selected</span> · '
-      + '<span style="color:#C0673B;font-weight:700;">$' + price.toLocaleString('en-US',{minimumFractionDigits:2}) + '</span>'
-      + ' <button onmousedown="casketClear();fhUpdateD();" style="margin-left:8px;background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;padding:0;line-height:1;" title="Clear">✕</button>';
-  }
-  fhUpdateD();
+  if (drop) drop.style.display = 'none';
 }
-function casketClear() {
-  var h = el('fhCasket'), s = el('fhCasketSearch'), d = el('fhCasketDropdown'), sel = el('fhCasketSelected');
-  if (h) h.value = '';
-  if (el('fhCasketLabel')) el('fhCasketLabel').value = '';
-  if (s) { s.value = ''; s.style.borderColor = ''; s.style.background = ''; }
-  if (d) { d.innerHTML = ''; d.style.height = '0'; d.style.overflow = 'hidden'; }
-  if (sel) sel.innerHTML = '';
-}
-
+document.addEventListener('mousedown', function(e) {
+  var drop = el('fhCasketDropdown'), input = el('fhCasketSearch');
+  if (!drop || !input) return;
+  if (!drop.contains(e.target) && e.target !== input) drop.style.display = 'none';
+});
 (function(){ var style = document.createElement('style'); style.textContent = '.casket-opt:hover{background:#f5f3ee;}'; document.head.appendChild(style); })();
 
 // ── Urn Search ─────────────────────────────────────────────────
@@ -8771,6 +8796,7 @@ function captureFhState() {
     customLines: captureCustomLines('fhCustomLines'),
     discounts: captureDiscountRows('fhDiscountList'),
     urns: JSON.parse(JSON.stringify(fhUrns || [])),
+    caskets: JSON.parse(JSON.stringify(fhCaskets || [])),
     flowers: JSON.parse(JSON.stringify(fhFlowers || [])),
     memPkgs: JSON.parse(JSON.stringify(fhMemPkgs || [])),
     planItems: planItems,
@@ -9054,6 +9080,7 @@ function loadSavedFhQuote(id) {
   restoreCustomLines('fhCustomLines', s.customLines || []);
   restoreDiscountRows('fhDiscountList', s.discounts || []);
   if (s.urns)    { fhUrns = s.urns; fhUrnRender(); }
+  if (s.caskets) { fhCaskets = s.caskets; fhCasketRender(); }
   if (s.flowers) { fhFlowers = s.flowers; fhFlowerRender(); }
   if (s.memPkgs) { fhMemPkgs = s.memPkgs; fhMemPkgRender(); }
   if (s.activePlanKey && s.activePlanType) {
@@ -10895,12 +10922,12 @@ async function generateClearPointContract() {
     var receptionLine   = lines.find(function(l){ return l.label.toLowerCase().includes('reception') && funeralSvcLines.indexOf(l) < 0; });
     var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
 
-    // Casket / container / urn (read from FH builder DOM)
+    // Casket / container / urn (read from FH builder DOM) — fhCasket/fhCasketSearch are
+    // transient staging fields cleared once "+ Add" commits into fhCaskets, so this is normally
+    // empty; the fallback below reads the real "Casket: X" line(s) fhUpdate() already pushed.
     var casketPrice    = parseFloat((el('fhCasket') || {}).value || '0') || 0;
     var casketSearchEl = el('fhCasketSearch');
-    var casketLabel    = (el('fhCasketLabel') && el('fhCasketLabel').value)
-                         ? el('fhCasketLabel').value
-                         : (casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '');
+    var casketLabel    = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
     // Fallback: read casket from _fhLines if fhCasket input is empty (e.g. when using GA import)
     // — mirrors the same fallback in printGAContract().
     if (!casketPrice) {
@@ -12290,6 +12317,7 @@ async function downloadCombQuotePDF() {
         restoreCustomLines('fhCustomLines', fd.customLines||[]);
         restoreDiscountRows('fhDiscountList', fd.discounts||[]);
         if (fd.urns)    { fhUrns=fd.urns;         if (typeof fhUrnRender      === 'function') fhUrnRender(); }
+        if (fd.caskets) { fhCaskets=fd.caskets;   if (typeof fhCasketRender   === 'function') fhCasketRender(); }
         if (fd.flowers) { fhFlowers=fd.flowers;   if (typeof fhFlowerRender   === 'function') fhFlowerRender(); }
         if (fd.memPkgs) { fhMemPkgs=fd.memPkgs;  if (typeof fhMemPkgRender   === 'function') fhMemPkgRender(); }
         // Restore the selected plan + its line items (mirrors loadSavedFhQuote). These were
