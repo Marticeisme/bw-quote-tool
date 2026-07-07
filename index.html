@@ -8010,6 +8010,10 @@ function cemFinUpdate() {
   _finShowAll = false;
   var total = _cemTotal || 0;
   _finTotal = total;
+  // The Combined Quote's payment grid is keyed off this down payment — refresh it here (rather
+  // than only on re-pull/manual "Refresh Payment Options") so entering it on this tab updates
+  // the Combined tab immediately instead of leaving a stale "enter a down payment" message.
+  if (typeof combInsCalc === 'function') combInsCalc();
   var finTable  = el('finTable');
   var finInfo   = el('finDownInfo');
   var finPctDsp = el('finDownPctDisp');
@@ -9202,6 +9206,12 @@ function show(id, navEl) {
     var fhHasData  = (_fhLines||[]).filter(function(l){return !l.isDiscount;}).length > 0;
     if (cemHasData && _combCemTotal <= 0) pullCemetery();
     if (fhHasData  && _combFhTotal  <= 0) pullFuneral();
+    // The payment grid depends on the Cemetery down payment and FH insurance age, both entered
+    // on OTHER tabs — if the user set those after already pulling into Combined, the grid was
+    // never told to refresh (pullCemetery/pullFuneral above are skipped once already pulled) and
+    // showed a stale "enter a down payment/age" message until "Refresh Payment Options" was
+    // clicked. Refresh it unconditionally every time this page is shown.
+    if (typeof combInsCalc === 'function') combInsCalc();
   }
 }
 
@@ -11453,6 +11463,9 @@ function fhDobCalc() {
 }
 
 function fhInsCalc() {
+  // Same reasoning as cemFinUpdate()'s combInsCalc() refresh — the Combined Quote's payment
+  // grid is keyed off this age/down payment, entered on this (separate) tab.
+  if (typeof combInsCalc === 'function') combInsCalc();
   var tbl = el('fhInsTable');
   if (!tbl) return;
   var age  = parseInt((el('fhInsAge') || {}).value) || 0;
@@ -11690,16 +11703,40 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   const WHITE  = rgb(1, 1, 1);
   const PW = 612, PH = 792, M = 48, RX = 612 - 48;
   const HEADER_H = 68, LOGO_H = 50, LOGO_W = Math.round(LOGO_H * (308.34 / 56.42));
-  // Auto-compact mode (Combined Quote only, via opts.autoCompact + opts.rowCount): the main
-  // quote body must always fit on one page regardless of item count, so row height and font
-  // size shrink in tiers based on an estimated row count computed before drawing starts. Other
-  // callers (Cemetery/FH quotes) don't set autoCompact and keep the original fixed 18/10 sizing.
+  // Auto-compact mode (Combined Quote only, via opts.autoCompact): the main quote body must
+  // always fit on one page regardless of item count. A flat "rowCount" estimate undercounts
+  // quotes with many small categories — each section header/separator/subtotal costs noticeably
+  // more vertical space than a line item (see hdrH/SEP_H/SUB_H below), so a quote with, say, 16
+  // categories still overflowed even at the tightest fixed tier. Instead, walk the actual
+  // sections that will be drawn, tally items vs. structural rows separately, and pick the
+  // loosest tier whose real (weighted) height estimate fits the page — falling back to the
+  // tightest tier as a last resort for genuinely huge quotes.
   var ROW_H = 18, FSZ = 10;
   if (opts.autoCompact) {
-    var rc = opts.rowCount || 0;
-    if      (rc > 40) { ROW_H = 11; FSZ = 7;   }
-    else if (rc > 28) { ROW_H = 13; FSZ = 8;   }
-    else if (rc > 18) { ROW_H = 15; FSZ = 9;   }
+    var _secs = opts.sections || [];
+    var _numItems = 0, _numHeaders = 0, _numSeparators = 0, _numSubtotals = 0;
+    if (_secs.length) {
+      _secs.forEach(function(s) {
+        if (s.isSeparator) _numSeparators++;
+        else if (s.isSubtotal) _numSubtotals++;
+        else if (s.items && s.items.length) { _numHeaders++; _numItems += s.items.length; }
+      });
+    } else {
+      _numItems = opts.rowCount || 0;
+    }
+    var _availableH = (PH - HEADER_H - 14) - 26 - 70; // header + "prepared for" row + fixed footer buffer
+    var _FIXED_OVERHEAD = 90; // tax row + total block + spacing, roughly constant across tiers
+    var _TIERS = [ {rowH:18, fsz:10}, {rowH:15, fsz:9}, {rowH:13, fsz:8}, {rowH:11, fsz:7}, {rowH:9, fsz:6.5}, {rowH:7.5, fsz:6} ];
+    var _chosen = _TIERS[_TIERS.length - 1];
+    for (var _ti = 0; _ti < _TIERS.length; _ti++) {
+      var _t = _TIERS[_ti];
+      var _hdrH = Math.min(22, _t.rowH + 8);
+      var _sepH = Math.min(28, _t.rowH + 10);
+      var _subH = Math.min(22, _t.rowH + 7);
+      var _est = _numHeaders*_hdrH + _numItems*_t.rowH + _numSeparators*_sepH + _numSubtotals*_subH + _FIXED_OVERHEAD;
+      if (_est <= _availableH) { _chosen = _t; break; }
+    }
+    ROW_H = _chosen.rowH; FSZ = _chosen.fsz;
   }
   // Strip characters WinAnsi (pdf-lib standard fonts) cannot encode
   function safeText(s){
@@ -11790,7 +11827,12 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   function drawSection(title, items, color) {
     if (!items.length) return;
     var hdrH = opts.autoCompact ? Math.min(22, ROW_H+8) : 28;
-    var hdrBarH = opts.autoCompact ? 16 : 22;
+    // hdrBarH must stay comfortably smaller than hdrH (the space y actually advances by after
+    // the header), or the bar — which is drawn spanning [y-8, y-8+hdrBarH], i.e. up to 8pt above
+    // the CURRENT y — bleeds upward into the previous section's last row once ROW_H shrinks
+    // enough that hdrH gets close to a fixed hdrBarH. Was a flat 16 regardless of tier, which
+    // clipped the row above it at the tightest compaction tier (ROW_H down around 7-9).
+    var hdrBarH = opts.autoCompact ? Math.min(16, hdrH - 3) : 22;
     var hdrSz = opts.autoCompact ? Math.max(FSZ-0.5, 7) : 8.5;
     checkY(hdrH);
     // Bar spans [y-8, y-8+hdrBarH] so the y-5 text baseline always sits a few points above the
@@ -12188,24 +12230,26 @@ async function downloadCombQuotePDF() {
     sections.push({isSubtotal:true, label:'Funeral Home Subtotal', amount:fhTotalVal});
   }
   logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
-  // A4: the main quote must always fit on one page regardless of item count — autoCompact
-  // shrinks row height/font size in tiers based on this estimated row count (see ROW_H/FSZ in
-  // _buildQuotePDF). Payment options, if requested, are rendered as a forced separate page —
-  // never interleaved with the main quote — via opts.combinedPayment below.
-  // Each category section costs its own header row PLUS one row per line item inside it — not
-  // just one row for the section itself, which badly undercounted real content height and let
-  // "fits one page" quotes still spill to page 2.
-  var rowCount = sections.reduce(function(sum, sec) {
-    if (sec.isSeparator || sec.isSubtotal) return sum + 1;
-    return sum + 1 + (sec.items ? sec.items.length : 0);
-  }, 0);
+  // A4: the main quote must always fit on one page regardless of item count — autoCompact picks
+  // a row-height/font tier inside _buildQuotePDF from a weighted estimate of these sections
+  // (headers/separators/subtotals cost more than a plain row). Payment options, if requested,
+  // are rendered as a forced separate page — never interleaved with the main quote — via
+  // opts.combinedPayment below.
   var includePayOpts = el('combIncludePayOpts') && el('combIncludePayOpts').checked;
+  var paymentGrid = includePayOpts ? _computeCombinedPaymentGrid() : null;
+  // _buildQuotePDF silently skips the payment-options page when there's an error (see
+  // opts.combinedPayment.error check there) — that's correct for the "checkbox left unchecked"
+  // case, but if the user explicitly checked the box and it's still missing due to a missing
+  // down payment/age, say so instead of producing a PDF that's silently missing what they asked
+  // for with no explanation.
+  if (includePayOpts && paymentGrid && paymentGrid.error) {
+    alert('Payment options page skipped: ' + paymentGrid.error);
+  }
   await _buildQuotePDF(allLines, clientName, 'Combined Family Quote — Cemetery & Funeral Home', 'BW_Combined_Quote', {
     sections:     sections,
     grandTotal:   cemTotal + fhTotalVal,
     autoCompact:  true,
-    rowCount:     rowCount,
-    combinedPayment: includePayOpts ? _computeCombinedPaymentGrid() : null
+    combinedPayment: paymentGrid
   });
 }
 
