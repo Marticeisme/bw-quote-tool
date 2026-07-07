@@ -5741,21 +5741,23 @@ function cemUpdate() {
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
       var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn/i); });
       var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
+      // Customer-facing line — describe what's discounted, not the internal promo name ("July
+      // Incentive" reads as internal jargon to a family reviewing their quote).
       if (mode.indexOf('promo_burial') === 0) {
         var ocQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (mausP > 0 ? mausQ : 0));
         var ocActual = burialOCLines.reduce(function(s,l){return s+l.amount;},0);
         var ocDisc = Math.min(1000 * ocQ, ocActual);
         dAmt = propDisc + ocDisc;
-        dLabel = 'July Incentive (' + propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Interment O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '') + ')';
+        dLabel = propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Interment O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '');
       } else if (mode.indexOf('promo_crem') === 0) {
         var inQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (nicheP > 0 ? nicheQ : 0));
         var inurnActual = inurnOCLines.reduce(function(s,l){return s+l.amount;},0);
         var inurnDisc = Math.min(500 * inQ, inurnActual);
         dAmt = propDisc + inurnDisc;
-        dLabel = 'July Incentive (' + propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Cremation O&C' + (inQ > 1 ? ' — $500 × ' + inQ + ' spaces' : '') : '') + ')';
+        dLabel = propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Cremation O&C' + (inQ > 1 ? ' — $500 × ' + inQ + ' spaces' : '') : '');
       } else {
         dAmt = propDisc;
-        dLabel = 'July Incentive (' + propLbl + ')';
+        dLabel = propLbl;
       }
     } else {
       var discAmtEl = row.querySelector('.disc-amt');
@@ -6405,12 +6407,12 @@ function calcBTotal() {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bMausP;
         var bOCA = lines.filter(function(l){return l.label.match(/Entombment|Interment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
         bDiscAmt = bSpV * 0.10 + Math.min(1000, bOCA);
-        bDiscLbl = 'July Incentive – Burial (10% property + O&C)';
+        bDiscLbl = '10% off Property + O&C (Burial)';
       } else if (bDiscType === 'promo_crem') {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bNicheP;
         var bOCA = lines.filter(function(l){return l.label.match(/Inurnment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
         bDiscAmt = bSpV * 0.10 + Math.min(500, bOCA);
-        bDiscLbl = 'July Incentive – Cremation (10% property + O&C)';
+        bDiscLbl = '10% off Property + O&C (Cremation)';
       } else if (bDiscType === 'pct10_svc')  { bDiscAmt = bExempt  * 0.10; bDiscLbl = '10% off Services'; }
       else if   (bDiscType === 'pct10_merch'){ bDiscAmt = bTaxable * 0.10; bDiscLbl = '10% off Merchandise'; }
       if (bDiscAmt > 0) {
@@ -6657,7 +6659,12 @@ function resetCemQuote() {
 var _PRINT_STEEL = '#4a6b8a', _PRINT_ORANGE = '#c8540a', _PRINT_DARK = '#222', _PRINT_MUTED = '#6b7382', _PRINT_LGRAY = '#e0e0e0';
 function _printQuoteCSS() {
   return [
-    'body{font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:0 auto 40px;color:'+_PRINT_DARK+';font-size:13px;background:#fff;}',
+    // Browsers strip background colors/images when printing unless told otherwise (Chrome hides
+    // this behind an unchecked "Print backgrounds" option) — without this, the steel header/
+    // section bars silently vanish (white text on a now-white background) the moment a family
+    // actually prints or "Save as PDF"s the window, even though it looks correct on screen.
+    'html{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}',
+    'body{font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:0 auto 40px;color:'+_PRINT_DARK+';font-size:13px;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}',
     '.hdr-bar{background:'+_PRINT_STEEL+';color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;}',
     '.hdr-logo{height:34px;width:auto;display:block;flex-shrink:0;}',
     '.hdr-right{text-align:right;}',
