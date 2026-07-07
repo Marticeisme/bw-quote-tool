@@ -2533,7 +2533,7 @@ tr:hover td{background:#eef3f8;}
 <div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="combInsSection">
   <div class="q-panel-header">💡 Combined Monthly Payment Estimate</div>
   <div class="q-panel-body">
-    <div class="callout callout-blue" style="margin-bottom:14px;">Shows every cemetery financing tier crossed with every FH insurance plan so the family can compare combinations. Cemetery financing is pulled from the down payment you entered. FH options use the age entered in the WA Maxima panel.</div>
+    <div class="callout callout-blue" style="margin-bottom:14px;">Every standard cemetery down-payment tier (10%/20%/25%) and financing term, crossed with every WA Maxima FH plan — no down payment to pick, every real combination is listed. FH options use the age entered in the WA Maxima panel.</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
       <div class="q-row" style="flex:1;min-width:180px;">
         <label>Target Monthly Budget <span style="font-size:11px;color:var(--text-light);">(optional — highlights closest cell)</span></label>
@@ -4849,6 +4849,11 @@ var URN_DATA = [
   {n:"Delphia Wings Miniature Kpsk",i:"235718",p:125,l:"Delphia Wings Miniature Kpsk (#235718) — $125.00"},
   {n:"Mailer",i:"281665",p:125,l:"Mailer (#281665) — $125.00"},
   {n:"Nebula Royal Plum Keepsake",i:"282819",p:125,l:"Nebula Royal Plum Keepsake (#282819) — $125.00"},
+  {n:"Vista Reflections Scattering Tube",i:"282981",p:95,l:"Vista Reflections Scattering Tube (#282981) — $95.00"},
+  {n:"Botanical Reflections Scattering Tube",i:"282982",p:95,l:"Botanical Reflections Scattering Tube (#282982) — $95.00"},
+  {n:"Mountain View Scattering Tube",i:"282959",p:95,l:"Mountain View Scattering Tube (#282959) — $95.00"},
+  {n:"Patriot Scattering Tube",i:"282958",p:95,l:"Patriot Scattering Tube (#282958) — $95.00"},
+  {n:"Ocean Sunset Scattering Tube",i:"282957",p:95,l:"Ocean Sunset Scattering Tube (#282957) — $95.00"},
   {n:"Starlight Patriot Miniature",i:"285911",p:75,l:"Starlight Patriot Miniature (#285911) — $75.00"},
   {n:"Atlas Ivory Mini",i:"282814",p:59,l:"Atlas Ivory Mini (#282814) — $59.00"},
   {n:"Atlas Onyx Mini",i:"282811",p:59,l:"Atlas Onyx Mini (#282811) — $59.00"},
@@ -8046,10 +8051,6 @@ function cemFinUpdate() {
   _finShowAll = false;
   var total = _cemTotal || 0;
   _finTotal = total;
-  // The Combined Quote's payment grid is keyed off this down payment — refresh it here (rather
-  // than only on re-pull/manual "Refresh Payment Options") so entering it on this tab updates
-  // the Combined tab immediately instead of leaving a stale "enter a down payment" message.
-  if (typeof combInsCalc === 'function') combInsCalc();
   var finTable  = el('finTable');
   var finInfo   = el('finDownInfo');
   var finPctDsp = el('finDownPctDisp');
@@ -10297,6 +10298,11 @@ async function generateRICContractCore(clientData) {
       var dayPhoneIfPhone = /@/.test(dayPhoneVal) ? '' : dayPhoneVal;
       setR('Phone',            (clientData && clientData.phone) || dayPhoneIfPhone);
       setR('Date1_af_date',    todayMDY);
+      // The template's date field(s) at the bottom of the page (shared by the Purchaser/Date and
+      // Family Service Director/Date signature lines) were sized for a shorter default value —
+      // our full "MM/DD/YYYY" (e.g. "07/05/2026") ran past the field's right edge and got visibly
+      // clipped to "07/05/202" at the auto-fit size. Force a smaller fixed size so it fits.
+      try { rulesForm.getTextField('Date1_af_date').setFontSize(8); } catch(e) {}
       try { rulesForm.updateFieldAppearances(helvetica); } catch(e) {}
       try { dropButtonWidgets(rulesDoc, rulesForm); } catch(e) {}
       // Flatten before merging — the main RIC template also has a field literally named
@@ -11480,8 +11486,9 @@ function fhDobCalc() {
 }
 
 function fhInsCalc() {
-  // Same reasoning as cemFinUpdate()'s combInsCalc() refresh — the Combined Quote's payment
-  // grid is keyed off this age/down payment, entered on this (separate) tab.
+  // The Combined Quote's payment grid is keyed off this age (WA Maxima rates are
+  // age-underwritten) — refresh it here so entering it on this tab updates the Combined tab
+  // immediately instead of leaving a stale "enter an age" message.
   if (typeof combInsCalc === 'function') combInsCalc();
   var tbl = el('fhInsTable');
   if (!tbl) return;
@@ -11534,39 +11541,35 @@ function fhInsCalc() {
   tbl.innerHTML = html;
 }
 
-// Combined Quote's "Combined Monthly Payment Estimate" — crosses every cemetery financing tier
-// (same tiers/math as cemFinUpdate(), keyed off the down payment entered on the Cemetery Quote
-// tab) against every WA Maxima FH insurance plan (same rates as fhInsCalc(), keyed off the age
-// entered in the FH Quote's WA Maxima panel), so a family sees one combined monthly number for
-// both halves together. Referenced by the UI (#combTargetBudget oninput, "Refresh Payment
-// Options" button) but the function itself didn't exist — restored here.
-// Shared grid computation used by both the on-screen combInsCalc() table and the PDF's page-2
-// payment options (downloadCombQuotePDF() -> opts.combinedPayment) — one source of truth so the
-// two never drift apart. Returns {error} when there isn't enough data, or the full grid.
+// Combined Quote's "Combined Monthly Payment Estimate" — every standard cemetery down-payment
+// tier (10%/20%/25%, same as cemFinUpdate()'s "Show All Tiers") crossed with every cemetery
+// financing term crossed with every WA Maxima FH insurance plan (rates keyed off the age entered
+// in the FH Quote's WA Maxima panel), so the family can see every real combination side by side
+// without anyone first having to pick a down payment amount. Age is kept as a required input
+// (insurance rates are age-underwritten and can't be defaulted), but the down payment no longer
+// is — previously requiring one here meant the whole section stayed blank until someone entered
+// a number on a different tab.
+// Shared computation used by both the on-screen combInsCalc() table and the PDF's page-2 payment
+// options (downloadCombQuotePDF() -> opts.combinedPayment) — one source of truth so the two never
+// drift apart. Returns {error} when there isn't enough data, or {rows, targetBudget, bestIdx}.
+var COMB_DOWN_TIERS = [
+  {pct:0.10, label:'10% Down (Minimum)'},
+  {pct:0.20, label:'20% Down'},
+  {pct:0.25, label:'25%+ Down'}
+];
 function _computeCombinedPaymentGrid() {
   var cemTotal = (typeof _combCemTotal !== 'undefined') ? _combCemTotal : 0;
   var fhTotal  = (typeof _combFhTotal  !== 'undefined') ? _combFhTotal  : 0;
   if (cemTotal <= 0 || fhTotal <= 0) {
     return { error: 'Pull both a Cemetery quote and a Funeral Home quote to see combined payment options.' };
   }
-  var cemDownAmt = el('finDownAmt') ? (parseFloat(el('finDownAmt').value) || 0) : 0;
-  var downPct = cemTotal > 0 ? cemDownAmt / cemTotal : 0;
-  if (cemDownAmt <= 0 || downPct < 0.10) {
-    return { error: 'Enter a Cemetery down payment (min. 10%) in the Cemetery Quote’s financing section to see combined options.' };
-  }
   var age = parseInt((el('fhInsAge') || {}).value) || 0;
   if (age < 18) {
     return { error: 'Enter an age in the Funeral Home Quote’s WA Maxima panel to see combined options.' };
   }
 
-  // Cemetery side — identical tier selection/math to cemFinUpdate().
-  var balance = cemTotal - cemDownAmt;
-  var tierKey = downPct >= 0.25 ? 0.25 : downPct >= 0.20 ? 0.20 : 0.10;
-  var cemOptions = FIN_TIERS[tierKey].map(function(tier) {
-    return { label: tier[0] + ' mo', monthly: finMonthly(balance, tier[0], tier[1]) };
-  });
-
-  // FH side — identical plan selection/math to fhInsCalc().
+  // FH side — identical plan selection/math to fhInsCalc(). Independent of the cemetery down
+  // payment tiers below (WA Maxima's own "plans" ARE its down-payment/installment-count choice).
   var fhDown = parseFloat((el('fhInsDown') || {}).value) || 0;
   var rates = getMaximaRates(age);
   var benefit = Math.max(0, fhTotal - fhDown);
@@ -11577,32 +11580,44 @@ function _computeCombinedPaymentGrid() {
     // Single Pay is a one-time lump sum, not a recurring charge — folding it into a "combined
     // monthly" figure the same way as the installment plans would overstate the family's actual
     // recurring monthly burden by the entire FH benefit amount. Track it separately instead.
-    if (plan.months === 1) { fhOptions.push({ label: plan.name, monthly: 0, oneTime: benefit }); return; }
+    if (plan.months === 1) { fhOptions.push({ label: plan.name, monthly: 0, oneTime: benefit, months: 1 }); return; }
     var monthly = Math.round(benefit * rate * 100) / 100;
-    fhOptions.push({ label: plan.name, monthly: monthly });
+    fhOptions.push({ label: plan.name, monthly: monthly, months: plan.months });
   });
   if (!fhOptions.length) {
     return { error: 'No WA Maxima plans are available at that age.' };
   }
 
-  // Build the full grid first so the "closest to budget" cell can be found before rendering —
-  // can't decide a running "closest so far" while streaming out HTML, since a later cell might
-  // beat an earlier one.
-  var grid = fhOptions.map(function(f) {
-    return cemOptions.map(function(c) { return f.monthly + c.monthly; });
-  });
-  var targetBudget = parseFloat((el('combTargetBudget') || {}).value) || 0;
-  var bestRi = -1, bestCi = -1;
-  if (targetBudget > 0) {
-    var bestDiff = Infinity;
-    grid.forEach(function(row, ri) {
-      row.forEach(function(v, ci) {
-        var diff = Math.abs(v - targetBudget);
-        if (diff < bestDiff) { bestDiff = diff; bestRi = ri; bestCi = ci; }
+  // Cemetery side — every standard down-payment tier crossed with every term in that tier, same
+  // math as cemFinUpdate()/buildAllTiersPrint()'s "Show All Tiers".
+  var rows = [];
+  COMB_DOWN_TIERS.forEach(function(t) {
+    var cemDown = Math.ceil(cemTotal * t.pct);
+    var cemBalance = cemTotal - cemDown;
+    FIN_TIERS[t.pct].forEach(function(tier) {
+      var cemMonths = tier[0], cemRate = tier[1];
+      var cemMonthly = finMonthly(cemBalance, cemMonths, cemRate);
+      fhOptions.forEach(function(f) {
+        rows.push({
+          downLabel: t.label, downPct: t.pct, downAmt: cemDown,
+          cemMonths: cemMonths, cemMonthly: cemMonthly,
+          fhLabel: f.label, fhMonths: f.months, fhMonthly: f.monthly, fhOneTime: f.oneTime || 0,
+          totalMonthly: cemMonthly + f.monthly
+        });
       });
     });
+  });
+
+  var targetBudget = parseFloat((el('combTargetBudget') || {}).value) || 0;
+  var bestIdx = -1;
+  if (targetBudget > 0) {
+    var bestDiff = Infinity;
+    rows.forEach(function(r, i) {
+      var diff = Math.abs(r.totalMonthly - targetBudget);
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    });
   }
-  return { cemOptions: cemOptions, fhOptions: fhOptions, grid: grid, targetBudget: targetBudget, bestRi: bestRi, bestCi: bestCi };
+  return { rows: rows, targetBudget: targetBudget, bestIdx: bestIdx };
 }
 
 function combInsCalc() {
@@ -11610,24 +11625,39 @@ function combInsCalc() {
   if (!result) return;
   var data = _computeCombinedPaymentGrid();
   if (data.error) { result.innerHTML = '<div style="color:var(--text-light);font-size:12px;padding:8px 0;">' + data.error + '</div>'; return; }
-  var cemOptions = data.cemOptions, fhOptions = data.fhOptions, grid = data.grid, targetBudget = data.targetBudget, bestRi = data.bestRi, bestCi = data.bestCi;
+  var rows = data.rows, targetBudget = data.targetBudget, bestIdx = data.bestIdx;
 
   var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
-    + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:7px 8px;text-align:left;">FH Plan &#92; Cemetery Term</th>';
-  cemOptions.forEach(function(c){ html += '<th style="padding:7px 8px;text-align:right;">' + c.label + '</th>'; });
-  html += '</tr></thead><tbody>';
-  fhOptions.forEach(function(f, ri) {
-    html += '<tr style="background:' + (ri % 2 === 0 ? '#f8f7f3' : '#fff') + ';border-bottom:1px solid #eee;">'
-      + '<td style="padding:7px 8px;font-weight:600;">' + f.label + (f.oneTime ? ' <span style="font-weight:400;color:var(--text-light);font-size:10.5px;">(' + fmt(f.oneTime) + ' one-time, not monthly)</span>' : '') + '</td>';
-    cemOptions.forEach(function(c, ci) {
-      var isBest = (ri === bestRi && ci === bestCi);
-      html += '<td style="padding:7px 8px;text-align:right;' + (isBest ? 'background:#fff3cd;font-weight:700;border:2px solid var(--orange);' : '') + '">' + fmt(grid[ri][ci]) + '/mo</td>';
-    });
-    html += '</tr>';
+    + '<thead><tr style="background:var(--navy);color:#fff;">'
+    + '<th style="padding:7px 8px;text-align:left;">Down Payment</th>'
+    + '<th style="padding:7px 8px;text-align:right;">Cemetery Term</th>'
+    + '<th style="padding:7px 8px;text-align:right;">Cemetery/mo</th>'
+    + '<th style="padding:7px 8px;text-align:left;">FH Plan</th>'
+    + '<th style="padding:7px 8px;text-align:right;">FH/mo</th>'
+    + '<th style="padding:7px 8px;text-align:right;">Total/mo</th>'
+    + '</tr></thead><tbody>';
+  var lastDownLabel = null;
+  rows.forEach(function(r, i) {
+    if (r.downLabel !== lastDownLabel) {
+      html += '<tr><td colspan="6" style="padding:6px 8px;font-weight:700;background:#eef1f5;color:var(--navy);">'
+        + r.downLabel + ' — ' + fmt(r.downAmt) + '</td></tr>';
+      lastDownLabel = r.downLabel;
+    }
+    var isBest = (i === bestIdx);
+    var rowStyle = (isBest ? 'background:#fff3cd;font-weight:700;' : (i % 2 === 0 ? 'background:#f8f7f3;' : 'background:#fff;')) + 'border-bottom:1px solid #eee;';
+    html += '<tr style="' + rowStyle + '">'
+      + '<td style="padding:6px 8px;">' + fmt(r.downAmt) + ' (' + (r.downPct*100).toFixed(0) + '%)</td>'
+      + '<td style="padding:6px 8px;text-align:right;">' + r.cemMonths + ' mo</td>'
+      + '<td style="padding:6px 8px;text-align:right;">' + fmt(r.cemMonthly) + '</td>'
+      + '<td style="padding:6px 8px;">' + r.fhLabel + '</td>'
+      + '<td style="padding:6px 8px;text-align:right;">' + (r.fhOneTime ? fmt(r.fhOneTime) + ' one-time' : fmt(r.fhMonthly)) + '</td>'
+      + '<td style="padding:6px 8px;text-align:right;' + (isBest ? 'border:2px solid var(--orange);' : '') + '">' + fmt(r.totalMonthly) + '/mo' + (r.fhOneTime ? '*' : '') + '</td>'
+      + '</tr>';
   });
   html += '</tbody></table>';
-  if (targetBudget > 0 && bestRi >= 0) {
-    html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">Closest match to your ' + fmt(targetBudget) + '/mo target is highlighted.</div>';
+  html += '<div style="font-size:10.5px;color:var(--text-light);margin-top:6px;">*Total/mo for Single Pay rows is the cemetery payment only — the FH amount is due once, up front, not monthly.</div>';
+  if (targetBudget > 0 && bestIdx >= 0) {
+    html += '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">Closest match to your ' + fmt(targetBudget) + '/mo target is highlighted.</div>';
   }
   result.innerHTML = html;
 }
@@ -11949,42 +11979,79 @@ async function _buildQuotePDF(lines, clientName, subtitle, filePrefix, opts) {
   }
 
   // ── Combined Payment Options (A4) — always its own page, never interleaved with the main
-  // quote content above, regardless of how much room is left on page 1. ──
+  // quote content above. Unlike the main quote (forced to fit one page), this list is allowed to
+  // spill across as many pages as it needs — every down-payment tier × term × FH plan
+  // combination is listed as its own row, so the full list can run to 60-90+ rows. ──
   if (opts.combinedPayment && !opts.combinedPayment.error) {
     var cp = opts.combinedPayment;
+    var CP_COLS = [
+      {label:'Down Payment', w:118, align:'left'},
+      {label:'Cem. Term',    w:58,  align:'right'},
+      {label:'Cem./mo',      w:70,  align:'right'},
+      {label:'FH Plan',      w:104, align:'left'},
+      {label:'FH/mo',        w:80,  align:'right'},
+      {label:'Total/mo',     w:80,  align:'right'}
+    ];
+    var cpX = []; var _cx = M + 6;
+    CP_COLS.forEach(function(c){ cpX.push(_cx); _cx += c.w; });
+    function drawCpColHeader() {
+      page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
+      CP_COLS.forEach(function(c, i) {
+        var tw = c.align === 'right' ? bold.widthOfTextAtSize(c.label, 8) : 0;
+        var tx = c.align === 'right' ? cpX[i] + c.w - 8 - tw : cpX[i];
+        page.drawText(c.label, {x:tx, y:y+1, size:8, font:bold, color:DARK});
+      });
+      y -= 18;
+    }
+    // Local page-break check that also redraws the column header on the new page — the global
+    // checkY()/newPage() only redraws the top BONNEY WATSON banner, which would leave a
+    // multi-page list unreadable past page 1 with no column labels.
+    function cpCheckY(n) { if (y < n + 70) { newPage(); drawCpColHeader(); } }
+
     newPage();
     page.drawRectangle({x:M, y:y-10, width:RX-M, height:22, color:STEEL});
     page.drawText('COMBINED MONTHLY PAYMENT ESTIMATE', {x:M+6, y:y-5, size:8.5, font:bold, color:WHITE});
     y -= 32;
-    page.drawText('Cemetery financing tiers crossed with FH insurance plans. For illustration purposes only — actual rates may vary.', {x:M+4, y, size:7.5, font:reg, color:MUTED});
+    page.drawText('Every cemetery down-payment tier and term crossed with every FH insurance plan. For illustration purposes only — actual rates may vary.', {x:M+4, y, size:7.5, font:reg, color:MUTED});
     y -= 16;
-    var cpCols = cp.cemOptions.length;
-    var cpFirstColW = 190;
-    var cpColW = Math.min(90, (RX - M - cpFirstColW) / Math.max(1, cpCols));
-    checkY(20);
-    page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.93,0.93,0.93)});
-    page.drawText('FH Plan', {x:M+6, y:y+1, size:8.5, font:bold, color:DARK});
-    cp.cemOptions.forEach(function(c, ci) {
-      var cx = M + cpFirstColW + ci*cpColW;
-      page.drawText(c.label, {x:cx, y:y+1, size:8.5, font:bold, color:DARK});
-    });
-    y -= 18;
-    cp.fhOptions.forEach(function(f, ri) {
-      checkY(16);
-      if (ri % 2 === 0) page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.97,0.97,0.97)});
-      var fLabel = safeText(f.label) + (f.oneTime ? ' (' + fmtMoney(f.oneTime) + ' one-time)' : '');
-      page.drawText(trunc(fLabel, cpFirstColW-8, bold, 8.5), {x:M+6, y, size:8.5, font:bold, color:DARK});
-      cp.cemOptions.forEach(function(c, ci) {
-        var cx = M + cpFirstColW + ci*cpColW;
-        var isBest = (ri === cp.bestRi && ci === cp.bestCi);
-        if (isBest) page.drawRectangle({x:cx-3, y:y-3, width:cpColW-4, height:14, color:rgb(1,0.95,0.8), borderColor:ORANGE, borderWidth:1});
-        page.drawText(fmtMoney(cp.grid[ri][ci])+'/mo', {x:cx, y, size:8, font:isBest?bold:reg, color:isBest?ORANGE:DARK});
+    drawCpColHeader();
+
+    var lastDownLabel = null;
+    cp.rows.forEach(function(r, i) {
+      if (r.downLabel !== lastDownLabel) {
+        cpCheckY(16);
+        page.drawRectangle({x:M, y:y-4, width:RX-M, height:16, color:rgb(0.90,0.93,0.96)});
+        page.drawText(safeText(r.downLabel + ' — ' + fmtMoney(r.downAmt)), {x:M+6, y:y+1, size:8, font:bold, color:STEEL});
+        y -= 18;
+        lastDownLabel = r.downLabel;
+      }
+      cpCheckY(14);
+      var isBest = (i === cp.bestIdx);
+      if (isBest) page.drawRectangle({x:M, y:y-3, width:RX-M, height:14, color:rgb(1,0.95,0.8), borderColor:ORANGE, borderWidth:1});
+      else if (i % 2 === 0) page.drawRectangle({x:M, y:y-3, width:RX-M, height:14, color:rgb(0.97,0.97,0.97)});
+      var vals = [
+        fmtMoney(r.downAmt) + ' (' + (r.downPct*100).toFixed(0) + '%)',
+        r.cemMonths + ' mo',
+        fmtMoney(r.cemMonthly),
+        safeText(r.fhLabel),
+        r.fhOneTime ? fmtMoney(r.fhOneTime) + ' one-time' : fmtMoney(r.fhMonthly),
+        fmtMoney(r.totalMonthly) + '/mo' + (r.fhOneTime ? '*' : '')
+      ];
+      var rowFont = isBest ? bold : reg;
+      CP_COLS.forEach(function(c, ci) {
+        var txt = trunc(vals[ci], c.w - 8, rowFont, 7.5);
+        var tw = c.align === 'right' ? rowFont.widthOfTextAtSize(txt, 7.5) : 0;
+        var tx = c.align === 'right' ? cpX[ci] + c.w - 8 - tw : cpX[ci];
+        page.drawText(txt, {x:tx, y, size:7.5, font:rowFont, color:isBest?ORANGE:DARK});
       });
-      y -= 16;
+      y -= 14;
     });
-    if (cp.targetBudget > 0 && cp.bestRi >= 0) {
-      y -= 8;
-      page.drawText('Closest match to the ' + fmtMoney(cp.targetBudget) + '/mo target is highlighted.', {x:M+4, y, size:8, font:reg, color:MUTED});
+    cpCheckY(14);
+    page.drawText('*Total/mo for Single Pay rows is the cemetery payment only — the FH amount is due once, up front, not monthly.', {x:M+4, y, size:7, font:reg, color:MUTED});
+    y -= 12;
+    if (cp.targetBudget > 0 && cp.bestIdx >= 0) {
+      cpCheckY(12);
+      page.drawText('Closest match to the ' + fmtMoney(cp.targetBudget) + '/mo target is highlighted.', {x:M+4, y, size:7.5, font:reg, color:MUTED});
     }
   }
 
