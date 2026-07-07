@@ -3612,8 +3612,10 @@ async function printGAContract() {
   var motoEscortLine  = findLine('Motorcycle Escort');
   var motoEscortAmt   = motoEscortLine ? Math.abs(motoEscortLine.amount) : 0;
 
-  // Cremation services
-  var cremFeeAmt      = amt(findLine('Cremation & Processing'));
+  // Cremation services — the crem-plan packages label this line "Cremation & Processing", but
+  // the Direct Cremation packages (FH_PLANS.direct) label the same charge "Cremation Fee", so a
+  // Direct Cremation import previously found neither and left the GA form's field blank.
+  var cremFeeAmt      = amt(findLine('Cremation & Processing')) || amt(findLine('Cremation Fee'));
   var witnessAmt      = amt(findLine('Family Witness Cremation'));
   var expediteAmt     = amt(findLine('Expedite Cremation'));
   var prepCremAmt     = amt(findLine('Preparation of Body Prior'));
@@ -10908,7 +10910,9 @@ async function generateClearPointContract() {
     var hearseAmt      = amt(findLine('Use of Hearse'));
     var utilityAmt     = amt(findLine('Use of Utility Vehicle'));
     var flowerVehAmt   = amt(findLine('Use of Flower Vehicle'));
-    var cremFeeAmt     = amt(findLine('Cremation & Processing'));
+    // Direct Cremation packages label this line "Cremation Fee" instead of "Cremation & Processing"
+    // — mirrors the same fallback in printGAContract().
+    var cremFeeAmt     = amt(findLine('Cremation & Processing')) || amt(findLine('Cremation Fee'));
     var witnessAmt     = amt(findLine('Family Witness'));
     var expediteAmt    = amt(findLine('Expedite Cremation'));
     var prepCremAmt    = amt(findLine('Preparation Prior'));
@@ -12844,15 +12848,16 @@ function cpclImport() {
   if (!lines.length || fhTotal <= 0) {
     el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser/date imported, but no pricing found — build the Funeral Home Quote and import it into ClearPoint first, then re-import here.</span>';
   } else {
-    var cashAdvance = lines.filter(function(l){ return !l.isDiscount && CP_CASH_ADVANCE_RE.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
-    var commSale = Math.max(0, fhTotal - cashAdvance);
+    // ClearPoint commission is paid on the full grand total, INCLUDING cash advance items
+    // (death certificates, county/coroner fees, etc.) — unlike RIC/At-Need, which exclude them.
+    var commSale = Math.max(0, fhTotal);
     el('cpclSale').value = commSale.toFixed(2);
     el('cpclDownPayment').value = num('cpDownPayment') || 0;
     // "Pay in Full" (cpSetPayInFull()) sets cpNumPayments to '0' and cpDownPayment to the full
     // Funeral Plan Total — when that's the case, the full amount has already been received.
     var isPayInFull = val('cpNumPayments') === '0' && num('cpDownPayment') > 0;
     if (isPayInFull) el('cpclPmtReceived').value = num('cpDownPayment').toFixed(2);
-    el('cpclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + recipient + ' — Total Funeral Price (excl. cash advance, est.): ' + fmt(commSale) + '. Review/adjust before generating the PDF.</span>';
+    el('cpclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + recipient + ' — Total Funeral Price (est.): ' + fmt(commSale) + '. Review/adjust before generating the PDF.</span>';
   }
   cpclUpdate();
 }
@@ -12942,7 +12947,7 @@ function cpclWorksheetHtml() {
     + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
     + '<th style="padding:6px 8px;">Commissionable Sale</th><th style="padding:6px 8px;">Rate</th>'
     + '<th style="padding:6px 8px;">MGR % Adj</th><th style="padding:6px 8px;">MGR $ Adj</th><th style="padding:6px 8px;">Commission</th></tr></thead><tbody>'
-    + '<tr><td style="padding:6px 8px;">Funeral Trust <span style="font-size:10px;color:var(--text-light);">(Total Funeral Price, excl. cash advance)</span></td>'
+    + '<tr><td style="padding:6px 8px;">Funeral Trust <span style="font-size:10px;color:var(--text-light);">(Total Funeral Price, incl. cash advance)</span></td>'
     + '<td style="padding:6px 8px;"><input type="number" id="cpclSale" step="0.01" min="0" oninput="cpclUpdate()" style="width:100px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
     + '<td style="padding:6px 8px;text-align:center;">3%</td>'
     + '<td style="padding:6px 8px;"><input type="number" id="cpclMgrPct" step="0.1" oninput="clMgrExclusive(\'cpclMgrPct\',\'cpclMgrDollar\');cpclUpdate()" style="width:65px;padding:5px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"></td>'
@@ -13084,29 +13089,44 @@ async function _fillWorksheetXlsx(data) {
   xml = _xlsxSetCell(xml, 'O4', 'n', _xlsxDateSerial(data.dateOfSale));
   if (data.pmtReceived) xml = _xlsxSetCell(xml, 'F6', 'n', data.pmtReceived);
   if (data.promotion) xml = _xlsxSetCell(xml, 'O6', 's', data.promotion);
+  // The template is one shared sheet with all three sections (AT NEED rows 10-12, RETAIL
+  // INSTALLMENT rows 16-18, FUNERAL TRUST/ClearPoint row 20) baked in together, and ships with
+  // leftover example values in some of them (e.g. row 10 pre-selected to "Merchandise" with no
+  // sale amount) — _fillWorksheetXlsx only used to blank the CURRENT type's own unused rows, so
+  // whichever section belonged to a DIFFERENT contract type than the one being generated kept
+  // showing that phantom default. Blank every other section's dropdown unconditionally first.
+  var ALL_ROW_COORDS = { ric: ['16','17','18'], atneed: ['10','11','12'], clearpoint: ['20'] };
+  Object.keys(ALL_ROW_COORDS).forEach(function(t) {
+    if (t === data.type || t === 'clearpoint') return; // B20 is a fixed label, never blank it
+    ALL_ROW_COORDS[t].forEach(function(coord) { xml = _xlsxSetCell(xml, 'B'+coord, 's', null); });
+  });
   if (data.type === 'ric' && data.isRewrite) {
     // Rewrite Stipend replaces the whole row's commission with a flat $200/$100 regardless of
     // sale amount (per the O16 formula) — matches clWorksheetRecalc() treating it as the sole
     // total rather than additive, so the other category rows are left blank rather than guessed.
     xml = _xlsxSetCell(xml, 'B16', 's', data.rewriteType === 'merch' ? 'Rewrite Stipend:  Contract for Merch/Svc Only' : 'Rewrite Stipend:  Contract Includes Property');
   } else {
-    var rowCoords = data.type === 'ric' ? ['16','17','18'] : data.type === 'atneed' ? ['10','11','12'] : ['20'];
-    (data.rows || []).forEach(function(row, i) {
+    var rowCoords = ALL_ROW_COORDS[data.type] || ['20'];
+    // Only rows with an actual sale amount consume a coordinate, assigned in order starting from
+    // the section's FIRST row — a fixed positional mapping (e.g. always Cremation->row16,
+    // Non-Cremation->row17, Merchandise->row18) left row16 blank and every real line shifted down
+    // whenever the first category in the list didn't apply to this particular sale.
+    var activeRows = (data.rows || []).filter(function(row){ return row.sale; });
+    var usedCoords = {};
+    activeRows.forEach(function(row, i) {
       var coord = rowCoords[i]; if (!coord) return;
-      if (!row.sale) {
-        // The blank template ships with row 10 (AT NEED) pre-selected to "Merchandise" with no
-        // sale amount — a phantom row that shows a 5% rate and $0 commission for no reason.
-        // Explicitly blank the dropdown on any unused row rather than leaving it as-is. Skip
-        // ClearPoint's row 20 — B20 is a fixed "FUNERAL TRUST (CLEARPOINT)" label in the
-        // template, not a dropdown, and must never be blanked.
-        if (data.type !== 'clearpoint') xml = _xlsxSetCell(xml, 'B'+coord, 's', null);
-        return;
-      }
+      usedCoords[coord] = true;
       var dropdownLabel = _xlsxDropdownLabel(row);
       if (dropdownLabel) xml = _xlsxSetCell(xml, 'B'+coord, 's', dropdownLabel);
       xml = _xlsxSetCell(xml, 'F'+coord, 'n', row.sale);
       if (row.mgrPct) xml = _xlsxSetCell(xml, 'L'+coord, 'n', row.mgrPct/100);
       if (row.mgrDollar) xml = _xlsxSetCell(xml, 'M'+coord, 'n', row.mgrDollar);
+    });
+    // Blank out any of this section's own rows that weren't used (e.g. row18 when only one of
+    // the three categories applied) — skip ClearPoint's row20, a fixed label, not a dropdown.
+    rowCoords.forEach(function(coord) {
+      if (usedCoords[coord] || data.type === 'clearpoint') return;
+      xml = _xlsxSetCell(xml, 'B'+coord, 's', null);
     });
   }
   (data.splits || []).forEach(function(s, i) {
