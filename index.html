@@ -3712,14 +3712,18 @@ async function printGAContract() {
   }
 
   // ── Death Certs & County Fee ──────────────────────────────────────────────
-  var dcQty           = parseInt((el('fhDeathCerts') || {}).value || '0') || 0;
-  var dcAmt           = dcQty * 25;
+  // Read from _fhLines (like every other section here), not the live FH Quote Builder's own
+  // fhDeathCerts/fhCountyFee inputs — those reflect whatever's CURRENTLY on that page, which is
+  // wrong when generating from a loaded saved GA contract (the live builder fields were never
+  // touched by the load) and silently dropped both amounts from the guaranteed/non-guaranteed
+  // totals entirely, not just their display fields.
+  var dcLine          = findLine('Certified Death Certificates');
+  var dcAmt           = dcLine ? Math.abs(dcLine.amount) : 0;
+  var dcQty           = dcAmt > 0 ? Math.round(dcAmt / 25) : 0;
 
-  var countyFeeEl     = el('fhCountyFee');
-  var countyFeeAmt    = countyFeeEl ? (parseFloat(countyFeeEl.value) || 0) : 0;
-  var countyFeeLbl    = (countyFeeEl && countyFeeEl.selectedIndex > 0)
-    ? countyFeeEl.options[countyFeeEl.selectedIndex].text.replace(/\s*\$[\d,]+\s*$/, '').trim()
-    : '';
+  var countyFeeLine   = findLine('County');
+  var countyFeeAmt    = countyFeeLine ? Math.abs(countyFeeLine.amount) : 0;
+  var countyFeeLbl    = countyFeeLine ? countyFeeLine.label : '';
 
   // ── "Other" groupings (per 2026-06-22 addendum) ────────────────────────────
   // Vehicles → the dedicated "Other Services/Facilities/Equipment/Service Vehicle"
@@ -11164,12 +11168,15 @@ async function generateClearPointContract() {
     var discountLine  = lines.find(function(l){ return l.isDiscount; });
     lines.filter(function(l){ return l.isDiscount; }).forEach(function(l){ planDiscount += Math.abs(l.amount); });
 
-    var dcQty         = parseInt((el('fhDeathCerts') || {}).value || '0') || 0;
-    var dcAmt         = dcQty * 25;
-    var countyFeeEl   = el('fhCountyFee');
-    var countyFeeAmt  = countyFeeEl ? (parseFloat(countyFeeEl.value) || 0) : 0;
-    var countyFeeLbl  = (countyFeeEl && countyFeeEl.selectedIndex > 0)
-      ? countyFeeEl.options[countyFeeEl.selectedIndex].text.replace(/\s*\$[\d,]+\s*$/, '').trim() : '';
+    // Read from lines (like everything else here), not the live FH Quote Builder's own
+    // fhDeathCerts/fhCountyFee inputs — same fix as printGAContract(), same reason: those
+    // reflect whatever's currently on that page, not what's in this saved/imported contract.
+    var dcLine        = findLine('Certified Death Certificates');
+    var dcAmt         = dcLine ? Math.abs(dcLine.amount) : 0;
+    var dcQty         = dcAmt > 0 ? Math.round(dcAmt / 25) : 0;
+    var countyFeeLine = findLine('County');
+    var countyFeeAmt  = countyFeeLine ? Math.abs(countyFeeLine.amount) : 0;
+    var countyFeeLbl  = countyFeeLine ? countyFeeLine.label : '';
 
     // ── Totals (mirror GA so the ClearPoint grand total reconciles to the FH total) ──
     var servicesTotal =
