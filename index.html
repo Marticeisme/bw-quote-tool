@@ -3372,28 +3372,14 @@ var CP_PDF_B64 = "JVBERi0xLjYNJeLjz9MNCjk1NCAwIG9iag08PC9MaW5lYXJpemVkIDEvTCAzNz
   if (dateField && !dateField.value) dateField.value = y+'-'+m+'-'+d;
 })();
 
-function gaImportFromFH() {
-  // Pull insured name from FH client name field
-  var fhName = el('fhClientName');
-  var insured = fhName && fhName.value.trim() ? fhName.value.trim() : '';
-  if (insured) {
-    el('gaInsuredName').value = insured;
-  }
-  // Auto-detect disposition from active plan type
-  var planType = typeof _activePlanType !== 'undefined' ? _activePlanType : '';
-  if (planType === 'burial') {
-    document.querySelector('input[name="gaDisposition"][value="Burial"]').checked = true;
-  } else if (planType === 'crem' || planType === 'direct') {
-    document.querySelector('input[name="gaDisposition"][value="Cremation"]').checked = true;
-  }
-  // Auto-fill today's date if not already set
-  if (!el('gaContractDate').value) {
-    var now = new Date();
-    el('gaContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-  }
+// Builds the "✅ Imported: ..." pricing-summary banner from the current _fhLines/_fhTotal —
+// shared by gaImportFromFH() (fresh import from the live FH Quote Builder) and
+// loadSavedGaContract() (restoring a previously-saved GA contract), so re-loading a saved
+// contract shows the same confirmation instead of leaving the generic placeholder text up even
+// though _fhLines/_fhTotal were in fact correctly restored behind the scenes.
+function gaBuildImportBanner(insured, dispPos) {
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   var fmtGA = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
-  var dispPos = (typeof _activePlanType !== 'undefined' && _activePlanType) ? (_activePlanType === 'burial' ? 'Burial' : 'Cremation') : null;
 
   if (!lines.length) {
     var msg = insured
@@ -3433,7 +3419,30 @@ function gaImportFromFH() {
     '<td style="padding:4px 6px;text-align:right;font-weight:700;font-size:14px;color:#C0673B;">' + fmtGA(grand) + '</td></tr>' +
     '</table></div>';
   el('gaImportDisplay').innerHTML = msg;
-  gaRenderCustomReview();
+}
+function gaImportFromFH() {
+  // Pull insured name from FH client name field
+  var fhName = el('fhClientName');
+  var insured = fhName && fhName.value.trim() ? fhName.value.trim() : '';
+  if (insured) {
+    el('gaInsuredName').value = insured;
+  }
+  // Auto-detect disposition from active plan type
+  var planType = typeof _activePlanType !== 'undefined' ? _activePlanType : '';
+  if (planType === 'burial') {
+    document.querySelector('input[name="gaDisposition"][value="Burial"]').checked = true;
+  } else if (planType === 'crem' || planType === 'direct') {
+    document.querySelector('input[name="gaDisposition"][value="Cremation"]').checked = true;
+  }
+  // Auto-fill today's date if not already set
+  if (!el('gaContractDate').value) {
+    var now = new Date();
+    el('gaContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  }
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var dispPos = (typeof _activePlanType !== 'undefined' && _activePlanType) ? (_activePlanType === 'burial' ? 'Burial' : 'Cremation') : null;
+  gaBuildImportBanner(insured, dispPos);
+  if (lines.length) gaRenderCustomReview();
 }
 
 // ── GA custom-item review: unrecognized custom line items get a destination dropdown ──
@@ -8986,6 +8995,12 @@ function loadSavedGaContract(id) {
   if (typeof gaToggleCouple === 'function') gaToggleCouple();
   if (el('gaInsuredDOB') && el('gaInsuredDOB').value && typeof gaComputeAge === 'function') gaComputeAge();
   if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
+  // Restoring _fhLines/_fhTotal above puts the real pricing data back, but without this the
+  // "✅ Imported: ..." banner stayed on gaClearAll()'s generic placeholder text — from the
+  // user's perspective indistinguishable from the pricing never having come back at all.
+  if (typeof gaBuildImportBanner === 'function') {
+    gaBuildImportBanner((el('gaInsuredName') || {}).value || '', s.disposition || null);
+  }
   if (typeof gaRenderCustomReview === 'function') gaRenderCustomReview();
   if (s.customAssignments && s.customAssignments.length && el('gaCustomReview')) {
     el('gaCustomReview').querySelectorAll('.ga-cust-dest').forEach(function(sel) {
@@ -9046,6 +9061,13 @@ function loadSavedCpContract(id) {
     if (gtdRadio) gtdRadio.checked = true;
   }
   if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
+  // Same reasoning as loadSavedGaContract() — without rebuilding the banner here, it stays on
+  // cpClearAll()'s generic placeholder even though the pricing was in fact just restored.
+  if (typeof cpBuildImportBanner === 'function') {
+    var _cpInsuredName = ((el('cpFirstName')||{}).value || '') + ' ' + ((el('cpLastName')||{}).value || '');
+    cpBuildImportBanner(_cpInsuredName.trim(), s.disposition || null);
+  }
+  if (typeof cpCalcPayment === 'function') cpCalcPayment();
   if (typeof cpRenderCustomReview === 'function') cpRenderCustomReview();
   if (s.customAssignments && s.customAssignments.length && el('cpCustomReview')) {
     el('cpCustomReview').querySelectorAll('.cp-cust-dest').forEach(function(sel) {
@@ -10785,37 +10807,19 @@ var AN_OC_INPUT_MAP = {
 
 
 
-function cpImportFromFH() {
-  var fhName = el('fhClientName');
-  var insured = fhName && fhName.value.trim() ? fhName.value.trim() : '';
-  if (insured) {
-    var parts = insured.trim().split(/\s+/);
-    el('cpFirstName').value  = parts[0] || '';
-    el('cpMiddleName').value = parts.length > 2 ? parts.slice(1,-1).join(' ') : '';
-    el('cpLastName').value   = parts.length > 1 ? parts[parts.length-1] : '';
-  }
-  // Auto-detect disposition
-  var planType = typeof _activePlanType !== 'undefined' ? _activePlanType : '';
-  if (planType === 'burial') {
-    document.querySelector('input[name="cpDisposition"][value="Burial"]').checked = true;
-  } else if (planType === 'crem' || planType === 'direct') {
-    document.querySelector('input[name="cpDisposition"][value="Cremation"]').checked = true;
-  }
-  // Auto-fill today's date if blank
-  if (!el('cpContractDate').value) {
-    var now = new Date();
-    el('cpContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-  }
-  // Build itemized preview (mirrors gaImportFromFH so Martice can verify pricing before generate)
+// Builds the "✅ Imported: ..." pricing-summary banner from the current _fhLines/_fhTotal —
+// shared by cpImportFromFH() (fresh import) and loadSavedCpContract() (restoring a saved
+// contract), same reasoning as gaBuildImportBanner(): without this, re-loading a saved
+// ClearPoint contract left cpClearAll()'s generic placeholder text up even though _fhLines/
+// _fhTotal were correctly restored behind the scenes.
+function cpBuildImportBanner(insured, dispPos) {
   var cpLines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   var fmtCP = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
-  var dispPos = planType ? (planType === 'burial' ? 'Burial' : 'Cremation') : null;
 
   if (!cpLines.length) {
     el('cpImportDisplay').innerHTML =
       '<div style="background:#fff3cd;padding:8px 12px;border-radius:6px;color:#856404;">' +
       '⚠️ No Funeral Home Quote items found. Build an FH Quote first, then import.</div>';
-    cpCalcPayment();
     return;
   }
 
@@ -10842,7 +10846,32 @@ function cpImportFromFH() {
     '<tr style="border-top:2px solid #1B2A4A;"><td style="padding:4px 6px;font-weight:700;color:#1B2A4A;">Total</td>' +
     '<td style="padding:4px 6px;text-align:right;font-weight:700;font-size:14px;color:#C0673B;">' + fmtCP(grand) + '</td></tr>' +
     '</table></div>';
-  cpRenderCustomReview();
+}
+function cpImportFromFH() {
+  var fhName = el('fhClientName');
+  var insured = fhName && fhName.value.trim() ? fhName.value.trim() : '';
+  if (insured) {
+    var parts = insured.trim().split(/\s+/);
+    el('cpFirstName').value  = parts[0] || '';
+    el('cpMiddleName').value = parts.length > 2 ? parts.slice(1,-1).join(' ') : '';
+    el('cpLastName').value   = parts.length > 1 ? parts[parts.length-1] : '';
+  }
+  // Auto-detect disposition
+  var planType = typeof _activePlanType !== 'undefined' ? _activePlanType : '';
+  if (planType === 'burial') {
+    document.querySelector('input[name="cpDisposition"][value="Burial"]').checked = true;
+  } else if (planType === 'crem' || planType === 'direct') {
+    document.querySelector('input[name="cpDisposition"][value="Cremation"]').checked = true;
+  }
+  // Auto-fill today's date if blank
+  if (!el('cpContractDate').value) {
+    var now = new Date();
+    el('cpContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  }
+  var dispPos = planType ? (planType === 'burial' ? 'Burial' : 'Cremation') : null;
+  cpBuildImportBanner(insured, dispPos);
+  var cpLines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  if (cpLines.length) cpRenderCustomReview();
   cpCalcPayment();
 }
 
