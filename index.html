@@ -3372,13 +3372,24 @@ var CP_PDF_B64 = "JVBERi0xLjYNJeLjz9MNCjk1NCAwIG9iag08PC9MaW5lYXJpemVkIDEvTCAzNz
   if (dateField && !dateField.value) dateField.value = y+'-'+m+'-'+d;
 })();
 
-// Builds the "✅ Imported: ..." pricing-summary banner from the current _fhLines/_fhTotal —
+// Frozen pricing snapshot for the GA contract, taken at import/load time — mirrors RIC's
+// _ricPricing. GA used to read the live _fhLines/_fhTotal globals directly at generation time,
+// which are shared with (and continuously overwritten by) the live FH Quote Builder. That meant
+// generating a GA contract for a previously-imported/loaded family, while also live-editing a
+// new, unsaved FH quote for someone else, could silently pull the wrong family's pricing. Once
+// set, gaLines()/gaTotal() are authoritative; they fall back to the live globals only if nothing
+// has been imported/loaded yet in this sitting.
+var _gaPricing = null;
+function gaLines() { return (_gaPricing && Array.isArray(_gaPricing.lines)) ? _gaPricing.lines : ((typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : []); }
+function gaTotal() { return _gaPricing ? (_gaPricing.total || 0) : ((typeof _fhTotal !== 'undefined') ? _fhTotal : 0); }
+
+// Builds the "✅ Imported: ..." pricing-summary banner from the frozen GA pricing snapshot —
 // shared by gaImportFromFH() (fresh import from the live FH Quote Builder) and
 // loadSavedGaContract() (restoring a previously-saved GA contract), so re-loading a saved
 // contract shows the same confirmation instead of leaving the generic placeholder text up even
-// though _fhLines/_fhTotal were in fact correctly restored behind the scenes.
+// though the pricing snapshot was in fact correctly restored behind the scenes.
 function gaBuildImportBanner(insured, dispPos) {
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var lines = gaLines();
   var fmtGA = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 
   if (!lines.length) {
@@ -3410,7 +3421,7 @@ function gaBuildImportBanner(insured, dispPos) {
     previewRows += '<tr><td style="padding:2px 6px;color:#888;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;color:#888;">' + fmtGA(l.amount) + '</td></tr>';
     totalAmt += l.amount;
   });
-  var grand = (typeof _fhTotal !== 'undefined') ? _fhTotal : (totalAmt + discAmt);
+  var grand = gaTotal() || (totalAmt + discAmt);
 
   var msg = '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">' +
     '<div style="font-weight:700;color:#155724;margin-bottom:6px;">✅ Imported: ' + (insured || '(no name)') + (dispPos ? ' | Disposition: ' + dispPos : '') + '</div>' +
@@ -3440,6 +3451,9 @@ function gaImportFromFH() {
     el('gaContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   }
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  // Freeze a snapshot at import time so later live edits to the FH Quote Builder (e.g. starting
+  // a new, unsaved quote for someone else) can't silently change this GA contract's pricing.
+  _gaPricing = { lines: JSON.parse(JSON.stringify(lines)), total: (typeof _fhTotal !== 'undefined') ? _fhTotal : 0 };
   var dispPos = (typeof _activePlanType !== 'undefined' && _activePlanType) ? (_activePlanType === 'burial' ? 'Burial' : 'Cremation') : null;
   gaBuildImportBanner(insured, dispPos);
   if (lines.length) gaRenderCustomReview();
@@ -3449,7 +3463,7 @@ function gaImportFromFH() {
 // "obituary" and "flower allowance" are auto-mapped; every other custom line is listed here
 // so Martice assigns where it goes (never silently dropped).
 function gaUnrecognizedCustomLines() {
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var lines = gaLines();
   return lines.filter(function(l){
     return l.custom && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
   });
@@ -3513,6 +3527,7 @@ function gaClearDOB() {
 }
 
 function gaClearAll() {
+  _gaPricing = null;
   el('gaInsuredName').value = '';
   el('gaPurchaserName').value = '';
   var now = new Date();
@@ -3545,7 +3560,7 @@ async function printGAContract() {
   function fmtSigned$(n) { return n !== 0 ? (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
 
   // ── FH Quote data ─────────────────────────────────────────────────────────
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var lines = gaLines();
 
   function findLine(kw) {
     var k = kw.toLowerCase();
@@ -3639,20 +3654,21 @@ async function printGAContract() {
   var planDiscount    = discountLine ? Math.abs(discountLine.amount) : 0;
 
   // ── Casket / Urn ──────────────────────────────────────────────────────────
-  // fhCasket/fhCasketSearch are transient staging fields (cleared as soon as "+ Add" commits a
-  // casket into the fhCaskets list — see fhCasketAdd()), so this DOM read is normally empty by
-  // the time a contract is generated; the real source of truth is the "Casket: X" line(s) that
-  // fhUpdate() already pushed into _fhLines, found via the fallback below. GA/ClearPoint's own
-  // forms only have room for one casket, so if more than one was added this takes the first.
-  var casketPrice     = parseFloat((el('fhCasket') || {}).value || '0') || 0;
-  var casketSearchEl  = el('fhCasketSearch');
-  var casketLabel     = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
-  if (!casketPrice) {
-    var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
-    if (casketFallbackLine) {
-      casketPrice = Math.max(0, casketFallbackLine.amount);
-      casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
-    }
+  // Read from the imported pricing snapshot (lines) FIRST, not the live FH Quote Builder's own
+  // fhCasket/fhCasketSearch/fhCremContainer fields or the fhUrns array — those reflect whatever
+  // is CURRENTLY on that page, which can belong to a different family than the one this GA
+  // contract is being generated for (e.g. generating from an imported/loaded past family while
+  // still live-editing a new, unsaved FH quote for someone else). Only fall back to the live
+  // DOM/global state when the snapshot has no matching line at all.
+  var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
+  var casketPrice, casketLabel;
+  if (casketFallbackLine) {
+    casketPrice = Math.max(0, casketFallbackLine.amount);
+    casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
+  } else {
+    casketPrice = parseFloat((el('fhCasket') || {}).value || '0') || 0;
+    var casketSearchEl = el('fhCasketSearch');
+    casketLabel = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
   }
   // Extract model # from casket label e.g. "Virgo White/Gold (#279133)"
   var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
@@ -3666,35 +3682,31 @@ async function printGAContract() {
     if (_ckMatch && _ckMatch.i) casketModelNum = '#' + _ckMatch.i;
   }
 
-  var cremContEl      = el('fhCremContainer');
-  var cremContPrice   = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
-  var cremContLabel   = (cremContEl && cremContEl.selectedIndex > 0)
-    ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim()
-    : '';
-  // Fallback: a Direct Cremation PACKAGE bundles its container into the package selection
-  // (fhDirectCremPlan) rather than the standalone fhCremContainer dropdown, which stays on
-  // "— None —" — so pull the container from _fhLines instead when that dropdown is empty.
-  if (!cremContPrice) {
-    var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
-    if (cremContFallbackLine) {
-      cremContPrice = Math.max(0, cremContFallbackLine.amount);
-      cremContLabel = cremContFallbackLine.label;
-    }
+  var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+  var cremContPrice, cremContLabel;
+  if (cremContFallbackLine) {
+    cremContPrice = Math.max(0, cremContFallbackLine.amount);
+    cremContLabel = cremContFallbackLine.label;
+  } else {
+    var cremContEl = el('fhCremContainer');
+    cremContPrice = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
+    cremContLabel = (cremContEl && cremContEl.selectedIndex > 0)
+      ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim()
+      : '';
   }
 
-  var urns            = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
-  var urnTotalAmt     = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
-  var urnLabel        = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
-  // Fallback: if no catalog urn in fhUrns, pull from _fhLines (skip "Urn Allowance" plan lines)
-  if (urnTotalAmt === 0) {
-    var urnFbLines = lines.filter(function(l){
-      var lb = l.label.toLowerCase();
-      return (lb.startsWith('urn:') || lb.includes('urn')) && !lb.includes('allowance');
-    });
-    if (urnFbLines.length) {
-      urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
-      urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
-    }
+  var urnFbLines = lines.filter(function(l){
+    var lb = l.label.toLowerCase();
+    return (lb.startsWith('urn:') || lb.includes('urn')) && !lb.includes('allowance');
+  });
+  var urnTotalAmt, urnLabel;
+  if (urnFbLines.length) {
+    urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
+    urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
+  } else {
+    var urns    = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
+    urnTotalAmt = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
+    urnLabel    = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
   }
 
   // What fills the "Casket" row on the form. Prefer whichever the user actually selected:
@@ -3812,7 +3824,7 @@ async function printGAContract() {
   var grandTotal   = guaranteedWithTax + nonGuarTotal;
 
   // Totals-match check vs FH quote
-  if (typeof _fhTotal !== 'undefined') showTotalsMismatch(grandTotal, _fhTotal, 'GA Contract');
+  showTotalsMismatch(grandTotal, gaTotal(), 'GA Contract');
 
   // ── PDF generation ────────────────────────────────────────────────────────
   if (!lines.length) {
@@ -8951,10 +8963,9 @@ function loadSavedRicContract(id) {
   if (_ricPricing) { try { ricShowPricingSummary(); } catch(e) {} }
   show('ric-contract', document.querySelector('[onclick*="ric-contract"]'));
 }
-// GA and ClearPoint don't hold their own pricing — printGAContract()/generateClearPointContract()
-// read the live _fhLines/_fhTotal globals at generation time (no _gaPricing/_cpPricing snapshot
-// object like RIC's _ricPricing). So the saved state carries a frozen copy of those globals and
-// restores them on load, same effect as RIC's pricing snapshot, just captured directly.
+// Saves the GA contract's own frozen pricing snapshot (_gaPricing, or the live globals if the
+// user never explicitly imported/loaded one this sitting) — not necessarily whatever's currently
+// live in _fhLines, which may by now belong to a different family.
 function captureGaState() {
   var section = el('section-ga-contract');
   var fieldIds = [];
@@ -8963,8 +8974,8 @@ function captureGaState() {
   return {
     fields:      captureFieldState(fieldIds),
     disposition: dispEl ? dispEl.value : 'Burial',
-    fhLines:     (typeof _fhLines !== 'undefined') ? JSON.parse(JSON.stringify(_fhLines)) : [],
-    fhTotal:     (typeof _fhTotal !== 'undefined') ? _fhTotal : 0,
+    fhLines:     JSON.parse(JSON.stringify(gaLines())),
+    fhTotal:     gaTotal(),
     customAssignments: (typeof gaGetCustomAssignments === 'function') ? gaGetCustomAssignments() : []
   };
 }
@@ -8977,7 +8988,7 @@ function saveGaContract() {
     var label = window.prompt('Name this saved GA contract:', defaultLabel);
     if (label === null) return;
     label = label.trim() || defaultLabel;
-    var snap = { id: Date.now(), label: label, total: (typeof _fhTotal !== 'undefined' ? _fhTotal : 0) || 0, state: captureGaState(), date: d };
+    var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
     _gaSavedContracts.unshift(snap);
     if (_gaSavedContracts.length > 10) _gaSavedContracts = _gaSavedContracts.slice(0, 10);
     renderSavedQuotesList('ga');
@@ -8998,10 +9009,12 @@ function loadSavedGaContract(id) {
   }
   if (typeof gaToggleCouple === 'function') gaToggleCouple();
   if (el('gaInsuredDOB') && el('gaInsuredDOB').value && typeof gaComputeAge === 'function') gaComputeAge();
-  if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
-  // Restoring _fhLines/_fhTotal above puts the real pricing data back, but without this the
-  // "✅ Imported: ..." banner stayed on gaClearAll()'s generic placeholder text — from the
-  // user's perspective indistinguishable from the pricing never having come back at all.
+  // Populate the GA-only pricing snapshot, NOT the shared _fhLines/_fhTotal globals — those
+  // belong to the live FH Quote Builder and may currently hold an unrelated, still-in-progress
+  // quote for a different family. Overwriting them here would silently corrupt that quote.
+  _gaPricing = { lines: s.fhLines || [], total: s.fhTotal || 0 };
+  // Without rebuilding the banner here, it stayed on gaClearAll()'s generic placeholder text —
+  // from the user's perspective indistinguishable from the pricing never having come back at all.
   if (typeof gaBuildImportBanner === 'function') {
     gaBuildImportBanner((el('gaInsuredName') || {}).value || '', s.disposition || null);
   }
@@ -9017,6 +9030,9 @@ function loadSavedGaContract(id) {
   }
   show('ga-contract', document.querySelector('[onclick*="ga-contract"]'));
 }
+// Saves the ClearPoint contract's own frozen pricing snapshot (_cpPricing, or the live globals
+// if the user never explicitly imported/loaded one this sitting) — not necessarily whatever's
+// currently live in _fhLines, which may by now belong to a different family.
 function captureCpState() {
   var section = el('section-cp-contract');
   var fieldIds = [];
@@ -9027,8 +9043,8 @@ function captureCpState() {
     fields:       captureFieldState(fieldIds),
     disposition:  dispEl ? dispEl.value : 'Burial',
     guaranteed:   gtdEl  ? gtdEl.value  : 'no',
-    fhLines:      (typeof _fhLines !== 'undefined') ? JSON.parse(JSON.stringify(_fhLines)) : [],
-    fhTotal:      (typeof _fhTotal !== 'undefined') ? _fhTotal : 0,
+    fhLines:      JSON.parse(JSON.stringify(cpGetLines())),
+    fhTotal:      cpGetTotal(),
     customAssignments: (typeof cpGetCustomAssignments === 'function') ? cpGetCustomAssignments() : []
   };
 }
@@ -9041,7 +9057,7 @@ function saveCpContract() {
     var label = window.prompt('Name this saved ClearPoint contract:', defaultLabel);
     if (label === null) return;
     label = label.trim() || defaultLabel;
-    var snap = { id: Date.now(), label: label, total: (typeof _fhTotal !== 'undefined' ? _fhTotal : 0) || 0, state: captureCpState(), date: d };
+    var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
     _cpSavedContracts.unshift(snap);
     if (_cpSavedContracts.length > 10) _cpSavedContracts = _cpSavedContracts.slice(0, 10);
     renderSavedQuotesList('cp');
@@ -9064,7 +9080,10 @@ function loadSavedCpContract(id) {
     var gtdRadio = document.querySelector('input[name="cpGuaranteed"][value="'+s.guaranteed+'"]');
     if (gtdRadio) gtdRadio.checked = true;
   }
-  if (typeof _fhLines !== 'undefined') { _fhLines = s.fhLines || []; _fhTotal = s.fhTotal || 0; }
+  // Populate the ClearPoint-only pricing snapshot, NOT the shared _fhLines/_fhTotal globals —
+  // those belong to the live FH Quote Builder and may currently hold an unrelated, still-in-
+  // progress quote for a different family. Overwriting them here would silently corrupt that quote.
+  _cpPricing = { lines: s.fhLines || [], total: s.fhTotal || 0 };
   // Same reasoning as loadSavedGaContract() — without rebuilding the banner here, it stays on
   // cpClearAll()'s generic placeholder even though the pricing was in fact just restored.
   if (typeof cpBuildImportBanner === 'function') {
@@ -10811,13 +10830,20 @@ var AN_OC_INPUT_MAP = {
 
 
 
-// Builds the "✅ Imported: ..." pricing-summary banner from the current _fhLines/_fhTotal —
-// shared by cpImportFromFH() (fresh import) and loadSavedCpContract() (restoring a saved
-// contract), same reasoning as gaBuildImportBanner(): without this, re-loading a saved
-// ClearPoint contract left cpClearAll()'s generic placeholder text up even though _fhLines/
-// _fhTotal were correctly restored behind the scenes.
+// Frozen pricing snapshot for the ClearPoint contract, taken at import/load time — mirrors GA's
+// _gaPricing / RIC's _ricPricing. See _gaPricing's comment for why this can't just read the live
+// _fhLines/_fhTotal globals directly (shared with, and overwritten by, the live FH Quote Builder).
+var _cpPricing = null;
+function cpGetLines() { return (_cpPricing && Array.isArray(_cpPricing.lines)) ? _cpPricing.lines : ((typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : []); }
+function cpGetTotal() { return _cpPricing ? (_cpPricing.total || 0) : ((typeof _fhTotal !== 'undefined') ? _fhTotal : 0); }
+
+// Builds the "✅ Imported: ..." pricing-summary banner from the frozen ClearPoint pricing
+// snapshot — shared by cpImportFromFH() (fresh import) and loadSavedCpContract() (restoring a
+// saved contract), same reasoning as gaBuildImportBanner(): without this, re-loading a saved
+// ClearPoint contract left cpClearAll()'s generic placeholder text up even though the pricing
+// snapshot was correctly restored behind the scenes.
 function cpBuildImportBanner(insured, dispPos) {
-  var cpLines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var cpLines = cpGetLines();
   var fmtCP = function(n){ return '$' + Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 
   if (!cpLines.length) {
@@ -10841,7 +10867,7 @@ function cpBuildImportBanner(insured, dispPos) {
     previewRows += '<tr><td style="padding:2px 6px;color:#888;">' + l.label + '</td><td style="padding:2px 6px;text-align:right;color:#888;">' + fmtCP(l.amount) + '</td></tr>';
     totalAmt += l.amount;
   });
-  var grand = (typeof _fhTotal !== 'undefined') ? _fhTotal : (totalAmt + discAmt);
+  var grand = cpGetTotal() || (totalAmt + discAmt);
 
   el('cpImportDisplay').innerHTML =
     '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">' +
@@ -10873,8 +10899,11 @@ function cpImportFromFH() {
     el('cpContractDate').value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
   }
   var dispPos = planType ? (planType === 'burial' ? 'Burial' : 'Cremation') : null;
-  cpBuildImportBanner(insured, dispPos);
   var cpLines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  // Freeze a snapshot at import time so later live edits to the FH Quote Builder (e.g. starting
+  // a new, unsaved quote for someone else) can't silently change this ClearPoint contract's pricing.
+  _cpPricing = { lines: JSON.parse(JSON.stringify(cpLines)), total: (typeof _fhTotal !== 'undefined') ? _fhTotal : 0 };
+  cpBuildImportBanner(insured, dispPos);
   if (cpLines.length) cpRenderCustomReview();
   cpCalcPayment();
 }
@@ -10882,7 +10911,7 @@ function cpImportFromFH() {
 // ── ClearPoint custom-item review: unrecognized custom line items get a destination dropdown.
 // Mirrors the GA tool so nothing is silently dropped from the ClearPoint contract.
 function cpUnrecognizedCustomLines() {
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  var lines = cpGetLines();
   return lines.filter(function(l){
     return l.custom && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
   });
@@ -10927,6 +10956,7 @@ function cpGetCustomAssignments() {
 }
 
 function cpClearAll() {
+  _cpPricing = null;
   ['cpFirstName','cpMiddleName','cpLastName','cpPhone','cpAddress','cpCity','cpState','cpZip',
    'cpFirstName2','cpMiddleName2','cpLastName2','cpPhone2','cpAddress2','cpCity2','cpState2','cpZip2',
    'cpDownPayment','cpNumPayments','cpContractNum'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
@@ -10943,7 +10973,7 @@ function cpClearAll() {
 }
 
 function cpSetPayInFull() {
-  var fpTotal = typeof _fhTotal !== 'undefined' ? _fhTotal : 0;
+  var fpTotal = cpGetTotal();
   if (fpTotal <= 0) { alert('Import your Funeral Home Quote first to get the contract total.'); return; }
   if (el('cpDownPayment'))  el('cpDownPayment').value  = fpTotal.toFixed(2);
   if (el('cpNumPayments'))  el('cpNumPayments').value  = '0';
@@ -10952,7 +10982,7 @@ function cpSetPayInFull() {
 
 function cpCalcPayment() {
   // Calculate monthly payment from FH Quote total + downpayment + num payments
-  var fpTotal = typeof _fhTotal !== 'undefined' ? _fhTotal : 0;
+  var fpTotal = cpGetTotal();
   var dp = parseFloat((el('cpDownPayment') || {}).value) || 0;
   var n  = parseInt((el('cpNumPayments') || {}).value)   || 0;
   var disp = el('cpMonthlyPayDisplay');
@@ -11016,7 +11046,7 @@ async function generateClearPointContract() {
     function fmtSigned$(n) { return n !== 0 ? (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''; }
 
     // ── Pull FH Quote data ────────────────────────────────────────────────────
-    var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+    var lines = cpGetLines();
     function findLine(kw) { var k = kw.toLowerCase(); return lines.find(function(l){ return l.label.toLowerCase().includes(k); }); }
     function amt(line) { return line ? Math.max(0, line.amount) : 0; }
 
@@ -11057,20 +11087,21 @@ async function generateClearPointContract() {
     var receptionLine   = lines.find(function(l){ return l.label.toLowerCase().includes('reception') && funeralSvcLines.indexOf(l) < 0; });
     var recAmt          = receptionLine ? Math.abs(receptionLine.amount) : 0;
 
-    // Casket / container / urn (read from FH builder DOM) — fhCasket/fhCasketSearch are
-    // transient staging fields cleared once "+ Add" commits into fhCaskets, so this is normally
-    // empty; the fallback below reads the real "Casket: X" line(s) fhUpdate() already pushed.
-    var casketPrice    = parseFloat((el('fhCasket') || {}).value || '0') || 0;
-    var casketSearchEl = el('fhCasketSearch');
-    var casketLabel    = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
-    // Fallback: read casket from _fhLines if fhCasket input is empty (e.g. when using GA import)
-    // — mirrors the same fallback in printGAContract().
-    if (!casketPrice) {
-      var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
-      if (casketFallbackLine) {
-        casketPrice = Math.max(0, casketFallbackLine.amount);
-        casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
-      }
+    // Casket / container / urn — read from the imported pricing snapshot (lines) FIRST, not the
+    // live FH Quote Builder's own fhCasket/fhCasketSearch/fhCremContainer fields or the fhUrns
+    // array. Those reflect whatever is CURRENTLY on that page, which can belong to a different
+    // family than the one this ClearPoint contract is being generated for (e.g. generating from
+    // an imported/loaded past family while still live-editing a new, unsaved FH quote for someone
+    // else). Only fall back to the live DOM/global state when the snapshot has no matching line.
+    var casketFallbackLine = lines.find(function(l){ return /^Casket:/i.test(l.label); });
+    var casketPrice, casketLabel;
+    if (casketFallbackLine) {
+      casketPrice = Math.max(0, casketFallbackLine.amount);
+      casketLabel = casketFallbackLine.label.replace(/^Casket:\s*/i, '').trim();
+    } else {
+      casketPrice = parseFloat((el('fhCasket') || {}).value || '0') || 0;
+      var casketSearchEl = el('fhCasketSearch');
+      casketLabel = casketSearchEl ? casketSearchEl.value.replace(/ (?:—|--?) \$[\d,.]+$/, '').trim() : '';
     }
     var casketModelMatch = casketLabel.match(/\(#?(\d+)\)/);
     var casketModelNum   = casketModelMatch ? '#' + casketModelMatch[1] : '';
@@ -11080,34 +11111,29 @@ async function generateClearPointContract() {
               || CASKET_DATA.find(function(c){ return casketModelName.toLowerCase().indexOf(c.n.toLowerCase()) >= 0; });
       if (_ckM && _ckM.i) casketModelNum = '#' + _ckM.i;
     }
-    var cremContEl    = el('fhCremContainer');
-    var cremContPrice = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
-    var cremContLabel = (cremContEl && cremContEl.selectedIndex > 0)
-      ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim() : '';
-    // Fallback: a Direct Cremation PACKAGE bundles its container into the package selection
-    // (fhDirectCremPlan) rather than the standalone fhCremContainer dropdown, which stays on
-    // "— None —" — so pull the container from _fhLines instead when that dropdown is empty.
-    if (!cremContPrice) {
-      var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
-      if (cremContFallbackLine) {
-        cremContPrice = Math.max(0, cremContFallbackLine.amount);
-        cremContLabel = cremContFallbackLine.label;
-      }
+    var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+    var cremContPrice, cremContLabel;
+    if (cremContFallbackLine) {
+      cremContPrice = Math.max(0, cremContFallbackLine.amount);
+      cremContLabel = cremContFallbackLine.label;
+    } else {
+      var cremContEl = el('fhCremContainer');
+      cremContPrice = cremContEl ? (parseFloat(cremContEl.value) || 0) : 0;
+      cremContLabel = (cremContEl && cremContEl.selectedIndex > 0)
+        ? cremContEl.options[cremContEl.selectedIndex].text.replace(/ — \$[\d,.]+$/, '').trim() : '';
     }
-    var urns          = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
-    var urnTotalAmt   = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
-    var urnLabel      = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
-    // Fallback: when no catalog urn in fhUrns (e.g. urn arrived via the plan breakout),
-    // pull from _fhLines, skipping "Urn Allowance" lines (which are handled separately).
-    if (urnTotalAmt === 0) {
-      var urnFbLines = lines.filter(function(l){
-        var lb = l.label.toLowerCase();
-        return (lb.indexOf('urn:') === 0 || lb.indexOf('urn') >= 0) && lb.indexOf('allowance') < 0 && lb.indexOf('engraving') < 0 && !l.isDiscount;
-      });
-      if (urnFbLines.length) {
-        urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
-        urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
-      }
+    var urnFbLines = lines.filter(function(l){
+      var lb = l.label.toLowerCase();
+      return (lb.indexOf('urn:') === 0 || lb.indexOf('urn') >= 0) && lb.indexOf('allowance') < 0 && lb.indexOf('engraving') < 0 && !l.isDiscount;
+    });
+    var urnTotalAmt, urnLabel;
+    if (urnFbLines.length) {
+      urnTotalAmt = urnFbLines.reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
+      urnLabel    = urnFbLines.map(function(l){ return l.label.replace(/^urn:\s*/i,''); }).join('; ');
+    } else {
+      var urns    = (typeof fhUrns !== 'undefined' && Array.isArray(fhUrns)) ? fhUrns : [];
+      urnTotalAmt = urns.reduce(function(s,u){ return s + u.price * (u.qty||1); }, 0);
+      urnLabel    = urns.map(function(u){ return u.name + (u.qty > 1 ? ' ×'+u.qty : ''); }).join('; ');
     }
     // Prefer an actual casket if one is selected (handles cremation-with-casket workflows
     // like a viewing+cremation plan using a real casket); else fall back to the cremation
@@ -11204,7 +11230,7 @@ async function generateClearPointContract() {
     var monthlyPay = (fpBal > 0 && numPay > 0) ? fpBal / numPay : 0;
 
     // Totals-match check vs FH quote
-    if (typeof _fhTotal !== 'undefined') showTotalsMismatch(fpTotal, _fhTotal, 'ClearPoint Contract');
+    showTotalsMismatch(fpTotal, cpGetTotal(), 'ClearPoint Contract');
 
     // ── Load and fill PDF ─────────────────────────────────────────────────────
     if (typeof CP_PDF_B64 === 'undefined') {
@@ -12971,8 +12997,10 @@ function cpclImport() {
   el('cpclRecipient').value  = recipient;
   el('cpclDateOfSale').value = val('cpContractDate');
   el('cpclPromotion').value  = (typeof _fhDiscData !== 'undefined' && _fhDiscData && _fhDiscData.label) || '';
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
-  var fhTotal = (typeof _fhTotal !== 'undefined') ? _fhTotal : 0;
+  // Pull from the ClearPoint contract's own frozen pricing snapshot (cpGetLines/cpGetTotal), not
+  // the live FH Quote Builder globals — same reasoning as everywhere else in the ClearPoint flow.
+  var lines = cpGetLines();
+  var fhTotal = cpGetTotal();
   if (!lines.length || fhTotal <= 0) {
     el('cpclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser/date imported, but no pricing found — build the Funeral Home Quote and import it into ClearPoint first, then re-import here.</span>';
   } else {
