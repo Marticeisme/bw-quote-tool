@@ -9782,6 +9782,80 @@ async function generateRICContractCore(clientData) {
         pruneArr(fieldsArr);
       } catch(e) {}
     }
+    // Sweeps every page of the final merged document for defects introduced by flattening/
+    // merging AcroForm pages from another PDF (the ACH Auto Pay form and Cemetery Rules & Regs
+    // page both get merged this way): (1) dangling /Annots entries pointing at objects that no
+    // longer exist (pdf-lib's flatten() doesn't fully clean these up for a field with multiple
+    // widgets on one page), (2) Form XObjects (flattened widget appearances) missing their
+    // required /Subtype /Form entry, and (3) a Form XObject's OWN nested /Resources/Font entry
+    // pointing at a font that didn't survive the copy — repointed at a font we know is valid in
+    // THIS document (falls back to whatever was embedded for field appearances) rather than
+    // deleted outright, so text drawn with it doesn't just vanish. None of these are visible on
+    // screen (viewers silently skip what they can't resolve), but Acrobat's print pipeline
+    // validates strictly and refuses to print the WHOLE document over any one of them — "The
+    // document could not be printed" on every printer, even Print-to-PDF.
+    function repairMergedPageDefects(doc, fallbackFont) {
+      var PN = PDFLib.PDFName;
+      function lookup(ref) { try { return doc.context.lookup(ref); } catch(e) { return null; } }
+      function repairFontDict(fontDict) {
+        if (!fontDict || typeof fontDict.keys !== 'function') return;
+        fontDict.keys().forEach(function(name) {
+          var ref = fontDict.get(name);
+          if (!lookup(ref) && fallbackFont && fallbackFont.ref) fontDict.set(name, fallbackFont.ref);
+        });
+      }
+      // Repairs a single Form XObject stream (missing /Subtype, dangling nested /Resources/Font)
+      // — used both for flattened-widget XObjects registered in a page's own Resources/XObject
+      // dict, and for a live (non-flattened) annotation's /AP appearance streams, which carry the
+      // exact same shape (BBox + Resources + a content stream) but aren't reached by that dict.
+      function repairFormXObject(streamRef) {
+        var stream = lookup(streamRef);
+        if (!stream || !stream.dict) return;
+        if (!stream.dict.get(PN.of('Subtype'))) stream.dict.set(PN.of('Subtype'), PN.of('Form'));
+        var innerRes = stream.dict.get(PN.of('Resources'));
+        if (!innerRes) return;
+        var innerDict = lookup(innerRes) || innerRes;
+        if (innerDict && typeof innerDict.get === 'function') {
+          repairFontDict(lookup(innerDict.get(PN.of('Font'))) || innerDict.get(PN.of('Font')));
+        }
+      }
+      doc.getPages().forEach(function(pg) {
+        var node = pg.node;
+        var annots = node.Annots();
+        if (annots) {
+          annots.asArray().forEach(function(ref) {
+            var annotDict = lookup(ref);
+            if (!annotDict) { node.removeAnnot(ref); return; }
+            // A live (non-flattened) annotation's own /AP/N (and /D, /R) appearance stream can
+            // carry the same dangling-font defect as a flattened widget's XObject — e.g. the ACH
+            // form (never flattened) had a text field whose baked appearance referenced a font
+            // that didn't survive the merge. /AP/N can be a direct stream, or a sub-dictionary
+            // keyed by appearance state (e.g. checkboxes' On/Off) — handle both.
+            var ap = annotDict.get ? lookup(annotDict.get(PN.of('AP'))) : null;
+            if (!ap || typeof ap.get !== 'function') return;
+            ['N','D','R'].forEach(function(state) {
+              var entry = ap.get(PN.of(state));
+              if (!entry) return;
+              var resolved = lookup(entry);
+              if (resolved && resolved.dict) { repairFormXObject(entry); return; }
+              if (resolved && typeof resolved.keys === 'function') {
+                resolved.keys().forEach(function(k) { repairFormXObject(resolved.get(k)); });
+              }
+            });
+          });
+        }
+        var resources = node.get(PN.of('Resources'));
+        if (!resources) return;
+        var resDict = lookup(resources) || resources;
+        if (!resDict || typeof resDict.get !== 'function') return;
+        repairFontDict(lookup(resDict.get(PN.of('Font'))) || resDict.get(PN.of('Font')));
+        var xobjRef = resDict.get(PN.of('XObject'));
+        if (!xobjRef) return;
+        var xobjDict = lookup(xobjRef) || xobjRef;
+        if (!xobjDict || typeof xobjDict.keys !== 'function') return;
+        xobjDict.keys().forEach(function(name) { repairFormXObject(xobjDict.get(name)); });
+      });
+    }
     try { dropButtonWidgets(pdfDoc, form); } catch(e) {}
 
     console.log('[RIC] Lines:', lines.length, '| Exempt:', exemptLines.length, '| Taxable:', taxableLines.length, '| Disc:', discLines.length);
@@ -10334,6 +10408,8 @@ async function generateRICContractCore(clientData) {
       var _acroForm = pdfDoc.catalog.lookup(PDFLib.PDFName.of('AcroForm'));
       if (_acroForm) _acroForm.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
     } catch(e) {}
+
+    try { repairMergedPageDefects(pdfDoc, helvetica); } catch(e) { console.warn('[RIC] Merged-page defect repair failed:', e.message); }
 
     var outBytes = await pdfDoc.save();
     var blob = new Blob([outBytes], { type: 'application/pdf' });
