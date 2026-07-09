@@ -488,6 +488,7 @@ tr:hover td{background:#eef3f8;}
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--blue);font-weight:600;"><input type="checkbox" id="cmpB_2ndRight" onchange="calcBTotal()" style="accent-color:var(--blue);"> Add 2nd Right? <span style="font-weight:400;color:var(--muted);">(½ space + ½ ECF)</span></label>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--blue);font-weight:600;"><input type="checkbox" id="cmpB_3rdRight" onchange="calcBTotal()" style="accent-color:var(--blue);"> Add 3rd Right? <span style="font-weight:400;color:var(--muted);">(½ space + ½ ECF)</span></label>
         </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:8px;cursor:pointer;color:var(--text-light);"><input type="checkbox" id="cmpB_spaceOwned" onchange="calcBTotal()" style="width:15px;height:15px;"> Space already owned? <span style="font-weight:400;">(exclude space &amp; ECF)</span></label>
         <div style="margin-bottom:12px;"><label style="font-size:10px;color:var(--muted);">Location (optional)</label><input type="text" id="cmpB_loc" placeholder="e.g. Lot 12, Section B" oninput="calcBTotal()" style="width:100%;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;margin-top:2px;"></div>
 
         <!-- Mirror checkbox -->
@@ -6040,7 +6041,10 @@ function emailFhQuote() {
 function printCompare() {
   var clientName = val('cemClientName') || '';
   var d = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-  var BW = '#1a2744', GOLD = '#c8a142', ORANGE = '#C0673B';
+  var expires = new Date(); expires.setDate(expires.getDate() + 30);
+  var validStr = expires.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  // At-Need is paid in full at time of service — no financing/payment plan applies.
+  var isAtNeed = typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed';
 
   // Option A data
   var aTotal = _cemTotal || 0;
@@ -6066,35 +6070,31 @@ function printCompare() {
 
   function fmtA(n){ return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-  var CSS = [
-    'body{font-family:Arial,sans-serif;max-width:720px;margin:36px auto;color:#1B2A4A;font-size:13px;background:#fff;}',
-    'h1{margin:0;font-size:19px;font-weight:800;color:'+BW+';}',
-    '.sub{font-size:11px;color:#777;margin-top:3px;}',
-    '.client{font-size:13px;font-weight:700;color:'+BW+';margin-top:4px;}',
-    '.hdr{display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:2.5px solid '+BW+';margin-bottom:20px;}',
-    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}',
-    '.col{border:2px solid '+BW+';border-radius:8px;overflow:hidden;}',
-    '.col-hdr{background:'+BW+';color:#fff;padding:10px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}',
+  // Shares the same steel/orange palette, logo header, and footer as the Cemetery/FH quote
+  // print views (_printQuoteCSS() etc.) instead of this tool's own separate dark-navy design —
+  // this and the Cemetery Quote are the same document family from the family's perspective.
+  var CSS = _printQuoteCSS() + '\n' + [
+    '.grid{display:flex;gap:16px;margin:16px 22px 0;}',
+    '.col{flex:1;border:1px solid '+_PRINT_LGRAY+';border-radius:6px;overflow:hidden;}',
+    '.col-hdr{background:'+_PRINT_STEEL+';color:#fff;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}',
     '.col-body{padding:14px;}',
-    '.col-label{font-size:14px;font-weight:700;color:'+BW+';margin-bottom:4px;}',
-    '.col-loc{font-size:11px;color:#777;margin-bottom:12px;}',
-    '.col-total{font-size:26px;font-weight:800;color:'+ORANGE+';margin:8px 0 4px;}',
-    '.col-monthly{font-size:12px;color:#555;margin-bottom:12px;}',
-    '.col-breakdown{font-size:11px;color:#666;line-height:1.8;border-top:1px solid #eee;padding-top:10px;}',
-    '.diff-row{margin-top:16px;padding:10px;background:#f8f7f3;border-radius:6px;text-align:center;font-size:13px;font-weight:700;border:1px solid #ddd;}',
-    '.cheaper{color:#1a6b45;} .pricier{color:#8b2020;} .same{color:#666;}',
-    '.note{font-size:10px;color:#999;margin-top:20px;border-top:1px solid #eee;padding-top:10px;font-style:italic;}',
-    '@media print{body{margin:18px;}}'
+    '.col-label{font-size:14px;font-weight:700;color:'+_PRINT_DARK+';margin-bottom:4px;}',
+    '.col-loc{font-size:11px;color:'+_PRINT_MUTED+';margin-bottom:12px;}',
+    '.col-total{font-size:26px;font-weight:800;color:'+_PRINT_ORANGE+';margin:8px 0 4px;}',
+    '.col-monthly{font-size:12px;color:'+_PRINT_MUTED+';margin-bottom:12px;}',
+    '.col-breakdown{font-size:11px;color:'+_PRINT_DARK+';line-height:1.8;border-top:1px solid '+_PRINT_LGRAY+';padding-top:10px;}',
+    '.diff-row{margin:16px 22px 0;padding:10px;background:#f7f8fa;border-radius:6px;text-align:center;font-size:13px;font-weight:700;border:1px solid '+_PRINT_LGRAY+';}',
+    '.cheaper{color:#1a6b45;} .pricier{color:#8b2020;} .same{color:'+_PRINT_MUTED+';}'
   ].join('\n');
 
   function buildCol(label, loc, total, down, monthly, colLetter, cemLines) {
     var html = '<div class="col">'
-      + '<div class="col-hdr">Option ' + colLetter + (colLetter === 'A' ? ' &nbsp;<span style="font-weight:400;opacity:.7;">(current quote)</span>' : '') + '</div>'
+      + '<div class="col-hdr">Option ' + colLetter + (colLetter === 'A' ? ' &nbsp;<span style="font-weight:400;opacity:.8;">(current quote)</span>' : '') + '</div>'
       + '<div class="col-body">'
       + '<div class="col-label">' + (label || '—') + '</div>'
       + (loc ? '<div class="col-loc">' + loc + '</div>' : '<div style="height:6px;"></div>')
       + '<div class="col-total">' + (total > 0 ? fmtA(total) : '—') + '</div>'
-      + (total > 0 ? '<div class="col-monthly">~' + fmtA(monthly) + '/mo &nbsp;&bull;&nbsp; ' + fmtA(down) + ' down (60 mo · 0% · 10%)</div>' : '')
+      + (total > 0 && !isAtNeed ? '<div class="col-monthly">~' + fmtA(monthly) + '/mo &nbsp;\xb7&nbsp; ' + fmtA(down) + ' down (60 mo \xb7 0% \xb7 10%)</div>' : '')
       + '<div class="col-breakdown">';
 
     // For Option A, show full line breakdown
@@ -6104,16 +6104,16 @@ function printCompare() {
       var discs   = cemLines.filter(function(l){ return  l.isDiscount; });
       if (exempt.length)  { html += '<strong>Services</strong><br>'; exempt.forEach(function(l){ html += l.label + '&ensp;' + fmtA(l.amount) + '<br>'; }); }
       if (taxable.length) { html += '<strong>Merchandise</strong><br>'; taxable.forEach(function(l){ html += l.label + '&ensp;' + fmtA(l.amount) + '<br>'; }); }
-      if (discs.length)   { discs.forEach(function(l){ html += '<span style="color:#1a6b45;">− ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>'; }); }
+      if (discs.length)   { discs.forEach(function(l){ html += '<span style="color:'+_PRINT_ORANGE+';">− ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>'; }); }
     } else if (colLetter === 'B' && bLines.length > 0) {
-      if (isMirror) html += '<em style="color:#2c4a7c;font-size:10px;">Mirroring Option A items (space replaced)</em><br>';
+      if (isMirror) html += '<em style="color:'+_PRINT_STEEL+';font-size:10px;">Mirroring Option A items (space replaced)</em><br>';
       bLines.filter(function(l){return !l.isDiscount && l.amount > 0;}).forEach(function(l){
-        html += '<span style="color:' + (l.taxable ? '#2c4a7c' : '#1B2A4A') + ';">' + l.label + '&ensp;' + fmtA(l.amount) + '</span><br>';
+        html += '<span style="color:' + _PRINT_DARK + ';">' + l.label + '&ensp;' + fmtA(l.amount) + '</span><br>';
       });
       bLines.filter(function(l){return l.isDiscount;}).forEach(function(l){
-        html += '<span style="color:#1a6b45;">\u2212 ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>';
+        html += '<span style="color:'+_PRINT_ORANGE+';">− ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>';
       });
-      if (bTax > 0) html += '<span style="color:#b8912a;">Sales Tax (10.4%)&ensp;' + fmtA(bTax) + '</span><br>';
+      if (bTax > 0) html += '<span style="color:'+_PRINT_MUTED+';">Sales Tax (10.4%)&ensp;' + fmtA(bTax) + '</span><br>';
     } else if (colLetter === 'B') {
       html += '<em style="color:#aaa;font-size:10px;">No items selected</em>';
     }
@@ -6123,10 +6123,8 @@ function printCompare() {
 
   var win = window.open('', '_blank');
   win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Option Comparison – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write('<div class="hdr"><div><h1>BONNEY WATSON <span style="color:'+ORANGE+';">&middot;</span> Washington Memorial Park</h1>');
-  win.document.write('<div class="sub">Space Option Comparison</div>');
-  if (clientName) win.document.write('<div class="client">Prepared for: ' + clientName + '</div>');
-  win.document.write('</div><div style="font-size:11px;color:#777;text-align:right;">'+d+'</div></div>');
+  win.document.write(_printQuoteHeaderHTML('Space Option Comparison', d, validStr));
+  win.document.write(_printQuotePrepRowHTML(clientName));
   win.document.write('<div class="grid">');
   win.document.write(buildCol(aLabel, aLoc, aTotal, aDown, aMonthly, 'A', _cemLines));
   win.document.write(buildCol(bLabel, bLoc, bTotal, bDown, bMonthly, 'B', null));
@@ -6137,7 +6135,10 @@ function printCompare() {
       : 'Option B is <strong>' + fmtA(Math.abs(diff)) + '</strong> ' + (diff > 0 ? 'more' : 'less') + ' than Option A';
     win.document.write('<div class="diff-row"><span class="'+diffCls+'">' + diffText + '</span></div>');
   }
-  win.document.write('<div class="note">Estimates based on 10% down, 60 months, 0% ACH financing. Prices subject to change. Please contact Bonney Watson for a formal agreement.</div>');
+  if (!isAtNeed && (aTotal > 0 || bTotal > 0)) {
+    win.document.write('<div style="font-size:10.5px;color:'+_PRINT_MUTED+';margin:14px 22px 0;">Payment estimates: 10% down, 60 months, 0% ACH financing.</div>');
+  }
+  win.document.write(_printQuoteFooterHTML());
   win.document.write('</body></html>');
   win.document.close();
   win.print();
@@ -6202,6 +6203,7 @@ function resetOptionB() {
   if (el('cmpB_gardenQty')) el('cmpB_gardenQty').value = '1';
   if (el('cmpB_2ndRight'))  el('cmpB_2ndRight').checked = false;
   if (el('cmpB_3rdRight'))  el('cmpB_3rdRight').checked = false;
+  if (el('cmpB_spaceOwned')) el('cmpB_spaceOwned').checked = false;
   if (el('cmpB_mirror')) { el('cmpB_mirror').checked = false; }
   if (el('cmpB_manualItems')) el('cmpB_manualItems').style.display = 'block';
   ['cmpB_stdBurial','cmpB_stdUrn','cmpB_glassNiche','cmpB_graniteNiche','cmpB_indoorMaus','cmpB_outdoorMaus'].forEach(function(id) { if (el(id)) el(id).checked = false; });
@@ -6262,6 +6264,10 @@ function calcBTotal() {
   var bNicheP    = num('cmpB_niche');
   var bMausP     = num('cmpB_maus');
   var bLabel = '';
+  // Matches qSpaceOwned in the main builder — the family already owns this space, so its price
+  // and ECF are excluded from the quote, but a 2nd/3rd Right is still a real additional purchase
+  // on that space and stays priced (just relabeled), same as the main builder does.
+  var bSpaceOwned = chk('cmpB_spaceOwned');
 
   if (bGardenVal) {
     var bp = bGardenVal.split('|');
@@ -6273,25 +6279,33 @@ function calcBTotal() {
     var bQty = parseInt((el('cmpB_gardenQty') || {}).value) || 1;
     if (bQty < 1) bQty = 1;
     var bSpaceLabel = bLabel + (bQty > 1 ? ' ×' + bQty : '');
-    if (bSpace > 0) lines.push({label: bSpaceLabel, amount: bSpace * bQty, taxable: false, isSpace: true});
-    if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)' + (bQty > 1 ? ' ×' + bQty : ''), amount: bEcf * bQty, taxable: false, isSpace: true});
+    if (!bSpaceOwned) {
+      if (bSpace > 0) lines.push({label: bSpaceLabel, amount: bSpace * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)' + (bQty > 1 ? ' ×' + bQty : ''), amount: bEcf * bQty, taxable: false, isSpace: true});
+    }
     // 2nd / 3rd Right — each adds ½ space + ½ ECF (matches q2ndRight/q3rdRight in the main builder)
+    var bRightPrefix2 = bSpaceOwned ? '2nd Right – ' + bLabel : '2nd Right';
+    var bRightPrefix3 = bSpaceOwned ? '3rd Right – ' + bLabel : '3rd Right';
     if (chk('cmpB_2ndRight')) {
-      if (bSpace > 0) lines.push({label: '2nd Right (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix2 + ' (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
       if (bEcf   > 0) lines.push({label: '2nd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
     }
     if (chk('cmpB_3rdRight')) {
-      if (bSpace > 0) lines.push({label: '3rd Right (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix3 + ' (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
       if (bEcf   > 0) lines.push({label: '3rd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
     }
   } else if (bNicheP > 0) {
     bLabel = 'Niche Space';
-    lines.push({label: bLabel, amount: bNicheP, taxable: false, isSpace: true});
-    lines.push({label: 'Niche ECF (10%)', amount: bNicheP * 0.10, taxable: false, isSpace: true});
+    if (!bSpaceOwned) {
+      lines.push({label: bLabel, amount: bNicheP, taxable: false, isSpace: true});
+      lines.push({label: 'Niche ECF (10%)', amount: bNicheP * 0.10, taxable: false, isSpace: true});
+    }
   } else if (bMausP > 0) {
     bLabel = 'Mausoleum Crypt';
-    lines.push({label: bLabel, amount: bMausP, taxable: false, isSpace: true});
-    lines.push({label: 'Mausoleum ECF (10%)', amount: bMausP * 0.10, taxable: false, isSpace: true});
+    if (!bSpaceOwned) {
+      lines.push({label: bLabel, amount: bMausP, taxable: false, isSpace: true});
+      lines.push({label: 'Mausoleum ECF (10%)', amount: bMausP * 0.10, taxable: false, isSpace: true});
+    }
   }
 
   // ── Mirror mode: copy all non-space lines from Option A ──────
@@ -6458,7 +6472,8 @@ function calcBTotal() {
 
   if (el('cmpB_breakdown')) el('cmpB_breakdown').innerHTML = bkd;
   if (el('cmpB_total'))     el('cmpB_total').textContent   = bTotal > 0 ? fmt(bTotal) : '\u2014';
-  if (el('cmpB_monthly') && bTotal > 0) {
+  var _cmpIsAtNeed = typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed';
+  if (el('cmpB_monthly') && bTotal > 0 && !_cmpIsAtNeed) {
     var bDown = Math.ceil(bTotal * 0.10);
     el('cmpB_monthly').textContent = '\u007e' + fmt(Math.ceil((bTotal - bDown) / 60)) + '/mo \u00b7 ' + fmt(bDown) + ' down (10%, 60 mo, 0%)';
   } else if (el('cmpB_monthly')) { el('cmpB_monthly').textContent = ''; }
@@ -6489,7 +6504,8 @@ function updateCompare() {
 
   if (el('cmpA_label')) el('cmpA_label').textContent = aLabel;
   if (el('cmpA_total')) el('cmpA_total').textContent = aTotal > 0 ? fmt(aTotal) : '—';
-  if (el('cmpA_monthly') && aTotal > 0) {
+  var _cmpAIsAtNeed = typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed';
+  if (el('cmpA_monthly') && aTotal > 0 && !_cmpAIsAtNeed) {
     var aDown = Math.ceil(aTotal * 0.10);
     el('cmpA_monthly').textContent = '~' + fmt(Math.ceil((aTotal - aDown) / 60)) + '/mo · ' + fmt(aDown) + ' down (10%, 60 mo, 0%)';
   } else if (el('cmpA_monthly')) { el('cmpA_monthly').textContent = ''; }
