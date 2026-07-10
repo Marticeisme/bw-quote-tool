@@ -3006,6 +3006,7 @@ tr:hover td{background:#eef3f8;}
           <label style="font-size:13px;"><input type="checkbox" id="anOcMemorial" style="margin-right:5px;">Memorial &amp; Setting Fee</label>
           <label style="font-size:13px;"><input type="checkbox" id="anOcVase" style="margin-right:5px;">Vase/Base/Setting Fee</label>
           <label style="font-size:13px;"><input type="checkbox" id="anOcUrn" style="margin-right:5px;">Urn</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcOtherMerch" style="margin-right:5px;">Other Merchandise</label>
         </div>
         <div class="q-row" style="margin-top:12px;">
           <label>Pre-Arrangement Contract #</label>
@@ -11507,7 +11508,7 @@ function anClearAll() {
    'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
-  ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn']
+  ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn','anOcOtherMerch']
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
   if (el('anPurchState')) el('anPurchState').value = 'WA';
@@ -11571,6 +11572,7 @@ function anoLoadContract() {
     ocSpace: !!f.anOcSpace, ocEcf: !!f.anOcEcf,
     ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
     ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
+    ocOtherMerch: !!f.anOcOtherMerch,
     preArrContractNum: f.anPreArrContractNum||'', preArrAmountOwed: f.anPreArrAmountOwed||'', preArrDatePaid: f.anPreArrDatePaid||'',
     contractPaidDate: f.anContractPaidDate||'',
     signers: signers,
@@ -14363,14 +14365,25 @@ async function _fillCirgasXlsx(data) {
   await setCCAmt('I29', buckets.friSun);
   await setCCAmt('I37', buckets.container, data.ocContainer);
   await setCCAmt('I38', buckets.containerSet, data.ocContainerSet);
-  await setCCAmt('I39', buckets.memorial, data.ocMemorial);
-  await setCCAmt('I40', buckets.memorialBase, data.ocMemorial);
-  await setCCAmt('I41', buckets.install, data.ocMemorial);
-  await setCCAmt('I42', buckets.vase, data.ocVase);
-  await setCCAmt('I43', buckets.vaseSet, data.ocVase);
+  // Memorial & Setting Fee is ONE checkbox covering THREE fields (marker/base/install). A real
+  // file (McCleary Della) shows the marker + install On Contract but the base left N/A because
+  // she never had a base at all — the checkbox must only stamp fields that actually have an
+  // amount, or an unpurchased sub-item wrongly prints "On Contract" instead of staying blank.
+  await setCCAmt('I39', buckets.memorial, data.ocMemorial && buckets.memorial > 0);
+  await setCCAmt('I40', buckets.memorialBase, data.ocMemorial && buckets.memorialBase > 0);
+  await setCCAmt('I41', buckets.install, data.ocMemorial && buckets.install > 0);
+  // Same one-checkbox/two-field shape as Memorial above — gate on each field's own amount.
+  await setCCAmt('I42', buckets.vase, data.ocVase && buckets.vase > 0);
+  await setCCAmt('I43', buckets.vaseSet, data.ocVase && buckets.vaseSet > 0);
   await setCCAmt('I44', buckets.urn, data.ocUrn);
-  await setCCAmt('I45', otherMerch1Amt);
-  await setCCAmt('I46', otherMerch2Amt);
+  // Real completed files show Other Merchandise marked On Contract too (e.g. a pre-arranged
+  // vase/portrait rider) — not one of the debrief's original 7 IOA checklist items, but real
+  // counselor usage overrides that, so it gets the same on-contract treatment as everything else.
+  // Same one-checkbox/two-field gating as Memorial/Vase above (Lind Charles has only one real
+  // Other Merchandise line — without the amount>0 gate, the empty second slot would also print
+  // "On Contract" instead of staying N/A).
+  await setCCAmt('I45', otherMerch1Amt, data.ocOtherMerch && otherMerch1Amt > 0);
+  await setCCAmt('I46', otherMerch2Amt, data.ocOtherMerch && otherMerch2Amt > 0);
 
   // ── Addendum A (2nd Right) / Addendum B (3rd Right) — only written when that right was
   // actually sold on this quote; otherwise the addenda ship untouched (still "N/A" placeholders).
@@ -14595,6 +14608,7 @@ async function generateCirgasPacket() {
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
     ocMemorial: el('anOcMemorial').checked, ocVase: el('anOcVase').checked, ocUrn: el('anOcUrn').checked,
+    ocOtherMerch: el('anOcOtherMerch').checked,
     preArrContractNum: val('anPreArrContractNum'), preArrAmountOwed: val('anPreArrAmountOwed'), preArrDatePaid: el('anPreArrDatePaid').value,
     contractPaidDate: el('anContractPaidDate').value,
     signers: signers,
