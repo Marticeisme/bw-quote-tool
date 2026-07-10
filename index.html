@@ -3035,30 +3035,6 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
-    <!-- Deed Transfer (optional) -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">🔄 Deed Transfer <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, existing property changing owners (no new purchase)</span></div>
-      <div class="q-panel-body">
-        <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anDtEnabled" onchange="anDtToggle()">This is a Deed Transfer (already-owned property, no interment)</label>
-        <div id="anDtPanel" style="display:none;margin-top:12px;">
-          <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Real completed transfers print the decedent-name line as "[current owner] To [new owner]" and use Purchaser = new owner (Grantee), Co-Purchaser = current owner (Grantor) — fill those in below and this section handles the naming automatically.</div>
-          <div class="q-row">
-            <label>Grantee Name <span style="font-weight:400;opacity:.7;">(new owner)</span></label>
-            <input type="text" id="anDtGranteeName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Grantor Name <span style="font-weight:400;opacity:.7;">(current owner)</span></label>
-            <input type="text" id="anDtGrantorName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Transfer Fee ($)</label>
-            <input type="number" id="anDtTransferFee" min="0" step="1" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          </div>
-          <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-top:8px;"><input type="checkbox" id="anDtWaiveFee">Waive fee (family / non-profit transfer)</label>
-        </div>
-      </div>
-    </div>
-
     <!-- Additional Signers -->
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">✍️ Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
@@ -3260,7 +3236,7 @@ tr:hover td{background:#eef3f8;}
       <button onclick="anClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, marker/vault if added) so you can reopen it later to make a correction or add a marker once the family decides — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, Interment Order and Authorization, and — when checked above — the Memorial Order, Vault/Urn Vault Order Form, and Deed Transfer. Addenda for a 2nd/3rd interment right still need to be completed by hand.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, Interment Order and Authorization, and — when checked above — the Memorial Order and Vault/Urn Vault Order Form. Deed Transfers are handled separately.</div>
 
   </div>
 </div>
@@ -11494,11 +11470,6 @@ function anClearAll() {
   var flatRadio = document.querySelector('input[name="anoMkCategory"][value="flat"]');
   if (flatRadio) flatRadio.checked = true;
   anoMkCategoryChange();
-  // Deed Transfer — optional section, reset to collapsed/blank.
-  if (el('anDtEnabled')) el('anDtEnabled').checked = false;
-  if (el('anDtWaiveFee')) el('anDtWaiveFee').checked = false;
-  anDtToggle();
-  ['anDtGranteeName','anDtGrantorName','anDtTransferFee'].forEach(function(id){ if (el(id)) el(id).value = ''; });
   anShowPricingSummary();
 }
 
@@ -11514,10 +11485,6 @@ function anMkToggle() {
 function anVtToggle() {
   var on = el('anVtEnabled') && el('anVtEnabled').checked;
   if (el('anVtPanel')) el('anVtPanel').style.display = on ? '' : 'none';
-}
-function anDtToggle() {
-  var on = el('anDtEnabled') && el('anDtEnabled').checked;
-  if (el('anDtPanel')) el('anDtPanel').style.display = on ? '' : 'none';
 }
 function anoMkCategoryChange() {
   var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
@@ -14432,20 +14399,6 @@ async function _fillCirgasXlsx(data) {
     }
   }
 
-  // ── Deed Transfer — real completed files never use a separate "Deed Transfer Contract"
-  // sheet; they repurpose the normal Cemetery Contract "Other" row (I27) with a custom label,
-  // and (when the fee is waived, e.g. family/non-profit transfers) a matching negative discount
-  // in the next "Other" row (I28). Decedent-name/Purchaser/Co-Purchaser overrides already
-  // happened above via data.decFirst/decMiddle/decLast/purchName/coPurchName.
-  if (data.dtEnabled) {
-    var dtFeeAmt = parseFloat(data.dtTransferFee) || 0;
-    await setCC('C27', 's', 'Deed Transfer Fee');
-    await setCC('I27', dtFeeAmt > 0 ? 'n' : 's', dtFeeAmt > 0 ? dtFeeAmt : 'N/A');
-    if (data.dtWaiveFee && dtFeeAmt > 0) {
-      await setCC('C28', 's', 'Transfer Fee Waived');
-      await setCC('I28', 'n', -dtFeeAmt);
-    }
-  }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
 
@@ -14538,18 +14491,6 @@ async function generateCirgasPacket() {
       vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
       vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
       vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy')
-    });
-  }
-  // Deed Transfer — optional. Real completed files show the decedent-name line repurposed to
-  // read "[Grantor] To [Grantee]", Purchaser = Grantee (new owner), Co-Purchaser = Grantor
-  // (current owner) — override those fields here rather than making the counselor duplicate
-  // entry between a Decedent section that doesn't apply and dedicated Grantor/Grantee fields.
-  if (el('anDtEnabled') && el('anDtEnabled').checked) {
-    var dtGrantee = val('anDtGranteeName'), dtGrantor = val('anDtGrantorName');
-    Object.assign(data, {
-      dtEnabled: true, dtTransferFee: val('anDtTransferFee'), dtWaiveFee: el('anDtWaiveFee').checked,
-      decFirst: dtGrantor, decMiddle: 'To', decLast: dtGrantee,
-      purchName: dtGrantee, coPurchName: dtGrantor
     });
   }
   try {
