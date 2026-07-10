@@ -2995,8 +2995,10 @@ tr:hover td{background:#eef3f8;}
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">📄 On Contract <span style="font-size:11px;font-weight:400;opacity:.7;">— check anything already delivered/paid for under a prior Pre-Need RIC</span></div>
       <div class="q-panel-body">
-        <div class="callout callout-blue" style="margin-bottom:12px;font-size:12px;">Checking an item prints "On Contract" in that cell instead of a dollar amount, and it's excluded from the contract's totals — it's already been paid for. This does not affect the interment right/space itself (see RIC Contract # and Balance on the contract page for that).</div>
+        <div class="callout callout-blue" style="margin-bottom:12px;font-size:12px;">Checking an item prints "On Contract" in that cell instead of a dollar amount, and it's excluded from the contract's totals — it's already been paid for. Most At-Need sales have the Interment Right and ECF already pre-arranged — check those too when that's the case.</div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <label style="font-size:13px;"><input type="checkbox" id="anOcSpace" style="margin-right:5px;">Interment Right / Space</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcEcf" style="margin-right:5px;">ECF</label>
           <label style="font-size:13px;"><input type="checkbox" id="anOcContainer" style="margin-right:5px;">Container/Vault</label>
           <label style="font-size:13px;"><input type="checkbox" id="anOcContainerSet" style="margin-right:5px;">Vault Setting Fee</label>
           <label style="font-size:13px;"><input type="checkbox" id="anOcOpening" style="margin-right:5px;">Opening &amp; Closing</label>
@@ -11505,7 +11507,7 @@ function anClearAll() {
    'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
-  ['anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn']
+  ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn']
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
   if (el('anPurchState')) el('anPurchState').value = 'WA';
@@ -11566,6 +11568,7 @@ function anoLoadContract() {
     propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
     iaVeteran: f.anIaVeteran||'', iaServiceType: f.anIaServiceType||'', iaServiceComingFrom: f.anIaServiceComingFrom||'',
     iaCremStatus: f.anIaCremStatus||'', iaUrnType: f.anIaUrnType||'', iaUrnSize: f.anIaUrnSize||'',
+    ocSpace: !!f.anOcSpace, ocEcf: !!f.anOcEcf,
     ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
     ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
     preArrContractNum: f.anPreArrContractNum||'', preArrAmountOwed: f.anPreArrAmountOwed||'', preArrDatePaid: f.anPreArrDatePaid||'',
@@ -14222,7 +14225,11 @@ function _anCategorizeLine(l) {
   // Ground/Lawn/Boulder/Niche Inurnment and Mausoleum Entombment ARE the O&C equivalent for
   // their respective property types — never also counted in Other, or they'd double-count.
   if (/interment|entombment|inurnment|opening|o&c/.test(lb)) return 'oc';
-  if (/inscription|marker|memorial|plaque|granite|bronze|monument|emblem/.test(lb)) return 'memorial';
+  // Other Merchandise (I45/I46) — taxable add-ons that ride along with a marker/vase but aren't
+  // the marker/vase itself: inscriptions, poems, engraving, pinning, portraits, foundations.
+  // Checked before the narrowed Memorial match below since none of these terms overlap it.
+  if (/inscription|poem|epitaph|engraving|pinning|portrait|foundation/.test(lb)) return 'otherMerch';
+  if (/flush|marker|monument|granite|bronze|veteran.*marker/.test(lb)) return 'memorial';
   return 'other';
 }
 // Fills the real CIRGAS At-Need packet (Information + Cemetery Contract; Payment Options and
@@ -14323,12 +14330,14 @@ async function _fillCirgasXlsx(data) {
   var buckets = { space:0, ecf:0, recording:0, oc:0, friSun:0, container:0, containerSet:0,
                   memorial:0, memorialBase:0, install:0, vase:0, vaseSet:0, urn:0 };
   var otherLines = [];
+  var otherMerchLines = [];
   primaryLines.forEach(function(l) {
     // CIRGAS is at-need and shows gross prices — discount lines are never applied to any
     // pricing field here (no netting against space or anything else).
     if (l.isDiscount) return;
     var cat = _anCategorizeLine(l);
     if (cat === 'other') { otherLines.push(l); return; }
+    if (cat === 'otherMerch') { otherMerchLines.push(l); return; }
     if (cat && buckets.hasOwnProperty(cat)) buckets[cat] += Math.max(0, l.amount);
   });
   // Other 1 / Other 2 are two distinct labeled slots on the real template (e.g. Witness
@@ -14336,12 +14345,17 @@ async function _fillCirgasXlsx(data) {
   // any further overflow sums into Other 2 rather than being silently dropped.
   var other1Amt = otherLines[0] ? Math.max(0, otherLines[0].amount) : 0;
   var other2Amt = otherLines.slice(1).reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
+  // Other Merchandise 1 / 2 (I45/I46) — same two-slot pattern as Section A's Other 1/2 above,
+  // for taxable add-ons (inscription, poem, engraving, portrait, foundation, etc.).
+  var otherMerch1Amt = otherMerchLines[0] ? Math.max(0, otherMerchLines[0].amount) : 0;
+  var otherMerch2Amt = otherMerchLines.slice(1).reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
 
-  // On Contract: item was already delivered/paid for under a prior Pre-Need RIC — never applies
-  // to the interment right/space/ECF itself (that's the separate RIC Contract # and Balance row)
-  // or to Other/Fri-Sun surcharges (those aren't part of the 7-category pre-arranged checklist).
-  await setCCAmt('I22', buckets.space);
-  await setCCAmt('I23', buckets.ecf);
+  // On Contract: item was already delivered/paid for under a prior Pre-Need RIC. Real completed
+  // CIRGAS files show Space/ECF marked On Contract as the common case (interment right is
+  // usually pre-arranged), so those two are on-contract-able same as everything else; only
+  // Other/Fri-Sun surcharges stay outside the checklist (not part of the 7-category IOA list).
+  await setCCAmt('I22', buckets.space, data.ocSpace);
+  await setCCAmt('I23', buckets.ecf, data.ocEcf);
   await setCCAmt('I25', buckets.recording, data.ocRecording);
   await setCCAmt('I26', buckets.oc, data.ocOpening);
   await setCCAmt('I27', other1Amt);
@@ -14355,6 +14369,8 @@ async function _fillCirgasXlsx(data) {
   await setCCAmt('I42', buckets.vase, data.ocVase);
   await setCCAmt('I43', buckets.vaseSet, data.ocVase);
   await setCCAmt('I44', buckets.urn, data.ocUrn);
+  await setCCAmt('I45', otherMerch1Amt);
+  await setCCAmt('I46', otherMerch2Amt);
 
   // ── Addendum A (2nd Right) / Addendum B (3rd Right) — only written when that right was
   // actually sold on this quote; otherwise the addenda ship untouched (still "N/A" placeholders).
@@ -14575,6 +14591,7 @@ async function generateCirgasPacket() {
     propertyLocation: val('anPropertyLocation'), vault: val('anVault'), memorial: val('anMemorial'), openClose: val('anOpenClose'),
     iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
     iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
+    ocSpace: el('anOcSpace').checked, ocEcf: el('anOcEcf').checked,
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
     ocMemorial: el('anOcMemorial').checked, ocVase: el('anOcVase').checked, ocUrn: el('anOcUrn').checked,
