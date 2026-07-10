@@ -273,7 +273,6 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved">💾 Saved RICs</div>
   <div class="nav-item highlight" onclick="show('an-contract',this)">📗 At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved">💾 Saved CIRGAS Contracts</div>
-  <div class="nav-item highlight" onclick="show('an-order',this)">📐 Marker &amp; Vault Order</div>
   <div class="nav-item highlight" onclick="show('deed-transfer',this)">📜 Deed Transfer Contract</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
@@ -3068,193 +3067,161 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
+    <!-- Memorial Order (optional — some families buy a marker at time of passing, many wait) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">🪨 Memorial Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when the family is purchasing a marker now</span></div>
+      <div class="q-panel-body">
+        <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anMkEnabled" onchange="anMkToggle()">This family is purchasing a Marker/Memorial now</label>
+        <div id="anMkPanel" style="display:none;margin-top:12px;">
+          <div style="display:flex;gap:16px;margin-bottom:10px;">
+            <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="flat" checked onchange="anoMkCategoryChange()" style="margin-right:5px;">Flat Marker / Bronze</label>
+            <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="upright" onchange="anoMkCategoryChange()" style="margin-right:5px;">Upright Monument</label>
+          </div>
+          <div class="q-row">
+            <label>Manufacturer</label>
+            <input type="text" id="anoMkManufacturer" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Monument Type</label>
+            <input type="text" id="anoMkMonumentType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Granite Color</label>
+            <input type="text" id="anoMkGraniteColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Design No.</label>
+            <input type="text" id="anoMkDesignNo" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+
+          <div id="anoMkFlatFields" style="margin-top:8px;">
+            <div class="q-row">
+              <label>Granite Flat Marker Size</label>
+              <input type="text" id="anoMkFlatSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+              <label style="margin-left:12px;">Bronze Marker Size</label>
+              <input type="text" id="anoMkBronzeSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            </div>
+            <div class="q-row" style="margin-top:8px;">
+              <label>Foundation Size</label>
+              <input type="text" id="anoMkFoundationSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            </div>
+          </div>
+
+          <div id="anoMkUprightFields" style="margin-top:8px;display:none;">
+            <div class="q-row">
+              <label>Upright Size</label>
+              <input type="text" id="anoMkUprightSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+              <label style="margin-left:12px;">Custom Size</label>
+              <input type="text" id="anoMkCustomSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            </div>
+            <div class="q-row" style="margin-top:8px;">
+              <label>Tablet Shape</label>
+              <input type="text" id="anoMkTabletShape" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+              <label style="margin-left:12px;">Tablet Finish</label>
+              <input type="text" id="anoMkTabletFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            </div>
+            <div class="q-row" style="margin-top:8px;">
+              <label>Custom Finish</label>
+              <input type="text" id="anoMkCustomFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+              <label style="margin-left:12px;">Base Finish</label>
+              <input type="text" id="anoMkBaseFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            </div>
+            <div class="q-row" style="margin-top:8px;">
+              <label>Bevel / Margin</label>
+              <input type="text" id="anoMkBevelMargin" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+              <label style="margin-left:12px;">Foundation Size</label>
+              <input type="text" id="anoMkUprightFoundation" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            </div>
+            <div class="q-row" style="margin-top:8px;">
+              <label>Bench Size &amp; Style</label>
+              <input type="text" id="anoMkBenchSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            </div>
+          </div>
+
+          <div class="q-row" style="margin-top:8px;">
+            <label>Lettering Font Style</label>
+            <input type="text" id="anoMkLetteringFont" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Emblem(s)</label>
+            <input type="text" id="anoMkEmblems" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Portrait</label>
+            <input type="text" id="anoMkPortrait" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Vase Option</label>
+            <input type="text" id="anoMkVaseOption" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+            <label style="margin-left:12px;">Vase Type</label>
+            <input type="text" id="anoMkVaseType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Inscription</label>
+            <textarea id="anoMkInscription" rows="3" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Special Instructions</label>
+            <textarea id="anoMkSpecialInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Installation Instructions</label>
+            <textarea id="anoMkInstallInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vault Order (optional) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">⚰️ Vault and Urn Vault Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when vault delivery logistics are known</span></div>
+      <div class="q-panel-body">
+        <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anVtEnabled" onchange="anVtToggle()">Include Vault/Urn Vault Order details</label>
+        <div id="anVtPanel" style="display:none;margin-top:12px;">
+          <div class="q-row">
+            <label>Vault Type</label>
+            <input type="text" id="anoVtType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Color</label>
+            <input type="text" id="anoVtColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+            <div style="flex:1;min-width:150px;">
+              <label style="font-size:12px;">Date of Service</label>
+              <input type="date" id="anoVtDateOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+              <label style="font-size:12px;">Time of Service</label>
+              <input type="time" id="anoVtTimeOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            </div>
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Nameplate Name</label>
+            <input type="text" id="anoVtNameplateName" placeholder="Exactly as it should appear on the nameplate" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+            <div style="flex:1;min-width:120px;">
+              <label style="font-size:12px;">Year of Birth</label>
+              <input type="text" id="anoVtYearBirth" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+              <label style="font-size:12px;">Year of Death</label>
+              <input type="text" id="anoVtYearDeath" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+              <label style="font-size:12px;">Emblem</label>
+              <input type="text" id="anoVtEmblem" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            </div>
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Wilbert Preneed Cert #</label>
+            <input type="text" id="anoVtWilbertCert" placeholder="If any" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Sold By</label>
+            <input type="text" id="anoVtSoldBy" value="Martice Morrison" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
       <button onclick="generateCirgasPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📗 Generate CIRGAS Packet</button>
       <button onclick="saveAnContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
       <button onclick="anClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing) so you can reopen it later to make a correction — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, and Interment Order and Authorization. Other packet sections (marker order, vault order, addenda) still need to be completed by hand for now.</div>
-
-  </div>
-</div>
-
-<!-- ═══ MARKER, VAULT & INTERMENT ORDER (CIRGAS Phase 2) ═══ -->
-<div class="section" id="section-an-order">
-  <div class="section-header">
-    <div class="section-icon">📐</div>
-    <h2>Marker &amp; Vault Order</h2>
-    <span class="badge">At-Need Cemetery — filled in after signing</span>
-  </div>
-
-  <div class="callout callout-blue" style="margin-bottom:18px;">
-    Load a saved At-Need CIRGAS contract to pull in the decedent, purchaser, and signers, then fill in the marker
-    and vault logistics below (usually decided after the initial signing, once proofing/vendor scheduling is
-    underway). <strong>Generate Order Packet</strong> produces the same CIRGAS workbook with these sheets filled in too.
-  </div>
-
-  <div class="q-layout" style="max-width:900px;">
-
-    <!-- Load contract -->
-    <div class="q-panel">
-      <div class="q-panel-header">📂 Load At-Need Contract</div>
-      <div class="q-panel-body">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <select id="anoLoadPicker" onfocus="anoPopulateLoadPicker()" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;"><option value="">— Select a saved At-Need contract —</option></select>
-          <button onclick="anoLoadContract()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Load</button>
-        </div>
-        <div id="anoLoadedSummary" style="font-size:12px;color:var(--text-light);margin-top:10px;">No contract loaded yet.</div>
-      </div>
-    </div>
-
-    <!-- Marker -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">🪨 Memorial Order</div>
-      <div class="q-panel-body">
-        <div style="display:flex;gap:16px;margin-bottom:10px;">
-          <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="flat" checked onchange="anoMkCategoryChange()" style="margin-right:5px;">Flat Marker / Bronze</label>
-          <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="upright" onchange="anoMkCategoryChange()" style="margin-right:5px;">Upright Monument</label>
-        </div>
-        <div class="q-row">
-          <label>Manufacturer</label>
-          <input type="text" id="anoMkManufacturer" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Monument Type</label>
-          <input type="text" id="anoMkMonumentType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Granite Color</label>
-          <input type="text" id="anoMkGraniteColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Design No.</label>
-          <input type="text" id="anoMkDesignNo" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-
-        <div id="anoMkFlatFields" style="margin-top:8px;">
-          <div class="q-row">
-            <label>Granite Flat Marker Size</label>
-            <input type="text" id="anoMkFlatSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-            <label style="margin-left:12px;">Bronze Marker Size</label>
-            <input type="text" id="anoMkBronzeSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Foundation Size</label>
-            <input type="text" id="anoMkFoundationSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          </div>
-        </div>
-
-        <div id="anoMkUprightFields" style="margin-top:8px;display:none;">
-          <div class="q-row">
-            <label>Upright Size</label>
-            <input type="text" id="anoMkUprightSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-            <label style="margin-left:12px;">Custom Size</label>
-            <input type="text" id="anoMkCustomSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Tablet Shape</label>
-            <input type="text" id="anoMkTabletShape" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-            <label style="margin-left:12px;">Tablet Finish</label>
-            <input type="text" id="anoMkTabletFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Custom Finish</label>
-            <input type="text" id="anoMkCustomFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-            <label style="margin-left:12px;">Base Finish</label>
-            <input type="text" id="anoMkBaseFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Bevel / Margin</label>
-            <input type="text" id="anoMkBevelMargin" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-            <label style="margin-left:12px;">Foundation Size</label>
-            <input type="text" id="anoMkUprightFoundation" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          </div>
-          <div class="q-row" style="margin-top:8px;">
-            <label>Bench Size &amp; Style</label>
-            <input type="text" id="anoMkBenchSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          </div>
-        </div>
-
-        <div class="q-row" style="margin-top:8px;">
-          <label>Lettering Font Style</label>
-          <input type="text" id="anoMkLetteringFont" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Emblem(s)</label>
-          <input type="text" id="anoMkEmblems" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Portrait</label>
-          <input type="text" id="anoMkPortrait" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Vase Option</label>
-          <input type="text" id="anoMkVaseOption" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <label style="margin-left:12px;">Vase Type</label>
-          <input type="text" id="anoMkVaseType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Inscription</label>
-          <textarea id="anoMkInscription" rows="3" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Special Instructions</label>
-          <textarea id="anoMkSpecialInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Installation Instructions</label>
-          <textarea id="anoMkInstallInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Vault -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">⚰️ Vault and Urn Vault Order</div>
-      <div class="q-panel-body">
-        <div class="q-row">
-          <label>Vault Type</label>
-          <input type="text" id="anoVtType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Color</label>
-          <input type="text" id="anoVtColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
-          <div style="flex:1;min-width:150px;">
-            <label style="font-size:12px;">Date of Service</label>
-            <input type="date" id="anoVtDateOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;min-width:120px;">
-            <label style="font-size:12px;">Time of Service</label>
-            <input type="time" id="anoVtTimeOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
-          </div>
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Nameplate Name</label>
-          <input type="text" id="anoVtNameplateName" placeholder="Exactly as it should appear on the nameplate" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-          <div style="flex:1;min-width:120px;">
-            <label style="font-size:12px;">Year of Birth</label>
-            <input type="text" id="anoVtYearBirth" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;min-width:120px;">
-            <label style="font-size:12px;">Year of Death</label>
-            <input type="text" id="anoVtYearDeath" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;min-width:120px;">
-            <label style="font-size:12px;">Emblem</label>
-            <input type="text" id="anoVtEmblem" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
-          </div>
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Wilbert Preneed Cert #</label>
-          <input type="text" id="anoVtWilbertCert" placeholder="If any" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Sold By</label>
-          <input type="text" id="anoVtSoldBy" value="Martice Morrison" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-      </div>
-    </div>
-
-    <!-- Generate button -->
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button onclick="generateCirgasOrderPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📐 Generate Order Packet</button>
-      <button onclick="anoClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
-    </div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Fills the Memorial Order (Flat/Bronze or Upright, whichever category is selected above) and Vault and Urn Vault Order Form in the same CIRGAS workbook — print/email just the pages you need from Excel. Interment Order and Authorization is filled from the At-Need Contract tab. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, marker/vault if added) so you can reopen it later to make a correction or add a marker once the family decides — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, Interment Order and Authorization, and — when checked above — the Memorial Order and Vault/Urn Vault Order Form. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
 
   </div>
 </div>
@@ -3802,14 +3769,25 @@ tr:hover td{background:#eef3f8;}
     <span class="badge" style="background:#c0392b;color:#fff;">AT-NEED CEMETERY</span>
   </div>
   <div class="callout callout-blue">
-    There's no separate At-Need contract builder — this pulls straight from the <strong>Cemetery Quote Builder</strong> when its Quote Type is set to At-Need. Every imported number stays editable. Check off documents as you assemble the packet, then click <strong>Generate Checklist PDF</strong>.
+    Import either straight from the <strong>Cemetery Quote Builder</strong> (Quote Type set to At-Need) or from a saved <strong>At-Need CIRGAS Contract</strong> once one exists. Every imported number stays editable. Check off documents as you assemble the packet, then click <strong>Generate Checklist PDF</strong>.
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header">⬇ Import</div>
+    <div class="q-panel-header">⬇ Import from Cemetery Quote</div>
     <div class="q-panel-body">
       <button class="pull-btn" onclick="anclImport()">⬇ Import from Cemetery Quote (At-Need)</button>
       <div id="anclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Set the Cemetery Quote Builder's Quote Type to At-Need and build the quote first, then click Import.</div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header">⬇ Import from Saved CIRGAS Contract</div>
+    <div class="q-panel-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="anclCirgasPicker" onfocus="anclPopulateCirgasPicker()" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;"><option value="">— Select a saved CIRGAS contract —</option></select>
+        <button onclick="anclImportFromCirgas()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Pulls the purchaser name and pricing from a contract already saved on the At-Need CIRGAS Contract tab — use this once you've built the actual contract instead of re-entering pricing here.</div>
     </div>
   </div>
 
@@ -11514,6 +11492,9 @@ function loadSavedAnContract(id) {
   restoreFieldState(s.fields || {});
   _anPricing = s.anPricing || null;
   if (typeof anCalcAge === 'function') anCalcAge();
+  // restoreFieldState sets .checked generically but doesn't fire onchange — resync the
+  // Memorial/Vault optional-panel visibility and marker category sub-fields to match.
+  anMkToggle(); anVtToggle(); anoMkCategoryChange();
   anShowPricingSummary();
   show('an-contract', document.querySelector('[onclick*="an-contract"]'));
 }
@@ -11541,80 +11522,10 @@ function anClearAll() {
     ['Name','Relation','Street','City','Zip','Phone','Email'].forEach(function(f){ var e = el('anSigner'+i+f); if (e) e.value=''; });
     var st = el('anSigner'+i+'State'); if (st) st.value = 'WA';
   }
-  anShowPricingSummary();
-}
-
-// ── Marker, Vault & Interment Order (CIRGAS Phase 2) ──────────────────────────
-// Filled in AFTER the initial contract is signed (proofing/vault/interment logistics aren't
-// known at signing time), so this is a separate tab: load a saved At-Need contract to pull in
-// decedent/purchaser/signers, then fill in these order-specific fields and generate.
-function anoMkCategoryChange() {
-  var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
-  if (el('anoMkFlatFields'))    el('anoMkFlatFields').style.display    = isFlat ? '' : 'none';
-  if (el('anoMkUprightFields')) el('anoMkUprightFields').style.display = isFlat ? 'none' : '';
-}
-function anoPopulateLoadPicker() {
-  var sel = el('anoLoadPicker'); if (!sel) return;
-  var current = sel.value;
-  sel.innerHTML = '<option value="">— Select a saved At-Need contract —</option>' +
-    _anSavedContracts.map(function(s){ return '<option value="'+s.id+'">'+s.label+'</option>'; }).join('');
-  if (current) sel.value = current;
-}
-var _anoLoaded = null;
-function anoLoadContract() {
-  var sel = el('anoLoadPicker');
-  var id = sel && sel.value ? +sel.value : null;
-  if (!id) { alert('Select a saved At-Need contract first.'); return; }
-  var snap = _anSavedContracts.find(function(q){ return q.id === id; });
-  if (!snap || !snap.state) { alert('No restore data for that contract.'); return; }
-  var f = snap.state.fields || {};
-  var signers = [];
-  for (var i = 1; i <= 4; i++) {
-    signers.push({
-      name: f['anSigner'+i+'Name']||'', relation: f['anSigner'+i+'Relation']||'',
-      street: f['anSigner'+i+'Street']||'', city: f['anSigner'+i+'City']||'',
-      state: f['anSigner'+i+'State']||'', zip: f['anSigner'+i+'Zip']||'',
-      phone: f['anSigner'+i+'Phone']||'', email: f['anSigner'+i+'Email']||''
-    });
-  }
-  _anoLoaded = {
-    contractNum: f.anContractNum||'', funeralHome: f.anFuneralHome||'', fsd: f.anFSD||'',
-    decFirst: f.anDecFirst||'', decMiddle: f.anDecMiddle||'', decLast: f.anDecLast||'',
-    dob: f.anDecDOB||'', dod: f.anDecDOD||'', arrangementDate: f.anArrangementDate||'',
-    funeralDirector: f.anFuneralDirector||'',
-    funeralDate: f.anFuneralDate||'', funeralTime: f.anFuneralTime||'',
-    intermentDate: f.anIntermentDate||'', intermentTime: f.anIntermentTime||'',
-    purchName: f.anPurchName||'', purchRelation: f.anPurchRelation||'',
-    purchStreet: f.anPurchStreet||'', purchCity: f.anPurchCity||'', purchState: f.anPurchState||'', purchZip: f.anPurchZip||'',
-    purchHomePhone: f.anPurchHomePhone||'', purchCellPhone: f.anPurchCellPhone||'', purchEmail: f.anPurchEmail||'',
-    coPurchName: f.anCoPurchName||'', coPurchRelation: f.anCoPurchRelation||'',
-    coPurchStreet: f.anCoPurchStreet||'', coPurchCity: f.anCoPurchCity||'', coPurchState: f.anCoPurchState||'', coPurchZip: f.anCoPurchZip||'',
-    coPurchHomePhone: f.anCoPurchHomePhone||'', coPurchCellPhone: f.anCoPurchCellPhone||'', coPurchEmail: f.anCoPurchEmail||'',
-    propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
-    iaVeteran: f.anIaVeteran||'', iaServiceType: f.anIaServiceType||'', iaServiceComingFrom: f.anIaServiceComingFrom||'',
-    iaCremStatus: f.anIaCremStatus||'', iaUrnType: f.anIaUrnType||'', iaUrnSize: f.anIaUrnSize||'',
-    iaRemarks: f.anIaRemarks||'', iaNumSignatures: f.anIaNumSignatures||'',
-    ocSpace: !!f.anOcSpace, ocEcf: !!f.anOcEcf,
-    ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
-    ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
-    ocOtherMerch: !!f.anOcOtherMerch,
-    preArrContractNum: f.anPreArrContractNum||'', preArrAmountOwed: f.anPreArrAmountOwed||'', preArrDatePaid: f.anPreArrDatePaid||'',
-    contractPaidDate: f.anContractPaidDate||'',
-    signers: signers,
-    lines: (snap.state.anPricing && snap.state.anPricing.lines) || []
-  };
-  var decName = (_anoLoaded.decFirst + ' ' + _anoLoaded.decLast).replace(/\s+/g,' ').trim();
-  if (el('anoLoadedSummary')) {
-    el('anoLoadedSummary').innerHTML = '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">'
-      + '<strong>' + (decName || '(no name)') + '</strong> — Purchaser: ' + (_anoLoaded.purchName || '—')
-      + '<br>Property: ' + (_anoLoaded.propertyLocation || '—') + '</div>';
-  }
-  if (el('anoVtNameplateName') && !el('anoVtNameplateName').value) el('anoVtNameplateName').value = decName;
-}
-function anoClearAll() {
-  _anoLoaded = null;
-  if (el('anoLoadedSummary')) el('anoLoadedSummary').innerHTML = 'No contract loaded yet.';
-  if (el('anoLoadPicker')) el('anoLoadPicker').value = '';
+  // Memorial Order / Vault Order — optional sections, reset to collapsed/blank.
+  if (el('anMkEnabled')) el('anMkEnabled').checked = false;
+  if (el('anVtEnabled')) el('anVtEnabled').checked = false;
+  anMkToggle(); anVtToggle();
   ['anoMkManufacturer','anoMkMonumentType','anoMkGraniteColor','anoMkDesignNo',
    'anoMkFlatSize','anoMkBronzeSize','anoMkFoundationSize',
    'anoMkUprightSize','anoMkCustomSize','anoMkTabletShape','anoMkTabletFinish','anoMkCustomFinish',
@@ -11622,48 +11533,32 @@ function anoClearAll() {
    'anoMkLetteringFont','anoMkEmblems','anoMkPortrait','anoMkVaseOption','anoMkVaseType',
    'anoMkInscription','anoMkSpecialInstructions','anoMkInstallInstructions',
    'anoVtType','anoVtColor','anoVtDateOfService','anoVtTimeOfService','anoVtNameplateName',
-   'anoVtYearBirth','anoVtYearDeath','anoVtEmblem','anoVtWilbertCert',
-   'anoIaVeteran','anoIaServiceType','anoIaServiceComingFrom','anoIaCremStatus','anoIaUrnType','anoIaUrnSize']
+   'anoVtYearBirth','anoVtYearDeath','anoVtEmblem','anoVtWilbertCert']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anoVtSoldBy')) el('anoVtSoldBy').value = 'Martice Morrison';
   var flatRadio = document.querySelector('input[name="anoMkCategory"][value="flat"]');
   if (flatRadio) flatRadio.checked = true;
   anoMkCategoryChange();
+  anShowPricingSummary();
 }
-async function generateCirgasOrderPacket() {
-  if (!_anoLoaded) { alert('Load a saved At-Need contract first.'); return; }
+
+// ── Memorial Order & Vault Order — optional sections on the At-Need Contract tab ──────────
+// Marker and vault details often aren't known at initial signing (some families decide on a
+// marker right away, many wait months/years), so these are optional toggle panels rather than a
+// separate tab: they live in the same saved contract, so adding a marker later is just "load the
+// saved contract, check the box, fill it in, regenerate" — never a brand-new CIRGAS contract.
+function anMkToggle() {
+  var on = el('anMkEnabled') && el('anMkEnabled').checked;
+  if (el('anMkPanel')) el('anMkPanel').style.display = on ? '' : 'none';
+}
+function anVtToggle() {
+  var on = el('anVtEnabled') && el('anVtEnabled').checked;
+  if (el('anVtPanel')) el('anVtPanel').style.display = on ? '' : 'none';
+}
+function anoMkCategoryChange() {
   var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
-  var data = Object.assign({}, _anoLoaded, {
-    markerCategory: isFlat ? 'flat' : 'upright',
-    mkManufacturer: val('anoMkManufacturer'), mkMonumentType: val('anoMkMonumentType'),
-    mkGraniteColor: val('anoMkGraniteColor'), mkDesignNo: val('anoMkDesignNo'),
-    mkFlatSize: val('anoMkFlatSize'), mkBronzeSize: val('anoMkBronzeSize'), mkFoundationSize: val('anoMkFoundationSize'),
-    mkUprightSize: val('anoMkUprightSize'), mkCustomSize: val('anoMkCustomSize'),
-    mkTabletShape: val('anoMkTabletShape'), mkTabletFinish: val('anoMkTabletFinish'),
-    mkCustomFinish: val('anoMkCustomFinish'), mkBaseFinish: val('anoMkBaseFinish'),
-    mkBevelMargin: val('anoMkBevelMargin'), mkUprightFoundation: val('anoMkUprightFoundation'), mkBenchSize: val('anoMkBenchSize'),
-    mkLetteringFont: val('anoMkLetteringFont'), mkEmblems: val('anoMkEmblems'), mkPortrait: val('anoMkPortrait'),
-    mkVaseOption: val('anoMkVaseOption'), mkVaseType: val('anoMkVaseType'),
-    mkInscription: val('anoMkInscription'), mkSpecialInstructions: val('anoMkSpecialInstructions'), mkInstallInstructions: val('anoMkInstallInstructions'),
-    vtType: val('anoVtType'), vtColor: val('anoVtColor'),
-    vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
-    vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
-    vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy')
-    // iaVeteran/iaServiceType/etc. come from _anoLoaded (Interment Order & Authorization now
-    // lives on the At-Need Contract tab, since every At-Need sale needs it, not just this
-    // later marker/vault step) — left out of this override object so Object.assign keeps them.
-  });
-  try {
-    var bytes = await _fillCirgasXlsx(data);
-    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    var slug = (data.decLast || data.purchName || 'Contract').replace(/[^a-zA-Z0-9]/g,'_');
-    a.href = url;
-    a.download = 'CIRGAS_Order_' + slug + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch(e) { alert('Generate failed: ' + e.message); }
+  if (el('anoMkFlatFields'))    el('anoMkFlatFields').style.display    = isFlat ? '' : 'none';
+  if (el('anoMkUprightFields')) el('anoMkUprightFields').style.display = isFlat ? 'none' : '';
 }
 
 // ── Deed Transfer Contract (CIRGAS Phase 3) ────────────────────────────────────
@@ -13800,6 +13695,44 @@ function anclImport() {
   }
   anclUpdate();
 }
+function anclPopulateCirgasPicker() {
+  var sel = el('anclCirgasPicker'); if (!sel) return;
+  var current = sel.value;
+  var saved = (typeof _anSavedContracts !== 'undefined' && Array.isArray(_anSavedContracts)) ? _anSavedContracts : [];
+  sel.innerHTML = '<option value="">— Select a saved CIRGAS contract —</option>' +
+    saved.map(function(s){ return '<option value="'+s.id+'">'+s.label+'</option>'; }).join('');
+  if (current) sel.value = current;
+}
+function anclImportFromCirgas() {
+  var sel = el('anclCirgasPicker');
+  var id = sel && sel.value ? +sel.value : null;
+  if (!id) { alert('Select a saved CIRGAS contract first.'); return; }
+  var snap = _anSavedContracts.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">No restore data for that contract.</span>';
+    return;
+  }
+  var f = snap.state.fields || {};
+  var name = (f.anPurchName || ((f.anDecFirst||'') + ' ' + (f.anDecLast||'')).replace(/\s+/g,' ').trim() || '').trim();
+  if (!name) {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">That saved contract has no purchaser or decedent name.</span>';
+    return;
+  }
+  el('anclPurchaser').value  = name;
+  el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
+  var lines = (snap.state.anPricing && snap.state.anPricing.lines) || [];
+  if (!lines.length) {
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser imported, but that CIRGAS contract has no pricing — import from the Cemetery Quote Builder instead, or add pricing on the CIRGAS Contract tab first.</span>';
+  } else {
+    var bucket = clCremationBucket(lines);
+    var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
+    el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
+    el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
+    el('anclMerchSale').value   = merchTotal.toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported from saved CIRGAS contract: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+  }
+  anclUpdate();
+}
 function anclUpdate() { clRenderWorksheetCopyPanel('anclCopyPanel', anclWorksheetData()); }
 function anclClearAll() {
   ['anclPurchaser','anclRecipient','anclDateOfSale','anclPromotion','anclPropDesig',
@@ -13809,6 +13742,7 @@ function anclClearAll() {
    'anclPricesConfirmedBy','anclDateSubmitted','anclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
   if (el('anclSplit1Pct')) el('anclSplit1Pct').value = 100;
   if (el('anclRewrite'))   el('anclRewrite').checked = false;
+  if (el('anclCirgasPicker')) el('anclCirgasPicker').value = '';
   clRenderChecklist('anclChecklistBody', CL_ITEMS_ATNEED, 'ancl');
   el('anclImportDisplay').innerHTML = 'Set the Cemetery Quote Builder\'s Quote Type to At-Need and build the quote first, then click Import.';
   anclUpdate();
@@ -14423,9 +14357,8 @@ async function _fillCirgasXlsx(data) {
   await fillAddendum('Addendum A', secondRightLines);
   await fillAddendum('Addendum B', thirdRightLines);
 
-  // ── Phase 2: Marker / Vault / Interment Order — optional, only present when generated from
-  // the Marker, Vault & Interment Order tab (generateCirgasOrderPacket()), not the initial
-  // contract tab (generateCirgasPacket()).
+  // ── Memorial Order / Vault Order — optional sections on the main contract tab, only present
+  // when that section's checkbox was checked at generation time (see generateCirgasPacket()).
   if (data.markerCategory) {
     var mkSheet = data.markerCategory === 'upright' ? 'Mem Order Form Upright & Other' : 'Mem Order Flat Mrkr & Bronze';
     var setMk = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, mkSheet, coord, type, value); };
@@ -14650,6 +14583,34 @@ async function generateCirgasPacket() {
     signers: signers,
     lines: anLines()
   };
+  // Memorial Order — optional (some families buy a marker at time of passing, many wait and add
+  // it to this same saved contract later). Only included when the section is checked, so
+  // _fillCirgasXlsx's `if (data.markerCategory)` guard skips the Mem Order sheets otherwise.
+  if (el('anMkEnabled') && el('anMkEnabled').checked) {
+    var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
+    Object.assign(data, {
+      markerCategory: isFlat ? 'flat' : 'upright',
+      mkManufacturer: val('anoMkManufacturer'), mkMonumentType: val('anoMkMonumentType'),
+      mkGraniteColor: val('anoMkGraniteColor'), mkDesignNo: val('anoMkDesignNo'),
+      mkFlatSize: val('anoMkFlatSize'), mkBronzeSize: val('anoMkBronzeSize'), mkFoundationSize: val('anoMkFoundationSize'),
+      mkUprightSize: val('anoMkUprightSize'), mkCustomSize: val('anoMkCustomSize'),
+      mkTabletShape: val('anoMkTabletShape'), mkTabletFinish: val('anoMkTabletFinish'),
+      mkCustomFinish: val('anoMkCustomFinish'), mkBaseFinish: val('anoMkBaseFinish'),
+      mkBevelMargin: val('anoMkBevelMargin'), mkUprightFoundation: val('anoMkUprightFoundation'), mkBenchSize: val('anoMkBenchSize'),
+      mkLetteringFont: val('anoMkLetteringFont'), mkEmblems: val('anoMkEmblems'), mkPortrait: val('anoMkPortrait'),
+      mkVaseOption: val('anoMkVaseOption'), mkVaseType: val('anoMkVaseType'),
+      mkInscription: val('anoMkInscription'), mkSpecialInstructions: val('anoMkSpecialInstructions'), mkInstallInstructions: val('anoMkInstallInstructions')
+    });
+  }
+  // Vault & Urn Vault Order — optional (delivery logistics often aren't known at initial signing).
+  if (el('anVtEnabled') && el('anVtEnabled').checked) {
+    Object.assign(data, {
+      vtType: val('anoVtType'), vtColor: val('anoVtColor'),
+      vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
+      vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
+      vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy')
+    });
+  }
   try {
     var bytes = await _fillCirgasXlsx(data);
     var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
