@@ -273,7 +273,6 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved">💾 Saved RICs</div>
   <div class="nav-item highlight" onclick="show('an-contract',this)">📗 At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved">💾 Saved CIRGAS Contracts</div>
-  <div class="nav-item highlight" onclick="show('deed-transfer',this)">📜 Deed Transfer Contract</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
@@ -3020,6 +3019,30 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
+    <!-- Deed Transfer (optional) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">🔄 Deed Transfer <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, existing property changing owners (no new purchase)</span></div>
+      <div class="q-panel-body">
+        <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anDtEnabled" onchange="anDtToggle()">This is a Deed Transfer (already-owned property, no interment)</label>
+        <div id="anDtPanel" style="display:none;margin-top:12px;">
+          <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Real completed transfers print the decedent-name line as "[current owner] To [new owner]" and use Purchaser = new owner (Grantee), Co-Purchaser = current owner (Grantor) — fill those in below and this section handles the naming automatically.</div>
+          <div class="q-row">
+            <label>Grantee Name <span style="font-weight:400;opacity:.7;">(new owner)</span></label>
+            <input type="text" id="anDtGranteeName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Grantor Name <span style="font-weight:400;opacity:.7;">(current owner)</span></label>
+            <input type="text" id="anDtGrantorName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Transfer Fee ($)</label>
+            <input type="number" id="anDtTransferFee" min="0" step="1" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+          <label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-top:8px;"><input type="checkbox" id="anDtWaiveFee">Waive fee (family / non-profit transfer)</label>
+        </div>
+      </div>
+    </div>
+
     <!-- Additional Signers -->
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">✍️ Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
@@ -3221,7 +3244,7 @@ tr:hover td{background:#eef3f8;}
       <button onclick="anClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, marker/vault if added) so you can reopen it later to make a correction or add a marker once the family decides — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, Interment Order and Authorization, and — when checked above — the Memorial Order and Vault/Urn Vault Order Form. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, Interment Order and Authorization, and — when checked above — the Memorial Order, Vault/Urn Vault Order Form, and Deed Transfer. Addenda for a 2nd/3rd interment right still need to be completed by hand.</div>
 
   </div>
 </div>
@@ -3245,91 +3268,6 @@ tr:hover td{background:#eef3f8;}
 </div>
 
 <!-- ═══ DEED TRANSFER CONTRACT (CIRGAS Phase 3) ═══ -->
-<div class="section" id="section-deed-transfer">
-  <div class="section-header">
-    <div class="section-icon">📜</div>
-    <h2>Deed Transfer Contract</h2>
-    <span class="badge">Already-owned property — no purchase involved</span>
-  </div>
-
-  <div class="callout callout-blue" style="margin-bottom:18px;">
-    For transferring an already-owned interment right from its current owner (Grantor) to a new owner (Grantee).
-    Independent of the At-Need Contract tabs — no decedent or new purchase required.
-  </div>
-
-  <div class="q-layout" style="max-width:900px;">
-
-    <div class="q-panel">
-      <div class="q-panel-header">🪦 Property</div>
-      <div class="q-panel-body">
-        <div class="q-row">
-          <label>Property Location</label>
-          <input type="text" id="dtPropertyLocation" placeholder="e.g. Garden 23, Lot 274, Space B" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Transfer Fee ($)</label>
-          <input type="number" id="dtTransferFee" min="0" step="1" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Decedent <span style="font-weight:400;opacity:.7;">(optional — if this transfer is tied to a specific plot with an interment)</span></label>
-        </div>
-        <div class="q-row" style="margin-top:4px;">
-          <input type="text" id="dtDecFirst" placeholder="First" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <input type="text" id="dtDecMiddle" placeholder="Middle" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="dtDecLast" placeholder="Last" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-      </div>
-    </div>
-
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">➡️ Grantee <span style="font-size:11px;font-weight:400;opacity:.7;">— new interment right owner</span></div>
-      <div class="q-panel-body">
-        <div class="q-row">
-          <label>Name</label>
-          <input type="text" id="dtGranteeName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Street Address</label>
-          <input type="text" id="dtGranteeStreet" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <input type="text" id="dtGranteeCity" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="dtGranteeState" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="dtGranteeZip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;gap:12px;">
-          <div style="flex:1;"><label style="font-size:12px;">Phone</label><input type="text" id="dtGranteePhone" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
-          <div style="flex:1;"><label style="font-size:12px;">Email</label><input type="text" id="dtGranteeEmail" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">⬅️ Grantor <span style="font-size:11px;font-weight:400;opacity:.7;">— current interment right owner</span></div>
-      <div class="q-panel-body">
-        <div class="q-row">
-          <label>Name</label>
-          <input type="text" id="dtGrantorName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Street Address</label>
-          <input type="text" id="dtGrantorStreet" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <input type="text" id="dtGrantorCity" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="dtGrantorState" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="dtGrantorZip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;gap:12px;">
-          <div style="flex:1;"><label style="font-size:12px;">Phone</label><input type="text" id="dtGrantorPhone" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
-          <div style="flex:1;"><label style="font-size:12px;">Email</label><input type="text" id="dtGrantorEmail" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button onclick="generateDeedTransferPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📜 Generate Deed Transfer</button>
-      <button onclick="dtClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
-    </div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Downloads the CIRGAS workbook with the Deed Transfer Contract sheet filled in — print/email just that page.</div>
-
-  </div>
-</div>
-
 <div class="section" id="section-ga-contract" style="padding-right:0;">
   <div class="section-header">
     <div class="section-icon">📝</div>
@@ -11539,6 +11477,11 @@ function anClearAll() {
   var flatRadio = document.querySelector('input[name="anoMkCategory"][value="flat"]');
   if (flatRadio) flatRadio.checked = true;
   anoMkCategoryChange();
+  // Deed Transfer — optional section, reset to collapsed/blank.
+  if (el('anDtEnabled')) el('anDtEnabled').checked = false;
+  if (el('anDtWaiveFee')) el('anDtWaiveFee').checked = false;
+  anDtToggle();
+  ['anDtGranteeName','anDtGrantorName','anDtTransferFee'].forEach(function(id){ if (el(id)) el(id).value = ''; });
   anShowPricingSummary();
 }
 
@@ -11555,49 +11498,14 @@ function anVtToggle() {
   var on = el('anVtEnabled') && el('anVtEnabled').checked;
   if (el('anVtPanel')) el('anVtPanel').style.display = on ? '' : 'none';
 }
+function anDtToggle() {
+  var on = el('anDtEnabled') && el('anDtEnabled').checked;
+  if (el('anDtPanel')) el('anDtPanel').style.display = on ? '' : 'none';
+}
 function anoMkCategoryChange() {
   var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
   if (el('anoMkFlatFields'))    el('anoMkFlatFields').style.display    = isFlat ? '' : 'none';
   if (el('anoMkUprightFields')) el('anoMkUprightFields').style.display = isFlat ? 'none' : '';
-}
-
-// ── Deed Transfer Contract (CIRGAS Phase 3) ────────────────────────────────────
-// Standalone: transferring an already-owned interment right to a new owner, no purchase or
-// decedent required. Independent of the At-Need Contract tabs — always starts from a fresh
-// copy of the template rather than loading a saved contract.
-function dtClearAll() {
-  ['dtPropertyLocation','dtTransferFee','dtDecFirst','dtDecMiddle','dtDecLast',
-   'dtGranteeName','dtGranteeStreet','dtGranteeCity','dtGranteeZip','dtGranteePhone','dtGranteeEmail',
-   'dtGrantorName','dtGrantorStreet','dtGrantorCity','dtGrantorZip','dtGrantorPhone','dtGrantorEmail']
-    .forEach(function(id){ if (el(id)) el(id).value = ''; });
-  if (el('dtGranteeState')) el('dtGranteeState').value = 'WA';
-  if (el('dtGrantorState')) el('dtGrantorState').value = 'WA';
-}
-async function generateDeedTransferPacket() {
-  if (!val('dtGranteeName') || !val('dtGrantorName')) { alert('Please enter both the Grantor and Grantee name.'); return; }
-  var data = {
-    deedTransfer: true,
-    decFirst: val('dtDecFirst'), decMiddle: val('dtDecMiddle'), decLast: val('dtDecLast'),
-    propertyLocation: val('dtPropertyLocation'),
-    transferFee: val('dtTransferFee'),
-    granteeName: val('dtGranteeName'), granteeStreet: val('dtGranteeStreet'), granteeCity: val('dtGranteeCity'),
-    granteeState: val('dtGranteeState'), granteeZip: val('dtGranteeZip'),
-    granteePhone: val('dtGranteePhone'), granteeEmail: val('dtGranteeEmail'),
-    grantorName: val('dtGrantorName'), grantorStreet: val('dtGrantorStreet'), grantorCity: val('dtGrantorCity'),
-    grantorState: val('dtGrantorState'), grantorZip: val('dtGrantorZip'),
-    grantorPhone: val('dtGrantorPhone'), grantorEmail: val('dtGrantorEmail')
-  };
-  try {
-    var bytes = await _fillCirgasXlsx(data);
-    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    var slug = (data.grantorName || 'Transfer').replace(/[^a-zA-Z0-9]/g,'_');
-    a.href = url;
-    a.download = 'CIRGAS_DeedTransfer_' + slug + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  } catch(e) { alert('Generate failed: ' + e.message); }
 }
 
 // Frozen pricing snapshot for the ClearPoint contract, taken at import/load time — mirrors GA's
@@ -14498,25 +14406,19 @@ async function _fillCirgasXlsx(data) {
     }
   }
 
-  // ── Deed Transfer Contract (Phase 3) — standalone, no purchase/decedent required ──
-  if (data.deedTransfer) {
-    var setDt = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'Deed Transfer Contract', coord, type, value); };
-    var transferFeeAmt = parseFloat(data.transferFee) || 0;
-    await setDt('I27', transferFeeAmt > 0 ? 'n' : 's', transferFeeAmt > 0 ? transferFeeAmt : 'N/A');
-    await setDt('M38', 's', data.granteeName);
-    await setDt('M40', 's', data.granteeStreet);
-    await setDt('M42', 's', data.granteeCity);
-    await setDt('U42', 's', data.granteeState);
-    await setDt('W42', 's', data.granteeZip);
-    await setDt('M44', 's', data.granteeEmail);
-    await setDt('V44', 's', data.granteePhone);
-    await setDt('M50', 's', data.grantorName);
-    await setDt('M52', 's', data.grantorStreet);
-    await setDt('M54', 's', data.grantorCity);
-    await setDt('U54', 's', data.grantorState);
-    await setDt('W54', 's', data.grantorZip);
-    await setDt('M56', 's', data.grantorEmail);
-    await setDt('V56', 's', data.grantorPhone);
+  // ── Deed Transfer — real completed files never use a separate "Deed Transfer Contract"
+  // sheet; they repurpose the normal Cemetery Contract "Other" row (I27) with a custom label,
+  // and (when the fee is waived, e.g. family/non-profit transfers) a matching negative discount
+  // in the next "Other" row (I28). Decedent-name/Purchaser/Co-Purchaser overrides already
+  // happened above via data.decFirst/decMiddle/decLast/purchName/coPurchName.
+  if (data.dtEnabled) {
+    var dtFeeAmt = parseFloat(data.dtTransferFee) || 0;
+    await setCC('C27', 's', 'Deed Transfer Fee');
+    await setCC('I27', dtFeeAmt > 0 ? 'n' : 's', dtFeeAmt > 0 ? dtFeeAmt : 'N/A');
+    if (data.dtWaiveFee && dtFeeAmt > 0) {
+      await setCC('C28', 's', 'Transfer Fee Waived');
+      await setCC('I28', 'n', -dtFeeAmt);
+    }
   }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
@@ -14609,6 +14511,18 @@ async function generateCirgasPacket() {
       vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
       vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
       vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy')
+    });
+  }
+  // Deed Transfer — optional. Real completed files show the decedent-name line repurposed to
+  // read "[Grantor] To [Grantee]", Purchaser = Grantee (new owner), Co-Purchaser = Grantor
+  // (current owner) — override those fields here rather than making the counselor duplicate
+  // entry between a Decedent section that doesn't apply and dedicated Grantor/Grantee fields.
+  if (el('anDtEnabled') && el('anDtEnabled').checked) {
+    var dtGrantee = val('anDtGranteeName'), dtGrantor = val('anDtGrantorName');
+    Object.assign(data, {
+      dtEnabled: true, dtTransferFee: val('anDtTransferFee'), dtWaiveFee: el('anDtWaiveFee').checked,
+      decFirst: dtGrantor, decMiddle: 'To', decLast: dtGrantee,
+      purchName: dtGrantee, coPurchName: dtGrantor
     });
   }
   try {
