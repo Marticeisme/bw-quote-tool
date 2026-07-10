@@ -273,6 +273,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved">💾 Saved RICs</div>
   <div class="nav-item highlight" onclick="show('an-contract',this)">📗 At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved">💾 Saved CIRGAS Contracts</div>
+  <div class="nav-item highlight" onclick="show('an-order',this)">📐 Marker, Vault &amp; Interment Order</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
@@ -3001,6 +3002,215 @@ tr:hover td{background:#eef3f8;}
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing) so you can reopen it later to make a correction — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
     <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), and Payment Options. Other packet sections (marker order, vault order, interment authorization, addenda) still need to be completed by hand for now.</div>
+
+  </div>
+</div>
+
+<!-- ═══ MARKER, VAULT & INTERMENT ORDER (CIRGAS Phase 2) ═══ -->
+<div class="section" id="section-an-order">
+  <div class="section-header">
+    <div class="section-icon">📐</div>
+    <h2>Marker, Vault &amp; Interment Order</h2>
+    <span class="badge">At-Need Cemetery — filled in after signing</span>
+  </div>
+
+  <div class="callout callout-blue" style="margin-bottom:18px;">
+    Load a saved At-Need CIRGAS contract to pull in the decedent, purchaser, and signers, then fill in the marker,
+    vault, and interment logistics below (usually decided after the initial signing, once proofing/scheduling is
+    underway). <strong>Generate Order Packet</strong> produces the same CIRGAS workbook with these sheets filled in too.
+  </div>
+
+  <div class="q-layout" style="max-width:900px;">
+
+    <!-- Load contract -->
+    <div class="q-panel">
+      <div class="q-panel-header">📂 Load At-Need Contract</div>
+      <div class="q-panel-body">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="anoLoadPicker" onfocus="anoPopulateLoadPicker()" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;"><option value="">— Select a saved At-Need contract —</option></select>
+          <button onclick="anoLoadContract()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Load</button>
+        </div>
+        <div id="anoLoadedSummary" style="font-size:12px;color:var(--text-light);margin-top:10px;">No contract loaded yet.</div>
+      </div>
+    </div>
+
+    <!-- Marker -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">🪨 Memorial Order</div>
+      <div class="q-panel-body">
+        <div style="display:flex;gap:16px;margin-bottom:10px;">
+          <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="flat" checked onchange="anoMkCategoryChange()" style="margin-right:5px;">Flat Marker / Bronze</label>
+          <label style="font-size:13px;"><input type="radio" name="anoMkCategory" value="upright" onchange="anoMkCategoryChange()" style="margin-right:5px;">Upright Monument</label>
+        </div>
+        <div class="q-row">
+          <label>Manufacturer</label>
+          <input type="text" id="anoMkManufacturer" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Monument Type</label>
+          <input type="text" id="anoMkMonumentType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Granite Color</label>
+          <input type="text" id="anoMkGraniteColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Design No.</label>
+          <input type="text" id="anoMkDesignNo" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+
+        <div id="anoMkFlatFields" style="margin-top:8px;">
+          <div class="q-row">
+            <label>Granite Flat Marker Size</label>
+            <input type="text" id="anoMkFlatSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Bronze Marker Size</label>
+            <input type="text" id="anoMkBronzeSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Foundation Size</label>
+            <input type="text" id="anoMkFoundationSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+        </div>
+
+        <div id="anoMkUprightFields" style="margin-top:8px;display:none;">
+          <div class="q-row">
+            <label>Upright Size</label>
+            <input type="text" id="anoMkUprightSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Custom Size</label>
+            <input type="text" id="anoMkCustomSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Tablet Shape</label>
+            <input type="text" id="anoMkTabletShape" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Tablet Finish</label>
+            <input type="text" id="anoMkTabletFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Custom Finish</label>
+            <input type="text" id="anoMkCustomFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Base Finish</label>
+            <input type="text" id="anoMkBaseFinish" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Bevel / Margin</label>
+            <input type="text" id="anoMkBevelMargin" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+            <label style="margin-left:12px;">Foundation Size</label>
+            <input type="text" id="anoMkUprightFoundation" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          </div>
+          <div class="q-row" style="margin-top:8px;">
+            <label>Bench Size &amp; Style</label>
+            <input type="text" id="anoMkBenchSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          </div>
+        </div>
+
+        <div class="q-row" style="margin-top:8px;">
+          <label>Lettering Font Style</label>
+          <input type="text" id="anoMkLetteringFont" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Emblem(s)</label>
+          <input type="text" id="anoMkEmblems" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Portrait</label>
+          <input type="text" id="anoMkPortrait" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Vase Option</label>
+          <input type="text" id="anoMkVaseOption" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <label style="margin-left:12px;">Vase Type</label>
+          <input type="text" id="anoMkVaseType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Inscription</label>
+          <textarea id="anoMkInscription" rows="3" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Special Instructions</label>
+          <textarea id="anoMkSpecialInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Installation Instructions</label>
+          <textarea id="anoMkInstallInstructions" rows="2" placeholder="Leave blank to fill in by hand after printing" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vault -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">⚰️ Vault and Urn Vault Order</div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Vault Type</label>
+          <input type="text" id="anoVtType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Color</label>
+          <input type="text" id="anoVtColor" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+          <div style="flex:1;min-width:150px;">
+            <label style="font-size:12px;">Date of Service</label>
+            <input type="date" id="anoVtDateOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="font-size:12px;">Time of Service</label>
+            <input type="time" id="anoVtTimeOfService" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Nameplate Name</label>
+          <input type="text" id="anoVtNameplateName" placeholder="Exactly as it should appear on the nameplate" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+          <div style="flex:1;min-width:120px;">
+            <label style="font-size:12px;">Year of Birth</label>
+            <input type="text" id="anoVtYearBirth" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="font-size:12px;">Year of Death</label>
+            <input type="text" id="anoVtYearDeath" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="font-size:12px;">Emblem</label>
+            <input type="text" id="anoVtEmblem" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Wilbert Preneed Cert #</label>
+          <input type="text" id="anoVtWilbertCert" placeholder="If any" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Sold By</label>
+          <input type="text" id="anoVtSoldBy" value="Martice Morrison" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Interment Authorization -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">✅ Interment Order &amp; Authorization</div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Veteran?</label>
+          <select id="anoIaVeteran" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+          </select>
+          <label style="margin-left:12px;">Service Type</label>
+          <input type="text" id="anoIaServiceType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Service Coming From</label>
+          <input type="text" id="anoIaServiceComingFrom" placeholder="e.g. Bonney Watson SeaTac" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
+        <div class="q-row">
+          <label>Status of Cremated Remains</label>
+          <input type="text" id="anoIaCremStatus" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Type of Urn</label>
+          <input type="text" id="anoIaUrnType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Size of Urn (H x W x L)</label>
+          <input type="text" id="anoIaUrnSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate button -->
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button onclick="generateCirgasOrderPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📐 Generate Order Packet</button>
+      <button onclick="anoClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Fills the Memorial Order (Flat/Bronze or Upright, whichever category is selected above), Vault and Urn Vault Order Form, and Interment Order and Authorization sheets in the same CIRGAS workbook — print/email just the pages you need from Excel. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
 
   </div>
 </div>
@@ -11184,6 +11394,118 @@ function anClearAll() {
   anShowPricingSummary();
 }
 
+// ── Marker, Vault & Interment Order (CIRGAS Phase 2) ──────────────────────────
+// Filled in AFTER the initial contract is signed (proofing/vault/interment logistics aren't
+// known at signing time), so this is a separate tab: load a saved At-Need contract to pull in
+// decedent/purchaser/signers, then fill in these order-specific fields and generate.
+function anoMkCategoryChange() {
+  var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
+  if (el('anoMkFlatFields'))    el('anoMkFlatFields').style.display    = isFlat ? '' : 'none';
+  if (el('anoMkUprightFields')) el('anoMkUprightFields').style.display = isFlat ? 'none' : '';
+}
+function anoPopulateLoadPicker() {
+  var sel = el('anoLoadPicker'); if (!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— Select a saved At-Need contract —</option>' +
+    _anSavedContracts.map(function(s){ return '<option value="'+s.id+'">'+s.label+'</option>'; }).join('');
+  if (current) sel.value = current;
+}
+var _anoLoaded = null;
+function anoLoadContract() {
+  var sel = el('anoLoadPicker');
+  var id = sel && sel.value ? +sel.value : null;
+  if (!id) { alert('Select a saved At-Need contract first.'); return; }
+  var snap = _anSavedContracts.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data for that contract.'); return; }
+  var f = snap.state.fields || {};
+  var signers = [];
+  for (var i = 1; i <= 4; i++) {
+    signers.push({
+      name: f['anSigner'+i+'Name']||'', relation: f['anSigner'+i+'Relation']||'',
+      street: f['anSigner'+i+'Street']||'', city: f['anSigner'+i+'City']||'',
+      state: f['anSigner'+i+'State']||'', zip: f['anSigner'+i+'Zip']||'',
+      phone: f['anSigner'+i+'Phone']||'', email: f['anSigner'+i+'Email']||''
+    });
+  }
+  _anoLoaded = {
+    contractNum: f.anContractNum||'', funeralHome: f.anFuneralHome||'', fsd: f.anFSD||'',
+    decFirst: f.anDecFirst||'', decMiddle: f.anDecMiddle||'', decLast: f.anDecLast||'',
+    dob: f.anDecDOB||'', dod: f.anDecDOD||'', arrangementDate: f.anArrangementDate||'',
+    funeralDirector: f.anFuneralDirector||'',
+    funeralDate: f.anFuneralDate||'', funeralTime: f.anFuneralTime||'',
+    intermentDate: f.anIntermentDate||'', intermentTime: f.anIntermentTime||'',
+    purchName: f.anPurchName||'', purchRelation: f.anPurchRelation||'',
+    purchStreet: f.anPurchStreet||'', purchCity: f.anPurchCity||'', purchState: f.anPurchState||'', purchZip: f.anPurchZip||'',
+    purchHomePhone: f.anPurchHomePhone||'', purchCellPhone: f.anPurchCellPhone||'', purchEmail: f.anPurchEmail||'',
+    coPurchName: f.anCoPurchName||'', coPurchRelation: f.anCoPurchRelation||'',
+    coPurchStreet: f.anCoPurchStreet||'', coPurchCity: f.anCoPurchCity||'', coPurchState: f.anCoPurchState||'', coPurchZip: f.anCoPurchZip||'',
+    coPurchHomePhone: f.anCoPurchHomePhone||'', coPurchCellPhone: f.anCoPurchCellPhone||'', coPurchEmail: f.anCoPurchEmail||'',
+    propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
+    signers: signers,
+    lines: (snap.state.anPricing && snap.state.anPricing.lines) || []
+  };
+  var decName = (_anoLoaded.decFirst + ' ' + _anoLoaded.decLast).replace(/\s+/g,' ').trim();
+  if (el('anoLoadedSummary')) {
+    el('anoLoadedSummary').innerHTML = '<div style="background:#f0f7f0;padding:10px 12px;border-radius:6px;border:1px solid #c3e6cb;">'
+      + '<strong>' + (decName || '(no name)') + '</strong> — Purchaser: ' + (_anoLoaded.purchName || '—')
+      + '<br>Property: ' + (_anoLoaded.propertyLocation || '—') + '</div>';
+  }
+  if (el('anoVtNameplateName') && !el('anoVtNameplateName').value) el('anoVtNameplateName').value = decName;
+}
+function anoClearAll() {
+  _anoLoaded = null;
+  if (el('anoLoadedSummary')) el('anoLoadedSummary').innerHTML = 'No contract loaded yet.';
+  if (el('anoLoadPicker')) el('anoLoadPicker').value = '';
+  ['anoMkManufacturer','anoMkMonumentType','anoMkGraniteColor','anoMkDesignNo',
+   'anoMkFlatSize','anoMkBronzeSize','anoMkFoundationSize',
+   'anoMkUprightSize','anoMkCustomSize','anoMkTabletShape','anoMkTabletFinish','anoMkCustomFinish',
+   'anoMkBaseFinish','anoMkBevelMargin','anoMkUprightFoundation','anoMkBenchSize',
+   'anoMkLetteringFont','anoMkEmblems','anoMkPortrait','anoMkVaseOption','anoMkVaseType',
+   'anoMkInscription','anoMkSpecialInstructions','anoMkInstallInstructions',
+   'anoVtType','anoVtColor','anoVtDateOfService','anoVtTimeOfService','anoVtNameplateName',
+   'anoVtYearBirth','anoVtYearDeath','anoVtEmblem','anoVtWilbertCert',
+   'anoIaVeteran','anoIaServiceType','anoIaServiceComingFrom','anoIaCremStatus','anoIaUrnType','anoIaUrnSize']
+    .forEach(function(id){ if (el(id)) el(id).value = ''; });
+  if (el('anoVtSoldBy')) el('anoVtSoldBy').value = 'Martice Morrison';
+  var flatRadio = document.querySelector('input[name="anoMkCategory"][value="flat"]');
+  if (flatRadio) flatRadio.checked = true;
+  anoMkCategoryChange();
+}
+async function generateCirgasOrderPacket() {
+  if (!_anoLoaded) { alert('Load a saved At-Need contract first.'); return; }
+  var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
+  var data = Object.assign({}, _anoLoaded, {
+    markerCategory: isFlat ? 'flat' : 'upright',
+    mkManufacturer: val('anoMkManufacturer'), mkMonumentType: val('anoMkMonumentType'),
+    mkGraniteColor: val('anoMkGraniteColor'), mkDesignNo: val('anoMkDesignNo'),
+    mkFlatSize: val('anoMkFlatSize'), mkBronzeSize: val('anoMkBronzeSize'), mkFoundationSize: val('anoMkFoundationSize'),
+    mkUprightSize: val('anoMkUprightSize'), mkCustomSize: val('anoMkCustomSize'),
+    mkTabletShape: val('anoMkTabletShape'), mkTabletFinish: val('anoMkTabletFinish'),
+    mkCustomFinish: val('anoMkCustomFinish'), mkBaseFinish: val('anoMkBaseFinish'),
+    mkBevelMargin: val('anoMkBevelMargin'), mkUprightFoundation: val('anoMkUprightFoundation'), mkBenchSize: val('anoMkBenchSize'),
+    mkLetteringFont: val('anoMkLetteringFont'), mkEmblems: val('anoMkEmblems'), mkPortrait: val('anoMkPortrait'),
+    mkVaseOption: val('anoMkVaseOption'), mkVaseType: val('anoMkVaseType'),
+    mkInscription: val('anoMkInscription'), mkSpecialInstructions: val('anoMkSpecialInstructions'), mkInstallInstructions: val('anoMkInstallInstructions'),
+    vtType: val('anoVtType'), vtColor: val('anoVtColor'),
+    vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
+    vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
+    vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy'),
+    iaVeteran: val('anoIaVeteran'), iaServiceType: val('anoIaServiceType'), iaServiceComingFrom: val('anoIaServiceComingFrom'),
+    iaCremStatus: val('anoIaCremStatus'), iaUrnType: val('anoIaUrnType'), iaUrnSize: val('anoIaUrnSize')
+  });
+  try {
+    var bytes = await _fillCirgasXlsx(data);
+    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var slug = (data.decLast || data.purchName || 'Contract').replace(/[^a-zA-Z0-9]/g,'_');
+    a.href = url;
+    a.download = 'CIRGAS_Order_' + slug + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('Generate failed: ' + e.message); }
+}
+
 
 
 
@@ -13833,6 +14155,100 @@ async function _fillCirgasXlsx(data) {
   await setCCAmt('I42', buckets.vase);
   await setCCAmt('I43', buckets.vaseSet);
   await setCCAmt('I44', buckets.urn);
+
+  // ── Phase 2: Marker / Vault / Interment Order — optional, only present when generated from
+  // the Marker, Vault & Interment Order tab (generateCirgasOrderPacket()), not the initial
+  // contract tab (generateCirgasPacket()).
+  if (data.markerCategory) {
+    var mkSheet = data.markerCategory === 'upright' ? 'Mem Order Form Upright & Other' : 'Mem Order Flat Mrkr & Bronze';
+    var setMk = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, mkSheet, coord, type, value); };
+    await setMk('C11', 's', data.mkManufacturer);
+    await setMk('C12', 's', data.mkMonumentType);
+    await setMk('C13', 's', data.mkGraniteColor);
+    if (data.markerCategory === 'upright') {
+      await setMk('C14', 's', data.mkUprightSize);
+      await setMk('C15', 's', data.mkCustomSize);
+      await setMk('C16', 's', data.mkTabletShape);
+      await setMk('C17', 's', data.mkTabletFinish);
+      await setMk('C18', 's', data.mkCustomFinish);
+      await setMk('C19', 's', data.mkBaseFinish);
+      await setMk('C20', 's', data.mkBevelMargin);
+      await setMk('C21', 's', data.mkUprightFoundation);
+      await setMk('C22', 's', data.mkBenchSize);
+      await setMk('C23', 's', data.mkDesignNo);
+      await setMk('C24', 's', data.mkLetteringFont);
+      await setMk('C25', 's', data.mkEmblems);
+      await setMk('C26', 's', data.mkPortrait);
+      await setMk('C27', 's', data.mkVaseOption);
+      await setMk('C28', 's', data.mkVaseType);
+      // Preserve the template's own section-header text ("Inscription" etc.) when left blank —
+      // only overwrite (as "Header:\n<text>") when the user actually typed something, since
+      // these cells are a single merged box with no separate label + input cell.
+      if (data.mkInscription) await setMk('F23', 's', 'Inscription:\n' + data.mkInscription);
+      if (data.mkSpecialInstructions) await setMk('F29', 's', 'Special Instructions:\n' + data.mkSpecialInstructions);
+      if (data.mkInstallInstructions) await setMk('A29', 's', 'Installation Instructions:\n' + data.mkInstallInstructions);
+    } else {
+      await setMk('C14', 's', data.mkFlatSize);
+      await setMk('C15', 's', data.mkBronzeSize);
+      await setMk('C16', 's', data.mkFoundationSize);
+      await setMk('C17', 's', data.mkDesignNo);
+      await setMk('C18', 's', data.mkLetteringFont);
+      await setMk('C19', 's', data.mkEmblems);
+      await setMk('C20', 's', data.mkPortrait);
+      await setMk('C21', 's', data.mkVaseOption);
+      await setMk('C22', 's', data.mkVaseType);
+      if (data.mkInscription) await setMk('F17', 's', 'Inscription:\n' + data.mkInscription);
+      if (data.mkSpecialInstructions) await setMk('F22', 's', 'Special Instructions:\n' + data.mkSpecialInstructions);
+      if (data.mkInstallInstructions) await setMk('F27', 's', 'Installation Instructions:\n' + data.mkInstallInstructions);
+    }
+    // Additional signers (#2-5) on the Mem Order Form Addl Signers sheet — signer #1 is always
+    // the primary purchaser, already cascaded via formula on the main marker sheet itself.
+    var MK_SIGNER_ROWS = [8, 16, 24, 32];
+    for (var mi = 0; mi < 4; mi++) {
+      var ms = (data.signers && data.signers[mi]) || {};
+      var mr = MK_SIGNER_ROWS[mi];
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'Mem Order Form Addl Signers', 'B' + (mr + 2), 's', ms.name);
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'Mem Order Form Addl Signers', 'O' + (mr + 2), 's', ms.relation);
+    }
+  }
+
+  if (data.vtType !== undefined) {
+    var setVt = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'Vault and Urn Vault Order Form', coord, type, value); };
+    await setVt('B21', 's', data.vtType);
+    await setVt('J21', 's', data.vtColor);
+    await setVt('C27', 'n', _xlsxDateSerial(data.vtDateOfService));
+    await setVt('C29', 'n', _xlsxTimeSerial(data.vtTimeOfService));
+    await setVt('C31', 's', data.vtNameplateName);
+    await setVt('C34', 's', data.vtYearBirth);
+    await setVt('G34', 's', data.vtYearDeath);
+    await setVt('K34', 's', data.vtEmblem);
+    await setVt('E40', 's', data.vtWilbertCert);
+    await setVt('F42', 's', data.vtSoldBy);
+    await setVt('C44', 's', data.vtSoldBy);
+  }
+
+  if (data.iaServiceType !== undefined) {
+    var setIa = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'INTERMENT AUTH NEW', coord, type, value); };
+    await setIa('S5', 's', data.iaVeteran);
+    await setIa('C18', 's', data.iaServiceType);
+    await setIa('N18', 's', data.iaServiceComingFrom);
+    await setIa('G23', 's', data.contractNum);
+    await setIa('G37', 's', data.iaCremStatus);
+    await setIa('C39', 's', data.iaUrnType);
+    await setIa('Q39', 's', data.iaUrnSize);
+    // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 is always the primary purchaser,
+    // already cascaded via formula on the main Interment Auth sheet itself.
+    var IA_SIGNER_ROWS = [8, 16, 24, 32];
+    for (var ii = 0; ii < 4; ii++) {
+      var isg = (data.signers && data.signers[ii]) || {};
+      var ir = IA_SIGNER_ROWS[ii];
+      var addr = [isg.street, isg.city, isg.state, isg.zip].filter(Boolean).join(', ');
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 2), 's', isg.name);
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'O' + (ir + 2), 's', isg.relation);
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 4), 's', addr);
+      await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + (ir + 4), 's', isg.phone);
+    }
+  }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
 
