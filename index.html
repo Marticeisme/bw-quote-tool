@@ -2817,6 +2817,22 @@ tr:hover td{background:#eef3f8;}
 
   <div class="q-layout" style="max-width:900px;">
 
+    <!-- Contract Type -->
+    <div class="q-panel">
+      <div class="q-panel-header">📑 Contract Type</div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>This packet is</label>
+          <select id="anContractType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="original">Original Contract</option>
+            <option value="addendumA">Addendum A</option>
+            <option value="addendumB">Addendum B</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Addendum A/B are for adding something to an <em>already-completed</em> space later — e.g. a burial in June, then a marker purchased in October. Decedent/purchaser/property stay the same (they cascade from below); only the new pricing you import goes onto the Addendum sheet instead of the main contract.</div>
+      </div>
+    </div>
+
     <!-- Contract / Decedent Info -->
     <div class="q-panel">
       <div class="q-panel-header">🕊️ Decedent &amp; Contract Information</div>
@@ -11438,6 +11454,7 @@ function loadSavedAnContract(id) {
 }
 function anClearAll() {
   _anPricing = null;
+  if (el('anContractType')) el('anContractType').value = 'original';
   ['anContractNum','anFuneralHome','anDecFirst','anDecMiddle','anDecLast','anFuneralDirector',
    'anPurchName','anPurchRelation','anPurchStreet','anPurchCity','anPurchZip',
    'anPurchHomePhone','anPurchCellPhone','anPurchEmail',
@@ -14111,7 +14128,16 @@ async function _fillCirgasXlsx(data) {
   var pathMap = await _xlsxSheetPathMap(zip);
   var cache = {};
   function setInfo(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'Information', coord, type, value); }
-  function setCC(coord, type, value)   { return _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Contract', coord, type, value); }
+  // Contract Type ("Original Contract" / "Addendum A" / "Addendum B") decides which sheet the
+  // pricing grid (I22-I46) and Right Type checkbox land on. Real completed files show Addendum
+  // A/B used to add pricing for something purchased after the original space was already sold
+  // (e.g. a burial in June, a marker bought in October) — same decedent/purchaser/property, which
+  // already cascade via formula from Information into whichever sheet is targeted here, so no
+  // separate decedent/purchaser fill is needed for an addendum.
+  var ccSheetName = data.contractType === 'addendumA' ? 'Addendum A'
+                  : data.contractType === 'addendumB' ? 'Addendum B'
+                  : 'Cemetery Contract';
+  function setCC(coord, type, value)   { return _xlsxSetCellInSheet(zip, pathMap, cache, ccSheetName, coord, type, value); }
   // Cemetery Contract ships with "N/A" placeholders for unpurchased line items — preserve that
   // convention (rather than leaving a blank cell, which the template doesn't otherwise use) so an
   // amount of $0 still reads as "not applicable" instead of "forgot to fill in."
@@ -14459,6 +14485,7 @@ async function generateCirgasPacket() {
     });
   }
   var data = {
+    contractType: el('anContractType') ? el('anContractType').value : 'original',
     contractNum: val('anContractNum'), funeralHome: val('anFuneralHome'), fsd: val('anFSD'),
     decFirst: val('anDecFirst'), decMiddle: val('anDecMiddle'), decLast: val('anDecLast'),
     dob: el('anDecDOB').value, dod: el('anDecDOD').value, arrangementDate: el('anArrangementDate').value,
