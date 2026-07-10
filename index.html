@@ -273,7 +273,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved">💾 Saved RICs</div>
   <div class="nav-item highlight" onclick="show('an-contract',this)">📗 At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved">💾 Saved CIRGAS Contracts</div>
-  <div class="nav-item highlight" onclick="show('an-order',this)">📐 Marker, Vault &amp; Interment Order</div>
+  <div class="nav-item highlight" onclick="show('an-order',this)">📐 Marker &amp; Vault Order</div>
   <div class="nav-item highlight" onclick="show('deed-transfer',this)">📜 Deed Transfer Contract</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
@@ -2995,6 +2995,36 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
+    <!-- Interment Order & Authorization -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">✅ Interment Order &amp; Authorization</div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Veteran?</label>
+          <select id="anIaVeteran" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+          </select>
+          <label style="margin-left:12px;">Service Type</label>
+          <input type="text" id="anIaServiceType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Service Coming From</label>
+          <input type="text" id="anIaServiceComingFrom" placeholder="e.g. Bonney Watson SeaTac" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
+        <div class="q-row">
+          <label>Status of Cremated Remains</label>
+          <input type="text" id="anIaCremStatus" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Type of Urn</label>
+          <input type="text" id="anIaUrnType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Size of Urn (H x W x L)</label>
+          <input type="text" id="anIaUrnSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+      </div>
+    </div>
+
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
       <button onclick="generateCirgasPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📗 Generate CIRGAS Packet</button>
@@ -3002,7 +3032,7 @@ tr:hover td{background:#eef3f8;}
       <button onclick="anClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing) so you can reopen it later to make a correction — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), and Payment Options. Other packet sections (marker order, vault order, interment authorization, addenda) still need to be completed by hand for now.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">At-Need Cemetery only. Fills Information, Statement of Cemetery Interment Rights (Cemetery Contract), Payment Options, and Interment Order and Authorization. Other packet sections (marker order, vault order, addenda) still need to be completed by hand for now.</div>
 
   </div>
 </div>
@@ -3011,13 +3041,13 @@ tr:hover td{background:#eef3f8;}
 <div class="section" id="section-an-order">
   <div class="section-header">
     <div class="section-icon">📐</div>
-    <h2>Marker, Vault &amp; Interment Order</h2>
+    <h2>Marker &amp; Vault Order</h2>
     <span class="badge">At-Need Cemetery — filled in after signing</span>
   </div>
 
   <div class="callout callout-blue" style="margin-bottom:18px;">
-    Load a saved At-Need CIRGAS contract to pull in the decedent, purchaser, and signers, then fill in the marker,
-    vault, and interment logistics below (usually decided after the initial signing, once proofing/scheduling is
+    Load a saved At-Need CIRGAS contract to pull in the decedent, purchaser, and signers, then fill in the marker
+    and vault logistics below (usually decided after the initial signing, once proofing/vendor scheduling is
     underway). <strong>Generate Order Packet</strong> produces the same CIRGAS workbook with these sheets filled in too.
   </div>
 
@@ -3176,42 +3206,12 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
-    <!-- Interment Authorization -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">✅ Interment Order &amp; Authorization</div>
-      <div class="q-panel-body">
-        <div class="q-row">
-          <label>Veteran?</label>
-          <select id="anoIaVeteran" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
-            <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
-          </select>
-          <label style="margin-left:12px;">Service Type</label>
-          <input type="text" id="anoIaServiceType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Service Coming From</label>
-          <input type="text" id="anoIaServiceComingFrom" placeholder="e.g. Bonney Watson SeaTac" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-        </div>
-        <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
-        <div class="q-row">
-          <label>Status of Cremated Remains</label>
-          <input type="text" id="anoIaCremStatus" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-        </div>
-        <div class="q-row" style="margin-top:8px;">
-          <label>Type of Urn</label>
-          <input type="text" id="anoIaUrnType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
-          <label style="margin-left:12px;">Size of Urn (H x W x L)</label>
-          <input type="text" id="anoIaUrnSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-        </div>
-      </div>
-    </div>
-
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
       <button onclick="generateCirgasOrderPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📐 Generate Order Packet</button>
       <button onclick="anoClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
-    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Fills the Memorial Order (Flat/Bronze or Upright, whichever category is selected above), Vault and Urn Vault Order Form, and Interment Order and Authorization sheets in the same CIRGAS workbook — print/email just the pages you need from Excel. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Fills the Memorial Order (Flat/Bronze or Upright, whichever category is selected above) and Vault and Urn Vault Order Form in the same CIRGAS workbook — print/email just the pages you need from Excel. Interment Order and Authorization is filled from the At-Need Contract tab. Addenda for a 2nd/3rd interment right and Deed Transfer Contract still need to be completed by hand.</div>
 
   </div>
 </div>
@@ -11469,8 +11469,10 @@ function anClearAll() {
    'anCoPurchHomePhone','anCoPurchCellPhone','anCoPurchEmail',
    'anPropertyLocation','anVault','anMemorial','anOpenClose',
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
-   'anIntermentDate','anIntermentTime']
+   'anIntermentDate','anIntermentTime',
+   'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
+  if (el('anIaVeteran')) el('anIaVeteran').value = '';
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
   if (el('anPurchState')) el('anPurchState').value = 'WA';
   if (el('anCoPurchState')) el('anCoPurchState').value = 'WA';
@@ -11528,6 +11530,8 @@ function anoLoadContract() {
     coPurchStreet: f.anCoPurchStreet||'', coPurchCity: f.anCoPurchCity||'', coPurchState: f.anCoPurchState||'', coPurchZip: f.anCoPurchZip||'',
     coPurchHomePhone: f.anCoPurchHomePhone||'', coPurchCellPhone: f.anCoPurchCellPhone||'', coPurchEmail: f.anCoPurchEmail||'',
     propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
+    iaVeteran: f.anIaVeteran||'', iaServiceType: f.anIaServiceType||'', iaServiceComingFrom: f.anIaServiceComingFrom||'',
+    iaCremStatus: f.anIaCremStatus||'', iaUrnType: f.anIaUrnType||'', iaUrnSize: f.anIaUrnSize||'',
     signers: signers,
     lines: (snap.state.anPricing && snap.state.anPricing.lines) || []
   };
@@ -11576,9 +11580,10 @@ async function generateCirgasOrderPacket() {
     vtType: val('anoVtType'), vtColor: val('anoVtColor'),
     vtDateOfService: el('anoVtDateOfService').value, vtTimeOfService: el('anoVtTimeOfService').value,
     vtNameplateName: val('anoVtNameplateName'), vtYearBirth: val('anoVtYearBirth'), vtYearDeath: val('anoVtYearDeath'),
-    vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy'),
-    iaVeteran: val('anoIaVeteran'), iaServiceType: val('anoIaServiceType'), iaServiceComingFrom: val('anoIaServiceComingFrom'),
-    iaCremStatus: val('anoIaCremStatus'), iaUrnType: val('anoIaUrnType'), iaUrnSize: val('anoIaUrnSize')
+    vtEmblem: val('anoVtEmblem'), vtWilbertCert: val('anoVtWilbertCert'), vtSoldBy: val('anoVtSoldBy')
+    // iaVeteran/iaServiceType/etc. come from _anoLoaded (Interment Order & Authorization now
+    // lives on the At-Need Contract tab, since every At-Need sale needs it, not just this
+    // later marker/vault step) — left out of this override object so Object.assign keeps them.
   });
   try {
     var bytes = await _fillCirgasXlsx(data);
@@ -14450,6 +14455,8 @@ async function generateCirgasPacket() {
     coPurchStreet: val('anCoPurchStreet'), coPurchCity: val('anCoPurchCity'), coPurchState: val('anCoPurchState'), coPurchZip: val('anCoPurchZip'),
     coPurchHomePhone: val('anCoPurchHomePhone'), coPurchCellPhone: val('anCoPurchCellPhone'), coPurchEmail: val('anCoPurchEmail'),
     propertyLocation: val('anPropertyLocation'), vault: val('anVault'), memorial: val('anMemorial'), openClose: val('anOpenClose'),
+    iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
+    iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
     signers: signers,
     lines: anLines()
   };
