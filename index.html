@@ -3056,6 +3056,15 @@ tr:hover td{background:#eef3f8;}
           <label style="margin-left:12px;">Size of Urn (H x W x L)</label>
           <input type="text" id="anIaUrnSize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
+        <div class="q-row" style="margin-top:12px;">
+          <label>Number of Signatures Required</label>
+          <input type="number" id="anIaNumSignatures" min="1" max="6" value="1" style="width:70px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="q-row" style="margin-top:12px;">
+          <label style="align-self:flex-start;">Additional Remarks</label>
+          <textarea id="anIaRemarks" placeholder="e.g. Please setup a tent and 10 chairs. Family to witness lowering of casket." rows="3" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Prints in the IOA's Additional Remarks box — tent/chairs, witness/placement instructions, service logistics, anything grounds crew or the family needs to know.</div>
       </div>
     </div>
 
@@ -11438,6 +11447,20 @@ function anImportFromCemeteryQuote() {
   if (clientName && el('anPurchName') && !el('anPurchName').value) el('anPurchName').value = clientName;
   var loc = val('qSpaceLocation') || '';
   if (loc && el('anPropertyLocation') && !el('anPropertyLocation').value) el('anPropertyLocation').value = loc;
+  // Real completed files show the Co-Purchaser also signing the IOA as Additional Signer 1 —
+  // pre-fill from Co-Purchaser so the counselor isn't retyping the same name/address/phone;
+  // still fully editable (e.g. if a different family member should sign instead).
+  var coPurchName = val('anCoPurchName') || '';
+  if (coPurchName && el('anSigner1Name') && !el('anSigner1Name').value) {
+    el('anSigner1Name').value = coPurchName;
+    if (el('anSigner1Relation')) el('anSigner1Relation').value = val('anCoPurchRelation') || '';
+    if (el('anSigner1Street')) el('anSigner1Street').value = val('anCoPurchStreet') || '';
+    if (el('anSigner1City')) el('anSigner1City').value = val('anCoPurchCity') || '';
+    if (el('anSigner1State')) el('anSigner1State').value = val('anCoPurchState') || '';
+    if (el('anSigner1Zip')) el('anSigner1Zip').value = val('anCoPurchZip') || '';
+    if (el('anSigner1Phone')) el('anSigner1Phone').value = val('anCoPurchCellPhone') || val('anCoPurchHomePhone') || '';
+    if (el('anSigner1Email')) el('anSigner1Email').value = val('anCoPurchEmail') || '';
+  }
   // Best-effort pre-fill from the quote's own line labels — always editable afterward.
   var vaultLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /vault/i.test(l.label); });
   if (vaultLine && el('anVault') && !el('anVault').value) el('anVault').value = vaultLine.label;
@@ -11504,10 +11527,11 @@ function anClearAll() {
    'anPropertyLocation','anVault','anMemorial','anOpenClose',
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
    'anIntermentDate','anIntermentTime',
-   'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize',
+   'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize','anIaRemarks',
    'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
+  if (el('anIaNumSignatures')) el('anIaNumSignatures').value = '1';
   ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn','anOcOtherMerch']
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
@@ -11569,6 +11593,7 @@ function anoLoadContract() {
     propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
     iaVeteran: f.anIaVeteran||'', iaServiceType: f.anIaServiceType||'', iaServiceComingFrom: f.anIaServiceComingFrom||'',
     iaCremStatus: f.anIaCremStatus||'', iaUrnType: f.anIaUrnType||'', iaUrnSize: f.anIaUrnSize||'',
+    iaRemarks: f.anIaRemarks||'', iaNumSignatures: f.anIaNumSignatures||'',
     ocSpace: !!f.anOcSpace, ocEcf: !!f.anOcEcf,
     ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
     ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
@@ -14510,14 +14535,24 @@ async function _fillCirgasXlsx(data) {
     await setIa('G37', 's', data.iaCremStatus);
     await setIa('C39', 's', data.iaUrnType);
     await setIa('Q39', 's', data.iaUrnSize);
+    // Signature block — "Interment Right Owner or Authorized Representative". These cells are
+    // genuinely blank in the template (verified — no cascade formula), and all 11 real completed
+    // files show the Purchaser's own name/relationship/address/phone hand-typed here every time.
+    await setIa('B69', 's', data.purchName);
+    await setIa('O69', 's', data.purchRelation);
+    var purchAddr = [data.purchStreet, data.purchCity, data.purchState, data.purchZip].filter(Boolean).join(', ');
+    await setIa('B71', 's', purchAddr);
+    await setIa('R71', 's', data.purchCellPhone || data.purchHomePhone);
+    await setIa('I65', 'n', data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1);
+    await setIa('A56', 's', data.iaRemarks);
     // Delivery of Pre-Arranged Merchandise & Services — only relevant when at least one On
     // Contract box is checked; the per-item checklist there is left for hand entry (its checkbox
     // cells couldn't be verified precisely enough from the raw template to fill automatically).
     await setIa('C44', 's', data.preArrContractNum);
     await setIa('L44', 'n', data.preArrAmountOwed ? parseFloat(data.preArrAmountOwed) : null);
     await setIa('S44', 'n', _xlsxDateSerial(data.preArrDatePaid));
-    // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 is always the primary purchaser,
-    // already cascaded via formula on the main Interment Auth sheet itself.
+    // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 above IS the primary purchaser
+    // (B69/O69/B71/R71 just written), no separate cascade formula involved.
     var IA_SIGNER_ROWS = [8, 16, 24, 32];
     for (var ii = 0; ii < 4; ii++) {
       var isg = (data.signers && data.signers[ii]) || {};
@@ -14604,6 +14639,7 @@ async function generateCirgasPacket() {
     propertyLocation: val('anPropertyLocation'), vault: val('anVault'), memorial: val('anMemorial'), openClose: val('anOpenClose'),
     iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
     iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
+    iaRemarks: val('anIaRemarks'), iaNumSignatures: val('anIaNumSignatures'),
     ocSpace: el('anOcSpace').checked, ocEcf: el('anOcEcf').checked,
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
