@@ -2862,6 +2862,10 @@ tr:hover td{background:#eef3f8;}
             <label style="font-size:12px;">Family Service Director</label>
             <input type="text" id="anFSD" value="Martice Morrison" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
           </div>
+          <div style="flex:1;min-width:180px;">
+            <label style="font-size:12px;">Contract Paid in Full Date <span style="font-weight:400;opacity:.7;">(if known)</span></label>
+            <input type="date" id="anContractPaidDate" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+          </div>
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
           <div style="flex:1;min-width:140px;">
@@ -11498,7 +11502,7 @@ function anClearAll() {
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
    'anIntermentDate','anIntermentTime',
    'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize',
-   'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid']
+   'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
   ['anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn']
@@ -11565,6 +11569,7 @@ function anoLoadContract() {
     ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
     ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
     preArrContractNum: f.anPreArrContractNum||'', preArrAmountOwed: f.anPreArrAmountOwed||'', preArrDatePaid: f.anPreArrDatePaid||'',
+    contractPaidDate: f.anContractPaidDate||'',
     signers: signers,
     lines: (snap.state.anPricing && snap.state.anPricing.lines) || []
   };
@@ -14437,6 +14442,38 @@ async function _fillCirgasXlsx(data) {
 
   if (data.iaServiceType !== undefined) {
     var setIa = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'INTERMENT AUTH NEW', coord, type, value); };
+    // This sheet's own decedent/date/name mirror cells are bare "=Information!X" formulas with
+    // no blank-guard, so whenever the source is blank Excel's bare-cell-reference behavior shows
+    // "0" (or "1/0/1900" for date-formatted cells) instead of blank. Write the real values (or
+    // leave genuinely blank) directly instead — we already have them at generation time, so there's
+    // no need to depend on the formula, and this fully avoids the display bug.
+    var decFullName = [data.decFirst, data.decMiddle, data.decLast].filter(Boolean).join(' ');
+    await setIa('D5', 's', decFullName);
+    await setIa('P60', 's', decFullName);
+    await setIa('F7', 'n', _xlsxDateSerial(data.dob));
+    await setIa('O7', 'n', _xlsxDateSerial(data.dod));
+    if (data.dob && data.dod) {
+      var _b = new Date(data.dob + 'T00:00:00'), _d = new Date(data.dod + 'T00:00:00');
+      var _y = _d.getFullYear() - _b.getFullYear(), _m = _d.getMonth() - _b.getMonth();
+      if (_d.getDate() < _b.getDate()) _m--;
+      if (_m < 0) { _y--; _m += 12; }
+      await setIa('R7', 's', 'Age: \n' + _y + ' Years \n' + _m + ' Months');
+    } else {
+      // Leaving the original "=Information!L8" formula here would still show a "0 Years 0
+      // Months" artifact (DATEDIF on blank dates), same bug as the other mirror cells above.
+      await setIa('R7', 's', '');
+    }
+    await setIa('C12', 'n', _xlsxDateSerial(data.funeralDate));
+    await setIa('K12', 'n', _xlsxTimeSerial(data.funeralTime));
+    await setIa('R12', 's', data.funeralDirector);
+    await setIa('C14', 's', data.funeralHome);
+    await setIa('C16', 'n', _xlsxDateSerial(data.intermentDate));
+    await setIa('K16', 'n', _xlsxTimeSerial(data.intermentTime));
+    await setIa('R16', 's', data.fsd);
+    await setIa('F27', 's', data.propertyLocation);
+    await setIa('D31', 's', data.vault);
+    await setIa('E76', 's', data.propertyLocation);
+    await setIa('S23', 'n', _xlsxDateSerial(data.contractPaidDate));
     await setIa('S5', 's', data.iaVeteran);
     await setIa('C18', 's', data.iaServiceType);
     await setIa('N18', 's', data.iaServiceComingFrom);
@@ -14542,6 +14579,7 @@ async function generateCirgasPacket() {
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
     ocMemorial: el('anOcMemorial').checked, ocVase: el('anOcVase').checked, ocUrn: el('anOcUrn').checked,
     preArrContractNum: val('anPreArrContractNum'), preArrAmountOwed: val('anPreArrAmountOwed'), preArrDatePaid: el('anPreArrDatePaid').value,
+    contractPaidDate: el('anContractPaidDate').value,
     signers: signers,
     lines: anLines()
   };
