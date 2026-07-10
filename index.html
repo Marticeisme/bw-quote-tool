@@ -274,6 +274,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item highlight" onclick="show('an-contract',this)">📗 At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved">💾 Saved CIRGAS Contracts</div>
   <div class="nav-item highlight" onclick="show('an-order',this)">📐 Marker, Vault &amp; Interment Order</div>
+  <div class="nav-item highlight" onclick="show('deed-transfer',this)">📜 Deed Transfer Contract</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)">⚱️ Quote Builder</div>
@@ -3231,6 +3232,92 @@ tr:hover td{background:#eef3f8;}
     </div>
   </div>
 
+</div>
+
+<!-- ═══ DEED TRANSFER CONTRACT (CIRGAS Phase 3) ═══ -->
+<div class="section" id="section-deed-transfer">
+  <div class="section-header">
+    <div class="section-icon">📜</div>
+    <h2>Deed Transfer Contract</h2>
+    <span class="badge">Already-owned property — no purchase involved</span>
+  </div>
+
+  <div class="callout callout-blue" style="margin-bottom:18px;">
+    For transferring an already-owned interment right from its current owner (Grantor) to a new owner (Grantee).
+    Independent of the At-Need Contract tabs — no decedent or new purchase required.
+  </div>
+
+  <div class="q-layout" style="max-width:900px;">
+
+    <div class="q-panel">
+      <div class="q-panel-header">🪦 Property</div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Property Location</label>
+          <input type="text" id="dtPropertyLocation" placeholder="e.g. Garden 23, Lot 274, Space B" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Transfer Fee ($)</label>
+          <input type="number" id="dtTransferFee" min="0" step="1" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Decedent <span style="font-weight:400;opacity:.7;">(optional — if this transfer is tied to a specific plot with an interment)</span></label>
+        </div>
+        <div class="q-row" style="margin-top:4px;">
+          <input type="text" id="dtDecFirst" placeholder="First" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <input type="text" id="dtDecMiddle" placeholder="Middle" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="dtDecLast" placeholder="Last" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+      </div>
+    </div>
+
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">➡️ Grantee <span style="font-size:11px;font-weight:400;opacity:.7;">— new interment right owner</span></div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Name</label>
+          <input type="text" id="dtGranteeName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Street Address</label>
+          <input type="text" id="dtGranteeStreet" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <input type="text" id="dtGranteeCity" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="dtGranteeState" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="dtGranteeZip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;gap:12px;">
+          <div style="flex:1;"><label style="font-size:12px;">Phone</label><input type="text" id="dtGranteePhone" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
+          <div style="flex:1;"><label style="font-size:12px;">Email</label><input type="text" id="dtGranteeEmail" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">⬅️ Grantor <span style="font-size:11px;font-weight:400;opacity:.7;">— current interment right owner</span></div>
+      <div class="q-panel-body">
+        <div class="q-row">
+          <label>Name</label>
+          <input type="text" id="dtGrantorName" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Street Address</label>
+          <input type="text" id="dtGrantorStreet" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <input type="text" id="dtGrantorCity" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="dtGrantorState" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="dtGrantorZip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;gap:12px;">
+          <div style="flex:1;"><label style="font-size:12px;">Phone</label><input type="text" id="dtGrantorPhone" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
+          <div style="flex:1;"><label style="font-size:12px;">Email</label><input type="text" id="dtGrantorEmail" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button onclick="generateDeedTransferPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📜 Generate Deed Transfer</button>
+      <button onclick="dtClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-light);margin-top:10px;">Downloads the CIRGAS workbook with the Deed Transfer Contract sheet filled in — print/email just that page.</div>
+
+  </div>
 </div>
 
 <div class="section" id="section-ga-contract" style="padding-right:0;">
@@ -11506,8 +11593,44 @@ async function generateCirgasOrderPacket() {
   } catch(e) { alert('Generate failed: ' + e.message); }
 }
 
-
-
+// ── Deed Transfer Contract (CIRGAS Phase 3) ────────────────────────────────────
+// Standalone: transferring an already-owned interment right to a new owner, no purchase or
+// decedent required. Independent of the At-Need Contract tabs — always starts from a fresh
+// copy of the template rather than loading a saved contract.
+function dtClearAll() {
+  ['dtPropertyLocation','dtTransferFee','dtDecFirst','dtDecMiddle','dtDecLast',
+   'dtGranteeName','dtGranteeStreet','dtGranteeCity','dtGranteeZip','dtGranteePhone','dtGranteeEmail',
+   'dtGrantorName','dtGrantorStreet','dtGrantorCity','dtGrantorZip','dtGrantorPhone','dtGrantorEmail']
+    .forEach(function(id){ if (el(id)) el(id).value = ''; });
+  if (el('dtGranteeState')) el('dtGranteeState').value = 'WA';
+  if (el('dtGrantorState')) el('dtGrantorState').value = 'WA';
+}
+async function generateDeedTransferPacket() {
+  if (!val('dtGranteeName') || !val('dtGrantorName')) { alert('Please enter both the Grantor and Grantee name.'); return; }
+  var data = {
+    deedTransfer: true,
+    decFirst: val('dtDecFirst'), decMiddle: val('dtDecMiddle'), decLast: val('dtDecLast'),
+    propertyLocation: val('dtPropertyLocation'),
+    transferFee: val('dtTransferFee'),
+    granteeName: val('dtGranteeName'), granteeStreet: val('dtGranteeStreet'), granteeCity: val('dtGranteeCity'),
+    granteeState: val('dtGranteeState'), granteeZip: val('dtGranteeZip'),
+    granteePhone: val('dtGranteePhone'), granteeEmail: val('dtGranteeEmail'),
+    grantorName: val('dtGrantorName'), grantorStreet: val('dtGrantorStreet'), grantorCity: val('dtGrantorCity'),
+    grantorState: val('dtGrantorState'), grantorZip: val('dtGrantorZip'),
+    grantorPhone: val('dtGrantorPhone'), grantorEmail: val('dtGrantorEmail')
+  };
+  try {
+    var bytes = await _fillCirgasXlsx(data);
+    var blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var slug = (data.grantorName || 'Transfer').replace(/[^a-zA-Z0-9]/g,'_');
+    a.href = url;
+    a.download = 'CIRGAS_DeedTransfer_' + slug + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('Generate failed: ' + e.message); }
+}
 
 // Frozen pricing snapshot for the ClearPoint contract, taken at import/load time — mirrors GA's
 // _gaPricing / RIC's _ricPricing. See _gaPricing's comment for why this can't just read the live
@@ -14129,17 +14252,26 @@ async function _fillCirgasXlsx(data) {
   }
 
   // ── Cemetery Contract: dollar figures from the imported pricing snapshot ──
+  // 2nd/3rd interment rights sold on the same sale (isSecondRight-flagged space/ECF lines) go on
+  // Addendum A/B instead — the quote builder only tracks space+ECF for an additional right (every
+  // other category, O&C/vault/marker/etc., still applies once, to the primary right), so they're
+  // pulled out of the primary bucketing pass rather than folded into Cemetery Contract's own total.
   var lines = data.lines || [];
+  var addlRightLines   = lines.filter(function(l){ return l.isSecondRight; });
+  var secondRightLines = addlRightLines.filter(function(l){ return /^Second Right/i.test(l.label); });
+  var thirdRightLines  = addlRightLines.filter(function(l){ return /^Third Right/i.test(l.label); });
+  var primaryLines     = lines.filter(function(l){ return !l.isSecondRight; });
+
   var buckets = { space:0, ecf:0, recording:0, oc:0, other:0, container:0, containerSet:0,
                   memorial:0, memorialBase:0, install:0, vase:0, vaseSet:0, urn:0 };
-  lines.forEach(function(l) {
+  primaryLines.forEach(function(l) {
     if (l.isDiscount) return;
     var cat = _anCategorizeLine(l);
     if (cat && buckets.hasOwnProperty(cat)) buckets[cat] += Math.max(0, l.amount);
   });
   // The template has no separate discount line — net the discount against the property/space
   // bucket instead, same effect as showing a lower interment-right price.
-  var discTotal = lines.filter(function(l){ return l.isDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
+  var discTotal = primaryLines.filter(function(l){ return l.isDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
   buckets.space = Math.max(0, buckets.space - discTotal);
 
   await setCCAmt('I22', buckets.space);
@@ -14155,6 +14287,19 @@ async function _fillCirgasXlsx(data) {
   await setCCAmt('I42', buckets.vase);
   await setCCAmt('I43', buckets.vaseSet);
   await setCCAmt('I44', buckets.urn);
+
+  // ── Addendum A (2nd Right) / Addendum B (3rd Right) — only written when that right was
+  // actually sold on this quote; otherwise the addenda ship untouched (still "N/A" placeholders).
+  async function fillAddendum(sheetName, rightLines) {
+    if (!rightLines.length) return;
+    var rSpace = 0, rEcf = 0;
+    rightLines.forEach(function(l) { if (/ECF/i.test(l.label)) rEcf += Math.max(0, l.amount); else rSpace += Math.max(0, l.amount); });
+    var setAd = function(coord, amt) { return _xlsxSetCellInSheet(zip, pathMap, cache, sheetName, coord, amt > 0 ? 'n' : 's', amt > 0 ? amt : 'N/A'); };
+    await setAd('I22', rSpace);
+    await setAd('I23', rEcf);
+  }
+  await fillAddendum('Addendum A', secondRightLines);
+  await fillAddendum('Addendum B', thirdRightLines);
 
   // ── Phase 2: Marker / Vault / Interment Order — optional, only present when generated from
   // the Marker, Vault & Interment Order tab (generateCirgasOrderPacket()), not the initial
@@ -14248,6 +14393,27 @@ async function _fillCirgasXlsx(data) {
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 4), 's', addr);
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + (ir + 4), 's', isg.phone);
     }
+  }
+
+  // ── Deed Transfer Contract (Phase 3) — standalone, no purchase/decedent required ──
+  if (data.deedTransfer) {
+    var setDt = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, 'Deed Transfer Contract', coord, type, value); };
+    var transferFeeAmt = parseFloat(data.transferFee) || 0;
+    await setDt('I27', transferFeeAmt > 0 ? 'n' : 's', transferFeeAmt > 0 ? transferFeeAmt : 'N/A');
+    await setDt('M38', 's', data.granteeName);
+    await setDt('M40', 's', data.granteeStreet);
+    await setDt('M42', 's', data.granteeCity);
+    await setDt('U42', 's', data.granteeState);
+    await setDt('W42', 's', data.granteeZip);
+    await setDt('M44', 's', data.granteeEmail);
+    await setDt('V44', 's', data.granteePhone);
+    await setDt('M50', 's', data.grantorName);
+    await setDt('M52', 's', data.grantorStreet);
+    await setDt('M54', 's', data.grantorCity);
+    await setDt('U54', 's', data.grantorState);
+    await setDt('W54', 's', data.grantorZip);
+    await setDt('M56', 's', data.grantorEmail);
+    await setDt('V56', 's', data.grantorPhone);
   }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
