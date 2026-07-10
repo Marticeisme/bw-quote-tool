@@ -2987,6 +2987,33 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
+    <!-- On Contract (already pre-arranged / pre-paid via a prior Pre-Need RIC) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">📄 On Contract <span style="font-size:11px;font-weight:400;opacity:.7;">— check anything already delivered/paid for under a prior Pre-Need RIC</span></div>
+      <div class="q-panel-body">
+        <div class="callout callout-blue" style="margin-bottom:12px;font-size:12px;">Checking an item prints "On Contract" in that cell instead of a dollar amount, and it's excluded from the contract's totals — it's already been paid for. This does not affect the interment right/space itself (see RIC Contract # and Balance on the contract page for that).</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <label style="font-size:13px;"><input type="checkbox" id="anOcContainer" style="margin-right:5px;">Container/Vault</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcContainerSet" style="margin-right:5px;">Vault Setting Fee</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcOpening" style="margin-right:5px;">Opening &amp; Closing</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcRecording" style="margin-right:5px;">Recording Fee</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcMemorial" style="margin-right:5px;">Memorial &amp; Setting Fee</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcVase" style="margin-right:5px;">Vase/Base/Setting Fee</label>
+          <label style="font-size:13px;"><input type="checkbox" id="anOcUrn" style="margin-right:5px;">Urn</label>
+        </div>
+        <div class="q-row" style="margin-top:12px;">
+          <label>Pre-Arrangement Contract #</label>
+          <input type="text" id="anPreArrContractNum" placeholder="e.g. WMP202650026" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Amount Owed ($)</label>
+          <input type="number" id="anPreArrAmountOwed" min="0" step="1" placeholder="0.00 if paid in full" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Date Paid in Full</label>
+          <input type="date" id="anPreArrDatePaid" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+        </div>
+      </div>
+    </div>
+
     <!-- Additional Signers -->
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">✍️ Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
@@ -11470,9 +11497,12 @@ function anClearAll() {
    'anPropertyLocation','anVault','anMemorial','anOpenClose',
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
    'anIntermentDate','anIntermentTime',
-   'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize']
+   'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize',
+   'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
+  ['anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn']
+    .forEach(function(id){ if (el(id)) el(id).checked = false; });
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
   if (el('anPurchState')) el('anPurchState').value = 'WA';
   if (el('anCoPurchState')) el('anCoPurchState').value = 'WA';
@@ -11532,6 +11562,9 @@ function anoLoadContract() {
     propertyLocation: f.anPropertyLocation||'', vault: f.anVault||'', memorial: f.anMemorial||'', openClose: f.anOpenClose||'',
     iaVeteran: f.anIaVeteran||'', iaServiceType: f.anIaServiceType||'', iaServiceComingFrom: f.anIaServiceComingFrom||'',
     iaCremStatus: f.anIaCremStatus||'', iaUrnType: f.anIaUrnType||'', iaUrnSize: f.anIaUrnSize||'',
+    ocContainer: !!f.anOcContainer, ocContainerSet: !!f.anOcContainerSet, ocOpening: !!f.anOcOpening,
+    ocRecording: !!f.anOcRecording, ocMemorial: !!f.anOcMemorial, ocVase: !!f.anOcVase, ocUrn: !!f.anOcUrn,
+    preArrContractNum: f.anPreArrContractNum||'', preArrAmountOwed: f.anPreArrAmountOwed||'', preArrDatePaid: f.anPreArrDatePaid||'',
     signers: signers,
     lines: (snap.state.anPricing && snap.state.anPricing.lines) || []
   };
@@ -14177,6 +14210,12 @@ function _anCategorizeLine(l) {
   if (/\burn\b/.test(lb)) return 'urn';
   if (/\bbase\b/.test(lb)) return 'memorialBase';
   if (/install/.test(lb)) return 'install';
+  // Fri/Sat/Sun and after-3PM surcharges (including Witness Placement specifically on those
+  // days) get their own dedicated row — checked before the O&C fallthrough so they don't get
+  // double-counted there, and before "other" so they don't land as an unlabeled lump sum.
+  if (/witness placement.*fri|fri\/sat\/sun surcharge|after 3.*pm|holiday surcharge/.test(lb)) return 'friSun';
+  // Ground/Lawn/Boulder/Niche Inurnment and Mausoleum Entombment ARE the O&C equivalent for
+  // their respective property types — never also counted in Other, or they'd double-count.
   if (/interment|entombment|inurnment|opening|o&c/.test(lb)) return 'oc';
   if (/inscription|marker|memorial|plaque|granite|bronze|monument|emblem/.test(lb)) return 'memorial';
   return 'other';
@@ -14195,7 +14234,13 @@ async function _fillCirgasXlsx(data) {
   // Cemetery Contract ships with "N/A" placeholders for unpurchased line items — preserve that
   // convention (rather than leaving a blank cell, which the template doesn't otherwise use) so an
   // amount of $0 still reads as "not applicable" instead of "forgot to fill in."
-  function setCCAmt(coord, amt) { return setCC(coord, amt > 0 ? 'n' : 's', amt > 0 ? amt : 'N/A'); }
+  // onContract: prints the literal text "On Contract" instead of a dollar figure — used when
+  // that item was already delivered/paid for under a prior Pre-Need RIC. Excel's own SUM()
+  // formulas skip text cells automatically, so this alone excludes it from the running totals.
+  function setCCAmt(coord, amt, onContract) {
+    if (onContract) return setCC(coord, 's', 'On Contract');
+    return setCC(coord, amt > 0 ? 'n' : 's', amt > 0 ? amt : 'N/A');
+  }
 
   await setInfo('F3', 's', data.contractNum);
   await setInfo('X3', 's', data.funeralHome);
@@ -14267,31 +14312,44 @@ async function _fillCirgasXlsx(data) {
   var thirdRightLines  = addlRightLines.filter(function(l){ return /^Third Right/i.test(l.label); });
   var primaryLines     = lines.filter(function(l){ return !l.isSecondRight; });
 
-  var buckets = { space:0, ecf:0, recording:0, oc:0, other:0, container:0, containerSet:0,
+  // Right Type — "Enter X in appropriate box": 1st Right unless a 2nd/3rd right was also sold.
+  await setCC(addlRightLines.length ? 'K21' : 'K20', 's', 'X');
+
+  var buckets = { space:0, ecf:0, recording:0, oc:0, friSun:0, container:0, containerSet:0,
                   memorial:0, memorialBase:0, install:0, vase:0, vaseSet:0, urn:0 };
+  var otherLines = [];
   primaryLines.forEach(function(l) {
+    // CIRGAS is at-need and shows gross prices — discount lines are never applied to any
+    // pricing field here (no netting against space or anything else).
     if (l.isDiscount) return;
     var cat = _anCategorizeLine(l);
+    if (cat === 'other') { otherLines.push(l); return; }
     if (cat && buckets.hasOwnProperty(cat)) buckets[cat] += Math.max(0, l.amount);
   });
-  // The template has no separate discount line — net the discount against the property/space
-  // bucket instead, same effect as showing a lower interment-right price.
-  var discTotal = primaryLines.filter(function(l){ return l.isDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
-  buckets.space = Math.max(0, buckets.space - discTotal);
+  // Other 1 / Other 2 are two distinct labeled slots on the real template (e.g. Witness
+  // Placement Mon-Thu, Disinterment fee) — first unmapped item to Other 1, second to Other 2;
+  // any further overflow sums into Other 2 rather than being silently dropped.
+  var other1Amt = otherLines[0] ? Math.max(0, otherLines[0].amount) : 0;
+  var other2Amt = otherLines.slice(1).reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
 
+  // On Contract: item was already delivered/paid for under a prior Pre-Need RIC — never applies
+  // to the interment right/space/ECF itself (that's the separate RIC Contract # and Balance row)
+  // or to Other/Fri-Sun surcharges (those aren't part of the 7-category pre-arranged checklist).
   await setCCAmt('I22', buckets.space);
   await setCCAmt('I23', buckets.ecf);
-  await setCCAmt('I25', buckets.recording);
-  await setCCAmt('I26', buckets.oc);
-  await setCCAmt('I27', buckets.other);
-  await setCCAmt('I37', buckets.container);
-  await setCCAmt('I38', buckets.containerSet);
-  await setCCAmt('I39', buckets.memorial);
-  await setCCAmt('I40', buckets.memorialBase);
-  await setCCAmt('I41', buckets.install);
-  await setCCAmt('I42', buckets.vase);
-  await setCCAmt('I43', buckets.vaseSet);
-  await setCCAmt('I44', buckets.urn);
+  await setCCAmt('I25', buckets.recording, data.ocRecording);
+  await setCCAmt('I26', buckets.oc, data.ocOpening);
+  await setCCAmt('I27', other1Amt);
+  await setCCAmt('I28', other2Amt);
+  await setCCAmt('I29', buckets.friSun);
+  await setCCAmt('I37', buckets.container, data.ocContainer);
+  await setCCAmt('I38', buckets.containerSet, data.ocContainerSet);
+  await setCCAmt('I39', buckets.memorial, data.ocMemorial);
+  await setCCAmt('I40', buckets.memorialBase, data.ocMemorial);
+  await setCCAmt('I41', buckets.install, data.ocMemorial);
+  await setCCAmt('I42', buckets.vase, data.ocVase);
+  await setCCAmt('I43', buckets.vaseSet, data.ocVase);
+  await setCCAmt('I44', buckets.urn, data.ocUrn);
 
   // ── Addendum A (2nd Right) / Addendum B (3rd Right) — only written when that right was
   // actually sold on this quote; otherwise the addenda ship untouched (still "N/A" placeholders).
@@ -14386,6 +14444,12 @@ async function _fillCirgasXlsx(data) {
     await setIa('G37', 's', data.iaCremStatus);
     await setIa('C39', 's', data.iaUrnType);
     await setIa('Q39', 's', data.iaUrnSize);
+    // Delivery of Pre-Arranged Merchandise & Services — only relevant when at least one On
+    // Contract box is checked; the per-item checklist there is left for hand entry (its checkbox
+    // cells couldn't be verified precisely enough from the raw template to fill automatically).
+    await setIa('C44', 's', data.preArrContractNum);
+    await setIa('L44', 'n', data.preArrAmountOwed ? parseFloat(data.preArrAmountOwed) : null);
+    await setIa('S44', 'n', _xlsxDateSerial(data.preArrDatePaid));
     // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 is always the primary purchaser,
     // already cascaded via formula on the main Interment Auth sheet itself.
     var IA_SIGNER_ROWS = [8, 16, 24, 32];
@@ -14428,6 +14492,23 @@ async function _fillCirgasXlsx(data) {
   cirgasWbXml = cirgasWbXml.replace(/<calcPr[^\/]*\/>/, function(m){ return m.indexOf('fullCalcOnLoad') >= 0 ? m : m.replace('/>', ' fullCalcOnLoad="1"/>'); });
   zip.file(cirgasWbPath, cirgasWbXml);
 
+  // Delete the cached calcChain.xml — it's just Excel's dependency-order cache for the formulas'
+  // last-known values, and since we changed cell contents outside Excel it's now stale. Leaving
+  // it in place (and pointing at content that no longer matches) is what triggers Excel's
+  // "we found a problem with some content" repair-on-open dialog for a workbook this
+  // formula-heavy; fullCalcOnLoad above makes Excel rebuild it from scratch anyway.
+  if (zip.file('xl/calcChain.xml')) {
+    zip.remove('xl/calcChain.xml');
+    var ctPath = '[Content_Types].xml';
+    var ctXml = await zip.file(ctPath).async('string');
+    ctXml = ctXml.replace(/<Override[^>]*PartName="\/xl\/calcChain\.xml"[^>]*\/>/, '');
+    zip.file(ctPath, ctXml);
+    var relsPath = 'xl/_rels/workbook.xml.rels';
+    var relsXml = await zip.file(relsPath).async('string');
+    relsXml = relsXml.replace(/<Relationship[^>]*Target="calcChain\.xml"[^>]*\/>/, '');
+    zip.file(relsPath, relsXml);
+  }
+
   return zip.generateAsync({ type: 'uint8array' });
 }
 async function generateCirgasPacket() {
@@ -14457,6 +14538,10 @@ async function generateCirgasPacket() {
     propertyLocation: val('anPropertyLocation'), vault: val('anVault'), memorial: val('anMemorial'), openClose: val('anOpenClose'),
     iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
     iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
+    ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
+    ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
+    ocMemorial: el('anOcMemorial').checked, ocVase: el('anOcVase').checked, ocUrn: el('anOcUrn').checked,
+    preArrContractNum: val('anPreArrContractNum'), preArrAmountOwed: val('anPreArrAmountOwed'), preArrDatePaid: el('anPreArrDatePaid').value,
     signers: signers,
     lines: anLines()
   };
