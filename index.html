@@ -14511,6 +14511,27 @@ async function _fillCirgasXlsx(data) {
   var cirgasWbPath = 'xl/workbook.xml';
   var cirgasWbXml = await zip.file(cirgasWbPath).async('string');
   cirgasWbXml = cirgasWbXml.replace(/<calcPr[^\/]*\/>/, function(m){ return m.indexOf('fullCalcOnLoad') >= 0 ? m : m.replace('/>', ' fullCalcOnLoad="1"/>'); });
+  // Reorder sheet tabs for easier navigation when opened in Excel — reordering the <sheet>
+  // entries here only changes tab order, not the underlying sheetN.xml files or their r:id
+  // references, so nothing else about the fill needs to change.
+  cirgasWbXml = cirgasWbXml.replace(/(<sheets>)([\s\S]*?)(<\/sheets>)/, function(_, open, body, close) {
+    var sheetTags = body.match(/<sheet [^>]*\/>/g) || [];
+    var byName = {};
+    sheetTags.forEach(function(tag) {
+      var m = tag.match(/name="([^"]*)"/);
+      if (m) byName[m[1]] = tag;
+    });
+    var priority = ['Information', 'Cemetery Contract', 'INTERMENT AUTH NEW', 'IOA ADDL SIGNERS',
+                     'Cemetery Rules', 'Mem Order Flat Mrkr &amp; Bronze', 'Mem Order Form Upright &amp; Other',
+                     'Vault and Urn Vault Order Form'];
+    var ordered = [];
+    priority.forEach(function(name) { if (byName[name]) { ordered.push(byName[name]); delete byName[name]; } });
+    sheetTags.forEach(function(tag) {
+      var m = tag.match(/name="([^"]*)"/);
+      if (m && byName[m[1]] !== undefined) ordered.push(tag);
+    });
+    return open + ordered.join('') + close;
+  });
   zip.file(cirgasWbPath, cirgasWbXml);
 
   // Delete the cached calcChain.xml — it's just Excel's dependency-order cache for the formulas'
