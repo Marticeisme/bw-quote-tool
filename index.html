@@ -3059,6 +3059,17 @@ tr:hover td{background:#eef3f8;}
           <label>Service Coming From</label>
           <input type="text" id="anIaServiceComingFrom" placeholder="e.g. Bonney Watson SeaTac" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
         </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Emblem</label>
+          <input type="text" id="anIaEmblem" placeholder="Leave blank for N/A" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <label style="margin-left:12px;">Witness Lowering?</label>
+          <select id="anIaWitness" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;margin-left:6px;">
+            <option value="">—</option>
+            <option value="witness">Witness</option>
+            <option value="nonwitness">Non-Witness</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">"Witness"/"Non-Witness" automatically relabels to "...Placement" instead of "...Lowering" for mausoleum/niche placements (based on the Open/Close field above).</div>
         <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
         <div class="q-row">
           <label>Status of Cremated Remains</label>
@@ -11374,7 +11385,11 @@ function anImportFromCemeteryQuote() {
   if (vaultLine && el('anVault') && !el('anVault').value) el('anVault').value = vaultLine.label;
   var memLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /marker|memorial/i.test(l.label); });
   if (memLine && el('anMemorial') && !el('anMemorial').value) el('anMemorial').value = memLine.label;
-  var ocLine = _anPricing.lines.find(function(l){ return /open.*clos/i.test(l.label); });
+  // Real quote line items are almost never literally "Opening...Closing" — they're the actual
+  // service type (Lawn Interment, Ground Inurnment, Mausoleum Entombment, etc.), which per
+  // _anCategorizeLine's 'oc' bucket ARE the O&C equivalent. Match the same pattern here so this
+  // actually fires for real quotes instead of only a label that basically never occurs.
+  var ocLine = _anPricing.lines.find(function(l){ return !l.isDiscount && !l.isSpace && /interment|entombment|inurnment|opening|o&c/i.test(l.label); });
   if (ocLine && el('anOpenClose') && !el('anOpenClose').value) el('anOpenClose').value = ocLine.label;
   anShowPricingSummary();
   if (typeof _cemTotal !== 'undefined' && _cemTotal > 0) showTotalsMismatch(anTotal(), _cemTotal, 'CIRGAS Contract');
@@ -11440,9 +11455,11 @@ function anClearAll() {
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
    'anIntermentDate','anIntermentTime',
    'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize','anIaRemarks',
+   'anIaEmblem',
    'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
+  if (el('anIaWitness')) el('anIaWitness').value = '';
   if (el('anIaNumSignatures')) el('anIaNumSignatures').value = '1';
   ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn','anOcOtherMerch']
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
@@ -13928,6 +13945,16 @@ function _xlsxDateSerial(isoStr) {
   var utcMs = Date.UTC(+parts[0], +parts[1]-1, +parts[2]);
   return Math.round((utcMs - Date.UTC(1899, 11, 30)) / 86400000);
 }
+// Some template cells meant to hold a date were never given a date number format (numFmtId=0,
+// "General") — writing a numeric serial via _xlsxDateSerial there displays the raw serial (e.g.
+// "38215") instead of a date, since there's no format to interpret it. Writing a pre-formatted
+// string sidesteps the missing cell format entirely.
+function _xlsxDateStr(isoStr) {
+  if (!isoStr) return null;
+  var parts = String(isoStr).split('-');
+  if (parts.length !== 3) return null;
+  return parts[1] + '/' + parts[2] + '/' + parts[0];
+}
 // Excel's time serial: fraction of a 24-hour day. Input is a "HH:MM" string from <input type="time">.
 function _xlsxTimeSerial(hhmm) {
   if (!hhmm) return null;
@@ -14187,7 +14214,50 @@ async function _fillCirgasXlsx(data) {
   var primaryLines     = lines.filter(function(l){ return !l.isSecondRight; });
 
   // Right Type — "Enter X in appropriate box": 1st Right unless a 2nd/3rd right was also sold.
-  await setCC(addlRightLines.length ? 'K21' : 'K20', 's', 'X');
+  // The visual checkbox is B20/B21 (shaded+bordered box immediately left of the label) — K20/K21
+  // is a wide, unrelated column that sits well into the PAYMENT section visually; the template
+  // even ships K21 pre-filled with a literal placeholder space, confirming it's not the checkbox.
+  await setCC(addlRightLines.length ? 'B21' : 'B20', 's', 'X');
+
+  // Decedent name / Arrangement Date mirror cells — same bare "=Information!X" cascade pattern
+  // already fixed on Interment Auth: write directly so a blank Arrangement Date shows blank
+  // instead of the Excel epoch ("Saturday, December 30, 1899") that a bare date-formula cascade
+  // produces when its source is empty.
+  var ccDecFullName = [data.decFirst, data.decMiddle, data.decLast].filter(Boolean).join(' ');
+  if (data.decFirst) await setCC('G15', 's', data.decFirst);
+  if (data.decMiddle) await setCC('K15', 's', data.decMiddle);
+  if (data.decLast) await setCC('O15', 's', data.decLast);
+  await setCC('U15', 's', _xlsxDateStr(data.arrangementDate));
+
+  // Purchaser / Co-Purchaser signature block on the Cemetery Contract sheet itself (distinct from
+  // the Interment Auth signature block above) — same bare-formula-shows-"0" bug as everywhere
+  // else when Co-Purchaser is blank (the common case), so write directly instead of relying on
+  // the template's own "=Information!E25" etc. mirrors.
+  await setCC('M38', 's', data.purchName);
+  await setCC('W38', 's', data.purchRelation);
+  await setCC('M40', 's', data.purchStreet);
+  await setCC('M42', 's', data.purchCity);
+  await setCC('U42', 's', data.purchState);
+  await setCC('W42', 's', data.purchZip);
+  await setCC('M44', 's', data.purchEmail);
+  await setCC('V44', 's', data.purchCellPhone || data.purchHomePhone);
+  await setCC('M50', 's', data.coPurchName);
+  await setCC('W50', 's', data.coPurchRelation);
+  await setCC('M52', 's', data.coPurchStreet);
+  await setCC('M54', 's', data.coPurchCity);
+  await setCC('U54', 's', data.coPurchState);
+  await setCC('W54', 's', data.coPurchZip);
+  await setCC('M56', 's', data.coPurchEmail);
+  await setCC('V56', 's', data.coPurchCellPhone || data.coPurchHomePhone);
+
+  // RIC Contract # and Balance — B31 is the static row label; G31/K31 are its value cells (K31
+  // already feeds the K33 total formula as a number). Previously only written to Interment Auth's
+  // C44/L44, never here, so the main contract's own RIC row stayed blank.
+  if (data.preArrContractNum) await setCC('G31', 's', data.preArrContractNum);
+  if (data.preArrAmountOwed) await setCC('K31', 'n', parseFloat(data.preArrAmountOwed) || 0);
+
+  // Container/Vault description text (distinct from I37's dollar/on-contract value).
+  if (data.vault) await setCC('D37', 's', data.vault);
 
   var buckets = { space:0, ecf:0, recording:0, oc:0, friSun:0, container:0, containerSet:0,
                   memorial:0, memorialBase:0, install:0, vase:0, vaseSet:0, urn:0 };
@@ -14361,7 +14431,9 @@ async function _fillCirgasXlsx(data) {
     await setIa('F27', 's', data.propertyLocation);
     await setIa('D31', 's', data.vault);
     await setIa('E76', 's', data.propertyLocation);
-    await setIa('S23', 'n', _xlsxDateSerial(data.contractPaidDate));
+    // S23/R67/S44 have no date number format in the template (numFmtId=0 "General") — a raw
+    // date serial there displays as a plain number (e.g. "38215"), so write a formatted string.
+    await setIa('S23', 's', _xlsxDateStr(data.contractPaidDate));
     await setIa('S5', 's', data.iaVeteran);
     await setIa('C18', 's', data.iaServiceType);
     await setIa('N18', 's', data.iaServiceComingFrom);
@@ -14369,6 +14441,20 @@ async function _fillCirgasXlsx(data) {
     await setIa('G37', 's', data.iaCremStatus);
     await setIa('C39', 's', data.iaUrnType);
     await setIa('Q39', 's', data.iaUrnSize);
+    // Interment Type reuses the Contract tab's own Open/Close field (e.g. "Lawn Interment") —
+    // same value real completed files show here, no separate field needed.
+    await setIa('R27', 's', data.openClose);
+    await setIa('R31', 's', data.iaEmblem || 'N/A');
+    // Right Type — IOA has its own 1st Right/Addl Right checkboxes, separate from Cemetery
+    // Contract's B20/B21, but driven by the same addlRightLines detection computed above.
+    await setIa(addlRightLines.length ? 'I29' : 'D29', 's', 'X');
+    // Witness/Non-Witness Lowering — for mausoleum/niche placements the real form relabels both
+    // to "...PLACEMENT" instead of "...LOWERING" (per the At-Need Contract tab's Open/Close text).
+    var iaIsPlacement = /mausoleum|niche/i.test(data.openClose || '');
+    await setIa('C33', 's', iaIsPlacement ? 'WITNESS PLACEMENT:' : 'WITNESS LOWERING:');
+    await setIa('M33', 's', iaIsPlacement ? 'NON-WITNESS PLACEMENT:' : 'NON-WITNESS LOWERING:');
+    if (data.iaWitness === 'witness') await setIa('I33', 's', 'X');
+    else if (data.iaWitness === 'nonwitness') await setIa('S33', 's', 'X');
     // Signature block — "Interment Right Owner or Authorized Representative". These cells are
     // genuinely blank in the template (verified — no cascade formula), and all 11 real completed
     // files show the Purchaser's own name/relationship/address/phone hand-typed here every time.
@@ -14377,14 +14463,27 @@ async function _fillCirgasXlsx(data) {
     var purchAddr = [data.purchStreet, data.purchCity, data.purchState, data.purchZip].filter(Boolean).join(', ');
     await setIa('B71', 's', purchAddr);
     await setIa('R71', 's', data.purchCellPhone || data.purchHomePhone);
+    await setIa('R67', 's', _xlsxDateStr(new Date().toISOString().slice(0,10)));
     await setIa('I65', 'n', data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1);
     await setIa('A56', 's', data.iaRemarks);
-    // Delivery of Pre-Arranged Merchandise & Services — only relevant when at least one On
-    // Contract box is checked; the per-item checklist there is left for hand entry (its checkbox
-    // cells couldn't be verified precisely enough from the raw template to fill automatically).
+    // Family Location Verification — Purchaser's printed name repeats a second time here (real
+    // completed files always show it twice: once at the primary signature block above, again here).
+    await setIa('R77', 's', data.purchName);
+    // Delivery of Pre-Arranged Merchandise & Services checklist — X the items actually checked
+    // as On Contract on the At-Need Contract tab (previously left entirely blank/hand-filled).
+    if (data.ocContainer)    await setIa('B47', 's', 'X');
+    // No separate checkbox exists for Opening & Closing in this row — the only other candidate
+    // cell (H47) is merged into G47:H47, so anything written there is silently ignored by Excel
+    // (only the merge's top-left cell displays). Recording Fee's checkbox (O47) is unaffected.
+    if (data.ocRecording)    await setIa('O47', 's', 'X');
+    if (data.ocContainerSet) await setIa('B49', 's', 'X');
+    if (data.ocMemorial)     await setIa('I49', 's', 'X');
+    if (data.ocVase)         await setIa('B51', 's', 'X');
+    if (data.ocUrn)          await setIa('O51', 's', 'X');
+    if (data.ocOtherMerch)   await setIa('B53', 's', 'X');
     await setIa('C44', 's', data.preArrContractNum);
     await setIa('L44', 'n', data.preArrAmountOwed ? parseFloat(data.preArrAmountOwed) : null);
-    await setIa('S44', 'n', _xlsxDateSerial(data.preArrDatePaid));
+    await setIa('S44', 's', _xlsxDateStr(data.preArrDatePaid));
     // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 above IS the primary purchaser
     // (B69/O69/B71/R71 just written), no separate cascade formula involved.
     var IA_SIGNER_ROWS = [8, 16, 24, 32];
@@ -14397,6 +14496,13 @@ async function _fillCirgasXlsx(data) {
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 4), 's', addr);
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + (ir + 4), 's', isg.phone);
     }
+
+    // Cemetery Rules & Regs — Purchaser/Family Service Director signature date lines (H81/O81)
+    // were entirely blank in every generation; every other field on this sheet already cascades
+    // from Information, so this was the only missing piece.
+    var todayStr = _xlsxDateStr(new Date().toISOString().slice(0,10));
+    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'H81', 's', todayStr);
+    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'O81', 's', todayStr);
   }
 
 
@@ -14455,6 +14561,7 @@ async function generateCirgasPacket() {
     iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
     iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
     iaRemarks: val('anIaRemarks'), iaNumSignatures: val('anIaNumSignatures'),
+    iaEmblem: val('anIaEmblem'), iaWitness: val('anIaWitness'),
     ocSpace: el('anOcSpace').checked, ocEcf: el('anOcEcf').checked,
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
