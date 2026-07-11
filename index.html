@@ -9346,12 +9346,19 @@ function persistSavedQuotes(_retries) {
   if (!window._fbDB) return;
   // Local arrays start empty and only reflect the real saved state once the initial
   // Firebase 'value' listener has fired once. Writing (.set) before that would overwrite
-  // cem/fh/ric with whatever's in memory right now — i.e. wipe out previously-saved quotes
-  // that just hadn't loaded yet. Wait for the first snapshot instead of racing it.
+  // cem/fh/ric/ga/cp/an with whatever's in memory right now — i.e. wipe out EVERY previously
+  // saved quote/contract across every type, since .set() replaces the whole savedQuotes node
+  // rather than merging. This must NEVER fall through and write with incomplete state — refusing
+  // to save (and telling the user so they can retry) is far safer than silently wiping real data.
   if (!window._fbQuotesReady) {
     _retries = (_retries || 0) + 1;
-    if (_retries > 20) { console.warn('persistSavedQuotes: Firebase never became ready, saving anyway'); }
-    else { setTimeout(function(){ persistSavedQuotes(_retries); }, 300); return; }
+    if (_retries > 40) {
+      console.error('persistSavedQuotes: Firebase never synced — refusing to save to avoid wiping existing data. Reload and try again.');
+      alert('Could not confirm a connection to the saved-quotes database, so this save was NOT sent (to avoid overwriting your existing saved quotes). Please reload the page and try saving again.');
+      return;
+    }
+    setTimeout(function(){ persistSavedQuotes(_retries); }, 300);
+    return;
   }
   _fbSavingQuotes = true;
   _fbDB.ref('savedQuotes').set({
