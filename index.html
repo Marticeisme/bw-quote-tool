@@ -288,7 +288,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Checklist</div>
   <div class="nav-item highlight" onclick="show('ric-checklist',this)">📋 RIC Checklist</div>
   <div class="nav-item highlight" onclick="show('cp-checklist',this)">📋 ClearPoint Checklist</div>
-  <div class="nav-item highlight" onclick="show('atneed-checklist',this)">📋 At-Need Cemetery Checklist</div>
+  <div class="nav-item highlight" onclick="show('atneed-checklist',this)">📋 CIRGAS Checklist</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Resources</div>
   <div class="nav-item" onclick="window.location='guides.html'">📚 Family Guides &amp; Resources</div>
@@ -2953,7 +2953,7 @@ tr:hover td{background:#eef3f8;}
           <label>Street Address</label>
           <input type="text" id="anCoPurchStreet" placeholder="Street address" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
           <input type="text" id="anCoPurchCity" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
-          <input type="text" id="anCoPurchState" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <input type="text" id="anCoPurchState" placeholder="State" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
           <input type="text" id="anCoPurchZip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
         <div class="q-row" style="margin-top:8px;gap:12px;flex-wrap:wrap;">
@@ -3056,15 +3056,69 @@ tr:hover td{background:#eef3f8;}
             <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
           </select>
           <label style="margin-left:12px;">Service Type</label>
-          <input type="text" id="anIaServiceType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+          <select id="anIaServiceType" onchange="anCustomToggle(this,'anIaServiceTypeOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;margin-left:6px;">
+            <option value="">—</option>
+            <option>At our Convenience (AOC)</option>
+            <option>D.O. – Delivery Only</option>
+            <option>Full Service (F.S.)</option>
+            <option>Full Service Crypt (FSC)</option>
+            <option>Full Service Graveside (FSG)</option>
+            <option>Full Service Niche (FSN)</option>
+            <option>Graveside Service (G.S.)</option>
+            <option>Graveside Service Graveside (GSG)</option>
+            <option>Graveside Service Lobby (GSL)</option>
+            <option>Witness (WIT)</option>
+            <option>Witness Cremation (WIT C)</option>
+            <option>Witness Lowering (WIT L)</option>
+            <option>Witness Placement (WIT P)</option>
+            <option value="custom">Custom / Other…</option>
+          </select>
+          <input type="text" id="anIaServiceTypeOther" placeholder="Type your own" oninput="anCustomToggle(el('anIaServiceType'),'anIaServiceTypeOther')" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
         <div class="q-row" style="margin-top:8px;">
           <label>Service Coming From</label>
-          <input type="text" id="anIaServiceComingFrom" placeholder="e.g. Bonney Watson SeaTac" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <select id="anIaServiceComingFrom" onchange="anCustomToggle(this,'anIaServiceComingFromOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option>
+            <option>WMFH Chapel</option>
+            <option>O/S Funeral Home</option>
+            <option>Church</option>
+            <option>Meet In Lanes</option>
+            <option>Meet In Lobby</option>
+            <option>Meet at Space</option>
+            <option>Meet at Maus</option>
+            <option value="custom">Custom / Other…</option>
+          </select>
+          <input type="text" id="anIaServiceComingFromOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
         <div class="q-row" style="margin-top:8px;">
           <label>Emblem</label>
-          <input type="text" id="anIaEmblem" placeholder="Leave blank for N/A" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <select id="anIaEmblem" onchange="anCustomToggle(this,'anIaEmblemOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option>
+            <option>N/A</option>
+            <option>American Legion</option>
+            <option>Cross</option>
+            <option>Crucifix</option>
+            <option>Dove of Peace</option>
+            <option>Eagles</option>
+            <option>Eastern Star</option>
+            <option>Elks</option>
+            <option>Independent Order of Odd Fellows</option>
+            <option>Knights of Columbus</option>
+            <option>Masonic</option>
+            <option>Moose</option>
+            <option>Praying Hands</option>
+            <option>Roses</option>
+            <option>Russian Orthodox Cross</option>
+            <option>Shrine</option>
+            <option>Star of David</option>
+            <option>US Air Force</option>
+            <option>US Marine Corps</option>
+            <option>US Navy</option>
+            <option>Veterans of Foreign Wars</option>
+            <option>Wreath</option>
+            <option value="custom">Custom / Other…</option>
+          </select>
+          <input type="text" id="anIaEmblemOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
           <label style="margin-left:12px;">Witness Lowering?</label>
           <select id="anIaWitness" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;margin-left:6px;">
             <option value="">—</option>
@@ -3076,7 +3130,15 @@ tr:hover td{background:#eef3f8;}
         <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
         <div class="q-row">
           <label>Status of Cremated Remains</label>
-          <input type="text" id="anIaCremStatus" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <select id="anIaCremStatus" onchange="anCustomToggle(this,'anIaCremStatusOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option>
+            <option>N/A</option>
+            <option>CHR at WMP</option>
+            <option>Family will Bring CHR</option>
+            <option>Pending Cremation at BW</option>
+            <option value="custom">Custom / Other…</option>
+          </select>
+          <input type="text" id="anIaCremStatusOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
         <div class="q-row" style="margin-top:8px;">
           <label>Type of Urn</label>
@@ -11325,7 +11387,7 @@ function anRenderSigners() {
       + '<div class="q-row" style="margin-top:8px;">'
       + '<label>Street Address</label><input type="text" id="anSigner' + i + 'Street" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">'
       + '<input type="text" id="anSigner' + i + 'City" placeholder="City" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">'
-      + '<input type="text" id="anSigner' + i + 'State" placeholder="State" value="WA" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">'
+      + '<input type="text" id="anSigner' + i + 'State" placeholder="State" style="width:55px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">'
       + '<input type="text" id="anSigner' + i + 'Zip" placeholder="Zip" style="width:75px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">'
       + '</div>'
       + '<div class="q-row" style="margin-top:8px;gap:12px;">'
@@ -11450,6 +11512,10 @@ function loadSavedAnContract(id) {
   // restoreFieldState sets .checked generically but doesn't fire onchange — resync the
   // Memorial/Vault optional-panel visibility and marker category sub-fields to match.
   anMkToggle(); anVtToggle(); anoMkCategoryChange();
+  anCustomToggle(el('anIaServiceType'),'anIaServiceTypeOther');
+  anCustomToggle(el('anIaServiceComingFrom'),'anIaServiceComingFromOther');
+  anCustomToggle(el('anIaEmblem'),'anIaEmblemOther');
+  anCustomToggle(el('anIaCremStatus'),'anIaCremStatusOther');
   anShowPricingSummary();
   show('an-contract', document.querySelector('[onclick*="an-contract"]'));
 }
@@ -11465,9 +11531,13 @@ function anClearAll() {
    'anDecDOB','anDecDOD','anDecAge','anArrangementDate','anFuneralDate','anFuneralTime',
    'anIntermentDate','anIntermentTime',
    'anIaServiceType','anIaServiceComingFrom','anIaCremStatus','anIaUrnType','anIaUrnSize','anIaRemarks',
-   'anIaEmblem',
+   'anIaEmblem','anIaServiceTypeOther','anIaServiceComingFromOther','anIaEmblemOther','anIaCremStatusOther',
    'anPreArrContractNum','anPreArrAmountOwed','anPreArrDatePaid','anContractPaidDate']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
+  anCustomToggle(el('anIaServiceType'),'anIaServiceTypeOther');
+  anCustomToggle(el('anIaServiceComingFrom'),'anIaServiceComingFromOther');
+  anCustomToggle(el('anIaEmblem'),'anIaEmblemOther');
+  anCustomToggle(el('anIaCremStatus'),'anIaCremStatusOther');
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
   if (el('anIaWitness')) el('anIaWitness').value = '';
   if (el('anIaNumSignatures')) el('anIaNumSignatures').value = '1';
@@ -11475,10 +11545,10 @@ function anClearAll() {
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
   if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
   if (el('anPurchState')) el('anPurchState').value = 'WA';
-  if (el('anCoPurchState')) el('anCoPurchState').value = 'WA';
+  if (el('anCoPurchState')) el('anCoPurchState').value = '';
   for (var i = 1; i <= 4; i++) {
     ['Name','Relation','Street','City','Zip','Phone','Email'].forEach(function(f){ var e = el('anSigner'+i+f); if (e) e.value=''; });
-    var st = el('anSigner'+i+'State'); if (st) st.value = 'WA';
+    var st = el('anSigner'+i+'State'); if (st) st.value = '';
   }
   // Memorial Order / Vault Order — optional sections, reset to collapsed/blank.
   if (el('anMkEnabled')) el('anMkEnabled').checked = false;
@@ -11512,6 +11582,19 @@ function anMkToggle() {
 function anVtToggle() {
   var on = el('anVtEnabled') && el('anVtEnabled').checked;
   if (el('anVtPanel')) el('anVtPanel').style.display = on ? '' : 'none';
+}
+// Dropdown + "Custom / Other…" pattern shared by Service Type, Service Coming From, Emblem, and
+// Status of Cremated Remains — shows/hides the adjacent free-text field based on the select.
+function anCustomToggle(selectEl, customId) {
+  var c = el(customId);
+  if (c) c.style.display = (selectEl && selectEl.value === 'custom') ? '' : 'none';
+}
+// Reads the effective value for one of those dropdowns: the free-text field when "custom" is
+// selected, otherwise the dropdown's own value.
+function anDropdownVal(id) {
+  var s = el(id);
+  if (!s) return '';
+  return s.value === 'custom' ? val(id + 'Other') : s.value;
 }
 function anoMkCategoryChange() {
   var isFlat = document.querySelector('input[name="anoMkCategory"][value="flat"]').checked;
@@ -14218,6 +14301,12 @@ async function _fillCirgasXlsx(data) {
   // other category, O&C/vault/marker/etc., still applies once, to the primary right), so they're
   // pulled out of the primary bucketing pass rather than folded into Cemetery Contract's own total.
   var lines = data.lines || [];
+  // No quote was ever imported (fully pre-arranged sale, nothing new purchased today) — there's
+  // no line-item data to tell "not bought" apart from "not tracked yet", so an On Contract check
+  // for Memorial/Vase/Other Merchandise below marks ALL of that category's sub-fields rather than
+  // silently leaving them "N/A". Once a quote IS imported, the existing per-sub-item bucket>0 gate
+  // takes back over (McCleary Della: marker+install On Contract, no base — must stay distinguishable).
+  var hasImport = lines.length > 0;
   var addlRightLines   = lines.filter(function(l){ return l.isSecondRight; });
   var secondRightLines = addlRightLines.filter(function(l){ return /^Second Right/i.test(l.label); });
   var thirdRightLines  = addlRightLines.filter(function(l){ return /^Third Right/i.test(l.label); });
@@ -14309,12 +14398,12 @@ async function _fillCirgasXlsx(data) {
   // file (McCleary Della) shows the marker + install On Contract but the base left N/A because
   // she never had a base at all — the checkbox must only stamp fields that actually have an
   // amount, or an unpurchased sub-item wrongly prints "On Contract" instead of staying blank.
-  await setCCAmt('I39', buckets.memorial, data.ocMemorial && buckets.memorial > 0);
-  await setCCAmt('I40', buckets.memorialBase, data.ocMemorial && buckets.memorialBase > 0);
-  await setCCAmt('I41', buckets.install, data.ocMemorial && buckets.install > 0);
+  await setCCAmt('I39', buckets.memorial, data.ocMemorial && (!hasImport || buckets.memorial > 0));
+  await setCCAmt('I40', buckets.memorialBase, data.ocMemorial && (!hasImport || buckets.memorialBase > 0));
+  await setCCAmt('I41', buckets.install, data.ocMemorial && (!hasImport || buckets.install > 0));
   // Same one-checkbox/two-field shape as Memorial above — gate on each field's own amount.
-  await setCCAmt('I42', buckets.vase, data.ocVase && buckets.vase > 0);
-  await setCCAmt('I43', buckets.vaseSet, data.ocVase && buckets.vaseSet > 0);
+  await setCCAmt('I42', buckets.vase, data.ocVase && (!hasImport || buckets.vase > 0));
+  await setCCAmt('I43', buckets.vaseSet, data.ocVase && (!hasImport || buckets.vaseSet > 0));
   await setCCAmt('I44', buckets.urn, data.ocUrn);
   // Real completed files show Other Merchandise marked On Contract too (e.g. a pre-arranged
   // vase/portrait rider) — not one of the debrief's original 7 IOA checklist items, but real
@@ -14322,8 +14411,8 @@ async function _fillCirgasXlsx(data) {
   // Same one-checkbox/two-field gating as Memorial/Vase above (Lind Charles has only one real
   // Other Merchandise line — without the amount>0 gate, the empty second slot would also print
   // "On Contract" instead of staying N/A).
-  await setCCAmt('I45', otherMerch1Amt, data.ocOtherMerch && otherMerch1Amt > 0);
-  await setCCAmt('I46', otherMerch2Amt, data.ocOtherMerch && otherMerch2Amt > 0);
+  await setCCAmt('I45', otherMerch1Amt, data.ocOtherMerch && (!hasImport || otherMerch1Amt > 0));
+  await setCCAmt('I46', otherMerch2Amt, data.ocOtherMerch && (!hasImport || otherMerch2Amt > 0));
 
   // ── Addendum A (2nd Right) / Addendum B (3rd Right) — only written when that right was
   // actually sold on this quote; otherwise the addenda ship untouched (still "N/A" placeholders).
@@ -14589,10 +14678,10 @@ async function generateCirgasPacket() {
     coPurchStreet: val('anCoPurchStreet'), coPurchCity: val('anCoPurchCity'), coPurchState: val('anCoPurchState'), coPurchZip: val('anCoPurchZip'),
     coPurchHomePhone: val('anCoPurchHomePhone'), coPurchCellPhone: val('anCoPurchCellPhone'), coPurchEmail: val('anCoPurchEmail'),
     propertyLocation: val('anPropertyLocation'), vault: val('anVault'), memorial: val('anMemorial'), openClose: val('anOpenClose'),
-    iaVeteran: val('anIaVeteran'), iaServiceType: val('anIaServiceType'), iaServiceComingFrom: val('anIaServiceComingFrom'),
-    iaCremStatus: val('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
+    iaVeteran: val('anIaVeteran'), iaServiceType: anDropdownVal('anIaServiceType'), iaServiceComingFrom: anDropdownVal('anIaServiceComingFrom'),
+    iaCremStatus: anDropdownVal('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
     iaRemarks: val('anIaRemarks'), iaNumSignatures: val('anIaNumSignatures'),
-    iaEmblem: val('anIaEmblem'), iaWitness: val('anIaWitness'),
+    iaEmblem: anDropdownVal('anIaEmblem'), iaWitness: val('anIaWitness'),
     ocSpace: el('anOcSpace').checked, ocEcf: el('anOcEcf').checked,
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
