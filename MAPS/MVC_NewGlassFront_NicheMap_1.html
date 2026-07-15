@@ -85,6 +85,41 @@
   .tttl{color:var(--gold);font-weight:600;}.tttv{color:var(--gold);font-weight:700;font-size:12px;}
   .ttnote{margin-top:5px;font-size:9px;color:var(--gold-light);opacity:.8;font-style:italic;}
   .ttdim{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(200,169,110,.25);font-size:9.5px;color:var(--gold);letter-spacing:.02em;}
+
+  /* Print button (screen only) */
+  .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .15s;}
+  .print-btn:hover{background:rgba(200,169,110,.28);}
+
+  /* ── PRINT STYLESHEET ─────────────────────────────────────────
+     Screen version stays exactly as designed (dark navy/gold).
+     Print flips to a white background for ink/toner efficiency,
+     but keeps the price-tier tile colors (.c7-.c48) intact since
+     those ARE the information -- and forces every wall/section to
+     print regardless of which tab is active on screen, since the
+     point of printing is a complete physical reference, not just
+     whatever happened to be open. */
+  @media print {
+    .no-print, .ptabs, .tabs, .tt, #ttip, .owrap { display:none !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    body { background:#fff !important; color:#1a1a1a !important; }
+    .header { background:#fff !important; border-bottom:2px solid #c8540a !important; padding:10px 0; }
+    .htxt h1 { color:#1a2744 !important; }
+    .htxt p { color:#555 !important; }
+    .psec { display:block !important; }
+    .wview { display:block !important; break-before: page; }
+    .wview:first-of-type { break-before: avoid; }
+    .wlabel { color:#1a2744 !important; }
+    .wsub { color:#555 !important; }
+    .gwrap { background:#fff !important; border:1px solid #999 !important; }
+    .rlbl { color:#1a2744 !important; }
+    .n { border-color:#00000030 !important; }
+    .legend { color:#1a1a1a !important; }
+    .li { color:#333 !important; }
+    .fees { background:#f5f5f2 !important; border-color:#c8a96e !important; }
+    .fl { color:#1a2744 !important; }
+    .fv { color:#333 !important; }
+    .fees input { border:1px solid #999 !important; background:#fff !important; color:#1a1a1a !important; }
+  }
 </style>
 </head>
 <body>
@@ -109,6 +144,7 @@
     <h1>Mountain View Columbarium — New Glass Front Niches</h1>
     <p>Washington Memorial Park &nbsp;·&nbsp; Center Island Structure</p>
   </div>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="ptabs">
   <button class="ptab active" onclick="swProp('mvc')">Mountain View Columbarium</button>
