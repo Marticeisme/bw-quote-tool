@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Guides & Resources · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-mid:#2d4a6b; --orange:#c8540a; --white:#ffffff;
+  --offwhite:#f4f6f8; --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
+  --text:#1a2332; --text-light:#5a6a7a; --muted:#9aaab8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
+
+/* HEADER (matches index.html's site-header) */
+.site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header-inner{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
+.header-logo{height:34px;width:auto;flex-shrink:0;}
+.header-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-badge{background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.05em;white-space:nowrap;border:1px solid rgba(255,255,255,.25);}
+.header-spacer{flex:1;}
+.header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;transition:background .15s;}
+.header-back:hover{background:rgba(255,255,255,.12);}
+
+/* PAGE INTRO */
+.page-wrap{max-width:1200px;margin:0 auto;padding:36px 24px 60px;}
+.page-intro h1{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.page-intro p{color:var(--text-light);font-size:14.5px;max-width:700px;}
+
+/* FILTER */
+.filter-row{margin-top:22px;display:flex;align-items:center;gap:10px;}
+.filter-row input{flex:0 0 280px;padding:9px 14px;border:1px solid var(--gray-mid);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;outline:none;}
+.filter-row input:focus{border-color:var(--navy);}
+.filter-count{color:var(--muted);font-size:12.5px;}
+
+/* CATEGORY */
+.category{margin-top:38px;}
+.category-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--navy);}
+.category-icon{width:32px;height:32px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.category-header h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+.guide-card{background:var(--white);border:1px solid var(--gray-mid);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:box-shadow .15s,transform .15s,border-color .15s;}
+.guide-card:hover{box-shadow:0 6px 20px rgba(61,90,122,.18);transform:translateY(-2px);border-color:var(--navy);}
+.guide-card-top{display:flex;align-items:flex-start;gap:10px;}
+.guide-icon{width:38px;height:38px;border-radius:8px;background:var(--gray-light);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.guide-title{font-family:'Playfair Display',serif;font-size:15.5px;font-weight:700;color:var(--navy);line-height:1.3;}
+.guide-desc{color:var(--text-light);font-size:12.5px;line-height:1.5;flex:1;}
+.guide-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:10px;border-top:1px solid var(--gray-light);}
+.guide-meta-info{color:var(--muted);font-size:11px;}
+.guide-cta{color:var(--orange);font-size:12px;font-weight:700;white-space:nowrap;}
+
+/* FOOTER */
+.site-footer{margin-top:60px;padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.85);text-align:center;font-size:12px;}
+.site-footer strong{color:#fff;}
+
+.no-results{display:none;color:var(--muted);font-size:13px;padding:20px 0;}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="header-logo">
+    <div class="header-title">Family Guides &amp; Resources</div>
+    <div class="header-badge">2026</div>
+    <div class="header-spacer"></div>
+    <a class="header-back" href="index.html">&larr; Quote Tool</a>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-intro">
+    <h1>Family Guides &amp; Resources</h1>
+    <p>Reference guides, price sheets, and catalogs for families planning with Bonney Watson at Washington Memorial Park. Every guide below opens as a PDF you can view online or download.</p>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" id="filterInput" placeholder="Search guides…" oninput="filterGuides(this.value)">
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+
+  <div id="categories">
+
+    <div class="category" data-cat>
+      <div class="category-header"><div class="category-icon">🌱</div><h2>Getting Started</h2></div>
+      <div class="card-grid">
+        <a class="guide-card" data-name="pre-planning guide advance planning" href="pdf-assets/Pre-Planning Guide.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">📘</div><div class="guide-title">Pre-Planning Guide</div></div>
+          <div class="guide-desc">Why families pre-plan, how it works, and how to start the conversation with loved ones.</div>
+          <div class="guide-meta"><span class="guide-meta-info">12 pages · 2.3 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="general price list gpl fees" href="pdf-assets/General Price List.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">📋</div><div class="guide-title">General Price List</div></div>
+          <div class="guide-desc">Our complete itemized price list for funeral and cemetery services.</div>
+          <div class="guide-meta"><span class="guide-meta-info">17 pages · 2.7 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category" data-cat>
+      <div class="category-header"><div class="category-icon">🕊️</div><h2>Burial &amp; Cremation</h2></div>
+      <div class="card-grid">
+        <a class="guide-card" data-name="burial guide ground interment" href="pdf-assets/Burial Guide.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">📗</div><div class="guide-title">Burial Guide</div></div>
+          <div class="guide-desc">Everything to know about burial services and options at Washington Memorial Park.</div>
+          <div class="guide-meta"><span class="guide-meta-info">22 pages · 3.1 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="cremation guide" href="pdf-assets/Cremation Guide.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">📗</div><div class="guide-title">Cremation Guide</div></div>
+          <div class="guide-desc">A complete guide to cremation services and what to expect, start to finish.</div>
+          <div class="guide-meta"><span class="guide-meta-info">29 pages · 552 KB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category" data-cat>
+      <div class="category-header"><div class="category-icon">🪦</div><h2>Markers &amp; Memorials</h2></div>
+      <div class="card-grid">
+        <a class="guide-card" data-name="granite marker guide flush sizes colors etching" href="pdf-assets/Granite Marker Guide.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">🪨</div><div class="guide-title">Granite Marker Guide</div></div>
+          <div class="guide-desc">Flush marker sizes, true-to-scale photo guides, stone colors, and etching options.</div>
+          <div class="guide-meta"><span class="guide-meta-info">14 pages · 10.6 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="marker sizes and pricing" href="pdf-assets/Marker Sizes and Pricing.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">📐</div><div class="guide-title">Marker Sizes &amp; Pricing</div></div>
+          <div class="guide-desc">A quick-reference sheet for marker sizes and pricing.</div>
+          <div class="guide-meta"><span class="guide-meta-info">3 pages · 85 KB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="urn placement options columbarium niche garden" href="pdf-assets/Urn Placement Options.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">🏛️</div><div class="guide-title">Urn Placement Options</div></div>
+          <div class="guide-desc">Columbarium, urn garden, and placement options at Washington Memorial Park.</div>
+          <div class="guide-meta"><span class="guide-meta-info">14 pages · 7.2 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="category" data-cat>
+      <div class="category-header"><div class="category-icon">⚱️</div><h2>Caskets &amp; Urns</h2></div>
+      <div class="card-grid">
+        <a class="guide-card" data-name="metal caskets" href="pdf-assets/Metal Caskets.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">🔩</div><div class="guide-title">Metal Caskets</div></div>
+          <div class="guide-desc">Metal casket styles, sizes, and pricing.</div>
+          <div class="guide-meta"><span class="guide-meta-info">27 pages · 1.8 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="wood caskets" href="pdf-assets/Wood Caskets.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">🪵</div><div class="guide-title">Wood Caskets</div></div>
+          <div class="guide-desc">Wood casket styles, sizes, and pricing.</div>
+          <div class="guide-meta"><span class="guide-meta-info">21 pages · 1.5 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+        <a class="guide-card" data-name="urn catalog cremation memorial keepsake" href="pdf-assets/Urn Catalog.pdf" target="_blank" rel="noopener">
+          <div class="guide-card-top"><div class="guide-icon">🏺</div><div class="guide-title">Urn Catalog</div></div>
+          <div class="guide-desc">Our full selection of cremation urns and memorial keepsakes, sorted by price.</div>
+          <div class="guide-meta"><span class="guide-meta-info">29 pages · 2.3 MB</span><span class="guide-cta">View PDF →</span></div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+  <div class="no-results" id="noResults">No guides match your search.</div>
+</div>
+
+<footer class="site-footer">
+  <strong>Bonney Watson</strong> · Washington Memorial Park · 16445 International Blvd, SeaTac, WA 98188 · 206-445-9794
+</footer>
+
+<script>
+function filterGuides(q) {
+  q = q.trim().toLowerCase();
+  var cards = document.querySelectorAll('.guide-card');
+  var visibleCount = 0;
+  cards.forEach(function(c) {
+    var match = !q || c.getAttribute('data-name').indexOf(q) > -1;
+    c.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+  document.querySelectorAll('[data-cat]').forEach(function(cat) {
+    var anyVisible = Array.from(cat.querySelectorAll('.guide-card')).some(function(c){ return c.style.display !== 'none'; });
+    cat.style.display = anyVisible ? '' : 'none';
+  });
+  document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+  document.getElementById('filterCount').textContent = q ? (visibleCount + ' match' + (visibleCount===1?'':'es')) : '';
+}
+</script>
+
+</body>
+</html>
