@@ -830,6 +830,11 @@ tr:hover td{background:#eef3f8;}
               <input type="number" id="qNicheQty" min="1" max="99" value="1" oninput="cemUpdateD()" style="width:60px;">
               <span id="qNicheDisp" class="q-price-disp">—</span>
             </div>
+            <div class="q-row" id="qNicheOwnedRow">
+              <label style="font-size:11px;color:var(--text-light);">Niche already purchased?</label>
+              <input type="checkbox" id="qNicheOwned" onchange="cemUpdateD()" style="width:15px;height:15px;">
+              <span style="font-size:11px;color:var(--text-light);margin-left:4px;">Exclude niche &amp; ECF (still add inurnment items below)</span>
+            </div>
             <div class="q-row" id="qNicheEcfRow" style="display:none;">
               <label style="color:var(--text-light);font-size:11px;">ECF (10%)</label>
               <span id="qNicheEcfDisp" class="q-price-disp" style="color:var(--text-light);">—</span>
@@ -6054,17 +6059,22 @@ function cemUpdate() {
 
   // Niche
   var nicheP = num('qNichePrice'), nicheQ = qty('qNicheQty');
+  // "Niche already purchased?" \u2014 mirrors qSpaceOwned for burial space: exclude the niche price &
+  // ECF from the quote, but keep the inurnment arrangement items (O&C/recording/inscription) below.
+  var nicheOwned = chk('qNicheOwned');
   var nicheLoc = el('qNicheLocation') ? el('qNicheLocation').value.trim() : '';
-  if (nicheP > 0) {
+  if (nicheP > 0 || nicheOwned) {
     var nicheEcf = nicheP * 0.1;
-    setDisp('qNicheDisp', nicheP * nicheQ);
-    setDisp('qNicheEcfDisp', nicheEcf * nicheQ);
-    el('qNicheEcfRow').style.display = 'flex';
+    setDisp('qNicheDisp', nicheOwned ? 0 : nicheP * nicheQ);
+    setDisp('qNicheEcfDisp', nicheOwned ? 0 : nicheEcf * nicheQ);
+    el('qNicheEcfRow').style.display = nicheOwned ? 'none' : 'flex';
     if (el('qNicheLocationRow')) el('qNicheLocationRow').style.display = 'flex';
     if (el('qNicheArrangeOptions')) el('qNicheArrangeOptions').style.display = 'block';
-    var nicheLbl = 'Niche Space' + (nicheQ > 1 ? ' \xd7' + nicheQ : '') + (nicheLoc ? ' \u2014 ' + nicheLoc : '');
-    lines.push({label: nicheLbl, amount: nicheP * nicheQ, taxable: false, isSpace: true});
-    lines.push({label: 'Niche ECF (10%)', amount: nicheEcf * nicheQ, taxable: false, isSpace: true});
+    if (!nicheOwned) {
+      var nicheLbl = 'Niche Space' + (nicheQ > 1 ? ' \xd7' + nicheQ : '') + (nicheLoc ? ' \u2014 ' + nicheLoc : '');
+      lines.push({label: nicheLbl, amount: nicheP * nicheQ, taxable: false, isSpace: true});
+      lines.push({label: 'Niche ECF (10%)', amount: nicheEcf * nicheQ, taxable: false, isSpace: true});
+    }
     // Glass Front Niche Arrangement
     if (chk('qNicheGlass')) {
       var ngQ = qty('qNicheGlassQty');
@@ -7213,7 +7223,7 @@ function resetCemQuote() {
    'qSettingBurial','qSettingCrem',
    'qRecGround','qRecMaus','qRecNiche',
    'qAfter3','qFriSatSun','qHoliday','qWitnessMon','qWitnessFri','qDeedChange',
-   'qAddEmblems','qProofRev','q2ndRight','q3rdRight','qSpaceOwned',
+   'qAddEmblems','qProofRev','q2ndRight','q3rdRight','qSpaceOwned','qNicheOwned',
    'qInscRush','qInscPoem','qInscLargePoem','qInscRaised','qInscPanel','qInscEmblem','qInscProof',
    'q3pWitness','qBurialArrange','qUrnArrange',
    'qPin2','qPin4','qPin6','qPinOnsite','qPcmHourly','qPullMarker','qDrillHole','qCoreHole','qCutGranite',
@@ -9452,6 +9462,17 @@ function persistSavedQuotes(_retries) {
     .catch(function(e){ console.warn('persistSavedQuotes failed', e); _fbSavingQuotes = false; });
 }
 
+// If a save with the same name already exists, offer to overwrite it (OK) instead of piling up
+// duplicates; Cancel keeps both (the previous behavior). Mutates arr in place, removing the matched
+// entries so the caller's unshift replaces them. Shared by every Save function below.
+function _overwriteSavedByLabel(arr, label) {
+  var norm = (label || '').trim().toLowerCase();
+  if (!arr.some(function(q){ return (q.label || '').trim().toLowerCase() === norm; })) return;
+  if (!confirm('A saved item named "' + label + '" already exists.\n\nOK = overwrite it    Cancel = keep both')) return;
+  for (var i = arr.length - 1; i >= 0; i--) {
+    if ((arr[i].label || '').trim().toLowerCase() === norm) arr.splice(i, 1);
+  }
+}
 function saveCemQuote() {
   try {
     var clientName = (val('cemClientName') || '').trim();
@@ -9461,6 +9482,7 @@ function saveCemQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
+    _overwriteSavedByLabel(_cemSavedQuotes, label);
     _cemSavedQuotes.unshift(snap);
     if (_cemSavedQuotes.length > 10) _cemSavedQuotes = _cemSavedQuotes.slice(0, 10);
     renderSavedQuotesList('cem');
@@ -9478,6 +9500,7 @@ function saveFhQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
+    _overwriteSavedByLabel(_fhSavedQuotes, label);
     _fhSavedQuotes.unshift(snap);
     if (_fhSavedQuotes.length > 10) _fhSavedQuotes = _fhSavedQuotes.slice(0, 10);
     renderSavedQuotesList('fh');
@@ -9509,6 +9532,7 @@ function saveRicContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
+    _overwriteSavedByLabel(_ricSavedContracts, label);
     _ricSavedContracts.unshift(snap);
     if (_ricSavedContracts.length > 10) _ricSavedContracts = _ricSavedContracts.slice(0, 10);
     renderSavedQuotesList('ric');
@@ -9553,6 +9577,7 @@ function saveGaContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
+    _overwriteSavedByLabel(_gaSavedContracts, label);
     _gaSavedContracts.unshift(snap);
     if (_gaSavedContracts.length > 10) _gaSavedContracts = _gaSavedContracts.slice(0, 10);
     renderSavedQuotesList('ga');
@@ -9622,6 +9647,7 @@ function saveCpContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
+    _overwriteSavedByLabel(_cpSavedContracts, label);
     _cpSavedContracts.unshift(snap);
     if (_cpSavedContracts.length > 10) _cpSavedContracts = _cpSavedContracts.slice(0, 10);
     renderSavedQuotesList('cp');
@@ -11508,6 +11534,7 @@ function saveAnContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
+    _overwriteSavedByLabel(_anSavedContracts, label);
     _anSavedContracts.unshift(snap);
     if (_anSavedContracts.length > 10) _anSavedContracts = _anSavedContracts.slice(0, 10);
     renderSavedQuotesList('an');
