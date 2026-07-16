@@ -2176,7 +2176,7 @@ tr:hover td{background:#eef3f8;}
               <optgroup label="── Alternative Containers ──">
                 <option value="880">Standard Brown — $880</option>
                 <option value="595">Baden — $595</option>
-                <option value="480">Trayview — $480</option>
+                <option value="480">Trayview Cremation Container (#242414) — $480</option>
               </optgroup>
             </select>
             <span id="fhCremContainerDisp" class="q-price-disp">—</span>
@@ -4930,12 +4930,27 @@ async function printGAContract() {
 
     // Shrink fonts where pdf-lib's height-based auto-size overflows the field WIDTH:
     // the firm street address (page-5 widget is narrow) and the comb-style Producer/Firm IDs.
-    [['Funeral Firm Street Address', 11], ['A4176-PG1-2', 12], ['A4176-PG1-3', 12],
-     // "Other (specify)" label cells are narrow — keep combined/discount labels from clipping.
-     ['1002-14 - Other (specify)', 7], ['1002-14 - Other (specify) - 2', 7],
-     ['1002-14 - Other - specify 1', 7], ['1002-14 - Other - specify 2', 7], ['1002-14 - Other - specify 3', 7]
+    [['Funeral Firm Street Address', 11], ['A4176-PG1-2', 12], ['A4176-PG1-3', 12]
     ].forEach(function(p){
       try { form.getTextField(p[0]).setFontSize(p[1]); } catch(e) {}
+    });
+    // "Other (specify)" label cells are narrow and hold variable-length text (combined item lists,
+    // the cremation "Service Savings" discount, etc.). A fixed 7pt still overran the cell for longer
+    // labels, so the letters clipped away entirely. Size each field DYNAMICALLY to its own text —
+    // measure the set value against the widget width and step down from 8pt only as far as needed.
+    ['1002-14 - Other (specify)', '1002-14 - Other (specify) - 2',
+     '1002-14 - Other - specify 1', '1002-14 - Other - specify 2', '1002-14 - Other - specify 3'
+    ].forEach(function(name){
+      try {
+        var f = form.getTextField(name);
+        var txt = f.getText() || '';
+        var size = 8;
+        if (txt) {
+          var avail = f.acroField.getWidgets()[0].getRectangle().width - 4;
+          while (size > 4 && font.widthOfTextAtSize(txt, size) > avail) size -= 0.5;
+        }
+        f.setFontSize(size);
+      } catch(e) {}
     });
 
     // Render field appearances with an embedded font so values display without a click,
@@ -7619,7 +7634,7 @@ var FH_PLANS = {
     ]},
     '3535': {name:'Direct Cremation — Trayview Container', price:3535, items:[
       ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
-      ['Cremation Fee',385],['Service Savings',-470],['Trayview Cremation Container',480,true]
+      ['Cremation Fee',385],['Service Savings',-470],['Trayview Cremation Container (#242414)',480,true]
     ]},
     '3935': {name:'Direct Cremation — Standard Brown Container', price:3935, items:[
       ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
@@ -12190,6 +12205,22 @@ async function generateClearPointContract() {
     var _cpFont;
     try {
       _cpFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      // Dynamically shrink the narrow left "Specify" label cells (incl. the cremation discount /
+      // "Service Savings" line) to fit their own text, so long labels don't clip to nothing. Sized
+      // before updateFieldAppearances so the baked-in (flattened) appearance uses the fitted size.
+      ['Specify 1', 'Specify 2', 'OTHER MERCHANDISE Specify 1', 'OTHER MERCHANDISE Specify 2'
+      ].forEach(function(name){
+        try {
+          var f = form.getTextField(name);
+          var txt = f.getText() || '';
+          var size = 8;
+          if (txt) {
+            var avail = f.acroField.getWidgets()[0].getRectangle().width - 4;
+            while (size > 4 && _cpFont.widthOfTextAtSize(txt, size) > avail) size -= 0.5;
+          }
+          f.setFontSize(size);
+        } catch(e) {}
+      });
       form.updateFieldAppearances(_cpFont);
     } catch(e) { try { form.updateFieldAppearances(); } catch(e2) {} }
 
