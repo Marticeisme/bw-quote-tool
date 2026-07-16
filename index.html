@@ -14596,12 +14596,13 @@ async function _fillCirgasXlsx(data) {
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + (ir + 4), 's', isg.phone);
     }
 
-    // Cemetery Rules & Regs — Purchaser/Family Service Director signature date lines (H81/O81)
-    // were entirely blank in every generation; every other field on this sheet already cascades
-    // from Information, so this was the only missing piece.
+    // Cemetery Rules & Regs — Purchaser/Family Service Director signature date lines. The date
+    // value cells are merged ranges G81:H81 and N81:O81 — Excel only renders a write to a merge's
+    // TOP-LEFT cell (H81/O81, the previous target, are the second cell of each merge and silently
+    // discard anything written there, same pattern as the IOA H47 merge documented above).
     var todayStr = _xlsxDateStr(new Date().toISOString().slice(0,10));
-    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'H81', 's', todayStr);
-    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'O81', 's', todayStr);
+    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'G81', 's', todayStr);
+    await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'N81', 's', todayStr);
   }
 
 
