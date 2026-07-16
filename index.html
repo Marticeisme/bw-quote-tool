@@ -3073,8 +3073,8 @@ tr:hover td{background:#eef3f8;}
             <option>Witness Placement (WIT P)</option>
             <option value="custom">Custom / Other…</option>
           </select>
-          <input type="text" id="anIaServiceTypeOther" placeholder="Type your own" oninput="anCustomToggle(el('anIaServiceType'),'anIaServiceTypeOther')" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
+        <input type="text" id="anIaServiceTypeOther" placeholder="✏️ Type your custom Service Type here…" style="display:none;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 10px;border:2px solid #c8540a;border-radius:6px;font-size:13px;">
         <div class="q-row" style="margin-top:8px;">
           <label>Service Coming From</label>
           <select id="anIaServiceComingFrom" onchange="anCustomToggle(this,'anIaServiceComingFromOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
@@ -3088,8 +3088,8 @@ tr:hover td{background:#eef3f8;}
             <option>Meet at Maus</option>
             <option value="custom">Custom / Other…</option>
           </select>
-          <input type="text" id="anIaServiceComingFromOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
+        <input type="text" id="anIaServiceComingFromOther" placeholder="✏️ Type your custom Service Coming From here…" style="display:none;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 10px;border:2px solid #c8540a;border-radius:6px;font-size:13px;">
         <div class="q-row" style="margin-top:8px;">
           <label>Emblem</label>
           <select id="anIaEmblem" onchange="anCustomToggle(this,'anIaEmblemOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
@@ -3118,7 +3118,6 @@ tr:hover td{background:#eef3f8;}
             <option>Wreath</option>
             <option value="custom">Custom / Other…</option>
           </select>
-          <input type="text" id="anIaEmblemOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
           <label style="margin-left:12px;">Witness Lowering?</label>
           <select id="anIaWitness" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;margin-left:6px;">
             <option value="">—</option>
@@ -3126,6 +3125,7 @@ tr:hover td{background:#eef3f8;}
             <option value="nonwitness">Non-Witness</option>
           </select>
         </div>
+        <input type="text" id="anIaEmblemOther" placeholder="✏️ Type your custom Emblem here…" style="display:none;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 10px;border:2px solid #c8540a;border-radius:6px;font-size:13px;">
         <div style="font-size:11px;color:var(--text-light);margin-top:4px;">"Witness"/"Non-Witness" automatically relabels to "...Placement" instead of "...Lowering" for mausoleum/niche placements (based on the Open/Close field above).</div>
         <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
         <div class="q-row">
@@ -3138,8 +3138,8 @@ tr:hover td{background:#eef3f8;}
             <option>Pending Cremation at BW</option>
             <option value="custom">Custom / Other…</option>
           </select>
-          <input type="text" id="anIaCremStatusOther" placeholder="Type your own" style="display:none;flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
         </div>
+        <input type="text" id="anIaCremStatusOther" placeholder="✏️ Type your custom Status of Cremated Remains here…" style="display:none;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 10px;border:2px solid #c8540a;border-radius:6px;font-size:13px;">
         <div class="q-row" style="margin-top:8px;">
           <label>Type of Urn</label>
           <input type="text" id="anIaUrnType" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
@@ -14103,6 +14103,49 @@ function _xlsxFlushSheetCache(zip, pathMap, cache) {
     if (cache[name] != null && pathMap[name]) zip.file(pathMap[name], cache[name]);
   });
 }
+// Apply Excel "shrink to fit" to a single cell so a long string (e.g. a full urn-dimension line)
+// auto-scales down to the column width instead of clipping at the cell's right edge. The cell's
+// current style is CLONED into a brand-new cellXfs entry with shrinkToFit added, then the cell is
+// repointed at the clone — so any other cells sharing the original style are left untouched.
+async function _xlsxShrinkCell(zip, pathMap, cache, sheetName, coord) {
+  if (cache[sheetName] === undefined) {
+    var p = pathMap[sheetName]; if (!p) { cache[sheetName] = null; return; }
+    cache[sheetName] = await zip.file(p).async('string');
+  }
+  if (cache[sheetName] == null) return;
+  var sheetXml = cache[sheetName];
+  var cm = sheetXml.match(new RegExp('<c r="' + coord + '"([^>]*?)(/>|>[\\s\\S]*?</c>)'));
+  if (!cm) return;
+  var sMatch = cm[1].match(/\ss="(\d+)"/);
+  if (!sMatch) return;
+  var oldIdx = parseInt(sMatch[1], 10);
+  var stylesXml = await zip.file('xl/styles.xml').async('string');
+  var cx = stylesXml.match(/(<cellXfs\b[^>]*count=")(\d+)("[^>]*>)([\s\S]*?)(<\/cellXfs>)/);
+  if (!cx) return;
+  // Match a whole xf element: either self-closing <xf .../> OR container <xf ...>…</xf>. A lazy
+  // "<xf…(/>|</xf>)" is WRONG — it stops at the first "/>", which for a container xf is the inner
+  // <alignment/>, truncating the element and dropping its closing </xf> (corrupts styles.xml).
+  var xfs = cx[4].match(/<xf\b[^>]*\/>|<xf\b[^>]*>[\s\S]*?<\/xf>/g) || [];
+  if (oldIdx >= xfs.length) return;
+  var oldXf = xfs[oldIdx];
+  if (/<alignment\b[^>]*shrinkToFit/.test(oldXf)) return; // already shrink-to-fit
+  var newXf;
+  if (/<alignment\b/.test(oldXf)) {
+    newXf = oldXf.replace(/<alignment\b([^>]*?)\/>/, function(_, a){ return '<alignment' + a + ' shrinkToFit="1"/>'; });
+  } else if (/\/>\s*$/.test(oldXf)) {
+    newXf = oldXf.replace(/\/>\s*$/, '><alignment shrinkToFit="1"/></xf>');
+    if (!/applyAlignment=/.test(newXf)) newXf = newXf.replace(/^<xf\b/, '<xf applyAlignment="1"');
+  } else {
+    newXf = oldXf.replace(/<\/xf>\s*$/, '<alignment shrinkToFit="1"/></xf>');
+    if (!/applyAlignment=/.test(newXf)) newXf = newXf.replace(/^<xf\b/, '<xf applyAlignment="1"');
+  }
+  var newIdx = xfs.length;
+  var newStyles = stylesXml.replace(/(<cellXfs\b[^>]*count=")(\d+)("[^>]*>)([\s\S]*?)(<\/cellXfs>)/,
+    function(_, a, cnt, c, body, close){ return a + (parseInt(cnt, 10) + 1) + c + body + newXf + close; });
+  zip.file('xl/styles.xml', newStyles);
+  var newCellTag = cm[0].replace(/\ss="\d+"/, ' s="' + newIdx + '"');
+  cache[sheetName] = sheetXml.slice(0, cm.index) + newCellTag + sheetXml.slice(cm.index + cm[0].length);
+}
 
 async function _fillWorksheetXlsx(data) {
   var bytes = Uint8Array.from(atob(COMM_WS_XLSX_B64), function(c){ return c.charCodeAt(0); });
@@ -14326,7 +14369,12 @@ async function _fillCirgasXlsx(data) {
   if (data.decFirst) await setCC('G15', 's', data.decFirst);
   if (data.decMiddle) await setCC('K15', 's', data.decMiddle);
   if (data.decLast) await setCC('O15', 's', data.decLast);
-  await setCC('U15', 's', _xlsxDateStr(data.arrangementDate));
+  // U15's template format is the long date "[$-F800]dddd, mmmm dd, yyyy" ("Thursday, July 16,
+  // 2026") and _xlsxSetCell preserves the cell's style, so write a numeric SERIAL (not a
+  // pre-formatted MM/DD/YYYY string) — the serial renders through the cell's own long-date format,
+  // whereas a string ignored the format and showed "07/16/2026". Blank stays blank (no epoch date).
+  if (data.arrangementDate) await setCC('U15', 'n', _xlsxDateSerial(data.arrangementDate));
+  else await setCC('U15', 's', '');
 
   // Purchaser / Co-Purchaser signature block on the Cemetery Contract sheet itself (distinct from
   // the Interment Auth signature block above) — same bare-formula-shows-"0" bug as everywhere
@@ -14540,6 +14588,9 @@ async function _fillCirgasXlsx(data) {
     await setIa('G37', 's', data.iaCremStatus);
     await setIa('C39', 's', data.iaUrnType);
     await setIa('Q39', 's', data.iaUrnSize);
+    // Urn dimension strings (e.g. "H 6.38 in • L 6.75 in • W 9.69 in") overrun the Q39:U39 box and
+    // clip at the right edge — shrink-to-fit auto-scales the font so the full text stays visible.
+    await _xlsxShrinkCell(zip, pathMap, cache, 'INTERMENT AUTH NEW', 'Q39');
     // Interment Type reuses the Contract tab's own Open/Close field (e.g. "Lawn Interment") —
     // same value real completed files show here, no separate field needed.
     await setIa('R27', 's', data.openClose);
@@ -14605,6 +14656,21 @@ async function _fillCirgasXlsx(data) {
     await _xlsxSetCellInSheet(zip, pathMap, cache, 'Cemetery Rules', 'N81', 's', todayStr);
   }
 
+  // Strip internal "helper" instruction texts baked into the template that shouldn't print on a
+  // finished contract — the red "This field will populate from the Information tab" notes and the
+  // "BLUE FIELDS ARE SELF POPULATING FROM THE INFORMATION TAB" banners. Blanking keeps each cell's
+  // style; the fields they annotate still cascade from Information exactly as before.
+  var INSTRUCTION_CELLS = [
+    ['Mem Order Flat Mrkr & Bronze', 'L5'],
+    ['Mem Order Form Upright & Other', 'L5'],
+    ['Mem Order Form Addl Signers', 'U3'],
+    ['INTERMENT AUTH NEW', 'V60'],
+    ['INTERMENT AUTH NEW', 'V76'],
+    ['IOA ADDL SIGNERS', 'U3']
+  ];
+  for (var ic = 0; ic < INSTRUCTION_CELLS.length; ic++) {
+    await _xlsxSetCellInSheet(zip, pathMap, cache, INSTRUCTION_CELLS[ic][0], INSTRUCTION_CELLS[ic][1], 's', '');
+  }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
 
