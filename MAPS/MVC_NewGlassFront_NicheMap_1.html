@@ -86,18 +86,16 @@
   .ttnote{margin-top:5px;font-size:9px;color:var(--gold-light);opacity:.8;font-style:italic;}
   .ttdim{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(200,169,110,.25);font-size:9.5px;color:var(--gold);letter-spacing:.02em;}
 
+  /* Overview panels: suppress hover effects on miniature grids */
+  .overview-panel .n:hover{transform:none;box-shadow:none;border-color:rgba(200,169,110,.3);}
+
   /* Print button (screen only) */
   .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .15s;}
   .print-btn:hover{background:rgba(200,169,110,.28);}
 
   /* ── PRINT STYLESHEET ─────────────────────────────────────────
-     Screen version stays exactly as designed (dark navy/gold).
-     Print flips to a white background for ink/toner efficiency,
-     but keeps the price-tier tile colors (.c7-.c48) intact since
-     those ARE the information -- and forces every wall/section to
-     print regardless of which tab is active on screen, since the
-     point of printing is a complete physical reference, not just
-     whatever happened to be open. */
+     Print only the currently active view/wall (not all walls).
+     Use the Overview tab to print all walls at once. */
   @media print {
     .no-print, .ptabs, .tabs, .tt, #ttip, .owrap { display:none !important; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -105,9 +103,6 @@
     .header { background:#fff !important; border-bottom:2px solid #c8540a !important; padding:10px 0; }
     .htxt h1 { color:#1a2744 !important; }
     .htxt p { color:#555 !important; }
-    .psec { display:block !important; }
-    .wview { display:block !important; break-before: page; }
-    .wview:first-of-type { break-before: avoid; }
     .wlabel { color:#1a2744 !important; }
     .wsub { color:#555 !important; }
     .gwrap { background:#fff !important; border:1px solid #999 !important; }
@@ -119,6 +114,11 @@
     .fl { color:#1a2744 !important; }
     .fv { color:#333 !important; }
     .fees input { border:1px solid #999 !important; background:#fff !important; color:#1a1a1a !important; }
+    /* Overview mode: show all walls when the overview tab is active */
+    body.print-overview .psec { display:block !important; }
+    body.print-overview .wview { display:block !important; break-before: page; }
+    body.print-overview .wview:first-of-type { break-before: avoid; }
+    body.print-overview .overview-tab-content { display:none !important; }
   }
 </style>
 </head>
@@ -155,6 +155,7 @@
   <button class="tab" onclick="sw('back')">Back Wall</button>
   <button class="tab" onclick="sw('north')">North Wall</button>
   <button class="tab" onclick="sw('south')">South Wall</button>
+  <button class="tab" onclick="swOverview()" style="margin-left:auto;border-left:1px solid var(--gb);">Overview (All Walls)</button>
 </div>
 <div class="main">
   <div class="psec active" id="psec-mvc">
@@ -193,6 +194,30 @@
     <div class="wsub">A = bottom · G = top · Same dimensions as North Wall</div>
     <div class="gwrap"><div id="sww"></div></div>
     <div class="legend" id="lg-south"></div>
+  </div>
+
+  <div class="wview" id="wall-overview">
+    <div class="wlabel">All Walls — Overview</div>
+    <div class="wsub">Print this page for a complete reference of all four walls</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px;margin:0 auto;">
+      <div class="overview-panel">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Front Wall (Entry)</div>
+        <div class="gwrap" style="padding:10px 12px;"><div id="ov-fw"></div></div>
+      </div>
+      <div class="overview-panel">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Back Wall</div>
+        <div class="gwrap" style="padding:10px 12px;"><div id="ov-bw"></div></div>
+      </div>
+      <div class="overview-panel">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">North Wall</div>
+        <div class="gwrap" style="padding:10px 12px;"><div id="ov-nw"></div></div>
+      </div>
+      <div class="overview-panel">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">South Wall</div>
+        <div class="gwrap" style="padding:10px 12px;"><div id="ov-sww"></div></div>
+      </div>
+    </div>
+    <div class="legend" id="lg-overview"></div>
   </div>
 
   <div class="fees">
@@ -712,6 +737,7 @@ buildTGN();
 
 // ── Property switching (MVC vs TGN) ──────────────────
 function swProp(p){
+  document.body.classList.remove('print-overview');
   document.querySelectorAll('.psec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
   document.getElementById('psec-'+p).classList.add('active');
@@ -802,6 +828,55 @@ function tapTGN(e,el){
 document.addEventListener('click',e=>{
   if(!e.target.closest('.n')&&!e.target.closest('#ttip'))htt();
 });
+
+// ── Overview ───────────────────────────────────────────
+(function buildOverview(){
+  const pairs = [
+    {src:'fw', dst:'ov-fw'},
+    {src:'bw', dst:'ov-bw'},
+    {src:'nw', dst:'ov-nw'},
+    {src:'sww',dst:'ov-sww'}
+  ];
+  pairs.forEach(function(p){
+    const srcEl = document.getElementById(p.src);
+    const dstEl = document.getElementById(p.dst);
+    if(!srcEl||!dstEl) return;
+    const clone = srcEl.firstElementChild.cloneNode(true);
+    clone.style.fontSize='6px';
+    clone.style.gap='1px';
+    clone.querySelectorAll('.n').forEach(function(n){
+      n.style.padding='1px';
+      n.style.cursor='default';
+      n.onmouseenter=null; n.onmouseleave=null; n.onclick=null;
+      n.removeAttribute('onmouseenter');
+      n.removeAttribute('onmouseleave');
+      n.removeAttribute('onclick');
+    });
+    clone.querySelectorAll('.nid').forEach(function(el){ el.style.fontSize='5px'; });
+    clone.querySelectorAll('.nprice').forEach(function(el){ el.style.fontSize='7px'; });
+    clone.querySelectorAll('.ncap').forEach(function(el){ el.style.fontSize='5px'; });
+    clone.querySelectorAll('.rlbl').forEach(function(el){ el.style.fontSize='9px'; });
+    clone.querySelectorAll('.pnl').forEach(function(el){ el.style.fontSize='5px'; });
+    dstEl.appendChild(clone);
+  });
+  legend('lg-overview',[7000,8000,10000,12000,14000,16000,18000,20000,42000,48000]);
+})();
+
+function swOverview(){
+  document.querySelectorAll('.wview').forEach(function(v){ v.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.ow').forEach(function(d){ d.classList.remove('act'); });
+  document.getElementById('wall-overview').classList.add('active');
+  document.querySelector('.tab[onclick*="swOverview"]').classList.add('active');
+  document.body.classList.add('print-overview');
+}
+
+// Remove print-overview class when switching to a single wall
+var origSw = sw;
+sw = function(w){
+  document.body.classList.remove('print-overview');
+  origSw(w);
+};
 </script>
 </body>
 </html>

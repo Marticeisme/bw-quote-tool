@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burial Vault Guide · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2d4a6b; --navy-deep:#1e3a55; --orange:#c8540a;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2;
+  --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
+  --text:#1a2332; --text-light:#5a6a7a; --muted:#9aaab8;
+  --gold:#b89a5a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--white);color:var(--text);line-height:1.6;}
+
+/* ── HEADER ── */
+.site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header-inner{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
+.header-logo{height:34px;width:auto;flex-shrink:0;}
+.header-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-spacer{flex:1;}
+.header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;transition:background .15s;}
+.header-back:hover{background:rgba(255,255,255,.12);}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);padding:60px 24px 50px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15Z' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");pointer-events:none;}
+.hero-kicker{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px;}
+.hero h1{font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.2;}
+.hero-sub{font-size:16px;color:rgba(255,255,255,.75);max-width:640px;margin:0 auto;line-height:1.55;}
+.hero-divider{width:60px;height:3px;background:var(--orange);margin:22px auto 0;border-radius:2px;}
+
+/* ── QUICK NAV ── */
+.quick-nav{background:var(--offwhite);border-bottom:1px solid var(--gray-mid);padding:12px 24px;text-align:center;}
+.quick-nav a{display:inline-block;font-size:12px;font-weight:600;color:var(--navy);text-decoration:none;padding:5px 14px;border-radius:20px;margin:3px 4px;transition:all .15s;border:1px solid transparent;}
+.quick-nav a:hover{background:var(--navy);color:#fff;}
+
+/* ── SECTION HEADERS ── */
+.section-header{max-width:1100px;margin:0 auto;padding:48px 24px 20px;text-align:center;}
+.section-header .kicker{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-header h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:8px;line-height:1.25;}
+.section-header p{font-size:15px;color:var(--text-light);max-width:600px;margin:0 auto;line-height:1.55;}
+.section-header .rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin:14px auto 0;}
+
+/* ── PROTECTION TIERS ── */
+.tiers-row{max-width:1000px;margin:0 auto 48px;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.tier-card{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.06);border:1px solid var(--gray-mid);text-align:center;transition:transform .2s,box-shadow .2s;}
+.tier-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.1);}
+.tier-card img{width:100%;height:200px;object-fit:contain;background:linear-gradient(180deg,#eef1f5 0%,#d8dde4 100%);padding:16px;}
+.tier-card-body{padding:18px 20px 22px;}
+.tier-card h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.tier-card p{font-size:13px;color:var(--text-light);line-height:1.5;}
+.tier-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-bottom:10px;}
+.tier-badge.premium{background:#f0e6d0;color:#8b6914;}
+.tier-badge.triune{background:#dce8f0;color:#3d5a7a;}
+.tier-badge.standard{background:#e8eae6;color:#5a6a5a;}
+
+/* ── PRODUCT CARDS ── */
+.products-wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+.product-card{display:flex;align-items:stretch;background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.06);border:1px solid var(--gray-mid);margin-bottom:32px;min-height:340px;transition:box-shadow .2s;}
+.product-card:hover{box-shadow:0 6px 32px rgba(0,0,0,.1);}
+.product-card.reverse{flex-direction:row-reverse;}
+.product-img{flex:0 0 58%;position:relative;overflow:hidden;}
+.product-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.product-card:hover .product-img img{transform:scale(1.02);}
+.product-info{flex:1;padding:32px 30px;display:flex;flex-direction:column;justify-content:center;}
+.product-info .tier-badge{align-self:flex-start;}
+.product-info h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy);margin-bottom:8px;line-height:1.2;}
+.product-price{font-size:28px;font-weight:700;color:var(--orange);margin-bottom:14px;letter-spacing:-.01em;}
+.product-desc{font-size:14px;color:var(--text-light);line-height:1.6;margin-bottom:16px;}
+.product-features{list-style:none;padding:0;}
+.product-features li{font-size:13px;color:var(--text);padding:4px 0 4px 20px;position:relative;}
+.product-features li::before{content:'';position:absolute;left:0;top:10px;width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.6;}
+.veteran-flag{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--navy);padding:2px 10px;border-radius:4px;margin-left:8px;vertical-align:middle;}
+
+/* ── TABLES ── */
+.table-wrap{max-width:900px;margin:0 auto 48px;padding:0 24px;overflow-x:auto;}
+.vault-table{width:100%;border-collapse:collapse;font-size:14px;}
+.vault-table thead th{background:var(--navy);color:#fff;font-weight:600;padding:12px 16px;text-align:left;font-size:13px;letter-spacing:.03em;}
+.vault-table thead th:last-child{text-align:right;}
+.vault-table tbody td{padding:12px 16px;border-bottom:1px solid var(--gray-light);}
+.vault-table tbody td:last-child{text-align:right;font-weight:700;color:var(--navy);font-size:15px;}
+.vault-table tbody tr:hover{background:var(--offwhite);}
+.vault-table .vet{color:var(--navy);font-weight:600;}
+
+/* ── LOVED & CHERISHED ── */
+.loved-section{max-width:1100px;margin:0 auto 48px;padding:0 24px;}
+.loved-card{display:flex;align-items:center;background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.06);border:1px solid var(--gray-mid);}
+.loved-card .product-img{flex:0 0 50%;}
+.loved-card .product-info{padding:32px 30px;}
+
+/* ── FEES ── */
+.fees-bar{max-width:900px;margin:0 auto 48px;padding:0 24px;}
+.fees-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.fee-card{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);border-radius:12px;padding:24px;color:#fff;text-align:center;}
+.fee-card .fee-label{font-size:14px;font-weight:400;color:rgba(255,255,255,.8);margin-bottom:6px;}
+.fee-card .fee-amount{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;}
+
+/* ── PRICING SUMMARY ── */
+.summary-section{background:var(--offwhite);padding:48px 24px;margin-bottom:0;}
+.summary-inner{max-width:900px;margin:0 auto;}
+.summary-inner h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--navy);margin-bottom:20px;text-align:center;}
+
+/* ── FOOTER ── */
+.site-footer{background:var(--navy);padding:28px 24px;text-align:center;}
+.site-footer p{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;}
+.site-footer a{color:rgba(255,255,255,.7);text-decoration:none;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero h1{font-size:28px;}
+  .tiers-row{grid-template-columns:1fr;max-width:400px;}
+  .product-card,.product-card.reverse{flex-direction:column;}
+  .product-img{flex:0 0 auto;height:260px;}
+  .product-info{padding:24px 20px;}
+  .product-info h2{font-size:22px;}
+  .product-price{font-size:24px;}
+  .loved-card{flex-direction:column;}
+  .loved-card .product-img{flex:0 0 auto;height:260px;}
+  .fees-grid{grid-template-columns:1fr;}
+  .section-header h2{font-size:24px;}
+  .quick-nav a{font-size:11px;padding:4px 10px;}
+}
+
+/* ── PRINT ── */
+@media print{
+  body{font-size:11pt;background:#fff;}
+  .site-header,.quick-nav,.site-footer{display:none;}
+  .hero{padding:30px 20px;background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .hero h1{font-size:26pt;}
+  .product-card,.product-card.reverse{break-inside:avoid;page-break-inside:avoid;margin-bottom:20px;box-shadow:none;border:1px solid #ccc;}
+  .product-card:hover .product-img img{transform:none;}
+  .tier-card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
+  .tier-card:hover{transform:none;}
+  .product-img img{max-height:280px;object-fit:contain;}
+  .fees-bar,.fees-grid{break-inside:avoid;}
+  .fee-card{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .vault-table thead th{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  a{text-decoration:none;color:inherit;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <div class="header-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="header-logo">
+    <span class="header-title">Burial Vault Guide</span>
+    <div class="header-spacer"></div>
+    <a href="guides.html" class="header-back">All Guides</a>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-kicker">Bonney Watson</div>
+  <h1>Burial Vault Selection Guide</h1>
+  <p class="hero-sub">Understanding the options available to protect and honor your loved one. Every vault is designed to provide lasting protection in the ground.</p>
+  <div class="hero-divider"></div>
+</section>
+
+<!-- ═══ QUICK NAV ═══ -->
+<nav class="quick-nav">
+  <a href="#protection">Protection Levels</a>
+  <a href="#premium">Premium</a>
+  <a href="#triune">Triune Series</a>
+  <a href="#std">Standard</a>
+  <a href="#urn-vaults">Urn Vaults</a>
+  <a href="#infant">Loved &amp; Cherished</a>
+  <a href="#fees">Setting Fees</a>
+  <a href="#all-pricing">All Pricing</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROTECTION LEVELS                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="protection">
+  <div class="section-header">
+    <div class="kicker">Understanding Protection</div>
+    <h2>Three Levels of Vault Construction</h2>
+    <p>Burial vaults are engineered to protect the casket from the weight of the earth and heavy cemetery maintenance equipment. Each tier offers increasing levels of protection through advanced materials and construction.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="tiers-row">
+    <div class="tier-card">
+      <img src="vault-images/page04_img0_478x541.png" alt="Premium protection cutaway">
+      <div class="tier-card-body">
+        <span class="tier-badge premium">Premium</span>
+        <h3>Bronze or Copper Lined</h3>
+        <p>Reinforced concrete encased in a bronze or copper carapace with a metal-lined interior for maximum protection.</p>
+      </div>
+    </div>
+    <div class="tier-card">
+      <img src="vault-images/page04_img1_478x538.png" alt="Triune protection cutaway">
+      <div class="tier-card-body">
+        <span class="tier-badge triune">Triune</span>
+        <h3>Metal-Lined Concrete</h3>
+        <p>Reinforced concrete with an interior liner of stainless steel, copper, or bronze for triple-layer protection.</p>
+      </div>
+    </div>
+    <div class="tier-card">
+      <img src="vault-images/page04_img2_478x534.png" alt="Standard protection cutaway">
+      <div class="tier-card-body">
+        <span class="tier-badge standard">Standard</span>
+        <h3>Reinforced Concrete</h3>
+        <p>High-strength reinforced concrete with a textured carapace exterior, engineered for long-term durability.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PREMIUM TIER                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="premium">
+  <div class="section-header">
+    <div class="kicker">Premium Protection</div>
+    <h2>The Wilbert Bronze</h2>
+    <p>The pinnacle of burial vault craftsmanship, featuring a solid bronze exterior over reinforced concrete.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="products-wrap">
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page05_img0_1653x1279.png" alt="Wilbert Bronze Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge premium">Premium Protection</span>
+        <h2>Wilbert Bronze</h2>
+        <div class="product-price">$29,815</div>
+        <p class="product-desc">The finest burial vault available, the Wilbert Bronze combines a solid cast bronze exterior with reinforced concrete for unmatched protection and enduring beauty.</p>
+        <ul class="product-features">
+          <li>Solid bronze exterior shell</li>
+          <li>Reinforced concrete core</li>
+          <li>Bronze-lined interior</li>
+          <li>Personalization panel included</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- TRIUNE SERIES                               -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="triune">
+  <div class="section-header">
+    <div class="kicker">Metal-Lined Protection</div>
+    <h2>The Triune Series</h2>
+    <p>Triple-layer construction combines reinforced concrete with a metal interior liner and decorative carapace for lasting protection and personalization.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="products-wrap">
+
+    <!-- Bronze Triune -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page06_img0_1653x1279.png" alt="Bronze Triune Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge triune">Triune Series</span>
+        <h2>Bronze Triune</h2>
+        <div class="product-price">$8,605</div>
+        <p class="product-desc">Bronze-lined reinforced concrete with a distinctive carapace finish. Features a customizable decorative panel on the lid for personal artwork or imagery.</p>
+        <ul class="product-features">
+          <li>Bronze interior liner</li>
+          <li>Reinforced concrete shell</li>
+          <li>Decorative carapace exterior</li>
+          <li>Customizable lid panel</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Copper Triune -->
+    <div class="product-card reverse">
+      <div class="product-img">
+        <img src="vault-images/page07_img0_1653x1279.png" alt="Copper Triune Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge triune">Triune Series</span>
+        <h2>Copper Triune</h2>
+        <div class="product-price">$7,655</div>
+        <p class="product-desc">Copper-lined reinforced concrete with the distinctive Triune triple-layer construction. The decorative lid panel can be personalized with meaningful artwork.</p>
+        <ul class="product-features">
+          <li>Copper interior liner</li>
+          <li>Reinforced concrete shell</li>
+          <li>Decorative carapace exterior</li>
+          <li>Customizable lid panel</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Stainless Steel Triune -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page08_img0_1653x1279.png" alt="Stainless Steel Triune Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge triune">Triune Series</span>
+        <h2>Stainless Steel Triune</h2>
+        <div class="product-price">$6,925</div>
+        <p class="product-desc">Stainless steel-lined reinforced concrete with the Triune triple-layer design. The decorative lid panel can feature a personalized photo collage or artwork.</p>
+        <ul class="product-features">
+          <li>Stainless steel interior liner</li>
+          <li>Reinforced concrete shell</li>
+          <li>Decorative carapace exterior</li>
+          <li>Customizable lid panel</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Cameo Rose -->
+    <div class="product-card reverse">
+      <div class="product-img">
+        <img src="vault-images/page09_img0_1653x1279.png" alt="Cameo Rose Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge triune">Triune Series</span>
+        <h2>Cameo Rose</h2>
+        <div class="product-price">$6,925</div>
+        <p class="product-desc">A distinctive rose-toned exterior with stainless steel-lined reinforced concrete construction. Features an elegant mirrored panel with cameo medallion and personalization nameplate.</p>
+        <ul class="product-features">
+          <li>Stainless steel interior liner</li>
+          <li>Rose-pink carapace finish</li>
+          <li>Cameo medallion detail</li>
+          <li>Personalization nameplate</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Veteran Triune -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page10_img0_1653x1279.png" alt="Veteran Triune Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge triune">Triune Series</span>
+        <h2>Veteran Triune <span class="veteran-flag">Veteran</span></h2>
+        <div class="product-price">$6,925</div>
+        <p class="product-desc">Honoring those who served, the Veteran Triune features a distinguished navy blue exterior with patriotic accents, military seal medallion, and stainless steel-lined construction.</p>
+        <ul class="product-features">
+          <li>Stainless steel interior liner</li>
+          <li>Navy blue patriotic exterior</li>
+          <li>Military seal medallion</li>
+          <li>Personalization nameplate</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STANDARD                                    -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="std">
+  <div class="section-header">
+    <div class="kicker">Reinforced Concrete</div>
+    <h2>Standard Protection</h2>
+    <p>High-strength reinforced concrete vaults engineered for long-term protection. Available in a range of styles and finishes.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="products-wrap">
+
+    <!-- Tribute (no photo) -->
+    <div class="product-card" style="min-height:200px;">
+      <div class="product-info" style="flex:1;text-align:center;justify-content:center;padding:40px;">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Tribute</h2>
+        <div class="product-price">$4,615</div>
+        <p class="product-desc">Reinforced concrete vault with a decorative carapace exterior and personalization options. A mid-range option that balances quality construction with value.</p>
+        <ul class="product-features" style="display:inline-block;text-align:left;">
+          <li>Reinforced concrete construction</li>
+          <li>Decorative carapace exterior</li>
+          <li>Personalization available</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Venetian -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page11_img0_1654x1279.png" alt="Venetian Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Venetian</h2>
+        <div class="product-price">$3,985</div>
+        <p class="product-desc">An elegant reinforced concrete vault with a warm marbled finish, decorative carapace, and personalization nameplate. A popular choice combining beauty and protection.</p>
+        <ul class="product-features">
+          <li>Reinforced concrete construction</li>
+          <li>Warm marble-tone exterior</li>
+          <li>Decorative carapace finish</li>
+          <li>Personalization nameplate</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Venetian in white -->
+    <div class="product-card reverse">
+      <div class="product-img">
+        <img src="vault-images/page12_img0_1653x1279.png" alt="Venetian in White">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Venetian</h2>
+        <div class="product-price" style="font-size:16px;color:var(--text-light);font-weight:500;">Also available in white</div>
+        <p class="product-desc">The Venetian is also available in a white finish, shown here with personalized photo and floral artwork on the decorative lid panel. The same reinforced construction in a lighter tone.</p>
+        <ul class="product-features">
+          <li>Same construction as standard Venetian</li>
+          <li>White carapace finish</li>
+          <li>Photo personalization shown</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Continental -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page13_img0_1658x1258.png" alt="Continental Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Continental</h2>
+        <div class="product-price">$2,825</div>
+        <p class="product-desc">A reinforced concrete vault with a textured carapace exterior and integrated carrying handles. Durable and dignified, the Continental offers reliable protection at an accessible price point.</p>
+        <ul class="product-features">
+          <li>Reinforced concrete construction</li>
+          <li>Textured carapace exterior</li>
+          <li>Integrated carrying handles</li>
+          <li>Personalization nameplate</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Veteran Salute -->
+    <div class="product-card reverse">
+      <div class="product-img">
+        <img src="vault-images/page15_img0_1653x1279.png" alt="Veteran Salute Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Veteran Salute <span class="veteran-flag">Veteran</span></h2>
+        <div class="product-price">$2,305</div>
+        <p class="product-desc">Honoring military service with a distinguished blue-gray finish, photo plaque, and personalization nameplate. The same reinforced concrete construction at an accessible price point.</p>
+        <ul class="product-features">
+          <li>Reinforced concrete construction</li>
+          <li>Blue-gray patriotic exterior</li>
+          <li>Photo personalization plaque</li>
+          <li>Personalization nameplate</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Monticello -->
+    <div class="product-card">
+      <div class="product-img">
+        <img src="vault-images/page14_img0_1653x1279.png" alt="Monticello Burial Vault">
+      </div>
+      <div class="product-info">
+        <span class="tier-badge standard">Standard Protection</span>
+        <h2>Monticello</h2>
+        <div class="product-price">$2,305</div>
+        <p class="product-desc">Our most selected burial vault, the Monticello provides reliable reinforced concrete protection with a clean, simple design. A dependable choice trusted by many families.</p>
+        <ul class="product-features">
+          <li>Reinforced concrete construction</li>
+          <li>Textured gray exterior</li>
+          <li>Clean, dignified design</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Oversize options -->
+    <div class="product-card" style="min-height:160px;">
+      <div class="product-info" style="flex:1;text-align:center;justify-content:center;padding:32px;">
+        <span class="tier-badge standard">Oversize Options</span>
+        <h2 style="font-size:22px;">Oversize Vaults</h2>
+        <p class="product-desc" style="margin-bottom:12px;">For caskets that require additional width, oversize vault options are available.</p>
+        <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+          <div><span style="font-size:13px;color:var(--text-light);">Oversize Monticello</span><br><span style="font-size:22px;font-weight:700;color:var(--orange);">$4,085</span></div>
+          <div><span style="font-size:13px;color:var(--text-light);">40# Oversize Rough Box</span><br><span style="font-size:22px;font-weight:700;color:var(--orange);">$3,355</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- URN VAULTS                                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="urn-vaults">
+  <div class="section-header">
+    <div class="kicker">Cremation Options</div>
+    <h2>Urn Vaults</h2>
+    <p>Smaller vaults designed to protect cremation urns during ground inurnment. Available in the same quality construction tiers as burial vaults.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="vault-table">
+      <thead>
+        <tr><th>Urn Vault</th><th>Construction</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bronze Triune Urn Vault</td><td>Bronze-lined concrete</td><td>$1,885</td></tr>
+        <tr><td>Copper Triune Urn Vault</td><td>Copper-lined concrete</td><td>$1,885</td></tr>
+        <tr><td>Stainless Steel Triune Urn Vault</td><td>SS-lined concrete</td><td>$1,675</td></tr>
+        <tr><td>Cameo Rose Urn Vault</td><td>SS-lined concrete</td><td>$1,675</td></tr>
+        <tr><td class="vet">*Veteran Triune Urn Vault</td><td>SS-lined concrete</td><td>$1,675</td></tr>
+        <tr><td>Venetian Urn Vault</td><td>Reinforced concrete</td><td>$1,255</td></tr>
+        <tr><td>Venetian Short Urn Vault</td><td>Reinforced concrete</td><td>$1,255</td></tr>
+        <tr><td>Monticello Urn Vault</td><td>Reinforced concrete</td><td>$935</td></tr>
+        <tr><td>Monticello Short Urn Vault</td><td>Reinforced concrete</td><td>$935</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LOVED & CHERISHED                           -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="infant">
+  <div class="section-header">
+    <div class="kicker">Infant &amp; Child</div>
+    <h2>Loved &amp; Cherished</h2>
+    <p>Gentle, compassionate options designed with care for the smallest members of our families.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="loved-section">
+    <div class="loved-card">
+      <div class="product-img">
+        <img src="vault-images/page16_img0_1657x1207.png" alt="Loved and Cherished infant vaults">
+      </div>
+      <div class="product-info">
+        <h2>Loved &amp; Cherished</h2>
+        <p class="product-desc">Available in three sizes, each crafted with the same care and attention as our full-size vaults. White exterior with soft fabric lining.</p>
+        <div style="margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-light);"><span style="font-size:14px;">19" Loved and Cherished</span><span style="font-weight:700;color:var(--orange);">$505</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-light);"><span style="font-size:14px;">2' Loved and Cherished</span><span style="font-weight:700;color:var(--orange);">$715</span></div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;"><span style="font-size:14px;">3' Loved and Cherished</span><span style="font-weight:700;color:var(--orange);">$925</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- SETTING FEES                                -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="fees">
+  <div class="section-header">
+    <div class="kicker">Service Fees</div>
+    <h2>Vault Setting Fees</h2>
+    <p>Professional installation by our cemetery grounds team.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="fees-bar">
+    <div class="fees-grid">
+      <div class="fee-card">
+        <div class="fee-label">Burial Vault Setting</div>
+        <div class="fee-amount">$685</div>
+      </div>
+      <div class="fee-card">
+        <div class="fee-label">Cremation Vault Setting</div>
+        <div class="fee-amount">$575</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- ALL PRICING SUMMARY                         -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="all-pricing" class="summary-section">
+  <div class="summary-inner">
+    <h2>Complete Pricing at a Glance</h2>
+
+    <table class="vault-table">
+      <thead>
+        <tr><th>Burial Vault</th><th>Protection</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Wilbert Bronze</td><td>Premium (Bronze-lined)</td><td>$29,815</td></tr>
+        <tr><td>Bronze Triune</td><td>Triune (Bronze-lined)</td><td>$8,605</td></tr>
+        <tr><td>Copper Triune</td><td>Triune (Copper-lined)</td><td>$7,655</td></tr>
+        <tr><td>Stainless Steel Triune</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td>Cameo Rose</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td class="vet">*Veteran Triune</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td>Tribute</td><td>Standard</td><td>$4,615</td></tr>
+        <tr><td>Venetian</td><td>Standard</td><td>$3,985</td></tr>
+        <tr><td>Continental</td><td>Standard</td><td>$2,825</td></tr>
+        <tr><td class="vet">*Veteran Salute</td><td>Standard</td><td>$2,305</td></tr>
+        <tr><td>Monticello</td><td>Standard</td><td>$2,305</td></tr>
+        <tr><td>Oversize Monticello</td><td>Standard (Oversize)</td><td>$4,085</td></tr>
+        <tr><td>40# Oversize Rough Box</td><td>Oversize</td><td>$3,355</td></tr>
+      </tbody>
+    </table>
+
+    <div style="height:32px;"></div>
+
+    <table class="vault-table">
+      <thead>
+        <tr><th>Urn Vault</th><th>Construction</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Bronze Triune</td><td>Bronze-lined</td><td>$1,885</td></tr>
+        <tr><td>Copper Triune</td><td>Copper-lined</td><td>$1,885</td></tr>
+        <tr><td>Stainless Steel Triune</td><td>SS-lined</td><td>$1,675</td></tr>
+        <tr><td>Cameo Rose</td><td>SS-lined</td><td>$1,675</td></tr>
+        <tr><td class="vet">*Veteran Triune</td><td>SS-lined</td><td>$1,675</td></tr>
+        <tr><td>Venetian</td><td>Reinforced concrete</td><td>$1,255</td></tr>
+        <tr><td>Venetian Short</td><td>Reinforced concrete</td><td>$1,255</td></tr>
+        <tr><td>Monticello</td><td>Reinforced concrete</td><td>$935</td></tr>
+        <tr><td>Monticello Short</td><td>Reinforced concrete</td><td>$935</td></tr>
+      </tbody>
+    </table>
+
+    <div style="height:32px;"></div>
+
+    <table class="vault-table">
+      <thead>
+        <tr><th>Loved &amp; Cherished</th><th>Size</th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Loved and Cherished</td><td>19"</td><td>$505</td></tr>
+        <tr><td>Loved and Cherished</td><td>2'</td><td>$715</td></tr>
+        <tr><td>Loved and Cherished</td><td>3'</td><td>$925</td></tr>
+      </tbody>
+    </table>
+
+    <div style="height:32px;"></div>
+
+    <table class="vault-table">
+      <thead>
+        <tr><th>Setting Fees</th><th></th><th>Price</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Burial Vault Setting</td><td>Professional installation</td><td>$685</td></tr>
+        <tr><td>Cremation Vault Setting</td><td>Professional installation</td><td>$575</td></tr>
+      </tbody>
+    </table>
+
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:20px;">All vault prices are subject to applicable sales tax. Prices effective as of current price list.</p>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="site-footer">
+  <p>Bonney Watson &middot; Burial Vault Guide<br>
+  <a href="guides.html">Return to All Guides</a></p>
+</footer>
+
+</body>
+</html>

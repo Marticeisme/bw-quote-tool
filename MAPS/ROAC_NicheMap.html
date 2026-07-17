@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonney Watson — Rock of Ages Columbarium</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#1a2744;--navy-light:#243156;--gold:#c8a96e;--gold-light:#e8d5a8;--cream:#f7f4ef;--gb:rgba(200,169,110,0.45);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Jost',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;overflow-x:hidden;}
+  .header{background:linear-gradient(135deg,var(--navy),var(--navy-light));border-bottom:2px solid var(--gold);padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .hlogo-svg{height:34px;flex-shrink:0;width:auto;}
+  .htxt h1{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--cream);}
+  .htxt p{font-size:10px;font-weight:300;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+  .tabs{display:flex;background:var(--navy-light);border-bottom:1px solid var(--gb);overflow-x:auto;}
+  .tab{padding:10px 16px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Jost',sans-serif;}
+  .tab:hover{color:var(--cream);background:rgba(200,169,110,.08);}
+  .tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(200,169,110,.12);}
+  .main{padding:14px;}
+  .wview{display:none;}.wview.active{display:block;}
+
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto;}
+  @media(max-width:700px){.pair{grid-template-columns:1fr;}}
+  .side-label{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;text-align:center;}
+  .side-sub{font-size:9px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;text-align:center;}
+  .gwrap{background:linear-gradient(160deg,#0f1a30,#1a2744 60%,#0d1528);border:1px solid var(--gb);border-radius:8px;padding:16px 18px;overflow-x:auto;}
+
+  .grid{display:grid;grid-template-columns:22px repeat(5,1fr);gap:3px;}
+  .rlbl{display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);}
+  .n{border-radius:3px;border:1px solid rgba(200,169,110,.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;text-align:center;padding:6px 2px;line-height:1.2;color:rgba(255,255,255,.92);min-height:52px;}
+  .n:hover{transform:scale(1.06);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
+  .n.sold{opacity:.45;cursor:default;}
+  .n.sold:hover{transform:none;box-shadow:none;border-color:rgba(200,169,110,.3);}
+  .nid{font-size:8px;opacity:.6;margin-bottom:1px;}
+  .nprice{font-weight:600;font-size:11px;}
+  .ncap{font-size:7.5px;opacity:.7;margin-top:1px;}
+  .nstatus{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:2px;opacity:.8;}
+
+  /* Price colours — 10 tiers */
+  .p7995{background:linear-gradient(135deg,rgba(50,100,65,.78),rgba(50,100,65,.58));border-color:rgba(50,100,65,.7);}
+  .p8795{background:linear-gradient(135deg,rgba(60,110,75,.78),rgba(60,110,75,.58));border-color:rgba(60,110,75,.7);}
+  .p8995{background:linear-gradient(135deg,rgba(74,124,92,.78),rgba(74,124,92,.58));border-color:rgba(74,124,92,.7);}
+  .p9895{background:linear-gradient(135deg,rgba(80,130,100,.75),rgba(80,130,100,.55));border-color:rgba(80,130,100,.68);}
+  .p9995{background:linear-gradient(135deg,rgba(85,135,108,.75),rgba(85,135,108,.55));border-color:rgba(85,135,108,.68);}
+  .p10995{background:linear-gradient(135deg,rgba(90,120,170,.75),rgba(90,120,170,.55));border-color:rgba(90,120,170,.68);}
+  .p12095{background:linear-gradient(135deg,rgba(100,110,160,.75),rgba(100,110,160,.55));border-color:rgba(100,110,160,.68);}
+  .p13195{background:linear-gradient(135deg,rgba(115,105,162,.75),rgba(115,105,162,.55));border-color:rgba(115,105,162,.68);}
+  .p14295{background:linear-gradient(135deg,rgba(140,90,155,.75),rgba(140,90,155,.55));border-color:rgba(140,90,155,.68);}
+  .p15395{background:linear-gradient(135deg,rgba(160,80,140,.75),rgba(160,80,140,.55));border-color:rgba(160,80,140,.68);}
+  .p16495{background:linear-gradient(135deg,rgba(190,78,10,.78),rgba(190,78,10,.58));border-color:rgba(190,78,10,.7);}
+  .p17595{background:linear-gradient(135deg,rgba(170,60,0,.78),rgba(170,60,0,.58));border-color:rgba(170,60,0,.7);}
+  .p11995{background:linear-gradient(135deg,rgba(95,125,165,.75),rgba(95,125,165,.55));border-color:rgba(95,125,165,.68);}
+
+  /* Legend */
+  .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;max-width:900px;margin-left:auto;margin-right:auto;}
+  .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
+  .ls{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
+
+  /* Orientation diagram */
+  .owrap{background:rgba(200,169,110,.05);border:1px solid var(--gb);border-radius:8px;padding:12px;margin-bottom:8px;max-width:900px;margin-left:auto;margin-right:auto;}
+  .otitle{font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px;}
+  .odiag{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:320px;margin:0 auto;}
+  .owall{background:rgba(200,169,110,.1);border:2px solid rgba(200,169,110,.35);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;transition:all .2s;font-family:'Jost',sans-serif;padding:8px 4px;text-align:center;border-radius:3px;}
+  .owall:hover,.owall.act{background:rgba(200,169,110,.28);border-color:var(--gold);color:var(--gold);}
+  .owall-label{grid-column:1/-1;font-size:7px;color:var(--gold-light);text-align:center;letter-spacing:.1em;text-transform:uppercase;padding:2px 0;}
+
+  /* Fees */
+  .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
+  .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
+
+  /* Tooltip */
+  .tt{display:none;position:fixed;background:var(--navy);border:1px solid var(--gold);border-radius:8px;padding:11px 13px;min-width:200px;max-width:260px;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,.6);font-size:11px;pointer-events:none;}
+  .tt.show{display:block;}
+  .ttid{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+  .ttr{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(200,169,110,.1);}
+  .ttr:last-of-type{border:none;}
+  .ttl{color:var(--gold-light);}.ttv{font-weight:600;color:var(--cream);}
+  .tttot{margin-top:6px;padding-top:6px;border-top:1px solid var(--gold);display:flex;justify-content:space-between;}
+  .tttl{color:var(--gold);font-weight:600;}.tttv{color:var(--gold);font-weight:700;font-size:12px;}
+  .ttnote{margin-top:5px;font-size:9px;color:var(--gold-light);opacity:.8;font-style:italic;}
+
+  /* Print */
+  .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-family:'Jost',sans-serif;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .15s;}
+  .print-btn:hover{background:rgba(200,169,110,.28);}
+  @media print {
+    .no-print, .tabs, .tt, #ttip, .owrap { display:none !important; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    body { background:#fff !important; color:#1a1a1a !important; }
+    .header { background:#fff !important; border-bottom:2px solid #c8540a !important; padding:10px 0; }
+    .htxt h1 { color:#1a2744 !important; }
+    .htxt p { color:#555 !important; }
+    .side-label { color:#1a2744 !important; }
+    .side-sub { color:#555 !important; }
+    .gwrap { background:#fff !important; border:1px solid #999 !important; }
+    .rlbl { color:#1a2744 !important; }
+    .n { border-color:#00000030 !important; }
+    .legend { color:#1a1a1a !important; }
+    .li { color:#333 !important; }
+    .fees { background:#f5f5f2 !important; border-color:#c8a96e !important; }
+    .fl { color:#1a2744 !important; }
+    .fv { color:#333 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <svg class="hlogo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 308.34 56.42" aria-label="Bonney Watson">
+    <path d="M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z" transform="translate(-0.83 -0.29)" fill="#fff"/>
+    <path d="M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74" transform="translate(-0.83 -0.29)" fill="#e84610"/>
+    <path d="M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51" transform="translate(-0.83 -0.29)" fill="#e84610"/>
+  </svg>
+  <div class="htxt">
+    <h1>Rock of Ages Columbarium — Niche Map</h1>
+    <p>Washington Memorial Park &nbsp;·&nbsp; Garden 19</p>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">&#x1F5A8;&#xFE0F; Print / Save as PDF</button>
+</div>
+
+<div class="tabs" id="wall-tabs">
+  <button class="tab active" onclick="sw('A')">Wall A</button>
+  <button class="tab" onclick="sw('B')">Wall B</button>
+  <button class="tab" onclick="sw('C')">Wall C</button>
+  <button class="tab" onclick="sw('D')">Wall D</button>
+  <button class="tab" onclick="sw('E')">Wall E</button>
+  <button class="tab" onclick="sw('F')">Wall F</button>
+  <button class="tab" onclick="sw('G')">Wall G</button>
+  <button class="tab" onclick="sw('bench')" style="margin-left:auto;border-left:1px solid var(--gb);">Benches</button>
+</div>
+
+<div class="main">
+  <!-- Orientation diagram -->
+  <div class="owrap">
+    <div class="otitle">Columbarium Layout — tap a wall to navigate</div>
+    <div class="odiag">
+      <div class="owall-label">exterior face &uarr;</div>
+      <div class="owall" id="od-E" onclick="sw('E')">Wall E</div>
+      <div class="owall" id="od-F" onclick="sw('F')">Wall F</div>
+      <div class="owall" id="od-G" onclick="sw('G')">Wall G</div>
+      <div class="owall-label">interior (between walls)</div>
+      <div class="owall" id="od-D" onclick="sw('D')">Wall D</div>
+      <div class="owall" id="od-B" onclick="sw('B')">Wall B (center)</div>
+      <div class="owall" id="od-A" onclick="sw('A')">Wall A</div>
+      <div class="owall" id="od-C" onclick="sw('C')">Wall C</div>
+      <div class="owall-label" style="grid-column:2/4;">exterior face &darr;</div>
+    </div>
+  </div>
+
+  <!-- Wall views A–G -->
+  <div class="wview active" id="wall-A">
+    <div class="pair">
+      <div><div class="side-label">Wall A — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-EXT"></div></div></div>
+      <div><div class="side-label">Wall A — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-A"></div>
+  </div>
+  <div class="wview" id="wall-B">
+    <div class="pair">
+      <div><div class="side-label">Wall B — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-EXT"></div></div></div>
+      <div><div class="side-label">Wall B — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-B"></div>
+  </div>
+  <div class="wview" id="wall-C">
+    <div class="pair">
+      <div><div class="side-label">Wall C — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-EXT"></div></div></div>
+      <div><div class="side-label">Wall C — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-C"></div>
+  </div>
+  <div class="wview" id="wall-D">
+    <div class="pair">
+      <div><div class="side-label">Wall D — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-EXT"></div></div></div>
+      <div><div class="side-label">Wall D — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-D"></div>
+  </div>
+  <div class="wview" id="wall-E">
+    <div class="pair">
+      <div><div class="side-label">Wall E — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-EXT"></div></div></div>
+      <div><div class="side-label">Wall E — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-E"></div>
+  </div>
+  <div class="wview" id="wall-F">
+    <div class="pair">
+      <div><div class="side-label">Wall F — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-F-EXT"></div></div></div>
+      <div><div class="side-label">Wall F — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-F-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-F"></div>
+  </div>
+  <div class="wview" id="wall-G">
+    <div class="pair">
+      <div><div class="side-label">Wall G — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-G-EXT"></div></div></div>
+      <div><div class="side-label">Wall G — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-G-INT"></div></div></div>
+    </div>
+    <div class="legend" id="lg-G"></div>
+  </div>
+  <div class="wview" id="wall-bench">
+    <div style="max-width:460px;margin:0 auto;text-align:center;">
+      <div class="side-label" style="font-size:20px;margin-bottom:12px;">Memorial Benches</div>
+      <div class="side-sub" style="margin-bottom:16px;">2 benches available &middot; Up to 4 inurnments per bench</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;">Bench #1</div>
+          <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">Up to 4 inurnments</div>
+          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Reserved</div>
+        </div>
+        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;">Bench #2</div>
+          <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">Up to 4 inurnments</div>
+          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Reserved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fees">
+    <div class="fi">
+      <span class="fl">Niche Inurnment O&amp;C — $875 ea</span>
+      <span class="fv">Qty: <input type="number" id="oc-qty" min="0" max="4" value="0" style="width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
+    <div class="fi">
+      <span class="fl">Recording Fee — $235 ea</span>
+      <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="0" style="width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
+    <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
+    <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
+    <div class="fi"><span class="fl">Benches</span><span class="fv">Up to 4 inurnments</span></div>
+  </div>
+</div>
+
+<div class="tt" id="ttip"></div>
+
+<script>
+var WALLS = {
+  "A-EXT":{label:"OUTSIDE - WALL A",niches:[
+    {l:"E",s:"1",p:13195,st:"reserved"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"available"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"buried"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"available"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"buried"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"available"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"available"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "A-INT":{label:"INSIDE - WALL A",niches:[
+    {l:"E",s:"1",p:16495,st:"available"},{l:"E",s:"2",p:16495,st:"available"},{l:"E",s:"3",p:16495,st:"available"},{l:"E",s:"4",p:16495,st:"available"},{l:"E",s:"5",p:16495,st:"hold"},
+    {l:"D",s:"1",p:15395,st:"available"},{l:"D",s:"2",p:15395,st:"available"},{l:"D",s:"3",p:15395,st:"available"},{l:"D",s:"4",p:15395,st:"available"},{l:"D",s:"5",p:15395,st:"available"},
+    {l:"C",s:"1",p:14295,st:"available"},{l:"C",s:"2",p:14295,st:"available"},{l:"C",s:"3",p:14295,st:"available"},{l:"C",s:"4",p:14295,st:"available"},{l:"C",s:"5",p:14295,st:"available"},
+    {l:"B",s:"1",p:13195,st:"available"},{l:"B",s:"2",p:13195,st:"available"},{l:"B",s:"3",p:13195,st:"available"},{l:"B",s:"4",p:13195,st:"available"},{l:"B",s:"5",p:13195,st:"available"},
+    {l:"A",s:"1",p:12095,st:"available"},{l:"A",s:"2",p:12095,st:"available"},{l:"A",s:"3",p:12095,st:"available"},{l:"A",s:"4",p:12095,st:"available"},{l:"A",s:"5",p:12095,st:"available"}
+  ]},
+  "B-EXT":{label:"OUTSIDE - WALL B",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"reserved"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"available"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"available"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"available"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"buried"},{l:"A",s:"2",p:8795,st:"reserved"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "B-INT":{label:"INSIDE - WALL B",niches:[
+    {l:"E",s:"1",p:17595,st:"available"},{l:"E",s:"2",p:17595,st:"available"},{l:"E",s:"3",p:17595,st:"available"},{l:"E",s:"4",p:17595,st:"available"},{l:"E",s:"5",p:17595,st:"available"},
+    {l:"D",s:"1",p:16495,st:"available"},{l:"D",s:"2",p:16495,st:"available"},{l:"D",s:"3",p:16495,st:"available"},{l:"D",s:"4",p:16495,st:"available"},{l:"D",s:"5",p:16495,st:"available"},
+    {l:"C",s:"1",p:15395,st:"available"},{l:"C",s:"2",p:15395,st:"available"},{l:"C",s:"3",p:15395,st:"available"},{l:"C",s:"4",p:15395,st:"available"},{l:"C",s:"5",p:15395,st:"available"},
+    {l:"B",s:"1",p:14295,st:"available"},{l:"B",s:"2",p:14295,st:"available"},{l:"B",s:"3",p:14295,st:"available"},{l:"B",s:"4",p:14295,st:"available"},{l:"B",s:"5",p:14295,st:"available"},
+    {l:"A",s:"1",p:13195,st:"available"},{l:"A",s:"2",p:13195,st:"available"},{l:"A",s:"3",p:13195,st:"available"},{l:"A",s:"4",p:13195,st:"available"},{l:"A",s:"5",p:13195,st:"available"}
+  ]},
+  "C-EXT":{label:"OUTSIDE - WALL C",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"available"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"reserved"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"available"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"available"},
+    {l:"B",s:"1",p:9895,st:"reserved"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"reserved"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"reserved"},{l:"A",s:"5",p:8795,st:"buried"}
+  ]},
+  "C-INT":{label:"INSIDE - WALL C",niches:[
+    {l:"E",s:"1",p:13195,st:"buried"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"available"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"reserved"},{l:"C",s:"2",p:10995,st:"buried"},{l:"C",s:"3",p:10995,st:"available"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"reserved"},
+    {l:"B",s:"1",p:9895,st:"buried"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"reserved"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "D-EXT":{label:"OUTSIDE - WALL D",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"reserved"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"reserved"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"reserved"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"reserved"},
+    {l:"C",s:"1",p:10995,st:"buried"},{l:"C",s:"2",p:10995,st:"reserved"},{l:"C",s:"3",p:10995,st:"reserved"},{l:"C",s:"4",p:10995,st:"buried"},{l:"C",s:"5",p:10995,st:"buried"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"buried"},
+    {l:"A",s:"1",p:8795,st:"reserved"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"reserved"},{l:"A",s:"4",p:8795,st:"reserved"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "D-INT":{label:"INSIDE - WALL D",niches:[
+    {l:"E",s:"1",p:17595,st:"available"},{l:"E",s:"2",p:17595,st:"available"},{l:"E",s:"3",p:17595,st:"hold"},{l:"E",s:"4",p:17595,st:"available"},{l:"E",s:"5",p:17595,st:"available"},
+    {l:"D",s:"1",p:16495,st:"available"},{l:"D",s:"2",p:16495,st:"buried"},{l:"D",s:"3",p:16495,st:"buried"},{l:"D",s:"4",p:16495,st:"available"},{l:"D",s:"5",p:16495,st:"available"},
+    {l:"C",s:"1",p:15395,st:"available"},{l:"C",s:"2",p:15395,st:"available"},{l:"C",s:"3",p:15395,st:"reserved"},{l:"C",s:"4",p:15395,st:"available"},{l:"C",s:"5",p:15395,st:"available"},
+    {l:"B",s:"1",p:14295,st:"available"},{l:"B",s:"2",p:14295,st:"available"},{l:"B",s:"3",p:14295,st:"available"},{l:"B",s:"4",p:14295,st:"available"},{l:"B",s:"5",p:14295,st:"available"},
+    {l:"A",s:"1",p:13195,st:"available"},{l:"A",s:"2",p:13195,st:"available"},{l:"A",s:"3",p:13195,st:"available"},{l:"A",s:"4",p:13195,st:"available"},{l:"A",s:"5",p:13195,st:"available"}
+  ]},
+  "E-EXT":{label:"OUTSIDE - WALL E",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"available"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"available"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"available"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"available"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"available"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "E-INT":{label:"INSIDE - WALL E",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"available"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"available"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"buried"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"buried"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"reserved"},
+    {l:"A",s:"1",p:8795,st:"available"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"reserved"}
+  ]},
+  "F-EXT":{label:"OUTSIDE - WALL F",niches:[
+    {l:"E",s:"1",p:13195,st:"available"},{l:"E",s:"2",p:13195,st:"available"},{l:"E",s:"3",p:13195,st:"reserved"},{l:"E",s:"4",p:13195,st:"available"},{l:"E",s:"5",p:13195,st:"available"},
+    {l:"D",s:"1",p:12095,st:"available"},{l:"D",s:"2",p:12095,st:"available"},{l:"D",s:"3",p:12095,st:"available"},{l:"D",s:"4",p:12095,st:"available"},{l:"D",s:"5",p:12095,st:"available"},
+    {l:"C",s:"1",p:10995,st:"available"},{l:"C",s:"2",p:10995,st:"available"},{l:"C",s:"3",p:10995,st:"available"},{l:"C",s:"4",p:10995,st:"available"},{l:"C",s:"5",p:10995,st:"available"},
+    {l:"B",s:"1",p:9895,st:"available"},{l:"B",s:"2",p:9895,st:"available"},{l:"B",s:"3",p:9895,st:"available"},{l:"B",s:"4",p:9895,st:"available"},{l:"B",s:"5",p:9895,st:"available"},
+    {l:"A",s:"1",p:8795,st:"available"},{l:"A",s:"2",p:8795,st:"available"},{l:"A",s:"3",p:8795,st:"available"},{l:"A",s:"4",p:8795,st:"available"},{l:"A",s:"5",p:8795,st:"available"}
+  ]},
+  "F-INT":{label:"INSIDE - WALL F",niches:[
+    {l:"E",s:"1",p:17595,st:"available"},{l:"E",s:"2",p:17595,st:"available"},{l:"E",s:"3",p:17595,st:"available"},{l:"E",s:"4",p:17595,st:"available"},{l:"E",s:"5",p:17595,st:"available"},
+    {l:"D",s:"1",p:16495,st:"available"},{l:"D",s:"2",p:16495,st:"available"},{l:"D",s:"3",p:16495,st:"buried"},{l:"D",s:"4",p:16495,st:"available"},{l:"D",s:"5",p:16495,st:"available"},
+    {l:"C",s:"1",p:15395,st:"available"},{l:"C",s:"2",p:15395,st:"available"},{l:"C",s:"3",p:15395,st:"available"},{l:"C",s:"4",p:15395,st:"available"},{l:"C",s:"5",p:15395,st:"available"},
+    {l:"B",s:"1",p:14295,st:"available"},{l:"B",s:"2",p:14295,st:"available"},{l:"B",s:"3",p:14295,st:"available"},{l:"B",s:"4",p:14295,st:"available"},{l:"B",s:"5",p:14295,st:"available"},
+    {l:"A",s:"1",p:13195,st:"available"},{l:"A",s:"2",p:13195,st:"available"},{l:"A",s:"3",p:13195,st:"available"},{l:"A",s:"4",p:13195,st:"available"},{l:"A",s:"5",p:13195,st:"available"}
+  ]},
+  "G-EXT":{label:"OUTSIDE - WALL G",niches:[
+    {l:"E",s:"1",p:11995,st:"available"},{l:"E",s:"2",p:11995,st:"available"},{l:"E",s:"3",p:11995,st:"available"},{l:"E",s:"4",p:11995,st:"available"},{l:"E",s:"5",p:11995,st:"available"},
+    {l:"D",s:"1",p:10995,st:"available"},{l:"D",s:"2",p:10995,st:"available"},{l:"D",s:"3",p:10995,st:"available"},{l:"D",s:"4",p:10995,st:"available"},{l:"D",s:"5",p:10995,st:"available"},
+    {l:"C",s:"1",p:9995,st:"available"},{l:"C",s:"2",p:9995,st:"available"},{l:"C",s:"3",p:9995,st:"available"},{l:"C",s:"4",p:9995,st:"available"},{l:"C",s:"5",p:9995,st:"available"},
+    {l:"B",s:"1",p:8995,st:"available"},{l:"B",s:"2",p:8995,st:"available"},{l:"B",s:"3",p:8995,st:"reserved"},{l:"B",s:"4",p:8995,st:"available"},{l:"B",s:"5",p:8995,st:"available"},
+    {l:"A",s:"1",p:7995,st:"available"},{l:"A",s:"2",p:7995,st:"available"},{l:"A",s:"3",p:7995,st:"available"},{l:"A",s:"4",p:7995,st:"reserved"},{l:"A",s:"5",p:7995,st:"reserved"}
+  ]},
+  "G-INT":{label:"INSIDE - WALL G",niches:[
+    {l:"E",s:"1",p:16495,st:"available"},{l:"E",s:"2",p:16495,st:"available"},{l:"E",s:"3",p:16495,st:"available"},{l:"E",s:"4",p:16495,st:"available"},{l:"E",s:"5",p:16495,st:"available"},
+    {l:"D",s:"1",p:15395,st:"available"},{l:"D",s:"2",p:15395,st:"available"},{l:"D",s:"3",p:15395,st:"available"},{l:"D",s:"4",p:15395,st:"available"},{l:"D",s:"5",p:15395,st:"available"},
+    {l:"C",s:"1",p:14295,st:"available"},{l:"C",s:"2",p:14295,st:"available"},{l:"C",s:"3",p:14295,st:"available"},{l:"C",s:"4",p:14295,st:"available"},{l:"C",s:"5",p:14295,st:"available"},
+    {l:"B",s:"1",p:13195,st:"available"},{l:"B",s:"2",p:13195,st:"available"},{l:"B",s:"3",p:13195,st:"buried"},{l:"B",s:"4",p:13195,st:"reserved"},{l:"B",s:"5",p:13195,st:"available"},
+    {l:"A",s:"1",p:12095,st:"available"},{l:"A",s:"2",p:12095,st:"available"},{l:"A",s:"3",p:12095,st:"available"},{l:"A",s:"4",p:12095,st:"available"},{l:"A",s:"5",p:12095,st:"available"}
+  ]}
+};
+
+var LEVELS = ['E','D','C','B','A'];
+var PRICE_CLASSES = {7995:'p7995',8795:'p8795',8995:'p8995',9895:'p9895',9995:'p9995',10995:'p10995',11995:'p11995',12095:'p12095',13195:'p13195',14295:'p14295',15395:'p15395',16495:'p16495',17595:'p17595'};
+
+function fm(v){ return '$'+v.toLocaleString(); }
+
+function buildWallGrid(containerId, wallId){
+  var wall = WALLS[wallId];
+  if(!wall) return;
+  var g = document.createElement('div');
+  g.className = 'grid';
+
+  LEVELS.forEach(function(lvl, ri){
+    var lbl = document.createElement('div');
+    lbl.className = 'rlbl';
+    lbl.textContent = lvl;
+    lbl.style.gridRow = (ri+1);
+    lbl.style.gridColumn = '1';
+    g.appendChild(lbl);
+
+    for(var si=0; si<5; si++){
+      var niche = wall.niches[ri*5 + si];
+      var d = document.createElement('div');
+      var sold = niche.st !== 'available';
+      d.className = 'n ' + (PRICE_CLASSES[niche.p]||'') + (sold ? ' sold' : '');
+      d.style.gridRow = (ri+1);
+      d.style.gridColumn = (si+2);
+      d.setAttribute('data-wid', wallId);
+      d.setAttribute('data-lvl', niche.l);
+      d.setAttribute('data-sp', niche.s);
+      d.setAttribute('data-price', niche.p);
+      d.setAttribute('data-st', niche.st);
+      if(!sold){
+        d.onmouseenter = function(e){ showTT(e, this); };
+        d.onmouseleave = hideTT;
+        d.onclick = function(e){ tapTT(e, this); };
+      }
+      var stLabel = '';
+      if(niche.st==='reserved') stLabel = 'Reserved';
+      else if(niche.st==='buried') stLabel = 'Occupied';
+      else if(niche.st==='hold') stLabel = 'On Hold';
+      d.innerHTML = '<div class="nid">'+wallId+' '+niche.l+'-'+niche.s+'</div>'
+        + '<div class="nprice">'+fm(niche.p)+'</div>'
+        + '<div class="ncap">2-urn</div>'
+        + (stLabel ? '<div class="nstatus">'+stLabel+'</div>' : '');
+      g.appendChild(d);
+    }
+  });
+
+  document.getElementById(containerId).appendChild(g);
+}
+
+function buildLegend(elId, prices){
+  var tiers = [
+    {p:7995,c:'p7995',l:'$7,995'},{p:8795,c:'p8795',l:'$8,795'},{p:8995,c:'p8995',l:'$8,995'},
+    {p:9895,c:'p9895',l:'$9,895'},{p:9995,c:'p9995',l:'$9,995'},{p:10995,c:'p10995',l:'$10,995'},
+    {p:11995,c:'p11995',l:'$11,995'},{p:12095,c:'p12095',l:'$12,095'},{p:13195,c:'p13195',l:'$13,195'},
+    {p:14295,c:'p14295',l:'$14,295'},{p:15395,c:'p15395',l:'$15,395'},{p:16495,c:'p16495',l:'$16,495'},
+    {p:17595,c:'p17595',l:'$17,595'}
+  ];
+  var s = new Set(prices);
+  var h = '';
+  tiers.forEach(function(t){ if(s.has(t.p)) h += '<div class="li"><div class="ls '+t.c+'"></div><span>'+t.l+'</span></div>'; });
+  document.getElementById(elId).innerHTML = h;
+}
+
+// Build all wall grids
+var wallLetters = ['A','B','C','D','E','F','G'];
+wallLetters.forEach(function(letter){
+  buildWallGrid('g-'+letter+'-EXT', letter+'-EXT');
+  buildWallGrid('g-'+letter+'-INT', letter+'-INT');
+  var extPrices = WALLS[letter+'-EXT'].niches.map(function(n){return n.p;});
+  var intPrices = WALLS[letter+'-INT'].niches.map(function(n){return n.p;});
+  var allPrices = extPrices.concat(intPrices);
+  var unique = [];
+  allPrices.forEach(function(p){ if(unique.indexOf(p)===-1) unique.push(p); });
+  buildLegend('lg-'+letter, unique);
+});
+
+// Tab switching
+function sw(w){
+  document.querySelectorAll('.wview').forEach(function(v){ v.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.owall').forEach(function(d){ d.classList.remove('act'); });
+  document.getElementById('wall-'+w).classList.add('active');
+  var od = document.getElementById('od-'+w);
+  if(od) od.classList.add('act');
+  document.querySelectorAll('.tab').forEach(function(t){
+    if(t.getAttribute('onclick') && t.getAttribute('onclick').indexOf("'"+w+"'") > -1) t.classList.add('active');
+  });
+}
+
+// Tooltip
+var tte = document.getElementById('ttip');
+var tton = false;
+
+function showTT(e, el){
+  var wid = el.getAttribute('data-wid');
+  var lvl = el.getAttribute('data-lvl');
+  var sp = el.getAttribute('data-sp');
+  var price = +el.getAttribute('data-price');
+  var ecf = Math.round(price * 0.10);
+  var oc = 875;
+  var rec = 235;
+  var total = price + ecf + oc + rec;
+  tte.innerHTML = '<div class="ttid">'+wid+' — Level '+lvl+', Space '+sp+'</div>'
+    + '<div class="ttr"><span class="ttl">Niche</span><span class="ttv">'+fm(price)+'</span></div>'
+    + '<div class="ttr"><span class="ttl">ECF (10%)</span><span class="ttv">'+fm(ecf)+'</span></div>'
+    + '<div class="ttr"><span class="ttl">O&amp;C (×1)</span><span class="ttv">'+fm(oc)+'</span></div>'
+    + '<div class="ttr"><span class="ttl">Recording</span><span class="ttv">'+fm(rec)+'</span></div>'
+    + '<div class="tttot"><span class="tttl">Est. Total</span><span class="tttv">'+fm(total)+'</span></div>'
+    + '<div class="ttnote">Up to 2 inurnments per niche</div>';
+  tte.classList.add('show');
+  posTT(e);
+  tton = true;
+}
+
+function hideTT(){ tte.classList.remove('show'); tton = false; }
+
+function posTT(e){
+  var x = e.clientX + 14, y = e.clientY + 14;
+  var tw = tte.offsetWidth || 220, th = tte.offsetHeight || 200;
+  tte.style.left = (x + tw > window.innerWidth ? x - tw - 28 : x) + 'px';
+  tte.style.top = (y + th > window.innerHeight ? y - th - 28 : y) + 'px';
+}
+
+document.addEventListener('mousemove', function(e){ if(tton) posTT(e); });
+
+function tapTT(e, el){
+  if(window.innerWidth >= 768) return;
+  showTT(e, el);
+  var b = el.getBoundingClientRect();
+  tte.style.left = Math.max(8, Math.min(b.left, window.innerWidth - 250)) + 'px';
+  tte.style.top = Math.max(8, b.bottom + 6) + 'px';
+  setTimeout(hideTT, 4500);
+}
+
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.n') && !e.target.closest('#ttip')) hideTT();
+});
+
+function updateQty(){}
+</script>
+</body>
+</html>
