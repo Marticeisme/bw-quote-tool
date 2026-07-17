@@ -7398,16 +7398,25 @@ function printCemQuote() {
   linesHTML += '<div class="total-row"><span class="total-lbl">Total</span><span class="total-amt">'+fmtAmt(grandTotal)+'</span></div>';
   if (tax > 0) linesHTML += '<div class="tax-note">Tax applies to merchandise. Services &amp; transportation are exempt.</div>';
 
+  // Payment options only apply to Pre-Need (At-Need is paid in full at time of service). Mirror
+  // the PDF (downloadCemQuotePDF): always show the financing tiers for a Pre-Need quote with a
+  // total — the PDF defaults to the standard tiers even when no down payment was entered, so the
+  // Print view must too (previously it showed NOTHING unless the user had touched the payment
+  // panel, which is why Print didn't match the PDF).
   var payHTML = '';
-  if (typeof _finTotal !== 'undefined' && _finTotal > 0) {
-    if (_finShowAll) {
+  var isAtNeedPrint = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed');
+  if (!isAtNeedPrint && grandTotal > 0) {
+    if (typeof _finShowAll !== 'undefined' && _finShowAll) {
       payHTML = buildAllTiersPrint(grandTotal);
-    } else if (_finData && _finData.downAmt > 0) {
+    } else if (typeof _finData !== 'undefined' && _finData && _finData.downAmt > 0) {
       if (_finData.months && _finData.rate !== undefined && _finData.monthly) {
         payHTML = finBuildPrintBlock(grandTotal, _finData.tierKey, _finData.downAmt);
       } else {
         payHTML = buildCustomDownPrint(grandTotal, _finData.downAmt, _finData.tierKey);
       }
+    } else {
+      // No specific down payment picked — default to all minimum-down tiers, matching the PDF.
+      payHTML = buildAllTiersPrint(grandTotal);
     }
   }
 
