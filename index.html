@@ -1219,6 +1219,11 @@ tr:hover td{background:#eef3f8;}
               <input type="number" id="qty_bronze" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
               <button onclick="bronzeAdd()" style="padding:5px 12px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">+ Add</button>
             </div>
+            <div class="q-row" style="flex-wrap:wrap;gap:8px;margin-top:6px;">
+              <input type="text" id="qBronzeMarkerDesc" placeholder="Marker size / material (optional) — e.g. 24×12 Bronze" style="flex:1;min-width:200px;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+              <input type="text" id="qBronzeBaseDesc" placeholder="Base size / material (optional) — e.g. Granite Barre Gray Vase 28×16" style="flex:1;min-width:200px;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+            </div>
+            <div style="font-size:10px;color:var(--text-light);margin-top:3px;">Optional — appears on the marker/base lines of the quote &amp; RIC (e.g. for government/VA bronze where the size &amp; base vary). Fill in before clicking + Add.</div>
             <div id="bronzeList" style="margin-top:6px;"></div>
           </div>
 
@@ -3148,6 +3153,39 @@ tr:hover td{background:#eef3f8;}
           <input type="number" id="anIaNumSignatures" min="1" max="6" value="1" style="width:70px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
         </div>
         <div class="q-row" style="margin-top:12px;">
+          <label style="align-self:flex-start;">Quick remarks</label>
+          <select id="anRemarksPick" onchange="anRemarksInsert(this)" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">➕ Insert a common remark…</option>
+            <optgroup label="Setup">
+              <option>Please set up a tent and ___ chairs.</option>
+              <option>Full setup — tent and ___ chairs.</option>
+              <option>No tent or chairs needed.</option>
+            </optgroup>
+            <optgroup label="Arrival &amp; escort">
+              <option>Family to meet in the lobby.</option>
+              <option>Family to meet at the space.</option>
+              <option>Family to meet / park in the lanes.</option>
+              <option>I will lead the family up to the space.</option>
+            </optgroup>
+            <optgroup label="Witnessing">
+              <option>Family to witness the lowering.</option>
+              <option>Family to witness the placement.</option>
+              <option>AOC placement — no witnesses.</option>
+            </optgroup>
+            <optgroup label="Procession">
+              <option>Procession coming from the WMFH chapel.</option>
+              <option>Procession coming from an outside church / funeral home.</option>
+            </optgroup>
+            <optgroup label="Other logistics">
+              <option>Family has their own pallbearers.</option>
+              <option>Casket will be pre-set.</option>
+              <option>Small graveside / niche-side service.</option>
+              <option>Double / 2nd inurnment in this plot.</option>
+              <option>Outside funeral home (OSFH) — coming from ___.</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="q-row" style="margin-top:8px;">
           <label style="align-self:flex-start;">Additional Remarks</label>
           <textarea id="anIaRemarks" placeholder="e.g. Please setup a tent and 10 chairs. Family to witness lowering of casket." rows="3" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
         </div>
@@ -6237,8 +6275,12 @@ function cemUpdate() {
   // Bronze Memorial (taxable) — multi-add list
   bronzeItems.forEach(function(b) {
     if (b.total > 0 && b.qty > 0) {
-      if (b.memorial > 0) lines.push({label: b.name + ' — Memorial' + (b.qty>1?' ×'+b.qty:''), amount: b.memorial * b.qty, taxable: true});
-      if (b.base     > 0) lines.push({label: b.name + ' — Base'     + (b.qty>1?' ×'+b.qty:''), amount: b.base     * b.qty, taxable: true});
+      // Optional per-marker size/material notes go in parens right after the name (before the
+      // — Memorial / — Base suffix) so the RIC formatters still see the suffix at the end.
+      var _mNm = b.name + (b.mDesc ? ' (' + b.mDesc + ')' : '');
+      var _bNm = b.name + (b.bDesc ? ' (' + b.bDesc + ')' : '');
+      if (b.memorial > 0) lines.push({label: _mNm + ' — Memorial' + (b.qty>1?' ×'+b.qty:''), amount: b.memorial * b.qty, taxable: true});
+      if (b.base     > 0) lines.push({label: _bNm + ' — Base'     + (b.qty>1?' ×'+b.qty:''), amount: b.base     * b.qty, taxable: true});
       if (b.install  > 0) lines.push({label: b.name + ' — Install'  + (b.qty>1?' ×'+b.qty:''), amount: b.install  * b.qty, taxable: true});
     }
   });
@@ -8503,7 +8545,13 @@ function bronzeAdd() {
   var base     = parseFloat(parts[2]) || 0;
   var install  = parseFloat(parts[3]) || 0;
   var q = parseInt(el('qty_bronze') ? el('qty_bronze').value : 1) || 1;
-  bronzeItems.push({name:name, total:total, memorial:memorial, base:base, install:install, qty:q});
+  // Optional per-marker size/material notes (e.g. government/VA bronze where the marker size and
+  // granite base vary) — appended to the marker/base lines on the quote and RIC.
+  var mDesc = val('qBronzeMarkerDesc').trim();
+  var bDesc = val('qBronzeBaseDesc').trim();
+  bronzeItems.push({name:name, total:total, memorial:memorial, base:base, install:install, qty:q, mDesc:mDesc, bDesc:bDesc});
+  if (el('qBronzeMarkerDesc')) el('qBronzeMarkerDesc').value = '';
+  if (el('qBronzeBaseDesc')) el('qBronzeBaseDesc').value = '';
   bronzeRender(); cemUpdate();
 }
 function bronzeRemove(i) { bronzeItems.splice(i,1); bronzeRender(); cemUpdate(); }
@@ -8519,6 +8567,10 @@ function bronzeRender() {
       +'<span style="color:var(--navy);font-weight:600;min-width:70px;text-align:right;">$'+(b.total*b.qty).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
       +'<button onclick="bronzeRemove('+i+')" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;">&times;</button>'
       +'</div>';
+    var notes = [];
+    if (b.mDesc) notes.push('Marker: ' + b.mDesc);
+    if (b.bDesc) notes.push('Base: ' + b.bDesc);
+    if (notes.length) html += '<div style="font-size:10.5px;color:var(--text-light);margin:-2px 0 4px 2px;">' + notes.join(' · ') + '</div>';
   });
   list.innerHTML=html+'</div>';
 }
@@ -10704,6 +10756,10 @@ async function generateRICContractCore(clientData) {
         .replace(/\s*\(w\/Vase[^)]*\)/gi, '')
         .replace(/\s+[×x]\s*\d+\s*$/g, '')
         .trim();
+      // A manual size/material note survives as a "(…)" that isn't one of the stripped vase notes —
+      // keep the full "Name (desc)" (e.g. "Government Bronze – Match (24×12 Bronze)") rather than
+      // reducing it to "DIM Bronze Marker".
+      if (/\([^)]+\)/.test(core)) return core;
       if (isBronzeM) {
         var dimM = core.match(/(\d+[×xX]\d+)/);
         var dim = dimM ? dimM[1].replace(/[×X]/g, 'x') : '';
@@ -10714,9 +10770,13 @@ async function generateRICContractCore(clientData) {
       }
       return core.replace(/Companion/gi, 'Comp');
     }
-    // Format base label: bronze base ends with "— Base" → "Granite Base for Bronze"
+    // Format base label: bronze base ends with "— Base" → "Granite Base for Bronze", UNLESS a manual
+    // base size/material note "(…)" was provided, in which case keep "Name (desc)".
     function formatBaseLabel(lbl) {
-      if (/[-—]\s*Base\s*$/i.test(lbl)) return 'Granite Base for Bronze';
+      if (/[-—]\s*Base\s*$/i.test(lbl)) {
+        var bcore = lbl.replace(/\s*[-—]\s*Base\s*$/i, '').replace(/\s+[×x]\s*\d+\s*$/g, '').trim();
+        return /\([^)]+\)/.test(bcore) ? bcore : 'Granite Base for Bronze';
+      }
       return cleanLabel(lbl);
     }
     // Format install label: cemUpdate appends "— Install" to ALL marker types (bronze AND
@@ -11675,6 +11735,17 @@ function anCustomToggle(selectEl, customId) {
 // Status of Cremated Remains handler: toggle its custom field AND, when N/A is chosen, default the
 // Type/Size of Urn fields to "N/A" too (they don't apply). Switching back off N/A clears the
 // auto-filled "N/A" so a real urn can be entered; anything the user typed themselves is left alone.
+// Appends a picked common remark to the Additional Remarks box, then resets the dropdown so more
+// can be stacked. Phrases were derived from ~186 real at-need packets; "___" blanks (chair counts,
+// locations) are filled in by hand.
+function anRemarksInsert(sel) {
+  if (!sel || !sel.value) return;
+  var ta = el('anIaRemarks'); if (!ta) { sel.selectedIndex = 0; return; }
+  var cur = (ta.value || '').replace(/\s+$/, '');
+  ta.value = cur ? (cur + ' ' + sel.value) : sel.value;
+  sel.selectedIndex = 0;
+  ta.focus();
+}
 function anCremStatusChange(selectEl) {
   anCustomToggle(selectEl, 'anIaCremStatusOther');
   var isNA = selectEl && selectEl.value === 'N/A';
