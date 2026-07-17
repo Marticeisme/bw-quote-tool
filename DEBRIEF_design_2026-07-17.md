@@ -3,7 +3,7 @@
 **Prepared for:** a Claude design consultation
 **Prepared by:** Claude (engineering session), for Martice Morrison
 **Date:** July 17, 2026
-**Goal of this doc:** give a designer everything needed to propose concrete improvements to (1) the counselor-facing web app and (2) the family-facing quotes. Engineering (me) will implement whatever we land on — so ideas can be ambitious, but they must be buildable within the constraints in the last section.
+**Goal of this doc:** give a designer everything needed to propose concrete improvements across the whole product — (1) the counselor-facing web app AND (2) the family-facing quotes. **Please look at all of it.** That said, the **family-facing quotes are the single highest priority** — they're what grieving families actually hold and read, so if you only have time to redesign one thing, redesign those. Engineering (me) will implement whatever we land on — so ideas can be ambitious, but they must be buildable within the constraints in the last section.
 
 ---
 
@@ -85,7 +85,7 @@ Prioritized, but pick where you can add the most value:
 3. **A cover / summary moment.** Should the quote lead with a warm one-line summary and total before the itemization? What belongs "above the fold"?
 4. **Print + PDF parity.** Whatever the design, it has to render both as HTML/CSS (print) and via pdf-lib drawing primitives (download). Simpler layouts are easier to keep identical — keep that in mind.
 
-### For the counselor app (secondary but valuable)
+### For the counselor app (also in scope — please cover it too)
 5. **Tame the density of the Quote Builders.** Better visual hierarchy, grouping, and progressive disclosure so a long form of panels is scannable at a glance and fast to operate live in front of a family.
 6. **A consistent component language.** Panels, rows, checkboxes, price displays, running totals, and the summary sidebar are currently styled ad-hoc. A small, consistent kit would help.
 7. **Navigation & orientation.** The sidebar has ~20 items across 6 groups. Is the grouping right? Is there a clearer mental model (e.g. "start a quote → pick contract" flow)?
