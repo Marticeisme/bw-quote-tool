@@ -2860,11 +2860,11 @@ tr:hover td{background:#eef3f8;}
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
           <div style="flex:1;min-width:150px;">
             <label style="font-size:12px;">Date of Birth</label>
-            <input type="date" id="anDecDOB" oninput="anCalcAge()" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            <input type="date" id="anDecDOB" oninput="anCalcAge()" onpaste="anDatePaste(event)" title="You can paste a date like 12/24/1934" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
           </div>
           <div style="flex:1;min-width:150px;">
             <label style="font-size:12px;">Date of Death</label>
-            <input type="date" id="anDecDOD" oninput="anCalcAge()" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
+            <input type="date" id="anDecDOD" oninput="anCalcAge()" onpaste="anDatePaste(event)" title="You can paste a date like 07/04/2026" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">
           </div>
           <div style="flex:1;min-width:120px;">
             <label style="font-size:12px;">Age</label>
@@ -3043,14 +3043,6 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
-    <!-- Additional Signers -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header">✍️ Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
-      <div class="q-panel-body">
-        <div id="anSignersBody"></div>
-      </div>
-    </div>
-
     <!-- Interment Order & Authorization -->
     <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header">✅ Interment Order &amp; Authorization</div>
@@ -3135,7 +3127,7 @@ tr:hover td{background:#eef3f8;}
         <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
         <div class="q-row">
           <label>Status of Cremated Remains</label>
-          <select id="anIaCremStatus" onchange="anCustomToggle(this,'anIaCremStatusOther')" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+          <select id="anIaCremStatus" onchange="anCremStatusChange(this)" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
             <option value="">—</option>
             <option>N/A</option>
             <option>CHR at WMP</option>
@@ -3160,6 +3152,14 @@ tr:hover td{background:#eef3f8;}
           <textarea id="anIaRemarks" placeholder="e.g. Please setup a tent and 10 chairs. Family to witness lowering of casket." rows="3" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
         </div>
         <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Prints in the IOA's Additional Remarks box — tent/chairs, witness/placement instructions, service logistics, anything grounds crew or the family needs to know.</div>
+      </div>
+    </div>
+
+    <!-- Additional Signers (below Interment Order & Authorization) -->
+    <div class="q-panel" style="margin-top:10px;">
+      <div class="q-panel-header">✍️ Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
+      <div class="q-panel-body">
+        <div id="anSignersBody"></div>
       </div>
     </div>
 
@@ -11401,6 +11401,30 @@ async function generateRICFromTab() {
 // AT-NEED CIRGAS CONTRACT TAB
 // ═══════════════════════════════════════════════════════════════
 
+// Parse a pasted/typed date string into ISO yyyy-mm-dd (native <input type="date"> only accepts
+// ISO on paste). Handles "12/24/1934", "12-24-1934", "1934-12-24", and text like "December 24, 1934".
+function _parseToISODate(s) {
+  s = String(s == null ? '' : s).trim();
+  if (!s) return null;
+  var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return m[1] + '-' + ('0'+m[2]).slice(-2) + '-' + ('0'+m[3]).slice(-2);
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m) {
+    var mo = +m[1], da = +m[2], yr = +m[3];
+    if (yr < 100) yr += (yr > 30 ? 1900 : 2000);
+    if (mo >= 1 && mo <= 12 && da >= 1 && da <= 31) return yr + '-' + ('0'+mo).slice(-2) + '-' + ('0'+da).slice(-2);
+  }
+  var d = new Date(s);
+  if (!isNaN(d.getTime())) return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+  return null;
+}
+// Paste handler for the decedent DOB/DOD date fields so a copied date (any common format) drops in.
+function anDatePaste(e) {
+  var input = e.target || e.srcElement;
+  var txt = ((e.clipboardData || window.clipboardData) || {}).getData ? (e.clipboardData || window.clipboardData).getData('text') : '';
+  var iso = _parseToISODate(txt);
+  if (iso && input) { e.preventDefault(); input.value = iso; if (typeof anCalcAge === 'function') anCalcAge(); }
+}
 function anCalcAge() {
   var dob = el('anDecDOB') ? el('anDecDOB').value : '';
   var dod = el('anDecDOD') ? el('anDecDOD').value : '';
@@ -11639,6 +11663,18 @@ function anVtToggle() {
 function anCustomToggle(selectEl, customId) {
   var c = el(customId);
   if (c) c.style.display = (selectEl && selectEl.value === 'custom') ? '' : 'none';
+}
+// Status of Cremated Remains handler: toggle its custom field AND, when N/A is chosen, default the
+// Type/Size of Urn fields to "N/A" too (they don't apply). Switching back off N/A clears the
+// auto-filled "N/A" so a real urn can be entered; anything the user typed themselves is left alone.
+function anCremStatusChange(selectEl) {
+  anCustomToggle(selectEl, 'anIaCremStatusOther');
+  var isNA = selectEl && selectEl.value === 'N/A';
+  ['anIaUrnType','anIaUrnSize'].forEach(function(id){
+    var e = el(id); if (!e) return;
+    if (isNA) { if (!e.value.trim()) e.value = 'N/A'; }
+    else if (e.value.trim() === 'N/A') { e.value = ''; }
+  });
 }
 // Reads the effective value for one of those dropdowns: the free-text field when "custom" is
 // selected, otherwise the dropdown's own value.
@@ -14712,6 +14748,9 @@ async function _fillCirgasXlsx(data) {
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'O' + (ir + 2), 's', isg.relation);
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 4), 's', addr);
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + (ir + 4), 's', isg.phone);
+      // Signature date (value cell Q{ir}, above the "Date" label at Q{ir+1}) — was left blank, so
+      // each additional signer's date never printed. Stamp today's date whenever a signer is present.
+      if (isg.name) await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'Q' + ir, 's', _xlsxDateStr(new Date().toISOString().slice(0,10)));
     }
 
     // Cemetery Rules & Regs — Purchaser/Family Service Director signature date lines. The date
