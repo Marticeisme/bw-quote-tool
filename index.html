@@ -10225,7 +10225,11 @@ async function generateRICContractCore(clientData) {
     var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care/i) && !l.label.match(/2nd|Second/i); });
     var secRight  = exemptLines.find(function(l){ return l.isSpace && (l.isSecondRight || l.label.match(/2nd Right|Second Right/i)) && !l.label.match(/ECF/i); });
     var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right|Second Right/i) && l.label.match(/ECF/i); });
-    var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment O&C|Entombment|Interment/i) && !l.label.match(/ECF|Recording/i); });
+    // O&C lines: match "Inurnment" broadly (Ground/Boulder/Niche Inurnment are all cremation O&C),
+    // not just "Inurnment O&C" — a plain "Ground Inurnment" ($985) was being missed, so a case with
+    // both a burial O&C and a cremation O&C only imported one of the two. "Recording Fee – Inurnment"
+    // is still excluded by the Recording guard.
+    var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment|Entombment|Interment/i) && !l.label.match(/ECF|Recording/i); });
     var recLines  = exemptLines.filter(function(l){ return l.label.match(/Recording/i); });
 
     // Financials
@@ -10657,7 +10661,11 @@ async function generateRICContractCore(clientData) {
     function isMarker(l)   { return l.match(/Flush|Companion|Marker|Monument|Upright|Slant|Granite|Plaque/i) && !l.match(/Bronze Memorial/i); }
     function isBronze(l)   { return l.match(/Bronze/i) && !l.match(/^Vase:/i); }
     function isBase(l)     { return l.match(/\bBase\b/i) && !l.match(/^Vase|core|\d+x\d+\s+base/i); }
-    function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|^Vase|Block|Urn|Niche/i); }
+    // Install lines: match "Install"/"Setting Fee" but NOT a line whose structured suffix is
+    // "— Base" or "— Memorial" — a marker NAME can contain "Installation" (e.g. "Installation Only –
+    // Gov't Bronze from VA — Base"), which otherwise made that base line ALSO count as an install
+    // (double-counted: install qty 3 / total inflated by the base amount).
+    function isInstall(l)  { return l.match(/Install|Setting Fee/i) && !l.match(/Vault Setting|^Vase|Block|Urn|Niche/i) && !/[-—]\s*Base\s*$/i.test(l) && !/[-—]\s*Memorial\s*$/i.test(l); }
     function isVault(l)    { return l.match(/Vault|Container|Andura|Novato|Hadley|Clifton/i) && !l.match(/Setting|Install/i); }
     function isVaultSet(l) { return l.match(/Vault Setting|Container Setting/i); }
     // Match ×N quantity multiplier with required leading whitespace so dimensions like "44×14" don't match
