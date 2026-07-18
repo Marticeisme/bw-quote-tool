@@ -7783,9 +7783,27 @@ function _fqBuildModel(opts){
     if(!s.lines || !s.lines.length) return;
     var g=_fqSurfaceGroups(s.lines, s.kind);
     if(!g.groups.length && !g.discount) return;
-    surfaces.push({name:s.name, tagline:s.tagline, groups:g.groups, discount:g.discount, subtotal:s.total});
+    surfaces.push({kind:s.kind, name:s.name, tagline:s.tagline, groups:g.groups, discount:g.discount, subtotal:s.total});
     grand+=s.total; taxAmt+=_fqTaxOf(s.lines);
   });
+  // Payment-options descriptor for page 2. Cemetery arrangements are financed (FIN_TIERS grid);
+  // funeral-home expenses ride WA Maxima insurance (age-based) — two different products, never
+  // blended. Combined defaults to both as separate sections; with a monthly-budget target it
+  // switches to the combined budget grid (cemetery term x FH plan -> total/mo).
+  var showPay=opts.showPayment!==false, cemBase=0, fhBase=0, hasCem=false, hasFh=false;
+  surfaces.forEach(function(sf){
+    if(sf.kind==='cem'){ cemBase+=sf.subtotal; if(sf.subtotal>0) hasCem=true; }
+    else if(sf.kind==='fh'){ fhBase+=sf.subtotal; if(sf.subtotal>0) hasFh=true; }
+  });
+  var mx=showPay?(opts.maxima||null):null;
+  var pay={
+    scope:(hasCem&&hasFh)?'combined':(hasFh?'fh':'cem'),
+    cemBase:(showPay&&hasCem)?cemBase:0,
+    fhBase:(showPay&&hasFh)?fhBase:0,
+    maxima:mx,
+    combBudget:(showPay&&opts.combBudget>0)?opts.combBudget:0
+  };
+  var hasPage2=pay.cemBase>0 || (mx&&mx.plans&&mx.plans.length>0);
   return {
     typeLabel:opts.typeLabel,
     scopeLine:opts.scopeLabel+' · '+_fqLongDate(now)+' · Valid through '+_fqShortDate(valid),
@@ -7795,8 +7813,10 @@ function _fqBuildModel(opts){
     surfaces:surfaces,
     taxAmount:taxAmt,
     grandTotal:grand,
-    maxima:opts.maxima||null,
-    payTiers:opts.showPayment===false?[]:_fqPayTiers(grand)
+    maxima:mx,
+    pay:pay,
+    hasPage2:hasPage2,
+    payTiers:opts.showPayment===false?[]:_fqPayTiers(grand)   // retained for the dead HTML fallback renderer
   };
 }
 function _fqPickTier(model){
@@ -8015,13 +8035,17 @@ async function _fqBuildPDFBytes(model){
     var s=clean(text).toUpperCase(), cx=x;
     for(var i=0;i<s.length;i++){ var ch=s[i]; page.drawText(ch,{x:cx,y:y,size:size,font:sansB,color:color}); cx+=sansB.widthOfTextAtSize(ch,size)+size*0.14; }
   }
-  function footer(pageNo){
-    doc.getPages(); // ensure
-    page.drawLine({start:{x:M,y:52},end:{x:RX,y:52},thickness:1,color:FOOTR});
-    page.drawText('Bonney Watson  \xb7  16445 International Blvd, SeaTac, WA 98188',{x:M,y:40,size:8,font:sans,color:M2});
-    page.drawText('mmorrison@bonneywatson.com  \xb7  206-445-9794  \xb7  Available 24 hours',{x:M,y:29,size:8,font:sans,color:M2});
-    var pg='Page '+pageNo+' of '+(model.payTiers.length?2:1);
-    page.drawText(pg,{x:RX-sans.widthOfTextAtSize(pg,8),y:29,size:8,font:sans,color:M3});
+  // Footers are drawn at the very end (drawAllFooters), once the true page count is known — a
+  // combined quote can spill cemetery-financing + FH-Maxima onto a 3rd page.
+  function drawAllFooters(){
+    var pgs=doc.getPages(), total=pgs.length;
+    pgs.forEach(function(pg,i){
+      pg.drawLine({start:{x:M,y:52},end:{x:RX,y:52},thickness:1,color:FOOTR});
+      pg.drawText('Bonney Watson  \xb7  16445 International Blvd, SeaTac, WA 98188',{x:M,y:40,size:8,font:sans,color:M2});
+      pg.drawText('mmorrison@bonneywatson.com  \xb7  206-445-9794  \xb7  Available 24 hours',{x:M,y:29,size:8,font:sans,color:M2});
+      var pg2='Page '+(i+1)+' of '+total;
+      pg.drawText(pg2,{x:RX-sans.widthOfTextAtSize(pg2,8),y:29,size:8,font:sans,color:M3});
+    });
   }
 
   // ===== PAGE 1 =====
@@ -8111,78 +8135,147 @@ async function _fqBuildPDFBytes(model){
   if(model.taxAmount>0){ var tn='Tax applies to merchandise. Services & transportation are exempt.', tnW=sans.widthOfTextAtSize(tn,8); page.drawText(tn,{x:RX-tnW,y:y,size:8,font:sans,color:M3}); y-=14; }
   // Note
   y-=6; kicker('A note',M,7.5,ORANGE); y-=(tier.note+6);
-  var noteTxt='This is an estimate prepared for your planning - not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we are here to answer any question, whenever you are ready.'+(model.payTiers.length?' A summary of payment options follows on the next page.':'');
+  var noteTxt='This is an estimate prepared for your planning - not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we are here to answer any question, whenever you are ready.'+(model.hasPage2?' A summary of payment options follows on the next page.':'');
   wrap(noteTxt,sans,tier.note,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:tier.note,font:sans,color:BODY}); y-=tier.note*1.45; });
-  footer(1);
 
-  // ===== PAGE 2 — payment options =====
-  // FH quotes with an insured age use the WA Maxima insurance plans (Martice's call); everything
-  // else uses the unified 0%-down financing tiers. Both share the page-2 chrome + cream aesthetic.
-  if(model.maxima && model.maxima.plans.length){
-    var mx=model.maxima;
-    page=doc.addPage([PW,PH]);
-    page.drawRectangle({x:0,y:0,width:PW,height:PH,color:SHEET});
-    drawHeader('Payment Options','For '+clean(model.clientName||'Your Family')+'  \xb7  Estimated total '+_fqMoney(model.grandTotal));
-    y-=24;
-    kicker('Ways to plan for this',M,7.5,ORANGE); y-=24;
-    page.drawText('There is no obligation, and no wrong choice.',{x:M,y:y,size:20,font:serif,color:NAVYD}); y-=18;
-    wrap('Funeral expenses can be prearranged through a WA Maxima insurance plan. The estimates below show monthly amounts by plan for age '+mx.age+(mx.down>0?(', after a '+_fqMoney(mx.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
-    y-=16;
-    var rowH=20, cardH=18+22+mx.plans.length*rowH+6;
-    page.drawRectangle({x:M,y:y-cardH,width:RX-M,height:cardH,color:CREAM,borderColor:FOOTR,borderWidth:1});
-    var colPlan=M+24, colTotR=RX-24, colTermR=colTotR-96, colMoR=colTermR-96;
+  // ===== PAGE 2+ — payment options =====
+  // Two distinct products, never blended: cemetery arrangements are FINANCED (FIN_TIERS grid);
+  // funeral-home expenses ride WA MAXIMA insurance (age-based). Combined shows both as separate
+  // sections, or — when a monthly-budget target is set — one combined budget grid.
+  if(model.hasPage2){
+    var pay=model.pay;
+    var STEELB=C('#e2ddd1'), ROWL=C('#efe9de');
     function rtc(txt,xR,yy,size,font,color){ var w=font.widthOfTextAtSize(clean(txt),size); page.drawText(clean(txt),{x:xR-w,y:yy,size:size,font:font,color:color}); }
-    var hy=y-22;
-    page.drawText('PLAN',{x:colPlan,y:hy,size:8,font:sans,color:M2});
-    rtc('MONTHLY',colMoR,hy,8,sans,M2); rtc('TERM',colTermR,hy,8,sans,M2); rtc('TOTAL',colTotR,hy,8,sans,M2);
-    page.drawLine({start:{x:colPlan,y:hy-9},end:{x:colTotR,y:hy-9},thickness:0.6,color:C('#e2ddd1')});
-    var ry=hy-9-15;
-    mx.plans.forEach(function(p){
-      page.drawText(clean(p.name),{x:colPlan,y:ry,size:11.5,font:sansB,color:NAVYD});
-      if(p.oneTime){ rtc('—',colMoR,ry,11,sans,M2); rtc('paid once',colTermR,ry,10,sans,M1); }
-      else { rtc(_fqMoney(p.monthly)+'/mo',colMoR,ry,11,sans,BODY); rtc(p.months+' mo',colTermR,ry,10,sans,M1); }
-      rtc(_fqMoney(p.totalPaid),colTotR,ry,11.5,sansB,NAVY);
-      ry-=rowH;
-      page.drawLine({start:{x:colPlan,y:ry+rowH-6},end:{x:colTotR,y:ry+rowH-6},thickness:0.4,color:C('#efe9de')});
-    });
-    y-=(cardH+16);
-    var mfpH=62; page.drawRectangle({x:M,y:y-mfpH,width:RX-M,height:mfpH,color:OFFW,borderColor:CARDB,borderWidth:1});
-    var mfy=y-16; wrap('These estimates are for illustration only and are not a contract or a guarantee of insurability. WA Maxima insurance rates depend on age and underwriting, and amounts may change. Your Family Service Advisor will provide exact figures and terms when you are ready.',sans,9,RX-M-32).forEach(function(ln){ page.drawText(ln,{x:M+16,y:mfy,size:9,font:sans,color:M1}); mfy-=12; });
-    footer(2);
-  }
-  else if(model.payTiers.length){
-    page=doc.addPage([PW,PH]);
-    page.drawRectangle({x:0,y:0,width:PW,height:PH,color:SHEET});
-    drawHeader('Payment Options','For '+clean(model.clientName||'Your Family')+'  \xb7  Estimated total '+_fqMoney(model.grandTotal));
-    y-=24;
-    kicker('Ways to plan for this',M,7.5,ORANGE); y-=24;
-    page.drawText('There is no obligation, and no wrong choice.',{x:M,y:y,size:20,font:serif,color:NAVYD}); y-=18;
-    wrap('Many families choose to spread the cost over time. The estimates below show a few common down-payment amounts and terms at 0% interest with automatic payments. Your Family Service Advisor can tailor any of these to what feels right for you.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
-    y-=12;
-    model.payTiers.forEach(function(o){
-      var cardH=96;
-      page.drawRectangle({x:M,y:y-cardH,width:RX-M,height:cardH,color:CREAM,borderColor:FOOTR,borderWidth:1});
-      var cy=y-22;
-      page.drawText(clean(o.label),{x:M+22,y:cy,size:16,font:serif,color:NAVYD});
-      var meta='Down payment '+o.down+'   \xb7   Financed '+o.financed, metaW=sans.widthOfTextAtSize(clean(meta),10.5);
-      page.drawText(clean(meta),{x:RX-22-metaW,y:cy+2,size:10.5,font:sans,color:M1});
-      page.drawLine({start:{x:M+22,y:cy-12},end:{x:RX-22,y:cy-12},thickness:0.5,color:C('#e2ddd1')});
-      var colW=(RX-M-44)/3, tyTop=cy-26;
-      o.terms.forEach(function(tm,i){
-        var cx=M+22+colW*i, mid=cx+colW/2;
-        if(i>0) page.drawLine({start:{x:cx,y:tyTop+8},end:{x:cx,y:tyTop-34},thickness:0.5,color:C('#eee7da')});
-        function ctr(txt,size,font,color,yy){ var w=font.widthOfTextAtSize(clean(txt),size); page.drawText(clean(txt),{x:mid-w/2,y:yy,size:size,font:font,color:color}); }
-        ctr(tm.term,9.5,sans,M2,tyTop);
-        ctr(tm.monthly,18,sansB,NAVY,tyTop-22);
-        ctr('per month',8,sans,M3,tyTop-33);
+    function newPayPage(sub){ page=doc.addPage([PW,PH]); page.drawRectangle({x:0,y:0,width:PW,height:PH,color:SHEET}); drawHeader('Payment Options',sub||('For '+clean(model.clientName||'Your Family')+'  \xb7  Estimated total '+_fqMoney(model.grandTotal))); y-=20; }
+    function need(h){ if(y-h < 74){ newPayPage('Payment options, continued'); return true; } return false; }
+    function sectionLabel(kick,title,followH){ need(33+(followH||0)); kicker(kick,M,7.5,ORANGE); y-=15; page.drawText(clean(title),{x:M,y:y,size:14,font:serif,color:NAVYD}); y-=18; }
+    // Full cemetery financing grid: one cream card per down tier, every term with rate/monthly/total.
+    function drawFinanceGrid(base){
+      [{key:0.10,label:'10% down'},{key:0.20,label:'20% down'},{key:0.25,label:'25% or more down'}].forEach(function(td){
+        var tiers=(typeof FIN_TIERS!=='undefined')?FIN_TIERS[td.key]:null; if(!tiers) return;
+        var down=Math.ceil(base*td.key), bal=base-down; if(bal<=0) return;
+        var cardH=26+15+tiers.length*15+10;
+        need(cardH+10);
+        page.drawRectangle({x:M,y:y-cardH,width:RX-M,height:cardH,color:CREAM,borderColor:FOOTR,borderWidth:1});
+        var cy=y-19;
+        page.drawText(clean(td.label),{x:M+20,y:cy,size:14,font:serif,color:NAVYD});
+        var meta='Down payment '+_fqMoney(down)+'   \xb7   Financed '+_fqMoney(bal), mw=sans.widthOfTextAtSize(clean(meta),10);
+        page.drawText(clean(meta),{x:RX-20-mw,y:cy+1,size:10,font:sans,color:M1});
+        page.drawLine({start:{x:M+20,y:cy-8},end:{x:RX-20,y:cy-8},thickness:0.5,color:STEELB});
+        var cT=M+20, cR=M+150, cMoR=RX-140, cTotR=RX-20, hy=cy-21;
+        page.drawText('TERM',{x:cT,y:hy,size:8,font:sans,color:M2});
+        page.drawText('RATE',{x:cR,y:hy,size:8,font:sans,color:M2});
+        rtc('MONTHLY',cMoR,hy,8,sans,M2); rtc('TOTAL COST',cTotR,hy,8,sans,M2);
+        var ry=hy-15;
+        tiers.forEach(function(t){
+          var mo=t[0], rate=t[1], monthly=finMonthly(bal,mo,rate), tot=down+monthly*mo, zero=rate===0;
+          page.drawText(mo+' months',{x:cT,y:ry,size:10.5,font:sansB,color:NAVYD});
+          page.drawText(zero?'0% \xb7 ACH':(rate*100).toFixed(0)+'%',{x:cR,y:ry,size:10,font:sans,color:zero?ORANGE:BODY});
+          rtc(_fqMoney(monthly)+'/mo',cMoR,ry,10.5,sansB,zero?NAVY:BODY);
+          rtc(_fqMoney(tot),cTotR,ry,9.5,sans,M1);
+          ry-=15;
+        });
+        y-=(cardH+10);
       });
-      y-=(cardH+14);
-    });
-    y-=4;
-    var fpH=48; page.drawRectangle({x:M,y:y-fpH,width:RX-M,height:fpH,color:OFFW,borderColor:CARDB,borderWidth:1});
-    var fy=y-16; wrap('All figures are estimates for illustration only and do not constitute a financing offer or contract. Monthly amounts assume 0% interest with automatic (ACH) payments; other rates and terms may apply. Your Family Service Advisor will provide exact figures and terms when you are ready.',sans,9,RX-M-32).forEach(function(ln){ page.drawText(ln,{x:M+16,y:fy,size:9,font:sans,color:M1}); fy-=12; });
-    footer(2);
+    }
+    // WA Maxima insurance card (age-based) — one row per plan.
+    function drawMaximaCard(mx){
+      var rowH=20, cardH=18+22+mx.plans.length*rowH+6;
+      need(cardH+8);
+      page.drawRectangle({x:M,y:y-cardH,width:RX-M,height:cardH,color:CREAM,borderColor:FOOTR,borderWidth:1});
+      var colPlan=M+24, colTotR=RX-24, colTermR=colTotR-96, colMoR=colTermR-96, hy=y-22;
+      page.drawText('PLAN',{x:colPlan,y:hy,size:8,font:sans,color:M2});
+      rtc('MONTHLY',colMoR,hy,8,sans,M2); rtc('TERM',colTermR,hy,8,sans,M2); rtc('TOTAL',colTotR,hy,8,sans,M2);
+      page.drawLine({start:{x:colPlan,y:hy-9},end:{x:colTotR,y:hy-9},thickness:0.6,color:STEELB});
+      var ry=hy-9-15;
+      mx.plans.forEach(function(p){
+        page.drawText(clean(p.name),{x:colPlan,y:ry,size:11.5,font:sansB,color:NAVYD});
+        if(p.oneTime){ rtc('—',colMoR,ry,11,sans,M2); rtc('paid once',colTermR,ry,10,sans,M1); }
+        else { rtc(_fqMoney(p.monthly)+'/mo',colMoR,ry,11,sans,BODY); rtc(p.months+' mo',colTermR,ry,10,sans,M1); }
+        rtc(_fqMoney(p.totalPaid),colTotR,ry,11.5,sansB,NAVY);
+        ry-=rowH;
+        page.drawLine({start:{x:colPlan,y:ry+rowH-6},end:{x:colTotR,y:ry+rowH-6},thickness:0.4,color:ROWL});
+      });
+      y-=(cardH+12);
+    }
+    // Compact "closest to your target" block — only the handful of cemetery-financing + FH-Maxima
+    // combinations nearest the family's monthly-budget target (never the full cross-product).
+    function drawBudgetMatches(base, mx, budget){
+      var rows=[];
+      [{key:0.10,label:'10% down'},{key:0.20,label:'20% down'},{key:0.25,label:'25%+ down'}].forEach(function(td){
+        var tiers=FIN_TIERS[td.key]; if(!tiers) return;
+        var down=Math.ceil(base*td.key), bal=base-down; if(bal<=0) return;
+        tiers.forEach(function(t){
+          var cemMo=finMonthly(bal,t[0],t[1]);
+          mx.plans.forEach(function(p){
+            if(p.oneTime) return;  // Single-Pay is a lump sum, not monthly — not a budget match
+            var total=cemMo+p.monthly;
+            rows.push({label:td.label+' \xb7 '+t[0]+' mo '+(t[1]===0?'(0% ACH)':'('+(t[1]*100).toFixed(0)+'%)')+'  +  '+p.name, cemMo:cemMo, fhMo:p.monthly, total:total, diff:Math.abs(total-budget)});
+          });
+        });
+      });
+      if(!rows.length) return;
+      rows.sort(function(a,b){return a.diff-b.diff;});
+      var bestVal=rows[0].total;
+      var top=rows.slice(0,5).sort(function(a,b){return a.total-b.total;});
+      var rowH=30, cardH=12+top.length*rowH+6;
+      need(cardH+8);
+      page.drawRectangle({x:M,y:y-cardH,width:RX-M,height:cardH,color:CREAM,borderColor:FOOTR,borderWidth:1});
+      var ry=y-24;
+      top.forEach(function(r){
+        var isBest=(r.total===bestVal);
+        if(isBest) page.drawRectangle({x:M+6,y:ry-16,width:RX-M-12,height:rowH-4,color:C('#fff3cd')});
+        page.drawText(trunc(r.label,sansB,11,RX-M-150),{x:M+16,y:ry,size:11,font:sansB,color:NAVYD});
+        rtc(_fqMoney(r.total)+'/mo',RX-16,ry,13,sansB,isBest?ORANGE:NAVY);
+        page.drawText('cemetery '+_fqMoney(r.cemMo)+'/mo  +  insurance '+_fqMoney(r.fhMo)+'/mo'+(isBest?'    \xb7  closest to your target':''),{x:M+16,y:ry-13,size:8.5,font:sans,color:M1});
+        ry-=rowH;
+      });
+      y-=(cardH+10);
+    }
+    function disclosure(txt,h){ need(h+8); page.drawRectangle({x:M,y:y-h,width:RX-M,height:h,color:OFFW,borderColor:CARDB,borderWidth:1}); var fy=y-16; wrap(txt,sans,9,RX-M-32).forEach(function(ln){ page.drawText(ln,{x:M+16,y:fy,size:9,font:sans,color:M1}); fy-=12; }); y-=(h+10); }
+
+    // ---- Page-2 opening chrome ----
+    newPayPage();
+    y-=4; kicker('Ways to plan for this',M,7.5,ORANGE); y-=24;
+    page.drawText('There is no obligation, and no wrong choice.',{x:M,y:y,size:20,font:serif,color:NAVYD}); y-=20;
+
+    if(pay.scope==='fh'){
+      wrap('Funeral expenses can be prearranged through a WA Maxima insurance plan. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
+      y-=14; drawMaximaCard(pay.maxima);
+      disclosure('These estimates are for illustration only and are not a contract or a guarantee of insurability. WA Maxima insurance rates depend on age and underwriting, and amounts may change. Your Family Service Advisor will provide exact figures and terms when you are ready.',62);
+    }
+    else if(pay.scope==='cem'){
+      wrap('Many families choose to spread the cost over time. The options below show every down-payment amount and term available. Terms marked 0% require automatic (ACH) payments; other terms include the finance charge shown. Your Family Service Advisor can tailor any of these to what feels right for you.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
+      y-=14; drawFinanceGrid(pay.cemBase);
+      disclosure('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.',74);
+    }
+    else { // combined — two separate sections (cemetery financing + FH Maxima), plus an optional
+           // "closest to your target" block only when a monthly budget was entered.
+      var hasMx = pay.maxima && pay.maxima.plans.length;
+      wrap('The cemetery and the funeral home are paid through two different programs. Cemetery arrangements can be financed over time; funeral home expenses can be prearranged through WA Maxima insurance. Both are shown below.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
+      y-=16;
+      sectionLabel('Cemetery','Financing options  \xb7  '+_fqMoney(pay.cemBase),150);
+      drawFinanceGrid(pay.cemBase);
+      y-=6;
+      if(hasMx){
+        var _mxH=18+22+pay.maxima.plans.length*20+6;   // keep the label with its table (no orphan)
+        sectionLabel('Funeral home','WA Maxima insurance  \xb7  age '+pay.maxima.age,_mxH);
+        drawMaximaCard(pay.maxima);
+      } else {
+        need(44); kicker('Funeral home',M,7.5,ORANGE); y-=16;
+        wrap("Funeral home expenses are prearranged through WA Maxima insurance (age-based). Enter the family member's age in the Funeral Home quote to include those monthly figures here.",sans,10.5,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:10.5,font:sans,color:M1}); y-=14; });
+        y-=8;
+      }
+      // Optional target-match block — only when the family gave a monthly budget target.
+      if(hasMx && pay.combBudget>0){
+        y-=4;
+        sectionLabel('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month',5*30+8);
+        drawBudgetMatches(pay.cemBase, pay.maxima, pay.combBudget);
+      }
+      disclosure('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. WA Maxima insurance rates depend on age and underwriting and are not a guarantee of insurability. Your Family Service Advisor will provide exact figures and terms.',86);
+    }
   }
+  drawAllFooters();
   return await doc.save();
 }
 function _fqPdfSlug(model, filePrefix){
@@ -8333,12 +8426,15 @@ function printCombQuote() {
   var fhTotal  = (typeof _combFhTotal !=='undefined'?_combFhTotal :0);
   var clientName = (val('cemClientName') || val('fhClientName') || '').trim();
   logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotal);
+  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
   var model = _fqBuildModel({
     typeLabel:  'Combined Family Quote',
     scopeLabel: 'Cemetery & Funeral Home',
     clientName: clientName,
     notes:      '',
     showPayment: true,
+    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, fhTotal) : null,
+    combBudget: parseFloat((el('combTargetBudget')||{}).value)||0,
     surfaces: [
       { kind:'cem', name:'Cemetery',     tagline:'Washington Memorial Park', lines:cemLines, total:cemTotal },
       { kind:'fh',  name:'Funeral Home', tagline:'Services & merchandise',    lines:fhLines,  total:fhTotal }
@@ -14075,12 +14171,15 @@ async function downloadCombQuotePDF() {
   var cemTotal    = (typeof _combCemTotal !== 'undefined' ? _combCemTotal : 0);
   var fhTotalVal  = (typeof _combFhTotal  !== 'undefined' ? _combFhTotal  : 0);
   logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
+  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
   var model = _fqBuildModel({
     typeLabel:  'Combined Family Quote',
     scopeLabel: 'Cemetery & Funeral Home',
     clientName: clientName,
     notes:      '',
     showPayment: true,
+    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, fhTotalVal) : null,
+    combBudget: parseFloat((el('combTargetBudget')||{}).value)||0,
     surfaces: [
       { kind:'cem', name:'Cemetery',     tagline:'Washington Memorial Park', lines:cemLines, total:cemTotal },
       { kind:'fh',  name:'Funeral Home', tagline:'Services & merchandise',    lines:fhLines,  total:fhTotalVal }
