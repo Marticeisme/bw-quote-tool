@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urn Catalog &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;}
+
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:540px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+
+.cat-info{margin-bottom:24px;}
+.cat-range{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.cat-detail{font-size:14px;color:var(--text-muted);line-height:1.6;max-width:700px;}
+
+.urn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.urn-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:8px;overflow:hidden;transition:box-shadow .2s;}
+.urn-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);}
+.urn-img{aspect-ratio:1/1;background:var(--sidebar-bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.urn-img .placeholder-id{position:absolute;bottom:6px;right:6px;font-family:monospace;font-size:9px;color:var(--text-muted);background:rgba(255,255,255,.8);padding:1px 5px;border-radius:3px;}
+.urn-body{padding:12px 14px 16px;}
+.urn-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:4px;}
+.urn-price{font-family:'Source Sans 3',sans-serif;font-size:17px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;}
+
+.filter-bar{padding:20px 48px;background:var(--sidebar-bg);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:14px;position:sticky;top:42px;z-index:50;}
+.filter-bar input{flex:0 0 280px;padding:9px 14px;border:1px solid var(--warm-border);border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;outline:none;background:var(--white);}
+.filter-bar input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(61,90,122,.1);}
+.filter-count{color:var(--text-muted);font-size:12.5px;}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .urn-grid{grid-template-columns:1fr 1fr;}
+  .contents-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  .filter-bar{padding:16px 24px;flex-wrap:wrap;}
+  .filter-bar input{flex:1 1 200px;}
+}
+@media(max-width:480px){
+  .urn-grid{grid-template-columns:1fr 1fr;}
+}
+
+@media print {
+  @page{size:letter;margin:.6in .65in;}
+  body{background:#fff;font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back,.filter-bar{display:none!important;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;}
+  .cover{padding:40px 0 36px;border-radius:0;}
+  .cover h1{font-size:28pt;}
+  .section-wrap,.contents{padding-left:0;padding-right:0;}
+  .section-wrap{page-break-inside:avoid;}
+  .urn-card{break-inside:avoid;}
+  .urn-grid{grid-template-columns:repeat(4,1fr);gap:10px;}
+  .urn-card:hover{box-shadow:none;}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav no-print">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+    <a href="#cat-full-size">Full-Size</a>
+    <a href="#cat-companion">Companion</a>
+    <a href="#cat-keepsake">Keepsake</a>
+    <a href="#cat-miniature">Miniature</a>
+    <a href="#cat-vault">Urn</a>
+    <a href="#cat-biodegradable">Biodegradable</a>
+    <a href="#cat-scattering">Scattering</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Urn Catalog</h1>
+    <div class="cover-sub">Full-size urns, companion urns, keepsakes, miniatures, biodegradable options, and scattering tubes &mdash; every cremation memorial we offer, in one guide.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">248 products &middot; $49 &ndash; $1,920 &middot; Washington Memorial Park</div>
+  </div>
+
+  <div class="filter-bar no-print">
+    <input type="text" id="searchInput" placeholder="Search by name or item number&hellip;" oninput="filterCards()">
+    <span class="filter-count" id="filterCount">248 products</span>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#cat-full-size">Full-Size Urns <span style="color:var(--text-muted);font-weight:400">(116)</span></a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#cat-companion">Companion &amp; Dual-Capacity Urns <span style="color:var(--text-muted);font-weight:400">(8)</span></a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#cat-keepsake">Keepsake &amp; Sharing Urns <span style="color:var(--text-muted);font-weight:400">(74)</span></a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#cat-miniature">Miniature Keepsakes <span style="color:var(--text-muted);font-weight:400">(28)</span></a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#cat-vault">Urn Vaults &amp; Burial Containers <span style="color:var(--text-muted);font-weight:400">(4)</span></a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#cat-biodegradable">Biodegradable &amp; Water Urns <span style="color:var(--text-muted);font-weight:400">(13)</span></a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#cat-scattering">Scattering Tubes <span style="color:var(--text-muted);font-weight:400">(5)</span></a></div>
+    </div>
+  </div>
+
+
+  <div class="section-wrap" id="cat-full-size">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>Full-Size Urns</h2>
+    <div class="section-sub">Traditional and decorative urns for a complete set of cremated remains</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$125.00 – $1,920.00 &middot; 116 products</div>
+      <p class="cat-detail">Full-size urns hold the complete cremated remains of one individual. Available in hardwood, metal, ceramic, cloisonne, synthetic marble, and natural stone.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="aristocrat urn" data-item="100199" data-price="1920">
+          <div class="urn-img"><span class="placeholder-id">#100199</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Aristocrat Urn</div>
+            <div class="urn-price">$1,920.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="jefferson urn" data-item="100126" data-price="1295">
+          <div class="urn-img"><span class="placeholder-id">#100126</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Jefferson Urn</div>
+            <div class="urn-price">$1,295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="fredericksburg urn" data-item="100107" data-price="1095">
+          <div class="urn-img"><span class="placeholder-id">#100107</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Fredericksburg Urn</div>
+            <div class="urn-price">$1,095.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="milan urn" data-item="100059" data-price="1075">
+          <div class="urn-img"><span class="placeholder-id">#100059</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Milan Urn</div>
+            <div class="urn-price">$1,075.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="standard brown" data-item="177130" data-price="880">
+          <div class="urn-img"><span class="placeholder-id">#177130</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Standard Brown</div>
+            <div class="urn-price">$880.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mason cherry urn" data-item="220317" data-price="795">
+          <div class="urn-img"><span class="placeholder-id">#220317</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Mason Cherry Urn</div>
+            <div class="urn-price">$795.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="liberty cherry urn" data-item="100100" data-price="715">
+          <div class="urn-img"><span class="placeholder-id">#100100</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Liberty Cherry Urn</div>
+            <div class="urn-price">$715.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="vertical sheet bronze urn no lifesymbols corner or medallion" data-item="239052" data-price="695">
+          <div class="urn-img"><span class="placeholder-id">#239052</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Vertical Sheet Bronze Urn No Lifesymbols Corner or Medallion</div>
+            <div class="urn-price">$695.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="continuum cherry clock urn" data-item="232363" data-price="650">
+          <div class="urn-img"><span class="placeholder-id">#232363</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Continuum Cherry Clock Urn</div>
+            <div class="urn-price">$650.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="sand bronze horizontal urn" data-item="235602" data-price="650">
+          <div class="urn-img"><span class="placeholder-id">#235602</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Sand Bronze Horizontal Urn</div>
+            <div class="urn-price">$650.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="sand bronze vertical urn" data-item="235601" data-price="650">
+          <div class="urn-img"><span class="placeholder-id">#235601</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Sand Bronze Vertical Urn</div>
+            <div class="urn-price">$650.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="bronze cube urn" data-item="148352" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#148352</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Bronze Cube Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="sheet bronze chest urn" data-item="148341" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#148341</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Sheet Bronze Chest Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="whittaker hardwood urn" data-item="255708" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#255708</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Whittaker Hardwood Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cocoa memorial clock urn" data-item="235699" data-price="590">
+          <div class="urn-img"><span class="placeholder-id">#235699</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cocoa Memorial Clock Urn</div>
+            <div class="urn-price">$590.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="bradbury pecan urn" data-item="208692" data-price="560">
+          <div class="urn-img"><span class="placeholder-id">#208692</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Bradbury Pecan Urn</div>
+            <div class="urn-price">$560.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brushed bronze horizontal urn" data-item="235555" data-price="560">
+          <div class="urn-img"><span class="placeholder-id">#235555</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Bronze Horizontal Urn</div>
+            <div class="urn-price">$560.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brushed bronze vertical urn" data-item="235554" data-price="560">
+          <div class="urn-img"><span class="placeholder-id">#235554</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Bronze Vertical Urn</div>
+            <div class="urn-price">$560.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="pewter bronze horizontal urn" data-item="235557" data-price="560">
+          <div class="urn-img"><span class="placeholder-id">#235557</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Pewter Bronze Horizontal Urn</div>
+            <div class="urn-price">$560.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="pewter bronze vertical urn" data-item="235556" data-price="560">
+          <div class="urn-img"><span class="placeholder-id">#235556</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Pewter Bronze Vertical Urn</div>
+            <div class="urn-price">$560.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="traditional urn" data-item="216023" data-price="500">
+          <div class="urn-img"><span class="placeholder-id">#216023</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Traditional Urn</div>
+            <div class="urn-price">$500.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth angel falls" data-item="284198" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#284198</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Angel Falls</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth arcadia" data-item="284194" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#284194</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Arcadia</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth cafe" data-item="284196" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#284196</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Cafe</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="solaris urn" data-item="272094" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#272094</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Solaris Urn</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="walker personal connections wood base" data-item="264754" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#264754</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Walker Personal Connections Wood Base</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="aberdeen dark bronze urn" data-item="285959" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285959</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Aberdeen Dark Bronze Urn</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest carrera full size" data-item="285776" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285776</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Carrera Full Size</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest golden ebony full size" data-item="285779" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285779</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Golden Ebony Full Size</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest verde full size" data-item="285782" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285782</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Verde Full Size</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="westfield antique copper urn" data-item="285957" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285957</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Westfield Antique Copper Urn</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="jamestown portrait urn" data-item="282766" data-price="425">
+          <div class="urn-img"><span class="placeholder-id">#282766</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Jamestown Portrait Urn</div>
+            <div class="urn-price">$425.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="franklin cherry urn" data-item="185841" data-price="400">
+          <div class="urn-img"><span class="placeholder-id">#185841</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Franklin Cherry Urn</div>
+            <div class="urn-price">$400.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="alpine white synthetic marble urn" data-item="184607" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#184607</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Alpine White Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="antique white" data-item="100131" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#100131</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Antique White</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cashmere gray" data-item="100132" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#100132</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cashmere Gray</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial eventide" data-item="284190" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#284190</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Eventide</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial moonlit" data-item="284188" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#284188</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Moonlit</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial nightfall" data-item="284192" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#284192</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Nightfall</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="charcoal black synthetic marble urn" data-item="238321" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#238321</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Charcoal Black Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="khaki synthetic marble urn" data-item="282599" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#282599</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Khaki Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="meadow green synthetic marble urn" data-item="184606" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#184606</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Meadow Green Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="monterey maple urn" data-item="100099" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#100099</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Monterey Maple Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="navy synthetic marble urn" data-item="238320" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#238320</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Navy Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nero marquina full size urn" data-item="285016" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#285016</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nero Marquina Full Size Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ocean blue synthetic marble urn" data-item="282598" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#282598</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ocean Blue Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="orchid synthetic marble urn" data-item="282597" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#282597</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Orchid Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="riverstone gray synthetic marble urn" data-item="184608" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#184608</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Riverstone Gray Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="rose synthetic marble urn" data-item="238322" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#238322</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Rose Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="verona beige full size urn" data-item="285014" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#285014</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Verona Beige Full Size Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="violet synthetic marble urn" data-item="282600" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#282600</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Violet Synthetic Marble Urn</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nantucket linen portrait urn" data-item="282769" data-price="375">
+          <div class="urn-img"><span class="placeholder-id">#282769</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nantucket Linen Portrait Urn</div>
+            <div class="urn-price">$375.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="alcove - orchid" data-item="285878" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#285878</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Alcove - Orchid</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="alcove - pewter" data-item="285879" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#285879</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Alcove - Pewter</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="alcove-neopolitan blue" data-item="285877" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#285877</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Alcove-Neopolitan Blue</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="amber butterfly cloisonne" data-item="270111" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270111</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Amber Butterfly Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ashen pewter urn" data-item="205396" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#205396</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ashen Pewter Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue butterfly cloisonne" data-item="270109" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270109</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Butterfly Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue delphia urn" data-item="235705" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#235705</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Delphia Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="burlwood natural cube" data-item="282006" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#282006</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Burlwood Natural Cube</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="chestnut bronze urn" data-item="205404" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#205404</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Chestnut Bronze Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cooper burnished gold" data-item="282866" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#282866</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cooper Burnished Gold</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cooper charcoal" data-item="282868" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#282868</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cooper Charcoal</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="crimson delphia urn" data-item="235709" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#235709</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Crimson Delphia Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="delphia wings urn" data-item="235716" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#235716</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Delphia Wings Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="hawthorne pewter urn" data-item="285963" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#285963</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Hawthorne Pewter Urn</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ivory pearl cloisonne" data-item="272051" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#272051</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ivory Pearl Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="melrose pink cloisonne" data-item="270115" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270115</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Melrose Pink Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="midnight swirl cloisonne" data-item="270107" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270107</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Midnight Swirl Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="red rosette cloisonne" data-item="270113" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270113</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Red Rosette Cloisonne</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="smithton bronze" data-item="284116" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#284116</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Smithton Bronze</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="smithton pewter" data-item="284115" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#284115</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Smithton Pewter</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams amber wheat" data-item="284182" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284182</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Amber Wheat</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams gypsum" data-item="284186" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284186</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Gypsum</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams sagebrush" data-item="284184" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284184</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Sagebrush</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brass liner for cocoa clock/symphony chest" data-item="238313" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#238313</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brass Liner For Cocoa Clock/Symphony Chest</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven black urn" data-item="285973" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285973</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Black Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven blue urn" data-item="285969" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285969</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Blue Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven ivory urn" data-item="285975" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285975</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Ivory Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven lavender urn" data-item="285977" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285977</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Lavender Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven pink urn" data-item="285971" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285971</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Pink Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="minimum oak urn" data-item="148340" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#148340</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Minimum Oak Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="waverly dark brown urn" data-item="285966" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285966</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Waverly Dark Brown Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="waverly light brown urn" data-item="285965" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285965</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Waverly Light Brown Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight ebony urn" data-item="285906" data-price="275">
+          <div class="urn-img"><span class="placeholder-id">#285906</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Ebony Urn</div>
+            <div class="urn-price">$275.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight patriot urn" data-item="285909" data-price="275">
+          <div class="urn-img"><span class="placeholder-id">#285909</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Patriot Urn</div>
+            <div class="urn-price">$275.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight pearl" data-item="282828" data-price="275">
+          <div class="urn-img"><span class="placeholder-id">#282828</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Pearl</div>
+            <div class="urn-price">$275.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas ivory urn" data-item="282812" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#282812</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Ivory Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas onyx urn" data-item="282809" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#282809</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Onyx Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas sagebrush urn" data-item="285903" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285903</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Sagebrush Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="denton rustic urn" data-item="285967" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285967</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Denton Rustic Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nebula indigo blue" data-item="285900" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285900</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nebula Indigo Blue</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nebula royal plum urn" data-item="282818" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#282818</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nebula Royal Plum Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="painted steel chest urn" data-item="148331" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#148331</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Painted Steel Chest Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="sable painted steel chest urn" data-item="215378" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#215378</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Sable Painted Steel Chest Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="silver steel chest urn" data-item="255707" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#255707</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Silver Steel Chest Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stone-tone catalina synthetic marble urn" data-item="238325" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#238325</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stone-Tone Catalina Synthetic Marble Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="hartley urn" data-item="216025" data-price="225">
+          <div class="urn-img"><span class="placeholder-id">#216025</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Hartley Urn</div>
+            <div class="urn-price">$225.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="kiona hardwood urn" data-item="255703" data-price="225">
+          <div class="urn-img"><span class="placeholder-id">#255703</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Kiona Hardwood Urn</div>
+            <div class="urn-price">$225.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mocha hardwood urn" data-item="255701" data-price="225">
+          <div class="urn-img"><span class="placeholder-id">#255701</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Mocha Hardwood Urn</div>
+            <div class="urn-price">$225.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stratton urn" data-item="216024" data-price="225">
+          <div class="urn-img"><span class="placeholder-id">#216024</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stratton Urn</div>
+            <div class="urn-price">$225.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="honey brown urn" data-item="255815" data-price="215">
+          <div class="urn-img"><span class="placeholder-id">#255815</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Honey Brown Urn</div>
+            <div class="urn-price">$215.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="breda blue" data-item="283596" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#283596</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Breda Blue</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="breda grey" data-item="283597" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#283597</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Breda Grey</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="breda sand" data-item="283595" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#283595</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Breda Sand</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="comet meteor gray" data-item="282815" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282815</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Comet Meteor Gray</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="comet soft pink" data-item="282822" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282822</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Comet Soft Pink</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mdf natural box" data-item="282005" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282005</span></div>
+          <div class="urn-body">
+            <div class="urn-name">MDF Natural Box</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="tempest copper" data-item="282824" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282824</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Tempest Copper</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="tempest silver" data-item="282826" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282826</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Tempest Silver</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="leather cylinder" data-item="281664" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#281664</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Leather Cylinder</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="slate gray urn" data-item="100098" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#100098</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Slate Gray Urn</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="taurus natural mdf" data-item="284132" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#284132</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Taurus Natural MDF</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="taurus walnut mdf" data-item="284131" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#284131</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Taurus Walnut MDF</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="basic urn" data-item="144682" data-price="145">
+          <div class="urn-img"><span class="placeholder-id">#144682</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Basic Urn</div>
+            <div class="urn-price">$145.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mailer" data-item="281665" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#281665</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Mailer</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-companion">
+    <div class="section-kicker">SECTION 2</div>
+    <h2>Companion &amp; Dual-Capacity Urns</h2>
+    <div class="section-sub">Urns designed to hold the remains of two individuals together</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$595.00 – $1,295.00 &middot; 8 products</div>
+      <p class="cat-detail">Companion urns provide a single vessel for two people — ideal for couples or family members who wish to rest together.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="eternal companion memento  chest" data-item="197260" data-price="1295">
+          <div class="urn-img"><span class="placeholder-id">#197260</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Eternal Companion Memento  Chest</div>
+            <div class="urn-price">$1,295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="fredericksburg cherry dual urn" data-item="100095" data-price="1195">
+          <div class="urn-img"><span class="placeholder-id">#100095</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Fredericksburg Cherry Dual Urn</div>
+            <div class="urn-price">$1,195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="unity dual capacity urn" data-item="148358" data-price="895">
+          <div class="urn-img"><span class="placeholder-id">#148358</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Unity Dual Capacity Urn</div>
+            <div class="urn-price">$895.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="charcoal black synthetic marble companion urn" data-item="238324" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#238324</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Charcoal Black Synthetic Marble Companion Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="companion alpine white synthetic marble urn" data-item="282595" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#282595</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Companion Alpine White Synthetic Marble Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="companion khaki synthetic marble urn" data-item="282596" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#282596</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Companion Khaki Synthetic Marble Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="companion navy synthetic marble urn" data-item="282594" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#282594</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Companion Navy Synthetic Marble Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="meadow green synthetic marble companion urn" data-item="238323" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#238323</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Meadow Green Synthetic Marble Companion Urn</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-keepsake">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>Keepsake &amp; Sharing Urns</h2>
+    <div class="section-sub">Small-format urns for sharing remains among family members</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$49.00 – $695.00 &middot; 74 products</div>
+      <p class="cat-detail">Keepsake urns hold a small portion of cremated remains, allowing multiple family members to each keep a personal memorial. Niche urns are sized specifically for columbarium niches.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="brushed sheet bronze niche urn" data-item="148368" data-price="695">
+          <div class="urn-img"><span class="placeholder-id">#148368</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Sheet Bronze Niche Urn</div>
+            <div class="urn-price">$695.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brushed sheet bronze niche urn" data-item="148369" data-price="695">
+          <div class="urn-img"><span class="placeholder-id">#148369</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Sheet Bronze Niche Urn</div>
+            <div class="urn-price">$695.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brushed sheet bronze niche urn" data-item="148367" data-price="695">
+          <div class="urn-img"><span class="placeholder-id">#148367</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Sheet Bronze Niche Urn</div>
+            <div class="urn-price">$695.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="fredericksburg cherry kpsk" data-item="100117" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#100117</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Fredericksburg Cherry Kpsk</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="jefferson mahogany keepsake" data-item="100115" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#100115</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Jefferson Mahogany Keepsake</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="walnut memento chest" data-item="148351" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#148351</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Walnut Memento Chest</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="forever honored memento chest" data-item="285981" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#285981</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Forever Honored Memento Chest</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="alto wind chimes keepsake" data-item="100192" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#100192</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Alto Wind Chimes Keepsake</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="bailey memento chest" data-item="285979" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#285979</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Bailey Memento Chest</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue painted bronze kpsk" data-item="148360" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#148360</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Painted Bronze Kpsk</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="brushed bronze cube keepsake" data-item="148361" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#148361</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Brushed Bronze Cube Keepsake</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="burlwood memento chest" data-item="282374" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#282374</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Burlwood Memento Chest</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="pink painted bronze kpsk" data-item="148362" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#148362</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Pink Painted Bronze Kpsk</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="riley memento chest" data-item="285980" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#285980</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Riley Memento Chest</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="whittaker hardwood keepsake" data-item="255709" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#255709</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Whittaker Hardwood Keepsake</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="amber butterfly cloisonne keepsake" data-item="270112" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270112</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Amber Butterfly Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue butterfly cloisonne keepsake" data-item="270110" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270110</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Butterfly Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ivory cloisonne keepsake" data-item="272052" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#272052</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ivory Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth angel falls keepsake" data-item="284197" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#284197</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Angel Falls Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth arcadia keepsake" data-item="284193" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#284193</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Arcadia Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="longworth cafe keepsake" data-item="284195" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#284195</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Longworth Cafe Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="melrose pink cloisonne keepsake" data-item="270116" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270116</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Melrose Pink Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="midnight swirl cloisonne keepsake" data-item="270108" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270108</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Midnight Swirl Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="red rosette cloisonne keepsake" data-item="270114" data-price="350">
+          <div class="urn-img"><span class="placeholder-id">#270114</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Red Rosette Cloisonne Keepsake</div>
+            <div class="urn-price">$350.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="aberdeen dark bronze keepsake" data-item="285960" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285960</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Aberdeen Dark Bronze Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="antique white niche urn" data-item="285197" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285197</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Antique White Niche Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cashmere gray niche urn" data-item="285198" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285198</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cashmere Gray Niche Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial eventide keepsake" data-item="284189" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284189</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Eventide Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial moonlit keepsake" data-item="284187" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284187</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Moonlit Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="celestial nightfall keepsake" data-item="284191" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#284191</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Celestial Nightfall Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nero marquina niche urn" data-item="285017" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285017</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nero Marquina Niche Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="solaris keepsake" data-item="272095" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#272095</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Solaris Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest carrera vase kpsk" data-item="285777" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285777</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Carrera Vase Kpsk</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest golden ebony vase keepsake" data-item="285780" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285780</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Golden Ebony Vase Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest verde vase keepsake" data-item="285783" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285783</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Verde Vase Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="verona beige niche urn" data-item="285199" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285199</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Verona Beige Niche Urn</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="westfield antique cop keepsake" data-item="285958" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#285958</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Westfield Antique Cop Keepsake</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams amber wheat keepsake" data-item="284181" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#284181</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Amber Wheat Keepsake</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams gypsum keepsake" data-item="284185" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#284185</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Gypsum Keepsake</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="adams sagebrush keepsake" data-item="284183" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#284183</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Adams Sagebrush Keepsake</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blossom blue vase keepsake urn" data-item="283594" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#283594</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blossom Blue Vase Keepsake Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blossom charcoal vase keepsake urn" data-item="283593" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#283593</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blossom Charcoal Vase Keepsake Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blossom grey vase keepsake urn" data-item="282871" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#282871</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blossom Grey Vase Keepsake Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blossom linen vase keepsake urn" data-item="282870" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#282870</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blossom Linen Vase Keepsake Urn</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="glencoe bronze candle keepsake" data-item="285962" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285962</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Glencoe Bronze Candle Keepsake</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="hawthorne pewt candle keepsake" data-item="285964" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285964</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Hawthorne Pewt Candle Keepsake</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest carrera candle kpsk" data-item="285778" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285778</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Carrera Candle Kpsk</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest golden ebony candle kpsk" data-item="285781" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285781</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Golden Ebony Candle Kpsk</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="stonecrest verde candle kpsk" data-item="285784" data-price="250">
+          <div class="urn-img"><span class="placeholder-id">#285784</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Stonecrest Verde Candle Kpsk</div>
+            <div class="urn-price">$250.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ashen pewter keepsake" data-item="205400" data-price="220">
+          <div class="urn-img"><span class="placeholder-id">#205400</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ashen Pewter Keepsake</div>
+            <div class="urn-price">$220.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue delphia keepsake" data-item="235706" data-price="220">
+          <div class="urn-img"><span class="placeholder-id">#235706</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Delphia Keepsake</div>
+            <div class="urn-price">$220.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="chestnut bronze keepsake" data-item="205405" data-price="220">
+          <div class="urn-img"><span class="placeholder-id">#205405</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Chestnut Bronze Keepsake</div>
+            <div class="urn-price">$220.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="crimson delphia keepsake" data-item="235710" data-price="220">
+          <div class="urn-img"><span class="placeholder-id">#235710</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Crimson Delphia Keepsake</div>
+            <div class="urn-price">$220.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="delphia wings keepsake" data-item="235717" data-price="220">
+          <div class="urn-img"><span class="placeholder-id">#235717</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Delphia Wings Keepsake</div>
+            <div class="urn-price">$220.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="kiona hardwood keepsake" data-item="255704" data-price="175">
+          <div class="urn-img"><span class="placeholder-id">#255704</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Kiona Hardwood Keepsake</div>
+            <div class="urn-price">$175.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mocha hardwood keepsake" data-item="255702" data-price="175">
+          <div class="urn-img"><span class="placeholder-id">#255702</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Mocha Hardwood Keepsake</div>
+            <div class="urn-price">$175.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="antique white keepsake" data-item="285200" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285200</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Antique White Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ashen pewter heart keepsake" data-item="205403" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#205403</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ashen Pewter Heart Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue delphia heart keepsake" data-item="235708" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#235708</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Delphia Heart Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cashmere gray keepsake" data-item="285201" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285201</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cashmere Gray Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="chestnut bronze heart kpsk" data-item="205407" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#205407</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Chestnut Bronze Heart Kpsk</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="crimson delphia heart kpsk" data-item="235712" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#235712</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Crimson Delphia Heart Kpsk</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="delphia wings heart keepsake" data-item="235719" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#235719</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Delphia Wings Heart Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nero marquina keepsake" data-item="285018" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285018</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nero Marquina Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight ebony keepsake" data-item="285907" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285907</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Ebony Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight patriot keepsake" data-item="285910" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285910</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Patriot Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight pearl keepsake" data-item="282829" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#282829</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Pearl Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="verona beige keepsake" data-item="285015" data-price="150">
+          <div class="urn-img"><span class="placeholder-id">#285015</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Verona Beige Keepsake</div>
+            <div class="urn-price">$150.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas ivory keepsake" data-item="282813" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#282813</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Ivory Keepsake</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas onyx keepsake" data-item="282810" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#282810</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Onyx Keepsake</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas sagebrush keepsake" data-item="285904" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#285904</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Sagebrush Keepsake</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nebula royal plum keepsake" data-item="282819" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#282819</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nebula Royal Plum Keepsake</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="gold urn engraving pendant" data-item="285914" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#285914</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Gold Urn Engraving Pendant</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="silver urn engraving pendant" data-item="285915" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#285915</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Silver Urn Engraving Pendant</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-miniature">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>Miniature Keepsakes</h2>
+    <div class="section-sub">The smallest keepsakes — perfect for a personal token of remembrance</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$49.00 – $295.00 &middot; 28 products</div>
+      <p class="cat-detail">Miniature keepsakes hold just a trace of remains. Small enough for a desk, shelf, or pocket — a deeply personal way to keep a loved one close.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="fredericksburg cherry mini kpsk" data-item="195163" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#195163</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Fredericksburg Cherry Mini Kpsk</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="jefferson mahogany mini kpsk" data-item="195161" data-price="295">
+          <div class="urn-img"><span class="placeholder-id">#195161</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Jefferson Mahogany Mini Kpsk</div>
+            <div class="urn-price">$295.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="amber butterfly cloisonne miniature" data-item="272047" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272047</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Amber Butterfly Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue butterfly cloisonne miniature" data-item="272046" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272046</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Butterfly Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ivory cloisonne miniature" data-item="272053" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272053</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ivory Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="melrose pink cloisonne miniature" data-item="272048" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272048</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Melrose Pink Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="midnight swirl cloisonne miniature" data-item="272049" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272049</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Midnight Swirl Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="red rosette cloisonne miniature" data-item="272050" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#272050</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Red Rosette Cloisonne Miniature</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ashen pewter miniature kpsk" data-item="205401" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#205401</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ashen Pewter Miniature Kpsk</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="blue delphia miniature kpsk" data-item="235707" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#235707</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Blue Delphia Miniature Kpsk</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="chestnut bronze mini kpsk" data-item="205406" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#205406</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Chestnut Bronze Mini Kpsk</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cooper burnished gold mini" data-item="282867" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#282867</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cooper Burnished Gold Mini</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cooper charcoal mini" data-item="282869" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#282869</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cooper Charcoal Mini</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven black miniature urn" data-item="285974" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#285974</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Black Miniature Urn</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven blue miniature urn" data-item="285970" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#285970</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Blue Miniature Urn</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven ivory miniature urn" data-item="285976" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#285976</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Ivory Miniature Urn</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cresthaven pink miniature urn" data-item="285972" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#285972</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cresthaven Pink Miniature Urn</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="crimson delphia mini kpsk" data-item="235711" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#235711</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Crimson Delphia Mini Kpsk</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="delphia wings miniature kpsk" data-item="235718" data-price="125">
+          <div class="urn-img"><span class="placeholder-id">#235718</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Delphia Wings Miniature Kpsk</div>
+            <div class="urn-price">$125.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="starlight patriot miniature" data-item="285911" data-price="75">
+          <div class="urn-img"><span class="placeholder-id">#285911</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Starlight Patriot Miniature</div>
+            <div class="urn-price">$75.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas ivory mini" data-item="282814" data-price="59">
+          <div class="urn-img"><span class="placeholder-id">#282814</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Ivory Mini</div>
+            <div class="urn-price">$59.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="atlas onyx mini" data-item="282811" data-price="59">
+          <div class="urn-img"><span class="placeholder-id">#282811</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Atlas Onyx Mini</div>
+            <div class="urn-price">$59.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="nebula royal plum mini" data-item="282820" data-price="59">
+          <div class="urn-img"><span class="placeholder-id">#282820</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Nebula Royal Plum Mini</div>
+            <div class="urn-price">$59.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="comet meteor gray mini" data-item="282817" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#282817</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Comet Meteor Gray Mini</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="comet soft pink mini" data-item="282823" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#282823</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Comet Soft Pink Mini</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ellipse blue mini" data-item="282865" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#282865</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ellipse Blue Mini</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="tempest copper mini" data-item="282825" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#282825</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Tempest Copper Mini</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="tempest silver mini" data-item="282827" data-price="49">
+          <div class="urn-img"><span class="placeholder-id">#282827</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Tempest Silver Mini</div>
+            <div class="urn-price">$49.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-vault">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>Urn Vaults &amp; Burial Containers</h2>
+    <div class="section-sub">Protective outer containers for burial or niche placement</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$195.00 – $595.00 &middot; 4 products</div>
+      <p class="cat-detail">Urn vaults provide an extra layer of protection when placing an urn in the ground or in a columbarium niche.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="charleston urn vault" data-item="264677" data-price="595">
+          <div class="urn-img"><span class="placeholder-id">#264677</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Charleston Urn Vault</div>
+            <div class="urn-price">$595.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="pebblecove urn vault" data-item="205557" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#205557</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Pebblecove Urn Vault</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="vanderbur cultured marble urn vault" data-item="259967" data-price="450">
+          <div class="urn-img"><span class="placeholder-id">#259967</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Vanderbur Cultured Marble Urn Vault</div>
+            <div class="urn-price">$450.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="eclipse urn vault" data-item="282646" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282646</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Eclipse Urn Vault</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-biodegradable">
+    <div class="section-kicker">SECTION 6</div>
+    <h2>Biodegradable &amp; Water Urns</h2>
+    <div class="section-sub">Eco-friendly urns that return naturally to the earth or water</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$195.00 – $495.00 &middot; 13 products</div>
+      <p class="cat-detail">Designed to dissolve naturally over time — perfect for water ceremonies, garden scattering, or earth-friendly burial.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="ocean reflections biodegradable urn" data-item="252357" data-price="495">
+          <div class="urn-img"><span class="placeholder-id">#252357</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ocean Reflections Biodegradable Urn</div>
+            <div class="urn-price">$495.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="butterfly token biodegradable" data-item="252362" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#252362</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Butterfly Token Biodegradable</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="leaf token biodegradable" data-item="240069" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#240069</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Leaf Token Biodegradable</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="shell token biodegradable" data-item="252361" data-price="395">
+          <div class="urn-img"><span class="placeholder-id">#252361</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Shell Token Biodegradable</div>
+            <div class="urn-price">$395.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="angelic reflections biodegradable urn" data-item="240066" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#240066</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Angelic Reflections Biodegradable Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="butterfly reflections biodegradable urn" data-item="252359" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#252359</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Butterfly Reflections Biodegradable Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="cherished reflections biodegradable urn" data-item="252360" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#252360</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Cherished Reflections Biodegradable Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="eco water urn" data-item="282922" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#282922</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Eco Water Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="natural reflections biodegradable urn" data-item="224648" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#224648</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Natural Reflections Biodegradable Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="seaward reflections biodegradable urn" data-item="224651" data-price="235">
+          <div class="urn-img"><span class="placeholder-id">#224651</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Seaward Reflections Biodegradable Urn</div>
+            <div class="urn-price">$235.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="dogwood earthurn" data-item="282717" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282717</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Dogwood Earthurn</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="natural earthurn" data-item="282715" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282715</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Natural Earthurn</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="seafoam earthurn" data-item="282716" data-price="195">
+          <div class="urn-img"><span class="placeholder-id">#282716</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Seafoam Earthurn</div>
+            <div class="urn-price">$195.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="cat-scattering">
+    <div class="section-kicker">SECTION 7</div>
+    <h2>Scattering Tubes</h2>
+    <div class="section-sub">Lightweight tubes designed for scattering ceremonies</div>
+    <div class="section-rule"></div>
+    <div class="cat-info">
+      <div class="cat-range">$95.00 – $95.00 &middot; 5 products</div>
+      <p class="cat-detail">Scattering tubes make it easy to transport and scatter cremated remains at a meaningful location. Decorative designs honor the occasion.</p>
+    </div>
+    <div class="urn-grid">
+        <div class="urn-card" data-name="botanical reflections scattering tube" data-item="282982" data-price="95">
+          <div class="urn-img"><span class="placeholder-id">#282982</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Botanical Reflections Scattering Tube</div>
+            <div class="urn-price">$95.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="mountain view scattering tube" data-item="282959" data-price="95">
+          <div class="urn-img"><span class="placeholder-id">#282959</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Mountain View Scattering Tube</div>
+            <div class="urn-price">$95.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="ocean sunset scattering tube" data-item="282957" data-price="95">
+          <div class="urn-img"><span class="placeholder-id">#282957</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Ocean Sunset Scattering Tube</div>
+            <div class="urn-price">$95.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="patriot scattering tube" data-item="282958" data-price="95">
+          <div class="urn-img"><span class="placeholder-id">#282958</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Patriot Scattering Tube</div>
+            <div class="urn-price">$95.00</div>
+          </div>
+        </div>
+        <div class="urn-card" data-name="vista reflections scattering tube" data-item="282981" data-price="95">
+          <div class="urn-img"><span class="placeholder-id">#282981</span></div>
+          <div class="urn-body">
+            <div class="urn-name">Vista Reflections Scattering Tube</div>
+            <div class="urn-price">$95.00</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <div class="footer-url">bonneywatson.com</div>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Prices subject to change.</div>
+  </div>
+
+</div>
+
+<footer class="site-footer no-print">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+<script>
+function filterCards() {
+  var q = document.getElementById('searchInput').value.trim().toLowerCase();
+  var cards = document.querySelectorAll('.urn-card');
+  var visible = 0;
+
+  cards.forEach(function(card) {
+    var name = (card.getAttribute('data-name') || '');
+    var item = (card.getAttribute('data-item') || '');
+    var match = !q || name.indexOf(q) > -1 || item.indexOf(q) > -1;
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+
+  document.querySelectorAll('.section-wrap').forEach(function(sec) {
+    var anyVisible = Array.from(sec.querySelectorAll('.urn-card')).some(function(c) { return c.style.display !== 'none'; });
+    sec.style.display = anyVisible ? '' : 'none';
+  });
+
+  document.getElementById('filterCount').textContent = visible + ' product' + (visible === 1 ? '' : 's');
+}
+</script>
+
+</body>
+</html>

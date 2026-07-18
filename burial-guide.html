@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burial Guide &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;}
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:540px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+.prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+.prose p strong{color:var(--navy-dark);font-weight:700;}
+.prose-sidebar{display:grid;grid-template-columns:1.55fr 1fr;gap:36px;align-items:start;}
+
+.sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;margin-bottom:24px;}
+.sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar li{font-size:13.5px;color:var(--text);padding:8px 0 8px 16px;border-bottom:1px solid var(--rule);position:relative;line-height:1.5;}
+.sidebar li:last-child{border-bottom:none;}
+.sidebar li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+.timeline{display:grid;grid-template-columns:1fr;gap:0;margin-bottom:28px;}
+.timeline-step{display:flex;gap:18px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--rule);}
+.timeline-step:last-child{border-bottom:none;}
+.timeline-num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.timeline-step h4{font-size:14.5px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.timeline-step p{font-size:13.5px;color:var(--text);line-height:1.55;margin:0;}
+
+.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.option-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;padding:24px;transition:box-shadow .15s;}
+.option-card:hover{box-shadow:0 4px 16px rgba(61,90,122,.12);}
+.option-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.option-card .opt-type{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.option-card p{font-size:13.5px;color:var(--text);line-height:1.55;margin-bottom:10px;}
+.option-card ul{list-style:none;padding:0;margin:0;}
+.option-card li{font-size:13px;color:var(--text);padding:6px 0 6px 16px;border-bottom:1px solid var(--rule);position:relative;}
+.option-card li:last-child{border-bottom:none;}
+.option-card li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+.highlight-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:12px;padding:28px 30px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden;}
+.highlight-box::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none;}
+.highlight-box h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:10px;color:#fff;}
+.highlight-box p{color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;margin:0 0 8px;}
+.highlight-box .hl{color:var(--orange-soft);font-weight:600;}
+
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.check-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .15s;}
+.check-card:hover{box-shadow:0 3px 12px rgba(61,90,122,.1);}
+.check-icon{width:38px;height:38px;border-radius:8px;background:var(--sidebar-bg);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid var(--warm-border);}
+.check-card h4{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.check-card p{font-size:12.5px;color:var(--text-muted);line-height:1.5;margin:0;}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .option-grid,.checklist{grid-template-columns:1fr;}
+  .prose-sidebar{grid-template-columns:1fr;}
+  .contents-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+}
+@media print{
+  @page{size:letter;margin:.6in .65in;}
+  body{background:#fff;font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back{display:none!important;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;}
+  .cover{padding:40px 0 36px;border-radius:0;}
+  .cover h1{font-size:28pt;}
+  .section-wrap,.contents{padding-left:0;padding-right:0;}
+  .option-card,.check-card,.sidebar,.highlight-box{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#first-steps">First Steps</a>
+      <a href="#options">Burial Options</a>
+      <a href="#services">Services</a>
+      <a href="#certificates">Death Certs</a>
+      <a href="#what-to-expect">What to Expect</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Burial Guide</h1>
+    <div class="cover-sub">What to do when a death occurs, understanding your burial options, service types, death certificates, and what to expect throughout the process.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">First steps &middot; burial options &middot; service types &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#first-steps">What to Do First</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#options">Burial vs. Entombment</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#services">Types of Services</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#certificates">Death Certificates</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#what-to-expect">What to Expect</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#merchandise">Caskets, Vaults &amp; Markers</a></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-wrap" id="first-steps">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>What to Do When a Death Occurs</h2>
+    <div class="section-sub">The first hours and days &mdash; step by step</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>When a loved one passes, it's natural to feel overwhelmed. Here is a simple roadmap for the first steps. <strong>You do not need to figure everything out at once</strong> &mdash; your funeral director and counselor will guide you through each step.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-step">
+        <div class="timeline-num">1</div>
+        <div>
+          <h4>Contact Bonney Watson</h4>
+          <p>Call us at <strong>206-242-1787</strong> (available 24/7). We will arrange to bring your loved one into our care. If the death occurs at home under hospice, the hospice nurse will call us on your behalf.</p>
+        </div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-num">2</div>
+        <div>
+          <h4>Gather Important Documents</h4>
+          <p>We'll need the decedent's legal name, Social Security number, date of birth, and veteran status. If they have a pre-plan, locate the paperwork &mdash; it has most of this information.</p>
+        </div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-num">3</div>
+        <div>
+          <h4>Meet with Your Counselor</h4>
+          <p>Within 24&ndash;48 hours, you'll meet with a counselor to make arrangements. We'll discuss the type of service, casket selection, cemetery property, and all the details.</p>
+        </div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-num">4</div>
+        <div>
+          <h4>Select a Service Date</h4>
+          <p>Most burial services take place 5&ndash;10 days after death, allowing time for family to travel and for obituary publication. We coordinate with the cemetery, clergy, and any other parties.</p>
+        </div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-num">5</div>
+        <div>
+          <h4>Finalize Details</h4>
+          <p>Flowers, music, pallbearers, readings, photo displays, obituary wording &mdash; your counselor helps with all of it. Take as much or as little involvement as you'd like.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <h3>If a Pre-Plan Exists</h3>
+      <p>If your loved one pre-planned, <span class="hl">most of the decisions are already made</span>. Locate the pre-plan documents and bring them to your arrangement meeting. We'll review the selections and handle everything from there.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-wrap" id="options">
+    <div class="section-kicker">SECTION 2</div>
+    <h2>Burial vs. Entombment</h2>
+    <div class="section-sub">Understanding the two primary forms of interment</div>
+    <div class="section-rule"></div>
+
+    <div class="option-grid">
+      <div class="option-card">
+        <h3>Traditional Ground Burial</h3>
+        <div class="opt-type">In-Ground Interment</div>
+        <p>The casket is placed in a grave at the cemetery and sealed with a concrete vault or liner. The grave is marked with a flush granite marker or, in select sections, an upright monument.</p>
+        <ul>
+          <li>Single or companion (side-by-side) spaces available</li>
+          <li>Concrete outer burial container required</li>
+          <li>Flush marker in most sections; upright in select areas</li>
+          <li>Endowment care included &mdash; perpetual grounds maintenance</li>
+          <li>Multiple sections with different settings and pricing</li>
+        </ul>
+      </div>
+      <div class="option-card">
+        <h3>Entombment (Mausoleum)</h3>
+        <div class="opt-type">Above-Ground Interment</div>
+        <p>The casket is placed in a mausoleum crypt &mdash; an above-ground structure with individual sealed compartments. An alternative for families who prefer above-ground placement.</p>
+        <ul>
+          <li>Climate-protected, above-ground resting place</li>
+          <li>No outer burial container required</li>
+          <li>Engraved granite or bronze faceplate</li>
+          <li>Limited availability at Washington Memorial Park</li>
+          <li>Single and companion crypts</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The vast majority of families at Washington Memorial Park choose <strong>traditional ground burial</strong>. The cemetery has over 20 sections, each with a different landscape and price range. Your counselor can walk you through the available sections and help you find the right location.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-wrap" id="services">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>Types of Services</h2>
+    <div class="section-sub">How families choose to honor their loved one</div>
+    <div class="section-rule"></div>
+
+    <div class="option-grid">
+      <div class="option-card">
+        <h3>Viewing &amp; Funeral Service</h3>
+        <div class="opt-type">Traditional Service</div>
+        <p>A formal viewing (visitation) followed by a funeral service, typically at a chapel or church, and then a procession to the cemetery for graveside committal.</p>
+        <ul>
+          <li>Embalming and preparation for viewing</li>
+          <li>Viewing period for family and friends</li>
+          <li>Formal funeral service with clergy or celebrant</li>
+          <li>Procession to cemetery</li>
+          <li>Graveside committal with final prayers</li>
+        </ul>
+      </div>
+      <div class="option-card">
+        <h3>Graveside Service</h3>
+        <div class="opt-type">Simpler &amp; More Intimate</div>
+        <p>The service is held at the graveside rather than in a chapel. Often shorter and more intimate, with the casket present at the grave. No separate viewing or procession.</p>
+        <ul>
+          <li>Service held at the cemetery gravesite</li>
+          <li>Typically 30&ndash;45 minutes</li>
+          <li>More intimate gathering</li>
+          <li>Clergy, readings, and music as desired</li>
+          <li>Casket present at graveside</li>
+        </ul>
+      </div>
+      <div class="option-card">
+        <h3>Memorial Service</h3>
+        <div class="opt-type">Flexible &amp; Personal</div>
+        <p>A service held after the burial has already taken place. The body is not present &mdash; instead, photos, keepsakes, and memories take center stage. Can be held anywhere.</p>
+        <ul>
+          <li>Held after burial is complete</li>
+          <li>Body not present &mdash; focus on memories</li>
+          <li>Can be held at chapel, home, or any venue</li>
+          <li>Flexible timing &mdash; days, weeks, or months later</li>
+          <li>Often called a "celebration of life"</li>
+        </ul>
+      </div>
+      <div class="option-card">
+        <h3>Private Family Burial</h3>
+        <div class="opt-type">Quiet &amp; Private</div>
+        <p>A small, private gathering at the graveside with only immediate family. No formal service, no public viewing. Some families follow with a larger memorial at a later date.</p>
+        <ul>
+          <li>Immediate family only</li>
+          <li>Brief graveside gathering</li>
+          <li>No formal service required</li>
+          <li>Can be followed by a public memorial later</li>
+          <li>Most private option</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-wrap" id="certificates">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>Death Certificates</h2>
+    <div class="section-sub">How many you need and what they're used for</div>
+    <div class="section-rule"></div>
+
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p>A <strong>certified death certificate</strong> is an official government document required to settle your loved one's affairs. You'll need more copies than you might expect &mdash; most families order <strong>8&ndash;12 certified copies</strong>.</p>
+        <p>We file the death certificate with the state and order certified copies on your behalf. Each certified copy costs <strong>$25</strong> from the state of Washington. It's much easier (and faster) to order enough copies upfront than to request additional copies later.</p>
+        <p>You will need a certified copy for <strong>each</strong> institution that requires one. Most institutions will not accept photocopies.</p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">WHO NEEDS A CERTIFIED COPY</div>
+        <ul>
+          <li><strong>Banks</strong> &mdash; each bank, one copy each</li>
+          <li><strong>Insurance companies</strong> &mdash; life, health, auto</li>
+          <li><strong>Social Security Administration</strong></li>
+          <li><strong>VA / military benefits</strong></li>
+          <li><strong>Retirement / pension plans</strong></li>
+          <li><strong>Real estate / title companies</strong></li>
+          <li><strong>Vehicle title transfer (DOL)</strong></li>
+          <li><strong>Attorney / probate court</strong></li>
+          <li><strong>Employer / HR department</strong></li>
+          <li><strong>Credit card companies</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-wrap" id="what-to-expect">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>What to Expect</h2>
+    <div class="section-sub">The process from arrangement to interment</div>
+    <div class="section-rule"></div>
+
+    <div class="checklist">
+      <div class="check-card"><div class="check-icon">&#x1f4de;</div><div><h4>First Call</h4><p>You call us (24/7). We arrange transfer of your loved one into our care within hours.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f4cb;</div><div><h4>Arrangement Meeting</h4><p>Meet with your counselor to make selections: service type, casket, cemetery property, and details.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f4f0;</div><div><h4>Obituary &amp; Notices</h4><p>We help draft the obituary and submit to newspapers or online platforms as you wish.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f3b5;</div><div><h4>Service Planning</h4><p>Music, readings, photos, flowers, pallbearers &mdash; we help coordinate every element.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x26ea;</div><div><h4>Viewing &amp; Service</h4><p>The viewing and/or funeral service, held at the chapel, church, or graveside as planned.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f6a7;</div><div><h4>Procession</h4><p>A formal procession from chapel to cemetery, with escort and family vehicles.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f33f;</div><div><h4>Graveside Committal</h4><p>Final prayers and committal at the graveside. The casket is lowered after the family departs.</p></div></div>
+      <div class="check-card"><div class="check-icon">&#x1f5ff;</div><div><h4>Marker &amp; Memorialization</h4><p>After interment, we begin the marker order. Granite markers typically take 10&ndash;14 weeks to complete.</p></div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-wrap" id="merchandise">
+    <div class="section-kicker">SECTION 6</div>
+    <h2>Caskets, Vaults &amp; Markers</h2>
+    <div class="section-sub">The merchandise included in a burial arrangement</div>
+    <div class="section-rule"></div>
+
+    <div class="option-grid">
+      <div class="option-card">
+        <h3>Caskets</h3>
+        <div class="opt-type">Over 200 Options</div>
+        <p>We carry over 200 caskets in metal and wood, from simple and dignified to highly personalized. Prices range from approximately $1,130 to $12,000+.</p>
+        <ul>
+          <li><strong>Metal caskets</strong> &mdash; 141 options in 5 price tiers</li>
+          <li><strong>Wood caskets</strong> &mdash; 63 options in 5 price tiers</li>
+          <li>View our interactive <a href="metal-caskets.html" style="color:var(--orange);font-weight:600;">Metal Casket Guide</a> and <a href="wood-caskets.html" style="color:var(--orange);font-weight:600;">Wood Casket Guide</a></li>
+        </ul>
+      </div>
+      <div class="option-card">
+        <h3>Outer Burial Containers</h3>
+        <div class="opt-type">Required for Ground Burial</div>
+        <p>Washington Memorial Park requires a concrete outer burial container (vault or liner) for all ground burials. This protects the casket and prevents the ground from settling.</p>
+        <ul>
+          <li><strong>Grave liner</strong> &mdash; concrete, most affordable</li>
+          <li><strong>Burial vault</strong> &mdash; sealed concrete or metal, premium protection</li>
+          <li>Required by cemetery, not by state law</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>Every burial also includes a <strong>flush granite marker</strong> (in most sections). View our interactive <a href="markers-guide.html" style="color:var(--orange);font-weight:600;">Granite Marker Guide</a> for sizes, pricing, stone colors, and photo portrait options.</p>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <div class="footer-url">bonneywatson.com</div>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>
