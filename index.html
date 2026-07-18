@@ -5698,22 +5698,85 @@ var SEARCH_INDEX = [
 // indexed with its category (its panel header) and venue (Cemetery / Funeral Home). Feeds both the
 // top-bar search (which opens the Price List filtered) and the standalone Price List page.
 var PRICE_INDEX = [];
+// Clean, builder-like categories for each priced item, keyed on its name (first match wins).
+// Cemetery order matters: settings before vaults, vase-block before vase, urn-vault before vault,
+// frames/portraits/inscriptions before markers, so "Bronze Scroll" lands in Markers not Inscriptions.
+var _PL_CAT_CEM = [
+  [/crypt[- ]?front|photo frame|crypt frame|\bframe/, 'Photo Frames'],
+  [/portrait|ceramic|steel photo/, 'Portraits'],
+  [/inscription|engrav|re-?highlight|lettering|per letter|per character|monu-?seal|proof|revision/, 'Inscriptions & Services'],
+  [/vase block/, 'Vase Blocks'],
+  [/vase|zinc/, 'Vases'],
+  [/poem|epitaph|litho|artwork|autograph|family crest|custom element|rush (photo|production)/, 'Inscriptions & Services'],
+  [/pins|drill|core hole|cutting granite|shape carving|pressure wash|hourly|shop work|pulling marker|re-?set|rubbing|clean marker|crating|dispose|foundation/, 'Marker Services'],
+  [/urn vault/, 'Urn Vaults'],
+  [/setting/, 'Vault & Urn-Vault Settings'],
+  [/vault|wilbert|monticello|continental|venetian|tribute|cameo|triune|stainless|loved.*cherished/, 'Burial Vaults'],
+  [/flush|grass marker|flat marker/, 'Flat / Flush Markers'],
+  [/monument|pillow|slant|upright|bevel|hickey|boulder/, 'Upright & Granite Monuments'],
+  [/veteran/, 'Veterans Memorials'],
+  [/bronze|companion|plaque|ns-?7|scroll|memorial(?!\s*park)|emblem/, 'Bronze Markers & Add-Ons'],
+  [/3rd party|third party|\bpcm\b|pinning|doweling|hold harmless/, '3rd Party & PCM Services'],
+  [/opening|closing|interment|inurnment|entombment|o&amp;c|\bo&c\b|lowering|witness/, 'Opening & Closing'],
+  [/recording/, 'Recording Fees'],
+  [/scheduling|surcharge|weekend|holiday|after 3|friday|saturday|sunday/, 'Scheduling Fees'],
+  [/disinter|exhum|removal/, 'Disinterment'],
+  [/2nd right|3rd right|second right|third right|additional right/, 'Additional Rights'],
+  [/endowment|ecf/, 'Endowment Care (ECF)'],
+  [/garden|lawn|niche|mausoleum|crypt|\bspace|\bplot|estate|section/, 'Plots & Spaces'],
+];
+var _PL_CAT_FH = [
+  [/casket/, 'Caskets'],
+  [/container/, 'Cremation Containers'],
+  [/scattering|urn/, 'Urns & Scattering'],
+  [/flower|bloom|spray|corsage|boutonniere|arrangement|floral/, 'Flowers'],
+  [/death cert|certified|county|medical examiner|permit|coroner|cash advance/, 'Cash Advance & Fees'],
+  [/cremation|mailing|delivery of remains/, 'Cremation Services'],
+  [/hearse|transfer|utility vehicle|flower vehicle|escort|transportation/, 'Transportation'],
+  [/\bplan\b|package/, 'Price Plans'],
+  [/facilit|chapel|viewing|reception|graveside|ceremony|shelter/, 'Facilities & Staff'],
+  [/service|embalm|preparation|professional|director|refrigeration|autopsy/, 'Professional Services'],
+  [/memorial|register book|folder|prayer card|\bdvd\b|keepsake|stationery|memory book/, 'Memorial Merchandise'],
+];
+function _plCategory(name, venue) {
+  var n = ' ' + name.toLowerCase() + ' ';
+  var rules = venue === 'Funeral Home' ? _PL_CAT_FH : _PL_CAT_CEM;
+  for (var i = 0; i < rules.length; i++) if (rules[i][0].test(n)) return rules[i][1];
+  return venue === 'Funeral Home' ? 'Other Funeral Home' : 'Other Cemetery';
+}
+// Display order within each venue (builder-like flow).
+var _PL_ORDER = [
+  'Plots & Spaces','Endowment Care (ECF)','Opening & Closing','Recording Fees','Scheduling Fees',
+  'Additional Rights','Disinterment','Burial Vaults','Urn Vaults','Vault & Urn-Vault Settings',
+  'Flat / Flush Markers','Upright & Granite Monuments','Bronze Markers & Add-Ons','Vases','Vase Blocks',
+  'Inscriptions & Services','Marker Services','Portraits','Photo Frames','Veterans Memorials','3rd Party & PCM Services','Other Cemetery',
+  'Price Plans','Professional Services','Facilities & Staff','Transportation','Caskets','Cremation Containers',
+  'Cremation Services','Urns & Scattering','Flowers','Memorial Merchandise','Cash Advance & Fees','Other Funeral Home'
+];
+// Panel-fallback titles (used when keyword rules miss, e.g. named flowers/caskets) → canonical labels
+// so "Cremation Container"/"Urns"/"Crypt-Front Photo Frames" don't split from their keyword categories.
+var _PL_CANON = {
+  'Cremation Container':'Cremation Containers','Urns':'Urns & Scattering',
+  'Crypt-Front Photo Frames':'Photo Frames','Recording & Scheduling':'Scheduling Fees'
+};
 function _plHeaderTitle(h){
   var c = h.cloneNode(true);
   c.querySelectorAll('.ph-ic,.q-chev,.tax-pill,svg').forEach(function(n){ n.remove(); });
-  return (c.textContent || '').replace(/\s+/g, ' ').trim();
+  return (c.textContent || '').replace(/\s*\([^)]*\)\s*$/,'').replace(/\s*[·—–]\s.*$/,'').replace(/\s+/g,' ').trim();
 }
 function buildPriceIndex() {
   PRICE_INDEX = [];
   var seen = {};
   var priceRe = /^(.*?)\s*[—–-]\s*\$\s*([\d,]+(?:\.\d{1,2})?)(?:\s+(?:each|ea\.?|per\s+[\w-]+|\/\s*mo|\+))?\s*$/i;
-  function add(name, priceStr, sectionId, venue, cat) {
+  function add(name, priceStr, sectionId, venue, panelCat) {
     name = (name || '').replace(/\s+/g, ' ').trim();
     var num = parseFloat(String(priceStr).replace(/,/g, ''));
     if (!name || !(num > 0)) return;
     var key = name.toLowerCase() + '|' + num;
     if (seen[key]) return; seen[key] = 1;
-    PRICE_INDEX.push({ name:name, price:num, label:'$'+num.toLocaleString('en-US'), section:sectionId, venue:venue||'Other', cat:cat||'Other', nl:name.toLowerCase() });
+    var cat = _plCategory(name, venue);
+    if (/^Other/.test(cat) && panelCat) cat = _PL_CANON[panelCat] || panelCat;  // named products (flowers/caskets/…) → their builder panel
+    PRICE_INDEX.push({ name:name, price:num, label:'$'+num.toLocaleString('en-US'), section:sectionId, venue:venue||'Other', cat:cat, nl:name.toLowerCase() });
   }
   function scan(sel) {
     document.querySelectorAll(sel).forEach(function(elm) {
@@ -5722,10 +5785,9 @@ function buildPriceIndex() {
       var sec = elm.closest ? elm.closest('.section') : null;
       var sid = sec ? sec.id : '';
       var venue = sid.indexOf('fh') > -1 ? 'Funeral Home' : (sid.indexOf('cem') > -1 ? 'Cemetery' : 'Other');
-      var panel = elm.closest ? elm.closest('.q-panel') : null, cat = '';
-      if (panel) { var h = panel.querySelector('.q-panel-header'); if (h) cat = _plHeaderTitle(h); }
-      if (!cat) cat = venue;
-      add(m[1], m[2], sec ? sec.id.replace('section-','') : '', venue, cat);
+      var panel = elm.closest ? elm.closest('.q-panel') : null, panelCat = '';
+      if (panel) { var h = panel.querySelector('.q-panel-header'); if (h) panelCat = _plHeaderTitle(h); }
+      add(m[1], m[2], sec ? sec.id.replace('section-','') : '', venue, panelCat);
     });
   }
   scan('#section-cem-quote option, #section-fh-quote option');
@@ -5750,7 +5812,7 @@ function renderPriceList(filter) {
   vkeys.forEach(function(v){
     html += '<div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin:24px 0 12px;">' + v + '</div>';
     html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;align-items:start;">';
-    Object.keys(venues[v]).sort().forEach(function(cat){
+    Object.keys(venues[v]).sort(function(a,b){ var ia=_PL_ORDER.indexOf(a), ib=_PL_ORDER.indexOf(b); ia=ia<0?99:ia; ib=ib<0?99:ib; return ia-ib || a.localeCompare(b); }).forEach(function(cat){
       var rows = venues[v][cat].sort(function(a,b){ return a.name.localeCompare(b.name); });
       html += '<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;">'
         + '<div style="padding:12px 18px;font-weight:700;font-size:14px;color:var(--navy);border-bottom:1px solid #eef1f4;">' + cat + '</div>'
