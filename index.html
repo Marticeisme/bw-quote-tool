@@ -309,6 +309,7 @@ tr:hover td{background:#eef3f8;}
   <div class="sb-nav">
   <div class="nav-label">Overview</div>
   <div class="nav-item active highlight" onclick="show('home',this)"><span class="ni-ic" data-lc="home"></span>Home / Quick Ref</div>
+  <div class="nav-item highlight" onclick="show('price-list',this)"><span class="ni-ic" data-lc="tag"></span>Price List</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Cemetery</div>
   <div class="nav-item highlight" onclick="show('cem-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
@@ -348,7 +349,7 @@ tr:hover td{background:#eef3f8;}
 <header class="topbar">
   <div class="tb-crumb"><span>Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
   <div class="tb-right">
-    <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search items, gardens, prices…" oninput="doSearch(this.value)" autocomplete="off"></div>
+    <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();plFromSearch();}" autocomplete="off"></div>
     <button class="tb-action" onclick="show('cem-quote', document.querySelector('.nav-item[onclick*=cem-quote]'))">New Cemetery Quote</button>
   </div>
 </header>
@@ -480,6 +481,23 @@ tr:hover td{background:#eef3f8;}
 </div>
 
 
+
+<!-- ═══ PRICE LIST ═══ -->
+<div class="section" id="section-price-list">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="tag" data-lc-sz="18"></span></div>
+    <h2>Price List</h2>
+    <span class="badge" id="priceListCount"></span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:280px;max-width:520px;height:44px;padding:0 16px;background:#fff;border:1px solid var(--border);border-radius:10px;">
+      <span class="ni-ic" data-lc="search" style="color:var(--muted);"></span>
+      <input type="text" id="priceListFilter" placeholder="Filter — garden, vault, casket, marker, fee…" oninput="renderPriceList(this.value)" autocomplete="off" style="border:none;outline:none;background:none;font-family:inherit;font-size:14px;color:var(--ink);width:100%;">
+    </div>
+    <span style="font-size:12.5px;color:var(--muted);">Every price in the tool, in one place — for quick reference.</span>
+  </div>
+  <div id="priceListBody"></div>
+</div>
 
 <div class="section" id="section-cem-quote">
   <div class="section-header">
@@ -5675,34 +5693,92 @@ var SEARCH_INDEX = [
   {terms:['unique','unusual','special','natural burial','green burial','willed body','aquamation'], id:'fh-unique', label:'Unique Offerings'},
 ];
 
-// ── Price quick-look index ─────────────────────────────────────────────────────────────────────
-// Every priced item in the builders ("Name — $Price" options + checkbox rows) is indexed so the
-// top-bar search can answer "what does X cost?" inline — no quote needed. Rebuilt on load.
+// ── Price index + Price List page ────────────────────────────────────────────────────────────
+// Every priced item in the builders ("Name — $Price" options / checkbox rows / group labels) is
+// indexed with its category (its panel header) and venue (Cemetery / Funeral Home). Feeds both the
+// top-bar search (which opens the Price List filtered) and the standalone Price List page.
 var PRICE_INDEX = [];
+function _plHeaderTitle(h){
+  var c = h.cloneNode(true);
+  c.querySelectorAll('.ph-ic,.q-chev,.tax-pill,svg').forEach(function(n){ n.remove(); });
+  return (c.textContent || '').replace(/\s+/g, ' ').trim();
+}
 function buildPriceIndex() {
   PRICE_INDEX = [];
   var seen = {};
   var priceRe = /^(.*?)\s*[—–-]\s*\$\s*([\d,]+(?:\.\d{1,2})?)(?:\s+(?:each|ea\.?|per\s+[\w-]+|\/\s*mo|\+))?\s*$/i;
-  function add(name, priceStr, sectionId) {
+  function add(name, priceStr, sectionId, venue, cat) {
     name = (name || '').replace(/\s+/g, ' ').trim();
     var num = parseFloat(String(priceStr).replace(/,/g, ''));
     if (!name || !(num > 0)) return;
     var key = name.toLowerCase() + '|' + num;
     if (seen[key]) return; seen[key] = 1;
-    PRICE_INDEX.push({ name: name, price: num, label: '$' + num.toLocaleString('en-US'), section: sectionId, nl: name.toLowerCase() });
+    PRICE_INDEX.push({ name:name, price:num, label:'$'+num.toLocaleString('en-US'), section:sectionId, venue:venue||'Other', cat:cat||'Other', nl:name.toLowerCase() });
   }
   function scan(sel) {
     document.querySelectorAll(sel).forEach(function(elm) {
       var m = (elm.textContent || '').trim().match(priceRe);
       if (!m) return;
       var sec = elm.closest ? elm.closest('.section') : null;
-      add(m[1], m[2], sec ? sec.id.replace('section-', '') : '');
+      var sid = sec ? sec.id : '';
+      var venue = sid.indexOf('fh') > -1 ? 'Funeral Home' : (sid.indexOf('cem') > -1 ? 'Cemetery' : 'Other');
+      var panel = elm.closest ? elm.closest('.q-panel') : null, cat = '';
+      if (panel) { var h = panel.querySelector('.q-panel-header'); if (h) cat = _plHeaderTitle(h); }
+      if (!cat) cat = venue;
+      add(m[1], m[2], sec ? sec.id.replace('section-','') : '', venue, cat);
     });
   }
   scan('#section-cem-quote option, #section-fh-quote option');
   scan('#section-cem-quote .q-check-row label, #section-fh-quote .q-check-row label');
   scan('#section-cem-quote .q-group-label, #section-fh-quote .q-group-label');
 }
+window.buildPriceIndex = buildPriceIndex;
+
+// Render the standalone Price List page — all prices grouped by venue → category, filterable.
+function renderPriceList(filter) {
+  var body = document.getElementById('priceListBody'); if (!body) return;
+  if (!PRICE_INDEX.length) buildPriceIndex();
+  var f = (filter || '').toLowerCase().trim();
+  var items = PRICE_INDEX.filter(function(it){ return !f || it.nl.indexOf(f) > -1 || it.cat.toLowerCase().indexOf(f) > -1; });
+  var cnt = document.getElementById('priceListCount'); if (cnt) cnt.textContent = items.length + ' item' + (items.length===1?'':'s');
+  if (!items.length) { body.innerHTML = '<div style="padding:48px;text-align:center;color:var(--muted);font-size:14px;">No prices match &ldquo;' + (filter||'') + '&rdquo;.</div>'; return; }
+  var venues = {};
+  items.forEach(function(it){ (venues[it.venue] = venues[it.venue] || {}); (venues[it.venue][it.cat] = venues[it.venue][it.cat] || []).push(it); });
+  var order = ['Cemetery','Funeral Home','Other'];
+  var vkeys = Object.keys(venues).sort(function(a,b){ return order.indexOf(a) - order.indexOf(b); });
+  var html = '';
+  vkeys.forEach(function(v){
+    html += '<div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin:24px 0 12px;">' + v + '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;align-items:start;">';
+    Object.keys(venues[v]).sort().forEach(function(cat){
+      var rows = venues[v][cat].sort(function(a,b){ return a.name.localeCompare(b.name); });
+      html += '<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;">'
+        + '<div style="padding:12px 18px;font-weight:700;font-size:14px;color:var(--navy);border-bottom:1px solid #eef1f4;">' + cat + '</div>'
+        + '<div style="padding:4px 18px 12px;">';
+      rows.forEach(function(it){
+        html += '<div style="display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid #f2f4f6;font-size:13.5px;">'
+          + '<span style="color:var(--ink);">' + it.name + '</span>'
+          + '<span style="font-weight:700;color:var(--navy);white-space:nowrap;font-variant-numeric:tabular-nums;">' + it.label + '</span></div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  });
+  body.innerHTML = html;
+}
+window.renderPriceList = renderPriceList;
+// Open the Price List page (optionally pre-filtered) — the target of the top-bar search.
+function openPriceList(q) {
+  var nav = document.querySelector('.nav-item[onclick*="price-list"]');
+  show('price-list', nav);
+  var f = document.getElementById('priceListFilter'); if (f) f.value = q || '';
+  buildPriceIndex(); renderPriceList(q || '');
+  var dd = document.getElementById('searchDropdown'); if (dd) dd.style.display = 'none';
+  var si = document.getElementById('searchInput'); if (si) si.value = '';
+}
+window.openPriceList = openPriceList;
+function plFromSearch(){ var si = document.getElementById('searchInput'); openPriceList(si ? si.value : ''); }
+window.plFromSearch = plFromSearch;
 window.buildPriceIndex = buildPriceIndex;
 
 function doSearch(q) {
@@ -5763,7 +5839,7 @@ function doSearch(q) {
   if (topItems.length) {
     html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;">Prices</div>';
     html += topItems.map(function(r) {
-      return '<div class="search-result-item" onclick="doSearchNav(\'' + r.it.section + '\')" style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:8px 14px;cursor:pointer;font-size:12.5px;color:rgba(255,255,255,.9);border-bottom:1px solid rgba(255,255,255,.07);">'
+      return '<div class="search-result-item" onclick="plFromSearch()" style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:8px 14px;cursor:pointer;font-size:12.5px;color:rgba(255,255,255,.9);border-bottom:1px solid rgba(255,255,255,.07);">'
         + '<span>' + r.it.name + '</span>'
         + '<span style="font-weight:700;color:#f0b184;white-space:nowrap;font-variant-numeric:tabular-nums;">' + r.it.label + '</span></div>';
     }).join('');
@@ -5771,11 +5847,11 @@ function doSearch(q) {
   if (topCats.length) {
     html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;' + (topItems.length ? 'border-top:1px solid rgba(255,255,255,.12);margin-top:2px;' : '') + '">Jump to</div>';
     html += topCats.map(function(r) {
-      return '<div class="search-result-item" onclick="doSearchNav(\'' + r.entry.id + '\')" style="padding:8px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.07);">'
+      return '<div class="search-result-item" onclick="plFromSearch()" style="padding:8px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.07);">'
         + '<span style="color:#f0b184;">&#9656;</span> ' + r.entry.label + '</div>';
     }).join('');
   }
-  html += '<div style="padding:5px 14px;font-size:10px;color:rgba(255,255,255,.3);">Type an item to see its price · click to jump there</div>';
+  html += '<div onclick="plFromSearch()" style="padding:9px 14px;font-size:12px;font-weight:700;color:#f0b184;cursor:pointer;border-top:1px solid rgba(255,255,255,.12);">See all prices in the Price List &rarr;</div>';
   dropdown.innerHTML = html;
   dropdown.style.display = 'block';
 }
@@ -10460,6 +10536,7 @@ function show(id, navEl) {
   document.querySelectorAll('.summary-fixed').forEach(function(s){ s.classList.remove('visible'); });
   var sec = el('section-'+id); if (sec) sec.classList.add('active');
   if (navEl) navEl.classList.add('active');
+  if (id === 'price-list') { try { buildPriceIndex(); renderPriceList(el('priceListFilter') ? el('priceListFilter').value : ''); } catch(e) {} }
   var summ = document.querySelector('.summary-fixed[data-for="section-'+id+'"]');
   if (summ) summ.classList.add('visible');
   window.scrollTo(0,0);
