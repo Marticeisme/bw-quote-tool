@@ -8105,7 +8105,7 @@ async function _fqBuildPDFBytes(model){
       y-=2; page.drawLine({start:{x:M,y:y+tier.rowH*0.55},end:{x:RX,y:y+tier.rowH*0.55},thickness:0.5,color:DISCD,dashArray:[2,2]});
       var dn=clean(sf.discount.name);
       page.drawText(dn,{x:M,y:y,size:tier.base,font:sansB,color:GREEN});
-      var sa=' savings applied'; page.drawText(sa,{x:M+sansB.widthOfTextAtSize(dn,tier.base)+3,y:y+0.5,size:tier.base-2.5,font:sans,color:GREENM});
+      var sa=' discount applied'; page.drawText(sa,{x:M+sansB.widthOfTextAtSize(dn,tier.base)+3,y:y+0.5,size:tier.base-2.5,font:sans,color:GREENM});
       var ds='-'+_fqMoney(sf.discount.amount), dsW=sansB.widthOfTextAtSize(ds,tier.base);
       page.drawText(ds,{x:RX-dsW,y:y,size:tier.base,font:sansB,color:GREEN});
       y-=tier.rowH;
@@ -8237,7 +8237,7 @@ async function _fqBuildPDFBytes(model){
     // ---- Page-2 opening chrome ----
     newPayPage();
     y-=4; kicker('Ways to plan for this',M,7.5,ORANGE); y-=24;
-    page.drawText('There is no obligation, and no wrong choice.',{x:M,y:y,size:20,font:serif,color:NAVYD}); y-=20;
+    page.drawText('Options for paying over time.',{x:M,y:y,size:20,font:serif,color:NAVYD}); y-=20;
 
     if(pay.scope==='fh'){
       wrap('Funeral expenses can be prearranged through a WA Maxima insurance plan. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
@@ -8245,7 +8245,7 @@ async function _fqBuildPDFBytes(model){
       disclosure('These estimates are for illustration only and are not a contract or a guarantee of insurability. WA Maxima insurance rates depend on age and underwriting, and amounts may change. Your Family Service Advisor will provide exact figures and terms when you are ready.',62);
     }
     else if(pay.scope==='cem'){
-      wrap('Many families choose to spread the cost over time. The options below show every down-payment amount and term available. Terms marked 0% require automatic (ACH) payments; other terms include the finance charge shown. Your Family Service Advisor can tailor any of these to what feels right for you.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
+      wrap('The cost can be spread over time. The options below list every down-payment amount and term available. Terms marked 0% require automatic (ACH) payments; other terms include the finance charge shown. Your Family Service Advisor can walk you through any of these.',sans,11,RX-M).forEach(function(ln){ page.drawText(ln,{x:M,y:y,size:11,font:sans,color:BODY}); y-=15; });
       y-=14; drawFinanceGrid(pay.cemBase);
       disclosure('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.',74);
     }
