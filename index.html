@@ -5,42 +5,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cemetery Services & Memorial Price Guide · 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --navy:#466e86; --navy-dark:#33505f; --navy-mid:#35566a; --blue:#466e86; --blue-light:#eef3f8;
-  --gold:#466e86; --gold-light:#eef3f8; --white:#ffffff; --offwhite:#f4f6f8;
-  --cream:#f8f6f2; --warm-border:#e6e1d7; --rule:#ddd6c8;
-  --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
-  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --green:#2d6a2d; --red:#c0392b;
-  --tax-color:#5a6a7a; --orange:#e84610; --orange-dark:#c23a0d; --muted:#9aaab8;
+  /* Redesign 2026-07-17 (design-tool spec): deep-navy + amber working-tool palette. */
+  --navy:#14304a; --navy-dark:#0f2438; --navy-mid:#14304a; --blue:#2f6fa8; --blue-light:#e8f1f9;
+  --gold:#14304a; --gold-light:#e8f1f9; --white:#ffffff; --offwhite:#eef0f2;
+  --canvas:#eef0f2; --card:#ffffff; --border:#e4e8ec; --ink:#1e2733; --orange-tint:#fff8f0;
+  --cream:#fff8f0; --warm-border:#f3d9b8; --rule:#e4e8ec;
+  --gray-light:#f2f4f6; --gray-mid:#e2e6ea; --gray-dark:#64707c;
+  --text:#1e2733; --text-dark:#14304a; --text-light:#64707c; --green:#2d6a2d; --red:#c0392b;
+  --tax-color:#64707c; --orange:#e0851f; --orange-dark:#c56a12; --muted:#64707c;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
+body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
 
 /* HEADER */
 .site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
 .header-inner{max-width:1400px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
 .header-logo{height:22px;width:auto;flex-shrink:0;}
-.header-est{font-family:'Playfair Display',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
-.header-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-est{font-family:'Public Sans',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.header-title{font-family:'Public Sans',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
 .header-title span{color:#fff;}
 .header-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;flex:0 0 220px;position:relative;}
-.header-search input{background:none;border:none;outline:none;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:13px;width:100%;}
+.header-search input{background:none;border:none;outline:none;color:#fff;font-family:'Public Sans',sans-serif;font-size:13px;width:100%;}
 .header-search input::placeholder{color:rgba(255,255,255,.45);}
 .search-result-item:hover{background:rgba(255,255,255,.1)!important;color:#fff!important;}
 
-/* LAYOUT */
-.layout{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 49px);}
+/* LAYOUT — full-bleed app shell: navy sidebar + content column with white top bar */
+.layout{display:flex;min-height:100vh;background:var(--canvas);}
+.content-col{flex:1;min-width:0;display:flex;flex-direction:column;}
+/* TOP BAR (white) */
+.topbar{height:64px;flex-shrink:0;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:60;}
+.tb-crumb{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--muted);min-width:0;}
+.tb-crumb .tb-sep{opacity:.5;}
+.tb-crumb #crumbCurrent{color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.tb-search{display:flex;align-items:center;gap:9px;height:38px;padding:0 14px;background:#f2f4f6;border:1px solid var(--border);border-radius:9px;width:300px;position:relative;}
+.tb-search input{border:none;outline:none;background:none;font-family:inherit;font-size:13px;color:var(--ink);width:100%;}
+.tb-search input::placeholder{color:#9aa4ae;}
+.tb-search .lc{width:15px;height:15px;color:#9aa4ae;flex-shrink:0;}
+.tb-action{height:38px;padding:0 18px;background:var(--orange);color:#fff;border:none;border-radius:9px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
+.tb-action:hover{background:var(--orange-dark);}
 
-/* SIDEBAR */
-.sidebar{background:#35566a;padding:16px 0;position:sticky;top:49px;height:calc(100vh - 49px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
-.nav-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8098b2;padding:14px 16px 5px;}
-.nav-item{display:block;padding:7px 16px;color:#c3d0de;font-size:12px;font-weight:400;border-left:3px solid transparent;transition:all .15s;cursor:pointer;user-select:none;}
-.nav-item:hover{color:#fff;background:#466e86;border-left-color:#fff;}
-.nav-item.active{color:#fff;background:#466e86;border-left-color:#fff;font-weight:600;}
-.nav-item.highlight{background:#466e86;border-left-color:#fff;color:#fff;font-weight:600;}
-.nav-item.highlight:hover{background:#557d95;}
+/* SIDEBAR — deep navy, full-height, logo top + user card bottom, white-pill active nav */
+.sidebar{background:#14304a;width:264px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding:0;}
+.sb-brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.09);flex-shrink:0;}
+.sb-logo{width:172px;height:auto;display:block;}
+.sb-logo-fallback{color:#fff;font-weight:800;font-size:16px;letter-spacing:.03em;}
+.sb-tagline{font-size:10px;letter-spacing:.16em;color:var(--orange);margin-top:11px;font-weight:700;text-transform:uppercase;}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
+.sb-user{flex-shrink:0;padding:14px 18px;border-top:1px solid rgba(255,255,255,.09);display:flex;align-items:center;gap:11px;}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#14304a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+.sb-user-name{color:#fff;font-weight:700;font-size:12.5px;line-height:1.3;}
+.sb-user-role{color:#7b899d;font-size:12px;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#6f8095;padding:16px 12px 6px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:8px 12px;margin-bottom:2px;color:#b3c0cf;font-size:13px;font-weight:500;border-radius:8px;transition:background .12s,color .12s,box-shadow .12s;cursor:pointer;user-select:none;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.07);}
+.nav-item.active{color:#14304a;background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
+.nav-item.highlight{background:transparent;color:#b3c0cf;font-weight:500;box-shadow:none;}
+.nav-item.highlight:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nav-item.highlight.active,.nav-item.active.highlight{color:#14304a;background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
 
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
@@ -50,7 +75,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--navy);}
 .section-icon{width:34px;height:34px;background:#eef2f6;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.section-header h2{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--navy);}
+.section-header h2{font-family:'Public Sans',serif;font-size:19px;font-weight:700;color:var(--navy);}
 .badge{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text-light);text-transform:uppercase;background:var(--gray-light);padding:3px 10px;border-radius:12px;}
 
 /* TABLES */
@@ -75,7 +100,7 @@ tr:hover td{background:#eef3f8;}
 
 /* SUBSECTIONS */
 .subsection{margin-bottom:24px;}
-.subsection-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:var(--blue);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gray-mid);}
+.subsection-title{font-family:'Public Sans',serif;font-size:14px;font-weight:600;color:var(--blue);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gray-mid);}
 
 /* FOOTNOTE */
 .footnote{font-size:11px;color:var(--text-light);margin-top:6px;margin-bottom:16px;line-height:1.6;}
@@ -87,7 +112,9 @@ tr:hover td{background:#eef3f8;}
 /* ═══ QUOTE BUILDER STYLES ═══ */
 .q-layout{display:block;}
 .q-panel{background:#fff;border:1px solid #e2e8ee;border-radius:12px;margin-bottom:13px;box-shadow:0 1px 2px rgba(26,35,50,.04);}
-.q-panel-header{background:#fff;color:var(--navy-mid);padding:14px 20px;font-family:'Playfair Display',serif;font-size:17px;font-weight:600;letter-spacing:0;border-bottom:1px solid #eef1f4;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:11px;}
+.q-panel-header{background:#fff;color:var(--navy);padding:15px 20px;font-family:'Public Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:0;border-bottom:1px solid #eef1f4;border-radius:14px 14px 0 0;display:flex;align-items:center;gap:11px;}
+.q-panel{border-radius:14px !important;border-color:var(--border) !important;}
+.ph-ic{background:#eef3f7;border:1px solid #dbe4ec;}
 .q-panel-body{padding:18px 20px;}
 .bw-stepper{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 18px;background:#fff;border:1px solid #e2e8ee;border-radius:10px;}
 .bw-step{display:flex;align-items:center;gap:9px;}
@@ -107,7 +134,7 @@ tr:hover td{background:#eef3f8;}
 .q-group-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:8px;}
 .q-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
 .q-row label{font-size:12px;color:var(--text);white-space:nowrap;min-width:80px;}
-.q-row select,.q-row input[type=number],.q-row input[type=text]{padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;background:var(--offwhite);color:var(--text);font-family:'Source Sans 3',sans-serif;}
+.q-row select,.q-row input[type=number],.q-row input[type=text]{padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;background:var(--offwhite);color:var(--text);font-family:'Public Sans',sans-serif;}
 .q-row select{min-width:180px;}
 .q-row input[type=number]{width:80px;text-align:center;}
 .q-price-disp{font-size:12px;font-weight:600;color:var(--navy);margin-left:auto;white-space:nowrap;}
@@ -124,40 +151,47 @@ tr:hover td{background:#eef3f8;}
 #section-fh-quote .q-panel,#section-combined-quote .q-panel,#section-cem-quote .q-panel{max-width:100%;box-sizing:border-box;overflow-x:hidden;}
 .summary-fixed.visible{display:block;}
 
-.summary-panel{background:#fff;border:1px solid #e0e4ea;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-y:auto;max-height:calc(100vh - 90px);}
-.summary-header{background:#466e86;padding:14px 18px;font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:#fff;border-radius:9px 9px 0 0;}
-.summary-body{padding:16px 18px;min-height:120px;max-height:calc(100vh - 220px);overflow-y:auto;}
-.summary-empty{color:#9aaab8;font-size:13px;text-align:center;padding:24px 0;}
-.s-section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9aaab8;padding:8px 0 3px;margin-top:4px;}
-.s-line{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #f0f4f8;}
-.s-line .s-lbl{color:#5a6a7a;font-size:12px;}
-.s-line .s-amt{font-size:12px;font-weight:600;color:#1a2332;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.summary-panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 24px rgba(20,40,60,.08);overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column;}
+.summary-header{background:var(--navy);padding:16px 20px;font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.summary-body{padding:16px 20px;min-height:110px;overflow-y:auto;}
+.summary-empty{color:#9aa4ae;font-size:13px;text-align:center;padding:24px 0;}
+.s-section-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9aa4ae;padding:10px 0 3px;margin-top:4px;}
+.s-line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid #f0f2f4;}
+.s-line .s-lbl{color:#5a6672;font-size:12.5px;}
+.s-line .s-amt{font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .s-line.plan-item .s-lbl{opacity:.7;}
-.s-line.discount-line .s-lbl,.s-line.discount-line .s-amt{color:#e84610;}
-.s-line.tax-line .s-lbl,.s-line.tax-line .s-amt{color:#5a6a7a;}
-.s-divider{border:none;border-top:1px solid #e0e4ea;margin:10px 0;}
-.s-total-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0 4px;}
-.s-total-lbl{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:#1a2332;}
-.s-total-amt{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#466e86;font-variant-numeric:tabular-nums;}
-.s-tax-note{font-size:10px;color:#9aaab8;margin-top:6px;line-height:1.5;}
-.summary-actions{padding:0 18px 16px;display:flex;flex-wrap:wrap;gap:6px;}
-.btn-print{flex:1 1 100%;padding:9px;background:#466e86;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif;}
-.btn-print:hover{background:#35566a;}
-.btn-export{flex:1 1 auto;padding:8px 6px;background:#fff;color:#466e86;border:1px solid #c8d4de;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif;white-space:nowrap;text-align:center;}
-.btn-export:hover{background:#f0f4f8;}
-.saved-quote-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0f4f8;font-size:11px;color:#5a6a7a;}
-.saved-quote-item button{background:none;border:1px solid #c8d4de;color:#5a6a7a;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;}
-.saved-quote-item button:hover{background:#f0f4f8;}
+.s-line.discount-line .s-lbl,.s-line.discount-line .s-amt{color:var(--orange-dark);}
+.s-line.tax-line .s-lbl,.s-line.tax-line .s-amt{color:#5a6672;}
+.s-divider{border:none;border-top:2px solid var(--navy);margin:14px 0 0;}
+.s-total-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;}
+.s-total-lbl{font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
+.s-total-amt{font-family:'Public Sans',sans-serif;font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;}
+.s-tax-note{font-size:10.5px;color:#9aa4ae;margin-top:6px;line-height:1.5;}
+.summary-actions{padding:6px 20px 18px;display:flex;flex-wrap:wrap;gap:8px;}
+.btn-print{flex:1 1 100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Public Sans',sans-serif;}
+.btn-print:hover{background:var(--orange-dark);}
+.btn-print2{flex:1 1 100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Public Sans',sans-serif;}
+.btn-print2:hover{background:var(--navy-dark);}
+.btn-export{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--navy);border:1px solid #d3dae1;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;white-space:nowrap;text-align:center;}
+.btn-export:hover{background:var(--gray-light);}
+.saved-quote-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0f2f4;font-size:11px;color:#5a6672;}
+.saved-quote-item button{background:none;border:1px solid #d3dae1;color:#5a6672;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;}
+.saved-quote-item button:hover{background:var(--gray-light);}
 .saved-quote-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.saved-quote-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9aaab8;padding:8px 0 4px;}
-.btn-reset{flex:1 1 auto;padding:8px 6px;background:#fff;color:#466e86;border:1px solid #c8d4de;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif;text-align:center;}
-.btn-reset:hover{background:#f0f4f8;}
+.saved-quote-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9aa4ae;padding:8px 0 4px;}
+.btn-reset{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--navy);border:1px solid #d3dae1;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;text-align:center;}
+.btn-reset:hover{background:var(--gray-light);}
+/* Tax status pills + panel-header polish */
+.tax-pill{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:20px;flex-shrink:0;}
+.tax-pill.tax-exempt{color:var(--blue);background:var(--blue-light);}
+.tax-pill.tax-taxable{color:var(--orange-dark);background:var(--orange-tint);}
+.tax-pill + .q-chev{margin-left:12px;}
 
 /* PLAN ITEMS */
 .plan-items-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-mid);display:none;}
 .plan-item-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;max-width:720px;}
-.plan-item-row .pi-label{flex:1;max-width:600px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;font-family:'Source Sans 3',sans-serif;}
-.plan-item-row .pi-amount{width:80px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;text-align:right;font-family:'Source Sans 3',sans-serif;}
+.plan-item-row .pi-label{flex:1;max-width:600px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;font-family:'Public Sans',sans-serif;}
+.plan-item-row .pi-amount{width:80px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;text-align:right;font-family:'Public Sans',sans-serif;}
 .plan-item-row .pi-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;}
 .plan-totals{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-mid);font-size:12px;color:var(--text-light);}
 .plan-totals strong{color:var(--green);}
@@ -165,9 +199,9 @@ tr:hover td{background:#eef3f8;}
 
 /* CUSTOM LINES */
 .custom-line-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
-.custom-line-row input[type=text]{flex:1;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:'Source Sans 3',sans-serif;}
+.custom-line-row input[type=text]{flex:1;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:'Public Sans',sans-serif;}
 .custom-line-row input[type=number]{width:90px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;}
-.custom-line-row select{padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:'Source Sans 3',sans-serif;}
+.custom-line-row select{padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:'Public Sans',sans-serif;}
 .custom-line-row .cl-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;}
 .disc-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 9px;background:rgba(27,42,74,.04);border:1px solid var(--gray-light);border-radius:7px;}
 .disc-row select{padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:11px;}
@@ -186,7 +220,7 @@ tr:hover td{background:#eef3f8;}
 .btn-add-line:hover{background:#c4d8ee;}
 
 /* COMBINED PANEL specific */
-.pull-btn{padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif;}
+.pull-btn{padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;}
 .pull-btn:hover{background:#1e3a6a;}
 .pull-result{font-size:13px;font-weight:700;color:var(--navy);}
 .breakdown-lines{margin-top:8px;font-size:12px;border-top:1px solid var(--gray-mid);padding-top:6px;}
@@ -195,11 +229,11 @@ tr:hover td{background:#eef3f8;}
 /* HERO */
 .hero{background:linear-gradient(135deg,#35566a 0%,#466e86 100%);border-radius:12px;padding:32px 36px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;gap:24px;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;right:-40px;top:-40px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
-.hero-text h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:5px;}
+.hero-text h1{font-family:'Public Sans',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:5px;}
 .hero-text p{color:rgba(255,255,255,.6);font-size:13px;}
 .hero-stats{display:flex;gap:20px;flex-shrink:0;position:relative;z-index:1;}
 .hero-stat{text-align:center;padding:10px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;}
-.hero-stat .num{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;display:block;}
+.hero-stat .num{font-family:'Public Sans',serif;font-size:22px;font-weight:700;color:#fff;display:block;}
 .hero-stat .lbl{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;}
 
 /* QUICK REF GRID */
@@ -265,22 +299,14 @@ tr:hover td{background:#eef3f8;}
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="header-inner">
-    <img src="logo.svg" alt="Bonney Watson" class="header-logo" onerror="this.style.display='none';document.getElementById('headerTitleFallback').style.display='block'">
-    <span class="header-est">Est. 1868</span>
-    <div id="headerTitleFallback" class="header-title" style="display:none;">Bonney Watson · <span>Price Guide</span></div>
-    <div class="header-search">
-      <span>🔍</span>
-      <input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)">
-    </div>
-  </div>
-</header>
-
 <div class="layout">
 <!-- SIDEBAR -->
 <nav class="sidebar">
+  <div class="sb-brand">
+    <img src="logo.svg" alt="Bonney Watson" class="sb-logo" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'sb-logo-fallback',textContent:'BONNEY WATSON'}))">
+    <div class="sb-tagline">Quote &amp; Contract Tool · 2026</div>
+  </div>
+  <div class="sb-nav">
   <div class="nav-label">Overview</div>
   <div class="nav-item active highlight" onclick="show('home',this)"><span class="ni-ic" data-lc="home"></span>Home / Quick Ref</div>
 
@@ -310,15 +336,29 @@ tr:hover td{background:#eef3f8;}
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Resources</div>
   <div class="nav-item" onclick="window.location='guides.html'"><span class="ni-ic" data-lc="book-open"></span>Family Guides &amp; Resources</div>
+  </div><!-- /sb-nav -->
+  <div class="sb-user">
+    <div class="sb-avatar">MM</div>
+    <div><div class="sb-user-name">Martice Morrison</div><div class="sb-user-role">Advanced Planning</div></div>
+  </div>
 </nav>
 
+<div class="content-col">
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="tb-crumb"><span>Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
+  <div class="tb-right">
+    <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search items, gardens, prices…" oninput="doSearch(this.value)" autocomplete="off"></div>
+    <button class="tb-action" onclick="show('cem-quote', document.querySelector('.nav-item[onclick*=cem-quote]'))">New Cemetery Quote</button>
+  </div>
+</header>
 <!-- MAIN CONTENT -->
 <main class="main">
 
 <!-- ═══ HOME ═══ -->
 <div class="section active" id="section-home">
   <div class="section-header">
-    <div class="section-icon">🏠</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Bonney Watson</h2>
     <span class="badge">Quote &amp; Contract Tool · 2026</span>
   </div>
@@ -343,7 +383,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Location Info -->
     <div class="q-panel" style="flex:1;min-width:220px;">
-      <div class="q-panel-header"><span class="ph-ic">📍</span>Locations</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="map-pin" data-lc-sz="17"></span></span>Locations</div>
       <div class="q-panel-body" style="font-size:13px;line-height:1.8;">
         <strong>SeaTac (Cemetery &amp; FH)</strong><br>
         16445 International Blvd, SeaTac WA 98188<br>
@@ -356,7 +396,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Quick Reference Rates -->
     <div class="q-panel" style="flex:2;min-width:280px;">
-      <div class="q-panel-header"><span class="ph-ic">⚡</span>Quick Reference</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="sparkles" data-lc-sz="17"></span></span>Quick Reference</div>
       <div class="q-panel-body">
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
@@ -402,7 +442,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- July Promotions -->
   <div class="q-panel" style="margin-top:14px;border-left:4px solid var(--gold);">
-    <div class="q-panel-header" style="background:linear-gradient(90deg,var(--navy) 0%,#2a3d5c 100%);">🏷️ July 2026 Pre-Need Sales Incentives <span style="font-size:11px;font-weight:400;opacity:.8;">· New Property Only · Expires July 31, 2026</span></div>
+    <div class="q-panel-header" style="background:linear-gradient(100deg,var(--orange) 0%,#f0a445 100%);color:#fff;border-radius:14px 14px 0 0;"><span class="ph-ic" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.25);color:#fff;"><span data-lc="tag" data-lc-sz="17"></span></span>July 2026 Pre-Need Sales Incentives <span style="font-size:11.5px;font-weight:500;opacity:.92;">· New Property Only · Expires July 31, 2026</span></div>
     <div class="q-panel-body" style="display:flex;gap:24px;flex-wrap:wrap;">
       <div style="flex:1;min-width:260px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:8px;">Standard Pre-Need Incentives</div>
@@ -421,7 +461,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Contacts -->
   <div class="q-panel" style="margin-top:14px;">
-    <div class="q-panel-header"><span class="ph-ic">📞</span>Your Contact Info</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="info" data-lc-sz="17"></span></span>Your Contact Info</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:13px;line-height:2;">
         <div><strong>Martice Morrison</strong><br>
@@ -443,7 +483,7 @@ tr:hover td{background:#eef3f8;}
 
 <div class="section" id="section-cem-quote">
   <div class="section-header">
-    <div class="section-icon">🧮</div>
+    <div class="section-icon"><span data-lc="calculator" data-lc-sz="18"></span></div>
     <h2>Cemetery Quote Builder</h2>
     <span class="badge">Interactive</span>
   </div>
@@ -711,7 +751,7 @@ tr:hover td{background:#eef3f8;}
   <div class="q-layout">
     <div>
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">👤</span>Client Information</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Client Information</div>
         <div class="q-panel-body">
           <div class="q-row" style="margin-bottom:10px;">
             <label style="font-size:12px;font-weight:700;color:var(--navy);">Quote Type</label>
@@ -736,7 +776,7 @@ tr:hover td{background:#eef3f8;}
       </div>
       <!-- Burial Space -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🌿</span>Burial Space</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="trees" data-lc-sz="17"></span></span>Burial Space</div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Garden / Lawn Space</div>
@@ -942,7 +982,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- O&C -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">⚰️</span>Opening &amp; Closing (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="shovel" data-lc-sz="17"></span></span>Opening &amp; Closing<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
             <div class="q-check-row">
               <input type="checkbox" id="qOCLawnSingle" onchange="cemUpdateD()">
@@ -997,7 +1037,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Recording & Scheduling -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">📋</span>Recording &amp; Scheduling (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-list" data-lc-sz="17"></span></span>Recording &amp; Scheduling<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Recording Fees — $235 each</div>
@@ -1036,7 +1076,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">⬛</span>Burial Vault (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Burial Vault<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-row" style="flex-wrap:wrap;gap:8px;align-items:center;">
             <select id="qVault" style="flex:1;min-width:220px;" onchange="cemUpdateD()">
@@ -1080,7 +1120,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏺</span>Vault / Container Setting (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Vault / Container Setting<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-check-row">
             <input type="checkbox" id="qSettingBurial" onchange="cemUpdateD()">
@@ -1099,7 +1139,7 @@ tr:hover td{background:#eef3f8;}
 
             <!-- Urn/Burial Vault merchandise -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🪦</span>PCM Granite Marker (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>PCM Granite Marker<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Marker Type &amp; Size</div>
@@ -1181,7 +1221,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Vase Block -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🪙</span>Bronze Memorial (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>Bronze Memorial<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Bronze Memorial</div>
@@ -1287,7 +1327,7 @@ tr:hover td{background:#eef3f8;}
           </div>
         </div>
       </div>      <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🟫</span>Vase Block (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower-2" data-lc-sz="17"></span></span>Vase Block<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">PCM granite vase block · polished top, sawn sides · includes drill base core. Install fee $175.</div>
           <div class="q-group">
@@ -1328,7 +1368,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- BRONZE MEMORIAL -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🌸</span>Vases — Bronze &amp; Zinc (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower-2" data-lc-sz="17"></span></span>Vases — Bronze &amp; Zinc<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">*** Requires vase core drilled in granite — see Vase Block in Marker panel above.</div>
           <div class="q-row">
@@ -1359,7 +1399,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">✍️</span>Inscriptions (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="pen-line" data-lc-sz="17"></span></span>Inscriptions<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Add Inscription</div>
@@ -1411,7 +1451,7 @@ tr:hover td{background:#eef3f8;}
       <!-- Vase Blocks -->
       <!-- PCM Ceramic Steel Portrait -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">📷</span>Ceramic Steel Portrait (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="image" data-lc-sz="17"></span></span>Ceramic Steel Portrait<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Shape</div>
@@ -1452,7 +1492,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Crypt-Front Photo Frames -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🖼️</span>Crypt-Front Photo Frames (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="image" data-lc-sz="17"></span></span>Crypt-Front Photo Frames<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Oval Portrait — Crypt Front <span style="font-size:11px;font-weight:400;color:var(--text-light);">(color, B&amp;W &amp; sepia)</span></div>
@@ -1525,7 +1565,7 @@ tr:hover td{background:#eef3f8;}
       <!-- Bronze & Zinc Vases -->
       <!-- 3rd Party Memorialization -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏗️</span>3rd Party Memorialization (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>3rd Party Memorialization<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-gold" style="font-size:11.5px;margin-bottom:10px;line-height:1.6;">
             <strong>No discounts apply.</strong> All installations by PCM only. Requires Hold Harmless Agreement, Cemetery Contract, proof approval, and full payment before processing.
@@ -1597,7 +1637,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🔧</span>PCM Misc &amp; Marker Services (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>PCM Misc &amp; Marker Services<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
 
           <!-- Pinning -->
@@ -1724,7 +1764,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel" id="cemDiscountPanel">
-        <div class="q-panel-header"><span class="ph-ic">🏷️</span>Discounts</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="aprilPromoNote" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(127,29,29,.07);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.7;">
             <strong>🏷️ July 2026 Pre-Need Sales Incentives</strong> — new property only<br>
@@ -1741,7 +1781,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Financing -->
       <div class="q-panel" id="cemFinancingPanel">
-        <div class="q-panel-header"><span class="ph-ic">💳</span>Payment Options</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Payment Options</div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:11.5px;margin-bottom:10px;line-height:1.6;">
             <strong>Financing Terms — Effective Jan 1, 2024</strong><br>
@@ -1773,7 +1813,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Custom Lines -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">➕</span>Custom Line Items</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="plus" data-lc-sz="17"></span></span>Custom Line Items</div>
         <div class="q-panel-body">
           <div id="cemCustomLines"></div>
           <div class="btn-add-line" onclick="addCemLine()">+ Add Custom Line</div>
@@ -1792,7 +1832,7 @@ tr:hover td{background:#eef3f8;}
     </div>
     <div class="summary-actions">
       <button class="btn-print" onclick="downloadCemQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print" onclick="printCemQuote()">🖨️ Print</button>
+      <button class="btn-print2" onclick="printCemQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="copyCemSummary()" title="Copy summary to clipboard" id="cemCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetCemQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveCemQuote()" title="Save this quote draft">💾 Save</button>
@@ -1804,7 +1844,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ FH QUOTE BUILDER ═══ -->
 <div class="section" id="section-fh-quote">
   <div class="section-header">
-    <div class="section-icon">⚱️</div>
+    <div class="section-icon"><span data-lc="calculator" data-lc-sz="18"></span></div>
     <h2>Funeral Home Quote Builder</h2>
     <span class="badge">Bonney Watson · 2026</span>
   </div>
@@ -1961,7 +2001,7 @@ tr:hover td{background:#eef3f8;}
     <div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">👤</span>Client Information</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Client Information</div>
         <div class="q-panel-body">
           <div class="q-row" style="margin-bottom:10px;">
             <label style="font-size:12px;font-weight:700;color:var(--navy);">Quote Type</label>
@@ -1991,7 +2031,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Price Plans -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">📋</span>Price Plans (replaces individual services)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-list" data-lc-sz="17"></span></span>Price Plans (replaces individual services)</div>
         <div class="q-panel-body">
           <div class="callout callout-gold" style="font-size:12px;margin-bottom:12px;">Select a plan <em>instead of</em> individual services. Plan price = package discount applied automatically.</div>
           <div class="q-group">
@@ -2053,7 +2093,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Professional Services -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">👔</span>Professional Services (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Professional Services<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-check-row"><input type="checkbox" id="fhBasicSvc" onchange="fhUpdateD()"><label for="fhBasicSvc">Basic Services of Funeral Director &amp; Staff — $2,425</label></div>
           <div class="q-check-row"><input type="checkbox" id="fhEmbalming" onchange="fhUpdateD()"><label for="fhEmbalming">Embalming — $945</label></div>
@@ -2068,7 +2108,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Facilities -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏛️</span>Facilities &amp; Staff (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="landmark" data-lc-sz="17"></span></span>Facilities &amp; Staff<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-group">
             <div class="q-group-label">Viewing</div>
@@ -2124,7 +2164,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Transportation -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🚗</span>Transportation (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="truck" data-lc-sz="17"></span></span>Transportation<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-check-row"><input type="checkbox" id="fhTransfer" onchange="fhUpdateD()"><label for="fhTransfer">Transfer of Deceased to Funeral Home — $715</label></div>
           <div class="q-check-row"><input type="checkbox" id="fhHearse" onchange="fhUpdateD()"><label for="fhHearse">Use of Hearse — $705</label><span class="qty-x">×</span><input type="number" id="fhHearseQty" class="qty-input" min="1" max="9" value="1" oninput="fhUpdateD()"></div>
@@ -2137,7 +2177,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Cremation -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🔥</span>Cremation Services (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="flame" data-lc-sz="17"></span></span>Cremation Services<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
 
           <div class="q-check-row"><input type="checkbox" id="fhCremProcessing" onchange="fhUpdateD()"><label for="fhCremProcessing">Cremation &amp; Processing (standalone) — $385</label></div>
@@ -2153,7 +2193,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Death Certs -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">📜</span>Death Certificates &amp; County Fees (Tax-Exempt)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Death Certificates &amp; County Fees<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-row">
             <label>Death Certs</label>
@@ -2176,7 +2216,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Casket -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">⚰️</span>Casket (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Casket<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple caskets. Each casket can have its own quantity.</div>
           <div class="q-group">
@@ -2201,7 +2241,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Cremation Containers -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🔲</span>Cremation Container (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Cremation Container<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">Effective January 1, 2026. Subject to change without notice.</div>
           <div class="q-row">
@@ -2232,7 +2272,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Memorial Merchandise -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🕯️</span>Memorial Merchandise (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="gem" data-lc-sz="17"></span></span>Memorial Merchandise<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple items — packages, boxsets, stationery, and other memorial merchandise.</div>
           <div class="q-group">
@@ -2288,7 +2328,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Discount -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏺</span>Urns (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="gem" data-lc-sz="17"></span></span>Urns<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple urns. Each urn can have its own quantity.</div>
           <div class="q-group">
@@ -2318,7 +2358,7 @@ tr:hover td{background:#eef3f8;}
         </div>
       </div>
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🌸</span>Flowers · Loves Buds &amp; Blooms (Taxable)</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower" data-lc-sz="17"></span></span>Flowers · Loves Buds &amp; Blooms<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Loves Buds &amp; Blooms. Select and add multiple items — casket sprays, standing sprays, and bouquets/tributes.</div>
           <div class="q-group">
@@ -2404,7 +2444,7 @@ tr:hover td{background:#eef3f8;}
       </div>
 
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">➕</span>Custom Line Items</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="plus" data-lc-sz="17"></span></span>Custom Line Items</div>
         <div class="q-panel-body">
           <div id="fhCustomLines"></div>
           <div class="btn-add-line" onclick="addFhLine()">+ Add Custom Line</div>
@@ -2414,7 +2454,7 @@ tr:hover td{background:#eef3f8;}
 
 <!-- ═══ WA MAXIMA INSURANCE PAYMENT OPTIONS ═══ -->
 <div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="fhInsSection">
-  <div class="q-panel-header"><span class="ph-ic">💡</span>WA Maxima Insurance Payment Options</div>
+  <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>WA Maxima Insurance Payment Options</div>
   <div class="q-panel-body">
     <div class="callout callout-blue" style="margin-bottom:14px;">Estimates based on <strong>WA - Washington Maxima Revised</strong> (Global Atlantic). Enter client age and optional down payment to see monthly options across all available pay plans.</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
@@ -2438,7 +2478,7 @@ tr:hover td{background:#eef3f8;}
 
       <!-- Discounts (last panel in FH quote) -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏷️</span>Discounts</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="fhDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
           <div class="btn-add-line" onclick="addFhDiscount()">+ Add Discount</div>
@@ -2458,7 +2498,7 @@ tr:hover td{background:#eef3f8;}
     </div>
     <div class="summary-actions">
       <button class="btn-print" onclick="downloadFhQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print" onclick="printFhQuote()">🖨️ Print</button>
+      <button class="btn-print2" onclick="printFhQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="copyFhSummary()" title="Copy summary to clipboard" id="fhCopyBtn">📋 Copy</button>
       <button class="btn-reset" onclick="resetFHQuote()">↺ Reset</button>
       <button class="btn-export" onclick="saveFhQuote()" title="Save this quote draft">💾 Save</button>
@@ -2473,7 +2513,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ CEM SAVED QUOTES ═══ -->
 <div class="section" id="section-cem-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved Cemetery Quotes</h2>
   </div>
   <div id="cemSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the Cemetery Quote Builder and click 💾 Save.</p></div>
@@ -2482,7 +2522,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ RIC SAVED CONTRACTS ═══ -->
 <div class="section" id="section-ric-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved RIC Contracts</h2>
   </div>
   <div id="ricSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.</p></div>
@@ -2491,7 +2531,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ AT-NEED CIRGAS SAVED CONTRACTS ═══ -->
 <div class="section" id="section-an-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved At-Need CIRGAS Contracts</h2>
   </div>
   <div id="anSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved At-Need contracts yet — go to the At-Need CIRGAS Contract tab and click 💾 Save Contract.</p></div>
@@ -2500,7 +2540,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ FH SAVED QUOTES ═══ -->
 <div class="section" id="section-fh-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="home" data-lc-sz="18"></span></div>
     <h2>Saved Funeral Home Quotes</h2>
   </div>
   <div id="fhSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the FH Quote Builder and click 💾 Save.</p></div>
@@ -2509,7 +2549,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ GA SAVED CONTRACTS ═══ -->
 <div class="section" id="section-ga-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved GA Contracts</h2>
   </div>
   <div id="gaSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved GA contracts yet — go to the Pre-Need Contract (GA) tab and click 💾 Save Contract.</p></div>
@@ -2518,7 +2558,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ CLEARPOINT SAVED CONTRACTS ═══ -->
 <div class="section" id="section-cp-saved">
   <div class="section-header">
-    <div class="section-icon">💾</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved ClearPoint Contracts</h2>
   </div>
   <div id="cpSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved ClearPoint contracts yet — go to the Pre-Need Contract (ClearPoint) tab and click 💾 Save Contract.</p></div>
@@ -2527,7 +2567,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ COMBINED QUOTE BUILDER ═══ -->
 <div class="section" id="section-combined-quote">
   <div class="section-header">
-    <div class="section-icon">🔗</div>
+    <div class="section-icon"><span data-lc="calculator" data-lc-sz="18"></span></div>
     <h2>Combined Quote Builder</h2>
     <span class="badge">Cemetery + Funeral Home</span>
   </div>
@@ -2543,7 +2583,7 @@ tr:hover td{background:#eef3f8;}
     <div>
       <!-- Cemetery Pull -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏛️</span>Cemetery Quote</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Cemetery Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
             <button class="pull-btn" onclick="pullCemetery()">⬇️ Pull from Cemetery Quote</button>
@@ -2554,7 +2594,7 @@ tr:hover td{background:#eef3f8;}
       </div>
       <!-- FH Pull -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">⚰️</span>Funeral Home Quote</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Funeral Home Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
             <button class="pull-btn" onclick="pullFuneral()">⬇️ Pull from Funeral Home Quote</button>
@@ -2565,7 +2605,7 @@ tr:hover td{background:#eef3f8;}
       </div>
       <!-- Additional Items -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">➕</span>Additional Items</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Additional Items</div>
         <div class="q-panel-body">
           <div id="combCustomLines"></div>
           <div class="btn-add-line" onclick="addCombLine()">+ Add Custom Line</div>
@@ -2573,7 +2613,7 @@ tr:hover td{background:#eef3f8;}
       </div>
       <!-- Combined Discount -->
       <div class="q-panel">
-        <div class="q-panel-header"><span class="ph-ic">🏷️</span>Combined Discount</div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Combined Discount</div>
         <div class="q-panel-body">
           <div class="q-row">
             <label>Mode</label>
@@ -2597,7 +2637,7 @@ tr:hover td{background:#eef3f8;}
 
 <!-- ═══ COMBINED PAYMENT OPTIONS ═══ -->
 <div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="combInsSection">
-  <div class="q-panel-header"><span class="ph-ic">💡</span>Combined Monthly Payment Estimate</div>
+  <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Combined Monthly Payment Estimate</div>
   <div class="q-panel-body">
     <div class="callout callout-blue" style="margin-bottom:14px;">Every standard cemetery down-payment tier (10%/20%/25%) and financing term, crossed with every WA Maxima FH plan — no down payment to pick, every real combination is listed. FH options use the age entered in the WA Maxima panel.</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
@@ -2617,7 +2657,7 @@ tr:hover td{background:#eef3f8;}
 </div>
 <div class="section" id="section-ric-contract">
   <div class="section-header">
-    <div class="section-icon">📄</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Pre-Need Cemetery RIC Contract</h2>
     <span class="badge">Cemetery Pre-Need Only</span>
   </div>
@@ -2631,7 +2671,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Client Info -->
     <div class="q-panel">
-      <div class="q-panel-header"><span class="ph-ic">👤</span>Purchaser Information</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Purchaser Information</div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Purchaser Name(s)</label>
@@ -2663,7 +2703,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Property Type -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">🪦</span>Property Type</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="landmark" data-lc-sz="17"></span></span>Property Type</div>
       <div class="q-panel-body">
         <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
           <label style="font-size:13px;"><input type="checkbox" id="ricDeveloped" style="margin-right:5px;">Developed</label>
@@ -2686,7 +2726,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Purchaser Signature Info -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">✍️</span>Signing Information</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="pen-line" data-lc-sz="17"></span></span>Signing Information</div>
       <div class="q-panel-body">
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
           <div style="flex:1;min-width:160px;">
@@ -2739,7 +2779,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Pricing (auto-filled from quote, editable) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">💰</span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="dollar-sign" data-lc-sz="17"></span></span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
       <div class="q-panel-body">
         <div style="display:flex;gap:8px;margin-bottom:12px;">
           <button onclick="ricImportFromQuote()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import from Cemetery Quote</button>
@@ -2751,7 +2791,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Cemetery Quote Financing Display -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">📊</span>Payment Plan from Cemetery Quote</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Payment Plan from Cemetery Quote</div>
       <div class="q-panel-body">
         <div id="ricCemFinancingDisplay" style="font-size:12px;color:var(--text-light);line-height:1.8;">
           <em>Build a cemetery quote with financing selected, then click "Import from Cemetery Quote" above to populate payment fields below.</em>
@@ -2761,7 +2801,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Payment Options -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">💳</span>Payment Options</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Payment Options</div>
       <div class="q-panel-body">
         <div class="callout callout-blue" style="margin-bottom:12px;font-size:12px;">Adjust or confirm payment terms. Values auto-fill from your cemetery quote financing panel.</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">
@@ -2823,7 +2863,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Payment Tier Table (populated by Import from Cemetery Quote) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">📊</span>All Payment Options — Cemetery Quote Totals</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>All Payment Options — Cemetery Quote Totals</div>
       <div class="q-panel-body" style="padding:10px 14px;">
         <div id="ricPaymentTierTable" style="font-size:12px;color:var(--text-light);">
           <em>Click "Import from Cemetery Quote" above to see all financing tiers here.</em>
@@ -2833,7 +2873,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Remarks -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">📝</span>Remarks <span style="font-weight:400;font-size:12px;opacity:.7;">— printed in the Remarks field on the contract</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="square-pen" data-lc-sz="17"></span></span>Remarks <span style="font-weight:400;font-size:12px;opacity:.7;">— printed in the Remarks field on the contract</span></div>
       <div class="q-panel-body">
         <textarea id="ricRemarks" placeholder="e.g. For the benefit of Jane Smith. Includes Garden 23 single lawn space." rows="3" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
         <div style="font-size:11px;color:var(--text-light);margin-top:4px;">This fills the Remarks line on the contract. Leave blank to auto-fill with "For the benefit of [Purchaser Name]."</div>
@@ -2856,7 +2896,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ AT-NEED CIRGAS CONTRACT ═══ -->
 <div class="section" id="section-an-contract">
   <div class="section-header">
-    <div class="section-icon">📗</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>At-Need Cemetery Contract (CIRGAS)</h2>
     <span class="badge">Cemetery At-Need Only</span>
   </div>
@@ -2871,7 +2911,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Contract Type -->
     <div class="q-panel">
-      <div class="q-panel-header"><span class="ph-ic">📑</span>Contract Type</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Contract Type</div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>This packet is</label>
@@ -2887,7 +2927,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Contract / Decedent Info -->
     <div class="q-panel">
-      <div class="q-panel-header"><span class="ph-ic">🕊️</span>Decedent &amp; Contract Information</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Decedent &amp; Contract Information</div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Contract #</label>
@@ -2956,7 +2996,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Purchaser -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">👤</span>Purchaser Information</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Purchaser Information</div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Purchaser Name</label>
@@ -2990,7 +3030,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Co-Purchaser -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">👥</span>Co-Purchaser Information <span style="font-size:11px;font-weight:400;opacity:.7;">— optional</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="users" data-lc-sz="17"></span></span>Co-Purchaser Information <span style="font-size:11px;font-weight:400;opacity:.7;">— optional</span></div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Co-Purchaser Name</label>
@@ -3024,7 +3064,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Property, Vault & Memorial -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">🪦</span>Property, Vault &amp; Memorial <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="landmark" data-lc-sz="17"></span></span>Property, Vault &amp; Memorial <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Property Location</label>
@@ -3047,7 +3087,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Pricing -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">💰</span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="dollar-sign" data-lc-sz="17"></span></span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
       <div class="q-panel-body">
         <div style="display:flex;gap:8px;margin-bottom:12px;">
           <button onclick="anImportFromCemeteryQuote()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import from Cemetery Quote</button>
@@ -3059,7 +3099,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- On Contract (already pre-arranged / pre-paid via a prior Pre-Need RIC) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">📄</span>On Contract <span style="font-size:11px;font-weight:400;opacity:.7;">— check anything already delivered/paid for under a prior Pre-Need RIC</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-check" data-lc-sz="17"></span></span>On Contract <span style="font-size:11px;font-weight:400;opacity:.7;">— check anything already delivered/paid for under a prior Pre-Need RIC</span></div>
       <div class="q-panel-body">
         <div class="callout callout-blue" style="margin-bottom:12px;font-size:12px;">Per item: check <strong>On Contract</strong> if it was already pre-arranged/pre-paid (prints "On Contract", excluded from totals), OR type an <strong>Amount</strong> for something being purchased now — you can mix both and generate a CIRGAS with no Cemetery Quote imported at all. An imported quote fills these amounts automatically; anything you type here overrides the import for that item.</div>
         <div style="display:grid;grid-template-columns:minmax(140px,1fr) auto minmax(210px,auto);gap:7px 14px;align-items:center;">
@@ -3126,7 +3166,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Interment Order & Authorization -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">✅</span>Interment Order &amp; Authorization</div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-check" data-lc-sz="17"></span></span>Interment Order &amp; Authorization</div>
       <div class="q-panel-body">
         <div class="q-row">
           <label>Veteran?</label>
@@ -3271,7 +3311,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Additional Signers (below Interment Order & Authorization) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">✍️</span>Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="users" data-lc-sz="17"></span></span>Additional Signers <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, beyond Purchaser/Co-Purchaser</span></div>
       <div class="q-panel-body">
         <div id="anSignersBody"></div>
       </div>
@@ -3279,7 +3319,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Memorial Order (optional — some families buy a marker at time of passing, many wait) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">🪨</span>Memorial Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when the family is purchasing a marker now</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>Memorial Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when the family is purchasing a marker now</span></div>
       <div class="q-panel-body">
         <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anMkEnabled" onchange="anMkToggle()">This family is purchasing a Marker/Memorial now</label>
         <div id="anMkPanel" style="display:none;margin-top:12px;">
@@ -3376,7 +3416,7 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Vault Order (optional) -->
     <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic">⚰️</span>Vault and Urn Vault Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when vault delivery logistics are known</span></div>
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Vault and Urn Vault Order <span style="font-size:11px;font-weight:400;opacity:.7;">— optional, check when vault delivery logistics are known</span></div>
       <div class="q-panel-body">
         <label style="font-size:13px;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="anVtEnabled" onchange="anVtToggle()">Include Vault/Urn Vault Order details</label>
         <div id="anVtPanel" style="display:none;margin-top:12px;">
@@ -3445,7 +3485,7 @@ tr:hover td{background:#eef3f8;}
     </div>
     <div class="summary-actions">
       <button class="btn-print" onclick="downloadCombQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print" onclick="printCombQuote()">🖨️ Print</button>
+      <button class="btn-print2" onclick="printCombQuote()">🖨️ Print</button>
       <button class="btn-export" onclick="emailCombQuote()" title="Email this quote">✉</button>
       <button class="btn-export" onclick="exportCombQuote()" title="Copy to clipboard">Copy</button>
       <button class="btn-reset" onclick="resetCombQuote()">↺ Reset</button>
@@ -3457,7 +3497,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ DEED TRANSFER CONTRACT (CIRGAS Phase 3) ═══ -->
 <div class="section" id="section-ga-contract" style="padding-right:0;">
   <div class="section-header">
-    <div class="section-icon">📝</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Pre-Need Funeral Contract</h2>
     <span class="badge" style="background:var(--gold);color:#fff;">GLOBAL ATLANTIC – FORETHOUGHT LIFE INSURANCE</span>
   </div>
@@ -3466,7 +3506,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">📋</span>Contract Names</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Contract Names</div>
     <div class="q-panel-body">
       <div style="margin-bottom:10px;">
         <label style="font-size:12px;font-weight:600;color:var(--text);">Funeral Recipient (Insured) — Full Name</label>
@@ -3600,7 +3640,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import from Funeral Home Quote</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import from Funeral Home Quote</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <button onclick="gaImportFromFH()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import Client Name from FH Quote</button>
@@ -3612,7 +3652,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">ℹ️</span>How This Works</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="info" data-lc-sz="17"></span></span>How This Works</div>
     <div class="q-panel-body">
       <div style="font-size:12px;line-height:1.6;color:#555;">
         Imports pricing from your current <strong>Funeral Home Quote</strong> and fills the complete Global Atlantic PDF contract (pages 1–3): guaranteed services, casket, disposition, tax, non-guaranteed cash advance items, and all totals. Names, date, and signatures are also pre-filled. The output is the original GA/Forethought form ready for review and signature — remaining pages (insurance application, payment options) are completed through the GA portal.
@@ -3636,7 +3676,7 @@ tr:hover td{background:#eef3f8;}
 
 <div class="section" id="section-cp-contract" style="padding-right:0;">
   <div class="section-header">
-    <div class="section-icon">📋</div>
+    <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Pre-Need Funeral Contract — ClearPoint</h2>
     <span class="badge" style="background:var(--gold);color:#fff;">CLEARPOINT FEDERAL BANK &amp; TRUST</span>
   </div>
@@ -3646,7 +3686,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Import Row -->
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import from Funeral Home Quote</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import from Funeral Home Quote</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
         <button onclick="cpImportFromFH()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import from FH Quote</button>
@@ -3659,7 +3699,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Contract Settings Row -->
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">⚙️</span>Contract Settings</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Contract Settings</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
         <div>
@@ -3682,7 +3722,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Funeral Recipient -->
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">👤</span>Funeral Recipient (Insured)</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Funeral Recipient (Insured)</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end;">
         <div style="min-width:100px;">
@@ -3741,7 +3781,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Purchaser (if different) -->
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">👤</span>Purchaser <span style="font-weight:400;font-size:12px;opacity:.7;">— Complete only if different from Funeral Recipient</span></div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Purchaser <span style="font-weight:400;font-size:12px;opacity:.7;">— Complete only if different from Funeral Recipient</span></div>
     <div class="q-panel-body">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end;">
         <div style="min-width:100px;">
@@ -3796,7 +3836,7 @@ tr:hover td{background:#eef3f8;}
 
   <!-- Payment Schedule -->
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">💳</span>Payment Schedule <span style="font-weight:400;font-size:12px;opacity:.7;">— Leave blank for single-payment contracts</span></div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Payment Schedule <span style="font-weight:400;font-size:12px;opacity:.7;">— Leave blank for single-payment contracts</span></div>
     <div class="q-panel-body">
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
         <div style="min-width:150px;">
@@ -3823,7 +3863,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel" style="margin-top:10px;">
-    <div class="q-panel-header"><span class="ph-ic">🔢</span>Contract Number</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Contract Number</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div style="flex:1;min-width:180px;">
@@ -3849,7 +3889,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ RIC CHECKLIST ═══ -->
 <div class="section" id="section-ric-checklist">
   <div class="section-header">
-    <div class="section-icon">📋</div>
+    <div class="section-icon"><span data-lc="file-spreadsheet" data-lc-sz="18"></span></div>
     <h2>Commission Packet Checklist</h2>
     <span class="badge" style="background:#2e7d32;color:#fff;">RIC (RETAIL INSTALLMENT CONTRACT)</span>
   </div>
@@ -3858,7 +3898,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import</div>
     <div class="q-panel-body">
       <button class="pull-btn" onclick="riclImport()">⬇ Import from Pre-Need RIC Contract</button>
       <div id="riclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Generate or load a RIC contract first, then click Import.</div>
@@ -3866,12 +3906,12 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">📋</span>Commission Worksheet</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-spreadsheet" data-lc-sz="17"></span></span>Commission Worksheet</div>
     <div class="q-panel-body" id="riclWorksheetBody"></div>
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">✅</span>Document Checklist</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="list-checks" data-lc-sz="17"></span></span>Document Checklist</div>
     <div class="q-panel-body" id="riclChecklistBody"></div>
   </div>
 
@@ -3889,7 +3929,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ AT-NEED CEMETERY CHECKLIST ═══ -->
 <div class="section" id="section-atneed-checklist">
   <div class="section-header">
-    <div class="section-icon">📋</div>
+    <div class="section-icon"><span data-lc="file-spreadsheet" data-lc-sz="18"></span></div>
     <h2>Commission Packet Checklist</h2>
     <span class="badge" style="background:#c0392b;color:#fff;">AT-NEED CEMETERY</span>
   </div>
@@ -3898,7 +3938,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import from Cemetery Quote</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import from Cemetery Quote</div>
     <div class="q-panel-body">
       <button class="pull-btn" onclick="anclImport()">⬇ Import from Cemetery Quote (At-Need)</button>
       <div id="anclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Set the Cemetery Quote Builder's Quote Type to At-Need and build the quote first, then click Import.</div>
@@ -3906,7 +3946,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import from Saved CIRGAS Contract</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import from Saved CIRGAS Contract</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <select id="anclCirgasPicker" onfocus="anclPopulateCirgasPicker()" style="flex:1;min-width:220px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;"><option value="">— Select a saved CIRGAS contract —</option></select>
@@ -3917,12 +3957,12 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">📋</span>Commission Worksheet</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-spreadsheet" data-lc-sz="17"></span></span>Commission Worksheet</div>
     <div class="q-panel-body" id="anclWorksheetBody"></div>
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">✅</span>Document Checklist</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="list-checks" data-lc-sz="17"></span></span>Document Checklist</div>
     <div class="q-panel-body" id="anclChecklistBody"></div>
   </div>
 
@@ -3940,7 +3980,7 @@ tr:hover td{background:#eef3f8;}
 <!-- ═══ CLEARPOINT CHECKLIST ═══ -->
 <div class="section" id="section-cp-checklist">
   <div class="section-header">
-    <div class="section-icon">📋</div>
+    <div class="section-icon"><span data-lc="file-spreadsheet" data-lc-sz="18"></span></div>
     <h2>Commission Packet Checklist</h2>
     <span class="badge" style="background:#6a3fa0;color:#fff;">CLEARPOINT TRUST</span>
   </div>
@@ -3949,7 +3989,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">⬇</span>Import</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-down" data-lc-sz="17"></span></span>Import</div>
     <div class="q-panel-body">
       <button class="pull-btn" onclick="cpclImport()">⬇ Import from ClearPoint Contract</button>
       <div id="cpclImportDisplay" style="margin-top:10px;font-size:12px;color:var(--text-light);">Generate or load a ClearPoint contract first, then click Import.</div>
@@ -3957,12 +3997,12 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">📋</span>Commission Worksheet</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-spreadsheet" data-lc-sz="17"></span></span>Commission Worksheet</div>
     <div class="q-panel-body" id="cpclWorksheetBody"></div>
   </div>
 
   <div class="q-panel">
-    <div class="q-panel-header"><span class="ph-ic">✅</span>Document Checklist</div>
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="list-checks" data-lc-sz="17"></span></span>Document Checklist</div>
     <div class="q-panel-body" id="cpclChecklistBody"></div>
   </div>
 
@@ -3976,6 +4016,10 @@ tr:hover td{background:#eef3f8;}
     <button onclick="cpclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
 </div>
+
+</main>
+</div><!-- /content-col -->
+</div><!-- /layout -->
 
 <!-- ═══ REFERENCE SECTIONS (simplified tables) ═══ -->
 
@@ -5652,6 +5696,36 @@ var SEARCH_INDEX = [
   {terms:['unique','unusual','special','natural burial','green burial','willed body','aquamation'], id:'fh-unique', label:'Unique Offerings'},
 ];
 
+// ── Price quick-look index ─────────────────────────────────────────────────────────────────────
+// Every priced item in the builders ("Name — $Price" options + checkbox rows) is indexed so the
+// top-bar search can answer "what does X cost?" inline — no quote needed. Rebuilt on load.
+var PRICE_INDEX = [];
+function buildPriceIndex() {
+  PRICE_INDEX = [];
+  var seen = {};
+  var priceRe = /^(.*?)\s*[—–-]\s*\$\s*([\d,]+(?:\.\d{1,2})?)(?:\s+(?:each|ea\.?|per\s+[\w-]+|\/\s*mo|\+))?\s*$/i;
+  function add(name, priceStr, sectionId) {
+    name = (name || '').replace(/\s+/g, ' ').trim();
+    var num = parseFloat(String(priceStr).replace(/,/g, ''));
+    if (!name || !(num > 0)) return;
+    var key = name.toLowerCase() + '|' + num;
+    if (seen[key]) return; seen[key] = 1;
+    PRICE_INDEX.push({ name: name, price: num, label: '$' + num.toLocaleString('en-US'), section: sectionId, nl: name.toLowerCase() });
+  }
+  function scan(sel) {
+    document.querySelectorAll(sel).forEach(function(elm) {
+      var m = (elm.textContent || '').trim().match(priceRe);
+      if (!m) return;
+      var sec = elm.closest ? elm.closest('.section') : null;
+      add(m[1], m[2], sec ? sec.id.replace('section-', '') : '');
+    });
+  }
+  scan('#section-cem-quote option, #section-fh-quote option');
+  scan('#section-cem-quote .q-check-row label, #section-fh-quote .q-check-row label');
+  scan('#section-cem-quote .q-group-label, #section-fh-quote .q-group-label');
+}
+window.buildPriceIndex = buildPriceIndex;
+
 function doSearch(q) {
   var dropdown = el('searchDropdown');
   if (!q || q.length < 2) {
@@ -5659,8 +5733,22 @@ function doSearch(q) {
     return;
   }
   var ql = q.toLowerCase().trim();
+  if (!PRICE_INDEX.length) buildPriceIndex();
 
-  // Fuzzy: score each index entry
+  // 1) Individual item price matches (the "look up any single price" feature)
+  var items = [];
+  PRICE_INDEX.forEach(function(it) {
+    var s = 0;
+    if (it.nl === ql) s = 100;
+    else if (it.nl.indexOf(ql) === 0) s = 92;
+    else if (it.nl.indexOf(ql) > -1) s = 80;
+    else if (it.nl.split(/[\s\-—–/(),.]+/).some(function(w){ return w && w.indexOf(ql) === 0; })) s = 68;
+    if (s > 0) items.push({ it: it, s: s });
+  });
+  items.sort(function(a, b){ return b.s - a.s || a.it.name.length - b.it.name.length; });
+  var topItems = items.slice(0, 8);
+
+  // 2) Category jump-to matches (existing behavior)
   var scored = [];
   SEARCH_INDEX.forEach(function(entry) {
     var best = 0;
@@ -5670,40 +5758,46 @@ function doSearch(q) {
       else if (term.indexOf(ql) > -1) best = Math.max(best, 75);
       else if (ql.indexOf(term) > -1) best = Math.max(best, 70);
       else {
-        // char-level fuzzy: how many chars of ql appear in term in order
-        var ti = 0; var matches = 0;
-        for (var ci = 0; ci < ql.length; ci++) {
-          var found = term.indexOf(ql[ci], ti);
-          if (found > -1) { matches++; ti = found + 1; }
-        }
-        var score = Math.round((matches / ql.length) * 60);
-        best = Math.max(best, score);
+        var ti = 0, matches = 0;
+        for (var ci = 0; ci < ql.length; ci++) { var f = term.indexOf(ql[ci], ti); if (f > -1) { matches++; ti = f + 1; } }
+        best = Math.max(best, Math.round((matches / ql.length) * 60));
       }
     });
-    if (best >= 50) scored.push({entry: entry, score: best});
+    if (best >= 50) scored.push({ entry: entry, score: best });
   });
+  scored.sort(function(a, b){ return b.score - a.score; });
+  var topCats = scored.slice(0, 5);
 
-  scored.sort(function(a,b){ return b.score - a.score; });
-  var top = scored.slice(0, 6);
-
-  if (!top.length) {
+  if (!topItems.length && !topCats.length) {
     if (dropdown) dropdown.style.display = 'none';
     return;
   }
 
-  // Build / show dropdown
   if (!dropdown) {
     dropdown = document.createElement('div');
     dropdown.id = 'searchDropdown';
-    dropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;min-width:280px;background:#1B2A4A;border:1px solid rgba(255,255,255,.2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:999;overflow:hidden;margin-top:4px;';
+    dropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;min-width:300px;max-height:60vh;overflow-y:auto;background:#2d4a6b;border:1px solid rgba(255,255,255,.2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:999;margin-top:4px;';
     el('searchInput').parentElement.appendChild(dropdown);
   }
 
-  dropdown.innerHTML = top.map(function(r) {
-    return '<div class="search-result-item" onclick="doSearchNav(\'' + r.entry.id + '\')" style="padding:9px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.08);">'
-      + '<span style="color:var(--gold);">&#9656;</span> ' + r.entry.label
-      + '</div>';
-  }).join('') + '<div style="padding:5px 14px;font-size:10px;color:rgba(255,255,255,.3);">Press Enter or click to navigate</div>';
+  var html = '';
+  if (topItems.length) {
+    html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;">Prices</div>';
+    html += topItems.map(function(r) {
+      return '<div class="search-result-item" onclick="doSearchNav(\'' + r.it.section + '\')" style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:8px 14px;cursor:pointer;font-size:12.5px;color:rgba(255,255,255,.9);border-bottom:1px solid rgba(255,255,255,.07);">'
+        + '<span>' + r.it.name + '</span>'
+        + '<span style="font-weight:700;color:#f0b184;white-space:nowrap;font-variant-numeric:tabular-nums;">' + r.it.label + '</span></div>';
+    }).join('');
+  }
+  if (topCats.length) {
+    html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;' + (topItems.length ? 'border-top:1px solid rgba(255,255,255,.12);margin-top:2px;' : '') + '">Jump to</div>';
+    html += topCats.map(function(r) {
+      return '<div class="search-result-item" onclick="doSearchNav(\'' + r.entry.id + '\')" style="padding:8px 14px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.07);">'
+        + '<span style="color:#f0b184;">&#9656;</span> ' + r.entry.label + '</div>';
+    }).join('');
+  }
+  html += '<div style="padding:5px 14px;font-size:10px;color:rgba(255,255,255,.3);">Type an item to see its price · click to jump there</div>';
+  dropdown.innerHTML = html;
   dropdown.style.display = 'block';
 }
 
@@ -7599,7 +7693,7 @@ function _fqPickTier(model){
 function _fqHeaderHTML(rightTitle, rightSub){
   return '<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:40px 56px 24px;">'
     +'<img src="data:image/svg+xml;base64,'+btoa(_fqNavyLogoSVG())+'" alt="Bonney Watson" style="height:30px;width:auto;display:block;">'
-    +'<div style="text-align:right;"><div style="font-family:\'Playfair Display\',serif;font-size:19px;color:'+_FQ.navy+';letter-spacing:.01em;">'+_fqEsc(rightTitle)+'</div>'
+    +'<div style="text-align:right;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navy+';letter-spacing:.01em;">'+_fqEsc(rightTitle)+'</div>'
     +'<div style="font-size:13px;color:'+_FQ.m1+';margin-top:3px;">'+rightSub+'</div></div></div>'
     +'<div style="height:2px;background:'+_FQ.orange+';margin:0 56px;"></div>';
 }
@@ -7617,7 +7711,7 @@ function _fqRowHTML(r, t){
 function _fqSurfaceHTML(sf, t){
   var h='<div class="surface" style="padding-top:'+t.sTop+'px;">'
     +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid '+_FQ.sectRule+';padding-bottom:9px;">'
-    +'<h2 style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:'+t.sName+'px;color:'+_FQ.navyDark+';margin:0;">'+_fqEsc(sf.name)+'</h2>'
+    +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.sName+'px;color:'+_FQ.navyDark+';margin:0;">'+_fqEsc(sf.name)+'</h2>'
     +'<span style="font-size:'+t.tag+'px;color:'+_FQ.m2+';">'+_fqEsc(sf.tagline)+'</span></div>';
   sf.groups.forEach(function(g){
     h+='<div style="padding-top:'+t.gTop+'px;"><div style="font-size:'+t.kicker+'px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;margin-bottom:3px;">'+_fqEsc(g.kicker)+'</div>';
@@ -7641,13 +7735,13 @@ function _fqRenderHTML(model){
   // PAGE 1
   var p1='<div class="sheet" style="'+sheet+'">'+_fqHeaderHTML(model.typeLabel, model.scopeLine);
   p1+='<div style="padding:28px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Prepared with care for</div>'
-    +'<h1 style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:22px;color:'+_FQ.navyDark+';margin:6px 0 0;">'+_fqEsc(model.clientName||'Your Family')+'</h1>'
+    +'<h1 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:22px;color:'+_FQ.navyDark+';margin:6px 0 0;">'+_fqEsc(model.clientName||'Your Family')+'</h1>'
     +'<div style="font-size:13.5px;color:'+_FQ.m1+';margin-top:6px;">'+_fqEsc(model.venueLine)+'</div></div>';
   p1+='<div style="margin:24px 56px 0;background:'+_FQ.offwhite+';border:1px solid '+_FQ.cardBorder+';padding:24px 30px;display:flex;align-items:center;justify-content:space-between;gap:36px;">'
-    +'<div style="max-width:440px;"><div style="font-family:\'Playfair Display\',serif;font-size:19px;color:'+_FQ.navyDark+';">Your arrangements</div>'
+    +'<div style="max-width:440px;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navyDark+';">Your arrangements</div>'
     +'<p style="font-size:'+t.sumDesc+'px;line-height:1.6;color:'+_FQ.body+';margin:8px 0 0;">'+_fqEsc(model.arrangements)+'</p></div>'
     +'<div style="text-align:right;white-space:nowrap;"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:'+_FQ.m1+';">Estimated total</div>'
-    +'<div style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:'+t.sumFig+'px;color:'+_FQ.navy+';line-height:1.05;margin-top:2px;">'+_fqMoney(model.grandTotal)+'</div>'
+    +'<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.sumFig+'px;color:'+_FQ.navy+';line-height:1.05;margin-top:2px;">'+_fqMoney(model.grandTotal)+'</div>'
     +(model.taxAmount>0?'<div style="font-size:12px;color:'+_FQ.m2+';margin-top:4px;">includes sales tax on merchandise</div>':'')+'</div></div>';
   p1+='<div style="padding:6px 56px 0;">';
   model.surfaces.forEach(function(sf){ p1+=_fqSurfaceHTML(sf,t); });
@@ -7659,8 +7753,8 @@ function _fqRenderHTML(model){
       +'<span style="font-variant-numeric:tabular-nums;min-width:104px;text-align:right;color:'+_FQ.body+';">'+_fqMoney(model.taxAmount)+'</span></div>';
   }
   p1+='<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:60px;padding:12px 0 0;margin-top:6px;border-top:1px solid '+_FQ.sectRule+';">'
-    +'<span style="font-family:\'Playfair Display\',serif;font-size:'+t.totLbl+'px;color:'+_FQ.navyDark+';">Total</span>'
-    +'<span style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:'+t.totFig+'px;color:'+_FQ.navy+';font-variant-numeric:tabular-nums;min-width:104px;text-align:right;">'+_fqMoney(model.grandTotal)+'</span></div>'
+    +'<span style="font-family:\'Public Sans\',serif;font-size:'+t.totLbl+'px;color:'+_FQ.navyDark+';">Total</span>'
+    +'<span style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.totFig+'px;color:'+_FQ.navy+';font-variant-numeric:tabular-nums;min-width:104px;text-align:right;">'+_fqMoney(model.grandTotal)+'</span></div>'
     +(model.taxAmount>0?'<div style="text-align:right;font-size:12px;color:'+_FQ.m3+';margin-top:8px;">Tax applies to merchandise. Services &amp; transportation are exempt.</div>':'')+'</div>';
   // Note
   p1+='<div style="margin:24px 56px 0;"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">A note</div>'
@@ -7673,13 +7767,13 @@ function _fqRenderHTML(model){
   if(model.payTiers.length){
     p2='<div class="sheet page2" style="'+sheet+'margin-top:28px;">'+_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; Estimated total '+_fqMoney(model.grandTotal));
     p2+='<div style="padding:30px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Ways to plan for this</div>'
-      +'<h2 style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">There’s no obligation, and no wrong choice.</h2>'
+      +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">There’s no obligation, and no wrong choice.</h2>'
       +'<p style="font-size:15px;line-height:1.65;color:'+_FQ.body+';margin:12px 0 0;max-width:640px;">Many families choose to spread the cost over time. The estimates below show a few common down-payment amounts and terms at 0% interest with automatic payments. Your Family Service Advisor can tailor any of these to what feels right for you.</p></div>';
     p2+='<div style="padding:22px 56px 0;display:flex;flex-direction:column;gap:16px;">';
     model.payTiers.forEach(function(o){
       p2+='<div class="payopt" style="background:'+_FQ.cream+';border:1px solid '+_FQ.footRule+';border-radius:2px;padding:22px 26px;">'
         +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;border-bottom:1px solid '+_FQ.payHdrDiv+';padding-bottom:12px;">'
-        +'<div style="font-family:\'Playfair Display\',serif;font-size:20px;color:'+_FQ.navyDark+';">'+_fqEsc(o.label)+'</div>'
+        +'<div style="font-family:\'Public Sans\',serif;font-size:20px;color:'+_FQ.navyDark+';">'+_fqEsc(o.label)+'</div>'
         +'<div style="font-size:13px;color:'+_FQ.m1+';">Down payment <strong style="color:'+_FQ.bodyDark+';font-variant-numeric:tabular-nums;">'+o.down+'</strong> &nbsp;·&nbsp; Financed <strong style="color:'+_FQ.bodyDark+';font-variant-numeric:tabular-nums;">'+o.financed+'</strong></div></div>'
         +'<div style="display:flex;gap:0;margin-top:6px;">';
       o.terms.forEach(function(tm){
@@ -7693,7 +7787,7 @@ function _fqRenderHTML(model){
     p2+=_fqFooterHTML(2);
     p2+='</div>';
   }
-  var css='*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Source Sans 3\',system-ui,sans-serif;color:'+_FQ.bodyDark+';padding:32px 0 64px;}'
+  var css='*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Public Sans\',system-ui,sans-serif;color:'+_FQ.bodyDark+';padding:32px 0 64px;}'
     +'@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;width:100% !important;}.page2{break-before:page;margin-top:0 !important;}.payopt,.totals{break-inside:avoid;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+_fqEsc(model.typeLabel)+' – Bonney Watson</title>'
     +'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
@@ -15523,42 +15617,7 @@ function clCopyWorksheetValues(containerId) {
 
 </script>
 <script>
-var LUCIDE={"search":"<path d=\"m21 21-4.34-4.34\"></path><circle cx=\"11\" cy=\"11\" r=\"8\"></circle>",
-"git-compare":"<circle cx=\"18\" cy=\"18\" r=\"3\"></circle><circle cx=\"6\" cy=\"6\" r=\"3\"></circle><path d=\"M13 6h3a2 2 0 0 1 2 2v7\"></path><path d=\"M11 18H8a2 2 0 0 1-2-2V9\"></path>",
-"chevron-right":"<path d=\"m9 18 6-6-6-6\"></path>",
-"chevron-up":"<path d=\"m18 15-6-6-6 6\"></path>",
-"chevron-down":"<path d=\"m6 9 6 6 6-6\"></path>",
-"info":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path>",
-"user-round":"<circle cx=\"12\" cy=\"8\" r=\"5\"></circle><path d=\"M20 21a8 8 0 0 0-16 0\"></path>",
-"trees":"<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"></path><path d=\"M7 16v6\"></path><path d=\"M13 19v3\"></path><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"></path>",
-"box":"<path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path>",
-"award":"<path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\"></path><circle cx=\"12\" cy=\"8\" r=\"6\"></circle>",
-"flower-2":"<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\"></path><circle cx=\"12\" cy=\"8\" r=\"2\"></circle><path d=\"M12 10v12\"></path><path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\"></path><path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\"></path>",
-"badge-percent":"<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"></path><path d=\"m15 9-6 6\"></path><path d=\"M9 9h.01\"></path><path d=\"M15 15h.01\"></path>",
-"credit-card":"<rect width=\"20\" height=\"14\" x=\"2\" y=\"5\" rx=\"2\"></rect><line x1=\"2\" x2=\"22\" y1=\"10\" y2=\"10\"></line>",
-"check":"<path d=\"M20 6 9 17l-5-5\"></path>",
-"receipt-text":"<path d=\"M13 16H8\"></path><path d=\"M14 8H8\"></path><path d=\"M16 12H8\"></path><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\"></path>",
-"file-down":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M12 18v-6\"></path><path d=\"m9 15 3 3 3-3\"></path>",
-"printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\"></path><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\"></rect>",
-"copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"></rect><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"></path>",
-"rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"></path><path d=\"M3 3v5h5\"></path>",
-"save":"<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\"></path><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\"></path><path d=\"M7 3v4a1 1 0 0 0 1 1h7\"></path>",
-"home":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path>",
-"calculator":"<rect width=\"16\" height=\"20\" x=\"4\" y=\"2\" rx=\"2\"></rect><line x1=\"8\" x2=\"16\" y1=\"6\" y2=\"6\"></line><line x1=\"16\" x2=\"16\" y1=\"14\" y2=\"18\"></line><path d=\"M16 10h.01\"></path><path d=\"M12 10h.01\"></path><path d=\"M8 10h.01\"></path><path d=\"M12 14h.01\"></path><path d=\"M8 14h.01\"></path><path d=\"M12 18h.01\"></path><path d=\"M8 18h.01\"></path>",
-"folder":"<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\"></path>",
-"file-text":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M10 9H8\"></path><path d=\"M16 13H8\"></path><path d=\"M16 17H8\"></path>",
-"file-check":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"m9 15 2 2 4-4\"></path>",
-"link":"<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"></path><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"></path>",
-"list-checks":"<path d=\"M13 5h8\"></path><path d=\"M13 12h8\"></path><path d=\"M13 19h8\"></path><path d=\"m3 17 2 2 4-4\"></path><path d=\"m3 7 2 2 4-4\"></path>",
-"book-open":"<path d=\"M12 7v14\"></path><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"></path>",
-"gem":"<path d=\"M10.5 3 8 9l4 13 4-13-2.5-6\"></path><path d=\"M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z\"></path><path d=\"M2 9h20\"></path>",
-"landmark":"<path d=\"M10 18v-7\"></path><path d=\"M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z\"></path><path d=\"M14 18v-7\"></path><path d=\"M18 18v-7\"></path><path d=\"M3 22h18\"></path><path d=\"M6 18v-7\"></path>",
-"pen-line":"<path d=\"M13 21h8\"></path><path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\"></path>",
-"users":"<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"></path><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"></path><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle>",
-"file-spreadsheet":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M8 13h2\"></path><path d=\"M14 13h2\"></path><path d=\"M8 17h2\"></path><path d=\"M14 17h2\"></path>",
-"clipboard-list":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"></rect><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><path d=\"M12 11h4\"></path><path d=\"M12 16h4\"></path><path d=\"M8 11h.01\"></path><path d=\"M8 16h.01\"></path>",
-"scale":"<path d=\"M12 3v18\"></path><path d=\"m19 8 3 8a5 5 0 0 1-6 0zV7\"></path><path d=\"M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1\"></path><path d=\"m5 8 3 8a5 5 0 0 1-6 0zV7\"></path><path d=\"M7 21h10\"></path>",
-"flower":"<circle cx=\"12\" cy=\"12\" r=\"3\"></circle><path d=\"M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5\"></path><path d=\"M12 7.5V9\"></path><path d=\"M7.5 12H9\"></path><path d=\"M16.5 12H15\"></path><path d=\"M12 16.5V15\"></path><path d=\"m8 8 1.88 1.88\"></path><path d=\"M14.12 9.88 16 8\"></path><path d=\"m8 16 1.88-1.88\"></path><path d=\"M14.12 14.12 16 16\"></path>"};
+var LUCIDE={"search":"<path d=\"m21 21-4.34-4.34\"></path><circle cx=\"11\" cy=\"11\" r=\"8\"></circle>","git-compare":"<circle cx=\"18\" cy=\"18\" r=\"3\"></circle><circle cx=\"6\" cy=\"6\" r=\"3\"></circle><path d=\"M13 6h3a2 2 0 0 1 2 2v7\"></path><path d=\"M11 18H8a2 2 0 0 1-2-2V9\"></path>","chevron-right":"<path d=\"m9 18 6-6-6-6\"></path>","chevron-up":"<path d=\"m18 15-6-6-6 6\"></path>","chevron-down":"<path d=\"m6 9 6 6 6-6\"></path>","info":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path>","user-round":"<circle cx=\"12\" cy=\"8\" r=\"5\"></circle><path d=\"M20 21a8 8 0 0 0-16 0\"></path>","users":"<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"></path><path d=\"M16 3.128a4 4 0 0 1 0 7.744\"></path><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle>","trees":"<path d=\"M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z\"></path><path d=\"M7 16v6\"></path><path d=\"M13 19v3\"></path><path d=\"M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5\"></path>","box":"<path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path>","award":"<path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\"></path><circle cx=\"12\" cy=\"8\" r=\"6\"></circle>","flower-2":"<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\"></path><circle cx=\"12\" cy=\"8\" r=\"2\"></circle><path d=\"M12 10v12\"></path><path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\"></path><path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\"></path>","flower":"<circle cx=\"12\" cy=\"12\" r=\"3\"></circle><path d=\"M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5\"></path><path d=\"M12 7.5V9\"></path><path d=\"M7.5 12H9\"></path><path d=\"M16.5 12H15\"></path><path d=\"M12 16.5V15\"></path><path d=\"m8 8 1.88 1.88\"></path><path d=\"M14.12 9.88 16 8\"></path><path d=\"m8 16 1.88-1.88\"></path><path d=\"M14.12 14.12 16 16\"></path>","badge-percent":"<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"></path><path d=\"m15 9-6 6\"></path><path d=\"M9 9h.01\"></path><path d=\"M15 15h.01\"></path>","credit-card":"<rect width=\"20\" height=\"14\" x=\"2\" y=\"5\" rx=\"2\"></rect><line x1=\"2\" x2=\"22\" y1=\"10\" y2=\"10\"></line>","check":"<path d=\"M20 6 9 17l-5-5\"></path>","receipt-text":"<path d=\"M13 16H8\"></path><path d=\"M14 8H8\"></path><path d=\"M16 12H8\"></path><path d=\"M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z\"></path>","file-down":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M12 18v-6\"></path><path d=\"m9 15 3 3 3-3\"></path>","printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"></path><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\"></path><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\"></rect>","copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"></rect><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"></path>","rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"></path><path d=\"M3 3v5h5\"></path>","save":"<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\"></path><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\"></path><path d=\"M7 3v4a1 1 0 0 0 1 1h7\"></path>","home":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path>","calculator":"<rect width=\"16\" height=\"20\" x=\"4\" y=\"2\" rx=\"2\"></rect><line x1=\"8\" x2=\"16\" y1=\"6\" y2=\"6\"></line><line x1=\"16\" x2=\"16\" y1=\"14\" y2=\"18\"></line><path d=\"M16 10h.01\"></path><path d=\"M12 10h.01\"></path><path d=\"M8 10h.01\"></path><path d=\"M12 14h.01\"></path><path d=\"M8 14h.01\"></path><path d=\"M12 18h.01\"></path><path d=\"M8 18h.01\"></path>","folder":"<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\"></path>","file-text":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M10 9H8\"></path><path d=\"M16 13H8\"></path><path d=\"M16 17H8\"></path>","file-check":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"m9 15 2 2 4-4\"></path>","link":"<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"></path><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"></path>","list-checks":"<path d=\"M13 5h8\"></path><path d=\"M13 12h8\"></path><path d=\"M13 19h8\"></path><path d=\"m3 17 2 2 4-4\"></path><path d=\"m3 7 2 2 4-4\"></path>","book-open":"<path d=\"M12 7v14\"></path><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"></path>","gem":"<path d=\"M10.5 3 8 9l4 13 4-13-2.5-6\"></path><path d=\"M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z\"></path><path d=\"M2 9h20\"></path>","landmark":"<path d=\"M10 18v-7\"></path><path d=\"M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z\"></path><path d=\"M14 18v-7\"></path><path d=\"M18 18v-7\"></path><path d=\"M3 22h18\"></path><path d=\"M6 18v-7\"></path>","pen-line":"<path d=\"M13 21h8\"></path><path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\"></path>","file-spreadsheet":"<path d=\"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z\"></path><path d=\"M14 2v5a1 1 0 0 0 1 1h5\"></path><path d=\"M8 13h2\"></path><path d=\"M14 13h2\"></path><path d=\"M8 17h2\"></path><path d=\"M14 17h2\"></path>","clipboard-list":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"></rect><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><path d=\"M12 11h4\"></path><path d=\"M12 16h4\"></path><path d=\"M8 11h.01\"></path><path d=\"M8 16h.01\"></path>","scale":"<path d=\"M12 3v18\"></path><path d=\"m19 8 3 8a5 5 0 0 1-6 0zV7\"></path><path d=\"M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1\"></path><path d=\"m5 8 3 8a5 5 0 0 1-6 0zV7\"></path><path d=\"M7 21h10\"></path>","truck":"<path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\"></path><path d=\"M15 18H9\"></path><path d=\"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14\"></path><circle cx=\"17\" cy=\"18\" r=\"2\"></circle><circle cx=\"7\" cy=\"18\" r=\"2\"></circle>","flame":"<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\"></path>","image":"<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" ry=\"2\"></rect><circle cx=\"9\" cy=\"9\" r=\"2\"></circle><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"></path>","package":"<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\"></path><path d=\"M12 22V12\"></path><polyline points=\"3.29 7 12 12 20.71 7\"></polyline><path d=\"m7.5 4.27 9 5.15\"></path>","ruler":"<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z\"></path><path d=\"m14.5 12.5 2-2\"></path><path d=\"m11.5 9.5 2-2\"></path><path d=\"m8.5 6.5 2-2\"></path><path d=\"m17.5 15.5 2-2\"></path>","scroll":"<path d=\"M19 17V5a2 2 0 0 0-2-2H4\"></path><path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\"></path>","calendar-days":"<path d=\"M8 2v4\"></path><path d=\"M16 2v4\"></path><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\"></rect><path d=\"M3 10h18\"></path><path d=\"M8 14h.01\"></path><path d=\"M12 14h.01\"></path><path d=\"M16 14h.01\"></path><path d=\"M8 18h.01\"></path><path d=\"M12 18h.01\"></path><path d=\"M16 18h.01\"></path>","hammer":"<path d=\"m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9\"></path><path d=\"m18 15 4-4\"></path><path d=\"m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5\"></path>","wrench":"<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z\"></path>","sparkles":"<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\"></path><path d=\"M20 2v4\"></path><path d=\"M22 4h-4\"></path><circle cx=\"4\" cy=\"20\" r=\"2\"></circle>","map-pin":"<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"></path><circle cx=\"12\" cy=\"10\" r=\"3\"></circle>","phone":"<path d=\"M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384\"></path>","dollar-sign":"<line x1=\"12\" x2=\"12\" y1=\"2\" y2=\"22\"></line><path d=\"M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"></path>","settings":"<path d=\"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle>","hash":"<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\"></line><line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\"></line><line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\"></line><line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\"></line>","feather":"<path d=\"M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z\"></path><path d=\"M16 8 2 22\"></path><path d=\"M17.5 15H9\"></path>","shield":"<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"></path>","badge-check":"<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\"></path><path d=\"m9 12 2 2 4-4\"></path>","plus":"<path d=\"M5 12h14\"></path><path d=\"M12 5v14\"></path>","square-pen":"<path d=\"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"></path><path d=\"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z\"></path>","contact":"<path d=\"M16 2v2\"></path><path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\"></path><path d=\"M8 2v2\"></path><circle cx=\"12\" cy=\"11\" r=\"3\"></circle><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"></rect>","clipboard-check":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"></rect><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><path d=\"m9 14 2 2 4-4\"></path>","banknote":"<rect width=\"20\" height=\"12\" x=\"2\" y=\"6\" rx=\"2\"></rect><circle cx=\"12\" cy=\"12\" r=\"2\"></circle><path d=\"M6 12h.01M18 12h.01\"></path>","tag":"<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\"></path><circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\"></circle>","shovel":"<path d=\"M21.56 4.56a1.5 1.5 0 0 1 0 2.122l-.47.47a3 3 0 0 1-4.212-.03 3 3 0 0 1 0-4.243l.44-.44a1.5 1.5 0 0 1 2.121 0z\"></path><path d=\"M3 22a1 1 0 0 1-1-1v-3.586a1 1 0 0 1 .293-.707l3.355-3.355a1.205 1.205 0 0 1 1.704 0l3.296 3.296a1.205 1.205 0 0 1 0 1.704l-3.355 3.355a1 1 0 0 1-.707.293z\"></path><path d=\"m9 15 7.879-7.878\"></path>"};
 function lcSvg(name,sz,color){var inner=LUCIDE[name];if(!inner)return "";sz=sz||17;return "<svg class=\"lc\" viewBox=\"0 0 24 24\" width=\""+sz+"\" height=\""+sz+"\" fill=\"none\" stroke=\""+(color||"currentColor")+"\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"+inner+"</svg>";}
 function paintLucide(root){(root||document).querySelectorAll("[data-lc]").forEach(function(e){if(e.getAttribute("data-lc-done"))return;var n=e.getAttribute("data-lc");var sz=parseInt(e.getAttribute("data-lc-sz"))||17;e.innerHTML=lcSvg(n,sz);e.setAttribute("data-lc-done","1");});}
 window.paintLucide=paintLucide;
@@ -15581,7 +15640,13 @@ document.addEventListener("click",function(e){
   var h=e.target.closest(".q-panel-header"); if(!h) return;
   var panel=h.closest(".q-panel"); if(panel) panel.classList.toggle("collapsed");
 });
-if(document.readyState!="loading"){paintLucide();initCollapsePanels();}else document.addEventListener("DOMContentLoaded",function(){paintLucide();initCollapsePanels();});
+function updateCrumb(){var a=document.querySelector(".nav-item.active");var c=document.getElementById("crumbCurrent");if(a&&c){var t=(a.textContent||"").trim();if(t)c.textContent=t;}}
+function _bwInit(){
+  paintLucide();initCollapsePanels();try{buildPriceIndex();}catch(e){}
+  updateCrumb();
+  try{var mo=new MutationObserver(updateCrumb);document.querySelectorAll(".nav-item").forEach(function(n){mo.observe(n,{attributes:true,attributeFilter:["class"]});});}catch(e){}
+}
+if(document.readyState!="loading")_bwInit();else document.addEventListener("DOMContentLoaded",_bwInit);
 </script>
 </body>
 </html>
