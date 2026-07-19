@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const PORT = 3737;
+const PORT = parseInt(process.env.PORT, 10) || 3737;
 
 const MIME = {
   '.html': 'text/html',
@@ -13,6 +13,7 @@ const MIME = {
   '.pdf':  'application/pdf',
   '.png':  'image/png',
   '.jpg':  'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.svg':  'image/svg+xml',
 };
 
