@@ -351,7 +351,7 @@ tr:hover td{background:#eef3f8;}
 <div class="content-col">
 <!-- TOP BAR -->
 <header class="topbar">
-  <div class="tb-crumb"><span>Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
+  <div class="tb-crumb"><span id="crumbGroup">Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
   <div class="tb-right">
     <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();plFromSearch();}" autocomplete="off"></div>
     <button class="tb-action2" onclick="show('fh-quote', document.querySelector('.nav-item[onclick*=fh-quote]'))">New Funeral Home Quote</button>
@@ -15981,7 +15981,20 @@ document.addEventListener("click",function(e){
   var h=e.target.closest(".q-panel-header"); if(!h) return;
   var panel=h.closest(".q-panel"); if(panel) panel.classList.toggle("collapsed");
 });
-function updateCrumb(){var a=document.querySelector(".nav-item.active");var c=document.getElementById("crumbCurrent");if(a&&c){var t=(a.textContent||"").trim();if(t)c.textContent=t;}}
+// Both builders are named "Quote Builder" — the sidebar group heading above the active item is the
+// only thing that distinguishes Cemetery from Funeral Home, so mirror it into the breadcrumb
+// instead of a hardcoded "Overview".
+function updateCrumb(){
+  var a=document.querySelector(".nav-item.active"); if(!a) return;
+  var c=document.getElementById("crumbCurrent");
+  if(c){ var t=(a.textContent||"").trim(); if(t) c.textContent=t; }
+  var g=document.getElementById("crumbGroup");
+  if(g){
+    var n=a.previousElementSibling, lbl="";
+    while(n){ if(n.classList && n.classList.contains("nav-label")){ lbl=(n.textContent||"").trim(); break; } n=n.previousElementSibling; }
+    if(lbl) g.textContent=lbl;
+  }
+}
 function _bwInit(){
   paintLucide();initCollapsePanels();try{buildPriceIndex();}catch(e){}
   updateCrumb();
