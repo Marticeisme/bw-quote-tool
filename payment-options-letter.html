@@ -32,6 +32,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .howto p{margin:0;color:#7a5a20;font-size:13px;max-width:none;}
 .howto strong{color:#5c4116;}
 
+.toggle-bar{margin-top:18px;display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--gray-mid);}
+.toggle-btn{flex:1;padding:10px 16px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;border:none;background:var(--gray-light);color:var(--text-light);text-align:center;transition:all .15s;}
+.toggle-btn.active{background:var(--navy);color:#fff;}
+.toggle-btn:hover:not(.active){background:var(--gray-mid);}
+
 .deadlines-box{margin-top:12px;background:var(--white);border:1px solid var(--gray-mid);border-radius:10px;padding:14px 18px;}
 .deadlines-box h3{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;}
 .deadline-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--rule);font-size:13px;}
@@ -71,10 +76,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .letter-toolbar span{font-size:12px;color:var(--text-light);font-weight:600;}
 #letter{padding:44px 56px;font-size:14px;color:#1a1a1a;line-height:1.65;}
 #letter p{margin-bottom:14px;}
-#letter .opt-title{font-weight:700;color:var(--navy);margin-bottom:4px;}
-#letter .opt-block{margin-bottom:16px;padding:12px 16px;background:var(--gray-light);border-radius:8px;border-left:3px solid var(--navy);}
-#letter .opt-block.primary{border-left-color:var(--orange);background:#fff7ec;}
-#letter .opt-detail{font-size:13px;color:var(--text-light);margin:4px 0;}
+#letter .pay-header{font-weight:700;color:var(--navy);font-size:15px;margin-bottom:4px;margin-top:20px;}
+#letter .pay-section{margin-bottom:18px;}
+#letter .pay-detail{font-size:13px;color:var(--text-light);margin:3px 0;}
 #letter a{color:var(--orange);font-weight:600;}
 .blank{color:#b4753a;font-style:italic;}
 .sig-block{margin-top:24px;padding-top:16px;border-top:1px solid var(--rule);}
@@ -89,7 +93,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .site-footer .footer-legal{font-size:11px;color:var(--muted);margin-top:6px;}
 
 @media print {
-  .site-header,.page-intro,.howto,.deadlines-box,.panel,.site-footer,.letter-toolbar{display:none !important;}
+  .site-header,.page-intro,.howto,.toggle-bar,.deadlines-box,.panel,.site-footer,.letter-toolbar{display:none !important;}
   .layout{display:block;}
   .letter-wrap{border:none;}
   #letter{padding:0;}
@@ -115,7 +119,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
   </div>
 
   <div class="howto">
-    <p><strong>How it works:</strong> Enter the date of service and the tool auto-calculates payment deadlines for each method. Click <strong>Copy for Email</strong>, then paste (Ctrl+V) into a new email. Nothing is saved or uploaded.</p>
+    <p><strong>How it works:</strong> Choose At-Need or Pre-Need, fill in the fields, and the email builds itself. At-Need auto-calculates payment deadlines from the date of service. Click <strong>Copy for Email</strong>, then paste (Ctrl+V) into a new email. Nothing is saved or uploaded.</p>
+  </div>
+
+  <div class="toggle-bar">
+    <button class="toggle-btn active" id="toggleAtNeed" onclick="setMode('atneed')">At-Need</button>
+    <button class="toggle-btn" id="togglePreNeed" onclick="setMode('preneed')">Pre-Need</button>
   </div>
 
   <div class="deadlines-box" id="deadlinesBox" style="display:none;">
@@ -144,9 +153,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <label for="paymentFor">Payment For
           <span class="hint">What the payment covers</span>
         </label>
-        <input type="text" id="paymentFor" placeholder="e.g. the vault, funeral services, cemetery fees">
+        <input type="text" id="paymentFor" placeholder="e.g. Burial services for John Smith">
       </div>
-      <div class="field">
+      <div class="field" id="serviceDateField">
         <label for="serviceDate">Date of Service
           <span class="hint">Deadlines auto-calculate from this date</span>
         </label>
@@ -186,9 +195,56 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 
 <script>
 var PORTAL_LINK = 'https://gateway.gravitylink.net/pay/5nkt6j12gcs833333/atNNQrGp';
+var mode = 'atneed';
 
-var fields = ['recipientName','paymentAmount','paymentFor','serviceDate','contractNum'];
-fields.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+var FEDERAL_HOLIDAYS = (function() {
+  var holidays = {};
+  function addFixed(m, d) { return function(y) { return new Date(y, m - 1, d); }; }
+  function addNth(m, n, dow) {
+    return function(y) {
+      var first = new Date(y, m - 1, 1);
+      var dayOfWeek = first.getDay();
+      var diff = (dow - dayOfWeek + 7) % 7;
+      return new Date(y, m - 1, 1 + diff + (n - 1) * 7);
+    };
+  }
+  function addLast(m, dow) {
+    return function(y) {
+      var last = new Date(y, m, 0);
+      var diff = (last.getDay() - dow + 7) % 7;
+      return new Date(y, m - 1, last.getDate() - diff);
+    };
+  }
+  var rules = [
+    addFixed(1, 1),
+    addNth(1, 3, 1),
+    addNth(2, 3, 1),
+    addLast(5, 1),
+    addFixed(6, 19),
+    addFixed(7, 4),
+    addNth(9, 1, 1),
+    addNth(10, 2, 1),
+    addFixed(11, 11),
+    addNth(11, 4, 4),
+    addFixed(12, 25)
+  ];
+  return {
+    isHoliday: function(d) {
+      var y = d.getFullYear();
+      if (!holidays[y]) {
+        holidays[y] = {};
+        rules.forEach(function(fn) {
+          var h = fn(y);
+          var dow = h.getDay();
+          if (dow === 0) h.setDate(h.getDate() + 1);
+          else if (dow === 6) h.setDate(h.getDate() - 1);
+          holidays[y][h.toDateString()] = true;
+        });
+      }
+      return !!holidays[y][d.toDateString()];
+    }
+  };
+})();
 
 function subtractBusinessDays(date, days) {
   var result = new Date(date);
@@ -196,14 +252,21 @@ function subtractBusinessDays(date, days) {
   while (count < days) {
     result.setDate(result.getDate() - 1);
     var dow = result.getDay();
-    if (dow !== 0 && dow !== 6) count++;
+    if (dow !== 0 && dow !== 6 && !FEDERAL_HOLIDAYS.isHoliday(result)) count++;
   }
   return result;
 }
 
 function formatDate(d) {
   if (!d || isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  var day = d.getDate();
+  var suffix = 'th';
+  if (day % 10 === 1 && day !== 11) suffix = 'st';
+  else if (day % 10 === 2 && day !== 12) suffix = 'nd';
+  else if (day % 10 === 3 && day !== 13) suffix = 'rd';
+  var weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+  var month = d.toLocaleDateString('en-US', { month: 'long' });
+  return weekday + ', ' + month + ' ' + day + suffix;
 }
 
 function formatDateShort(d) {
@@ -233,72 +296,151 @@ function getDeadlines() {
   };
 }
 
+function setMode(m) {
+  mode = m;
+  document.getElementById('toggleAtNeed').className = 'toggle-btn' + (m === 'atneed' ? ' active' : '');
+  document.getElementById('togglePreNeed').className = 'toggle-btn' + (m === 'preneed' ? ' active' : '');
+  document.getElementById('serviceDateField').style.display = m === 'atneed' ? '' : 'none';
+  document.getElementById('paymentFor').placeholder = m === 'atneed' ? 'e.g. Burial services for John Smith' : 'e.g. Cemetery property purchase';
+  render();
+}
+
+var fields = ['recipientName','paymentAmount','paymentFor','serviceDate','contractNum'];
+fields.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+
 function render() {
   var recipientName = val('recipientName', 'Family Contact');
   var paymentAmount = val('paymentAmount', 'Amount');
   var paymentFor = val('paymentFor', 'What For');
   var contractNum = val('contractNum', 'Contract #');
 
+  var amountRaw = document.getElementById('paymentAmount').value.trim();
+  var portalAmount = amountRaw || '[Amount]';
+  var paymentForRaw = document.getElementById('paymentFor').value.trim();
+  var portalInfo = paymentForRaw || '[What For]';
+  var contractRaw = document.getElementById('contractNum').value.trim();
+  var portalContract = contractRaw || '[Contract #]';
+
+  var nameRaw = document.getElementById('recipientName').value.trim();
+  document.getElementById('letterMeta').textContent = nameRaw ? 'To: ' + nameRaw : '';
+
+  if (mode === 'atneed') {
+    renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract);
+  } else {
+    renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract);
+  }
+}
+
+function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract) {
   var deadlines = getDeadlines();
   var box = document.getElementById('deadlinesBox');
 
   var cardDeadline = '<span class="blank">[set date of service]</span>';
+  var checkDeadline = '<span class="blank">[set date of service]</span>';
+  var cashDeadline = '<span class="blank">[set date of service]</span>';
+
   if (deadlines) {
     box.style.display = '';
     document.getElementById('dlCheck').textContent = formatDateShort(deadlines.checks);
     document.getElementById('dlCard').textContent = formatDateShort(deadlines.cards);
     document.getElementById('dlCashier').textContent = formatDateShort(deadlines.cashier);
     document.getElementById('dlCash').textContent = formatDateShort(deadlines.cash);
-    cardDeadline = '<strong>' + formatDate(deadlines.cards) + '</strong>';
+    cardDeadline = '<b>' + formatDate(deadlines.cards) + '</b>';
+    checkDeadline = '<b>' + formatDate(deadlines.checks) + '</b>';
+    cashDeadline = '<b>' + formatDate(deadlines.cash) + '</b>';
   } else {
     box.style.display = 'none';
   }
 
-  var amountRaw = document.getElementById('paymentAmount').value.trim();
-  var portalAmount = amountRaw || '[Amount]';
-  var contractRaw = document.getElementById('contractNum').value.trim();
-  var portalContract = contractRaw || '[Contract #]';
-
   document.getElementById('letter').innerHTML =
     '<p>Hi ' + recipientName + ',</p>' +
 
-    '<p>As stated in the documents, we would need the <strong>' + paymentAmount + '</strong> payment for <strong>' + paymentFor + '</strong> no later than ' + cardDeadline + '. The sooner that is done, the faster I can get all the paperwork finalized.</p>' +
+    '<p>Per our conversation, below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. The total balance of ' + paymentAmount + ' is due in full prior to the date of service. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount is received by the deadlines below.</p>' +
 
-    '<p>I will list the different payment options below.</p>' +
-
-    '<div class="opt-block primary">' +
-      '<div class="opt-title">Option 1 — Pay Online via Credit or Debit Card</div>' +
-      '<p style="margin-bottom:8px;">Use our secure payment portal:</p>' +
-      '<p style="margin-bottom:8px;"><a href="' + PORTAL_LINK + '">' + PORTAL_LINK + '</a></p>' +
-      '<div class="opt-detail">In the additional details section, enter:</div>' +
-      '<div class="opt-detail"><strong>Payment Amount:</strong> ' + portalAmount + '</div>' +
-      '<div class="opt-detail"><strong>Additional Information:</strong> ' + esc(document.getElementById('paymentFor').value.trim() || '') + '</div>' +
-      '<div class="opt-detail"><strong>Contract #:</strong> ' + portalContract + '</div>' +
-      '<div class="opt-detail"><strong>Customer #:</strong> Leave blank</div>' +
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay Online via Credit or Debit Card — due by ' + cardDeadline + '</div>' +
+      '<p><a href="' + PORTAL_LINK + '">' + PORTAL_LINK + '</a></p>' +
+      '<p>In the additional details section, enter the following:</p>' +
+      '<div class="pay-detail"><b>Payment Amount:</b> ' + esc(portalAmount) + '</div>' +
+      '<div class="pay-detail"><b>Additional Information:</b> ' + esc(portalInfo) + '</div>' +
+      '<div class="pay-detail"><b>Contract #:</b> ' + esc(portalContract) + '</div>' +
+      '<div class="pay-detail"><b>Customer #:</b> Leave blank</div>' +
     '</div>' +
 
-    '<div class="opt-block">' +
-      '<div class="opt-title">Option 2 — Pay In Person</div>' +
-      '<p>Come in and pay via card, cash, or check. Just give me a call before you head this direction so that I am available.</p>' +
+    '<p>One quick note, I\'m not automatically notified when payments come through on the portal. Once you\'ve submitted payment, if you could shoot me a quick email or text at 206-445-9794 to let me know, that way I can pull the receipt and get everything finalized on my end.</p>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Check — due by ' + checkDeadline + '</div>' +
+      '<p>Personal checks can be mailed or brought in. Please make checks payable to Bonney Watson.</p>' +
     '</div>' +
 
-    '<div class="opt-block">' +
-      '<div class="opt-title">Option 3 — Pay by Phone</div>' +
-      '<p>Call me and give me your card information over the phone. I\'ll process it and email you a receipt.</p>' +
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Cashier\'s Check or Cash — due by ' + cashDeadline + '</div>' +
+      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure myself or someone on my team is available to help.</p>' +
+    '</div>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Phone</div>' +
+      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
     '</div>' +
 
     '<p>Please let me know if you have any questions or if you\'re having any issues with the link. I look forward to hearing from you and have a great day.</p>' +
 
     '<div class="sig-block">' +
-      '<p class="sig-name">Martice Morrison</p>' +
+      '<p>Thanks,</p>' +
+      '<p class="sig-name" style="margin-top:12px;">Martice Morrison</p>' +
       '<p class="sig-title">Family Service Director</p>' +
       '<p class="sig-title">BONNEY WATSON Funeral Homes | Washington Memorial Park</p>' +
       '<p class="sig-title">P) 206-242-1787 &nbsp; M) 206-445-9794 &nbsp; | &nbsp; mmorrison@bonneywatson.com</p>' +
       '<p class="sig-title">bonneywatson.com</p>' +
     '</div>';
+}
 
-  var nameRaw = document.getElementById('recipientName').value.trim();
-  document.getElementById('letterMeta').textContent = nameRaw ? 'To: ' + nameRaw : '';
+function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract) {
+  document.getElementById('deadlinesBox').style.display = 'none';
+
+  document.getElementById('letter').innerHTML =
+    '<p>Hi ' + recipientName + ',</p>' +
+
+    '<p>It was great speaking with you. Below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount of ' + paymentAmount + ' is received.</p>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay Online via Credit or Debit Card</div>' +
+      '<p><a href="' + PORTAL_LINK + '">' + PORTAL_LINK + '</a></p>' +
+      '<p>In the additional details section, enter the following:</p>' +
+      '<div class="pay-detail"><b>Payment Amount:</b> ' + esc(portalAmount) + '</div>' +
+      '<div class="pay-detail"><b>Additional Information:</b> ' + esc(portalInfo) + '</div>' +
+      '<div class="pay-detail"><b>Contract #:</b> ' + esc(portalContract) + '</div>' +
+      '<div class="pay-detail"><b>Customer #:</b> Leave blank</div>' +
+    '</div>' +
+
+    '<p>One quick note, I\'m not automatically notified when payments come through on the portal. Once you\'ve submitted payment, if you could shoot me a quick email or text at 206-445-9794 to let me know, that way I can pull the receipt and get everything finalized on my end.</p>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Check</div>' +
+      '<p>Personal checks can be mailed or brought in. Please make checks payable to Bonney Watson.</p>' +
+    '</div>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Cashier\'s Check or Cash</div>' +
+      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure myself or someone on my team is available to help.</p>' +
+    '</div>' +
+
+    '<div class="pay-section">' +
+      '<div class="pay-header">Pay by Phone</div>' +
+      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
+    '</div>' +
+
+    '<p>If you have any questions at all please don\'t hesitate to reach out. There\'s no rush, take your time and let me know if there\'s anything else I can help with.</p>' +
+
+    '<div class="sig-block">' +
+      '<p>Thanks,</p>' +
+      '<p class="sig-name" style="margin-top:12px;">Martice Morrison</p>' +
+      '<p class="sig-title">Family Service Director</p>' +
+      '<p class="sig-title">BONNEY WATSON Funeral Homes | Washington Memorial Park</p>' +
+      '<p class="sig-title">P) 206-242-1787 &nbsp; M) 206-445-9794 &nbsp; | &nbsp; mmorrison@bonneywatson.com</p>' +
+      '<p class="sig-title">bonneywatson.com</p>' +
+    '</div>';
 }
 
 function showToast(msg, isError) {
@@ -311,7 +453,7 @@ function showToast(msg, isError) {
 
 function copyForEmail() {
   var letterEl = document.getElementById('letter');
-  var html = '<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#1a1a1a;">' + letterEl.innerHTML.replace(/class="[^"]*"/g, '').replace(/style="[^"]*"/g, '') + '</div>';
+  var html = letterEl.innerHTML;
   var text = letterEl.innerText;
   try {
     if (navigator.clipboard && window.ClipboardItem) {
