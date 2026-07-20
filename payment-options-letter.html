@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Options Letter · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#466e86; --navy-dark:#33505f; --orange:#e84610; --orange-dark:#c23a0d; --white:#ffffff;
+  --offwhite:#f4f6f8; --cream:#f8f6f2; --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
+  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --muted:#9aaab8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
+
+.site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header-inner{max-width:1300px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;}
+.header-logo{height:36px;width:auto;flex-shrink:0;}
+.header-est{font-family:'Cormorant Garamond',serif;font-size:14px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-spacer{flex:1;}
+.header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;transition:background .15s;}
+.header-back:hover{background:rgba(255,255,255,.12);}
+
+.page-wrap{max-width:1300px;margin:0 auto;padding:36px 24px 60px;}
+.page-intro h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.page-intro p{color:var(--text-light);font-size:14.5px;max-width:800px;}
+
+.howto{margin-top:18px;background:#fff7ec;border:1px solid #f0d9b5;border-radius:10px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;}
+.howto p{margin:0;color:#7a5a20;font-size:13px;max-width:none;}
+.howto strong{color:#5c4116;}
+
+.deadlines-box{margin-top:12px;background:var(--white);border:1px solid var(--gray-mid);border-radius:10px;padding:14px 18px;}
+.deadlines-box h3{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.deadline-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--rule);font-size:13px;}
+.deadline-row:last-child{border-bottom:none;}
+.deadline-type{color:var(--text);font-weight:600;}
+.deadline-date{color:var(--orange);font-weight:700;}
+
+.layout{margin-top:28px;display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:flex-start;}
+@media (max-width: 900px){.layout{grid-template-columns:1fr;}}
+
+.panel{background:var(--white);border:1px solid var(--gray-mid);border-radius:12px;padding:22px;}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--navy);}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.field .hint{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:3px;}
+.field input, .field select, .field textarea{width:100%;padding:9px 11px;border:1px solid var(--gray-mid);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;color:var(--text);outline:none;background:var(--white);}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(61,90,122,.12);}
+
+.sticky-actions{position:sticky;top:78px;}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:transform .1s,box-shadow .15s;}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 3px 10px rgba(200,84,10,.3);margin-bottom:10px;}
+.btn-primary:hover{background:#b34a08;}
+.btn-secondary{background:var(--gray-light);color:var(--navy);border:1px solid var(--gray-mid);margin-bottom:10px;}
+.btn-secondary:hover{background:var(--gray-mid);}
+.btn-ghost{background:transparent;color:var(--text-light);border:1px dashed var(--gray-mid);font-weight:600;}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+
+.toast{margin-top:10px;font-size:12.5px;color:#1a7a3a;background:#e9f7ee;border:1px solid #bfe6cc;border-radius:7px;padding:8px 12px;text-align:center;display:none;}
+.toast.show{display:block;}
+.toast.error{color:#a13a1f;background:#fdece6;border-color:#f2c3ac;}
+
+.letter-wrap{background:var(--white);border:1px solid var(--gray-mid);border-radius:12px;overflow:hidden;}
+.letter-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--gray-light);border-bottom:1px solid var(--gray-mid);}
+.letter-toolbar span{font-size:12px;color:var(--text-light);font-weight:600;}
+#letter{padding:44px 56px;font-size:14px;color:#1a1a1a;line-height:1.65;}
+#letter p{margin-bottom:14px;}
+#letter .opt-title{font-weight:700;color:var(--navy);margin-bottom:4px;}
+#letter .opt-block{margin-bottom:16px;padding:12px 16px;background:var(--gray-light);border-radius:8px;border-left:3px solid var(--navy);}
+#letter .opt-block.primary{border-left-color:var(--orange);background:#fff7ec;}
+#letter .opt-detail{font-size:13px;color:var(--text-light);margin:4px 0;}
+#letter a{color:var(--orange);font-weight:600;}
+.blank{color:#b4753a;font-style:italic;}
+.sig-block{margin-top:24px;padding-top:16px;border-top:1px solid var(--rule);}
+.sig-block .sig-name{font-weight:700;color:var(--text-dark);}
+.sig-block .sig-title{color:var(--text-light);font-size:13px;}
+
+.site-footer{margin-top:60px;background:var(--cream);border-top:1px solid var(--rule);padding:32px 24px;text-align:center;}
+.site-footer .footer-logo{height:24px;width:auto;margin:0 auto 10px;display:block;}
+.site-footer .footer-text{font-size:13px;color:var(--text);margin-bottom:4px;}
+.site-footer .footer-url{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);}
+.site-footer .footer-legal{font-size:11px;color:var(--muted);margin-top:6px;}
+
+@media print {
+  .site-header,.page-intro,.howto,.deadlines-box,.panel,.site-footer,.letter-toolbar{display:none !important;}
+  .layout{display:block;}
+  .letter-wrap{border:none;}
+  #letter{padding:0;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="header-logo">
+    <span class="header-est">Est. 1868</span>
+    <div class="header-title">Payment Options Letter</div>
+    <div class="header-spacer"></div>
+    <a class="header-back" href="guides.html">&larr; Family Guides</a>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-intro">
+    <h1>Payment Options Letter</h1>
+    <p>Fill in the family details on the left and the email on the right updates live. When ready, <strong>Copy for Email</strong> pastes the formatted letter straight into Outlook.</p>
+  </div>
+
+  <div class="howto">
+    <p><strong>How it works:</strong> Enter the date of service and the tool auto-calculates payment deadlines for each method. Click <strong>Copy for Email</strong>, then paste (Ctrl+V) into a new email. Nothing is saved or uploaded.</p>
+  </div>
+
+  <div class="deadlines-box" id="deadlinesBox" style="display:none;">
+    <h3>Auto-Calculated Payment Deadlines</h3>
+    <div class="deadline-row"><span class="deadline-type">Checks (5 banking days)</span><span class="deadline-date" id="dlCheck">--</span></div>
+    <div class="deadline-row"><span class="deadline-type">Credit/Debit Cards (3 business days)</span><span class="deadline-date" id="dlCard">--</span></div>
+    <div class="deadline-row"><span class="deadline-type">Cashier's Checks (2 business days)</span><span class="deadline-date" id="dlCashier">--</span></div>
+    <div class="deadline-row"><span class="deadline-type">Cash (2 business days)</span><span class="deadline-date" id="dlCash">--</span></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel sticky-actions">
+      <div class="panel-title">Email Details</div>
+
+      <div class="field">
+        <label for="recipientName">Family Contact Name</label>
+        <input type="text" id="recipientName" placeholder="e.g. Delphine Aristide">
+      </div>
+      <div class="field">
+        <label for="paymentAmount">Payment Amount
+          <span class="hint">Dollar amount due (e.g. $3,500.00)</span>
+        </label>
+        <input type="text" id="paymentAmount" placeholder="e.g. $3,500.00">
+      </div>
+      <div class="field">
+        <label for="paymentFor">Payment For
+          <span class="hint">What the payment covers</span>
+        </label>
+        <input type="text" id="paymentFor" placeholder="e.g. the vault, funeral services, cemetery fees">
+      </div>
+      <div class="field">
+        <label for="serviceDate">Date of Service
+          <span class="hint">Deadlines auto-calculate from this date</span>
+        </label>
+        <input type="date" id="serviceDate">
+      </div>
+      <div class="field">
+        <label for="contractNum">Contract #
+          <span class="hint">Included in portal payment instructions</span>
+        </label>
+        <input type="text" id="contractNum" placeholder="e.g. 12345">
+      </div>
+
+      <div style="margin-top:22px;">
+        <button class="btn btn-primary" onclick="copyForEmail()">Copy for Email</button>
+        <button class="btn btn-secondary" onclick="copyPlainText()">Copy Plain Text</button>
+        <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+
+    <div class="letter-wrap">
+      <div class="letter-toolbar">
+        <span>Live Preview</span>
+        <span id="letterMeta"></span>
+      </div>
+      <div id="letter"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+  <div class="footer-text">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+  <div class="footer-url">bonneywatson.com</div>
+  <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794</div>
+</footer>
+
+<script>
+var PORTAL_LINK = 'https://gateway.gravitylink.net/pay/5nkt6j12gcs833333/atNNQrGp';
+
+var fields = ['recipientName','paymentAmount','paymentFor','serviceDate','contractNum'];
+fields.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+
+function subtractBusinessDays(date, days) {
+  var result = new Date(date);
+  var count = 0;
+  while (count < days) {
+    result.setDate(result.getDate() - 1);
+    var dow = result.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+  }
+  return result;
+}
+
+function formatDate(d) {
+  if (!d || isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateShort(d) {
+  if (!d || isNaN(d.getTime())) return '--';
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function esc(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function val(id, placeholder) {
+  var v = document.getElementById(id).value.trim();
+  return v ? esc(v) : '<span class="blank">[' + placeholder + ']</span>';
+}
+
+function getDeadlines() {
+  var iso = document.getElementById('serviceDate').value;
+  if (!iso) return null;
+  var parts = iso.split('-').map(Number);
+  var svcDate = new Date(parts[0], parts[1] - 1, parts[2]);
+  return {
+    checks: subtractBusinessDays(svcDate, 5),
+    cards: subtractBusinessDays(svcDate, 3),
+    cashier: subtractBusinessDays(svcDate, 2),
+    cash: subtractBusinessDays(svcDate, 2)
+  };
+}
+
+function render() {
+  var recipientName = val('recipientName', 'Family Contact');
+  var paymentAmount = val('paymentAmount', 'Amount');
+  var paymentFor = val('paymentFor', 'What For');
+  var contractNum = val('contractNum', 'Contract #');
+
+  var deadlines = getDeadlines();
+  var box = document.getElementById('deadlinesBox');
+
+  var cardDeadline = '<span class="blank">[set date of service]</span>';
+  if (deadlines) {
+    box.style.display = '';
+    document.getElementById('dlCheck').textContent = formatDateShort(deadlines.checks);
+    document.getElementById('dlCard').textContent = formatDateShort(deadlines.cards);
+    document.getElementById('dlCashier').textContent = formatDateShort(deadlines.cashier);
+    document.getElementById('dlCash').textContent = formatDateShort(deadlines.cash);
+    cardDeadline = '<strong>' + formatDate(deadlines.cards) + '</strong>';
+  } else {
+    box.style.display = 'none';
+  }
+
+  var amountRaw = document.getElementById('paymentAmount').value.trim();
+  var portalAmount = amountRaw || '[Amount]';
+  var contractRaw = document.getElementById('contractNum').value.trim();
+  var portalContract = contractRaw || '[Contract #]';
+
+  document.getElementById('letter').innerHTML =
+    '<p>Hi ' + recipientName + ',</p>' +
+
+    '<p>As stated in the documents, we would need the <strong>' + paymentAmount + '</strong> payment for <strong>' + paymentFor + '</strong> no later than ' + cardDeadline + '. The sooner that is done, the faster I can get all the paperwork finalized.</p>' +
+
+    '<p>I will list the different payment options below.</p>' +
+
+    '<div class="opt-block primary">' +
+      '<div class="opt-title">Option 1 — Pay Online via Credit or Debit Card</div>' +
+      '<p style="margin-bottom:8px;">Use our secure payment portal:</p>' +
+      '<p style="margin-bottom:8px;"><a href="' + PORTAL_LINK + '">' + PORTAL_LINK + '</a></p>' +
+      '<div class="opt-detail">In the additional details section, enter:</div>' +
+      '<div class="opt-detail"><strong>Payment Amount:</strong> ' + portalAmount + '</div>' +
+      '<div class="opt-detail"><strong>Additional Information:</strong> ' + esc(document.getElementById('paymentFor').value.trim() || '') + '</div>' +
+      '<div class="opt-detail"><strong>Contract #:</strong> ' + portalContract + '</div>' +
+      '<div class="opt-detail"><strong>Customer #:</strong> Leave blank</div>' +
+    '</div>' +
+
+    '<div class="opt-block">' +
+      '<div class="opt-title">Option 2 — Pay In Person</div>' +
+      '<p>Come in and pay via card, cash, or check. Just give me a call before you head this direction so that I am available.</p>' +
+    '</div>' +
+
+    '<div class="opt-block">' +
+      '<div class="opt-title">Option 3 — Pay by Phone</div>' +
+      '<p>Call me and give me your card information over the phone. I\'ll process it and email you a receipt.</p>' +
+    '</div>' +
+
+    '<p>Please let me know if you have any questions or if you\'re having any issues with the link. I look forward to hearing from you and have a great day.</p>' +
+
+    '<div class="sig-block">' +
+      '<p class="sig-name">Martice Morrison</p>' +
+      '<p class="sig-title">Family Service Director</p>' +
+      '<p class="sig-title">BONNEY WATSON Funeral Homes | Washington Memorial Park</p>' +
+      '<p class="sig-title">P) 206-242-1787 &nbsp; M) 206-445-9794 &nbsp; | &nbsp; mmorrison@bonneywatson.com</p>' +
+      '<p class="sig-title">bonneywatson.com</p>' +
+    '</div>';
+
+  var nameRaw = document.getElementById('recipientName').value.trim();
+  document.getElementById('letterMeta').textContent = nameRaw ? 'To: ' + nameRaw : '';
+}
+
+function showToast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+}
+
+function copyForEmail() {
+  var letterEl = document.getElementById('letter');
+  var html = '<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#1a1a1a;">' + letterEl.innerHTML.replace(/class="[^"]*"/g, '').replace(/style="[^"]*"/g, '') + '</div>';
+  var text = letterEl.innerText;
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      var item = new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      });
+      navigator.clipboard.write([item]).then(function(){
+        showToast('Copied! Paste (Ctrl+V) into the body of a new email.');
+      }).catch(function(){
+        showToast('Copy failed — select the letter text and press Ctrl+C instead.', true);
+      });
+    } else {
+      navigator.clipboard.writeText(text).then(function(){
+        showToast('Copied as plain text (your browser doesn\'t support rich formatting).');
+      });
+    }
+  } catch (err) {
+    showToast('Copy failed — select the letter text and press Ctrl+C instead.', true);
+  }
+}
+
+function copyPlainText() {
+  var text = document.getElementById('letter').innerText;
+  try {
+    navigator.clipboard.writeText(text).then(function(){
+      showToast('Copied as plain text.');
+    }).catch(function(){
+      showToast('Copy failed — select the letter text and press Ctrl+C instead.', true);
+    });
+  } catch (err) {
+    showToast('Copy failed — select the letter text and press Ctrl+C instead.', true);
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
