@@ -8033,10 +8033,15 @@ async function _fqBuildPDFBytes(model){
     page.drawRectangle({x:0,y:bot,width:PW,height:MAST_H,color:SLATE});
     page.drawRectangle({x:0,y:bot-KEY_H,width:PW,height:KEY_H,color:ORANGE});
     if(logoW){ var lh=39, lw=lh*(308.34/56.42); page.drawImage(logoW,{x:M,y:mid-lh/2,width:lw,height:lh}); }
-    rt(title, RX, mid+3, serif, 20.25, WHITE);
+    // The quote type is what tells a family (and Martice, across a stack of printouts) which
+    // document this is, so it's set large and bold — shrinking only if a long title would
+    // otherwise run into the logo.
+    var t=clean(title), tAvail=RX-M-235, tsz=25;
+    while(serifB.widthOfTextAtSize(t,tsz) > tAvail && tsz>16) tsz-=0.5;
+    rt(t, RX, mid+4, serifB, tsz, WHITE);
     var s=clean(sub), sz=9;
     while(sans.widthOfTextAtSize(s,sz) > RX-M-235 && sz>6.5) sz-=0.25;
-    rt(s, RX, mid-11, sans, sz, MASTSUB);
+    rt(s, RX, mid-13, sans, sz, MASTSUB);
     y = bot - KEY_H - 24.5;
   }
   function footer(){
