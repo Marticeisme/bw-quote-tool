@@ -12394,6 +12394,21 @@ function anShowPricingSummary() {
   disp.innerHTML = html;
 }
 
+// Split a typed family name into the CIRGAS decedent fields. Accepts "Sharon Kay Larkin" and the
+// "Larkin, Sharon Kay" form that shows up in funeral records; everything between first and last
+// becomes the middle name. A single word lands in First so nothing is silently dropped.
+function _anSplitName(full) {
+  var s = String(full || '').trim().replace(/\s+/g, ' ');
+  if (!s) return { first:'', middle:'', last:'' };
+  if (s.indexOf(',') > -1) {
+    var c = s.split(','), last = c[0].trim();
+    var rest = (c[1] || '').trim().split(' ').filter(Boolean);
+    return { first: rest[0] || '', middle: rest.slice(1).join(' '), last: last };
+  }
+  var p = s.split(' ').filter(Boolean);
+  if (p.length === 1) return { first: p[0], middle:'', last:'' };
+  return { first: p[0], middle: p.slice(1, -1).join(' '), last: p[p.length - 1] };
+}
 function anImportFromCemeteryQuote() {
   if (typeof cemQuoteType === 'function' && cemQuoteType() !== 'atneed') {
     alert('Cemetery Quote Builder is set to Pre-Need, not At-Need. Switch its Quote Type to At-Need before importing here.');
@@ -12404,8 +12419,15 @@ function anImportFromCemeteryQuote() {
     return;
   }
   _anPricing = { lines: JSON.parse(JSON.stringify(_cemLines)), total: _cemTotal || 0 };
+  // On an At-Need quote the Client / Family Name IS the decedent — the purchaser is normally a
+  // surviving family member and gets entered separately, so filling Purchaser from it was wrong.
   var clientName = val('cemClientName') || '';
-  if (clientName && el('anPurchName') && !el('anPurchName').value) el('anPurchName').value = clientName;
+  if (clientName) {
+    var dn = _anSplitName(clientName);
+    if (el('anDecFirst')  && !el('anDecFirst').value)  el('anDecFirst').value  = dn.first;
+    if (el('anDecMiddle') && !el('anDecMiddle').value) el('anDecMiddle').value = dn.middle;
+    if (el('anDecLast')   && !el('anDecLast').value)   el('anDecLast').value   = dn.last;
+  }
   var loc = val('qSpaceLocation') || '';
   if (loc && el('anPropertyLocation') && !el('anPropertyLocation').value) el('anPropertyLocation').value = loc;
   // Real completed files show the Co-Purchaser also signing the IOA as Additional Signer 1 —
