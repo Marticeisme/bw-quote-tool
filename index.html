@@ -14248,6 +14248,23 @@ async function downloadCombQuotePDF() {
 (function() {
   var AS_CEM = 'bw_as_cem', AS_FH = 'bw_as_fh', _timer = null;
 
+  // Only offer to restore when the last session ended UNEXPECTEDLY. Closing the tab or reloading
+  // runs the unload handlers below and marks the exit clean, so the next visit starts quiet. A
+  // crash, force-quit, or power loss never runs them, so the flag is still dirty on the next load
+  // and the banner appears — which is the only time it's actually useful.
+  // (A beforeunload confirm was considered and rejected: browsers won't let us customize that
+  // dialog, it fires on every close including intentional ones, and JS can't read which button
+  // was clicked — so it would add friction without answering the question.)
+  var AS_EXIT = 'bw_as_clean_exit';
+  var _lastExitWasClean = false;
+  try {
+    _lastExitWasClean = localStorage.getItem(AS_EXIT) === '1';
+    localStorage.setItem(AS_EXIT, '0');   // this session counts as live until it says otherwise
+  } catch(e) {}
+  function markCleanExit() { try { localStorage.setItem(AS_EXIT, '1'); } catch(e) {} }
+  window.addEventListener('beforeunload', markCleanExit);
+  window.addEventListener('pagehide', markCleanExit);   // fires where beforeunload doesn't
+
   function autoSave() {
     try {
       if (typeof captureCemState === 'function') localStorage.setItem(AS_CEM, JSON.stringify(captureCemState()));
@@ -14322,6 +14339,8 @@ async function downloadCombQuotePDF() {
   };
 
   window.addEventListener('load', function() {
+    // Closed normally last time — the draft is kept, but there's nothing to nag about.
+    if (_lastExitWasClean) return;
     if (!localStorage.getItem(AS_CEM) && !localStorage.getItem(AS_FH)) return;
     var b = document.createElement('div');
     b.id = 'autosave-banner';
