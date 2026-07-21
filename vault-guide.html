@@ -142,22 +142,83 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   .quick-nav a{font-size:11px;padding:4px 10px;}
 }
 
-/* ── PRINT ── */
+/* ── PRODUCT DETAIL MODAL ── */
+.product-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px);}
+.product-modal-overlay.active{display:flex;}
+.product-modal{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);position:relative;}
+.product-modal-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;font-size:18px;line-height:32px;text-align:center;color:var(--muted);transition:background .15s;z-index:1;}
+.product-modal-close:hover{background:rgba(0,0,0,.12);color:var(--text);}
+.product-modal-img{width:100%;aspect-ratio:4/3;object-fit:contain;border-radius:14px 14px 0 0;display:block;background:linear-gradient(180deg,#e8ece6 0%,#d5dbd2 100%);padding:16px;}
+.product-modal-body{padding:24px 28px 28px;}
+.product-modal-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);line-height:1.2;margin-bottom:2px;}
+.product-modal-tier{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:8px;}
+.product-modal-price{font-family:'Source Sans 3',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:12px;font-variant-numeric:tabular-nums;}
+.product-modal-desc{font-size:13.5px;color:var(--text-light);line-height:1.6;margin-bottom:14px;}
+.product-modal-specs{list-style:none;padding:0;margin:0 0 20px;}
+.product-modal-specs li{font-size:14px;color:var(--text);padding:6px 0;border-bottom:1px solid var(--rule);}
+.product-modal-specs li:last-child{border-bottom:none;}
+.product-modal-print{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+.product-modal-print:hover{background:var(--navy-dark);}
+.product-modal-print svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── PRINT SHEET ── */
+#printSheet{display:none;}
 @media print{
+  body:not(.modal-printing){
+    font-size:11pt;margin:0;padding:0;background:#f8f6f2;
+  }
+  body:not(.modal-printing) .site-header,
+  body:not(.modal-printing) .quick-nav,
+  body:not(.modal-printing) .site-footer{display:none;}
+  body:not(.modal-printing) .hero{padding:20px 12px;background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body:not(.modal-printing) .hero h1{font-size:26pt;}
+  body:not(.modal-printing) .product-card,
+  body:not(.modal-printing) .product-card.reverse{break-inside:avoid;page-break-inside:avoid;margin-bottom:20px;box-shadow:none;border:1px solid #ccc;}
+  body:not(.modal-printing) .tier-card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
+  body:not(.modal-printing) .product-img img{max-height:280px;object-fit:contain;}
+  body:not(.modal-printing) .fees-bar,
+  body:not(.modal-printing) .fees-grid{break-inside:avoid;}
+  body:not(.modal-printing) .fee-card{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body:not(.modal-printing) .vault-table thead th{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
   @page{size:letter;margin:0;}
-  html{height:100%;background:#f8f6f2;}
-  body{font-size:11pt;margin:0;padding:0;background:#f8f6f2;}
-  .site-header,.quick-nav,.site-footer{display:none;}
-  .hero{padding:20px 12px;background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .hero h1{font-size:26pt;}
-  .product-card,.product-card.reverse{break-inside:avoid;page-break-inside:avoid;margin-bottom:20px;box-shadow:none;border:1px solid #ccc;}
-  .product-card:hover .product-img img{transform:none;}
-  .tier-card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
-  .tier-card:hover{transform:none;}
-  .product-img img{max-height:280px;object-fit:contain;}
-  .fees-bar,.fees-grid{break-inside:avoid;}
-  .fee-card{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .vault-table thead th{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  body.modal-printing *{display:none!important;}
+  body.modal-printing #printSheet,
+  body.modal-printing #printSheet *{display:block!important;}
+  body.modal-printing #printSheet{display:flex!important;flex-direction:column;position:fixed;inset:0;width:100%;height:100%;background:#FDFCFA;z-index:99999;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  .ps-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:16px 40px;border-bottom:3px solid #E5480F;}
+  .ps-masthead img{height:42px;width:auto;}
+  .ps-masthead-right{margin-left:auto;text-align:right;}
+  .ps-masthead-title{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:18px;font-weight:600;color:#fff;}
+  .ps-masthead-addr{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  .ps-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;padding:14px 40px 0;}
+
+  .ps-photo-wrap{margin:12px 40px 0;background:#F6F2E9;border:1px solid #EDE5D6;border-radius:4px;display:flex!important;align-items:center;justify-content:center;height:270px;overflow:hidden;}
+  .ps-photo-wrap img{max-height:260px;max-width:100%;object-fit:contain;}
+
+  .ps-name-row{display:flex!important;align-items:baseline;justify-content:space-between;padding:16px 40px 10px;border-bottom:2px solid #4B6E81;}
+  .ps-name{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#3b4a52;}
+  .ps-price-wrap{text-align:right;}
+  .ps-price-label{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#4B6E81;}
+  .ps-price{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#4B6E81;font-variant-numeric:tabular-nums;}
+
+  .ps-desc{padding:12px 40px 0;font-size:13px;color:#45525a;line-height:1.6;}
+
+  .ps-specs{padding:0 40px;margin:8px 0 0;list-style:none;}
+  .ps-specs li{display:flex!important;align-items:baseline;padding:8px 0;border-bottom:1px solid #EFE9DC;font-size:14px;}
+  .ps-specs li:last-child{border-bottom:none;}
+  .ps-spec-bullet{width:8px;height:8px;border-radius:50%;background:#E5480F;opacity:.5;flex-shrink:0;margin-right:12px;position:relative;top:1px;}
+  .ps-spec-value{font-family:'Source Sans 3',sans-serif;color:#45525a;}
+
+  .ps-tier-line{padding:8px 40px 0;font-size:11px;color:#8a9299;font-style:italic;}
+
+  .ps-footer{margin-top:auto;padding:14px 40px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;}
+  .ps-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:700;color:#E5480F;}
+  .ps-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:11px;color:#8a9299;}
+  .ps-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:11px;color:#8a9299;text-align:right;}
   a{text-decoration:none;color:inherit;}
 }
 </style>
@@ -652,6 +713,133 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794</div>
   <div style="margin-top:10px;"><a href="guides.html">&larr; Return to All Guides</a></div>
 </footer>
+
+<!-- Product Detail Modal -->
+<div class="product-modal-overlay" id="productModal">
+  <div class="product-modal">
+    <button class="product-modal-close" id="modalClose">&times;</button>
+    <img class="product-modal-img" id="modalImg" src="" alt="">
+    <div class="product-modal-body">
+      <div class="product-modal-name" id="modalName"></div>
+      <div class="product-modal-tier" id="modalTier"></div>
+      <div class="product-modal-price" id="modalPrice"></div>
+      <div class="product-modal-desc" id="modalDesc"></div>
+      <ul class="product-modal-specs" id="modalSpecs"></ul>
+      <button class="product-modal-print" id="modalPrint">
+        <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print This Product
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="printSheet">
+  <div class="ps-masthead">
+    <img src="logo.svg" alt="Bonney Watson">
+    <div class="ps-masthead-right">
+      <div class="ps-masthead-title">Burial Vault Selection</div>
+      <div class="ps-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
+    </div>
+  </div>
+  <div class="ps-eyebrow" id="psEyebrow">Burial Vaults</div>
+  <div class="ps-photo-wrap"><img id="psImg" src="" alt=""></div>
+  <div class="ps-name-row">
+    <div class="ps-name" id="psName"></div>
+    <div class="ps-price-wrap"><div class="ps-price-label">Price</div><div class="ps-price" id="psPrice"></div></div>
+  </div>
+  <div class="ps-desc" id="psDesc"></div>
+  <ul class="ps-specs" id="psSpecs"></ul>
+  <div class="ps-tier-line" id="psTier"></div>
+  <div class="ps-footer">
+    <div><div class="ps-advisor-name">Martice Morrison</div><div class="ps-advisor-role">Family Service Advisor &middot; Bonney Watson</div></div>
+    <div class="ps-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var overlay = document.getElementById('productModal');
+  var modalImg = document.getElementById('modalImg');
+  var modalName = document.getElementById('modalName');
+  var modalTier = document.getElementById('modalTier');
+  var modalPrice = document.getElementById('modalPrice');
+  var modalDesc = document.getElementById('modalDesc');
+  var modalSpecs = document.getElementById('modalSpecs');
+
+  document.querySelectorAll('.product-card').forEach(function(card){
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', function(){
+      var img = card.querySelector('.product-img img');
+      var name = card.querySelector('.product-info h2');
+      var tier = card.querySelector('.tier-badge');
+      var price = card.querySelector('.product-price');
+      var desc = card.querySelector('.product-desc');
+      var features = card.querySelectorAll('.product-features li');
+
+      modalImg.src = img ? img.src : '';
+      modalImg.alt = name ? name.textContent : '';
+      modalName.textContent = name ? name.textContent.replace(/Veteran$/, '').trim() : '';
+      modalTier.textContent = tier ? tier.textContent : '';
+      modalPrice.textContent = price ? price.textContent : '';
+      modalDesc.textContent = desc ? desc.textContent : '';
+
+      modalSpecs.innerHTML = '';
+      features.forEach(function(f){
+        var li = document.createElement('li');
+        li.textContent = f.textContent;
+        modalSpecs.appendChild(li);
+      });
+
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay) closeModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+  });
+
+  function closeModal(){
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-printing');
+  }
+
+  document.getElementById('modalPrint').addEventListener('click', function(){
+    document.getElementById('psImg').src = modalImg.src;
+    document.getElementById('psName').textContent = modalName.textContent;
+    document.getElementById('psPrice').textContent = modalPrice.textContent;
+    document.getElementById('psDesc').textContent = modalDesc.textContent;
+    document.getElementById('psEyebrow').textContent = modalTier.textContent || 'Burial Vaults';
+    document.getElementById('psTier').textContent = modalTier.textContent ? modalTier.textContent + ' · Prices shown pre-tax and subject to change.' : 'Prices shown pre-tax and subject to change.';
+
+    var specsList = document.getElementById('psSpecs');
+    specsList.innerHTML = '';
+    modalSpecs.querySelectorAll('li').forEach(function(li){
+      var row = document.createElement('li');
+      var bullet = document.createElement('span');
+      bullet.className = 'ps-spec-bullet';
+      var val = document.createElement('span');
+      val.className = 'ps-spec-value';
+      val.textContent = li.textContent;
+      row.appendChild(bullet);
+      row.appendChild(val);
+      specsList.appendChild(row);
+    });
+
+    document.body.classList.add('modal-printing');
+    setTimeout(function(){ window.print(); }, 100);
+    window.addEventListener('afterprint', function handler(){
+      document.body.classList.remove('modal-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
