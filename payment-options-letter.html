@@ -80,6 +80,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 #letter .pay-section{margin-bottom:18px;}
 #letter .pay-detail{font-size:13px;color:var(--text-light);margin:3px 0;}
 #letter a{color:var(--orange);font-weight:600;}
+#letter .amount-hl{font-size:18px;font-weight:700;color:var(--navy);}
 .blank{color:#b4753a;font-style:italic;}
 .sig-block{margin-top:24px;padding-top:16px;border-top:1px solid var(--rule);}
 .sig-block .sig-name{font-weight:700;color:var(--text-dark);}
@@ -282,6 +283,10 @@ function val(id, placeholder) {
   var v = document.getElementById(id).value.trim();
   return v ? esc(v) : '<span class="blank">[' + placeholder + ']</span>';
 }
+function valAmount(id, placeholder) {
+  var v = document.getElementById(id).value.trim();
+  return v ? '<span class="amount-hl" style="font-size:18px;font-weight:700;color:#466e86;">' + esc(v) + '</span>' : '<span class="blank">[' + placeholder + ']</span>';
+}
 
 function getDeadlines() {
   var iso = document.getElementById('serviceDate').value;
@@ -310,7 +315,7 @@ fields.forEach(function(id){ document.getElementById(id).addEventListener('input
 
 function render() {
   var recipientName = val('recipientName', 'Family Contact');
-  var paymentAmount = val('paymentAmount', 'Amount');
+  var paymentAmount = valAmount('paymentAmount', 'Amount');
   var paymentFor = val('paymentFor', 'What For');
   var contractNum = val('contractNum', 'Contract #');
 
@@ -384,7 +389,7 @@ function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, po
       '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
     '</div>' +
 
-    '<p>Please let me know if you have any questions or if you\'re having any issues with the link. I look forward to hearing from you and have a great day.</p>' +
+    '<p>Please let me know if you have any questions or if you\'re having any issues with the link. I look forward to hearing from you. Have a great day.</p>' +
 
     '<div class="sig-block">' +
       '<p>Thanks,</p>' +
@@ -431,7 +436,7 @@ function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, p
       '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
     '</div>' +
 
-    '<p>If you have any questions at all please don\'t hesitate to reach out. There\'s no rush, take your time and let me know if there\'s anything else I can help with.</p>' +
+    '<p>If you have any questions at all, please don\'t hesitate to reach out. There\'s no rush, take your time and let me know if there\'s anything else I can help with.</p>' +
 
     '<div class="sig-block">' +
       '<p>Thanks,</p>' +
