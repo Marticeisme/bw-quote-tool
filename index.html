@@ -11107,7 +11107,11 @@ async function generateRICContractCore(clientData) {
     // Match both "2nd Right" and "Second Right" — the cemetery builder labels them as
     // "Second Right – ..." while older code (and the Compare-Options builder) used "2nd Right".
     var mainSpace = exemptLines.find(function(l){ return l.isSpace && !l.label.match(/2nd|3rd|ECF|Right|Second|Third/i); });
-    var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care/i) && !l.label.match(/2nd|Second/i); });
+    // ECF is labelled per space type: gardens say "Endowment Care Fund (ECF)" but niches and
+    // mausoleums say "Niche ECF (10%)" / "Mausoleum ECF (10%)". Matching only "Endowment Care"
+    // dropped those entirely — the amount still landed in exemptSub, so the rows silently failed
+    // to reconcile to the subtotal. Also exclude 3rd/Third, which the old guard missed.
+    var mainECF   = exemptLines.find(function(l){ return l.label.match(/Endowment Care|ECF/i) && !l.label.match(/2nd|3rd|Second|Third/i); });
     var secRight  = exemptLines.find(function(l){ return l.isSpace && (l.isSecondRight || l.label.match(/2nd Right|Second Right/i)) && !l.label.match(/ECF/i); });
     var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right|Second Right/i) && l.label.match(/ECF/i); });
     // O&C lines: match "Inurnment" broadly (Ground/Boulder/Niche Inurnment are all cremation O&C),
@@ -11508,7 +11512,10 @@ async function generateRICContractCore(clientData) {
     // Row 1 — Interment Rights
     if (mainSpace) {
       var ecf1 = mainECF ? mainECF.amount : 0;
-      setF('Qty 1', String(labelQty(mainSpace))); setF('ECF 1', fmtC(ecf1)); setF('NonTax1', fmtC(mainSpace.amount + ecf1));
+      // A niche holds two and is sold as two interment rights, so a single niche line is qty 2
+      // (x2 again if the quote itself carries a niche quantity).
+      var rightsQty = labelQty(mainSpace) * (/niche/i.test(mainSpace.label || '') ? 2 : 1);
+      setF('Qty 1', String(rightsQty)); setF('ECF 1', fmtC(ecf1)); setF('NonTax1', fmtC(mainSpace.amount + ecf1));
     }
     // Row 2 — 2nd Right
     if (secRight) {
