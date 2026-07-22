@@ -268,6 +268,17 @@ tr:hover td{background:#eef3f8;}
         appId: "1:449058699880:web:3c42bd5d45fa21607099dd"
       });
       _fbDB = firebase.database();
+      // Realtime transport health. The SDK syncs over a WebSocket (wss://…firebaseio.com); some
+      // networks allow plain HTTPS to the database but block that socket, in which case the
+      // 'value' listener below never fires, the Saved lists stay empty, and every save is refused
+      // by the _fbQuotesReady guard 12s later with no explanation. .info/connected is the
+      // authoritative signal for that, so surface it instead of failing silently.
+      try {
+        _fbDB.ref('.info/connected').on('value', function(s) {
+          window._fbConnected = !!(s && s.val());
+          if (typeof updateFbStatus === 'function') updateFbStatus();
+        });
+      } catch(e) {}
       _fbDB.ref('savedQuotes').on('value', function(snap) {
         if (_fbSavingQuotes) return;
         var data = snap.val() || {};
@@ -279,6 +290,8 @@ tr:hover td{background:#eef3f8;}
         _cpSavedContracts  = normArr(data.cp);
         _anSavedContracts  = normArr(data.an);
         window._fbQuotesReady = true;
+        window._fbLoadError = null;
+        if (typeof updateFbStatus === 'function') updateFbStatus();
         if (typeof renderSavedQuotesList === 'function') {
           renderSavedQuotesList('cem');
           renderSavedQuotesList('fh');
@@ -287,9 +300,39 @@ tr:hover td{background:#eef3f8;}
           renderSavedQuotesList('cp');
           renderSavedQuotesList('an');
         }
+      }, function(err) {
+        // .on()'s SECOND argument is the cancel/error callback. Without it a denied or failed read
+        // was completely silent: the listener simply never fired, so the only symptom was every
+        // save being refused 12s later. Record it and show it.
+        window._fbLoadError = (err && err.message) || String(err);
+        console.error('Firebase savedQuotes read failed:', err);
+        if (typeof updateFbStatus === 'function') updateFbStatus();
       });
-    } catch(e) { console.warn('Firebase init failed', e); }
+    } catch(e) {
+      window._fbLoadError = (e && e.message) || String(e);
+      console.warn('Firebase init failed', e);
+    }
   })();
+  // Small always-visible health line in the sidebar. Quiet when everything is fine; loud when the
+  // saved-quotes database isn't synced, so a failure is obvious BEFORE an hour of work is typed in.
+  function updateFbStatus() {
+    var box = document.getElementById('fbStatus'); if (!box) return;
+    var ready = !!window._fbQuotesReady, conn = !!window._fbConnected, err = window._fbLoadError;
+    var msg, color, bg;
+    if (ready && conn)      { msg = 'Saved quotes: synced';                 color = '#9fd8b4'; bg = 'transparent'; }
+    else if (err)           { msg = 'Saved quotes: ERROR - saving blocked'; color = '#ffd7d1'; bg = 'rgba(229,72,15,.22)'; }
+    else if (!conn)         { msg = 'Saved quotes: NOT CONNECTED';          color = '#ffd7d1'; bg = 'rgba(229,72,15,.22)'; }
+    else                    { msg = 'Saved quotes: connecting…';            color = '#c3d0de'; bg = 'transparent'; }
+    box.textContent = '● ' + msg;
+    box.style.color = color;
+    box.style.background = bg;
+    box.title = err ? ('Database read failed: ' + err)
+      : (!conn ? 'The realtime connection to the saved-quotes database is down, so saving is disabled. Often a network blocking WebSockets. Try another network, or reload.' : '');
+  }
+  window.updateFbStatus = updateFbStatus;
+  // The listener may never fire at all on a blocked network — make sure the indicator still leaves
+  // "connecting…" so the state on screen is truthful.
+  setTimeout(function(){ if (typeof updateFbStatus === 'function') updateFbStatus(); }, 4000);
 
   function logQuoteHistory(type, label, total) {
     if (!_fbDB) return;
@@ -345,6 +388,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Resources</div>
   <div class="nav-item" onclick="window.location='guides.html'"><span class="ni-ic" data-lc="book-open"></span>Family Guides &amp; Resources</div>
   </div><!-- /sb-nav -->
+  <div id="fbStatus" style="font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#c3d0de;padding:5px 12px;margin:0 10px 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">● Saved quotes: connecting…</div>
   <div class="sb-user">
     <div class="sb-avatar">MM</div>
     <div><div class="sb-user-name">Martice Morrison</div><div class="sb-user-role">Advanced Planning</div></div>
@@ -10436,7 +10480,10 @@ function persistSavedQuotes(_retries) {
     _retries = (_retries || 0) + 1;
     if (_retries > 40) {
       console.error('persistSavedQuotes: Firebase never synced — refusing to save to avoid wiping existing data. Reload and try again.');
-      alert('Could not confirm a connection to the saved-quotes database, so this save was NOT sent (to avoid overwriting your existing saved quotes). Please reload the page and try saving again.');
+      alert('Could not confirm a connection to the saved-quotes database, so this save was NOT sent (to avoid overwriting your existing saved quotes).\n\n'
+        + (window._fbLoadError ? ('Database error: ' + window._fbLoadError + '\n\n') : '')
+        + 'Your work on screen is not lost — leave this tab open.\n\n'
+        + 'Try: reload the page; if the sidebar still shows "Saved quotes: NOT CONNECTED", this network is likely blocking the realtime connection (try a phone hotspot or another network).');
       return;
     }
     setTimeout(function(){ persistSavedQuotes(_retries); }, 300);
