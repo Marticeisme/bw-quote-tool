@@ -20,8 +20,12 @@
   .main{padding:14px;}
   .wview{display:none;}.wview.active{display:block;}
 
-  .pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto;}
-  @media(max-width:700px){.pair{grid-template-columns:1fr;}}
+  .wall-single{max-width:520px;margin:0 auto;}
+  .side-toggle{display:flex;justify-content:center;gap:6px;margin-bottom:12px;}
+  .side-btn{padding:8px 20px;font-family:'Jost',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);background:rgba(200,169,110,.08);border:1px solid var(--gb);border-radius:6px;cursor:pointer;transition:all .2s;}
+  .side-btn:hover{background:rgba(200,169,110,.15);color:var(--cream);}
+  .side-btn.active{background:rgba(200,169,110,.25);border-color:var(--gold);color:var(--gold);}
+  .side-panel{display:none;}.side-panel.active{display:block;}
   .side-label{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;text-align:center;}
   .side-sub{font-size:9px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;text-align:center;}
   .gwrap{background:linear-gradient(160deg,#0f1a30,#1a2744 60%,#0d1528);border:1px solid var(--gb);border-radius:8px;padding:16px 18px;overflow-x:auto;}
@@ -57,13 +61,23 @@
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
   .ls{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
 
-  /* Orientation diagram */
-  .owrap{background:rgba(200,169,110,.05);border:1px solid var(--gb);border-radius:8px;padding:12px;margin-bottom:8px;max-width:900px;margin-left:auto;margin-right:auto;}
-  .otitle{font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px;}
-  .odiag{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:320px;margin:0 auto;}
-  .owall{background:rgba(200,169,110,.1);border:2px solid rgba(200,169,110,.35);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;transition:all .2s;font-family:'Jost',sans-serif;padding:8px 4px;text-align:center;border-radius:3px;}
-  .owall:hover,.owall.act{background:rgba(200,169,110,.28);border-color:var(--gold);color:var(--gold);}
-  .owall-label{grid-column:1/-1;font-size:7px;color:var(--gold-light);text-align:center;letter-spacing:.1em;text-transform:uppercase;padding:2px 0;}
+  /* Overview map */
+  .owrap{background:rgba(200,169,110,.05);border:1px solid var(--gb);border-radius:8px;padding:16px;margin-bottom:12px;max-width:900px;margin-left:auto;margin-right:auto;}
+  .otitle{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:10px;text-align:center;}
+  .overview-svg{display:block;max-width:700px;margin:0 auto;width:100%;}
+  .overview-svg .wall-body{fill:rgba(160,160,160,.55);stroke:rgba(200,169,110,.5);stroke-width:1;}
+  .overview-svg .wall-top{stroke:rgba(200,169,110,.4);stroke-width:.5;}
+  .overview-svg .wall-side{fill:rgba(120,120,120,.45);stroke:rgba(200,169,110,.4);stroke-width:.5;}
+  .overview-svg .wall-group{cursor:pointer;transition:opacity .2s;}
+  .overview-svg .wall-group:hover{opacity:.85;}
+  .overview-svg .wall-group:hover .wall-body{fill:rgba(200,169,110,.35);}
+  .overview-svg .wall-label-bg{rx:3;ry:3;stroke:none;}
+  .overview-svg .wall-label-text{font-family:'Jost',sans-serif;font-size:14px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central;}
+  .overview-svg .floor{fill:rgba(220,215,200,.12);stroke:rgba(200,169,110,.25);stroke-width:1;}
+  .overview-svg .ground{fill:rgba(80,100,70,.35);}
+  .overview-svg .label-text{font-family:'Jost',sans-serif;font-size:10px;fill:var(--gold-light);text-anchor:middle;letter-spacing:.12em;text-transform:uppercase;}
+  .overview-svg .bench-box{fill:rgba(200,169,110,.12);stroke:rgba(200,169,110,.35);stroke-width:1;rx:2;}
+  .overview-svg .bench-text{font-family:'Jost',sans-serif;font-size:7px;fill:var(--gold-light);text-anchor:middle;letter-spacing:.05em;text-transform:uppercase;}
 
   /* Fees */
   .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
@@ -140,87 +154,178 @@
 </div>
 
 <div class="main">
-  <!-- Orientation diagram -->
+  <!-- Isometric overview map -->
   <div class="owrap">
-    <div class="otitle">Columbarium Layout — tap a wall to navigate</div>
-    <div class="odiag">
-      <div class="owall-label">exterior face &uarr;</div>
-      <div class="owall" id="od-E" onclick="sw('E')">Wall E</div>
-      <div class="owall" id="od-F" onclick="sw('F')">Wall F</div>
-      <div class="owall" id="od-G" onclick="sw('G')">Wall G</div>
-      <div class="owall-label">interior (between walls)</div>
-      <div class="owall" id="od-D" onclick="sw('D')">Wall D</div>
-      <div class="owall" id="od-B" onclick="sw('B')">Wall B (center)</div>
-      <div class="owall" id="od-A" onclick="sw('A')">Wall A</div>
-      <div class="owall" id="od-C" onclick="sw('C')">Wall C</div>
-      <div class="owall-label" style="grid-column:2/4;">exterior face &darr;</div>
-    </div>
+    <div class="otitle">Columbarium Overview — click a wall to navigate</div>
+    <svg class="overview-svg" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ground plane (isometric parallelogram) -->
+      <polygon class="ground" points="100,350 350,420 600,350 350,280"/>
+      <!-- Floor slab -->
+      <polygon class="floor" points="140,340 350,395 560,340 350,285"/>
+
+      <!-- === LEFT WALLS (A, B, C from front to back) === -->
+
+      <!-- Wall A (front-left, closest to viewer) -->
+      <g class="wall-group" onclick="sw('A')">
+        <polygon class="wall-body" points="145,335 145,255 205,230 205,310"/>
+        <polygon class="wall-side" points="145,255 155,250 215,225 205,230"/>
+        <polygon class="wall-top" points="145,255 155,250 215,225 205,230" fill="rgba(180,180,180,.3)"/>
+        <rect class="wall-label-bg" x="148" y="270" width="34" height="28" fill="#64b5f6"/>
+        <text class="wall-label-text" x="165" y="284">A</text>
+      </g>
+
+      <!-- Wall B (middle-left) -->
+      <g class="wall-group" onclick="sw('B')">
+        <polygon class="wall-body" points="160,318 160,238 220,213 220,293"/>
+        <polygon class="wall-side" points="160,238 170,233 230,208 220,213"/>
+        <polygon class="wall-top" points="160,238 170,233 230,208 220,213" fill="rgba(180,180,180,.3)"/>
+        <rect class="wall-label-bg" x="168" y="248" width="34" height="28" fill="#aed581"/>
+        <text class="wall-label-text" x="185" y="262">B</text>
+      </g>
+
+      <!-- Wall C (back-left) -->
+      <g class="wall-group" onclick="sw('C')">
+        <polygon class="wall-body" points="175,300 175,220 235,195 235,275"/>
+        <polygon class="wall-side" points="175,220 185,215 245,190 235,195"/>
+        <polygon class="wall-top" points="175,220 185,215 245,190 235,195" fill="rgba(180,180,180,.3)"/>
+        <rect class="wall-label-bg" x="183" y="226" width="34" height="28" fill="#fff176"/>
+        <text class="wall-label-text" x="200" y="240">C</text>
+      </g>
+
+      <!-- === BACK WALL D (center, tallest) === -->
+      <g class="wall-group" onclick="sw('D')">
+        <polygon class="wall-body" points="260,270 260,160 400,160 400,270"/>
+        <polygon class="wall-side" points="260,160 275,148 415,148 400,160"/>
+        <polygon class="wall-top" points="260,160 275,148 415,148 400,160" fill="rgba(180,180,180,.3)"/>
+        <polygon class="wall-side" points="400,160 415,148 415,258 400,270"/>
+        <rect class="wall-label-bg" x="303" y="178" width="54" height="32" fill="#ffb74d"/>
+        <text class="wall-label-text" x="330" y="194">D</text>
+      </g>
+
+      <!-- === RIGHT WALLS (E, F top; G bottom) === -->
+
+      <!-- Wall E (back-right, top) -->
+      <g class="wall-group" onclick="sw('E')">
+        <polygon class="wall-body" points="445,195 445,115 505,140 505,220"/>
+        <polygon class="wall-side" points="445,115 455,110 515,135 505,140"/>
+        <polygon class="wall-top" points="445,115 455,110 515,135 505,140" fill="rgba(180,180,180,.3)"/>
+        <polygon class="wall-side" points="505,140 515,135 515,215 505,220"/>
+        <rect class="wall-label-bg" x="453" y="138" width="34" height="28" fill="#f48fb1"/>
+        <text class="wall-label-text" x="470" y="152">E</text>
+      </g>
+
+      <!-- Wall F (mid-right) -->
+      <g class="wall-group" onclick="sw('F')">
+        <polygon class="wall-body" points="460,215 460,135 520,160 520,240"/>
+        <polygon class="wall-side" points="460,135 470,130 530,155 520,160"/>
+        <polygon class="wall-top" points="460,135 470,130 530,155 520,160" fill="rgba(180,180,180,.3)"/>
+        <polygon class="wall-side" points="520,160 530,155 530,235 520,240"/>
+        <rect class="wall-label-bg" x="468" y="158" width="34" height="28" fill="#80deea"/>
+        <text class="wall-label-text" x="485" y="172">F</text>
+      </g>
+
+      <!-- Wall G (front-right) -->
+      <g class="wall-group" onclick="sw('G')">
+        <polygon class="wall-body" points="490,280 490,200 550,225 550,305"/>
+        <polygon class="wall-side" points="490,200 500,195 560,220 550,225"/>
+        <polygon class="wall-top" points="490,200 500,195 560,220 550,225" fill="rgba(180,180,180,.3)"/>
+        <polygon class="wall-side" points="550,225 560,220 560,300 550,305"/>
+        <rect class="wall-label-bg" x="498" y="228" width="34" height="28" fill="#ce93d8"/>
+        <text class="wall-label-text" x="515" y="242">G</text>
+      </g>
+
+      <!-- Interior labels -->
+      <text class="label-text" x="350" y="248" font-size="11" transform="rotate(-8,350,248)">INSIDE</text>
+
+      <!-- Bench #1 -->
+      <g class="wall-group" onclick="sw('bench')">
+        <rect class="bench-box" x="270" y="280" width="40" height="18"/>
+        <text class="bench-text" x="290" y="292">BENCH #1</text>
+      </g>
+
+      <!-- Bench #2 -->
+      <g class="wall-group" onclick="sw('bench')">
+        <rect class="bench-box" x="380" y="265" width="40" height="18"/>
+        <text class="bench-text" x="400" y="277">BENCH #2</text>
+      </g>
+
+      <!-- Exterior labels -->
+      <text class="label-text" x="120" y="365" font-size="9" transform="rotate(-45,120,365)">OUTSIDE</text>
+      <text class="label-text" x="580" y="365" font-size="9" transform="rotate(45,580,365)">OUTSIDE</text>
+    </svg>
   </div>
 
   <!-- Wall views A–G -->
   <div class="wview active" id="wall-A">
-    <div class="pair">
-      <div><div class="side-label">Wall A — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-EXT"></div></div></div>
-      <div><div class="side-label">Wall A — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('A','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('A','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-A-EXT"><div class="side-label">Wall A — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-EXT"></div></div></div>
+      <div class="side-panel" id="sp-A-INT"><div class="side-label">Wall A — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-A-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-A"></div>
   </div>
   <div class="wview" id="wall-B">
-    <div class="pair">
-      <div><div class="side-label">Wall B — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-EXT"></div></div></div>
-      <div><div class="side-label">Wall B — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('B','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('B','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-B-EXT"><div class="side-label">Wall B — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-EXT"></div></div></div>
+      <div class="side-panel" id="sp-B-INT"><div class="side-label">Wall B — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-B-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-B"></div>
   </div>
   <div class="wview" id="wall-C">
-    <div class="pair">
-      <div><div class="side-label">Wall C — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-EXT"></div></div></div>
-      <div><div class="side-label">Wall C — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('C','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('C','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-C-EXT"><div class="side-label">Wall C — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-EXT"></div></div></div>
+      <div class="side-panel" id="sp-C-INT"><div class="side-label">Wall C — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-C-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-C"></div>
   </div>
   <div class="wview" id="wall-D">
-    <div class="pair">
-      <div><div class="side-label">Wall D — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-EXT"></div></div></div>
-      <div><div class="side-label">Wall D — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('D','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('D','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-D-EXT"><div class="side-label">Wall D — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-EXT"></div></div></div>
+      <div class="side-panel" id="sp-D-INT"><div class="side-label">Wall D — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-D-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-D"></div>
   </div>
   <div class="wview" id="wall-E">
-    <div class="pair">
-      <div><div class="side-label">Wall E — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-EXT"></div></div></div>
-      <div><div class="side-label">Wall E — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('E','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('E','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-E-EXT"><div class="side-label">Wall E — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-EXT"></div></div></div>
+      <div class="side-panel" id="sp-E-INT"><div class="side-label">Wall E — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-E-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-E"></div>
   </div>
   <div class="wview" id="wall-F">
-    <div class="pair">
-      <div><div class="side-label">Wall F — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-F-EXT"></div></div></div>
-      <div><div class="side-label">Wall F — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-F-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('F','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('F','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-F-EXT"><div class="side-label">Wall F — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-F-EXT"></div></div></div>
+      <div class="side-panel" id="sp-F-INT"><div class="side-label">Wall F — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-F-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-F"></div>
   </div>
   <div class="wview" id="wall-G">
-    <div class="pair">
-      <div><div class="side-label">Wall G — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-G-EXT"></div></div></div>
-      <div><div class="side-label">Wall G — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-G-INT"></div></div></div>
+    <div class="wall-single">
+      <div class="side-toggle"><button class="side-btn active" onclick="toggleSide('G','EXT')">Exterior</button><button class="side-btn" onclick="toggleSide('G','INT')">Interior</button></div>
+      <div class="side-panel active" id="sp-G-EXT"><div class="side-label">Wall G — Exterior</div><div class="side-sub">E = top &middot; A = bottom &middot; 5 spaces per level</div><div class="gwrap"><div id="g-G-EXT"></div></div></div>
+      <div class="side-panel" id="sp-G-INT"><div class="side-label">Wall G — Interior</div><div class="side-sub">E = top &middot; A = bottom &middot; Premium pricing</div><div class="gwrap"><div id="g-G-INT"></div></div></div>
     </div>
     <div class="legend" id="lg-G"></div>
   </div>
   <div class="wview" id="wall-bench">
     <div style="max-width:460px;margin:0 auto;text-align:center;">
       <div class="side-label" style="font-size:20px;margin-bottom:12px;">Memorial Benches</div>
-      <div class="side-sub" style="margin-bottom:16px;">2 benches available &middot; Up to 4 inurnments per bench</div>
+      <div class="side-sub" style="margin-bottom:16px;">Both memorial benches have been sold</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:.5;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;">Bench #1</div>
           <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">Up to 4 inurnments</div>
-          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Reserved</div>
+          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Sold</div>
         </div>
-        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:.5;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;">Bench #2</div>
           <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">Up to 4 inurnments</div>
-          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Reserved</div>
+          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Sold</div>
         </div>
       </div>
     </div>
@@ -235,9 +340,16 @@
       <span class="fl">Recording Fee — $235 ea</span>
       <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="0" style="width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
     </div>
+    <div class="fi">
+      <span class="fl">Niche Inscription — $660 ea (taxable)</span>
+      <span class="fv">Qty: <input type="number" id="inscr-qty" min="0" max="4" value="0" style="width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
+    <div class="fi">
+      <span class="fl">Niche Vase — $275 ea (taxable)</span>
+      <span class="fv">Qty: <input type="number" id="vase-qty" min="0" max="4" value="0" style="width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;" onchange="updateQty()"></span>
+    </div>
     <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
     <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
-    <div class="fi"><span class="fl">Benches</span><span class="fv">Up to 4 inurnments</span></div>
   </div>
 </div>
 
@@ -416,10 +528,8 @@ wallLetters.forEach(function(letter){
   buildWallGrid('g-'+letter+'-EXT', letter+'-EXT');
   buildWallGrid('g-'+letter+'-INT', letter+'-INT');
   var extPrices = WALLS[letter+'-EXT'].niches.map(function(n){return n.p;});
-  var intPrices = WALLS[letter+'-INT'].niches.map(function(n){return n.p;});
-  var allPrices = extPrices.concat(intPrices);
   var unique = [];
-  allPrices.forEach(function(p){ if(unique.indexOf(p)===-1) unique.push(p); });
+  extPrices.forEach(function(p){ if(unique.indexOf(p)===-1) unique.push(p); });
   buildLegend('lg-'+letter, unique);
 });
 
@@ -448,14 +558,18 @@ function showTT(e, el){
   var ecf = Math.round(price * 0.10);
   var oc = 875;
   var rec = 235;
-  var total = price + ecf + oc + rec;
+  var inscr = 660;
+  var vase = 275;
+  var total = price + ecf + oc + rec + inscr + vase;
   tte.innerHTML = '<div class="ttid">'+wid+' — Level '+lvl+', Space '+sp+'</div>'
     + '<div class="ttr"><span class="ttl">Niche</span><span class="ttv">'+fm(price)+'</span></div>'
     + '<div class="ttr"><span class="ttl">ECF (10%)</span><span class="ttv">'+fm(ecf)+'</span></div>'
     + '<div class="ttr"><span class="ttl">O&amp;C (×1)</span><span class="ttv">'+fm(oc)+'</span></div>'
     + '<div class="ttr"><span class="ttl">Recording</span><span class="ttv">'+fm(rec)+'</span></div>'
+    + '<div class="ttr"><span class="ttl">Inscription (×1)</span><span class="ttv">'+fm(inscr)+'</span></div>'
+    + '<div class="ttr"><span class="ttl">Vase (×1)</span><span class="ttv">'+fm(vase)+'</span></div>'
     + '<div class="tttot"><span class="tttl">Est. Total</span><span class="tttv">'+fm(total)+'</span></div>'
-    + '<div class="ttnote">Up to 2 inurnments per niche</div>';
+    + '<div class="ttnote">Up to 2 inurnments per niche · Inscription &amp; vase are taxable</div>';
   tte.classList.add('show');
   posTT(e);
   tton = true;
@@ -484,6 +598,23 @@ function tapTT(e, el){
 document.addEventListener('click', function(e){
   if(!e.target.closest('.n') && !e.target.closest('#ttip')) hideTT();
 });
+
+function toggleSide(wall, side){
+  var panels = document.querySelectorAll('#wall-'+wall+' .side-panel');
+  var btns = document.querySelectorAll('#wall-'+wall+' .side-btn');
+  panels.forEach(function(p){ p.classList.remove('active'); });
+  btns.forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('sp-'+wall+'-'+side).classList.add('active');
+  btns.forEach(function(b){ if(b.textContent.toLowerCase().indexOf(side.toLowerCase() === 'ext' ? 'exterior' : 'interior') > -1) b.classList.add('active'); });
+  // Simpler: just toggle by index
+  if(side==='EXT') btns[0].classList.add('active');
+  else btns[1].classList.add('active');
+  // Update legend for selected side
+  var prices = WALLS[wall+'-'+side].niches.map(function(n){return n.p;});
+  var unique = [];
+  prices.forEach(function(p){ if(unique.indexOf(p)===-1) unique.push(p); });
+  buildLegend('lg-'+wall, unique);
+}
 
 function updateQty(){}
 </script>

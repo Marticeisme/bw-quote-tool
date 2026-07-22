@@ -150,6 +150,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .scale-marker{background:var(--navy);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;font-size:11px;font-weight:600;line-height:1.3;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.15);position:relative;}
 .scale-marker .sm-size{font-size:12px;font-weight:700;letter-spacing:.03em;}
 .scale-marker .sm-label{font-size:9px;color:rgba(255,255,255,.7);margin-top:2px;}
+.scale-marker .sm-price{font-size:8px;color:rgba(255,255,255,.55);margin-top:3px;font-weight:400;letter-spacing:.02em;}
 .scale-companion{margin-top:20px;padding-top:20px;border-top:1px solid var(--rule);}
 .scale-companion-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:12px;}
 
@@ -190,31 +191,45 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
 @media print {
   @page{size:letter;margin:0;}
-  html{height:100%;background:#f8f6f2;}
+  html{background:#f8f6f2;}
   body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.doc-footer{display:none!important;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
   .site-nav,.filter-bar{position:static;}
-  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
-  .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .cover h1{font-size:28pt;}
-  .section-wrap{padding:16px 12px 12px;}
-  .section-wrap h2{page-break-after:avoid;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 0.5in;min-height:auto;}
+  .cover{padding:20px 0 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0 -0.5in;padding-left:0.5in;padding-right:0.5in;}
+  .cover h1{font-size:24pt;}
+  .cover-sub{font-size:12pt;}
+  .section-wrap{padding:14px 0 10px;}
+  .section-wrap + .section-wrap{border-top:1px solid #ddd6c8;}
+  .section-wrap h2{page-break-after:avoid;font-size:20pt;}
+  .price-table{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
+  .price-table table{min-width:auto;}
   .compare-card,.sidebar,.plan-card,.feature-card{break-inside:avoid;page-break-inside:avoid;}
   .compare-card:hover,.feature-card:hover{box-shadow:none;}
   .section-photo,.section-photo-inline{break-inside:avoid;page-break-inside:avoid;box-shadow:none;}
   .section-photo-inline{float:none;width:100%;margin:0 0 16px 0;}
-  .scale-guide{break-inside:avoid;page-break-inside:avoid;page-break-before:always;padding:24px 12px;margin-top:0;border:none;background:#f8f6f2!important;border-radius:0;}
-  .scale-guide-label{font-size:18pt!important;margin-bottom:8px;}
-  .scale-guide-sub{font-size:11pt!important;margin-bottom:20px;}
-  .scale-markers{transform:scale(1.8);transform-origin:top left;margin-bottom:240px;justify-content:flex-start;gap:8px;}
+  .scale-guide{break-inside:avoid;page-break-inside:avoid;page-break-before:always;padding:24px 0;margin-top:0;border:none;background:#f8f6f2!important;border-radius:0;}
+  .scale-guide-label{font-size:16pt!important;margin-bottom:8px;}
+  .scale-guide-sub{font-size:10pt!important;margin-bottom:16px;}
+  .scale-markers{transform:scale(1.6);transform-origin:top left;margin-bottom:200px;justify-content:flex-start;gap:8px;}
   .scale-companion{margin-top:24px;}
-  .scale-companion .scale-markers{margin-bottom:80px;}
+  .scale-companion .scale-markers{margin-bottom:60px;}
   .section-photo img,.section-photo-inline img{width:100%;max-width:none;}
-  .tsg-section{break-inside:avoid;page-break-inside:avoid;margin-bottom:24px;}
+  .color-swatches{grid-template-columns:repeat(5,1fr);gap:8px;}
+  .color-swatch img{aspect-ratio:1/1;}
+  .color-group{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
+  .tsg-section{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
   .tsg-section img{width:100%;max-width:none;}
   .tsg-diagram svg{max-width:none!important;}
-  .tsg-diagram{margin-bottom:16px;}
+  .tsg-diagram{margin-bottom:12px;}
+  .policy-box{break-inside:avoid;page-break-inside:avoid;}
+  .doc-footer{page-break-before:avoid;padding:24px 0 20px;border-top:1px solid #ddd6c8;text-align:center;}
+  .doc-footer .footer-logo{height:20px;}
+  .doc-footer .footer-hours{font-size:11pt;}
+  .doc-footer .footer-url{display:none;}
+  .doc-footer .footer-legal{font-size:9pt;}
   a{text-decoration:none;color:inherit;}
+  #pcm-designs a{color:var(--orange)!important;text-decoration:underline!important;}
 }
 </style>
 </head>
@@ -232,6 +247,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <a href="#photos">Photo Portraits</a>
       <a href="#etching">Etching</a>
       <a href="#true-size">Photo Scale Guide</a>
+      <a href="#pcm-designs">Design Inspiration</a>
     </div>
     <a class="nav-back" href="guides.html">&larr; All Guides</a>
   </div>
@@ -258,6 +274,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="contents-item"><span class="contents-num">5</span><a href="#photos">Ceramic Steel Portraits</a></div>
       <div class="contents-item"><span class="contents-num">6</span><a href="#etching">Diamond &amp; Laser Etching</a></div>
       <div class="contents-item"><span class="contents-num">7</span><a href="#true-size">True Size Photo Guide</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#pcm-designs">Design Inspiration</a></div>
     </div>
   </div>
 
@@ -334,24 +351,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <p>Prices include granite, design/engraving, installation, and 10.4% WA sales tax. All markers are covered by the PCM Limited Warranty.</p>
     </div>
 
-    <div class="scale-guide">
-      <div class="scale-guide-label">MARKER SIZE SCALE GUIDE</div>
-      <div class="scale-guide-sub">Markers shown at relative scale &mdash; prices are total installed with 10.4% WA sales tax</div>
-      <div class="scale-markers">
-        <div class="scale-marker" style="width:97px;height:56px;"><span class="sm-size">28&Prime;&times;16&Prime;</span><span class="sm-label">Single</span></div>
-        <div class="scale-marker" style="width:111px;height:69px;"><span class="sm-size">32&Prime;&times;20&Prime;</span><span class="sm-label">Single</span></div>
-        <div class="scale-marker" style="width:97px;height:118px;"><span class="sm-size">28&Prime;&times;34&Prime;</span><span class="sm-label">Single or Companion</span></div>
-        <div class="scale-marker" style="width:125px;height:250px;"><span class="sm-size">36&Prime;&times;72&Prime;</span><span class="sm-label">Full Ledger</span></div>
-      </div>
-      <div class="scale-companion">
-        <div class="scale-companion-label">Companion Markers (spanning two graves)</div>
-        <div class="scale-markers">
-          <div class="scale-marker" style="width:153px;height:69px;"><span class="sm-size">44&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span></div>
-          <div class="scale-marker" style="width:208px;height:69px;"><span class="sm-size">60&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span></div>
-        </div>
-      </div>
-    </div>
-
     <div class="price-table">
       <table>
         <caption>SINGLE-SPACE MARKERS</caption>
@@ -419,6 +418,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <li><strong>G1 Tariffed</strong> &mdash; Cascade Gray, Classic Gray</li>
         <li><strong>Group 2</strong> &mdash; Absolute Black, Blue Pearl, Aurora, Bahama Blue, and more (see Section 5)</li>
       </ul>
+    </div>
+
+    <div class="scale-guide">
+      <div class="scale-guide-label">MARKER SIZE SCALE GUIDE</div>
+      <div class="scale-guide-sub">Markers shown at relative scale &mdash; prices are total installed with 10.4% WA sales tax</div>
+      <div class="scale-markers">
+        <div class="scale-marker" style="width:97px;height:56px;"><span class="sm-size">28&Prime;&times;16&Prime;</span><span class="sm-label">Single</span><span class="sm-price">from $2,429</span></div>
+        <div class="scale-marker" style="width:111px;height:69px;"><span class="sm-size">32&Prime;&times;20&Prime;</span><span class="sm-label">Single</span><span class="sm-price">from $2,948</span></div>
+        <div class="scale-marker" style="width:97px;height:118px;"><span class="sm-size">28&Prime;&times;34&Prime;</span><span class="sm-label">Single or Companion</span><span class="sm-price">from $3,566</span></div>
+        <div class="scale-marker" style="width:125px;height:250px;"><span class="sm-size">36&Prime;&times;72&Prime;</span><span class="sm-label">Full Ledger</span><span class="sm-price">from $9,456</span></div>
+      </div>
+      <div class="scale-companion">
+        <div class="scale-companion-label">Companion Markers (spanning two graves)</div>
+        <div class="scale-markers">
+          <div class="scale-marker" style="width:153px;height:69px;"><span class="sm-size">44&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-price">from $3,930</span></div>
+          <div class="scale-marker" style="width:208px;height:69px;"><span class="sm-size">60&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-price">from $4,493</span></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -708,6 +725,26 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="tsg-legend">
         <div class="tsg-legend-item"><span class="tsg-legend-swatch" style="background:#3d5a7a;"></span><strong>4&Prime;&times;4&Prime;</strong><span class="tsg-legend-price">Color $990 &middot; B&amp;W $495</span></div>
       </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: PCM DESIGN INSPIRATION -->
+  <div class="section-wrap" id="pcm-designs">
+    <div class="section-kicker">SECTION 8</div>
+    <h2>Design Inspiration</h2>
+    <div class="section-sub">Browse hundreds of marker design ideas from Pacific Coast Memorials</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>All our granite markers are crafted by <strong>Pacific Coast Memorials (PCM)</strong>, our memorial manufacturing partner. PCM offers hundreds of design templates that can be used as inspiration for your custom marker&nbsp;&mdash; from classic layouts to elaborate scenes, religious motifs, military emblems, and nature themes.</p>
+      <p>Browse their full design catalog online. Any design you see can be adapted and customized with your family&rsquo;s names, dates, and personal touches. Your counselor will work with you and the PCM design team to create a marker that&rsquo;s uniquely meaningful.</p>
+    </div>
+
+    <div class="policy-box">
+      <h3>Browse Marker Designs Online</h3>
+      <p>Visit PCM&rsquo;s design library to explore hundreds of marker layouts, scenes, and emblem options:</p>
+      <p style="margin-top:10px;"><a href="https://designmemorials.com/design-books/" target="_blank" rel="noopener" style="color:var(--orange-soft);font-weight:700;font-size:16px;text-decoration:underline;">designmemorials.com/design-books</a></p>
+      <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,.65);font-style:italic;">These designs are starting points &mdash; every marker we create is customized to your family&rsquo;s wishes.</p>
     </div>
   </div>
 
