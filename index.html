@@ -167,9 +167,11 @@ tr:hover td{background:#eef3f8;}
 .s-line.discount-line .s-lbl,.s-line.discount-line .s-amt{color:var(--orange-dark);}
 .s-line.tax-line .s-lbl,.s-line.tax-line .s-amt{color:#5a6672;}
 .s-divider{border:none;border-top:2px solid var(--navy);margin:14px 0 0;}
-.s-total-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;}
-.s-total-lbl{font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
-.s-total-amt{font-family:'Public Sans',sans-serif;font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;}
+/* Five-figure totals (e.g. "Combined Total  $12,325.04") overran the fixed-width summary panel and
+   clipped at its right edge. Wrap the amount onto its own right-aligned line instead of cutting it. */
+.s-total-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;gap:8px;flex-wrap:wrap;}
+.s-total-lbl{font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);white-space:nowrap;}
+.s-total-amt{font-family:'Public Sans',sans-serif;font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:auto;}
 .s-tax-note{font-size:10.5px;color:#9aa4ae;margin-top:6px;line-height:1.5;}
 .summary-actions{padding:6px 20px 18px;display:flex;flex-wrap:wrap;gap:8px;}
 .btn-print{flex:1 1 100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Public Sans',sans-serif;}
@@ -12554,9 +12556,15 @@ function anImportFromCemeteryQuote() {
     if (el('anSigner1Email')) el('anSigner1Email').value = val('anCoPurchEmail') || '';
   }
   // Best-effort pre-fill from the quote's own line labels — always editable afterward.
-  var vaultLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /vault/i.test(l.label); });
+  // These name the PRODUCT, so skip the accompanying service lines: a quote lists "Burial Vault
+  // Setting" before "Monticello Burial Vault", and a plain /vault/ match grabbed the setting fee.
+  // Same for memorials, where "— Base"/"— Install" lines sit alongside the marker itself.
+  var _anNotService = /setting|install|foundation|\bfee\b|recording/i;
+  var vaultLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /vault|outer burial container/i.test(l.label) && !_anNotService.test(l.label); })
+               || _anPricing.lines.find(function(l){ return !l.isDiscount && /vault/i.test(l.label); });
   if (vaultLine && el('anVault') && !el('anVault').value) el('anVault').value = vaultLine.label;
-  var memLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /marker|memorial/i.test(l.label); });
+  var memLine = _anPricing.lines.find(function(l){ return !l.isDiscount && /marker|memorial/i.test(l.label) && !_anNotService.test(l.label) && !/—\s*(base|install)/i.test(l.label); })
+             || _anPricing.lines.find(function(l){ return !l.isDiscount && /marker|memorial/i.test(l.label); });
   if (memLine && el('anMemorial') && !el('anMemorial').value) el('anMemorial').value = memLine.label;
   // Real quote line items are almost never literally "Opening...Closing" — they're the actual
   // service type (Lawn Interment, Ground Inurnment, Mausoleum Entombment, etc.), which per
@@ -15894,9 +15902,16 @@ async function _fillCirgasXlsx(data) {
       var m = tag.match(/name="([^"]*)"/);
       if (m) byName[m[1]] = tag;
     });
-    var priority = ['Information', 'Cemetery Contract', 'INTERMENT AUTH NEW', 'IOA ADDL SIGNERS',
-                     'Cemetery Rules', 'Mem Order Flat Mrkr &amp; Bronze', 'Mem Order Form Upright &amp; Other',
-                     'Vault and Urn Vault Order Form'];
+    // Order = how often a sheet is actually needed on a real packet (Martice 2026-07-22).
+    // BLIND CHECK sits right behind Cemetery Rules because it's needed on almost every CIRGAS;
+    // IOA ADDL SIGNERS moved out of the front group — additional signers are the exception, so it
+    // now sits with the other overflow/signature sheets rather than 4th in the tab bar.
+    var priority = ['Information', 'Cemetery Contract', 'INTERMENT AUTH NEW',
+                     'Cemetery Rules', 'BLIND CHECK',
+                     'Mem Order Flat Mrkr &amp; Bronze', 'Mem Order Form Upright &amp; Other',
+                     'Vault and Urn Vault Order Form',
+                     'Addendum A', 'Addendum B', 'Deed Transfer Contract', 'Payment Options',
+                     'IOA ADDL SIGNERS', 'Mem Order Form Addl Signers'];
     var ordered = [];
     priority.forEach(function(name) { if (byName[name]) { ordered.push(byName[name]); delete byName[name]; } });
     sheetTags.forEach(function(tag) {
