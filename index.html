@@ -886,6 +886,30 @@ tr:hover td{background:#eef3f8;}
           <div class="q-group">
             <div class="q-group-label">Niche Space (manual price)</div>
             <div class="q-row">
+              <label>Columbarium</label>
+              <select id="qNicheName" onchange="cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+                <option value="">— Select columbarium / niche —</option>
+                <option value="Crystal Niches">Crystal Niches</option>
+                <option value="Court of Honor Niches">Court of Honor Niches</option>
+                <option value="Eternal Light Columbarium (New)">Eternal Light Columbarium (New)</option>
+                <option value="Eternal Light Niches">Eternal Light Niches</option>
+                <option value="Garden Court Niches">Garden Court Niches</option>
+                <option value="Terrace Garden Niches">Terrace Garden Niches</option>
+                <option value="Garden of Gethsemane Niches">Garden of Gethsemane Niches</option>
+                <option value="Garden of Meditation Niches">Garden of Meditation Niches</option>
+                <option value="Mountain View Columbarium">Mountain View Columbarium</option>
+                <option value="Mountain View Columbarium (New)">Mountain View Columbarium (New)</option>
+                <option value="Radiance Wall – Chapel of Memories">Radiance Wall – Chapel of Memories</option>
+                <option value="Rock of Ages Columbarium">Rock of Ages Columbarium</option>
+                <option value="Serenity Wall – Chapel of Memories">Serenity Wall – Chapel of Memories</option>
+                <option value="__custom__">Custom / Other…</option>
+              </select>
+            </div>
+            <div class="q-row" id="qNicheNameOtherRow" style="display:none;">
+              <label>Custom Name</label>
+              <input type="text" id="qNicheNameOther" placeholder="Type columbarium / niche name" oninput="cemUpdateD()" style="flex:1;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+            </div>
+            <div class="q-row">
               <label>Price/Niche</label>
               <input type="number" id="qNichePrice" min="0" step="0.01" placeholder="0.00" oninput="cemUpdateD()" style="width:120px;">
               <label>Qty</label>
@@ -933,6 +957,21 @@ tr:hover td{background:#eef3f8;}
           </div>
           <div class="q-group">
             <div class="q-group-label">Mausoleum Crypt (manual price)</div>
+            <div class="q-row">
+              <label>Mausoleum</label>
+              <select id="qMausName" onchange="cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+                <option value="">— Select mausoleum —</option>
+                <option value="Chapel of Memories">Chapel of Memories</option>
+                <option value="Eternal Light Mausoleum">Eternal Light Mausoleum</option>
+                <option value="Garden Court Mausoleum">Garden Court Mausoleum</option>
+                <option value="Terrace Garden Mausoleum">Terrace Garden Mausoleum</option>
+                <option value="__custom__">Custom / Other…</option>
+              </select>
+            </div>
+            <div class="q-row" id="qMausNameOtherRow" style="display:none;">
+              <label>Custom Name</label>
+              <input type="text" id="qMausNameOther" placeholder="Type mausoleum name" oninput="cemUpdateD()" style="flex:1;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+            </div>
             <div class="q-row">
               <label>Price/Crypt</label>
               <input type="number" id="qMausPrice" min="0" step="0.01" placeholder="0.00" oninput="cemUpdateD()" style="width:120px;">
@@ -6374,6 +6413,7 @@ function cemUpdate() {
   // ECF from the quote, but keep the inurnment arrangement items (O&C/recording/inscription) below.
   var nicheOwned = chk('qNicheOwned');
   var nicheLoc = el('qNicheLocation') ? el('qNicheLocation').value.trim() : '';
+  var nicheName = _spaceName('qNicheName', 'qNicheNameOther', 'qNicheNameOtherRow');
   if (nicheP > 0 || nicheOwned) {
     var nicheEcf = nicheP * 0.1;
     setDisp('qNicheDisp', nicheOwned ? 0 : nicheP * nicheQ);
@@ -6382,8 +6422,8 @@ function cemUpdate() {
     if (el('qNicheLocationRow')) el('qNicheLocationRow').style.display = 'flex';
     if (el('qNicheArrangeOptions')) el('qNicheArrangeOptions').style.display = 'block';
     if (!nicheOwned) {
-      var nicheLbl = 'Niche Space' + (nicheQ > 1 ? ' \xd7' + nicheQ : '') + (nicheLoc ? ' \u2014 ' + nicheLoc : '');
-      lines.push({label: nicheLbl, amount: nicheP * nicheQ, taxable: false, isSpace: true});
+      var nicheLbl = (nicheName || 'Niche Space') + (nicheQ > 1 ? ' \xd7' + nicheQ : '') + (nicheLoc ? ' \u2014 ' + nicheLoc : '');
+      lines.push({label: nicheLbl, amount: nicheP * nicheQ, taxable: false, isSpace: true, isNiche: true});
       lines.push({label: 'Niche ECF (10%)', amount: nicheEcf * nicheQ, taxable: false, isSpace: true});
     }
     // Glass Front Niche Arrangement
@@ -6413,6 +6453,7 @@ function cemUpdate() {
   // Mausoleum
   var mausP = num('qMausPrice'), mausQ = qty('qMausQty');
   var mausLoc = el('qMausLocation') ? el('qMausLocation').value.trim() : '';
+  var mausName = _spaceName('qMausName', 'qMausNameOther', 'qMausNameOtherRow');
   if (mausP > 0) {
     var mausEcf = mausP * 0.1;
     setDisp('qMausDisp', mausP * mausQ);
@@ -6420,7 +6461,7 @@ function cemUpdate() {
     el('qMausEcfRow').style.display = 'flex';
     if (el('qMausLocationRow')) el('qMausLocationRow').style.display = 'flex';
     if (el('qMausArrangeOptions')) el('qMausArrangeOptions').style.display = 'block';
-    var mausLbl = 'Mausoleum Crypt' + (mausQ > 1 ? ' \xd7' + mausQ : '') + (mausLoc ? ' \u2014 ' + mausLoc : '');
+    var mausLbl = (mausName || 'Mausoleum Crypt') + (mausQ > 1 ? ' \xd7' + mausQ : '') + (mausLoc ? ' \u2014 ' + mausLoc : '');
     lines.push({label: mausLbl, amount: mausP * mausQ, taxable: false, isSpace: true});
     lines.push({label: 'Mausoleum ECF (10%)', amount: mausEcf * mausQ, taxable: false, isSpace: true});
     // Indoor Mausoleum Arrangement
@@ -7482,6 +7523,16 @@ function addCemLine() {
   el('cemCustomLines').appendChild(div);
 }
 
+// Niche/Crypt name selector: returns the chosen columbarium/mausoleum name (or the custom text),
+// and shows/hides the Custom-name row. Called from the recalc every keystroke, so the row visibility
+// is correct after a saved-quote restore too (no separate onchange wiring to keep in sync).
+function _spaceName(selId, otherId, rowId) {
+  var sel = el(selId) ? el(selId).value : '';
+  var custom = sel === '__custom__';
+  if (el(rowId)) el(rowId).style.display = custom ? 'flex' : 'none';
+  if (custom) return el(otherId) ? el(otherId).value.trim() : '';
+  return sel || '';
+}
 function resetCemQuote() {
   try {
   // Clear client info
@@ -7508,8 +7559,10 @@ function resetCemQuote() {
   ['qGarden','qVault','qMarkerType','qMarkerSize','qMarkerColor','qFoundation','qBronze',
    'qInscType','qDiscMode','qPortraitShape','qPortraitSize','qPortraitFinish',
    'qCryptOval','qCryptOriginal','qCryptSlim','qVase','qVBGroup','qVBSize','q3pSize',
-   'qReHighlight','qMonuSeal'
+   'qReHighlight','qMonuSeal','qNicheName','qMausName'
   ].forEach(function(id) { var e = el(id); if (e) e.value = ''; });
+  ['qNicheNameOther','qMausNameOther'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
+  ['qNicheNameOtherRow','qMausNameOtherRow'].forEach(function(id){ var e = el(id); if (e) e.style.display = 'none'; });
   // Clear number inputs to 0
   ['qNichePrice','qNicheQty','qMausPrice','qMausQty','qExtraWords','q3pWitnessVal','finDownAmt'
   ].forEach(function(id) { var e = el(id); if (e) e.value = '0'; });
@@ -11514,7 +11567,7 @@ async function generateRICContractCore(clientData) {
       var ecf1 = mainECF ? mainECF.amount : 0;
       // A niche holds two and is sold as two interment rights, so a single niche line is qty 2
       // (x2 again if the quote itself carries a niche quantity).
-      var rightsQty = labelQty(mainSpace) * (/niche/i.test(mainSpace.label || '') ? 2 : 1);
+      var rightsQty = labelQty(mainSpace) * ((mainSpace.isNiche || /niche/i.test(mainSpace.label || '')) ? 2 : 1);
       setF('Qty 1', String(rightsQty)); setF('ECF 1', fmtC(ecf1)); setF('NonTax1', fmtC(mainSpace.amount + ecf1));
     }
     // Row 2 — 2nd Right
