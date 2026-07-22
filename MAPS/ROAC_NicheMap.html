@@ -73,8 +73,9 @@
   .overview-svg .wall-group:hover .wall-body{fill:rgba(200,169,110,.35);}
   .overview-svg .wall-label-bg{rx:3;ry:3;stroke:none;}
   .overview-svg .wall-label-text{font-family:'Jost',sans-serif;font-size:14px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central;}
-  .overview-svg .floor{fill:rgba(220,215,200,.12);stroke:rgba(200,169,110,.25);stroke-width:1;}
-  .overview-svg .ground{fill:rgba(80,100,70,.35);}
+  .overview-svg .floor{fill:rgba(220,210,190,.25);stroke:rgba(200,169,110,.35);stroke-width:1;}
+  .overview-svg .ground{fill:rgba(75,115,55,.5);}
+  .overview-svg .niche-grid{pointer-events:none;}
   .overview-svg .label-text{font-family:'Jost',sans-serif;font-size:10px;fill:var(--gold-light);text-anchor:middle;letter-spacing:.12em;text-transform:uppercase;}
   .overview-svg .bench-box{fill:rgba(200,169,110,.12);stroke:rgba(200,169,110,.35);stroke-width:1;rx:2;}
   .overview-svg .bench-text{font-family:'Jost',sans-serif;font-size:7px;fill:var(--gold-light);text-anchor:middle;letter-spacing:.05em;text-transform:uppercase;}
@@ -157,101 +158,105 @@
   <!-- Isometric overview map -->
   <div class="owrap">
     <div class="otitle">Columbarium Overview — click a wall to navigate</div>
-    <svg class="overview-svg" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
-      <!-- Ground plane (isometric parallelogram) -->
-      <polygon class="ground" points="100,350 350,420 600,350 350,280"/>
+    <svg class="overview-svg" viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="ngrid" width="9" height="9" patternUnits="userSpaceOnUse">
+          <rect width="8" height="8" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".4"/>
+        </pattern>
+      </defs>
+
+      <!-- Green grass ground -->
+      <rect class="ground" x="0" y="50" width="700" height="380"/>
+
       <!-- Floor slab -->
-      <polygon class="floor" points="140,340 350,395 560,340 350,285"/>
+      <polygon class="floor" points="100,360 480,390 580,230 200,200"/>
 
-      <!-- === LEFT WALLS (A, B, C from front to back) === -->
-
-      <!-- Wall A (front-left, closest to viewer) -->
-      <g class="wall-group" onclick="sw('A')">
-        <polygon class="wall-body" points="145,335 145,255 205,230 205,310"/>
-        <polygon class="wall-side" points="145,255 155,250 215,225 205,230"/>
-        <polygon class="wall-top" points="145,255 155,250 215,225 205,230" fill="rgba(180,180,180,.3)"/>
-        <rect class="wall-label-bg" x="148" y="270" width="34" height="28" fill="#64b5f6"/>
-        <text class="wall-label-text" x="165" y="284">A</text>
-      </g>
-
-      <!-- Wall B (middle-left) -->
-      <g class="wall-group" onclick="sw('B')">
-        <polygon class="wall-body" points="160,318 160,238 220,213 220,293"/>
-        <polygon class="wall-side" points="160,238 170,233 230,208 220,213"/>
-        <polygon class="wall-top" points="160,238 170,233 230,208 220,213" fill="rgba(180,180,180,.3)"/>
-        <rect class="wall-label-bg" x="168" y="248" width="34" height="28" fill="#aed581"/>
-        <text class="wall-label-text" x="185" y="262">B</text>
-      </g>
-
-      <!-- Wall C (back-left) -->
-      <g class="wall-group" onclick="sw('C')">
-        <polygon class="wall-body" points="175,300 175,220 235,195 235,275"/>
-        <polygon class="wall-side" points="175,220 185,215 245,190 235,195"/>
-        <polygon class="wall-top" points="175,220 185,215 245,190 235,195" fill="rgba(180,180,180,.3)"/>
-        <rect class="wall-label-bg" x="183" y="226" width="34" height="28" fill="#fff176"/>
-        <text class="wall-label-text" x="200" y="240">C</text>
-      </g>
-
-      <!-- === BACK WALL D (center, tallest) === -->
+      <!-- === BACK WALL D (drawn first, furthest from viewer) === -->
       <g class="wall-group" onclick="sw('D')">
-        <polygon class="wall-body" points="260,270 260,160 400,160 400,270"/>
-        <polygon class="wall-side" points="260,160 275,148 415,148 400,160"/>
-        <polygon class="wall-top" points="260,160 275,148 415,148 400,160" fill="rgba(180,180,180,.3)"/>
-        <polygon class="wall-side" points="400,160 415,148 415,258 400,270"/>
-        <rect class="wall-label-bg" x="303" y="178" width="54" height="32" fill="#ffb74d"/>
-        <text class="wall-label-text" x="330" y="194">D</text>
+        <polygon class="wall-body" points="200,200 580,230 580,110 200,80"/>
+        <polygon class="niche-grid" points="200,200 580,230 580,110 200,80" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="200,80 580,110 586,102 206,72" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="580,230 580,110 586,102 586,222"/>
+        <rect class="wall-label-bg" x="355" y="130" width="56" height="28" fill="#ffb74d"/>
+        <text class="wall-label-text" x="383" y="144">D</text>
       </g>
 
-      <!-- === RIGHT WALLS (E, F top; G bottom) === -->
+      <!-- === LEFT WALL C (back section) === -->
+      <g class="wall-group" onclick="sw('C')">
+        <polygon class="wall-body" points="167,253 200,200 200,110 167,163"/>
+        <polygon class="niche-grid" points="167,253 200,200 200,110 167,163" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="167,163 200,110 190,105 157,158" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="167,253 157,248 157,158 167,163"/>
+        <rect class="wall-label-bg" x="170" y="170" width="26" height="22" fill="#fff176"/>
+        <text class="wall-label-text" x="183" y="181" font-size="12">C</text>
+      </g>
 
-      <!-- Wall E (back-right, top) -->
+      <!-- === LEFT WALL B (middle section) === -->
+      <g class="wall-group" onclick="sw('B')">
+        <polygon class="wall-body" points="133,307 167,253 167,163 133,217"/>
+        <polygon class="niche-grid" points="133,307 167,253 167,163 133,217" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="133,217 167,163 157,158 123,212" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="133,307 123,302 123,212 133,217"/>
+        <rect class="wall-label-bg" x="136" y="224" width="26" height="22" fill="#aed581"/>
+        <text class="wall-label-text" x="149" y="235" font-size="12">B</text>
+      </g>
+
+      <!-- === LEFT WALL A (front section, closest to viewer) === -->
+      <g class="wall-group" onclick="sw('A')">
+        <polygon class="wall-body" points="100,360 133,307 133,217 100,270"/>
+        <polygon class="niche-grid" points="100,360 133,307 133,217 100,270" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="100,270 133,217 123,212 90,265" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="100,360 90,355 90,265 100,270"/>
+        <rect class="wall-label-bg" x="103" y="277" width="26" height="22" fill="#64b5f6"/>
+        <text class="wall-label-text" x="116" y="288" font-size="12">A</text>
+      </g>
+
+      <!-- === RIGHT WALL E (back section) === -->
       <g class="wall-group" onclick="sw('E')">
-        <polygon class="wall-body" points="445,195 445,115 505,140 505,220"/>
-        <polygon class="wall-side" points="445,115 455,110 515,135 505,140"/>
-        <polygon class="wall-top" points="445,115 455,110 515,135 505,140" fill="rgba(180,180,180,.3)"/>
-        <polygon class="wall-side" points="505,140 515,135 515,215 505,220"/>
-        <rect class="wall-label-bg" x="453" y="138" width="34" height="28" fill="#f48fb1"/>
-        <text class="wall-label-text" x="470" y="152">E</text>
+        <polygon class="wall-body" points="547,283 580,230 580,140 547,193"/>
+        <polygon class="niche-grid" points="547,283 580,230 580,140 547,193" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="547,193 580,140 590,145 557,198" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="580,230 590,235 590,145 580,140"/>
+        <rect class="wall-label-bg" x="550" y="200" width="26" height="22" fill="#f48fb1"/>
+        <text class="wall-label-text" x="563" y="211" font-size="12">E</text>
       </g>
 
-      <!-- Wall F (mid-right) -->
+      <!-- === RIGHT WALL F (middle section) === -->
       <g class="wall-group" onclick="sw('F')">
-        <polygon class="wall-body" points="460,215 460,135 520,160 520,240"/>
-        <polygon class="wall-side" points="460,135 470,130 530,155 520,160"/>
-        <polygon class="wall-top" points="460,135 470,130 530,155 520,160" fill="rgba(180,180,180,.3)"/>
-        <polygon class="wall-side" points="520,160 530,155 530,235 520,240"/>
-        <rect class="wall-label-bg" x="468" y="158" width="34" height="28" fill="#80deea"/>
-        <text class="wall-label-text" x="485" y="172">F</text>
+        <polygon class="wall-body" points="513,337 547,283 547,193 513,247"/>
+        <polygon class="niche-grid" points="513,337 547,283 547,193 513,247" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="513,247 547,193 557,198 523,252" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="547,283 557,288 557,198 547,193"/>
+        <rect class="wall-label-bg" x="516" y="254" width="26" height="22" fill="#80deea"/>
+        <text class="wall-label-text" x="529" y="265" font-size="12">F</text>
       </g>
 
-      <!-- Wall G (front-right) -->
+      <!-- === RIGHT WALL G (front section, closest to viewer) === -->
       <g class="wall-group" onclick="sw('G')">
-        <polygon class="wall-body" points="490,280 490,200 550,225 550,305"/>
-        <polygon class="wall-side" points="490,200 500,195 560,220 550,225"/>
-        <polygon class="wall-top" points="490,200 500,195 560,220 550,225" fill="rgba(180,180,180,.3)"/>
-        <polygon class="wall-side" points="550,225 560,220 560,300 550,305"/>
-        <rect class="wall-label-bg" x="498" y="228" width="34" height="28" fill="#ce93d8"/>
-        <text class="wall-label-text" x="515" y="242">G</text>
+        <polygon class="wall-body" points="480,390 513,337 513,247 480,300"/>
+        <polygon class="niche-grid" points="480,390 513,337 513,247 480,300" fill="url(#ngrid)"/>
+        <polygon class="wall-top" points="480,300 513,247 523,252 490,305" fill="rgba(180,180,180,.35)"/>
+        <polygon class="wall-side" points="480,390 490,395 490,305 480,300"/>
+        <rect class="wall-label-bg" x="483" y="307" width="26" height="22" fill="#ce93d8"/>
+        <text class="wall-label-text" x="496" y="318" font-size="12">G</text>
       </g>
 
-      <!-- Interior labels -->
-      <text class="label-text" x="350" y="248" font-size="11" transform="rotate(-8,350,248)">INSIDE</text>
-
-      <!-- Bench #1 -->
+      <!-- Benches -->
       <g class="wall-group" onclick="sw('bench')">
-        <rect class="bench-box" x="270" y="280" width="40" height="18"/>
-        <text class="bench-text" x="290" y="292">BENCH #1</text>
+        <polygon class="bench-box" points="265,310 310,313 316,302 271,299"/>
+        <text class="bench-text" x="291" y="309" transform="rotate(4.5,291,309)">BENCH #1</text>
+      </g>
+      <g class="wall-group" onclick="sw('bench')">
+        <polygon class="bench-box" points="395,288 440,291 446,280 401,277"/>
+        <text class="bench-text" x="421" y="287" transform="rotate(4.5,421,287)">BENCH #2</text>
       </g>
 
-      <!-- Bench #2 -->
-      <g class="wall-group" onclick="sw('bench')">
-        <rect class="bench-box" x="380" y="265" width="40" height="18"/>
-        <text class="bench-text" x="400" y="277">BENCH #2</text>
-      </g>
+      <!-- Interior label -->
+      <text class="label-text" x="340" y="298" font-size="11" transform="rotate(4.5,340,298)">INSIDE</text>
 
       <!-- Exterior labels -->
-      <text class="label-text" x="120" y="365" font-size="9" transform="rotate(-45,120,365)">OUTSIDE</text>
-      <text class="label-text" x="580" y="365" font-size="9" transform="rotate(45,580,365)">OUTSIDE</text>
+      <text class="label-text" x="55" y="350" font-size="9" transform="rotate(-55,55,350)">OUTSIDE</text>
+      <text class="label-text" x="620" y="340" font-size="9" transform="rotate(55,620,340)">OUTSIDE</text>
     </svg>
   </div>
 
