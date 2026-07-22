@@ -8335,7 +8335,7 @@ async function _fqBuildPDFBytes(model){
       page.drawRectangle({x:M,y:top-hdrH,width:RX-M,height:hdrH,color:WARM});
       page.drawRectangle({x:M,y:top-hdrH,width:2.25,height:hdrH,color:ORANGE});
       page.drawLine({start:{x:M,y:top-hdrH},end:{x:RX,y:top-hdrH},thickness:0.7,color:TIERBRD});
-      page.drawText(clean('WA Maxima insurance'),{x:M+15,y:top-17.5,size:15,font:serif,color:SLATE});
+      page.drawText(clean('Payment Plans'),{x:M+15,y:top-17.5,size:15,font:serif,color:SLATE});
       var agW=trackW('Age',sansH,7.1,0.14);
       track('Age', RX-15-agW, top-11, sansH, 7.1, MUTED, 0.14);
       rt(String(mx.age), RX-15, top-23, sansH, 12, HEAD);
@@ -8387,7 +8387,7 @@ async function _fqBuildPDFBytes(model){
         if(best){ page.drawRectangle({x:M+1,y:ry-9,width:RX-M-2,height:rowH-4,color:WARM}); page.drawRectangle({x:M+1,y:ry-9,width:2.25,height:rowH-4,color:ORANGE}); }
         page.drawText(trunc(r.label,sansB,10.1,RX-M-150),{x:M+13,y:ry,size:10.1,font:sansB,color:HEAD});
         rt(_fqMoney(r.total)+'/mo', RX-13, ry, sansH, 12, best?ORANGE:SLATE);
-        page.drawText(clean('cemetery '+_fqMoney(r.cemMo)+'/mo  +  insurance '+_fqMoney(r.fhMo)+'/mo'+(best?'    \xb7  closest to your target':'')),
+        page.drawText(clean('cemetery '+_fqMoney(r.cemMo)+'/mo  +  funeral plan '+_fqMoney(r.fhMo)+'/mo'+(best?'    \xb7  closest to your target':'')),
           {x:M+13,y:ry-11,size:8.25,font:sans,color:GREY});
         ry-=rowH;
       });
@@ -8411,7 +8411,7 @@ async function _fqBuildPDFBytes(model){
 
     if(pay.scope==='fh'){
       maximaCard(pay.maxima);
-      discBlock('These estimates are for illustration only and are not a contract or a guarantee of insurability. WA Maxima insurance rates depend on age and underwriting, and amounts may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
+      discBlock('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
     } else if(pay.scope==='cem'){
       financeCards(pay.cemBase);
       discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.');
@@ -8420,18 +8420,18 @@ async function _fqBuildPDFBytes(model){
       sectionLabel('Cemetery','Financing options  \xb7  '+_fqMoney(pay.cemBase),150);
       financeCards(pay.cemBase);
       if(hasMx){
-        sectionLabel('Funeral home','Prearranged through insurance', 26+16+pay.maxima.plans.length*15.5+7);
+        sectionLabel('Funeral home','Payment plans  \xb7  age '+pay.maxima.age, 26+16+pay.maxima.plans.length*15.5+7);
         maximaCard(pay.maxima);
       } else {
         need(40); track('Funeral home', M, y, sansB, 7.9, ORANGE, 0.22); y-=14;
-        wrap("Funeral home expenses are prearranged through WA Maxima insurance (age-based). Enter the family member's age in the Funeral Home quote to include those monthly figures here.",sans,9.4,RX-M).forEach(function(ln){ y-=13; page.drawText(ln,{x:M,y:y,size:9.4,font:sans,color:GREY}); });
+        wrap("Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member's age in the Funeral Home quote to include those monthly figures here.",sans,9.4,RX-M).forEach(function(ln){ y-=13; page.drawText(ln,{x:M,y:y,size:9.4,font:sans,color:GREY}); });
         y-=8;
       }
       if(hasMx && pay.combBudget>0){
         sectionLabel('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month', 5*28+16);
         budgetMatches(pay.cemBase, pay.maxima, pay.combBudget);
       }
-      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. WA Maxima insurance rates depend on age and underwriting and are not a guarantee of insurability. Your Family Service Advisor will provide exact figures and terms.');
+      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms.');
     }
     doc.getPages().forEach(function(pg,i){ if(i>0){ page=pg; footer(); } });
   }
@@ -8443,9 +8443,9 @@ function _fqNoteText(model){
 }
 function _fqPayHeadline(pay){ return 'Options for paying over time.'; }
 function _fqPayIntro(pay, model){
-  if(pay.scope==='fh') return 'Funeral expenses can be prearranged through a WA Maxima insurance plan. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.';
+  if(pay.scope==='fh') return 'Funeral expenses can be prearranged and paid over time. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.';
   if(pay.scope==='cem') return 'The cost can be spread over time. The options below list every down-payment amount and term available. Your Family Service Advisor can walk you through any of these.';
-  return 'The cemetery and the funeral home are paid through two different programs. Cemetery arrangements can be financed over time; funeral home expenses can be prearranged through WA Maxima insurance. Both are shown below.';
+  return 'The cemetery and the funeral home are paid through two different programs. Cemetery arrangements can be financed over time; funeral home expenses can be prearranged and paid over time. Both are shown below.';
 }
 
 function _fqPdfSlug(model, filePrefix){
