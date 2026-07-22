@@ -15020,11 +15020,15 @@ var CL_ITEMS_GA = [
 ];
 var GA_CL_ITEM_FIELDS = ['Comm Check','GA Check','Elec Check','Payment copy Check','CRM Check','Cremation Auth Check','POA Check'];
 function gaclImport() {
-  var name = (val('gaInsuredName') || val('fhClientName') || '').trim();
-  if (!name) { el('gaclImportDisplay').innerHTML = '<span style="color:#b45309;">No GA contract name found — fill the Pre-Need Contract (GA) tab (Insured/Client name) first, or just type the names below.</span>'; return; }
-  if (!el('gaclPurchaser').value) el('gaclPurchaser').value = name;
-  if (!el('gaclRecipient').value) el('gaclRecipient').value = name;   // insured is usually the recipient; editable
-  el('gaclImportDisplay').innerHTML = '<span style="color:#2e7d57;">Imported "' + _clSafeText(name) + '". Adjust the names if the purchaser differs from the insured.</span>';
+  // The GA contract keeps the Funeral Recipient (gaInsuredName) separate from the Purchaser
+  // (gaPurchaserName, blank when it's the same person). Map each to its own checklist field;
+  // fall back to the FH quote name / insured so a partly-filled contract still imports usefully.
+  var recipient = (val('gaInsuredName') || val('fhClientName') || '').trim();
+  var purchaser = (val('gaPurchaserName') || '').trim() || recipient;
+  if (!recipient && !purchaser) { el('gaclImportDisplay').innerHTML = '<span style="color:#b45309;">No GA contract name found — fill the Pre-Need Contract (GA) tab (Funeral Recipient name) first, or just type the names below.</span>'; return; }
+  if (!el('gaclPurchaser').value) el('gaclPurchaser').value = purchaser;
+  if (!el('gaclRecipient').value) el('gaclRecipient').value = recipient;
+  el('gaclImportDisplay').innerHTML = '<span style="color:#2e7d57;">Imported from the GA contract. Adjust the names if needed.</span>';
 }
 function gaclClearAll() {
   ['gaclPurchaser','gaclRecipient','gaclPricesConfirmedBy','gaclComments','gaclDateSubmitted'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
