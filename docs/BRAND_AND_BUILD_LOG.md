@@ -320,6 +320,50 @@ view, but the identical technique would apply if that's wanted too.
 
 ---
 
+### 2026-07-23 — Grid thumbnails + catalog PDFs: same white-box knockout
+
+Follow-up to the print-sheet fix above. The same white studio background was
+visible on (1) the on-screen product-grid thumbnails on all five catalogs, and
+(2) the small thumbnail images inside the downloadable multi-page catalog PDFs
+(same grid, rendered by `build_catalog_pdfs.mjs`) — both flagged as out of
+scope in the print-sheet fix and now addressed.
+
+Fix: added `mix-blend-mode:multiply` to `.product-img img` (the grid card
+image rule) in all five catalogs. One line each, same technique as the print
+sheet, but a different backdrop: the grid card's own background is
+`var(--sidebar-bg)` = `#f9f8f5`, even closer to pure white than the print
+sheet's `#F6F2E9`, so the knockout is effectively invisible on screen too.
+
+Did not assume the print-sheet result would transfer — tested in place first
+(edited `metal-caskets.html`, screenshotted before/after, reverted if it had
+looked wrong). Also stress-tested against the lightest product in the catalog
+("Apollo White/Pink," a white-painted casket with a pale pink interior) since
+that's the case most likely to show multiply's darkening side effect — no
+visible seam or muddying.
+
+Because `.product-img` styling isn't overridden inside either page's
+`@media print` block, this single rule automatically carries through into the
+catalog PDF render too (same DOM, same CSS) — no separate PDF-specific
+change needed.
+
+**Reran `scripts/build_catalog_pdfs.mjs` per the standing gotcha** (this is the
+one case above where a catalog's print appearance changed, so the static PDFs
+would otherwise go stale). Rendered a regenerated Metal Caskets.pdf page with
+PyMuPDF and confirmed the knockout shows there too, including on white and
+black caskets.
+
+Verified with Playwright across all five pages: grid thumbnail
+`mix-blend-mode` is `multiply`, the print-sheet fix from the previous entry is
+still intact and unregressed, and all images load without errors (forced lazy
+images to `eager` first — `loading="lazy"` meant most weren't loaded yet at
+check time, a test-harness detail, not a product bug).
+
+Remaining out-of-scope spot, noted for later if wanted: the enlarged product
+image in the on-click modal (`.product-modal-img`) still shows the white
+background — same technique would apply if that's ever requested.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
