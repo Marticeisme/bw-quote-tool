@@ -253,6 +253,30 @@ Deliberate departures:
 Verified headless: 7 categories, 20 cards, all 34 links resolve to files that exist,
 search/empty-state/clear all correct, 0 JS errors.
 
+### 2026-07-23 — guides.html: browser Back button fix
+
+Pushed `442945e`. Martice reported that after opening a guide, the browser Back
+button didn't return to the main guides screen — only the in-page "All Guides"
+link worked.
+
+Root cause: all 20 internal guide/tool/map card links (`.guide-cta`) had
+`target="_blank" rel="noopener"`, so each guide opened in a **new tab** with an
+empty history stack. Back had nothing to go back to in that tab; the guide's own
+"← All Guides" link was the only way out.
+
+Fix: removed `target="_blank" rel="noopener"` from all 20 internal links so they
+navigate in the same tab and build normal history. The external
+`bonneywatson.com` footer link keeps `target="_blank"` — that one's correctly a
+new-tab case.
+
+Verified: syntax check (0 errors), and a Playwright check from the repo root —
+clicked the Metal Caskets card, confirmed navigation stayed in the same tab
+(no second page opened), then `page.goBack()` landed back on `guides.html`.
+
+No catalog content changed, so `build_catalog_pdfs.mjs` did not need a rerun.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
