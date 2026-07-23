@@ -400,6 +400,18 @@ with an improvised process — no established script exists to do it safely.
 Verified with Playwright: 0 console errors, Section 6 renders cleanly with two
 balanced cards, screenshot checked for a stray bullet/spacing artifact (none).
 
+**Deferred, documented not done:** `pdf-assets/Burial Guide.pdf` (dated
+2026-07-17) is being left stale for now — intentional, per Martice. Beyond the
+grave-liner wording above, the PDF also has an older content gap: it used to
+include a **caskets section explaining wood vs. metal differences**, which the
+current `burial-guide.html` page no longer covers the same way (caskets are
+now a brief pointer to the separate Metal/Wood Casket Guides, not an
+in-page wood-vs-metal comparison). **When the Burial Guide PDF is eventually
+regenerated, that caskets / wood-vs-metal content needs to be reconciled
+against the current page, not just the liner wording.** No script currently
+builds this PDF from the page (see above) — that gap needs solving too before
+a rebuild is possible.
+
 ---
 
 ## 5. Working rules that keep biting us
