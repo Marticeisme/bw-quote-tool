@@ -416,9 +416,9 @@ a rebuild is possible.
 
 ### 2026-07-23 — Compare feature, all five catalogs
 
-New feature, built iteratively on `metal-caskets.html` first and approved before
-replicating to `wood-caskets.html`, `urns-guide.html`, `keepsake-urns-guide.html`,
-`cremation-containers-rental-caskets.html`.
+Pushed `adb1490`. New feature, built iteratively on `metal-caskets.html` first and
+approved before replicating to `wood-caskets.html`, `urns-guide.html`,
+`keepsake-urns-guide.html`, `cremation-containers-rental-caskets.html`.
 
 **What it is:** a "Compare" checkbox on every product card (max 4 selected) feeds a
 sticky bottom tray (chips with thumbnail/name/remove, a live count, a disabled-state
