@@ -364,6 +364,44 @@ background — same technique would apply if that's ever requested.
 
 ---
 
+### 2026-07-23 — burial-guide.html: drop grave liners, vaults only
+
+Martice: Bonney Watson only offers burial **vaults** at Washington Memorial Park,
+not grave liners — the "Outer Burial Containers" card in Section 6 ("Caskets,
+Vaults & Markers") listed both as options, which is wrong.
+
+Changes in `burial-guide.html`:
+- Removed the `<li><strong>Grave liner</strong> — concrete, most affordable</li>`
+  bullet from the Section 6 Outer Burial Containers card, keeping "Burial vault"
+  and "Required by cemetery, not by state law."
+- Reworded the card's intro sentence from "requires a concrete outer burial
+  container (vault or liner)" to "(vault)".
+- Found and fixed a second, same-fact dangling reference while checking for
+  orphaned liner mentions: Section 2 ("Burial vs. Entombment") described
+  ground burial as "sealed with a concrete vault or liner" — dropped "or
+  liner" there too, for consistency with Section 6's now vault-only framing.
+- No other liner references in the file. (Repo-wide "liner" hits elsewhere —
+  vault-guide.html's *interior* liner material call-outs, and an unrelated
+  urn accessory literally named "Brass Liner For Cocoa Clock/Symphony Chest"
+  — are different things and untouched.)
+
+Didn't add a new link to `vault-guide.html` from this card — the Caskets card
+already links out to the casket guides, and that was judged sufficient; no new
+cross-references were invented.
+
+**PDF note:** `burial-guide.html` is not part of the `build_catalog_pdfs.mjs`
+pipeline (that script only covers the five product catalogs) and no other
+script builds `pdf-assets/Burial Guide.pdf` from this page — it appears to be
+a one-off/manual export. So there's no rebuild gotcha to satisfy here, but as
+of this edit **`Burial Guide.pdf` (dated 2026-07-17) no longer matches the
+page** for this specific change. Flagging rather than silently regenerating it
+with an improvised process — no established script exists to do it safely.
+
+Verified with Playwright: 0 console errors, Section 6 renders cleanly with two
+balanced cards, screenshot checked for a stray bullet/spacing artifact (none).
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
