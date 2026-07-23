@@ -19,7 +19,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 SRC = r'D:\Property Cards\Batesville Product Images'
 CSVP = os.path.join(SRC, 'INDEX.csv')
 TEMPLATE = 'urns-guide.html'
-OUT = 'cremation-containers.html'
+OUT = 'cremation-containers-rental-caskets.html'
 # Own directory, matching the casket-images/<type> convention. Deliberately NOT
 # the existing cremation-images/, whose files are 298px - built for a different
 # layout and too soft for these cards - and which cremation-guide.html owns.

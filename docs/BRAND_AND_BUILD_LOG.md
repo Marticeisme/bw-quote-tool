@@ -128,7 +128,7 @@ Result — 220 products added across five catalogs:
 | `wood-caskets.html` | 21 | **62** | |
 | `urns-guide.html` | 115 | **154** | full-size 116 / companion 18 / bio 13 / scattering 7 |
 | `keepsake-urns-guide.html` | 91 | **102** | keepsake 65 / miniature 34 / pendants 2 / accessories 1 |
-| `cremation-containers.html` | — | **11** | new page, 8 containers + 3 rental caskets |
+| `cremation-containers-rental-caskets.html` | — | **11** | new page, 8 containers + 3 rental caskets |
 
 Enrichment: caskets gained exterior dimensions + weight; urns gained weight; keepsakes
 gained dimensions, weight, and a visible item number. `specLabels` extended on every
