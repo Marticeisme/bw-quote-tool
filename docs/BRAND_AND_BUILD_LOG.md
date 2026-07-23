@@ -174,6 +174,54 @@ Verified headless with Playwright — all five pages: 0 JS errors, 0 broken imag
 0 duplicate SKUs, search by name and item number, colour/wood filters, both sorts,
 and the detail modal.
 
+### 2026-07-22 — Catalog PDFs regenerated from the pages
+
+The `PDF ↓` buttons on `guides.html` point at **static files in `pdf-assets/`** — they
+are not generated on the fly. Expanding the catalogs left them stale (Metal Caskets.pdf
+was still 6pp / 27 products against a 142-product page). **Any time a catalog's contents
+change, rerun `scripts/build_catalog_pdfs.mjs`** or the download and the page disagree.
+
+| PDF | Was | Now |
+|---|---|---|
+| Metal Caskets.pdf | 6pp (27 products) | **25pp** (142) |
+| Wood Caskets.pdf | 5pp (21) | **11pp** (62) |
+| Urn Catalog.pdf | 14pp (115) | **15pp** (154) |
+| Keepsake Urn Catalog.pdf | 11pp (92) | **11pp** (102) |
+| Cremation Containers and Rental Caskets.pdf | — | **2pp** (11) — new |
+
+`scripts/build_catalog_pdfs.mjs` renders each page with Playwright using its own print
+stylesheet (`preferCSSPageSize` honours `@page{size:letter;margin:0}`) and
+`printBackground` so the navy/cream brand colours survive. Lazy images are forced to
+load first, otherwise blank tiles print.
+
+Chromium embeds the full 800px source images even though print shows them ~200pt wide,
+so the script then downsamples to 170dpi with Ghostscript. Metal Caskets went 6311 KB →
+1884 KB with no visible quality loss. The step is skipped gracefully if Ghostscript
+isn't installed. Urn/keepsake PDFs barely shrink because those images are already 400px.
+
+Filename note: the new PDF is "Cremation Containers **and** Rental Caskets.pdf" — an
+ampersand in a filename has to be `%26`-encoded in the href and is easy to break.
+
+Print behaviour, consistent across all five pages (inherited by the new page from the
+urns template):
+- `@page{size:letter;margin:0}` — edge-to-edge, no browser margins
+- `print-color-adjust:exact` — brand colours survive "Save as PDF"
+- `.no-print` hides the filter bar; `.product-card{break-inside:avoid}` stops cards
+  splitting across pages
+- every page also has a **per-product print sheet**: click a card → modal → print, which
+  renders that single product via `#printSheet` / `#psSpecs`
+
+Sort options are identical on all five (Price Low→High, Price High→Low, Name A→Z), and
+**all five now default to Price: Low to High** — urns/keepsakes/cremation previously
+defaulted to High→Low. Filters: metal has Colour (12 buckets), wood has Wood Type (4),
+the sectioned catalogs rely on their sections instead.
+
+Changing a default sort means **reordering the DOM too** — the build scripts read the
+first `<option>` in `#sortSelect` and lay the cards out to match, so a page never loads
+showing one order while the dropdown claims another. After changing it, rerun the
+relevant build script *and* `build_catalog_pdfs.mjs`, since card order is baked into the
+PDF.
+
 ---
 
 ## 5. Working rules that keep biting us
