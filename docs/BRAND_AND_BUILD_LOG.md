@@ -224,6 +224,35 @@ PDF.
 
 ---
 
+### 2026-07-22 — guides.html redesigned ("Warm Library")
+
+Rebuilt from the Claude Design handoff (`Bw Quote Tool Guides Redesign.zip`, Option 1a),
+treated as a **reference point rather than a literal spec**.
+
+`scripts/build_guides_page.py` reads the categories and cards **out of the existing
+page** and re-emits them in the new design, rather than retyping content. This is the
+important part: the mock predates the catalog expansion — it still says "27 products" and
+omits the Vital Information Worksheet card entirely. Regenerating from the live page means
+counts and cards can't regress. Rerun it after adding a guide, or hand-edit the output;
+both are fine since it round-trips.
+
+Taken from the mock: warm paper background `#f4efe6`, serif-led type, 3-up card grid with
+`flex:1` descriptions so actions bottom-align, gradient section rules
+(`linear-gradient(90deg,#d9cdb6,transparent)`), count pills, prominent search with
+magnifier, orange primary + ghost PDF buttons, and the meta line as an uppercase rule.
+
+Deliberate departures:
+- **Fonts stay Cormorant Garamond + Source Sans 3**, not the mock's Newsreader/Figtree.
+  This page is the hub linking to the five catalogs and shouldn't read as a different site.
+- **Navy/orange come from the catalog palette** (`#3d5a7a` / `#c8540a`) rather than the
+  mock's `#3e6274`, for the same reason.
+- Search matches title + description + **category name**, hides empty categories, shows an
+  "N of 20 guides" count, and keeps the existing empty state.
+- Added print CSS (hides chrome, avoids breaking cards across pages) — the mock had none.
+
+Verified headless: 7 categories, 20 cards, all 34 links resolve to files that exist,
+search/empty-state/clear all correct, 0 JS errors.
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
