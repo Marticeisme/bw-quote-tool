@@ -114,37 +114,65 @@ Pushed `7205a3b`. `vital-worksheet.html`.
   hidden inputs can't shift values into the wrong fields.
 - Verified by rendering the PDF to image (PyMuPDF) and inspecting before pushing.
 
-### 2026-07-22 — Batesville catalog expansion (in progress)
-Scope agreed with Martice:
-- Add missing Batesville products to the four existing catalogs **and** enrich existing
-  entries with better data from `INDEX.csv`.
-- Build one **new combined Cremation Containers + Rental Caskets** catalog (11 items).
-- Color-split casket catalogs (Blue/White/Brown-Copper-Auburn): leave alone for now.
-- Misc category (47 items): skipped for now.
+### 2026-07-22 — Batesville catalog expansion (complete)
+Scope agreed with Martice: add missing Batesville products to the four existing
+catalogs **and** enrich existing entries from `INDEX.csv`; build one new combined
+Cremation Containers + Rental Caskets catalog. Colour-split casket catalogs and the
+Misc category (47 items) deliberately left alone.
 
-Gap analysis vs `INDEX.csv`:
+Result — 220 products added across five catalogs:
 
-| Catalog | Live | In CSV | Matched | To add |
-|---|---|---|---|---|
-| Metal Caskets | 27 | 143 | 27 | **116** |
-| Wood Caskets | 21 | 61 | 20 | **41** |
-| Urns | 113 | 153 | 112 | **41** |
-| Keepsakes | 91 | 95 | 84 (by name) | **11** |
-| Cremation + Rental | — | 11 | — | **11 (new)** |
-| | | | | **220 total** |
+| Catalog | Before | After | Notes |
+|---|---|---|---|
+| `metal-caskets.html` | 27 | **142** | commit `0878f0a` |
+| `wood-caskets.html` | 21 | **62** | |
+| `urns-guide.html` | 115 | **154** | full-size 116 / companion 18 / bio 13 / scattering 7 |
+| `keepsake-urns-guide.html` | 91 | **102** | keepsake 65 / miniature 34 / pendants 2 / accessories 1 |
+| `cremation-containers.html` | — | **11** | new page, 8 containers + 3 rental caskets |
 
-Enrichment available: caskets currently show no dimensions or weight — `INDEX.csv` has
-`length_in`/`width_in`/`height_in`/`weight_lbs` for all 143 metal and 61 wood. Urns and
-keepsakes already show material, volume+cups, and dimensions.
+Enrichment: caskets gained exterior dimensions + weight; urns gained weight; keepsakes
+gained dimensions, weight, and a visible item number. `specLabels` extended on every
+page to keep the modal and print sheet labels aligned.
 
-Reconciliation notes:
-- Keepsakes are keyed by name slug, not SKU — matching is name-based. 7 live entries
-  didn't match the CSV by name (e.g. "Comet Meteor Gray Mini", "Tempest Copper Mini",
-  "Gold Urn Engraving Pendant"); likely renames, reconcile on price + dimensions rather
-  than guessing.
-- `wood-caskets.html` has 1 live SKU not in the CSV: `269150`.
-- `urns-guide.html` has 1 live SKU not in the CSV: `264754`.
-- Don't drop these — they're presumably intentional BW additions.
+Build scripts (repeatable, idempotent):
+- `scripts/build_metal_caskets.py` — flat grid + colour filter
+- `scripts/build_catalogs.py` — wood (flat grid + wood-type filter)
+- `scripts/build_sectioned_catalogs.py` — urns, keepsakes (multi-section)
+- `scripts/build_cremation_rental.py` — the new page, templated from `urns-guide.html`
+- `scripts/verify_catalogs.mjs` — headless checks; `scripts/shot.mjs` — screenshots
+
+Decisions worth remembering:
+- **Existing cards keep the section they're already in.** The live grouping encodes
+  human judgement the data can't reproduce — "Silver Steel Chest Urn" sits in Full-Size
+  while other chest urns sit in Companion. Only genuinely new products are classified,
+  and each assignment is printed for review. A classifier validated at only 106/115
+  against the existing page, which is why it must not overwrite placements.
+- New-urn rules: name→scattering; name/features→biodegradable; volume ≥350 cu in OR
+  name matching `companion|dual|memento chest`→companion; else full-size. "Memento
+  Chest" is explicit because every one already on the page is filed under Companion
+  regardless of capacity; plain "Chest Urn" is NOT a reliable signal.
+- **Cards with no CSV row are preserved verbatim.** Seven $49 keepsakes (Comet/Tempest/
+  Ellipse minis, engraving pendants) aren't in the Batesville data at all — no CSV
+  keepsake is priced under $59 — so they are BW additions, not renames. They keep their
+  slug keys and show no item number, which is correct: they have no Batesville SKU.
+- Keepsake cards matched to the CSV are re-keyed to the real SKU while keeping their
+  existing image filename, so joins are exact without churning 84 images.
+- SKU `269150` (Lyra Natural) is filed under Metal Caskets in the CSV but ships in
+  `wood-caskets.html`; excluded from metal so families don't see it twice.
+  SKU `264754` is a Misc item deliberately placed in the urn catalog. Both preserved.
+- DOM card order follows each page's default sort dropdown (metal/wood ascending,
+  urns/keepsakes/cremation descending) so a page never loads showing "High to Low"
+  over a low-to-high list.
+- New page uses `casket-images/cremation/` at 800×800, NOT the existing
+  `cremation-images/` — those are 298px, built for a different layout, and owned by
+  `cremation-guide.html`.
+
+`guides.html` updated: all four counts refreshed and a card added for the new catalog
+(20 cards total).
+
+Verified headless with Playwright — all five pages: 0 JS errors, 0 broken images,
+0 duplicate SKUs, search by name and item number, colour/wood filters, both sorts,
+and the detail modal.
 
 ---
 
