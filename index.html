@@ -2315,6 +2315,28 @@ tr:hover td{background:#eef3f8;}
         </div>
       </div>
 
+      <!-- Rental Casket -->
+      <div class="q-panel">
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Rental Casket<span class="tax-pill tax-taxable">Taxable</span></div>
+        <div class="q-panel-body">
+          <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">Effective January 1, 2026. Subject to change without notice.</div>
+          <div class="q-row">
+            <label>Rental Casket</label>
+            <select id="fhRentalCasket" onchange="fhUpdateD()">
+              <option value="">— None —</option>
+              <option value="1930">Brockton 27 Rental (#246588) — $1,930.00</option>
+              <option value="2300">Beckham Rental 27 (#246589) — $2,300.00</option>
+              <option value="3150">Fairview Rental 27 (#283201) — $3,150.00</option>
+            </select>
+            <span id="fhRentalCasketDisp" class="q-price-disp">—</span>
+          </div>
+          <div class="q-row" id="fhRentalCasketQtyRow" style="display:none;">
+            <label style="font-size:11px;color:var(--text-light);">Qty</label>
+            <input type="number" id="fhRentalCasketQty" min="1" max="99" value="1" oninput="fhUpdateD()" style="width:60px;">
+          </div>
+        </div>
+      </div>
+
       <!-- Cremation Containers -->
       <div class="q-panel">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Cremation Container<span class="tax-pill tax-taxable">Taxable</span></div>
@@ -2332,9 +2354,13 @@ tr:hover td{background:#eef3f8;}
                 <option value="1610">Grey Doeskin Oval – Cloth, Crepe (#147970) — $1,610</option>
               </optgroup>
               <optgroup label="── Alternative Containers ──">
-                <option value="880">Standard Brown — $880</option>
-                <option value="595">Baden — $595</option>
-                <option value="480">Trayview Cremation Container (#242414) — $480</option>
+                <option value="880">Standard Brown (#177130) — $880.00</option>
+                <!-- #145232 is a separate SKU that happens to share Standard Brown's $880 price;
+                     the value carries the item # so restoreFieldState() can tell the two apart. -->
+                <option value="880|145232">Standard Alternative Container (#145232) — $880.00</option>
+                <option value="1090">Stratus Alternative Container (#177129) — $1,090.00</option>
+                <option value="595">Baden Alternative Container (#252321) — $595.00</option>
+                <option value="480">Trayview Cremation Container (#242414) — $480.00</option>
               </optgroup>
             </select>
             <span id="fhCremContainerDisp" class="q-price-disp">—</span>
@@ -2392,6 +2418,62 @@ tr:hover td{background:#eef3f8;}
                   <option value="50">Hard Cover Photobook — $50</option>
                   <option value="235">Canvas Portrait w/ Ground Shipping — $235</option>
                   <option value="255">Canvas Portrait w/ Next Day Shipping — $255</option>
+                </optgroup>
+                <optgroup label="── Casket Tribute Panels ──">
+                  <option value="255">Going Home Tribute Panel (#146903) — $255.00</option>
+                  <option value="255">Going Home Tribute Panel (#146904) — $255.00</option>
+                  <option value="255">Mother with Roses Tribute Panel (#146951) — $255.00</option>
+                  <option value="255">Mother/Grandmother with Roses Tribute Panel (#146959) — $255.00</option>
+                  <option value="255">Praying Hands Tribute Panel (#146912) — $255.00</option>
+                  <option value="255">Veterans Flag Tribute Panel (#146999) — $255.00</option>
+                </optgroup>
+                <optgroup label="── Casket Decorative Kits ──">
+                  <option value="70">Father Decorative Kit (#279251) — $70.00</option>
+                  <option value="70">Going Home Decorative Kit (#279248) — $70.00</option>
+                  <option value="70">Mother Decorative Kit (#279252) — $70.00</option>
+                  <option value="70">Our Lady Of Guadalupe Decorative Kit (#279250) — $70.00</option>
+                  <option value="70">Praying Hands Decorative Kit (#279247) — $70.00</option>
+                  <option value="70">Querida Madre Decorative Kit (#279256) — $70.00</option>
+                  <option value="70">Querido Padre Decorative Kit (#279255) — $70.00</option>
+                  <option value="70">Regresando a Casa Decorative Kit (#279254) — $70.00</option>
+                  <option value="70">Rose Decorative Kit (#279246) — $70.00</option>
+                  <option value="70">Salmo 23 (#279253) — $70.00</option>
+                  <option value="70">U.S. Flag Decorative Kit (#279249) — $70.00</option>
+                </optgroup>
+                <optgroup label="── LifeStories Interiors ──">
+                  <option value="150">LifeStories Interior Black Tweed (#285944) — $150.00</option>
+                  <option value="150">LifeStories Interior Red Velvet (#285945) — $150.00</option>
+                  <option value="150">LifeStories Interior Royal Blue (#285946) — $150.00</option>
+                  <option value="150">LifeStories Interior Sage Green (#285943) — $150.00</option>
+                  <option value="150">LifeStories Interior Silver Jacquard (#285942) — $150.00</option>
+                </optgroup>
+                <optgroup label="── LifeStories MemoryFrames ──">
+                  <option value="150">LifeStories MemoryFrame Black Design (#286009) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Floral Design (#286002) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Ocean Design (#286003) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Outdoors Mountain Sunset Design (#286005) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Outdoors Sunrise Field Design (#286004) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Patriotic Design (#286006) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Religious Clouds Design (#286008) — $150.00</option>
+                  <option value="150">LifeStories MemoryFrame Religious Cross Design (#286007) — $150.00</option>
+                </optgroup>
+                <optgroup label="── Flag Cases &amp; Bases ──">
+                  <option value="395">Cherry Flag Case Base (#270135) — $395.00</option>
+                  <option value="395">Walnut Flag Case Base (#270136) — $395.00</option>
+                  <option value="350">Flag Case - Cherry (#198158) — $350.00</option>
+                  <option value="350">Flag Case - Presidential Walnut (#185361) — $350.00</option>
+                </optgroup>
+                <optgroup label="── Urn Vault Accessories ──">
+                  <option value="50">Vanderbur Urn Vault Oval Bronze Engraving Plate (#259968) — $50.00</option>
+                </optgroup>
+                <optgroup label="── Photo &amp; Medallion Keepsakes ──">
+                  <option value="85">LifeStories Display Medallion Photo Chest (#243626) — $85.00</option>
+                  <option value="85">LifeStories Medallion Photo Frame (#243627) — $85.00</option>
+                  <option value="79">LifeStories Distressed Photoframe (#270050) — $79.00</option>
+                  <option value="75">LifeSymbols Keepsake Plaque (#184629) — $75.00</option>
+                  <option value="60">LifeSymbols Corner-Cabris Antique Nickel (#238237) — $60.00</option>
+                  <option value="60">LifeSymbols Corner-Cabris Tiffany Gold (#238238) — $60.00</option>
+                  <option value="50">LifeStories Keepsake Medallion Bezel - Set of 5 (#243716) — $50.00</option>
                 </optgroup>
               </select>
               <input type="number" id="fhMemPkgPickQty" min="1" max="99" value="1" style="width:54px;" title="Qty">
@@ -5475,14 +5557,14 @@ var CASKET_DATA = [
 
 // ═══ URN DATA ═══
 var URN_DATA = [
+  {n:"Marsellus President Memento Chest",i:"205538",p:1935,l:"Marsellus President Memento Chest (#205538) — $1,935.00"},
   {n:"Aristocrat Urn",i:"100199",p:1920,l:"Aristocrat Urn (#100199) — $1,920.00"},
-  {n:"Eternal Companion Memento  Chest",i:"197260",p:1295,l:"Eternal Companion Memento  Chest (#197260) — $1,295.00"},
+  {n:"Eternal Companion Memento Chest",i:"197260",p:1295,l:"Eternal Companion Memento Chest (#197260) — $1,295.00"},
   {n:"Jefferson Urn",i:"100126",p:1295,l:"Jefferson Urn (#100126) — $1,295.00"},
   {n:"Fredericksburg Cherry Dual Urn",i:"100095",p:1195,l:"Fredericksburg Cherry Dual Urn (#100095) — $1,195.00"},
   {n:"Fredericksburg Urn",i:"100107",p:1095,l:"Fredericksburg Urn (#100107) — $1,095.00"},
   {n:"Milan Urn",i:"100059",p:1075,l:"Milan Urn (#100059) — $1,075.00"},
   {n:"Unity Dual Capacity Urn",i:"148358",p:895,l:"Unity Dual Capacity Urn (#148358) — $895.00"},
-  {n:"Standard Brown",i:"177130",p:880,l:"Standard Brown (#177130) — $880.00"},
   {n:"Mason Cherry Urn",i:"220317",p:795,l:"Mason Cherry Urn (#220317) — $795.00"},
   {n:"Liberty Cherry Urn",i:"100100",p:715,l:"Liberty Cherry Urn (#100100) — $715.00"},
   {n:"Brushed Sheet Bronze Niche Urn",i:"148368",p:695,l:"Brushed Sheet Bronze Niche Urn (#148368) — $695.00"},
@@ -5586,6 +5668,7 @@ var URN_DATA = [
   {n:"Red Rosette Cloisonne Keepsake",i:"270114",p:350,l:"Red Rosette Cloisonne Keepsake (#270114) — $350.00"},
   {n:"Smithton Bronze",i:"284116",p:350,l:"Smithton Bronze (#284116) — $350.00"},
   {n:"Smithton Pewter",i:"284115",p:350,l:"Smithton Pewter (#284115) — $350.00"},
+  {n:"Glencoe Bronze Urn",i:"285961",p:350,l:"Glencoe Bronze Urn (#285961) — $350.00"},
   {n:"Aberdeen Dark Bronze Keepsake",i:"285960",p:295,l:"Aberdeen Dark Bronze Keepsake (#285960) — $295.00"},
   {n:"Adams Amber Wheat",i:"284182",p:295,l:"Adams Amber Wheat (#284182) — $295.00"},
   {n:"Adams Gypsum",i:"284186",p:295,l:"Adams Gypsum (#284186) — $295.00"},
@@ -5638,6 +5721,7 @@ var URN_DATA = [
   {n:"Stonecrest Carrera Candle Kpsk",i:"285778",p:250,l:"Stonecrest Carrera Candle Kpsk (#285778) — $250.00"},
   {n:"Stonecrest Golden Ebony Candle Kpsk",i:"285781",p:250,l:"Stonecrest Golden Ebony Candle Kpsk (#285781) — $250.00"},
   {n:"Stonecrest Verde Candle Kpsk",i:"285784",p:250,l:"Stonecrest Verde Candle Kpsk (#285784) — $250.00"},
+  {n:"Nebula Silver Claret Urn",i:"285897",p:250,l:"Nebula Silver Claret Urn (#285897) — $250.00"},
   {n:"Angelic Reflections Biodegradable Urn",i:"240066",p:235,l:"Angelic Reflections Biodegradable Urn (#240066) — $235.00"},
   {n:"Butterfly Reflections Biodegradable Urn",i:"252359",p:235,l:"Butterfly Reflections Biodegradable Urn (#252359) — $235.00"},
   {n:"Cherished Reflections Biodegradable Urn",i:"252360",p:235,l:"Cherished Reflections Biodegradable Urn (#252360) — $235.00"},
@@ -5690,7 +5774,9 @@ var URN_DATA = [
   {n:"Taurus Natural MDF",i:"284132",p:150,l:"Taurus Natural MDF (#284132) — $150.00"},
   {n:"Taurus Walnut MDF",i:"284131",p:150,l:"Taurus Walnut MDF (#284131) — $150.00"},
   {n:"Verona Beige Keepsake",i:"285015",p:150,l:"Verona Beige Keepsake (#285015) — $150.00"},
+  {n:"Eco Scattering Urn Keepsake",i:"282920",p:149.6,l:"Eco Scattering Urn Keepsake (#282920) — $149.60"},
   {n:"Basic Urn",i:"144682",p:145,l:"Basic Urn (#144682) — $145.00"},
+  {n:"Eco Scattering Urn",i:"282919",p:145,l:"Eco Scattering Urn (#282919) — $145.00"},
   {n:"Ashen Pewter Miniature Kpsk",i:"205401",p:125,l:"Ashen Pewter Miniature Kpsk (#205401) — $125.00"},
   {n:"Atlas Ivory Keepsake",i:"282813",p:125,l:"Atlas Ivory Keepsake (#282813) — $125.00"},
   {n:"Atlas Onyx Keepsake",i:"282810",p:125,l:"Atlas Onyx Keepsake (#282810) — $125.00"},
@@ -5707,15 +5793,23 @@ var URN_DATA = [
   {n:"Delphia Wings Miniature Kpsk",i:"235718",p:125,l:"Delphia Wings Miniature Kpsk (#235718) — $125.00"},
   {n:"Mailer",i:"281665",p:125,l:"Mailer (#281665) — $125.00"},
   {n:"Nebula Royal Plum Keepsake",i:"282819",p:125,l:"Nebula Royal Plum Keepsake (#282819) — $125.00"},
+  {n:"Eco Scattering Urn Mini",i:"282921",p:125,l:"Eco Scattering Urn Mini (#282921) — $125.00"},
+  {n:"Nebula Silver Claret Keepsake",i:"285898",p:125,l:"Nebula Silver Claret Keepsake (#285898) — $125.00"},
+  {n:"Nebula Indigo Blue Keepsake",i:"285901",p:125,l:"Nebula Indigo Blue Keepsake (#285901) — $125.00"},
+  {n:"Cresthaven Lavender Mini Urn",i:"285978",p:125,l:"Cresthaven Lavender Mini Urn (#285978) — $125.00"},
   {n:"Vista Reflections Scattering Tube",i:"282981",p:95,l:"Vista Reflections Scattering Tube (#282981) — $95.00"},
   {n:"Botanical Reflections Scattering Tube",i:"282982",p:95,l:"Botanical Reflections Scattering Tube (#282982) — $95.00"},
   {n:"Mountain View Scattering Tube",i:"282959",p:95,l:"Mountain View Scattering Tube (#282959) — $95.00"},
   {n:"Patriot Scattering Tube",i:"282958",p:95,l:"Patriot Scattering Tube (#282958) — $95.00"},
   {n:"Ocean Sunset Scattering Tube",i:"282957",p:95,l:"Ocean Sunset Scattering Tube (#282957) — $95.00"},
   {n:"Starlight Patriot Miniature",i:"285911",p:75,l:"Starlight Patriot Miniature (#285911) — $75.00"},
+  {n:"Starlight Ebony Miniature",i:"285908",p:75,l:"Starlight Ebony Miniature (#285908) — $75.00"},
   {n:"Atlas Ivory Mini",i:"282814",p:59,l:"Atlas Ivory Mini (#282814) — $59.00"},
   {n:"Atlas Onyx Mini",i:"282811",p:59,l:"Atlas Onyx Mini (#282811) — $59.00"},
   {n:"Nebula Royal Plum Mini",i:"282820",p:59,l:"Nebula Royal Plum Mini (#282820) — $59.00"},
+  {n:"Nebula Silver Claret Miniature",i:"285899",p:59,l:"Nebula Silver Claret Miniature (#285899) — $59.00"},
+  {n:"Nebula Indigo Blue Mini",i:"285902",p:59,l:"Nebula Indigo Blue Mini (#285902) — $59.00"},
+  {n:"Atlas Sagebrush Miniature",i:"285905",p:59,l:"Atlas Sagebrush Miniature (#285905) — $59.00"},
   {n:"Comet Meteor Gray Mini",i:"282817",p:49,l:"Comet Meteor Gray Mini (#282817) — $49.00"},
   {n:"Comet Soft Pink Mini",i:"282823",p:49,l:"Comet Soft Pink Mini (#282823) — $49.00"},
   {n:"Ellipse Blue Mini",i:"282865",p:49,l:"Ellipse Blue Mini (#282865) — $49.00"},
@@ -5841,6 +5935,11 @@ var _PL_CAT_CEM = [
   [/garden|lawn|niche|mausoleum|crypt|\bspace|\bplot|estate|section/, 'Plots & Spaces'],
 ];
 var _PL_CAT_FH = [
+  // Branded merchandise lines first — their product names collide with the generic keyword
+  // rules below ("LifeStories MemoryFrame Floral Design" would otherwise land in Flowers,
+  // "Vanderbur Urn Vault … Engraving Plate" in Urns).
+  [/lifestories|lifesymbols|tribute panel|decorative kit|flag case|memoryframe|engraving plate/, 'Memorial Merchandise'],
+  [/casket spray/, 'Flowers'],          // a casket spray is a flower, not a casket
   [/casket/, 'Caskets'],
   [/container/, 'Cremation Containers'],
   [/scattering|urn/, 'Urns & Scattering'],
@@ -5865,13 +5964,13 @@ var _PL_ORDER = [
   'Additional Rights','Disinterment','Burial Vaults','Urn Vaults','Vault & Urn-Vault Settings',
   'Flat / Flush Markers','Upright & Granite Monuments','Bronze Markers & Add-Ons','Vases','Vase Blocks',
   'Inscriptions & Services','Marker Services','Portraits','Photo Frames','Veterans Memorials','3rd Party & PCM Services','Other Cemetery',
-  'Price Plans','Professional Services','Facilities & Staff','Transportation','Caskets','Cremation Containers',
+  'Price Plans','Professional Services','Facilities & Staff','Transportation','Caskets','Rental Caskets','Cremation Containers',
   'Cremation Services','Urns & Scattering','Flowers','Memorial Merchandise','Cash Advance & Fees','Other Funeral Home'
 ];
 // Panel-fallback titles (used when keyword rules miss, e.g. named flowers/caskets) → canonical labels
 // so "Cremation Container"/"Urns"/"Crypt-Front Photo Frames" don't split from their keyword categories.
 var _PL_CANON = {
-  'Cremation Container':'Cremation Containers','Urns':'Urns & Scattering',
+  'Cremation Container':'Cremation Containers','Rental Casket':'Rental Caskets','Urns':'Urns & Scattering',
   'Crypt-Front Photo Frames':'Photo Frames','Recording & Scheduling':'Scheduling Fees'
 };
 function _plHeaderTitle(h){
@@ -5891,7 +5990,8 @@ function buildPriceIndex() {
     if (seen[key]) return; seen[key] = 1;
     var cat = _plCategory(name, venue);
     if (/^Other/.test(cat) && panelCat) cat = _PL_CANON[panelCat] || panelCat;  // named products (flowers/caskets/…) → their builder panel
-    PRICE_INDEX.push({ name:name, price:num, label:'$'+num.toLocaleString('en-US'), section:sectionId, venue:venue||'Other', cat:cat, nl:name.toLowerCase() });
+    var lbl = '$' + num.toLocaleString('en-US', { minimumFractionDigits: num % 1 ? 2 : 0, maximumFractionDigits: 2 });
+    PRICE_INDEX.push({ name:name, price:num, label:lbl, section:sectionId, venue:venue||'Other', cat:cat, nl:name.toLowerCase() });
   }
   function scan(sel) {
     document.querySelectorAll(sel).forEach(function(elm) {
@@ -5908,6 +6008,12 @@ function buildPriceIndex() {
   scan('#section-cem-quote option, #section-fh-quote option');
   scan('#section-cem-quote .q-check-row label, #section-fh-quote .q-check-row label');
   scan('#section-cem-quote .q-group-label, #section-fh-quote .q-group-label');
+
+  // Caskets and urns/keepsakes are held in JS catalogs and rendered into their own type-ahead
+  // dropdowns, so they have no <option> elements for the DOM scans above to find — every one of
+  // them was missing from search and the Price List. Feed the catalogs in directly.
+  if (typeof CASKET_DATA !== 'undefined') CASKET_DATA.forEach(function(c){ add(c.n, c.p, 'fh-quote', 'Funeral Home', 'Caskets'); });
+  if (typeof URN_DATA   !== 'undefined') URN_DATA.forEach(function(u){ add(u.n, u.p, 'fh-quote', 'Funeral Home', 'Urns & Scattering'); });
 }
 window.buildPriceIndex = buildPriceIndex;
 
@@ -9103,13 +9209,28 @@ function fhUpdate() {
     }
   });
 
+  // Rental Casket (taxable) — kept off the "Casket:" prefix on purpose: the GA/ClearPoint
+  // importers match the purchased casket with /^Casket:/i, and a rental is not a sale.
+  var fhRCv = parseFloat(val('fhRentalCasket')) || 0;
+  if (fhRCv) {
+    var rcQty = qty('fhRentalCasketQty') * fhPersonQty;
+    el('fhRentalCasketQtyRow').style.display = 'flex';
+    var rcEl = el('fhRentalCasket');
+    var rcLbl = rcEl.options[rcEl.selectedIndex].text.replace(/ — \$[\d,]+(?:\.\d{2})?$/, '');
+    lines.push({label: 'Rental Casket: ' + rcLbl + (rcQty > 1 ? ' \xd7' + rcQty : ''), amount: fhRCv * rcQty, taxable: true});
+    setDisp('fhRentalCasketDisp', fhRCv * rcQty);
+  } else {
+    el('fhRentalCasketQtyRow') && (el('fhRentalCasketQtyRow').style.display = 'none');
+    setDisp('fhRentalCasketDisp', 0);
+  }
+
   // Cremation Container (taxable)
   var fhCCv = parseFloat(val('fhCremContainer')) || 0;
   if (fhCCv) {
     var ccQty = qty('fhCremContainerQty') * fhPersonQty;
     el('fhCremContainerQtyRow').style.display = 'flex';
     var ccEl = el('fhCremContainer');
-    var ccLbl = ccEl.options[ccEl.selectedIndex].text.replace(/ \u2014 \$[\d,]+$/, '');
+    var ccLbl = ccEl.options[ccEl.selectedIndex].text.replace(/ \u2014 \$[\d,]+(?:\.\d{2})?$/, '');
     lines.push({label: 'Cremation Container: ' + ccLbl + (ccQty > 1 ? ' \xd7' + ccQty : ''), amount: fhCCv * ccQty, taxable: true});
     setDisp('fhCremContainerDisp', fhCCv * ccQty);
   } else {
@@ -9228,7 +9349,7 @@ function resetFHQuote() {
   el('fhPlanItems').innerHTML = '';
   el('fhPlanArea').style.display = 'none';
   _activePlanType = ''; _activePlanKey = ''; _lockedPlanDiscount = 0;
-  ['fhViewing','fhReception','fhCasket','fhCasketSearch','fhCremContainer','fhMemPkg','fhCountyFee','fhDiscType','fhDiscMode','fhUrnPick','fhFlowerPick'].forEach(function(id) {
+  ['fhViewing','fhReception','fhCasket','fhCasketSearch','fhRentalCasket','fhCremContainer','fhMemPkg','fhCountyFee','fhDiscType','fhDiscMode','fhUrnPick','fhFlowerPick'].forEach(function(id) {
     var e = el(id); if (e) e.value = '';
   });
   ['fhBasicSvc','fhEmbalming','fhLimitedPrep','fhOtherPrep','fhAutopsy','fhHair','fhShelter','fhLongShelter',
@@ -14373,7 +14494,7 @@ function categorizeFHLines(lines) {
     if (l.isDiscount) return 'Discounts';
     if (l.memPkg)     return 'Memorial Packages';
     var lb = l.label;
-    if (/^Casket:|^Cremation Container:|Cremation Container/i.test(lb)) return 'Caskets';
+    if (/^Casket:|^Rental Casket:|^Cremation Container:|Cremation Container/i.test(lb)) return 'Caskets';
     if (/Memorial Package|Memorial Collection|Memorial.*Pkg/i.test(lb)) return 'Memorial Packages';
     if (/^Urn:|Urn Allowance/i.test(lb))                                return 'Urns';
     if (/Flowers?:|Floral|Arrangement|Spray|Corsage|Boutonniere|Flower Allowance/i.test(lb)) return 'Flowers';
