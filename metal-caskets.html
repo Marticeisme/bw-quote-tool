@@ -79,7 +79,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   @page{size:letter;margin:0;}
   html{height:100%;background:#f8f6f2;}
   body{background:#f8f6f2;font-size:10pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.nav-back,.filter-bar,.doc-footer,.contents{display:none!important;}
+  .site-nav,.site-footer,.nav-back,.filter-bar,.doc-footer,.contents,.compare-tray,.compare-overlay,.compare-toggle,.photo-lightbox{display:none!important;}
   .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
   .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .cover h1{font-size:26pt;}
@@ -153,6 +153,172 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .ps-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:11px;color:#8a9299;}
   .ps-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:11px;color:#8a9299;text-align:right;}
 }
+
+/* ---------- COMPARE: card toggle ---------- */
+.compare-toggle{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--text-muted);cursor:pointer;user-select:none;}
+.compare-toggle input{width:15px;height:15px;accent-color:var(--navy);cursor:pointer;}
+.compare-toggle input:disabled{cursor:not-allowed;opacity:.4;}
+.compare-toggle input:disabled ~ span{opacity:.4;}
+.product-card.comparing{border-color:var(--navy);box-shadow:0 0 0 2px rgba(61,90,122,.15);}
+
+/* ---------- COMPARE: sticky tray ---------- */
+.compare-tray{position:fixed;left:0;right:0;bottom:-100px;background:var(--navy-dark);box-shadow:0 -6px 24px rgba(0,0,0,.2);z-index:500;transition:bottom .25s ease;padding:14px 24px;}
+.compare-tray.visible{bottom:0;}
+.compare-tray-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.compare-tray-items{display:flex;gap:10px;flex:1;flex-wrap:wrap;min-width:0;}
+/* Chip is an opaque light pill (not the translucent-over-navy it was) so the
+   thumbnail's mix-blend-mode:multiply has an actual light backdrop to blend
+   against — blend-mode folds an element's OWN background into what gets
+   blended too, so a background set on the (blended) img itself never helped
+   once object-fit:cover left no gap for it to show through; only a genuinely
+   opaque ancestor behind the img does the job (same fix as the lightbox stage). */
+.compare-chip{display:flex;align-items:center;gap:8px;background:#fff;border-radius:8px;padding:6px 10px 6px 6px;}
+.compare-chip img{width:32px;height:32px;object-fit:cover;border-radius:4px;mix-blend-mode:multiply;display:block;}
+.compare-chip-name{font-size:12.5px;color:var(--navy-dark);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.compare-chip-remove{background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px;}
+.compare-chip-remove:hover{color:var(--orange-dark);}
+.compare-tray-actions{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.compare-tray-msg{font-size:12px;color:var(--orange-soft);}
+.compare-tray-clear{background:none;border:none;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;text-decoration:underline;}
+.compare-tray-clear:hover{color:#fff;}
+.compare-tray-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.compare-tray-btn:hover{background:var(--orange-dark);}
+.compare-tray-btn:disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:not-allowed;}
+
+/* ---------- COMPARE: side-by-side view (full screen) ---------- */
+.compare-overlay{display:none;position:fixed;inset:0;background:#fff;z-index:9997;}
+.compare-overlay.active{display:block;}
+.compare-modal{width:100%;height:100%;display:flex;flex-direction:column;}
+.compare-header{display:flex;align-items:center;gap:18px;padding:16px 32px;border-bottom:1px solid var(--warm-border);flex-wrap:wrap;flex-shrink:0;}
+.compare-title{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--navy-dark);margin-right:auto;}
+.compare-tabs{display:flex;gap:4px;background:var(--sidebar-bg);border-radius:8px;padding:4px;}
+.compare-tab{background:none;border:none;padding:8px 16px;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
+.compare-tab.active{background:#fff;color:var(--navy-dark);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+.compare-tab:hover:not(.active){color:var(--navy);}
+.compare-print-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.compare-print-btn:hover{background:var(--navy-dark);}
+.compare-close{width:36px;height:36px;flex-shrink:0;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;font-size:20px;line-height:36px;text-align:center;color:var(--text-muted);transition:background .15s;}
+.compare-close:hover{background:rgba(0,0,0,.12);color:var(--text-dark);}
+.compare-body{flex:1;overflow-y:auto;padding:32px;}
+.compare-panel{display:none;}
+.compare-panel.active{display:block;}
+/* Photos panel fills the available height (specs panel stays block — a table
+   doesn't need to stretch, only the photo grid benefits from it). Higher
+   specificity than .compare-panel.active{display:block} above via the ID. */
+#comparePhotoPanel.active{display:flex;flex-direction:column;height:100%;}
+
+.compare-table{display:grid;border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;max-width:1300px;margin:0 auto;}
+.compare-table-row{display:contents;}
+.compare-corner{background:transparent;}
+.compare-label-cell{padding:12px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);background:var(--sidebar-bg);display:flex;align-items:center;border-top:1px solid var(--warm-border);}
+.compare-value-cell{padding:12px 14px;font-size:13.5px;color:var(--text);border-top:1px solid var(--warm-border);border-left:1px solid var(--warm-border);display:flex;align-items:center;}
+.compare-table-row.diff .compare-label-cell{background:#F6E4D1;color:var(--orange-dark);}
+.compare-table-row.diff .compare-value-cell{background:#FBF1E7;font-weight:700;color:var(--navy-dark);}
+.compare-col-header{padding:16px 14px;border-left:1px solid var(--warm-border);text-align:center;display:flex;flex-direction:column;align-items:center;}
+.compare-col-img{width:100%;max-width:130px;aspect-ratio:1/1;object-fit:cover;background:var(--sidebar-bg);mix-blend-mode:multiply;border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;}
+.compare-col-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:6px;}
+.compare-col-remove{background:none;border:none;color:var(--text-muted);font-size:11.5px;cursor:pointer;text-decoration:underline;}
+.compare-col-remove:hover{color:var(--orange-dark);}
+
+/* Fills the full panel height (set by JS per item count: 1 row for 2 items,
+   2x2 for 4, and 2-over-1(full-width) for 3 — see renderPhotoPanel). Each
+   cell's image wrap is flex:1 rather than aspect-ratio:1/1, so the photo is
+   bounded by whichever of the cell's width/height is smaller, using all the
+   space the grid actually gives it instead of just stretching to fill width. */
+.compare-photo-grid{display:grid;gap:24px;max-width:1800px;width:100%;margin:0 auto;flex:1;min-height:0;}
+.compare-photo-col{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
+.compare-photo-img-wrap{background:var(--sidebar-bg);border-radius:12px;overflow:hidden;flex:1;width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;cursor:zoom-in;margin-bottom:16px;}
+.compare-photo-img-wrap img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply;}
+.compare-photo-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy-dark);margin-bottom:4px;}
+.compare-photo-price{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.compare-photo-item{font-size:11.5px;color:var(--text-muted);font-family:monospace;margin-bottom:10px;}
+.compare-photo-remove{background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+.compare-photo-remove:hover{color:var(--orange-dark);}
+
+/* ---------- COMPARE: photo lightbox ---------- */
+.photo-lightbox{display:none;position:fixed;inset:0;background:rgba(20,24,30,.92);z-index:9998;align-items:center;justify-content:center;padding:48px;}
+.photo-lightbox.active{display:flex;}
+/* mix-blend-mode blends an element's own background too, so a light background
+   set directly on the (blended) img would itself darken against this backdrop.
+   A separate opaque "stage" behind the img is what the print sheet/tray chips
+   already rely on — same fix here. */
+.photo-lightbox-stage{background:#f4f2ee;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:24px;}
+/* Sized in viewport units, not % — the stage has no explicit height (it
+   shrink-wraps its content), so a percentage max-height on the img can't
+   resolve against it and the image renders unconstrained, overflowing the
+   stage's own box into the dark backdrop outside it. */
+.photo-lightbox-stage img{display:block;max-width:70vw;max-height:70vh;object-fit:contain;mix-blend-mode:multiply;}
+.photo-lightbox-caption{position:absolute;bottom:36px;left:0;right:0;text-align:center;color:#fff;font-family:'Cormorant Garamond',serif;font-size:20px;}
+.photo-lightbox-close{position:absolute;top:24px;right:32px;width:40px;height:40px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:#fff;font-size:20px;cursor:pointer;transition:background .15s;}
+.photo-lightbox-close:hover{background:rgba(255,255,255,.28);}
+
+@media(max-width:768px){
+  .compare-tray-inner{flex-direction:column;align-items:stretch;}
+  .compare-tray-actions{justify-content:space-between;}
+  .compare-header{padding:14px 18px;gap:12px;}
+  .compare-title{width:100%;margin-right:0;}
+  .compare-body{padding:20px;}
+}
+
+/* ---------- COMPARE PRINT SHEET (side-by-side, single page) ---------- */
+#compareSheet{display:none;}
+@media print{
+  body.compare-printing *{display:none!important;}
+  body.compare-printing #compareSheet,
+  body.compare-printing #compareSheet *{display:block!important;}
+  body.compare-printing #compareSheet{display:flex!important;flex-direction:column;position:fixed;inset:0;width:100%;height:100%;background:#F6F2E9;z-index:99999;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{size:letter;margin:0;}
+
+  /* Layout-critical rules are prefixed with body.compare-printing #compareSheet
+     so their specificity beats the blanket "display:block!important" reset two
+     rules up (that selector carries an ID; a bare .cmp-x class alone would lose
+     to it). Purely cosmetic rules (fonts/colors/spacing, no display override)
+     don't need the prefix since there's no competing declaration to out-rank. */
+  body.compare-printing #compareSheet .cmp-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:14px 36px;border-bottom:3px solid #E5480F;}
+  .cmp-masthead img{height:36px;width:auto;}
+  .cmp-masthead-right{margin-left:auto;text-align:right;}
+  .cmp-masthead-title{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#fff;}
+  .cmp-masthead-addr{font-size:9px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  .cmp-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;padding:12px 36px 0;}
+  .cmp-title{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:19px;font-weight:700;color:#3b4a52;padding:2px 36px 12px;}
+
+  /* Specs & Differences print layout — hidden entirely when printing Photos mode */
+  body.compare-printing #compareSheet.cmp-mode-photos .cmp-table{display:none!important;}
+  body.compare-printing #compareSheet .cmp-table{display:grid!important;margin:0 36px;border:1px solid #DBD3C4;border-radius:4px;overflow:hidden;}
+  body.compare-printing #compareSheet .cmp-row{display:contents!important;}
+  .cmp-corner{background:transparent;}
+  body.compare-printing #compareSheet .cmp-label-cell{display:flex!important;align-items:center;padding:8px 10px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a9299;background:#F1ECE0;border-top:1px solid #DBD3C4;}
+  body.compare-printing #compareSheet .cmp-value-cell{display:flex!important;align-items:center;padding:8px 10px;font-size:11px;color:#3b4a52;border-top:1px solid #DBD3C4;border-left:1px solid #DBD3C4;}
+  .cmp-row.cmp-diff .cmp-label-cell{background:#F6E4D1;color:#B5560E;}
+  .cmp-row.cmp-diff .cmp-value-cell{background:#FBF1E7;font-weight:700;color:#2c445e;}
+  body.compare-printing #compareSheet .cmp-col-header{display:flex!important;flex-direction:column;align-items:center;padding:12px;border-left:1px solid #DBD3C4;text-align:center;}
+  .cmp-col-img{width:110px;height:110px;object-fit:contain;background:transparent;mix-blend-mode:multiply;margin-bottom:8px;}
+  .cmp-col-name{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:13px;font-weight:700;color:#3b4a52;line-height:1.15;}
+
+  /* Photos print layout — the image row grows to fill remaining page height,
+     same flex:1 trick already used by .ps-photo-wrap in the single-item sheet.
+     Hidden entirely when printing Specs & Differences mode. */
+  /* 2-column wrapping grid (not a single N-wide row): with square source photos
+     on a portrait page, width is always the limiting dimension in a single row,
+     so 4-across left most of the page's height unused as letterbox gap. Two
+     columns gives each casket roughly double the width AND, since 3-4 items
+     wrap to two rows, a much taller per-row budget too — the combination is
+     what actually fills the page rather than just stretching an empty box. */
+  body.compare-printing #compareSheet.cmp-mode-specs .cmp-photo-row{display:none!important;}
+  body.compare-printing #compareSheet .cmp-photo-row{display:grid!important;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;flex:1;min-height:0;gap:20px;padding:18px 36px 8px;}
+  body.compare-printing #compareSheet .cmp-photo-col{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
+  body.compare-printing #compareSheet .cmp-photo-imgwrap{display:flex!important;align-items:center;justify-content:center;flex:1;width:100%;min-height:0;}
+  .cmp-photo-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply;}
+  .cmp-photo-name{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#3b4a52;margin-top:10px;line-height:1.2;text-align:center;}
+  .cmp-photo-price{font-family:'Source Sans 3',sans-serif;font-size:13px;color:#4B6E81;font-weight:700;margin-top:2px;}
+  .cmp-photo-item{font-family:'Source Sans 3',sans-serif;font-size:9.5px;color:#8a9299;margin-top:3px;}
+
+  body.compare-printing #compareSheet .cmp-footer{padding:10px 36px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;}
+  .cmp-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
+  .cmp-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .cmp-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;text-align:right;}
+}
 </style>
 </head>
 <body>
@@ -216,6 +382,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221502</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="apollo blue" data-item="221503" data-price="1130.0" data-color="blue">
@@ -230,6 +400,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221503</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="apollo copper" data-item="221504" data-price="1130.0" data-color="brown">
@@ -244,6 +418,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221504</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="apollo white/pink" data-item="221505" data-price="1130.0" data-color="white">
@@ -258,6 +436,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221505</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="apollo flat black" data-item="244327" data-price="1130.0" data-color="black">
@@ -272,6 +454,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#244327</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="virgo blue" data-item="279127" data-price="1470.0" data-color="blue">
@@ -286,6 +472,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279127</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="virgo silver" data-item="279131" data-price="1470.0" data-color="silver">
@@ -300,6 +490,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279131</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="virgo white/gold" data-item="279133" data-price="1470.0" data-color="white">
@@ -314,6 +508,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279133</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="virgo white/copper" data-item="279134" data-price="1470.0" data-color="white">
@@ -328,6 +526,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279134</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="virgo copper" data-item="279135" data-price="1555.0" data-color="brown">
@@ -342,6 +544,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279135</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="argo black" data-item="278913" data-price="2005.0" data-color="black">
@@ -356,6 +562,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#278913</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis copper 28 ngs" data-item="283328" data-price="2005.0" data-color="brown">
@@ -370,6 +580,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283328</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aquarius ocean blue" data-item="281900" data-price="2205.0" data-color="blue">
@@ -384,6 +598,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#281900</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aquarius ruby rose" data-item="281903" data-price="2205.0" data-color="red">
@@ -398,6 +616,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#281903</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aquarius desert sand" data-item="281901" data-price="2290.0" data-color="brown">
@@ -412,6 +634,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#281901</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aquarius floral gold" data-item="281902" data-price="2290.0" data-color="ivory">
@@ -426,6 +652,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#281902</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis copper 28" data-item="283324" data-price="2410.0" data-color="brown">
@@ -440,6 +670,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283324</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="gemini silver" data-item="217298" data-price="2445.0" data-color="silver">
@@ -454,6 +688,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#217298</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="gemini white/pink" data-item="217379" data-price="2445.0" data-color="white">
@@ -468,6 +706,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#217379</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="gemini white" data-item="217383" data-price="2445.0" data-color="white">
@@ -482,6 +724,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#217383</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="gemini copper" data-item="217387" data-price="2445.0" data-color="brown">
@@ -496,6 +742,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#217387</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="gemini blue" data-item="217389" data-price="2445.0" data-color="blue">
@@ -510,6 +760,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#217389</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="qa2 antique blue" data-item="148041" data-price="2520.0" data-color="blue">
@@ -524,6 +778,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148041</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="vega sapphire" data-item="281895" data-price="2615.0" data-color="blue">
@@ -538,6 +796,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#281895</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="vega star quartz" data-item="281896" data-price="2615.0" data-color="brown">
@@ -552,6 +814,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#281896</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="spectra blue" data-item="221506" data-price="2675.0" data-color="blue">
@@ -566,6 +832,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221506</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="spectra silver" data-item="221507" data-price="2675.0" data-color="silver">
@@ -580,6 +850,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#221507</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="spectra white" data-item="223045" data-price="2675.0" data-color="white">
@@ -594,6 +868,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#223045</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="spectra black" data-item="256354" data-price="2675.0" data-color="black">
@@ -608,6 +886,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#256354</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="spectra orchid" data-item="258362" data-price="2675.0" data-color="purple">
@@ -622,6 +904,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#258362</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="vega golden onyx" data-item="281890" data-price="2700.0" data-color="black">
@@ -636,6 +922,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#281890</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="vega tuscany rose" data-item="281891" data-price="2700.0" data-color="pink">
@@ -650,6 +940,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#281891</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis copper 32" data-item="283323" data-price="2815.0" data-color="brown">
@@ -664,6 +958,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 32.25 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#283323</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis grey 28 ngs" data-item="283327" data-price="2960.0" data-color="grey">
@@ -678,6 +976,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283327</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aries blue" data-item="234314" data-price="3040.0" data-color="blue">
@@ -692,6 +994,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#234314</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aries orchid" data-item="234316" data-price="3040.0" data-color="purple">
@@ -706,6 +1012,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#234316</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aries silver" data-item="234318" data-price="3040.0" data-color="silver">
@@ -720,6 +1030,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#234318</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aries copper" data-item="234320" data-price="3040.0" data-color="brown">
@@ -734,6 +1048,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#234320</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="pisces white" data-item="257953" data-price="3045.0" data-color="white">
@@ -748,6 +1066,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#257953</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="golden tribute" data-item="273663" data-price="3045.0" data-color="gold">
@@ -762,6 +1084,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">210 lbs</div>
             <div class="product-meta">#273663</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="on8 platinum-28" data-item="283969" data-price="3045.0" data-color="silver">
@@ -776,6 +1102,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283969</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="on8 auburn sunset-28" data-item="283976" data-price="3045.0" data-color="brown">
@@ -790,6 +1120,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283976</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="on8 violet bouquet-28" data-item="283979" data-price="3045.0" data-color="purple">
@@ -804,6 +1138,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283979</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules white ngs-28" data-item="274278" data-price="3075.0" data-color="white">
@@ -818,6 +1156,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#274278</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="aries white" data-item="234322" data-price="3125.0" data-color="white">
@@ -832,6 +1174,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#234322</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="pisces silver" data-item="257956" data-price="3130.0" data-color="silver">
@@ -846,6 +1192,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#257956</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules blue ngs-28" data-item="274281" data-price="3160.0" data-color="blue">
@@ -860,6 +1210,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#274281</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="argo orchid" data-item="278912" data-price="3170.0" data-color="purple">
@@ -874,6 +1228,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#278912</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="argo silver" data-item="278920" data-price="3170.0" data-color="silver">
@@ -888,6 +1246,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#278920</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="argo sand" data-item="278921" data-price="3170.0" data-color="gold">
@@ -902,6 +1264,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#278921</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules black ngs-28" data-item="265527" data-price="3295.0" data-color="black">
@@ -916,6 +1282,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265527</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="triton grey" data-item="100151" data-price="3300.0" data-color="grey">
@@ -930,6 +1300,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#100151</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules orchid-32" data-item="265530" data-price="3345.0" data-color="purple">
@@ -944,6 +1318,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#265530</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules white-32" data-item="274280" data-price="3345.0" data-color="white">
@@ -958,6 +1336,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#274280</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="triton brown" data-item="100153" data-price="3370.0" data-color="brown">
@@ -972,6 +1354,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#100153</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules orchid ngs-28" data-item="265529" data-price="3450.0" data-color="purple">
@@ -986,6 +1372,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265529</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules silver ngs-28" data-item="265528" data-price="3460.0" data-color="silver">
@@ -1000,6 +1390,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265528</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="saturn blue" data-item="100159" data-price="3570.0" data-color="blue">
@@ -1014,6 +1408,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#100159</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis grey 28" data-item="283326" data-price="3590.0" data-color="grey">
@@ -1028,6 +1426,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#283326</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q02 graytone" data-item="148026" data-price="3645.0" data-color="grey">
@@ -1042,6 +1444,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148026</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules white-28" data-item="274279" data-price="3660.0" data-color="white">
@@ -1056,6 +1462,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#274279</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q02 earthtone" data-item="148028" data-price="3715.0" data-color="brown">
@@ -1070,6 +1480,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148028</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules blue-28" data-item="274282" data-price="3745.0" data-color="blue">
@@ -1084,6 +1498,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#274282</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules silver-28" data-item="265525" data-price="3865.0" data-color="silver">
@@ -1098,6 +1516,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265525</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q88 revere silver" data-item="148029" data-price="4050.0" data-color="silver">
@@ -1112,6 +1534,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148029</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q88 churchill blue" data-item="148030" data-price="4050.0" data-color="blue">
@@ -1126,6 +1552,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148030</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules orchid-28" data-item="265520" data-price="4050.0" data-color="purple">
@@ -1140,6 +1570,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265520</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules black-28" data-item="265526" data-price="4050.0" data-color="black">
@@ -1154,6 +1588,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#265526</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q88 misty rose" data-item="148035" data-price="4135.0" data-color="pink">
@@ -1168,6 +1606,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148035</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q88 roman" data-item="148031" data-price="4145.0" data-color="brown">
@@ -1182,6 +1624,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148031</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q01 heirloom pewter" data-item="242475" data-price="4170.0" data-color="grey">
@@ -1196,6 +1642,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#242475</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="qd3 galaxy" data-item="148052" data-price="4245.0" data-color="grey">
@@ -1210,6 +1660,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148052</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q98 emeraldtone" data-item="279864" data-price="4270.0" data-color="green">
@@ -1224,6 +1678,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#279864</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="p90 golden rose" data-item="258112" data-price="4305.0" data-color="purple">
@@ -1238,6 +1696,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#258112</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="qf8 polaris" data-item="148056" data-price="4380.0" data-color="blue">
@@ -1252,6 +1714,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148056</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="qa2 ivory gold" data-item="148040" data-price="4405.0" data-color="white">
@@ -1266,6 +1732,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#148040</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="q01 ivory" data-item="252031" data-price="4410.0" data-color="white">
@@ -1280,6 +1750,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83 in L x 28.25 in W x 23.75 in H</div>
             <div class="product-detail">169 lbs</div>
             <div class="product-meta">#252031</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="s01 carnation blush" data-item="278485" data-price="4450.0" data-color="white">
@@ -1294,6 +1768,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.38 in W x 23.63 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#278485</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="s01 sand" data-item="242739" data-price="4625.0" data-color="gold">
@@ -1308,6 +1786,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.38 in W x 23.63 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#242739</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="s01 ocean blue" data-item="252121" data-price="4635.0" data-color="blue">
@@ -1322,6 +1804,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.38 in W x 23.63 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#252121</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nd5 athena" data-item="147837" data-price="4665.0" data-color="white">
@@ -1336,6 +1822,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#147837</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nd2 mercury" data-item="148013" data-price="4760.0" data-color="silver">
@@ -1350,6 +1840,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#148013</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="artemis grey 32" data-item="283322" data-price="4800.0" data-color="grey">
@@ -1364,6 +1858,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 32.25 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#283322</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="s41 heirloom pewter" data-item="148081" data-price="4805.0" data-color="grey">
@@ -1378,6 +1876,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.38 in W x 23.63 in H</div>
             <div class="product-detail">190 lbs</div>
             <div class="product-meta">#148081</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 midnight" data-item="271817" data-price="4860.0" data-color="black">
@@ -1392,6 +1894,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#271817</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 neopolitan blue" data-item="271819" data-price="4860.0" data-color="blue">
@@ -1406,6 +1912,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#271819</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 carnation" data-item="273920" data-price="4860.0" data-color="white">
@@ -1420,6 +1930,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#273920</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 huntington green" data-item="278177" data-price="4860.0" data-color="green">
@@ -1434,6 +1948,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#278177</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="os9 primrose-28" data-item="220680" data-price="4875.0" data-color="white">
@@ -1448,6 +1966,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#220680</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="os9 antique blue-28" data-item="220682" data-price="4875.0" data-color="blue">
@@ -1462,6 +1984,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#220682</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules black-32" data-item="265532" data-price="4930.0" data-color="black">
@@ -1476,6 +2002,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#265532</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 pearl" data-item="239701" data-price="4940.0" data-color="white">
@@ -1490,6 +2020,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#239701</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 granite" data-item="239721" data-price="4940.0" data-color="grey">
@@ -1504,6 +2038,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#239721</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 auburn" data-item="271815" data-price="4975.0" data-color="red">
@@ -1518,6 +2056,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#271815</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n85 franklin silver" data-item="148001" data-price="5005.0" data-color="silver">
@@ -1532,6 +2074,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#148001</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n84 antique blue" data-item="148004" data-price="5005.0" data-color="blue">
@@ -1546,6 +2092,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#148004</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules blue-32" data-item="274283" data-price="5015.0" data-color="blue">
@@ -1560,6 +2110,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#274283</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ot9 platinum" data-item="211993" data-price="5020.0" data-color="silver">
@@ -1574,6 +2128,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#211993</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ot9 auburn sunset" data-item="216580" data-price="5020.0" data-color="brown">
@@ -1588,6 +2146,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#216580</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ot9 onyx" data-item="255455" data-price="5020.0" data-color="black">
@@ -1602,6 +2164,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#255455</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="o77 ocean blue" data-item="147852" data-price="5090.0" data-color="blue">
@@ -1616,6 +2182,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">212 lbs</div>
             <div class="product-meta">#147852</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="o77 cottage rose" data-item="147853" data-price="5090.0" data-color="red">
@@ -1630,6 +2200,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">212 lbs</div>
             <div class="product-meta">#147853</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nv1 burnished silver" data-item="286125" data-price="5105.0" data-color="silver">
@@ -1644,6 +2218,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#286125</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nv1 tuscany silver" data-item="286130" data-price="5105.0" data-color="purple">
@@ -1658,6 +2236,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#286130</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="hercules silver-32" data-item="265531" data-price="5155.0" data-color="silver">
@@ -1672,6 +2254,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
             <div class="product-meta">#265531</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="oc1 finch" data-item="280218" data-price="5165.0" data-color="blue">
@@ -1686,6 +2272,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#280218</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="oc1 carnation" data-item="280219" data-price="5165.0" data-color="white">
@@ -1700,6 +2290,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#280219</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nl1 claret" data-item="251960" data-price="5175.0" data-color="red">
@@ -1714,6 +2308,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#251960</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="nl1 indigo blue" data-item="251972" data-price="5175.0" data-color="blue">
@@ -1728,6 +2326,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#251972</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="m39 revere silver" data-item="271821" data-price="5175.0" data-color="silver">
@@ -1742,6 +2344,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.25 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#271821</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="p68 churchill blue" data-item="148018" data-price="5530.0" data-color="blue">
@@ -1756,6 +2362,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#148018</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="p68 desert sand" data-item="147883" data-price="5615.0" data-color="gold">
@@ -1770,6 +2380,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#147883</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="j37 primrose" data-item="147820" data-price="5810.0" data-color="white">
@@ -1784,6 +2398,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#147820</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ot9 violet bouquet" data-item="241566" data-price="5830.0" data-color="purple">
@@ -1798,6 +2416,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#241566</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="j37 antique gold" data-item="147988" data-price="5895.0" data-color="gold">
@@ -1812,6 +2434,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#147988</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="on9 merlot-28" data-item="246018" data-price="5895.0" data-color="red">
@@ -1826,6 +2452,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 29 in W x 23.63 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#246018</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="j37 amethyst" data-item="147814" data-price="6015.0" data-color="purple">
@@ -1840,6 +2470,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#147814</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="o61 tuscany silver" data-item="273556" data-price="6080.0" data-color="purple">
@@ -1854,6 +2488,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">210 lbs</div>
             <div class="product-meta">#273556</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 merlot" data-item="239723" data-price="6090.0" data-color="red">
@@ -1868,6 +2506,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#239723</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="o61 burnished silver" data-item="273553" data-price="6150.0" data-color="grey">
@@ -1882,6 +2524,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">210 lbs</div>
             <div class="product-meta">#273553</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 midnight with red" data-item="279141" data-price="6165.0" data-color="black">
@@ -1896,6 +2542,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279141</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 midnight with gold" data-item="279142" data-price="6165.0" data-color="black">
@@ -1910,6 +2560,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279142</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 neopolitan" data-item="279144" data-price="6165.0" data-color="blue">
@@ -1924,6 +2578,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279144</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="fireside" data-item="269166" data-price="6385.0" data-color="brown">
@@ -1938,6 +2596,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">82.25 in L x 28.25 in W x 23 in H</div>
             <div class="product-detail">250 lbs</div>
             <div class="product-meta">#269166</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="n01 sydney" data-item="279143" data-price="6395.0" data-color="blue">
@@ -1952,6 +2614,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
             <div class="product-meta">#279143</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="a40 primrose" data-item="147723" data-price="6425.0" data-color="white">
@@ -1966,6 +2632,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.13 in L x 28.13 in W x 23.13 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#147723</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="c47 silver rose" data-item="147765" data-price="7165.0" data-color="purple">
@@ -1980,6 +2650,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.25 in L x 28.25 in W x 23.25 in H</div>
             <div class="product-detail">230 lbs</div>
             <div class="product-meta">#147765</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="jf9 golden pearl" data-item="185489" data-price="7195.0" data-color="white">
@@ -1994,6 +2668,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
             <div class="product-meta">#185489</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="z65 primrose bronze" data-item="280184" data-price="7720.0" data-color="white">
@@ -2008,6 +2686,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
             <div class="product-meta">#280184</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="u04 blue mist" data-item="147903" data-price="7940.0" data-color="blue">
@@ -2022,6 +2704,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#147903</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ug2 golden rose" data-item="202001" data-price="8400.0" data-color="purple">
@@ -2036,6 +2722,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#202001</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="u46 tapestry rose" data-item="147901" data-price="8595.0" data-color="purple">
@@ -2050,6 +2740,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#147901</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ug1 silver sapphire" data-item="185491" data-price="8755.0" data-color="blue">
@@ -2064,6 +2758,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#185491</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="ug1 golden sand" data-item="185493" data-price="8755.0" data-color="gold">
@@ -2078,6 +2776,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
             <div class="product-meta">#185493</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="y33 primrose" data-item="147944" data-price="10840.0" data-color="white">
@@ -2092,6 +2794,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
             <div class="product-meta">#147944</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="or6 renaissance rose" data-item="147868" data-price="11285.0" data-color="purple">
@@ -2106,6 +2812,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.88 in L x 28.88 in W x 23.38 in H</div>
             <div class="product-detail">180 lbs</div>
             <div class="product-meta">#147868</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="or7 greyson" data-item="147870" data-price="11285.0" data-color="grey">
@@ -2120,6 +2830,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.88 in L x 28.88 in W x 23.38 in H</div>
             <div class="product-detail">180 lbs</div>
             <div class="product-meta">#147870</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="y35 mediterranean copper" data-item="147930" data-price="11945.0" data-color="brown">
@@ -2134,6 +2848,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
             <div class="product-meta">#147930</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="y39 aegean copper" data-item="147935" data-price="12080.0" data-color="brown">
@@ -2148,6 +2866,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
             <div class="product-meta">#147935</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="o39 aegean bronze" data-item="147862" data-price="13400.0" data-color="brown">
@@ -2162,6 +2884,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
             <div class="product-meta">#147862</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="z64 venetian bronze" data-item="147961" data-price="18490.0" data-color="brown">
@@ -2176,6 +2902,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
             <div class="product-meta">#147961</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
         <div class="product-card" data-name="z64 classic gold" data-item="147957" data-price="23930.0" data-color="black">
@@ -2190,6 +2920,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
             <div class="product-meta">#147957</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
           </div>
         </div>
     </div>
@@ -2272,6 +3006,71 @@ function filterCards() {
   <div class="ps-footer">
     <div><div class="ps-advisor-name">Martice Morrison</div><div class="ps-advisor-role">Family Service Advisor &middot; Bonney Watson</div></div>
     <div class="ps-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
+  </div>
+</div>
+
+<!-- Compare tray -->
+<div class="compare-tray no-print" id="compareTray">
+  <div class="compare-tray-inner">
+    <div class="compare-tray-items" id="compareTrayItems"></div>
+    <div class="compare-tray-actions">
+      <span class="compare-tray-msg" id="compareTrayMsg"></span>
+      <button class="compare-tray-clear" id="compareClearBtn" type="button">Clear all</button>
+      <button class="compare-tray-btn" id="compareOpenBtn" type="button">Compare (<span id="compareCount">0</span>)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Compare side-by-side view (full screen) -->
+<div class="compare-overlay no-print" id="compareOverlay">
+  <div class="compare-modal">
+    <div class="compare-header">
+      <div class="compare-title">Compare Caskets</div>
+      <div class="compare-tabs">
+        <button class="compare-tab active" id="compareTabSpecs" type="button">Specs &amp; Differences</button>
+        <button class="compare-tab" id="compareTabPhotos" type="button">Photos</button>
+      </div>
+      <button class="compare-print-btn" id="comparePrintBtn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print Comparison
+      </button>
+      <button class="compare-close" id="compareClose" type="button">&times;</button>
+    </div>
+    <div class="compare-body">
+      <div class="compare-panel active" id="compareSpecsPanel">
+        <div class="compare-table" id="compareTable"></div>
+      </div>
+      <div class="compare-panel" id="comparePhotoPanel">
+        <div class="compare-photo-grid" id="comparePhotoGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compare: photo lightbox -->
+<div class="photo-lightbox no-print" id="photoLightbox">
+  <button class="photo-lightbox-close" id="lightboxClose" type="button">&times;</button>
+  <div class="photo-lightbox-stage">
+    <img id="lightboxImg" src="" alt="">
+  </div>
+  <div class="photo-lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<div id="compareSheet">
+  <div class="cmp-masthead">
+    <img src="logo.svg" alt="Bonney Watson">
+    <div class="cmp-masthead-right">
+      <div class="cmp-masthead-title">Casket Comparison</div>
+      <div class="cmp-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
+    </div>
+  </div>
+  <div class="cmp-eyebrow">Metal Caskets</div>
+  <div class="cmp-title" id="cmpTitle">Side-by-Side Comparison</div>
+  <div class="cmp-table" id="cmpTable"></div>
+  <div class="cmp-photo-row" id="cmpPhotoRow"></div>
+  <div class="cmp-footer">
+    <div><div class="cmp-advisor-name">Martice Morrison</div><div class="cmp-advisor-role">Family Service Advisor &middot; Bonney Watson</div></div>
+    <div class="cmp-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
   </div>
 </div>
 
@@ -2358,6 +3157,368 @@ function filterCards() {
       window.removeEventListener('afterprint', handler);
     });
   });
+})();
+</script>
+
+<!-- Compare feature: single catalog for now (metal caskets), architected so the
+     lookup (getCardData) is the only catalog-specific seam if this ever needs
+     to span multiple catalog pages. -->
+<script>
+(function(){
+  var ROW_LABELS = ['Price', 'Construction', 'Interior', 'Finish', 'Suitable for', 'Dimensions', 'Weight', 'Item #'];
+  // Item # is always unique per product, so it's excluded from difference highlighting —
+  // it would "differ" on every comparison and that's not an interesting distinction.
+  var DIFF_ELIGIBLE = [true, true, true, true, true, true, true, false];
+  var MAX_COMPARE = 4;
+  var selected = [];
+  var currentView = 'specs'; // 'specs' | 'photos'
+
+  var tray = document.getElementById('compareTray');
+  var trayItems = document.getElementById('compareTrayItems');
+  var trayMsg = document.getElementById('compareTrayMsg');
+  var clearBtn = document.getElementById('compareClearBtn');
+  var openBtn = document.getElementById('compareOpenBtn');
+  var countEl = document.getElementById('compareCount');
+  var overlay = document.getElementById('compareOverlay');
+  var closeBtn = document.getElementById('compareClose');
+  var specsTableEl = document.getElementById('compareTable');
+  var photoGridEl = document.getElementById('comparePhotoGrid');
+  var printBtn = document.getElementById('comparePrintBtn');
+  var specsTab = document.getElementById('compareTabSpecs');
+  var photosTab = document.getElementById('compareTabPhotos');
+  var specsPanel = document.getElementById('compareSpecsPanel');
+  var photosPanel = document.getElementById('comparePhotoPanel');
+  var lightbox = document.getElementById('photoLightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCaption = document.getElementById('lightboxCaption');
+  var lightboxClose = document.getElementById('lightboxClose');
+
+  function getCardData(sku){
+    var card = document.querySelector('.product-card[data-item="' + sku + '"]');
+    if (!card) return null;
+    var img = card.querySelector('.product-img img');
+    var name = card.querySelector('.product-name');
+    var price = card.querySelector('.product-price');
+    var details = Array.prototype.map.call(card.querySelectorAll('.product-detail'), function(d){ return d.textContent; });
+    var meta = card.querySelector('.product-meta');
+    return {
+      sku: sku,
+      img: img ? img.src : '',
+      alt: name ? name.textContent : '',
+      name: name ? name.textContent : '',
+      price: price ? price.textContent : '',
+      details: details,
+      item: meta ? meta.textContent : ''
+    };
+  }
+
+  function rowValues(data){
+    var vals = [data.price];
+    for (var i = 0; i < 6; i++) vals.push(data.details[i] || '—');
+    vals.push(data.item);
+    return vals;
+  }
+
+  function computeDiffRows(datas){
+    return ROW_LABELS.map(function(_, i){
+      if (!DIFF_ELIGIBLE[i]) return false;
+      var vals = datas.map(function(d){ return rowValues(d)[i]; });
+      return vals.some(function(v){ return v !== vals[0]; });
+    });
+  }
+
+  function openLightbox(src, alt){
+    lightboxImg.src = src;
+    lightboxImg.alt = alt;
+    lightboxCaption.textContent = alt;
+    lightbox.classList.add('active');
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('active');
+  }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', function(e){ if (e.target === lightbox) closeLightbox(); });
+
+  function updateCheckboxStates(){
+    document.querySelectorAll('.compare-cb').forEach(function(cb){
+      var card = cb.closest('.product-card');
+      var sku = card ? card.getAttribute('data-item') : null;
+      var isSelected = !!sku && selected.indexOf(sku) > -1;
+      cb.checked = isSelected;
+      cb.disabled = !isSelected && selected.length >= MAX_COMPARE;
+      if (card) card.classList.toggle('comparing', isSelected);
+    });
+  }
+
+  function renderTray(){
+    trayItems.innerHTML = '';
+    selected.forEach(function(sku){
+      var data = getCardData(sku);
+      if (!data) return;
+      var chip = document.createElement('div');
+      chip.className = 'compare-chip';
+      var img = document.createElement('img');
+      img.src = data.img; img.alt = data.alt;
+      var nm = document.createElement('span');
+      nm.className = 'compare-chip-name';
+      nm.textContent = data.name;
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'compare-chip-remove';
+      rm.innerHTML = '&times;';
+      rm.setAttribute('aria-label', 'Remove ' + data.name + ' from compare');
+      rm.addEventListener('click', function(){ removeSku(sku); });
+      chip.appendChild(img); chip.appendChild(nm); chip.appendChild(rm);
+      trayItems.appendChild(chip);
+    });
+    countEl.textContent = selected.length;
+    openBtn.disabled = selected.length < 2;
+    tray.classList.toggle('visible', selected.length > 0);
+    trayMsg.textContent = selected.length >= MAX_COMPARE
+      ? 'Maximum of ' + MAX_COMPARE + ' reached — remove one to add another.'
+      : '';
+  }
+
+  function addSku(sku){
+    if (selected.indexOf(sku) > -1) return true;
+    if (selected.length >= MAX_COMPARE) return false;
+    selected.push(sku);
+    updateCheckboxStates();
+    renderTray();
+    return true;
+  }
+
+  function removeSku(sku){
+    var idx = selected.indexOf(sku);
+    if (idx === -1) return;
+    selected.splice(idx, 1);
+    updateCheckboxStates();
+    renderTray();
+    if (overlay.classList.contains('active')){
+      if (selected.length < 2) closeCompare();
+      else renderActivePanel();
+    }
+  }
+
+  document.querySelectorAll('.product-card').forEach(function(card){
+    var cb = card.querySelector('.compare-cb');
+    var label = card.querySelector('.compare-toggle');
+    if (!cb || !label) return;
+    label.addEventListener('click', function(e){ e.stopPropagation(); });
+    cb.addEventListener('change', function(){
+      var sku = card.getAttribute('data-item');
+      if (cb.checked) addSku(sku);
+      else removeSku(sku);
+    });
+  });
+
+  clearBtn.addEventListener('click', function(){
+    selected = [];
+    updateCheckboxStates();
+    renderTray();
+  });
+
+  function renderSpecsTable(container, isPrint){
+    container.innerHTML = '';
+    var n = selected.length;
+    container.style.gridTemplateColumns = (isPrint ? '100px' : '150px') + ' repeat(' + n + ', 1fr)';
+    var datas = selected.map(getCardData);
+    var diffRows = computeDiffRows(datas);
+    var rowClass = isPrint ? 'cmp-row' : 'compare-table-row';
+    var diffClass = isPrint ? 'cmp-diff' : 'diff';
+    var cornerClass = isPrint ? 'cmp-corner' : 'compare-corner';
+    var headerClass = isPrint ? 'cmp-col-header' : 'compare-col-header';
+    var imgClass = isPrint ? 'cmp-col-img' : 'compare-col-img';
+    var nameClass = isPrint ? 'cmp-col-name' : 'compare-col-name';
+    var labelClass = isPrint ? 'cmp-label-cell' : 'compare-label-cell';
+    var valueClass = isPrint ? 'cmp-value-cell' : 'compare-value-cell';
+
+    var headerRow = document.createElement('div');
+    headerRow.className = rowClass;
+    var corner = document.createElement('div');
+    corner.className = cornerClass;
+    headerRow.appendChild(corner);
+    datas.forEach(function(data){
+      var h = document.createElement('div');
+      h.className = headerClass;
+      var img = document.createElement('img');
+      img.className = imgClass;
+      img.src = data.img; img.alt = data.alt;
+      if (!isPrint) img.addEventListener('click', function(){ openLightbox(data.img, data.alt); });
+      var nm = document.createElement('div');
+      nm.className = nameClass;
+      nm.textContent = data.name;
+      h.appendChild(img); h.appendChild(nm);
+      if (!isPrint){
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'compare-col-remove';
+        rm.textContent = 'Remove';
+        rm.addEventListener('click', function(){ removeSku(data.sku); });
+        h.appendChild(rm);
+      }
+      headerRow.appendChild(h);
+    });
+    container.appendChild(headerRow);
+
+    ROW_LABELS.forEach(function(label, i){
+      var row = document.createElement('div');
+      row.className = rowClass + (diffRows[i] ? ' ' + diffClass : '');
+      var lbl = document.createElement('div');
+      lbl.className = labelClass;
+      lbl.textContent = label;
+      row.appendChild(lbl);
+      datas.forEach(function(data){
+        var vals = rowValues(data);
+        var val = document.createElement('div');
+        val.className = valueClass;
+        val.textContent = vals[i];
+        row.appendChild(val);
+      });
+      container.appendChild(row);
+    });
+  }
+
+  function renderPhotoPanel(container, isPrint){
+    container.innerHTML = '';
+    var n = selected.length;
+    if (!isPrint) {
+      // Fill the full panel height at every count instead of a single row
+      // that only ever uses the top of the screen:
+      //  - 2-3 items: one row, side by side, each full height. All panels
+      //    end up equal size this way since they all share the same single
+      //    row's height budget. (A 2x2 grid for 3 items — 2 on top, 1 below
+      //    — was tried, but splitting into two rows halves everyone's height
+      //    budget, making all three noticeably SMALLER than a single row of
+      //    3 does — equal sizing plus "biggest possible" both point to one row.)
+      //  - 4 items: a plain 2x2 quadrant grid (a single row of 4 would make
+      //    everyone width-limited and smaller than 2x2 does).
+      if (n <= 3) {
+        container.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+        container.style.gridTemplateRows = '1fr';
+      } else {
+        container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        container.style.gridTemplateRows = 'repeat(2, 1fr)';
+      }
+    } else {
+      // With square source photos, a single row is always width-limited, so a
+      // lone row (n<=2, one row of the 2-col grid) would stay short and leave
+      // the row's stretched-to-fill height mostly empty below the image.
+      // Center that single row instead of stretching it. Two rows (n=3-4)
+      // genuinely benefit from stretching — that's what fills the page.
+      if (n <= 2) {
+        container.style.gridAutoRows = 'auto';
+        container.style.alignContent = 'center';
+      } else {
+        container.style.gridAutoRows = '1fr';
+        container.style.alignContent = 'stretch';
+      }
+    }
+    var datas = selected.map(getCardData);
+    var colClass = isPrint ? 'cmp-photo-col' : 'compare-photo-col';
+    var wrapClass = isPrint ? 'cmp-photo-imgwrap' : 'compare-photo-img-wrap';
+    var nameClass = isPrint ? 'cmp-photo-name' : 'compare-photo-name';
+    var priceClass = isPrint ? 'cmp-photo-price' : 'compare-photo-price';
+    var itemClass = isPrint ? 'cmp-photo-item' : 'compare-photo-item';
+
+    datas.forEach(function(data){
+      var col = document.createElement('div');
+      col.className = colClass;
+
+      var wrap = document.createElement('div');
+      wrap.className = wrapClass;
+      var img = document.createElement('img');
+      img.src = data.img; img.alt = data.alt;
+      wrap.appendChild(img);
+      if (!isPrint) wrap.addEventListener('click', function(){ openLightbox(data.img, data.alt); });
+      col.appendChild(wrap);
+
+      var nm = document.createElement('div');
+      nm.className = nameClass;
+      nm.textContent = data.name;
+      col.appendChild(nm);
+
+      var pr = document.createElement('div');
+      pr.className = priceClass;
+      pr.textContent = data.price;
+      col.appendChild(pr);
+
+      var it = document.createElement('div');
+      it.className = itemClass;
+      it.textContent = data.item;
+      col.appendChild(it);
+
+      if (!isPrint){
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'compare-photo-remove';
+        rm.textContent = 'Remove';
+        rm.addEventListener('click', function(){ removeSku(data.sku); });
+        col.appendChild(rm);
+      }
+
+      container.appendChild(col);
+    });
+  }
+
+  function renderActivePanel(){
+    if (currentView === 'specs') renderSpecsTable(specsTableEl, false);
+    else renderPhotoPanel(photoGridEl, false);
+  }
+
+  function switchView(view){
+    currentView = view;
+    specsTab.classList.toggle('active', view === 'specs');
+    photosTab.classList.toggle('active', view === 'photos');
+    specsPanel.classList.toggle('active', view === 'specs');
+    photosPanel.classList.toggle('active', view === 'photos');
+    renderActivePanel();
+  }
+  specsTab.addEventListener('click', function(){ switchView('specs'); });
+  photosTab.addEventListener('click', function(){ switchView('photos'); });
+
+  openBtn.addEventListener('click', function(){
+    if (selected.length < 2) return;
+    renderActivePanel();
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+
+  function closeCompare(){
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  closeBtn.addEventListener('click', closeCompare);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeCompare(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if (lightbox.classList.contains('active')) closeLightbox();
+    else if (overlay.classList.contains('active')) closeCompare();
+  });
+
+  printBtn.addEventListener('click', function(){
+    var sheet = document.getElementById('compareSheet');
+    var titleEl = document.getElementById('cmpTitle');
+    if (currentView === 'photos'){
+      renderPhotoPanel(document.getElementById('cmpPhotoRow'), true);
+      titleEl.textContent = 'Photo Comparison';
+      sheet.classList.add('cmp-mode-photos');
+      sheet.classList.remove('cmp-mode-specs');
+    } else {
+      renderSpecsTable(document.getElementById('cmpTable'), true);
+      titleEl.textContent = 'Side-by-Side Comparison';
+      sheet.classList.add('cmp-mode-specs');
+      sheet.classList.remove('cmp-mode-photos');
+    }
+    document.body.classList.add('compare-printing');
+    setTimeout(function(){ window.print(); }, 100);
+    window.addEventListener('afterprint', function handler(){
+      document.body.classList.remove('compare-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+  });
+
+  updateCheckboxStates();
 })();
 </script>
 

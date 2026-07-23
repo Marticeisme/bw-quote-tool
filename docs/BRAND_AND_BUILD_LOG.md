@@ -414,6 +414,103 @@ a rebuild is possible.
 
 ---
 
+### 2026-07-23 — Compare feature, all five catalogs
+
+New feature, built iteratively on `metal-caskets.html` first and approved before
+replicating to `wood-caskets.html`, `urns-guide.html`, `keepsake-urns-guide.html`,
+`cremation-containers-rental-caskets.html`.
+
+**What it is:** a "Compare" checkbox on every product card (max 4 selected) feeds a
+sticky bottom tray (chips with thumbnail/name/remove, a live count, a disabled-state
++ message once the cap is hit) → "Compare (N)" opens a **full-screen** view with two
+tabs:
+- **Specs & Differences** — label column + up to 4 item columns; rows that differ
+  across the selected items are highlighted (warm tan background, bold text); rows
+  that match stay plain. Item # is excluded from diff-highlighting since it's always
+  unique and not an interesting distinction.
+- **Photos** — large images, sized to fill the full viewport height, not just a
+  single width-limited row: 2 items and 3 items each get one full-height row (so all
+  panels end up the *same* size); 4 items get a 2x2 quadrant grid. (A 2-on-top/1-hero
+  arrangement for 3 items was tried and rejected — splitting into two rows halves
+  everyone's height budget, making all three smaller than a single row of 3 does.)
+  Clicking any photo (Specs or Photos tab) opens a full lightbox.
+
+**Print, tied to whichever tab is active:** Specs mode prints the diff-highlighted
+table; Photos mode prints a 2-column wrapping photo grid (2x2 for 3-4 items, one row
+for 2) that fills the page — reusing the exact `mix-blend-mode:multiply` white-knockout
+from the earlier print-sheet/grid-thumbnail fix, and the same `body.xxx-printing`
+blanket-hide-then-reveal pattern already used by the single-item print sheet.
+
+**Bugs found and fixed during the metal-caskets.html build** (all present in the
+replicated files too, fixed from the start there):
+- `mix-blend-mode` blends an element's **own** background too — a light background
+  set on the same element that has the blend mode never shields it, once
+  `object-fit` leaves no gap for that background to show through. Broke the photo
+  lightbox (rendered solid black against the dark backdrop) and the tray chips
+  (rendered muddy/dark against the navy tray). Fixed both with a separate opaque
+  ancestor behind the blended image — the same structural fix the print sheet
+  already relied on, just not recognized as the same pattern until it broke twice.
+- A `display:block!important` blanket reset (used to force-hide/reveal the whole
+  print sheet by body class) has higher specificity than a bare class selector
+  since the reset selector carries an ID — any `display:flex/grid!important` meant
+  to override it needs the same `body.xxx-printing #sheetId .class` prefix or it
+  silently loses. This is also a **pre-existing, unfixed issue in the single-item
+  print sheet** (`.ps-masthead`, `.ps-specs li` never actually get their intended
+  flex layout in real print output) — flagged, not fixed, since it's out of scope
+  for this feature.
+- Lightbox image overflowed its own stage: percentage `max-height` doesn't resolve
+  against a parent with no explicit height (the stage shrink-wraps its content).
+  Fixed by sizing the image in `vw`/`vh` directly instead of `%`.
+
+**Per-catalog field adaptation** — `ROW_LABELS` / `getCardData` are the only
+catalog-specific parts, matching each catalog's own existing `specLabels`:
+
+| Catalog | Compare title | Spec fields |
+|---|---|---|
+| `metal-caskets.html` | Compare Caskets | Construction, Interior, Finish, Suitable for, Dimensions, Weight |
+| `wood-caskets.html` | Compare Wood Caskets | (same 6, see below) |
+| `urns-guide.html` | Compare Urns | Material, Capacity, Dimensions, Weight |
+| `keepsake-urns-guide.html` | Compare Keepsakes | Material, Capacity, Dimensions, Weight |
+| `cremation-containers-rental-caskets.html` | Compare Cremation & Rental | Construction, Interior, Suitable For, Dimensions, Weight (no Finish) |
+
+**The variable-detail-count trap:** `metal-caskets.html`'s cards are all uniformly
+6 details, so simple positional indexing (`details[i] ↔ specLabels[i]`) works. The
+other four catalogs are **not** uniform — and critically, the missing field isn't
+always trailing:
+- `wood-caskets.html`: 7 cards (cloth-covered/unfinished items) omit **Finish**,
+  a *middle* field — positional indexing shifted every field after the gap into
+  the wrong labeled row (e.g. Dimensions value showing under "Suitable for").
+- `urns-guide.html`: some short cards omit **Capacity** (middle), others omit
+  **Weight** (trailing) — inconsistent even within the same detail-count group,
+  so there's no single fixed omission pattern to hardcode against.
+- `keepsake-urns-guide.html`'s short cards (Miniature Urns, Pendants & Jewelry
+  sections) are the safe case — always exactly `[Material, Capacity]`, trailing
+  omission only, consistent within each section.
+- `cremation-containers-rental-caskets.html` has zero gaps (11/11 uniform).
+
+Fixed for `wood-caskets.html` and `urns-guide.html` with a **content classifier**
+instead of positional indexing: each detail string is matched against a pattern
+(`lbs$` → Weight, digit+`in`+L/W/H → Dimensions, `cu in` → Capacity, starts with
+`burial`/`cremation` → Suitable for, contains `interior`/`finish` → Interior/Finish),
+and whichever single detail matches nothing is Construction/Material — verified
+(every card has exactly one such value, checked programmatically across all 62 and
+all 154 cards, zero collisions). `keepsake-urns-guide.html` and
+`cremation-containers-rental-caskets.html` didn't need this — their gaps are clean.
+
+**No `build_catalog_pdfs.mjs` rerun needed** for any of the five files — the compare
+UI (`.compare-tray`, `.compare-overlay`, `.compare-toggle`, `.photo-lightbox`) is in
+each page's print-hide list, so it can't leak into the multi-page catalog PDF, and
+that script doesn't reference the compare feature at all.
+
+Verified per catalog: `scripts/verify_catalogs.mjs`, plus Playwright covering
+selection → tray → 4-item cap, both tabs, diff highlighting against that catalog's
+real fields (including the previously-broken cards, checked by exact expected
+value), photo layouts at 2/3/4 items (equal-size assertion at 3), lightbox, both
+print modes, and regression checks against the grid white-knockout, the single-item
+print sheet, and search/sort/filter.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
