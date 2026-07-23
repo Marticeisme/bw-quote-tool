@@ -277,6 +277,49 @@ No catalog content changed, so `build_catalog_pdfs.mjs` did not need a rerun.
 
 ---
 
+### 2026-07-23 — Single-item print sheet: knock out the white product-photo background
+
+Martice reported the per-product print view (click a card → modal → "Print This
+Product") shows the casket/urn photo sitting on a visible white box, since the
+product photos are studio cutouts shot on pure white (`255,255,255`, confirmed
+by pixel-sampling a metal casket, wood casket, urn, keepsake, and cremation
+container — all identical convention, no gradient/shadow).
+
+Fix: added `mix-blend-mode:multiply` to `.ps-photo-wrap img` inside the existing
+`@media print{}` block, in all five catalogs — `metal-caskets.html`,
+`wood-caskets.html`, `urns-guide.html`, `keepsake-urns-guide.html`,
+`cremation-containers-rental-caskets.html`. One line each; verified first that
+all five share byte-identical `#printSheet`/`.ps-photo-wrap` markup and CSS
+before assuming the rule would drop in everywhere.
+
+Why multiply works cleanly here: the print sheet's page background is already
+`#F6F2E9` (near-white, set at `#printSheet` with `print-color-adjust:exact`).
+Multiplying a pure-white image pixel against a near-white backdrop resolves to
+the backdrop color almost exactly, so the knockout is visually seamless with
+no per-image editing. Since the source photos have no soft shadow/vignette,
+the technique's usual weakness (muddying shadows) doesn't apply. Non-white
+casket/urn colors darken by a negligible ~3-5% (backdrop is a few units short
+of pure white), invisible on paper.
+
+Scoped inside `@media print`, targeting only `#psImg` — on-screen catalog grid
+thumbnails and the modal preview are untouched. Verified with Playwright across
+all five pages: `mix-blend-mode` on `#psImg` is `normal` on screen and
+`multiply` under emulated print media; grid thumbnails stay `normal` in both.
+Rendered an actual print screenshot (Apollo Silver) to confirm the knockout
+looks right, not just that the CSS property is set.
+
+`scripts/build_catalog_pdfs.mjs` does not reference `#printSheet` at all — it
+only renders each page's full product grid for the multi-page catalog PDF, a
+separate code path from the single-item print sheet. **No PDF rebuild needed**
+for this change.
+
+Note for later: the same white-box pattern exists on the on-screen grid
+thumbnails and the small thumbnail images inside the full multi-page catalog
+PDFs — out of scope here since the ask was specifically the single-item print
+view, but the identical technique would apply if that's wanted too.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
