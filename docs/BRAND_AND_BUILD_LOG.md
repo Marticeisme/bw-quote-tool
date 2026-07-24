@@ -878,6 +878,22 @@ your behalf, recording wishes, putting wishes on file), so a family could fairly
 you arrange."* Follows the house rule for these guides — **name the charge, never the dollar
 figure** — so the file stays at 0 `$`. Martice approved the wording. PDF rebuilt, 11pp.
 
+**Follow-up — witnessing confirmed against practice, and the detail Martice volunteered.**
+He confirmed families do see the container go into the chamber, so the existing description
+is accurate (debrief §8 item 4 fully closed). He also mentioned something the guides did not
+say: **once the chamber is closed, the family may press the button to start the cremation
+themselves.** Added in both places, in each file's own register — `who-decides-guide.html`
+("Once the chamber is closed, you may press the button to begin the cremation yourself", no
+contractions, matching that guide) and `cremation-guide.html`, which had priced *Family
+witness of the cremation* under Additional Services while saying nothing about what
+witnessing actually is. It now carries a short `.prose` note under that table using the
+guide's existing **bold lead-in** pattern and its `&rsquo;` contractions, and tells families
+to say so ahead of time so it can be scheduled. Both PDFs rebuilt; Who Decides still 0 `$`.
+
+**Register note:** the earlier contraction audit undercounted files that write apostrophes as
+`&rsquo;` — `cremation-guide.html` does use contractions, so a plain `it's|you'll` regex
+reports zero. Check for the entity too before concluding a guide's register.
+
 **Follow-up, same day — executor-authority FAQ added** (debrief §8 item 2, at Martice's
 request). New ninth FAQ entry, "Does being the executor of the estate let me decide?", placed
 directly after the power-of-attorney one since they are the same class of misconception. Says
