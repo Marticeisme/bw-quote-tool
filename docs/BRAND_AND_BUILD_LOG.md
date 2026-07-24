@@ -511,7 +511,7 @@ print sheet, and search/sort/filter.
 
 ### 2026-07-23 — Compare feature: bigger product photo in Specs & Differences
 
-Martice reviewed the compare feature's Specs & Differences tab (all five
+Pushed `b716e68`. Martice reviewed the compare feature's Specs & Differences tab (all five
 catalogs) and found the per-column product photo too small relative to the
 available room — noticeable empty space below/around the table.
 
