@@ -701,6 +701,32 @@ tables render and repeat their header if split. Both disclaimers kept in full.
 
 ---
 
+### 2026-07-23 — Compare view: Bonney Watson branding + larger prices
+
+Pushed `1b048a8`. Martice: the on-screen compare view had no BW chrome (plain
+white header) and prices too small. All five catalogs, screen-only:
+- **Header** now navy (`var(--navy)`) with a 3px `var(--orange)` bottom rule,
+  the white `logo.svg`, white title, an **orange** Print Comparison button
+  (was navy — invisible on the new navy header), a translucent-white close
+  button, and the tab pill group flipped to a light-on-navy segmented control
+  (`rgba(255,255,255,.14)` track, white active pill). Mirrors the site nav and
+  the print masthead so it reads as Bonney Watson.
+- **Prices bigger:** Specs & Differences Price row → 19px navy bold via
+  `.compare-table > .compare-table-row:nth-child(2) .compare-value-cell`
+  (Price is always `ROW_LABELS[0]`, so header row is child 1, Price is child 2).
+  Scoped to `.compare-table` (screen `#compareTable`) — the print table is
+  `.cmp-table`, so **print is untouched** (verified: print price cell stays
+  11px). Photos-tab price → 23px (was 16px).
+
+Verified across all five: header navy `rgb(61,90,122)` + orange rule + logo +
+orange print btn; specs price 19px / photos price 23px; and **no regression** to
+either print mode (print price 11px, table still grid), the Photos 2/3/4-item
+layouts, the lightbox, the tray/4-item cap, diff highlighting, or the
+white-knockout. **No PDF rebuild needed** — screen-only, and the compare UI is
+print-hidden regardless.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
