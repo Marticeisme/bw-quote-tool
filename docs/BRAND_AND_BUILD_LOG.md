@@ -992,6 +992,46 @@ rebuilt **all twelve** guide PDFs, including the parallel session's two in-fligh
 PDFs were rebuilds of identical source — but **always pass a filter when the working tree has
 another session's files in it.**
 
+### 2026-07-24 — Quote tool (index.html): Batesville catalog, CIRGAS IOA, tax footnote
+
+Not guides/catalog work — these are `index.html` (the quoting + contract app) pushes,
+logged here because everything that ships gets an entry. Verified with Playwright + xlsx/
+pdf inspection, syntax-checked before each push.
+
+**Batesville merchandise — all 510 SKUs into the FH quote tool + search** (commit `278dada`).
+Same set as the catalog PDFs (`INDEX.csv`). 68 were missing: 13 urns/keepsakes → `URN_DATA`,
+2 cremation containers, 3 rental caskets (new Rental Casket panel), 42 Misc → the Memorial
+Merchandise dropdown. Prices matched the CSV to the cent (0 mismatches). Key fix:
+`buildPriceIndex()` only scanned DOM `<option>`s, so all 452 caskets/urns — which render into
+JS type-ahead dropdowns — were invisible to search and the Price List; fed `CASKET_DATA`/
+`URN_DATA` in directly (index 348 → 841). SKU collision guard: #145232 and Standard Brown
+share $880 and the container `<select>`'s value IS its saved state, so #145232 carries
+`value="880|145232"`.
+
+**Repo-level `CLAUDE.md` added** (commit `41670f5`) so dispatched/cloud sessions inherit the
+non-negotiables (syntax check, never commit `wmp-cemetery-map/`, saved quotes are live
+Firebase, Acrobat only for the RIC, the two-session rules).
+
+**CIRGAS At-Need fixes** (commit `a077805`):
+- Interment Order & Authorization now has **Double Depth + Oversize Vault** (IOA sheet `M29` /
+  `P29` checkbox cells, row 29 beside the 1st-Right/Addl-Right boxes). Two Yes/No selects,
+  auto-detected on import (double-depth O&C line, oversize vault), written as `X`. Oversize
+  also needs the on-form `A88` approval signature (left for the FD).
+- CIRGAS commission worksheet **auto-fills Total Payment Received** (`F6`) = the sale total —
+  at-need is paid in full, so no field to type. Uses the sale sum, **not** `r.total` (which is
+  the commission total).
+- **Tax footnote reworded.** Installation/setting of tangible personal property is taxable
+  under WA law, so "Services & transportation are exempt" contradicted the taxed vault-setting
+  and marker-install. Cemetery/combined now read *"Tax applies to merchandise and its
+  installation. Interment and recording services are exempt."*; FH keeps its own wording via a
+  new `_taxNoteText(isFH)` helper (`renderSummary`, `_fqRenderHTML`, `_fqBuildPDFBytes`).
+
+**Dead code removed** (commit `4b27adb`): `_buildQuotePDF` (472 lines) — no callers, superseded
+by `_fqBuildPDFBytes`. All three download buttons already route through the latter.
+
+Ceramic portrait pricing was verified from this session too (see the "Ceramic portrait prices
+reconciled to the PCM sheet" entry above) — all five shapes match the sheet; no change needed.
+
 ---
 
 ## 5. Working rules that keep biting us
