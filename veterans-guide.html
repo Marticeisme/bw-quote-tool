@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veterans Guide · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5; --gold:#b8945a;
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:var(--body);font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+strong{color:var(--navy-dark);font-weight:700}
+
+/* nav */
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+.nav-logo{height:22px;width:auto;flex-shrink:0}
+.nav-est{font-family:var(--display);font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap}
+.nav-spacer{flex:1}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s}
+.nav-back:hover{background:rgba(255,255,255,.12)}
+
+/* doc-sheet + cover */
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative}
+.cover-kicker{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative}
+.cover h1{font-family:var(--display);font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
+.cover-sub{font-family:var(--display);font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative}
+.cover-stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--navy-deep) 0 33.33%,#e9e2d4 33.33% 66.66%,var(--orange) 66.66% 100%);opacity:.9}
+
+/* contents */
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule)}
+.contents-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.contents-item:nth-last-child(-n+2){border-bottom:none}
+.contents-num{font-family:var(--display);font-size:22px;font-weight:600;color:var(--orange);min-width:20px}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s}
+.contents-item a:hover{color:var(--orange)}
+
+/* sections (drafted class names, restyled to house section-wrap) */
+.section{max-width:none;margin:0;padding:48px 48px 40px}
+.section + .section{border-top:1px solid var(--rule)}
+.section-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 6px}
+.section h2{font-family:var(--display);font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin:0 0 8px}
+.section .sub{font-family:var(--display);font-size:16px;font-style:italic;color:var(--text-muted);margin:0 0 22px;max-width:none}
+.rule{width:50px;height:2.5px;background:var(--orange);border:0;border-radius:2px;margin:0 0 26px}
+.section .sub + .rule{margin-top:0}
+.section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
+.section p.wide{max-width:none}
+.subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+a.inline{color:var(--orange);font-weight:700;text-decoration:none}
+a.inline:hover{text-decoration:underline}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px;margin:8px 0 12px}
+.card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:22px 22px 20px}
+.card h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px;line-height:1.2}
+.card h3 .star{color:var(--gold);font-size:.9em;margin-right:7px}
+.card p{margin:0;font-size:14px;color:var(--text);line-height:1.55}
+.card p + p{margin-top:10px}
+.card .fig{display:block;font-family:var(--display);font-size:26px;font-weight:700;color:var(--navy);margin:2px 0 4px}
+
+/* dark callout (drafted .band -> house policy-box look) */
+.band{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.band::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none}
+.band h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.band p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.band p + p{margin-top:12px}
+.band strong{color:var(--orange-soft)}
+
+/* gold-left note callout */
+.note{background:var(--card-white);border-left:4px solid var(--orange);border-top:1px solid var(--warm-border);border-right:1px solid var(--warm-border);border-bottom:1px solid var(--warm-border);padding:22px 26px;margin:26px 0 10px;border-radius:0 10px 10px 0}
+.note h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px}
+.note p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.note p + p{margin-top:12px}
+
+/* comparison table */
+.compare{width:100%;border-collapse:collapse;margin:8px 0 12px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;font-size:14px}
+.compare th,.compare td{padding:14px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+.compare thead th{background:var(--navy);color:#fff;font-family:var(--display);font-size:18px;font-weight:600;border-bottom:0}
+.compare thead th:first-child{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.compare tbody th{font-weight:700;color:var(--navy);width:23%;background:var(--sidebar-bg);font-size:13px}
+.compare tbody tr:last-child th,.compare tbody tr:last-child td{border-bottom:0}
+.compare .yes{color:#3a8a3a;font-weight:700}
+.compare .no{color:var(--orange-dark);font-weight:700}
+
+/* charge list */
+.costs{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:6px 26px;margin:8px 0 12px}
+.charge-list{list-style:none;margin:0;padding:0}
+.charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.charge-list li:last-child{border-bottom:0}
+.charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* faq */
+.faq{border-top:1px solid var(--rule);margin-top:8px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
+.faq details[open] summary::after{content:"3"}
+.faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
+.faq .answer{padding:0 40px 22px 0}
+.faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.faq .answer p + p{margin-top:12px}
+
+/* cta */
+.cta{padding:8px 48px 48px}
+.cta-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:44px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-in h2{font-family:var(--display);font-weight:600;font-size:32px;color:#fff;margin:0 0 12px}
+.cta-in p{color:rgba(255,255,255,.82);margin:0 auto 26px;max-width:52ch;font-size:15px}
+.btn{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px 28px;border-radius:6px;transition:background .15s ease}
+.btn:hover,.btn:focus-visible{background:var(--orange-dark)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#dbe3ef;margin-left:10px}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.cta-in .direct{margin-top:24px;font-size:14px;color:rgba(255,255,255,.7)}
+.cta-in .direct a{color:var(--orange-soft);text-decoration:none}
+.cta-in .direct a:hover{text-decoration:underline}
+
+/* footers */
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;text-decoration:none;display:inline-block}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted)}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none}
+
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+@media (max-width:820px){
+  .nav-links{display:none}
+  .cover{padding:48px 26px 40px}
+  .cover h1{font-size:34px}
+  .contents{padding:32px 26px}
+  .contents-grid{grid-template-columns:1fr}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contents-item:last-child{border-bottom:none}
+  .section,.cta{padding-left:26px;padding-right:26px}
+}
+@media (max-width:640px){
+  .compare,.compare thead,.compare tbody,.compare tr,.compare th,.compare td{display:block;width:100%}
+  .compare thead{display:none}
+  .compare tbody tr{border-bottom:2px solid var(--navy);padding:4px 0}
+  .compare tbody tr:last-child{border-bottom:0}
+  .compare tbody th{width:100%;background:var(--sidebar-bg);border-bottom:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+  .compare tbody td{border-bottom:1px solid var(--rule);padding-top:10px}
+  .compare tbody td::before{content:attr(data-label);display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--orange);margin-bottom:4px}
+}
+
+@media print{
+  @page{size:letter;margin:0}
+  html{background:var(--cream)}
+  body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto}
+  .cover{padding:20px .5in 16px;margin:0 -.5in;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover h1{font-size:24pt}
+  .cover-sub{font-size:12pt}
+  .cover-stripe{display:none}
+  .section{padding:14px 0 10px;break-inside:auto}
+  .section + .section{border-top:1px solid var(--rule)}
+  .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
+  .card,.band,.note,.costs,.compare{break-inside:avoid;page-break-inside:avoid}
+  .band{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .compare thead{display:table-header-group}
+  .faq details{break-inside:avoid;page-break-inside:avoid}
+  .faq .answer{display:block!important}
+  .faq summary::after{display:none}
+  .doc-footer{padding:24px 0 20px;border-top:1px solid var(--rule)}
+  .doc-footer .footer-url{display:none}
+  a[href^="http"]::after{content:""}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#benefits">VA Benefits</a>
+      <a href="#dd214">DD-214</a>
+      <a href="#where">Where to Rest</a>
+      <a href="#funeral">Funeral Home</a>
+      <a href="#garden">Veterans Sections</a>
+      <a href="#markers">Markers</a>
+      <a href="#honors">Honors</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Veterans Guide</h1>
+    <div class="cover-sub">Washington Memorial Park has two dedicated veterans sections, and the burial space in them is our gift to those who served. This guide explains what the VA provides, what we provide on both the cemetery and the funeral home side, and what a family should still expect to pay.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">VA benefits &middot; veterans sections &middot; marker options &middot; printable</div>
+    <div class="cover-stripe"></div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#benefits">What the VA Provides</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#dd214">Start With the DD-214</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#where">Where to Be Laid to Rest</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#funeral">The Funeral Home Side</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#garden">The Veterans Sections</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#markers">Choosing a Marker</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#honors">Military Funeral Honors</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="benefits">
+  <p class="section-label">Section 1</p>
+  <h2>What the VA Provides</h2>
+  <p class="sub">Benefits earned through service, wherever you choose to be laid to rest</p>
+  <hr class="rule">
+  <p>Every one of these is available to an eligible veteran buried at Washington Memorial Park. Choosing a private cemetery does not forfeit them.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3><span class="star">&#9733;</span>Headstone or marker</h3>
+      <p>The VA furnishes a government headstone or marker at no charge for an eligible veteran's unmarked grave, in any cemetery. If the family prefers a privately purchased marker, a bronze medallion can be affixed to it instead.</p>
+      <p><strong>A veteran receives one or the other, not both.</strong></p>
+    </div>
+    <div class="card">
+      <h3><span class="star">&#9733;</span>Burial flag</h3>
+      <p>A United States flag to drape the casket or accompany the urn, presented to the next of kin after the service. We request it on your family's behalf.</p>
+    </div>
+    <div class="card">
+      <h3><span class="star">&#9733;</span>Military funeral honors</h3>
+      <p>At minimum, the folding and presentation of the flag and the sounding of Taps by an honor detail including at least one member of the veteran's branch. Available at Washington Memorial Park.</p>
+    </div>
+    <div class="card">
+      <h3><span class="star">&#9733;</span>Presidential Memorial Certificate</h3>
+      <p>An engraved certificate signed by the President honoring the veteran's service. Families may request more than one so each child or grandchild can have their own.</p>
+    </div>
+    <div class="card">
+      <h3><span class="star">&#9733;</span>National cemetery burial</h3>
+      <p>Burial at Tahoma National Cemetery in Kent at no cost, including the grave, opening and closing, a liner, a marker, and perpetual care. See Section 3 for how that compares.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>None of this is automatic</h3>
+    <p>Every one of these benefits has to be applied for, and each application requires proof of service. Nothing arrives on its own because someone served. We prepare and submit these for the families we serve, which is a good deal of the reason to have the paperwork in our hands ahead of time.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="dd214">
+  <p class="section-label">Section 2</p>
+  <h2>Start With the DD-214</h2>
+  <p class="sub">One document unlocks everything else</p>
+  <hr class="rule">
+  <p>The DD-214, the certificate of release or discharge from active duty, is the document the VA relies on to confirm eligibility. Without it, a marker cannot be ordered and honors cannot be scheduled. Families routinely spend the first days after a death searching a house for it.</p>
+  <p>If it cannot be found, a replacement can be requested from the National Archives, and veterans discharged more recently can often retrieve theirs through milConnect. Requests are free, but they take time, which is exactly what a family does not have at need.</p>
+
+  <div class="band">
+    <h3>Bring us a copy now</h3>
+    <p>The single most useful thing a veteran can do while pre-planning is hand us a copy of the DD-214. We keep it on file with the arrangement, so when the time comes nobody is turning the house upside down looking for it. There is no cost and no obligation to do this.</p>
+  </div>
+
+  <p>A copy also belongs somewhere the family can reach it. Not in a safe deposit box, and not with the will, since both are commonly opened after the funeral has already taken place.</p>
+</div>
+
+<!-- 3 -->
+<div class="section" id="where">
+  <p class="section-label">Section 3</p>
+  <h2>Where to Be Laid to Rest</h2>
+  <p class="sub">An honest comparison of the two options in this area</p>
+  <hr class="rule">
+  <p>Tahoma National Cemetery in Kent is an excellent option, and for some families it is the right one. It costs nothing. The tradeoffs are about choice, timing, and who may be placed alongside you.</p>
+
+  <table class="compare">
+    <thead>
+      <tr>
+        <th scope="col">&nbsp;</th>
+        <th scope="col">Tahoma National Cemetery</th>
+        <th scope="col">Veterans Sections at Washington Memorial Park</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Cost of the space</th>
+        <td data-label="Tahoma">No cost for a grave or a columbarium niche, including opening and closing, a liner, a marker, and perpetual care</td>
+        <td data-label="Washington Memorial Park">The space is given at no charge to the veteran. The family covers the endowment care fund, vault, vault setting, opening and closing, and recording</td>
+      </tr>
+      <tr>
+        <th scope="row">Choosing the location</th>
+        <td data-label="Tahoma"><span class="no">No.</span> The grave is assigned at the time of need</td>
+        <td data-label="Washington Memorial Park"><span class="yes">Yes.</span> You walk the section and choose the space yourself</td>
+      </tr>
+      <tr>
+        <th scope="row">Reserving in advance</th>
+        <td data-label="Tahoma"><span class="no">No.</span> Eligibility can be confirmed ahead of time, but a specific grave cannot be held</td>
+        <td data-label="Washington Memorial Park"><span class="yes">Yes.</span> The space is yours from the day you choose it</td>
+      </tr>
+      <tr>
+        <th scope="row">Who may be placed with you</th>
+        <td data-label="Tahoma">Spouse and dependent children</td>
+        <td data-label="Washington Memorial Park">Three generations. Spouse, children and their spouses, grandchildren and their spouses</td>
+      </tr>
+      <tr>
+        <th scope="row">First responders</th>
+        <td data-label="Tahoma"><span class="no">Not eligible</span></td>
+        <td data-label="Washington Memorial Park"><span class="yes">Eligible.</span> Law enforcement, fire, EMS, 911 dispatch, and corrections</td>
+      </tr>
+      <tr>
+        <th scope="row">Funeral home services</th>
+        <td data-label="Tahoma">Not included, and not covered by the VA. Arranged separately through a funeral home</td>
+        <td data-label="Washington Memorial Park">Arranged here, in the same conversation, by the same person</td>
+      </tr>
+      <tr>
+        <th scope="row">Distance from Seattle</th>
+        <td data-label="Tahoma">Kent, roughly a half hour further south for most families</td>
+        <td data-label="Washington Memorial Park">SeaTac, on International Boulevard</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Families who want their veteran near them, who want to know exactly where they will be, and who want the rest of the family to be able to join them later tend to choose one of our veterans sections. Families for whom cost is the deciding factor are usually better served by Tahoma, and we will help arrange it either way.</p>
+  <p>One thing to be clear about before you weigh the two: what Tahoma provides at no cost is the cemetery half of the arrangement. The funeral home half is the same either way, and it still has to be arranged and paid for. That is the subject of the next section.</p>
+</div>
+
+<!-- 4 -->
+<div class="section" id="funeral">
+  <p class="section-label">Section 4</p>
+  <h2>The Funeral Home Side</h2>
+  <p class="sub">The half of the arrangement no cemetery covers</p>
+  <hr class="rule">
+  <p>Every arrangement has two halves. There is what happens at the cemetery, and there is everything that happens before you get there. The VA covers part of the first. It covers none of the second.</p>
+  <p>A veteran laid to rest at Tahoma at no cost still needs a funeral home. Someone has to bring them into care at whatever hour they pass, prepare them, provide a casket or an urn, file the permits, order the certified copies, hold the service, and drive them to the cemetery. Those charges are identical whether the destination is Tahoma or Washington Memorial Park, and they are usually the larger half of the two.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>What a funeral home handles</h3>
+      <p>Bringing your veteran into our care, any hour of the day. Preparation, whether that means embalming for a viewing or the cremation itself. The casket, urn, or cremation container. Permits, certified copies of the death certificate, and the obituary. A chapel or facility for a viewing, service, or reception. Transportation to the cemetery.</p>
+    </div>
+    <div class="card">
+      <h3>What can be settled in advance</h3>
+      <p>All of it. Funeral home services can be selected and paid for ahead of time in the same way as cemetery property, at today&rsquo;s prices, with the same payment options.</p>
+      <p>Families who plan the cemetery side and stop there often assume the rest is taken care of. It is worth planning both, or at least knowing what the other half involves.</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>One conversation covers both</h3>
+    <p>Bonney Watson is a funeral home and a cemetery. I arrange both sides, which means the service, the merchandise, the space, and the marker are settled in a single sitting, with one set of paperwork and one person to call afterward.</p>
+    <p><strong>That holds true even if you choose Tahoma.</strong> We handle everything up to the moment we bring your veteran there, and we coordinate directly with the national cemetery on scheduling and honors. Choosing them for the space does not mean starting over with a stranger for everything else.</p>
+  </div>
+
+  <p>Families who arrange the cemetery with one company and the funeral with another end up telling the same story twice, to two sets of people, in the worst week of their lives. It is avoidable, and avoiding it costs nothing.</p>
+</div>
+
+<!-- 5 -->
+<div class="section" id="garden">
+  <p class="section-label">Section 5</p>
+  <h2>The Veterans Sections</h2>
+  <p class="sub">What we give, what remains, and who may be laid to rest here</p>
+  <hr class="rule">
+  <p>Washington Memorial Park has two sections set aside for those who served in the armed forces and in public safety: <strong>the Veterans Garden</strong> and <strong>Veterans North</strong>. The burial space in either one is given at no charge to a qualifying veteran.</p>
+  <div class="band">
+    <h3>The gift follows the veteran, not the section</h3>
+    <p>If your family is already resting in another part of Washington Memorial Park, you do not have to choose between the veterans sections and being with them. We apply the same veteran’s property gift toward a space in that section instead, so a veteran can be laid to rest beside a spouse, a parent, or a child rather than apart from them.</p>
+    <p>The gift is a flat credit toward the space you choose. It applies to ground burial and mausoleum spaces, and if the section you choose is priced higher than the veterans sections, you simply pay the difference. Columbarium niches are handled a little differently, so ask us and we will walk you through it.</p>
+    <p>Tell us where your family is and we will look at what is available near them.</p>
+  </div>
+
+  <p>The costs that remain are the ones tied to the interment itself rather than to the land. We would rather you know what they are now than meet them for the first time on a contract.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>Endowment care fund</strong><span>Washington state requires a portion of every cemetery property sale to be set aside permanently. Only its earnings are used, and they maintain the grounds</span></li>
+      <li><strong>Opening and closing</strong><span>Preparing the grave before the service and closing it afterward</span></li>
+      <li><strong>Recording fee</strong><span>Entering the interment in the permanent cemetery record</span></li>
+      <li><strong>Burial vault</strong><span>The outer container that surrounds and protects the casket</span></li>
+      <li><strong>Vault setting</strong><span>Placing the vault in the grave</span></li>
+      <li><strong>Washington sales tax</strong><span>Applies to merchandise and its installation. Interment and recording services are exempt</span></li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <h3>Why there is a care fund charge on a space we gave you</h3>
+    <p>This is the question we are asked most, and it is a fair one. Washington state requires a portion of every cemetery property sale to be deposited into an endowment care fund, and our contribution meets or exceeds that minimum. Only the earnings from that fund are ever used, and they pay to maintain these grounds for as long as the cemetery exists. Because it is calculated on the value of the property, it is still owed in full on a space we give at no charge, and it is not ours to waive for anyone. We would rather tell you now than have you find it on a contract.</p>
+  </div>
+
+  <h3 style="font-family:var(--display);font-size:1.8rem;color:var(--navy);margin:38px 0 10px;font-weight:600">Who may be laid to rest here</h3>
+  <p>Eligibility extends further than a national cemetery, which is the reason many families choose this section.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>Those who served</h3>
+      <p>Veterans discharged under any condition other than dishonorable, and service members who die on active duty, active duty for training, or inactive duty for training.</p>
+    </div>
+    <div class="card">
+      <h3>Three generations of family</h3>
+      <p>A spouse or surviving spouse, even if they remarry. Children and the spouses of children. Grandchildren and the spouses of grandchildren.</p>
+      <p>Great-grandchildren and more distant relatives are not eligible.</p>
+    </div>
+    <div class="card">
+      <h3>First responders</h3>
+      <p>Those who served in an official public safety role: law enforcement officers, firefighters whether career or volunteer, EMTs and paramedics, 911 dispatchers, and correctional officers.</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>Three things to plan around</h3>
+    <p><strong>Two caskets cannot share a space, but a casket and an urn can.</strong> If one of a couple chooses cremation, the two of you can rest together in a single space. The gift of the land covers the veteran. A spouse or family member who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that second right as well.</p>
+    <p><strong>The order matters.</strong> Arranging the space together ahead of time protects the half-cost pricing, whoever is laid to rest first. Without that arrangement in place, a spouse laid to rest before the veteran can be charged the full cost of the plot rather than half. None of us choose that order, which is precisely why it is worth settling while everyone is still here to decide.</p>
+    <p><strong>Adjacent spaces are not guaranteed later.</strong> We will always try to keep a family together, but availability depends on what is left in the section. Families who want to be side by side should choose their spaces at the same time.</p>
+  </div>
+
+  <div class="note">
+    <h3>What this actually costs you</h3>
+    <p>Every arrangement is different, and a number pulled from a page is rarely the number a family ends up with. We prepare a written, itemized estimate so you can see your own figures rather than somebody else’s, and there is no cost or obligation to ask for one.</p>
+  </div>
+
+  <p>Placement in either veterans section requires proof of service on the cemetery contract, most often the DD-214, a military ID, or other service records. First responder eligibility is confirmed with department identification, employment verification, or a certification or license. Bring what you have and we will tell you what else is needed.</p>
+</div>
+
+<!-- 6 -->
+<div class="section" id="markers">
+  <p class="section-label">Section 6</p>
+  <h2>Choosing a Marker</h2>
+  <p class="sub">The government marker is free. Placing it is not.</p>
+  <hr class="rule">
+  <p>This is the part that catches families off guard, so we want to be plain about it. The VA furnishes the marker itself at no charge, but arranging for its placement in a private cemetery is the family's responsibility, and all setting fees are at private expense. A government bronze marker requires a granite base before it can be installed.</p>
+  <p>Which means the real choice is not between free and paid. It is between two prices, and they are closer together than most families expect.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Government bronze from the VA</h3>
+      <p>The marker itself is furnished by the VA at no charge. What you pay us is the granite base it has to sit on and the installation, plus sales tax on both.</p>
+      <p>Bronze is a warm patina finish with raised lettering and standard emblems. Photo portraits, custom scenes, and etched artwork are not available on bronze.</p>
+    </div>
+    <div class="card">
+      <h3>Granite from Washington Memorial Park</h3>
+      <p>Priced all-inclusive of the stone, the design, the engraving, the wording, the installation, and the sales tax. There is no separate foundation charge, because the marker is the foundation.</p>
+      <p>Granite is the only material that offers a choice of over twenty stone colors, custom engraving and scenes, ceramic steel photo portraits, and hand diamond etching.</p>
+      <p><a href="markers-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">See the Granite Marker Guide &rarr;</a></p>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>If you choose granite, you can still have the VA emblem</h3>
+    <p>A veteran with a privately purchased marker can receive a bronze VA medallion at no charge, affixed to the granite. It is available in three sizes and carries the branch of service. Remember that a veteran receives either the government marker or the medallion, not both.</p>
+    <p>Granite varies considerably in price by color group, size, and design, so there is no single number we can print here honestly. Tell us the marker you have in mind and we will price it against the government option side by side.</p>
+  </div>
+
+  <p>Nearly every section at Washington Memorial Park, including both veterans sections, requires a flush marker set level with the lawn.</p>
+</div>
+
+<!-- 7 -->
+<div class="section" id="honors">
+  <p class="section-label">Section 7</p>
+  <h2>Military Funeral Honors</h2>
+  <p class="sub">What we arrange, and what the family should know</p>
+  <hr class="rule">
+  <p>Military funeral honors are rendered at Washington Memorial Park, not only at national cemeteries. Every eligible veteran is entitled to them, and the family does not pay for them.</p>
+  <p>Honors must be requested, and they must be scheduled. We make the request on the family's behalf as soon as we have the discharge documentation, which is one more reason to have the DD-214 on file ahead of time. Honor details are provided by the branch of service and by volunteer veteran organizations, and availability shapes the service time more often than families expect.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>What we handle</h3>
+      <p>Requesting the honor detail and the burial flag. Ordering the government marker or medallion. Requesting the Presidential Memorial Certificate. Coordinating with Tahoma if a family chooses a national cemetery instead.</p>
+    </div>
+    <div class="card">
+      <h3>What the family provides</h3>
+      <p>A copy of the DD-214 or equivalent service record. Any preference about the branch shown, the emblem of belief on the marker, and the wording.</p>
+    </div>
+  </div>
+
+  <p>If a veteran was a member of a post, a lodge, or a department, tell us. Many organizations render their own tribute alongside the military detail, and they need notice to do it well.</p>
+</div>
+
+<!-- 8 -->
+<div class="section" id="faq">
+  <p class="section-label">Section 8</p>
+  <h2>Common Questions</h2>
+  <p class="sub">What veterans and their families ask us most</p>
+  <hr class="rule">
+
+  <div class="faq">
+    <details>
+      <summary>Do I have to have served in combat?</summary>
+      <div class="answer"><p>No. Eligibility for the veterans sections turns on service and the character of discharge, not on where or when you served. Peacetime service qualifies. A dishonorable discharge does not.</p></div>
+    </details>
+    <details>
+      <summary>What about the National Guard or Reserve?</summary>
+      <div class="answer"><p>Members who die while on active duty, active duty for training, or inactive duty for training are eligible. For others, it depends on the nature and length of federal service, and the discharge paperwork will tell us. Bring what you have and we will confirm it.</p></div>
+    </details>
+    <details>
+      <summary>Can my spouse be buried beside me?</summary>
+      <div class="answer"><p>Yes, and so can your children, their spouses, your grandchildren, and their spouses.</p><p>If one of you chooses cremation, the two of you can share a single space, a casket and an urn together. Two casket burials cannot share a space, so a couple who both choose burial will need two.</p><p>The gift of the land covers the veteran. A spouse who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that right as well. Arranging the space together ahead of time protects that half-cost pricing whoever is laid to rest first; without it, a spouse laid to rest before the veteran can be charged the full cost. Since none of us choose that order, it is worth deciding together while you both can.</p></div>
+    </details>
+    <details>
+      <summary>Can I be cremated and still receive honors?</summary>
+      <div class="answer"><p>Yes. Cremation does not affect eligibility for military funeral honors, the burial flag, a government marker or medallion, or the Presidential Memorial Certificate.</p></div>
+    </details>
+    <details>
+      <summary>My family is already buried in another section. Do I lose the veteran's space?</summary>
+      <div class="answer"><p>No. The property gift follows you rather than the section, so we apply it toward a space near your family instead. You should not have to choose between the recognition you earned and resting beside the people you love.</p><p>If you already own property here, bring your deed and we will look at what makes sense for you.</p></div>
+    </details>
+    <details>
+      <summary>Do first responders really qualify?</summary>
+      <div class="answer"><p>Yes, and it is one of the things that sets this section apart. Law enforcement officers, career and volunteer firefighters, EMTs and paramedics, 911 dispatchers, and correctional officers are all eligible, with documentation of service in an official public agency or recognized emergency response role.</p></div>
+    </details>
+    <details>
+      <summary>What if we cannot find the DD-214?</summary>
+      <div class="answer"><p>A replacement can be requested from the National Archives at no cost, and more recent records are often available through milConnect. It takes time, so it is far better to do it now than at need. We are glad to walk you through the request.</p></div>
+    </details>
+    <details>
+      <summary>Is there a cost to talk to someone about this?</summary>
+      <div class="answer"><p>No. A pre-planning conversation is free, carries no obligation, and can happen at the cemetery, in your home, or by phone. Many families meet once, take months to think, and come back when they are ready.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Let's talk it through</h2>
+    <p>Bring your DD-214 and your questions. We will walk the sections, go through both the cemetery and the funeral home side, and put real numbers in front of you. You can take as long as you need afterward.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a conversation</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>

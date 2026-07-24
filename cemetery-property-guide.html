@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cemetery Property Guide · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5; --gold:#b8945a;
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:var(--body);font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+strong{color:var(--navy-dark);font-weight:700}
+
+/* nav */
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+.nav-logo{height:22px;width:auto;flex-shrink:0}
+.nav-est{font-family:var(--display);font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap}
+.nav-spacer{flex:1}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s}
+.nav-back:hover{background:rgba(255,255,255,.12)}
+
+/* doc-sheet + cover */
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative}
+.cover-kicker{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative}
+.cover h1{font-family:var(--display);font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
+.cover-sub{font-family:var(--display);font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative}
+.cover-stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--navy-deep) 0 33.33%,#e9e2d4 33.33% 66.66%,var(--orange) 66.66% 100%);opacity:.9}
+
+/* contents */
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule)}
+.contents-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.contents-item:nth-last-child(-n+2){border-bottom:none}
+.contents-num{font-family:var(--display);font-size:22px;font-weight:600;color:var(--orange);min-width:20px}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s}
+.contents-item a:hover{color:var(--orange)}
+
+/* sections (drafted class names, restyled to house section-wrap) */
+.section{max-width:none;margin:0;padding:48px 48px 40px}
+.section + .section{border-top:1px solid var(--rule)}
+.section-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 6px}
+.section h2{font-family:var(--display);font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin:0 0 8px}
+.section .sub{font-family:var(--display);font-size:16px;font-style:italic;color:var(--text-muted);margin:0 0 22px;max-width:none}
+.rule{width:50px;height:2.5px;background:var(--orange);border:0;border-radius:2px;margin:0 0 26px}
+.section .sub + .rule{margin-top:0}
+.section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
+.section p.wide{max-width:none}
+.subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+a.inline{color:var(--orange);font-weight:700;text-decoration:none}
+a.inline:hover{text-decoration:underline}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px;margin:8px 0 12px}
+.card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:22px 22px 20px}
+.card h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px;line-height:1.2}
+.card h3 .star{color:var(--gold);font-size:.9em;margin-right:7px}
+.card p{margin:0;font-size:14px;color:var(--text);line-height:1.55}
+.card p + p{margin-top:10px}
+.card .fig{display:block;font-family:var(--display);font-size:26px;font-weight:700;color:var(--navy);margin:2px 0 4px}
+
+/* dark callout (drafted .band -> house policy-box look) */
+.band{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.band::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none}
+.band h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.band p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.band p + p{margin-top:12px}
+.band strong{color:var(--orange-soft)}
+
+/* gold-left note callout */
+.note{background:var(--card-white);border-left:4px solid var(--orange);border-top:1px solid var(--warm-border);border-right:1px solid var(--warm-border);border-bottom:1px solid var(--warm-border);padding:22px 26px;margin:26px 0 10px;border-radius:0 10px 10px 0}
+.note h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px}
+.note p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.note p + p{margin-top:12px}
+
+/* comparison table */
+.compare{width:100%;border-collapse:collapse;margin:8px 0 12px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;font-size:14px}
+.compare th,.compare td{padding:14px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+.compare thead th{background:var(--navy);color:#fff;font-family:var(--display);font-size:18px;font-weight:600;border-bottom:0}
+.compare thead th:first-child{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.compare tbody th{font-weight:700;color:var(--navy);width:23%;background:var(--sidebar-bg);font-size:13px}
+.compare tbody tr:last-child th,.compare tbody tr:last-child td{border-bottom:0}
+.compare .yes{color:#3a8a3a;font-weight:700}
+.compare .no{color:var(--orange-dark);font-weight:700}
+
+/* charge list */
+.costs{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:6px 26px;margin:8px 0 12px}
+.charge-list{list-style:none;margin:0;padding:0}
+.charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.charge-list li:last-child{border-bottom:0}
+.charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* faq */
+.faq{border-top:1px solid var(--rule);margin-top:8px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
+.faq details[open] summary::after{content:"3"}
+.faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
+.faq .answer{padding:0 40px 22px 0}
+.faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.faq .answer p + p{margin-top:12px}
+
+/* cta */
+.cta{padding:8px 48px 48px}
+.cta-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:44px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-in h2{font-family:var(--display);font-weight:600;font-size:32px;color:#fff;margin:0 0 12px}
+.cta-in p{color:rgba(255,255,255,.82);margin:0 auto 26px;max-width:52ch;font-size:15px}
+.btn{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px 28px;border-radius:6px;transition:background .15s ease}
+.btn:hover,.btn:focus-visible{background:var(--orange-dark)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#dbe3ef;margin-left:10px}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.cta-in .direct{margin-top:24px;font-size:14px;color:rgba(255,255,255,.7)}
+.cta-in .direct a{color:var(--orange-soft);text-decoration:none}
+.cta-in .direct a:hover{text-decoration:underline}
+
+/* footers */
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;text-decoration:none;display:inline-block}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted)}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none}
+
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+@media (max-width:820px){
+  .nav-links{display:none}
+  .cover{padding:48px 26px 40px}
+  .cover h1{font-size:34px}
+  .contents{padding:32px 26px}
+  .contents-grid{grid-template-columns:1fr}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contents-item:last-child{border-bottom:none}
+  .section,.cta{padding-left:26px;padding-right:26px}
+}
+@media (max-width:640px){
+  .compare,.compare thead,.compare tbody,.compare tr,.compare th,.compare td{display:block;width:100%}
+  .compare thead{display:none}
+  .compare tbody tr{border-bottom:2px solid var(--navy);padding:4px 0}
+  .compare tbody tr:last-child{border-bottom:0}
+  .compare tbody th{width:100%;background:var(--sidebar-bg);border-bottom:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+  .compare tbody td{border-bottom:1px solid var(--rule);padding-top:10px}
+  .compare tbody td::before{content:attr(data-label);display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--orange);margin-bottom:4px}
+}
+
+@media print{
+  @page{size:letter;margin:0}
+  html{background:var(--cream)}
+  body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto}
+  .cover{padding:20px .5in 16px;margin:0 -.5in;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover h1{font-size:24pt}
+  .cover-sub{font-size:12pt}
+  .cover-stripe{display:none}
+  .section{padding:14px 0 10px;break-inside:auto}
+  .section + .section{border-top:1px solid var(--rule)}
+  .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
+  .card,.band,.note,.costs,.compare{break-inside:avoid;page-break-inside:avoid}
+  .band{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .compare thead{display:table-header-group}
+  .faq details{break-inside:avoid;page-break-inside:avoid}
+  .faq .answer{display:block!important}
+  .faq summary::after{display:none}
+  .doc-footer{padding:24px 0 20px;border-top:1px solid var(--rule)}
+  .doc-footer .footer-url{display:none}
+  a[href^="http"]::after{content:""}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#rights">What You Buy</a>
+      <a href="#types">Property Types</a>
+      <a href="#capacity">What a Space Holds</a>
+      <a href="#charges">The Charges</a>
+      <a href="#ecf">Endowment Care</a>
+      <a href="#owning">Owning It</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Cemetery Property Guide</h1>
+    <div class="cover-sub">What you are actually purchasing, the kinds of property at Washington Memorial Park, every charge that goes into an interment and what each one is for, and what it means to own a space over the years that follow.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Interment rights &middot; property types &middot; every charge explained &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#rights">What You Are Actually Buying</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#types">The Kinds of Property Here</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#capacity">What a Space Can Hold</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#charges">The Charges Beyond the Space</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#ecf">The Endowment Care Fund</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#owning">Owning It Over Time</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#rising">Why Prices Keep Rising</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="rights">
+  <p class="section-label">Section 1</p>
+  <h2>What You Are Actually Buying</h2>
+  <p class="sub">Interment rights, not real estate</p>
+  <hr class="rule">
+  <p>This is the thing families most often have wrong, and it shapes nearly everything else in this guide. When you purchase cemetery property, you are not buying land. You are buying the <strong>exclusive right to use a particular space for human interment</strong>, and for no other purpose.</p>
+  <p>The document you receive says so directly. It is called a Certificate of Interment Rights, and it grants the exclusive use of a described space in Washington Memorial Park as a place of human interment. The cemetery continues to own and maintain the land itself. That is what allows the grounds to be cared for consistently, in perpetuity, rather than falling to whoever happens to hold the deed.</p>
+
+  <div class="band">
+    <h3>What that means in practice</h3>
+    <p>Your right does not expire. It is not affected by moving away, and it passes to your family if you never use it.</p>
+    <p>Your right is subject to the cemetery&rsquo;s rules, and those rules can change over time. Two things they can never do: impose a new charge or assessment on you, or prevent you from using your space for its purpose.</p>
+    <p><strong>No transfer is valid without our written consent and a recording in our books.</strong> That is not a formality we impose. It is written into the certificate, and it is why any sale or transfer has to come through us.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="types">
+  <p class="section-label">Section 2</p>
+  <h2>The Kinds of Property Here</h2>
+  <p class="sub">More than eighty acres, and more choices than most families expect</p>
+  <hr class="rule">
+  <p>Washington Memorial Park has been receiving families since the 1920s, and it has grown into a number of distinct gardens, columbariums, and mausoleums. Which type suits you depends first on whether you are planning for burial or for cremation, and after that on setting, on cost, and on where your family already is.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Ground burial spaces</h3>
+      <p>A lawn space in one of the numbered gardens, each with its own character and outlook. This is the traditional choice and the largest part of the park.</p>
+    </div>
+    <div class="card">
+      <h3>Lawn crypts</h3>
+      <p>A pre-installed underground chamber in a designated section, set in place before it is needed. Available in limited areas.</p>
+    </div>
+    <div class="card">
+      <h3>Columbarium niches</h3>
+      <p>A compartment for an urn within a wall or structure, with either a granite front or a glass front that lets the urn be seen. Available across a number of columbariums throughout the park.</p>
+    </div>
+    <div class="card">
+      <h3>Mausoleum crypts</h3>
+      <p>Above-ground entombment, indoors or outdoors depending on the building. Chosen by families who prefer not to be placed in the ground.</p>
+    </div>
+    <div class="card">
+      <h3>Urn gardens</h3>
+      <p>Ground burial of an urn in a garden set aside for cremated remains, marked in the same way a lawn space would be.</p>
+    </div>
+    <div class="card">
+      <h3>Scattering gardens</h3>
+      <p>A permanent place for scattered remains, with a memorial so there is still somewhere to visit. Several settings are available, including an ossuary.</p>
+    </div>
+    <div class="card">
+      <h3>Veterans sections</h3>
+      <p>Two sections set aside for those who served in the armed forces and in public safety, where the space itself is given at no charge to a qualifying veteran.</p>
+      <p><a class="inline" href="veterans-guide.html">See the Veterans Guide &rarr;</a></p>
+    </div>
+    <div class="card">
+      <h3>Where your family already is</h3>
+      <p>If relatives are already resting here, that is often the deciding factor. Tell us where they are and we will show you what is available nearby before you look anywhere else.</p>
+    </div>
+  </div>
+
+  <p>Prices differ considerably between sections, and not only by type. Location, outlook, and how much of a section remains all affect what a space costs. The most useful thing you can do is walk the park with us and see them.</p>
+</div>
+
+<!-- 3 -->
+<div class="section" id="capacity">
+  <p class="section-label">Section 3</p>
+  <h2>What a Space Can Hold</h2>
+  <p class="sub">How many people, and in what form</p>
+  <hr class="rule">
+  <p>Families frequently assume a space holds a couple. Usually it does, but not in the way they expect, and the details are worth understanding before you decide how much property to purchase.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>One casket burial per space</h3>
+      <p>A ground space is sold for a single casket interment. A couple who both choose traditional burial will need two spaces.</p>
+    </div>
+    <div class="card">
+      <h3>A casket and an urn can share</h3>
+      <p>Where one person chooses burial and the other cremation, both can rest in a single space. This is a common and considerably less expensive arrangement than two spaces.</p>
+    </div>
+    <div class="card">
+      <h3>Second and third rights</h3>
+      <p>Cremated remains can be added to a space already holding an interment. Each additional placement is purchased as a right of interment, priced as a share of the space and of its endowment care.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>Every placement carries its own charges</h3>
+    <p>Adding someone to an existing space is not simply a matter of the right itself. Each interment has its own opening and closing, its own recording fee, and usually its own container. The same is true of a niche or a crypt holding more than one person. Section 4 covers all of it.</p>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="section" id="charges">
+  <p class="section-label">Section 4</p>
+  <h2>The Charges Beyond the Space</h2>
+  <p class="sub">What each one is, and what it pays for</p>
+  <hr class="rule">
+  <p>The space is one line on a quote. These are the others. None of them are hidden, but families are rarely told about them until the moment they are being asked to sign, which is the wrong time to learn something new.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>Endowment care fund</strong><span>A permanent fund whose earnings maintain the grounds. Required by Washington state on every sale of cemetery property. See Section 5</span></li>
+      <li><strong>Opening and closing</strong><span>Preparing the space before the service and closing it afterward. The charge differs by type of interment, since a ground burial, an urn burial, a niche, and a mausoleum crypt each involve different work</span></li>
+      <li><strong>Recording fee</strong><span>Entering the interment permanently in the cemetery record, so that who is where remains known for as long as the park exists. Charged once per interment</span></li>
+      <li><strong>Outer burial container or vault</strong><span>The container that surrounds the casket or urn and supports the ground above it. Required for ground interment. Options range widely</span></li>
+      <li><strong>Vault setting</strong><span>Placing the container in the space. Separate from the container itself, and different for a burial vault than for an urn vault</span></li>
+      <li><strong>Memorial and its installation</strong><span>The marker or inscription, and the work of setting it. Granite markers here are priced all-inclusive. Bronze markers, including government markers for veterans, need a separate granite base</span></li>
+      <li><strong>Washington sales tax</strong><span>Applies to merchandise and its installation. The space, endowment care, opening and closing, and recording are exempt</span></li>
+    </ul>
+  </div>
+
+  <p>Three of these have guides of their own, because the choices within them are substantial: <a class="inline" href="vault-guide.html">burial vaults</a>, <a class="inline" href="markers-guide.html">granite markers</a>, and <a class="inline" href="urn-placement-guide.html">urn placement</a>.</p>
+
+  <div class="band">
+    <h3>Timing changes the cost</h3>
+    <p>This one catches almost everybody. A service held on a Friday, Saturday, Sunday, or a holiday carries a surcharge, as does an interment scheduled after three in the afternoon. If the family wishes to witness the lowering or placement, that carries a charge as well, and the weekend rate is higher than the weekday one.</p>
+    <p><strong>None of this makes a weekend service the wrong choice.</strong> Many families need one so that relatives can travel. But it should be a decision you make knowingly, not something you discover on an invoice, and if the day is flexible there is money in it.</p>
+  </div>
+</div>
+
+<!-- 5 -->
+<div class="section" id="ecf">
+  <p class="section-label">Section 5</p>
+  <h2>The Endowment Care Fund</h2>
+  <p class="sub">The charge that pays for the next hundred years</p>
+  <hr class="rule">
+  <p>Of every charge on a cemetery quote, this is the one families question most, and it deserves a proper answer rather than a line item.</p>
+  <p>The endowment care fund is a permanent fund established for the upkeep of the cemetery. Washington state requires a cemetery to deposit a minimum percentage of every property sale into it, and Bonney Watson&rsquo;s contribution meets or exceeds that minimum: 15% of the price for ground property, and 10% for niches and crypts.</p>
+
+  <div class="band">
+    <h3>The principal is never spent</h3>
+    <p>Both state law and your Certificate of Interment Rights say the same thing: only the income from the fund may be used, and the principal remains permanently intact.</p>
+    <p>It is not an annual fee, a maintenance contract, or a charge that returns later. It is paid once, and its earnings pay to mow, water, prune, and repair these grounds for as long as this cemetery exists, long after everyone who signed for it is gone. That is the promise it makes, and it is why it cannot be waived.</p>
+  </div>
+
+  <p>One consequence surprises people. Washington&rsquo;s endowment care law ties the required deposit to the value of the property rather than to the price actually paid for it, so the contribution is still owed in full even when the property itself is discounted or given at no charge. A veteran receiving a space at no cost still contributes to the endowment care on it, figured on what the space is worth. It is not something we could waive even if we wished to, and we would rather explain that now than have you meet it on a contract.</p>
+</div>
+
+<!-- 6 -->
+<div class="section" id="owning">
+  <p class="section-label">Section 6</p>
+  <h2>Owning It Over Time</h2>
+  <p class="sub">Moving, transferring, selling, and giving it away</p>
+  <hr class="rule">
+  <p>Most people buy cemetery property once and never think about it again. Some circumstances change, though, and it is better to know how this works before you need to.</p>
+
+  <h3 class="subhead">If you move away</h3>
+  <p>Nothing happens to your rights. They remain yours regardless of where you live, and a great many families who left the area years ago still return here. If you would prefer to be laid to rest closer to your new home, the options below apply.</p>
+
+  <h3 class="subhead">If you transfer it to family</h3>
+  <p>Interment rights can be transferred to another person. Both parties sign, the signatures are notarized, which we provide in our office at no charge or through DocuSign, and we record the transfer in our books. A deed transfer fee applies. If you are giving the property to a qualifying nonprofit organization, we waive that fee.</p>
+
+  <h3 class="subhead">If you decide to sell it</h3>
+  <p>You may sell your interment rights at any price you choose. We do not repurchase property or find buyers, so that part is yours to do, but we will show your space to anyone interested and prepare the transfer once you have agreed on a price.</p>
+
+  <div class="note">
+    <h3>Worth knowing before you buy</h3>
+    <p>Sellers commonly ask around half of current value. Cemetery property is a right of use rather than an investment, and there is no ready market for it.</p>
+    <p>Which leads to the only advice here that costs us money: <strong>buy what you need.</strong> If more is wanted later and the section still has room, it can be added then.</p>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="section" id="rising">
+  <p class="section-label">Section 7</p>
+  <h2>Why Prices Keep Rising</h2>
+  <p class="sub">And why that argues for deciding sooner</p>
+  <hr class="rule">
+  <p>Cemetery property does not follow ordinary inflation, and the reason is simple arithmetic. Land is finite, interment is permanent, and a cemetery cannot restock. Every space that is used is used for good.</p>
+  <p>Washington Memorial Park covers more than eighty acres and has been serving families here since the 1920s. In that time, <strong>some of our sections have closed to new sales entirely.</strong> They are full. Others are further along than families realize. That is not a sales argument, it is something you can see on a drive through the park, and we are glad to show you.</p>
+  <p>Our prices increase every year, and here in Washington they have risen faster than general inflation. Nothing about that is likely to reverse. There is no more land coming, and there are more people every year who need some of it.</p>
+
+  <div class="band">
+    <h3>What planning ahead actually buys you</h3>
+    <p><strong>The price.</strong> What you agree to today is what your family pays, whenever that day comes. On a purchase that may sit for thirty years, that is the largest single thing pre-planning does.</p>
+    <p><strong>The space.</strong> Just as importantly, you choose it. You walk the park, you stand in the section, and you pick the one you want while it is still there to pick. Families arranging at need choose from whatever remains, in the same week they are burying someone.</p>
+    <p><strong>The time.</strong> You can take months. You can come back three times. Nobody is waiting on you.</p>
+  </div>
+</div>
+
+<!-- 8 -->
+<div class="section" id="faq">
+  <p class="section-label">Section 8</p>
+  <h2>Common Questions</h2>
+  <p class="sub">What families ask us most about cemetery property</p>
+  <hr class="rule">
+
+  <div class="faq">
+    <details>
+      <summary>Do I own the land?</summary>
+      <div class="answer"><p>No. You own the exclusive right to use that space for human interment, and for no other purpose. The cemetery owns and maintains the land itself. That arrangement is what keeps the grounds cared for consistently over generations.</p></div>
+    </details>
+    <details>
+      <summary>Can two people be buried in one space?</summary>
+      <div class="answer"><p>A space is sold for one casket interment. A casket and an urn can share a space, so a couple where one chooses cremation can rest together in a single space. Cremated remains can also be added to a space later as a second or third right of interment.</p><p>Two casket burials in one space is not something we offer as a matter of course.</p></div>
+    </details>
+    <details>
+      <summary>Does my property expire if I never use it?</summary>
+      <div class="answer"><p>No. Interment rights do not expire and there is nothing further to pay to keep them. If you never use the space, it passes to your family.</p></div>
+    </details>
+    <details>
+      <summary>What happens if I move out of state?</summary>
+      <div class="answer"><p>Your rights stay yours no matter where you live. Many families who moved decades ago still return here. If you would rather be closer to where you are now, you can transfer or sell the property, and we will handle the paperwork either way.</p></div>
+    </details>
+    <details>
+      <summary>Can I sell my cemetery property?</summary>
+      <div class="answer"><p>Yes, though finding the buyer is yours to do. We do not repurchase property or locate buyers, but we will show your space and prepare the transfer once you agree on a price. Every transfer requires our written consent and recording, so it does come through us. Sellers commonly ask around half of current value.</p></div>
+    </details>
+    <details>
+      <summary>Why is there an endowment care charge if I am buying the space outright?</summary>
+      <div class="answer"><p>Because the space still has to be cared for, permanently. Washington state requires a portion of every property sale to be set aside in a fund whose earnings maintain the grounds. The principal is never spent. It is a one-time charge, and it is what ensures this park is still being mowed and tended a century from now.</p></div>
+    </details>
+    <details>
+      <summary>Can I choose any kind of marker I want?</summary>
+      <div class="answer"><p>Nearly every section here requires a flush marker set level with the lawn, which is what gives the park its open character. Upright monuments are permitted in only a few designated areas. Within those rules there is a great deal of choice in stone, colour, design, and lettering.</p></div>
+    </details>
+    <details>
+      <summary>I already own property here. Can I change my mind about where I want to be?</summary>
+      <div class="answer"><p>Often, yes. Existing property can usually be applied toward a different section. Bring your deed and we will look at what makes sense.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Come and walk it with us</h2>
+    <p>Reading about sections is not the same as standing in one. There is no cost to look, no obligation, and no reason you cannot take months to decide afterward.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a visit</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>

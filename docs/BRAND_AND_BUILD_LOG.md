@@ -541,6 +541,58 @@ regardless.
 
 ---
 
+### 2026-07-23 — Veterans + Cemetery Property guides added
+
+Two new reference guides drafted elsewhere (approved content, approximated tokens)
+integrated onto the house style. `veterans-guide.html`, `cemetery-property-guide.html`,
+plus `pdf-assets/Veterans Guide.pdf` (11pp) and `pdf-assets/Cemetery Property Guide.pdf`
+(9pp), and two cards in `guides.html` under Getting Started (count 2 → 4, now 22 cards).
+
+Reskin via `scripts/reskin_guides.py` — a **chrome swap + component retokenize**, chosen
+over hand-editing 1200 lines so no word of approved content changes. It rebuilds the nav
+(→`.site-nav`), hero (→ navy `.cover` inside a `.doc-sheet`), TOC (→`.contents`), and
+footer (→`.doc-footer`/`.site-footer`) from pieces extracted out of each source file, then
+restyles the body components (`.section`/`.band`/`.note`/`.card`/`.compare`/`.costs`/
+`.faq`/`.cta`) to house tokens in place. Verified 0 words lost by word-set diff, 8 sections
+each, 0 broken anchors.
+- The draft's dark `#1a2744` navy + Lato are gone; house `#3d5a7a`/`#c8540a` + Source Sans 3.
+- Full house match (Martice's call) fixed a real bug: the white `logo.svg` was invisible on
+  the draft's light topbar/hero.
+- Veteran flourishes kept: tricolor stripe now at the base of the navy cover; gold
+  benefit-card stars; slate callouts became the house navy `.band`.
+- **Watch the regex anchors when reskinning:** the first pass lost content because the TOC
+  block ends `</ol></div>`, and a `</div></div>` anchor overshot into Section 1. Anchor on
+  `</ol>\s*</div>`.
+
+PDFs print from the pages via `scripts/build_guide_pdfs.mjs` (same engine as
+`build_catalog_pdfs.mjs`: `preferCSSPageSize`, `printBackground`, Ghostscript downsample).
+Navy cover and `.band` survive print via `print-color-adjust:exact`; the 7-row comparison
+table is kept whole and, if it ever splits, `thead{display:table-header-group}` repeats the
+header. **Rerun `build_guide_pdfs.mjs` after editing either guide** — same static-PDF trap
+as the catalogs.
+
+Content decisions from Martice (these guides name charges, never dollar prices — verified
+0 `$` in both HTML and PDF; percentages are rates, allowed):
+- Veterans: ECF applies to the half-cost second right of interment; pre-arranging the space
+  together protects the half-cost pricing whoever is laid to rest first; the veteran gift is
+  a **flat credit** (pay the difference on a higher-priced section) covering ground burial
+  and mausoleum spaces. Columbarium niches carry a dollar threshold Martice described that
+  the no-dollar rule bars, so the copy says "handled a little differently, so ask us" — his
+  approved wording.
+- Cemetery Property: ECF rate is **15% ground / 10% niche or crypt**, framed as meeting or
+  exceeding the state minimum (not "state-mandated 15%", per the draft's precision rule).
+  Section 5 now states the statutory reason — WA endowment-care law ties the deposit to the
+  property's **value, not the price paid**, which is why it's owed on a gifted space — with
+  no numbered RCW citation (Martice to confirm the exact section before any is cited).
+
+Reciprocal cross-links added: Vault, Marker, and Urn-Placement guides each link back to the
+Cemetery Property Guide (which already links out to them). **Those three sibling PDFs were
+NOT regenerated** — the link is a relative `.html` href that only works on-screen (dead in a
+downloaded PDF), and those pages have complex layouts with no verified PDF builder, so
+regenerating risks the live files for a sentence that wouldn't function in PDF form.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
