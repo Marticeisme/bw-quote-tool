@@ -254,8 +254,99 @@ tr:hover td{background:#eef3f8;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   var _fbDB = null;
+  var _fbAuth = null;
+
+  // ── SIGN-IN GATE ────────────────────────────────────────────────────────────────────
+  // Accounts are username-only. Firebase's email/password provider needs an email-SHAPED
+  // identifier, but never sends mail to it and never verifies it, so "martice" becomes
+  // "martice@bwquote.local" here and the counselor only ever types a username. The suffix is
+  // deliberately a non-routable domain so nobody mistakes these for real mailboxes.
+  //
+  // Consequence worth knowing: there is no reset-by-email. A forgotten password is reset from
+  // the Firebase console (Authentication → Users → Reset password) by the project owner.
+  var BW_LOGIN_SUFFIX = '@bwquote.local';
+
+  // Temporary escape hatch for the rollout ONLY. While the database rules are still public,
+  // ?nosignin=1 skips the gate so a sign-in problem on a locked-down work laptop can't leave
+  // anyone unable to quote. It self-neutralises the moment the rules require auth — bypassing
+  // the UI then yields a tool that can read and write nothing — at which point delete it.
+  function bwSignInBypassed() {
+    try { return /[?&]nosignin=1\b/.test(location.search); } catch(e) { return false; }
+  }
+
+  function bwShowGate() {
+    var g = document.getElementById('bwGate'); if (!g) return;
+    g.style.display = bwSignInBypassed() ? 'none' : 'flex';
+    var u = document.getElementById('bwUser');
+    if (u && g.style.display === 'flex') { try { u.focus(); } catch(e) {} }
+  }
+  function bwHideGate() {
+    var g = document.getElementById('bwGate'); if (g) g.style.display = 'none';
+    var e = document.getElementById('bwGateErr'); if (e) e.style.display = 'none';
+    var p = document.getElementById('bwPass'); if (p) p.value = '';
+  }
+  function bwGateError(msg) {
+    var e = document.getElementById('bwGateErr'); if (!e) return;
+    e.textContent = msg; e.style.display = 'block';
+  }
+
+  function bwSignIn(ev) {
+    if (ev) ev.preventDefault();
+    var btn  = document.getElementById('bwGateBtn');
+    var user = (document.getElementById('bwUser') || {}).value || '';
+    var pass = (document.getElementById('bwPass') || {}).value || '';
+    user = user.trim().toLowerCase();
+    if (!user || !pass) { bwGateError('Enter your username and password.'); return false; }
+    if (!_fbAuth) { bwGateError('Sign-in is unavailable — the authentication service did not load. Check your connection and reload.'); return false; }
+    // A username with an @ in it is already a full identifier; leave it alone.
+    var ident = user.indexOf('@') > -1 ? user : user + BW_LOGIN_SUFFIX;
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+    _fbAuth.signInWithEmailAndPassword(ident, pass).catch(function(err) {
+      var code = (err && err.code) || '';
+      var msg;
+      // Firebase collapses "no such user" and "wrong password" into one code on purpose, so
+      // the message must not imply which — it would tell an attacker which usernames exist.
+      if (code === 'auth/invalid-login-credentials' || code === 'auth/wrong-password' ||
+          code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+        msg = 'That username and password combination was not recognised.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Too many failed attempts. Wait a few minutes and try again.';
+      } else if (code === 'auth/network-request-failed') {
+        msg = 'Could not reach the sign-in service. Check the network and try again.';
+      } else if (code === 'auth/user-disabled') {
+        msg = 'That account has been disabled.';
+      } else {
+        msg = 'Sign-in failed: ' + ((err && err.message) || code || 'unknown error');
+      }
+      bwGateError(msg);
+    }).finally(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+    });
+    return false;
+  }
+
+  function bwSignOut() {
+    if (!_fbAuth) return;
+    if (!confirm('Sign out of the quote tool on this device?')) return;
+    _fbAuth.signOut().then(function(){ location.reload(); })
+      .catch(function(e){ alert('Sign-out failed: ' + ((e && e.message) || e)); });
+  }
+
+  // initQuoteStore() lives in a later <script> block, so this may run before it exists; the
+  // auth watcher calls back in again once the page has finished parsing.
+  var _bwAppStarted = false;
+  function bwStartAppIfAllowed() {
+    if (_bwAppStarted) return;
+    if (!window._bwUser && !bwSignInBypassed()) return;
+    if (typeof initQuoteStore !== 'function') return;   // retried on DOMContentLoaded
+    _bwAppStarted = true;
+    initQuoteStore();
+    if (typeof bwApplySignedInUser === 'function') bwApplySignedInUser();
+  }
+
   (function() {
     try {
       firebase.initializeApp({
@@ -279,35 +370,27 @@ tr:hover td{background:#eef3f8;}
           if (typeof updateFbStatus === 'function') updateFbStatus();
         });
       } catch(e) {}
-      _fbDB.ref('savedQuotes').on('value', function(snap) {
-        if (_fbSavingQuotes) return;
-        var data = snap.val() || {};
-        function normArr(v){ return Array.isArray(v) ? v : (v && typeof v==='object' ? Object.values(v) : []); }
-        _cemSavedQuotes = normArr(data.cem);
-        _fhSavedQuotes  = normArr(data.fh);
-        _ricSavedContracts = normArr(data.ric);
-        _gaSavedContracts  = normArr(data.ga);
-        _cpSavedContracts  = normArr(data.cp);
-        _anSavedContracts  = normArr(data.an);
-        window._fbQuotesReady = true;
-        window._fbLoadError = null;
-        if (typeof updateFbStatus === 'function') updateFbStatus();
-        if (typeof renderSavedQuotesList === 'function') {
-          renderSavedQuotesList('cem');
-          renderSavedQuotesList('fh');
-          renderSavedQuotesList('ric');
-          renderSavedQuotesList('ga');
-          renderSavedQuotesList('cp');
-          renderSavedQuotesList('an');
-        }
-      }, function(err) {
-        // .on()'s SECOND argument is the cancel/error callback. Without it a denied or failed read
-        // was completely silent: the listener simply never fired, so the only symptom was every
-        // save being refused 12s later. Record it and show it.
-        window._fbLoadError = (err && err.message) || String(err);
-        console.error('Firebase savedQuotes read failed:', err);
-        if (typeof updateFbStatus === 'function') updateFbStatus();
-      });
+      // Saved quotes and contracts load and sync via initQuoteStore() (see the SAVED QUOTE
+      // STORE section further down), which attaches per-record child listeners to
+      // quotes/<type> rather than pulling the whole node on every change. It lives in a
+      // later <script> block and is started by the auth watcher below, once there is a user.
+      try { _fbAuth = firebase.auth(); } catch(e) {}
+      if (_fbAuth) {
+        // Firebase defaults to LOCAL persistence: signing in once on a device keeps you signed
+        // in across restarts until you explicitly sign out. That matters here — a counselor
+        // should never be stopped by a login prompt with a family sitting at the desk.
+        _fbAuth.onAuthStateChanged(function(user) {
+          window._bwUser = user || null;
+          if (user) bwHideGate(); else bwShowGate();
+          bwStartAppIfAllowed();
+          if (typeof bwApplySignedInUser === 'function') bwApplySignedInUser();
+          if (typeof updateFbStatus === 'function') updateFbStatus();
+        });
+      } else {
+        // No auth SDK (blocked/offline). Fall back to the pre-auth behaviour rather than
+        // locking the tool: the database rules are still the real gate.
+        bwStartAppIfAllowed();
+      }
     } catch(e) {
       window._fbLoadError = (e && e.message) || String(e);
       console.warn('Firebase init failed', e);
@@ -318,18 +401,28 @@ tr:hover td{background:#eef3f8;}
   function updateFbStatus() {
     var box = document.getElementById('fbStatus'); if (!box) return;
     var ready = !!window._fbQuotesReady, conn = !!window._fbConnected, err = window._fbLoadError;
+    var signedOut = !window._bwUser && !bwSignInBypassed();
     var msg, color, bg;
-    if (ready && conn)      { msg = 'Saved quotes: synced';                 color = '#9fd8b4'; bg = 'transparent'; }
+    // Signed-out is checked first: once the rules require auth, every other symptom below is
+    // just a downstream effect of it, and naming the cause is what makes it fixable.
+    if (signedOut)          { msg = 'Not signed in — saving disabled';     color = '#ffd7d1'; bg = 'rgba(229,72,15,.22)'; }
+    else if (ready && conn) { msg = 'Saved quotes: synced';                 color = '#9fd8b4'; bg = 'transparent'; }
     else if (err)           { msg = 'Saved quotes: ERROR - saving blocked'; color = '#ffd7d1'; bg = 'rgba(229,72,15,.22)'; }
     else if (!conn)         { msg = 'Saved quotes: NOT CONNECTED';          color = '#ffd7d1'; bg = 'rgba(229,72,15,.22)'; }
     else                    { msg = 'Saved quotes: connecting…';            color = '#c3d0de'; bg = 'transparent'; }
     box.textContent = '● ' + msg;
     box.style.color = color;
     box.style.background = bg;
-    box.title = err ? ('Database read failed: ' + err)
-      : (!conn ? 'The realtime connection to the saved-quotes database is down, so saving is disabled. Often a network blocking WebSockets. Try another network, or reload.' : '');
+    box.title = signedOut ? 'Sign in to load and save quotes.'
+      : (err ? ('Database read failed: ' + err)
+      : (!conn ? 'The realtime connection to the saved-quotes database is down, so saving is disabled. Often a network blocking WebSockets. Try another network, or reload.' : ''));
   }
   window.updateFbStatus = updateFbStatus;
+  // The auth watcher fires while the <head> is still parsing, so #fbStatus does not exist yet and
+  // that first call is a no-op. Without this the indicator sat on the markup's "connecting…" for
+  // four seconds while the gate was already up — i.e. it lied about why saving was unavailable.
+  if (document.readyState !== 'loading') updateFbStatus();
+  else document.addEventListener('DOMContentLoaded', updateFbStatus);
   // The listener may never fire at all on a blocked network — make sure the indicator still leaves
   // "connecting…" so the state on screen is truthful.
   setTimeout(function(){ if (typeof updateFbStatus === 'function') updateFbStatus(); }, 4000);
@@ -347,6 +440,35 @@ tr:hover td{background:#eef3f8;}
 </script>
 </head>
 <body>
+
+<!-- ══ SIGN-IN GATE ══════════════════════════════════════════════════════════════════
+     Covers the app until a user is signed in. Accounts are username-only: the form takes
+     "martice" and bwSignIn() appends BW_LOGIN_SUFFIX before calling Firebase, which needs an
+     email-shaped identifier but never mails it. Nothing secret lives in this markup —
+     passwords are stored hashed by Firebase and never travel through the repo. -->
+<!-- Starts VISIBLE and is hidden once auth resolves to a signed-in user. Defaulting the other
+     way would flash the app, and every family's details in it, at anyone not signed in. -->
+<div id="bwGate" style="display:flex;position:fixed;inset:0;z-index:100000;background:var(--navy-dark);align-items:center;justify-content:center;padding:24px;">
+  <form id="bwGateForm" onsubmit="bwSignIn(event)" autocomplete="on"
+        style="width:100%;max-width:344px;background:var(--white);border-radius:14px;padding:30px 28px 26px;box-shadow:0 18px 48px rgba(0,0,0,.34);font-family:inherit;">
+    <div style="font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.01em;">Bonney Watson</div>
+    <div style="font-size:12.5px;color:var(--text-light);margin:3px 0 20px;">Quote &amp; Contract Tool</div>
+
+    <label for="bwUser" style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);margin-bottom:5px;">Username</label>
+    <input id="bwUser" name="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required
+           style="width:100%;box-sizing:border-box;padding:9px 11px;font-size:14px;font-family:inherit;color:var(--ink);border:1px solid var(--gray-mid);border-radius:7px;background:var(--gray-light);">
+
+    <label for="bwPass" style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);margin:14px 0 5px;">Password</label>
+    <input id="bwPass" name="password" type="password" autocomplete="current-password" required
+           style="width:100%;box-sizing:border-box;padding:9px 11px;font-size:14px;font-family:inherit;color:var(--ink);border:1px solid var(--gray-mid);border-radius:7px;background:var(--gray-light);">
+
+    <div id="bwGateErr" role="alert" style="display:none;margin-top:13px;padding:8px 11px;border-radius:6px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.45;"></div>
+
+    <button id="bwGateBtn" type="submit"
+            style="width:100%;margin-top:19px;padding:10px;font-size:14px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;">Sign in</button>
+  </form>
+</div>
+<script>if (typeof bwSignInBypassed === 'function' && bwSignInBypassed()) bwHideGate();</script>
 
 <div class="layout">
 <!-- SIDEBAR -->
@@ -10612,7 +10734,229 @@ var _gaSavedContracts = [];
 var _cpSavedContracts = [];
 var _anSavedContracts = [];
 var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null, an: null };
-var _fbSavingQuotes = false;
+
+// ═══════════════════════════════════════════════════════════════
+// SAVED QUOTE STORE — one Firebase record per saved quote
+// ═══════════════════════════════════════════════════════════════
+// Records live at quotes/<type>/q<id>, one node each, so saving writes ONLY that record.
+// The previous layout kept all six lists under a single savedQuotes node and rewrote the
+// whole thing with .set() on every save. Two consequences, both now gone: a save built from
+// incomplete in-memory state replaced every other saved quote (this is what wiped real data
+// on 2026-07-11), and each list had to be capped at 20 to keep the blob small. A per-record
+// write cannot touch a record it does not name, so there is no cap, and no need for the
+// "refuse to save until synced" guard that used to stand in for one.
+//
+// The old savedQuotes node is copied across once and then LEFT IN PLACE, untouched, as a
+// rollback copy. Nothing below ever writes to it again.
+var QUOTE_TYPES = ['cem', 'fh', 'ric', 'ga', 'cp', 'an'];
+var _quoteStore = { cem: {}, fh: {}, ric: {}, ga: {}, cp: {}, an: {} };  // firebase key -> record
+
+function _quoteKey(rec) { return 'q' + (rec && rec.id != null ? rec.id : Date.now()); }
+
+// The six arrays above stay as sorted, newest-first views of _quoteStore, so the ~20 places
+// that read them (render, print, compare, load-by-id, export) keep working unchanged.
+function _applyTypeArray(type, arr) {
+  if (type === 'cem')      _cemSavedQuotes    = arr;
+  else if (type === 'fh')  _fhSavedQuotes     = arr;
+  else if (type === 'ric') _ricSavedContracts = arr;
+  else if (type === 'ga')  _gaSavedContracts  = arr;
+  else if (type === 'cp')  _cpSavedContracts  = arr;
+  else if (type === 'an')  _anSavedContracts  = arr;
+}
+function _rebuildTypeArray(type, rerender) {
+  var bag = _quoteStore[type] || {};
+  var arr = Object.keys(bag).map(function(k){ return bag[k]; });
+  // ids are Date.now() stamps, so descending id is newest-first — the order the old
+  // unshift-built lists had. Firebase hands child keys back in ascending order.
+  arr.sort(function(a, b){ return ((b && b.id) || 0) - ((a && a.id) || 0); });
+  _applyTypeArray(type, arr);
+  if (rerender !== false && typeof renderSavedQuotesList === 'function') renderSavedQuotesList(type);
+}
+function _keyForId(type, id) {
+  var bag = _quoteStore[type] || {};
+  if (bag['q' + id]) return 'q' + id;
+  var found = null;
+  Object.keys(bag).some(function(k){ if (bag[k] && bag[k].id === id) { found = k; return true; } return false; });
+  return found;
+}
+function _quoteLoadErr(err) {
+  window._fbLoadError = (err && err.message) || String(err);
+  console.error('Firebase quotes read failed:', err);
+  if (typeof updateFbStatus === 'function') updateFbStatus();
+}
+
+// Per-record listeners: a save streams down the one changed child, not all six lists.
+function _attachQuoteListeners() {
+  QUOTE_TYPES.forEach(function(type) {
+    var ref = _fbDB.ref('quotes/' + type);
+    function put(snap) {
+      var rec = snap.val(); if (!rec) return;
+      var prev = _quoteStore[type][snap.key];
+      // Our own writes echo back. Re-rendering on an echo would rebuild the saved-list DOM
+      // (and with it the search box) for no visible change, so ignore data we already hold.
+      if (prev && JSON.stringify(prev) === JSON.stringify(rec)) return;
+      _quoteStore[type][snap.key] = rec;
+      _rebuildTypeArray(type);
+    }
+    ref.on('child_added', put, _quoteLoadErr);
+    ref.on('child_changed', put, _quoteLoadErr);
+    ref.on('child_removed', function(snap) {
+      if (!(snap.key in _quoteStore[type])) return;
+      delete _quoteStore[type][snap.key];
+      _rebuildTypeArray(type);
+    }, _quoteLoadErr);
+  });
+}
+
+// One-time copy of the legacy savedQuotes lists into quotes/. Runs only while quotes/ is
+// empty, and writes with a multi-path update() keyed per record — it can only add nodes,
+// never replace or clear one.
+function _migrateLegacySavedQuotes() {
+  return _fbDB.ref('savedQuotes').once('value').then(function(old) {
+    var data = old.val(); if (!data) return 0;
+    var patch = {}, n = 0;
+    QUOTE_TYPES.forEach(function(t) {
+      var v = data[t];
+      var list = Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []);
+      list.forEach(function(rec) {
+        if (!rec || typeof rec !== 'object') return;
+        if (rec.id == null) rec.id = Date.now() + n;  // legacy rows saved before ids existed
+        patch[t + '/' + _quoteKey(rec)] = rec;
+        n++;
+      });
+    });
+    if (!n) return 0;
+    return _fbDB.ref('quotes').update(patch).then(function() {
+      console.log('Migrated ' + n + ' saved records into quotes/. The old savedQuotes node is left in place as a backup.');
+      return n;
+    });
+  });
+}
+
+function initQuoteStore() {
+  if (!window._fbDB) {
+    window._fbLoadError = 'Firebase did not initialise';
+    if (typeof updateFbStatus === 'function') updateFbStatus();
+    return;
+  }
+  _fbDB.ref('quotes').once('value').then(function(snap) {
+    var have = snap.val();
+    var empty = !have || !QUOTE_TYPES.some(function(t){ return have[t] && Object.keys(have[t]).length; });
+    return empty ? _migrateLegacySavedQuotes() : 0;
+  }).then(function() {
+    window._fbQuotesReady = true;
+    window._fbLoadError = null;
+    if (typeof updateFbStatus === 'function') updateFbStatus();
+    _attachQuoteListeners();
+  }).catch(_quoteLoadErr);
+}
+
+function _dupKeysByLabel(type, label) {
+  var norm = (label || '').trim().toLowerCase();
+  if (!norm) return [];
+  var bag = _quoteStore[type] || {};
+  return Object.keys(bag).filter(function(k){ return ((bag[k] || {}).label || '').trim().toLowerCase() === norm; });
+}
+
+// Write ONE record. Replaces the save-then-persist-everything pair the six Save buttons used
+// to run. Same overwrite-by-name prompt as before; the difference is that declining it, or a
+// failed write, can no longer affect any other saved quote.
+function saveQuoteRecord(type, rec, label) {
+  var dupKeys = _dupKeysByLabel(type, label);
+  if (dupKeys.length && confirm('A saved item named "' + label + '" already exists.\n\nOK = overwrite it    Cancel = keep both')) {
+    dupKeys.forEach(function(k) {
+      delete _quoteStore[type][k];
+      if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + k).remove().catch(function(e){ console.warn('overwrite remove failed', e); });
+    });
+  }
+  var key = _quoteKey(rec);
+  _quoteStore[type][key] = rec;
+  _rebuildTypeArray(type);
+  if (!window._fbDB) {
+    alert('Saved in this tab only — the quote database is not connected, so this was NOT stored in the cloud.');
+    return Promise.resolve();
+  }
+  // One record, one path. The SDK queues this while offline and flushes on reconnect, so a
+  // flaky network now delays a save instead of refusing it.
+  return _fbDB.ref('quotes/' + type + '/' + key).set(rec).catch(function(e) {
+    console.warn('saveQuoteRecord failed', e);
+    alert('This item could not be written to the database:\n\n' + ((e && e.message) || e)
+      + '\n\nIt is still on screen and in this tab\'s list. Check the sync indicator in the sidebar.');
+  });
+}
+
+function deleteQuoteRecord(type, id) {
+  var key = _keyForId(type, id);
+  if (!key) return;
+  delete _quoteStore[type][key];
+  _rebuildTypeArray(type);
+  if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + key).remove().catch(function(e){ console.warn('delete failed', e); });
+}
+
+// Backup import. update() merges, so importing adds or replaces only the records the file
+// names and leaves every other saved record alone.
+function _bulkImportQuotes(data) {
+  var patch = {}, n = 0;
+  QUOTE_TYPES.forEach(function(t) {
+    var v = data[t];
+    var list = Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []);
+    list.forEach(function(rec) {
+      if (!rec || typeof rec !== 'object') return;
+      if (rec.id == null) rec.id = Date.now() + n;
+      var key = _quoteKey(rec);
+      patch[t + '/' + key] = rec;
+      _quoteStore[t][key] = rec;
+      n++;
+    });
+  });
+  QUOTE_TYPES.forEach(function(t){ _rebuildTypeArray(t); });
+  if (!n || !window._fbDB) return Promise.resolve(n);
+  return _fbDB.ref('quotes').update(patch).then(function(){ return n; });
+}
+
+// Maps a sign-in username to how it should read in the sidebar. Usernames are deliberately
+// short to type; this is what a family glances at over your shoulder, so it gets the real
+// name. An account missing from here still works — it just falls back to its capitalised
+// username — so adding a counselor stays a console-only job unless you want a nicer label.
+var BW_USERS = {
+  martice: { name: 'Martice Morrison', role: 'Advanced Planning' },
+  randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning' }
+};
+
+// Shows who is signed in, replacing the hard-coded name in the sidebar. With two counselors
+// on the same shared quote list, "whose session is this" needs to be visible at a glance.
+function bwApplySignedInUser() {
+  var u = window._bwUser;
+  var nameEl = document.querySelector('.sb-user-name');
+  var roleEl = document.querySelector('.sb-user-role');
+  var avEl   = document.querySelector('.sb-avatar');
+  if (!nameEl) return;
+  if (!u) { if (roleEl) roleEl.textContent = 'Not signed in'; return; }
+  var handle  = String(u.email || '').split('@')[0].toLowerCase() || 'user';
+  var profile = BW_USERS[handle] || {};
+  var name    = profile.name || u.displayName || (handle.charAt(0).toUpperCase() + handle.slice(1));
+  nameEl.textContent = name;
+  if (avEl) {
+    // Initials from the words of the name — "Martice Morrison" is MM, not MA.
+    var parts = name.trim().split(/\s+/).filter(Boolean);
+    avEl.textContent = (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : name.slice(0, 2)).toUpperCase();
+  }
+  if (roleEl) {
+    roleEl.innerHTML = '';
+    if (profile.role) roleEl.appendChild(document.createTextNode(profile.role + ' · '));
+    var a = document.createElement('a');
+    a.href = '#'; a.textContent = 'Sign out';
+    a.style.cssText = 'color:inherit;text-decoration:underline;cursor:pointer;';
+    a.onclick = function(e){ e.preventDefault(); bwSignOut(); };
+    roleEl.appendChild(a);
+  }
+}
+
+// The store starts only once a user is signed in — bwStartAppIfAllowed() is also called by the
+// auth watcher, which usually fires before this block has parsed. Whichever runs last wins;
+// the function is idempotent.
+if (document.readyState !== 'loading') bwStartAppIfAllowed();
+else document.addEventListener('DOMContentLoaded', bwStartAppIfAllowed);
 
 function showQuoteToast(msg) {
   var t = document.createElement('div');
@@ -10622,50 +10966,13 @@ function showQuoteToast(msg) {
   setTimeout(function(){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(function(){ if(t.parentNode)t.parentNode.removeChild(t); },350); },2500);
 }
 
-function persistSavedQuotes(_retries) {
-  if (!window._fbDB) return;
-  // Local arrays start empty and only reflect the real saved state once the initial
-  // Firebase 'value' listener has fired once. Writing (.set) before that would overwrite
-  // cem/fh/ric/ga/cp/an with whatever's in memory right now — i.e. wipe out EVERY previously
-  // saved quote/contract across every type, since .set() replaces the whole savedQuotes node
-  // rather than merging. This must NEVER fall through and write with incomplete state — refusing
-  // to save (and telling the user so they can retry) is far safer than silently wiping real data.
-  if (!window._fbQuotesReady) {
-    _retries = (_retries || 0) + 1;
-    if (_retries > 40) {
-      console.error('persistSavedQuotes: Firebase never synced — refusing to save to avoid wiping existing data. Reload and try again.');
-      alert('Could not confirm a connection to the saved-quotes database, so this save was NOT sent (to avoid overwriting your existing saved quotes).\n\n'
-        + (window._fbLoadError ? ('Database error: ' + window._fbLoadError + '\n\n') : '')
-        + 'Your work on screen is not lost — leave this tab open.\n\n'
-        + 'Try: reload the page; if the sidebar still shows "Saved quotes: NOT CONNECTED", this network is likely blocking the realtime connection (try a phone hotspot or another network).');
-      return;
-    }
-    setTimeout(function(){ persistSavedQuotes(_retries); }, 300);
-    return;
-  }
-  _fbSavingQuotes = true;
-  _fbDB.ref('savedQuotes').set({
-    cem: _cemSavedQuotes.length ? _cemSavedQuotes : null,
-    fh:  _fhSavedQuotes.length  ? _fhSavedQuotes  : null,
-    ric: _ricSavedContracts.length ? _ricSavedContracts : null,
-    ga:  _gaSavedContracts.length ? _gaSavedContracts : null,
-    cp:  _cpSavedContracts.length ? _cpSavedContracts : null,
-    an:  _anSavedContracts.length ? _anSavedContracts : null
-  }).then(function(){ setTimeout(function(){ _fbSavingQuotes = false; }, 500); })
-    .catch(function(e){ console.warn('persistSavedQuotes failed', e); _fbSavingQuotes = false; });
-}
+// The old persistSavedQuotes() has been removed. It wrote every saved quote of every type in
+// a single savedQuotes .set(), which is exactly why one bad call could erase all of them.
+// Saving is now saveQuoteRecord(type, rec, label) and deleting is deleteQuoteRecord(type, id)
+// — see the SAVED QUOTE STORE section above. Nothing should write the whole node again.
 
-// If a save with the same name already exists, offer to overwrite it (OK) instead of piling up
-// duplicates; Cancel keeps both (the previous behavior). Mutates arr in place, removing the matched
-// entries so the caller's unshift replaces them. Shared by every Save function below.
-function _overwriteSavedByLabel(arr, label) {
-  var norm = (label || '').trim().toLowerCase();
-  if (!arr.some(function(q){ return (q.label || '').trim().toLowerCase() === norm; })) return;
-  if (!confirm('A saved item named "' + label + '" already exists.\n\nOK = overwrite it    Cancel = keep both')) return;
-  for (var i = arr.length - 1; i >= 0; i--) {
-    if ((arr[i].label || '').trim().toLowerCase() === norm) arr.splice(i, 1);
-  }
-}
+// (The overwrite-by-name prompt now lives in saveQuoteRecord(), which removes the duplicate
+//  records by their own Firebase keys rather than splicing an in-memory array.)
 function saveCemQuote() {
   try {
     var clientName = (val('cemClientName') || '').trim();
@@ -10675,11 +10982,7 @@ function saveCemQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
-    _overwriteSavedByLabel(_cemSavedQuotes, label);
-    _cemSavedQuotes.unshift(snap);
-    if (_cemSavedQuotes.length > 20) _cemSavedQuotes = _cemSavedQuotes.slice(0, 20);
-    renderSavedQuotesList('cem');
-    persistSavedQuotes();
+    saveQuoteRecord('cem', snap, label);
     show('cem-saved', el('navCemSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -10693,11 +10996,7 @@ function saveFhQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
-    _overwriteSavedByLabel(_fhSavedQuotes, label);
-    _fhSavedQuotes.unshift(snap);
-    if (_fhSavedQuotes.length > 20) _fhSavedQuotes = _fhSavedQuotes.slice(0, 20);
-    renderSavedQuotesList('fh');
-    persistSavedQuotes();
+    saveQuoteRecord('fh', snap, label);
     show('fh-saved', el('navFhSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -10725,11 +11024,7 @@ function saveRicContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
-    _overwriteSavedByLabel(_ricSavedContracts, label);
-    _ricSavedContracts.unshift(snap);
-    if (_ricSavedContracts.length > 20) _ricSavedContracts = _ricSavedContracts.slice(0, 20);
-    renderSavedQuotesList('ric');
-    persistSavedQuotes();
+    saveQuoteRecord('ric', snap, label);
     show('ric-saved', el('navRicSaved'));
     showQuoteToast('RIC saved — viewing saved RICs');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -10770,11 +11065,7 @@ function saveGaContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
-    _overwriteSavedByLabel(_gaSavedContracts, label);
-    _gaSavedContracts.unshift(snap);
-    if (_gaSavedContracts.length > 20) _gaSavedContracts = _gaSavedContracts.slice(0, 20);
-    renderSavedQuotesList('ga');
-    persistSavedQuotes();
+    saveQuoteRecord('ga', snap, label);
     show('ga-saved', el('navGaSaved'));
     showQuoteToast('GA contract saved — viewing saved GA contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -10840,11 +11131,7 @@ function saveCpContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
-    _overwriteSavedByLabel(_cpSavedContracts, label);
-    _cpSavedContracts.unshift(snap);
-    if (_cpSavedContracts.length > 20) _cpSavedContracts = _cpSavedContracts.slice(0, 20);
-    renderSavedQuotesList('cp');
-    persistSavedQuotes();
+    saveQuoteRecord('cp', snap, label);
     show('cp-saved', el('navCpSaved'));
     showQuoteToast('ClearPoint contract saved — viewing saved ClearPoint contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -10887,14 +11174,7 @@ function loadSavedCpContract(id) {
   show('cp-contract', document.querySelector('[onclick*="cp-contract"]'));
 }
 function deleteSavedQuote(type, id) {
-  if (type === 'cem')      _cemSavedQuotes     = _cemSavedQuotes.filter(function(q){ return q.id !== id; });
-  else if (type === 'fh')  _fhSavedQuotes      = _fhSavedQuotes.filter(function(q){ return q.id !== id; });
-  else if (type === 'ric') _ricSavedContracts  = _ricSavedContracts.filter(function(q){ return q.id !== id; });
-  else if (type === 'ga')  _gaSavedContracts   = _gaSavedContracts.filter(function(q){ return q.id !== id; });
-  else if (type === 'cp')  _cpSavedContracts   = _cpSavedContracts.filter(function(q){ return q.id !== id; });
-  else if (type === 'an')  _anSavedContracts   = _anSavedContracts.filter(function(q){ return q.id !== id; });
-  renderSavedQuotesList(type);
-  persistSavedQuotes();
+  deleteQuoteRecord(type, id);
 }
 
 function loadSavedCemQuote(id) {
@@ -11043,14 +11323,12 @@ function importSavedQuotesBackup() {
     reader.onload = function(ev) {
       try {
         var data = JSON.parse(ev.target.result);
-        if (data.cem) { _cemSavedQuotes     = data.cem; renderSavedQuotesList('cem'); }
-        if (data.fh)  { _fhSavedQuotes      = data.fh;  renderSavedQuotesList('fh');  }
-        if (data.ric) { _ricSavedContracts  = data.ric; renderSavedQuotesList('ric'); }
-        if (data.ga)  { _gaSavedContracts   = data.ga;  renderSavedQuotesList('ga');  }
-        if (data.cp)  { _cpSavedContracts   = data.cp;  renderSavedQuotesList('cp');  }
-        if (data.an)  { _anSavedContracts   = data.an;  renderSavedQuotesList('an');  }
-        persistSavedQuotes();
-        alert('Import successful!');
+        // Merges rather than replaces: a backup restores the records it contains and leaves
+        // anything saved since that backup was taken untouched.
+        _bulkImportQuotes(data).then(function(n) {
+          alert(n ? ('Import successful — ' + n + ' item' + (n === 1 ? '' : 's') + ' merged into your saved lists.')
+                  : 'That file contained no saved quotes or contracts.');
+        }).catch(function(err) { alert('Import failed: ' + ((err && err.message) || err)); });
       } catch(err) { alert('Import failed: ' + err.message); }
     };
     reader.readAsText(file);
@@ -12811,11 +13089,7 @@ function saveAnContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
-    _overwriteSavedByLabel(_anSavedContracts, label);
-    _anSavedContracts.unshift(snap);
-    if (_anSavedContracts.length > 20) _anSavedContracts = _anSavedContracts.slice(0, 20);
-    renderSavedQuotesList('an');
-    persistSavedQuotes();
+    saveQuoteRecord('an', snap, label);
     show('an-saved', el('navAnSaved'));
     showQuoteToast('At-Need contract saved — viewing saved contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
