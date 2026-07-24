@@ -675,8 +675,14 @@ stale quote-tool value); corrected to $965 and the marker PDF regenerated.
 Two more drafted guides on Medicaid spend-down / burial exclusions, reskinned onto the
 house style. `medicaid-family-guide.html` + `pdf-assets/Medicaid and Planning Ahead.pdf`
 (9pp); `medicaid-professional-reference.html` + `pdf-assets/Medicaid Professional
-Reference.pdf` (8pp). New **Medicaid & Spend-Down** category in `guides.html` (25 cards
-total), audience shown on each card ("For families" / "For professional partners").
+Reference.pdf` (8pp).
+
+**NOT carded on `guides.html`.** Unlike every other guide, these two are deliberately kept
+off the family-browsable hub. Martice uses the HTML pages only to show on-screen during
+appointments (he navigates to them directly), and hands out the **PDFs**, which he controls
+— they are what gets emailed/printed to families. The category was briefly added then
+removed at his direction. The pages + PDFs stay live and reachable by direct URL; they just
+aren't surfaced anywhere a family would browse. **Do not add guides.html cards for these.**
 
 **Legal-sensitivity note:** these make actionable statements about WA law and Medicaid
 eligibility — a reader can be financially harmed by an error. The debrief recommended
