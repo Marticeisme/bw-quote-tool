@@ -647,10 +647,28 @@ The downloadable `pdf-assets/Granite Marker Guide.pdf` was regenerated from the 
 `markers-guide.html` is now registered in `scripts/build_guide_pdfs.mjs`. To print true to
 life the family still must choose **100% / Actual Size**, not Fit to Page — the guide says so.
 
-Note for whoever syncs prices: the guide's portrait prices and the quote tool's
-`PORTRAIT_DATA` disagree on several sizes (e.g. rectangle 8×10 color $2,200 vs $1,375;
-circle 4×4 $1,130/$635 vs $965/$520). Not reconciled here — needs Martice to say which is
-authoritative before either is changed.
+### 2026-07-23 — Ceramic portrait prices reconciled to the PCM sheet
+
+Martice supplied the authoritative PCM Bronze Portrait price sheet. The **marker guide was
+already correct** (all Section 5 + true-size prices match). The **quote tool's
+`PORTRAIT_DATA` (index.html) had 5 wrong prices** and was missing two shapes.
+
+Fixed in `PORTRAIT_DATA`:
+- rectangle 8×10 color $1,375 → **$2,200**
+- rectangle 4×5 B&W $640 → **$646**
+- circle 4×4 $965/$520 → **$1,130/$635**
+- circle 5×5 color $1,540 → **$1,140**
+- circle 8×8 B&W $960 → **$965**
+
+Added shapes (with the `qPortraitShape` dropdown options): **Heart** (4×4 $965/$525, 6×6
+$1,375/$745, 8×8 $1,885/$1,320) and **Square** (4×4 $990/$495). Verified headless: the
+picker populates the new sizes and returns the right prices; index.html syntax-check clean
+(9 blocks, 0 errors). Left OUT of the picker: the **18×12 rectangle panel** — it's a
+"Large Portraits, uprights only, please call" item (color-only, B&W N/A), not a standard
+flush-marker pick; it stays in the marker guide's table for reference.
+
+One self-inflicted fix: my new 8×8-circle true-size label had B&W $960 (copied from the
+stale quote-tool value); corrected to $965 and the marker PDF regenerated.
 
 ---
 
