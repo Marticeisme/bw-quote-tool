@@ -856,6 +856,92 @@ still $0). Note that the `E:\Downloads` draft does not contain this entry, so re
 
 ---
 
+### 2026-07-24 — Guide voice pass + five guide PDFs brought into the build
+
+Acting on a voice review (`guides-voice-review-debrief.md`, Claude/Cowork against Martice's
+voice profile). Reworked five guides, then discovered the downloadable PDFs had three
+separate defects and fixed those too.
+
+**Voice edits** (content only; no layout or structure changes):
+- `burial-guide.html` — cut "When a loved one passes, it's natural to feel overwhelmed" for
+  "Here's what needs to happen, and the order it happens in"; "Meet with Your Counselor" →
+  "Meet with Us"; services subtitle dropped "honor their loved one"; added a plain "when
+  families choose this" line to each service card.
+- `pre-planning-guide.html` — cover and Section 1 subtitle de-brochured; **the three family
+  quotes were cut — Martice confirmed they were invented**, and the same-category claim that
+  families "consistently say it was the most meaningful gift" went with them. Removing the
+  quote sidebar left `.prose-sidebar` a 2-col grid with one child, so the wrapper and its
+  now-dead CSS were removed and the prose runs full width. "The 3-Step Process" → "How It
+  Works".
+- `cremation-guide.html` — killed "deeply personal decision" and the "designed to honor your
+  loved one" brochure line. Both replacement claims were checked against the page first:
+  there really are four plans, and all four really do include director services, transfer
+  into care, and the cremation.
+- `scattering-guide.html`, `urn-placement-guide.html` — formal/stacked phrasing plainened.
+- "counselor" → "us/we" across all five (Martice's title is Family Service Director; in
+  writing he says "us").
+
+**Judgment calls, recorded because they push back on the review:**
+- **The review's rule 6, "use contractions throughout", was NOT applied.** Measured first:
+  the four guides it praises as gold standard (Cemetery Property, Veterans, Cremation or
+  Burial, Who Decides) use **zero** contractions and 35–57 expanded forms; the two it calls
+  weakest are the only ones using contractions. The voice profile appears to come from
+  Martice's *email* register, not the published-guide register. Applying rule 6 would have
+  rewritten the best guides. Each guide was kept in its own register instead.
+- **`cremation-or-burial-guide.html` was left alone.** The review promised suggestions for it
+  and never listed any; its only flagged hits were Section 6 (which the review itself calls
+  outstanding) and a correct endowment-care "in perpetuity".
+- **"in perpetuity" (endowment care) and "gift of" (the veteran gift) are real terms, not
+  filler** — left in place wherever they carry that meaning.
+
+**PDF defects found and fixed** (all five guides had never been in a build script; their
+`pdf-assets` files were one-off exports from July 17–18):
+1. **Browser margins.** Every one had been exported with default margins — ~0.6in of white
+   frame on all four edges, despite the pages' own `@page{size:letter;margin:0}`. Measured by
+   sampling corner pixels: the old files start white, the rebuilt ones start navy `#3d5a7a`
+   with a 0px white border on all sides. This is most of why page counts fall so far with no
+   content lost (Pre-Planning 7→4, Urn Placement 8→4) — the rest is the on-screen TOC, which
+   print CSS hides by design.
+2. **Ghostscript was corrupting text.** `shrink()` rebuilds embedded fonts and mangles the
+   ToUnicode mapping for the `fi`/`fl` ligatures — "dignified" extracts, Ctrl-Fs and
+   copy-pastes as "digni**º**ed" (U+00BA). Chromium's own output is clean; the damage is
+   entirely from the downsample, and no font flag prevents it (`-dSubsetFonts=false` and
+   `-dEmbedAllFonts=true` both tested). `build_guide_pdfs.mjs` gained a per-job
+   `{ noShrink: true }`; text-heavy guides use it, since they have few images and searchable
+   text matters more than a couple hundred KB. **Image-heavy catalogs keep the shrink** —
+   `All Caskets.pdf` would go 2.8 MB → 9 MB, not worth it for one broken word in a subtitle.
+   This defect was already live in `Who Decides.pdf` (3 hits) and `All Caskets.pdf` (1).
+3. **Missing contact details.** These older guides hide `.doc-footer` in print, so a
+   downloaded PDF carried no address or phone. Un-hidden for print in all five. The Cremation
+   Guide was worse — a *pricing* document whose address lives only in `.site-footer` (site
+   chrome, correctly print-hidden), so it had never had contact details in PDF form; its
+   `.doc-footer` now carries the standard address / phone / Martice's direct line above the
+   existing "prices subject to change" disclaimer.
+
+| PDF | Pages | Size |
+|---|---|---|
+| Pre-Planning Guide | 7 → 4 | 1451 → 400 KB |
+| Burial Guide | 10 → 5 | 878 → 459 KB |
+| Cremation Guide | 20 → 14 | 682 → 652 KB |
+| Scattering Garden Pricing | 7 → 5 | 355 → 330 KB |
+| Urn Placement Options | 8 → 4 | 700 → 382 KB |
+| Who Decides | 10 → 10 | 209 → 476 KB (ligature fix) |
+
+**Regenerating `Burial Guide.pdf` finally retires a live factual error**: it still contained
+the grave-liner content removed from the page on 2026-07-23 (BW offers vaults only). The
+wood-vs-metal casket gap flagged as a blocker in that entry turned out **not** to exist —
+checked, the file has no hardwood/veneer/gauge content — so that concern is closed.
+
+All six verified: exactly Letter 612x792, 0px white border, contact footer present, no
+U+00BA corruption, and all pages render with 0 JS errors.
+
+**Filter gotcha:** `build_guide_pdfs.mjs`/`build_catalog_pdfs.mjs` args are plain substring
+matches, so `burial-guide` also matches `cremation-or-burial-guide.html` and silently
+rebuilds it. It was restored from git here. Pass the full filename when a name is a substring
+of another.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

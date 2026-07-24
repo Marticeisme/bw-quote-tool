@@ -18,8 +18,21 @@ const JOBS = [
   ['markers-guide.html',           'pdf-assets/Granite Marker Guide.pdf'],
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
-  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf'],
+  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf',           { noShrink: true }],
+  ['urn-placement-guide.html',      'pdf-assets/Urn Placement Options.pdf', { noShrink: true }],
+  ['pre-planning-guide.html',       'pdf-assets/Pre-Planning Guide.pdf',    { noShrink: true }],
+  ['burial-guide.html',             'pdf-assets/Burial Guide.pdf',          { noShrink: true }],
+  ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf',       { noShrink: true }],
+  ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf', { noShrink: true }],
 ];
+
+// Ghostscript's pdfwrite rebuilds embedded fonts and mangles the ToUnicode mapping for
+// the "fi"/"fl" ligatures — "dignified" extracts (and Ctrl-F / copy-pastes) as "digniºed".
+// Chromium's own output is clean; the corruption is introduced purely by the downsample.
+// No font flag prevents it (-dSubsetFonts=false / -dEmbedAllFonts=true were tested).
+// So text-heavy guides pass { noShrink: true }: they have few images, so the downsample
+// buys little, and correct searchable text matters more on a document families read.
+// Image-heavy jobs (the catalogs) keep the shrink, where it saves megabytes.
 
 // Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
 // jobs (source filename contains one of the given substrings). No args = all.
@@ -45,7 +58,7 @@ function shrink(file) {
 }
 
 const browser = await chromium.launch();
-for (const [src, out] of jobs) {
+for (const [src, out, opts = {}] of jobs) {
   const page = await browser.newPage();
   await page.goto(pathToFileURL(path.resolve(src)).href, { waitUntil: 'networkidle' });
   // force <details> open so FAQ answers print (belt-and-suspenders with the CSS)
@@ -55,9 +68,11 @@ for (const [src, out] of jobs) {
                    margin: { top: '0', right: '0', bottom: '0', left: '0' } });
   await page.close();
   const raw = Math.round(fs.statSync(out).size / 1024);
-  const did = shrink(out);
+  const did = opts.noShrink ? false : shrink(out);
   const kb = Math.round(fs.statSync(out).size / 1024);
-  console.log(`${path.basename(out).padEnd(30)} ${String(kb).padStart(5)} KB  ${did ? `(${raw} KB before downsample)` : ''}`);
+  const note = opts.noShrink ? '(no downsample - keeps ligature text intact)'
+             : did ? `(${raw} KB before downsample)` : '';
+  console.log(`${path.basename(out).padEnd(30)} ${String(kb).padStart(5)} KB  ${note}`);
 }
 await browser.close();
 console.log('done');

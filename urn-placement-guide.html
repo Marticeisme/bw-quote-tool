@@ -103,7 +103,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   @page{size:letter;margin:0;}
   html{height:100%;background:#f8f6f2;}
   body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.doc-footer{display:none!important;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  /* Keep .doc-footer in print: it carries the address, phone and website, and a
+     downloaded PDF is often read away from the site. (Screen nav/TOC still hide.) */
+  .doc-footer{padding:24px 12px 20px;border-top:1px solid var(--rule);break-inside:avoid;}
+  .doc-footer .footer-url{display:none;}
   .site-nav,.filter-bar{position:static;}
   .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
   .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -335,7 +339,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-rule"></div>
 
     <div class="benefit-grid">
-      <div class="benefit-card"><div><h4>A Place to Visit</h4><p>A specific, named location where family members can pay their respects for generations.</p></div></div>
+      <div class="benefit-card"><div><h4>A Place to Visit</h4><p>A permanent place with a name on it that family can visit.</p></div></div>
       <div class="benefit-card"><div><h4>Permanent &amp; Secure</h4><p>Niches are sealed and maintained. Garden spaces include endowment care in perpetuity.</p></div></div>
       <div class="benefit-card"><div><h4>Companion Options</h4><p>Couples can be placed together in a companion niche or share an urn garden space.</p></div></div>
       <div class="benefit-card"><div><h4>Beautiful Settings</h4><p>Five unique locations &mdash; from hilltop views to glass-front indoor niches.</p></div></div>
@@ -344,7 +348,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
 
     <div class="prose">
-      <p>Your counselor can walk you through each location in person and help you find the setting that feels right. All urn placements include endowment care, so the grounds and facilities are maintained in perpetuity.</p>
+      <p>We can walk you through each location in person and help you find the setting that feels right. All urn placements include endowment care, so the grounds and facilities are maintained in perpetuity.</p>
     </div>
   </div>
 

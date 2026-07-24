@@ -111,7 +111,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   @page{size:letter;margin:0;}
   html{height:100%;background:#f8f6f2;}
   body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.doc-footer{display:none!important;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  /* Keep .doc-footer in print: it carries the address, phone and website, and a
+     downloaded PDF is often read away from the site. (Screen nav/TOC still hide.) */
+  .doc-footer{padding:24px 12px 20px;border-top:1px solid var(--rule);break-inside:avoid;}
+  .doc-footer .footer-url{display:none;}
   .site-nav,.filter-bar{position:static;}
   .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
   .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -172,7 +176,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-rule"></div>
 
     <div class="prose">
-      <p>When a loved one passes, it's natural to feel overwhelmed. Here is a simple roadmap for the first steps. <strong>You do not need to figure everything out at once</strong> &mdash; your funeral director and counselor will guide you through each step. If you are planning ahead and have not yet chosen between burial and cremation, the <a href="cremation-or-burial-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">Cremation or Burial guide</a> compares the two side by side.</p>
+      <p>Here's what needs to happen, and the order it happens in. You don't have to sort all of it out at once &mdash; we go through each step with you. If you're planning ahead and haven't chosen between burial and cremation yet, the <a href="cremation-or-burial-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">Cremation or Burial guide</a> compares the two side by side.</p>
     </div>
 
     <div class="timeline">
@@ -193,8 +197,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="timeline-step">
         <div class="timeline-num">3</div>
         <div>
-          <h4>Meet with Your Counselor</h4>
-          <p>Within 24&ndash;48 hours, you'll meet with a counselor to make arrangements. We'll discuss the type of service, casket selection, cemetery property, and all the details.</p>
+          <h4>Meet with Us</h4>
+          <p>We'll set up a time to meet, usually within a day or two. That's where we go through the type of service, the casket, cemetery property, and the rest of the details.</p>
         </div>
       </div>
       <div class="timeline-step">
@@ -208,7 +212,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <div class="timeline-num">5</div>
         <div>
           <h4>Finalize Details</h4>
-          <p>Flowers, music, pallbearers, readings, photo displays, obituary wording &mdash; your counselor helps with all of it. Take as much or as little involvement as you'd like.</p>
+          <p>Flowers, music, pallbearers, readings, photo displays, obituary wording &mdash; we help with all of it. Take on as much or as little of it as you want to.</p>
         </div>
       </div>
     </div>
@@ -254,7 +258,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
 
     <div class="prose">
-      <p>The vast majority of families at Washington Memorial Park choose <strong>traditional ground burial</strong>. The cemetery has over 20 sections, each with a different landscape and price range. Your counselor can walk you through the available sections and help you find the right location.</p>
+      <p>The vast majority of families at Washington Memorial Park choose <strong>traditional ground burial</strong>. The cemetery has over 20 sections, each with a different landscape and price range. We can walk you through what's available and help you find the right spot.</p>
     </div>
   </div>
 
@@ -262,14 +266,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <div class="section-wrap" id="services">
     <div class="section-kicker">SECTION 3</div>
     <h2>Types of Services</h2>
-    <div class="section-sub">How families choose to honor their loved one</div>
+    <div class="section-sub">What each one involves, and when families tend to choose it</div>
     <div class="section-rule"></div>
 
     <div class="option-grid">
       <div class="option-card">
         <h3>Viewing &amp; Funeral Service</h3>
         <div class="opt-type">Traditional Service</div>
-        <p>A formal viewing (visitation) followed by a funeral service, typically at a chapel or church, and then a procession to the cemetery for graveside committal.</p>
+        <p>A formal viewing (visitation) followed by a funeral service, typically at a chapel or church, and then a procession to the cemetery for graveside committal. This is what most people picture when they think of a funeral. Families choose it when a lot of people will want to come, or when seeing them one last time matters.</p>
         <ul>
           <li>Embalming and preparation for viewing</li>
           <li>Viewing period for family and friends</li>
@@ -281,7 +285,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="option-card">
         <h3>Graveside Service</h3>
         <div class="opt-type">Simpler &amp; More Intimate</div>
-        <p>The service is held at the graveside rather than in a chapel. Often shorter and more intimate, with the casket present at the grave. No separate viewing or procession.</p>
+        <p>The service is held at the graveside rather than in a chapel. Often shorter, with the casket present at the grave. No separate viewing or procession. Families choose this when the group is small, or when a full chapel service is more than they want.</p>
         <ul>
           <li>Service held at the cemetery gravesite</li>
           <li>Typically 30&ndash;45 minutes</li>
@@ -293,7 +297,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="option-card">
         <h3>Memorial Service</h3>
         <div class="opt-type">Flexible &amp; Personal</div>
-        <p>A service held after the burial has already taken place. The body is not present &mdash; instead, photos, keepsakes, and memories take center stage. Can be held anywhere.</p>
+        <p>A service held after the burial has already taken place. The body is not present &mdash; photos, keepsakes, and stories carry it instead. Can be held anywhere. This is common when family has to travel, or when it takes a while to get everyone in the same place.</p>
         <ul>
           <li>Held after burial is complete</li>
           <li>Body not present &mdash; focus on memories</li>
@@ -357,7 +361,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
     <div class="checklist">
       <div class="check-card"><div><h4>First Call</h4><p>You call us (24/7). We arrange transfer of your loved one into our care within hours.</p></div></div>
-      <div class="check-card"><div><h4>Arrangement Meeting</h4><p>Meet with your counselor to make selections: service type, casket, cemetery property, and details.</p></div></div>
+      <div class="check-card"><div><h4>Arrangement Meeting</h4><p>Meet with us to make selections: service type, casket, cemetery property, and details.</p></div></div>
       <div class="check-card"><div><h4>Obituary &amp; Notices</h4><p>We help draft the obituary and submit to newspapers or online platforms as you wish.</p></div></div>
       <div class="check-card"><div><h4>Service Planning</h4><p>Music, readings, photos, flowers, pallbearers &mdash; we help coordinate every element.</p></div></div>
       <div class="check-card"><div><h4>Viewing &amp; Service</h4><p>The viewing and/or funeral service, held at the chapel, church, or graveside as planned.</p></div></div>
