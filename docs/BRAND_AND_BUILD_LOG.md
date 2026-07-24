@@ -1110,9 +1110,29 @@ Two other cards contain multiple numbers and were deliberately left alone — th
 ("14 walls (7 letters…)") and the sample-quote card's dollar figure. Neither is a product
 count that has to track a catalog.
 
-`scratch/verify_guides_page.mjs` is the check (not committed — it lives in the gitignored
-scratch dir): it compares pills vs cards, resolves every href on disk, and diffs each card's
-advertised count against `product-card` occurrences in the actual catalog file.
+**`scripts/verify_guides_page.mjs`** is the check, now a permanent script alongside
+`verify_catalogs.mjs`. Run from the repo root; **exits non-zero on failure so it can gate a
+push**:
+
+```
+node scripts/verify_guides_page.mjs
+```
+
+It compares each category pill against its card count, resolves every `guide-cta` and
+`guide-pdf` href on disk (including the `file=` parameter inside `viewer.html?file=…`),
+diffs each catalog card's advertised count against `product-card` occurrences in the real
+catalog file, exercises search/no-match/clear, and checks for broken images and JS errors.
+
+**Verified it actually fails** — a checker that only ever prints OK is worthless. Injected
+four faults and confirmed each is caught: a wrong count pill, a dead CTA target, a
+reintroduced duplicate count, and a stale count (meta saying 140 where the page has 141).
+
+One trap found while testing: the first version matched *number-then-noun*
+(`/(\d+)\s*(?:products|caskets)/`) and **silently missed "63 wood caskets"**, because the
+adjective sits between the number and the noun — i.e. it missed the duplicate it existed to
+catch. It now counts occurrences of the catalog's real number in the card text instead, and
+separately looks for any stale `N products`. When adding a check here, break the page on
+purpose and confirm it goes red before trusting it.
 
 ---
 
