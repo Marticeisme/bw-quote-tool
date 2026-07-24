@@ -836,10 +836,12 @@ and what signing commits an authorizing agent to.
   and that script now takes filename-substring args too (`node scripts/build_guide_pdfs.mjs
   who-decides`). guides.html card added under **Getting Started** beside Pre-Planning
   (cat-count 4 → 5).
-- **Open items left for Martice** (from debrief §8): ~~Section 5 timing citations~~ (done, see
-  below), whether a standalone designated-agent form exists for Letters & Forms, confirming
-  the witness-cremation wording against practice, and a mismatch on the paper authorization
-  form ("reverse side" vs. blank name lines).
+- **Open items from debrief §8 — all five now closed.** Section 5 citations and the executor
+  FAQ were done (see below). Martice answered the other three on 2026-07-24: the
+  **designated-agent form** is signed on a separate sheet and he does not want it surfaced in
+  the guide, so Section 3's "give us a copy" stands as written; **"reverse side"** on the
+  paper authorization is simply page 2, since the form prints front-to-back, so the reference
+  is already correct; and the **witness-cremation** wording is handled in the entry below.
 
 **Follow-up — Section 5 timing citations verified and added.** The debrief's content rule 4
 said not to cite that section until the statutes were checked. Checked against the RCW text:
@@ -863,6 +865,18 @@ worded to say exactly that. **Citing 68.50.010 on its own would overstate it**, 
 section only defines jurisdiction and says nothing about cremation or releasing remains.
 
 `Who Decides.pdf` rebuilt (203 KB). Still 8 sections, 8 `.lawcite`, 0 `$`.
+
+**Follow-up — witness-cremation entry now names the charge.** Checking the Section 7 line
+against practice turned up an omission: it read only *"Witnessing is available — Families may
+be present to see the container placed into the chamber if they wish,"* while
+`cremation-guide.html` lists **Family witness of the cremation** under Additional Services at
+a real price. Two things made the silence misleading — the line sits in *"Before You Sign,
+Know This,"* the one section whose job is spelling out what signing commits you to, and the
+guide says some version of "costs nothing" **four** times (filing wishes, asking the ME on
+your behalf, recording wishes, putting wishes on file), so a family could fairly read
+"available" as one more thing included. Now ends: *"There is a charge for it, so ask us when
+you arrange."* Follows the house rule for these guides — **name the charge, never the dollar
+figure** — so the file stays at 0 `$`. Martice approved the wording. PDF rebuilt, 11pp.
 
 **Follow-up, same day — executor-authority FAQ added** (debrief §8 item 2, at Martice's
 request). New ninth FAQ entry, "Does being the executor of the estate let me decide?", placed
