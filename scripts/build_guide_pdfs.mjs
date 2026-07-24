@@ -18,7 +18,13 @@ const JOBS = [
   ['markers-guide.html',           'pdf-assets/Granite Marker Guide.pdf'],
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
+  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf'],
 ];
+
+// Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
+// jobs (source filename contains one of the given substrings). No args = all.
+const filters = process.argv.slice(2);
+const jobs = filters.length ? JOBS.filter(([src]) => filters.some(f => src.includes(f))) : JOBS;
 
 const GS = ['C:/Program Files/gs/gs10.07.0/bin/gswin64c.exe', 'gswin64c', 'gs']
   .find(p => { try { execFileSync(p, ['--version'], { stdio: 'ignore' }); return true; } catch { return false; } });
@@ -39,7 +45,7 @@ function shrink(file) {
 }
 
 const browser = await chromium.launch();
-for (const [src, out] of JOBS) {
+for (const [src, out] of jobs) {
   const page = await browser.newPage();
   await page.goto(pathToFileURL(path.resolve(src)).href, { waitUntil: 'networkidle' });
   // force <details> open so FAQ answers print (belt-and-suspenders with the CSS)

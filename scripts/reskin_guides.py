@@ -195,6 +195,22 @@ a.lawlink:hover code,a.lawlink:focus-visible code{background:#f8e6d5;border-colo
 .cite a{color:var(--orange);text-decoration:none;font-weight:700}
 .cite a:hover{text-decoration:underline}
 
+/* ordered priority ladder (who-decides Section 1) — order is the point, stays an <ol> */
+.ladder{list-style:none;margin:8px 0 12px;padding:0;counter-reset:step;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px}
+.ladder li{display:flex;gap:18px;align-items:flex-start;padding:18px 26px;border-bottom:1px solid var(--rule);counter-increment:step}
+.ladder li:last-child{border-bottom:0}
+.ladder li::before{content:counter(step);font-family:var(--display);font-size:26px;font-weight:700;color:var(--gold);line-height:1.1;min-width:24px}
+.ladder strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.ladder span{display:block;font-size:14px;color:var(--text-muted)}
+
+/* small statute citations (who-decides .lawcite) */
+.lawcite{font-size:13px;color:var(--text-muted);margin:-6px 0 22px;max-width:70ch}
+.lawcite a{color:var(--orange);font-weight:700;text-decoration:none}
+.lawcite a:hover{text-decoration:underline}
+.card .lawcite,.band .lawcite{margin:10px 0 0}
+.band .lawcite{color:rgba(255,255,255,.6)}
+.band .lawcite a{color:var(--orange-soft)}
+
 /* sources block */
 .sources{padding:8px 48px 0}
 .sources h3{font-family:var(--display);font-size:24px;font-weight:600;color:var(--navy);margin:0 0 4px;border-top:1px solid var(--rule);padding-top:22px}
@@ -261,7 +277,8 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   .section{padding:14px 0 10px;break-inside:auto}
   .section + .section{border-top:1px solid var(--rule)}
   .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
-  .card,.band,.note,.costs,.compare{break-inside:avoid;page-break-inside:avoid}
+  .card,.band,.note,.compare{break-inside:avoid;page-break-inside:avoid}
+  .ladder li,.charge-list li{break-inside:avoid;page-break-inside:avoid}
   .band{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .compare thead{display:table-header-group}
   .faq details{break-inside:avoid;page-break-inside:avoid}
@@ -301,8 +318,11 @@ def reskin(path, cover_footer, add_stripe):
         return None
 
     # ---- head: fonts + style ----
-    s = re.sub(r'<link[^>]*fonts\.googleapis[^>]*>', FONT_LINK, s, count=1)
+    # Remove preconnects FIRST — a draft's <link rel="preconnect" ...fonts.googleapis...>
+    # sits before the stylesheet and would otherwise be the first googleapis match,
+    # leaving the real (Lato) stylesheet link behind. Then target the css2 stylesheet.
     s = re.sub(r'<link rel="preconnect"[^>]*>\s*', '', s)
+    s = re.sub(r'<link[^>]*fonts\.googleapis\.com/css2[^>]*>', FONT_LINK, s, count=1)
     s = re.sub(r'<style>.*?</style>', '<style>' + STYLE + '</style>', s, count=1, flags=re.S)
 
     # ---- nav: .topbar -> .site-nav (reuse the page's own section links) ----
@@ -385,4 +405,7 @@ if __name__ == '__main__':
            add_stripe=False)
     reskin('medicaid-professional-reference.html',
            'Linked statutes &middot; for professional partners &middot; printable',
+           add_stripe=False)
+    reskin('who-decides-guide.html',
+           'Right of disposition &middot; naming an agent &middot; what signing means &middot; printable',
            add_stripe=False)

@@ -810,6 +810,40 @@ content-only. Build scripts that read these files normalize CRLF → LF and writ
 
 ---
 
+### 2026-07-24 — Who Decides guide (right of disposition) added
+
+Drafted guide + debrief (`who-decides-guide.html`, `who-decides-debrief.md`), integrated the
+same way as the earlier drafted guides — `scripts/reskin_guides.py` chrome-swap + retokenize
+onto the house style, changing no approved content (verified 0 words lost by multiset diff;
+8 sections, 8 TOC items, 0 broken anchors, **$0** — this guide names no pricing). Explains
+who can authorize a cremation in WA under **RCW 68.50.160**, deadlocks, deciding in advance,
+and what signing commits an authorizing agent to.
+
+- **Two new shared classes** folded into `reskin_guides.py`'s stylesheet in house tokens:
+  `.ladder` (the Section 1 priority list — kept a semantic `<ol>` with gold CSS-counter
+  numerals; the order is the point) and `.lawcite` (the seven muted statute citations, with a
+  `.band .lawcite` light variant for citations inside dark callouts). Print rule tuned so
+  `.ladder li` / `.charge-list li` break between rows rather than forcing the whole block
+  onto the next page (the debrief's page-break-gap risk) — verified in the rendered PDF: the
+  7-row ladder splits cleanly across pages 1–2 and the 9-item Section 7 list across 7–8, each
+  row intact.
+- **Reskin script bug fixed:** a draft `<link rel="preconnect" href="…fonts.googleapis…">`
+  sits before the stylesheet and was the first googleapis match, so the font-swap replaced
+  the *preconnect* and left the draft's Lato stylesheet link behind. Reordered to strip
+  preconnects first, then target the `…/css2…` stylesheet specifically. (Earlier guides
+  predate this because their drafts lacked that preconnect.)
+- `pdf-assets/Who Decides.pdf` (10pp) via `scripts/build_guide_pdfs.mjs` — registered there,
+  and that script now takes filename-substring args too (`node scripts/build_guide_pdfs.mjs
+  who-decides`). guides.html card added under **Getting Started** beside Pre-Planning
+  (cat-count 4 → 5).
+- **Open items left for Martice** (from debrief §8, not acted on): Section 5 timing citations
+  (deliberately uncited pending verification), an executor-authority FAQ entry, whether a
+  standalone designated-agent form exists for Letters & Forms, confirming the witness-
+  cremation wording against practice, and a mismatch on the paper authorization form
+  ("reverse side" vs. blank name lines).
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

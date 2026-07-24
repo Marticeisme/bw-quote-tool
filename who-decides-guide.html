@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Who Decides · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5; --gold:#b8945a;
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:var(--body);font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+strong{color:var(--navy-dark);font-weight:700}
+
+/* nav */
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+.nav-logo{height:22px;width:auto;flex-shrink:0}
+.nav-est{font-family:var(--display);font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap}
+.nav-spacer{flex:1}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s}
+.nav-back:hover{background:rgba(255,255,255,.12)}
+
+/* doc-sheet + cover */
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative}
+.cover-kicker{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative}
+.cover h1{font-family:var(--display);font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
+.cover-sub{font-family:var(--display);font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative}
+.cover-stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--navy-deep) 0 33.33%,#e9e2d4 33.33% 66.66%,var(--orange) 66.66% 100%);opacity:.9}
+
+/* contents */
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule)}
+.contents-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.contents-item:nth-last-child(-n+2){border-bottom:none}
+.contents-num{font-family:var(--display);font-size:22px;font-weight:600;color:var(--orange);min-width:20px}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s}
+.contents-item a:hover{color:var(--orange)}
+
+/* sections (drafted class names, restyled to house section-wrap) */
+.section{max-width:none;margin:0;padding:48px 48px 40px}
+.section + .section{border-top:1px solid var(--rule)}
+.section-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 6px}
+.section h2{font-family:var(--display);font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin:0 0 8px}
+.section .sub{font-family:var(--display);font-size:16px;font-style:italic;color:var(--text-muted);margin:0 0 22px;max-width:none}
+.rule{width:50px;height:2.5px;background:var(--orange);border:0;border-radius:2px;margin:0 0 26px}
+.section .sub + .rule{margin-top:0}
+.section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
+.section p.wide{max-width:none}
+.subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+a.inline{color:var(--orange);font-weight:700;text-decoration:none}
+a.inline:hover{text-decoration:underline}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px;margin:8px 0 12px}
+.card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:22px 22px 20px}
+.card h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px;line-height:1.2}
+.card h3 .star{color:var(--gold);font-size:.9em;margin-right:7px}
+.card p{margin:0;font-size:14px;color:var(--text);line-height:1.55}
+.card p + p{margin-top:10px}
+.card .fig{display:block;font-family:var(--display);font-size:26px;font-weight:700;color:var(--navy);margin:2px 0 4px}
+
+/* dark callout (drafted .band -> house policy-box look) */
+.band{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.band::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none}
+.band h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.band p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.band p + p{margin-top:12px}
+.band strong{color:var(--orange-soft)}
+
+/* gold-left note callout */
+.note{background:var(--card-white);border-left:4px solid var(--orange);border-top:1px solid var(--warm-border);border-right:1px solid var(--warm-border);border-bottom:1px solid var(--warm-border);padding:22px 26px;margin:26px 0 10px;border-radius:0 10px 10px 0}
+.note h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px}
+.note p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.note p + p{margin-top:12px}
+
+/* comparison table */
+.compare{width:100%;border-collapse:collapse;margin:8px 0 12px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;font-size:14px}
+.compare th,.compare td{padding:14px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+.compare thead th{background:var(--navy);color:#fff;font-family:var(--display);font-size:18px;font-weight:600;border-bottom:0}
+.compare thead th:first-child{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.compare tbody th{font-weight:700;color:var(--navy);width:23%;background:var(--sidebar-bg);font-size:13px}
+.compare tbody tr:last-child th,.compare tbody tr:last-child td{border-bottom:0}
+.compare .yes,.compare .same{color:#3a8a3a;font-weight:700}
+.compare .no{color:var(--orange-dark);font-weight:700}
+
+/* charge list */
+.costs{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:6px 26px;margin:8px 0 12px}
+.charge-list{list-style:none;margin:0;padding:0}
+.charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.charge-list li:last-child{border-bottom:0}
+.charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* faq */
+.faq{border-top:1px solid var(--rule);margin-top:8px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
+.faq details[open] summary::after{content:"3"}
+.faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
+.faq .answer{padding:0 40px 22px 0}
+.faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.faq .answer p + p{margin-top:12px}
+
+/* cta */
+.cta{padding:8px 48px 48px}
+.cta-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:44px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-in h2{font-family:var(--display);font-weight:600;font-size:32px;color:#fff;margin:0 0 12px}
+.cta-in p{color:rgba(255,255,255,.82);margin:0 auto 26px;max-width:52ch;font-size:15px}
+.btn{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px 28px;border-radius:6px;transition:background .15s ease}
+.btn:hover,.btn:focus-visible{background:var(--orange-dark)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#dbe3ef;margin-left:10px}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.cta-in .direct{margin-top:24px;font-size:14px;color:rgba(255,255,255,.7)}
+.cta-in .direct a{color:var(--orange-soft);text-decoration:none}
+.cta-in .direct a:hover{text-decoration:underline}
+
+/* disclaimer (both medicaid guides) */
+.disclaimer{padding:8px 48px 40px}
+.disclaimer p{font-size:12.5px;color:var(--text-muted);border-top:1px solid var(--rule);padding-top:18px;margin:0;max-width:none;line-height:1.6}
+
+/* professional reference: audience bar */
+.audience{background:var(--navy);color:rgba(255,255,255,.82);text-align:center;padding:11px 28px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+.audience strong{color:var(--orange-soft)}
+
+/* .callout == house .band treatment */
+.callout{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:22px 0;position:relative;overflow:hidden}
+.callout h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.callout p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.callout p + p{margin-top:10px}
+.callout strong{color:var(--orange-soft)}
+
+/* statute tables */
+.section table{width:100%;border-collapse:collapse;margin:16px 0 20px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;font-size:13.5px}
+.section th,.section td{padding:13px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+.section thead th{background:var(--navy);color:#fff;font-family:var(--display);font-size:18px;font-weight:600;border-bottom:0}
+.section thead th:first-child{color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.section tbody th{font-weight:700;color:var(--navy);width:26%;background:var(--sidebar-bg);font-size:13px}
+.section tbody tr:last-child th,.section tbody tr:last-child td{border-bottom:0}
+
+/* itemlist == charge-list treatment */
+.itemlist{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:4px 24px;margin:16px 0 20px}
+.itemlist ul{list-style:none;margin:0;padding:0}
+.itemlist li{padding:13px 0;border-bottom:1px solid var(--rule)}
+.itemlist li:last-child{border-bottom:0}
+.itemlist strong{display:block;font-family:var(--display);font-size:18px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.itemlist span{display:block;font-size:13px;color:var(--text-muted)}
+
+/* statute code + hyperlinked citations */
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;background:var(--sidebar-bg);border:1px solid var(--warm-border);padding:1px 5px;border-radius:3px;color:var(--navy)}
+a.lawlink{text-decoration:none;border:0}
+a.lawlink code{color:var(--orange);border-color:#e6c6a9;background:#fdf4ec;cursor:pointer}
+a.lawlink:hover code,a.lawlink:focus-visible code{background:#f8e6d5;border-color:var(--orange)}
+.cite{font-size:13px;color:var(--text-muted);font-weight:600}
+.cite a{color:var(--orange);text-decoration:none;font-weight:700}
+.cite a:hover{text-decoration:underline}
+
+/* ordered priority ladder (who-decides Section 1) — order is the point, stays an <ol> */
+.ladder{list-style:none;margin:8px 0 12px;padding:0;counter-reset:step;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px}
+.ladder li{display:flex;gap:18px;align-items:flex-start;padding:18px 26px;border-bottom:1px solid var(--rule);counter-increment:step}
+.ladder li:last-child{border-bottom:0}
+.ladder li::before{content:counter(step);font-family:var(--display);font-size:26px;font-weight:700;color:var(--gold);line-height:1.1;min-width:24px}
+.ladder strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.ladder span{display:block;font-size:14px;color:var(--text-muted)}
+
+/* small statute citations (who-decides .lawcite) */
+.lawcite{font-size:13px;color:var(--text-muted);margin:-6px 0 22px;max-width:70ch}
+.lawcite a{color:var(--orange);font-weight:700;text-decoration:none}
+.lawcite a:hover{text-decoration:underline}
+.card .lawcite,.band .lawcite{margin:10px 0 0}
+.band .lawcite{color:rgba(255,255,255,.6)}
+.band .lawcite a{color:var(--orange-soft)}
+
+/* sources block */
+.sources{padding:8px 48px 0}
+.sources h3{font-family:var(--display);font-size:24px;font-weight:600;color:var(--navy);margin:0 0 4px;border-top:1px solid var(--rule);padding-top:22px}
+.sources p.hint{font-size:13px;color:var(--text-muted);margin:0 0 14px}
+.sources ul{list-style:none;margin:0;padding:0}
+.sources li{padding:9px 0;border-bottom:1px solid var(--rule);font-size:14px}
+.sources li:last-child{border-bottom:0}
+.sources a{color:var(--navy);font-weight:700;text-decoration:none}
+.sources a:hover{color:var(--orange);text-decoration:underline}
+.sources .url{display:block;color:var(--text-muted);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;margin-top:2px}
+
+/* contact block == cta treatment */
+.contact{padding:8px 48px 0}
+.contact-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:36px 34px}
+.contact-in h2{font-family:var(--display);font-weight:600;font-size:28px;color:#fff;margin:0 0 10px}
+.contact-in p{color:rgba(255,255,255,.82);margin:0 0 18px;max-width:64ch;font-size:15px}
+.contact-in .who{color:var(--orange-soft);font-weight:700;margin:0 0 2px}
+.contact-in a{color:var(--orange-soft);text-decoration:none}
+.contact-in a:hover{text-decoration:underline}
+.contact-in .line{color:rgba(255,255,255,.72);font-size:14px;margin:0 0 3px}
+
+/* footers */
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;text-decoration:none;display:inline-block}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted)}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none}
+
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+@media (max-width:820px){
+  .nav-links{display:none}
+  .cover{padding:48px 26px 40px}
+  .cover h1{font-size:34px}
+  .contents{padding:32px 26px}
+  .contents-grid{grid-template-columns:1fr}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contents-item:last-child{border-bottom:none}
+  .section,.cta{padding-left:26px;padding-right:26px}
+}
+@media (max-width:640px){
+  .compare,.compare thead,.compare tbody,.compare tr,.compare th,.compare td{display:block;width:100%}
+  .compare thead{display:none}
+  .compare tbody tr{border-bottom:2px solid var(--navy);padding:4px 0}
+  .compare tbody tr:last-child{border-bottom:0}
+  .compare tbody th{width:100%;background:var(--sidebar-bg);border-bottom:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+  .compare tbody td{border-bottom:1px solid var(--rule);padding-top:10px}
+  .compare tbody td::before{content:attr(data-label);display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--orange);margin-bottom:4px}
+}
+
+@media print{
+  @page{size:letter;margin:0}
+  html{background:var(--cream)}
+  body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto}
+  .cover{padding:20px .5in 16px;margin:0 -.5in;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover h1{font-size:24pt}
+  .cover-sub{font-size:12pt}
+  .cover-stripe{display:none}
+  .section{padding:14px 0 10px;break-inside:auto}
+  .section + .section{border-top:1px solid var(--rule)}
+  .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
+  .card,.band,.note,.compare{break-inside:avoid;page-break-inside:avoid}
+  .ladder li,.charge-list li{break-inside:avoid;page-break-inside:avoid}
+  .band{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .compare thead{display:table-header-group}
+  .faq details{break-inside:avoid;page-break-inside:avoid}
+  .faq .answer{display:block!important}
+  .faq summary::after{display:none}
+  .audience{background:#fff!important;color:var(--navy)!important;border-bottom:2px solid var(--navy);padding:0 0 8pt;text-align:left;font-size:8pt}
+  .audience strong{color:var(--navy)!important}
+  .callout,.contact-in{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section table,.itemlist,.sources li{break-inside:avoid;page-break-inside:avoid}
+  .section thead{display:table-header-group}
+  a.lawlink code{color:var(--navy)!important;background:#fff!important;border-color:#999!important}
+  .disclaimer,.sources,.contact{padding-left:0;padding-right:0}
+  .doc-footer{padding:24px 0 20px;border-top:1px solid var(--rule)}
+  .doc-footer .footer-url{display:none}
+  a[href^="http"]::after{content:""}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#order">Who Decides</a>
+      <a href="#yourself">Deciding for Yourself</a>
+      <a href="#agent">Naming Someone</a>
+      <a href="#family">When Family Decides</a>
+      <a href="#timing">Why It Takes Time</a>
+      <a href="#signing">What Signing Means</a>
+      <a href="#before">Before You Sign</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Who Decides</h1>
+    <div class="cover-sub">Someone has to sign for a cremation, and Washington law is specific about who that someone is. This explains the order, what happens when a family disagrees, and how to make sure the decision is yours rather than theirs.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Right of disposition &middot; naming an agent &middot; what signing means &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#order">Who Has the Right to Decide</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#yourself">Deciding for Yourself</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#agent">Naming Someone Other Than Next of Kin</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#family">When the Family Has to Decide</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#timing">Why It May Take Longer Than You Expect</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#signing">What Signing Actually Means</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#before">Before You Sign, Know This</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="order">
+  <p class="section-label">Section 1</p>
+  <h2>Who Has the Right to Decide</h2>
+  <p class="sub">Washington sets a specific order, and it is not always who families expect</p>
+  <hr class="rule">
+  <p>A cremation cannot happen until someone with the legal right to decide has signed for it. Washington law lists who that is, in order. If the person at the top is unavailable, the right moves to the next.</p>
+  <div class="note">
+    <h3>Where all of this comes from</h3>
+    <p>Everything in this guide rests on a single Washington law: <strong>RCW 68.50.160</strong>, titled "Right to control disposition of remains."</p>
+    <p>RCW stands for Revised Code of Washington, which is simply the state's collection of laws. The number is its address: title 68, chapter 50, section 160. Title 68 is the part of state law dealing with cemeteries and human remains.</p>
+    <p>It is short, written in reasonably plain English, and you are welcome to read it yourself and check anything we say here against it. <a class="inline" href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">Read RCW 68.50.160 &rarr;</a></p>
+  </div>
+
+  <p>This is the list the law sets out, from the top down:</p>
+
+  <ol class="ladder">
+    <li><strong>The person you named in writing yourself</strong><span>Your own signed and witnessed instructions come first. Section 2 covers this</span></li>
+    <li><strong>Your designated agent</strong><span>Someone you named in a written document, signed and dated in front of a witness. Note that this ranks above a spouse</span></li>
+    <li><strong>Your spouse or state registered domestic partner</strong></li>
+    <li><strong>A majority of your adult children</strong><span>A majority, not any one of them. This is where most disputes happen</span></li>
+    <li><strong>Your parents</strong></li>
+    <li><strong>A majority of your siblings</strong></li>
+    <li><strong>A court-appointed guardian</strong><span>If one was appointed for you at the time of death</span></li>
+  </ol>
+
+  <p class="lawcite">The order above is set out at <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(3)</a>, subsections (a) through (g).</p>
+
+  <p>There is one step above all of these. If a person dies while serving in the military, whoever they named on their DD Form 93 comes first.</p>
+
+  <div class="note">
+    <h3>One provision worth knowing about</h3>
+    <p>If a person who would otherwise hold the right of control is arrested or charged with murder or first degree manslaughter in connection with the death, that right is given up and passes to the next person on the list.</p><p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(4)</a></p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="yourself">
+  <p class="section-label">Section 2</p>
+  <h2>Deciding for Yourself</h2>
+  <p class="sub">Two ways to settle it so nobody else has to</p>
+  <hr class="rule">
+  <p>You do not have to leave this to the list. Washington gives you two ways to decide for yourself, and both of them outrank every family member.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Put your wishes in writing</h3>
+      <p>A written document saying where and how you want to be laid to rest, signed by you in front of a witness, is legal authorization on its own. No family member has to agree to it, before or after.</p>
+      <p>The simpler and clearer it is, the better it works.</p>
+      <p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(1)</a></p>
+    </div>
+    <div class="card">
+      <h3>Sign your own authorization</h3>
+      <p>You can sign the cremation authorization yourself, in advance, for your own cremation.</p>
+      <p>When you have, <strong>we need only one signature from your next of kin afterward</strong> rather than gathering the whole family. One person, one signature, on a day when that is worth a great deal.</p>
+    </div>
+    <div class="card">
+      <h3>Make an arrangement and file it with us</h3>
+      <p>This is the stronger of the two, and almost nobody knows it.</p>
+      <p>A prearrangement that is prepaid, or simply filed with a licensed funeral establishment or cemetery, <strong>cannot be cancelled or substantially changed by your survivors.</strong> It is not a request. It holds.</p>
+      <p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(2)</a></p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>Why that second one matters so much</h3>
+    <p>Most people assume a pre-plan is a strong suggestion, and that a determined family member could undo it. In Washington, that is not the case. The law says in as many words that a prepaid or filed prearrangement is not subject to cancellation or substantial revision by survivors, and that we are protected in following it.</p>
+    <p><strong>So if there is any chance your family will disagree about this,</strong> the surest thing you can do is make the arrangement and leave it on file. Not a note in a drawer, and not a line in your will, which is usually read after the funeral has already happened.</p>
+    <p>It also spares your family the paperwork. Ordinarily we try to collect signatures from all of your next of kin. If you have signed your own authorization, one of them signs and that is the end of it.</p><p>There is no cost to file wishes with us and no obligation to prepay.</p>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="section" id="agent">
+  <p class="section-label">Section 3</p>
+  <h2>Naming Someone Other Than Next of Kin</h2>
+  <p class="sub">The designated agent, and why it exists</p>
+  <hr class="rule">
+  <p>Sometimes the person best suited to handle this is not the person the law would pick. Washington allows for that. You can name a <strong>designated agent</strong> in a written document, signed and dated in front of a witness, and that person's direction is enough to decide the type, place, and method of disposition.</p>
+  <p class="lawcite">The law calls this the designated agent, at <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(3)(b)</a>, and ranks it above every family member on the list.</p>
+  <p>A designated agent ranks above your spouse and above your children. It is worth considering if any of the following apply:</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>You are separated but not divorced</h3>
+      <p>A spouse remains a spouse in the eyes of this law until a divorce is final, no matter how long you have lived apart.</p>
+    </div>
+    <div class="card">
+      <h3>Your partner is not your legal spouse</h3>
+      <p>A long-term partner who is not married to you and not a registered domestic partner has no standing on this list at all.</p>
+    </div>
+    <div class="card">
+      <h3>Your children do not agree</h3>
+      <p>If you know they would deadlock, naming one person spares them a fight they cannot win on their own.</p>
+    </div>
+    <div class="card">
+      <h3>Your closest person is not family</h3>
+      <p>A friend, a caregiver, or a church member you trust has no place on the list unless you put them there.</p>
+    </div>
+    <div class="card">
+      <h3>You are estranged from your relatives</h3>
+      <p>The law does not know about estrangement. It only knows about relationships.</p>
+    </div>
+    <div class="card">
+      <h3>You want to spare someone the burden</h3>
+      <p>Naming an agent is as often about relieving a person as it is about choosing one.</p>
+    </div>
+  </div>
+
+  <p>Tell us if you name someone, and give us a copy. A document nobody can find does not help anybody.</p>
+</div>
+
+<!-- 4 -->
+<div class="section" id="family">
+  <p class="section-label">Section 4</p>
+  <h2>When the Family Has to Decide</h2>
+  <p class="sub">Majorities, deadlocks, and people who cannot be found</p>
+  <hr class="rule">
+  <p>When there are no written wishes and no designated agent, the decision falls to the family, and this is where the difficult situations arise.</p>
+
+  <h3 class="subhead">A majority means a majority</h3>
+  <p>If the right falls to adult children, it takes more than half of them. Three of five is enough. Two of four is not. The same rule applies to siblings.</p>
+  <p><strong>In practice we go further than the law requires.</strong> Where we can, we gather signatures from all of the next of kin rather than the bare majority. Our form has room for seven, and a line recording how many signatures were required out of how many people.</p>
+  <p>That is not bureaucracy. Every person who signs is a person who cannot later say they were not consulted, and it protects the family member who would otherwise be signing alone.</p>
+
+  <div class="band">
+    <h3>What a deadlock actually looks like</h3>
+    <p>Four adult children, split two and two. Nobody has a majority, so nobody can authorize anything, and their parent stays in our care while they work it out. We have seen this take weeks.</p>
+    <p><strong>There is no clever solution once you are in it.</strong> The family either reaches agreement or someone goes to court. Which is exactly why Sections 2 and 3 exist, and why a single sheet of paper signed years earlier is worth more than any argument anyone can make afterward.</p>
+  </div>
+
+  <h3 class="subhead">When someone cannot be reached</h3>
+  <p>Sometimes a person with an equal or greater right cannot be located. A brother nobody has spoken to in a decade. A child who moved and left no address.</p>
+  <p>The law allows us to proceed after a good faith effort to find them, relying on the most responsible party available. Our form has a section where those people are listed by name and the person signing accepts responsibility for the decision. We do not take that lightly, and neither should you.</p>
+  <p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(5)</a></p>
+</div>
+
+<!-- 5 -->
+<div class="section" id="timing">
+  <p class="section-label">Section 5</p>
+  <h2>Why It May Take Longer Than You Expect</h2>
+  <p class="sub">Signing is one step. Several others have to fall into place first</p>
+  <hr class="rule">
+  <p>Families often assume that once the authorization is signed, the cremation happens the next day. Sometimes it does. Often it does not, and the delay has nothing to do with us being slow.</p>
+  <p>A cremation cannot legally proceed until all of the following are in place:</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>The report of death is filed and registered</strong><span>This is what most people call filing the death certificate. It requires the medical certifier to complete their portion, which is often the step nobody can hurry</span></li>
+      <li><strong>A permit authorizing final disposition is issued</strong><span>The local registrar issues it once the report of death is registered. Nothing can happen before it arrives</span></li>
+      <li><strong>The authorization is signed by the right person or people</strong><span>Everything in Sections 1 through 4 of this guide</span></li>
+      <li><strong>The medical examiner or coroner has released the case</strong><span>Only where they have jurisdiction, but when they do, nothing proceeds without their consent</span></li>
+    </ul>
+  </div>
+
+  <div class="band">
+    <h3>The medical examiner is usually the long pole</h3>
+    <p>When a death is under review, everything else can be complete and ready and the cremation still cannot happen. That wait belongs to the county, not to us, and we cannot shorten it.</p>
+    <p><strong>What we can do is tell you where it stands.</strong> Ask us plainly whether the release has come through, and if not, what the office is still waiting on. That is usually the difference between a real answer and a guess.</p>
+  </div>
+
+  <p>While all of this is happening, your loved one is cared for here. Nothing about the wait changes that, and there is no cost to you for our asking on your behalf.</p>
+</div>
+
+<!-- 6 -->
+<div class="section" id="signing">
+  <p class="section-label">Section 6</p>
+  <h2>What Signing Actually Means</h2>
+  <p class="sub">Two things every authorizing agent should understand</p>
+  <hr class="rule">
+  <p>Signing a cremation authorization is not a formality, and we would rather explain it than have you discover it later.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>You are taking on responsibility</h3>
+      <p>The authorizing agent agrees to defend and hold the crematory harmless against claims brought by anyone else who says they had the right to decide.</p>
+      <p>In plain terms: if a relative comes forward angry, the person who signed is the one who answers for it. Not us.</p>
+    </div>
+    <div class="card">
+      <h3>The right to decide comes with the bill</h3>
+      <p>Under Washington law, responsibility for the reasonable cost of care and disposition falls jointly on everyone in the same degree of kinship, and on the estate.</p>
+      <p>Deciding and paying are not separate questions.</p>
+      <p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(6)</a></p>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>The point of all this</h3>
+    <p>None of it is meant to frighten anyone out of signing. Families sign these every day and it is almost always straightforward.</p>
+    <p>But it is a real legal responsibility, taken on by a person in the worst week of their life, usually without anyone explaining what it is. If you sign your own authorization in advance, the weight of it never lands on them, and only one of them needs to sign at all.</p>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="section" id="before">
+  <p class="section-label">Section 7</p>
+  <h2>Before You Sign, Know This</h2>
+  <p class="sub">What the authorization commits to, in plain terms</p>
+  <hr class="rule">
+  <p>The authorization form comes with a page of policies, and most people sign without reading it. Here is what actually matters in it.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>Cremation cannot be undone</strong><span>Unlike a burial, there is no reversing it. Everything else here follows from that</span></li>
+      <li><strong>Every cremation is performed individually</strong><span>The only exception is close relatives, and only with written instructions given in advance</span></li>
+      <li><strong>Jewelry and dental gold are not recovered</strong><span>Anything left with your loved one is destroyed or disposed of. If you want a ring back, tell us before, not after</span></li>
+      <li><strong>The remains are processed</strong><span>What comes out of the chamber includes recognizable bone fragments. Unless you ask otherwise, they are then reduced to a fine, uniform texture</span></li>
+      <li><strong>A very small amount cannot be recovered</strong><span>Every reasonable effort is made, but some residue always remains in the equipment. This is true of every crematory everywhere</span></li>
+      <li><strong>You choose the urn before, not after</strong><span>The urn has to be purchased or provided before the cremation can be scheduled</span></li>
+      <li><strong>Witnessing is available</strong><span>Families may be present to see the container placed into the chamber if they wish</span></li>
+      <li><strong>Your loved one is tracked by a numbered metal disc</strong><span>Every person cremated here has an identification disc that stays with them through the entire process and is placed in the cremated remains. It is how we know, at every step, exactly who is in our care</span></li>
+      <li><strong>Collecting the remains needs an appointment and identification</strong><span>We release to the named person only, and we check. That protection is the point</span></li>
+    </ul>
+  </div>
+
+  <p>Ask about any of this before you sign rather than after. There are no questions here we have not been asked before, and none we would rather you didn't ask.</p>
+</div>
+
+<!-- 8 -->
+<div class="section" id="faq">
+  <p class="section-label">Section 8</p>
+  <h2>Common Questions</h2>
+  <p class="sub">What families ask us most</p>
+  <hr class="rule">
+
+  <div class="faq">
+    <details>
+      <summary>Can my family overrule what I wanted?</summary>
+      <div class="answer"><p>Not if you have put it in writing properly. Your own signed and witnessed instructions are legal authorization on their own, and a prearrangement filed with us cannot be cancelled or substantially changed by survivors. A verbal wish, on the other hand, is only as strong as the family's agreement about what you said.</p></div>
+    </details>
+    <details>
+      <summary>Is it enough to put it in my will?</summary>
+      <div class="answer"><p>No, and this is a common and costly mistake. Wills are usually read days or weeks after the funeral has already taken place. Whatever it says about your wishes will be read too late to matter. Keep it separate, and give us a copy.</p></div>
+    </details>
+    <details>
+      <summary>My siblings and I cannot agree. What happens now?</summary>
+      <div class="answer"><p>Nothing can proceed until a majority of you authorize it. Your loved one remains in our care in the meantime. If you cannot reach agreement, the remaining option is for someone to ask a court to decide, which is slow and expensive and hard on everyone.</p><p>Sometimes it helps to sit down with us and separate what is actually a disagreement about the cremation from what is a disagreement about something else. Often it is the second one.</p></div>
+    </details>
+    <details>
+      <summary>Can I name my partner if we are not married?</summary>
+      <div class="answer"><p>Yes, by naming them as your designated agent in a signed, witnessed document. Without that, an unmarried partner who is not a registered domestic partner has no standing at all, no matter how long you have been together. This is one of the most important reasons the designated agent exists.</p></div>
+    </details>
+    <details>
+      <summary>What if a family member cannot be found?</summary>
+      <div class="answer"><p>We can proceed after a documented good faith effort to locate them. That person is listed by name on the authorization, and the person signing accepts responsibility for the decision. Tell us early if you think someone will be hard to reach, because it takes time to do properly.</p></div>
+    </details>
+    <details>
+      <summary>Does a power of attorney let me decide?</summary>
+      <div class="answer"><p>Usually not, and this trips up a lot of people. Most powers of attorney end at the moment of death, which is exactly when you would want to use one.</p><p>There is an important exception. <strong>Some powers of attorney are written to specifically grant the right to control disposition</strong>, or include wording to that effect. Those can work.</p><p>So the answer depends entirely on what your document actually says. If you are counting on a power of attorney for this, bring it in and let us read it well before it is needed rather than finding out at the worst possible moment.</p></div>
+    </details>
+    <details>
+      <summary>Can I sign my own cremation authorization ahead of time?</summary>
+      <div class="answer"><p>Yes, and it is one of the most useful things you can do. Normally we try to gather signatures from all of your next of kin. If you have already signed your own authorization, we only need one signature from them.</p><p>For a family spread across the country, or one that does not agree easily, that difference is enormous.</p></div>
+    </details>
+    <details>
+      <summary>How do I set this up?</summary>
+      <div class="answer"><p>Come and see us. Recording your wishes and filing them costs nothing and commits you to nothing, and it takes about as long as a cup of coffee. If you want to go further and pre-arrange, we can do that in the same conversation.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Settle it while it is easy</h2>
+    <p>Putting your wishes on file takes one short conversation, costs nothing, and takes the decision off your family entirely.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a conversation</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <p>This guide explains general rules and is not legal advice. The order of priority and the rights described here come from <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160</a>. Laws change and every family's situation is different. For a contested situation, or to be certain a document you have drafted will do what you intend, please speak with an attorney.</p>
+</div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>
