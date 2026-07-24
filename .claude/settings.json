@@ -32,5 +32,18 @@
       "mcp__claude-in-chrome__read_page",
       "mcp__visualize__read_me"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/pre-git-guard.js"
+          }
+        ]
+      }
+    ]
   }
 }
