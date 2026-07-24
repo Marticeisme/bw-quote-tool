@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cremation or Burial · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5; --gold:#b8945a;
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:var(--body);font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+strong{color:var(--navy-dark);font-weight:700}
+
+/* nav */
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+.nav-logo{height:22px;width:auto;flex-shrink:0}
+.nav-est{font-family:var(--display);font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap}
+.nav-spacer{flex:1}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s}
+.nav-back:hover{background:rgba(255,255,255,.12)}
+
+/* doc-sheet + cover */
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative}
+.cover-kicker{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative}
+.cover h1{font-family:var(--display);font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
+.cover-sub{font-family:var(--display);font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative}
+.cover-stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--navy-deep) 0 33.33%,#e9e2d4 33.33% 66.66%,var(--orange) 66.66% 100%);opacity:.9}
+
+/* contents */
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule)}
+.contents-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.contents-item:nth-last-child(-n+2){border-bottom:none}
+.contents-num{font-family:var(--display);font-size:22px;font-weight:600;color:var(--orange);min-width:20px}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s}
+.contents-item a:hover{color:var(--orange)}
+
+/* sections (drafted class names, restyled to house section-wrap) */
+.section{max-width:none;margin:0;padding:48px 48px 40px}
+.section + .section{border-top:1px solid var(--rule)}
+.section-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 6px}
+.section h2{font-family:var(--display);font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin:0 0 8px}
+.section .sub{font-family:var(--display);font-size:16px;font-style:italic;color:var(--text-muted);margin:0 0 22px;max-width:none}
+.rule{width:50px;height:2.5px;background:var(--orange);border:0;border-radius:2px;margin:0 0 26px}
+.section .sub + .rule{margin-top:0}
+.section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
+.section p.wide{max-width:none}
+.subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+a.inline{color:var(--orange);font-weight:700;text-decoration:none}
+a.inline:hover{text-decoration:underline}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px;margin:8px 0 12px}
+.card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:22px 22px 20px}
+.card h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px;line-height:1.2}
+.card h3 .star{color:var(--gold);font-size:.9em;margin-right:7px}
+.card p{margin:0;font-size:14px;color:var(--text);line-height:1.55}
+.card p + p{margin-top:10px}
+.card .fig{display:block;font-family:var(--display);font-size:26px;font-weight:700;color:var(--navy);margin:2px 0 4px}
+
+/* dark callout (drafted .band -> house policy-box look) */
+.band{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.band::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none}
+.band h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.band p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.band p + p{margin-top:12px}
+.band strong{color:var(--orange-soft)}
+
+/* gold-left note callout */
+.note{background:var(--card-white);border-left:4px solid var(--orange);border-top:1px solid var(--warm-border);border-right:1px solid var(--warm-border);border-bottom:1px solid var(--warm-border);padding:22px 26px;margin:26px 0 10px;border-radius:0 10px 10px 0}
+.note h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px}
+.note p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.note p + p{margin-top:12px}
+
+/* comparison table */
+.compare{width:100%;border-collapse:collapse;margin:8px 0 12px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;font-size:14px}
+.compare th,.compare td{padding:14px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
+.compare thead th{background:var(--navy);color:#fff;font-family:var(--display);font-size:18px;font-weight:600;border-bottom:0}
+.compare thead th:first-child{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.compare tbody th{font-weight:700;color:var(--navy);width:23%;background:var(--sidebar-bg);font-size:13px}
+.compare tbody tr:last-child th,.compare tbody tr:last-child td{border-bottom:0}
+.compare .yes,.compare .same{color:#3a8a3a;font-weight:700}
+.compare .no{color:var(--orange-dark);font-weight:700}
+
+/* charge list */
+.costs{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:6px 26px;margin:8px 0 12px}
+.charge-list{list-style:none;margin:0;padding:0}
+.charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.charge-list li:last-child{border-bottom:0}
+.charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* faq */
+.faq{border-top:1px solid var(--rule);margin-top:8px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
+.faq details[open] summary::after{content:"3"}
+.faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
+.faq .answer{padding:0 40px 22px 0}
+.faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.faq .answer p + p{margin-top:12px}
+
+/* cta */
+.cta{padding:8px 48px 48px}
+.cta-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:44px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-in h2{font-family:var(--display);font-weight:600;font-size:32px;color:#fff;margin:0 0 12px}
+.cta-in p{color:rgba(255,255,255,.82);margin:0 auto 26px;max-width:52ch;font-size:15px}
+.btn{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px 28px;border-radius:6px;transition:background .15s ease}
+.btn:hover,.btn:focus-visible{background:var(--orange-dark)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#dbe3ef;margin-left:10px}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.cta-in .direct{margin-top:24px;font-size:14px;color:rgba(255,255,255,.7)}
+.cta-in .direct a{color:var(--orange-soft);text-decoration:none}
+.cta-in .direct a:hover{text-decoration:underline}
+
+/* footers */
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;text-decoration:none;display:inline-block}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted)}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none}
+
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+@media (max-width:820px){
+  .nav-links{display:none}
+  .cover{padding:48px 26px 40px}
+  .cover h1{font-size:34px}
+  .contents{padding:32px 26px}
+  .contents-grid{grid-template-columns:1fr}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contents-item:last-child{border-bottom:none}
+  .section,.cta{padding-left:26px;padding-right:26px}
+}
+@media (max-width:640px){
+  .compare,.compare thead,.compare tbody,.compare tr,.compare th,.compare td{display:block;width:100%}
+  .compare thead{display:none}
+  .compare tbody tr{border-bottom:2px solid var(--navy);padding:4px 0}
+  .compare tbody tr:last-child{border-bottom:0}
+  .compare tbody th{width:100%;background:var(--sidebar-bg);border-bottom:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)}
+  .compare tbody td{border-bottom:1px solid var(--rule);padding-top:10px}
+  .compare tbody td::before{content:attr(data-label);display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--orange);margin-bottom:4px}
+}
+
+@media print{
+  @page{size:letter;margin:0}
+  html{background:var(--cream)}
+  body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto}
+  .cover{padding:20px .5in 16px;margin:0 -.5in;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover h1{font-size:24pt}
+  .cover-sub{font-size:12pt}
+  .cover-stripe{display:none}
+  .section{padding:14px 0 10px;break-inside:auto}
+  .section + .section{border-top:1px solid var(--rule)}
+  .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
+  .card,.band,.note,.costs,.compare{break-inside:avoid;page-break-inside:avoid}
+  .band{background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .compare thead{display:table-header-group}
+  .faq details{break-inside:avoid;page-break-inside:avoid}
+  .faq .answer{display:block!important}
+  .faq summary::after{display:none}
+  .doc-footer{padding:24px 0 20px;border-top:1px solid var(--rule)}
+  .doc-footer .footer-url{display:none}
+  a[href^="http"]::after{content:""}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#same">What's the Same</a>
+      <a href="#differs">What Differs</a>
+      <a href="#cost">The Cost</a>
+      <a href="#where">Where Ashes Go</a>
+      <a href="#resting">A Place to Visit</a>
+      <a href="#question">The Hard Question</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Cremation or Burial</h1>
+    <div class="cover-sub">Most families arrive at this fork with more assumptions than facts. This guide sets the two side by side, honestly, and does not push you toward either one. It is your decision and there is no wrong answer.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Side by side &middot; what each opens and closes &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#same">What Is the Same</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#differs">What Actually Differs</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#cost">The Cost Difference, Honestly</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#where">Where Cremated Remains Can Go</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#resting">Why a Resting Place Matters</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#question">The Question Nobody Asks</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="same">
+  <p class="section-label">Section 1</p>
+  <h2>What Is the Same</h2>
+  <p class="sub">Almost everything, and this is where most assumptions go wrong</p>
+  <hr class="rule">
+  <p>Families often believe that choosing cremation means giving something up. In nearly every respect that matters, it does not. Cremation is a method of preparation. It is not a substitute for a funeral, and it does not rule out anything below.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>A viewing</h3>
+      <p>You can have one. The preparation is the same, and a casket can be rented for the purpose. Cremation happens afterward.</p>
+    </div>
+    <div class="card">
+      <h3>A full service</h3>
+      <p>Chapel or graveside, religious or not, with the same music, readings, eulogies, and reception. Nothing about the service changes.</p>
+    </div>
+    <div class="card">
+      <h3>Military honors</h3>
+      <p>The flag, the honor detail, and Taps are all available. Cremation affects none of a veteran&rsquo;s entitlements.</p>
+    </div>
+    <div class="card">
+      <h3>A place at the cemetery</h3>
+      <p>Cremated remains can be buried or placed here in several ways, with a permanent marker and a place for family to visit.</p>
+    </div>
+    <div class="card">
+      <h3>A marker with a name on it</h3>
+      <p>Granite or bronze, with the same choice of stone, engraving, portraits, and inscriptions available for a burial.</p>
+    </div>
+    <div class="card">
+      <h3>Resting beside your spouse</h3>
+      <p>An urn can share a ground space or a crypt with a casket, so a couple who choose differently can still be laid to rest together.</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>The one thing timing changes</h3>
+    <p>A burial usually takes place within a few weeks, so there is a window to work within. Cremation has no outer limit at all, which means a family can hold the service whenever suits them, next month or next spring, once relatives can travel and everyone can be present.</p>
+    <p><strong>That flexibility is genuinely useful, and it carries one risk.</strong> A date that is never set is a service that never happens, and the family loses the gathering that would have helped them most. If you choose cremation, choose a date too.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="differs">
+  <p class="section-label">Section 2</p>
+  <h2>What Actually Differs</h2>
+  <p class="sub">Set side by side</p>
+  <hr class="rule">
+
+  <table class="compare">
+    <thead>
+      <tr>
+        <th scope="col">&nbsp;</th>
+        <th scope="col">Burial</th>
+        <th scope="col">Cremation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Viewing and service</th>
+        <td data-label="Burial"><span class="same">Available</span></td>
+        <td data-label="Cremation"><span class="same">Available</span>, with a rented casket if you wish</td>
+      </tr>
+      <tr>
+        <th scope="row">Timing</th>
+        <td data-label="Burial">Usually within a few weeks</td>
+        <td data-label="Cremation">No deadline at all. Whenever the family chooses</td>
+      </tr>
+      <tr>
+        <th scope="row">Cemetery property</th>
+        <td data-label="Burial">A burial space is required</td>
+        <td data-label="Cremation">Optional. This is the single largest difference in cost</td>
+      </tr>
+      <tr>
+        <th scope="row">Container</th>
+        <td data-label="Burial">A casket, and an outer burial container</td>
+        <td data-label="Cremation">A cremation container, then an urn. An urn vault if buried</td>
+      </tr>
+      <tr>
+        <th scope="row">Where they can rest</th>
+        <td data-label="Burial">A grave, a lawn crypt, or a mausoleum</td>
+        <td data-label="Cremation">Six options. See Section 4</td>
+      </tr>
+      <tr>
+        <th scope="row">Can it be divided</th>
+        <td data-label="Burial">No</td>
+        <td data-label="Cremation">Yes. Keepsakes and jewelry let several people hold something</td>
+      </tr>
+      <tr>
+        <th scope="row">Is it reversible</th>
+        <td data-label="Burial">A grave can be disinterred, with permission and cost</td>
+        <td data-label="Cremation">No. Cremation cannot be undone</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>For the detail behind either column, we have a full <a class="inline" href="burial-guide.html">Burial Guide</a> and a full <a class="inline" href="cremation-guide.html">Cremation Guide</a>. This page is only for choosing between them.</p>
+</div>
+
+<!-- 3 -->
+<div class="section" id="cost">
+  <p class="section-label">Section 3</p>
+  <h2>The Cost Difference, Honestly</h2>
+  <p class="sub">Why cremation is usually less, and when it is not</p>
+  <hr class="rule">
+  <p>Cremation is generally the less expensive path. It is worth understanding exactly why, because the reason is not what most people assume.</p>
+  <p>It is not that cremation is a lesser service, or that families who choose it are given less care. <strong>It is that placement is not required.</strong> A burial needs a space, an outer burial container, an opening and closing, and a marker. A cremation needs none of those unless you want them. Remove that whole column and the difference is large.</p>
+
+  <div class="note">
+    <h3>Which also means the gap narrows</h3>
+    <p>A cremation with a service, a niche or an urn space, a quality urn, and an inscribed marker is not far off a simple burial. Families are often surprised by this, and it is worth knowing before you assume one path solves a budget problem.</p>
+    <p>The honest summary: cremation costs less when you choose less. Choose the same things, and the two are closer than you would think.</p>
+  </div>
+
+  <p>Whichever way you lean, we will price both for you on paper so you are comparing real numbers rather than impressions. There is no cost to ask and no obligation attached to it.</p>
+</div>
+
+<!-- 4 -->
+<div class="section" id="where">
+  <p class="section-label">Section 4</p>
+  <h2>Where Cremated Remains Can Go</h2>
+  <p class="sub">Six options, where most families believe there is one</p>
+  <hr class="rule">
+  <p>This is the most common gap we see. Families choose cremation, receive the urn, and take it home because nobody told them there was anything else. One survey found that <strong>three in ten people were unaware of the memorial options available to them.</strong> Here they are.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>A columbarium niche</strong><span>A compartment in a wall or structure, with a granite front or a glass front that lets the urn be seen. Several settings across the park</span></li>
+      <li><strong>Buried in an urn garden</strong><span>Ground burial of the urn in a garden set aside for cremated remains, marked in the same way any grave would be</span></li>
+      <li><strong>Added to a family space</strong><span>Placed with a spouse or parent who is already here. An urn can share a ground space with a casket, or a crypt with one</span></li>
+      <li><strong>A mausoleum crypt</strong><span>Above-ground entombment, for families who prefer not to be in the ground. A crypt can hold an urn on its own, or an urn alongside a casket</span></li>
+      <li><strong>A scattering garden</strong><span>Scattered in a dedicated setting, with a memorial so there is still a name and a place to come back to</span></li>
+      <li><strong>Kept at home</strong><span>A legitimate choice, and a common one. Section 6 covers what to think about first</span></li>
+    </ul>
+  </div>
+
+  <p>Cremated remains can also be divided, so one portion can rest here while another is scattered somewhere that mattered to them, or kept in keepsakes by several members of the family. You are not choosing only one of these.</p>
+  <p>Our <a class="inline" href="urn-placement-guide.html">Urn Placement Guide</a> and <a class="inline" href="scattering-guide.html">Scattering Garden Guide</a> cover the settings in detail, with photographs.</p>
+</div>
+
+<!-- 5 -->
+<div class="section" id="resting">
+  <p class="section-label">Section 5</p>
+  <h2>Why a Resting Place Matters</h2>
+  <p class="sub">What a permanent place actually does, and for whom</p>
+  <hr class="rule">
+  <p>A final resting place is not for the person who has died. It is for everyone who comes after, and it does three things that nothing else quite does.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>It is findable</h3>
+      <p>A name, a section, a record kept permanently. A grandchild not yet born can stand in front of it one day without needing anyone&rsquo;s permission or anyone&rsquo;s address.</p>
+    </div>
+    <div class="card">
+      <h3>It belongs to everyone</h3>
+      <p>An urn in one person&rsquo;s home belongs to that household. A place here belongs to the whole family equally, including the relatives who are not close to whoever holds the urn.</p>
+    </div>
+    <div class="card">
+      <h3>It outlasts all of us</h3>
+      <p>It does not depend on anyone remembering, moving carefully, or still being alive. The endowment care fund maintains it in perpetuity.</p>
+    </div>
+  </div>
+
+  <p>None of this makes keeping an urn at home wrong. Plenty of families do it and find real comfort in it, particularly in the first year. It is worth knowing what a permanent place adds, so that keeping the urn is something you chose rather than something that happened.</p>
+</div>
+
+<!-- 6 -->
+<div class="section" id="question">
+  <p class="section-label">Section 6</p>
+  <h2>The Question Nobody Asks</h2>
+  <p class="sub">What happens to the urn after you</p>
+  <hr class="rule">
+  <p>If you are keeping a loved one&rsquo;s ashes at home, or planning for your own to be kept, there is one question worth sitting with. It is rarely asked out loud, and we would rather ask it gently now than have your family meet it unprepared.</p>
+  <p><strong>Who takes the urn next, and does that person know?</strong></p>
+  <p>Roughly one in five people keep a loved one&rsquo;s remains at home, and of those, more than half are holding a parent. Which means the urn on the shelf usually passes to a child, and then eventually to a grandchild who may never have met the person inside it. Homes are sold. Families move across the country. Estates get divided among siblings who do not agree.</p>
+
+  <div class="band">
+    <h3>The part of this work nobody talks about</h3>
+    <p>About one percent of cremations in this country end with remains that are never collected. That is roughly fifteen thousand people a year. We keep a long-term storage facility here for exactly that reason, and it is not empty.</p>
+    <p><strong>Almost none of those families intended it.</strong> They meant to decide later, and later kept moving. It is not a failure of love. It is what happens when a decision has no deadline and no obvious moment to make it.</p>
+  </div>
+
+  <p>So the practical answer is simply this. If the urn is staying at home, say so out loud, write it down, and tell the person who will one day be responsible for it. And if you would rather your family not carry that decision at all, a place here settles it permanently, in an afternoon, for whoever comes after you.</p>
+  <p>Either answer is a good one. Having an answer is the thing that matters.</p>
+</div>
+
+<!-- 7 -->
+<div class="section" id="faq">
+  <p class="section-label">Section 7</p>
+  <h2>Common Questions</h2>
+  <p class="sub">What families ask us most about this choice</p>
+  <hr class="rule">
+
+  <div class="faq">
+    <details>
+      <summary>If we choose cremation, can we still have a viewing?</summary>
+      <div class="answer"><p>Yes. The preparation is the same as for a burial, and a casket can be rented for the viewing rather than purchased. The cremation takes place afterward. Many families do exactly this.</p></div>
+    </details>
+    <details>
+      <summary>Does our faith allow cremation?</summary>
+      <div class="answer"><p>It depends on the tradition, and the honest answer is that we are not the right people to decide it for you. Some faiths require burial, some permit cremation with conditions about how the remains are treated, and some have no view at all. Speak with your clergy. If it would help, we are glad to be part of that conversation.</p></div>
+    </details>
+    <details>
+      <summary>Do we have to buy cemetery property if we choose cremation?</summary>
+      <div class="answer"><p>No. That is the main reason cremation usually costs less. But not being required is different from not being worth it, and Sections 4 and 5 are there so the choice is an informed one rather than a default.</p></div>
+    </details>
+    <details>
+      <summary>Can my spouse and I be together if one of us is cremated?</summary>
+      <div class="answer"><p>Yes. An urn can share a ground space with a casket, or be placed in a crypt alongside one, so a couple who choose differently can still rest in the same place. It is a common arrangement and considerably less expensive than two separate spaces.</p></div>
+    </details>
+    <details>
+      <summary>Can the ashes be divided among the family?</summary>
+      <div class="answer"><p>Yes, and many families do. A portion can rest here while another is scattered somewhere meaningful, with keepsake urns or jewelry for those who want to hold something. Choosing a resting place does not mean choosing only one thing.</p></div>
+    </details>
+    <details>
+      <summary>If we scatter, is there still somewhere to visit?</summary>
+      <div class="answer"><p>There can be. Scattering in a dedicated garden here comes with a memorial carrying the name, so there is a permanent place to return to. Scattering privately somewhere meaningful leaves no marker and no record, which some families are at peace with and others come to regret.</p><p>You do not have to choose between them. Many families scatter a portion in the place that mattered and keep a portion here, so there is somewhere for everyone else to visit.</p></div>
+    </details>
+    <details>
+      <summary>Can we scatter somewhere that mattered to them?</summary>
+      <div class="answer"><p>Very often, yes, and it is one of the most common things families do. Washington does not restrict where cremated remains may be kept or scattered, and a family member with the legal right to control the disposition does not need a permit.</p><p>What is needed is permission from whoever controls the place. Private land needs the owner&rsquo;s consent. National parks go through the chief park ranger, and state trust uplands through the Department of Natural Resources. Public navigable waters, including Puget Sound, rivers, streams, and lakes, are open to it. Beyond the mean lower low water mark, federal burial-at-sea rules apply. City and county parks set their own rules, so ask first.</p><p>One instruction the state is firm about: scatter the contents only, never the urn itself.</p></div>
+    </details>
+    <details>
+      <summary>We have had an urn at home for years. Is it too late?</summary>
+      <div class="answer"><p>Not at all, and you would be in good company. Families come to us with urns they have kept for ten or twenty years, often after a move or a death in the family made the question urgent. There is no time limit and nothing to explain.</p></div>
+    </details>
+    <details>
+      <summary>Which do you think we should choose?</summary>
+      <div class="answer"><p>That is genuinely not ours to say. We serve as many families choosing one as the other, and we do not think either is better. What we do care about is that it is a decision rather than an assumption, and that whichever you choose, there is a plan for where they will rest.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Talk it through with someone</h2>
+    <p>No decision is needed in the room. We will lay both out, price them side by side, and you can take as long as you need.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a conversation</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>

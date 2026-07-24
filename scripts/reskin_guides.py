@@ -119,7 +119,7 @@ a.inline:hover{text-decoration:underline}
 .compare thead th:first-child{background:var(--navy);color:rgba(255,255,255,.55);font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .compare tbody th{font-weight:700;color:var(--navy);width:23%;background:var(--sidebar-bg);font-size:13px}
 .compare tbody tr:last-child th,.compare tbody tr:last-child td{border-bottom:0}
-.compare .yes{color:#3a8a3a;font-weight:700}
+.compare .yes,.compare .same{color:#3a8a3a;font-weight:700}
 .compare .no{color:var(--orange-dark);font-weight:700}
 
 /* charge list */
@@ -228,6 +228,9 @@ FOOTER_HTML = """  <div class="doc-footer">
 
 def reskin(path, cover_footer, add_stripe):
     s = open(path, encoding='utf-8').read()
+    if '<header class="topbar">' not in s:
+        print(f'{path}: already reskinned (no .topbar) — skipping')
+        return None
 
     # ---- head: fonts + style ----
     s = re.sub(r'<link[^>]*fonts\.googleapis[^>]*>', FONT_LINK, s, count=1)
@@ -299,3 +302,6 @@ if __name__ == '__main__':
     reskin('veterans-guide.html',
            'VA benefits &middot; veterans sections &middot; marker options &middot; printable',
            add_stripe=True)
+    reskin('cremation-or-burial-guide.html',
+           'Side by side &middot; what each opens and closes &middot; printable',
+           add_stripe=False)

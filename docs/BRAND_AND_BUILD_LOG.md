@@ -591,6 +591,33 @@ NOT regenerated** — the link is a relative `.html` href that only works on-scr
 downloaded PDF), and those pages have complex layouts with no verified PDF builder, so
 regenerating risks the live files for a sentence that wouldn't function in PDF form.
 
+### 2026-07-23 — Cremation or Burial guide (third in the batch)
+
+Same drafted template, same reskin path. `cremation-or-burial-guide.html` +
+`pdf-assets/Cremation or Burial.pdf` (8pp), card added **first** in Burial & Cremation on
+`guides.html` (2 → 3, now 23 cards). It's the decision page that routes to the detailed
+Burial Guide and Cremation Guide — deliberately not a condensed version of either.
+
+`scripts/reskin_guides.py` gained a guard (skip if no `.topbar` — i.e. already reskinned)
+so re-running it only touches new files, and `.compare .same` (green "identical in both
+columns" highlight, this page's convention) is folded into the shared stylesheet next to
+`.yes`/`.no`. Verified 0 words lost, 7 sections, 0 broken anchors, all 5 cross-links
+resolve, **0 `$`**, **US spelling clean** (draft had had "jewellery"; none now). The
+7-row comparison table renders whole in the PDF.
+
+Content is neutral by mandate (Martice serves as many families choosing one as the other) —
+the reskin changed no words, so nothing tilts. Four debrief "open items" were delegated to
+me (2026-07-23) and I kept everything as approved: Section 6's "…and it is not empty" stays
+(deliberate, and the content rules bar softening Section 6), all 9 FAQ entries stay, and the
+softer cremation-company survey stats stay (attributed, directional). Martice will review in
+detail over the next few days and bring changes if needed.
+
+Reciprocal links: Burial Guide and Cremation Guide each now link to this page near their top
+(a family reading either may not have chosen yet). Same on-screen-only reasoning as the
+Cemetery Property reciprocals — **`Burial Guide.pdf` and `Cremation Guide.pdf` not
+regenerated** (Burial Guide.pdf is intentionally stale already; the link is dead in PDF form
+anyway).
+
 ---
 
 ## 5. Working rules that keep biting us
