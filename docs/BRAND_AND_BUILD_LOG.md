@@ -836,10 +836,33 @@ and what signing commits an authorizing agent to.
   and that script now takes filename-substring args too (`node scripts/build_guide_pdfs.mjs
   who-decides`). guides.html card added under **Getting Started** beside Pre-Planning
   (cat-count 4 → 5).
-- **Open items left for Martice** (from debrief §8, not acted on): Section 5 timing citations
-  (deliberately uncited pending verification), whether a standalone designated-agent form
-  exists for Letters & Forms, confirming the witness-cremation wording against practice, and
-  a mismatch on the paper authorization form ("reverse side" vs. blank name lines).
+- **Open items left for Martice** (from debrief §8): ~~Section 5 timing citations~~ (done, see
+  below), whether a standalone designated-agent form exists for Letters & Forms, confirming
+  the witness-cremation wording against practice, and a mismatch on the paper authorization
+  form ("reverse side" vs. blank name lines).
+
+**Follow-up — Section 5 timing citations verified and added.** The debrief's content rule 4
+said not to cite that section until the statutes were checked. Checked against the RCW text:
+
+| Section 5 claim | Statute |
+|---|---|
+| Report of death filed and registered; medical certifier completes their portion | **RCW 70.58A.200** "Reports of death—Filing and registration requirements" — filed with the local registrar within 5 calendar days; §(4) the medical certifier attests to cause/date/time and returns it within 2 calendar days |
+| Permit authorizing final disposition, issued once the report is registered | **RCW 70.58A.210** — "A person may not provide for final disposition of human remains until: (a) The report of death has been registered in accordance with RCW 70.58A.200; and (b) …has obtained a burial-transit permit" |
+| ME/coroner has released the case | **RCW 68.50.010** (jurisdiction) + **70.58A.200(6)(b)** |
+
+Every Section 5 claim held up; **no prose changed**, one `.lawcite` added after the list.
+
+**The nuance that matters: there is no cremation-release statute in Washington.** Looked
+specifically for a cremation-specific ME pre-authorization (many states have one) — it does
+not exist here; the WAC that mentions coroner authority (`WAC 246-500-030`) is about
+refrigeration and embalming. The hold is real but *indirect*: where the coroner or ME has
+jurisdiction under 68.50.010 they become the certifier on the report of death, and
+70.58A.200(6)(b) lets them record the cause as pending investigation — an unfinished report
+cannot be registered, so no permit issues and no disposition can occur. The citation is
+worded to say exactly that. **Citing 68.50.010 on its own would overstate it**, since that
+section only defines jurisdiction and says nothing about cremation or releasing remains.
+
+`Who Decides.pdf` rebuilt (203 KB). Still 8 sections, 8 `.lawcite`, 0 `$`.
 
 **Follow-up, same day — executor-authority FAQ added** (debrief §8 item 2, at Martice's
 request). New ninth FAQ entry, "Does being the executor of the estate let me decide?", placed
