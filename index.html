@@ -3398,6 +3398,17 @@ tr:hover td{background:#eef3f8;}
         </div>
         <input type="text" id="anIaEmblemOther" placeholder="✏️ Type your custom Emblem here…" style="display:none;width:100%;box-sizing:border-box;margin-top:6px;padding:8px 10px;border:2px solid #E5480F;border-radius:6px;font-size:13px;">
         <div style="font-size:11px;color:var(--text-light);margin-top:4px;">"Witness"/"Non-Witness" automatically relabels to "...Placement" instead of "...Lowering" for mausoleum/niche placements (based on the Open/Close field above).</div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Double Depth?</label>
+          <select id="anIaDoubleDepth" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;">
+            <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+          </select>
+          <label style="margin-left:12px;">Oversize Vault?</label>
+          <select id="anIaOversize" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;font-family:inherit;margin-left:6px;">
+            <option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Marks the IOA's Double Depth / Oversize boxes. Auto-detected on import from a double-depth O&amp;C line or an oversize vault; an oversize placement also needs the on-form approval signature.</div>
         <div class="callout callout-blue" style="margin:12px 0;font-size:12px;">For cremation only — fill in if the family will bring cremated remains.</div>
         <div class="q-row">
           <label>Status of Cremated Remains</label>
@@ -6193,6 +6204,18 @@ var _cemTotal = 0;
 var _fhLines  = [];
 var _fhTotal  = 0;
 
+// Sales-tax footnote. Under WA law the installation/setting of tangible personal property IS
+// taxable (it's part of the retail sale), so the vault-setting and marker-install charges sit
+// inside the tax base on a cemetery quote. The old note ("Services & transportation are exempt")
+// contradicted that — it read as if nothing installed was taxed. Cemetery/combined quotes now
+// name the genuinely-exempt services (interment, recording); FH-only quotes keep their own
+// accurate wording (no installation line, transportation is the exempt service).
+function _taxNoteText(isFH) {
+  return isFH
+    ? 'Tax applies to merchandise. Services & transportation are exempt.'
+    : 'Tax applies to merchandise and its installation. Interment and recording services are exempt.';
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SUMMARY RENDERER
 // ═══════════════════════════════════════════════════════════════
@@ -6268,7 +6291,7 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
     + '</div>';
 
   if (tax > 0) {
-    html += '<div class="s-tax-note">Tax applies to merchandise. Services & transportation are exempt.</div>';
+    html += '<div class="s-tax-note">' + _taxNoteText(containerId === 'fhSummary') + '</div>';
   }
 
   // Estimated monthly payment hint (10% down, 60 months, 0% — July promo or standard)
@@ -8137,7 +8160,7 @@ function _fqRenderHTML(model){
   p1+='<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:60px;padding:12px 0 0;margin-top:6px;border-top:1px solid '+_FQ.sectRule+';">'
     +'<span style="font-family:\'Public Sans\',serif;font-size:'+t.totLbl+'px;color:'+_FQ.navyDark+';">Total</span>'
     +'<span style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.totFig+'px;color:'+_FQ.navy+';font-variant-numeric:tabular-nums;min-width:104px;text-align:right;">'+_fqMoney(model.grandTotal)+'</span></div>'
-    +(model.taxAmount>0?'<div style="text-align:right;font-size:12px;color:'+_FQ.m3+';margin-top:8px;">Tax applies to merchandise. Services &amp; transportation are exempt.</div>':'')+'</div>';
+    +(model.taxAmount>0?'<div style="text-align:right;font-size:12px;color:'+_FQ.m3+';margin-top:8px;">'+_taxNoteText(model.pay.scope==='fh')+'</div>':'')+'</div>';
   // Note
   p1+='<div style="margin:24px 56px 0;"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">A note</div>'
     +'<p style="font-size:'+t.note+'px;line-height:1.65;color:'+_FQ.body+';margin:9px 0 0;max-width:640px;">This is an estimate prepared for your planning — not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we’re here to answer any question, whenever you’re ready.'
@@ -8411,7 +8434,7 @@ async function _fqBuildPDFBytes(model){
   var totW=sansB.widthOfTextAtSize(_fqMoney(model.grandTotal),11.25), tlW=trackW('Total',sansB,9,0.14);
   track('Total', RX-totW-16.5-tlW, y, sansB, 9, MUTED, 0.14);
   rt(_fqMoney(model.grandTotal), RX, y, sansH, 11.25, HEAD);
-  if(model.taxAmount>0){ y -= 2 + 8.6; rt('Tax applies to merchandise. Services & transportation are exempt.', RX, y, sans, 8.6, SUBTLE); }
+  if(model.taxAmount>0){ y -= 2 + 8.6; rt(_taxNoteText(model.pay.scope==='fh'), RX, y, sans, 8.6, SUBTLE); }
 
   // A note
   y -= tier.nGap;
@@ -12750,6 +12773,14 @@ function anImportFromCemeteryQuote() {
   // actually fires for real quotes instead of only a label that basically never occurs.
   var ocLine = _anPricing.lines.find(function(l){ return !l.isDiscount && !l.isSpace && /interment|entombment|inurnment|opening|o&c/i.test(l.label); });
   if (ocLine && el('anOpenClose') && !el('anOpenClose').value) el('anOpenClose').value = ocLine.label;
+  // Double Depth / Oversize Vault → IOA boxes (M29/P29). Auto-detect from a double-depth O&C line
+  // and an oversize vault, still overridable in the Interment Order & Authorization panel.
+  if (el('anIaDoubleDepth') && !el('anIaDoubleDepth').value
+      && _anPricing.lines.some(function(l){ return !l.isDiscount && /double\s*depth/i.test(l.label); }))
+    el('anIaDoubleDepth').value = 'Yes';
+  if (el('anIaOversize') && !el('anIaOversize').value
+      && _anPricing.lines.some(function(l){ return !l.isDiscount && /oversize/i.test(l.label); }))
+    el('anIaOversize').value = 'Yes';
   anShowPricingSummary();
   if (typeof _cemTotal !== 'undefined' && _cemTotal > 0) showTotalsMismatch(anTotal(), _cemTotal, 'CIRGAS Contract');
 }
@@ -12828,6 +12859,8 @@ function anClearAll() {
   anCustomToggle(el('anIaCremStatus'),'anIaCremStatusOther');
   if (el('anIaVeteran')) el('anIaVeteran').value = '';
   if (el('anIaWitness')) el('anIaWitness').value = '';
+  if (el('anIaDoubleDepth')) el('anIaDoubleDepth').value = '';
+  if (el('anIaOversize')) el('anIaOversize').value = '';
   if (el('anIaNumSignatures')) el('anIaNumSignatures').value = '1';
   ['anOcSpace','anOcEcf','anOcContainer','anOcContainerSet','anOcOpening','anOcRecording','anOcMemorial','anOcVase','anOcUrn','anOcOtherMerch']
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
@@ -15107,6 +15140,11 @@ function anclWorksheetData() {
       { label: 'Merchandise',             sale: num('anclMerchSale'),   rate: CL_RATES.atneed.merch,   mgrPct: num('anclMerchMgrPct'),   mgrDollar: num('anclMerchMgrDollar'),   commission: r.merchComm }
     ],
     isRewrite: false, total: r.total,
+    // A CIRGAS at-need sale is paid in full at time of service, so Total Payment Received (F6 on
+    // the worksheet) always equals the amount sold — there is nothing for the counselor to enter.
+    // Note r.total is the total COMMISSION, not the sale; payment received is the sum of the three
+    // commissionable-sale amounts (the CIRGAS total). Auto-fill it per Martice's 2026-07-23 request.
+    pmtReceived: num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale'),
     splits: [1,2,3,4].map(function(n){ return { name: val('anclSplit'+n+'Name'), pct: num('anclSplit'+n+'Pct') }; })
   };
 }
@@ -15995,6 +16033,12 @@ async function _fillCirgasXlsx(data) {
     await setIa('M33', 's', iaIsPlacement ? 'NON-WITNESS PLACEMENT:' : 'NON-WITNESS LOWERING:');
     if (data.iaWitness === 'witness') await setIa('I33', 's', 'X');
     else if (data.iaWitness === 'nonwitness') await setIa('S33', 's', 'X');
+    // Double Depth (M29) and Oversize (P29) checkboxes on the Interment Type row — same style#463
+    // checkbox cells as the 1st Right/Addl Right boxes (D29/I29) filled just above. An oversize
+    // placement also requires the "OVERSIZED PLACEMENT APPROVED BY" signature (A88), left for
+    // the funeral director to sign on the printed form.
+    if (data.iaDoubleDepth === 'Yes') await setIa('M29', 's', 'X');
+    if (data.iaOversize === 'Yes')    await setIa('P29', 's', 'X');
     // Signature block — "Interment Right Owner or Authorized Representative". These cells are
     // genuinely blank in the template (verified — no cascade formula), and all 11 real completed
     // files show the Purchaser's own name/relationship/address/phone hand-typed here every time.
@@ -16155,6 +16199,7 @@ async function generateCirgasPacket() {
     iaCremStatus: anDropdownVal('anIaCremStatus'), iaUrnType: val('anIaUrnType'), iaUrnSize: val('anIaUrnSize'),
     iaRemarks: val('anIaRemarks'), iaNumSignatures: val('anIaNumSignatures'),
     iaEmblem: anDropdownVal('anIaEmblem'), iaWitness: val('anIaWitness'),
+    iaDoubleDepth: val('anIaDoubleDepth'), iaOversize: val('anIaOversize'),
     ocSpace: el('anOcSpace').checked, ocEcf: el('anOcEcf').checked,
     ocContainer: el('anOcContainer').checked, ocContainerSet: el('anOcContainerSet').checked,
     ocOpening: el('anOcOpening').checked, ocRecording: el('anOcRecording').checked,
