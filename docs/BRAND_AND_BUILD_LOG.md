@@ -1087,6 +1087,35 @@ reconciled to the PCM sheet" entry above) — all five shapes match the sheet; n
 
 ---
 
+### 2026-07-24 — guides.html: each catalog count lives in exactly one place
+
+Verification pass over `guides.html` (all 25 cards) came back clean — pills match card
+counts in all 7 categories, every "Open Guide" and `PDF ↓` target resolves on disk
+(including the `viewer.html?file=…` parameter), search and empty state work, cards are a
+uniform 241px so the actions bottom-align, 0 broken images, 0 JS errors.
+
+The one thing worth changing was a maintenance hazard rather than a rendering fault: every
+catalog card stated its product count **twice** — once in the description and again in the
+meta line — and Cremation Containers stated it as a **split** ("8 cremation containers and 3
+rental caskets" plus "11 products"), so a catalog change meant editing three numbers that
+could silently disagree.
+
+Counts now live **only in the meta line** (`Interactive · N products · printable`) on all six
+catalog cards; the descriptions carry prose only. A count-free description was already normal
+on this page (the Burial Vault Guide card), so nothing looks out of place. Verified each of
+the six counts appears exactly once per card and still matches the live catalog page:
+metal 141, wood 63, all-caskets 204, urns 154, keepsakes 102, cremation/rental 11.
+
+Two other cards contain multiple numbers and were deliberately left alone — the niche map
+("14 walls (7 letters…)") and the sample-quote card's dollar figure. Neither is a product
+count that has to track a catalog.
+
+`scratch/verify_guides_page.mjs` is the check (not committed — it lives in the gitignored
+scratch dir): it compares pills vs cards, resolves every href on disk, and diffs each card's
+advertised count against `product-card` occurrences in the actual catalog file.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
