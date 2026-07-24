@@ -837,10 +837,22 @@ and what signing commits an authorizing agent to.
   who-decides`). guides.html card added under **Getting Started** beside Pre-Planning
   (cat-count 4 → 5).
 - **Open items left for Martice** (from debrief §8, not acted on): Section 5 timing citations
-  (deliberately uncited pending verification), an executor-authority FAQ entry, whether a
-  standalone designated-agent form exists for Letters & Forms, confirming the witness-
-  cremation wording against practice, and a mismatch on the paper authorization form
-  ("reverse side" vs. blank name lines).
+  (deliberately uncited pending verification), whether a standalone designated-agent form
+  exists for Letters & Forms, confirming the witness-cremation wording against practice, and
+  a mismatch on the paper authorization form ("reverse side" vs. blank name lines).
+
+**Follow-up, same day — executor-authority FAQ added** (debrief §8 item 2, at Martice's
+request). New ninth FAQ entry, "Does being the executor of the estate let me decide?", placed
+directly after the power-of-attorney one since they are the same class of misconception. Says
+that being named executor does not by itself put you on the RCW 68.50.160 priority list — the
+executor settles the estate, and that authority generally does not begin until the will is
+filed with the court, usually after the funeral — and routes the reader to the designated
+agent in Section 3. Often the executor *is* the spouse or an adult child, in which case the
+right comes through that relationship rather than the title; the entry says so explicitly.
+**This copy was written here, not carried over from the approved draft** — unlike the rest of
+the guide, which the reskin preserved verbatim. `Who Decides.pdf` regenerated (still 10pp,
+still $0). Note that the `E:\Downloads` draft does not contain this entry, so re-running
+`reskin_guides.py` against that draft would drop it.
 
 ---
 
