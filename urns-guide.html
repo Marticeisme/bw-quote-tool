@@ -203,16 +203,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .compare-overlay{display:none;position:fixed;inset:0;background:#fff;z-index:9997;}
 .compare-overlay.active{display:block;}
 .compare-modal{width:100%;height:100%;display:flex;flex-direction:column;}
-.compare-header{display:flex;align-items:center;gap:18px;padding:16px 32px;border-bottom:1px solid var(--warm-border);flex-wrap:wrap;flex-shrink:0;}
-.compare-title{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--navy-dark);margin-right:auto;}
-.compare-tabs{display:flex;gap:4px;background:var(--sidebar-bg);border-radius:8px;padding:4px;}
-.compare-tab{background:none;border:none;padding:8px 16px;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
-.compare-tab.active{background:#fff;color:var(--navy-dark);box-shadow:0 1px 3px rgba(0,0,0,.12);}
-.compare-tab:hover:not(.active){color:var(--navy);}
-.compare-print-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;}
-.compare-print-btn:hover{background:var(--navy-dark);}
-.compare-close{width:36px;height:36px;flex-shrink:0;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;font-size:20px;line-height:36px;text-align:center;color:var(--text-muted);transition:background .15s;}
-.compare-close:hover{background:rgba(0,0,0,.12);color:var(--text-dark);}
+/* Branded chrome: navy header + orange rule + white logo, matching the site nav
+   and the print masthead so the compare view reads as Bonney Watson. */
+.compare-header{display:flex;align-items:center;gap:16px;padding:14px 32px;background:var(--navy);border-bottom:3px solid var(--orange);flex-wrap:wrap;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.compare-logo{height:26px;width:auto;flex-shrink:0;}
+.compare-title{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:#fff;margin-right:auto;}
+.compare-tabs{display:flex;gap:4px;background:rgba(255,255,255,.14);border-radius:8px;padding:4px;}
+.compare-tab{background:none;border:none;padding:8px 16px;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.75);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap;}
+.compare-tab.active{background:#fff;color:var(--navy-dark);box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.compare-tab:hover:not(.active){color:#fff;}
+.compare-print-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.compare-print-btn:hover{background:var(--orange-dark);}
+.compare-close{width:36px;height:36px;flex-shrink:0;border:none;background:rgba(255,255,255,.16);border-radius:50%;cursor:pointer;font-size:20px;line-height:36px;text-align:center;color:#fff;transition:background .15s;}
+.compare-close:hover{background:rgba(255,255,255,.3);}
 .compare-body{flex:1;overflow-y:auto;padding:32px;}
 .compare-panel{display:none;}
 .compare-panel.active{display:block;}
@@ -226,6 +229,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .compare-corner{background:transparent;}
 .compare-label-cell{padding:12px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);background:var(--sidebar-bg);display:flex;align-items:center;border-top:1px solid var(--warm-border);}
 .compare-value-cell{padding:12px 14px;font-size:13.5px;color:var(--text);border-top:1px solid var(--warm-border);border-left:1px solid var(--warm-border);display:flex;align-items:center;}
+/* Price is always ROW_LABELS[0], so the header row is child 1 and the Price row
+   is child 2 — larger, navy, bold so pricing reads at a glance. Screen table
+   only (#compareTable / .compare-table); the print table is .cmp-table. */
+.compare-table > .compare-table-row:nth-child(2) .compare-value-cell{font-size:19px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;}
 .compare-table-row.diff .compare-label-cell{background:#F6E4D1;color:var(--orange-dark);}
 .compare-table-row.diff .compare-value-cell{background:#FBF1E7;font-weight:700;color:var(--navy-dark);}
 .compare-col-header{padding:16px 14px;border-left:1px solid var(--warm-border);text-align:center;display:flex;flex-direction:column;align-items:center;}
@@ -244,7 +251,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .compare-photo-img-wrap{background:var(--sidebar-bg);border-radius:12px;overflow:hidden;flex:1;width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;cursor:zoom-in;margin-bottom:16px;}
 .compare-photo-img-wrap img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply;}
 .compare-photo-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy-dark);margin-bottom:4px;}
-.compare-photo-price{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.compare-photo-price{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:6px;font-variant-numeric:tabular-nums;}
 .compare-photo-item{font-size:11.5px;color:var(--text-muted);font-family:monospace;margin-bottom:10px;}
 .compare-photo-remove{background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;}
 .compare-photo-remove:hover{color:var(--orange-dark);}
@@ -2973,6 +2980,7 @@ function filterCards() {
 <div class="compare-overlay no-print" id="compareOverlay">
   <div class="compare-modal">
     <div class="compare-header">
+      <img src="logo.svg" alt="Bonney Watson" class="compare-logo">
       <div class="compare-title">Compare Urns</div>
       <div class="compare-tabs">
         <button class="compare-tab active" id="compareTabSpecs" type="button">Specs &amp; Differences</button>
