@@ -269,19 +269,15 @@ tr:hover td{background:#eef3f8;}
   // the Firebase console (Authentication → Users → Reset password) by the project owner.
   var BW_LOGIN_SUFFIX = '@bwquote.local';
 
-  // Temporary escape hatch for the rollout ONLY. While the database rules are still public,
-  // ?nosignin=1 skips the gate so a sign-in problem on a locked-down work laptop can't leave
-  // anyone unable to quote. It self-neutralises the moment the rules require auth — bypassing
-  // the UI then yields a tool that can read and write nothing — at which point delete it.
-  function bwSignInBypassed() {
-    try { return /[?&]nosignin=1\b/.test(location.search); } catch(e) { return false; }
-  }
+  // (The ?nosignin=1 rollout hatch was removed once the database rules were tightened to
+  //  auth !== null on 2026-07-24. It could no longer help anyone: skipping the gate left a tool
+  //  that could neither read nor save, because the rules — not the UI — are the real gate.)
 
   function bwShowGate() {
     var g = document.getElementById('bwGate'); if (!g) return;
-    g.style.display = bwSignInBypassed() ? 'none' : 'flex';
+    g.style.display = 'flex';
     var u = document.getElementById('bwUser');
-    if (u && g.style.display === 'flex') { try { u.focus(); } catch(e) {} }
+    if (u) { try { u.focus(); } catch(e) {} }
   }
   function bwHideGate() {
     var g = document.getElementById('bwGate'); if (g) g.style.display = 'none';
@@ -340,7 +336,7 @@ tr:hover td{background:#eef3f8;}
   var _bwAppStarted = false;
   function bwStartAppIfAllowed() {
     if (_bwAppStarted) return;
-    if (!window._bwUser && !bwSignInBypassed()) return;
+    if (!window._bwUser) return;
     if (typeof initQuoteStore !== 'function') return;   // retried on DOMContentLoaded
     _bwAppStarted = true;
     initQuoteStore();
@@ -401,7 +397,7 @@ tr:hover td{background:#eef3f8;}
   function updateFbStatus() {
     var box = document.getElementById('fbStatus'); if (!box) return;
     var ready = !!window._fbQuotesReady, conn = !!window._fbConnected, err = window._fbLoadError;
-    var signedOut = !window._bwUser && !bwSignInBypassed();
+    var signedOut = !window._bwUser;
     var msg, color, bg;
     // Signed-out is checked first: once the rules require auth, every other symptom below is
     // just a downstream effect of it, and naming the cause is what makes it fixable.
@@ -468,7 +464,6 @@ tr:hover td{background:#eef3f8;}
             style="width:100%;margin-top:19px;padding:10px;font-size:14px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;">Sign in</button>
   </form>
 </div>
-<script>if (typeof bwSignInBypassed === 'function' && bwSignInBypassed()) bwHideGate();</script>
 
 <div class="layout">
 <!-- SIDEBAR -->
@@ -11361,7 +11356,61 @@ function show(id, navEl) {
     // clicked. Refresh it unconditionally every time this page is shown.
     if (typeof combInsCalc === 'function') combInsCalc();
   }
+  // Keep the URL pointing at whatever is on screen, so every tab is linkable, bookmarkable and
+  // survives a reload. Skipped when show() is itself being driven by the hash — see bwRoute().
+  if (!_bwRouting && id) {
+    var want = '#' + id;
+    if (location.hash !== want) location.hash = want;
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ROUTING — every section has a URL
+// ═══════════════════════════════════════════════════════════════
+// #cem-quote, #ric-contract, and so on. Nothing else in the app had a URL before this: no hash,
+// no pushState, no query parsing, so nothing could be linked to, bookmarked, or survive a reload.
+// That is what blocks linking the WMP map to a quote, and later a contact record to its quotes.
+//
+// show(id, navEl) stays the single entry point; this only mirrors it into location.hash and
+// listens for the hash changing (Back/Forward, a pasted link, a link from another page).
+var _bwRouting = false;   // true while show() is being driven BY the hash, to suppress the echo
+
+function _bwHashId() {
+  // Tolerates "#id" and "#/id" so a link written either way works.
+  return (location.hash || '').replace(/^#\/?/, '').trim();
+}
+function _bwSectionExists(id) { return !!(id && document.getElementById('section-' + id)); }
+
+// The sidebar item for a section, so arriving by URL highlights the nav exactly as clicking would.
+// Markup is onclick="show('cem-quote',this)".
+function _bwNavElFor(id) {
+  try { return document.querySelector('.nav-item[onclick^="show(\'' + id + '\'"]'); }
+  catch (e) { return null; }
+}
+
+// Navigate to whatever the hash names, falling back to fallbackId when there is no hash at all.
+// Returns false for an unknown section, leaving the current one alone — a stale or mistyped link
+// should never blank the app.
+function bwRoute(fallbackId) {
+  var id = _bwHashId() || fallbackId || '';
+  if (!_bwSectionExists(id)) return false;
+  // Already on screen: nothing to do. This is also what absorbs the hashchange that show() itself
+  // triggers by writing the hash — without it, show() would re-enter and repeat its side effects
+  // (rebuilding the 841-entry price index, re-pulling Combined totals) on every navigation.
+  var sec = document.getElementById('section-' + id);
+  if (sec.classList.contains('active')) return true;
+  _bwRouting = true;
+  try { show(id, _bwNavElFor(id)); } finally { _bwRouting = false; }
+  return true;
+}
+
+// Back/Forward, a pasted link, or a link from another page. Going Back to the entry state leaves
+// no hash at all, which means Home — the section the markup starts on.
+window.addEventListener('hashchange', function() { bwRoute('home'); });
+
+// Open on the section named in the URL. No hash just leaves the markup's default (Home).
+if (document.readyState !== 'loading') bwRoute();
+else document.addEventListener('DOMContentLoaded', bwRoute);
 
 // ═══════════════════════════════════════════════════════════════
 // FH COMPARE — Option A vs Option B
