@@ -618,6 +618,40 @@ Cemetery Property reciprocals — **`Burial Guide.pdf` and `Cremation Guide.pdf`
 regenerated** (Burial Guide.pdf is intentionally stale already; the link is dead in PDF form
 anyway).
 
+### 2026-07-23 — Marker guide True Size Photo Guide printed at 68%
+
+`markers-guide.html`. The ceramic-steel-portrait true-size outlines did not measure true
+to life in print, and the 8-inch sizes were missing entirely.
+
+**Root cause (one bug broke everything):** the Marker Size Scale Guide's print rule
+`.scale-markers{transform:scale(1.6)}` sat on a full-content-width flex box; scaled, it
+became **1152px wide** against an 816px Letter page. That overflow forced the browser/PDF
+to shrink the *entire page* by 816/1152 = **0.68** to fit — so every true-size portrait
+printed at 68%. Fix: `display:inline-flex` (box hugs its markers) + scale 1.5, so nothing
+overflows the page. Confirmed by measuring the rendered PDF: 5×7 oval now 360×504pt =
+exactly 5in×7in, 6×6 circle 432×432pt = 6in×6in.
+
+**Belt-and-suspenders:** per-SVG print rules pin each portrait to exact inches
+(`#true-size .tsg-diagram svg[width="5in"]{width:5in!important;height:7in!important}`, etc.).
+
+**Missing sizes added:** cross-checked the quote tool's `PORTRAIT_DATA` (index.html) — the
+orderable sizes absent from the true-size diagrams were the 8-inch ones. Added **8×10 oval,
+8×10 rectangle, 8×8 circle**, each on its own full-bleed page (`.tsg-full` cancels the
+doc-sheet's 0.5in padding so an 8in outline fits inside 8.5in with ~0.25in each side, no
+re-overflow). Measured true: 8×10 = 576×720pt = 8in×10in, 8×8 = 576×576pt = 8in×8in.
+(18×12 rectangle panel can't be shown true-size on Letter — 18in wide. Heart/Square exist
+in the guide but not in the quote tool's PORTRAIT_DATA.)
+
+The downloadable `pdf-assets/Granite Marker Guide.pdf` was regenerated from the fixed page
+(was 21pp with the bug → 20pp true-size; content identical, only pagination differs).
+`markers-guide.html` is now registered in `scripts/build_guide_pdfs.mjs`. To print true to
+life the family still must choose **100% / Actual Size**, not Fit to Page — the guide says so.
+
+Note for whoever syncs prices: the guide's portrait prices and the quote tool's
+`PORTRAIT_DATA` disagree on several sizes (e.g. rectangle 8×10 color $2,200 vs $1,375;
+circle 4×4 $1,130/$635 vs $965/$520). Not reconciled here — needs Martice to say which is
+authoritative before either is changed.
+
 ---
 
 ## 5. Working rules that keep biting us

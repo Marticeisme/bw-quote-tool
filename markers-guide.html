@@ -211,7 +211,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .scale-guide{break-inside:avoid;page-break-inside:avoid;page-break-before:always;padding:24px 0;margin-top:0;border:none;background:#f8f6f2!important;border-radius:0;}
   .scale-guide-label{font-size:16pt!important;margin-bottom:8px;}
   .scale-guide-sub{font-size:10pt!important;margin-bottom:16px;}
-  .scale-markers{transform:scale(1.6);transform-origin:top left;margin-bottom:200px;justify-content:flex-start;gap:8px;}
+  /* inline-flex so the box hugs its markers; a full-width flex box scaled 1.6
+     overflowed the Letter page (1152px > 816px) and forced the whole page — the
+     true-size portraits included — to shrink to 68% to fit. */
+  .scale-markers{display:inline-flex;transform:scale(1.5);transform-origin:top left;margin-bottom:200px;justify-content:flex-start;gap:8px;}
   .scale-companion{margin-top:24px;}
   .scale-companion .scale-markers{margin-bottom:60px;}
   .section-photo img,.section-photo-inline img{width:100%;max-width:none;}
@@ -220,8 +223,22 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .color-group{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
   .tsg-section{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
   .tsg-section img{width:100%;max-width:none;}
+  /* TRUE SIZE: force each portrait SVG to its exact physical dimensions in print.
+     The base rule's height:auto + max-width was shrinking these to ~68% of size,
+     so the diagrams did not measure true to life. Pin width AND height in inches
+     (only three pairs exist: 5x7, 6x6, 4x4) so nothing is left to auto-computation. */
   .tsg-diagram svg{max-width:none!important;}
-  .tsg-diagram{margin-bottom:12px;}
+  #true-size .tsg-diagram svg[width="5in"]{width:5in!important;height:7in!important;}
+  #true-size .tsg-diagram svg[width="6in"]{width:6in!important;height:6in!important;}
+  #true-size .tsg-diagram svg[width="4in"]{width:4in!important;height:4in!important;}
+  #true-size .tsg-diagram svg[width="8in"][height="10in"]{width:8in!important;height:10in!important;}
+  #true-size .tsg-diagram svg[width="8in"][height="8in"]{width:8in!important;height:8in!important;}
+  /* Largest portraits (8in wide) need the full page width. Full-bleed cancels the
+     doc-sheet's 0.5in padding so 8in fits inside 8.5in with ~0.25in each side,
+     each on its own page. */
+  .tsg-full{page-break-before:always;break-before:page;margin-left:-0.5in;margin-right:-0.5in;}
+  .tsg-full .tsg-diagram{justify-content:center;}
+  .tsg-diagram{margin-bottom:12px;justify-content:flex-start;}
   .policy-box{break-inside:avoid;page-break-inside:avoid;}
   .doc-footer{page-break-before:avoid;padding:24px 0 20px;border-top:1px solid #ddd6c8;text-align:center;}
   .doc-footer .footer-logo{height:20px;}
@@ -639,7 +656,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-sub">Print this page at 100% to see each portrait size at actual scale</div>
     <div class="section-rule"></div>
 
-    <div class="tsg-note">Print at 100% (Actual Size). Do not choose &ldquo;Fit to Page&rdquo; or &ldquo;Shrink to Fit&rdquo; &mdash; these outlines will not measure true to life otherwise. The 8&Prime;&times;10&Prime; sizes are too large to show at full scale here.</div>
+    <div class="tsg-note">Print at 100% (Actual Size). Do not choose &ldquo;Fit to Page&rdquo; or &ldquo;Shrink to Fit&rdquo; &mdash; these outlines will not measure true to life otherwise. The largest sizes (8&Prime;&times;10&Prime; and 8&Prime;&times;8&Prime;) each print on their own page at full scale.</div>
 
     <!-- OVAL — 72 DPI: 1in = 72 units. Largest = 5×7 → viewBox 360×504, center 180,252 -->
     <div class="tsg-section">
@@ -666,6 +683,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
     </div>
 
+    <!-- OVAL 8×10 — actual size, own page. 8in=576, 10in=720 @72dpi -->
+    <div class="tsg-section tsg-full">
+      <div class="tsg-label">Oval &mdash; 8&Prime; &times; 10&Prime; (Actual Size) &middot; Color $2,200 &middot; B&amp;W $1,415</div>
+      <div class="tsg-diagram">
+        <svg width="8in" height="10in" viewBox="0 0 576 720" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="288" cy="360" rx="288" ry="360" fill="none" stroke="#3d5a7a" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
     <!-- CIRCLE — Largest = 6×6 → viewBox 432×432, center 216,216 -->
     <div class="tsg-section">
       <div class="tsg-label">Circle Portraits</div>
@@ -685,6 +712,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
     </div>
 
+    <!-- CIRCLE 8×8 — actual size, own page. 8in=576 @72dpi -->
+    <div class="tsg-section tsg-full">
+      <div class="tsg-label">Circle &mdash; 8&Prime; &times; 8&Prime; (Actual Size) &middot; Color $1,540 &middot; B&amp;W $960</div>
+      <div class="tsg-diagram">
+        <svg width="8in" height="8in" viewBox="0 0 576 576" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="288" cy="288" r="288" fill="none" stroke="#3d5a7a" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+
     <!-- RECTANGLE — Largest = 5×7 → viewBox 360×504 -->
     <div class="tsg-section">
       <div class="tsg-label">Rectangle Portraits</div>
@@ -697,6 +734,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="tsg-legend">
         <div class="tsg-legend-item"><span class="tsg-legend-swatch" style="background:#3d5a7a;"></span><strong>5&Prime;&times;7&Prime;</strong><span class="tsg-legend-price">Color $1,375 &middot; B&amp;W $675</span></div>
         <div class="tsg-legend-item"><span class="tsg-legend-swatch" style="background:#c8540a;"></span><strong>4&Prime;&times;5&Prime;</strong><span class="tsg-legend-price">Color $1,075 &middot; B&amp;W $646</span></div>
+      </div>
+    </div>
+
+    <!-- RECTANGLE 8×10 — actual size, own page. 8in=576, 10in=720 @72dpi -->
+    <div class="tsg-section tsg-full">
+      <div class="tsg-label">Rectangle &mdash; 8&Prime; &times; 10&Prime; (Actual Size) &middot; Color $2,200 &middot; B&amp;W $1,415</div>
+      <div class="tsg-diagram">
+        <svg width="8in" height="10in" viewBox="0 0 576 720" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="576" height="720" fill="none" stroke="#3d5a7a" stroke-width="1.5"/>
+        </svg>
       </div>
     </div>
 

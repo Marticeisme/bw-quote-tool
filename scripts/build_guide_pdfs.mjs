@@ -15,6 +15,7 @@ const JOBS = [
   ['veterans-guide.html',          'pdf-assets/Veterans Guide.pdf'],
   ['cemetery-property-guide.html', 'pdf-assets/Cemetery Property Guide.pdf'],
   ['cremation-or-burial-guide.html', 'pdf-assets/Cremation or Burial.pdf'],
+  ['markers-guide.html',           'pdf-assets/Granite Marker Guide.pdf'],
 ];
 
 const GS = ['C:/Program Files/gs/gs10.07.0/bin/gswin64c.exe', 'gswin64c', 'gs']
