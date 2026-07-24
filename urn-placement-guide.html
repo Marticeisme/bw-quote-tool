@@ -101,6 +101,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 }
 @media print{
   @page{size:letter;margin:0;}
+  /* Ghostscript's downsample mangles the ToUnicode map for fi/fl/ft ligatures, which made
+     words like "dignified" and "specific" unsearchable. Suppressing ligature substitution
+     leaves no ligature glyph to corrupt, so the downsample can be kept. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
   html{height:100%;background:#f8f6f2;}
   body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}

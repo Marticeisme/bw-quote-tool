@@ -18,21 +18,13 @@ const JOBS = [
   ['markers-guide.html',           'pdf-assets/Granite Marker Guide.pdf'],
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
-  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf',           { noShrink: true }],
-  ['urn-placement-guide.html',      'pdf-assets/Urn Placement Options.pdf', { noShrink: true }],
-  ['pre-planning-guide.html',       'pdf-assets/Pre-Planning Guide.pdf',    { noShrink: true }],
-  ['burial-guide.html',             'pdf-assets/Burial Guide.pdf',          { noShrink: true }],
-  ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf',       { noShrink: true }],
-  ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf', { noShrink: true }],
+  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf'],
+  ['urn-placement-guide.html',      'pdf-assets/Urn Placement Options.pdf'],
+  ['pre-planning-guide.html',       'pdf-assets/Pre-Planning Guide.pdf'],
+  ['burial-guide.html',             'pdf-assets/Burial Guide.pdf'],
+  ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf'],
+  ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
 ];
-
-// Ghostscript's pdfwrite rebuilds embedded fonts and mangles the ToUnicode mapping for
-// the "fi"/"fl" ligatures — "dignified" extracts (and Ctrl-F / copy-pastes) as "digniºed".
-// Chromium's own output is clean; the corruption is introduced purely by the downsample.
-// No font flag prevents it (-dSubsetFonts=false / -dEmbedAllFonts=true were tested).
-// So text-heavy guides pass { noShrink: true }: they have few images, so the downsample
-// buys little, and correct searchable text matters more on a document families read.
-// Image-heavy jobs (the catalogs) keep the shrink, where it saves megabytes.
 
 // Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
 // jobs (source filename contains one of the given substrings). No args = all.

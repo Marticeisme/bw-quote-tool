@@ -911,6 +911,8 @@ separate defects and fixed those too.
    text matters more than a couple hundred KB. **Image-heavy catalogs keep the shrink** —
    `All Caskets.pdf` would go 2.8 MB → 9 MB, not worth it for one broken word in a subtitle.
    This defect was already live in `Who Decides.pdf` (3 hits) and `All Caskets.pdf` (1).
+   **→ Superseded the same day by the ligature-suppression fix in the next entry; `noShrink`
+   was removed and every PDF now keeps the downsample.**
 3. **Missing contact details.** These older guides hide `.doc-footer` in print, so a
    downloaded PDF carried no address or phone. Un-hidden for print in all five. The Cremation
    Guide was worse — a *pricing* document whose address lives only in `.site-footer` (site
@@ -939,6 +941,56 @@ U+00BA corruption, and all pages render with 0 JS errors.
 matches, so `burial-guide` also matches `cremation-or-burial-guide.html` and silently
 rebuilds it. It was restored from git here. Pass the full filename when a name is a substring
 of another.
+
+---
+
+### 2026-07-24 — Ligature suppression: searchable PDFs *and* the image downsample
+
+Follow-up that supersedes the `noShrink` workaround from the entry above. Martice asked to
+reword the All Caskets subtitle so the corrupted "filter" wouldn't force us to drop
+Ghostscript. Checking first showed the problem was much larger than one word.
+
+**`.product-name` renders in Cormorant Garamond, which forms `fi`/`ft` ligatures**, and
+Ghostscript corrupts their ToUnicode mapping — so those product names were **unfindable** in
+the built PDFs. Ctrl-F for "Hartfield" in the casket catalog returned nothing.
+
+| PDF | Names missing before |
+|---|---|
+| All Caskets | 5 — Hartfield, Mansfield, Clifton, Clifton - 28, Unfinished 041M Narrow |
+| Wood Caskets | 5 — same |
+| Cremation Containers & Rental | 1 — Standard Alternative Container |
+
+Rewording can't fix product names, so the fix is to stop the ligature forming at all:
+`*{font-variant-ligatures:none;-webkit-font-variant-ligatures:none}` inside each page's
+`@media print` block. With no ligature glyph there is nothing for Ghostscript to corrupt, so
+**text stays searchable and the image downsample is kept** — `All Caskets.pdf` is still
+2805 KB, not 9 MB. No copy was changed; the subtitle keeps the word "filter".
+
+Applied to all five catalogs (Wood had the same five broken names, not just All Caskets), to
+the six guides, and to `reskin_guides.py`'s shared STYLE so future guides inherit it.
+`build_all_caskets.py` picks it up automatically since it templates from `wood-caskets.html`
+— `all-caskets.html` was regenerated from the script to confirm it round-trips.
+
+**`noShrink` removed from `build_guide_pdfs.mjs`.** With ligatures suppressed the workaround
+is unnecessary, so the guides get correct text *and* the downsample — roughly half the size:
+Who Decides 476→202 KB, Burial 459→203, Cremation 652→283, Pre-Planning 400→162, Urn
+Placement 382→163, Scattering 330→150.
+
+Verified: all six catalogs 0 missing product names and 0 U+00BA; all six guides still
+edge-to-edge with the contact footer; `verify_catalogs.mjs` all pages OK; guide pages 0 JS
+errors. The rule is print-scoped, so on-screen rendering is untouched.
+
+**Measurement caveat worth keeping:** a naive `name in pdf_text` check reports false missing
+names, because long names wrap across lines in the PDF. Normalize whitespace
+(`re.sub(r'\s+',' ',...)`) on both sides before comparing — that turned an alarming "63
+missing" into a true 0.
+
+**Process note (my error):** running `node scripts/build_guide_pdfs.mjs` with no filter
+rebuilt **all twelve** guide PDFs, including the parallel session's two in-flight files
+(Cemetery Property, Veterans) and four others out of scope. All six were restored with
+`git checkout --`. No content was lost — those guides' HTML is unmodified at HEAD, so their
+PDFs were rebuilds of identical source — but **always pass a filter when the working tree has
+another session's files in it.**
 
 ---
 

@@ -246,6 +246,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
 @media print{
   @page{size:letter;margin:0}
+  /* Ghostscript's downsample mangles the ToUnicode map for fi/fl/ft ligatures, which made
+     words like "dignified" and "specific" unsearchable. Suppressing ligature substitution
+     leaves no ligature glyph to corrupt, so the downsample can be kept. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
   html{background:var(--cream)}
   body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}

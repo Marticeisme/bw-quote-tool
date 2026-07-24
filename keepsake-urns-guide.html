@@ -112,6 +112,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
 @media print {
   @page{size:letter;margin:0;}
+  /* Ghostscript's downsample rebuilds embedded fonts and mangles the ToUnicode map for
+     fi/fl/ft ligatures, so names like "Hartfield" became unsearchable in the PDF.
+     Suppressing ligature substitution leaves no ligature glyph to corrupt — text stays
+     searchable AND the image downsample is kept. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
   html{height:100%;background:#f8f6f2;}
   body{background:#f8f6f2;font-size:10pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .site-nav,.site-footer,.nav-back,.filter-bar,.doc-footer,.contents,.compare-tray,.compare-overlay,.compare-toggle,.photo-lightbox{display:none!important;}
