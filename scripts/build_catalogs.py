@@ -101,6 +101,9 @@ CATALOGS = {
         speclabels="['Construction', 'Interior', 'Finish', 'Suitable for', 'Dimensions', 'Weight']",
         attr='data-wood', bucket=wood_bucket, filter_id='woodFilter',
         filter_all='All Wood Types', buckets=WOOD_BUCKETS,
+        # SKUs the CSV mis-files under another category but which belong here
+        # (269166 Fireside is an Oak Solid wood casket labelled "Metal Caskets").
+        extra_skus={'269166'},
     ),
     'urns': dict(
         page='urns-guide.html', cat='Urns',
@@ -160,7 +163,9 @@ def build_card(sku, name, price, details, img, attr=None, attrval=None):
 def run(key):
     cfg = CATALOGS[key]
     page = cfg['page']
-    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8')) if r['category'] == cfg['cat']]
+    extra = cfg.get('extra_skus', set())
+    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8'))
+            if r['category'] == cfg['cat'] or r['sku'].strip() in extra]
 
     s = open(page, encoding='utf-8').read()
     grid_open = '<div class="product-grid" id="productGrid">'

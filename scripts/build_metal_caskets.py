@@ -8,8 +8,9 @@ Rebuild the metal casket catalog grid from the Batesville INDEX.csv.
 - Keeps the existing card markup contract so search/sort/filter/modal keep working.
 - Regenerates the colour filter, the cover count/price range, and specLabels.
 
-Excludes SKUs that are live in a different catalog (269150 Lyra Natural is
-categorised Metal in the CSV but ships in wood-caskets.html).
+Excludes SKUs that are live in a different catalog (269150 Lyra Natural and
+269166 Fireside are categorised Metal in the CSV but are wood caskets that
+ship in wood-caskets.html).
 
 Run from the repo root:  python scripts/build_metal_caskets.py
 """
@@ -25,7 +26,9 @@ IMGD  = os.path.join('casket-images', 'metal')
 IMG_PX, IMG_Q = 800, 82
 
 # Live in another catalog -> don't duplicate here.
-EXCLUDE = {'269150'}
+# 269150 Lyra Natural, 269166 Fireside: CSV says "Metal Caskets" but both are
+# wood (Oak/hardwood) caskets and ship in wood-caskets.html.
+EXCLUDE = {'269150', '269166'}
 
 # Exterior colour -> (filter value, dropdown label). Order sets dropdown order.
 BUCKETS = [

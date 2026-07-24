@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metal Caskets &middot; Bonney Watson</title>
+<title>All Caskets &middot; Bonney Watson</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -250,11 +250,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .compare-col-remove{background:none;border:none;color:var(--text-muted);font-size:11.5px;cursor:pointer;text-decoration:underline;}
 .compare-col-remove:hover{color:var(--orange-dark);}
 
-/* Fills the full panel height (set by JS per item count: 1 row for 2 items,
-   2x2 for 4, and 2-over-1(full-width) for 3 — see renderPhotoPanel). Each
-   cell's image wrap is flex:1 rather than aspect-ratio:1/1, so the photo is
-   bounded by whichever of the cell's width/height is smaller, using all the
-   space the grid actually gives it instead of just stretching to fill width. */
+/* Fills the full panel height (set by JS per item count: 1 row for 2-3 items,
+   2x2 for 4 — see renderPhotoPanel). Each cell's image wrap is flex:1 rather
+   than aspect-ratio:1/1, so the photo is bounded by whichever of the cell's
+   width/height is smaller, using all the space the grid actually gives it
+   instead of just stretching to fill width. */
 .compare-photo-grid{display:grid;gap:24px;max-width:1800px;width:100%;margin:0 auto;flex:1;min-height:0;}
 .compare-photo-col{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
 .compare-photo-img-wrap{background:var(--sidebar-bg);border-radius:12px;overflow:hidden;flex:1;width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;cursor:zoom-in;margin-bottom:16px;}
@@ -367,10 +367,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <div class="cover">
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
-    <h1>Metal Caskets</h1>
-    <div class="cover-sub">Steel caskets from Batesville suitable for burial — available at Washington Memorial Park.</div>
+    <h1>All Caskets</h1>
+    <div class="cover-sub">Every metal and wood casket from Batesville, side by side — filter and compare across both. Available at Washington Memorial Park.</div>
     <div class="cover-rule"></div>
-    <div class="cover-footer">141 caskets &middot; $1,130.00 &ndash; $23,930.00</div>
+    <div class="cover-footer">204 caskets &middot; $1,130.00 &ndash; $23,930.00</div>
   </div>
 
   <div class="filter-bar no-print">
@@ -382,12 +382,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <option value="name-asc">Name: A to Z</option>
     </select>
     <button type="button" class="facet-clear" id="facetClear" hidden onclick="clearFacets()">Clear filters</button>
-    <span class="filter-count" id="filterCount">141 caskets</span>
+    <span class="filter-count" id="filterCount">204 caskets</span>
   </div>
 
   <div class="section-wrap">
     <div class="product-grid" id="productGrid">
-        <div class="product-card" data-name="apollo silver" data-item="221502" data-price="1130.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="apollo silver" data-item="221502" data-price="1130.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/221502.jpg" alt="Apollo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Silver</div>
@@ -405,7 +405,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo blue" data-item="221503" data-price="1130.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="apollo blue" data-item="221503" data-price="1130.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/221503.jpg" alt="Apollo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Blue</div>
@@ -423,7 +423,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo copper" data-item="221504" data-price="1130.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="apollo copper" data-item="221504" data-price="1130.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/221504.jpg" alt="Apollo Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Copper</div>
@@ -441,7 +441,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo white/pink" data-item="221505" data-price="1130.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="apollo white/pink" data-item="221505" data-price="1130.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/221505.jpg" alt="Apollo White/Pink" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo White/Pink</div>
@@ -459,7 +459,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo flat black" data-item="244327" data-price="1130.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="apollo flat black" data-item="244327" data-price="1130.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/244327.jpg" alt="Apollo Flat Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Flat Black</div>
@@ -477,7 +477,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo blue" data-item="279127" data-price="1470.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="virgo blue" data-item="279127" data-price="1470.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/279127.jpg" alt="Virgo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Blue</div>
@@ -495,7 +495,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo silver" data-item="279131" data-price="1470.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="virgo silver" data-item="279131" data-price="1470.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/279131.jpg" alt="Virgo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Silver</div>
@@ -513,7 +513,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo white/gold" data-item="279133" data-price="1470.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="virgo white/gold" data-item="279133" data-price="1470.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/279133.jpg" alt="Virgo White/Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo White/Gold</div>
@@ -531,7 +531,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo white/copper" data-item="279134" data-price="1470.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="virgo white/copper" data-item="279134" data-price="1470.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/279134.jpg" alt="Virgo White/Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo White/Copper</div>
@@ -549,7 +549,41 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo copper" data-item="279135" data-price="1555.0" data-color="brown">
+        <div class="product-card" data-cat="wood" data-name="lyra brown" data-item="269152" data-price="1540.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/269152.jpg" alt="Lyra Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lyra Brown</div>
+            <div class="product-price">$1,540.00</div>
+            <div class="product-detail">Pine Solids and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.36 in L x 27.82 in W x 19.98 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#269152</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="lyra natural" data-item="269150" data-price="1540.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/269150.jpg" alt="Lyra Natural" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lyra Natural</div>
+            <div class="product-price">$1,540.00</div>
+            <div class="product-detail">Pine Solids and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Satin finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-meta">#269150</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="virgo copper" data-item="279135" data-price="1555.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/279135.jpg" alt="Virgo Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Copper</div>
@@ -567,7 +601,60 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo black" data-item="278913" data-price="2005.0" data-color="black">
+        <div class="product-card" data-cat="wood" data-name="grey doeskin oval cut top" data-item="147970" data-price="1600.0" data-wood="cloth">
+          <div class="product-img"><img src="casket-images/wood/147970.jpg" alt="Grey Doeskin Oval Cut Top" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Grey Doeskin Oval Cut Top</div>
+            <div class="product-price">$1,600.00</div>
+            <div class="product-detail">Cloth Covered Fiberboard</div>
+            <div class="product-detail">Ivory Crepe Interior</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82 in L x 29.5 in W x 19.25 in H</div>
+            <div class="product-detail">70 lbs</div>
+            <div class="product-meta">#147970</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="lynx light brown" data-item="257923" data-price="1755.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/257923.jpg" alt="Lynx Light Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lynx Light Brown</div>
+            <div class="product-price">$1,755.00</div>
+            <div class="product-detail">Pine Solids and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#257923</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="lynx brown" data-item="262858" data-price="1755.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/262858.jpg" alt="Lynx Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lynx Brown</div>
+            <div class="product-price">$1,755.00</div>
+            <div class="product-detail">Pine Solids and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#262858</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="argo black" data-item="278913" data-price="2005.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/278913.jpg" alt="Argo Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Black</div>
@@ -585,7 +672,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 28 ngs" data-item="283328" data-price="2005.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="artemis copper 28 ngs" data-item="283328" data-price="2005.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/283328.jpg" alt="Artemis Copper 28 NGS" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 28 NGS</div>
@@ -603,7 +690,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius ocean blue" data-item="281900" data-price="2205.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="aquarius ocean blue" data-item="281900" data-price="2205.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/281900.jpg" alt="Aquarius Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Ocean Blue</div>
@@ -621,7 +708,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius ruby rose" data-item="281903" data-price="2205.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="aquarius ruby rose" data-item="281903" data-price="2205.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/281903.jpg" alt="Aquarius Ruby Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Ruby Rose</div>
@@ -639,7 +726,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius desert sand" data-item="281901" data-price="2290.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="aquarius desert sand" data-item="281901" data-price="2290.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/281901.jpg" alt="Aquarius Desert Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Desert Sand</div>
@@ -657,7 +744,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius floral gold" data-item="281902" data-price="2290.0" data-color="ivory">
+        <div class="product-card" data-cat="metal" data-name="aquarius floral gold" data-item="281902" data-price="2290.0" data-color="ivory">
           <div class="product-img"><img src="casket-images/metal/281902.jpg" alt="Aquarius Floral Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Floral Gold</div>
@@ -675,7 +762,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 28" data-item="283324" data-price="2410.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="artemis copper 28" data-item="283324" data-price="2410.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/283324.jpg" alt="Artemis Copper 28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 28</div>
@@ -693,7 +780,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini silver" data-item="217298" data-price="2445.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="gemini silver" data-item="217298" data-price="2445.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/217298.jpg" alt="Gemini Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Silver</div>
@@ -711,7 +798,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini white/pink" data-item="217379" data-price="2445.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="gemini white/pink" data-item="217379" data-price="2445.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/217379.jpg" alt="Gemini White/Pink" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini White/Pink</div>
@@ -729,7 +816,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini white" data-item="217383" data-price="2445.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="gemini white" data-item="217383" data-price="2445.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/217383.jpg" alt="Gemini White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini White</div>
@@ -747,7 +834,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini copper" data-item="217387" data-price="2445.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="gemini copper" data-item="217387" data-price="2445.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/217387.jpg" alt="Gemini Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Copper</div>
@@ -765,7 +852,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini blue" data-item="217389" data-price="2445.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="gemini blue" data-item="217389" data-price="2445.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/217389.jpg" alt="Gemini Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Blue</div>
@@ -783,7 +870,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qa2 antique blue" data-item="148041" data-price="2520.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="qa2 antique blue" data-item="148041" data-price="2520.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/148041.jpg" alt="QA2 Antique Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QA2 Antique Blue</div>
@@ -801,7 +888,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="vega sapphire" data-item="281895" data-price="2615.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="vega sapphire" data-item="281895" data-price="2615.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/281895.jpg" alt="Vega Sapphire" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Vega Sapphire</div>
@@ -819,7 +906,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="vega star quartz" data-item="281896" data-price="2615.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="vega star quartz" data-item="281896" data-price="2615.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/281896.jpg" alt="Vega Star Quartz" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Vega Star Quartz</div>
@@ -837,7 +924,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra blue" data-item="221506" data-price="2675.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="spectra blue" data-item="221506" data-price="2675.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/221506.jpg" alt="Spectra Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Blue</div>
@@ -855,7 +942,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra silver" data-item="221507" data-price="2675.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="spectra silver" data-item="221507" data-price="2675.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/221507.jpg" alt="Spectra Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Silver</div>
@@ -873,7 +960,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra white" data-item="223045" data-price="2675.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="spectra white" data-item="223045" data-price="2675.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/223045.jpg" alt="Spectra White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra White</div>
@@ -891,7 +978,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra black" data-item="256354" data-price="2675.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="spectra black" data-item="256354" data-price="2675.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/256354.jpg" alt="Spectra Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Black</div>
@@ -909,7 +996,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra orchid" data-item="258362" data-price="2675.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="spectra orchid" data-item="258362" data-price="2675.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/258362.jpg" alt="Spectra Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Orchid</div>
@@ -927,7 +1014,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="vega golden onyx" data-item="281890" data-price="2700.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="vega golden onyx" data-item="281890" data-price="2700.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/281890.jpg" alt="Vega Golden Onyx" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Vega Golden Onyx</div>
@@ -945,7 +1032,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="vega tuscany rose" data-item="281891" data-price="2700.0" data-color="pink">
+        <div class="product-card" data-cat="metal" data-name="vega tuscany rose" data-item="281891" data-price="2700.0" data-color="pink">
           <div class="product-img"><img src="casket-images/metal/281891.jpg" alt="Vega Tuscany Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Vega Tuscany Rose</div>
@@ -963,7 +1050,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 32" data-item="283323" data-price="2815.0" data-color="brown">
+        <div class="product-card" data-cat="wood" data-name="6p1 pine 52x square h" data-item="284456" data-price="2780.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/284456.jpg" alt="6P1 Pine 52X Square H" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">6P1 Pine 52X Square H</div>
+            <div class="product-price">$2,780.00</div>
+            <div class="product-detail">Pine Solid</div>
+            <div class="product-detail">No Fabric   Interior</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">76.25 in L x 26.25 in W x 17.75 in H</div>
+            <div class="product-detail">80 lbs</div>
+            <div class="product-meta">#284456</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="artemis copper 32" data-item="283323" data-price="2815.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/283323.jpg" alt="Artemis Copper 32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 32</div>
@@ -981,7 +1085,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 28 ngs" data-item="283327" data-price="2960.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="artemis grey 28 ngs" data-item="283327" data-price="2960.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/283327.jpg" alt="Artemis Grey 28 NGS" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 28 NGS</div>
@@ -999,7 +1103,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries blue" data-item="234314" data-price="3040.0" data-color="blue">
+        <div class="product-card" data-cat="wood" data-name="grey doeskin oversize" data-item="147972" data-price="3005.0" data-wood="cloth">
+          <div class="product-img"><img src="casket-images/wood/147972.jpg" alt="Grey Doeskin Oversize" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Grey Doeskin Oversize</div>
+            <div class="product-price">$3,005.00</div>
+            <div class="product-detail">Cloth Covered Fiberboard</div>
+            <div class="product-detail">Ivory Crepe Interior</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">86 in L x 33 in W x 21 in H</div>
+            <div class="product-detail">80 lbs</div>
+            <div class="product-meta">#147972</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="aries blue" data-item="234314" data-price="3040.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/234314.jpg" alt="Aries Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Blue</div>
@@ -1017,7 +1138,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries orchid" data-item="234316" data-price="3040.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="aries orchid" data-item="234316" data-price="3040.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/234316.jpg" alt="Aries Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Orchid</div>
@@ -1035,7 +1156,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries silver" data-item="234318" data-price="3040.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="aries silver" data-item="234318" data-price="3040.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/234318.jpg" alt="Aries Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Silver</div>
@@ -1053,7 +1174,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries copper" data-item="234320" data-price="3040.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="aries copper" data-item="234320" data-price="3040.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/234320.jpg" alt="Aries Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Copper</div>
@@ -1071,7 +1192,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="pisces white" data-item="257953" data-price="3045.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="pisces white" data-item="257953" data-price="3045.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/257953.jpg" alt="Pisces White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Pisces White</div>
@@ -1089,7 +1210,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="golden tribute" data-item="273663" data-price="3045.0" data-color="gold">
+        <div class="product-card" data-cat="metal" data-name="golden tribute" data-item="273663" data-price="3045.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/273663.jpg" alt="Golden Tribute" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Golden Tribute</div>
@@ -1107,7 +1228,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 platinum-28" data-item="283969" data-price="3045.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="on8 platinum-28" data-item="283969" data-price="3045.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/283969.jpg" alt="ON8 Platinum-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Platinum-28</div>
@@ -1125,7 +1246,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 auburn sunset-28" data-item="283976" data-price="3045.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="on8 auburn sunset-28" data-item="283976" data-price="3045.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/283976.jpg" alt="ON8 Auburn Sunset-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Auburn Sunset-28</div>
@@ -1143,7 +1264,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 violet bouquet-28" data-item="283979" data-price="3045.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="on8 violet bouquet-28" data-item="283979" data-price="3045.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/283979.jpg" alt="ON8 Violet Bouquet-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Violet Bouquet-28</div>
@@ -1161,7 +1282,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white ngs-28" data-item="274278" data-price="3075.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="hercules white ngs-28" data-item="274278" data-price="3075.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/274278.jpg" alt="Hercules White NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White NGS-28</div>
@@ -1179,7 +1300,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries white" data-item="234322" data-price="3125.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="410 forever honored - black" data-item="283933" data-price="3090.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/283933.jpg" alt="410 Forever Honored - Black" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">410 Forever Honored - Black</div>
+            <div class="product-price">$3,090.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Ivory Linwood Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.63 in L x 28.5 in W x 23.25 in H</div>
+            <div class="product-detail">238 lbs</div>
+            <div class="product-meta">#283933</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="410 forever honored - blue" data-item="283934" data-price="3090.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/283934.jpg" alt="410 Forever Honored - Blue" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">410 Forever Honored - Blue</div>
+            <div class="product-price">$3,090.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Ivory Linwood Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.63 in L x 28.5 in W x 23.25 in H</div>
+            <div class="product-detail">238 lbs</div>
+            <div class="product-meta">#283934</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="aries white" data-item="234322" data-price="3125.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/234322.jpg" alt="Aries White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries White</div>
@@ -1197,7 +1354,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="pisces silver" data-item="257956" data-price="3130.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="pisces silver" data-item="257956" data-price="3130.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/257956.jpg" alt="Pisces Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Pisces Silver</div>
@@ -1215,7 +1372,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue ngs-28" data-item="274281" data-price="3160.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="hercules blue ngs-28" data-item="274281" data-price="3160.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/274281.jpg" alt="Hercules Blue NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue NGS-28</div>
@@ -1233,7 +1390,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo orchid" data-item="278912" data-price="3170.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="argo orchid" data-item="278912" data-price="3170.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/278912.jpg" alt="Argo Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Orchid</div>
@@ -1251,7 +1408,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo silver" data-item="278920" data-price="3170.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="argo silver" data-item="278920" data-price="3170.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/278920.jpg" alt="Argo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Silver</div>
@@ -1269,7 +1426,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo sand" data-item="278921" data-price="3170.0" data-color="gold">
+        <div class="product-card" data-cat="metal" data-name="argo sand" data-item="278921" data-price="3170.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/278921.jpg" alt="Argo Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Sand</div>
@@ -1287,7 +1444,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black ngs-28" data-item="265527" data-price="3295.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="hercules black ngs-28" data-item="265527" data-price="3295.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/265527.jpg" alt="Hercules Black NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black NGS-28</div>
@@ -1305,7 +1462,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="triton grey" data-item="100151" data-price="3300.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="triton grey" data-item="100151" data-price="3300.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/100151.jpg" alt="Triton Grey" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Triton Grey</div>
@@ -1323,7 +1480,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules orchid-32" data-item="265530" data-price="3345.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="hercules orchid-32" data-item="265530" data-price="3345.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/265530.jpg" alt="Hercules Orchid-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Orchid-32</div>
@@ -1341,7 +1498,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white-32" data-item="274280" data-price="3345.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="hercules white-32" data-item="274280" data-price="3345.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/274280.jpg" alt="Hercules White-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White-32</div>
@@ -1359,7 +1516,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="triton brown" data-item="100153" data-price="3370.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="triton brown" data-item="100153" data-price="3370.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/100153.jpg" alt="Triton Brown" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Triton Brown</div>
@@ -1377,7 +1534,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules orchid ngs-28" data-item="265529" data-price="3450.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="unfinished 041m narrow" data-item="148097" data-price="3395.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148097.jpg" alt="Unfinished 041M Narrow" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Unfinished 041M Narrow</div>
+            <div class="product-price">$3,395.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Ivory Crepe Interior</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 27.25 in W x 17 in H</div>
+            <div class="product-detail">125 lbs</div>
+            <div class="product-meta">#148097</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="hercules orchid ngs-28" data-item="265529" data-price="3450.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/265529.jpg" alt="Hercules Orchid NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Orchid NGS-28</div>
@@ -1395,7 +1569,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules silver ngs-28" data-item="265528" data-price="3460.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="hercules silver ngs-28" data-item="265528" data-price="3460.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/265528.jpg" alt="Hercules Silver NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Silver NGS-28</div>
@@ -1413,7 +1587,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="saturn blue" data-item="100159" data-price="3570.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="saturn blue" data-item="100159" data-price="3570.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/100159.jpg" alt="Saturn Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Saturn Blue</div>
@@ -1431,7 +1605,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 28" data-item="283326" data-price="3590.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="artemis grey 28" data-item="283326" data-price="3590.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/283326.jpg" alt="Artemis Grey 28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 28</div>
@@ -1449,7 +1623,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q02 graytone" data-item="148026" data-price="3645.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="q02 graytone" data-item="148026" data-price="3645.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/148026.jpg" alt="Q02 Graytone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q02 Graytone</div>
@@ -1467,7 +1641,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white-28" data-item="274279" data-price="3660.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="hercules white-28" data-item="274279" data-price="3660.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/274279.jpg" alt="Hercules White-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White-28</div>
@@ -1485,7 +1659,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q02 earthtone" data-item="148028" data-price="3715.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="q02 earthtone" data-item="148028" data-price="3715.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/148028.jpg" alt="Q02 Earthtone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q02 Earthtone</div>
@@ -1503,7 +1677,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue-28" data-item="274282" data-price="3745.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="hercules blue-28" data-item="274282" data-price="3745.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/274282.jpg" alt="Hercules Blue-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue-28</div>
@@ -1521,7 +1695,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules silver-28" data-item="265525" data-price="3865.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="hercules silver-28" data-item="265525" data-price="3865.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/265525.jpg" alt="Hercules Silver-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Silver-28</div>
@@ -1539,7 +1713,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 revere silver" data-item="148029" data-price="4050.0" data-color="silver">
+        <div class="product-card" data-cat="wood" data-name="crimson montgomery" data-item="285795" data-price="3990.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/285795.jpg" alt="Crimson Montgomery" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Crimson Montgomery</div>
+            <div class="product-price">$3,990.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Ivory Linwood Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.56 in L x 28.23 in W x 23.56 in H</div>
+            <div class="product-detail">240 lbs</div>
+            <div class="product-meta">#285795</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="clifton - 28" data-item="284883" data-price="4000.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/284883.jpg" alt="Clifton - 28" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Clifton - 28</div>
+            <div class="product-price">$4,000.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Satin Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">84.5 in L x 29.5 in W x 24 in H</div>
+            <div class="product-detail">217 lbs</div>
+            <div class="product-meta">#284883</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="q88 revere silver" data-item="148029" data-price="4050.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/148029.jpg" alt="Q88 Revere Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Revere Silver</div>
@@ -1557,7 +1767,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 churchill blue" data-item="148030" data-price="4050.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="q88 churchill blue" data-item="148030" data-price="4050.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/148030.jpg" alt="Q88 Churchill Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Churchill Blue</div>
@@ -1575,7 +1785,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules orchid-28" data-item="265520" data-price="4050.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="hercules orchid-28" data-item="265520" data-price="4050.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/265520.jpg" alt="Hercules Orchid-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Orchid-28</div>
@@ -1593,7 +1803,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black-28" data-item="265526" data-price="4050.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="hercules black-28" data-item="265526" data-price="4050.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/265526.jpg" alt="Hercules Black-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black-28</div>
@@ -1611,7 +1821,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 misty rose" data-item="148035" data-price="4135.0" data-color="pink">
+        <div class="product-card" data-cat="metal" data-name="q88 misty rose" data-item="148035" data-price="4135.0" data-color="pink">
           <div class="product-img"><img src="casket-images/metal/148035.jpg" alt="Q88 Misty Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Misty Rose</div>
@@ -1629,7 +1839,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 roman" data-item="148031" data-price="4145.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="q88 roman" data-item="148031" data-price="4145.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/148031.jpg" alt="Q88 Roman" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Roman</div>
@@ -1647,7 +1857,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q01 heirloom pewter" data-item="242475" data-price="4170.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="q01 heirloom pewter" data-item="242475" data-price="4170.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/242475.jpg" alt="Q01 Heirloom Pewter" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q01 Heirloom Pewter</div>
@@ -1665,7 +1875,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qd3 galaxy" data-item="148052" data-price="4245.0" data-color="grey">
+        <div class="product-card" data-cat="wood" data-name="delray" data-item="146853" data-price="4240.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146853.jpg" alt="Delray" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Delray</div>
+            <div class="product-price">$4,240.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.35 in L x 27.9 in W x 19.29 in H</div>
+            <div class="product-detail">185 lbs</div>
+            <div class="product-meta">#146853</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="qd3 galaxy" data-item="148052" data-price="4245.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/148052.jpg" alt="QD3 Galaxy" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QD3 Galaxy</div>
@@ -1683,7 +1911,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q98 emeraldtone" data-item="279864" data-price="4270.0" data-color="green">
+        <div class="product-card" data-cat="metal" data-name="q98 emeraldtone" data-item="279864" data-price="4270.0" data-color="green">
           <div class="product-img"><img src="casket-images/metal/279864.jpg" alt="Q98 Emeraldtone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q98 Emeraldtone</div>
@@ -1701,7 +1929,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="p90 golden rose" data-item="258112" data-price="4305.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="oxford" data-item="146824" data-price="4300.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146824.jpg" alt="Oxford" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Oxford</div>
+            <div class="product-price">$4,300.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.56 in L x 27.87 in W x 23.27 in H</div>
+            <div class="product-detail">185 lbs</div>
+            <div class="product-meta">#146824</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="p90 golden rose" data-item="258112" data-price="4305.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/258112.jpg" alt="P90 Golden Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">P90 Golden Rose</div>
@@ -1719,7 +1965,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qf8 polaris" data-item="148056" data-price="4380.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="qf8 polaris" data-item="148056" data-price="4380.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/148056.jpg" alt="QF8 Polaris" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QF8 Polaris</div>
@@ -1737,7 +1983,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qa2 ivory gold" data-item="148040" data-price="4405.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="qa2 ivory gold" data-item="148040" data-price="4405.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/148040.jpg" alt="QA2 Ivory Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QA2 Ivory Gold</div>
@@ -1755,7 +2001,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q01 ivory" data-item="252031" data-price="4410.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="westridge" data-item="146815" data-price="4405.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146815.jpg" alt="Westridge" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Westridge</div>
+            <div class="product-price">$4,405.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81.5 in L x 28.75 in W x 23.5 in H</div>
+            <div class="product-detail">160 lbs</div>
+            <div class="product-meta">#146815</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="q01 ivory" data-item="252031" data-price="4410.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/252031.jpg" alt="Q01 Ivory" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q01 Ivory</div>
@@ -1773,7 +2037,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s01 carnation blush" data-item="278485" data-price="4450.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="parkside" data-item="258948" data-price="4410.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/258948.jpg" alt="Parkside" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Parkside</div>
+            <div class="product-price">$4,410.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">83 in L x 29.5 in W x 22.75 in H</div>
+            <div class="product-detail">185 lbs</div>
+            <div class="product-meta">#258948</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="s01 carnation blush" data-item="278485" data-price="4450.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/278485.jpg" alt="S01 Carnation Blush" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S01 Carnation Blush</div>
@@ -1791,7 +2073,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s01 sand" data-item="242739" data-price="4625.0" data-color="gold">
+        <div class="product-card" data-cat="wood" data-name="dryden red" data-item="274158" data-price="4540.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/274158.jpg" alt="Dryden Red" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Dryden Red</div>
+            <div class="product-price">$4,540.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23 in H</div>
+            <div class="product-detail">190 lbs</div>
+            <div class="product-meta">#274158</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="dryden brown" data-item="278271" data-price="4540.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/278271.jpg" alt="Dryden Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Dryden Brown</div>
+            <div class="product-price">$4,540.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23 in H</div>
+            <div class="product-detail">190 lbs</div>
+            <div class="product-meta">#278271</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="s01 sand" data-item="242739" data-price="4625.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/242739.jpg" alt="S01 Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S01 Sand</div>
@@ -1809,7 +2127,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s01 ocean blue" data-item="252121" data-price="4635.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="s01 ocean blue" data-item="252121" data-price="4635.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/252121.jpg" alt="S01 Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S01 Ocean Blue</div>
@@ -1827,7 +2145,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nd5 athena" data-item="147837" data-price="4665.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="nd5 athena" data-item="147837" data-price="4665.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/147837.jpg" alt="ND5 Athena" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ND5 Athena</div>
@@ -1845,7 +2163,96 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nd2 mercury" data-item="148013" data-price="4760.0" data-color="silver">
+        <div class="product-card" data-cat="wood" data-name="chestnut" data-item="229305" data-price="4665.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/229305.jpg" alt="Chestnut" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Chestnut</div>
+            <div class="product-price">$4,665.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.88 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">190 lbs</div>
+            <div class="product-meta">#229305</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="clifton" data-item="263630" data-price="4695.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/263630.jpg" alt="Clifton" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Clifton</div>
+            <div class="product-price">$4,695.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 28.25 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#263630</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="nut brown 064m" data-item="148107" data-price="4720.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148107.jpg" alt="Nut Brown 064M" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Nut Brown 064M</div>
+            <div class="product-price">$4,720.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">125 lbs</div>
+            <div class="product-meta">#148107</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="lunar red" data-item="284990" data-price="4725.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/284990.jpg" alt="Lunar Red" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lunar Red</div>
+            <div class="product-price">$4,725.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">High-Gloss Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#284990</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="lunar brown" data-item="284994" data-price="4725.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/284994.jpg" alt="Lunar Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Lunar Brown</div>
+            <div class="product-price">$4,725.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">High-Gloss Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23.32 in H</div>
+            <div class="product-detail">190 lbs</div>
+            <div class="product-meta">#284994</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="nd2 mercury" data-item="148013" data-price="4760.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/148013.jpg" alt="ND2 Mercury" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ND2 Mercury</div>
@@ -1863,7 +2270,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 32" data-item="283322" data-price="4800.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="artemis grey 32" data-item="283322" data-price="4800.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/283322.jpg" alt="Artemis Grey 32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 32</div>
@@ -1881,7 +2288,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s41 heirloom pewter" data-item="148081" data-price="4805.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="s41 heirloom pewter" data-item="148081" data-price="4805.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/148081.jpg" alt="S41 Heirloom Pewter" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S41 Heirloom Pewter</div>
@@ -1899,7 +2306,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 midnight" data-item="271817" data-price="4860.0" data-color="black">
+        <div class="product-card" data-cat="wood" data-name="libra harvest brown" data-item="241727" data-price="4820.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/241727.jpg" alt="Libra Harvest Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Libra Harvest Brown</div>
+            <div class="product-price">$4,820.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#241727</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="libra harvest red" data-item="246021" data-price="4820.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/246021.jpg" alt="Libra Harvest Red" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Libra Harvest Red</div>
+            <div class="product-price">$4,820.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.25 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#246021</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="m39 midnight" data-item="271817" data-price="4860.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/271817.jpg" alt="M39 Midnight" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Midnight</div>
@@ -1917,7 +2360,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 neopolitan blue" data-item="271819" data-price="4860.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="m39 neopolitan blue" data-item="271819" data-price="4860.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/271819.jpg" alt="M39 Neopolitan Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Neopolitan Blue</div>
@@ -1935,7 +2378,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 carnation" data-item="273920" data-price="4860.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="m39 carnation" data-item="273920" data-price="4860.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/273920.jpg" alt="M39 Carnation" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Carnation</div>
@@ -1953,7 +2396,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 huntington green" data-item="278177" data-price="4860.0" data-color="green">
+        <div class="product-card" data-cat="metal" data-name="m39 huntington green" data-item="278177" data-price="4860.0" data-color="green">
           <div class="product-img"><img src="casket-images/metal/278177.jpg" alt="M39 Huntington Green" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Huntington Green</div>
@@ -1971,7 +2414,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="os9 primrose-28" data-item="220680" data-price="4875.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="os9 primrose-28" data-item="220680" data-price="4875.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/220680.jpg" alt="OS9 Primrose-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OS9 Primrose-28</div>
@@ -1989,7 +2432,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="os9 antique blue-28" data-item="220682" data-price="4875.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="os9 antique blue-28" data-item="220682" data-price="4875.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/220682.jpg" alt="OS9 Antique Blue-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OS9 Antique Blue-28</div>
@@ -2007,7 +2450,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black-32" data-item="265532" data-price="4930.0" data-color="black">
+        <div class="product-card" data-cat="wood" data-name="libra light brown" data-item="248177" data-price="4885.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/248177.jpg" alt="Libra Light Brown" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Libra Light Brown</div>
+            <div class="product-price">$4,885.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.25 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#248177</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="haven" data-item="282682" data-price="4910.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/282682.jpg" alt="Haven" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Haven</div>
+            <div class="product-price">$4,910.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Natural Meadowlark Cotton Interior</div>
+            <div class="product-detail">Environmentally friendly water-based stain with low volatile organic compounds (VOC) in Linen Ivory-Wash finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.5 in L x 29.5 in W x 19 in H</div>
+            <div class="product-detail">185 lbs</div>
+            <div class="product-meta">#282682</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="hercules black-32" data-item="265532" data-price="4930.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/265532.jpg" alt="Hercules Black-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black-32</div>
@@ -2025,7 +2504,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 pearl" data-item="239701" data-price="4940.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="n01 pearl" data-item="239701" data-price="4940.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/239701.jpg" alt="N01 Pearl" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Pearl</div>
@@ -2043,7 +2522,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 granite" data-item="239721" data-price="4940.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="n01 granite" data-item="239721" data-price="4940.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/239721.jpg" alt="N01 Granite" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Granite</div>
@@ -2061,7 +2540,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 auburn" data-item="271815" data-price="4975.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="m39 auburn" data-item="271815" data-price="4975.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/271815.jpg" alt="M39 Auburn" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Auburn</div>
@@ -2079,7 +2558,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n85 franklin silver" data-item="148001" data-price="5005.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="n85 franklin silver" data-item="148001" data-price="5005.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/148001.jpg" alt="N85 Franklin Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N85 Franklin Silver</div>
@@ -2097,7 +2576,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n84 antique blue" data-item="148004" data-price="5005.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="n84 antique blue" data-item="148004" data-price="5005.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/148004.jpg" alt="N84 Antique Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N84 Antique Blue</div>
@@ -2115,7 +2594,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue-32" data-item="274283" data-price="5015.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="hercules blue-32" data-item="274283" data-price="5015.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/274283.jpg" alt="Hercules Blue-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue-32</div>
@@ -2133,7 +2612,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 platinum" data-item="211993" data-price="5020.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="ot9 platinum" data-item="211993" data-price="5020.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/211993.jpg" alt="OT9 Platinum" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Platinum</div>
@@ -2151,7 +2630,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 auburn sunset" data-item="216580" data-price="5020.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="ot9 auburn sunset" data-item="216580" data-price="5020.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/216580.jpg" alt="OT9 Auburn Sunset" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Auburn Sunset</div>
@@ -2169,7 +2648,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 onyx" data-item="255455" data-price="5020.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="ot9 onyx" data-item="255455" data-price="5020.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/255455.jpg" alt="OT9 Onyx" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Onyx</div>
@@ -2187,7 +2666,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o77 ocean blue" data-item="147852" data-price="5090.0" data-color="blue">
+        <div class="product-card" data-cat="wood" data-name="riley" data-item="263783" data-price="5020.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/263783.jpg" alt="Riley" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Riley</div>
+            <div class="product-price">$5,020.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Ivory Linwood Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 28.63 in W x 23.5 in H</div>
+            <div class="product-detail">175 lbs</div>
+            <div class="product-meta">#263783</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="bailey" data-item="263781" data-price="5030.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/263781.jpg" alt="Bailey" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Bailey</div>
+            <div class="product-price">$5,030.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Khaki Linwood Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 28.63 in W x 23.5 in H</div>
+            <div class="product-detail">175 lbs</div>
+            <div class="product-meta">#263781</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="o77 ocean blue" data-item="147852" data-price="5090.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/147852.jpg" alt="O77 Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O77 Ocean Blue</div>
@@ -2205,7 +2720,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o77 cottage rose" data-item="147853" data-price="5090.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="o77 cottage rose" data-item="147853" data-price="5090.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/147853.jpg" alt="O77 Cottage Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O77 Cottage Rose</div>
@@ -2223,7 +2738,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nv1 burnished silver" data-item="286125" data-price="5105.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="nv1 burnished silver" data-item="286125" data-price="5105.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/286125.jpg" alt="NV1 Burnished Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NV1 Burnished Silver</div>
@@ -2241,7 +2756,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nv1 tuscany silver" data-item="286130" data-price="5105.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="nv1 tuscany silver" data-item="286130" data-price="5105.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/286130.jpg" alt="NV1 Tuscany Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NV1 Tuscany Silver</div>
@@ -2259,7 +2774,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules silver-32" data-item="265531" data-price="5155.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="hercules silver-32" data-item="265531" data-price="5155.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/265531.jpg" alt="Hercules Silver-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Silver-32</div>
@@ -2277,7 +2792,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="oc1 finch" data-item="280218" data-price="5165.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="oc1 finch" data-item="280218" data-price="5165.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/280218.jpg" alt="OC1 Finch" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OC1 Finch</div>
@@ -2295,7 +2810,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="oc1 carnation" data-item="280219" data-price="5165.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="oc1 carnation" data-item="280219" data-price="5165.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/280219.jpg" alt="OC1 Carnation" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OC1 Carnation</div>
@@ -2313,7 +2828,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nl1 claret" data-item="251960" data-price="5175.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="nl1 claret" data-item="251960" data-price="5175.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/251960.jpg" alt="NL1 Claret" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NL1 Claret</div>
@@ -2331,7 +2846,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nl1 indigo blue" data-item="251972" data-price="5175.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="nl1 indigo blue" data-item="251972" data-price="5175.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/251972.jpg" alt="NL1 Indigo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NL1 Indigo Blue</div>
@@ -2349,7 +2864,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 revere silver" data-item="271821" data-price="5175.0" data-color="silver">
+        <div class="product-card" data-cat="metal" data-name="m39 revere silver" data-item="271821" data-price="5175.0" data-color="silver">
           <div class="product-img"><img src="casket-images/metal/271821.jpg" alt="M39 Revere Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Revere Silver</div>
@@ -2367,7 +2882,61 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="p68 churchill blue" data-item="148018" data-price="5530.0" data-color="blue">
+        <div class="product-card" data-cat="wood" data-name="sincerity" data-item="282683" data-price="5240.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/282683.jpg" alt="Sincerity" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Sincerity</div>
+            <div class="product-price">$5,240.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Natural Meadowlark Cotton Interior</div>
+            <div class="product-detail">Environmentally friendly water-based stain  with low volatile organic compounds (VOC) in Driftwood Grey-Wash finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 29.5 in W x 22.75 in H</div>
+            <div class="product-detail">185 lbs</div>
+            <div class="product-meta">#282683</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="finley pine" data-item="146897" data-price="5300.0" data-wood="pine">
+          <div class="product-img"><img src="casket-images/wood/146897.jpg" alt="Finley Pine" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Finley Pine</div>
+            <div class="product-price">$5,300.00</div>
+            <div class="product-detail">Pine Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Natural Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.25 in L x 28.25 in W x 22.75 in H</div>
+            <div class="product-detail">205 lbs</div>
+            <div class="product-meta">#146897</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="meridian" data-item="146840" data-price="5320.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146840.jpg" alt="Meridian" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Meridian</div>
+            <div class="product-price">$5,320.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81.56 in L x 27.87 in W x 23.27 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#146840</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="p68 churchill blue" data-item="148018" data-price="5530.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/148018.jpg" alt="P68 Churchill Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">P68 Churchill Blue</div>
@@ -2385,7 +2954,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="p68 desert sand" data-item="147883" data-price="5615.0" data-color="gold">
+        <div class="product-card" data-cat="metal" data-name="p68 desert sand" data-item="147883" data-price="5615.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/147883.jpg" alt="P68 Desert Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">P68 Desert Sand</div>
@@ -2403,7 +2972,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 primrose" data-item="147820" data-price="5810.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="montgomery select" data-item="249223" data-price="5695.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/249223.jpg" alt="Montgomery Select" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Montgomery Select</div>
+            <div class="product-price">$5,695.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">81.56 in L x 28.23 in W x 23.56 in H</div>
+            <div class="product-detail">240 lbs</div>
+            <div class="product-meta">#249223</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="j37 primrose" data-item="147820" data-price="5810.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/147820.jpg" alt="J37 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Primrose</div>
@@ -2421,7 +3008,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 violet bouquet" data-item="241566" data-price="5830.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="ot9 violet bouquet" data-item="241566" data-price="5830.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/241566.jpg" alt="OT9 Violet Bouquet" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Violet Bouquet</div>
@@ -2439,7 +3026,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 antique gold" data-item="147988" data-price="5895.0" data-color="gold">
+        <div class="product-card" data-cat="metal" data-name="j37 antique gold" data-item="147988" data-price="5895.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/147988.jpg" alt="J37 Antique Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Antique Gold</div>
@@ -2457,7 +3044,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on9 merlot-28" data-item="246018" data-price="5895.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="on9 merlot-28" data-item="246018" data-price="5895.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/246018.jpg" alt="ON9 Merlot-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON9 Merlot-28</div>
@@ -2475,7 +3062,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 amethyst" data-item="147814" data-price="6015.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="oak timber 344" data-item="148121" data-price="5950.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148121.jpg" alt="Oak Timber 344" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Oak Timber 344</div>
+            <div class="product-price">$5,950.00</div>
+            <div class="product-detail">Oak Solid</div>
+            <div class="product-detail">Light Blue Crepe Interior</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 28.63 in W x 23 in H</div>
+            <div class="product-detail">235 lbs</div>
+            <div class="product-meta">#148121</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="j37 amethyst" data-item="147814" data-price="6015.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/147814.jpg" alt="J37 Amethyst" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Amethyst</div>
@@ -2493,7 +3097,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o61 tuscany silver" data-item="273556" data-price="6080.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="branson" data-item="246736" data-price="6070.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/246736.jpg" alt="Branson" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Branson</div>
+            <div class="product-price">$6,070.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Saffron Woven Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.25 in L x 28.63 in W x 23.5 in H</div>
+            <div class="product-detail">175 lbs</div>
+            <div class="product-meta">#246736</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="o61 tuscany silver" data-item="273556" data-price="6080.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/273556.jpg" alt="O61 Tuscany Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O61 Tuscany Silver</div>
@@ -2511,7 +3133,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 merlot" data-item="239723" data-price="6090.0" data-color="red">
+        <div class="product-card" data-cat="metal" data-name="n01 merlot" data-item="239723" data-price="6090.0" data-color="red">
           <div class="product-img"><img src="casket-images/metal/239723.jpg" alt="N01 Merlot" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Merlot</div>
@@ -2529,7 +3151,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o61 burnished silver" data-item="273553" data-price="6150.0" data-color="grey">
+        <div class="product-card" data-cat="wood" data-name="edgemont" data-item="239383" data-price="6105.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/239383.jpg" alt="Edgemont" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Edgemont</div>
+            <div class="product-price">$6,105.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">170 lbs</div>
+            <div class="product-meta">#239383</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="bailey 28" data-item="284880" data-price="6105.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/284880.jpg" alt="Bailey 28" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Bailey 28</div>
+            <div class="product-price">$6,105.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Khaki Linwood Interior</div>
+            <div class="product-detail">Satin Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 29.5 in W x 23.5 in H</div>
+            <div class="product-detail">200 lbs</div>
+            <div class="product-meta">#284880</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="o61 burnished silver" data-item="273553" data-price="6150.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/273553.jpg" alt="O61 Burnished Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O61 Burnished Silver</div>
@@ -2547,7 +3205,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 midnight with red" data-item="279141" data-price="6165.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="n01 midnight with red" data-item="279141" data-price="6165.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/279141.jpg" alt="N01 Midnight with Red" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Midnight with Red</div>
@@ -2565,7 +3223,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 midnight with gold" data-item="279142" data-price="6165.0" data-color="black">
+        <div class="product-card" data-cat="metal" data-name="n01 midnight with gold" data-item="279142" data-price="6165.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/279142.jpg" alt="N01 Midnight with Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Midnight with Gold</div>
@@ -2583,7 +3241,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 neopolitan" data-item="279144" data-price="6165.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="n01 neopolitan" data-item="279144" data-price="6165.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/279144.jpg" alt="N01 Neopolitan" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Neopolitan</div>
@@ -2601,7 +3259,79 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 sydney" data-item="279143" data-price="6395.0" data-color="blue">
+        <div class="product-card" data-cat="wood" data-name="trenton" data-item="205161" data-price="6175.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/205161.jpg" alt="Trenton" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Trenton</div>
+            <div class="product-price">$6,175.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.5 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#205161</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="weston" data-item="205163" data-price="6175.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/205163.jpg" alt="Weston" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Weston</div>
+            <div class="product-price">$6,175.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.5 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#205163</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="hartfield" data-item="146820" data-price="6220.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146820.jpg" alt="Hartfield" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Hartfield</div>
+            <div class="product-price">$6,220.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.5 in L x 28.75 in W x 23 in H</div>
+            <div class="product-detail">165 lbs</div>
+            <div class="product-meta">#146820</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="fireside" data-item="269166" data-price="6385.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/269166.jpg" alt="Fireside" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Fireside</div>
+            <div class="product-price">$6,385.00</div>
+            <div class="product-detail">Oak Solid</div>
+            <div class="product-detail">Oatmeal Duck Cloth Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.25 in L x 28.25 in W x 23 in H</div>
+            <div class="product-detail">250 lbs</div>
+            <div class="product-meta">#269166</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="n01 sydney" data-item="279143" data-price="6395.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/279143.jpg" alt="N01 Sydney" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Sydney</div>
@@ -2619,7 +3349,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="a40 primrose" data-item="147723" data-price="6425.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="a40 primrose" data-item="147723" data-price="6425.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/147723.jpg" alt="A40 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">A40 Primrose</div>
@@ -2637,7 +3367,79 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="c47 silver rose" data-item="147765" data-price="7165.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="woodhaven pecan" data-item="205162" data-price="6940.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/205162.jpg" alt="Woodhaven Pecan" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Woodhaven Pecan</div>
+            <div class="product-price">$6,940.00</div>
+            <div class="product-detail">Pecan Solids and Veneers</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.5 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#205162</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="rosette" data-item="242707" data-price="6945.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/242707.jpg" alt="Rosette" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Rosette</div>
+            <div class="product-price">$6,945.00</div>
+            <div class="product-detail">Select Hardwoods and Veneers</div>
+            <div class="product-detail">Natural Eyelet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81.5 in L x 28.2 in W x 23.5 in H</div>
+            <div class="product-detail">195 lbs</div>
+            <div class="product-meta">#242707</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="hanover" data-item="146833" data-price="7000.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146833.jpg" alt="Hanover" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Hanover</div>
+            <div class="product-price">$7,000.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.88 in L x 29 in W x 23 in H</div>
+            <div class="product-detail">165 lbs</div>
+            <div class="product-meta">#146833</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="courtland oak" data-item="189095" data-price="7005.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/189095.jpg" alt="Courtland Oak" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Courtland Oak</div>
+            <div class="product-price">$7,005.00</div>
+            <div class="product-detail">Oak Solids and Veneers</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.25 in L x 28.75 in W x 23.5 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#189095</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="c47 silver rose" data-item="147765" data-price="7165.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/147765.jpg" alt="C47 Silver Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">C47 Silver Rose</div>
@@ -2655,7 +3457,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="jf9 golden pearl" data-item="185489" data-price="7195.0" data-color="white">
+        <div class="product-card" data-cat="metal" data-name="jf9 golden pearl" data-item="185489" data-price="7195.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/185489.jpg" alt="JF9 Golden Pearl" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">JF9 Golden Pearl</div>
@@ -2673,7 +3475,79 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z65 primrose bronze" data-item="280184" data-price="7720.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="landon" data-item="239377" data-price="7255.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/239377.jpg" alt="Landon" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Landon</div>
+            <div class="product-price">$7,255.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.5 in L x 29 in W x 23 in H</div>
+            <div class="product-detail">200 lbs</div>
+            <div class="product-meta">#239377</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="cabernet" data-item="269191" data-price="7281.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/269191.jpg" alt="Cabernet" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Cabernet</div>
+            <div class="product-price">$7,281.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Ivory Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 28.75 in W x 23.25 in H</div>
+            <div class="product-detail">238 lbs</div>
+            <div class="product-meta">#269191</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="mansfield" data-item="245987" data-price="7305.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/245987.jpg" alt="Mansfield" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Mansfield</div>
+            <div class="product-price">$7,305.00</div>
+            <div class="product-detail">Select Hardwood Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">83.5 in L x 29.5 in W x 23.5 in H</div>
+            <div class="product-detail">223 lbs</div>
+            <div class="product-meta">#245987</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="woodbridge pecan" data-item="146799" data-price="7590.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146799.jpg" alt="Woodbridge Pecan" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Woodbridge Pecan</div>
+            <div class="product-price">$7,590.00</div>
+            <div class="product-detail">Pecan Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.5 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">270 lbs</div>
+            <div class="product-meta">#146799</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="z65 primrose bronze" data-item="280184" data-price="7720.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/280184.jpg" alt="Z65 Primrose Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z65 Primrose Bronze</div>
@@ -2691,7 +3565,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="u04 blue mist" data-item="147903" data-price="7940.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="u04 blue mist" data-item="147903" data-price="7940.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/147903.jpg" alt="U04 Blue Mist" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">U04 Blue Mist</div>
@@ -2709,7 +3583,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug2 golden rose" data-item="202001" data-price="8400.0" data-color="purple">
+        <div class="product-card" data-cat="wood" data-name="cherry majestic 381" data-item="148136" data-price="8325.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148136.jpg" alt="Cherry Majestic 381" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Cherry Majestic 381</div>
+            <div class="product-price">$8,325.00</div>
+            <div class="product-detail">Cherry Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82 in L x 28.63 in W x 23 in H</div>
+            <div class="product-detail">200 lbs</div>
+            <div class="product-meta">#148136</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="ug2 golden rose" data-item="202001" data-price="8400.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/202001.jpg" alt="UG2 Golden Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG2 Golden Rose</div>
@@ -2727,7 +3618,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="u46 tapestry rose" data-item="147901" data-price="8595.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="u46 tapestry rose" data-item="147901" data-price="8595.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/147901.jpg" alt="U46 Tapestry Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">U46 Tapestry Rose</div>
@@ -2745,7 +3636,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug1 silver sapphire" data-item="185491" data-price="8755.0" data-color="blue">
+        <div class="product-card" data-cat="metal" data-name="ug1 silver sapphire" data-item="185491" data-price="8755.0" data-color="blue">
           <div class="product-img"><img src="casket-images/metal/185491.jpg" alt="UG1 Silver Sapphire" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG1 Silver Sapphire</div>
@@ -2763,7 +3654,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug1 golden sand" data-item="185493" data-price="8755.0" data-color="gold">
+        <div class="product-card" data-cat="metal" data-name="ug1 golden sand" data-item="185493" data-price="8755.0" data-color="gold">
           <div class="product-img"><img src="casket-images/metal/185493.jpg" alt="UG1 Golden Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG1 Golden Sand</div>
@@ -2781,7 +3672,151 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y33 primrose" data-item="147944" data-price="10840.0" data-color="white">
+        <div class="product-card" data-cat="wood" data-name="sacrament maple" data-item="205164" data-price="8905.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/205164.jpg" alt="Sacrament Maple" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Sacrament Maple</div>
+            <div class="product-price">$8,905.00</div>
+            <div class="product-detail">Maple Solids and Veneers</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">83 in L x 28.63 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#205164</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="laurel maple" data-item="146806" data-price="9105.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146806.jpg" alt="Laurel Maple" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Laurel Maple</div>
+            <div class="product-price">$9,105.00</div>
+            <div class="product-detail">Maple Solid</div>
+            <div class="product-detail">Moss Pink Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.63 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">230 lbs</div>
+            <div class="product-meta">#146806</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="autumn oak" data-item="146884" data-price="9255.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/146884.jpg" alt="Autumn Oak" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Autumn Oak</div>
+            <div class="product-price">$9,255.00</div>
+            <div class="product-detail">Oak Solid</div>
+            <div class="product-detail">Rosetan Crepe Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.25 in L x 28.75 in W x 23.5 in H</div>
+            <div class="product-detail">240 lbs</div>
+            <div class="product-meta">#146884</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="prominence" data-item="244309" data-price="9360.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/244309.jpg" alt="Prominence" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Prominence</div>
+            <div class="product-price">$9,360.00</div>
+            <div class="product-detail">Maple Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81.63 in L x 28.5 in W x 23.25 in H</div>
+            <div class="product-detail">238 lbs</div>
+            <div class="product-meta">#244309</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="provincial maple" data-item="148191" data-price="10015.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148191.jpg" alt="Provincial Maple" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Provincial Maple</div>
+            <div class="product-price">$10,015.00</div>
+            <div class="product-detail">Maple Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">83.63 in L x 29.5 in W x 23 in H</div>
+            <div class="product-detail">245 lbs</div>
+            <div class="product-meta">#148191</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="embassy cherry" data-item="148222" data-price="10065.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148222.jpg" alt="Embassy Cherry" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Embassy Cherry</div>
+            <div class="product-price">$10,065.00</div>
+            <div class="product-detail">Cherry Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">82.63 in L x 28.38 in W x 23 in H</div>
+            <div class="product-detail">225 lbs</div>
+            <div class="product-meta">#148222</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="langdon cherry" data-item="148236" data-price="10090.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148236.jpg" alt="Langdon Cherry" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Langdon Cherry</div>
+            <div class="product-price">$10,090.00</div>
+            <div class="product-detail">Cherry Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81.5 in L x 28.5 in W x 23 in H</div>
+            <div class="product-detail">233 lbs</div>
+            <div class="product-meta">#148236</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="pearson cherry" data-item="202512" data-price="10435.0" data-wood="hardwood-veneer">
+          <div class="product-img"><img src="casket-images/wood/202512.jpg" alt="Pearson Cherry" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Pearson Cherry</div>
+            <div class="product-price">$10,435.00</div>
+            <div class="product-detail">Cherry Solids and Veneers</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Fine Furniture High-Gloss Finish</div>
+            <div class="product-detail">Burial or Cremation</div>
+            <div class="product-detail">82.63 in L x 28.38 in W x 23 in H</div>
+            <div class="product-detail">215 lbs</div>
+            <div class="product-meta">#202512</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="y33 primrose" data-item="147944" data-price="10840.0" data-color="white">
           <div class="product-img"><img src="casket-images/metal/147944.jpg" alt="Y33 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y33 Primrose</div>
@@ -2799,7 +3834,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="or6 renaissance rose" data-item="147868" data-price="11285.0" data-color="purple">
+        <div class="product-card" data-cat="metal" data-name="or6 renaissance rose" data-item="147868" data-price="11285.0" data-color="purple">
           <div class="product-img"><img src="casket-images/metal/147868.jpg" alt="OR6 Renaissance Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OR6 Renaissance Rose</div>
@@ -2817,7 +3852,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="or7 greyson" data-item="147870" data-price="11285.0" data-color="grey">
+        <div class="product-card" data-cat="metal" data-name="or7 greyson" data-item="147870" data-price="11285.0" data-color="grey">
           <div class="product-img"><img src="casket-images/metal/147870.jpg" alt="OR7 Greyson" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OR7 Greyson</div>
@@ -2835,7 +3870,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y35 mediterranean copper" data-item="147930" data-price="11945.0" data-color="brown">
+        <div class="product-card" data-cat="wood" data-name="imperial mahogany" data-item="148247" data-price="11430.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148247.jpg" alt="Imperial Mahogany" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Imperial Mahogany</div>
+            <div class="product-price">$11,430.00</div>
+            <div class="product-detail">Mahogany Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">83 in L x 28 in W x 23 in H</div>
+            <div class="product-detail">245 lbs</div>
+            <div class="product-meta">#148247</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="y35 mediterranean copper" data-item="147930" data-price="11945.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/147930.jpg" alt="Y35 Mediterranean Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y35 Mediterranean Copper</div>
@@ -2853,7 +3906,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y39 aegean copper" data-item="147935" data-price="12080.0" data-color="brown">
+        <div class="product-card" data-cat="metal" data-name="y39 aegean copper" data-item="147935" data-price="12080.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/147935.jpg" alt="Y39 Aegean Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y39 Aegean Copper</div>
@@ -2871,7 +3924,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o39 aegean bronze" data-item="147862" data-price="13400.0" data-color="brown">
+        <div class="product-card" data-cat="wood" data-name="pembroke cherry" data-item="148227" data-price="13385.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148227.jpg" alt="Pembroke Cherry" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Pembroke Cherry</div>
+            <div class="product-price">$13,385.00</div>
+            <div class="product-detail">Cherry Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">83.75 in L x 29 in W x 23 in H</div>
+            <div class="product-detail">280 lbs</div>
+            <div class="product-meta">#148227</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="o39 aegean bronze" data-item="147862" data-price="13400.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/147862.jpg" alt="O39 Aegean Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O39 Aegean Bronze</div>
@@ -2889,7 +3960,25 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z64 venetian bronze" data-item="147961" data-price="18490.0" data-color="brown">
+        <div class="product-card" data-cat="wood" data-name="premier mahogany" data-item="148245" data-price="14215.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/148245.jpg" alt="Premier Mahogany" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">Premier Mahogany</div>
+            <div class="product-price">$14,215.00</div>
+            <div class="product-detail">Mahogany Solid</div>
+            <div class="product-detail">Champagne Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">84.25 in L x 29 in W x 23 in H</div>
+            <div class="product-detail">285 lbs</div>
+            <div class="product-meta">#148245</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="z64 venetian bronze" data-item="147961" data-price="18490.0" data-color="brown">
           <div class="product-img"><img src="casket-images/metal/147961.jpg" alt="Z64 Venetian Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z64 Venetian Bronze</div>
@@ -2907,7 +3996,43 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z64 classic gold" data-item="147957" data-price="23930.0" data-color="black">
+        <div class="product-card" data-cat="wood" data-name="720 provincial-cut top" data-item="201521" data-price="19185.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/201521.jpg" alt="720 Provincial-Cut Top" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">720 Provincial-Cut Top</div>
+            <div class="product-price">$19,185.00</div>
+            <div class="product-detail">Mahogany Solid</div>
+            <div class="product-detail">Shasta Lily Velvet Interior</div>
+            <div class="product-detail">Brown Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
+            <div class="product-detail">400 lbs</div>
+            <div class="product-meta">#201521</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="wood" data-name="710 president-cut top" data-item="202149" data-price="21100.0" data-wood="hardwood-solid">
+          <div class="product-img"><img src="casket-images/wood/202149.jpg" alt="710 President-Cut Top" loading="lazy"></div>
+          <div class="product-body">
+            <div class="product-name">710 President-Cut Top</div>
+            <div class="product-price">$21,100.00</div>
+            <div class="product-detail">Mahogany Solid</div>
+            <div class="product-detail">Silver Velvet Interior</div>
+            <div class="product-detail">Red Painted Finish</div>
+            <div class="product-detail">Burial</div>
+            <div class="product-detail">81 in L x 29.5 in W x 22.5 in H</div>
+            <div class="product-detail">400 lbs</div>
+            <div class="product-meta">#202149</div>
+            <label class="compare-toggle">
+              <input type="checkbox" class="compare-cb">
+              <span>Compare</span>
+            </label>
+          </div>
+        </div>
+        <div class="product-card" data-cat="metal" data-name="z64 classic gold" data-item="147957" data-price="23930.0" data-color="black">
           <div class="product-img"><img src="casket-images/metal/147957.jpg" alt="Z64 Classic Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z64 Classic Gold</div>
@@ -2943,20 +4068,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
 <script>
 (function(){
-  // ---------- Facet configuration (metal caskets) ----------
-  // Facet values are derived from the cards already in the DOM, so no product-card
-  // markup changes are needed. Construction (1st detail) = Material; the "... Interior"
-  // detail = Interior Fabric; data-color = Exterior Color.
   var NOUN = 'casket';
+  function firstDetail(card){ var d=card.querySelectorAll('.product-detail'); return d[0] ? d[0].textContent.trim() : ''; }
+  function fabric(card){ var d=card.querySelectorAll('.product-detail'); for(var i=0;i<d.length;i++){ var t=d[i].textContent.trim(); if(/Interior$/.test(t)) return t.replace(/\s*Interior$/,'').replace(/\s+/g,' ').trim(); } return ''; }
   var COLOR_LABELS = { white:'White', ivory:'Ivory / Champagne', silver:'Silver', grey:'Grey / Pewter', black:'Black', blue:'Blue', green:'Green', purple:'Purple', pink:'Pink / Rose', red:'Red / Burgundy', brown:'Brown / Copper', gold:'Gold' };
-  function firstDetail(card){ var d = card.querySelectorAll('.product-detail'); return d[0] ? d[0].textContent.trim() : ''; }
-  function fabric(card){
-    var d = card.querySelectorAll('.product-detail');
-    for (var i=0;i<d.length;i++){ var t=d[i].textContent.trim(); if (/Interior$/.test(t)) return t.replace(/\s*Interior$/,'').replace(/\s+/g,' ').trim(); }
-    return '';
-  }
   var FACETS = [
-    { key:'material', label:'Gauge/Material', value:firstDetail },
+    { key:'cat',      label:'Casket Type', value:function(card){ var c=card.getAttribute('data-cat')||''; return c ? c.charAt(0).toUpperCase()+c.slice(1) : ''; } },
+    { key:'material', label:'Material', value:firstDetail },
     { key:'fabric',   label:'Interior Fabric', value:fabric },
     { key:'color',    label:'Color', value:function(card){ var c=card.getAttribute('data-color')||''; return c ? (COLOR_LABELS[c]||c) : ''; } }
   ];
@@ -3080,6 +4198,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 </div>
 
+<!-- Print Sheet (hidden, rendered only in print) -->
 <div id="printSheet">
   <div class="ps-masthead">
     <img src="logo.svg" alt="Bonney Watson">
@@ -3088,7 +4207,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="ps-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
     </div>
   </div>
-  <div class="ps-eyebrow">Metal Caskets</div>
+  <div class="ps-eyebrow" id="psEyebrow">Caskets</div>
   <div class="ps-photo-wrap"><img id="psImg" src="" alt=""></div>
   <div class="ps-name-row">
     <div class="ps-name" id="psName"></div>
@@ -3154,11 +4273,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <div class="cmp-masthead">
     <img src="logo.svg" alt="Bonney Watson">
     <div class="cmp-masthead-right">
-      <div class="cmp-masthead-title">Casket Comparison</div>
+      <div class="cmp-masthead-title">Wood Casket Comparison</div>
       <div class="cmp-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
     </div>
   </div>
-  <div class="cmp-eyebrow">Metal Caskets</div>
+  <div class="cmp-eyebrow">Wood Caskets</div>
   <div class="cmp-title" id="cmpTitle">Side-by-Side Comparison</div>
   <div class="cmp-table" id="cmpTable"></div>
   <div class="cmp-photo-row" id="cmpPhotoRow"></div>
@@ -3167,6 +4286,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="cmp-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
   </div>
 </div>
+
 
 <script>
 (function(){
@@ -3263,7 +4383,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 })();
 </script>
 
-<!-- Compare feature: single catalog for now (metal caskets), architected so the
+<!-- Compare feature: single catalog for now, architected so the
      lookup (getCardData) is the only catalog-specific seam if this ever needs
      to span multiple catalog pages. -->
 <script>
@@ -3315,9 +4435,35 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     };
   }
 
+  // A handful of wood casket cards omit a MIDDLE field (Finish, for
+  // cloth-covered/unfinished items with no separate finish attribute) rather
+  // than only ever dropping trailing ones — plain positional indexing would
+  // silently shift every field after the gap into the wrong labeled row.
+  // Classify each detail by its own content instead of by position; the one
+  // detail that matches nothing is Construction (verified: every card has
+  // exactly one such value, and no other field is ever the omitted one).
+  function classifyDetail(text){
+    if (/lbs\s*$/i.test(text)) return 'Weight';
+    if (/\d.*\bin\b.*[LWH]\b/i.test(text)) return 'Dimensions';
+    if (/^(burial|cremation)/i.test(text.trim())) return 'Suitable for';
+    if (/interior/i.test(text)) return 'Interior';
+    if (/finish/i.test(text)) return 'Finish';
+    return null;
+  }
+
   function rowValues(data){
+    var bucket = {};
+    var construction = '—';
+    data.details.forEach(function(d){
+      var label = classifyDetail(d);
+      if (label) bucket[label] = d;
+      else construction = d;
+    });
+    var specLabels = ROW_LABELS.slice(1, -1);
     var vals = [data.price];
-    for (var i = 0; i < 6; i++) vals.push(data.details[i] || '—');
+    specLabels.forEach(function(label){
+      vals.push(label === 'Construction' ? construction : (bucket[label] || '—'));
+    });
     vals.push(data.item);
     return vals;
   }

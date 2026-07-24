@@ -39,13 +39,19 @@ function shrink(file) {
 const JOBS = [
   ['metal-caskets.html',                       'pdf-assets/Metal Caskets.pdf'],
   ['wood-caskets.html',                        'pdf-assets/Wood Caskets.pdf'],
+  ['all-caskets.html',                         'pdf-assets/All Caskets.pdf'],
   ['urns-guide.html',                          'pdf-assets/Urn Catalog.pdf'],
   ['keepsake-urns-guide.html',                 'pdf-assets/Keepsake Urn Catalog.pdf'],
   ['cremation-containers-rental-caskets.html', 'pdf-assets/Cremation Containers and Rental Caskets.pdf'],
 ];
 
+// Optional filter: `node scripts/build_catalog_pdfs.mjs metal wood` rebuilds only the
+// jobs whose source filename contains one of the given substrings. No args = all.
+const filters = process.argv.slice(2);
+const jobs = filters.length ? JOBS.filter(([src]) => filters.some(f => src.includes(f))) : JOBS;
+
 const browser = await chromium.launch();
-for (const [src, out] of JOBS) {
+for (const [src, out] of jobs) {
   const page = await browser.newPage();
   await page.goto(pathToFileURL(path.resolve(src)).href, { waitUntil: 'networkidle' });
 
