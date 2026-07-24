@@ -670,6 +670,35 @@ flush-marker pick; it stays in the marker guide's table for reference.
 One self-inflicted fix: my new 8×8-circle true-size label had B&W $960 (copied from the
 stale quote-tool value); corrected to $965 and the marker PDF regenerated.
 
+### 2026-07-23 — Medicaid spend-down guides (family + professional)
+
+Two more drafted guides on Medicaid spend-down / burial exclusions, reskinned onto the
+house style. `medicaid-family-guide.html` + `pdf-assets/Medicaid and Planning Ahead.pdf`
+(9pp); `medicaid-professional-reference.html` + `pdf-assets/Medicaid Professional
+Reference.pdf` (8pp). New **Medicaid & Spend-Down** category in `guides.html` (25 cards
+total), audience shown on each card ("For families" / "For professional partners").
+
+**Legal-sensitivity note:** these make actionable statements about WA law and Medicaid
+eligibility — a reader can be financially harmed by an error. The debrief recommended
+legal review *before* going live; **Martice chose to publish both now** (2026-07-23) and
+will have them reviewed. The reskin changed **no content** (chrome swap + retokenize only),
+so every legally-verified word is intact — confirmed 0 words lost by set diff. Do not
+"simplify" any passage in either file; the debrief section 7 lists corrections already made
+(state estate-recovery claim on leftover funds; premiums only continue on a payment plan;
+ECF is a 10% statutory *minimum* per RCW 68.40.010, never "state-mandated 15%").
+
+Only dollar figure permitted is the **$1,500** statutory revocable-burial-fund cap —
+verified: family guide has 1, professional reference has 3, all `$1,500`, no BW pricing.
+
+`scripts/reskin_guides.py` gained: an eyebrow→cover-kicker extraction, a guard for pages
+with no TOC (the professional reference has none), and hero-`.cite`→light-band handling.
+Its shared stylesheet now also styles `.disclaimer`, `.audience`, `.callout` (=house band),
+statute `<table>`s, `.itemlist` (=charge-list), `code`/`a.lawlink`, `.cite`, `.sources`,
+and `.contact` (=cta). Professional-reference specifics preserved and verified: the
+**audience bar prints as the first line** (dark-on-white in print), all **9 `a.lawlink`
+statute citations** and the **7-entry Sources block** intact, both statute comparison
+tables render and repeat their header if split. Both disclaimers kept in full.
+
 ---
 
 ## 5. Working rules that keep biting us

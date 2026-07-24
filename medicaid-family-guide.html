@@ -1,31 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Reskin the drafted Veterans and Cemetery Property guides onto the house style.
-
-Both were drafted with approximated tokens (dark #1a2744 navy, Lato body, a
-light centered hero, a .topbar). This swaps the CHROME to match the sibling
-guides exactly — navy sticky nav, navy cover block, centered .doc-sheet card,
-Source Sans 3, #3d5a7a palette — while leaving every word of the approved body
-content untouched. Body components (.section/.band/.note/.card/.compare/.costs/
-.faq/.cta) keep their class names and markup; the stylesheet restyles them to
-the house look, so no content markup is edited.
-
-Chrome is rebuilt from pieces extracted out of each source file (nav links,
-hero text, TOC items) so nothing is retyped.
-
-Run from the repo root:  python scripts/reskin_guides.py
-"""
-import html
-import re
-import sys
-
-sys.stdout.reconfigure(encoding='utf-8')
-
-FONT_LINK = ('<link href="https://fonts.googleapis.com/css2?'
-             'family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&'
-             'family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">')
-
-STYLE = r"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medicaid and Planning Ahead · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
 :root{
   --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
   --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
@@ -136,7 +117,7 @@ a.inline:hover{text-decoration:underline}
 .faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
 .faq summary::-webkit-details-marker{display:none}
 .faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
-.faq details[open] summary::after{content:"\2013"}
+.faq details[open] summary::after{content:"3"}
 .faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
 .faq .answer{padding:0 40px 22px 0}
 .faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
@@ -278,9 +259,286 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   .doc-footer .footer-url{display:none}
   a[href^="http"]::after{content:""}
 }
-"""
+</style>
+</head>
+<body>
 
-FOOTER_HTML = """  <div class="doc-footer">
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#what">What Spend-Down Means</a>
+      <a href="#exempt">Money That Is Safe</a>
+      <a href="#who">Who You Can Plan For</a>
+      <a href="#irrevocable">Locking Money In</a>
+      <a href="#existing">If You Already Planned</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Medicaid and Planning Ahead</h1>
+    <div class="cover-sub">If someone in your family is going into a nursing home and you have been told they must spend down their savings first, this is one of the few places the rules are on your side. Here is how it works, in plain words, and who you should really be asking.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Protected money &middot; locking money in &middot; timing &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#what">What Spend-Down Means</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#exempt">Money They Cannot Count Against You</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#who">Who You Can Plan For</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#irrevocable">Locking the Money In</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#cost">What You Give Up</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#existing">If You Already Have a Plan</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#who-advises">Who to Actually Ask</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="what">
+  <p class="section-label">Section 1</p>
+  <h2>What Spend-Down Means</h2>
+  <p class="sub">And why the funeral home keeps coming up in the conversation</p>
+  <hr class="rule">
+  <p>Nursing home care costs more than most families can pay. Medicaid will help, but only after a person has used up nearly all of their own savings first. There is a limit on what they are allowed to keep, and it is low. Getting down to that limit is what people mean by a spend-down.</p>
+  <p>Here is what gets missed. <strong>Medicaid does not count everything a person owns.</strong> Certain things are left out of the total entirely, no matter what they cost. Cemetery property is one of them. A funeral plan can be another.</p>
+  <p>So this is not money thrown away to hit a number. It buys something the family was going to have to pay for anyway, at today's prices instead of tomorrow's, and it does not push anyone over the limit.</p>
+
+  <div class="note">
+    <h3>This is not a loophole</h3>
+    <p>Nothing here is a trick and nothing here is a grey area. These rules were written on purpose. The state would rather a person's funeral be paid for in advance than have it become somebody else's problem later. Using them is exactly what they are there for.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="exempt">
+  <p class="section-label">Section 2</p>
+  <h2>Money They Cannot Count Against You</h2>
+  <p class="sub">This is the good news, so let us be clear about it</p>
+  <hr class="rule">
+  <p>When Medicaid adds up what a person owns, <strong>cemetery property is left out of the total.</strong> Every dollar of it. There is no limit on how much, and nothing extra to sign.</p>
+  <p>Here is what that means in real life. Say someone is a few thousand dollars over the limit and has been told to spend it down. If they put that money into cemetery property, it comes straight off the total Medicaid counts, and the family now owns a grave, a vault, and a marker they were always going to have to buy.</p>
+  <p><strong>The money is not gone. It has been turned into something the family needed anyway,</strong> bought at today’s prices rather than at tomorrow’s. That is why this is worth understanding before the money goes anywhere else.</p>
+  <p>The list of what counts as cemetery property is also longer than most people expect.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>The grave itself</strong><span>A conventional gravesite</span></li>
+      <li><strong>Crypts, niches, and mausoleums</strong><span>Whether the choice is burial or cremation</span></li>
+      <li><strong>Urns and caskets</strong><span>And other containers customarily used for remains</span></li>
+      <li><strong>Vaults and outer burial containers</strong><span>The container the casket or urn sits inside</span></li>
+      <li><strong>Headstones, markers, and plaques</strong><span>The memorial and its lettering</span></li>
+      <li><strong>Opening and closing of the grave</strong><span>The work of preparing and closing the space</span></li>
+      <li><strong>Care and upkeep of the grave</strong><span>This covers the endowment care fund, the charge Washington requires on every cemetery purchase to keep the grounds maintained</span></li>
+      <li><strong>Property you are still making payments on</strong><span>It does not have to be paid off</span></li>
+    </ul>
+  </div>
+
+  <p>Put that list next to a real cemetery quote and it covers nearly every line on it. The space, the vault, the marker, the interment, and the care fund are all left out of the total.</p>
+</div>
+
+<!-- 3 -->
+<div class="section" id="who">
+  <p class="section-label">Section 3</p>
+  <h2>Who You Can Plan For</h2>
+  <p class="sub">The part that surprises everybody</p>
+  <hr class="rule">
+  <p>Here is the part almost nobody knows. This is not limited to the person going into care. They can buy cemetery property for close family too, and it is still left out of the total. The rules are generous about who close family means.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Your spouse</h3>
+      <p>Including a surviving spouse.</p>
+    </div>
+    <div class="card">
+      <h3>Your parents</h3>
+      <p>Parents and adoptive parents.</p>
+    </div>
+    <div class="card">
+      <h3>Your children</h3>
+      <p>Minor and adult children, including adopted children and stepchildren.</p>
+    </div>
+    <div class="card">
+      <h3>Your siblings</h3>
+      <p>Including adoptive siblings and stepsiblings.</p>
+    </div>
+    <div class="card">
+      <h3>And their spouses</h3>
+      <p>The husband or wife of any of the people above.</p>
+    </div>
+    <div class="card">
+      <h3>No strings attached</h3>
+      <p>They do not have to depend on you for money and they do not have to live with you. The rule says so in plain terms.</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>What that means in practice</h3>
+    <p>Someone doing a spend-down can buy cemetery property, and everything that goes with it, for a husband or wife, both parents, every child and stepchild, every brother and sister, and each of their spouses. All of it is protected.</p>
+    <p><strong>In a big family that adds up fast.</strong> It is also the thing families most often find out too late, after the money has already gone somewhere it did not need to go.</p>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="section" id="irrevocable">
+  <p class="section-label">Section 4</p>
+  <h2>Locking the Money In</h2>
+  <p class="sub">What the word irrevocable actually means</p>
+  <hr class="rule">
+  <p>Cemetery property is the easy part. It is covered already and there is nothing more to do. The funeral itself works differently, and this is where you will hear the word <strong>irrevocable</strong>.</p>
+  <p>It sounds complicated. It is not. It means one thing: <strong>you give up the right to change your mind and take the money back.</strong></p>
+  <p>That one decision changes everything about how the money is treated.</p>
+  <p><strong>Keep the right to take it back,</strong> and only <strong>$1,500</strong> of it is protected. Everything above that still counts against the limit. For most families that barely helps at all.</p>
+  <p><strong>Give up the right to take it back,</strong> and the whole amount is protected. There is no cap on it.</p>
+  <p>There is one sensible limit. The amount has to be a reasonable price for a funeral. You cannot put a life savings into a funeral plan and call it a funeral. That is why we write out an itemized list of exactly what the money is buying, so anyone who asks can see it is a real funeral at a real price.</p>
+
+  <div class="note">
+    <h3>It is a choice, not a requirement</h3>
+    <p>Planning your funeral in advance does not mean locking the money in. That is a separate decision on a separate signature line, and it is meant for people applying for help or already receiving it. Most families who plan with us never sign it and never need to.</p>
+  </div>
+</div>
+
+<!-- 5 -->
+<div class="section" id="cost">
+  <p class="section-label">Section 5</p>
+  <h2>What You Give Up</h2>
+  <p class="sub">Said plainly, because there is no undoing it</p>
+  <hr class="rule">
+  <p>We would rather you hear this from us now than find out later. Locking the money in is permanent. There is no changing your mind next year.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>The money is not yours to take back</h3>
+      <p>You cannot cancel it and get a refund. With an insurance plan you also give up the right to cash it in or borrow against it. Not for a car repair, not for a medical bill, not for anything.</p>
+    </div>
+    <div class="card">
+      <h3>Any payments carry on</h3>
+      <p>If you are paying monthly, those payments continue. Locking the money in does not mean the plan is paid off. If you paid in full up front, there is nothing further to pay.</p>
+    </div>
+    <div class="card">
+      <h3>You are not locked to us</h3>
+      <p>You can still switch funeral homes later if you want to. What is locked in is the money, not who takes care of you.</p>
+    </div>
+    <div class="card">
+      <h3>Money left over may not reach your family</h3>
+      <p>Anything left after the funeral is paid for goes to the estate. But Washington law lets the state make a claim against that estate to recover what it spent on long-term care. Ask your lawyer about this one specifically.</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <h3>Timing matters more than people expect</h3>
+    <p>There are two ways we can fund a plan, and they do not lock in at the same speed. One is locked the moment you sign. The other, the insurance one, usually is not locked until <strong>ninety days after the policy is issued</strong>.</p>
+    <p><strong>If a Medicaid application is already underway, tell us in the first five minutes.</strong> Ninety days can be the difference between a plan that helps and one that arrives too late. If we know, we use the other one.</p>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="section" id="existing">
+  <p class="section-label">Section 6</p>
+  <h2>If You Already Have a Plan</h2>
+  <p class="sub">It is very likely not too late</p>
+  <hr class="rule">
+  <p>Most people who need this did not plan last week. They planned years ago, when everyone was well, and never imagined it would matter for anything but a funeral.</p>
+  <p>Good news: an existing plan can usually be changed over and locked in. One thing to know before you start making calls.</p>
+
+  <div class="band">
+    <h3>Conversion goes through the funeral home that wrote it</h3>
+    <p>Whichever funeral home you originally planned with is the one that has to make the change. If that was us, bring in the paperwork and we will take care of it.</p>
+    <p><strong>If you planned somewhere else, they are the ones to call</strong>, and we would rather tell you that than waste your afternoon. If you are not sure who has it, bring whatever paperwork you can find and we will help you figure out where it is.</p>
+  </div>
+</div>
+
+<!-- 7 -->
+<div class="section" id="who-advises">
+  <p class="section-label">Section 7</p>
+  <h2>Who to Actually Ask</h2>
+  <p class="sub">And where our part of this stops</p>
+  <hr class="rule">
+  <p>We arrange funerals and cemetery property. We are not lawyers, and we do not decide whether anyone qualifies for Medicaid. Nobody at a funeral home can. Be wary of anyone who tells you otherwise.</p>
+  <p>What we can do is tell you what things cost, set the arrangements up properly, and give you paperwork clear enough for whoever is advising you to use. That genuinely helps. It is also where we stop.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>An elder law attorney</h3>
+      <p>The right person to plan the whole thing. They look at the house, the savings, and the timing, and tell you where funeral and cemetery planning fits in. Worth every penny at this stage.</p>
+    </div>
+    <div class="card">
+      <h3>The Health Care Authority or DSHS</h3>
+      <p>The state offices that run these rules and decide who qualifies. Any final answer comes from them, not from us.</p>
+    </div>
+    <div class="card">
+      <h3>A hospice or facility social worker</h3>
+      <p>Often the most useful person in the building. They do this every week and usually know which local lawyers are worth calling.</p>
+    </div>
+  </div>
+
+  <p>If you are already working with any of them, give us their name and we will send paperwork straight over. You have enough to carry this month without being the messenger too.</p>
+</div>
+
+<!-- 8 -->
+<div class="section" id="faq">
+  <p class="section-label">Section 8</p>
+  <h2>Common Questions</h2>
+  <p class="sub">What families ask us most</p>
+  <hr class="rule">
+
+  <div class="faq">
+    <details>
+      <summary>Will buying cemetery property make us ineligible?</summary>
+      <div class="answer"><p>No, the opposite. You are buying something real at a fair price, not giving money away, and the rules leave it out of the total. This is a normal, well-worn part of a spend-down. Your lawyer or caseworker should confirm it for your situation, but nobody will be surprised by it.</p></div>
+    </details>
+    <details>
+      <summary>Do we have to lock everything in?</summary>
+      <div class="answer"><p>No. Cemetery property is protected either way, with nothing signed and nothing locked. Locking money in only applies to the funeral side, it is optional, and it is meant for people applying for help or already getting it. Plenty of families never need it.</p></div>
+    </details>
+    <details>
+      <summary>How much can we set aside for the funeral?</summary>
+      <div class="answer"><p>If the money is locked in, Washington sets no fixed dollar limit. It just has to be a sensible amount for an actual funeral. That is why we write out an itemized list showing exactly what is included, so the number speaks for itself.</p></div>
+    </details>
+    <details>
+      <summary>What happens to any money left over?</summary>
+      <div class="answer"><p>It goes to the estate. Be careful with this one though. Washington law allows the state to make a claim against an estate to recover long-term care costs it paid, so leftover money may not simply pass to the family. It is also a good argument for not overfunding a plan in the first place. Ask your elder law attorney how it applies to you.</p></div>
+    </details>
+    <details>
+      <summary>My mother is already in a nursing home. Is it too late?</summary>
+      <div class="answer"><p>Usually not. Plans can still be made and existing ones locked in at that stage. We come to you, whether that is a nursing home, assisted living, hospice, or the kitchen table. Timing is the one thing to watch, so tell us any application date right at the start.</p></div>
+    </details>
+    <details>
+      <summary>Can we still choose what we actually want?</summary>
+      <div class="answer"><p>Yes. None of this decides the funeral for you. You pick the service, the casket or urn, the part of the cemetery, and the marker, exactly like anyone else. These rules are about how the money is treated, not about what you are allowed to have.</p></div>
+    </details>
+    <details>
+      <summary>Do you charge for this conversation?</summary>
+      <div class="answer"><p>No. Sitting down costs nothing, an itemized estimate costs nothing, and neither one obligates you to anything. If it turns out you need a lawyer more than you need us, we will say so.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Come and talk it through</h2>
+    <p>Bring whatever paperwork you have, including any plan made elsewhere. We can meet here, at home, or wherever your family member is.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a conversation</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <p>This guide explains how the rules generally work. It is not legal or financial advice. Bonney Watson does not decide who qualifies for Medicaid and does not prepare or review applications. Rules change and every family is different, so please check anything here with an elder law attorney or with the Washington State Health Care Authority before you act on it.</p>
+</div>
+
+  <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
     <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
     <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
@@ -291,98 +549,7 @@ FOOTER_HTML = """  <div class="doc-footer">
 
 <footer class="site-footer">
   <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
-</footer>"""
+</footer>
 
-
-def reskin(path, cover_footer, add_stripe):
-    s = open(path, encoding='utf-8').read()
-    if '<header class="topbar">' not in s:
-        print(f'{path}: already reskinned (no .topbar) — skipping')
-        return None
-
-    # ---- head: fonts + style ----
-    s = re.sub(r'<link[^>]*fonts\.googleapis[^>]*>', FONT_LINK, s, count=1)
-    s = re.sub(r'<link rel="preconnect"[^>]*>\s*', '', s)
-    s = re.sub(r'<style>.*?</style>', '<style>' + STYLE + '</style>', s, count=1, flags=re.S)
-
-    # ---- nav: .topbar -> .site-nav (reuse the page's own section links) ----
-    topnav = re.search(r'<nav class="topnav"[^>]*>(.*?)</nav>', s, re.S).group(1)
-    links = re.findall(r'<a href="(#[^"]+)"[^>]*>(.*?)</a>', topnav)
-    nav_links = '\n'.join(f'      <a href="{h}">{t}</a>' for h, t in links)
-    site_nav = (f'<nav class="site-nav">\n  <div class="nav-inner">\n'
-                f'    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">\n'
-                f'    <span class="nav-est">Est. 1868</span>\n'
-                f'    <div class="nav-spacer"></div>\n'
-                f'    <div class="nav-links">\n{nav_links}\n    </div>\n'
-                f'    <a class="nav-back" href="guides.html">&larr; All Guides</a>\n'
-                f'  </div>\n</nav>')
-    s = re.sub(r'<header class="topbar">.*?</header>', site_nav, s, count=1, flags=re.S)
-
-    # ---- hero -> doc-sheet + cover ----
-    hero = re.search(r'<section class="hero">(.*?)</section>', s, re.S).group(1)
-    h1 = re.search(r'<h1>(.*?)</h1>', hero, re.S).group(1).strip()
-    lede = re.search(r'<p class="lede">(.*?)</p>', hero, re.S).group(1).strip()
-    eb = re.search(r'<p class="eyebrow">(.*?)</p>', hero, re.S)
-    kicker = eb.group(1).strip().upper() if eb else 'BONNEY WATSON FAMILY GUIDE'
-    # a statute-citation line in the hero (professional reference) moves to a
-    # light band just under the cover, where orange links read fine.
-    cite_m = re.search(r'<p class="cite">(.*?)</p>', hero, re.S)
-    cite_after = (f'\n\n  <div class="cite" style="max-width:none;padding:20px 48px 0">'
-                  f'{cite_m.group(1).strip()}</div>' if cite_m else '')
-    stripe = '\n    <div class="cover-stripe"></div>' if add_stripe else ''
-    cover = (f'<div class="doc-sheet">\n\n  <div class="cover">\n'
-             f'    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">\n'
-             f'    <div class="cover-kicker">{kicker}</div>\n'
-             f'    <h1>{h1}</h1>\n'
-             f'    <div class="cover-sub">{lede}</div>\n'
-             f'    <div class="cover-rule"></div>\n'
-             f'    <div class="cover-footer">{cover_footer}</div>{stripe}\n'
-             f'  </div>{cite_after}')
-    s = re.sub(r'<section class="hero">.*?</section>', cover, s, count=1, flags=re.S)
-
-    # ---- toc-wrap -> contents (only if the page has a TOC) ----
-    toc = re.search(r'<div class="toc-wrap">(.*?</ol>)\s*</div>', s, re.S)
-    items = []
-    if toc:
-        items = re.findall(r'<a href="(#[^"]+)"><span class="num">(\d+)</span>(.*?)</a>',
-                           toc.group(1), re.S)
-        citems = '\n'.join(
-            f'      <div class="contents-item"><span class="contents-num">{n}</span>'
-            f'<a href="{h}">{t.strip()}</a></div>' for h, n, t in items)
-        contents = (f'  <div class="contents">\n'
-                    f'    <div class="contents-label">In This Guide</div>\n'
-                    f'    <div class="contents-grid">\n{citems}\n    </div>\n  </div>')
-        s = re.sub(r'<div class="toc-wrap">.*?</ol>\s*</div>', contents, s, count=1, flags=re.S)
-
-    # ---- <section class="section"> -> <div class="section">, </section> -> </div> ----
-    s = s.replace('<section class="section"', '<div class="section"')
-    s = s.replace('</section>', '</div>')
-
-    # ---- footer -> house doc-footer + close doc-sheet + site-footer ----
-    s = re.sub(r'<footer>.*?</footer>', FOOTER_HTML, s, count=1, flags=re.S)
-
-    open(path, 'w', encoding='utf-8', newline='').write(s)
-
-    # report
-    dollars = s.count('$')
-    print(f'{path}: rewritten | nav links {len(links)} | toc items {len(items)} | '
-          f"'$' count {dollars}")
-    return dollars
-
-
-if __name__ == '__main__':
-    reskin('cemetery-property-guide.html',
-           'Interment rights &middot; property types &middot; every charge explained &middot; printable',
-           add_stripe=False)
-    reskin('veterans-guide.html',
-           'VA benefits &middot; veterans sections &middot; marker options &middot; printable',
-           add_stripe=True)
-    reskin('cremation-or-burial-guide.html',
-           'Side by side &middot; what each opens and closes &middot; printable',
-           add_stripe=False)
-    reskin('medicaid-family-guide.html',
-           'Protected money &middot; locking money in &middot; timing &middot; printable',
-           add_stripe=False)
-    reskin('medicaid-professional-reference.html',
-           'Linked statutes &middot; for professional partners &middot; printable',
-           add_stripe=False)
+</body>
+</html>
