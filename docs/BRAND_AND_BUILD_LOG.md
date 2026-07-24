@@ -731,6 +731,27 @@ layouts, the lightbox, the tray/4-item cap, diff highlighting, or the
 white-knockout. **No PDF rebuild needed** — screen-only, and the compare UI is
 print-hidden regardless.
 
+### 2026-07-23 — Vital worksheet: new 2024 death-certificate fields
+
+`vital-worksheet.html`. WA DOH 422-259 (July 2024) added required fields; added the three
+Martice flagged:
+- **Sex (M/F/X)** — replaced the old Male/Female "Gender" with Male / Female / Unknown /
+  **X (non-binary)**, matching the form.
+- **Aliases** — the single "Any Aliases" line became three: **First / Second / Third AKA**.
+- **Homelessness** — new question "Did they experience homelessness at the time of, or in
+  the month before, death?" with Yes / Probably / No / Unknown, in the residence section.
+
+Touched three things that must stay in lockstep: the on-screen form, and BOTH fillable-PDF
+engines (at-need two-column, pre-need single-column). The **key-based prefill** relies on
+`TEXT_KEYS`/`CHECK_KEYS` being in exact DOM order — updated both (`aliases`→`alias_1/2/3`;
+`gender_*`→`SEX_K` 4 options; `HL_K` inserted after tribal). Verified counts match (37 text
+/ 53 checks) and prefill round-trips: filled AKA/DOB/sex_x/homelessness on screen → landed
+in the right PDF fields (only sex_x and hl_prob checked, confirmed by reading widget state).
+
+**At-need still prints on ONE page** (85 AcroForm fields, up from 77); pre-need 3 pages
+(89). The worksheet generates its fillable PDFs client-side via the "Save Fillable PDF"
+button, so there is no static pdf-assets file to rebuild — only the page.
+
 ---
 
 ## 5. Working rules that keep biting us

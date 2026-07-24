@@ -113,13 +113,25 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
           <label class="field"><span class="lbl">Last Name</span><input type="text"></label>
           <label class="field"><span class="lbl">Suffix</span><input type="text"></label>
         </div>
-        <div class="grid-row" style="display:grid;grid-template-columns:.8fr 1fr .8fr 1.2fr;gap:11px 16px;margin-bottom:11px">
-          <div><span class="lbl" style="display:block;margin-bottom:6px">Gender</span><div style="display:flex;gap:16px;padding-top:2px"><label class="check-item"><input type="checkbox"><span>Male</span></label><label class="check-item"><input type="checkbox"><span>Female</span></label></div></div>
+        <div style="margin-bottom:11px"><span class="lbl" style="display:block;margin-bottom:6px">Sex <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— as recorded on the death certificate</span></span>
+          <div class="check-row" style="gap:9px 20px">
+            <label class="check-item"><input type="checkbox"><span>Male</span></label>
+            <label class="check-item"><input type="checkbox"><span>Female</span></label>
+            <label class="check-item"><input type="checkbox"><span>Unknown</span></label>
+            <label class="check-item"><input type="checkbox"><span>X (non-binary)</span></label>
+          </div>
+        </div>
+        <div class="grid-row" style="display:grid;grid-template-columns:1fr .8fr 1.2fr;gap:11px 16px;margin-bottom:11px">
           <label class="field"><span class="lbl">Date of Birth</span><input type="text" placeholder="MM/DD/YYYY"></label>
           <label class="field"><span class="lbl">Reported Age</span><input type="text"></label>
           <label class="field"><span class="lbl">Social Security Number</span><input type="text"></label>
         </div>
-        <label class="field"><span class="lbl">Any Aliases or Other Names</span><input type="text" placeholder="Or leave blank"></label>
+        <div class="section-lbl" style="margin:0 0 7px">Aliases <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— other names they were known by</span></div>
+        <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px 16px">
+          <label class="field"><span class="lbl">First AKA</span><input type="text" placeholder="Or leave blank"></label>
+          <label class="field"><span class="lbl">Second AKA</span><input type="text"></label>
+          <label class="field"><span class="lbl">Third AKA</span><input type="text"></label>
+        </div>
       </div>
 
       <!-- 2: ETHNICITY & RACE -->
@@ -181,6 +193,14 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
           <label class="field"><span class="lbl">Length of Time at This Address</span><input type="text" placeholder="e.g. 12 years"></label>
           <div><span class="lbl" style="display:block;margin-bottom:6px">Inside City Limits?</span><div style="display:flex;gap:16px"><label class="check-item"><input type="checkbox"><span>Yes</span></label><label class="check-item"><input type="checkbox"><span>No</span></label></div></div>
           <div><span class="lbl" style="display:block;margin-bottom:6px">Tribal Reservation?</span><div style="display:flex;gap:16px"><label class="check-item"><input type="checkbox"><span>Yes</span></label><label class="check-item"><input type="checkbox"><span>No</span></label></div></div>
+        </div>
+        <div style="margin-top:12px"><span class="lbl" style="display:block;margin-bottom:6px">Did they experience homelessness at the time of, or in the month before, death? <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— now required on the death certificate</span></span>
+          <div class="check-row" style="gap:9px 20px">
+            <label class="check-item"><input type="checkbox"><span>Yes</span></label>
+            <label class="check-item"><input type="checkbox"><span>Probably</span></label>
+            <label class="check-item"><input type="checkbox"><span>No</span></label>
+            <label class="check-item"><input type="checkbox"><span>Unknown</span></label>
+          </div>
         </div>
       </div>
 
@@ -405,16 +425,21 @@ var MAR_L = ['Never Married','Married','Domestic Partner','Divorced','Widowed','
 var MAR_K = ['mar_0','mar_1','mar_2','mar_3','mar_4','mar_5','mar_6'];
 var SVC_L = ['Funeral Home','Place of Worship','Outside Venue','Other'];
 var SVC_K = ['svc_0','svc_1','svc_2','svc_3'];
+/* WA DOH 422-259 (2024) additions: Sex (M/F/X), homelessness. */
+var SEX_L = ['Male','Female','Unknown','X (non-binary)'];
+var SEX_K = ['sex_male','sex_female','sex_unknown','sex_x'];
+var HL_L = ['Yes','Probably','No','Unknown'];
+var HL_K = ['hl_yes','hl_prob','hl_no','hl_unknown'];
 
 /* On-screen input order → stable keys (same DOM for both modes). */
-var TEXT_KEYS = ['first_name','middle_name','last_name','suffix','dob','age','ssn','aliases','race_specify',
+var TEXT_KEYS = ['first_name','middle_name','last_name','suffix','dob','age','ssn','alias_1','alias_2','alias_3','race_specify',
   'birth_city','birth_county','birth_state','birth_country','res_street','res_unit','res_city','res_state','res_zip',
   'res_length','occupation','industry','spouse','father_first','father_middle','father_suffix',
   'mother_first','mother_middle','mother_maiden','service_address','contact_name','contact_relationship',
   'contact_address','contact_phone','contact_email','cert_copies'];
-var CHECK_KEYS = ['gender_male','gender_female']
+var CHECK_KEYS = SEX_K
   .concat(HISP_K).concat(RACE_K)
-  .concat(['cl_yes','cl_no','tr_yes','tr_no'])
+  .concat(['cl_yes','cl_no','tr_yes','tr_no']).concat(HL_K)
   .concat(EDU_K).concat(['af_yes','af_no']).concat(MAR_K).concat(SVC_K);
 
 async function saveFillablePDF() {
@@ -521,9 +546,9 @@ async function saveFillablePDF() {
     var leftBlocks = [
       {k:'section',num:1,eye:'Required Information',title:'About My Loved One'},
       {k:'text',cols:[['First Name','first_name',.32],['Middle Name','middle_name',.28],['Last Name','last_name',.24],['Suffix','suffix',.16]]},
-      {k:'row',items:[{t:'checks',label:'Gender',frac:.46,cols:2,keys:['gender_male','gender_female'],labels:['Male','Female']},{t:'text',label:'Date of Birth',key:'dob',frac:.54}]},
-      {k:'text',cols:[['Reported Age','age',.4],['Social Security Number','ssn',.6]]},
-      {k:'text',cols:[['Any Aliases or Other Names','aliases',1]]},
+      {k:'checks',group:'Sex',cols:2,keys:SEX_K,labels:SEX_L},
+      {k:'row',items:[{t:'text',label:'Date of Birth',key:'dob',frac:.4},{t:'text',label:'Reported Age',key:'age',frac:.25},{t:'text',label:'SSN',key:'ssn',frac:.35}]},
+      {k:'row',items:[{t:'text',label:'First AKA',key:'alias_1',frac:.34},{t:'text',label:'Second AKA',key:'alias_2',frac:.33},{t:'text',label:'Third AKA',key:'alias_3',frac:.33}]},
       {k:'section',num:2,eye:'Required on the Certificate',title:'Ethnicity & Race'},
       {k:'checks',group:'Hispanic Ethnicity',cols:1,keys:HISP_K,labels:HISP_L},
       {k:'checks',group:'Race — choose all that apply',cols:2,keys:RACE_K,labels:RACE_L_SHORT},
@@ -535,7 +560,8 @@ async function saveFillablePDF() {
       {k:'text',cols:[['Street','res_street',.68],['Unit','res_unit',.32]]},
       {k:'text',cols:[['City','res_city',.5],['State','res_state',.22],['Zip','res_zip',.28]]},
       {k:'text',cols:[['Length of Time at This Address','res_length',1]]},
-      {k:'row',items:[{t:'checks',label:'Inside City Limits?',frac:.5,cols:2,keys:['cl_yes','cl_no'],labels:['Yes','No']},{t:'checks',label:'Tribal Reservation?',frac:.5,cols:2,keys:['tr_yes','tr_no'],labels:['Yes','No']}]}
+      {k:'row',items:[{t:'checks',label:'Inside City Limits?',frac:.5,cols:2,keys:['cl_yes','cl_no'],labels:['Yes','No']},{t:'checks',label:'Tribal Reservation?',frac:.5,cols:2,keys:['tr_yes','tr_no'],labels:['Yes','No']}]},
+      {k:'checks',group:'Homelessness at or near death?',cols:4,keys:HL_K,labels:HL_L}
     ];
     var rightBlocks = [
       {k:'section',num:4,eye:'Education, Work & Status',title:'Their Education & Work'},
@@ -623,8 +649,9 @@ async function saveFillablePDF() {
     var blocks = [
       {k:'section',num:1,eye:'Required Information',title:'About Me'},
       {k:'text',cols:[['First Name','first_name',.34],['Middle Name','middle_name',.30],['Last Name','last_name',.22],['Suffix','suffix',.14]]},
-      {k:'row',items:[{t:'checks',label:'Gender',frac:.24,cols:2,keys:['gender_male','gender_female'],labels:['Male','Female']},{t:'text',label:'Date of Birth',key:'dob',frac:.24},{t:'text',label:'Reported Age',key:'age',frac:.20},{t:'text',label:'Social Security Number',key:'ssn',frac:.32}]},
-      {k:'text',cols:[['Any Aliases or Other Names','aliases',1]]},
+      {k:'checks',group:'Sex',cols:4,keys:SEX_K,labels:SEX_L},
+      {k:'row',items:[{t:'text',label:'Date of Birth',key:'dob',frac:.34},{t:'text',label:'Reported Age',key:'age',frac:.28},{t:'text',label:'Social Security Number',key:'ssn',frac:.38}]},
+      {k:'row',items:[{t:'text',label:'First AKA',key:'alias_1',frac:.34},{t:'text',label:'Second AKA',key:'alias_2',frac:.33},{t:'text',label:'Third AKA',key:'alias_3',frac:.33}]},
       {k:'section',num:2,eye:'Required on the Certificate',title:'Ethnicity & Race'},
       {k:'checks',group:'Hispanic Ethnicity',cols:2,keys:HISP_K,labels:HISP_L},
       {k:'checks',group:'Race — choose all that apply',cols:3,keys:RACE_K,labels:RACE_L},
@@ -635,6 +662,7 @@ async function saveFillablePDF() {
       {k:'sub',text:'Current Address'},
       {k:'text',cols:[['Street','res_street',.38],['Unit','res_unit',.12],['City','res_city',.24],['State','res_state',.12],['Zip','res_zip',.14]]},
       {k:'row',items:[{t:'text',label:'Length of Time at This Address',key:'res_length',frac:.4},{t:'checks',label:'Inside City Limits?',frac:.3,cols:2,keys:['cl_yes','cl_no'],labels:['Yes','No']},{t:'checks',label:'Tribal Reservation?',frac:.3,cols:2,keys:['tr_yes','tr_no'],labels:['Yes','No']}]},
+      {k:'checks',group:'Did they experience homelessness at or in the month before death?',cols:4,keys:HL_K,labels:HL_L},
       {k:'section',num:4,eye:'Education, Work & Status',title:'My Education & Work'},
       {k:'checks',group:'Highest Level of Education',cols:3,keys:EDU_K,labels:EDU_L},
       {k:'text',cols:[['Usual Occupation (not "retired")','occupation',.5],['Kind of Business / Industry','industry',.5]]},
