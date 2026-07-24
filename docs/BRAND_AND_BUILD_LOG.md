@@ -509,6 +509,36 @@ value), photo layouts at 2/3/4 items (equal-size assertion at 3), lightbox, both
 print modes, and regression checks against the grid white-knockout, the single-item
 print sheet, and search/sort/filter.
 
+### 2026-07-23 — Compare feature: bigger product photo in Specs & Differences
+
+Martice reviewed the compare feature's Specs & Differences tab (all five
+catalogs) and found the per-column product photo too small relative to the
+available room — noticeable empty space below/around the table.
+
+Fix, applied identically to all five catalogs:
+- `.compare-col-img` max-width: `130px` → `320px`.
+- `.compare-table` max-width: `1300px` → `1500px` (a little extra room per
+  column so the bigger image has space to grow into, especially at 4 columns).
+
+`width:100%` was already on `.compare-col-img`, so the image was always bounded
+by *whichever is smaller* of the column's own width or the max-width cap — at 4
+columns the column width itself is now the binding constraint (photo lands
+around 277px, up from the old 130px cap), and at 2-3 columns the new 320px cap
+is what's reached (up from the same 130px). Net effect: roughly 2x bigger at
+every item count, and the specs table now fills a normal window with no
+scrolling needed (verified: `compare-body` `scrollHeight === clientHeight` at
+1440x900 with 4 items selected, all five catalogs).
+
+This is a **screen-only** change — `.compare-col-img` is a different class from
+the print sheet's `.cmp-col-img` (kept at its existing, already page-fit-tuned
+110px), so print output for both modes is untouched. Verified no regression to
+the Photos tab (still 2-column grid at 4 items, still equal-size panels at 2-3),
+the lightbox (still opens from a Specs-view photo click), the 4-item cap, diff
+highlighting, or the grid/print white-knockout, across all five catalogs.
+**No `build_catalog_pdfs.mjs` rerun needed** — same reasoning as before, the
+compare UI is print-hidden in the main grid stylesheet and untouched here
+regardless.
+
 ---
 
 ## 5. Working rules that keep biting us
