@@ -7994,6 +7994,8 @@ function _spaceName(selId, otherId, rowId) {
 }
 function resetCemQuote() {
   try {
+  // A fresh quote has no prior vintage to compare against.
+  if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
   // Clear client info
   if (el('cemClientName')) el('cemClientName').value = '';
   if (el('cemQuoteNotes')) el('cemQuoteNotes').value = '';
@@ -9599,6 +9601,7 @@ function addFhLine() {
 
 
 function resetFHQuote() {
+  if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
   fhUrns = []; fhUrnRender();
   fhCaskets = []; fhCasketRender();
   fhFlowers = []; fhFlowerRender();
@@ -10784,6 +10787,20 @@ function restoreDiscountRows(containerId, rows) {
   });
 }
 
+// A snapshot of the priced lines exactly as quoted, stored on the saved record.
+//
+// Why this is not optional: garden, vault, marker and plan prices live INSIDE the dropdown's
+// value — "6_good|14995|2250" — and the whole string is what gets saved. Reissue that option at a
+// new price and the saved string matches nothing, the select falls empty, and the line disappears
+// from the reloaded quote with no error at all. Measured: an $18,120 quote reloading as $875.
+// 28 dropdowns and 379 priced options are exposed to it across both builders.
+//
+// The four contract types never had this problem because they already store their computed lines
+// (ricPricing.lines, anPricing.lines, fhLines). This brings the two quote builders in line.
+function _bwCaptureLines(lines) {
+  try { return JSON.parse(JSON.stringify(lines || [])); } catch (e) { return []; }
+}
+
 function captureCemState() {
   var section = el('section-cem-quote');
   var fieldIds = [];
@@ -10830,6 +10847,9 @@ function captureFhState() {
     caskets: JSON.parse(JSON.stringify(fhCaskets || [])),
     flowers: JSON.parse(JSON.stringify(fhFlowers || [])),
     memPkgs: JSON.parse(JSON.stringify(fhMemPkgs || [])),
+    // What was actually quoted, line by line — see _bwCaptureLines().
+    lines: _bwCaptureLines(typeof _fhLines !== 'undefined' ? _fhLines : []),
+    total: _fhTotal || 0,
     planItems: planItems,
     activePlanKey: _activePlanKey || '',
     activePlanType: _activePlanType || '',
@@ -11676,6 +11696,80 @@ function deleteSavedQuote(type, id) {
   deleteQuoteRecord(type, id);
 }
 
+// ── Quoted-then vs today ─────────────────────────────────────────────────────────────
+// Reopening a saved quote rebuilds it from the stored field values, which reprice at today's
+// figures. That is what Martice wants for a contract written today. But he also wants to see
+// what the family was originally quoted, and the difference between the two.
+//
+// The stored `lines` are the historical record. The rebuilt quote is today. This compares them
+// and, critically, names any line that could NOT be rebuilt — the orphaned-dropdown case, which
+// until now removed money from a quote silently.
+function _bwLineKey(l) { return String((l && l.label) || '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+
+function bwCompareQuoteVintage(savedLines, savedTotal, liveLines, liveTotal) {
+  var saved = (savedLines || []).filter(function(l){ return l && !l.isDiscount; });
+  var live  = (liveLines  || []).filter(function(l){ return l && !l.isDiscount; });
+  var liveByKey = {};
+  live.forEach(function(l){ liveByKey[_bwLineKey(l)] = l; });
+  var missing = [], changed = [];
+  saved.forEach(function(s) {
+    var m = liveByKey[_bwLineKey(s)];
+    if (!m) { missing.push(s); return; }
+    if (Math.abs((m.amount || 0) - (s.amount || 0)) > 0.005) changed.push({ label: s.label, was: s.amount, now: m.amount });
+  });
+  return { missing: missing, changed: changed, savedTotal: savedTotal || 0, liveTotal: liveTotal || 0 };
+}
+
+function bwHideVintageBanner() {
+  var b = document.getElementById('bwVintageBanner');
+  if (b && b.parentNode) b.parentNode.removeChild(b);
+}
+
+function bwShowVintageBanner(sectionId, savedDate, cmp) {
+  bwHideVintageBanner();
+  if (!cmp) return;
+  var diff = (cmp.liveTotal || 0) - (cmp.savedTotal || 0);
+  // Nothing moved and nothing was lost — say so briefly rather than staying silent, so "no
+  // banner" never has to mean two different things.
+  var sec = document.getElementById('section-' + sectionId); if (!sec) return;
+  var hasIssue = cmp.missing.length > 0;
+  var hasDelta = cmp.changed.length > 0 || Math.abs(diff) > 0.005;
+
+  var bg = hasIssue ? 'var(--orange-tint)' : (hasDelta ? 'var(--cream)' : 'var(--blue-light)');
+  var bd = hasIssue ? 'var(--orange)' : (hasDelta ? 'var(--warm-border)' : 'var(--blue)');
+  var html = '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'
+    + '<strong style="color:var(--navy);font-size:13px;">Quoted ' + _ceEsc(savedDate || 'previously') + ': ' + fmt(cmp.savedTotal) + '</strong>'
+    + '<span style="color:var(--text-light);font-size:13px;">·</span>'
+    + '<strong style="color:var(--navy);font-size:13px;">At today\'s prices: ' + fmt(cmp.liveTotal) + '</strong>';
+  if (Math.abs(diff) > 0.005) {
+    html += '<span style="font-size:13px;font-weight:700;color:' + (diff > 0 ? '#c0392b' : '#1a6b45') + ';">'
+         + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + '</span>';
+  }
+  html += '<button onclick="bwHideVintageBanner()" style="margin-left:auto;background:none;border:none;font-size:18px;line-height:1;color:var(--text-light);cursor:pointer;">&times;</button></div>';
+
+  if (cmp.missing.length) {
+    html += '<div style="margin-top:8px;font-size:12.5px;color:var(--orange-dark);line-height:1.6;">'
+      + '<strong>' + cmp.missing.length + ' line' + (cmp.missing.length === 1 ? '' : 's') + ' could not be rebuilt</strong>'
+      + ' — the price changed since this was saved, so the original selection no longer exists. '
+      + 'The amounts below are what was quoted; re-pick them to include them in today\'s total.<br>'
+      + cmp.missing.map(function(l){ return '• ' + _ceEsc(l.label) + ' — ' + fmt(l.amount || 0); }).join('<br>')
+      + '</div>';
+  }
+  if (cmp.changed.length) {
+    html += '<div style="margin-top:8px;font-size:12.5px;color:var(--text);line-height:1.6;">'
+      + cmp.changed.map(function(c){ return '• ' + _ceEsc(c.label) + ': ' + fmt(c.was) + ' → ' + fmt(c.now); }).join('<br>')
+      + '</div>';
+  }
+
+  var box = document.createElement('div');
+  box.id = 'bwVintageBanner';
+  box.style.cssText = 'background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:11px 14px;margin-bottom:16px;';
+  box.innerHTML = html;
+  var hdr = sec.querySelector('.section-header');
+  if (hdr && hdr.nextSibling) sec.insertBefore(box, hdr.nextSibling);
+  else sec.insertBefore(box, sec.firstChild);
+}
+
 function loadSavedCemQuote(id) {
   var snap = _cemSavedQuotes.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
@@ -11697,6 +11791,12 @@ function loadSavedCemQuote(id) {
   if (typeof cemQuoteTypeChange === 'function') cemQuoteTypeChange();
   cemUpdate();
   show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
+  // Older records were saved before lines were stored; there is nothing to compare against, so
+  // show nothing rather than implying the quote is unchanged.
+  if (s.lines && s.lines.length) {
+    bwShowVintageBanner('cem-quote', snap.date,
+      bwCompareQuoteVintage(s.lines, s.total, _cemLines, _cemTotal));
+  } else { bwHideVintageBanner(); }
 }
 function loadSavedFhQuote(id) {
   var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
@@ -11722,6 +11822,10 @@ function loadSavedFhQuote(id) {
   fhQuoteTypeChange();
   fhUpdate();
   show('fh-quote', document.querySelector('[onclick*="fh-quote"]'));
+  if (s.lines && s.lines.length) {
+    bwShowVintageBanner('fh-quote', snap.date,
+      bwCompareQuoteVintage(s.lines, s.total, _fhLines, _fhTotal));
+  } else { bwHideVintageBanner(); }
 }
 
 function renderSavedQuotesList(type) {
