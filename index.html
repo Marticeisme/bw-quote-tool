@@ -11874,38 +11874,104 @@ var BW_PEOPLE_FIELDS = {
         { role: 'decedent',     first: 'anDecFirst', middle: 'anDecMiddle', last: 'anDecLast' }]
 };
 
-// "Minh Nguyen" -> {given:'Minh', family:'Nguyen'}. Deliberately simple; a name that does not
-// split cleanly ("Bob & Mary Winn") still creates a usable contact you can correct afterwards,
-// which beats refusing to create one.
+// One name field routinely holds two people: "Tyler & Bree Winn", "John Smith & Jane Smith",
+// "James L. & Rose M. Kagey". The RIC field's own placeholder says so. Splitting these into two
+// contacts is the difference between a findable couple and one contact called "Tyler & Bree Winn"
+// that matches nothing when either of them phones.
+//
+// Everything parsed here is shown in the offer dialog before anything is created, so a name this
+// gets wrong is visible and can be unticked rather than silently becoming a bad record.
+var _BW_INITIAL = /^[A-Za-z]\.?$/;
+
+// "James L." has no surname of its own; it borrows Kagey from the segment beside it.
+function _bwParseOneName(seg) {
+  seg = String(seg || '').trim().replace(/\s+/g, ' ');
+  if (!seg) return null;
+
+  // "KACZOR, PEARL E" — surname first. Appears on older records and property cards.
+  if (seg.indexOf(',') > -1) {
+    var c = seg.split(',');
+    var fam = c[0].trim(), rest = c.slice(1).join(' ').trim().split(' ').filter(Boolean);
+    if (fam && rest.length) {
+      return { given: rest[0] || '', middle: rest.slice(1).join(' '), family: fam };
+    }
+  }
+
+  // "Smith Family" / "James Ho Family" — a household label, not a person's full name.
+  var isHousehold = /\bfamily$/i.test(seg);
+  if (isHousehold) seg = seg.replace(/\s*\bfamily$/i, '').trim();
+
+  var t = seg.split(' ').filter(Boolean);
+  if (!t.length) return null;
+  // A lone word is a GIVEN name here, not a surname — "Bob" in "Bob & Mary Winn" is waiting to
+  // borrow Winn. bwSplitPeople promotes it to a surname only if no other segment supplies one,
+  // which is what makes a bare "Cher" or "Smith Family" resolve correctly.
+  if (t.length === 1) return { given: t[0], middle: '', family: '' };
+
+  var given = t[0], rest = t.slice(1);
+  // A trailing initial is a middle initial, never a surname — so "James L." ends up needing one.
+  var family = '';
+  if (!_BW_INITIAL.test(rest[rest.length - 1])) family = rest.pop();
+  return { given: given, middle: rest.join(' '), family: family };
+}
+
+// Returns one entry per person named in the string.
+function bwSplitPeople(s) {
+  var raw = String(s || '').trim().replace(/\s+/g, ' ');
+  if (!raw) return [];
+  var segs = raw.split(/\s+(?:&|\+|and|or)\s+/i).map(function(x){ return x.trim(); }).filter(Boolean);
+  var people = segs.map(_bwParseOneName).filter(Boolean);
+  if (!people.length) return [];
+
+  // Backfill the shared surname: in "Tyler & Bree Winn" only the last carries it. Look forward
+  // first, then back, so "Smith & Jane Doe" gives Smith to nobody it does not belong to.
+  for (var i = 0; i < people.length; i++) {
+    if (people[i].family) continue;
+    var fam = '';
+    for (var j = i + 1; j < people.length; j++) if (people[j].family) { fam = people[j].family; break; }
+    if (!fam) for (var k = i - 1; k >= 0; k--) if (people[k].family) { fam = people[k].family; break; }
+    if (fam) people[i].family = fam;
+    else { people[i].family = people[i].given; people[i].given = ''; }  // single word, treat as a surname
+  }
+  return people;
+}
+
+// Kept for the single-person path.
 function bwSplitName(s) {
-  var parts = String(s || '').trim().replace(/\s+/g, ' ').split(' ');
-  if (!parts[0]) return null;
-  if (parts.length === 1) return { given: '', family: parts[0] };
-  return { given: parts[0], family: parts.slice(1).join(' ') };
+  var p = bwSplitPeople(s);
+  return p.length ? p[0] : null;
 }
 
 function bwPeopleOnRecord(type) {
   var spec = BW_PEOPLE_FIELDS[type] || [];
   var out = [];
   spec.forEach(function(f) {
-    var given = '', family = '', middle = '';
+    var names;
     if (f.first || f.last) {
-      given = (val(f.first) || '').trim();
-      family = (val(f.last) || '').trim();
-      middle = f.middle ? (val(f.middle) || '').trim() : '';
+      var given = (val(f.first) || '').trim(), family = (val(f.last) || '').trim();
       if (!given && !family) return;
+      names = [{ given: given, middle: f.middle ? (val(f.middle) || '').trim() : '', family: family }];
     } else {
-      var n = bwSplitName(val(f.name));
-      if (!n) return;
-      given = n.given; family = n.family;
+      // One field, possibly two people: "Tyler & Bree Winn" is one purchaser field and two
+      // purchasers. Shared contact details apply to both — it is one household.
+      names = bwSplitPeople(val(f.name));
+      if (!names.length) return;
     }
-    var p = { role: f.role, given: given, middle: middle, family: family };
-    ['phone', 'email', 'street', 'city', 'state', 'zip'].forEach(function(k) {
-      if (f[k]) { var v = (val(f[k]) || '').trim(); if (v) p[k] = v; }
+    names.forEach(function(n) {
+      var p = { role: f.role, given: n.given, middle: n.middle || '', family: n.family };
+      ['phone', 'email', 'street', 'city', 'state', 'zip'].forEach(function(k) {
+        if (f[k]) { var v = (val(f[k]) || '').trim(); if (v) p[k] = v; }
+      });
+      out.push(p);
     });
-    out.push(p);
   });
-  return out;
+  // Same person named twice in the same role (e.g. typed in two fields) collapses to one row.
+  var seen = {};
+  return out.filter(function(p) {
+    var key = (p.role + '|' + p.given + '|' + p.family).toLowerCase();
+    if (seen[key]) return false;
+    seen[key] = 1; return true;
+  });
 }
 
 // Matches a typed name to an existing contact so the same family is not created twice.
