@@ -7,6 +7,11 @@
 // Every suite drives the real index.html in headless Chromium against tests/fake-firebase.js,
 // an in-memory stub. Production Firebase is never contacted: each suite aborts the
 // gstatic firebasejs request and installs the stub via addInitScript.
+//
+// A suite counts as passing ONLY if it exits 0 AND prints "N passed, M failed" with M = 0.
+// Anything else fails loudly. An earlier version treated "no assertion output" as a
+// harmless diagnostic — in a worktree without node_modules every suite crashed, printed
+// nothing, and the run reported green. Silence is now a failure, not a pass.
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -15,8 +20,26 @@ const ROOT = process.cwd();
 const PORT = 3737;
 const URL_ = 'http://localhost:' + PORT + '/';
 
+// Scripts that legitimately print values instead of asserting. Explicit allowlist:
+// a suite that merely *stops* producing assertions must never quietly land here.
+const DIAGNOSTICS = new Set(['test-price-vintage.mjs']);
+
 if (!fs.existsSync(path.join(ROOT, 'index.html'))) {
   console.error('Run from the repo root (index.html not found here).');
+  process.exit(2);
+}
+if (!fs.existsSync(path.join(ROOT, 'node_modules', 'playwright'))) {
+  console.error('playwright is not installed here.\n' +
+    'Every suite drives a real browser, so this tree needs its own dependencies:\n\n' +
+    '    npm install\n\n' +
+    'In a git worktree node_modules is not checked out (it is gitignored), and ESM\n' +
+    'resolves imports from the script\'s own path — not the working directory — so the\n' +
+    'main repo\'s copy will not be found.\n\n' +
+    'Faster than a full install, on Windows, point the worktree at the main copy:\n\n' +
+    '    New-Item -ItemType Junction -Path "<worktree>\\node_modules" `\n' +
+    '             -Target "<main repo>\\node_modules"\n\n' +
+    'Remove that junction with [System.IO.Directory]::Delete(path, $false) before\n' +
+    'deleting the worktree — a recursive delete can follow it into the real node_modules.');
   process.exit(2);
 }
 
@@ -58,27 +81,40 @@ const run = (f) => new Promise((resolve) => {
   p.on('close', (code) => resolve({ out, code }));
 });
 
-let pass = 0, fail = 0, failed = [], diagnostics = [];
+let pass = 0, fail = 0;
+const failed = [], ran = [];
 
 for (const f of files) {
   const { out, code } = await run(f);
   const m = out.match(/(\d+) passed, (\d+) failed/);
+  const isDiag = DIAGNOSTICS.has(f);
+
   if (!m) {
-    // no assertions — a diagnostic script, not part of the verdict
-    diagnostics.push(f);
-    console.log('  ---- ' + f.padEnd(30) + 'diagnostic (no assertions)');
+    if (isDiag && code === 0) {
+      console.log('  ---- ' + f.padEnd(30) + 'diagnostic (no assertions, exit 0)');
+      continue;
+    }
+    // crashed, or an assertion suite that printed nothing — never a pass
+    failed.push(f);
+    console.log('  FAIL  ' + f.padEnd(30) +
+      (code === 0 ? 'no assertion output' : 'exited ' + code));
+    console.log(out.trim().split('\n').slice(-4).map((l) => '        ' + l).join('\n'));
     continue;
   }
+
   const p = +m[1], q = +m[2];
-  pass += p; fail += q;
+  pass += p; fail += q; ran.push(f);
   const bad = q > 0 || code !== 0;
-  if (bad) { failed.push(f); console.log(out.split('\n').filter((l) => /FAIL/.test(l)).join('\n')); }
-  console.log('  ' + (bad ? 'FAIL' : ' ok ') + '  ' + f.padEnd(30) + p + ' passed, ' + q + ' failed');
+  if (bad) {
+    failed.push(f);
+    console.log(out.split('\n').filter((l) => /FAIL/.test(l)).join('\n'));
+  }
+  console.log('  ' + (bad ? 'FAIL' : ' ok ') + '  ' + f.padEnd(30) +
+    p + ' passed, ' + q + ' failed' + (code !== 0 ? ' (exit ' + code + ')' : ''));
 }
 
-console.log('\n' + pass + ' passed, ' + fail + ' failed across ' + (files.length - diagnostics.length) + ' suites');
-if (diagnostics.length) console.log('(' + diagnostics.length + ' diagnostic script not counted: ' + diagnostics.join(', ') + ')');
-if (failed.length) console.log('failing: ' + failed.join(', '));
+console.log('\n' + pass + ' passed, ' + fail + ' failed across ' + ran.length + ' suites');
+if (failed.length) console.log('FAILING: ' + failed.join(', '));
 
 if (server) { server.kill(); console.log('stopped dev-server'); }
 process.exit(fail || failed.length ? 1 : 0);
