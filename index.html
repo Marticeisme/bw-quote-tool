@@ -2895,6 +2895,21 @@ tr:hover td{background:#eef3f8;}
   </div>
 </div>
 
+<!-- Offered after a save: link the people the form already named. Never automatic. -->
+<div id="linkOffer" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(15,36,56,.55);align-items:flex-start;justify-content:center;padding:28px 18px;overflow:auto;">
+  <div style="width:100%;max-width:520px;background:var(--white);border-radius:12px;padding:22px 24px 18px;box-shadow:0 18px 48px rgba(0,0,0,.3);">
+    <h3 style="margin:0 0 4px;font-size:16px;color:var(--navy);">Add these people to Contacts?</h3>
+    <p style="margin:0 0 14px;font-size:12.5px;color:var(--text-light);line-height:1.5;">
+      Taken from what you already typed on this record. Linking makes the family findable later —
+      it changes nothing on the contract itself.</p>
+    <div id="linkOfferBody"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="bwConfirmLinkOffer()" style="flex:1;padding:10px;font-size:13.5px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;">Link selected</button>
+      <button onclick="closeLinkOffer()" style="padding:10px 18px;font-size:13px;font-family:inherit;color:var(--text-light);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;">Not now</button>
+    </div>
+  </div>
+</div>
+
 <!-- Contact picker. Shared by every module that links a contact to a record. -->
 <div id="contactPicker" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,36,56,.55);align-items:flex-start;justify-content:center;padding:28px 18px;overflow:auto;">
   <div style="width:100%;max-width:520px;background:var(--white);border-radius:12px;padding:22px 24px 18px;box-shadow:0 18px 48px rgba(0,0,0,.3);">
@@ -11830,6 +11845,173 @@ function bwAttachToSavedRecord(type, snap) {
   });
 }
 
+// ── Offering to link the people the form already names ───────────────────────────────
+// The contract forms already collect everyone: CIRGAS has purchaser, co-purchaser and decedent
+// with addresses, phones and emails; GA has insured, purchaser and beneficiary; RIC has
+// purchaser, co-purchaser and for-benefit-of. Asking for those names a second time in a contact
+// picker would be exactly the double entry this is meant to remove.
+//
+// So on save we read what is already typed and OFFER to link it. Offered, not automatic —
+// Martice's call, and the right one: forms get filled progressively and a half-typed name or a
+// test entry must not silently become a permanent contact.
+var BW_PEOPLE_FIELDS = {
+  cem: [{ role: 'purchaser', name: 'cemClientName' }],
+  fh:  [{ role: 'purchaser', name: 'fhClientName' }],
+  ric: [{ role: 'purchaser',      name: 'ricName' },
+        { role: 'co-purchaser',   name: 'ricCoPurchaser' },
+        { role: 'for-benefit-of', name: 'ricBenefit' }],
+  ga:  [{ role: 'insured',     name: 'gaInsuredName', phone: 'gaInsuredPhone',
+          street: 'gaInsuredStreet', city: 'gaInsuredCity', state: 'gaInsuredState', zip: 'gaInsuredZip' },
+        { role: 'insured',     name: 'gaInsuredName2' },
+        { role: 'purchaser',   name: 'gaPurchaserName' },
+        { role: 'beneficiary', name: 'gaBenefName' }],
+  cp:  [{ role: 'purchaser',    first: 'cpFirstName',  middle: 'cpMiddleName',  last: 'cpLastName',  phone: 'cpPhone' },
+        { role: 'co-purchaser', first: 'cpFirstName2', middle: 'cpMiddleName2', last: 'cpLastName2', phone: 'cpPhone2' }],
+  an:  [{ role: 'purchaser',    name: 'anPurchName',   phone: 'anPurchCellPhone',   email: 'anPurchEmail',
+          street: 'anPurchStreet',   city: 'anPurchCity',   state: 'anPurchState',   zip: 'anPurchZip' },
+        { role: 'co-purchaser', name: 'anCoPurchName', phone: 'anCoPurchCellPhone', email: 'anCoPurchEmail',
+          street: 'anCoPurchStreet', city: 'anCoPurchCity', state: 'anCoPurchState', zip: 'anCoPurchZip' },
+        { role: 'decedent',     first: 'anDecFirst', middle: 'anDecMiddle', last: 'anDecLast' }]
+};
+
+// "Minh Nguyen" -> {given:'Minh', family:'Nguyen'}. Deliberately simple; a name that does not
+// split cleanly ("Bob & Mary Winn") still creates a usable contact you can correct afterwards,
+// which beats refusing to create one.
+function bwSplitName(s) {
+  var parts = String(s || '').trim().replace(/\s+/g, ' ').split(' ');
+  if (!parts[0]) return null;
+  if (parts.length === 1) return { given: '', family: parts[0] };
+  return { given: parts[0], family: parts.slice(1).join(' ') };
+}
+
+function bwPeopleOnRecord(type) {
+  var spec = BW_PEOPLE_FIELDS[type] || [];
+  var out = [];
+  spec.forEach(function(f) {
+    var given = '', family = '', middle = '';
+    if (f.first || f.last) {
+      given = (val(f.first) || '').trim();
+      family = (val(f.last) || '').trim();
+      middle = f.middle ? (val(f.middle) || '').trim() : '';
+      if (!given && !family) return;
+    } else {
+      var n = bwSplitName(val(f.name));
+      if (!n) return;
+      given = n.given; family = n.family;
+    }
+    var p = { role: f.role, given: given, middle: middle, family: family };
+    ['phone', 'email', 'street', 'city', 'state', 'zip'].forEach(function(k) {
+      if (f[k]) { var v = (val(f[k]) || '').trim(); if (v) p[k] = v; }
+    });
+    out.push(p);
+  });
+  return out;
+}
+
+// Matches a typed name to an existing contact so the same family is not created twice.
+function bwMatchParty(person) {
+  var fam = (person.family || '').trim().toLowerCase();
+  var giv = (person.given || '').trim().toLowerCase();
+  if (!fam) return null;
+  return _parties.find(function(x) {
+    if ((x.family || '').trim().toLowerCase() !== fam) return false;
+    var xg = (x.given || '').trim().toLowerCase();
+    return !giv || !xg || xg === giv;
+  }) || null;
+}
+
+var _bwOffer = null;   // { type, recordId, rows: [...] }
+
+function bwOfferLinks(type, snap) {
+  var already = {};
+  bwRolesForRecord(type, snap.id).forEach(function(r){ if (r.partyId) already[r.partyId + '|' + r.role] = true; });
+  var rows = [];
+  bwPeopleOnRecord(type).forEach(function(person) {
+    var match = bwMatchParty(person);
+    if (match && already[match.id + '|' + person.role]) return;   // already linked in this role
+    rows.push({ person: person, existing: match, checked: true });
+  });
+  if (!rows.length) return;
+  _bwOffer = { type: type, recordId: snap.id, rows: rows };
+  renderLinkOffer();
+  el('linkOffer').style.display = 'flex';
+}
+
+function renderLinkOffer() {
+  var box = el('linkOfferBody'); if (!box || !_bwOffer) return;
+  box.innerHTML = _bwOffer.rows.map(function(r, i) {
+    var name = [r.person.given, r.person.family].filter(Boolean).join(' ');
+    var bits = [];
+    if (r.person.phone) bits.push(bwFmtPhone(r.person.phone));
+    if (r.person.email) bits.push(r.person.email);
+    if (r.person.city) bits.push(r.person.city);
+    return '<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      + '<input type="checkbox" ' + (r.checked ? 'checked' : '') + ' onchange="_bwOffer.rows[' + i + '].checked=this.checked" style="margin-top:3px;width:15px;height:15px;">'
+      + '<span style="flex:1;">'
+      + '<span style="font-size:13.5px;font-weight:700;color:var(--navy);">' + _ceEsc(name) + '</span>'
+      + '<span class="ct-pill" style="background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(r.person.role)) + '</span>'
+      + (r.existing
+          ? '<span class="ct-pill" style="margin-left:4px;">existing contact</span>'
+          : '<span class="ct-pill" style="margin-left:4px;background:var(--cream);color:var(--orange-dark);">new</span>')
+      + (bits.length ? '<span style="display:block;font-size:11.5px;color:var(--text-light);margin-top:2px;">' + _ceEsc(bits.join(' · ')) + '</span>' : '')
+      + '</span></label>';
+  }).join('');
+}
+
+function closeLinkOffer() { el('linkOffer').style.display = 'none'; _bwOffer = null; }
+
+function bwConfirmLinkOffer() {
+  if (!_bwOffer) { closeLinkOffer(); return; }
+  var o = _bwOffer, jobs = [], byPerson = {};
+
+  // One person can hold two roles on the same record — on a GA policy the insured is usually
+  // also the purchaser. Those arrive as two rows naming the same human, so the party is resolved
+  // ONCE per unique name and reused. Creating per row would produce a duplicate contact, which
+  // is the single thing this feature exists to avoid.
+  function partyFor(r) {
+    var key = ((r.person.given || '') + '|' + (r.person.family || '')).trim().toLowerCase();
+    if (byPerson[key]) return byPerson[key];
+    var job;
+    if (r.existing) {
+      job = Promise.resolve(r.existing);
+    } else {
+      var p = { given: r.person.given, middle: r.person.middle || '', family: r.person.family,
+                _prov: bwProv('quote_tool') };
+      if (r.person.phone) p.phones = { p1: { value: String(r.person.phone).replace(/\D/g, ''), type: 'mobile', isPrimary: true } };
+      if (r.person.email) p.emails = { e1: { value: r.person.email, isPrimary: true } };
+      if (r.person.street || r.person.city || r.person.zip) {
+        p.addresses = { a1: { type: 'mailing', street1: r.person.street || '', street2: '',
+                              city: r.person.city || '', state: r.person.state || 'WA',
+                              postal: r.person.zip || '', isPrimary: true } };
+      }
+      p.salutation = bwDefaultSalutation(p);
+      job = saveParty(p);
+    }
+    byPerson[key] = job;
+    return job;
+  }
+
+  o.rows.filter(function(r){ return r.checked; }).forEach(function(r) {
+    jobs.push(partyFor(r).then(function(party) {
+      return saveContractRole({
+        partyId: party.id, recordType: o.type, recordId: o.recordId, role: r.person.role,
+        financiallyLiable: r.person.role === 'purchaser' || r.person.role === 'co-purchaser',
+        _prov: bwProv('quote_tool')
+      });
+    }));
+  });
+  closeLinkOffer();
+  if (!jobs.length) return;
+  Promise.all(jobs).then(function(made) {
+    if (typeof showQuoteToast === 'function') {
+      showQuoteToast(made.length + ' contact' + (made.length === 1 ? '' : 's') + ' linked');
+    }
+  }).catch(function(e) {
+    console.warn('link offer failed', e);
+    alert('The record was saved, but linking contacts failed:\n\n' + ((e && e.message) || e));
+  });
+}
+
 // Restores the link display when a saved quote is reopened.
 function bwRestoreLinkFor(type, snap) {
   var roles = bwRolesForRecord(type, snap.id).filter(function(r){ return r.partyId; });
@@ -11872,6 +12054,7 @@ function saveCemQuote() {
     // record is saved, and creates the contractRole after — a failed link never costs the quote.
     bwAttachToSavedRecord('cem', snap);
     saveQuoteRecord('cem', snap, label);
+    bwOfferLinks('cem', snap);
     show('cem-saved', el('navCemSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -11887,6 +12070,7 @@ function saveFhQuote() {
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
     bwAttachToSavedRecord('fh', snap);
     saveQuoteRecord('fh', snap, label);
+    bwOfferLinks('fh', snap);
     show('fh-saved', el('navFhSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -11916,6 +12100,7 @@ function saveRicContract() {
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
     bwAttachToSavedRecord('ric', snap);
     saveQuoteRecord('ric', snap, label);
+    bwOfferLinks('ric', snap);
     show('ric-saved', el('navRicSaved'));
     showQuoteToast('RIC saved — viewing saved RICs');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -11959,6 +12144,7 @@ function saveGaContract() {
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
     bwAttachToSavedRecord('ga', snap);
     saveQuoteRecord('ga', snap, label);
+    bwOfferLinks('ga', snap);
     show('ga-saved', el('navGaSaved'));
     showQuoteToast('GA contract saved — viewing saved GA contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -12027,6 +12213,7 @@ function saveCpContract() {
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
     bwAttachToSavedRecord('cp', snap);
     saveQuoteRecord('cp', snap, label);
+    bwOfferLinks('cp', snap);
     show('cp-saved', el('navCpSaved'));
     showQuoteToast('ClearPoint contract saved — viewing saved ClearPoint contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
@@ -14240,6 +14427,7 @@ function saveAnContract() {
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
     bwAttachToSavedRecord('an', snap);
     saveQuoteRecord('an', snap, label);
+    bwOfferLinks('an', snap);
     show('an-saved', el('navAnSaved'));
     showQuoteToast('At-Need contract saved — viewing saved contracts');
   } catch(e) { alert('Save failed: ' + e.message); }
