@@ -896,8 +896,10 @@ tr:hover td{background:#eef3f8;}
               <option value="">— None —</option>
               <option value="pct_all">% — All Items</option>
               <option value="flat_all">$ — All Items</option>
-              <option value="promo_burial">July Incentive — Burial (10%)</option>
-              <option value="promo_crem">July Incentive — Cremation (10%)</option>
+              <option value="promo_burial">July Incentive — Burial (10% property + O&C)</option>
+              <option value="promo_crem">July Incentive — Cremation (10% property + O&C)</option>
+              <option value="promo_property">July Incentive — Property Only (10%)</option>
+              <option value="promo_family45">Family 45-Day Certificate (15% property)</option>
               <option value="pct10_svc">10% off Services</option>
               <option value="pct10_merch">10% off Merchandise</option>
             </select>
@@ -7118,16 +7120,25 @@ function cemUpdate() {
     var dAmt = 0, dLabel = '';
     if (isPromo) {
       hasPromo = true;
+      // Family 45-Day Certificate (cert #1390): 15% off pre-need PROPERTY within 45 days of a
+      // family member's death. Unlike the July incentive it EXCLUDES 2nd/3rd rights, and — per the
+      // certificate — property exchanges, private estates, and group sales; the tool tracks none of
+      // those as property, so they never enter totalSP. ECF is excluded on both (never in totalSP).
+      // The 10% minimum down is a payment-plan rule, enforced on the financing side, not here.
+      var isFamily45 = mode.indexOf('promo_family45') === 0;
       // July 2026 incentive: 10% off Property AND Additional Rights (2nd/3rd rights),
       // unlike the old Memorial Day tiers this one folds rights into the same 10% base.
-      var propPct = 0.10;
+      var propPct = isFamily45 ? 0.15 : 0.10;
       var totalSP = 0;
       if (spacePrice > 0 && gardenQty > 0) totalSP += spacePrice * gardenQty;
       if (nicheP > 0 && nicheQ > 0)        totalSP += nicheP * nicheQ;
       if (mausP > 0 && mausQ > 0)          totalSP += mausP * mausQ;
-      var rightLines10 = lines.filter(function(l){ return l.isSecondRight; });
-      var rightsTotal  = rightLines10.reduce(function(s,l){ return s + l.amount; }, 0);
-      totalSP += rightsTotal;
+      var rightsTotal = 0;
+      if (!isFamily45) {
+        var rightLines10 = lines.filter(function(l){ return l.isSecondRight; });
+        rightsTotal  = rightLines10.reduce(function(s,l){ return s + l.amount; }, 0);
+        totalSP += rightsTotal;
+      }
       var propDisc = totalSP * propPct;
       var propLbl  = (propPct * 100) + '% off property' + (rightsTotal > 0 ? ' & rights' : '');
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
@@ -7135,7 +7146,10 @@ function cemUpdate() {
       var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
       // Customer-facing line — describe what's discounted, not the internal promo name ("July
       // Incentive" reads as internal jargon to a family reviewing their quote).
-      if (mode.indexOf('promo_burial') === 0) {
+      if (isFamily45) {
+        dAmt = propDisc;
+        dLabel = '15% off pre-need property — Family 45-Day Certificate';
+      } else if (mode.indexOf('promo_burial') === 0) {
         var ocQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (mausP > 0 ? mausQ : 0));
         var ocActual = burialOCLines.reduce(function(s,l){return s+l.amount;},0);
         var ocDisc = Math.min(1000 * ocQ, ocActual);
@@ -7313,6 +7327,7 @@ function addCemDiscount() {
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
     + '<optgroup label="🏷️ July 2026 Incentives (New Property PN)"><option value="promo_burial">July Incentive — Burial/Crypt Placement (10% property + rights)</option><option value="promo_crem">July Incentive — Cremation/Inurnment Placement (10% property + rights)</option><option value="promo_property">July Incentive — Property Only (10% off, incl. additional rights)</option></optgroup>'
+    + '<optgroup label="🎟️ Family Certificate"><option value="promo_family45">Family 45-Day Certificate — 15% off pre-need property (excl. ECF, 2nd rights)</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
@@ -7818,6 +7833,15 @@ function calcBTotal() {
         var bOCA = lines.filter(function(l){return l.label.match(/Inurnment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
         bDiscAmt = bSpV * 0.10 + Math.min(500, bOCA);
         bDiscLbl = '10% off Property + O&C (Cremation)';
+      } else if (bDiscType === 'promo_property') {
+        var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : (bNicheP || bMausP);
+        bDiscAmt = bSpV * 0.10;
+        bDiscLbl = '10% off Property';
+      } else if (bDiscType === 'promo_family45') {
+        // Family 45-Day Certificate: 15% off pre-need property only (no O&C, excludes ECF).
+        var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : (bNicheP || bMausP);
+        bDiscAmt = bSpV * 0.15;
+        bDiscLbl = '15% off Property (Family 45-Day)';
       } else if (bDiscType === 'pct10_svc')  { bDiscAmt = bExempt  * 0.10; bDiscLbl = '10% off Services'; }
       else if   (bDiscType === 'pct10_merch'){ bDiscAmt = bTaxable * 0.10; bDiscLbl = '10% off Merchandise'; }
       if (bDiscAmt > 0) {
@@ -10777,6 +10801,8 @@ function captureCemState() {
     bronzeItems:  JSON.parse(JSON.stringify(typeof bronzeItems  !== 'undefined' ? bronzeItems  : [])),
     markerItems:  JSON.parse(JSON.stringify(typeof markerItems  !== 'undefined' ? markerItems  : [])),
     portraitItems: JSON.parse(JSON.stringify(typeof portraitItems !== 'undefined' ? portraitItems : [])),
+    // What was actually quoted, line by line. See _bwCaptureLines() for why this is not optional.
+    lines: _bwCaptureLines(typeof _cemLines !== 'undefined' ? _cemLines : []),
     total: _cemTotal || 0
   };
 }
