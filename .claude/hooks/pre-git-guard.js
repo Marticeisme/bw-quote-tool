@@ -7,6 +7,9 @@
  * pending shell command from stdin (Claude Code hook payload) and BLOCKS (exit 2) when:
  *
  *   1. `git push`   and index.html has a JS syntax error in any inline <script> block.
+ *   4. `git push`   and a page this push would publish fails the repo's own verify
+ *      scripts (scripts/verify_catalogs.mjs / verify_guides_page.mjs). Only the
+ *      surfaces the push actually touches are checked. BW_SKIP_PAGE_VERIFY=1 skips it.
  *   2. `git add -A` / `git add .` / `git add --all` — clobbers the other session's
  *      in-flight edits (two sessions share this working tree).
  *   3. any git add/commit/push that would put wmp-cemetery-map/ into THIS (public) repo —
@@ -22,7 +25,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 
 function allow() { process.exit(0); }
 function block(msg) { process.stderr.write('[pre-git-guard] ' + msg + '\n'); process.exit(2); }
@@ -53,7 +56,13 @@ if (!cmd || !/\bgit\b/i.test(cmd)) allow(); // only care about git commands
 const GIT = '(?:^|[\\n;&|(])\\s*git\\s+';
 
 // --- Rule 2: git add -A / . / --all -------------------------------------------------
-if (new RegExp(GIT + 'add\\b[^\\n;&|]*?(\\s-A\\b|\\s--all\\b|\\s\\.(?:\\s|$))', 'i').test(cmd)) {
+// Tested against the command with message text removed, for the same reason rule 3 is:
+// a heredoc line that merely *describes* the rule ("git add -A rules still apply") sits
+// right after a newline and is otherwise indistinguishable from an invocation. git never
+// takes pathspecs from -m/--message or heredoc bodies, so stripping them cannot hide a
+// real `git add -A`.
+if (new RegExp(GIT + 'add\\b[^\\n;&|]*?(\\s-A\\b|\\s--all\\b|\\s\\.(?:\\s|$))', 'i')
+    .test(withoutMessageText(cmd))) {
   block(
     'Refusing `git add -A` / `git add .` / `git add --all`.\n' +
     'Two sessions share this working tree — stage only the files you changed, by name.'
@@ -132,34 +141,108 @@ if (new RegExp(GIT + 'push\\b', 'i').test(cmd)) {
   const repoRoot = process.cwd();
   const indexPath = path.join(repoRoot, 'index.html');
 
-  let html;
+  // No index.html here (e.g. pushing from a different worktree) -> nothing to check.
+  // Note: this must NOT exit, or later push rules would be silently skipped.
+  let html = null;
   try {
     html = fs.readFileSync(indexPath, 'utf8');
   } catch (e) {
-    // No index.html here (e.g. pushing from a different worktree). Nothing to check.
-    allow();
+    html = null;
   }
 
-  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
-  let m, i = 0, bad = 0;
-  const errors = [];
-  while ((m = re.exec(html))) {
-    i++;
+  if (html !== null) {
+    const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+    let m, i = 0, bad = 0;
+    const errors = [];
+    while ((m = re.exec(html))) {
+      i++;
+      try {
+        // eslint-disable-next-line no-new-func
+        new Function(m[1]);
+      } catch (err) {
+        bad++;
+        errors.push('  block #' + i + ': ' + err.message);
+      }
+    }
+
+    if (bad > 0) {
+      block(
+        'Blocking `git push`: index.html has ' + bad + ' JS syntax error(s) in ' + i + ' inline script block(s).\n' +
+        errors.join('\n') + '\n' +
+        'One JS error breaks the tool for everyone. Fix it, then push.'
+      );
+    }
+  }
+}
+
+// --- Rule 4: verify the pages a push would publish ----------------------------------
+// GitHub Pages serves this repo, so a push is a deploy: a broken facet filter or a
+// guides card pointing at a missing file is live for families immediately. Runs the
+// repo's own verify scripts, but ONLY for the surfaces this push actually touches —
+// an index.html-only push must not pay for a full catalog sweep.
+//
+// Escape hatch: BW_SKIP_PAGE_VERIFY=1 skips this rule (used by the hook's tests, and
+// available when Playwright itself is the thing that is broken). It deliberately does
+// NOT skip the PII or `git add -A` rules.
+if (new RegExp(GIT + 'push\\b', 'i').test(cmd) && process.env.BW_SKIP_PAGE_VERIFY !== '1') {
+  const root = repoRootOf(targetDir(cmd, baseCwd)) || process.cwd();
+
+  const CATALOG_PAGES = [
+    'metal-caskets.html', 'wood-caskets.html', 'urns-guide.html',
+    'keepsake-urns-guide.html', 'cremation-containers-rental-caskets.html',
+    'all-caskets.html',
+  ];
+
+  // What is this push about to publish? Prefer the configured upstream; fall back to
+  // origin/main. If neither resolves we cannot tell, and per this hook's fail-open
+  // design we say nothing rather than wedge the push.
+  let changed = null;
+  for (const range of ['@{upstream}..HEAD', 'origin/main..HEAD']) {
     try {
-      // eslint-disable-next-line no-new-func
-      new Function(m[1]);
-    } catch (err) {
-      bad++;
-      errors.push('  block #' + i + ': ' + err.message);
+      changed = execFileSync('git', ['-C', root, 'diff', '--name-only', range],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+        .split('\n').map(s => s.trim()).filter(Boolean);
+      break;
+    } catch (e) {
+      changed = null; // try the next range
     }
   }
 
-  if (bad > 0) {
-    block(
-      'Blocking `git push`: index.html has ' + bad + ' JS syntax error(s) in ' + i + ' inline script block(s).\n' +
-      errors.join('\n') + '\n' +
-      'One JS error breaks the tool for everyone. Fix it, then push.'
-    );
+  if (changed && changed.length) {
+    const jobs = [];
+    if (changed.some(f => CATALOG_PAGES.includes(f))) {
+      jobs.push(['scripts/verify_catalogs.mjs', 'catalog pages']);
+    }
+    if (changed.includes('guides.html')) {
+      jobs.push(['scripts/verify_guides_page.mjs', 'the guides hub']);
+    }
+
+    for (const [script, what] of jobs) {
+      if (!fs.existsSync(path.join(root, script))) continue; // not present -> nothing to run
+
+      let r;
+      try {
+        r = spawnSync(process.execPath, [script], {
+          cwd: root, encoding: 'utf8', timeout: 240000,
+        });
+      } catch (e) {
+        continue; // could not spawn -> fail open
+      }
+      // Timed out, killed, or node/Playwright unavailable -> fail open. This gate is a
+      // quality check, not the PII rule; it must never make pushing impossible.
+      if (!r || r.error || r.status === null) continue;
+
+      if (r.status !== 0) {
+        const out = ((r.stdout || '') + (r.stderr || ''))
+          .split('\n').filter(l => /FAIL|BAD|ISSUES|issues|errors:/.test(l)).slice(0, 12);
+        block(
+          'Blocking `git push`: ' + what + ' failed verification.\n' +
+          out.map(l => '  ' + l.trim()).join('\n') + '\n' +
+          'Run `node ' + script + '` to see the full report. This repo deploys to GitHub\n' +
+          'Pages on push, so the breakage would be live for families immediately.'
+        );
+      }
+    }
   }
 }
 

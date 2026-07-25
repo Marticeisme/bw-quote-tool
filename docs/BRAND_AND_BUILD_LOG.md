@@ -1177,6 +1177,52 @@ node scripts/verify_guides_page.mjs     # the hub
 
 ---
 
+### 2026-07-24 — pre-git-guard: verify pages before a push deploys them
+
+`.claude/hooks/pre-git-guard.js` gained **rule 4**: a `git push` is blocked when a page it
+would publish fails the repo's own verify scripts. This repo deploys to GitHub Pages on push,
+so a broken facet filter or a guides card pointing at a missing file is live for families
+immediately — the same reasoning behind the existing index.html syntax gate.
+
+- **Only the touched surfaces are checked.** It diffs `@{upstream}..HEAD` (falling back to
+  `origin/main..HEAD`) and runs `verify_catalogs.mjs` only if a catalog page is in the push,
+  `verify_guides_page.mjs` only if `guides.html` is. An index.html-only push — the other
+  session's normal case — pays nothing.
+- **Fails open on infrastructure.** Undeterminable range, missing script, spawn failure, or
+  the 4-minute timeout all allow the push. This is a quality gate, not the PII rule; it must
+  never make pushing impossible.
+- **Escape hatch:** `BW_SKIP_PAGE_VERIFY=1` skips *this rule only* — the PII and
+  `git add -A` rules still apply. Used by the hook's own tests, and available when Playwright
+  itself is what's broken.
+
+**Fixed a latent bug while in there:** rule 1 called `allow()` (which exits) when index.html
+was unreadable, so *any* rule added after it would have been silently skipped in that case.
+It now just skips its own check and falls through.
+
+**Proved both halves block, by fault injection rather than assertion.** Committed a catalog
+with facet filtering disabled → `Blocking git push: catalog pages failed verification …
+metal-caskets.html FAIL`, exit 2. Committed `guides.html` with a wrong category pill →
+`Blocking git push: the guides hub failed verification … pill says 9, found 7 cards`, exit 2.
+Confirmed the escape hatch returns exit 0 with the break still in place, then restored with
+`git reset --soft HEAD~1` + `git checkout HEAD -- <file>` and verified by md5 that HEAD, the
+catalog, and the other session's in-flight `index.html` were all byte-identical afterwards.
+
+**Rule 2 had the same false-positive bug rule 3 was already fixed for — and it bit
+immediately.** The commit for this very change was blocked, because its message contains the
+words *"git add -A"* while describing the escape hatch: rule 2 tested the raw command, and a
+heredoc line beginning `git add -A rules still apply` sits right after a newline, so it is
+indistinguishable from an invocation. Rule 2 now tests `withoutMessageText(cmd)` like rule 3.
+Safe because git never takes pathspecs from `-m`/`--message` or heredoc bodies, so stripping
+them cannot hide a real `git add -A` — and a case asserting that a real invocation alongside
+such a message *still* blocks is in the suite.
+
+Hook tests: 29 passing (`node .claude/hooks/pre-git-guard.test.js`). The new cases pin the
+plumbing, the escape hatch, and the message-vs-invocation distinction; the blocking path is
+proved by the injection above, since asserting it in the suite would run Playwright over
+every catalog on every test run.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

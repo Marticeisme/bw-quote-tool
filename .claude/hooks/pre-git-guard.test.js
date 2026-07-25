@@ -39,10 +39,15 @@ const MAP_REPO = fs.existsSync(path.join(MAP, '.git'));
 
 const BLOCK = 2, ALLOW = 0;
 
-function run(command, cwd) {
+function run(command, cwd, needs) {
   const r = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify({ cwd, tool_input: { command } }),
     encoding: 'utf8',
+    // Rule 4 shells out to Playwright over every catalog. Tests must stay fast and must
+    // not depend on what happens to be unpushed, so they use the documented escape hatch.
+    env: needs === 'skip-verify'
+      ? Object.assign({}, process.env, { BW_SKIP_PAGE_VERIFY: '1' })
+      : process.env,
   });
   return { code: r.status, err: (r.stderr || '').trim() };
 }
@@ -82,6 +87,25 @@ const cases = [
   ['BLOCK', BLOCK, 'git add -A', PARENT],
   ['BLOCK', BLOCK, 'git add .', PARENT],
   ['BLOCK', BLOCK, 'git add --all', PARENT],
+  // ...but a commit MESSAGE may describe the rule. This is the same false-positive class
+  // that already bit rule 3: a heredoc line reading "git add -A rules still apply" starts
+  // right after a newline, so it looks exactly like an invocation.
+  ['ALLOW', ALLOW,
+    "git commit -F - -- .claude/hooks/pre-git-guard.js <<'MSG'\nhook: document the rules\n\nthe PII and\ngit add -A rules still apply\nMSG",
+    PARENT],
+  ['ALLOW', ALLOW, 'git commit -m "explain why git add -A is refused" -- README.md', PARENT],
+  // a real invocation alongside such a message must still block
+  ['BLOCK', BLOCK, 'git commit -m "mentions git add -A" -- x.txt && git add -A', PARENT],
+
+  // --- rule 4: page verification on push ---
+  // The blocking path runs Playwright over every catalog, so it is proved by fault
+  // injection by hand (break a facet, watch the push block) rather than here — these
+  // cases pin the plumbing: the escape hatch works, and a push must never be blocked
+  // just because the verify scripts exist.
+  ['ALLOW', ALLOW, 'git push origin main', PARENT, 'skip-verify'],
+  ['ALLOW', ALLOW, 'git push', PARENT, 'skip-verify'],
+  // a non-push git command must not trigger the page checks at all
+  ['ALLOW', ALLOW, 'git commit -m "docs" -- docs/BRAND_AND_BUILD_LOG.md', PARENT],
 
   // --- ordinary work must stay unblocked ---
   ['ALLOW', ALLOW, 'git status', PARENT],
@@ -99,7 +123,7 @@ for (const [label, want, command, cwd, needs] of cases) {
     console.log('  skip ' + label.padEnd(6) + '(wmp-cemetery-map has no repo here)  ' + command.slice(0, 50));
     continue;
   }
-  const { code, err } = run(command, cwd);
+  const { code, err } = run(command, cwd, needs);
   const ok = code === want;
   ok ? pass++ : fail++;
   const shown = command.replace(/\n/g, '\\n');
