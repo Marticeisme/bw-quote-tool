@@ -11375,9 +11375,64 @@ function show(id, navEl) {
 // listens for the hash changing (Back/Forward, a pasted link, a link from another page).
 var _bwRouting = false;   // true while show() is being driven BY the hash, to suppress the echo
 
-function _bwHashId() {
-  // Tolerates "#id" and "#/id" so a link written either way works.
-  return (location.hash || '').replace(/^#\/?/, '').trim();
+// Shared hash grammar, agreed with the WMP map session so links resolve in both apps:
+//
+//   #route                     bare
+//   #route=value               shorthand — params[route] = value, e.g. #space=33709
+//   #route?key=value&key=value full form,  e.g. #cem-quote?space=33709&loc=Sec-21%20Blk-1...
+//
+// Param vocabulary is shared and deliberately small:
+//   space    interment position id (MIS "sid"). The primary cross-app key — a contract line
+//            sells a RIGHT, not a space, so per-position is the correct granularity.
+//   section  any section code: 21, MVC, VETS_N, 17_S_Sundial, LUG, VETERANS. One namespace
+//            covering lawn and indoor, so a link can be built without first classifying it.
+//   building building code (EL today). Sections hang under buildings, not the reverse.
+//   loc      canonical space address for display. NEVER parse it — indoor wall ids carry
+//            internal hyphens and slashes (A-EXT, I/S-FW) and will not split on '-'.
+//   q, kind  search text and deceased|owner.
+function _bwParseHash() {
+  var h = (location.hash || '').replace(/^#\/?/, '').trim();
+  var out = { route: '', params: {} };
+  if (!h) return out;
+  function dec(s) {
+    try { return decodeURIComponent(String(s).replace(/\+/g, ' ')); } catch (e) { return s; }
+  }
+  var qi = h.indexOf('?');
+  if (qi > -1) {
+    out.route = h.slice(0, qi);
+    h.slice(qi + 1).split('&').forEach(function(pair) {
+      if (!pair) return;
+      var eq = pair.indexOf('=');
+      out.params[dec(eq > -1 ? pair.slice(0, eq) : pair)] = eq > -1 ? dec(pair.slice(eq + 1)) : '';
+    });
+    return out;
+  }
+  var ei = h.indexOf('=');
+  if (ei > -1) {
+    out.route = h.slice(0, ei);
+    out.params[out.route] = dec(h.slice(ei + 1));
+    return out;
+  }
+  out.route = h;
+  return out;
+}
+function _bwHashId() { return _bwParseHash().route; }
+
+// Params from the most recent route, for any section that wants them.
+var _bwParams = {};
+function bwRouteParams() { return _bwParams; }
+
+// Per-section arrival handlers. Registered with bwOnRoute(sectionId, fn); fn receives the
+// params object. Only fired when there ARE params — a bare #cem-quote has nothing to hand a
+// handler, and firing on the empty case would re-trigger on show()'s own hash write.
+var BW_ROUTE_HANDLERS = {};
+function bwOnRoute(id, fn) { BW_ROUTE_HANDLERS[id] = fn; }
+
+// Where the WMP map lives. Separate app, separate port in development. Kept as one constant
+// because it is the only thing that changes if the map is ever served from somewhere else.
+var BW_MAP_BASE = 'http://localhost:8642/index.html';
+function bwMapUrl(route, value) {
+  return BW_MAP_BASE + '#' + route + '=' + encodeURIComponent(value);
 }
 function _bwSectionExists(id) { return !!(id && document.getElementById('section-' + id)); }
 
@@ -11392,21 +11447,55 @@ function _bwNavElFor(id) {
 // Returns false for an unknown section, leaving the current one alone — a stale or mistyped link
 // should never blank the app.
 function bwRoute(fallbackId) {
-  var id = _bwHashId() || fallbackId || '';
+  var parsed = _bwParseHash();
+  var id = parsed.route || fallbackId || '';
   if (!_bwSectionExists(id)) return false;
-  // Already on screen: nothing to do. This is also what absorbs the hashchange that show() itself
-  // triggers by writing the hash — without it, show() would re-enter and repeat its side effects
-  // (rebuilding the 841-entry price index, re-pulling Combined totals) on every navigation.
+  _bwParams = parsed.params;
+  // Switch sections only if we are not already there. This is also what absorbs the hashchange
+  // that show() itself triggers by writing the hash — without it, show() would re-enter and
+  // repeat its side effects (rebuilding the 841-entry price index, re-pulling Combined totals)
+  // on every navigation.
   var sec = document.getElementById('section-' + id);
-  if (sec.classList.contains('active')) return true;
-  _bwRouting = true;
-  try { show(id, _bwNavElFor(id)); } finally { _bwRouting = false; }
+  if (!sec.classList.contains('active')) {
+    _bwRouting = true;
+    try { show(id, _bwNavElFor(id)); } finally { _bwRouting = false; }
+  }
+  // The handler runs even when the section was already open, so #cem-quote?space=1 followed by
+  // #cem-quote?space=2 acts on the second one instead of being swallowed by the check above.
+  var fn = BW_ROUTE_HANDLERS[id];
+  if (fn && Object.keys(_bwParams).length) {
+    try { fn(_bwParams); } catch (e) { console.warn('route handler failed for ' + id, e); }
+  }
   return true;
 }
 
 // Back/Forward, a pasted link, or a link from another page. Going Back to the entry state leaves
 // no hash at all, which means Home — the section the markup starts on.
 window.addEventListener('hashchange', function() { bwRoute('home'); });
+
+// ── Arrival from the map ──────────────────────────────────────────────────────────────
+// Clicking a plot in the WMP map lands here as #cem-quote?space=<sid>&loc=<address>.
+// `space` is the MIS interment-position id and is what a contract line should eventually be
+// keyed on; `loc` is the printable address. Held in memory for now and NOT yet written into
+// the saved-quote record — where a sid lives on a saved record is a schema decision that is
+// still open, and guessing it here would bake in a shape we would have to migrate.
+var _bwIncomingSpace = null;
+
+bwOnRoute('cem-quote', function(p) {
+  if (!p.space && !p.loc) return;
+  _bwIncomingSpace = { sid: p.space || null, loc: p.loc || null };
+  // Fill the existing free-text location field so the space is visible on the quote straight
+  // away. Only when empty — arriving from the map should never silently overwrite something
+  // already typed for a different family.
+  var locEl = el('qSpaceLocation');
+  if (locEl && p.loc && !locEl.value.trim()) {
+    locEl.value = p.loc;
+    try { cemUpdateD(); } catch (e) {}
+  }
+  if (typeof showQuoteToast === 'function') {
+    showQuoteToast('Space ' + (p.loc || p.space) + ' loaded from the map');
+  }
+});
 
 // Open on the section named in the URL. No hash just leaves the markup's default (Home).
 if (document.readyState !== 'loading') bwRoute();
