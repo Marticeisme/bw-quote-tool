@@ -942,6 +942,17 @@ tr:hover td{background:#eef3f8;}
             <label>Client / Family Name</label>
             <input type="text" id="cemClientName" placeholder="e.g. Smith Family" oninput="cemUpdateD()" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
           </div>
+          <!-- Linking a contact is OPTIONAL and always has been: a quote saves perfectly well
+               with nobody attached. This just makes the family findable afterwards. -->
+          <div class="q-row" style="margin-top:6px;">
+            <label>Contact</label>
+            <div id="cemLinkedContact" style="flex:1;"></div>
+          </div>
+          <!-- Set when arriving from the WMP map. Blank otherwise. -->
+          <div class="q-row" id="cemLinkedSpaceRow" style="margin-top:4px;display:none;">
+            <label>Space</label>
+            <div id="cemLinkedSpace" style="flex:1;"></div>
+          </div>
           <div class="q-row" style="margin-top:8px;">
             <label>Quote Notes (printed at bottom of quote)</label>
             <textarea id="cemQuoteNotes" placeholder="e.g. Pricing contingent on space availability · Subject to change" oninput="cemUpdateD()" rows="2" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;resize:vertical;font-family:inherit;"></textarea>
@@ -2875,6 +2886,23 @@ tr:hover td{background:#eef3f8;}
       <button onclick="submitContactEditor()" style="flex:1;padding:10px;font-size:14px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;">Save Contact</button>
       <button onclick="closeContactEditor()" style="padding:10px 18px;font-size:13px;font-family:inherit;color:var(--text-light);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;">Cancel</button>
       <button id="ceDelete" onclick="deleteContactFromEditor()" style="display:none;padding:10px 14px;font-size:13px;font-family:inherit;color:#c0392b;background:#fff;border:1px solid #fecaca;border-radius:7px;cursor:pointer;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Contact picker. Shared by every module that links a contact to a record. -->
+<div id="contactPicker" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(15,36,56,.55);align-items:flex-start;justify-content:center;padding:28px 18px;overflow:auto;">
+  <div style="width:100%;max-width:520px;background:var(--white);border-radius:12px;padding:22px 24px 18px;box-shadow:0 18px 48px rgba(0,0,0,.3);">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;font-size:16px;color:var(--navy);">Link a contact</h3>
+      <button onclick="closeContactPicker()" style="background:none;border:none;font-size:20px;line-height:1;color:var(--text-light);cursor:pointer;">&times;</button>
+    </div>
+    <input id="cpSearch" type="text" placeholder="Search by name, phone or email…" oninput="renderContactPicker()"
+           style="width:100%;box-sizing:border-box;padding:8px 11px;font-size:13px;font-family:inherit;border:1px solid var(--gray-mid);border-radius:7px;background:var(--gray-light);color:var(--ink);margin-bottom:12px;">
+    <div id="cpResults" style="max-height:340px;overflow:auto;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+      <button onclick="pickerCreateNew()" style="flex:1;padding:9px;font-size:13px;font-weight:700;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;">+ Create a new contact</button>
+      <button onclick="closeContactPicker()" style="padding:9px 16px;font-size:13px;font-family:inherit;color:var(--text-light);background:none;border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;">Cancel</button>
     </div>
   </div>
 </div>
@@ -7994,8 +8022,11 @@ function _spaceName(selId, otherId, rowId) {
 }
 function resetCemQuote() {
   try {
-  // A fresh quote has no prior vintage to compare against.
+  // A fresh quote has no prior vintage to compare against, no contact and no space.
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
+  _bwPendingLink = null;
+  _bwIncomingSpace = null;
+  if (typeof renderCemLinkedContact === 'function') renderCemLinkedContact();
   // Clear client info
   if (el('cemClientName')) el('cemClientName').value = '';
   if (el('cemQuoteNotes')) el('cemQuoteNotes').value = '';
@@ -11451,9 +11482,12 @@ function submitContactEditor() {
     errEl.style.display = 'block';
     return;
   }
-  saveParty(p).then(function() {
+  saveParty(p).then(function(saved) {
     closeContactEditor();
     if (typeof showQuoteToast === 'function') showQuoteToast('Contact saved');
+    // Created from the picker: hand straight back so the flow is never "create it, now go and
+    // find it again".
+    if (_bwAfterContactSave) { var cb = _bwAfterContactSave; _bwAfterContactSave = null; cb(saved.id); }
   }).catch(function(e) {
     errEl.textContent = (e && e.message) || String(e);
     errEl.style.display = 'block';
@@ -11472,6 +11506,147 @@ function deleteContactFromEditor() {
     errEl.textContent = (e && e.message) || String(e);
     errEl.style.display = 'block';
   });
+}
+
+// ── Linking a contact to a quote ─────────────────────────────────────────────────────
+// A quote's record id only exists once it is saved, so a link chosen while building is held
+// here and written as a contractRole at save time.
+//
+// Linking is OPTIONAL throughout. A quote with no contact saves exactly as it always did — the
+// link makes the family findable afterwards, it is not a precondition for quoting one.
+var _bwPendingLink = null;     // { partyId, role }
+var _cpOnPick = null;          // picker callback
+
+function bwSetPendingLink(partyId, role) {
+  _bwPendingLink = partyId ? { partyId: partyId, role: role || 'purchaser' } : null;
+  // Fill the family name from the contact, but only when it's blank — linking must never
+  // overwrite something already typed for this quote.
+  var p = partyId ? bwPartyById(partyId) : null;
+  var nameEl = el('cemClientName');
+  if (p && nameEl && !nameEl.value.trim()) {
+    nameEl.value = bwPartyName(p);
+    try { cemUpdateD(); } catch (e) {}
+  }
+  renderCemLinkedContact();
+}
+
+function renderCemLinkedContact() {
+  var box = el('cemLinkedContact');
+  if (box) {
+    if (_bwPendingLink && bwPartyById(_bwPendingLink.partyId)) {
+      var p = bwPartyById(_bwPendingLink.partyId);
+      var ph = _bwPrimary(p.phones);
+      box.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+        + '<span style="font-size:13px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
+        + (ph ? '<span style="font-size:12px;color:var(--text-light);">' + _ceEsc(bwFmtPhone(ph)) + '</span>' : '')
+        + '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(_bwPendingLink.role)) + '</span>'
+        + '<button onclick="bwSetPendingLink(null)" style="padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Unlink</button>'
+        + '</span>';
+    } else {
+      box.innerHTML = '<button onclick="openContactPicker(function(id){ bwSetPendingLink(id); })" '
+        + 'style="padding:6px 13px;font-size:12px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px dashed var(--gray-mid);border-radius:6px;cursor:pointer;">+ Link a contact</button>'
+        + '<span style="margin-left:9px;font-size:11.5px;color:var(--text-light);">optional</span>';
+    }
+  }
+  var srow = el('cemLinkedSpaceRow'), sbox = el('cemLinkedSpace');
+  if (srow && sbox) {
+    if (_bwIncomingSpace && (_bwIncomingSpace.sid || _bwIncomingSpace.loc)) {
+      srow.style.display = 'flex';
+      sbox.innerHTML = '<span style="font-size:13px;color:var(--navy);font-weight:600;">'
+        + _ceEsc(_bwIncomingSpace.loc || ('Space ' + _bwIncomingSpace.sid)) + '</span>'
+        + (_bwIncomingSpace.sid ? '<span class="ct-pill" style="background:var(--blue-light);color:var(--navy);">sid ' + _ceEsc(_bwIncomingSpace.sid) + '</span>' : '')
+        + '<button onclick="bwClearIncomingSpace()" style="margin-left:8px;padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Clear</button>';
+    } else { srow.style.display = 'none'; sbox.innerHTML = ''; }
+  }
+}
+function bwClearIncomingSpace() { _bwIncomingSpace = null; renderCemLinkedContact(); }
+
+// ── picker ───────────────────────────────────────────────────────────────────────────
+function openContactPicker(onPick) {
+  _cpOnPick = onPick || null;
+  var s = el('cpSearch'); if (s) s.value = '';
+  renderContactPicker();
+  el('contactPicker').style.display = 'flex';
+  try { s.focus(); } catch (e) {}
+}
+function closeContactPicker() { el('contactPicker').style.display = 'none'; _cpOnPick = null; }
+
+function renderContactPicker() {
+  var box = el('cpResults'); if (!box) return;
+  var q = ((el('cpSearch') || {}).value || '').trim().toLowerCase();
+  var list = _parties.filter(function(p) {
+    if (!q) return true;
+    var hay = (bwPartyName(p) + ' ' + _bwPrimary(p.phones) + ' ' + _bwPrimary(p.emails) + ' '
+             + String(_bwPrimary(p.phones)).replace(/\D/g, '')).toLowerCase();
+    return hay.indexOf(q) > -1;
+  }).slice(0, 60);
+  if (!_parties.length) {
+    box.innerHTML = '<p style="font-size:13px;color:var(--text-light);margin:4px 0;">No contacts yet. Create one below — or skip it, a quote saves fine without.</p>';
+    return;
+  }
+  if (!list.length) { box.innerHTML = '<p style="font-size:13px;color:var(--text-light);margin:4px 0;">No matches.</p>'; return; }
+  box.innerHTML = list.map(function(p) {
+    var ph = _bwPrimary(p.phones);
+    return '<div onclick="pickerChoose(\'' + p.id + '\')" style="padding:9px 11px;border:1px solid var(--border);border-radius:7px;margin-bottom:6px;cursor:pointer;background:#fff;">'
+      + '<div style="font-size:13.5px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</div>'
+      + (ph ? '<div style="font-size:12px;color:var(--text-light);margin-top:1px;">' + _ceEsc(bwFmtPhone(ph)) + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+function pickerChoose(id) {
+  var cb = _cpOnPick;
+  closeContactPicker();
+  if (cb) cb(id);
+}
+// Creating from the picker hands straight back to the picker's caller once saved, so the flow
+// is never "create, then go and find it again".
+function pickerCreateNew() {
+  var cb = _cpOnPick;
+  var typed = ((el('cpSearch') || {}).value || '').trim();
+  closeContactPicker();
+  openContactEditor();
+  if (typed) {
+    var parts = typed.split(/\s+/);
+    if (parts.length > 1) { el('ceG').value = parts[0]; el('ceF').value = parts.slice(1).join(' '); }
+    else { el('ceF').value = typed; }
+    contactEditorTouched();
+  }
+  _bwAfterContactSave = cb || null;
+}
+var _bwAfterContactSave = null;
+
+// ── persistence ──────────────────────────────────────────────────────────────────────
+// Called by the save functions. Writes the space onto the record and the contact link as a
+// contractRole. Both are no-ops when nothing was linked.
+function bwAttachToSavedRecord(type, snap) {
+  if (_bwIncomingSpace && (_bwIncomingSpace.sid || _bwIncomingSpace.loc)) {
+    // An array from the start: a companion purchase is one contract over two spaces, so a single
+    // field would need migrating the first time that happens.
+    snap.spaces = [{ sid: _bwIncomingSpace.sid || null, loc: _bwIncomingSpace.loc || null }];
+  }
+  if (!_bwPendingLink || !_bwPendingLink.partyId) return Promise.resolve(snap);
+  return saveContractRole({
+    partyId: _bwPendingLink.partyId,
+    recordType: type,
+    recordId: snap.id,
+    role: _bwPendingLink.role || 'purchaser',
+    financiallyLiable: (_bwPendingLink.role || 'purchaser') === 'purchaser',
+    _prov: bwProv('quote_tool')
+  }).then(function(){ return snap; }).catch(function(e) {
+    // A failed link must never cost the quote. Say so and move on.
+    console.warn('contact link failed', e);
+    alert('The quote was saved, but linking the contact failed:\n\n' + ((e && e.message) || e));
+    return snap;
+  });
+}
+
+// Restores the link display when a saved quote is reopened.
+function bwRestoreLinkFor(type, snap) {
+  var roles = bwRolesForRecord(type, snap.id).filter(function(r){ return r.partyId; });
+  _bwPendingLink = roles.length ? { partyId: roles[0].partyId, role: roles[0].role } : null;
+  var sp = (snap.spaces && snap.spaces[0]) || null;
+  _bwIncomingSpace = sp ? { sid: sp.sid || null, loc: sp.loc || null } : null;
+  renderCemLinkedContact();
 }
 
 if (document.readyState !== 'loading') bwStartAppIfAllowed();
@@ -11501,6 +11676,9 @@ function saveCemQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _cemTotal || 0, state: captureCemState(), date: d };
+    // Space and contact link, both optional. bwAttachToSavedRecord writes snap.spaces before the
+    // record is saved, and creates the contractRole after — a failed link never costs the quote.
+    bwAttachToSavedRecord('cem', snap);
     saveQuoteRecord('cem', snap, label);
     show('cem-saved', el('navCemSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
@@ -11797,6 +11975,7 @@ function loadSavedCemQuote(id) {
     bwShowVintageBanner('cem-quote', snap.date,
       bwCompareQuoteVintage(s.lines, s.total, _cemLines, _cemTotal));
   } else { bwHideVintageBanner(); }
+  bwRestoreLinkFor('cem', snap);
 }
 function loadSavedFhQuote(id) {
   var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
@@ -11953,6 +12132,7 @@ function show(id, navEl) {
   // fresh install: with no contacts there is no child_added, so nothing ever triggers a render
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
+  if (id === 'cem-quote') { try { renderCemLinkedContact(); } catch(e) {} }
   var summ = document.querySelector('.summary-fixed[data-for="section-'+id+'"]');
   if (summ) summ.classList.add('visible');
   window.scrollTo(0,0);
@@ -12104,6 +12284,7 @@ bwOnRoute('cem-quote', function(p) {
     locEl.value = p.loc;
     try { cemUpdateD(); } catch (e) {}
   }
+  if (typeof renderCemLinkedContact === 'function') renderCemLinkedContact();
   if (typeof showQuoteToast === 'function') {
     showQuoteToast('Space ' + (p.loc || p.space) + ' loaded from the map');
   }
