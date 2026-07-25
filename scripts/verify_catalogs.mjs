@@ -4,9 +4,12 @@ import { chromium } from 'playwright';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
+// Every live catalog. Keep this list complete — running the script bare is the common
+// case, and a catalog missing from here is simply never checked.
 const pages = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : ['metal-caskets.html', 'wood-caskets.html', 'urns-guide.html', 'keepsake-urns-guide.html'];
+  : ['metal-caskets.html', 'wood-caskets.html', 'urns-guide.html', 'keepsake-urns-guide.html',
+     'cremation-containers-rental-caskets.html', 'all-caskets.html'];
 
 const browser = await chromium.launch();
 let failures = 0;
@@ -67,7 +70,105 @@ for (const file of pages) {
   await page.waitForTimeout(200);
   const firstAsc = (await page.locator('.product-card:visible .product-price').first().textContent()).trim();
 
-  const bad = errors.length || broken.length || dup.length || missingMeta || noPrice || noneVisible !== 0 || allBack !== cards;
+  // ---- facet filters (multi-select) ----
+  // Driven by dispatching 'change' rather than clicking: the facet panels overlap each
+  // other, so a real click on a second facet's button hits the first panel in headless.
+  const facet = await page.evaluate(() => {
+    const out = { facets: 0, notes: [] };
+    const list = [...document.querySelectorAll('.facet')];
+    out.facets = list.length;
+    if (!list.length) { out.notes.push('no facets rendered'); return out; }
+
+    const vis = () => [...document.querySelectorAll('.product-card')].filter(c => c.style.display !== 'none').length;
+    const boxes = f => [...f.querySelectorAll('.facet-opt input')];
+    const label = (f, i) => f.querySelectorAll('.facet-opt .facet-opt-label')[i].textContent.trim();
+    const stated = (f, i) => +f.querySelectorAll('.facet-opt .facet-opt-count')[i].textContent;
+    const set = (f, i, on) => { const cb = boxes(f)[i]; cb.checked = on; cb.dispatchEvent(new Event('change')); };
+
+    const f0 = list[0];
+    // 1. an option's stated count must equal what it actually filters to
+    const n0 = stated(f0, 0);
+    set(f0, 0, true);
+    out.one = `${vis()}/${n0}`;
+    if (vis() !== n0) out.notes.push(`"${label(f0, 0)}" states ${n0} but filters to ${vis()}`);
+
+    // 2. OR within one facet: two options together = the sum of their counts
+    if (boxes(f0).length > 1) {
+      const n1 = stated(f0, 1);
+      set(f0, 1, true);
+      out.or = `${vis()}/${n0 + n1}`;
+      if (vis() !== n0 + n1) out.notes.push(`OR within facet: expected ${n0 + n1}, got ${vis()}`);
+      set(f0, 1, false);
+    }
+
+    // 3. AND across facets: adding a second facet can only narrow, and every remaining
+    //    card must still match the first facet's selection
+    if (list.length > 1) {
+      const before = vis();
+      const f1 = list[1];
+      set(f1, 0, true);
+      const after = vis();
+      out.and = `${after}<=${before}`;
+      if (after > before) out.notes.push(`AND across facets widened results (${before} -> ${after})`);
+      set(f1, 0, false);
+    }
+
+    // 4. clear restores everything
+    const clear = document.getElementById('facetClear');
+    if (clear) clear.click(); else out.notes.push('no #facetClear button');
+    out.cleared = vis();
+    return out;
+  });
+  const facetBad = facet.notes.length || facet.cleared !== cards;
+
+  // ---- click-to-enlarge on the product modal ----
+  await page.locator('.product-card').first().click();
+  await page.waitForSelector('#productModal.active', { timeout: 3000 });
+  await page.locator('#modalImg').click();
+  await page.waitForSelector('#photoLightbox.active', { timeout: 3000 });
+  const zoom = await page.evaluate(() => {
+    const lb = document.getElementById('photoLightbox');
+    const modal = document.getElementById('productModal');
+    return {
+      srcMatch: document.getElementById('lightboxImg').src === document.getElementById('modalImg').src,
+      above: parseInt(getComputedStyle(lb).zIndex, 10) > parseInt(getComputedStyle(modal).zIndex, 10),
+    };
+  });
+  await page.keyboard.press('Escape');            // closes the lightbox only
+  await page.waitForTimeout(150);
+  const escStep = await page.evaluate(() => ({
+    lightboxClosed: !document.getElementById('photoLightbox').classList.contains('active'),
+    modalStillOpen: document.getElementById('productModal').classList.contains('active'),
+  }));
+  await page.keyboard.press('Escape');            // then the modal
+  await page.waitForTimeout(150);
+  const modalClosed = await page.evaluate(() => !document.getElementById('productModal').classList.contains('active'));
+  const zoomBad = !zoom.srcMatch || !zoom.above || !escStep.lightboxClosed || !escStep.modalStillOpen || !modalClosed;
+
+  // ---- compare tray + overlay ----
+  const compare = await page.evaluate(() => {
+    const cbs = [...document.querySelectorAll('.compare-cb')];
+    if (cbs.length < 2) return { skipped: true };
+    cbs[0].click(); cbs[1].click();
+    return { picked: document.querySelectorAll('.compare-chip').length || 2 };
+  });
+  let compareBad = false, compareInfo = 'skipped';
+  if (!compare.skipped) {
+    await page.waitForTimeout(200);
+    await page.locator('#compareOpenBtn').click();
+    await page.waitForTimeout(300);
+    const cmp = await page.evaluate(() => ({
+      open: document.getElementById('compareOverlay').classList.contains('active'),
+      rows: document.querySelectorAll('#compareTable .compare-table-row').length,
+    }));
+    compareBad = !cmp.open || cmp.rows < 2;
+    compareInfo = `open=${cmp.open} rows=${cmp.rows}`;
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(150);
+  }
+
+  const bad = errors.length || broken.length || dup.length || missingMeta || noPrice || noneVisible !== 0 || allBack !== cards
+    || facetBad || zoomBad || compareBad;
   if (bad) failures++;
 
   console.log(`\n=== ${file} ${bad ? 'FAIL' : 'OK'}`);
@@ -75,6 +176,9 @@ for (const file of pages) {
   if (sections.length) console.log('  sections:', sections.map(([a, b]) => `${a}=${b}`).join(' '));
   console.log(`  broken imgs ${broken.length} | dup SKUs ${dup.length} | missing meta ${missingMeta} | no-SKU cards ${noSkuCards} | bad price ${noPrice}`);
   console.log(`  search no-match -> ${noneVisible} visible | cleared -> ${allBack}/${cards} | sort asc first ${firstAsc}`);
+  console.log(`  facets ${facet.facets} | first opt ${facet.one || '-'} | OR ${facet.or || 'n/a'} | AND ${facet.and || 'n/a'} | cleared ${facet.cleared}/${cards}`);
+  console.log(`  enlarge: src match ${zoom.srcMatch}, above modal ${zoom.above}, esc closes lightbox then modal ${escStep.lightboxClosed && escStep.modalStillOpen && modalClosed} | compare: ${compareInfo}`);
+  if (facet.notes.length) console.log('   facet issues:', facet.notes);
   if (broken.length) console.log('   broken:', broken.slice(0, 4));
   if (dup.length) console.log('   dups:', dup.slice(0, 6));
   if (errors.length) console.log('   errors:', errors.slice(0, 4));

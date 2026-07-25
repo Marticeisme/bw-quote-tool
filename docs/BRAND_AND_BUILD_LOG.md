@@ -1136,6 +1136,47 @@ purpose and confirm it goes red before trusting it.
 
 ---
 
+### 2026-07-24 — verify_catalogs.mjs: cover the features that had no tests
+
+Running the catalog checker after the guides one surfaced two holes.
+
+**The default page list was stale.** It named only the original four catalogs, so
+`cremation-containers-rental-caskets.html` and the new `all-caskets.html` were never checked
+unless passed explicitly — the failure mode where a script prints "ALL PAGES OK" while
+skipping the page you most wanted verified. Now lists all six, with a comment to keep it
+complete.
+
+**Three features had zero coverage.** The script tested only search and sort, so the facet
+filters (now the primary filter UI on all six catalogs), click-to-enlarge, and compare could
+all break silently. Added:
+
+- **Facets** — an option's stated count must equal what it actually filters to; OR within a
+  facet must equal the sum of the two options' counts; adding a second facet may only narrow;
+  Clear restores every card. Driven by dispatching `change` on the checkbox rather than
+  clicking, because **the facet panels overlap each other and a real click on a second
+  facet's button lands on the first panel in headless.**
+- **Click-to-enlarge** — lightbox `src` matches the modal image, its z-index really is above
+  the modal, and the first Escape closes the lightbox while leaving the modal open (the
+  second closes the modal).
+- **Compare** — two cards select into the tray, the overlay opens, the table renders rows.
+
+**Fault-injected to prove the checks fail.** Disabled facet filtering in the engine and
+dropped the lightbox z-index back below the modal, then confirmed the output went red:
+`"Steel 20 ga." states 54 but filters to 141`, `OR within facet: expected 102, got 141`, and
+`above modal false`, exit 1. Restored with `git checkout --` and re-verified clean. (The
+AND-across-facets assertion did *not* fire on that particular fault — with filtering disabled
+nothing can widen — so it is the weakest of the four; the count assertions are what actually
+catch a broken facet.)
+
+Both verify scripts now gate on exit code:
+
+```
+node scripts/verify_catalogs.mjs        # all six catalogs
+node scripts/verify_guides_page.mjs     # the hub
+```
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
