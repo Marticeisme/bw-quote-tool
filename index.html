@@ -2835,6 +2835,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div id="contactsList"></div>
+  <div id="contactDetail" style="display:none;"></div>
 </div>
 
 <!-- Contact editor. One overlay, reused for create and edit. -->
@@ -11396,6 +11397,9 @@ function bwFmtPhone(v) {
 }
 
 function renderContactsList() {
+  // Data changed. If a contact is open, refresh that instead — a linked quote saved elsewhere
+  // should appear in the family's holdings without a reload.
+  if (_bwDetailId) { renderContactDetail(); return; }
   var box = el('contactsList'); if (!box) return;
   var q = ((el('contactSearch') || {}).value || '').trim().toLowerCase();
   var mineOnly = !!(el('contactMineOnly') || {}).checked;
@@ -11426,12 +11430,12 @@ function renderContactsList() {
     if (em) bits.push(_ceEsc(em));
     // Whose book, when it isn't yours — the shared pool means Randy's contacts are visible.
     var owner = p.ownerUid && p.ownerUid !== myUid ? '<span class="ct-pill">Randy</span>' : '';
-    html += '<div class="ct-card">'
+    html += '<div class="ct-card" onclick="openContactDetail(\'' + p.id + '\')" style="cursor:pointer;">'
       + '<div style="display:flex;align-items:baseline;gap:8px;">'
       + '<span class="ct-name">' + _ceEsc(bwPartyName(p)) + '</span>' + owner
       + (p.engagement === 'do-not-contact' ? '<span class="ct-pill" style="background:var(--orange-tint);color:var(--orange-dark);">Do not contact</span>' : '')
       + '<span style="margin-left:auto;display:flex;gap:6px;">'
-      + '<button onclick="openContactEditor(\'' + p.id + '\')" style="padding:3px 12px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
+      + '<button onclick="event.stopPropagation();openContactEditor(\'' + p.id + '\')" style="padding:3px 12px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
       + '</span></div>'
       + (bits.length ? '<div class="ct-meta">' + bits.join(' &nbsp;·&nbsp; ') + '</div>' : '')
       + (roles.length ? '<div class="ct-meta" style="margin-top:5px;">' + roles.map(function(r) {
@@ -11440,6 +11444,138 @@ function renderContactsList() {
           }).join('') + '</div>' : '')
       + '</div>';
   });
+  box.innerHTML = html;
+}
+
+// ── "What does this family already own" ──────────────────────────────────────────────
+// The question the discovery brief identified as driving most repeat business, and the reason
+// the contact layer exists. Bob buys a space in 2009 and comes back in 2026 for a marker; until
+// now nothing connected those two facts.
+var BW_RECORD_TYPES = {
+  cem: { label: 'Cemetery Quote',      side: 'cemetery', load: 'loadSavedCemQuote'     },
+  ric: { label: 'RIC Contract',        side: 'cemetery', load: 'loadSavedRicContract'  },
+  an:  { label: 'CIRGAS Contract',     side: 'cemetery', load: 'loadSavedAnContract'   },
+  fh:  { label: 'Funeral Home Quote',  side: 'funeral',  load: 'loadSavedFhQuote'      },
+  ga:  { label: 'GA Policy',           side: 'funeral',  load: 'loadSavedGaContract'   },
+  cp:  { label: 'ClearPoint Trust',    side: 'funeral',  load: 'loadSavedCpContract'   }
+};
+
+function bwRecordFor(type, id) {
+  var bag = _quoteStore[type] || {};
+  var direct = bag['q' + id];
+  if (direct) return direct;
+  var found = null;
+  Object.keys(bag).some(function(k){ if (bag[k] && bag[k].id === id) { found = bag[k]; return true; } return false; });
+  return found;
+}
+
+// Everything a party is on, resolved to real records and grouped by side. Roles whose record has
+// since been deleted are kept and marked rather than dropped — silently showing fewer records
+// than exist is how you lose track of a family.
+function bwHoldingsFor(partyId) {
+  var out = { cemetery: [], funeral: [], missing: [], total: 0 };
+  bwRolesForParty(partyId).forEach(function(r) {
+    var meta = BW_RECORD_TYPES[r.recordType];
+    if (!meta) return;
+    var rec = bwRecordFor(r.recordType, r.recordId);
+    if (!rec) { out.missing.push(r); return; }
+    var row = { role: r.role, roleId: r.id, type: r.recordType, meta: meta, rec: rec };
+    out[meta.side].push(row);
+    out.total += (rec.total || 0);
+  });
+  function byDate(a, b) { return (b.rec.id || 0) - (a.rec.id || 0); }
+  out.cemetery.sort(byDate); out.funeral.sort(byDate);
+  return out;
+}
+
+var _bwDetailId = null;
+function openContactDetail(id) {
+  _bwDetailId = id;
+  el('contactsList').style.display = 'none';
+  el('contactDetail').style.display = 'block';
+  renderContactDetail();
+}
+function closeContactDetail() {
+  _bwDetailId = null;
+  el('contactDetail').style.display = 'none';
+  el('contactsList').style.display = 'block';
+  renderContactsList();
+}
+
+function _bwHoldingRow(h) {
+  var sp = (h.rec.spaces && h.rec.spaces[0]) || null;
+  return '<div style="display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">'
+    + '<div style="flex:1;min-width:190px;">'
+    + '<div style="font-size:13.5px;font-weight:700;color:var(--navy);">' + _ceEsc(h.rec.label || 'Untitled') + '</div>'
+    + '<div style="font-size:11.5px;color:var(--text-light);margin-top:1px;">'
+    + _ceEsc(h.meta.label) + ' · ' + _ceEsc(h.rec.date || '')
+    + (sp ? ' · ' + _ceEsc(sp.loc || ('sid ' + sp.sid)) : '') + '</div></div>'
+    + '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(h.role)) + '</span>'
+    + '<span style="font-size:13px;font-weight:700;color:var(--navy);min-width:92px;text-align:right;">' + fmt(h.rec.total || 0) + '</span>'
+    + '<button onclick="' + h.meta.load + '(' + h.rec.id + ')" style="padding:4px 12px;font-size:12px;font-family:inherit;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;">Open</button>'
+    + '</div>';
+}
+
+function renderContactDetail() {
+  var box = el('contactDetail'); if (!box || !_bwDetailId) return;
+  var p = bwPartyById(_bwDetailId);
+  if (!p) { closeContactDetail(); return; }
+  var h = bwHoldingsFor(p.id);
+  var ph = _bwPrimary(p.phones), em = _bwPrimary(p.emails);
+  var addr = p.addresses ? p.addresses[Object.keys(p.addresses)[0]] : null;
+
+  var html = '<button onclick="closeContactDetail()" style="padding:5px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);margin-bottom:14px;">← All contacts</button>';
+
+  html += '<div class="ct-card" style="border-left-width:4px;">'
+    + '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'
+    + '<span style="font-size:18px;font-weight:800;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
+    + (p.engagement === 'do-not-contact' ? '<span class="ct-pill" style="background:var(--orange-tint);color:var(--orange-dark);">Do not contact</span>' : '')
+    + '<button onclick="openContactEditor(\'' + p.id + '\')" style="margin-left:auto;padding:4px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
+    + '</div>';
+  var bits = [];
+  if (ph) bits.push(_ceEsc(bwFmtPhone(ph)));
+  if (em) bits.push(_ceEsc(em));
+  if (addr && (addr.street1 || addr.city)) bits.push(_ceEsc([addr.street1, addr.city, addr.state, addr.postal].filter(Boolean).join(', ')));
+  if (p.salutation) bits.push('<span style="color:var(--text-light);">' + _ceEsc(p.salutation) + '</span>');
+  if (bits.length) html += '<div class="ct-meta" style="margin-top:5px;line-height:1.7;">' + bits.join('<br>') + '</div>';
+  html += '</div>';
+
+  // The headline. A family with nothing yet is a prospect, and saying so is more useful than
+  // an empty panel.
+  var count = h.cemetery.length + h.funeral.length;
+  html += '<div style="margin:20px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">'
+    + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">What this family owns</span>';
+  if (count) {
+    html += '<span style="font-size:15px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
+         + '<span style="font-size:12px;color:var(--text-light);">across ' + count + ' record' + (count === 1 ? '' : 's') + '</span>';
+  }
+  html += '</div>';
+
+  if (!count) {
+    html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--navy);">'
+      + 'Nothing on file yet — this contact is a prospect.'
+      + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
+      + '</div>';
+  } else {
+    [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
+      var rows = h[pair[0]];
+      if (!rows.length) return;
+      var sub = rows.reduce(function(s, x){ return s + (x.rec.total || 0); }, 0);
+      html += '<div style="margin-top:14px;">'
+        + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
+        + '<span style="font-size:12px;font-weight:700;color:var(--navy);">' + pair[1] + '</span>'
+        + '<span style="font-size:11.5px;color:var(--text-light);">' + rows.length + ' · ' + fmt(sub) + '</span></div>'
+        + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwHoldingRow).join('') + '</div></div>';
+    });
+  }
+
+  // A role whose record is gone. Rare, but silence here would be worse than a line of text.
+  if (h.missing.length) {
+    html += '<div style="margin-top:14px;padding:10px 13px;border-radius:7px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.6;">'
+      + h.missing.length + ' link' + (h.missing.length === 1 ? '' : 's') + ' point at a record that no longer exists'
+      + ' (' + h.missing.map(function(r){ return _ceEsc((BW_RECORD_TYPES[r.recordType] || {}).label || r.recordType); }).join(', ') + ').'
+      + ' The quote was probably deleted.</div>';
+  }
   box.innerHTML = html;
 }
 
@@ -12196,6 +12332,8 @@ function show(id, navEl) {
   // fresh install: with no contacts there is no child_added, so nothing ever triggers a render
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
+  // Leaving Contacts drops back to the list, so returning never lands on a stale detail panel.
+  if (id !== 'contacts' && _bwDetailId) { try { closeContactDetail(); } catch(e) {} }
   // Each module renders its own link row on arrival.
   var _lt = { 'cem-quote':'cem', 'fh-quote':'fh', 'ric-contract':'ric', 'ga-contract':'ga', 'cp-contract':'cp', 'an-contract':'an' }[id];
   if (_lt) { try { bwRenderLink(_lt); } catch(e) {} }
@@ -12339,6 +12477,16 @@ window.addEventListener('hashchange', function() { bwRoute('home'); });
 //
 // Registered for every module that can be about a space. Funeral-home records (fh, ga, cp) are
 // not, since a cremation with no cemetery component is common and normal.
+// #contacts?id=<partyId> opens a family straight to their holdings — the link a note, a search
+// result or another app can hand over.
+bwOnRoute('contacts', function(p) {
+  if (!p.id) return;
+  // A stale or mistyped id falls back to the list. Leaving whoever was open on screen would be
+  // worse than showing nothing — you would be reading one family's holdings under another's link.
+  if (bwPartyById(p.id)) openContactDetail(p.id);
+  else if (_bwDetailId) closeContactDetail();
+});
+
 ['cem-quote', 'ric-contract', 'an-contract'].forEach(function(route) {
   var type = { 'cem-quote': 'cem', 'ric-contract': 'ric', 'an-contract': 'an' }[route];
   var locField = { cem: 'qSpaceLocation', ric: 'ricLocation', an: 'anPropertyLocation' }[type];
