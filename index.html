@@ -11874,16 +11874,16 @@ var BW_PEOPLE_FIELDS = {
         { role: 'decedent',     first: 'anDecFirst', middle: 'anDecMiddle', last: 'anDecLast' }]
 };
 
-// One name field routinely holds two people: "Tyler & Bree Winn", "John Smith & Jane Smith",
-// "James L. & Rose M. Kagey". The RIC field's own placeholder says so. Splitting these into two
-// contacts is the difference between a findable couple and one contact called "Tyler & Bree Winn"
-// that matches nothing when either of them phones.
+// One name field routinely holds two people: "Aaron & Nina Prescott", "John Smith & Jane Smith",
+// "Peter H. & Clara J. Whitfield". The RIC field's own placeholder says so. Splitting these into
+// two contacts is the difference between a findable couple and one contact called
+// "Aaron & Nina Prescott" that matches nothing when either of them phones.
 //
 // Everything parsed here is shown in the offer dialog before anything is created, so a name this
 // gets wrong is visible and can be unticked rather than silently becoming a bad record.
 var _BW_INITIAL = /^[A-Za-z]\.?$/;
 
-// "James L." has no surname of its own; it borrows Kagey from the segment beside it.
+// "Peter H." has no surname of its own; it borrows Whitfield from the segment beside it.
 function _bwParseOneName(seg) {
   seg = String(seg || '').trim().replace(/\s+/g, ' ');
   if (!seg) return null;
@@ -11903,8 +11903,8 @@ function _bwParseOneName(seg) {
 
   var t = seg.split(' ').filter(Boolean);
   if (!t.length) return null;
-  // A lone word is a GIVEN name here, not a surname — "Bob" in "Bob & Mary Winn" is waiting to
-  // borrow Winn. bwSplitPeople promotes it to a surname only if no other segment supplies one,
+  // A lone word is a GIVEN name here, not a surname — "Dan" in "Dan & Ruth Prescott" is waiting
+  // to borrow Prescott. bwSplitPeople promotes it to a surname only if no other segment supplies one,
   // which is what makes a bare "Cher" or "Smith Family" resolve correctly.
   if (t.length === 1) return { given: t[0], middle: '', family: '' };
 
@@ -11923,7 +11923,7 @@ function bwSplitPeople(s) {
   var people = segs.map(_bwParseOneName).filter(Boolean);
   if (!people.length) return [];
 
-  // Backfill the shared surname: in "Tyler & Bree Winn" only the last carries it. Look forward
+  // Backfill the shared surname: in "Aaron & Nina Prescott" only the last carries it. Look forward
   // first, then back, so "Smith & Jane Doe" gives Smith to nobody it does not belong to.
   for (var i = 0; i < people.length; i++) {
     if (people[i].family) continue;
@@ -11952,7 +11952,7 @@ function bwPeopleOnRecord(type) {
       if (!given && !family) return;
       names = [{ given: given, middle: f.middle ? (val(f.middle) || '').trim() : '', family: family }];
     } else {
-      // One field, possibly two people: "Tyler & Bree Winn" is one purchaser field and two
+      // One field, possibly two people: "Aaron & Nina Prescott" is one purchaser field and two
       // purchasers. Shared contact details apply to both — it is one household.
       names = bwSplitPeople(val(f.name));
       if (!names.length) return;
@@ -14386,8 +14386,8 @@ function anShowPricingSummary() {
   disp.innerHTML = html;
 }
 
-// Split a typed family name into the CIRGAS decedent fields. Accepts "Sharon Kay Larkin" and the
-// "Larkin, Sharon Kay" form that shows up in funeral records; everything between first and last
+// Split a typed family name into the CIRGAS decedent fields. Accepts "Diane Ruth Holloway" and the
+// "Holloway, Diane Ruth" form that shows up in funeral records; everything between first and last
 // becomes the middle name. A single word lands in First so nothing is silently dropped.
 function _anSplitName(full) {
   var s = String(full || '').trim().replace(/\s+/g, ' ');
