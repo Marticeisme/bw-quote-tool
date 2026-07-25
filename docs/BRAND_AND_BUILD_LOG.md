@@ -1223,6 +1223,28 @@ every catalog on every test run.
 
 ---
 
+### 2026-07-24 — Quote tool (index.html): Family 45-Day Certificate discount
+
+Cemetery discount, from certificate #1390: **15% off all pre-need property within 45 days of a
+family member's death** (excludes ECF, 2nd/3rd rights, property exchanges, private estates,
+group sales). Added to both cemetery surfaces, verified in Playwright, syntax-checked before
+the push. Commit `b3fee97`.
+
+- **Main quote** — new `promo_family45` mode in the Add Discount dropdown ("🎟️ Family
+  Certificate" optgroup) and the `isPromo` calc block. Reuses the July-incentive property
+  machinery but sets `propPct = 0.15` and **skips the 2nd/3rd-rights fold-in** (July includes
+  rights; the cert excludes them). ECF never enters the property base, so it's excluded on both.
+- **Cemetery Compare tool** — added `promo_family45`, plus `promo_property` (10% property-only)
+  which the compare had been **missing entirely**; its promo set had drifted stale vs the main
+  quote. Now synced. July incentives kept in both (Martice's call — keep both, add Family 45).
+  The FH compare (`calcFhBTotal`) intentionally has no property promos.
+
+Verified: 15% of a $14,995 space = $2,249.25 with the $2,250 ECF untouched, in both the main
+quote and the compare total delta; all promo deltas correct; 0 console errors. The certificate's
+"minimum 10% down" is a payment-plan rule, deliberately **not** enforced in the discount math.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
