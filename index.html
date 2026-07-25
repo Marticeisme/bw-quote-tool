@@ -2237,6 +2237,10 @@ tr:hover td{background:#eef3f8;}
             <label>Client / Family Name</label>
             <input type="text" id="fhClientName" placeholder="e.g. Smith Family" oninput="fhUpdateD()" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
           </div>
+          <div class="q-row" style="margin-top:6px;">
+            <label>Contact</label>
+            <div id="fhLinkedContact" style="flex:1;"></div>
+          </div>
           <div class="q-row" style="margin-top:8px;">
             <label>Number of People (multiplies all package prices)</label>
             <input type="number" id="fhPersonQty" min="1" max="10" value="1" oninput="fhUpdateD()" style="width:70px;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
@@ -3066,6 +3070,14 @@ tr:hover td{background:#eef3f8;}
           <label>Purchaser Name(s)</label>
           <input type="text" id="ricName" placeholder="e.g. John Smith & Jane Smith" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
         </div>
+        <div class="q-row" style="margin-top:6px;">
+          <label>Contact</label>
+          <div id="ricLinkedContact" style="flex:1;"></div>
+        </div>
+        <div class="q-row" id="ricLinkedSpaceRow" style="margin-top:4px;display:none;">
+          <label>Space</label>
+          <div id="ricLinkedSpace" style="flex:1;"></div>
+        </div>
         <div class="q-row" style="margin-top:8px;">
           <label>Street Address</label>
           <input type="text" id="ricStreet" placeholder="Street address" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
@@ -3392,6 +3404,14 @@ tr:hover td{background:#eef3f8;}
           <input type="text" id="anPurchName" placeholder="Full name" style="flex:2;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
           <label style="margin-left:12px;">Relationship</label>
           <input type="text" id="anPurchRelation" placeholder="e.g. Spouse" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-left:6px;">
+        </div>
+        <div class="q-row" style="margin-top:6px;">
+          <label>Contact</label>
+          <div id="anLinkedContact" style="flex:1;"></div>
+        </div>
+        <div class="q-row" id="anLinkedSpaceRow" style="margin-top:4px;display:none;">
+          <label>Space</label>
+          <div id="anLinkedSpace" style="flex:1;"></div>
         </div>
         <div class="q-row" style="margin-top:8px;">
           <label>Street Address</label>
@@ -3912,6 +3932,10 @@ tr:hover td{background:#eef3f8;}
         <label style="font-size:12px;font-weight:600;color:var(--text);">Funeral Recipient (Insured) — Full Name</label>
         <input type="text" id="gaInsuredName" placeholder="Full name of insured" style="width:100%;padding:8px 12px;border:1px solid var(--gray-mid);border-radius:6px;font-size:14px;margin-top:4px;font-family:inherit;">
       </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;font-weight:600;color:var(--text);">Contact</label>
+        <div id="gaLinkedContact" style="margin-top:4px;"></div>
+      </div>
 
       <!-- Age / DOB row for estimate -->
       <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end;">
@@ -4151,6 +4175,10 @@ tr:hover td{background:#eef3f8;}
           <label style="font-size:11px;font-weight:600;color:var(--text);">Date of Birth</label>
           <input type="date" id="cpDOB" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:3px;font-family:inherit;box-sizing:border-box;">
         </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:11px;font-weight:600;color:var(--text);">Contact</label>
+        <div id="cpLinkedContact" style="margin-top:3px;"></div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
         <div style="flex:1;min-width:180px;">
@@ -4673,6 +4701,7 @@ function gaClearDOB() {
 }
 
 function gaClearAll() {
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('ga');
   _gaPricing = null;
   el('gaInsuredName').value = '';
   el('gaPurchaserName').value = '';
@@ -8024,9 +8053,7 @@ function resetCemQuote() {
   try {
   // A fresh quote has no prior vintage to compare against, no contact and no space.
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
-  _bwPendingLink = null;
-  _bwIncomingSpace = null;
-  if (typeof renderCemLinkedContact === 'function') renderCemLinkedContact();
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('cem');
   // Clear client info
   if (el('cemClientName')) el('cemClientName').value = '';
   if (el('cemQuoteNotes')) el('cemQuoteNotes').value = '';
@@ -9632,6 +9659,7 @@ function addFhLine() {
 
 
 function resetFHQuote() {
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('fh');
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
   fhUrns = []; fhUrnRender();
   fhCaskets = []; fhCasketRender();
@@ -11514,52 +11542,77 @@ function deleteContactFromEditor() {
 //
 // Linking is OPTIONAL throughout. A quote with no contact saves exactly as it always did — the
 // link makes the family findable afterwards, it is not a precondition for quoting one.
-var _bwPendingLink = null;     // { partyId, role }
+// Per module, because these are six independent workspaces. A single global would carry the
+// contact you linked on a cemetery quote across to a GA policy the moment you switched tabs.
+var _bwPendingLink = {};       // type -> { partyId, role }
+var _bwPendingSpace = {};      // type -> { sid, loc }
 var _cpOnPick = null;          // picker callback
 
-function bwSetPendingLink(partyId, role) {
-  _bwPendingLink = partyId ? { partyId: partyId, role: role || 'purchaser' } : null;
-  // Fill the family name from the contact, but only when it's blank — linking must never
-  // overwrite something already typed for this quote.
+// Where each module shows its link, and which field holds the family's name. ClearPoint splits
+// the name across two inputs; everything else uses one.
+var BW_LINK_MODULES = {
+  cem: { box: 'cemLinkedContact', spaceRow: 'cemLinkedSpaceRow', spaceBox: 'cemLinkedSpace', name: 'cemClientName',  after: 'cemUpdateD' },
+  fh:  { box: 'fhLinkedContact',                                                             name: 'fhClientName',  after: 'fhUpdate'   },
+  ric: { box: 'ricLinkedContact', spaceRow: 'ricLinkedSpaceRow', spaceBox: 'ricLinkedSpace', name: 'ricName'        },
+  ga:  { box: 'gaLinkedContact',                                                             name: 'gaInsuredName'  },
+  cp:  { box: 'cpLinkedContact',                                                             first: 'cpFirstName', last: 'cpLastName' },
+  an:  { box: 'anLinkedContact',  spaceRow: 'anLinkedSpaceRow',  spaceBox: 'anLinkedSpace',  name: 'anPurchName'    }
+};
+
+function bwSetPendingLink(type, partyId, role) {
+  if (partyId) _bwPendingLink[type] = { partyId: partyId, role: role || 'purchaser' };
+  else delete _bwPendingLink[type];
+
+  // Fill the family's name from the contact, but only when it's blank — linking must never
+  // overwrite something already typed for this record.
+  var cfg = BW_LINK_MODULES[type] || {};
   var p = partyId ? bwPartyById(partyId) : null;
-  var nameEl = el('cemClientName');
-  if (p && nameEl && !nameEl.value.trim()) {
-    nameEl.value = bwPartyName(p);
-    try { cemUpdateD(); } catch (e) {}
+  if (p) {
+    if (cfg.first && cfg.last) {
+      var f = el(cfg.first), l = el(cfg.last);
+      if (f && l && !f.value.trim() && !l.value.trim()) { f.value = p.given || ''; l.value = p.family || ''; }
+    } else if (cfg.name) {
+      var nameEl = el(cfg.name);
+      if (nameEl && !nameEl.value.trim()) nameEl.value = bwPartyName(p);
+    }
+    if (cfg.after && typeof window[cfg.after] === 'function') { try { window[cfg.after](); } catch (e) {} }
   }
-  renderCemLinkedContact();
+  bwRenderLink(type);
 }
 
-function renderCemLinkedContact() {
-  var box = el('cemLinkedContact');
+function bwRenderLink(type) {
+  var cfg = BW_LINK_MODULES[type]; if (!cfg) return;
+  var link = _bwPendingLink[type], space = _bwPendingSpace[type];
+  var box = el(cfg.box);
   if (box) {
-    if (_bwPendingLink && bwPartyById(_bwPendingLink.partyId)) {
-      var p = bwPartyById(_bwPendingLink.partyId);
+    var p = link ? bwPartyById(link.partyId) : null;
+    if (p) {
       var ph = _bwPrimary(p.phones);
       box.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
         + '<span style="font-size:13px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
         + (ph ? '<span style="font-size:12px;color:var(--text-light);">' + _ceEsc(bwFmtPhone(ph)) + '</span>' : '')
-        + '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(_bwPendingLink.role)) + '</span>'
-        + '<button onclick="bwSetPendingLink(null)" style="padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Unlink</button>'
+        + '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(link.role)) + '</span>'
+        + '<button onclick="bwSetPendingLink(\'' + type + '\', null)" style="padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Unlink</button>'
         + '</span>';
     } else {
-      box.innerHTML = '<button onclick="openContactPicker(function(id){ bwSetPendingLink(id); })" '
+      box.innerHTML = '<button onclick="openContactPicker(function(id){ bwSetPendingLink(\'' + type + '\', id); })" '
         + 'style="padding:6px 13px;font-size:12px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px dashed var(--gray-mid);border-radius:6px;cursor:pointer;">+ Link a contact</button>'
         + '<span style="margin-left:9px;font-size:11.5px;color:var(--text-light);">optional</span>';
     }
   }
-  var srow = el('cemLinkedSpaceRow'), sbox = el('cemLinkedSpace');
+  var srow = cfg.spaceRow ? el(cfg.spaceRow) : null, sbox = cfg.spaceBox ? el(cfg.spaceBox) : null;
   if (srow && sbox) {
-    if (_bwIncomingSpace && (_bwIncomingSpace.sid || _bwIncomingSpace.loc)) {
+    if (space && (space.sid || space.loc)) {
       srow.style.display = 'flex';
       sbox.innerHTML = '<span style="font-size:13px;color:var(--navy);font-weight:600;">'
-        + _ceEsc(_bwIncomingSpace.loc || ('Space ' + _bwIncomingSpace.sid)) + '</span>'
-        + (_bwIncomingSpace.sid ? '<span class="ct-pill" style="background:var(--blue-light);color:var(--navy);">sid ' + _ceEsc(_bwIncomingSpace.sid) + '</span>' : '')
-        + '<button onclick="bwClearIncomingSpace()" style="margin-left:8px;padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Clear</button>';
+        + _ceEsc(space.loc || ('Space ' + space.sid)) + '</span>'
+        + (space.sid ? '<span class="ct-pill" style="background:var(--blue-light);color:var(--navy);">sid ' + _ceEsc(space.sid) + '</span>' : '')
+        + '<button onclick="bwClearPendingSpace(\'' + type + '\')" style="margin-left:8px;padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Clear</button>';
     } else { srow.style.display = 'none'; sbox.innerHTML = ''; }
   }
 }
-function bwClearIncomingSpace() { _bwIncomingSpace = null; renderCemLinkedContact(); }
+function bwClearPendingSpace(type) { delete _bwPendingSpace[type]; bwRenderLink(type); }
+function bwClearModuleLink(type) { delete _bwPendingLink[type]; delete _bwPendingSpace[type]; bwRenderLink(type); }
 
 // ── picker ───────────────────────────────────────────────────────────────────────────
 function openContactPicker(onPick) {
@@ -11619,18 +11672,19 @@ var _bwAfterContactSave = null;
 // Called by the save functions. Writes the space onto the record and the contact link as a
 // contractRole. Both are no-ops when nothing was linked.
 function bwAttachToSavedRecord(type, snap) {
-  if (_bwIncomingSpace && (_bwIncomingSpace.sid || _bwIncomingSpace.loc)) {
+  var space = _bwPendingSpace[type], link = _bwPendingLink[type];
+  if (space && (space.sid || space.loc)) {
     // An array from the start: a companion purchase is one contract over two spaces, so a single
     // field would need migrating the first time that happens.
-    snap.spaces = [{ sid: _bwIncomingSpace.sid || null, loc: _bwIncomingSpace.loc || null }];
+    snap.spaces = [{ sid: space.sid || null, loc: space.loc || null }];
   }
-  if (!_bwPendingLink || !_bwPendingLink.partyId) return Promise.resolve(snap);
+  if (!link || !link.partyId) return Promise.resolve(snap);
   return saveContractRole({
-    partyId: _bwPendingLink.partyId,
+    partyId: link.partyId,
     recordType: type,
     recordId: snap.id,
-    role: _bwPendingLink.role || 'purchaser',
-    financiallyLiable: (_bwPendingLink.role || 'purchaser') === 'purchaser',
+    role: link.role || 'purchaser',
+    financiallyLiable: (link.role || 'purchaser') === 'purchaser',
     _prov: bwProv('quote_tool')
   }).then(function(){ return snap; }).catch(function(e) {
     // A failed link must never cost the quote. Say so and move on.
@@ -11643,10 +11697,12 @@ function bwAttachToSavedRecord(type, snap) {
 // Restores the link display when a saved quote is reopened.
 function bwRestoreLinkFor(type, snap) {
   var roles = bwRolesForRecord(type, snap.id).filter(function(r){ return r.partyId; });
-  _bwPendingLink = roles.length ? { partyId: roles[0].partyId, role: roles[0].role } : null;
+  if (roles.length) _bwPendingLink[type] = { partyId: roles[0].partyId, role: roles[0].role };
+  else delete _bwPendingLink[type];
   var sp = (snap.spaces && snap.spaces[0]) || null;
-  _bwIncomingSpace = sp ? { sid: sp.sid || null, loc: sp.loc || null } : null;
-  renderCemLinkedContact();
+  if (sp) _bwPendingSpace[type] = { sid: sp.sid || null, loc: sp.loc || null };
+  else delete _bwPendingSpace[type];
+  bwRenderLink(type);
 }
 
 if (document.readyState !== 'loading') bwStartAppIfAllowed();
@@ -11693,6 +11749,7 @@ function saveFhQuote() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
+    bwAttachToSavedRecord('fh', snap);
     saveQuoteRecord('fh', snap, label);
     show('fh-saved', el('navFhSaved'));
     showQuoteToast('Quote saved — viewing saved quotes');
@@ -11721,6 +11778,7 @@ function saveRicContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
+    bwAttachToSavedRecord('ric', snap);
     saveQuoteRecord('ric', snap, label);
     show('ric-saved', el('navRicSaved'));
     showQuoteToast('RIC saved — viewing saved RICs');
@@ -11735,6 +11793,7 @@ function loadSavedRicContract(id) {
   _ricPricing = s.ricPricing || null;
   if (_ricPricing) { try { ricShowPricingSummary(); } catch(e) {} }
   show('ric-contract', document.querySelector('[onclick*="ric-contract"]'));
+  bwRestoreLinkFor('ric', snap);
 }
 // Saves the GA contract's own frozen pricing snapshot (_gaPricing, or the live globals if the
 // user never explicitly imported/loaded one this sitting) — not necessarily whatever's currently
@@ -11762,6 +11821,7 @@ function saveGaContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
+    bwAttachToSavedRecord('ga', snap);
     saveQuoteRecord('ga', snap, label);
     show('ga-saved', el('navGaSaved'));
     showQuoteToast('GA contract saved — viewing saved GA contracts');
@@ -11799,6 +11859,7 @@ function loadSavedGaContract(id) {
     });
   }
   show('ga-contract', document.querySelector('[onclick*="ga-contract"]'));
+  bwRestoreLinkFor('ga', snap);
 }
 // Saves the ClearPoint contract's own frozen pricing snapshot (_cpPricing, or the live globals
 // if the user never explicitly imported/loaded one this sitting) — not necessarily whatever's
@@ -11828,6 +11889,7 @@ function saveCpContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
+    bwAttachToSavedRecord('cp', snap);
     saveQuoteRecord('cp', snap, label);
     show('cp-saved', el('navCpSaved'));
     showQuoteToast('ClearPoint contract saved — viewing saved ClearPoint contracts');
@@ -11869,6 +11931,7 @@ function loadSavedCpContract(id) {
     });
   }
   show('cp-contract', document.querySelector('[onclick*="cp-contract"]'));
+  bwRestoreLinkFor('cp', snap);
 }
 function deleteSavedQuote(type, id) {
   deleteQuoteRecord(type, id);
@@ -12001,6 +12064,7 @@ function loadSavedFhQuote(id) {
   fhQuoteTypeChange();
   fhUpdate();
   show('fh-quote', document.querySelector('[onclick*="fh-quote"]'));
+  bwRestoreLinkFor('fh', snap);
   if (s.lines && s.lines.length) {
     bwShowVintageBanner('fh-quote', snap.date,
       bwCompareQuoteVintage(s.lines, s.total, _fhLines, _fhTotal));
@@ -12132,7 +12196,9 @@ function show(id, navEl) {
   // fresh install: with no contacts there is no child_added, so nothing ever triggers a render
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
-  if (id === 'cem-quote') { try { renderCemLinkedContact(); } catch(e) {} }
+  // Each module renders its own link row on arrival.
+  var _lt = { 'cem-quote':'cem', 'fh-quote':'fh', 'ric-contract':'ric', 'ga-contract':'ga', 'cp-contract':'cp', 'an-contract':'an' }[id];
+  if (_lt) { try { bwRenderLink(_lt); } catch(e) {} }
   var summ = document.querySelector('.summary-fixed[data-for="section-'+id+'"]');
   if (summ) summ.classList.add('visible');
   window.scrollTo(0,0);
@@ -12267,27 +12333,30 @@ window.addEventListener('hashchange', function() { bwRoute('home'); });
 
 // ── Arrival from the map ──────────────────────────────────────────────────────────────
 // Clicking a plot in the WMP map lands here as #cem-quote?space=<sid>&loc=<address>.
-// `space` is the MIS interment-position id and is what a contract line should eventually be
-// keyed on; `loc` is the printable address. Held in memory for now and NOT yet written into
-// the saved-quote record — where a sid lives on a saved record is a schema decision that is
-// still open, and guessing it here would bake in a shape we would have to migrate.
-var _bwIncomingSpace = null;
-
-bwOnRoute('cem-quote', function(p) {
-  if (!p.space && !p.loc) return;
-  _bwIncomingSpace = { sid: p.space || null, loc: p.loc || null };
-  // Fill the existing free-text location field so the space is visible on the quote straight
-  // away. Only when empty — arriving from the map should never silently overwrite something
-  // already typed for a different family.
-  var locEl = el('qSpaceLocation');
-  if (locEl && p.loc && !locEl.value.trim()) {
-    locEl.value = p.loc;
-    try { cemUpdateD(); } catch (e) {}
-  }
-  if (typeof renderCemLinkedContact === 'function') renderCemLinkedContact();
-  if (typeof showQuoteToast === 'function') {
-    showQuoteToast('Space ' + (p.loc || p.space) + ' loaded from the map');
-  }
+// `space` is the MIS interment-position id — what a contract line is keyed on, because one grave
+// can hold six people under six sids. `loc` is the printable address and is never parsed.
+// Both are persisted as snap.spaces when the record is saved.
+//
+// Registered for every module that can be about a space. Funeral-home records (fh, ga, cp) are
+// not, since a cremation with no cemetery component is common and normal.
+['cem-quote', 'ric-contract', 'an-contract'].forEach(function(route) {
+  var type = { 'cem-quote': 'cem', 'ric-contract': 'ric', 'an-contract': 'an' }[route];
+  var locField = { cem: 'qSpaceLocation', ric: 'ricLocation', an: 'anPropertyLocation' }[type];
+  bwOnRoute(route, function(p) {
+    if (!p.space && !p.loc) return;
+    _bwPendingSpace[type] = { sid: p.space || null, loc: p.loc || null };
+    // Fill that module's own location field so the space shows on the quote straight away —
+    // only when empty, so arriving from the map never overwrites something already typed.
+    var locEl = el(locField);
+    if (locEl && p.loc && !locEl.value.trim()) {
+      locEl.value = p.loc;
+      if (type === 'cem') { try { cemUpdateD(); } catch (e) {} }
+    }
+    bwRenderLink(type);
+    if (typeof showQuoteToast === 'function') {
+      showQuoteToast('Space ' + (p.loc || p.space) + ' loaded from the map');
+    }
+  });
 });
 
 // Open on the section named in the URL. No hash just leaves the markup's default (Home).
@@ -13715,6 +13784,7 @@ function fmtRIC(n) {
 }
 
 function ricClearAll() {
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('ric');
   ['ricName','ricStreet','ricCity','ricZip','ricPhone','ricDayPhone','ricControlNo',
    'ricLocation','ricBenefit','ricDOB1','ricDOB2','ricCoPurchaser',
    'ricDownAmt','ricFinMonths','ricFinRate','ricMonthlyAmt','ricFirstPmt','ricRemarks']
@@ -14020,6 +14090,7 @@ function saveAnContract() {
     if (label === null) return;
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
+    bwAttachToSavedRecord('an', snap);
     saveQuoteRecord('an', snap, label);
     show('an-saved', el('navAnSaved'));
     showQuoteToast('At-Need contract saved — viewing saved contracts');
@@ -14042,8 +14113,10 @@ function loadSavedAnContract(id) {
   anCustomToggle(el('anIaCremStatus'),'anIaCremStatusOther');
   anShowPricingSummary();
   show('an-contract', document.querySelector('[onclick*="an-contract"]'));
+  bwRestoreLinkFor('an', snap);
 }
 function anClearAll() {
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('an');
   _anPricing = null;
   if (el('anContractType')) el('anContractType').value = 'original';
   ['anContractNum','anFuneralHome','anDecFirst','anDecMiddle','anDecLast','anFuneralDirector',
@@ -14283,6 +14356,7 @@ function cpGetCustomAssignments() {
 }
 
 function cpClearAll() {
+  if (typeof bwClearModuleLink === 'function') bwClearModuleLink('cp');
   _cpPricing = null;
   ['cpFirstName','cpMiddleName','cpLastName','cpPhone','cpAddress','cpCity','cpState','cpZip',
    'cpFirstName2','cpMiddleName2','cpLastName2','cpPhone2','cpAddress2','cpCity2','cpState2','cpZip2',
