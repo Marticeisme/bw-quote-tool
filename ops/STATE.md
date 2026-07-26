@@ -164,7 +164,38 @@ Do not re-derive these.
 
 | Sprint | Outcome |
 |---|---|
-| sprint-01 | **Shipped to local `main`, not yet pushed.** Eleven contract templates externalized to `pdf-templates/embedded/`, loaded on demand. `index.html` 11.96 MB → 2.554 MB raw, 7.30 → 0.879 MB gzipped (**8.3×**, not the 11× predicted — see below). All 14 generator signatures byte-identical, verified independently by the director. Merge `4019c92`; track commit `1e0c986` on `s01/externalize-templates`. |
+| sprint-01 | **SHIPPED AND LIVE, verified on GitHub Pages 2026-07-26.** Eleven contract templates externalized to `pdf-templates/embedded/`, loaded on demand. `index.html` 11.96 MB → 2.554 MB raw, 7.30 → 0.879 MB gzipped (**8.3×**, not the 11× predicted — see below). All 14 generator signatures byte-identical, verified independently by the director. Merge `4019c92`; track commit `1e0c986` on `s01/externalize-templates`. |
+
+### Sprint-01 live verification (close gate items 3, 3b and 5 — CLOSED 2026-07-26)
+
+Pushed to `origin/main` and verified against the real deployment at
+`https://marticeisme.github.io/bw-quote-tool/`. **Note the Pages URL** — an earlier session
+message guessed `mmorrison-bw.github.io`, which is wrong; the GitHub account is `Marticeisme`.
+
+- **All 11 externalized templates resolve over HTTPS**: HTTP 200, correct content types
+  (`application/pdf`, xlsx), correct magic bytes (`%PDF` / `PK`), and **SHA-256 identical to
+  the Gate 0 manifest** — 11 identical, 0 differing. This was the one thing localhost could not
+  prove.
+- **Live transfer size: 928,172 bytes gzipped** for `index.html`, against 7.30 MB before.
+  Confirmed on the wire, not measured on disk — the dev server does not compress, so the local
+  close-gate check (item 3) was never actually checkable; it needed the real host.
+- **A full RIC generated end to end from the live site** (`scratch/live-contract-check.mjs`,
+  Firebase blocked and stubbed, read-only): 1,923 KB download, `%PDF`, no dialogs, no page
+  errors. The templates fetched were `RIC_PDF_B64`, `ACH_PDF_B64`, `RULES_PDF_B64` **and
+  `RIC_CL_PDF_B64`** — the fourth arriving because `bwPrefetchTemplates('ric')` fires on
+  section entry, i.e. the prefetch works in production as designed.
+- **That live PDF is identical to the verified baseline** (`scratch/live-ric-signature.py`):
+  6 pages, 141 AcroForm fields, **0 of 141 field values differing, 0 of 6 pages of text
+  differing**. The contract a counselor gets from the live site is the contract that was
+  verified locally.
+- The harness ran from `scripts/`, closing item 3b.
+
+**A scar worth keeping:** the first version of that comparison reported a MISMATCH on
+`textHash`/`fieldsHash` while showing zero differing fields. The signatures were recorded by
+Node (`JSON.stringify`) and recomputed in Python (`json.dumps`), which inserts spaces after
+`:` and `,` — different strings, identical data. **Never compare hashes across two serializers;
+compare the content.** `signatures.json` stores the full text array and field map precisely so
+content comparison is possible.
 
 ### Sprint-01 close notes
 
