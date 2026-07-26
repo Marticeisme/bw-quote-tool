@@ -334,7 +334,15 @@ tr:hover td{background:#eef3f8;}
 
   function bwSignOut() {
     if (!_fbAuth) return;
-    if (!confirm('Sign out of the quote tool on this device?')) return;
+    // Sign-out reloads the page, so it would raise the browser's unsaved-work dialog on top of
+    // this one. Two prompts for one decision is how a warning gets clicked through, so this
+    // question absorbs it: it names the loss when there is one, and suppresses the second.
+    var q = 'Sign out of the quote tool on this device?';
+    if (typeof bwIsDirty === 'function' && bwIsDirty()) {
+      q += '\n\nThis quote has changes that were never saved. Signing out reloads the tool and they will be lost.';
+    }
+    if (!confirm(q)) return;
+    if (typeof bwSuppressUnloadPrompt === 'function') bwSuppressUnloadPrompt();
     _fbAuth.signOut().then(function(){ location.reload(); })
       .catch(function(e){ alert('Sign-out failed: ' + ((e && e.message) || e)); });
   }
@@ -7590,6 +7598,7 @@ function emailCemQuote() {
   var text = buildExportText(_cemLines || [], _cemTotal || 0, clientName, qLabel);
   var subject = encodeURIComponent('Bonney Watson ' + qLabel + (clientName ? ' \u2013 ' + clientName : ''));
   var body = encodeURIComponent(text + (isPN ? '\n\nPre-need contracts lock in today\'s prices against future increases.' : '') + '\nContact: ' + bwAdvisorContactLine());
+  if (typeof bwSuppressUnloadPrompt === 'function') bwSuppressUnloadPrompt();  // deliberate navigation, not a close
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
@@ -7598,6 +7607,7 @@ function emailFhQuote() {
   var text = buildExportText(_fhLines || [], _fhTotal || 0, clientName, 'Funeral Home Quote');
   var subject = encodeURIComponent('Bonney Watson Funeral Home Quote' + (clientName ? ' – ' + clientName : ''));
   var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: ' + bwAdvisorContactLine());
+  if (typeof bwSuppressUnloadPrompt === 'function') bwSuppressUnloadPrompt();  // deliberate navigation, not a close
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
@@ -9156,6 +9166,7 @@ function emailCombQuote() {
     var text = buildCombExportText();
     var subject = encodeURIComponent('Bonney Watson Combined Family Quote' + (clientName ? ' \u2013 ' + clientName : ''));
     var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: ' + bwAdvisorContactLine());
+    if (typeof bwSuppressUnloadPrompt === 'function') bwSuppressUnloadPrompt();  // deliberate navigation, not a close
     window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
   } catch(e) { console.error('emailCombQuote error:', e); }
 }
@@ -15987,9 +15998,12 @@ async function downloadCombQuotePDF() {
   // runs the unload handlers below and marks the exit clean, so the next visit starts quiet. A
   // crash, force-quit, or power loss never runs them, so the flag is still dirty on the next load
   // and the banner appears — which is the only time it's actually useful.
-  // (A beforeunload confirm was considered and rejected: browsers won't let us customize that
-  // dialog, it fires on every close including intentional ones, and JS can't read which button
-  // was clicked — so it would add friction without answering the question.)
+  // (A beforeunload confirm was rejected here once, for three reasons: browsers will not let us
+  //  customize that dialog, it fires on every close including intentional ones, and JS cannot
+  //  read which button was clicked. Martice asked for it anyway on 2026-07-26, so it is
+  //  implemented below — see UNSAVED-WORK GUARD. Two of the three objections turned out to be
+  //  answerable: the prompt is conditional on a dirty flag, and the cancel case is detected
+  //  with a timer. The first is not, and still stands: the wording is the browser’s own.)
   var AS_EXIT = 'bw_as_clean_exit';
   var _lastExitWasClean = false;
   try {
@@ -15999,6 +16013,85 @@ async function downloadCombQuotePDF() {
   function markCleanExit() { try { localStorage.setItem(AS_EXIT, '1'); } catch(e) {} }
   window.addEventListener('beforeunload', markCleanExit);
   window.addEventListener('pagehide', markCleanExit);   // fires where beforeunload doesn't
+
+  // ── UNSAVED-WORK GUARD ──────────────────────────────────────────────────────────────────
+  // Ask before closing with work that was never saved. The browser supplies the wording and we
+  // cannot change it; what we can control is WHETHER it appears, and that is the whole value.
+  // An unconditional prompt teaches both counselors to click through it without reading, which
+  // is worse than no prompt at all — so it is gated on a dirty flag.
+  var _dirty = false;
+  var _suppressUntil = 0;
+
+  // Lookups and filters are not work. Typing a family's name into a search box to find their
+  // saved quote must not make the tool claim there is something to lose. Every saved-list and
+  // catalog filter id ends in "Search"; the price search, the price-list filter and the two
+  // sign-in fields are named outright.
+  function _isWorkField(t) {
+    if (!t || !t.tagName) return false;
+    if (!/^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) return false;
+    var id = t.id || '';
+    if (/Search$/.test(id)) return false;
+    if (id === 'searchInput' || id === 'priceListFilter' || id === 'bwUser' || id === 'bwPass') return false;
+    try { if (t.closest('#bwGate')) return false; } catch(e) {}
+    return true;
+  }
+  function _onEdit(ev) { if (_isWorkField(ev.target)) _dirty = true; }
+  // Capture phase, so a handler that stops propagation cannot hide an edit. Real user events
+  // only: nothing in this app dispatches a synthetic input/change, and the loaders write .value
+  // directly, so a restore does not look like typing.
+  document.addEventListener('input',  _onEdit, true);
+  document.addEventListener('change', _onEdit, true);
+
+  window.bwMarkDirty = function() { _dirty = true; };
+  window.bwMarkClean = function() { _dirty = false; };
+  window.bwIsDirty   = function() { return _dirty && Date.now() >= _suppressUntil; };
+  // For a navigation the counselor deliberately asked for. mailto: is the real case — the three
+  // "Email quote" buttons assign location.href, which can run beforeunload before the mail
+  // client takes over. PDF download and Print do not need it: both build a blob and either
+  // click a hidden <a download> or open a new tab, and neither unloads this page. Neither does
+  // show(), which only rewrites location.hash.
+  window.bwSuppressUnloadPrompt = function(ms) { _suppressUntil = Date.now() + (ms || 4000); };
+
+  window.addEventListener('beforeunload', function(e) {
+    if (!_dirty || Date.now() < _suppressUntil) return;
+    e.preventDefault();
+    e.returnValue = '';               // still required by some browsers to raise the dialog
+    // markCleanExit, registered above, has ALREADY flagged this session as a clean exit. If the
+    // counselor cancels, the session is still live, so the flag has to go back — otherwise a
+    // later crash would look like a clean exit and the restore banner would never appear. A
+    // timer is the only way to tell the two apart: JS cannot read which button was pressed, but
+    // a timer that still runs proves the page was not unloaded.
+    setTimeout(function() { try { localStorage.setItem(AS_EXIT, '0'); } catch(err) {} }, 400);
+  });
+
+  // One place to clear the flag, rather than threading a call through twenty functions. Wrapped
+  // on DOMContentLoaded because four of them (the commission-worksheet handlers) are declared in
+  // a later <script> block. saveQuoteRecord is wrapped instead of the six save*() entry points:
+  // those can bail out at the "Name this quote" prompt without ever writing anything.
+  document.addEventListener('DOMContentLoaded', function() {
+    ['saveQuoteRecord',
+     'resetCemQuote', 'resetFHQuote', 'resetCombQuote',
+     'ricClearAll', 'anClearAll', 'cpClearAll', 'gaClearAll',
+     'riclClearAll', 'anclClearAll', 'cpclClearAll', 'gaclClearAll',
+     'loadSavedCemQuote', 'loadSavedFhQuote', 'loadSavedRicContract',
+     'loadSavedGaContract', 'loadSavedCpContract', 'loadSavedAnContract',
+     'restoreAutosave', 'clearAutosave'
+    ].forEach(function(name) {
+      var fn = window[name];
+      if (typeof fn !== 'function' || fn._bwCleanWrapped) return;
+      var wrapped = function() {
+        var r = fn.apply(this, arguments);
+        // Cleared AFTER the call: a load or reset writes to the very fields being watched, and
+        // clearing first would let its own writes mark the form dirty again. The extra tick
+        // catches the renders they schedule.
+        _dirty = false;
+        setTimeout(function(){ _dirty = false; }, 0);
+        return r;
+      };
+      wrapped._bwCleanWrapped = true;
+      window[name] = wrapped;
+    });
+  });
 
   function autoSave() {
     try {
