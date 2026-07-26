@@ -13,8 +13,10 @@ const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
 const ok = (n, c, x) => { if (c) { pass++; console.log('  PASS  ' + n); } else { fail++; console.log('  FAIL  ' + n + (x !== undefined ? '\n        ' + JSON.stringify(x) : '')); } };
 
-const MARTICE = { handle: 'martice', name: 'Martice Morrison', email: 'mmorrison@bonneywatson.com', phone: '206-445-9794' };
-const RANDY   = { handle: 'randy',   name: 'Randy Bergquist',  email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' };
+// producerId is deliberately absent for randy: no ID is on file and inventing one on an insurance
+// document is the failure being avoided. He hand-writes it on the generated PDF.
+const MARTICE = { handle: 'martice', name: 'Martice Morrison', email: 'mmorrison@bonneywatson.com', phone: '206-445-9794', producerId: '183881' };
+const RANDY   = { handle: 'randy',   name: 'Randy Bergquist',  email: 'rbergquist@bonneywatson.com', phone: '206-242-1787', producerId: '' };
 
 async function signedInAs(browser, handle) {
   const ctx = await browser.newContext();
@@ -66,6 +68,16 @@ for (const who of [MARTICE, RANDY]) {
   ok('name is the signed-in counselor', r.advisor.name === who.name, r.advisor.name);
   ok('email is the signed-in counselor', r.advisor.email === who.email, r.advisor.email);
   ok('phone is the signed-in counselor', r.advisor.phone === who.phone, r.advisor.phone);
+  // The producer ID has NO fallback: an advisor without one on file gets an empty string, so
+  // A4176-PG1-2 on the GA application goes out blank to be hand-written. A wrong-but-plausible
+  // ID on a form whose name and email are now correct reads as complete and gets filed; a blank
+  // one is self-evidently unfinished. Inheriting another producer's ID is the regression here.
+  ok('producer ID is the signed-in counselor\'s, or empty', r.advisor.producerId === who.producerId,
+    { got: r.advisor.producerId, want: who.producerId });
+  if (!who.producerId) {
+    ok('an advisor with no producer ID on file does NOT inherit 183881',
+      r.advisor.producerId !== '183881' && r.advisor.producerId === '', r.advisor.producerId);
+  }
   ok('contact line is "Name | email | phone"',
     r.contactLine === who.name + ' | ' + who.email + ' | ' + who.phone, r.contactLine);
   ok('contact pair honours its separator', r.contactPair === who.email + ' / ' + who.phone, r.contactPair);
@@ -97,6 +109,53 @@ console.log('\n2. Nothing of Martice survives a Randy session');
   ok('no "Martice Morrison" anywhere in the advisor surfaces', !blob.includes('Martice Morrison'), blob.slice(0, 300));
   ok('no mmorrison@ address anywhere', !blob.includes('mmorrison@bonneywatson.com'));
   ok('no 206-445-9794 anywhere', !blob.includes('206-445-9794'));
+  ok('no 183881 producer ID anywhere', !blob.includes('183881'), blob.slice(0, 300));
+  await ctx.close();
+}
+
+// ── 2b. The producer ID reaches the GA form only when the signed-in producer has one ─────
+// Read straight off the generated AcroForm rather than trusting the accessor: this field is the
+// producer of record on an insurance application, and the point is what lands on the paper.
+console.log('\n2b. A4176-PG1-2 on the generated GA application');
+for (const who of [MARTICE, RANDY]) {
+  const { ctx, page } = await signedInAs(browser, who.handle);
+  const r = await page.evaluate(async () => {
+    // Populate the funeral-home quote the GA contract is generated from, then read the field back
+    // out of the produced PDF bytes instead of downloading them.
+    show('fh-quote', null);
+    const sel = document.getElementById('fhBurialPlan');
+    const opt = [...sel.options].find(o => /^\d{3,}/.test(o.value));
+    if (opt) { sel.value = opt.value; fhPlanChange('burial'); }
+    fhUpdate();
+    await new Promise(r => setTimeout(r, 300));
+    show('ga-contract', null);
+    gaImportFromFH();
+    document.getElementById('gaInsuredName').value = 'Aaron Prescott';
+
+    // Intercept the download so the generator runs untouched but nothing leaves the page.
+    let bytes = null;
+    const realCreate = URL.createObjectURL;
+    URL.createObjectURL = function (blob) { bytes = blob; return realCreate.call(URL, blob); };
+    try { await printGAContract(); } finally { URL.createObjectURL = realCreate; }
+    if (!bytes) return { error: 'no PDF produced' };
+
+    const buf = new Uint8Array(await bytes.arrayBuffer());
+    const doc = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+    const f = doc.getForm();
+    const get = (n) => { try { return f.getTextField(n).getText() || ''; } catch (e) { return null; } };
+    return { producerId: get('A4176-PG1-2'), producerName: get('A4176-PG1-1'), firmId: get('A4176-PG1-3') };
+  });
+
+  ok(who.handle + ': producer NAME is on the form', r.producerName === who.name, r);
+  if (who.producerId) {
+    ok(who.handle + ': producer ID is their own', r.producerId === who.producerId, r);
+  } else {
+    ok(who.handle + ': producer ID is BLANK, to be hand-written',
+      r.producerId === '' || r.producerId === null, r);
+    ok(who.handle + ': producer ID did not inherit 183881', r.producerId !== '183881', r);
+  }
+  // The firm ID is a firm constant, not identity — it must NOT have moved.
+  ok(who.handle + ': firm ID is unchanged', r.firmId === 'Y363', r);
   await ctx.close();
 }
 

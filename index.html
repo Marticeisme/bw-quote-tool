@@ -5482,9 +5482,17 @@ async function printGAContract() {
 
     // ── Page 5 — Preneed Life Insurance Application (A4178) ──
     setTF('A4176-PG1-1', bwCurrentAdvisor().name);   // Insurance Producer printed name
-    setTF('A4176-PG1-2', '183881');             // Insurance Producer ID — MARTICE'S. No ID is on file
-    // for any other producer (BW_USERS carries name/email/phone only), so this still needs
-    // an operator-supplied value per counselor before someone else files a GA application.
+    // Insurance Producer ID — a BW_USERS lookup with NO fallback. A producer with no ID on file
+    // gets a BLANK field and writes it in by hand (Martice, 2026-07-26).
+    //
+    // Deliberately blank rather than "close enough": a wrong-but-plausible ID is MORE dangerous
+    // than a missing one. Before the identity fix a GA form filed by Randy said "Martice
+    // Morrison" throughout, and was obviously wrong to anyone who picked it up. Now that the
+    // name and the producer email are right, a stale ID would leave a form that reads as
+    // complete and correct — and gets filed. A blank field is self-evidently unfinished, so it
+    // gets caught and filled. Same fail-visibly rule as a template LOAD failure surfacing by
+    // name while a field FILL failure is warned and swallowed.
+    setTF('A4176-PG1-2', bwCurrentAdvisor().producerId);
     setTF('A4176-PG1-3', 'Y363');               // Firm ID (2 widgets: pages 5 & 7)
     setTF('A4176-PG1-10', gaDobStr);            // Proposed Insured Date of Birth
     setTF('A4176-PG1-11', gaAgeVal);            // Proposed Insured Age
@@ -11231,9 +11239,12 @@ function _bulkImportQuotes(data) {
 var BW_USERS = {
   martice: { name: 'Martice Morrison', role: 'Advanced Planning',
              email: 'mmorrison@bonneywatson.com', phone: '206-445-9794',
+             producerId: '183881',
              calendly: 'calendly.com/mmorrison-bonneywatson/30min' },
   randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning',
              email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' }
+             // No producerId: none is on file. Leave it out rather than guessing — see
+             // A4176-PG1-2 in printGAContract for why a blank beats a plausible wrong one.
 };
 
 // Whose name a document carries when NO account is signed in. The gate normally makes that
@@ -11247,9 +11258,10 @@ var BW_DEFAULT_ADVISOR = 'martice';
 // 37 sites, so Randy signed in and Martice's name came out on the paperwork — including
 // A4176-PG1-1, the Insurance Producer of record on the Global Atlantic application.
 //
-// An account missing from BW_USERS gets its capitalised username and NO email/phone — never
-// another counselor's identity. Substituting a default there would recreate exactly this bug,
-// so callers that print a contact line must instead drop the empty segments.
+// An account missing from BW_USERS — or an entry missing a field — gets its capitalised username
+// and NOTHING else: no email, no phone, no producer ID, and never another counselor's.
+// Substituting a default there would recreate exactly this bug, so callers print what exists and
+// drop what does not: a contact line loses the empty segment, a form field stays blank.
 function bwCurrentAdvisor() {
   var u = window._bwUser;
   var handle = String((u && u.email) || '').split('@')[0].toLowerCase() || BW_DEFAULT_ADVISOR;
@@ -11260,6 +11272,8 @@ function bwCurrentAdvisor() {
     role:     profile.role || '',
     email:    profile.email || '',
     phone:    profile.phone || '',
+    // No fallback, by decision (Martice, 2026-07-26): blank, never inherited. See A4176-PG1-2.
+    producerId: profile.producerId || '',
     calendly: profile.calendly || ''
   };
 }
