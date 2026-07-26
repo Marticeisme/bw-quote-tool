@@ -187,14 +187,16 @@ the worktree — a recursive delete can follow it into the real `node_modules`.
   `index.html.bak-pre-quotestore`.
 - **The Claude Code Browser pane reloads `index.html` after every Edit with live network
   access**, which boots the app against production Firebase. Navigate it away before
-  editing Firebase-touching code. Confirmed 2026-07-26: it fires even when an agent is
-  deliberately avoiding the pane — Track A tripped it on its single `Edit` to `index.html`
-  and routed everything else through Node scripts. It is **not** a configurable hook: there
-  is no `PostToolUse` hook in `.claude/settings.json` or in the user-level settings, so it
-  cannot be disabled there. The practical mitigation is "at most one `Edit` to `index.html`,
-  then work via scripts". The real backstop is that Firebase rules are `auth !== null` — a
-  page booted with no signed-in user can neither read nor write, which is what contained
-  this instance.
+  editing Firebase-touching code. Confirmed 2026-07-26 and **it is a real `PostToolUse:Edit`
+  hook** — a harness-level one, which is why it appears in NEITHER `.claude/settings.json` nor
+  the user-level settings and cannot be disabled from either. It announces itself as
+  `PostToolUse:Edit hook additional context: <file> is now visible in the Browser pane`.
+  Every `Edit` to any file in this repo opens that file in the pane; for `index.html` that
+  means booting the app with live network access. It fires even when you are deliberately
+  avoiding the pane — Track A tripped it on its one `Edit` to `index.html` and the director
+  tripped it on `vault-guide.html`. The practical mitigation is **at most one `Edit` to
+  `index.html`, then work via Node scripts**. The real backstop is that Firebase rules are
+  `auth !== null`: a page booted with no signed-in user can neither read nor write.
 - Nothing in `ops/` may contain customer data.
 
 ### Map-side tracks — the rule the hook cannot enforce

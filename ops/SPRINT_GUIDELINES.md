@@ -25,8 +25,16 @@ Rules of work for every sprint, track, and director. Director runbook:
 2. **No blocking questions.** Ambiguity → decide per `DESIGN.md`, log under "Decisions &
    open questions" in the track report.
 3. **Branch discipline.** One branch per track: `sNN/<slug>`, from latest `origin/main`.
-   Push the branch; **never merge, never touch `main`, never deploy.** Same-repo parallel
+   Commit locally; **never merge, never touch `main`, never deploy.** Same-repo parallel
    tracks run in worktrees — and a worktree needs its own `node_modules` (see DESIGN §5).
+
+   **Do NOT push the branch.** Corrected 2026-07-26: this file previously said "push the
+   branch", which contradicted Martice's standing rule in `CLAUDE.md` — *"Commit or push only
+   when I ask. Don't push on your own initiative."* Two track branches reached the public
+   origin under the old wording before anyone noticed, and were deleted at his instruction.
+   **This repo is public: a pushed branch is fetchable by anyone, even though only `main`
+   deploys.** Branch commits are durable in the local repo; the director merges locally and
+   **every** push, `main` or otherwise, is an operator gate. This applies to directors too.
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
    - `npm run check` → must print `index.html: 9 blocks, 0 errors`

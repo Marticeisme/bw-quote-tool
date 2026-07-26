@@ -40,7 +40,9 @@ trivial audit fixes; tracks build.
 
 - One subagent per track, prompt = absolute path to its `TRACK-*.md` + instruction to obey
   `SPRINT_GUIDELINES.md`. Opus per DESIGN §model policy.
-- Same-repo parallel tracks: worktree isolation; each pushes its own `sNN/<slug>` branch.
+- Same-repo parallel tracks: worktree isolation; each commits locally to its own `sNN/<slug>`
+  branch and **does not push it** (see SPRINT_GUIDELINES §3 — the repo is public and every
+  push is an operator gate, including a mere feature branch).
   **A worktree has no `node_modules`** — junction or install it, or every suite crashes and
   the track cannot run its own gates.
 - Independent tracks spawn in ONE message. While they run: handle gate items; never

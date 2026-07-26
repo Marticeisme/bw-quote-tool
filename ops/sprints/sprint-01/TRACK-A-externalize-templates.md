@@ -126,8 +126,9 @@ out byte-identical — this changes how bytes reach `PDFLib.PDFDocument.load()`,
    siblings; the loader's error path replaces them.
 
 6. **Verify** (below). Commit with explicit paths only, tagged `[s01/externalize-templates]`,
-   ending with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`. Push the branch.
-   **Do not merge. Do not touch main. Do not push to main.**
+   ending with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`. **Commit locally and do
+   NOT push** — corrected 2026-07-26; the repo is public and every push is an operator gate.
+   **Do not merge. Do not touch main. Do not push anything, anywhere.**
 
 ## Acceptance gates (quote actual outputs in your report)
 

@@ -202,13 +202,21 @@ applied to a file that always keeps its fonts. Corrected in `SPRINT.md` to 880 K
    screen — which would defeat the whole point of deleting the old `typeof … === 'undefined'`
    alerts. Each is a minimal 3-line wrap; no function body re-indented.
 
-**One track claim that did not hold up.** The track reported the Browser pane opening
-`index.html` "via the PostToolUse hook". There is no `PostToolUse` hook in
-`.claude/settings.json` or in the user-level settings — the mechanism is the pane's own
-auto-reload, already documented in `DESIGN.md` §6. The event itself is consistent with that
-documented behavior and was contained by the `auth !== null` rules (no signed-in user, so no
-reads or writes possible). Recorded in §6 with the correct mechanism. **Directors: check the
-mechanism a report names, not just its conclusion.**
+**A track claim the director wrongly "corrected".** Track A reported the Browser pane opening
+`index.html` "via the PostToolUse hook". The director looked for that hook in
+`.claude/settings.json` and the user-level settings, found none, and recorded the track as
+having misattributed the mechanism. **The track was right and the correction was wrong.** It is
+a genuine `PostToolUse:Edit` hook, implemented at the *harness* level — which is exactly why it
+is in no settings file and cannot be disabled from one. The director reproduced it minutes
+later on `vault-guide.html`, where it announced itself verbatim: `PostToolUse:Edit hook
+additional context: <file> is now visible in the Browser pane`. `DESIGN.md` §6 now records the
+correct mechanism.
+
+**Lesson, and it cuts the opposite way to the usual one:** "verify, don't trust" applies to a
+director's own disconfirming evidence too. Absence from the two settings files did not prove
+absence of the hook; it only proved absence *from those files*. A negative result across an
+incomplete search space is not a refutation. When a report names a mechanism you cannot find,
+the honest finding is "I could not confirm it", not "it does not exist".
 
 ## Open items for upcoming sprints
 
