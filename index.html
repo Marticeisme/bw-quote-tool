@@ -626,7 +626,7 @@ tr:hover td{background:#eef3f8;}
     <div class="q-panel-header"><span class="ph-ic"><span data-lc="info" data-lc-sz="17"></span></span>Your Contact Info</div>
     <div class="q-panel-body">
       <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:13px;line-height:2;">
-        <div><strong>Martice Morrison</strong><br>
+        <div id="bwAdvContact"><strong>Martice Morrison</strong><br>
           Family Service &amp; Advanced Planning Director<br>
           📧 mmorrison@bonneywatson.com<br>
           📱 206-445-9794<br>
@@ -5260,11 +5260,11 @@ async function printGAContract() {
     setTF('Telephone Number', '(206) 242-1787');
 
     // Funeral Firm Representative — try multiple likely field names
-    setTF('Funeral Firm Representative',     'Martice Morrison');
-    setTF('Funeral Home Representative',     'Martice Morrison');
-    setTF('Preneed Counselor',               'Martice Morrison');
-    setTF('1002-14 - Counselor',             'Martice Morrison');
-    setTF('Representative',                  'Martice Morrison');
+    setTF('Funeral Firm Representative',     bwCurrentAdvisor().name);
+    setTF('Funeral Home Representative',     bwCurrentAdvisor().name);
+    setTF('Preneed Counselor',               bwCurrentAdvisor().name);
+    setTF('1002-14 - Counselor',             bwCurrentAdvisor().name);
+    setTF('Representative',                  bwCurrentAdvisor().name);
 
     // Purchaser name on page 1 (separate from signature line at bottom)
     if (purchaser) {
@@ -5447,10 +5447,10 @@ async function printGAContract() {
     //  1002-14 - SIG - Funeral Recipient / Signature Date — no drawText overlay needed.)
 
     // Funeral Firm Representative on Cash Advance page (page 3)
-    setTF('1002-14 - CA - Representative',     'Martice Morrison');
-    setTF('1002-14 - CA - Funeral Firm Rep',   'Martice Morrison');
-    setTF('Funeral Firm Representative_2',     'Martice Morrison');
-    setTF('Representative_2',                  'Martice Morrison');
+    setTF('1002-14 - CA - Representative',     bwCurrentAdvisor().name);
+    setTF('1002-14 - CA - Funeral Firm Rep',   bwCurrentAdvisor().name);
+    setTF('Funeral Firm Representative_2',     bwCurrentAdvisor().name);
+    setTF('Representative_2',                  bwCurrentAdvisor().name);
 
     // ══════════════════════════════════════════════════════════════════════════
     // PHASE 2a — Pages 4, 5, 9 auto-fill / hardcoded constants (no new builder UI).
@@ -5473,8 +5473,10 @@ async function printGAContract() {
     setTF('Date',         dateStr);
 
     // ── Page 5 — Preneed Life Insurance Application (A4178) ──
-    setTF('A4176-PG1-1', 'Martice Morrison');   // Insurance Producer printed name
-    setTF('A4176-PG1-2', '183881');             // Insurance Producer ID
+    setTF('A4176-PG1-1', bwCurrentAdvisor().name);   // Insurance Producer printed name
+    setTF('A4176-PG1-2', '183881');             // Insurance Producer ID — MARTICE'S. No ID is on file
+    // for any other producer (BW_USERS carries name/email/phone only), so this still needs
+    // an operator-supplied value per counselor before someone else files a GA application.
     setTF('A4176-PG1-3', 'Y363');               // Firm ID (2 widgets: pages 5 & 7)
     setTF('A4176-PG1-10', gaDobStr);            // Proposed Insured Date of Birth
     setTF('A4176-PG1-11', gaAgeVal);            // Proposed Insured Age
@@ -5487,7 +5489,7 @@ async function printGAContract() {
     // decedent name, and Funeral Home Representative are auto-filled.
     setTF('Transaction Date', dateStr);
     setTF('Decedent Name',    insured);
-    setTF('Funeral Home Representative', 'Martice Morrison');
+    setTF('Funeral Home Representative', bwCurrentAdvisor().name);
 
     // ══════════════════════════════════════════════════════════════════════════
     // PHASE 2b — Optional insurance-application details from the GA builder UI.
@@ -5505,8 +5507,9 @@ async function printGAContract() {
       } catch(e) {}
     }
 
-    // Producer email/phone (Section 9) — constants every contract
-    setTF('A4176-PG2-21', 'mmorrison@bonneywatson.com'); // Insurance Producer Email
+    // Section 9. The email follows the signed-in producer (it must match A4176-PG1-1
+    // above); the telephone is the FIRM's main line and is the same for everyone.
+    setTF('A4176-PG2-21', bwCurrentAdvisor().email); // Insurance Producer Email
     setTF('A4176-PG2-23', '206-242-1787');                // Insurance Producer Telephone
 
     // Proposed Insured — contact
@@ -7586,7 +7589,7 @@ function emailCemQuote() {
   var isPN = cemQuoteType() === 'preneed';
   var text = buildExportText(_cemLines || [], _cemTotal || 0, clientName, qLabel);
   var subject = encodeURIComponent('Bonney Watson ' + qLabel + (clientName ? ' \u2013 ' + clientName : ''));
-  var body = encodeURIComponent(text + (isPN ? '\n\nPre-need contracts lock in today\'s prices against future increases.' : '') + '\nContact: Martice Morrison | mmorrison@bonneywatson.com | 206-445-9794');
+  var body = encodeURIComponent(text + (isPN ? '\n\nPre-need contracts lock in today\'s prices against future increases.' : '') + '\nContact: ' + bwAdvisorContactLine());
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
@@ -7594,7 +7597,7 @@ function emailFhQuote() {
   var clientName = val('fhClientName') || '';
   var text = buildExportText(_fhLines || [], _fhTotal || 0, clientName, 'Funeral Home Quote');
   var subject = encodeURIComponent('Bonney Watson Funeral Home Quote' + (clientName ? ' – ' + clientName : ''));
-  var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: Martice Morrison | mmorrison@bonneywatson.com | 206-445-9794');
+  var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: ' + bwAdvisorContactLine());
   window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
 }
 
@@ -8318,7 +8321,7 @@ function _printQuotePrepRowHTML(clientName) {
   return '<div class="prep-row">' + (clientName ? 'Prepared for: <strong>'+clientName+'</strong> &nbsp;&nbsp;&nbsp; Washington Memorial Park' : 'Washington Memorial Park') + '</div>';
 }
 function _printQuoteFooterHTML() {
-  return '<div class="note">Bonney Watson &nbsp;\xb7&nbsp; 16445 International Blvd, SeaTac, WA 98188 &nbsp;\xb7&nbsp; mmorrison@bonneywatson.com &nbsp;\xb7&nbsp; 206-445-9794</div>'
+  return '<div class="note">Bonney Watson &nbsp;\xb7&nbsp; 16445 International Blvd, SeaTac, WA 98188 &nbsp;\xb7&nbsp; ' + bwAdvisorContactPair(' &nbsp;\xb7&nbsp; ') + '</div>'
     + '<div class="note-fine">Prices valid for 30 days and subject to change without notice. This is an estimate only.</div>';
 }
 
@@ -8473,7 +8476,7 @@ function _fqBuildModel(opts){
     typeLabel:opts.typeLabel,
     scopeLine:opts.scopeLabel+' · '+_fqLongDate(now)+' · Valid through '+_fqShortDate(valid),
     clientName:opts.clientName||'',
-    venueLine:'Washington Memorial Park · Prepared by Martice Morrison, Family Service Advisor',
+    venueLine:'Washington Memorial Park · Prepared by '+bwCurrentAdvisor().name+', Family Service Advisor',
     arrangements:_fqArrangements(opts),
     surfaces:surfaces,
     taxAmount:taxAmt,
@@ -8501,7 +8504,7 @@ function _fqHeaderHTML(rightTitle, rightSub){
 }
 function _fqFooterHTML(pageNo){
   return '<div style="margin-top:36px;padding:24px 56px 40px;border-top:1px solid '+_FQ.footRule+';display:flex;align-items:center;justify-content:space-between;gap:24px;">'
-    +'<div style="font-size:12.5px;color:'+_FQ.m2+';line-height:1.6;">Bonney Watson &nbsp;·&nbsp; 16445 International Blvd, SeaTac, WA 98188<br>mmorrison@bonneywatson.com &nbsp;·&nbsp; 206-445-9794 &nbsp;·&nbsp; Available 24 hours</div>'
+    +'<div style="font-size:12.5px;color:'+_FQ.m2+';line-height:1.6;">Bonney Watson &nbsp;·&nbsp; 16445 International Blvd, SeaTac, WA 98188<br>'+bwAdvisorContactPair(' &nbsp;·&nbsp; ')+' &nbsp;·&nbsp; Available 24 hours</div>'
     +'<div style="font-size:12px;color:'+_FQ.m3+';">Page '+pageNo+' of 2</div></div>';
 }
 function _fqRowHTML(r, t){
@@ -8725,9 +8728,9 @@ async function _fqBuildPDFBytes(model){
   }
   function footer(){
     page.drawLine({start:{x:M,y:52},end:{x:RX,y:52},thickness:1,color:HAIR});
-    page.drawText('Martice Morrison',{x:M,y:38,size:12,font:sansH,color:ORANGE});
+    page.drawText(bwCurrentAdvisor().name,{x:M,y:38,size:12,font:sansH,color:ORANGE});
     page.drawText(clean('Family Service Advisor \xb7 Bonney Watson'),{x:M,y:26,size:9.4,font:sans,color:GREY});
-    rt('mmorrison@bonneywatson.com  \xb7  206-445-9794', RX, 38, sansH, 10.1, SLATE);
+    rt(bwAdvisorContactPair('  \xb7  '), RX, 38, sansH, 10.1, SLATE);
     rt('16445 International Blvd, SeaTac, WA 98188  \xb7  Available 24 hours', RX, 26, sans, 9, CONTACTB);
   }
 
@@ -9152,7 +9155,7 @@ function emailCombQuote() {
     var clientName = (val('cemClientName') || val('fhClientName') || '').trim();
     var text = buildCombExportText();
     var subject = encodeURIComponent('Bonney Watson Combined Family Quote' + (clientName ? ' \u2013 ' + clientName : ''));
-    var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: Martice Morrison | mmorrison@bonneywatson.com | 206-445-9794');
+    var body = encodeURIComponent(text + '\n\nPre-need contracts lock in today\'s prices against future increases.\nContact: ' + bwAdvisorContactLine());
     window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
   } catch(e) { console.error('emailCombQuote error:', e); }
 }
@@ -11215,9 +11218,101 @@ function _bulkImportQuotes(data) {
 // name. An account missing from here still works — it just falls back to its capitalised
 // username — so adding a counselor stays a console-only job unless you want a nicer label.
 var BW_USERS = {
-  martice: { name: 'Martice Morrison', role: 'Advanced Planning' },
-  randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning' }
+  martice: { name: 'Martice Morrison', role: 'Advanced Planning',
+             email: 'mmorrison@bonneywatson.com', phone: '206-445-9794',
+             calendly: 'calendly.com/mmorrison-bonneywatson/30min' },
+  randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning',
+             email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' }
 };
+
+// Whose name a document carries when NO account is signed in. The gate normally makes that
+// impossible; this covers a blocked or offline auth SDK, where the tool deliberately stays
+// usable (see the else branch of the auth watcher).
+var BW_DEFAULT_ADVISOR = 'martice';
+
+// THE accessor for "who is preparing this document". Every generator, quote footer and
+// advisor-default input resolves identity here rather than re-deriving it from window._bwUser,
+// because until 2026-07-26 none of them resolved it at all: 'Martice Morrison' was hardcoded at
+// 37 sites, so Randy signed in and Martice's name came out on the paperwork — including
+// A4176-PG1-1, the Insurance Producer of record on the Global Atlantic application.
+//
+// An account missing from BW_USERS gets its capitalised username and NO email/phone — never
+// another counselor's identity. Substituting a default there would recreate exactly this bug,
+// so callers that print a contact line must instead drop the empty segments.
+function bwCurrentAdvisor() {
+  var u = window._bwUser;
+  var handle = String((u && u.email) || '').split('@')[0].toLowerCase() || BW_DEFAULT_ADVISOR;
+  var profile = BW_USERS[handle] || {};
+  return {
+    handle:   handle,
+    name:     profile.name || (u && u.displayName) || (handle.charAt(0).toUpperCase() + handle.slice(1)),
+    role:     profile.role || '',
+    email:    profile.email || '',
+    phone:    profile.phone || '',
+    calendly: profile.calendly || ''
+  };
+}
+
+// "Name | email | phone", dropping whatever this advisor has no value for. BW_USERS will grow,
+// and an entry with no phone must read "Name | email" — not "... | undefined", not a dangling
+// separator.
+function bwAdvisorContactLine(sep) {
+  var a = bwCurrentAdvisor();
+  return [a.name, a.email, a.phone].filter(Boolean).join(sep == null ? ' | ' : sep);
+}
+// Same rule for the email/phone pair in the quote footers, where the name is printed separately.
+function bwAdvisorContactPair(sep) {
+  var a = bwCurrentAdvisor();
+  return [a.email, a.phone].filter(Boolean).join(sep == null ? '  \u00b7  ' : sep);
+}
+
+// The advisor-default inputs. Each is a DEFAULT, not a lock — a counselor sometimes prepares a
+// document on someone else's behalf — so they stay editable and are overwritten only while they
+// still hold a default. "Still a default" means empty, or equal to some BW_USERS name: that is
+// what the markup ships and what the clear/reset handlers put back. Anything else was typed by
+// hand and survives, even if auth resolves after the field was filled in.
+var BW_ADVISOR_DEFAULT_INPUTS = [
+  'ricCounselor', 'anFSD', 'anoVtSoldBy', 'gaclFSD',
+  'riclFSD', 'anclFSD', 'cpclFSD',
+  'riclSplit1Name', 'anclSplit1Name', 'cpclSplit1Name'
+];
+function bwIsAdvisorDefaultValue(v) {
+  v = String(v == null ? '' : v).trim();
+  if (!v) return true;
+  for (var k in BW_USERS) { if (BW_USERS[k] && BW_USERS[k].name === v) return true; }
+  return false;
+}
+function bwApplyAdvisorDefaults() {
+  var a = bwCurrentAdvisor();
+  BW_ADVISOR_DEFAULT_INPUTS.forEach(function(id) {
+    var e = document.getElementById(id);
+    if (e && bwIsAdvisorDefaultValue(e.value)) e.value = a.name;
+  });
+  // The Overview's "Your Contact Info" panel — the counselor's own details, read off the screen
+  // and given to a family, so it has to be the counselor who is actually signed in. Built as
+  // nodes rather than innerHTML so no value needs escaping, and rows with no value are omitted
+  // instead of leaving an empty line behind.
+  var box = document.getElementById('bwAdvContact');
+  if (box) {
+    var rows = [];
+    var strong = document.createElement('strong');
+    strong.textContent = a.name;
+    rows.push(strong);
+    rows.push(document.createTextNode('Family Service & Advanced Planning Director'));
+    if (a.email)    rows.push(document.createTextNode('\ud83d\udce7 ' + a.email));
+    if (a.phone)    rows.push(document.createTextNode('\ud83d\udcf1 ' + a.phone));
+    if (a.calendly) rows.push(document.createTextNode('\ud83d\udd17 ' + a.calendly));
+    box.innerHTML = '';
+    rows.forEach(function(node, i) {
+      if (i) box.appendChild(document.createElement('br'));
+      box.appendChild(node);
+    });
+  }
+}
+// clInit() builds the commission-worksheet FSD inputs while the page is still parsing, which can
+// be AFTER the auth watcher has already run — so re-apply once the whole DOM exists.
+if (document.readyState !== 'loading') bwApplyAdvisorDefaults();
+else document.addEventListener('DOMContentLoaded', bwApplyAdvisorDefaults);
 
 // Shows who is signed in, replacing the hard-coded name in the sidebar. With two counselors
 // on the same shared quote list, "whose session is this" needs to be visible at a glance.
@@ -11228,9 +11323,8 @@ function bwApplySignedInUser() {
   var avEl   = document.querySelector('.sb-avatar');
   if (!nameEl) return;
   if (!u) { if (roleEl) roleEl.textContent = 'Not signed in'; return; }
-  var handle  = String(u.email || '').split('@')[0].toLowerCase() || 'user';
-  var profile = BW_USERS[handle] || {};
-  var name    = profile.name || u.displayName || (handle.charAt(0).toUpperCase() + handle.slice(1));
+  var profile = bwCurrentAdvisor();
+  var name    = profile.name;
   nameEl.textContent = name;
   if (avEl) {
     // Initials from the words of the name — "Martice Morrison" is MM, not MA.
@@ -11246,6 +11340,7 @@ function bwApplySignedInUser() {
     a.onclick = function(e){ e.preventDefault(); bwSignOut(); };
     roleEl.appendChild(a);
   }
+  bwApplyAdvisorDefaults();
 }
 
 // The store starts only once a user is signed in — bwStartAppIfAllowed() is also called by the
@@ -13552,7 +13647,7 @@ async function generateRICContractCore(clientData) {
     setF('Time',    timeStr);
     setF('AM',      isAM);
     setF('PM',      !isAM);
-    setF('Text4', (clientData && clientData.counselor) || 'Martice Morrison');
+    setF('Text4', (clientData && clientData.counselor) || bwCurrentAdvisor().name);
     setF('Cash',    'Cash');
 
     // Row 1 — Interment Rights
@@ -14259,7 +14354,7 @@ function ricClearAll() {
    'ricDownAmt','ricFinMonths','ricFinRate','ricMonthlyAmt','ricFirstPmt','ricRemarks']
     .forEach(function(id){ if(el(id)) el(id).value=''; });
   el('ricState').value = 'WA';
-  el('ricCounselor').value = 'Martice Morrison';
+  el('ricCounselor').value = bwCurrentAdvisor().name;
   el('ricGender1').value = '';
   el('ricGender2').value = '';
   el('ricPayMethod').value = 'Cash';
@@ -14334,7 +14429,7 @@ async function generateRICFromTab() {
       coPurchaser:  el('ricCoPurchaser').value.trim(),
       dob2:         dateInputToMDY(el('ricDOB2').value),
       gender2:      el('ricGender2').value,
-      counselor:    el('ricCounselor').value.trim() || 'Martice Morrison',
+      counselor:    el('ricCounselor').value.trim() || bwCurrentAdvisor().name,
       developed:    el('ricDeveloped').checked,
       predeveloped: el('ricPredeveloped').checked,
       lawnSpace:    el('ricLawnSpace').checked,
@@ -14614,7 +14709,7 @@ function anClearAll() {
     .forEach(function(id){ if (el(id)) el(id).checked = false; });
   ['anAmtSpace','anAmtEcf','anAmtContainer','anAmtContainerSet','anAmtOpening','anAmtRecording','anAmtMemorial','anAmtVase','anAmtUrn','anAmtOtherMerch','anAmtFriSun']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
-  if (el('anFSD')) el('anFSD').value = 'Martice Morrison';
+  if (el('anFSD')) el('anFSD').value = bwCurrentAdvisor().name;
   if (el('anPurchState')) el('anPurchState').value = 'WA';
   if (el('anCoPurchState')) el('anCoPurchState').value = '';
   for (var i = 1; i <= 4; i++) {
@@ -14634,7 +14729,7 @@ function anClearAll() {
    'anoVtType','anoVtColor','anoVtDateOfService','anoVtTimeOfService','anoVtNameplateName',
    'anoVtYearBirth','anoVtYearDeath','anoVtEmblem','anoVtWilbertCert']
     .forEach(function(id){ if (el(id)) el(id).value = ''; });
-  if (el('anoVtSoldBy')) el('anoVtSoldBy').value = 'Martice Morrison';
+  if (el('anoVtSoldBy')) el('anoVtSoldBy').value = bwCurrentAdvisor().name;
   var flatRadio = document.querySelector('input[name="anoMkCategory"][value="flat"]');
   if (flatRadio) flatRadio.checked = true;
   anoMkCategoryChange();
@@ -15187,7 +15282,7 @@ async function generateClearPointContract() {
 
     // Dates and rep
     setTF('Date Signed_af_date', dateStr);
-    setTF('RepName', 'Martice Morrison');
+    setTF('RepName', bwCurrentAdvisor().name);
 
     // ── PAGE 3 — Statement of Goods & Services ────────────────────────────────
     // Disposition
@@ -15276,7 +15371,7 @@ async function generateClearPointContract() {
     // Signature lines
     setTF('FUNERAL RECIPIENTS NAME   Please Print', insured);
     setTF('PURCHASERS NAME   Please Print',         purchaser || insured);
-    setTF('NAME OF FUNERAL ESTABLISHMENT REPRESENTATIVE   Please Print', 'Martice Morrison');
+    setTF('NAME OF FUNERAL ESTABLISHMENT REPRESENTATIVE   Please Print', bwCurrentAdvisor().name);
     setTF('Date Signed_af_date', dateStr);
 
     // Render appearances with an embedded font, keep editable (mirrors GA — flatten left every
@@ -15337,7 +15432,7 @@ async function generateClearPointContract() {
         function setGaT(name, v) { if (v == null || v === '') return; try { gaForm.getTextField(name).setText(String(v)); } catch(e) {} }
         setGaT('Transaction Date', dateStr);
         setGaT('Decedent Name', insured);
-        setGaT('Funeral Home Representative', 'Martice Morrison');
+        setGaT('Funeral Home Representative', bwCurrentAdvisor().name);
         try { var gaHelv = await gaDoc.embedFont(PDFLib.StandardFonts.Helvetica); gaForm.updateFieldAppearances(gaHelv); } catch(e) {}
         var cremAuthPages = await newDoc.copyPages(gaDoc, [8]);
         cremAuthPages.forEach(function(p){ newDoc.addPage(p); });
@@ -16085,7 +16180,7 @@ function clSplitRow(prefix, n, defName, defPct, readonly, updateFn) {
 function clWorksheetHtml(prefix, rates, updateFn, opts) {
   opts = opts || {};
   var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">'
-    + clField(prefix + 'FSD', 'Primary FSD', 'Martice Morrison', true)
+    + clField(prefix + 'FSD', 'Primary FSD', bwCurrentAdvisor().name, true)
     + clField(prefix + 'Purchaser', 'Purchaser Name', '', false)
     + clField(prefix + 'Recipient', 'Recipient / Deceased Name', '', false)
     + clField(prefix + 'DateOfSale', 'Date of Sale', '', false)
@@ -16111,7 +16206,7 @@ function clWorksheetHtml(prefix, rates, updateFn, opts) {
         + '<option value="property">Contract Includes Property — $200</option><option value="merch">Merch/Services Only — $100</option></select></div>') : '')
     + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:6px;">Commission Splits <span style="font-weight:400;text-transform:none;color:var(--text-light);">— manual, defaults to 100% Primary FSD</span></div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#eef1f6;"><th style="padding:5px 8px;text-align:left;">FSD</th><th style="padding:5px 8px;">Split %</th><th style="padding:5px 8px;">Split $</th></tr></thead><tbody>'
-    + clSplitRow(prefix, 1, 'Martice Morrison', 100, false, updateFn)
+    + clSplitRow(prefix, 1, bwCurrentAdvisor().name, 100, false, updateFn)
     + clSplitRow(prefix, 2, '', 0, false, updateFn)
     + clSplitRow(prefix, 3, '', 0, false, updateFn)
     + clSplitRow(prefix, 4, '', 0, false, updateFn)
@@ -16531,7 +16626,7 @@ function gaclImport() {
 }
 function gaclClearAll() {
   ['gaclPurchaser','gaclRecipient','gaclPricesConfirmedBy','gaclComments','gaclDateSubmitted'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
-  if (el('gaclFSD')) el('gaclFSD').value = 'Martice Morrison';
+  if (el('gaclFSD')) el('gaclFSD').value = bwCurrentAdvisor().name;
   clRenderChecklist('gaclChecklistBody', CL_ITEMS_GA, 'gacl');
   if (el('gaclImportDisplay')) el('gaclImportDisplay').innerHTML = 'Generate or load a GA contract first, then click Import — or just type the names below.';
 }
@@ -16579,7 +16674,7 @@ function cpclWorksheetData(r) {
 }
 function cpclWorksheetHtml() {
   var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">'
-    + clField('cpclFSD', 'Primary FSD', 'Martice Morrison', true)
+    + clField('cpclFSD', 'Primary FSD', bwCurrentAdvisor().name, true)
     + clField('cpclPurchaser', 'Purchaser Name', '', false)
     + clField('cpclRecipient', 'Recipient / Deceased Name', '', false)
     + clField('cpclDateOfSale', 'Date of Sale', '', false)
@@ -16611,7 +16706,7 @@ function cpclWorksheetHtml() {
     + '<div id="cpclCapNote" style="display:none;font-size:11px;color:#b45309;background:#fff8e6;border:1px solid #e0c46a;border-radius:6px;padding:6px 10px;margin-bottom:14px;">Commission capped at the down payment amount (3% of sale would exceed it).</div>'
     + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:6px;">Commission Splits <span style="font-weight:400;text-transform:none;color:var(--text-light);">— manual, defaults to 100% Primary FSD</span></div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#eef1f6;"><th style="padding:5px 8px;text-align:left;">FSD</th><th style="padding:5px 8px;">Split %</th><th style="padding:5px 8px;">Split $</th></tr></thead><tbody>'
-    + clSplitRow('cpcl', 1, 'Martice Morrison', 100, false, 'cpclUpdate')
+    + clSplitRow('cpcl', 1, bwCurrentAdvisor().name, 100, false, 'cpclUpdate')
     + clSplitRow('cpcl', 2, '', 0, false, 'cpclUpdate')
     + clSplitRow('cpcl', 3, '', 0, false, 'cpclUpdate')
     + clSplitRow('cpcl', 4, '', 0, false, 'cpclUpdate')
