@@ -20,7 +20,9 @@ to plan and spawn Track A.
 
 | Job | Status | Manifest/where to check | Started | Notes |
 |---|---|---|---|---|
-| (none) | | | | |
+| Track A — externalize templates | running | branch `s01/externalize-templates`, main working tree | 2026-07-26 | Sprint-01's only track. Owns `index.html`; holds port 3737. |
+| Guides audit + granite marker PDF | running | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
+| Map bug audit + fix | running | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
 
 ## Director's boot audit, 2026-07-26 — what changed before Track A spawned
 
