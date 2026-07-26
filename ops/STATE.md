@@ -1,8 +1,8 @@
 # STATE — Living Ledger
 
-**Current sprint:** sprint-01 **MERGED to local `main` and green — awaiting Martice's push.**
-Next: `sprints/sprint-02/` (to be drafted).
-**Last updated:** 2026-07-26 (Track A audited and merged; two out-of-sprint audits still running)
+**Current sprint:** sprint-01 **SHIPPED AND LIVE** (pushed, verified on GitHub Pages).
+Next: `sprints/sprint-02/` — `prices.json`, still to be drafted.
+**Last updated:** 2026-07-26 (advisor identity merged locally; map audit still unmerged)
 
 ## Status
 
@@ -11,10 +11,16 @@ contract was made real: the 13 test suites moved out of gitignored `scratch/` in
 with a single runner (`npm test`, 368 assertions), real customer data was scrubbed from
 them and from `index.html`'s comments, and both fixes are pushed and live.
 
-Sprint-01 (externalize the embedded base64) is drafted and **Gate 0 is already complete** —
-the generator baseline was captured on unmodified `main` and the 13 templates were
-extracted and hash-verified. `index.html` is unmodified. The next action is `/sprint direct`
-to plan and spawn Track A.
+**As of 2026-07-26, four bodies of work landed.** Sprint-01 (templates externalized) is pushed
+and verified live on GitHub Pages. The guides audit is merged and pushed — granite swatches, 57
+blank photos in the Cremation Guide, 101 corrupt characters across eight PDFs, and the Burial
+Vault Guide rebuilt without seven discontinued prices. Advisor identity is **merged locally and
+NOT pushed**. The map audit is **done but deliberately unmerged** — it touches
+`wmp-cemetery-map/index.html` where another session has uncommitted work, so sequencing that
+merge is theirs.
+
+**Two things need Martice, not a director:** push the advisor-identity merge, and resolve the
+two possible double sales in CN and ELN against MIS (see the map audit section).
 
 ## Background jobs
 
