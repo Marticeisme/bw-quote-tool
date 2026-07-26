@@ -25,6 +25,16 @@ const FIX = {
 // re-capture both sides if you ever do. Local time, mid-morning, unambiguously AM.
 const CLOCK = '2026-07-01T10:00:00';
 
+// Which account the fixture signs in as. The generators print the SIGNED-IN advisor's name,
+// email and phone (bwCurrentAdvisor), so the sign-in identity is now baseline INPUT, not an
+// irrelevant detail. Default 'martice': his details are exactly what used to be hardcoded, so
+// the recorded reference stays a valid equality check across the fix. BASELINE_USER=randy
+// proves the identity actually moves — every other field must stay put.
+// A handle absent from BW_USERS (the old 't') resolves to its capitalised username with no
+// email or phone, which is correct behaviour but matches no recorded baseline.
+const USER = (process.env.BASELINE_USER || 'martice').trim().toLowerCase();
+const IDENT = USER.indexOf('@') > -1 ? USER : USER + '@bwquote.local';
+
 const browser = await chromium.launch();
 
 async function open() {
@@ -43,9 +53,9 @@ async function open() {
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('dialog', async (d) => { errs.push('dialog: ' + d.message().slice(0, 120)); await d.accept(); });
   await page.addInitScript(FAKE);
-  await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
+  await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(IDENT)},'pw');`);
   await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
-  await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
+  await page.evaluate((id) => _fbAuth.signInWithEmailAndPassword(id, 'pw'), IDENT);
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(300);
   return { ctx, page, errs };
@@ -190,8 +200,9 @@ for (const [fn, mods, callName] of GENERATORS) {
   await ctx.close();
 }
 
-fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({ fixture: FIX, generators: manifest }, null, 2));
+fs.writeFileSync(path.join(OUT, 'manifest.json'),
+  JSON.stringify({ fixture: FIX, signedInAs: IDENT, generators: manifest }, null, 2));
 const got = manifest.filter((m) => m.ok).length;
-console.log('\n' + got + '/' + GENERATORS.length + ' generators captured -> ' + OUT);
+console.log('\n' + got + '/' + GENERATORS.length + ' generators captured as ' + IDENT + ' -> ' + OUT);
 await browser.close();
 process.exit(0);
