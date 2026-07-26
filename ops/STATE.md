@@ -57,10 +57,18 @@ That is the assumption the entire sprint rests on, and it holds.
 **Current reference baseline:** `%TEMP%\bw-baseline\before` — 14 artifacts + `manifest.json`
 + `signatures.json`. Superseded copy kept at `before-ARCHIVE-2026-07-25-unfrozen-clock`.
 
-**Durability gap, unresolved:** `scratch/` is gitignored, so `baseline-capture.mjs` /
-`baseline-sign.mjs` — Gate-0 infrastructure that `SPRINT.md` instructs future directors to
-re-run — exist only on this machine. A fresh clone has no harness. Raised for a later sprint;
-moving them to `scripts/` would fix it but is out of sprint-01's scope.
+**Durability gap — RESOLVED 2026-07-26 (`b8528cb`).** The harness is now tracked at
+`scripts/baseline-capture.mjs` and `scripts/baseline-sign.mjs`. It had lived in gitignored
+`scratch/`, meaning the gate that decides whether a PDF-touching sprint may merge existed on
+exactly one machine and a fresh clone could not verify a sprint at all.
+
+Copied, not moved: Track A was already running against the `scratch/` paths named in its
+prompt, and removing them mid-flight would have broken its gate 4. **Delete
+`scratch/baseline-capture.mjs` and `scratch/baseline-sign.mjs` at sprint close**, once Track A
+has merged and nothing references them. Neither copy is edited in the meantime, so they cannot
+drift. Import resolution from `scripts/` is verified (playwright and jszip both load); a full
+runtime capture from the new path is deferred to the close gate, since running one during the
+track would fight it for port 3737 and read a half-edited `index.html`.
 
 ## Verified facts a director can rely on (2026-07-25, amended 2026-07-26)
 
@@ -68,8 +76,9 @@ Do not re-derive these.
 
 - **Baseline captured, 14/14 scenarios**, on unmodified `main`, frozen clock. Artifacts,
   `manifest.json` and `signatures.json` in `%TEMP%\bw-baseline\before`. Harness:
-  `scratch/baseline-capture.mjs` + `scratch/baseline-sign.mjs`. Re-run with `TAG=after`;
-  the dev server must already be listening on 3737 (the script does not start it).
+  `scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs` (tracked as of `b8528cb`;
+  `scratch/` copies survive only until sprint-01 closes). Re-run with `TAG=after` from the
+  repo root; the dev server must already be listening on 3737 (the script does not start it).
   Key signatures: RIC 6 pages / **141 AcroForm fields**, ClearPoint burial 3 / 106,
   **ClearPoint cremation 4 / 151**, **`printGAContract` 11 / 261**, the four checklists
   1 page / 10–15 fields, the three quote PDFs 2/1/3 pages / 0 fields (drawn — text-hashed
@@ -145,6 +154,7 @@ Do not re-derive these.
 | 2026-07-26 | Org rollout is a future milestone, not a non-goal; no design may make it a rewrite | `DESIGN.md` §1, §8 |
 | 2026-07-26 | Baseline covers 14 scenarios on a frozen clock; signature equality is exact | `DESIGN.md` §5 |
 | 2026-07-26 | Template LOAD failures must surface by name; FILL failures may still warn | `DESIGN.md` §8, TRACK-A step 4b |
+| 2026-07-26 | The baseline harness is tracked in `scripts/`, not gitignored `scratch/` | `DESIGN.md` §5, commit `b8528cb` |
 
 ## Sprint history
 

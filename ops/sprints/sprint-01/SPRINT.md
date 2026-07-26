@@ -14,9 +14,12 @@ byte-for-byte what it is today.
    its entry in that directory's `manifest.json`, committed.
 3. All **14** generator signatures identical to the captured baseline — same page count, same
    normalized text hash, same AcroForm field name→value map. Verified by
-   `node scratch/baseline-capture.mjs` with `TAG=after`, then diffing `signatures.json`
+   `node scripts/baseline-capture.mjs` with `TAG=after`, then diffing `signatures.json`
    against `%TEMP%\bw-baseline\before\signatures.json`. The comparison is **exact equality**
    now that the capture clock is frozen — any diff is a real diff, not a date artifact.
+   (The harness moved from `scratch/` to `scripts/` on 2026-07-26 so it is tracked. Identical
+   copies remain at the old paths until this sprint closes, because Track A was already
+   running against them — either path works for the duration.)
 4. `npm run check` → `index.html: 8 blocks, 0 errors` (**8, not 9** — see the note below).
    `npm test` → `368 passed, 0 failed across 12 suites`.
 5. A template that fails to load produces a **visible, specific error naming the template** —
@@ -96,6 +99,10 @@ verification contract on the branch before merging and on `main` after.
    `printGAContract`'s 11 pages / 261 fields, is a stop.**
 3. Confirm transfer size locally: load `http://localhost:3737/` and check `index.html` is
    ~0.67 MB gzipped, not 7.30 MB.
+3b. Run the baseline **from `scripts/`** at least once, to prove the tracked copy works from
+   its new home — that is the one thing the move could not verify while the track held port
+   3737. Then delete `scratch/baseline-capture.mjs` and `scratch/baseline-sign.mjs`, and drop
+   the transition notes from `DESIGN.md` §5 and `STATE.md`.
 4. **Martice pushes.** Not the director, not the track. Push to `main` is an immediate
    public deploy of a tool used in front of families.
 5. After the push, load the live GitHub Pages URL once and generate one contract end to end

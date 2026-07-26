@@ -104,7 +104,7 @@ actual output.
 | JS syntax, every inline block | `npm run check` | `index.html: 9 blocks, 0 errors` |
 | Assertion suites | `npm test` | `368 passed, 0 failed across 12 suites` |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
-| Generator output | `node scratch/baseline-capture.mjs` + `baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
+| Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
 
 **The generator baseline covers 14 scenarios, not 12** (corrected 2026-07-26). The key names
@@ -120,6 +120,15 @@ the *scenario*, not the function, so one generator can be captured on two paths.
 
 Before this correction `GA_PDF` — the largest template at 1.49 MB — had **zero** coverage in a
 baseline that reported "12/12 captured".
+
+**The harness is tracked, in `scripts/`** (moved there 2026-07-26). It is the gate that decides
+whether a sprint touching PDF generation may merge, and it previously lived in gitignored
+`scratch/` — existing on exactly one machine, so a fresh clone could not verify a sprint at
+all. `scripts/baseline-capture.mjs` needs the dev server already listening on 3737; it does not
+start one. Run both from the repo root: ESM resolves imports from the script's own path, but
+`baseline-capture.mjs` reads `tests/fake-firebase.js` relative to cwd. Duplicate copies remain
+in `scratch/` only until sprint-01 closes, because Track A was already running against those
+paths; neither copy is edited meanwhile, so they cannot drift.
 
 **The capture clock is frozen** at `CLOCK = '2026-07-01T10:00:00'` via Playwright's
 `page.clock.setFixedTime`, installed before any app code runs. Without it the baseline is not
