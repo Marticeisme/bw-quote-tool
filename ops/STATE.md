@@ -1,8 +1,8 @@
 # STATE — Living Ledger
 
-**Current sprint:** sprint-01 (Gate 0 re-verified and REPAIRED, Track A spawning) →
-`sprints/sprint-01/SPRINT.md`
-**Last updated:** 2026-07-26 (director boot — baseline rebuilt, three doc defects corrected)
+**Current sprint:** sprint-01 **MERGED to local `main` and green — awaiting Martice's push.**
+Next: `sprints/sprint-02/` (to be drafted).
+**Last updated:** 2026-07-26 (Track A audited and merged; two out-of-sprint audits still running)
 
 ## Status
 
@@ -20,7 +20,7 @@ to plan and spawn Track A.
 
 | Job | Status | Manifest/where to check | Started | Notes |
 |---|---|---|---|---|
-| Track A — externalize templates | running | branch `s01/externalize-templates`, main working tree | 2026-07-26 | Sprint-01's only track. Owns `index.html`; holds port 3737. |
+| Track A — externalize templates | **DONE, merged `4019c92`** | branch `s01/externalize-templates` (kept; durable) | 2026-07-26 | Audited and merged. Port 3737 released. |
 | Guides audit + granite marker PDF | running | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
 | Map bug audit + fix | running | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
 
@@ -162,7 +162,53 @@ Do not re-derive these.
 
 | Sprint | Outcome |
 |---|---|
-| (none run yet) | sprint-01 drafted, Gate 0 complete |
+| sprint-01 | **Shipped to local `main`, not yet pushed.** Eleven contract templates externalized to `pdf-templates/embedded/`, loaded on demand. `index.html` 11.96 MB → 2.554 MB raw, 7.30 → 0.879 MB gzipped (**8.3×**, not the 11× predicted — see below). All 14 generator signatures byte-identical, verified independently by the director. Merge `4019c92`; track commit `1e0c986` on `s01/externalize-templates`. |
+
+### Sprint-01 close notes
+
+**Verified by the director, not taken from the track's report:** `npm run check` →
+`index.html: 8 blocks, 0 errors`; `npm test` → `368 passed, 0 failed across 12 suites` with
+per-suite counts unchanged; a fresh `TAG=audit` capture diffed against the reference baseline →
+**all 14 signatures identical**, including the RIC's 6 pages / 141 fields and
+`printGAContract`'s 11 / 261; all 13 committed templates hash-match the Gate 0 manifest; no
+contract-template base64 remains inline; no emails or phone numbers anywhere in the diff. The
+merged `main` is byte-identical to the audited branch for `index.html` and every template
+(`git diff` empty), so the branch verification carries over — and with the capture clock frozen
+there is no nondeterminism a re-run could surface.
+
+**Deviation — the gzip target was wrong, not the work.** DoD item 1 demanded ≤750 KB; the
+result is 879 KB. The residual 0.303 MB of inline base64 is pdf-lib's standard-14 AFM metrics,
+`FQ_FONTS` and the two SVG logos, all explicitly out of scope. Stripping only those gives
+656 KB — exactly the "~0.67 MB" the sprint predicted. The target was the *font-free* number
+applied to a file that always keeps its fonts. Corrected in `SPRINT.md` to 880 KB.
+**Lesson: when a size target excludes something, state the target including what it excludes.**
+
+**Three track decisions the director reviewed and accepted:**
+
+1. **The loader checks magic numbers, not just `res.ok`** — because `dev-server.mjs`'s SPA
+   fallback answers a missing file with `index.html` at **HTTP 200**. The track's first gate-5
+   run reproduced the pre-fix bug exactly: a 4-page RIC downloaded with no alert. Now `%PDF` /
+   `PK` is required. Independently corroborated — the served `index.html` is 2,678,324 bytes,
+   the exact figure in the track's error message. A captive portal or proxy error page behaves
+   the same way, so this earns its keep in production.
+2. **ClearPoint's cremation-authorization page got the same load/fill split** as ACH and Rules,
+   one call site beyond the letter of step 4b. Accepted: `atob(GA_PDF)` on an always-present
+   literal could never fail, so leaving `await bwTemplate()` inside that `catch(e){warn}` would
+   have *introduced* a new silent failure. The change preserves the invariant rather than
+   altering behavior, and `DESIGN.md` §8 states the load/fill rule generally.
+3. **Five entry points gained a `try/catch` + `alert`** (`riclGeneratePdf`, `anclGeneratePdf`,
+   `gaclGeneratePdf`, `cpclGeneratePdf`, `clDownloadFilledWorksheet`). None had any catch, so a
+   loader rejection would have escaped as an unhandled promise rejection with nothing on
+   screen — which would defeat the whole point of deleting the old `typeof … === 'undefined'`
+   alerts. Each is a minimal 3-line wrap; no function body re-indented.
+
+**One track claim that did not hold up.** The track reported the Browser pane opening
+`index.html` "via the PostToolUse hook". There is no `PostToolUse` hook in
+`.claude/settings.json` or in the user-level settings — the mechanism is the pane's own
+auto-reload, already documented in `DESIGN.md` §6. The event itself is consistent with that
+documented behavior and was contained by the `auth !== null` rules (no signed-in user, so no
+reads or writes possible). Recorded in §6 with the correct mechanism. **Directors: check the
+mechanism a report names, not just its conclusion.**
 
 ## Open items for upcoming sprints
 

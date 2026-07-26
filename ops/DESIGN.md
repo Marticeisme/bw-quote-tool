@@ -126,9 +126,8 @@ whether a sprint touching PDF generation may merge, and it previously lived in g
 `scratch/` — existing on exactly one machine, so a fresh clone could not verify a sprint at
 all. `scripts/baseline-capture.mjs` needs the dev server already listening on 3737; it does not
 start one. Run both from the repo root: ESM resolves imports from the script's own path, but
-`baseline-capture.mjs` reads `tests/fake-firebase.js` relative to cwd. Duplicate copies remain
-in `scratch/` only until sprint-01 closes, because Track A was already running against those
-paths; neither copy is edited meanwhile, so they cannot drift.
+`baseline-capture.mjs` reads `tests/fake-firebase.js` relative to cwd. The superseded `scratch/`
+copies were deleted at sprint-01 close; `scripts/` is the only home.
 
 **The capture clock is frozen** at `CLOCK = '2026-07-01T10:00:00'` via Playwright's
 `page.clock.setFixedTime`, installed before any app code runs. Without it the baseline is not
@@ -188,7 +187,14 @@ the worktree — a recursive delete can follow it into the real `node_modules`.
   `index.html.bak-pre-quotestore`.
 - **The Claude Code Browser pane reloads `index.html` after every Edit with live network
   access**, which boots the app against production Firebase. Navigate it away before
-  editing Firebase-touching code.
+  editing Firebase-touching code. Confirmed 2026-07-26: it fires even when an agent is
+  deliberately avoiding the pane — Track A tripped it on its single `Edit` to `index.html`
+  and routed everything else through Node scripts. It is **not** a configurable hook: there
+  is no `PostToolUse` hook in `.claude/settings.json` or in the user-level settings, so it
+  cannot be disabled there. The practical mitigation is "at most one `Edit` to `index.html`,
+  then work via scripts". The real backstop is that Firebase rules are `auth !== null` — a
+  page booted with no signed-in user can neither read nor write, which is what contained
+  this instance.
 - Nothing in `ops/` may contain customer data.
 
 ### Map-side tracks — the rule the hook cannot enforce
