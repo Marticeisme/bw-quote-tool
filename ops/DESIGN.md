@@ -19,11 +19,29 @@ unable to produce a contract.
   users who do not exist. But this is a **sequencing decision, not a permanent ceiling** —
   Martice intends an org rollout eventually (confirmed 2026-07-26), so it is an explicit
   roadmap milestone rather than a non-goal. The standing constraint that follows: **nothing
-  may be designed so that org-readiness would require a rewrite.** Concretely — records keep
+  may be designed so that multi-tenancy would require a rewrite.** Concretely — records keep
   `ownerUid`, roles stay data (`BW_ROLES`) rather than a hardcoded enum, and per-record
   storage stays `quotes/<type>/q<id>` so rules can later scope by owner without a migration.
-  Build org primitives when a third kind of user actually exists; until then, just don't
+  Build those primitives when a second kind of user actually exists; until then, just don't
   build a wall in front of them.
+
+  **Corrected 2026-07-26: the future state is MULTI-TENANT, not "more users at one site."**
+  The earlier wording said "org rollout", which pointed future work at the wrong problem —
+  adding a manager role to one deployment. The actual direction is separate organisations with
+  their own price books, inventory, cemetery layouts and carrier paperwork. That changes which
+  invariants matter: the load-bearing one is **not** roles, it is that **nothing may assume a
+  single price book or a single site.** Which is why the hardcoded `$` literals and the
+  DOM-scraped `PRICE_INDEX` are a structural blocker rather than tidying — see ROADMAP S2.
+
+- **Field/offline capability is a GOAL POST, not a requirement.** Deliberately not a
+  non-goal, and deliberately not scheduled. The tool is a single static file, which makes it
+  unusually well placed to work with no signal — an advantage worth not squandering, since
+  poor cemetery signal is a live complaint against comparable products. Note the tension:
+  sprint-01 moved 9.4 MB of contract templates from inline to fetched-on-demand with an
+  explicit **no persistent cache** decision (§8, 2026-07-25). That is correct for two
+  counselors at desks and wrong for anything used walking a cemetery. **Do not undo it** —
+  but if field use becomes real, a service worker plus a persistent template cache is the
+  answer, and that is a deliberate later decision rather than an oversight to be discovered.
 - **No React / build step / framework rewrite.** Measured: the app's own source is 2.30 MB
   raw, 670 KB gzipped, and loads in ~435 ms with zero console errors. There is no runtime
   problem to solve. Proposals to "modernize" the architecture are out of scope.

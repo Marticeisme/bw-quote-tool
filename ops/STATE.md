@@ -157,6 +157,8 @@ Do not re-derive these.
 | 2026-07-26 | Baseline covers 14 scenarios on a frozen clock; signature equality is exact | `DESIGN.md` §5 |
 | 2026-07-26 | Template LOAD failures must surface by name; FILL failures may still warn | `DESIGN.md` §8, TRACK-A step 4b |
 | 2026-07-26 | The baseline harness is tracked in `scripts/`, not gitignored `scratch/` | `DESIGN.md` §5, commit `b8528cb` |
+| 2026-07-26 | Future state is **multi-tenant** (separate organisations), not more users at one site. Rescopes S6 and promotes the price-book work from tidying to structural blocker | `DESIGN.md` §1, `ROADMAP.md` S6 |
+| 2026-07-26 | Field/offline capability is a **goal post, not a requirement** — not scheduled, not a non-goal. Sprint-01's no-persistent-cache decision stands; a service worker is the answer if field use becomes real | `DESIGN.md` §1 |
 
 ## Sprint history
 

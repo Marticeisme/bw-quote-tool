@@ -65,16 +65,31 @@ time; that part is free and carries no behavioral risk.
 left for it — only the two-sessions-one-file merge pain. If that pain has gone away, so has
 the sprint.
 
-## S6 — Org readiness  [unscheduled; added 2026-07-26]
+## S6 — Multi-tenant readiness  [unscheduled; added 2026-07-26, rescoped same day]
 
-Martice intends an org rollout eventually. Per `DESIGN.md` §1 this is **not** licence to
-pre-build now — account types, a manager role, rules-enforced ownership and a shared contact
-directory stay unbuilt until a third kind of user actually exists. What this milestone owns is
-the *audit*: confirm nothing shipped in the meantime has made org-readiness a rewrite rather
-than an addition. The load-bearing invariants are `ownerUid` on records, roles as data
-(`BW_ROLES`) rather than a hardcoded enum, and per-record `quotes/<type>/q<id>` storage that
-security rules can later scope by owner without a migration — remembering there is no
-migration mechanism, so a schema change is a code change.
+**Rescoped:** this was written as "org readiness", meaning more users at one site. The actual
+direction is **multi-tenant** — separate organisations, each with their own price book,
+inventory, cemetery layout and carrier paperwork. Same rule as before: **not** licence to
+pre-build. Account types, a manager role and rules-enforced ownership stay unbuilt until a
+second organisation actually exists.
 
-Trigger this sprint when a real third user is imminent, not before. Until then it is a
-constraint on other sprints, not work of its own.
+What this milestone owns is the *audit* — confirming nothing shipped meanwhile turned
+multi-tenancy into a rewrite. But the rescope changes which invariants are load-bearing. It is
+**not** primarily roles. It is:
+
+- **No assumption of a single price book.** The blocker, and the reason S2 outranks its old
+  position: 1,157 hardcoded `$` literals and a `PRICE_INDEX` scraped from rendered DOM text.
+  Per-tenant pricing is impossible until that is data.
+- **No assumption of a single site** — one cemetery's gardens, sections and structures are
+  hardcoded vocabulary in places.
+- **Tenant isolation in the data layer.** Rules are `auth !== null` on every node, which is
+  correct for two trusted colleagues and completely inadequate across organisations, where one
+  tenant reading another's records is the whole ballgame. Records keeping `ownerUid` and
+  per-record `quotes/<type>/q<id>` storage is what leaves that door open — remember there is no
+  migration mechanism, so a schema change is a code change.
+- **A shared write path that does not race.** `persistSavedQuotes()` uses `.set()` on a whole
+  node. Invisible with two people who never overlap; silent data loss with more. This one is
+  worth fixing on its own merits long before any tenancy work.
+
+Trigger when a second organisation is genuinely imminent. Until then it is a constraint on
+other sprints, not work of its own.
