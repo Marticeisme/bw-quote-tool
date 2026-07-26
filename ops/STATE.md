@@ -1,8 +1,8 @@
 # STATE — Living Ledger
 
-**Current sprint:** sprint-01 (drafted, Gate 0 COMPLETE, tracks NOT yet spawned) →
+**Current sprint:** sprint-01 (Gate 0 re-verified and REPAIRED, Track A spawning) →
 `sprints/sprint-01/SPRINT.md`
-**Last updated:** 2026-07-25 (init — system scaffolded, Gate 0 pre-completed)
+**Last updated:** 2026-07-26 (director boot — baseline rebuilt, three doc defects corrected)
 
 ## Status
 
@@ -22,16 +22,58 @@ to plan and spawn Track A.
 |---|---|---|---|---|
 | (none) | | | | |
 
-## Verified facts a director can rely on (2026-07-25)
+## Director's boot audit, 2026-07-26 — what changed before Track A spawned
+
+The 2026-07-25 Gate 0 ticks did not survive re-verification. Three defects, all found by
+checking artifacts instead of trusting the doc. Fixes landed in `scratch/` and `ops/` only —
+`index.html` was not touched.
+
+1. **`GA_PDF` had zero baseline coverage** while the baseline reported "12/12 captured".
+   `printGAContract` (`index.html:4737`) — the only generator that produces the GA contract
+   itself — was simply absent from the harness's list, because `gaLines()` needs an imported
+   funeral-home quote and without it the function alerts and returns (the same fixture trap as
+   the RIC). `GA_PDF`'s only other call site is ClearPoint's `!isBurial` branch
+   (`index.html:15270`), which the burial-default fixture never reached. So the sprint's
+   most important gate had a hole directly over the largest template (1.49 MB). **Fixed:**
+   both scenarios added, baseline is now **14/14**.
+2. **The baseline was not reproducible.** A re-capture on 07-26 against an unmodified
+   `index.html` changed 5 of 12 signatures — all wall clock: the RIC's `Time` field (4:33 vs
+   10:10), its AM/PM checkboxes, `25th July` ordinals, and `Valid through <today+30>` on the
+   three quote PDFs. The RIC's 141-field map is the designated template-swap detector; a
+   signature that drifts daily cannot detect anything, and would have taught whoever read it
+   to dismiss RIC field diffs. **Fixed:** capture clock frozen at
+   `CLOCK = '2026-07-01T10:00:00'` via `page.clock.setFixedTime`, installed before any app
+   code runs. Verified by two independent full captures producing identical signatures for
+   all 14.
+3. **`npm run check` will legitimately print 8 blocks, not 9,** after this sprint.
+   `GA_CL_PDF_B64` occupies a `<script>` block of its own (`index.html:17620`, the last before
+   `</body>`) containing nothing else. The track file demanded "exactly 9 blocks", which was
+   unsatisfiable without leaving a junk empty block. **Fixed** in `SPRINT.md` and the track file.
+
+Also confirmed by direct check, not assumed: **all 13 extracted templates are byte-identical
+to the base64 `index.html` ships today** (decoded the live literals and compared SHA-256s).
+That is the assumption the entire sprint rests on, and it holds.
+
+**Current reference baseline:** `%TEMP%\bw-baseline\before` — 14 artifacts + `manifest.json`
++ `signatures.json`. Superseded copy kept at `before-ARCHIVE-2026-07-25-unfrozen-clock`.
+
+**Durability gap, unresolved:** `scratch/` is gitignored, so `baseline-capture.mjs` /
+`baseline-sign.mjs` — Gate-0 infrastructure that `SPRINT.md` instructs future directors to
+re-run — exist only on this machine. A fresh clone has no harness. Raised for a later sprint;
+moving them to `scripts/` would fix it but is out of sprint-01's scope.
+
+## Verified facts a director can rely on (2026-07-25, amended 2026-07-26)
 
 Do not re-derive these.
 
-- **Baseline captured, 12/12 generators**, on unmodified `main`. Artifacts, `manifest.json`
-  and `signatures.json` in `%TEMP%\bw-baseline\before` (9.1 MB). Harness:
-  `scratch/baseline-capture.mjs` + `scratch/baseline-sign.mjs`. Re-run with `TAG=after`.
-  Key signatures: RIC 6 pages / **141 AcroForm fields**, ClearPoint 3 / 106, the four
-  checklists 1 page / 10–15 fields, the three quote PDFs 2/1/3 pages / 0 fields
-  (drawn — text-hashed instead), CIRGAS 179 zip entries, commission worksheet 21.
+- **Baseline captured, 14/14 scenarios**, on unmodified `main`, frozen clock. Artifacts,
+  `manifest.json` and `signatures.json` in `%TEMP%\bw-baseline\before`. Harness:
+  `scratch/baseline-capture.mjs` + `scratch/baseline-sign.mjs`. Re-run with `TAG=after`;
+  the dev server must already be listening on 3737 (the script does not start it).
+  Key signatures: RIC 6 pages / **141 AcroForm fields**, ClearPoint burial 3 / 106,
+  **ClearPoint cremation 4 / 151**, **`printGAContract` 11 / 261**, the four checklists
+  1 page / 10–15 fields, the three quote PDFs 2/1/3 pages / 0 fields (drawn — text-hashed
+  instead), CIRGAS 179 zip entries, commission worksheet 21.
 - **Templates extracted, 13 files**, to `pdf-templates/embedded/` with SHA-256s in its
   `manifest.json`. 9.42 MB base64 → 7.06 MB binary. Untracked so far; `index.html` untouched.
 - **Extraction came from the embedded base64, never from `pdf-templates/*.pdf`.** Verified
@@ -100,6 +142,9 @@ Do not re-derive these.
 | 2026-07-25 | Acrobat gate only when a change touches the RIC itself | `DESIGN.md` §5 |
 | 2026-07-25 | Cross-repo sprints use ONE director and ONE `ops/`; tracks may target either repo | `DESIGN.md` §7 |
 | 2026-07-25 | Map data never crosses into this repo in any form — not fixtures, comments, or reports | `DESIGN.md` §6 |
+| 2026-07-26 | Org rollout is a future milestone, not a non-goal; no design may make it a rewrite | `DESIGN.md` §1, §8 |
+| 2026-07-26 | Baseline covers 14 scenarios on a frozen clock; signature equality is exact | `DESIGN.md` §5 |
+| 2026-07-26 | Template LOAD failures must surface by name; FILL failures may still warn | `DESIGN.md` §8, TRACK-A step 4b |
 
 ## Sprint history
 

@@ -13,9 +13,17 @@ unable to produce a contract.
 
 **Non-goals. Scope creep dies here.**
 
-- **Not an org rollout.** Two users, Martice and Randy. Do not pre-build account types, a
-  manager role, rules-enforced ownership, or a shared duplicate-detection directory. All
-  are cheap to add when a second kind of user actually exists.
+- **Not an org rollout *yet* — but no dead ends.** Two users today, Martice and Randy. Do
+  not pre-build account types, a manager role, rules-enforced ownership, or a shared
+  duplicate-detection directory: they are cheap to add later and expensive to carry now for
+  users who do not exist. But this is a **sequencing decision, not a permanent ceiling** —
+  Martice intends an org rollout eventually (confirmed 2026-07-26), so it is an explicit
+  roadmap milestone rather than a non-goal. The standing constraint that follows: **nothing
+  may be designed so that org-readiness would require a rewrite.** Concretely — records keep
+  `ownerUid`, roles stay data (`BW_ROLES`) rather than a hardcoded enum, and per-record
+  storage stays `quotes/<type>/q<id>` so rules can later scope by owner without a migration.
+  Build org primitives when a third kind of user actually exists; until then, just don't
+  build a wall in front of them.
 - **No React / build step / framework rewrite.** Measured: the app's own source is 2.30 MB
   raw, 670 KB gzipped, and loads in ~435 ms with zero console errors. There is no runtime
   problem to solve. Proposals to "modernize" the architecture are out of scope.
@@ -96,8 +104,32 @@ actual output.
 | JS syntax, every inline block | `npm run check` | `index.html: 9 blocks, 0 errors` |
 | Assertion suites | `npm test` | `368 passed, 0 failed across 12 suites` |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
-| Generator output | `node scratch/baseline-capture.mjs` + `baseline-sign.mjs`, diff `signatures.json` | identical to the recorded baseline |
+| Generator output | `node scratch/baseline-capture.mjs` + `baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
+
+**The generator baseline covers 14 scenarios, not 12** (corrected 2026-07-26). The key names
+the *scenario*, not the function, so one generator can be captured on two paths. The two added:
+
+- **`printGAContract`** — the only generator that exercises `GA_PDF`'s main path. It reads
+  `gaLines()`, which reads the `_gaPricing` snapshot that `gaImportFromFH()` freezes off
+  `_fhLines`; with no funeral-home quote imported it alerts and returns, producing no
+  download. Same fixture trap as the RIC. Signature: 11 pages, 261 fields.
+- **`generateClearPointContract_cremation`** — ClearPoint's `!isBurial` branch appends page
+  index 8 of `GA_PDF` as the Cremation Authorization. The burial default never loads `GA_PDF`
+  at all. Signature: 4 pages, 151 fields, vs burial's 3/106.
+
+Before this correction `GA_PDF` — the largest template at 1.49 MB — had **zero** coverage in a
+baseline that reported "12/12 captured".
+
+**The capture clock is frozen** at `CLOCK = '2026-07-01T10:00:00'` via Playwright's
+`page.clock.setFixedTime`, installed before any app code runs. Without it the baseline is not
+reproducible: the RIC stamps a `Time` field and AM/PM checkboxes off the wall clock and a
+`25th July` ordinal off the date, and the quote PDFs print `Valid through <today+30>`. Captures
+one day apart differed on 5 of 12 signatures with `index.html` untouched — which would have made
+the 141-field RIC map, the designated template-swap detector, useless as an equality check and
+trained readers to wave off RIC field diffs as "probably just the clock". Two independent
+captures now produce identical signatures for all 14. **Changing `CLOCK` invalidates the
+recorded baseline — re-capture both sides if you ever do.**
 
 **Map repo (`wmp-cemetery-map/`, its own git repo, no remote):**
 
@@ -243,3 +275,6 @@ map has no remote, so map-side work is committed locally and never pushed.
 | 2026-07-25 | Template fetch failure is mitigated by prefetch-on-section-entry + one retry + explicit error. No persistent cache. |
 | 2026-07-25 | Sprint-01 ships as one change: loader in, base64 literals out. No two-phase fallback. |
 | 2026-07-25 | The Adobe Acrobat gate applies only when a change touches the RIC itself, not when its bytes are provably unchanged. |
+| 2026-07-26 | Two-user scope is sequencing, not a ceiling. Org rollout is a roadmap milestone; nothing may be designed that makes org-readiness a rewrite. |
+| 2026-07-26 | The generator baseline covers 14 scenarios and runs on a frozen clock. Signature equality is exact — a diff is a real diff. |
+| 2026-07-26 | A template LOAD failure must surface by name; a field-FILL failure may still be warned and swallowed. Widens "loader in, literals out" by design. |

@@ -21,7 +21,13 @@ out byte-identical — this changes how bytes reach `PDFLib.PDFDocument.load()`,
   ripple through `_fqBuildModel` / `_fqBuildPDFBytes` for 0.1% of the payload.
 - **The baseline to verify against** is in `%TEMP%\bw-baseline\before` — artifacts,
   `manifest.json`, `signatures.json`. Harness: `scratch/baseline-capture.mjs` and
-  `scratch/baseline-sign.mjs`.
+  `scratch/baseline-sign.mjs`. It covers **14 scenarios**, was rebuilt 2026-07-26, and runs on
+  a frozen clock, so comparison is **exact equality** — any diff is a real diff. Do not edit
+  the harness, and do not change `CLOCK`; that would invalidate the recorded baseline.
+- **`GA_PDF` is exercised by `printGAContract` (line 4737) and by ClearPoint's cremation
+  branch (line 15270), not by any generator in the old 12.** Both are now in the baseline.
+  `printGAContract` is 11 pages / 261 fields; ClearPoint cremation is 4 pages / 151 fields
+  versus burial's 3 / 106. If your loader breaks `GA_PDF`, these are what catch it.
 - **12 of the 13 generator entry points are already `async`** with `await` inside. Only
   `clDownloadFilledWorksheet` is synchronous.
 - **`_fillChecklistTemplate(pdfB64, …)` (line 16578) takes the base64 as its FIRST
@@ -39,7 +45,7 @@ out byte-identical — this changes how bytes reach `PDFLib.PDFDocument.load()`,
 
 | Line | Global | Shape today |
 |---|---|---|
-| 5027 | `GA_PDF` | `var pdfB64 = GA_PDF; var pdfBytes = Uint8Array.from(atob(pdfB64), c => c.charCodeAt(0));` |
+| 5027 | `GA_PDF` | `var pdfB64 = GA_PDF; var pdfBytes = Uint8Array.from(atob(pdfB64), c => c.charCodeAt(0));` — inside `printGAContract` |
 | 13147–13160 | `RIC_PDF_B64` | the two-branch data-URL/atob block |
 | 13874 | `ACH_PDF_B64` | `Uint8Array.from(atob(ACH_PDF_B64), …)` inside `PDFLib.PDFDocument.load(…)` |
 | 13911 | `RULES_PDF_B64` | same shape |
@@ -90,9 +96,34 @@ out byte-identical — this changes how bytes reach `PDFLib.PDFDocument.load()`,
 4. **Make `clDownloadFilledWorksheet` async** and audit its callers — it is the only one of
    the 13 that is not already async. An un-awaited caller ships an empty file.
 
+4b. **Stop the ACH and Rules attachments from swallowing a load failure.** Both sit inside
+   `try { … } catch(e){ console.warn('[RIC] … attach failed:', e.message); }` — lines 13872
+   and 13909, unconditional, no `if` guard. Today a failure there yields a RIC that is two
+   pages short and **still downloads, with nothing shown to the counselor**. That directly
+   violates definition-of-done item 5, and it is the one place in this sprint where the
+   existing behavior is wrong rather than merely being rewired.
+
+   Split the two concerns: a **template LOAD failure** (your `await bwTemplate(...)`) must
+   propagate as a visible error naming the template, exactly like the other call sites; a
+   **field-FILL failure** (a missing checkbox, `updateFieldAppearances`, `dropButtonWidgets`)
+   keeps today's warn-and-continue behavior. Do the `await bwTemplate(...)` **outside** the
+   `try` that guards the filling, rather than widening the catch.
+
+   This is a deliberate, operator-approved widening of "loader in, literals out"
+   (`DESIGN.md` §8, 2026-07-26). It is the only behavior change permitted in this track.
+   It must not alter the RIC's output when loading succeeds — the baseline proves that: the
+   RIC stays 6 pages / 141 fields, because those pages come from a successful attach.
+
 5. **Delete the 11 base64 literals.** Keep `GA_PDF_BURIAL` / `GA_PDF_CREMATION` working —
    line 4552 aliases them to `GA_PDF`; they must now resolve through the loader, not to a
    deleted variable.
+
+   **`GA_CL_PDF_B64` is a `<script>` block all by itself** at line 17620, the last one before
+   `</body>`, containing nothing else. Removing the literal removes that block, so
+   `npm run check` will report **8 blocks, not 9**. That is correct and expected — see gate 1.
+   Do **not** leave an empty `<script></script>` behind to preserve the old number. Also
+   delete the now-dead `if (typeof GA_CL_PDF_B64 === 'undefined')` guard at line 16472 and its
+   siblings; the loader's error path replaces them.
 
 6. **Verify** (below). Commit with explicit paths only, tagged `[s01/externalize-templates]`,
    ending with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`. Push the branch.
@@ -100,21 +131,30 @@ out byte-identical — this changes how bytes reach `PDFLib.PDFDocument.load()`,
 
 ## Acceptance gates (quote actual outputs in your report)
 
-1. `npm run check` → exactly `index.html: 9 blocks, 0 errors`
+1. `npm run check` → exactly `index.html: 8 blocks, 0 errors`
+   (**8**, because deleting `GA_CL_PDF_B64` removes the single-purpose block at line 17620.
+   If you see 9, you left an empty block behind. If you see any number of *errors*, stop.)
 2. `npm test` → exactly `368 passed, 0 failed across 12 suites`
 3. File size — quote the numbers:
    `node -e "const z=require('zlib'),f=require('fs');const s=f.readFileSync('index.html');console.log('raw',(s.length/1048576).toFixed(2),'MB gzip',(z.gzipSync(s,{level:9}).length/1048576).toFixed(2),'MB')"`
    → raw ≤ 2.6 MB, gzip ≤ 0.75 MB
-4. Generator baseline — the gate that matters most:
+4. Generator baseline — the gate that matters most. The dev server must be running
+   (`node dev-server.mjs`, port 3737); the capture script does not start it.
    `TAG=after node scratch/baseline-capture.mjs` then
    `node scratch/baseline-sign.mjs "%TEMP%\bw-baseline\after"`, then diff
    `after/signatures.json` against `%TEMP%\bw-baseline\before\signatures.json`.
-   → **12/12 captured, every signature identical.** Quote the RIC line specifically:
-   6 pages, 141 AcroForm fields, unchanged `fieldsHash`.
-5. Failure path — prove the error is visible. Temporarily rename one file in
-   `pdf-templates/embedded/`, trigger that generator, confirm a specific error naming the
-   template reaches the user rather than a silent failure or an empty download. **Rename it
-   back** and re-run gate 4.
+   → **14/14 captured, every signature identical — exact equality, no allowances.** Quote
+   these three lines specifically: `generateRICContract` 6 pages / 141 fields,
+   `printGAContract` 11 pages / 261 fields, `generateClearPointContract_cremation`
+   4 pages / 151 fields. A `MISS` on any scenario is a failure, not a skip.
+5. Failure path — prove the error is visible. Rename a file in `pdf-templates/embedded/`,
+   trigger that generator, confirm a specific error naming the template reaches the user
+   rather than a silent failure or an empty download. **Do this for two templates, not one:**
+   - one ordinary call site (e.g. `CP_PDF_B64`), and
+   - **`ACH_PDF_B64`** — the swallowing path from step 4b. Before your change this produced a
+     4-page RIC that downloaded happily with only a `console.warn`. Prove it now surfaces.
+
+   **Rename both back** and re-run gate 4 to confirm you are still at 14/14.
 
 ## Out of scope
 

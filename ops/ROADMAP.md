@@ -16,9 +16,12 @@ the session. First load drops from **7.30 MB gzipped to ~0.67 MB (~11×)**, and 
 of git growth per push stops.
 
 One track (`s01/externalize-templates`). Gate 0 requires a generator baseline captured on
-unmodified `main` — done 2026-07-25. Done means: all 12 generator signatures identical to
-that baseline, `npm run check` and `npm test` green, and a template failure surfaces a
-visible error rather than a silent one. Close gate: merged locally, then Martice pushes.
+unmodified `main` — captured 2026-07-25, **rebuilt 2026-07-26** after the director's boot
+audit found `GA_PDF` uncovered and the signatures drifting with the wall clock. Done means:
+all **14** generator signatures identical to that baseline, `npm run check` (**8 blocks**) and
+`npm test` green, and a template failure surfaces a visible error rather than a silent one —
+including the ACH/Rules attachments, which previously swallowed failures. Close gate: merged
+locally, then Martice pushes.
 
 ## S2 — `prices.json` as source of truth
 
@@ -61,3 +64,17 @@ time; that part is free and carries no behavioral risk.
 **This is a maintenance sprint, not a performance one.** After S1 there is no size argument
 left for it — only the two-sessions-one-file merge pain. If that pain has gone away, so has
 the sprint.
+
+## S6 — Org readiness  [unscheduled; added 2026-07-26]
+
+Martice intends an org rollout eventually. Per `DESIGN.md` §1 this is **not** licence to
+pre-build now — account types, a manager role, rules-enforced ownership and a shared contact
+directory stay unbuilt until a third kind of user actually exists. What this milestone owns is
+the *audit*: confirm nothing shipped in the meantime has made org-readiness a rewrite rather
+than an addition. The load-bearing invariants are `ownerUid` on records, roles as data
+(`BW_ROLES`) rather than a hardcoded enum, and per-record `quotes/<type>/q<id>` storage that
+security rules can later scope by owner without a migration — remembering there is no
+migration mechanism, so a schema change is a code change.
+
+Trigger this sprint when a real third user is imminent, not before. Until then it is a
+constraint on other sprints, not work of its own.

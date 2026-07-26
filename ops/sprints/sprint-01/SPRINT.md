@@ -12,14 +12,22 @@ byte-for-byte what it is today.
 1. `index.html` raw ≤ 2.6 MB, gzip ≤ 750 KB (today: 11.96 MB / 7.30 MB).
 2. `pdf-templates/embedded/` holds the 11 externalized templates, each SHA-256-identical to
    its entry in that directory's `manifest.json`, committed.
-3. All 12 generator signatures identical to the captured baseline — same page count, same
+3. All **14** generator signatures identical to the captured baseline — same page count, same
    normalized text hash, same AcroForm field name→value map. Verified by
    `node scratch/baseline-capture.mjs` with `TAG=after`, then diffing `signatures.json`
-   against `%TEMP%\bw-baseline\before\signatures.json`.
-4. `npm run check` → `index.html: 9 blocks, 0 errors`.
+   against `%TEMP%\bw-baseline\before\signatures.json`. The comparison is **exact equality**
+   now that the capture clock is frozen — any diff is a real diff, not a date artifact.
+4. `npm run check` → `index.html: 8 blocks, 0 errors` (**8, not 9** — see the note below).
    `npm test` → `368 passed, 0 failed across 12 suites`.
 5. A template that fails to load produces a **visible, specific error naming the template** —
-   never a silent failure, never a corrupt download mid-appointment.
+   never a silent failure, never a corrupt download mid-appointment. This explicitly includes
+   the ACH and Cemetery Rules attachments, whose current `try/catch` would otherwise swallow a
+   loader failure and hand a counselor a silently short RIC.
+
+**Why the block count drops 9 → 8.** `GA_CL_PDF_B64` is declared in a `<script>` block of its
+own at `index.html:17620` — the last one before `</body>`, containing nothing else. Deleting
+the literal empties that block, so `npm run check` legitimately reports 8. Do **not** leave an
+empty `<script></script>` behind to keep the number at 9.
 
 ## Tracks
 
@@ -32,7 +40,26 @@ would both rewrite the same 17,622-line CRLF file and merge by hand at the end �
 worse than sequential. Per `SPRINT_GUIDELINES.md`, a second track needs work that genuinely
 lives elsewhere; this sprint has none.
 
-## Gate 0 (before tracks spawn) — **COMPLETE 2026-07-25**
+## Gate 0 (before tracks spawn) — **RE-VERIFIED AND REPAIRED 2026-07-26**
+
+The director's boot audit found the 2026-07-25 baseline unsound in two ways and rebuilt it.
+Both were fixed in `scratch/` only; `index.html` was never touched.
+
+- **`GA_PDF` had zero coverage** in a baseline that reported "12/12 captured". The harness's
+  generator list simply omitted `printGAContract` ([index.html:4737](../../../index.html)),
+  the only generator producing the GA contract itself, and `GA_PDF`'s other call site is
+  ClearPoint's cremation branch, which the burial-default fixture never reached. Gate 4 would
+  have passed green with GA generation completely broken. Both scenarios added → **14/14**.
+- **The baseline was not reproducible.** Re-capturing on 07-26 changed 5 of 12 signatures with
+  `index.html` unmodified — all wall-clock artifacts (RIC `Time` field, AM/PM checkboxes,
+  `25th July` ordinals, `Valid through <today+30>`). The capture clock is now frozen; two
+  independent captures produce identical signatures for all 14.
+
+**Current reference baseline:** `%TEMP%\bw-baseline\before` — 14 artifacts + `manifest.json`
++ `signatures.json`. The superseded one is kept at
+`%TEMP%\bw-baseline\before-ARCHIVE-2026-07-25-unfrozen-clock`.
+
+### Original Gate 0 record (2026-07-25)
 
 1. ✅ `git pull --rebase`, nothing unpushed, tree clean.
 2. ✅ Claude Code Browser pane navigated off `index.html` (it reloads the file after every
@@ -65,7 +92,8 @@ verification contract on the branch before merging and on `main` after.
 1. Director re-runs the full verification contract on `main` — never trusts the track's
    report. Compare assertion **counts**, not just exit codes.
 2. Director re-runs the generator baseline with `TAG=after` and diffs `signatures.json`.
-   **Any difference in the RIC's 141-field map is a stop.**
+   **14/14 must match exactly. Any difference in the RIC's 141-field map, or in
+   `printGAContract`'s 11 pages / 261 fields, is a stop.**
 3. Confirm transfer size locally: load `http://localhost:3737/` and check `index.html` is
    ~0.67 MB gzipped, not 7.30 MB.
 4. **Martice pushes.** Not the director, not the track. Push to `main` is an immediate
