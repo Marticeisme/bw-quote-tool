@@ -21,8 +21,8 @@ to plan and spawn Track A.
 | Job | Status | Manifest/where to check | Started | Notes |
 |---|---|---|---|---|
 | Track A — externalize templates | **DONE, merged `4019c92`** | branch `s01/externalize-templates` (kept; durable) | 2026-07-26 | Audited and merged. Port 3737 released. |
-| Guides audit + granite marker PDF | running | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
-| Map bug audit + fix | running | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
+| Guides audit + granite marker PDF | **DONE, merged** | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
+| Map bug audit + fix | **DONE, NOT merged — see below** | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
 
 ## Director's boot audit, 2026-07-26 — what changed before Track A spawned
 
@@ -217,6 +217,33 @@ director's own disconfirming evidence too. Absence from the two settings files d
 absence of the hook; it only proved absence *from those files*. A negative result across an
 incomplete search space is not a refutation. When a report names a mechanism you cannot find,
 the honest finding is "I could not confirm it", not "it does not exist".
+
+## The map audit — done, merged nowhere, and two things need Martice
+
+Branch `audit/map-bugs` in the map repo (9 commits, no remote). **Deliberately NOT merged:** it
+touches `wmp-cemetery-map/index.html`, and the other session still has that file plus six others
+uncommitted in the primary map tree. That merge is theirs to sequence — a director must not
+resolve another session's in-flight work. `main` there is still `2bf09c0`.
+
+**To merge, once the other session has committed:**
+`git -C wmp-cemetery-map merge --no-ff audit/map-bugs` then `npm test` (expect 19 + 7 + 8
+assertions and `2/2 unit files valid, 2770 units checked, index ok`). The worktree at
+`C:\Users\Martice\map-audit\wmp-cemetery-map` can then be removed with
+`git -C wmp-cemetery-map worktree remove ../../map-audit/wmp-cemetery-map`.
+
+**Director-verified, not taken from the report:** sid entries 59,693 → 79,493, exactly +19,800
+added and **zero removed** (purely additive, no existing lookup disturbed); suite 19 → 34
+assertions, 0 failed; `KNOWN_CONFLICTS` holds position identifiers only, no names; nothing
+crossed into this public repo.
+
+**Two live data conflicts are escalated and unresolved — these need MIS and the paperwork.**
+Two spaces each record two different people at the same interment position, which `validate.mjs`
+treats as the data shape of a double sale. One is two interments both at depth "2nd"; the other
+is an interment at "2nd" plus a different person's reserved right at "2nd". They are in **CN**
+and **ELN**, identified by position key in `KNOWN_CONFLICTS` at the top of
+`wmp-cemetery-map/scripts/data-integrity.test.mjs`. The suite fails on any new conflict AND on a
+listed one that stops conflicting, so the list cannot go stale. **Nothing was changed in the
+data.** Resolving which record is correct is Martice's, against MIS.
 
 ## Open items for upcoming sprints
 

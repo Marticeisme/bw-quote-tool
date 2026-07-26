@@ -255,12 +255,23 @@ contract lines keying the same place is the data shape of a double sale.
 
 | File | Contract |
 |---|---|
-| `sid-index.json` | `sid → locator`, so a `#space=<sid>` route resolves without loading every section. **~2 MB, lazily fetched only when a `#space` route arrives** — do not load it eagerly. |
+| `sid-index.json` | `sid → locator`, so a `#space=<sid>` route resolves without loading every section. **~2.6 MB (79,493 entries), lazily fetched only when a `#space` route arrives** — do not load it eagerly. |
 | `search/` + `search-index-manifest.json` | sharded by the first character of the **normalised** surname `ln` (A–Z plus `_other`). `l` = surname as MIS spells it, for DISPLAY; `ln` = normalised for MATCHING (upper, suffixes and punctuation stripped). Never match on `l`. |
 | `prices.json` | **schema 2**, the single fee/price schedule shared by both apps, replacing three copies that disagreed. **Read `current`.** A price is always today's price — do not resolve a fee as-of a date. `fees`/`inventory` keep dated history for reference only. |
 
 **`prices.json` already exists and the map already emits it.** Sprint S2 is therefore about
 making the *tool* consume it, not about inventing the format.
+
+**`#space=<sid>` was broken for every unsold space until 2026-07-26 — and this section said it
+worked.** `build-search-index.py` wrote the sid→locator entry *inside* the function that indexes
+people, which returns early when there is nobody to name, so **19,800 sids had no entry at all:
+all 16,921 available spaces plus every one of Lake Urn Garden's 2,512.** A tool-side deep link
+into sellable inventory — the common case for a counselor pricing a space — silently landed on
+the overview. Fixed on the map's `audit/map-bugs` branch (59,693 → 79,493 entries, +19,800 added
+and zero removed, verified by the director). **The lesson for this section: it was written by
+reading both codebases and confirming the grammar matched on each side, which proved the two
+*agreed* — not that either one worked. A contract verified only for internal consistency is not
+verified. Deep-link routes need an end-to-end check against real sids, including an unsold one.**
 
 **Coordinate caveat.** The map's lat/lon and MIS's differ by a consistent ~2.7 m — an imagery
 offset Martice hand-corrected against the aerial photo. The map's position matches the
