@@ -278,6 +278,54 @@ and **ELN**, identified by position key in `KNOWN_CONFLICTS` at the top of
 listed one that stops conflicting, so the list cannot go stale. **Nothing was changed in the
 data.** Resolving which record is correct is Martice's, against MIS.
 
+## Advisor identity — shipped to local `main` 2026-07-26 (merge `cd16fdf`)
+
+Out-of-sprint, operator-requested. Branch `fix/advisor-identity`, 6 commits, never pushed.
+
+**The bug:** the signed-in counselor's identity reached nothing that got generated. Randy
+signed in and Martice's name came out on the paperwork — including `A4176-PG1-1`, the
+Insurance Producer of record on the Global Atlantic application. Identity now resolves
+through one accessor, `bwCurrentAdvisor()`, with **no fallback**: an account missing from
+`BW_USERS`, or an entry missing a field, gets nothing for it and never another counselor's
+value. Also fixed: Family Guides opens in its own tab instead of destroying in-progress work,
+and closing with unsaved changes now warns.
+
+**The GA producer ID is deliberately blank** for anyone without one on file (Martice,
+2026-07-26). A wrong-but-plausible ID reads as a complete form and gets filed; a blank field
+is self-evidently unfinished and gets caught. Same fail-visibly rule as sprint-01's
+load-versus-fill split. **Randy hand-writes his on the generated PDF until an ID is added.**
+
+**Director-verified, not taken from the report:** `8 blocks, 0 errors`; `467 passed, 0 failed
+across 14 suites` (up from 368/12, no suite fell); **as martice 14 identical, 0 differing** —
+his identity is on file, so nothing of his moved, which is what proves the change is scoped;
+**as randy 0 structural changes**, 14 field changes and 20 changed page-texts, all 20 texts
+explained entirely by advisor identity once identity tokens are normalised; the producer-ID
+change isolated against the prior randy capture as **exactly one field**, `A4176-PG1-2`
+`"183881"` → `""`, with `printGAContract` still 11 pages / 261 fields.
+
+**Two director errors this work exposed — both worth keeping.**
+
+1. **The recon handed to the track was wrong twice.** It listed ~19 hardcoded sites when there
+   are 37, missing the advisor block printed on every family-quote PDF and the Insurance
+   Producer email; and it asserted the sidebar at line 629 was already resolved at runtime.
+   It was not — the Overview contact panel had been showing Randy the wrong email and phone
+   to read out to a family. The track verified instead of trusting, which is the only reason
+   both were caught. **A director's recon is a lead, not a finding; say so when handing it over.**
+2. **A `[s01/ops]` commit landed on the feature branch instead of `main`** (`a7ba776`). The
+   director left a shell `cd`'d into the worktree and used bare `git` — violating this
+   project's own "with worktrees, ALWAYS `git -C <absolute-path>`" rule, which exists for
+   precisely this. Staging explicit paths is the only reason it did not also sweep the
+   track's in-flight edits into the commit. It was left in place rather than reset, because
+   git surgery inside a worktree while an agent is live is the more dangerous move; it rode
+   in with the merge and the merge message records it. **Use subshells — `( cd X && cmd )` —
+   for anything needing a working directory, and `git -C` for every git call.**
+
+**Still open:** `BW_DEFAULT_ADVISOR` is `martice`, so if the auth SDK is unreachable and
+someone reaches generation without a signed-in user, documents carry Martice's full identity
+**including his producer ID** — the exact bug just fixed, resurfacing on one edge path. The
+sign-in gate normally prevents it. Worth deciding whether an unauthenticated generation should
+instead produce a visibly blank advisor.
+
 ## Open items for upcoming sprints
 
 - **The two mismatched templates.** `pdf-templates/ClearPoint Contract 2026.pdf` and
