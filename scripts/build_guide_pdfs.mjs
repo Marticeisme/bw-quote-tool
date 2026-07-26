@@ -49,12 +49,46 @@ function shrink(file) {
   return false;
 }
 
+// page.pdf() renders the whole document without ever scrolling, so an image
+// carrying loading="lazy" below the fold never enters the viewport, never starts
+// a request, and prints blank. waitUntil:'networkidle' does not help — there is
+// no request in flight to wait for. Flip them eager here, at build time only, so
+// the pages keep lazy loading in a browser. Mirrors build_catalog_pdfs.mjs.
+async function loadAllImages(page) {
+  return page.evaluate(async () => {
+    const imgs = Array.from(document.images);
+    for (const img of imgs) {
+      if (img.loading === 'lazy') img.loading = 'eager';
+      if (!img.complete && !img.currentSrc) img.src = img.src;
+    }
+    await Promise.all(imgs.map(img => (
+      img.complete && img.naturalWidth > 0
+        ? Promise.resolve()
+        : new Promise(resolve => {
+            img.addEventListener('load', resolve, { once: true });
+            img.addEventListener('error', resolve, { once: true });
+            setTimeout(resolve, 15000);
+          })
+    )));
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    return imgs.filter(i => !(i.complete && i.naturalWidth > 0))
+               .map(i => i.getAttribute('src'));
+  });
+}
+
 const browser = await chromium.launch();
+let failures = 0;
 for (const [src, out, opts = {}] of jobs) {
   const page = await browser.newPage();
   await page.goto(pathToFileURL(path.resolve(src)).href, { waitUntil: 'networkidle' });
   // force <details> open so FAQ answers print (belt-and-suspenders with the CSS)
   await page.evaluate(() => document.querySelectorAll('details').forEach(d => d.open = true));
+  const badImages = await loadAllImages(page);
+  if (badImages.length) {
+    failures++;
+    console.error(`  !! ${src}: ${badImages.length} image(s) failed to load:`);
+    badImages.forEach(s => console.error('     - ' + s));
+  }
   await page.emulateMedia({ media: 'print' });
   await page.pdf({ path: out, printBackground: true, preferCSSPageSize: true,
                    margin: { top: '0', right: '0', bottom: '0', left: '0' } });
@@ -67,4 +101,8 @@ for (const [src, out, opts = {}] of jobs) {
   console.log(`${path.basename(out).padEnd(30)} ${String(kb).padStart(5)} KB  ${note}`);
 }
 await browser.close();
+if (failures) {
+  console.error(`done with ${failures} job(s) that had unloadable images`);
+  process.exit(1);
+}
 console.log('done');
