@@ -183,6 +183,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 /* ── PRINT SHEET ── */
 #printSheet{display:none;}
 @media print{
+  /* No ligature substitution in print: Ghostscript's downsample corrupts the ToUnicode
+     map for fi/fl/ft, which makes those words unsearchable in the built PDF. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none}
   body:not(.modal-printing){
     font-size:11pt;margin:0;padding:0;background:#f8f6f2;
   }

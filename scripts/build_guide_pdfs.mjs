@@ -25,17 +25,17 @@ const JOBS = [
   ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf'],
   ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
   ['direct-cremation.html',         'pdf-assets/Direct Cremation Plan Example.pdf'],
+  ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
 ];
-// NOT registered: vault-guide.html -> pdf-assets/Burial Vault Guide.pdf.
-// The committed PDF is NOT a print of that page. It carries three sections the
-// page has never contained (verified with `git log -S`): OVERSIZE OPTIONS
-// (Oversize Monticello $4,085, 40# Oversize Rough Box $3,355), INFANT & CHILD
-// "Loved & Cherished" (19" $505, 2' $715, 3' $925) and SERVICE FEES (Burial
-// Vault Setting $685, Cremation Vault Setting $575). Registering it here would
-// overwrite that content on the next run. The PDF is stale in other ways -
-// 17 commits behind the page, 16.5 MB, 8 of 23 images blank, browser default
-// margins - so it does need rebuilding, but only once the page carries those
-// three sections. Operator decision, not a build fix.
+// vault-guide.html was deliberately unregistered until 2026-07-26. The committed PDF was not
+// a print of the page: it carried three sections the page has never contained (verified with
+// `git log -S`) — OVERSIZE OPTIONS (Oversize Monticello $4,085, 40# Oversize Rough Box
+// $3,355), INFANT & CHILD "Loved & Cherished" (19" $505, 2' $715, 3' $925) and SERVICE FEES
+// (Burial Vault Setting $685, Cremation Vault Setting $575) — so any rebuild would delete
+// them. Martice confirmed 2026-07-26 that all seven are **discontinued products**: the PDF had
+// been advertising dead prices to families, which is worse than the stale images it also had.
+// Registered and rebuilt on that decision. If a price here ever needs to outlive the page,
+// put it ON the page — never leave it only in a generated artifact.
 
 // Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
 // jobs (source filename contains one of the given substrings). No args = all.
