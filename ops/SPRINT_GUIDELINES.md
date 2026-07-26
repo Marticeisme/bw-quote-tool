@@ -37,8 +37,8 @@ Rules of work for every sprint, track, and director. Director runbook:
    **every** push, `main` or otherwise, is an operator gate. This applies to directors too.
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
-   - `npm run check` → must print `index.html: 9 blocks, 0 errors`
-   - `npm test` → must print `368 passed, 0 failed across 12 suites`
+   - `npm run check` → must print `index.html: 8 blocks, 0 errors`
+   - `npm test` → must print `456 passed, 0 failed across 14 suites`
      (the count rises as suites are added; it must never fall silently)
    - any generator-signature diff its sprint file specifies
 5. **Never trust, always verify.** "Done"/"pushed"/"loaded" are claims; the report quotes

@@ -101,11 +101,19 @@ actual output.
 
 | Gate | Command | Expected |
 |---|---|---|
-| JS syntax, every inline block | `npm run check` | `index.html: 9 blocks, 0 errors` |
-| Assertion suites | `npm test` | `368 passed, 0 failed across 12 suites` |
+| JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
+| Assertion suites | `npm test` | `456 passed, 0 failed across 14 suites` |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
+
+**These two numbers go stale every time a sprint lands, and a stale expectation is worse than
+none** — a track told to expect `9 blocks` when the truth is 8 either wastes time or, worse,
+manufactures an empty `<script>` block to satisfy the doc. Whoever merges a sprint updates them
+here, in `DIRECTOR_GUIDELINES.md` Phase 0 and in `SPRINT_GUIDELINES.md` rule 4, in the same
+`[sNN/ops]` commit. Sprint files and `STATE.md` history keep the numbers that were true when
+written — those are records, not expectations. Counts may rise as suites are added and must
+never fall silently.
 
 **The generator baseline covers 14 scenarios, not 12** (corrected 2026-07-26). The key names
 the *scenario*, not the function, so one generator can be captured on two paths. The two added:
