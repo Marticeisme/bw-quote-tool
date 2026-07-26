@@ -44,6 +44,11 @@ ops/
 | Deploy target | GitHub Pages from `main` | **`git push origin main` is live immediately and the repo is public** |
 | Data | Firebase Realtime Database | production only, no staging |
 | Dev server | `node dev-server.mjs`, port 3737 | also `.claude/launch.json` → `bw-quote-tool` |
+| **WMP cemetery map** | `wmp-cemetery-map/` | **its own git repo, no remote.** Gitignored here. Localhost:8642. Holds real burial PII — see `DESIGN.md` §6. Its own `npm test`. |
+
+The map is a declared surface of this instance, not a separate sprint project: one director,
+one `ops/`, and a `TRACK-*.md` may target either repo. The shared contract between them is
+`DESIGN.md` §7.
 
 **Every push is an operator gate.** Tracks never push. Directors never push without an
 explicit go from Martice.

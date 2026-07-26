@@ -99,6 +99,24 @@ actual output.
 | Generator output | `node scratch/baseline-capture.mjs` + `baseline-sign.mjs`, diff `signatures.json` | identical to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
 
+**Map repo (`wmp-cemetery-map/`, its own git repo, no remote):**
+
+| Gate | Command | Expected |
+|---|---|---|
+| Alignment baking | `npm test` (runs first) | `19 passed, 0 failed` |
+| GeoJSON + index | `npm run validate` (second half of `npm test`) | `2/2 unit files valid, 2770 units checked, index ok` |
+| Inventory counts | `npm run counts` | informational |
+
+`npm test` in the map repo runs `bake-alignment.test.mjs && npm run validate` and exits
+non-zero on failure — verified 2026-07-25 by perturbing `areas.json` in both directions.
+
+`validate.mjs` checks what a generic GeoJSON validator would not: coordinates inside the WMP
+parcel (so an x/y swap fails instead of rendering the cemetery into the Pacific), closed
+rings, `occ[].d` on every occupant, no duplicate position `sid`, and status/roster agreement
+(an "available" space holding a named person is how a plot gets sold twice). It also checks
+`areas.json` both ways — a listed area with no valid build is a 404 on the overview; a valid
+build not listed is work that shipped unreachable.
+
 `npm test` starts `dev-server.mjs` on 3737 if nothing is listening and stops it after.
 
 **A suite that prints no assertions is a FAILURE, not a pass.** Only
@@ -132,7 +150,82 @@ the worktree — a recursive delete can follow it into the real `node_modules`.
   editing Firebase-touching code.
 - Nothing in `ops/` may contain customer data.
 
-## 7. Standing decisions ledger (operator-confirmed)
+### Map-side tracks — the rule the hook cannot enforce
+
+`.claude/hooks/pre-git-guard.js` blocks committing `wmp-cemetery-map/` into this repo. It
+does **not** stop a track from reading a name out of the map's data and pasting it into a
+source file, a test fixture, a comment, or an `ops/` doc — which is exactly how real
+customer names ended up in `index.html`'s comments and in the test suites, found and fixed
+2026-07-25.
+
+So, absolutely: **a track working in the map repo may never carry map data across into this
+repo in any form.** Not as a fixture, not as an example in a comment, not as a sample in a
+report. Interned names, plot owners, `occ[].n` values and anything derived from them stay in
+`wmp-cemetery-map/`, which is gitignored here and has no remote of its own.
+
+When an integration needs to demonstrate a real record, use a synthetic `sid` and an
+invented name. If a track cannot do its job without a real one, it stops and says so — that
+is an operator gate, not a judgement call for the track.
+
+## 7. Map / quote-tool integration contract
+
+Two repos, one integration. This section is the shared contract; both sides' tracks read it
+here rather than re-deriving it. Verified against both codebases 2026-07-25.
+
+**The two entry points.** `BW_MAP_BASE = 'http://localhost:8642/index.html'`
+(`index.html:12682`, with `bwMapUrl(route, value)` beside it) and
+`BW_TOOL_BASE = 'http://localhost:3737/index.html'` (map `index.html:1904`). Both are
+localhost today because the map is local-only; each is a single constant precisely so a
+future move is a one-line change.
+
+**Hash grammar — identical on both sides:**
+
+```
+#route=value                 shorthand, single value
+#route?key=value&key=value   full form
+#route                       bare
+```
+
+Split on the first `?`. No `?` but a `=` before it means shorthand. **Unknown params are
+ignored and an unknown route falls back to the overview** — a stale link must never leave a
+white screen. `+` means space in a query string, so decoding needs the `+`→space pass, not
+`decodeURIComponent` alone. Map side: `bwParseHash` / `bwSetRoute` (map `index.html:1908`),
+guarded by a `bwRouting` flag against setRoute→hashchange→applyRoute loops. Tool side:
+`show()` mirrors into `location.hash` and `bwRoute(fallbackId)` handles hashchange.
+
+**Param vocabulary (identical both sides):** `space` (a sid), `section`, `building`, `loc`,
+`q`, `kind`. Section codes are the URL-safe sanitized form, so `VETS_N` and `17_S_Sundial`
+need no escaping.
+
+**`sid` is a PER-POSITION key, not per-space.** A space can hold several interments at
+different depths; each position gets its own sid, so a contract line keys one place and only
+one. Duplicate position sids are a validated failure in the map (`validate.mjs`) because two
+contract lines keying the same place is the data shape of a double sale.
+
+**Shared data files, all under `wmp-cemetery-map/data/`:**
+
+| File | Contract |
+|---|---|
+| `sid-index.json` | `sid → locator`, so a `#space=<sid>` route resolves without loading every section. **~2 MB, lazily fetched only when a `#space` route arrives** — do not load it eagerly. |
+| `search/` + `search-index-manifest.json` | sharded by the first character of the **normalised** surname `ln` (A–Z plus `_other`). `l` = surname as MIS spells it, for DISPLAY; `ln` = normalised for MATCHING (upper, suffixes and punctuation stripped). Never match on `l`. |
+| `prices.json` | **schema 2**, the single fee/price schedule shared by both apps, replacing three copies that disagreed. **Read `current`.** A price is always today's price — do not resolve a fee as-of a date. `fees`/`inventory` keep dated history for reference only. |
+
+**`prices.json` already exists and the map already emits it.** Sprint S2 is therefore about
+making the *tool* consume it, not about inventing the format.
+
+**Coordinate caveat.** The map's lat/lon and MIS's differ by a consistent ~2.7 m — an imagery
+offset Martice hand-corrected against the aerial photo. The map's position matches the
+headstone visible in the imagery; MIS's is where MIS's own link sends you. At 2.7 m the
+difference is inside phone-GPS noise, but our map and our links must at least agree with each
+other. Do not "fix" one side toward the other without raising it.
+
+**Sprints that span both repos:** one director, one `ops/` (this one), the map declared as a
+surface in `README.md`. Tracks may target either repo — a `TRACK-*.md` names its working
+directory. This is the one case where parallel tracks genuinely fit, because the two sides
+touch different files in different repos and cannot conflict. Merge each in its own repo; the
+map has no remote, so map-side work is committed locally and never pushed.
+
+## 8. Standing decisions ledger (operator-confirmed)
 
 | Date | Decision |
 |---|---|

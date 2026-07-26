@@ -65,19 +65,41 @@ Do not re-derive these.
 - Firebase auth usernames (`martice`, `randy`) and `BW_LOGIN_SUFFIX = '@bwquote.local'` are
   already public in `index.html`'s `BW_USERS` map. Committing them in test fixtures adds no
   new exposure.
+- **The map repo is sprint-ready.** `wmp-cemetery-map/` is its own git repo with **no
+  remote** (so map-side work can be committed locally but never pushed anywhere), and it
+  already has a real `npm test` = `bake-alignment.test.mjs && npm run validate`. Green as of
+  2026-07-25: **19 assertions + 2/2 unit files + 2,770 units + index ok**, exit 0.
+- **`scripts/validate.mjs` was red and is fixed (2026-07-25, uncommitted).** Its file filter
+  swept in every `.json` under `data/geojson/`, so the `areas.json` index was validated
+  against `unit.schema.json` and failed for not being a FeatureCollection — a false alarm
+  that trains people to ignore a red suite. It now validates `.geojson` only and checks
+  `areas.json` as an index in both directions. Proven to fail correctly: a listed area with
+  no build → exit 1; a valid build not listed → exit 1.
+- **The map repo has other work in flight** — `data/garden-markers.json`, `data/mausolea/SER.json`,
+  `docs/INDOOR_AND_NICHE_BUILDINGS.md`, `index.html`, plus untracked `MVCN.json`,
+  `buildings/MVC.json`, `SER_SERENITY_PRICING.md`. Not ours. Stage by name there too.
+- **`prices.json` already exists on the map side** — `wmp-cemetery-map/data/prices.json`,
+  schema 2, generated 2026-07-25, purpose: "Single fee/price schedule shared by the cemetery
+  map and the quote tool, replacing three copies that disagreed." **Sprint S2 is about making
+  the TOOL consume it**, not about inventing a format.
+- **The map/tool integration contract is now written down** in `DESIGN.md` §7, verified
+  against both codebases rather than recalled. It previously existed only in session memory —
+  the exact context rot this system exists to prevent.
 
 ## Decisions log
 
 | Date | Decision | Where recorded |
 |---|---|---|
-| 2026-07-25 | Standing decisions from init interview | `DESIGN.md` §7 |
+| 2026-07-25 | Standing decisions from init interview | `DESIGN.md` §8 |
 | 2026-07-25 | `ops/` tracked; bookkeeping under `[sNN/ops]` | `SPRINT_GUIDELINES.md` |
 | 2026-07-25 | Opus for all tracks | `SPRINT_GUIDELINES.md` |
 | 2026-07-25 | Sprint-02 is `prices.json`, built for repeated updates | `ROADMAP.md` S2 |
-| 2026-07-25 | No `file://` support needed | `DESIGN.md` §7 |
-| 2026-07-25 | Prefetch + retry + explicit error; no persistent cache | `DESIGN.md` §7 |
-| 2026-07-25 | One change: loader in, literals out | `DESIGN.md` §7 |
+| 2026-07-25 | No `file://` support needed | `DESIGN.md` §8 |
+| 2026-07-25 | Prefetch + retry + explicit error; no persistent cache | `DESIGN.md` §8 |
+| 2026-07-25 | One change: loader in, literals out | `DESIGN.md` §8 |
 | 2026-07-25 | Acrobat gate only when a change touches the RIC itself | `DESIGN.md` §5 |
+| 2026-07-25 | Cross-repo sprints use ONE director and ONE `ops/`; tracks may target either repo | `DESIGN.md` §7 |
+| 2026-07-25 | Map data never crosses into this repo in any form — not fixtures, comments, or reports | `DESIGN.md` §6 |
 
 ## Sprint history
 
