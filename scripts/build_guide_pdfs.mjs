@@ -24,7 +24,18 @@ const JOBS = [
   ['burial-guide.html',             'pdf-assets/Burial Guide.pdf'],
   ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf'],
   ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
+  ['direct-cremation.html',         'pdf-assets/Direct Cremation Plan Example.pdf'],
 ];
+// NOT registered: vault-guide.html -> pdf-assets/Burial Vault Guide.pdf.
+// The committed PDF is NOT a print of that page. It carries three sections the
+// page has never contained (verified with `git log -S`): OVERSIZE OPTIONS
+// (Oversize Monticello $4,085, 40# Oversize Rough Box $3,355), INFANT & CHILD
+// "Loved & Cherished" (19" $505, 2' $715, 3' $925) and SERVICE FEES (Burial
+// Vault Setting $685, Cremation Vault Setting $575). Registering it here would
+// overwrite that content on the next run. The PDF is stale in other ways -
+// 17 commits behind the page, 16.5 MB, 8 of 23 images blank, browser default
+// margins - so it does need rebuilding, but only once the page carries those
+// three sections. Operator decision, not a build fix.
 
 // Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
 // jobs (source filename contains one of the given substrings). No args = all.
@@ -56,7 +67,9 @@ function shrink(file) {
 // the pages keep lazy loading in a browser. Mirrors build_catalog_pdfs.mjs.
 async function loadAllImages(page) {
   return page.evaluate(async () => {
-    const imgs = Array.from(document.images);
+    // Skip src-less placeholders: the product-modal and print-sheet <img> are
+    // filled in by JS on click and are legitimately empty at print time.
+    const imgs = Array.from(document.images).filter(i => (i.getAttribute('src') || '').trim());
     for (const img of imgs) {
       if (img.loading === 'lazy') img.loading = 'eager';
       if (!img.complete && !img.currentSrc) img.src = img.src;
