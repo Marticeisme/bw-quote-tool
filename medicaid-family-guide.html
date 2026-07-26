@@ -231,6 +231,9 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
 @media print{
   @page{size:letter;margin:0}
+  /* No ligature substitution in print: Ghostscript's downsample corrupts the ToUnicode
+     map for fi/fl/ft, which makes those words unsearchable in the built PDF. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none}
   html{background:var(--cream)}
   body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
