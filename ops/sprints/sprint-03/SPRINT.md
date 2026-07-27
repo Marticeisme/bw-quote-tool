@@ -1,0 +1,145 @@
+# Sprint 03 — `prices.json` as the source of truth
+
+**Runs ROADMAP milestone S2.** Sprint numbers and milestone IDs differ; sprint-02 ran S7 ahead
+of this at Martice's direction.
+
+**Goal:** a price lives in exactly one place, and the annual update is something Martice runs
+himself instead of hand-editing hundreds of HTML lines. The deliverable is **a price file plus
+an update path**, not a refactor.
+
+## Measured reality — checked 2026-07-26, not inherited from the roadmap
+
+Everything below was verified against the code and data. Two of these numbers change the shape
+of the sprint, so read them before planning.
+
+| Claim | Measured |
+|---|---|
+| Hardcoded `$` literals in `index.html` | **1,180** (ROADMAP said 1,157 — it has grown) |
+| `PRICE_INDEX` items | 841, built by `buildPriceIndex()` (`index.html:6386`) |
+| How `PRICE_INDEX` is built | **regex-scraped from rendered DOM text** |
+| `prices.json` entries | **18 fees + 70 inventory = ~88** |
+| Does the tool read `prices.json` today? | **No. Zero references.** |
+
+**The two findings that reshape this sprint:**
+
+**1. `prices.json` is nowhere near a whole price book.** Its 70 inventory keys are all
+`ROAC:<wall>:<level>` — niche pricing for one columbarium. Its 18 fee keys are cemetery service
+fees: `OC:*` (opening/closing), `INSCRIPTION`, `MONOBAR`, `RECORDING`, `VASE`. The tool prices
+**841** things, the rest being caskets, urns, vaults, markers and funeral-home packages that
+have no external source at all and no schema in `prices.json` to hold them.
+
+So "make the tool consume `prices.json`" is not one job. It is a small, valuable one sitting
+inside a much larger one, and **this sprint does only the small one.**
+
+**2. The scrape format is load-bearing and undocumented.** `buildPriceIndex()` matches:
+
+```
+/^(.*?)\s*[—–-]\s*\$\s*([\d,]+(?:\.\d{1,2})?)(?:\s+(?:each|ea\.?|per\s+[\w-]+|\/\s*mo|\+))?\s*$/i
+```
+
+A price only enters the index if its label reads `Name — $1,234` with an em dash, en dash or
+hyphen. **Get the dash or the spacing wrong and the item silently vanishes from search and from
+the price list** — no error, no log. That is the actual danger in editing prices by hand today,
+and it is worth fixing whether or not the rest of this sprint happens.
+
+## Gate 0 — an operator decision, and it blocks everything
+
+**`prices.json` lives in `wmp-cemetery-map/data/`, which is gitignored from this repo and whose
+own repo has no remote. The deployed tool therefore cannot fetch it — there is no URL.**
+
+The file itself is safe to publish: 26 KB of structure codes, fee labels ("Boulder Inurnment",
+"Mausoleum Entombment") and amounts. **No names, no PII** — verified. And the tool already
+publishes prices publicly in its guides and catalogs.
+
+But a machine-readable complete fee schedule on a public site is a different thing from a
+brochure, and that is Martice's call, not a director's. **Options:**
+
+1. **Move/copy `prices.json` into this repo** and serve it from Pages alongside the tool. Both
+   apps read one file over HTTP. Simplest, and consistent with how templates now load.
+2. **Keep it map-side and generate a copy into this repo at build time** — one source, two
+   artifacts, and the map keeps its own. Avoids the map repo becoming a dependency of a public
+   deploy.
+3. **Neither** — the tool keeps its own price file and `prices.json` stays the map's. Accepts
+   two files, but with a shared schema and a single update path.
+
+**Do not spawn a track until this is answered.** Everything else depends on where the file lives.
+
+## Scope — the overlap only
+
+**In:** the ~88 prices that exist in **both** places and can therefore disagree — the `OC:*`,
+`INSCRIPTION`, `MONOBAR`, `RECORDING`, `VASE` fees and the ROAC niche inventory. The tool
+mentions these concepts 129 times; the map has `COLUMBARIUM_FEES`. That is the drift the roadmap
+flagged, and it is small enough to do correctly.
+
+**Out:** the remaining ~750 priced items. They need a schema `prices.json` does not have and a
+source that is not MIS. A later sprint.
+
+## The rule that governs this sprint
+
+**MIS is the pricing source of truth** (Martice, 2026-07-26). Never load prices out of a printed
+or PDF sheet — a Serenity wall sheet priced 5 of 48 niches and priced three MIS calls `reserved`.
+`prices.json`'s own `resolve` rule already says: **read `current`; a price is always today's
+price**; `fees`/`inventory` keep dated history as provenance only. To change a price you append
+a record and rebuild — the newest wins.
+
+**Claude cannot reach MIS.** Every route failed on 2026-07-18. So the update path must be
+something Martice drives, and the sprint must not pretend otherwise.
+
+## Definition of done
+
+1. Every overlapping price resolves from **one** place. No fee or niche price is defined twice.
+2. **Zero prices change.** This is a plumbing change; a refactor that silently moves a number is
+   the failure mode that reaches a family.
+3. A **documented, runnable update path**: Martice changes a price in one file, runs one command,
+   and both apps show the new number. Tested by actually doing it.
+4. A label whose format breaks the scrape **fails a test** instead of silently vanishing.
+5. `npm run check` → `index.html: 8 blocks, 0 errors`. `npm test` → at least `467 passed across
+   14 suites`; counts may rise, never fall.
+6. All **14 generator signatures unchanged** — see below.
+
+## Verification — the strong gate already exists
+
+**The generator baseline protects prices for free.** Contracts and quote PDFs print dollar
+amounts, so those amounts are inside the 14 recorded signatures. If this refactor moves a single
+price on any generated document, `scripts/baseline-capture.mjs` + `baseline-sign.mjs` go red
+against `%TEMP%\bw-baseline\before`. **That is the primary gate and it needs no new work.**
+
+Add three:
+
+- **Golden `PRICE_INDEX` diff.** Capture all 841 `{name, price}` pairs before, and assert the
+  set is identical after. This catches a price vanishing from search — which the baseline cannot
+  see, because search is not on a contract.
+- **Drift assertion.** For every key present in both the tool and `prices.json`, assert the
+  amounts agree. This is the test that makes the whole sprint permanent: it fails the day
+  someone edits one copy again.
+- **Update-path test.** Change a price in the source file, run the update command, assert the
+  new number appears in both apps — then revert. Proves item 3 rather than describing it.
+
+**Do not write a test that reads the price from the same constant the code reads.** It will pass
+forever and prove nothing. Assert against the generated artifact or the rendered DOM.
+
+## Tracks
+
+| Track | Branch | Model | Scope |
+|---|---|---|---|
+| A | `s03/prices-single-source` | Opus | The overlap, the loader, the update path, the four gates. Single track — it all lands in `index.html` plus one data file. |
+
+A second track is not justified: `SPRINT_GUIDELINES.md` allows one only when the work genuinely
+lives elsewhere, and this does not.
+
+## Risks
+
+| Risk | Mitigation |
+|---|---|
+| A price silently changes | The 14 generator signatures + the golden `PRICE_INDEX` diff. Both must be green before merge. |
+| A label's dash gets normalised and the item drops out of search | Gate 4 — the scrape-format test. This is the pre-existing bug; do not make it worse. |
+| The tool ends up depending on a repo it cannot reach | Gate 0. Answer it first. |
+| Someone "tidies" a price back into HTML later | The drift assertion fails on the next run. |
+| MIS and the file disagree | MIS wins, always. The file records what MIS said and when. |
+
+## Out of scope
+
+- The ~750 non-overlapping prices (caskets, urns, vaults, FH packages).
+- The map's own price rendering — sprint-02 deliberately left prices alone.
+- Restoring the "Search prices" quick lookup (a separate pending UI request).
+- Anything touching MIS directly. It is unreachable; the update path is operator-driven.

@@ -23,12 +23,13 @@ all **14** generator signatures identical to that baseline, `npm run check` (**8
 including the ACH/Rules attachments, which previously swallowed failures. Close gate: merged
 locally, then Martice pushes.
 
-## S2 — `prices.json` as source of truth
+## S2 — `prices.json` as source of truth  [DETAILED → sprints/sprint-03/]
 
 Today an annual price update means hand-editing hundreds of HTML lines in a
 `"Name — $1,234"` format that silently breaks the regex-scraped search index if the dash or
-spacing is wrong. There are 1,157 hardcoded `$` literals, and `PRICE_INDEX` (841 items) is
-built by scraping rendered DOM text.
+spacing is wrong. Measured 2026-07-26: **1,180** hardcoded `$` literals (it has grown), and `PRICE_INDEX` (841
+items) is built by regex-scraping rendered DOM text — so the `Name — $1,234` format is
+load-bearing, and a wrong dash silently drops an item from search with no error.
 
 Worse, the same fees now live in **three places and are already drifting**: the quote tool,
 the WMP map's hardcoded `COLUMBARIUM_FEES`, and an older unused Rock of Ages sheet. Nothing

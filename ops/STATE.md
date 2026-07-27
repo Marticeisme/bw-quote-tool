@@ -1,8 +1,8 @@
 # STATE — Living Ledger
 
 **Current sprint:** sprint-01 **SHIPPED AND LIVE** (pushed, verified on GitHub Pages).
-Next: `sprints/sprint-02/` — `prices.json`, still to be drafted.
-**Last updated:** 2026-07-26 (advisor identity merged locally; map audit still unmerged)
+Next: `sprints/sprint-03/` — `prices.json`, drafted and **blocked on Gate 0** (where the file lives).
+**Last updated:** 2026-07-26 (sprint-02 merged; sprint-03 drafted, Gate 0 open)
 
 ## Status
 
