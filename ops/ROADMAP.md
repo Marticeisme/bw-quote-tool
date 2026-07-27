@@ -93,3 +93,26 @@ multi-tenancy into a rewrite. But the rescope changes which invariants are load-
 
 Trigger when a second organisation is genuinely imminent. Until then it is a constraint on
 other sprints, not work of its own.
+
+## S7 — Map inventory styling  [DETAILED → sprints/sprint-02/; added 2026-07-26]
+
+The map reads as a reference, not a sales surface: a counselor cannot see what is sellable
+without clicking. Derived from a teardown of PlotBox/EverAfter's public map, which does the
+base layer well — drone orthophoto, hairline plot outlines, labels rotated to each row's
+bearing — and carries no inventory state at all.
+
+One outline colour with state in the fill; six measured status values, not four; and the
+distinctions needed at a distance getting fill and hatch while the fine one gets a glyph.
+The real work is the verification: pixel-sampling to prove a 15%-alpha tint survives over
+grass, and a coverage assertion that fails when a seventh status appears rather than
+rendering it as nothing.
+
+**Blocked on Gate 0:** `audit/map-bugs` must merge into the map's `main` first, and that is
+waiting on another session's uncommitted work in the same file.
+
+## A note on numbering
+
+**Roadmap milestone IDs and sprint numbers are not the same thing.** This file is a catalogue
+of milestones; `sprints/sprint-NN/` is execution order. Sprint-01 ran S1. **Sprint-02 runs S7**,
+ahead of S2, at Martice's direction on 2026-07-26. Milestone IDs stay stable so references to
+them from `DESIGN.md` and elsewhere keep resolving.
