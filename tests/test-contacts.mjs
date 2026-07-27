@@ -202,16 +202,19 @@ console.log('\n7. Contacts UI');
   ok('list shows it formatted', /\(206\) 555-0147/.test(saved.listText), saved.listText.slice(0, 120));
   ok('editor closed on save', saved.editorClosed);
 
+  // Driven through the box's own oninput handler rather than by poking the value and calling
+  // the renderer: since sprint-04 Track B the search term lives in the view model (and the URL),
+  // not in the DOM, so setting .value alone no longer means anything. Dispatching the event is
+  // what a keystroke actually does.
   const search = await page.evaluate(async () => {
     await saveParty({ given: 'Nina', family: 'Prescott' });
-    document.getElementById('contactSearch').value = 'prescott';
-    renderContactsList();
+    const box = document.getElementById('contactSearch');
+    const type = (v) => { box.value = v; box.dispatchEvent(new Event('input', { bubbles: true })); };
+    type('prescott');
     const a = document.getElementById('contactsList').textContent;
-    document.getElementById('contactSearch').value = '5550147';
-    renderContactsList();
+    type('5550147');
     const b = document.getElementById('contactsList').textContent;
-    document.getElementById('contactSearch').value = '';
-    renderContactsList();
+    type('');
     return { byName: /Nina Prescott/.test(a) && !/Thanh Vu/.test(a), byDigits: /Thanh Vu/.test(b) && !/Nina Prescott/.test(b) };
   });
   ok('search by name', search.byName);
