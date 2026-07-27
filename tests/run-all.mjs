@@ -53,9 +53,28 @@ const up = async () => {
   } catch { return false; }
 };
 
+// A listener on 3737 is not proof it is OUR listener. Martice runs parallel sessions, and a
+// dev-server started from another worktree serves THAT tree's index.html on the same port —
+// so the whole suite silently tests someone else's file and reports green. Reuse a server
+// only if the bytes it serves at / are this tree's index.html, to the byte.
+const servesThisTree = async () => {
+  try {
+    const body = Buffer.from(await (await fetch(URL_)).arrayBuffer());
+    return body.equals(fs.readFileSync(path.join(ROOT, 'index.html')));
+  } catch { return false; }
+};
+
 let server = null;
 if (await up()) {
-  console.log('dev-server already listening on ' + PORT + ' (reusing)\n');
+  if (!(await servesThisTree())) {
+    console.error('Something else is already listening on ' + PORT + ', and it is not serving\n' +
+      'this working tree\'s index.html. That is almost certainly a dev-server from another\n' +
+      'worktree or a parallel session. Reusing it would test the wrong file and report green.\n\n' +
+      'Find it with:  netstat -ano | findstr :' + PORT + '\n' +
+      'Then stop that server, or run this suite once the other session is finished.');
+    process.exit(2);
+  }
+  console.log('dev-server already listening on ' + PORT + ' (reusing, verified)\n');
 } else {
   server = spawn(process.execPath, ['dev-server.mjs'], { cwd: ROOT, stdio: 'ignore' });
   const started = Date.now();
