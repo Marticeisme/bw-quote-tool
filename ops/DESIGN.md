@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `636 passed, 0 failed across 19 suites` |
+| Assertion suites | `npm test` | `758 passed, 0 failed across 20 suites` |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |

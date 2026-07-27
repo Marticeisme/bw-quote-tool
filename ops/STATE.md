@@ -81,6 +81,44 @@ rather than redacting a name.
 images per page, sids indexed, pages in a contract, dollar figures before and after, served bytes
 versus disk bytes. None came from looking at the thing and judging it. See `MISTAKES.md`.
 
+### Sprint-04 Track A — merged 2026-07-27 (`f481637`)
+
+Classification, notes and to-dos on the contact record. Five taxonomies as editable data
+(`BW_SOURCES`, `BW_STATUSES`, `BW_CATEGORIES`, `BW_FLAGS`, `BW_TASK_KINDS`), one accessor
+`bwTaxonomy(kind)` resolving Firebase-then-defaults, `contactNotes/<id>` and `contactTasks/<id>`
+as their own per-record nodes, next action and last activity derived, a tab strip on the contact
+detail and a first-ever `#section-crm-settings`.
+
+**Director-verified rather than taken from the report:** `8 blocks, 0 errors`; **758 passed, 0
+failed across 20 suites**, with all 19 pre-existing suites holding their exact boot counts —
+they sum to 636, so nothing fell silently behind a rising total; **14/14 generator signatures
+identical**, captured against a dev server *proven by content marker* to be serving this tree
+rather than the guides worktree, and compared with the director's own comparator, itself proven
+able to fail (0/14 against `audit-randy`, printing the real `FSD` field diff); every new write
+path is `<collection>/<id>`, never a bare node; no generator, price, template or `contractRole`
+behaviour touched; no unescaped user text reaches `innerHTML`.
+
+**A phone number in the diff that was not 555-range** — `(206) 445-9794` — was checked rather
+than assumed. It pre-exists on `main` in three places, appears in the diff only as an unchanged
+context line, and is Bonney Watson's own business number in the advisor block. Not customer data,
+not introduced by the track.
+
+**Three track decisions the director reviewed and accepted:**
+
+1. **Five taxonomies, not the four the track file specified.** `BW_TASK_KINDS` was made editable
+   too, because leaving one vocabulary hardcoded while four are editable is an inconsistency a
+   user hits immediately. Accepted — it follows the file's own data-not-enum rule.
+2. **`engagement: 'active'` maps to no status.** It was the default and carries no information;
+   surfacing it as an unresolved raw code would read as a bug. `do-not-contact` and `idle` map
+   through. No record is rewritten — read-time fallback only, per D4's no-migration reasoning.
+3. **The first taxonomy edit seeds all defaults.** Without it, renaming one status would make the
+   other seven vanish the moment the Firebase set became non-empty. A test asserts every write is
+   path-depth 3 and none targets a bare collection node.
+
+**Still open from this track:** the five `crmTaxonomy/<kind>` nodes do not exist in production
+yet. Rules are `auth !== null` so reads are fine, but **live behaviour of the new nodes is
+unverified by rule** — it is a first-boot check for Martice, not something an agent may confirm.
+
 ## Open, and needing Martice
 
 1. **Two possible double sales** in CN and ELN - two spaces each recording two different people at
@@ -114,8 +152,8 @@ often than measurements have.
 | Discontinued vaults | **shipped, live** | `fix/discontinued-vault-products` | merge `3c0228c` |
 | cemUpdate (other session) | **shipped, live** | `claude/awesome-cerf-226213` | merge `56e3d49` |
 | sprint-03 Track A | **shipped, live** | `s03/prices-single-source` | merge `875bcaf` |
-| sprint-04 Track A | **running** (spawned 2026-07-27) | `s04/contact-record` | main tree, no worktree — one track at a time |
-| sprint-04 Track B | not spawned | `s04/contact-search` | blocked on A merging |
+| sprint-04 Track A | **merged, local only** | `s04/contact-record` | merge `f481637`; audited and re-verified by the director |
+| sprint-04 Track B | **running** (spawned 2026-07-27) | `s04/contact-search` | main tree |
 | sprint-04 Track C | not spawned | `s04/contact-csv` | blocked on A + B merging |
 | sprint-04 Track D | **running** (spawned 2026-07-27) | `s04/guides-audit` | worktree `../bw-quote-tool-guides`, node_modules junctioned. Runs S9 — 21 guide items. Parallel with A by design: disjoint files, and it may not touch `index.html` at all |
 

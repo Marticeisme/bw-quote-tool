@@ -161,6 +161,41 @@ Martice a correct deploy had failed.
 
 ---
 
+## 2026-07-27
+
+### 12. Committed ops onto a live track's branch. Again. Same scar as #5.
+
+Entry #5 above says, in this same file, that I once `cd`'d into a worktree and used bare `git`,
+landing an `[s01/ops]` commit on a feature branch. On 2026-07-27 I did the equivalent from the
+other direction: I spawned Track A, which checked out `s04/contact-record` **in the main tree**,
+and then committed `[s04/ops] Open sprint-04 in the ledger` without checking what branch I was
+on. It landed on the track's branch and rode into `main` through the merge.
+
+No `cd` was involved this time, which is exactly why the old lesson did not fire. The rule I had
+written was about *directories*; the actual hazard is **branch state**, and a track that works in
+the main tree changes it under you without a directory ever changing.
+
+**Caught by the track, not by me** — its report listed the foreign commit under "what the
+director must verify by hand".
+
+**Lesson: `git rev-parse --abbrev-ref HEAD` before every commit, not `pwd`.** A scar written as
+"don't `cd`" only protects against the instance; the class is "you do not know what branch you
+are on". Where a track will occupy the main tree, the director needs a separate place to commit
+ops from, or must hold the bookkeeping until the merge.
+
+### 13. Read an exit code through a pipe, after the guidelines say not to.
+
+Proving my signature comparator could fail, I ran it into `head` and printed `$?` — which is
+`head`'s status, not the script's, so it printed `exit 0` for a run that had genuinely failed.
+`SPRINT_GUIDELINES.md` says in as many words: *never chain after a PIPED command, pipes mask exit
+codes.* The printed `IDENTICAL: 0/14` made the real result unambiguous, so nothing was concluded
+wrongly — but the number I printed next to it was false.
+
+**Lesson: the pipe rule applies to reading a status, not only to chaining one.** Use
+`PIPESTATUS`, or run the command bare and pipe only when the exit code does not matter.
+
+---
+
 ## The pattern across all of them
 
 Every real defect this session — mine and the code's — was found by **counting something and
