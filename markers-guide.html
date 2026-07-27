@@ -229,6 +229,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .scale-companion{margin-top:24px;}
   .scale-companion .scale-markers{margin-bottom:60px;}
   .section-photo img,.section-photo-inline img{width:100%;max-width:none;}
+  /* A section photo may not eat a page. Capped so a section's heading, prose, sidebar
+     and policy box stay together on one sheet — the photo shrinks, the content wins. */
+  .section-photo img{max-height:1.6in;object-fit:cover;}
+  .section-photo-inline img{max-height:1.5in;object-fit:cover;}
+  /* Section 1 gets its own sheet. Sharing page 1 with the cover and the contents grid
+     is what split it, leaving a page that was mostly photograph. */
+  #overview{page-break-before:always;break-before:page;}
   .color-swatches{grid-template-columns:repeat(5,1fr);gap:8px;}
   .color-swatch img{aspect-ratio:1/1;}
   .color-group{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
@@ -250,7 +257,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .tsg-full{page-break-before:always;break-before:page;margin-left:-0.5in;margin-right:-0.5in;}
   .tsg-full .tsg-diagram{justify-content:center;}
   .tsg-diagram{margin-bottom:12px;justify-content:flex-start;}
-  .policy-box{break-inside:avoid;page-break-inside:avoid;}
+  .policy-box{break-inside:avoid;page-break-inside:avoid;padding:16px 18px;}
+  .policy-box h3{margin-bottom:6px;}
+  .policy-box p{margin-bottom:6px;line-height:1.4;}
   .doc-footer{page-break-before:avoid;padding:24px 0 20px;border-top:1px solid #ddd6c8;text-align:center;}
   .doc-footer .footer-logo{height:20px;}
   .doc-footer .footer-hours{font-size:11pt;}
