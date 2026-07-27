@@ -26,9 +26,36 @@ OUT = 'cremation-containers-rental-caskets.html'
 IMGDIR = 'casket-images/cremation'
 PX, Q = 800, 82
 
+# The third section, added 2026-07-27 (punch list item 4): "The same caskets must
+# also appear in cremation-containers-rental-caskets.html." Its membership is READ
+# OUT OF cremation-guide.html section 5 rather than retyped here, because that
+# section is the authoritative list ("he confirmed those names are correct") and
+# two hand-maintained copies of a product list drift. Matching is by item number,
+# which the guide carries in each card's image filename.
+CREM_GUIDE = 'cremation-guide.html'
+
+
+def cremation_casket_skus():
+    s = open(CREM_GUIDE, encoding='utf-8').read()
+    i = s.index('id="caskets"')
+    rest = s[i + 10:]
+    nxt = [n for n in (rest.find('<div class="section-wrap"'),
+                       rest.find('<div class="urn-subheader"')) if n >= 0]
+    sec = rest[:min(nxt)] if nxt else rest
+    skus = re.findall(r'(\d{5,7})\.(?:jpg|jpeg|png)', sec)
+    seen, out = set(), []
+    for k in skus:
+        if k not in seen:
+            seen.add(k)
+            out.append(k)
+    return out
+
+
+# (section id, heading, selector) — selector is a category name or a set of SKUs.
 SECTIONS = [
-    ('cat-cremation-containers', 'Cremation Containers', 'Cremation Containers'),
-    ('cat-rental-caskets',       'Rental Caskets',       'Rental Caskets'),
+    ('cat-cremation-containers', 'Cremation Containers', {'category': 'Cremation Containers'}),
+    ('cat-rental-caskets',       'Rental Caskets',       {'category': 'Rental Caskets'}),
+    ('cat-cremation-caskets',    'Caskets Suitable for Cremation', {'skus': None}),
 ]
 
 TITLE = 'Cremation Containers &amp; Rental Caskets'
@@ -78,8 +105,16 @@ def build_card(sku, name, price, details, img):
         f'            <div class="product-price">${price:,.2f}</div>',
     ]
     lines += [f'            <div class="product-detail">{esc(d)}</div>' for d in details]
+    # The compare toggle is part of every product card on every catalog. It was
+    # added to the pages after this builder was written, so a rebuild used to
+    # silently strip it and verify_catalogs.mjs would report "compare: skipped"
+    # (it needs at least two .compare-cb) instead of failing. Emitted here now.
     lines += [
         f'            <div class="product-meta">#{sku}</div>',
+        '            <label class="compare-toggle">',
+        '              <input type="checkbox" class="compare-cb">',
+        '              <span>Compare</span>',
+        '            </label>',
         '          </div>',
         '        </div>',
     ]
@@ -88,8 +123,21 @@ def build_card(sku, name, price, details, img):
 
 def main():
     rows = list(csv.DictReader(open(CSVP, encoding='utf-8')))
-    by_sec = {sid: [r for r in rows if r['category'] == cat]
-              for sid, _, cat in SECTIONS}
+    for sid, _, sel in SECTIONS:
+        if 'skus' in sel and sel['skus'] is None:
+            sel['skus'] = cremation_casket_skus()
+
+    def pick(sel):
+        if 'category' in sel:
+            return [r for r in rows if r['category'] == sel['category']]
+        want = list(sel['skus'])
+        by_sku = {r['sku'].strip(): r for r in rows}
+        missing = [k for k in want if k not in by_sku]
+        for k in missing:
+            print(f'  NOT IN INDEX.csv: {k}')
+        return [by_sku[k] for k in want if k in by_sku]
+
+    by_sec = {sid: pick(sel) for sid, _, sel in SECTIONS}
     # Match the template's default sort direction so the page doesn't load
     # showing "Price: High to Low" over a low-to-high list.
     _tpl = open(TEMPLATE, encoding='utf-8').read()
@@ -101,12 +149,15 @@ def main():
     from PIL import Image
     os.makedirs(IMGDIR, exist_ok=True)
     added = 0
-    for sid, _, cat in SECTIONS:
+    for sid, _, _sel in SECTIONS:
         for r in by_sec[sid]:
             dst = os.path.join(IMGDIR, r['sku'].strip() + '.jpg')
             if os.path.exists(dst):
                 continue
-            srcimg = os.path.join(SRC, cat, r['filename'])
+            # Source folder comes from the ROW's own category, not the section's:
+            # the cremation-casket section draws from Wood Caskets (and one row
+            # the index files under Metal Caskets).
+            srcimg = os.path.join(SRC, r['category'], r['filename'])
             if not os.path.exists(srcimg):
                 print('  MISSING IMAGE', r['sku'], r['filename'])
                 continue
@@ -128,6 +179,12 @@ def main():
     prices = [float(r['price_usd']) for rs in by_sec.values() for r in rs]
     total = len(prices)
 
+    # Positional spec rows are only safe while every product has all five details.
+    short = [r['sku'].strip() for rs in by_sec.values() for r in rs if len(details_for(r)) != 5]
+    if short:
+        raise SystemExit('These products do not have exactly 5 details, so the positional '
+                         'comparison rows would mislabel them: ' + ', '.join(short))
+
     cover = (
         '  <div class="cover">\n'
         '    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">\n'
@@ -143,7 +200,7 @@ def main():
     contents = ['  <div class="contents">',
                 '    <div class="contents-label">In This Guide</div>',
                 '    <div class="contents-grid">']
-    for i, (sid, title, _) in enumerate(SECTIONS, 1):
+    for i, (sid, title, _sel) in enumerate(SECTIONS, 1):
         contents.append(
             f'      <div class="contents-item"><span class="contents-num">{i}</span>'
             f'<a href="#{sid}">{title} <span style="color:var(--text-muted);font-weight:400">'
@@ -152,7 +209,7 @@ def main():
     contents = '\n'.join(contents) + '\n'
 
     secs = []
-    for i, (sid, title, _) in enumerate(SECTIONS, 1):
+    for i, (sid, title, _sel) in enumerate(SECTIONS, 1):
         cards = [build_card(r['sku'].strip(), r['product_name'].strip(),
                             float(r['price_usd']), details_for(r),
                             f'{IMGDIR}/{r["sku"].strip()}.jpg')
@@ -176,10 +233,39 @@ def main():
     out = re.sub(r'(<span class="filter-count" id="filterCount">)[^<]*(</span>)',
                  rf'\g<1>{total} products\g<2>', out, count=1)
 
+    # The compare tray, print masthead and comparison rows come from the urn
+    # template and have to be re-labelled for this catalog. These were hand-edited
+    # onto the generated page once and a rebuild silently reverted them to "Compare
+    # Urns" / Material-Capacity rows; they are patched here so the builder is
+    # actually the source of the page.
+    out = out.replace('<div class="compare-title">Compare Urns</div>',
+                      '<div class="compare-title">Compare Cremation &amp; Rental</div>')
+    out = out.replace('<div class="cmp-masthead-title">Urn Comparison</div>',
+                      '<div class="cmp-masthead-title">Cremation &amp; Rental Comparison</div>')
+    out = out.replace('<div class="cmp-eyebrow">Urns</div>',
+                      '<div class="cmp-eyebrow">Cremation &amp; Rental</div>')
+    out = re.sub(r'var ROW_LABELS = \[[^\]]*\];',
+                 "var ROW_LABELS = ['Price', 'Construction', 'Interior', 'Suitable For', "
+                 "'Dimensions', 'Weight', 'Item #'];", out, count=1)
+    out = re.sub(r'var DIFF_ELIGIBLE = \[[^\]]*\];',
+                 'var DIFF_ELIGIBLE = [true, true, true, true, true, true, false];', out, count=1)
+    # rowValues(): the urn template classifies each detail by its CONTENT, because
+    # some urn cards drop a middle field. Every product on this page carries all
+    # five of Construction / Interior / Suitable For / Dimensions / Weight — checked
+    # at build time below — so positional indexing is correct here, and the urn
+    # classifier (which looks for "cu in" capacity) is not.
+    out = re.sub(r'  function rowValues\(data\)\{[\s\S]*?\n  \}\n',
+                 "  function rowValues(data){\n"
+                 "    var vals = [data.price];\n"
+                 "    for (var i = 0; i < 5; i++) vals.push(data.details[i] || '—');\n"
+                 "    vals.push(data.item);\n"
+                 "    return vals;\n"
+                 "  }\n", out, count=1)
+
     open(OUT, 'w', encoding='utf-8', newline='').write(out)
     print(f'{OUT}: {total} products in {len(SECTIONS)} sections | +{added} images | '
           f'${min(prices):,.2f}-${max(prices):,.2f}')
-    for sid, title, _ in SECTIONS:
+    for sid, title, _sel in SECTIONS:
         print(f'    {sid:28} {len(by_sec[sid]):3}  {title}')
 
 

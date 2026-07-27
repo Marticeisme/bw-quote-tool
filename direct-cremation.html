@@ -127,6 +127,49 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .section-photo{break-inside:avoid;page-break-inside:avoid;box-shadow:none;}
   .doc-footer{padding:16px 12px;break-inside:avoid;}
   a{text-decoration:none;color:inherit;}
+
+  /* Punch list item 21, 2026-07-27: this handout is EXACTLY two printed pages.
+     Page 1 — the quote and the information about it (sections 1 and 2).
+     Page 2 — the cremation container, shown and explained (section 3).
+     Asserted by scripts/verify_guide_pages.mjs, which fails if it becomes 1 or 3.
+     The "In This Guide" index is navigation for the web page; on a two-page
+     handout it is a third of a page spent listing what the reader can already see,
+     so it prints hidden. The screen page is unchanged. */
+  .contents{display:none;}
+  .section-wrap{padding:10px 12px 6px;}
+  .section-sub{font-size:12.5px;margin-bottom:8px;}
+  .section-rule{margin-bottom:10px;}
+  .prose p{font-size:12px;line-height:1.45;margin-bottom:8px;}
+  .plan-card{margin-bottom:8px;}
+  .plan-header{padding:10px 18px 8px;}
+  .plan-header h3{font-size:17px;}
+  .plan-price{font-size:21px;}
+  .plan-items{padding:0 18px 8px;}
+  .plan-row{padding:4px 0;font-size:12px;}
+  .plan-row .label-sub{font-size:10px;}
+  .plan-divider{padding:7px 0 4px;}
+  .plan-footer{padding:6px 18px;font-size:11px;}
+  .sidebar{padding:11px 14px;margin-bottom:8px;}
+  .sidebar li{font-size:11.5px;padding:3px 0 3px 14px;}
+  .prose-sidebar{gap:20px;}
+  #options{page-break-before:always;break-before:page;}
+  .doc-footer{page-break-before:avoid;padding:12px;}
+}
+
+/* PRINT HEADER — punch list item 20, 2026-07-27
+   "the header for all of the files when printing or downloading to pdf should be a
+   lot smaller. it is fine in html format but on print or pdf it takes too much of a
+   page up."  Print media ONLY — the on-screen cover is deliberately unchanged.
+   Measured and capped by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+  .cover-stripe{display:none;}
 }
 </style>
 </head>
@@ -236,7 +279,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-rule"></div>
 
     <div class="section-photo" style="max-width:420px;margin:0 auto 24px;">
-      <img src="cremation-images/242414.png" alt="Trayview Cremation Container" style="width:100%;border-radius:8px;">
+      <img src="casket-images/cremation/242414.jpg" alt="Trayview Cremation Container" style="width:100%;border-radius:8px;">
       <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:6px;">Trayview Alternative Container &mdash; $480</div>
     </div>
 

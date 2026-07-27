@@ -279,6 +279,22 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   .doc-footer .footer-url{display:none}
   a[href^="http"]::after{content:""}
 }
+
+/* PRINT HEADER — punch list item 20, 2026-07-27
+   "the header for all of the files when printing or downloading to pdf should be a
+   lot smaller. it is fine in html format but on print or pdf it takes too much of a
+   page up."  Print media ONLY — the on-screen cover is deliberately unchanged.
+   Measured and capped by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+  .cover-stripe{display:none;}
+}
 </style>
 </head>
 <body>
@@ -394,7 +410,8 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <h3>Why that second one matters so much</h3>
     <p>Most people assume a pre-plan is a strong suggestion, and that a determined family member could undo it. In Washington, that is not the case. The law says in as many words that a prepaid or filed prearrangement is not subject to cancellation or substantial revision by survivors, and that we are protected in following it.</p>
     <p><strong>So if there is any chance your family will disagree about this,</strong> the surest thing you can do is make the arrangement and leave it on file. Not a note in a drawer, and not a line in your will, which is usually read after the funeral has already happened.</p>
-    <p>It also spares your family the paperwork. Ordinarily we try to collect signatures from all of your next of kin. If you have signed your own authorization, one of them signs and that is the end of it.</p><p>There is no cost to file wishes with us and no obligation to prepay.</p>
+    <p>It also spares your family the paperwork. Ordinarily we try to collect signatures from all of your next of kin. If you have signed your own authorization, one of them signs and that is the end of it.</p>
+    <p><strong>One practical note.</strong> This is paperwork we usually complete for families who have made their arrangements with us, so the place to begin is the arrangement itself &mdash; the filing follows from it. Making one costs nothing to ask about: there is no cost to file your wishes with us, and no obligation to prepay.</p>
   </div>
 </div>
 
@@ -474,19 +491,21 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
   <div class="costs">
     <ul class="charge-list">
-      <li><strong>The report of death is filed and registered</strong><span>This is what most people call filing the death certificate. It requires the medical certifier to complete their portion, which is often the step nobody can hurry</span></li>
+      <li><strong>The medical certifier signs their side of the death certificate</strong><span>This is the one that holds most families up. The physician who attended your loved one &mdash; often the doctor overseeing their hospice care &mdash; has to complete and attest to the cause of death before anything else can move. It is a signature in somebody else's office, on somebody else's day</span></li>
+      <li><strong>The report of death is filed and registered</strong><span>This is what most people call filing the death certificate. We file it, but it cannot be registered until the certifier's portion above is complete</span></li>
       <li><strong>A permit authorizing final disposition is issued</strong><span>The local registrar issues it once the report of death is registered. Nothing can happen before it arrives</span></li>
       <li><strong>The authorization is signed by the right person or people</strong><span>Everything in Sections 1 through 4 of this guide</span></li>
-      <li><strong>The medical examiner or coroner has released the case</strong><span>Only where they have jurisdiction, but when they do, nothing proceeds without their consent</span></li>
+      <li><strong>The medical examiner or coroner has released the case</strong><span>This applies only to the smaller number of deaths where their office takes jurisdiction. Where it does, nothing proceeds without their consent</span></li>
     </ul>
   </div>
 
   <p class="lawcite">The first two come from <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=70.58A.200" target="_blank" rel="noopener">RCW 70.58A.200</a>, which covers filing and registering the report of death and gives the medical certifier two days to attest to the cause, and <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=70.58A.210" target="_blank" rel="noopener">RCW 70.58A.210</a>, which says final disposition may not happen until that report is registered and a burial-transit permit has been issued. Where a coroner or medical examiner has jurisdiction under <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.010" target="_blank" rel="noopener">RCW 68.50.010</a>, they are the one who attests to the cause, and they may record it as pending investigation &mdash; which is what holds up everything else.</p>
 
   <div class="band">
-    <h3>The medical examiner is usually the long pole</h3>
-    <p>When a death is under review, everything else can be complete and ready and the cremation still cannot happen. That wait belongs to the county, not to us, and we cannot shorten it.</p>
-    <p><strong>What we can do is tell you where it stands.</strong> Ask us plainly whether the release has come through, and if not, what the office is still waiting on. That is usually the difference between a real answer and a guess.</p>
+    <h3>The doctor&rsquo;s signature is usually what everyone is waiting on</h3>
+    <p>In most deaths no medical examiner is involved at all. What there is, is a physician &mdash; the attending doctor, or the one overseeing hospice care &mdash; who has to complete and sign their portion of the death certificate. Until that is done the report cannot be registered, the permit cannot be issued, and nothing else can move, however ready the rest of the file is. That signature sits in another office, on another practice&rsquo;s schedule.</p>
+    <p><strong>What we can do is chase it, and tell you where it stands.</strong> We follow up with the certifier&rsquo;s office, and we will tell you plainly whether it has been signed and, if not, who we are waiting on. That is usually the difference between a real answer and a guess.</p>
+    <p>Where a coroner or medical examiner does take jurisdiction, the wait belongs to the county instead, and we cannot shorten that one either. But it is the less common case, not the usual one.</p>
   </div>
 
   <p>While all of this is happening, your loved one is cared for here. Nothing about the wait changes that, and there is no cost to you for our asking on your behalf.</p>
@@ -496,21 +515,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 <div class="section" id="signing">
   <p class="section-label">Section 6</p>
   <h2>What Signing Actually Means</h2>
-  <p class="sub">Two things every authorizing agent should understand</p>
+  <p class="sub">What every authorizing agent should understand</p>
   <hr class="rule">
   <p>Signing a cremation authorization is not a formality, and we would rather explain it than have you discover it later.</p>
 
+  <!-- A second card here, "The right to decide comes with the bill" (RCW 68.50.160(6)),
+       was removed on 2026-07-27 at the operator's instruction, punch list item 18:
+       "This is not something that needs to be discussed in the guide. There is a lot
+       more nuance to this." Do not reinstate it without asking him. -->
   <div class="grid">
     <div class="card">
       <h3>You are taking on responsibility</h3>
       <p>The authorizing agent agrees to defend and hold the crematory harmless against claims brought by anyone else who says they had the right to decide.</p>
       <p>In plain terms: if a relative comes forward angry, the person who signed is the one who answers for it. Not us.</p>
-    </div>
-    <div class="card">
-      <h3>The right to decide comes with the bill</h3>
-      <p>Under Washington law, responsibility for the reasonable cost of care and disposition falls jointly on everyone in the same degree of kinship, and on the estate.</p>
-      <p>Deciding and paying are not separate questions.</p>
-      <p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(6)</a></p>
     </div>
   </div>
 
@@ -536,7 +553,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <li><strong>Jewelry and dental gold are not recovered</strong><span>Anything left with your loved one is destroyed or disposed of. If you want a ring back, tell us before, not after</span></li>
       <li><strong>The remains are processed</strong><span>What comes out of the chamber includes recognizable bone fragments. Unless you ask otherwise, they are then reduced to a fine, uniform texture</span></li>
       <li><strong>A very small amount cannot be recovered</strong><span>Every reasonable effort is made, but some residue always remains in the equipment. This is true of every crematory everywhere</span></li>
-      <li><strong>You choose the urn before, not after</strong><span>The urn has to be purchased or provided before the cremation can be scheduled</span></li>
+      <li><strong>The urn is needed before we release the remains</strong><span>Not before the cremation &mdash; the cremation can go ahead without one. But we cannot release your loved one to you until there is an urn or container to release them in, so it is worth choosing early rather than on the day you come to collect</span></li>
       <li><strong>Witnessing is available</strong><span>Families may be present to see the container placed into the chamber if they wish. Once the chamber is closed, you may press the button to begin the cremation yourself. There is a charge for it, so ask us when you arrange</span></li>
       <li><strong>Your loved one is tracked by a numbered metal disc</strong><span>Every person cremated here has an identification disc that stays with them through the entire process and is placed in the cremated remains. It is how we know, at every step, exactly who is in our care</span></li>
       <li><strong>Collecting the remains needs an appointment and identification</strong><span>We release to the named person only, and we check. That protection is the point</span></li>

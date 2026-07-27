@@ -194,6 +194,22 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   .doc-footer .footer-url{display:none}
   a[href^="http"]::after{content:""}
 }
+
+/* PRINT HEADER — punch list item 20, 2026-07-27
+   "the header for all of the files when printing or downloading to pdf should be a
+   lot smaller. it is fine in html format but on print or pdf it takes too much of a
+   page up."  Print media ONLY — the on-screen cover is deliberately unchanged.
+   Measured and capped by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+  .cover-stripe{display:none;}
+}
 </style>
 </head>
 <body>
@@ -253,8 +269,8 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   <div class="grid">
     <div class="card">
       <h3><span class="star">&#9733;</span>Headstone or marker</h3>
-      <p>The VA furnishes a government headstone or marker at no charge for an eligible veteran's unmarked grave, in any cemetery. If the family prefers a privately purchased marker, a bronze medallion can be affixed to it instead.</p>
-      <p><strong>A veteran receives one or the other, not both.</strong></p>
+      <p>The VA furnishes a government headstone or marker at no charge for an eligible veteran's unmarked grave, in any cemetery. At a national cemetery it is set at no charge as well; in a private cemetery the base and the installation are the family's expense.</p>
+      <p><strong>Section 6 compares the government marker with a granite one side by side.</strong></p>
     </div>
     <div class="card">
       <h3><span class="star">&#9733;</span>Burial flag</h3>
@@ -345,9 +361,9 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
         <td data-label="Washington Memorial Park">Arranged here, in the same conversation, by the same person</td>
       </tr>
       <tr>
-        <th scope="row">Distance from Seattle</th>
-        <td data-label="Tahoma">Kent, roughly a half hour further south for most families</td>
-        <td data-label="Washington Memorial Park">SeaTac, on International Boulevard</td>
+        <th scope="row">How soon placement can happen</th>
+        <td data-label="Tahoma">Scheduled by the national cemetery around its own calendar, and it is often a wait. Nothing can be confirmed until the VA has verified eligibility</td>
+        <td data-label="Washington Memorial Park">We can usually schedule within days, and the placement itself is completed the same day</td>
       </tr>
     </tbody>
   </table>
@@ -363,7 +379,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   <p class="sub">The half of the arrangement no cemetery covers</p>
   <hr class="rule">
   <p>Every arrangement has two halves. There is what happens at the cemetery, and there is everything that happens before you get there. The VA covers part of the first. It covers none of the second.</p>
-  <p>A veteran laid to rest at Tahoma at no cost still needs a funeral home. Someone has to bring them into care at whatever hour they pass, prepare them, provide a casket or an urn, file the permits, order the certified copies, hold the service, and drive them to the cemetery. Those charges are identical whether the destination is Tahoma or Washington Memorial Park, and they are usually the larger half of the two.</p>
+  <p>A veteran laid to rest at Tahoma at no cost still needs a funeral home. Someone has to bring them into care at whatever hour they pass, prepare them, provide a casket or an urn, file the permits, order the certified copies, hold the service, and drive them to the cemetery. Those charges are identical whether the destination is Tahoma or Washington Memorial Park.</p>
 
   <div class="grid">
     <div class="card">
@@ -379,8 +395,9 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
   <div class="band">
     <h3>One conversation covers both</h3>
-    <p>Bonney Watson is a funeral home and a cemetery. I arrange both sides, which means the service, the merchandise, the space, and the marker are settled in a single sitting, with one set of paperwork and one person to call afterward.</p>
-    <p><strong>That holds true even if you choose Tahoma.</strong> We handle everything up to the moment we bring your veteran there, and we coordinate directly with the national cemetery on scheduling and honors. Choosing them for the space does not mean starting over with a stranger for everything else.</p>
+    <p>Bonney Watson is a funeral home and a cemetery. We arrange both sides, which means the service, the merchandise, the space, and the marker are settled in a single sitting. There are genuinely two sets of paperwork &mdash; one for the cemetery and one for the funeral home &mdash; but they can all be completed at the same table on the same day, with one person to call afterward.</p>
+    <p><strong>That holds true whichever cemetery you choose.</strong> Tahoma is the right answer for a great many families, and we are glad to help you get there. We handle everything up to the moment we bring your veteran to the national cemetery, and we coordinate directly with them on scheduling and honors.</p>
+    <p>What we would ask is only that you go in knowing what each side covers. Tahoma covers the cemetery half &mdash; the grave, the opening and closing, the liner, the marker, and perpetual care. It does not cover the funeral home half, and that half is the same either way.</p>
   </div>
 
   <p>Families who arrange the cemetery with one company and the funeral with another end up telling the same story twice, to two sets of people, in the worst week of their lives. It is avoidable, and avoiding it costs nothing.</p>
@@ -446,6 +463,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   <div class="note">
     <h3>What this actually costs you</h3>
     <p>Every arrangement is different, and a number pulled from a page is rarely the number a family ends up with. We prepare a written, itemized estimate so you can see your own figures rather than somebody else’s, and there is no cost or obligation to ask for one.</p>
+    <p>None of it has to be paid at once, either. Anything here can be arranged in advance and paid for over time, on a monthly plan, at today&rsquo;s prices. Families who plan ahead this way are not choosing and paying in the same week, and if the cost of doing it all up front is what has been holding you back, say so &mdash; that is a solvable problem.</p>
   </div>
 
   <p>Placement in either veterans section requires proof of service on the cemetery contract, most often the DD-214, a military ID, or other service records. First responder eligibility is confirmed with department identification, employment verification, or a certification or license. Bring what you have and we will tell you what else is needed.</p>
@@ -475,8 +493,8 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   </div>
 
   <div class="note">
-    <h3>If you choose granite, you can still have the VA emblem</h3>
-    <p>A veteran with a privately purchased marker can receive a bronze VA medallion at no charge, affixed to the granite. It is available in three sizes and carries the branch of service. Remember that a veteran receives either the government marker or the medallion, not both.</p>
+    <h3>At Tahoma the headstone is free &mdash; all of it</h3>
+    <p>This belongs in the comparison, so we would rather say it plainly. At a national cemetery the VA furnishes the headstone or marker <em>and</em> sets it, at no cost to the family, and Tahoma works directly with the VA to get it ordered. There is nothing for you to arrange and nothing to pay. In a private cemetery the VA still furnishes the marker itself, but the granite base and the installation are at the family&rsquo;s expense, which is what the two cards above are comparing.</p>
     <p>Granite varies considerably in price by color group, size, and design, so there is no single number we can print here honestly. Tell us the marker you have in mind and we will price it against the government option side by side.</p>
   </div>
 
@@ -495,7 +513,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   <div class="grid">
     <div class="card">
       <h3>What we handle</h3>
-      <p>Requesting the honor detail and the burial flag. Ordering the government marker or medallion. Requesting the Presidential Memorial Certificate. Coordinating with Tahoma if a family chooses a national cemetery instead.</p>
+      <p>Requesting the honor detail and the burial flag. Ordering the government marker. Requesting the Presidential Memorial Certificate. Coordinating with Tahoma if a family chooses a national cemetery instead.</p>
     </div>
     <div class="card">
       <h3>What the family provides</h3>
@@ -528,7 +546,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     </details>
     <details>
       <summary>Can I be cremated and still receive honors?</summary>
-      <div class="answer"><p>Yes. Cremation does not affect eligibility for military funeral honors, the burial flag, a government marker or medallion, or the Presidential Memorial Certificate.</p></div>
+      <div class="answer"><p>Yes. Cremation does not affect eligibility for military funeral honors, the burial flag, a government marker, or the Presidential Memorial Certificate.</p></div>
     </details>
     <details>
       <summary>My family is already buried in another section. Do I lose the veteran's space?</summary>

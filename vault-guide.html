@@ -110,11 +110,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 .loved-card .product-info{padding:32px 30px;}
 
 /* ── FEES ── */
-.fees-bar{max-width:900px;margin:0 auto 48px;padding:0 24px;}
-.fees-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.fee-card{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);border-radius:12px;padding:24px;color:#fff;text-align:center;}
-.fee-card .fee-label{font-size:14px;font-weight:400;color:rgba(255,255,255,.8);margin-bottom:6px;}
-.fee-card .fee-amount{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;}
+/* .fees-bar / .fee-card removed with the Service Fees section, 2026-07-27. */
 
 /* ── PRICING SUMMARY ── */
 .summary-section{background:var(--offwhite);padding:48px 24px;margin-bottom:0;}
@@ -156,7 +152,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   .product-price{font-size:24px;}
   .loved-card{flex-direction:column;}
   .loved-card .product-img{flex:0 0 auto;height:260px;}
-  .fees-grid{grid-template-columns:1fr;}
   .section-header h2{font-size:24px;}
   .quick-nav a{font-size:11px;padding:4px 10px;}
 }
@@ -198,13 +193,40 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   body:not(.modal-printing) .product-card.reverse{break-inside:avoid;page-break-inside:avoid;margin-bottom:20px;box-shadow:none;border:1px solid #ccc;}
   body:not(.modal-printing) .tier-card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
   body:not(.modal-printing) .product-img img{max-height:280px;object-fit:contain;}
-  body:not(.modal-printing) .fees-bar,
-  body:not(.modal-printing) .fees-grid{break-inside:avoid;}
-  /* Keep the whole Service Fees block together — without this the "AT THE CEMETERY"
-     kicker orphans at the foot of the urn-vault page, one line adrift of its heading. */
-  body:not(.modal-printing) #fees{break-inside:avoid;page-break-inside:avoid;}
-  body:not(.modal-printing) .fee-card{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* The Service Fees block that used to live here was removed from the page on
+     2026-07-27 (punch list item 3); its print rules went with it. */
   body:not(.modal-printing) .vault-table thead th{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* Punch list item 2, 2026-07-27: all seven urn vaults on ONE printed page.
+     Four columns instead of three turns 3 card-rows into 2, and the card chrome
+     shrinks with it. Page count is asserted by scripts/verify_guide_pages.mjs. */
+  body:not(.modal-printing) #urn-vaults{page-break-before:always;break-before:page;break-inside:avoid;page-break-inside:avoid;}
+  body:not(.modal-printing) #urn-vaults .vault-table{font-size:11px;}
+  body:not(.modal-printing) #urn-vaults .vault-table thead th{padding:7px 10px;font-size:10px;}
+  body:not(.modal-printing) #urn-vaults .vault-table tbody td{padding:6px 10px;}
+  body:not(.modal-printing) #urn-vaults .vault-table tbody td:last-child{font-size:11px;}
+  body:not(.modal-printing) .uv-grid{grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;break-inside:avoid;page-break-inside:avoid;}
+  body:not(.modal-printing) .uv-card{box-shadow:none;border:1px solid #ccc;border-radius:8px;break-inside:avoid;page-break-inside:avoid;}
+  body:not(.modal-printing) .uv-card-img{padding:6px;aspect-ratio:4/3;}
+  body:not(.modal-printing) #urn-vaults .table-wrap{break-inside:avoid;page-break-inside:avoid;margin-bottom:0;}
+  body:not(.modal-printing) .uv-card-body{padding:8px 10px 10px;}
+  body:not(.modal-printing) .uv-card-name{font-size:12px;}
+  body:not(.modal-printing) .uv-card-construction{font-size:9px;margin-bottom:4px;}
+  body:not(.modal-printing) .uv-card-price{font-size:15px;}
+  body:not(.modal-printing) .uv-card-note{font-size:8px;}
+
+  /* Punch list item 3: "Complete Pricing at a Glance" is one page, both tables. */
+  body:not(.modal-printing) #all-pricing{page-break-before:always;break-before:page;break-inside:avoid;page-break-inside:avoid;}
+  body:not(.modal-printing) .summary-section{padding:22px 24px;}
+  body:not(.modal-printing) .summary-inner h2{margin-bottom:14px;}
+  body:not(.modal-printing) #all-pricing .vault-table{font-size:11px;}
+  body:not(.modal-printing) #all-pricing .vault-table thead th{padding:7px 10px;font-size:10px;}
+  body:not(.modal-printing) #all-pricing .vault-table tbody td{padding:6px 10px;}
+  body:not(.modal-printing) #all-pricing .vault-table tbody td:last-child{font-size:11px;}
+
+  /* Section headers carry 48px of print padding they do not need on paper. */
+  body:not(.modal-printing) .section-header{padding:22px 24px 12px;}
+  body:not(.modal-printing) .table-wrap{margin-bottom:24px;}
 
   @page{size:letter;margin:0;}
 
@@ -246,6 +268,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   .ps-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:11px;color:#8a9299;text-align:right;}
   a{text-decoration:none;color:inherit;}
 }
+
+/* PRINT HEADER — punch list item 20, 2026-07-27 — .hero is this page's printed masthead. The selector matches the
+   existing print rules' specificity (body:not(.modal-printing) .hero) on purpose. */
+@media print{
+  body:not(.modal-printing) .hero{padding:12px 12px 10px;}
+  body:not(.modal-printing) .hero-kicker{font-size:8px;margin-bottom:3px;}
+  body:not(.modal-printing) .hero h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  body:not(.modal-printing) .hero-sub{font-size:9pt;line-height:1.35;max-width:none;}
+  body:not(.modal-printing) .hero-divider{height:2px;margin:7px auto 0;}
+}
 </style>
 </head>
 <body>
@@ -276,7 +308,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   <a href="#triune">Triune Series</a>
   <a href="#std">Standard</a>
   <a href="#urn-vaults">Urn Vaults</a>
-  <a href="#fees">Service Fees</a>
   <a href="#all-pricing">All Pricing</a>
 </nav>
 
@@ -719,38 +750,28 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- SERVICE FEES                                -->
+<!-- SERVICE FEES — REMOVED FROM THIS GUIDE      -->
+<!--   2026-07-27, punch list item 3. Operator:  -->
+<!--   "The setting fees for each vault take up  -->
+<!--   half the page. I don't think service fees -->
+<!--   need to be in this guide at all. It should -->
+<!--   only be a vault guide. Those service fees -->
+<!--   would be discussed formally at any        -->
+<!--   arrangement."                             -->
 <!--                                             -->
-<!-- These two are NOT products and must not be  -->
-<!-- confused with the discontinued items dropped -->
-<!-- from this guide on 2026-07-26. They are live -->
-<!-- cemetery service charges, quoted on top of  -->
-<!-- the vault, and they are components of the   -->
-<!-- Standard Arrangement bundles in the quote   -->
-<!-- tool. Restored 2026-07-26.                  -->
+<!--   READ BEFORE RESTORING OR DELETING FURTHER: -->
+<!--   the two fees this section carried, the    -->
+<!--   $685 Burial Vault Setting and the $575    -->
+<!--   Cremation Vault Setting, are LIVE. They   -->
+<!--   are components of the Standard Arrangement -->
+<!--   bundles in the quote tool. A session      -->
+<!--   removed them as "discontinued" on         -->
+<!--   2026-07-26 and commit c7d521a put them    -->
+<!--   back. Dropping them from THIS PAGE is a   -->
+<!--   presentation decision and changes nothing -->
+<!--   about what is quoted. Nothing in the      -->
+<!--   tool's pricing was touched.               -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="fees">
-  <div class="section-header">
-    <div class="kicker">At the Cemetery</div>
-    <h2>Service Fees</h2>
-    <p>The vault is one charge; setting it in the ground on the day of service is another. The setting fee covers positioning and sealing the vault at the grave, and is quoted in addition to the vault you choose.</p>
-    <div class="rule"></div>
-  </div>
-
-  <div class="fees-bar">
-    <div class="fees-grid">
-      <div class="fee-card">
-        <div class="fee-label">Burial Vault Setting</div>
-        <div class="fee-amount">$685</div>
-      </div>
-      <div class="fee-card">
-        <div class="fee-label">Cremation Vault Setting</div>
-        <div class="fee-amount">$575</div>
-      </div>
-    </div>
-    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;">A burial vault takes the burial setting fee; an urn vault placed in the ground takes the cremation setting fee. Both are subject to applicable sales tax.</p>
-  </div>
-</div>
 
 
 <!-- ═══════════════════════════════════════════ -->
