@@ -11,45 +11,38 @@
 //
 // index.html is READ ONLY here. Nothing in this suite writes anything, anywhere.
 //
-// ── ESCALATED DISAGREEMENT, 2026-07-27 ────────────────────────────────────────────
-// One cell does not reconcile and is deliberately NOT "fixed" here:
+// ── BOTH ESCALATIONS ARE NOW RESOLVED. The exception list is empty, and that is the point.
 //
-//   32" x 20", G1 Tariffed.  Guide: $4,146.62  (implies a base of $3,261)
-//                            Tool:  $2,610 base -> $3,427.92 installed
-//                            Vendor price book (2026 PCM Markers, eff. 03/01/2026,
-//                            sheet "Flush Markers", cell C16): 32610
+// 1. 32" x 20", G1 Tariffed — RESOLVED 2026-07-27 by Martice: the base is 2610.
+//    The vendor price book (2026 PCM Markers, eff. 03/01/2026, sheet "Flush Markers",
+//    cell C16) reads a hard-coded 32610. On the other thirteen rows of that sheet
+//    G1 Tariffed is G1 Non-Tariffed x 1.20 (ratios 1.1978-1.2008), and 2175 x 1.20 =
+//    2610 exactly, so "32610" is "2610" with a stray leading 3. The guide had printed
+//    $4,146.62 — a third number again, the typo divided by ten — and now prints
+//    (2610 + 495) x 1.104 = $3,427.92. The tool was always right and is unchanged.
+//    THE VENDOR'S WORKBOOK STILL CARRIES THE TYPO. If a future price update reads that
+//    sheet mechanically, it will reintroduce this. This suite is the thing that catches it.
 //
-// $32,610 is not a plausible price for a 32x20 flush marker: on the other thirteen rows
-// of that sheet G1 Tariffed is G1 Non-Tariffed x 1.20 (ratios 1.1978-1.2008), and
-// 2175 x 1.20 = 2610 exactly. "32610" is "2610" with a stray leading 3. The guide's
-// $4,146.62 is a third number again, arrived at by dividing the typo by ten.
+// 2. 28" x 34" — RESOLVED 2026-07-27 (commit 2996575). index.html's row was a verbatim
+//    copy of the 32" x 20" row, so the tool under-quoted the marker. Corrected to the
+//    price book's row 15: 2735 / 3280 / 4110 / 5050 / 6010 / 7210.
 //
-// Per the track rules, a price disagreement is escalated, never guessed, so the guide
-// is unchanged and this cell is recorded below as a known exception. When Martice
-// rules on it: correct the guide, delete the entry, and this suite starts enforcing it.
+// Both were escalated rather than guessed, which is the rule. An entry is deleted only
+// when the operator rules — and because each exception asserts that it STILL disagrees,
+// resolving one turns the exception itself red rather than letting the list go stale.
+// That is how both of these came back to be closed.
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
 
-// ── SECOND ESCALATED DISAGREEMENT, found by this suite on 2026-07-27 ─────────────
-// index.html's 28" x 34" row is a verbatim copy of its 32" x 20" row:
-//     ['32"x20"x4"',2175,2610,3015,4060,5115,6135,495]
-//     ['28"x34"x4"',2175,2610,3015,4060,5115,6135,495]   <- all six prices duplicated
-// The price book (sheet "Flush Markers", row 15) gives 28x34 as
-// 2735 / 3280 / 4110 / 5050 / 6010 / 7210, install 495 — and the guide's printed
-// $3,565.92 / $4,167.60 / $5,083.92 are exactly those figures taxed. So here the
-// GUIDE is right and the TOOL is wrong, and the tool under-quotes a 28x34 marker by
-// $618.24 to $2,880.24 depending on colour group. Fixing it means editing
-// index.html, which this track is forbidden to touch. Escalated, not patched.
 const TAX = 1.104;   // 10.4% WA sales tax, stated on the guide itself
-// RESOLVED 2026-07-27 (commit 2996575): index.html's 28x34 row carried the 32x20
-// prices. Corrected to the price book's row 15. The three 28x34 exceptions below were
-// deleted the same day, which is the only reason this suite is green again — the
-// exception assertions fail when a listed disagreement starts agreeing, on purpose.
-const ESCALATED = new Map([
-  ['32" x 20"|G1 Tariffed', 'price book cell C16 reads 32610; guide says $4,146.62; tool says 2610. Escalated 2026-07-27, unresolved.'],
-]);
+
+// Empty on purpose, as of 2026-07-27 — every cell in the guide now reconciles against
+// index.html. Add an entry only when the operator has been asked and has not yet ruled;
+// each one asserts that its disagreement is still real, so a resolved entry fails loudly
+// instead of sitting here forever.
+const ESCALATED = new Map([]);
 
 let pass = 0, fail = 0;
 const ok = (n, c, extra) => {
