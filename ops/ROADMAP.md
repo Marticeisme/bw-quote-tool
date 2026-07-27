@@ -119,6 +119,27 @@ rendering it as nothing.
 **Blocked on Gate 0:** `audit/map-bugs` must merge into the map's `main` first, and that is
 waiting on another session's uncommitted work in the same file.
 
+## S8 — Contacts becomes a CRM  [DETAILED → sprints/sprint-04/; added 2026-07-27]
+
+The Contacts page is one search box over four fields and a 13-field record. Martice runs
+Bonney Watson's book out of FuneralDecisionsCRM, and the ask is to take what is good there —
+Source/Status/Category, flags, notes, to-dos, advanced filtering, saved searches, bulk actions,
+CSV import — and leave what is not. His words: *"the main goal of this whole project is to make
+the best tool in the industry not an identical one."*
+
+The design bet, from the follow-up research rather than from FDCRM: 80% of pre-need sales take
+five or more follow-ups and 44% of sellers stop after one, so the default view is **who is due**,
+not "all contacts". Next action is a column and the default sort.
+
+Three sequential tracks: the record (taxonomies, flags, notes, to-dos, derived next action), then
+finding people (list, hash-encoded filters, saved views, bulk actions), then CSV in and out.
+**The CSV importer is also the seeding mechanism** — the 30 demo contacts Martice asked for
+reach production because he imports them himself through the UI, which is why no agent ever
+writes to the live database. Every import is a batch and every batch is undoable.
+
+Out: email blasts, letters, campaigns, landing pages, attachments, appointments and the
+calendar, work orders, permission tiers.
+
 ## A note on numbering
 
 **Roadmap milestone IDs and sprint numbers are not the same thing.** This file is a catalogue

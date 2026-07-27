@@ -7,11 +7,17 @@ Rules of work for every sprint, track, and director. Director runbook:
 
 - One bounded milestone, run end-to-end by ONE fresh Claude Code session (the
   **director**), which spawns each **track** as a subagent.
-- **1–2 tracks per sprint.** This project is single-file shaped: nearly all work lands in
-  `index.html`, so two tracks editing it in parallel would produce two large diffs into the
-  same 17,622-line CRLF file and merge by hand — strictly worse than sequential. A second
-  track is justified only when the work genuinely lives elsewhere (the guides/`docs/`
-  pages, `scripts/`, `tests/`).
+- **At most 2 tracks running in PARALLEL.** This project is single-file shaped: nearly all
+  work lands in `index.html`, so two tracks editing it at the same time would produce two
+  large diffs into the same ~18,000-line CRLF file and merge by hand — strictly worse than
+  sequential. A second *concurrent* track is justified only when the work genuinely lives
+  elsewhere (the guides/`docs/` pages, `scripts/`, `tests/`, the map repo).
+
+  **Clarified 2026-07-27:** the cap is on parallelism, not on count. A sprint may run three or
+  more tracks **sequentially**, each branching from a `main` that already carries the previous
+  merge — they cannot conflict, and three reviewable ~600-line diffs audit far better than one
+  of ~1,800. Sprint-04 is the first to do this. The old wording said "1–2 tracks per sprint",
+  which would have forced one oversized track for no safety benefit.
 - Sprints contain **operator gates** — explicit pauses for Martice: pushing to `main`
   (a live public deploy), the Adobe Acrobat check when a change touches the RIC itself,
   Firebase console work, and any decision that changes what a family sees. Gates live in
