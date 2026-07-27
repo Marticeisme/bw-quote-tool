@@ -1245,6 +1245,88 @@ quote and the compare total delta; all promo deltas correct; 0 console errors. T
 
 ---
 
+### 2026-07-27 — Guides audit: 21-item punch list (sprint-04 Track D)
+
+Worked from the punch list Martice supplied on 2026-07-27. Branch `s04/guides-audit`, in a
+worktree. **`index.html` was never edited** — Track A held it — only read, twice, to check
+marker prices.
+
+**Table alignment (item 1) — the class of bug, not the instance.** `.price-table th` was
+`text-align:left` while `td:not(:first-child)` was `text-align:right`, so in the marker guide
+"$2,200" sat two inches from the "Color" it belonged under. One rule added
+(`th:not(:first-child){text-align:right}`) and **66 misaligned cells across all 10 marker-guide
+tables went to 0**. New permanent check: `scripts/verify_table_alignment.mjs` renders every
+guide at Letter width in print media and measures real text boxes — 21 tables, 292 cells across
+20 pages. Two assertions per cell: the cell's text centre inside its header's column bounds, and
+the cell's text sharing an anchor edge (left / right / centre) with its header's text. Proved by
+reverting the CSS: 66 failures, exit 1.
+
+**Print headers (item 20).** Print-only override appended to 15 guides and 5 catalogs; the
+on-screen cover is untouched, and `scripts/verify_print_header.mjs` reports the print and screen
+heights side by side so a regression that shrank the web page instead would be visible. The
+printed masthead went from **52.8–87.7 mm to 24.2–36.2 mm**, 28.6–51.5 mm reclaimed per guide,
+capped at 40 mm.
+
+**Page shape (items 2, 3, 21).** Burial Vault Guide 12 → 10 pages: all seven urn vaults now on
+one page (4 print columns instead of 3, 4:3 card images), and "Complete Pricing at a Glance" on
+one. The Service Fees section was removed from the vault guide at his instruction — presentation
+only; the $685 / $575 setting fees remain live in the tool, which was not touched. Direct
+Cremation 4 → 2 pages: page 1 the quote and the explanation, page 2 the container. Pinned by
+`scripts/verify_guide_pages.mjs` (built-PDF page counts via pdf-lib plus print-layout geometry).
+
+**Cremation container photos (item 12) — 11 of 22 were the wrong product.** `cremation-images/`
+held a 298 px copy of the catalog photos with the item numbers shuffled: 242414↔279183 and
+279179↔177129 were straight swaps, plus seven more. Verified perceptually — each file scored
+0.4–0.8 mean absolute difference against a *different* catalog item and 16–30 against the one it
+was named for. All 22 references in `cremation-guide.html` and `direct-cremation.html` now point
+at `casket-images/*` / `urn-images/*`, which are keyed by item number and covered by
+`verify_catalogs.mjs`. Cremation Guide PDF: 56 of 56 product photos embedded, no lazy-load
+blanks. **`cremation-images/` is now referenced by nothing — do not source a page from it.**
+
+**Catalog facets (items 4, 13).** `wood-caskets` and `all-caskets` gained a **Cremation** facet
+("Cremated in full", 18/18 matched); `urns-guide` gained **Placement** (Ground burial 8/8,
+Scattering 10/10). Membership is read out of `cremation-guide.html` §5 / §7 / §9 **by item
+number**, taken from each card's image filename — no fuzzy name matching, nothing unmatched.
+`cremation-containers-rental-caskets.html` gained a third section carrying the same 18 caskets,
+11 → 29 products, and its builder now reads that list out of the cremation guide at build time so
+the two cannot drift.
+
+**`build_cremation_rental.py` was stale, and a rebuild silently regressed the page.** It never
+emitted the per-card compare toggle (added to the catalogs after the builder was written), and it
+reverted the compare tray's labels to "Compare Urns" and its comparison rows to the urn set. All
+three are produced by the builder now, plus a build-time assertion that every product has exactly
+five details — the positional spec rows mislabel silently otherwise.
+
+**Content corrections** (his words; prose only). *Veterans guide* — a placement-speed row
+replaces distance-from-Seattle; "we", not "I"; two sets of paperwork completed in one sitting;
+even-handed about Tahoma; Tahoma's headstone is free including its setting; the
+VA-medallion-on-granite passage removed; pre-planning and payment plans mentioned. *Who decides*
+— the medical certifier's signature promoted over the medical examiner; "the right to decide
+comes with the bill" removed; the urn is needed before **release**, not before cremation; and the
+note that we usually only do this paperwork for families who have arranged with us.
+*Urn placement* — rewritten: an urn may go in a standard grave space anywhere in the cemetery (up
+to three, with extra cost for the second and third); the sections built for urn burial are the
+**Lake Urn Garden**, one urn per space, **not** section 18; and ground placement needs an urn
+vault *or* a burial-rated marble urn. *Vital worksheet* gained a discreet "Sex at birth"
+sub-field. *Pre-planning* now says plainly that filing wishes costs nothing and prepaying is
+optional.
+
+**Two live price disagreements, escalated and NOT changed** — see
+`tests/test-marker-guide-prices.mjs`, which reconciles 14 of 18 marker price cells exactly and
+records these four as named exceptions:
+
+1. **32″ × 20″ G1 Tariffed.** The vendor price book cell reads **32610**. On the other 13 rows of
+   that sheet Tariffed is Non-Tariffed × 1.20, and 2175 × 1.20 = **2610** exactly. The guide
+   prints $4,146.62, which is the typo divided by ten. Three different numbers; needs a ruling.
+2. **28″ × 34″, all colour groups.** `index.html` carries the 32 × 20 prices verbatim on the
+   28 × 34 row. The price book and the guide agree against it, so **the tool under-quotes a
+   28 × 34 marker**. Fixing that means editing `index.html`, which this track could not touch.
+
+**`outside-marker-rules.html` finally has a PDF** (item 11): it was simply never registered in
+`build_guide_pdfs.mjs`. Registered, built (4 pages), and linked from `guides.html`.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

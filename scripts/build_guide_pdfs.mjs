@@ -26,7 +26,11 @@ const JOBS = [
   ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
   ['direct-cremation.html',         'pdf-assets/Direct Cremation Plan Example.pdf'],
   ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
+  ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
 ];
+// outside-marker-rules.html was never registered here, which is the whole reason its
+// card on guides.html offered no PDF download while every other guide did. Added
+// 2026-07-27 (punch list item 11) together with the `guide-pdf` link on the card.
 // vault-guide.html was deliberately unregistered until 2026-07-26. The committed PDF was not
 // a print of the page: it carried three sections the page has never contained (verified with
 // `git log -S`) — OVERSIZE OPTIONS (Oversize Monticello $4,085, 40# Oversize Rough Box
