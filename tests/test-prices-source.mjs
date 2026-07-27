@@ -216,21 +216,37 @@ console.log('\n6. Every fee label still reads `Name — $1,234`, and is in PRICE
       ...document.querySelectorAll('#section-cem-quote .q-check-row label, #section-fh-quote .q-check-row label'),
       ...document.querySelectorAll('#section-cem-quote .q-group-label, #section-fh-quote .q-group-label'),
     ];
-    const feeLabels = scanned.filter((n) => n.querySelector('[data-fee]'));
+    // The nine index-bearing fee labels, named rather than sniffed: eight O&C checkboxes
+    // (literal text — the map's build-prices.py scrapes these, see index.html's price block)
+    // and the recording-fee group header (a data-fee span).
+    const OC = {
+      qOCLawnSingle: 'OC:lawn_single', qOCLawnDouble1: 'OC:lawn_double_1st',
+      qOCLawnDouble2: 'OC:lawn_double_2nd', qOCMaus: 'OC:mausoleum_entombment',
+      qOCGround: 'OC:ground_inurnment', qOCBoulder: 'OC:boulder_inurnment',
+      qOCNiche: 'OC:niche_inurnment', qOCNicheNon: 'OC:niche_non_inurnment',
+    };
+    const feeLabels = Object.keys(OC)
+      .map((id) => ({ node: document.querySelector('label[for="' + id + '"]'), key: OC[id] }))
+      .concat(scanned
+        .filter((n) => n.classList.contains('q-group-label') && n.querySelector('[data-fee]'))
+        .map((n) => ({ node: n, key: n.querySelector('[data-fee]').getAttribute('data-fee') })));
     buildPriceIndex();
     return {
       total: document.querySelectorAll('[data-fee]').length,
       blank: [...document.querySelectorAll('[data-fee]')]
         .filter((n) => !/^\$[\d,]+$/.test(n.textContent)).map((n) => n.getAttribute('data-fee') + '=' + JSON.stringify(n.textContent)),
-      labels: feeLabels.map((n) => {
-        const t = (n.textContent || '').trim();
+      scannedByIndex: scanned.length,
+      labels: feeLabels.map((f) => {
+        const t = f.node ? (f.node.textContent || '').trim() : '';
         const m = t.match(priceRe);
         return {
           text: t,
+          found: !!f.node,
+          scanned: !!f.node && scanned.indexOf(f.node) > -1,
           matches: !!m,
           name: m ? m[1].replace(/\s+/g, ' ').trim() : null,
           price: m ? parseFloat(m[2].replace(/,/g, '')) : null,
-          keys: [...n.querySelectorAll('[data-fee]')].map((s) => s.getAttribute('data-fee')),
+          keys: [f.key],
         };
       }),
       indexed: PRICE_INDEX.map((i) => i.name + '|' + i.price),
@@ -238,8 +254,11 @@ console.log('\n6. Every fee label still reads `Name — $1,234`, and is in PRICE
   });
 
   ok('every data-fee span rendered an amount — none left blank', r.blank.length === 0, r.blank);
-  ok('all 48 fee spans are present', r.total === 48, r.total);
-  ok('the O&C and recording labels were found', r.labels.length === 9, r.labels.map((l) => l.text));
+  ok('all 40 fee spans are present', r.total === 40, r.total);
+  ok('the O&C and recording labels were all found', r.labels.every((l) => l.found), r.labels.map((l) => l.text));
+  ok('there are nine of them', r.labels.length === 9, r.labels.map((l) => l.text));
+  ok('and buildPriceIndex actually scans every one', r.labels.every((l) => l.scanned),
+    r.labels.filter((l) => !l.scanned).map((l) => l.text));
 
   const badFormat = r.labels.filter((l) => !l.matches).map((l) => l.text);
   ok('every fee label still matches the buildPriceIndex regex', badFormat.length === 0, badFormat);
@@ -266,12 +285,12 @@ console.log('\n7. A broken label really does fail — the check is not vacuous')
     const good = (lbl.textContent || '').trim();
 
     // a colon instead of the em dash — visually almost identical, fatal to the scrape
-    lbl.childNodes[0].nodeValue = 'Lawn Interment – Single Depth : ';
+    lbl.textContent = good.replace(' — ', ' : ');
     const broken = (lbl.textContent || '').trim();
     buildPriceIndex();
     const afterBreak = PRICE_INDEX.filter((i) => /^Lawn Interment . Single Depth$/.test(i.name)).length;
 
-    lbl.childNodes[0].nodeValue = 'Lawn Interment – Single Depth — ';
+    lbl.textContent = good;
     buildPriceIndex();
     const afterFix = PRICE_INDEX.filter((i) => /^Lawn Interment . Single Depth$/.test(i.name)).length;
 
@@ -282,6 +301,35 @@ console.log('\n7. A broken label really does fail — the check is not vacuous')
   ok('and it silently disappears from PRICE_INDEX — the failure this guards against', r.afterBreak === 0, r.afterBreak);
   ok('restoring the dash brings it back', r.afterFix === 1, r.afterFix);
   await ctx.close();
+}
+
+// 8. THE LOOP. The map's build-prices.py produces the O&C half of data/prices.json by
+//    scraping index.html's eight qOC checkbox labels — this tool is the only place those
+//    amounts have ever been written down. So those eight labels are a PUBLIC INTERFACE, and
+//    the obvious tidy-up (make them <span data-fee> like every other displayed fee) silently
+//    returns zero matches and drops all eight O&C fees out of the file both apps read. This
+//    check is the tripwire. It goes away when build-prices.py carries its own O&C table —
+//    see docs/PRICE_UPDATE.md.
+console.log('\n8. The map\'s build-prices.py can still read our O&C labels');
+{
+  // build-prices.py's own regex, transliterated. If it changes there, change it here.
+  const rx = /<label for="qOC(\w+)">([^<]*?)\s*[-—]+\s*\$([\d,]+)<\/label>/g;
+  const OC_PRODUCTS = {
+    LawnSingle: 'lawn_single', LawnDouble1: 'lawn_double_1st',
+    LawnDouble2: 'lawn_double_2nd', Maus: 'mausoleum_entombment',
+    Ground: 'ground_inurnment', Boulder: 'boulder_inurnment',
+    Niche: 'niche_inurnment', NicheNon: 'niche_non_inurnment',
+  };
+  const html = fs.readFileSync('index.html', 'utf8');
+  const found = {};
+  let m;
+  while ((m = rx.exec(html))) found['OC:' + (OC_PRODUCTS[m[1]] || '?' + m[1])] = Number(m[3].replace(/,/g, ''));
+  const keys = Object.keys(found).sort();
+
+  ok('all eight O&C labels are still scrapable text, not empty spans', keys.length === 8, keys);
+  ok('every id maps to a known product slug', keys.every((k) => k.indexOf('?') < 0), keys);
+  const wrong = keys.filter((k) => found[k] !== FEES[k]).map((k) => k + ': label ' + found[k] + ' vs file ' + FEES[k]);
+  ok('and each reads the amount data/prices.json holds', wrong.length === 0, wrong);
 }
 
 await browser.close();

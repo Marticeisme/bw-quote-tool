@@ -1215,49 +1215,49 @@ tr:hover td{background:#eef3f8;}
         <div class="q-panel-body">
             <div class="q-check-row">
               <input type="checkbox" id="qOCLawnSingle" onchange="cemUpdateD()">
-              <label for="qOCLawnSingle">Lawn Interment – Single Depth — <span data-fee="OC:lawn_single"></span></label>
+              <label for="qOCLawnSingle">Lawn Interment – Single Depth — $1,535</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCLawnSingleQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCLawnDouble1" onchange="cemUpdateD()">
-              <label for="qOCLawnDouble1">Lawn Interment – Double Depth (1st) — <span data-fee="OC:lawn_double_1st"></span></label>
+              <label for="qOCLawnDouble1">Lawn Interment – Double Depth (1st) — $2,085</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCLawnDouble1Qty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCLawnDouble2" onchange="cemUpdateD()">
-              <label for="qOCLawnDouble2">Lawn Interment – Double Depth (2nd) — <span data-fee="OC:lawn_double_2nd"></span></label>
+              <label for="qOCLawnDouble2">Lawn Interment – Double Depth (2nd) — $1,535</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCLawnDouble2Qty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCMaus" onchange="cemUpdateD()">
-              <label for="qOCMaus">Mausoleum Entombment — <span data-fee="OC:mausoleum_entombment"></span></label>
+              <label for="qOCMaus">Mausoleum Entombment — $1,205</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCMausQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCGround" onchange="cemUpdateD()">
-              <label for="qOCGround">Ground Inurnment — <span data-fee="OC:ground_inurnment"></span></label>
+              <label for="qOCGround">Ground Inurnment — $985</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCGroundQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCBoulder" onchange="cemUpdateD()">
-              <label for="qOCBoulder">Boulder Inurnment — <span data-fee="OC:boulder_inurnment"></span></label>
+              <label for="qOCBoulder">Boulder Inurnment — $1,425</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCBoulderQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCNiche" onchange="cemUpdateD()">
-              <label for="qOCNiche">Niche Inurnment — <span data-fee="OC:niche_inurnment"></span></label>
+              <label for="qOCNiche">Niche Inurnment — $875</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCNicheQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCNicheNon" onchange="cemUpdateD()">
-              <label for="qOCNicheNon">Niche (Non-Inurnment) — <span data-fee="OC:niche_non_inurnment"></span></label>
+              <label for="qOCNicheNon">Niche (Non-Inurnment) — $375</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCNicheNonQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
@@ -5766,6 +5766,17 @@ function bwPrefetchTemplates(moduleType) {
 //   3. bwVerifyPriceFile() re-checks at runtime against the DEPLOYED data/prices.json, which
 //      catches a deploy that shipped one file without the other.
 // See docs/PRICE_UPDATE.md.
+//
+// ONE EXCEPTION, and it is a loop worth knowing about. Every displayed fee here is a
+// <span data-fee="KEY"> filled at boot — EXCEPT the eight `<label for="qOC…">` amounts, which
+// stay literal text. The map's build-prices.py produces the O&C half of prices.json by
+// SCRAPING those eight labels, because this tool is the only place those amounts have ever
+// been written down. Turn them into empty spans and that scrape matches nothing and the next
+// rebuild drops all eight O&C fees out of the file both apps read. So sync-prices regenerates
+// them as text instead: still generated, still one source, but readable by the script that
+// reads them. The loop returns the same number, so it is stable — but until build-prices.py
+// carries its own O&C table, an O&C price cannot be changed from the file end. That fix is
+// written out in docs/PRICE_UPDATE.md.
 //
 // DELIBERATELY NOT SOURCED from prices.json — these are open questions for MIS, not oversights:
 //   MONOBAR_INSTALL:crypt   the file says 215; this tool quotes 225. A real disagreement, and

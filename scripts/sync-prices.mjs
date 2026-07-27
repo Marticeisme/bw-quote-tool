@@ -72,7 +72,49 @@ const block = [
 const current = html.slice(b, e + END.length);
 const unused = Object.keys(prices.current.fees).filter((k) => used.indexOf(k) < 0).sort();
 
-if (current === block) {
+let out = html.slice(0, b) + block + html.slice(e + END.length);
+
+// ── the eight O&C checkbox labels, which are generated TEXT, not <span data-fee> ──────────
+//
+// Every other displayed fee in the app is a <span data-fee="KEY"> filled at boot. These eight
+// are literals on purpose, and the reason is a loop worth knowing about:
+//
+//   the map's scripts/build-prices.py produces the O&C half of data/prices.json by SCRAPING
+//   these very labels — `<label for="qOCLawnSingle">… — $1,535</label>` — because the tool is
+//   the only place those eight amounts have ever been written down. Replace the amount with an
+//   empty span and that scrape silently matches nothing, and the next rebuild drops all eight
+//   O&C fees out of the file both apps read.
+//
+// So they stay readable as text, and this script keeps them in step with prices.json instead
+// of a person doing it. The loop is stable — prices.json → these labels → prices.json returns
+// the same number — but it does mean an O&C price cannot yet be changed from the file end.
+// docs/PRICE_UPDATE.md records the fix (give build-prices.py an explicit O&C table instead of
+// scraping), after which these can become spans like everything else.
+const OC_LABEL_KEY = {
+  LawnSingle: 'OC:lawn_single', LawnDouble1: 'OC:lawn_double_1st',
+  LawnDouble2: 'OC:lawn_double_2nd', Maus: 'OC:mausoleum_entombment',
+  Ground: 'OC:ground_inurnment', Boulder: 'OC:boulder_inurnment',
+  Niche: 'OC:niche_inurnment', NicheNon: 'OC:niche_non_inurnment',
+};
+let labelsSeen = 0;
+const labelMoved = [];
+out = out.replace(/(<label for="qOC(\w+)">[^<]*?[—–-]\s*\$)([\d,]+)(<\/label>)/g,
+  (m, head, id, amt, tail) => {
+    const key = OC_LABEL_KEY[id];
+    if (!key) die('unmapped O&C label qOC' + id + ' — add it to OC_LABEL_KEY (and to the map\'s OC_PRODUCTS)');
+    const want = prices.current.fees[key];
+    if (typeof want !== 'number') die(PRICES + ' has no current fee ' + key + ' for label qOC' + id);
+    labelsSeen++;
+    const had = Number(amt.replace(/,/g, ''));
+    if (had !== want) labelMoved.push('  ' + key + ' (label qOC' + id + '): ' + had + ' -> ' + want);
+    return head + want.toLocaleString('en-US') + tail;
+  });
+if (labelsSeen !== 8) {
+  die('found ' + labelsSeen + ' O&C labels, expected 8. If one was renamed, the map\'s ' +
+    'build-prices.py can no longer read it either — fix both.');
+}
+
+if (out === html) {
   console.log('already in sync — ' + used.length + ' prices, generated ' + prices.generated);
   if (unused.length) console.log('  (not used by the tool: ' + unused.join(', ') + ')');
   process.exit(0);
@@ -84,18 +126,20 @@ const oldFees = {};
 for (const m of current.matchAll(/'([^']+)':\s*(\d+(?:\.\d+)?),/g)) oldFees[m[1]] = Number(m[2]);
 const moved = used
   .filter((k) => oldFees[k] !== prices.current.fees[k])
-  .map((k) => '  ' + k + ': ' + (k in oldFees ? oldFees[k] : '(new)') + ' -> ' + prices.current.fees[k]);
+  .map((k) => '  ' + k + ': ' + (k in oldFees ? oldFees[k] : '(new)') + ' -> ' + prices.current.fees[k])
+  .concat(labelMoved);
 
 if (CHECK) {
-  console.error('sync-prices --check: index.html is OUT OF DATE against ' + path.relative(ROOT, PRICES));
+  console.error('sync-prices --check: ' + path.relative(ROOT, TARGET) + ' is OUT OF DATE against ' +
+    path.relative(ROOT, PRICES));
   if (moved.length) console.error(moved.join('\n'));
   console.error('Run: npm run sync-prices');
   process.exit(1);
 }
 
-fs.writeFileSync(TARGET, html.slice(0, b) + block + html.slice(e + END.length));
+fs.writeFileSync(TARGET, out);
 console.log('wrote ' + used.length + ' prices into ' + path.relative(ROOT, TARGET) +
-  ' (generated ' + prices.generated + ')');
+  ' (generated ' + prices.generated + ') — plus ' + labelsSeen + ' O&C labels');
 if (moved.length) { console.log('PRICES CHANGED:'); console.log(moved.join('\n')); }
 else console.log('no price changed — metadata only');
 if (unused.length) console.log('not used by the tool: ' + unused.join(', '));
