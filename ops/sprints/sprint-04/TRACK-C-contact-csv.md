@@ -34,6 +34,32 @@ Also write the inverse — `bwToCsv(rows, columns)` — quoting only what needs 
 `parse(serialise(x)) === x` over a fixture containing a comma, a quote, a newline and a leading
 `+`.
 
+### 1b. A trap the director measured for you, 2026-07-27 — do not skip this
+
+`dev-server.mjs` has an SPA fallback. **A missing file under `data/` does not 404 — it returns
+HTTP 200 with the entire 2,750,192-byte `index.html`.** Verified directly:
+
+```
+data/does-not-exist.csv  ->  HTTP 200, 2750192 bytes, body begins "<!DOCTYPE html>"
+```
+
+So the **"Load demo data"** fetch must never trust `res.ok`. If the file is missing, misspelled,
+or the deploy is stale, a naive `fetch().then(r => r.text()).then(parseCsv)` hands your parser
+2.75 MB of HTML, which will produce a large number of nonsense rows — and the operator is
+importing into a **live production database**. Validate the content: reject a body that starts
+with `<!DOCTYPE` or `<html`, and require the expected header row before entering the mapping
+step. Fail with a visible, named error, exactly as sprint-01's template loader had to
+(`DESIGN.md` §8: a LOAD failure must surface by name).
+
+This is the same defect class sprint-01 hit — its first gate run produced a silently wrong
+4-page RIC because a 200 response was trusted. A captive portal or proxy error page behaves the
+same way in production. **Assert it: a test that points the loader at a missing path must fail
+loudly rather than importing anything.**
+
+Also measured: `data/*.csv` is served at `Content-Type: application/octet-stream`, not
+`text/csv`. That is fine for `fetch().text()` — do not chase it — but do not branch on the
+content type either. And `data/demo-contacts.csv` is **not gitignored**, so it commits normally.
+
 ### 2. Import — file to contacts
 
 A new **Import** screen reachable from the Contacts page header (a link, not a 37th nav item).
