@@ -194,6 +194,31 @@ wrongly — but the number I printed next to it was false.
 **Lesson: the pipe rule applies to reading a status, not only to chaining one.** Use
 `PIPESTATUS`, or run the command bare and pipe only when the exit code does not matter.
 
+### 14. Wrote a track file that was wrong about three of the things it was teaching.
+
+`TRACK-A-contact-property.md` told the track that `MVC` was "Mount Vernon Chapel" and a crypt,
+that `GOM` belonged with the mausolea, and that `ROA` was the Rock of Ages Columbarium with
+`ROAC` the courtyard niches. **All three were wrong**, and the section vocabulary was the entire
+point of that track.
+
+The map data says `MVC` is **Mountain View Columbarium**, a niche wall — its own `name` field,
+`garden-markers.json`, and the tool's own niche dropdown all agree. `GOM` is **Garden of
+Meditation Niches**; every one of its features lives in `garden14/cremation.json` under a header
+reading *"Niche walls, benches and boulders - NOT graves"*. And `ROAC`/`ROA` are **swapped**:
+`ROAC` is the code inside `garden19/columbarium.json`, and Martice's own quoted words are *"roa
+is separate, its the courtyard niches"* — which I had **read and quoted in the same file** while
+drawing the opposite conclusion from it.
+
+Caught by the track, which read the map data instead of trusting the file.
+
+**Lesson: quoting a source is not the same as reading it.** Entry #2 already says a director's
+recon is a lead rather than a finding, and I labelled it as such — but labelling does not make
+wrong content harmless when it is the *content* being taught. Where a track's whole job is a
+vocabulary, derive that vocabulary from the source in the track's own run and have it **report
+what it found**, rather than shipping a list to be trusted. Track A's `src` field on every one of
+the 57 entries — naming the evidence behind each classification — is the shape that fixes this,
+and it is worth copying.
+
 ---
 
 ## The pattern across all of them

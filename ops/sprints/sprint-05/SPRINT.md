@@ -66,15 +66,19 @@ LotNumber, LotNumberAlpha, LotSpaceNumber, Created, Updated`.
 
 - **17 numeric sections** (`06`–`23`): gardens. Row letters **A–D**, spaces **1–4** or **1–5**,
   a few to 24.
-- **40 lettered sections**: `MVC GCM COH GOM TGM ELM COM` (mausolea), `CN GCN ELN GOLN GOVN
-  VETSN RAD ROAC` (niches), `LUG RUG VCUG SCTG GOG LCG` (urn gardens), `VETS VETSM VETSN`
-  (veterans), `ROA` (Rock of Ages columbarium), `SER`, `VERSES`, `17S`, `SCER`, `SCGF`, `CC`,
-  `ECL`, `RH`, and small `B`/`BE` variants.
+- **40 lettered sections**: mausolea, niche walls, urn gardens, memorial boulders and veterans
+  sections. **The director's groupings in the first draft of this line were wrong in three
+  places** and were corrected by Track A against the map data: `MVC` is Mountain View
+  Columbarium (a niche wall, not a chapel or crypt), `GOM` is Garden of Meditation Niches
+  (not a mausoleum), and `ROAC`/`ROA` were swapped. The authoritative classification now
+  lives in `BW_SECTION_TYPES` in `index.html`, where every entry carries a `src` naming the
+  evidence behind it. **Read that, not this paragraph.**
 
 **Authoritative type vocabulary comes from the map repo, not from invention**
 (`wmp-cemetery-map/docs/INDOOR_AND_NICHE_BUILDINGS.md`): a **crypt** is one casket chamber; a
-**niche** is one urn compartment. **Never say "bay"** — Martice corrected that twice. `ROA` (Rock
-of Ages Columbarium) and `ROAC` (the courtyard niches) are **separate**, on his instruction. `COM`
+**niche** is one urn compartment. **Never say "bay"** — Martice corrected that twice. **`ROAC` (Rock
+of Ages Columbarium) and `ROA` (the courtyard niches) are separate** — and note the direction:
+an earlier draft of this file had them the wrong way round. `COM`
 contains both products — 301 niches and 574 crypts, separated by `angle`, so a section code alone
 does not always determine the product.
 
