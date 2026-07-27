@@ -30,7 +30,7 @@ const FEES = PRICES.current.fees;
 
 // The fee keys the tool does not source, and why. Each must still be ABSENT from BW_FEES.
 const UNSOURCED = {
-  'MONOBAR_INSTALL:crypt': 'prices.json says 215, the tool quotes 225 — unresolved, MIS decides',
+  'MONOBAR_INSTALL:crypt': 'RESOLVED 2026-07-26: the file was corrected to 225 and now agrees. Still not READ - the tool hardcodes it in an option value and a literal',
   'VASE:crypt': 'the file has one vase per structure; the tool sells three distinct vase SKUs',
   'VASE:niche': 'same — "Niche Vase (ROAC)" is $275 here, not the file\'s $260',
 };
@@ -104,7 +104,11 @@ console.log('\n3. The unsourced keys are still unsourced, and still the same thr
   const fees = await page.evaluate(() => window.BW_FEES);
   const inFile = Object.keys(FEES).sort();
   const inPage = Object.keys(fees).sort();
-  const notRead = inFile.filter((k) => inPage.indexOf(k) < 0);
+  // Garden ECF joined the file on 2026-07-26 as ten per-garden AMOUNTS, read from the
+  // tool's own option values. The tool still uses those option values directly rather than
+  // reading them back, so they are unsourced by the same definition - as a family.
+  const notRead = inFile.filter((k) => inPage.indexOf(k) < 0 && !/^ECF:garden/.test(k));
+  const gardenEcf = inFile.filter((k) => /^ECF:garden/.test(k));
   ok('data/prices.json has exactly the unsourced keys we documented',
     JSON.stringify(notRead) === JSON.stringify(Object.keys(UNSOURCED).sort()),
     { found: notRead, documented: Object.keys(UNSOURCED).sort() });
@@ -122,9 +126,12 @@ console.log('\n3. The unsourced keys are still unsourced, and still the same thr
     const l = (_cemLines || []).find((x) => /Monobar.*Install/i.test(x.label));
     return l ? l.amount : null;
   });
-  ok('the monobar install fee still quotes at the tool\'s 225, not the file\'s 215 — unresolved',
-    monobar === 225 && FEES['MONOBAR_INSTALL:crypt'] === 215,
+  ok('monobar install: the file was corrected to 225, and file and tool now agree',
+    monobar === 225 && FEES['MONOBAR_INSTALL:crypt'] === 225,
     { toolQuotes: monobar, fileSays: FEES['MONOBAR_INSTALL:crypt'] });
+  ok('the ten garden ECF amounts are present and every one is a number',
+    gardenEcf.length === 10 && gardenEcf.every((k) => typeof FEES[k] === 'number'),
+    { count: gardenEcf.length });
   await ctx.close();
 }
 
