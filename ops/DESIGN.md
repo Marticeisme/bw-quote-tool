@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `903 passed, 0 failed across 22 suites` |
+| Assertion suites | `npm test` | `1038 passed, 0 failed across 23 suites (1036 without wmp-cemetery-map/)` |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
@@ -184,6 +184,17 @@ rings, `occ[].d` on every occupant, no duplicate position `sid`, and status/rost
 build not listed is work that shipped unreachable.
 
 `npm test` starts `dev-server.mjs` on 3737 if nothing is listening and stops it after.
+
+**The runner swallows a suite's own stdout, so an announced skip is INVISIBLE** (found
+2026-07-27 at the sprint-04 Track C merge). `tests/test-contact-csv.mjs` cross-checks its demo
+names against the map's real burial records, and when `wmp-cemetery-map/` is absent — which it is
+in every worktree and every fresh clone, since it is gitignored and local-only — it prints
+`NOTE ... the map cross-check DID NOT RUN`. `run-all.mjs` prints only the per-suite summary line,
+so that notice never reaches the screen. **The assertion count dropping from 1038 to 1036 was the
+only visible signal**, and it was only visible because the director compared counts between two
+trees rather than reading exit codes. Two consequences: the expected count is
+environment-dependent and is written that way above, and **comparing counts is not a nicety, it
+is the only thing standing between a silently-skipped subtree and a green run.**
 
 **A suite that prints no assertions is a FAILURE, not a pass.** Only
 `tests/test-price-vintage.mjs` may report no assertions, and only on exit 0 — it is a

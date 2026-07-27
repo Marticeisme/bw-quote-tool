@@ -1,7 +1,9 @@
 # STATE — Living Ledger
 
-**Current sprint:** **sprint-04 — Contacts becomes a CRM (S8) + the guides audit (S9).** In
-flight. Tracks **A** (`f481637`), **D** (`64d2f3f`) and **B** (`49ec0a5`) merged; Track **C running**. See `sprints/sprint-04/SPRINT.md`.
+**Current sprint:** **sprint-04 — Contacts becomes a CRM (S8) + the guides audit (S9).**
+**ALL FOUR TRACKS MERGED, green on `main`, NOT PUSHED.** A (`f481637`), D (`64d2f3f`),
+B (`49ec0a5`), C. Awaiting the operator's push gate and then his own demo import.
+See `sprints/sprint-04/SPRINT.md`.
 
 sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
 overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
@@ -240,6 +242,50 @@ pills no longer appear on the row. Both follow from D9's column list; both are r
 import. A bulk status change across 40 records is currently irreversible. Worth deciding before
 it bites.
 
+### Sprint-04 Track C — merged 2026-07-27. SPRINT COMPLETE.
+
+Generic CSV import — pick → map → preview → import, each step backable — with our own
+`bwCsvParse`/`bwToCsv` (no vendored library, per D6), auto-mapping over a synonym table,
+taxonomy label→code resolution, duplicate skip on exact email or 10-digit phone (D8), per-record
+writes carrying `_prov`, `importBatches/<id>` with **full undo** (D7), an Imports list, and CSV
+export folded into one serialiser shared with Track B's bulk export.
+
+**Director-verified rather than taken from the report:** `8 blocks, 0 errors`; **1038 passed, 0
+failed across 23 suites** with every pre-existing count unchanged; **14/14 baseline identical**;
+every write is `<collection>/<id>`; no generator, price or template touched.
+
+**The demo file was cleared for a public repo independently, not on the track's word.** 31 rows,
+every email `@example.com`, all 29 phones inside the reserved `(206) 555-01xx` range, and **zero
+surname collisions against 173 real map data files**. `data/demo-contacts.csv` is safe to publish.
+
+**The SPA-fallback trap was re-measured, not trusted.** A missing file under `data/` still returns
+**2,868,170 bytes of `index.html` at HTTP 200**. The loader ignores `res.ok` entirely and
+validates the body shape and header row. Without this, "Load demo data" against a stale deploy
+would have parsed 2.8 MB of HTML into nonsense contacts — in a live production database.
+
+**The track's honesty is the reason to trust the rest of it.** It states plainly that undo is
+proven against `tests/fake-firebase.js` and not production RTDB; that its "identical store"
+comparison normalises empty containers symmetrically, because the stub leaves `importBatches: {}`
+where real RTDB removes a childless node — so it could hide an *emptiness* production wouldn't
+have, though not a record; that security-rule rejection is never exercised against a real
+rejection; and that one demo contact (no email, no phone) would duplicate itself on an
+export/re-import round trip, because there is nothing to match it on.
+
+**Two dated time bombs it flagged:** `2029-04-12` and `2029-09-04` keep "Needs follow-up" at
+exactly 6. The suite asserts they are still in the future and names them when they are not.
+
+### Finding at the merge: the runner hides an announced skip
+
+Merging Track C produced **1036** in the ops worktree against **1038** on the branch. Not a
+regression — `wmp-cemetery-map/` is gitignored and absent from every worktree, so the demo file's
+name cross-check does not run there. The suite *does* print `NOTE ... DID NOT RUN`, exactly as
+designed; **`run-all.mjs` swallows per-suite stdout and shows only the summary line**, so nobody
+ever sees it.
+
+The falling count was the only visible signal, and it was visible only because counts were
+compared across two trees. Recorded in `DESIGN.md` §5, and the expected figure is now written
+with its caveat: **1038 with the map present, 1036 without.**
+
 ## Open, and needing Martice
 
 0. **The marker price book needs correcting at source.** Cell **C16** of
@@ -286,7 +332,7 @@ often than measurements have.
 | sprint-03 Track A | **shipped, live** | `s03/prices-single-source` | merge `875bcaf` |
 | sprint-04 Track A | **merged, local only** | `s04/contact-record` | merge `f481637`; audited and re-verified by the director |
 | sprint-04 Track B | **merged, local only** | `s04/contact-search` | merge `49ec0a5`; audited, and the 28x34 price fix verified to survive it |
-| sprint-04 Track C | **running** (spawned 2026-07-27) | `s04/contact-csv` | main tree; final track of the sprint |
+| sprint-04 Track C | **merged, local only** | `s04/contact-csv` | final track; demo CSV cleared for public release by independent PII scan |
 | sprint-04 Track D | **merged, local only** (2026-07-27) | `s04/guides-audit` | merge `64d2f3f`; all 21 items done. Ran S9 in worktree `../bw-quote-tool-guides`. Never touched `index.html`, verified against its own merge base |
 
 All worktrees removed at close except the map's, which stay until their branches are pruned.
