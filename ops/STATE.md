@@ -288,14 +288,19 @@ with its caveat: **1038 with the map present, 1036 without.**
 
 ## Open, and needing Martice
 
-0. **The marker price book needs correcting at source.** Cell **C16** of
-   `2026 PCM Markers Price Book EFF 03.01.2026.xlsx`, sheet `Flush Markers`, is a hard-coded
-   `32610` where every other row's tariffed/non-tariffed ratio (1.1981–1.2008) says `2610`.
-   The tool already uses 2610 and is right. **Consequence still live in the guide:**
-   `markers-guide.html` prints **$4,146.62** for 32″ × 20″ G1 Tariffed, which back-solves to the
-   typo ÷ 10. Once Martice confirms 2610, that cell becomes **$3,427.92** — the figure is ready
-   and the arithmetic `(2610 + 495) × 1.104` is verified against four other cells. **Not changed
-   without his ruling**, because it is a live price on a family-facing document.
+0. **⚠ Correct cell C16 in the marker price book itself.** Martice ruled 2026-07-27 that the
+   base is **2610**; the tool and the guide now both say so, and the exception list is empty.
+   But **the vendor workbook still contains the typo** — `2026 PCM Markers Price Book EFF
+   03.01.2026.xlsx`, sheet `Flush Markers`, cell **C16**, hard-coded `32610`. `build-prices.py`
+   already reads workbooks from `E:/Documents/CEMETERY MAPS`, so **any future price update that
+   reads that sheet mechanically will reintroduce this.** `tests/test-marker-guide-prices.mjs`
+   is now the thing that would catch it. Fixing the workbook is the durable fix; an agent did
+   not edit his master price book without being asked.
+
+   *Why it was flagged:* every other row's tariffed/non-tariffed ratio sits in 1.1981–1.2008;
+   that row's was **14.9931**. The guide's printed `$4,146.62` back-solved to the typo ÷ 10, and
+   is now `(2610 + 495) × 1.104 = $3,427.92` — arithmetic verified against four other cells.
+   The row is monotonic again, which is the property whose absence found it.
 
 0b. **RESOLVED 2026-07-27 — the 28″ × 34″ under-quote is fixed** (`2996575`, local only).
    See below.
