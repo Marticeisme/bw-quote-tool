@@ -28,9 +28,20 @@ work is committed locally there and pushed nowhere, because there is nowhere to 
 
 ## The status vocabulary — measured, not assumed
 
-Sampled from the map data on 2026-07-26. Percentages are from the 5,975 records whose file
-shape a quick walker matched; the full corpus is ~79,493 positions, so treat the ratios as
-indicative and the **value set** as authoritative.
+**CORRECTED 2026-07-26 after Track A: there are TEN status values, not six.** The table below
+was built from a 5,975-record sample and the director called its value set authoritative. It was
+not — `road` (37), `walkway` (98), `monument` (91) and `feature` (37) were missed, 263 real
+positions. All four already had colours, so nothing rendered as nothing, but the doc was wrong.
+`road`/`walkway` became the circulation feature class and `monument`/`feature` joined the
+excluded hatch, following this sprint's own principle rather than inventing treatments.
+
+**The structural fix matters more than the correction:** `scripts/status-coverage.test.mjs`
+re-derives the value set from the data on every run and fails on any status without a treatment,
+so this cannot be wrong the same way twice. Real counts from that test: `buried` 37,543,
+`available` 19,165, `reserved` 18,997, `tree` 403, `not_for_sale` 167, `walkway` 98,
+`monument` 91, `road` 37, `feature` 37, `hold` 31.
+
+**Never hand a track a sampled set as though it were the population.** Say which it is.
 
 | Status | Share | Treatment | Why |
 |---|---|---|---|
