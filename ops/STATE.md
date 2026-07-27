@@ -1,12 +1,19 @@
 # STATE — Living Ledger
 
-**Current sprint:** **sprint-04 (S8) — Contacts becomes a CRM.** In flight as of 2026-07-27.
-Three sequential tracks; Track A (`s04/contact-record`) spawned. See `sprints/sprint-04/SPRINT.md`.
+**Current sprint:** **sprint-04 — Contacts becomes a CRM (S8) + the guides audit (S9).** In
+flight. Track **A merged** (`f481637`), Track **D merged** (`64d2f3f`), Track **B running**,
+Track C not yet spawned. See `sprints/sprint-04/SPRINT.md`.
 
 sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
 overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
 
-**Last updated:** 2026-07-27. `main` = `413da08` (sprint-04 ops docs), pushed through `4fa7171`.
+**Last updated:** 2026-07-27. `main` = `64d2f3f`. **Nothing beyond `4fa7171` is pushed** — every
+sprint-04 merge is local only, awaiting the operator's push gate.
+
+**Three worktrees are live**, which is unusual for this project and worth knowing at boot:
+`bw-quote-tool` (Track B, on `s04/contact-search`), `bw-quote-tool-guides` (Track D, merged —
+removable), and `bw-quote-tool-ops` on `main`, created so the director can merge and keep the
+ledger without committing onto a live track's branch. See `MISTAKES.md` #12 for why that exists.
 
 ## Sprint-04 — opened 2026-07-27
 
@@ -119,8 +126,72 @@ not introduced by the track.
 yet. Rules are `auth !== null` so reads are fine, but **live behaviour of the new nodes is
 unverified by rule** — it is a first-boot check for Martice, not something an agent may confirm.
 
+### Sprint-04 Track D — merged 2026-07-27 (`64d2f3f`)
+
+The 21-item guides punch list. All 21 done. Highlights: the column-alignment defect was a real CSS
+bug (`.price-table th` was `text-align:left` over `td:not(:first-child){text-align:right}`, so a
+price sat ~125 px from the heading it belonged under) — **66 failing cells across all 10
+marker-guide tables, now 0**; print headers cut from 52.8–87.7 mm to 24.2–36.2 mm across 15 guides
+and 6 catalogs with screen heights byte-identical; vault guide 12→10 pages; direct cremation 4→2;
+`outside-marker-rules.html` finally has a PDF; and a cremation facet on the casket catalogs built
+by matching **item number, not name** — 18/18, zero fuzzy matches.
+
+**The container images were not merely low-res, they were the wrong products.** 11 of 22 files in
+`cremation-images/` showed a different item than their filename claimed, including two clean
+swaps. Measured perceptually rather than eyeballed: each file scored 0.4–0.8 mean absolute
+difference against a *different* catalog item and 16–30 against the one it was named for. All 22
+references repointed at the real catalog images; 56 of 56 product photos embedded in the rebuild.
+
+**Director-verified rather than taken from the report:** `index.html` untouched **against the
+branch's own merge base** — an earlier check against a moved `main` showed it as changed, which
+was an artifact of comparing the wrong thing, not a fact; `ops/` untouched;
+`BRAND_AND_BUILD_LOG.md` +82/−0, appended not rewritten; `8 blocks, 0 errors`; 292 table cells
+across 20 pages, 0 failed; 21 pages under the 40 mm cap; catalogs and guides-page verifiers green;
+the price reconciliation test reports `14 cells reconciled, 4 escalated, 0 unmatched`.
+
+**The new alignment gate was sabotaged by the director independently** — and the first attempt
+*failed to apply*, because the search string omitted a trailing semicolon. Nothing was concluded
+from that pass, per `MISTAKES.md` #8. Redone correctly: rule removed → **66 failed, exit 1**;
+restored → 0 failed, exit 0.
+
+**Full `npm test` on the merged `main` is still OUTSTANDING** — Track B holds port 3737 and the
+served-tree guard correctly refuses to test against another tree's server. `npm run check` is
+green. Run the suite once Track B lands; expect roughly 758 + 20.
+
+### ⚠ TWO LIVE PRICE DISAGREEMENTS — escalated, unchanged, and one is a real under-quote
+
+Both verified independently by the director, reading the price book and `index.html` directly.
+**Nothing was changed. Only Martice can settle these.**
+
+**1. The tool under-quotes a 28″ × 34″ flush marker.** `index.html:6935` is a **verbatim
+duplicate** of the `32″ × 20″` row above it — both read
+`[2175, 2610, 3015, 4060, 5115, 6135, 495]`. The price book (Flush Markers, row 15) gives 28 × 34
+as `[2735, 3280, 4110, 5050, 6010, 7210]`. Base-price shortfall per granite column:
+**$560, $670, $1,095, $990, $895, $1,075**. The guide and the price book agree with each other;
+the tool is the odd one out. *(Track D reported the customer-facing range as $618.24–$2,880.24;
+the director's directly-measured base deltas are the figures above. The discrepancy is in how the
+tool marks up, which was not traced — the existence and direction of the defect are certain, the
+exact figure on a family's quote is not.)* **Fixing it requires editing `index.html`, which Track
+D was forbidden to touch. It belongs to a tool-side track.**
+
+**2. The price book itself has a typo, and the tool is right.** Sheet `Flush Markers`, **cell C16
+is a hard-coded `32610`** — no formula. Every other row's G1-Tariffed / G1-Non-Tariffed ratio
+falls in 1.1981–1.2008; that row's is **14.9931**. `2175 × 1.20 = 2610` exactly, and the tool uses
+2610. The marker guide had been printing **$4,146.62**, which back-solves to a base of 3261 — the
+typo divided by ten. So the guide had inherited a data-entry error out of the price book.
+
+**The director's original hypothesis was wrong.** The flagged anomaly was real, but the
+explanation offered — "two values swapped between columns" — was not what was underneath. The
+count found the defect; the story told about it did not survive contact with the source.
+
 ## Open, and needing Martice
 
+0. **⚠ The 28″ × 34″ flush marker is under-quoted in the tool** — `index.html:6935` duplicates the
+   `32″ × 20″` row. Price book says `[2735, 3280, 4110, 5050, 6010, 7210]`; the tool says
+   `[2175, 2610, 3015, 4060, 5115, 6135]`. This is money leaving on live quotes. Needs a
+   tool-side fix once `index.html` is free. **And separately: cell C16 of the marker price book
+   (`32610`) is a typo for `2610` — the book needs correcting at source.** Both verified by the
+   director against the book and the code; see the Track D section above.
 1. **Two possible double sales** in CN and ELN - two spaces each recording two different people at
    one interment position. Nothing in the data was changed; only MIS settles it.
 2. **`VASE` and the O&C write-back loop** - the file has one vase per structure, the tool sells
@@ -155,7 +226,7 @@ often than measurements have.
 | sprint-04 Track A | **merged, local only** | `s04/contact-record` | merge `f481637`; audited and re-verified by the director |
 | sprint-04 Track B | **running** (spawned 2026-07-27) | `s04/contact-search` | main tree |
 | sprint-04 Track C | not spawned | `s04/contact-csv` | blocked on A + B merging |
-| sprint-04 Track D | **running** (spawned 2026-07-27) | `s04/guides-audit` | worktree `../bw-quote-tool-guides`, node_modules junctioned. Runs S9 — 21 guide items. Parallel with A by design: disjoint files, and it may not touch `index.html` at all |
+| sprint-04 Track D | **merged, local only** (2026-07-27) | `s04/guides-audit` | merge `64d2f3f`; all 21 items done. Ran S9 in worktree `../bw-quote-tool-guides`. Never touched `index.html`, verified against its own merge base |
 
 All worktrees removed at close except the map's, which stay until their branches are pruned.
 **Every branch above is LOCAL ONLY** - none was pushed, per the corrected rule that every push is
