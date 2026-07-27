@@ -259,6 +259,33 @@ tr:hover td{background:#eef3f8;}
 .ct-name{font-size:14px;font-weight:700;color:var(--navy);}
 .ct-meta{font-size:12px;color:var(--text-light);margin-top:2px;}
 .ct-pill{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:20px;background:var(--gray-light);color:var(--text-light);margin-left:6px;}
+/* CRM — classification tags, contact-detail tabs, notes, to-dos, taxonomy settings */
+.ct-tabs{display:flex;gap:2px;margin:18px 0 12px;border-bottom:1px solid var(--border);}
+.ct-tab{padding:7px 15px;font-size:12.5px;font-weight:700;font-family:inherit;color:var(--text-light);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;}
+.ct-tab:hover{color:var(--navy);}
+.ct-tab.active{color:var(--navy);border-bottom-color:var(--orange);}
+.ct-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;margin:2px 5px 2px 0;background:var(--gray-light);color:var(--text-light);}
+.ct-tag.ct-unknown{font-style:italic;text-transform:none;letter-spacing:0;color:var(--gray-dark);background:var(--gray-light);opacity:.8;}
+.ct-note{border-bottom:1px solid var(--border);padding:10px 0;}
+.ct-note:last-child{border-bottom:none;}
+.ct-note-body{font-size:13px;color:var(--ink);line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+.ct-note-meta{font-size:11px;color:var(--text-light);margin-top:5px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;}
+.ct-mini{padding:2px 9px;font-size:11px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--navy);}
+.ct-mini:hover{background:var(--blue-light);}
+.ct-task{display:flex;gap:9px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.ct-task:last-child{border-bottom:none;}
+.ct-task.done .ct-task-sum{text-decoration:line-through;color:var(--text-light);}
+.ct-task-sum{font-size:13px;color:var(--ink);flex:1;min-width:150px;}
+.ct-due{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:20px;background:var(--gray-light);color:var(--text-light);}
+.ct-due.overdue{background:var(--orange-tint);color:var(--red);}
+.ct-due.today{background:var(--orange-tint);color:var(--orange-dark);}
+.ct-due.future{background:var(--blue-light);color:var(--navy);}
+.ct-flagbox{display:flex;flex-wrap:wrap;gap:4px 12px;padding:8px 9px;border:1px solid var(--gray-mid);border-radius:6px;background:var(--gray-light);max-height:104px;overflow:auto;}
+.ct-flagbox label{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink);cursor:pointer;white-space:nowrap;}
+.ct-flagbox input{width:13px;height:13px;}
+.ct-setrow{display:flex;gap:7px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.ct-setrow:last-child{border-bottom:none;}
+.ct-setcode{font-size:11px;color:var(--text-light);font-family:ui-monospace,Menlo,Consolas,monospace;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -2830,6 +2857,7 @@ tr:hover td{background:#eef3f8;}
       <input type="checkbox" id="contactMineOnly" onchange="renderContactsList()" style="width:14px;height:14px;">Only mine
     </label>
     <button onclick="openContactEditor()" style="padding:8px 16px;font-size:13px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;white-space:nowrap;">+ New Contact</button>
+    <button onclick="show('crm-settings',null)" style="padding:8px 14px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;white-space:nowrap;">Settings</button>
   </div>
 
   <div id="contactsList"></div>
@@ -2875,12 +2903,19 @@ tr:hover td{background:#eef3f8;}
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
       <div><label class="ce-lbl">Date of birth</label><input id="ceDob" class="ce-in" type="date"></div>
-      <div><label class="ce-lbl">Engagement</label>
-        <select id="ceEng" class="ce-in"><option value="">—</option><option value="active">Active</option><option value="idle">Idle</option><option value="do-not-contact">Do not contact</option></select></div>
+      <div><label class="ce-lbl">Status</label><select id="ceStatus" class="ce-in"></select></div>
       <div><label class="ce-lbl">Interested in</label>
         <select id="ceInt" class="ce-in"><option value="">—</option><option value="cemetery">Cemetery</option><option value="funeral">Funeral</option><option value="both">Both</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div><label class="ce-lbl">Source</label><select id="ceSource" class="ce-in"></select></div>
+      <div><label class="ce-lbl">Category</label><select id="ceCategory" class="ce-in"></select></div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="ce-lbl">Flags <span style="text-transform:none;letter-spacing:0;font-weight:400;">— as many as apply</span></label>
+      <div id="ceFlags" class="ct-flagbox"></div>
     </div>
 
     <div id="contactEditorErr" role="alert" style="display:none;margin-bottom:12px;padding:8px 11px;border-radius:6px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;"></div>
@@ -2923,6 +2958,23 @@ tr:hover td{background:#eef3f8;}
       <button onclick="closeContactPicker()" style="padding:9px 16px;font-size:13px;font-family:inherit;color:var(--text-light);background:none;border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;">Cancel</button>
     </div>
   </div>
+</div>
+
+<!-- ══ CRM SETTINGS ══════════════════════════════════════════════════════════════════
+     The editable vocabularies behind a contact record. Reached from the Contacts header —
+     deliberately NOT a top-level nav item, there are 36 already. -->
+<div class="section" id="section-crm-settings">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="tag" data-lc-sz="18"></span></div>
+    <h2>Contact Settings</h2>
+  </div>
+  <p style="margin:0 0 14px;font-size:12.5px;color:var(--text-light);line-height:1.6;max-width:660px;">
+    Rename, add, reorder or remove the values behind Source, Status, Category, Flags and to-do kinds.
+    A contact stores the <strong>code</strong> shown on the right, never the label — renaming a value
+    never orphans a record. Removing one is allowed, but you are told how many records still use it first.
+  </p>
+  <button onclick="show('contacts',null)" style="padding:5px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);margin-bottom:16px;">← All contacts</button>
+  <div id="crmSettingsBody"></div>
 </div>
 
 <div class="section" id="section-cem-saved">
@@ -11614,6 +11666,768 @@ function bwRoleLabel(code) {
   return code || '';
 }
 
+// ═══════════════════════════════════════════════════════════════
+// CRM CLASSIFICATION — five taxonomies, all data, none an enum
+// ═══════════════════════════════════════════════════════════════
+// Same shape as BW_ROLES above and for the same reason: adding, renaming or retiring a value
+// must be an entry in a list, never a code change plus a migration — and there IS no migration
+// mechanism here (DESIGN §3).
+//
+// A contact stores THE CODE, never the label. Renaming "Walk-In" to "Walk In" must not orphan
+// 200 records. A code that no longer resolves renders as the raw code in a muted style — never
+// blank, because a blank cell reads as "no value" when the truth is "a value you deleted".
+//
+// The live list for a kind is the Firebase set at crmTaxonomy/<kind>/<code> if ANY record
+// exists there, otherwise these defaults. Everything reads through bwTaxonomy(kind).
+
+var BW_SOURCES = [
+  { code: 'walk-in',          label: 'Walk-In'          },
+  { code: 'referral',         label: 'Referral'         },
+  { code: 'direct-mail',      label: 'Direct Mail'      },
+  { code: 'web-lead',         label: 'Web Lead'         },
+  { code: 'phone-in',         label: 'Phone-In'         },
+  { code: 'at-need-family',   label: 'At-Need Family'   },
+  { code: 'community-event',  label: 'Community Event'  },
+  { code: 'existing-owner',   label: 'Existing Owner'   },
+  { code: 'cold-call',        label: 'Cold Call'        },
+  { code: 'other',            label: 'Other'            }
+];
+
+var BW_STATUSES = [
+  { code: 'new',              label: 'New'              },
+  { code: 'working',          label: 'Working'          },
+  { code: 'appointment-set',  label: 'Appointment Set'  },
+  { code: 'presented',        label: 'Presented'        },
+  { code: 'sold',             label: 'Sold'             },
+  { code: 'idle',             label: 'Idle'             },
+  { code: 'not-interested',   label: 'Not Interested'   },
+  { code: 'do-not-contact',   label: 'Do Not Contact'   }
+];
+
+var BW_CATEGORIES = [
+  { code: 'pre-need-cemetery', label: 'Pre-Need Cemetery' },
+  { code: 'pre-need-funeral',  label: 'Pre-Need Funeral'  },
+  { code: 'at-need',           label: 'At-Need'           },
+  { code: 'existing-owner',    label: 'Existing Owner'    },
+  { code: 'veteran',           label: 'Veteran'           },
+  { code: 'family-of-record',  label: 'Family of Record'  },
+  { code: 'other',             label: 'Other'             }
+];
+
+// Flag colours name a pair from the existing token set rather than carrying raw hex, so a
+// re-skin of the palette moves the flags with it.
+var BW_FLAG_COLORS = {
+  navy:   { bg: 'var(--blue-light)',  fg: 'var(--navy)'        },
+  orange: { bg: 'var(--orange-tint)', fg: 'var(--orange-dark)' },
+  green:  { bg: 'var(--gray-light)',  fg: 'var(--green)'       },
+  red:    { bg: 'var(--gray-light)',  fg: 'var(--red)'         },
+  gray:   { bg: 'var(--gray-light)',  fg: 'var(--text-light)'  }
+};
+var BW_FLAGS = [
+  { code: 'veteran',          label: 'Veteran',          color: 'navy'   },
+  { code: 'spanish-speaking', label: 'Spanish Speaking', color: 'green'  },
+  { code: 'payment-plan',     label: 'Payment Plan',     color: 'orange' },
+  { code: 'vip',              label: 'VIP',              color: 'navy'   },
+  { code: 'estate',           label: 'Estate',           color: 'gray'   },
+  { code: 'do-not-mail',      label: 'Do Not Mail',      color: 'red'    }
+];
+
+// A to-do's kind is a different vocabulary from a contact's category — "call" is not a kind of
+// business, it is a kind of work. Kept separate deliberately.
+var BW_TASK_KINDS = [
+  { code: 'call',       label: 'Call'       },
+  { code: 'email',      label: 'Email'      },
+  { code: 'letter',     label: 'Letter'     },
+  { code: 'visit',      label: 'Visit'      },
+  { code: 'follow-up',  label: 'Follow-Up'  },
+  { code: 'paperwork',  label: 'Paperwork'  },
+  { code: 'other',      label: 'Other'      }
+];
+
+var BW_TAXONOMY_KINDS = ['sources', 'statuses', 'categories', 'flags', 'taskKinds'];
+var BW_TAXONOMY_META = {
+  sources:    { defaults: BW_SOURCES,     title: 'Sources',     field: 'source',   noun: 'contact' },
+  statuses:   { defaults: BW_STATUSES,    title: 'Statuses',    field: 'status',   noun: 'contact' },
+  categories: { defaults: BW_CATEGORIES,  title: 'Categories',  field: 'category', noun: 'contact' },
+  flags:      { defaults: BW_FLAGS,       title: 'Flags',       field: 'flags',    noun: 'contact' },
+  taskKinds:  { defaults: BW_TASK_KINDS,  title: 'To-Do Kinds', field: 'category', noun: 'to-do'   }
+};
+
+var _taxStore = {};   // kind -> { code -> record }  (the Firebase overlay, empty until edited)
+for (var _tk = 0; _tk < BW_TAXONOMY_KINDS.length; _tk++) _taxStore[BW_TAXONOMY_KINDS[_tk]] = {};
+
+// THE accessor. Firebase set if it holds anything, else the code defaults. Ordered by an
+// optional `order` field so the settings screen can reorder without renaming anything.
+function bwTaxonomy(kind) {
+  var live = _taxStore[kind];
+  var codes = live ? Object.keys(live) : [];
+  if (codes.length) {
+    return codes.map(function(c){ return live[c]; }).filter(Boolean)
+      .sort(function(a, b) {
+        var ao = a.order == null ? 9999 : a.order, bo = b.order == null ? 9999 : b.order;
+        if (ao !== bo) return ao - bo;
+        return String(a.label || a.code) < String(b.label || b.code) ? -1 : 1;
+      });
+  }
+  return ((BW_TAXONOMY_META[kind] || {}).defaults || []).slice();
+}
+function bwTaxonomyEntry(kind, code) {
+  if (!code) return null;
+  var list = bwTaxonomy(kind);
+  for (var i = 0; i < list.length; i++) if (list[i] && list[i].code === code) return list[i];
+  return null;
+}
+// Label, or THE RAW CODE when it does not resolve. Never blank for a non-blank code.
+function bwTaxonomyLabel(kind, code) {
+  if (!code) return '';
+  var e = bwTaxonomyEntry(kind, code);
+  return (e && e.label) || code;
+}
+function bwSourceLabel(code)   { return bwTaxonomyLabel('sources', code); }
+function bwStatusLabel(code)   { return bwTaxonomyLabel('statuses', code); }
+function bwCategoryLabel(code) { return bwTaxonomyLabel('categories', code); }
+function bwFlagLabel(code)     { return bwTaxonomyLabel('flags', code); }
+function bwTaskKindLabel(code) { return bwTaxonomyLabel('taskKinds', code); }
+
+// Statuses subsume the old `engagement` field. Existing records are NOT rewritten — there is no
+// migration mechanism (DESIGN §3) and a read-time fallback costs one function. Only the two
+// values that have a status equivalent are mapped; `active` was the default and carries no
+// information worth surfacing as an unresolved code.
+function bwPartyStatus(p) {
+  if (!p) return '';
+  if (p.status) return p.status;
+  if (p.engagement === 'do-not-contact') return 'do-not-contact';
+  if (p.engagement === 'idle') return 'idle';
+  return '';
+}
+function bwPartyFlags(p) {
+  // Firebase drops an empty array, so the key is simply absent on most records.
+  var f = p && p.flags;
+  return Object.prototype.toString.call(f) === '[object Array]' ? f : [];
+}
+
+// ── the classification tags under a contact's name ───────────────────────────────────
+function _bwTagHtml(kind, code, extraStyle) {
+  if (!code) return '';
+  var entry = bwTaxonomyEntry(kind, code);
+  var cls = 'ct-tag' + (entry ? '' : ' ct-unknown');
+  var style = extraStyle || '';
+  if (entry && kind === 'flags') {
+    var c = BW_FLAG_COLORS[entry.color] || BW_FLAG_COLORS.gray;
+    style += 'background:' + c.bg + ';color:' + c.fg + ';';
+  }
+  return '<span class="' + cls + '"' + (style ? ' style="' + style + '"' : '') + '>'
+    + _ceEsc((entry && entry.label) || code) + '</span>';
+}
+function bwPartyTagsHtml(p) {
+  if (!p) return '';
+  var out = '';
+  var st = bwPartyStatus(p);
+  if (st) out += _bwTagHtml('statuses', st,
+    st === 'do-not-contact' ? 'background:var(--orange-tint);color:var(--orange-dark);'
+                            : 'background:var(--blue-light);color:var(--navy);');
+  if (p.source)   out += _bwTagHtml('sources', p.source);
+  if (p.category) out += _bwTagHtml('categories', p.category);
+  bwPartyFlags(p).forEach(function(f){ out += _bwTagHtml('flags', f); });
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NOTES AND TO-DOS — their own nodes, one Firebase record each
+// ═══════════════════════════════════════════════════════════════
+// Deliberately NOT nested under the party. saveParty() writes parties/<id> with .set(), which
+// replaces that record wholesale — a note living inside it would be destroyed by the next edit
+// of a phone number. Separate nodes also mean two counselors writing a note and an address at
+// the same moment cannot clobber each other.
+
+var _noteStore = {};      // id -> note
+var _notesByParty = {};   // partyId -> [noteId], pinned first then newest first
+var _taskStore = {};      // id -> task
+var _tasksByParty = {};   // partyId -> [taskId], open by dueOn asc then completed by doneAt desc
+var _nextTaskByParty = {}; // partyId -> earliest OPEN task id that has a due date
+
+function _bwContactsChanged() {
+  // renderContactsList() dispatches to renderContactDetail() when a contact is open, so this one
+  // call covers both surfaces. Without it a note added in Randy's browser never appears in ours.
+  if (typeof renderContactsList === 'function') renderContactsList();
+}
+
+function _rebuildNoteIndexes() {
+  _notesByParty = {};
+  Object.keys(_noteStore).forEach(function(id) {
+    var n = _noteStore[id];
+    if (!n || !n.partyId) return;
+    (_notesByParty[n.partyId] = _notesByParty[n.partyId] || []).push(id);
+  });
+  Object.keys(_notesByParty).forEach(function(pid) {
+    _notesByParty[pid].sort(function(a, b) {
+      var x = _noteStore[a], y = _noteStore[b];
+      if (!!x.pinned !== !!y.pinned) return x.pinned ? -1 : 1;
+      return (y.createdAt || 0) - (x.createdAt || 0);
+    });
+  });
+}
+function _rebuildTaskIndexes() {
+  _tasksByParty = {}; _nextTaskByParty = {};
+  Object.keys(_taskStore).forEach(function(id) {
+    var t = _taskStore[id];
+    if (!t || !t.partyId) return;
+    (_tasksByParty[t.partyId] = _tasksByParty[t.partyId] || []).push(id);
+  });
+  Object.keys(_tasksByParty).forEach(function(pid) {
+    var ids = _tasksByParty[pid];
+    ids.sort(function(a, b) {
+      var x = _taskStore[a], y = _taskStore[b];
+      var xo = x.status !== 'done', yo = y.status !== 'done';
+      if (xo !== yo) return xo ? -1 : 1;
+      if (xo) {
+        var xd = x.dueOn || '9999-12-31', yd = y.dueOn || '9999-12-31';
+        if (xd !== yd) return xd < yd ? -1 : 1;
+        return (x.createdAt || 0) - (y.createdAt || 0);
+      }
+      return (y.doneAt || 0) - (x.doneAt || 0);
+    });
+    // Index the next action once, per party, here — Track B's list renders one row per contact
+    // and must never scan every task in the database to do it.
+    for (var i = 0; i < ids.length; i++) {
+      var t = _taskStore[ids[i]];
+      if (t && t.status !== 'done' && t.dueOn) { _nextTaskByParty[pid] = ids[i]; break; }
+    }
+  });
+}
+
+function bwNotesFor(partyId) {
+  return (_notesByParty[partyId] || []).map(function(id){ return _noteStore[id]; }).filter(Boolean);
+}
+function bwTasksFor(partyId) {
+  return (_tasksByParty[partyId] || []).map(function(id){ return _taskStore[id]; }).filter(Boolean);
+}
+
+function saveContactNote(n) {
+  if (!n || !n.partyId) return Promise.reject(new Error('A note needs a contact.'));
+  if (!String(n.body == null ? '' : n.body).trim()) return Promise.reject(new Error('A note needs some text.'));
+  var isNew = !n.id;
+  if (isNew) {
+    n.id = window._fbDB ? _fbDB.ref('contactNotes').push().key : 'n' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    if (!n._prov) n._prov = bwProv('manual');
+    if (!n.ownerUid) n.ownerUid = (window._bwUser && window._bwUser.uid) || '';
+  }
+  n.pinned = !!n.pinned;
+  _bwStamp(n, isNew);
+  _noteStore[n.id] = n;
+  _rebuildNoteIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve(n);
+  return _fbDB.ref('contactNotes/' + n.id).set(n).then(function(){ return n; });
+}
+function deleteContactNote(id) {
+  delete _noteStore[id];
+  _rebuildNoteIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve();
+  return _fbDB.ref('contactNotes/' + id).remove();
+}
+function toggleContactNotePin(id) {
+  var n = _noteStore[id];
+  if (!n) return Promise.reject(new Error('No such note.'));
+  n.pinned = !n.pinned;
+  return saveContactNote(n);
+}
+
+function saveContactTask(t) {
+  if (!t || !t.partyId) return Promise.reject(new Error('A to-do needs a contact.'));
+  if (!String(t.summary == null ? '' : t.summary).trim()) return Promise.reject(new Error('A to-do needs a summary.'));
+  var isNew = !t.id;
+  if (isNew) {
+    t.id = window._fbDB ? _fbDB.ref('contactTasks').push().key : 't' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    if (!t._prov) t._prov = bwProv('manual');
+    if (!t.ownerUid) t.ownerUid = (window._bwUser && window._bwUser.uid) || '';
+    if (!t.assignedTo) t.assignedTo = (window._bwUser && window._bwUser.uid) || '';
+  }
+  if (t.status !== 'done') { t.status = 'open'; t.doneAt = null; }
+  if (!t.dueOn) t.dueOn = null;
+  _bwStamp(t, isNew);
+  _taskStore[t.id] = t;
+  _rebuildTaskIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve(t);
+  return _fbDB.ref('contactTasks/' + t.id).set(t).then(function(){ return t; });
+}
+// Completing a to-do never deletes it — the record of having done the thing IS the activity
+// history, and bwLastActivityFor reads doneAt.
+function completeContactTask(id) {
+  var t = _taskStore[id];
+  if (!t) return Promise.reject(new Error('No such to-do.'));
+  t.status = 'done';
+  t.doneAt = Date.now();
+  return saveContactTask(t);
+}
+function reopenContactTask(id) {
+  var t = _taskStore[id];
+  if (!t) return Promise.reject(new Error('No such to-do.'));
+  t.status = 'open';
+  t.doneAt = null;
+  return saveContactTask(t);
+}
+function deleteContactTask(id) {
+  delete _taskStore[id];
+  _rebuildTaskIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve();
+  return _fbDB.ref('contactTasks/' + id).remove();
+}
+
+// ── derived: next action and last activity (D4 — stored NEVER, derived ALWAYS) ───────
+// Storing either would mean backfilling every record that already exists and then keeping two
+// facts in sync forever. Both of these are pure functions over the in-memory stores and read a
+// per-party index, so a list of a few thousand rows costs one lookup each.
+function bwNextActionFor(partyId) {
+  var id = _nextTaskByParty[partyId];
+  var t = id && _taskStore[id];
+  if (!t) return null;
+  return { dueOn: t.dueOn, summary: t.summary || '', taskId: t.id };
+}
+function bwLastActivityFor(partyId) {
+  var p = _partyStore[partyId];
+  var best = (p && p.updatedAt) || 0;
+  var notes = _notesByParty[partyId] || [];
+  for (var i = 0; i < notes.length; i++) {
+    var n = _noteStore[notes[i]];
+    if (n && (n.createdAt || 0) > best) best = n.createdAt;
+  }
+  var tasks = _tasksByParty[partyId] || [];
+  for (var j = 0; j < tasks.length; j++) {
+    var t = _taskStore[tasks[j]];
+    if (t && (t.doneAt || 0) > best) best = t.doneAt;
+  }
+  return best || 0;
+}
+// LOCAL today, as a YYYY-MM-DD string. new Date().toISOString() is UTC and would call a task due
+// today "overdue" for anyone west of Greenwich after 4pm — which is every counselor here.
+function bwToday() {
+  var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+// One rule for the badge, owned here, so the list and the detail can never disagree.
+function bwNextActionState(dueOn) {
+  if (!dueOn) return 'none';
+  var today = bwToday();
+  if (dueOn < today) return 'overdue';
+  if (dueOn === today) return 'today';
+  return 'future';
+}
+function bwDueLabel(dueOn) {
+  var s = bwNextActionState(dueOn);
+  if (s === 'none') return 'No date';
+  if (s === 'today') return 'Today';
+  if (s === 'overdue') return 'Overdue · ' + dueOn;
+  return dueOn;
+}
+
+// Whose note this is. window._bwUser.uid is an opaque Firebase id in production, so it cannot be
+// turned back into an email — the signed-in user resolves through bwCurrentAdvisor(), the fake
+// auth's uid_<email> form resolves through BW_USERS, and anything else prints the uid rather
+// than a wrong name or a blank. Same principle as bwCurrentAdvisor: never substitute a default.
+function bwUidName(uid) {
+  if (!uid) return 'Unknown';
+  var me = (window._bwUser && window._bwUser.uid) || '';
+  if (uid === me) return bwCurrentAdvisor().name;
+  var at = String(uid).indexOf('@');
+  if (at > -1) {
+    var handle = String(uid).slice(0, at).replace(/^uid_/, '').toLowerCase();
+    if (BW_USERS[handle] && BW_USERS[handle].name) return BW_USERS[handle].name;
+  }
+  return String(uid);
+}
+function bwWhen(ts) {
+  if (!ts) return '';
+  var d = new Date(ts), p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+    + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+// ── listener registration ────────────────────────────────────────────────────────────
+// One spec per collection, in the same array _attachContactListeners has always used: a path,
+// a store keyed by child key, and what to rebuild afterwards.
+function _bwListenerSpecs() {
+  var specs = [
+    ['parties', _partyStore, function(){ _rebuildParties(); }],
+    ['contractRoles', _roleStore, function(){ _rebuildRoleIndexes(); _bwContactsChanged(); }],
+    ['contactNotes', _noteStore, function(){ _rebuildNoteIndexes(); _bwContactsChanged(); }],
+    ['contactTasks', _taskStore, function(){ _rebuildTaskIndexes(); _bwContactsChanged(); }]
+  ];
+  BW_TAXONOMY_KINDS.forEach(function(kind) {
+    specs.push(['crmTaxonomy/' + kind, _taxStore[kind], function() {
+      _bwContactsChanged();
+      if (typeof renderCrmSettings === 'function') renderCrmSettings();
+    }]);
+  });
+  return specs;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAXONOMY EDITING — the settings screen's write path
+// ═══════════════════════════════════════════════════════════════
+// The live list is the Firebase set as soon as it holds ANYTHING, so the very first edit has to
+// seed every default first. Without this, renaming one status would make the other seven vanish.
+function _bwSeedTaxonomy(kind) {
+  var live = _taxStore[kind];
+  if (live && Object.keys(live).length) return Promise.resolve(false);
+  var defaults = (BW_TAXONOMY_META[kind] || {}).defaults || [];
+  var chain = Promise.resolve();
+  defaults.forEach(function(d, i) {
+    chain = chain.then(function() {
+      var rec = { code: d.code, label: d.label, order: i, kind: kind };
+      if (d.color) rec.color = d.color;
+      return _bwWriteTaxonomy(kind, rec);
+    });
+  });
+  return chain.then(function(){ return true; });
+}
+// One record, one path. NEVER crmTaxonomy/<kind>.set(...) — that shape has destroyed real data
+// on this project twice.
+function _bwWriteTaxonomy(kind, rec) {
+  if (!rec || !rec.code) return Promise.reject(new Error('A value needs a code.'));
+  rec.kind = kind;
+  _bwStamp(rec, !_taxStore[kind][rec.code]);
+  if (!rec._prov) rec._prov = bwProv('manual');
+  _taxStore[kind][rec.code] = rec;
+  if (!window._fbDB) return Promise.resolve(rec);
+  return _fbDB.ref('crmTaxonomy/' + kind + '/' + rec.code).set(rec).then(function(){ return rec; });
+}
+
+function bwTaxonomyCode(label) {
+  return String(label || '').toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+}
+
+function bwAddTaxonomyValue(kind, label, color) {
+  var code = bwTaxonomyCode(label);
+  if (!code) return Promise.reject(new Error('Enter a name.'));
+  return _bwSeedTaxonomy(kind).then(function() {
+    if (_taxStore[kind][code]) return Promise.reject(new Error('"' + label + '" already exists.'));
+    var order = bwTaxonomy(kind).length;
+    var rec = { code: code, label: String(label).trim(), order: order };
+    if (kind === 'flags') rec.color = color || 'gray';
+    return _bwWriteTaxonomy(kind, rec);
+  }).then(function(r) { _bwContactsChanged(); renderCrmSettings(); return r; });
+}
+function bwRenameTaxonomyValue(kind, code, label) {
+  if (!String(label || '').trim()) return Promise.reject(new Error('Enter a name.'));
+  return _bwSeedTaxonomy(kind).then(function() {
+    var cur = _taxStore[kind][code] || bwTaxonomyEntry(kind, code) || { code: code };
+    // The CODE never changes on a rename. That is the entire point: records store the code.
+    var rec = { code: code, label: String(label).trim(), order: cur.order == null ? 9999 : cur.order };
+    if (cur.color) rec.color = cur.color;
+    return _bwWriteTaxonomy(kind, rec);
+  }).then(function(r) { _bwContactsChanged(); renderCrmSettings(); return r; });
+}
+function bwSetFlagColor(code, color) {
+  return _bwSeedTaxonomy('flags').then(function() {
+    var cur = _taxStore.flags[code] || bwTaxonomyEntry('flags', code) || { code: code, label: code };
+    return _bwWriteTaxonomy('flags', {
+      code: code, label: cur.label || code, color: color,
+      order: cur.order == null ? 9999 : cur.order
+    });
+  }).then(function(r) { _bwContactsChanged(); renderCrmSettings(); return r; });
+}
+function bwMoveTaxonomyValue(kind, code, delta) {
+  return _bwSeedTaxonomy(kind).then(function() {
+    var list = bwTaxonomy(kind);
+    var i = -1;
+    for (var k = 0; k < list.length; k++) if (list[k].code === code) i = k;
+    var j = i + delta;
+    if (i < 0 || j < 0 || j >= list.length) return null;
+    var moved = list.slice();
+    moved.splice(j, 0, moved.splice(i, 1)[0]);
+    var chain = Promise.resolve();
+    moved.forEach(function(e, idx) {
+      chain = chain.then(function() {
+        var rec = { code: e.code, label: e.label, order: idx };
+        if (e.color) rec.color = e.color;
+        return _bwWriteTaxonomy(kind, rec);
+      });
+    });
+    return chain;
+  }).then(function(r) { _bwContactsChanged(); renderCrmSettings(); return r; });
+}
+
+// How many records still point at a value. Counted BEFORE a removal so the screen can say so —
+// removal is allowed, silence is not.
+function bwTaxonomyUsage(kind, code) {
+  if (!code) return 0;
+  if (kind === 'flags') {
+    return _parties.filter(function(p){ return bwPartyFlags(p).indexOf(code) > -1; }).length;
+  }
+  if (kind === 'taskKinds') {
+    return Object.keys(_taskStore).filter(function(id) {
+      return _taskStore[id] && _taskStore[id].category === code;
+    }).length;
+  }
+  if (kind === 'statuses') return _parties.filter(function(p){ return bwPartyStatus(p) === code; }).length;
+  var field = (BW_TAXONOMY_META[kind] || {}).field;
+  if (!field) return 0;
+  return _parties.filter(function(p){ return p && p[field] === code; }).length;
+}
+// What the confirm box says. A separate pure function so the count is assertable without a
+// dialog: a removal that silently orphans records is the failure mode this guards.
+function bwTaxonomyRemovalReport(kind, code) {
+  var n = bwTaxonomyUsage(kind, code);
+  var label = bwTaxonomyLabel(kind, code);
+  var noun = (BW_TAXONOMY_META[kind] || {}).noun || 'record';
+  return {
+    kind: kind, code: code, label: label, count: n, inUse: n > 0,
+    message: n
+      ? n + ' ' + noun + (n === 1 ? '' : 's') + (n === 1 ? ' uses ' : ' use ') + label
+        + ' — remove anyway? They will show the raw code until you reassign them.'
+      : 'Remove ' + label + '? Nothing uses it.'
+  };
+}
+function bwRemoveTaxonomyValue(kind, code) {
+  return _bwSeedTaxonomy(kind).then(function() {
+    delete _taxStore[kind][code];
+    if (!window._fbDB) return Promise.resolve();
+    return _fbDB.ref('crmTaxonomy/' + kind + '/' + code).remove();
+  }).then(function() { _bwContactsChanged(); renderCrmSettings(); });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTACT EDITOR — taxonomy controls
+// ═══════════════════════════════════════════════════════════════
+function _bwFillTaxonomySelect(id, kind, value) {
+  var sel = el(id);
+  if (!sel) return;
+  var html = '<option value="">—</option>';
+  var list = bwTaxonomy(kind), seen = false;
+  list.forEach(function(e) {
+    if (e.code === value) seen = true;
+    html += '<option value="' + _ceEsc(e.code) + '">' + _ceEsc(e.label || e.code) + '</option>';
+  });
+  // A record carrying a code that has since been removed keeps it until someone reassigns it —
+  // opening the editor must not silently blank the field.
+  if (value && !seen) html += '<option value="' + _ceEsc(value) + '">' + _ceEsc(value) + '</option>';
+  sel.innerHTML = html;
+  sel.value = value || '';
+}
+function _bwFillFlagBox(id, selected) {
+  var box = el(id);
+  if (!box) return;
+  var have = selected || [];
+  var list = bwTaxonomy('flags');
+  var codes = list.map(function(e){ return e.code; });
+  have.forEach(function(c){ if (codes.indexOf(c) === -1) list = list.concat([{ code: c, label: c }]); });
+  box.innerHTML = list.map(function(e) {
+    return '<label><input type="checkbox" value="' + _ceEsc(e.code) + '"'
+      + (have.indexOf(e.code) > -1 ? ' checked' : '') + '>' + _ceEsc(e.label || e.code) + '</label>';
+  }).join('');
+}
+function _bwReadFlagBox(id) {
+  var box = el(id);
+  if (!box) return [];
+  return [].slice.call(box.querySelectorAll('input[type=checkbox]'))
+    .filter(function(c){ return c.checked; })
+    .map(function(c){ return c.value; });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTACT DETAIL — Notes and To-Dos tabs
+// ═══════════════════════════════════════════════════════════════
+var _bwDetailTab = 'overview';
+// Drafts survive a re-render. renderContactDetail() rebuilds the panel's innerHTML, and a note
+// arriving from the other browser mid-sentence would otherwise wipe what you were typing.
+var _bwNoteDraft = '';
+var _bwTaskDraft = { summary: '', dueOn: '', kind: '' };
+
+function bwSetDetailTab(tab) {
+  _bwDetailTab = tab;
+  renderContactDetail();
+}
+function _bwNoteDraftChanged(v) { _bwNoteDraft = v; }
+function _bwTaskDraftChanged(field, v) { _bwTaskDraft[field] = v; }
+
+function _bwNotesTabHtml(p) {
+  var notes = bwNotesFor(p.id);
+  var html = '<div class="ct-card">'
+    + '<textarea id="ctNoteBody" rows="3" placeholder="Add a note…" '
+    + 'oninput="_bwNoteDraftChanged(this.value)" '
+    + 'style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:13px;font-family:inherit;'
+    + 'color:var(--ink);border:1px solid var(--gray-mid);border-radius:6px;background:var(--gray-light);resize:vertical;">'
+    + _ceEsc(_bwNoteDraft) + '</textarea>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;align-items:center;">'
+    + '<button onclick="bwAddNoteFromDetail()" style="padding:7px 15px;font-size:13px;font-weight:700;'
+    + 'font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:6px;cursor:pointer;">Add note</button>'
+    + '<span id="ctNoteErr" style="font-size:12px;color:var(--red);"></span>'
+    + '</div></div>';
+
+  if (!notes.length) {
+    html += '<p style="font-size:13px;color:var(--text-light);padding:6px 0;">No notes yet.</p>';
+    return html;
+  }
+  html += '<div class="ct-card">' + notes.map(function(n) {
+    return '<div class="ct-note">'
+      + '<div class="ct-note-body">' + _ceEsc(n.body) + '</div>'
+      + '<div class="ct-note-meta">'
+      + (n.pinned ? '<span class="ct-tag" style="background:var(--orange-tint);color:var(--orange-dark);">Pinned</span>' : '')
+      + '<span>' + _ceEsc(bwUidName(n.createdBy)) + '</span>'
+      + '<span>' + _ceEsc(bwWhen(n.createdAt)) + '</span>'
+      + '<span style="margin-left:auto;display:flex;gap:6px;">'
+      + '<button class="ct-mini" onclick="toggleContactNotePin(\'' + _ceEsc(n.id) + '\')">'
+      + (n.pinned ? 'Unpin' : 'Pin') + '</button>'
+      + '<button class="ct-mini" onclick="bwDeleteNoteFromDetail(\'' + _ceEsc(n.id) + '\')">Delete</button>'
+      + '</span></div></div>';
+  }).join('') + '</div>';
+  return html;
+}
+
+function _bwTasksTabHtml(p) {
+  var tasks = bwTasksFor(p.id);
+  var open = tasks.filter(function(t){ return t.status !== 'done'; });
+  var done = tasks.filter(function(t){ return t.status === 'done'; });
+  var kinds = bwTaxonomy('taskKinds');
+
+  var html = '<div class="ct-card">'
+    + '<div style="display:grid;grid-template-columns:1fr 150px 130px;gap:8px;">'
+    + '<div><label class="ce-lbl">To-do</label><input id="ctTaskSum" class="ce-in" placeholder="Call about the marker"'
+    + ' value="' + _ceEsc(_bwTaskDraft.summary) + '" oninput="_bwTaskDraftChanged(\'summary\',this.value)"></div>'
+    + '<div><label class="ce-lbl">Due</label><input id="ctTaskDue" class="ce-in" type="date"'
+    + ' value="' + _ceEsc(_bwTaskDraft.dueOn || bwToday()) + '" oninput="_bwTaskDraftChanged(\'dueOn\',this.value)"></div>'
+    + '<div><label class="ce-lbl">Kind</label><select id="ctTaskKind" class="ce-in" onchange="_bwTaskDraftChanged(\'kind\',this.value)">'
+    + '<option value="">—</option>'
+    + kinds.map(function(k) {
+        return '<option value="' + _ceEsc(k.code) + '"' + (_bwTaskDraft.kind === k.code ? ' selected' : '') + '>'
+             + _ceEsc(k.label || k.code) + '</option>';
+      }).join('')
+    + '</select></div></div>'
+    + '<div style="display:flex;gap:8px;margin-top:9px;align-items:center;">'
+    + '<button onclick="bwAddTaskFromDetail()" style="padding:7px 15px;font-size:13px;font-weight:700;'
+    + 'font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:6px;cursor:pointer;">Add to-do</button>'
+    + '<span id="ctTaskErr" style="font-size:12px;color:var(--red);"></span>'
+    + '</div></div>';
+
+  function row(t) {
+    var st = bwNextActionState(t.dueOn);
+    return '<div class="ct-task' + (t.status === 'done' ? ' done' : '') + '">'
+      + '<span class="ct-task-sum">' + _ceEsc(t.summary) + '</span>'
+      + (t.category ? _bwTagHtml('taskKinds', t.category) : '')
+      + (t.status === 'done'
+          ? '<span class="ct-due">Done ' + _ceEsc(bwWhen(t.doneAt)) + '</span>'
+          : '<span class="ct-due ' + st + '">' + _ceEsc(bwDueLabel(t.dueOn)) + '</span>')
+      + '<span style="display:flex;gap:6px;">'
+      + (t.status === 'done'
+          ? '<button class="ct-mini" onclick="reopenContactTask(\'' + _ceEsc(t.id) + '\')">Reopen</button>'
+          : '<button class="ct-mini" onclick="completeContactTask(\'' + _ceEsc(t.id) + '\')">Complete</button>')
+      + '<button class="ct-mini" onclick="bwDeleteTaskFromDetail(\'' + _ceEsc(t.id) + '\')">Delete</button>'
+      + '</span></div>';
+  }
+
+  if (!open.length) html += '<p style="font-size:13px;color:var(--text-light);padding:6px 0;">Nothing open.</p>';
+  else html += '<div class="ct-card">' + open.map(row).join('') + '</div>';
+
+  if (done.length) {
+    html += '<details style="margin-top:10px;"><summary style="font-size:12px;color:var(--text-light);cursor:pointer;">'
+      + done.length + ' completed</summary>'
+      + '<div class="ct-card" style="margin-top:8px;">' + done.map(row).join('') + '</div></details>';
+  }
+  return html;
+}
+
+function bwAddNoteFromDetail() {
+  if (!_bwDetailId) return;
+  var body = ((el('ctNoteBody') || {}).value || '').trim();
+  var err = el('ctNoteErr');
+  if (!body) { if (err) err.textContent = 'Type something first.'; return; }
+  saveContactNote({ partyId: _bwDetailId, body: body, pinned: false }).then(function() {
+    _bwNoteDraft = '';
+    renderContactDetail();
+  }).catch(function(e) {
+    if (el('ctNoteErr')) el('ctNoteErr').textContent = (e && e.message) || String(e);
+  });
+}
+function bwDeleteNoteFromDetail(id) {
+  if (!confirm('Delete this note?')) return;
+  deleteContactNote(id);
+}
+function bwAddTaskFromDetail() {
+  if (!_bwDetailId) return;
+  var sum = ((el('ctTaskSum') || {}).value || '').trim();
+  var err = el('ctTaskErr');
+  if (!sum) { if (err) err.textContent = 'What needs doing?'; return; }
+  saveContactTask({
+    partyId: _bwDetailId,
+    summary: sum,
+    dueOn: ((el('ctTaskDue') || {}).value || '') || null,
+    category: ((el('ctTaskKind') || {}).value || '') || null,
+    status: 'open'
+  }).then(function() {
+    _bwTaskDraft = { summary: '', dueOn: '', kind: '' };
+    renderContactDetail();
+  }).catch(function(e) {
+    if (el('ctTaskErr')) el('ctTaskErr').textContent = (e && e.message) || String(e);
+  });
+}
+function bwDeleteTaskFromDetail(id) {
+  if (!confirm('Delete this to-do?')) return;
+  deleteContactTask(id);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CRM SETTINGS SCREEN
+// ═══════════════════════════════════════════════════════════════
+function renderCrmSettings() {
+  var box = el('crmSettingsBody');
+  if (!box) return;
+  var html = '';
+  BW_TAXONOMY_KINDS.forEach(function(kind) {
+    var meta = BW_TAXONOMY_META[kind];
+    var list = bwTaxonomy(kind);
+    var edited = Object.keys(_taxStore[kind] || {}).length > 0;
+    html += '<div style="margin-bottom:22px;max-width:640px;">'
+      + '<div style="display:flex;align-items:baseline;gap:9px;margin-bottom:6px;">'
+      + '<span style="font-size:13px;font-weight:800;color:var(--navy);">' + _ceEsc(meta.title) + '</span>'
+      + '<span style="font-size:11.5px;color:var(--text-light);">' + list.length + ' value'
+      + (list.length === 1 ? '' : 's') + (edited ? '' : ' · defaults') + '</span></div>'
+      + '<div class="ct-card">';
+    list.forEach(function(e, i) {
+      html += '<div class="ct-setrow">'
+        + (kind === 'flags' ? _bwTagHtml('flags', e.code) + ' ' : '')
+        + '<span style="flex:1;min-width:120px;font-size:13px;color:var(--ink);">' + _ceEsc(e.label || e.code) + '</span>'
+        + '<span class="ct-setcode">' + _ceEsc(e.code) + '</span>'
+        + '<button class="ct-mini" ' + (i === 0 ? 'disabled ' : '')
+        + 'onclick="bwMoveTaxonomyValue(\'' + kind + '\',\'' + _ceEsc(e.code) + '\',-1)">&uarr;</button>'
+        + '<button class="ct-mini" ' + (i === list.length - 1 ? 'disabled ' : '')
+        + 'onclick="bwMoveTaxonomyValue(\'' + kind + '\',\'' + _ceEsc(e.code) + '\',1)">&darr;</button>'
+        + (kind === 'flags'
+            ? '<select class="ct-mini" onchange="bwSetFlagColor(\'' + _ceEsc(e.code) + '\',this.value)">'
+              + Object.keys(BW_FLAG_COLORS).map(function(c) {
+                  return '<option value="' + c + '"' + (e.color === c ? ' selected' : '') + '>' + c + '</option>';
+                }).join('') + '</select>'
+            : '')
+        + '<button class="ct-mini" onclick="crmSettingsRename(\'' + kind + '\',\'' + _ceEsc(e.code) + '\')">Rename</button>'
+        + '<button class="ct-mini" onclick="crmSettingsRemove(\'' + kind + '\',\'' + _ceEsc(e.code) + '\')">Remove</button>'
+        + '</div>';
+    });
+    html += '</div>'
+      + '<button class="ct-mini" style="margin-top:7px;" onclick="crmSettingsAdd(\'' + kind + '\')">+ Add a value</button>'
+      + '</div>';
+  });
+  box.innerHTML = html;
+}
+function crmSettingsAdd(kind) {
+  var label = prompt('Name for the new ' + (BW_TAXONOMY_META[kind] || {}).title + ' value:');
+  if (label == null) return;
+  bwAddTaxonomyValue(kind, label).catch(function(e){ alert((e && e.message) || String(e)); });
+}
+function crmSettingsRename(kind, code) {
+  var label = prompt('Rename "' + bwTaxonomyLabel(kind, code) + '" to:', bwTaxonomyLabel(kind, code));
+  if (label == null) return;
+  bwRenameTaxonomyValue(kind, code, label).catch(function(e){ alert((e && e.message) || String(e)); });
+}
+function crmSettingsRemove(kind, code) {
+  var report = bwTaxonomyRemovalReport(kind, code);
+  if (!confirm(report.message)) return;
+  bwRemoveTaxonomyValue(kind, code).catch(function(e){ alert((e && e.message) || String(e)); });
+}
+
 // Auto-fills a salutation when a contact is created. Stored free text after that — Martice's
 // call, so it can be corrected when the rule is wrong. The exact commas and ampersand live here
 // rather than in code, so fixing the format is a one-line change.
@@ -11689,9 +12503,7 @@ function _bwContactErr(err) {
   console.error('Contact layer read failed:', err);
 }
 function _attachContactListeners() {
-  [['parties', _partyStore, function(){ _rebuildParties(); }],
-   ['contractRoles', _roleStore, function(){ _rebuildRoleIndexes(); if (typeof renderContactsList === 'function') renderContactsList(); }]
-  ].forEach(function(spec) {
+  _bwListenerSpecs().forEach(function(spec) {
     var path = spec[0], store = spec[1], after = spec[2];
     var ref = _fbDB.ref(path);
     function put(snap) {
@@ -11856,7 +12668,9 @@ function renderContactsList() {
     html += '<div class="ct-card" onclick="openContactDetail(\'' + p.id + '\')" style="cursor:pointer;">'
       + '<div style="display:flex;align-items:baseline;gap:8px;">'
       + '<span class="ct-name">' + _ceEsc(bwPartyName(p)) + '</span>' + owner
-      + (p.engagement === 'do-not-contact' ? '<span class="ct-pill" style="background:var(--orange-tint);color:var(--orange-dark);">Do not contact</span>' : '')
+      + (bwPartyStatus(p) ? _bwTagHtml('statuses', bwPartyStatus(p), bwPartyStatus(p) === 'do-not-contact'
+          ? 'background:var(--orange-tint);color:var(--orange-dark);'
+          : 'background:var(--blue-light);color:var(--navy);') : '')
       + '<span style="margin-left:auto;display:flex;gap:6px;">'
       + '<button onclick="event.stopPropagation();openContactEditor(\'' + p.id + '\')" style="padding:3px 12px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
       + '</span></div>'
@@ -11913,6 +12727,9 @@ function bwHoldingsFor(partyId) {
 
 var _bwDetailId = null;
 function openContactDetail(id) {
+  // A different family starts on Overview with a clean note box — carrying a half-typed
+  // note across contacts is how it ends up on the wrong record.
+  if (id !== _bwDetailId) { _bwDetailTab = 'overview'; _bwNoteDraft = ''; _bwTaskDraft = { summary: '', dueOn: '', kind: '' }; }
   _bwDetailId = id;
   el('contactsList').style.display = 'none';
   el('contactDetail').style.display = 'block';
@@ -11943,6 +12760,16 @@ function renderContactDetail() {
   var box = el('contactDetail'); if (!box || !_bwDetailId) return;
   var p = bwPartyById(_bwDetailId);
   if (!p) { closeContactDetail(); return; }
+  // What has focus right now. This panel is rebuilt wholesale on any store change, so without
+  // this a note arriving from the other browser yanks the cursor out of a half-typed sentence.
+  var focusId = '', caret = null;
+  try {
+    if (document.activeElement && box.contains(document.activeElement)) {
+      focusId = document.activeElement.id || '';
+      if (typeof document.activeElement.selectionStart === 'number') caret = document.activeElement.selectionStart;
+    }
+  } catch (e) {}
+
   var h = bwHoldingsFor(p.id);
   var ph = _bwPrimary(p.phones), em = _bwPrimary(p.emails);
   var addr = p.addresses ? p.addresses[Object.keys(p.addresses)[0]] : null;
@@ -11952,54 +12779,95 @@ function renderContactDetail() {
   html += '<div class="ct-card" style="border-left-width:4px;">'
     + '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'
     + '<span style="font-size:18px;font-weight:800;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
-    + (p.engagement === 'do-not-contact' ? '<span class="ct-pill" style="background:var(--orange-tint);color:var(--orange-dark);">Do not contact</span>' : '')
     + '<button onclick="openContactEditor(\'' + p.id + '\')" style="margin-left:auto;padding:4px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
     + '</div>';
+  // Status / source / category / flags, all rendered from codes. An unresolved code shows the
+  // code itself in a muted style — never a blank where a value used to be.
+  var tags = bwPartyTagsHtml(p);
+  if (tags) html += '<div id="ctTags" style="margin-top:7px;">' + tags + '</div>';
   var bits = [];
   if (ph) bits.push(_ceEsc(bwFmtPhone(ph)));
   if (em) bits.push(_ceEsc(em));
   if (addr && (addr.street1 || addr.city)) bits.push(_ceEsc([addr.street1, addr.city, addr.state, addr.postal].filter(Boolean).join(', ')));
   if (p.salutation) bits.push('<span style="color:var(--text-light);">' + _ceEsc(p.salutation) + '</span>');
   if (bits.length) html += '<div class="ct-meta" style="margin-top:5px;line-height:1.7;">' + bits.join('<br>') + '</div>';
+
+  // The one line that answers "what do I do about this family". Derived, never stored.
+  var na = bwNextActionFor(p.id);
+  html += '<div id="ctNextAction" class="ct-meta" style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+    + '<span style="font-weight:700;color:var(--navy);">Next action</span>'
+    + (na
+        ? '<span class="ct-due ' + bwNextActionState(na.dueOn) + '">' + _ceEsc(bwDueLabel(na.dueOn)) + '</span>'
+          + '<span>' + _ceEsc(na.summary) + '</span>'
+        : '<span class="ct-due">None</span>')
+    + '</div>';
   html += '</div>';
 
-  // The headline. A family with nothing yet is a prospect, and saying so is more useful than
-  // an empty panel.
-  var count = h.cemetery.length + h.funeral.length;
-  html += '<div style="margin:20px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">'
-    + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">What this family owns</span>';
-  if (count) {
-    html += '<span style="font-size:15px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
-         + '<span style="font-size:12px;color:var(--text-light);">across ' + count + ' record' + (count === 1 ? '' : 's') + '</span>';
-  }
-  html += '</div>';
+  var notes = bwNotesFor(p.id);
+  var openTasks = bwTasksFor(p.id).filter(function(t){ return t.status !== 'done'; });
+  html += '<div class="ct-tabs">'
+    + [['overview', 'Overview', ''],
+       ['notes', 'Notes', notes.length ? ' (' + notes.length + ')' : ''],
+       ['todos', 'To-Dos', openTasks.length ? ' (' + openTasks.length + ')' : '']]
+      .map(function(t) {
+        return '<button class="ct-tab' + (_bwDetailTab === t[0] ? ' active' : '') + '"'
+          + ' id="ctTab-' + t[0] + '" onclick="bwSetDetailTab(\'' + t[0] + '\')">' + t[1] + t[2] + '</button>';
+      }).join('')
+    + '</div>';
 
-  if (!count) {
-    html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--navy);">'
-      + 'Nothing on file yet — this contact is a prospect.'
-      + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
-      + '</div>';
+  if (_bwDetailTab === 'notes') {
+    html += _bwNotesTabHtml(p);
+  } else if (_bwDetailTab === 'todos') {
+    html += _bwTasksTabHtml(p);
   } else {
-    [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
-      var rows = h[pair[0]];
-      if (!rows.length) return;
-      var sub = rows.reduce(function(s, x){ return s + (x.rec.total || 0); }, 0);
-      html += '<div style="margin-top:14px;">'
-        + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
-        + '<span style="font-size:12px;font-weight:700;color:var(--navy);">' + pair[1] + '</span>'
-        + '<span style="font-size:11.5px;color:var(--text-light);">' + rows.length + ' · ' + fmt(sub) + '</span></div>'
-        + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwHoldingRow).join('') + '</div></div>';
-    });
-  }
+    // The headline. A family with nothing yet is a prospect, and saying so is more useful than
+    // an empty panel.
+    var count = h.cemetery.length + h.funeral.length;
+    html += '<div style="margin:4px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">'
+      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">What this family owns</span>';
+    if (count) {
+      html += '<span style="font-size:15px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
+           + '<span style="font-size:12px;color:var(--text-light);">across ' + count + ' record' + (count === 1 ? '' : 's') + '</span>';
+    }
+    html += '</div>';
 
-  // A role whose record is gone. Rare, but silence here would be worse than a line of text.
-  if (h.missing.length) {
-    html += '<div style="margin-top:14px;padding:10px 13px;border-radius:7px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.6;">'
-      + h.missing.length + ' link' + (h.missing.length === 1 ? '' : 's') + ' point at a record that no longer exists'
-      + ' (' + h.missing.map(function(r){ return _ceEsc((BW_RECORD_TYPES[r.recordType] || {}).label || r.recordType); }).join(', ') + ').'
-      + ' The quote was probably deleted.</div>';
+    if (!count) {
+      html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--navy);">'
+        + 'Nothing on file yet — this contact is a prospect.'
+        + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
+        + '</div>';
+    } else {
+      [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
+        var rows = h[pair[0]];
+        if (!rows.length) return;
+        var sub = rows.reduce(function(s, x){ return s + (x.rec.total || 0); }, 0);
+        html += '<div style="margin-top:14px;">'
+          + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
+          + '<span style="font-size:12px;font-weight:700;color:var(--navy);">' + pair[1] + '</span>'
+          + '<span style="font-size:11.5px;color:var(--text-light);">' + rows.length + ' · ' + fmt(sub) + '</span></div>'
+          + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwHoldingRow).join('') + '</div></div>';
+      });
+    }
+
+    // A role whose record is gone. Rare, but silence here would be worse than a line of text.
+    if (h.missing.length) {
+      html += '<div style="margin-top:14px;padding:10px 13px;border-radius:7px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.6;">'
+        + h.missing.length + ' link' + (h.missing.length === 1 ? '' : 's') + ' point at a record that no longer exists'
+        + ' (' + h.missing.map(function(r){ return _ceEsc((BW_RECORD_TYPES[r.recordType] || {}).label || r.recordType); }).join(', ') + ').'
+        + ' The quote was probably deleted.</div>';
+    }
   }
   box.innerHTML = html;
+
+  if (focusId) {
+    var fe = el(focusId);
+    if (fe) {
+      try {
+        fe.focus();
+        if (caret != null && typeof fe.setSelectionRange === 'function') fe.setSelectionRange(caret, caret);
+      } catch (e2) {}
+    }
+  }
 }
 
 var _ceEditingId = null;
@@ -12017,7 +12885,11 @@ function openContactEditor(id) {
   set('ceSt', addr && addr.street1); set('ceCity', addr && addr.city);
   set('ceState', addr ? (addr.state || 'WA') : 'WA'); set('ceZip', addr && addr.postal);
   set('ceDob', p && p.dob);
-  set('ceEng', p && p.engagement); set('ceInt', p && p.interest);
+  _bwFillTaxonomySelect('ceStatus', 'statuses', bwPartyStatus(p));
+  _bwFillTaxonomySelect('ceSource', 'sources', p && p.source);
+  _bwFillTaxonomySelect('ceCategory', 'categories', p && p.category);
+  _bwFillFlagBox('ceFlags', bwPartyFlags(p));
+  set('ceInt', p && p.interest);
   el('contactEditorErr').style.display = 'none';
   el('contactDupWarn').style.display = 'none';
   el('ceDelete').style.display = p ? 'block' : 'none';
@@ -12052,7 +12924,13 @@ function submitContactEditor() {
   p.suffix = v('ceS'); p.middle = v('ceM'); p.nickname = v('ceN');
   p.salutation = v('ceSal');
   p.dob = v('ceDob') || null;
-  p.engagement = v('ceEng') || null;
+  // Status subsumes the old engagement field. Existing records keep whatever engagement they
+  // already carry and it is read through bwPartyStatus(); nothing writes engagement any more.
+  p.status = v('ceStatus') || null;
+  p.source = v('ceSource') || null;
+  p.category = v('ceCategory') || null;
+  var _flags = _bwReadFlagBox('ceFlags');
+  if (_flags.length) p.flags = _flags; else delete p.flags;
   p.interest = v('ceInt') || null;
 
   // Phones store digits only — "(206) 445-9794" and "206-445-9794" must not be two people.
@@ -12993,6 +13871,7 @@ function show(id, navEl) {
   // fresh install: with no contacts there is no child_added, so nothing ever triggers a render
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
+  if (id === 'crm-settings') { try { renderCrmSettings(); } catch(e) {} }
   // Leaving Contacts drops back to the list, so returning never lands on a stale detail panel.
   if (id !== 'contacts' && _bwDetailId) { try { closeContactDetail(); } catch(e) {} }
   // Each module renders its own link row on arrival.

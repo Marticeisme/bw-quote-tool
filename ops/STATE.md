@@ -1,8 +1,56 @@
 # STATE — Living Ledger
 
-**Current sprint:** none active. sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2)
-**partially shipped** - the 11 overlapping fees are live, the remaining scope is re-drafted below.
-**Last updated:** 2026-07-26, end of session. Everything merged and PUSHED; `main` = `875bcaf`.
+**Current sprint:** **sprint-04 (S8) — Contacts becomes a CRM.** In flight as of 2026-07-27.
+Three sequential tracks; Track A (`s04/contact-record`) spawned. See `sprints/sprint-04/SPRINT.md`.
+
+sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
+overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
+
+**Last updated:** 2026-07-27. `main` = `413da08` (sprint-04 ops docs), pushed through `4fa7171`.
+
+## Sprint-04 — opened 2026-07-27
+
+**Boot audit found nothing wrong.** Working tree clean, `main` level with `origin/main` (0 ahead,
+0 behind), `npm run check` → `index.html: 8 blocks, 0 errors`, `npm test` → `636 passed, 0 failed
+across 19 suites` with every suite green, no stale worktrees, nothing listening on 3737, baseline
+artifacts still at `%TEMP%\bw-baseline\before`. First boot in this project where the previous
+close left the docs accurate.
+
+**The sprint came from the operator mid-boot**, not from the roadmap: the Contacts page is *"just
+a contacts page"* and needs to be *"much more robust"*, taking what is good from
+FuneralDecisionsCRM. Source material: the **FDCRM Training Manual, 203 pp.**, at
+`E:\Downloads\FDCRM Training Manualreduced.pdf`, plus a screenshot of Bonney Watson's own FDCRM
+home screen. **That screenshot shows real customer names in "Recently Viewed Contacts" — none of
+them may enter this repo in any form** (same rule as map data, `DESIGN.md` §6).
+
+**Design authority was delegated to the director** (*"I'm giving you autonomy to make decisions on
+exactly how this should look ... look online at other CRMs"*). The resulting decisions are
+D1–D10 in `sprints/sprint-04/SPRINT.md` and bind the tracks. The load-bearing ones:
+
+- **A view is a URL** (D1). Filters serialise into the existing hash router, so a filtered list
+  survives navigation, is pasteable between counselors, and a saved view is just a stored hash —
+  which deletes FDCRM's static-vs-dynamic distinction entirely.
+- **`nextActionAt` / `lastActivityAt` are derived, never stored** (D4). There is no migration
+  mechanism in this project; deriving means nothing to backfill and nothing to drift.
+- **Every import is an undoable batch** (D7). This is what makes it acceptable to import into a
+  live production database at all.
+- **Our own ~60-line CSV parser, no vendored library** (D6). Sprint-01 spent a whole sprint
+  removing 9.4 MB from this file.
+
+**The seeding problem solved itself.** Martice asked for 30 live fake contacts to test with,
+which would have meant an agent writing to production — the one absolute prohibition. His own
+answer to the mechanism question (build CSV import first) removed the conflict: the demo file
+ships in the repo, and **he** imports it through the UI after the push. No agent write, and the
+batch-undo makes it reversible.
+
+**Operator decisions taken 2026-07-27:** CSV import is generic, not FDCRM-shaped, but kept open
+to an FDCRM export; taxonomies ship as sensible defaults, editable in-app; appointments and the
+calendar are deferred; the drafted status list ships as-is and is renamed in-app.
+
+**Deviation, logged: three tracks, not the 1–2 the guidelines allowed.** They run strictly
+sequentially, each branching from a `main` carrying the previous merge, so they cannot conflict.
+`SPRINT_GUIDELINES.md` is amended in the same commit — the cap was always about *parallel* edits
+to one 18,000-line file, and three ~600-line diffs audit far better than one ~1,800-line one.
 
 ## Status
 
@@ -66,6 +114,10 @@ often than measurements have.
 | Discontinued vaults | **shipped, live** | `fix/discontinued-vault-products` | merge `3c0228c` |
 | cemUpdate (other session) | **shipped, live** | `claude/awesome-cerf-226213` | merge `56e3d49` |
 | sprint-03 Track A | **shipped, live** | `s03/prices-single-source` | merge `875bcaf` |
+| sprint-04 Track A | **running** (spawned 2026-07-27) | `s04/contact-record` | main tree, no worktree — one track at a time |
+| sprint-04 Track B | not spawned | `s04/contact-search` | blocked on A merging |
+| sprint-04 Track C | not spawned | `s04/contact-csv` | blocked on A + B merging |
+| sprint-04 Track D | **running** (spawned 2026-07-27) | `s04/guides-audit` | worktree `../bw-quote-tool-guides`, node_modules junctioned. Runs S9 — 21 guide items. Parallel with A by design: disjoint files, and it may not touch `index.html` at all |
 
 All worktrees removed at close except the map's, which stay until their branches are pruned.
 **Every branch above is LOCAL ONLY** - none was pushed, per the corrected rule that every push is
@@ -204,6 +256,14 @@ Do not re-derive these.
 | 2026-07-26 | Template LOAD failures must surface by name; FILL failures may still warn | `DESIGN.md` §8, TRACK-A step 4b |
 | 2026-07-26 | The baseline harness is tracked in `scripts/`, not gitignored `scratch/` | `DESIGN.md` §5, commit `b8528cb` |
 | 2026-07-26 | Future state is **multi-tenant** (separate organisations), not more users at one site. Rescopes S6 and promotes the price-book work from tidying to structural blocker | `DESIGN.md` §1, `ROADMAP.md` S6 |
+| 2026-07-27 | Contacts becomes a CRM (S8). Design authority delegated to the director; decisions D1–D10 | `sprints/sprint-04/SPRINT.md` |
+| 2026-07-27 | A contacts view IS a URL — filters serialise into the hash, saved views are stored hashes, every view is dynamic | `sprints/sprint-04/SPRINT.md` D1 |
+| 2026-07-27 | Next action and last activity are DERIVED from notes/tasks, never stored — no migration mechanism exists | `sprints/sprint-04/SPRINT.md` D4 |
+| 2026-07-27 | Every CSV import is a batch and every batch is undoable; this is what makes importing into live data acceptable | `sprints/sprint-04/SPRINT.md` D7 |
+| 2026-07-27 | The 30 demo contacts reach production by MARTICE importing them through the UI. No agent writes to production, ever | `sprints/sprint-04/SPRINT.md` close gate |
+| 2026-07-27 | Taxonomies (source/status/category/flags/task kinds) are editable data with code defaults; a contact stores the CODE, never the label | `sprints/sprint-04/SPRINT.md` D5 |
+| 2026-07-27 | Appointments and the calendar are deferred; to-dos with due dates cover follow-up for now | operator, 2026-07-27 |
+| 2026-07-27 | The track cap is on PARALLELISM, not count — sequential tracks cannot conflict | `SPRINT_GUIDELINES.md` |
 | 2026-07-26 | Field/offline capability is a **goal post, not a requirement** — not scheduled, not a non-goal. Sprint-01's no-persistent-cache decision stands; a service worker is the answer if field use becomes real | `DESIGN.md` §1 |
 
 ## Sprint history
