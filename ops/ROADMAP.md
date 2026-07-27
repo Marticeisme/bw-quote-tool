@@ -140,6 +140,32 @@ writes to the live database. Every import is a batch and every batch is undoable
 Out: email blasts, letters, campaigns, landing pages, attachments, appointments and the
 calendar, work orders, permission tiers.
 
+## S9 — Guides audit and corrections  [DETAILED → sprints/sprint-04/TRACK-D; added 2026-07-27]
+
+A written punch list from Martice (`E:\Downloads\Guids Issues 07.25.26.docx`, 2026-07-27):
+twenty-one items across the family guides and catalogs. Runs as a **parallel track inside
+sprint-04**, in its own worktree, because it touches only `*-guide.html`, the catalogs and
+`scripts/` — the one case `SPRINT_GUIDELINES.md` sanctions concurrency.
+
+Three groups. **Tables and layout:** a column-alignment defect that recurs across the marker
+guide's ten tables, oversized print/PDF headers on every guide, the vault guide condensed to fit,
+and direct cremation made a proper two-pager. **Catalogs:** cremation-suitability sorting on the
+casket catalogs, scattering and ground-burial facets on the urn catalog, wrong cremation
+container images, and a missing PDF for outside marker rules. **Content:** six veterans-guide
+corrections (including stopping the guide from pushing our own cemetery over Tahoma), four to Who
+Decides (notably shifting the cremation-delay explanation from the medical examiner to the
+physician who signs the certificate), a substantial rewrite of urn placement to cover standard
+graves and the Lake Urn Garden, and sex/sex-at-birth on the vital worksheet.
+
+The director's own recon turned up a defect not on the list: in `SINGLE-SPACE MARKERS`, the
+`32″ × 20″` row breaks the monotonic column ordering every other row follows, in the shape of two
+values swapped. It is checked against the price book, not guessed at.
+
+**Held for a later sprint** (they need `index.html`, which sprint-04's other tracks own): the
+quote tool's own oversized print header, and the comparison print — which gets significantly
+enlarged options and the ability to name each one ("Option: Casket" vs "Option: Urn" rather than
+A vs B). Operator chose the enlargement over trimming ACH rows, 2026-07-27.
+
 ## A note on numbering
 
 **Roadmap milestone IDs and sprint numbers are not the same thing.** This file is a catalogue

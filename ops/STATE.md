@@ -117,6 +117,7 @@ often than measurements have.
 | sprint-04 Track A | **running** (spawned 2026-07-27) | `s04/contact-record` | main tree, no worktree — one track at a time |
 | sprint-04 Track B | not spawned | `s04/contact-search` | blocked on A merging |
 | sprint-04 Track C | not spawned | `s04/contact-csv` | blocked on A + B merging |
+| sprint-04 Track D | **running** (spawned 2026-07-27) | `s04/guides-audit` | worktree `../bw-quote-tool-guides`, node_modules junctioned. Runs S9 — 21 guide items. Parallel with A by design: disjoint files, and it may not touch `index.html` at all |
 
 All worktrees removed at close except the map's, which stay until their branches are pruned.
 **Every branch above is LOCAL ONLY** - none was pushed, per the corrected rule that every push is
