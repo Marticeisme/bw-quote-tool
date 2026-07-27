@@ -1,0 +1,11 @@
+# Line-ending policy, deliberately narrow: exactly one path, nothing else in the repo is
+# affected by this file existing.
+#
+# data/demo-contacts.csv is a SHIPPED ARTIFACT, not source — GitHub Pages serves the bytes
+# git checked out, and the tool's demo loader validates that file's header before it will
+# import anything. core.autocrlf is true on the machine this repo is developed on, so without
+# this line git would store LF, a Windows checkout would get CRLF back and a Pages build would
+# not: the committed bytes, the deployed bytes and the bytes tests/test-contact-csv.mjs
+# asserts against would all be three different things. `-text` disables EOL conversion in both
+# directions, so the CRLF the file is generated with is the CRLF everyone gets.
+data/demo-contacts.csv -text
