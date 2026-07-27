@@ -28,7 +28,7 @@ two possible double sales in CN and ELN against MIS (see the map audit section).
 |---|---|---|---|---|
 | Track A — externalize templates | **DONE, merged `4019c92`** | branch `s01/externalize-templates` (kept; durable) | 2026-07-26 | Audited and merged. Port 3737 released. |
 | Guides audit + granite marker PDF | **DONE, merged** | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
-| Map bug audit + fix | **DONE, NOT merged — see below** | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
+| Map bug audit + fix | **DONE and MERGED (`b9677db`)** | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
 
 ## Director's boot audit, 2026-07-26 — what changed before Track A spawned
 
@@ -257,18 +257,31 @@ absence of the hook; it only proved absence *from those files*. A negative resul
 incomplete search space is not a refutation. When a report names a mechanism you cannot find,
 the honest finding is "I could not confirm it", not "it does not exist".
 
-## The map audit — done, merged nowhere, and two things need Martice
+## The map audit — MERGED into the map's `main` 2026-07-26 (`b9677db`)
 
-Branch `audit/map-bugs` in the map repo (9 commits, no remote). **Deliberately NOT merged:** it
-touches `wmp-cemetery-map/index.html`, and the other session still has that file plus six others
-uncommitted in the primary map tree. That merge is theirs to sequence — a director must not
-resolve another session's in-flight work. `main` there is still `2bf09c0`.
+Branch `audit/map-bugs`, 9 commits, merged as **`b9677db`**. It had been held back while the
+other session finished; that session committed (`2afde80`, `36aacd3`) and the merge went ahead.
 
-**To merge, once the other session has committed:**
-`git -C wmp-cemetery-map merge --no-ff audit/map-bugs` then `npm test` (expect 19 + 7 + 8
-assertions and `2/2 unit files valid, 2770 units checked, index ok`). The worktree at
-`C:\Users\Martice\map-audit\wmp-cemetery-map` can then be removed with
-`git -C wmp-cemetery-map worktree remove ../../map-audit/wmp-cemetery-map`.
+**It conflicted, and the resolution mattered.** Both sides had rewritten the same rendering
+code in `wmp-cemetery-map/index.html`. Taking either side wholesale would have silently
+destroyed the other's fix:
+
+- **CSS block** — kept both. Their `--col-cell`/`--col-gap` variables (a double-width unit must
+  be exactly two cells *plus* the gap between them) and the audit's
+  `max-width: min(2400px, 100%)` (which stopped the three widest structures hanging 450px off
+  the left edge with the Back button unreachable). Orthogonal changes.
+- **`renderColumbarium`** — took their CSS-grid layout, which draws units at real size via
+  `w`/`h` spans, and carried the audit's `data-wall`/`data-lvl`/`data-sp` attributes and
+  `escapeHtml` calls into it. `runColLassoHit` reads those attributes instead of splitting an
+  id on hyphens; dropping them re-breaks the lasso in 9 of 12 structures.
+
+**Verified in a browser at 1500px and 1100px**, not just by suite: TGM 318 units, COM 875,
+COH 304, GCM 1011, ELM 477 — every card on screen, Back reachable, every unit carrying
+`data-wall`, zero overlapping grid placements, no page errors. TGM at 1100px now sits at
+left=0 with Back at 16; it was at −450. And **MVCN, their brand-new glass-front wall, renders
+146 units all carrying `data-wall`** — it inherits the lasso fix, which neither branch could
+have demonstrated alone. Suite: 19 + 7 + 8 and `2/2 unit files valid, 2770 units checked,
+index ok`. No screenshots captured — the wall view renders occupant names.
 
 **Director-verified, not taken from the report:** sid entries 59,693 → 79,493, exactly +19,800
 added and **zero removed** (purely additive, no existing lookup disturbed); suite 19 → 34

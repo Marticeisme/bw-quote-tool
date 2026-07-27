@@ -65,7 +65,21 @@ distinction that only matters up close (reserved vs buried) gets the glyph.
   moment selection borrows a status colour the two start lying about each other.
 - **Do not touch the ~2.7 m imagery offset.** Deliberate, hand-corrected against the aerial.
 
-## Gate 0 — BLOCKING, and not currently met
+## Gate 0 — MET 2026-07-26
+
+**All three items are now satisfied.** The other session committed its in-flight work
+(`2afde80`, `36aacd3`) and `audit/map-bugs` was merged as **`b9677db`** — a hand-resolved
+conflict, because both sides had rewritten the same rendering code. The merge kept main's
+CSS-grid unit sizing AND the audit's off-screen fix and `data-*` lasso attributes; dropping
+either would have silently re-broken the lasso in 9 of 12 structures. Verified in a browser
+at 1500px and 1100px across six structures: every card on screen, Back reachable, all units
+carrying `data-wall`, zero overlapping placements, no page errors. Suite green at 19 + 7 + 8
+and `2/2 unit files valid, 2770 units checked, index ok`.
+
+**Track A branches from `b9677db` or later.** The original blocking text is kept below as the
+record of what had to clear.
+
+### What had to clear (historical)
 
 1. **`audit/map-bugs` must be merged into the map's `main` first.** It is 9 commits and it
    touches `index.html` — wall-view, routing, the niche lasso, HTML escaping — plus it adds
