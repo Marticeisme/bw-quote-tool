@@ -22,6 +22,14 @@ merge is theirs.
 **Two things need Martice, not a director:** push the advisor-identity merge, and resolve the
 two possible double sales in CN and ELN against MIS (see the map audit section).
 
+## Read this too: `MISTAKES.md`
+
+A running record of director errors and what each one taught, kept because a mistake nobody
+wrote down gets made again. Read it at boot alongside this file. The short version: every real
+defect this project has found was found by **counting something and comparing it to an
+expectation** — not by looking at the thing and judging it. Confident prose has been wrong more
+often than measurements have.
+
 ## Background jobs
 
 | Job | Status | Manifest/where to check | Started | Notes |
