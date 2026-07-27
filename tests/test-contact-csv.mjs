@@ -188,7 +188,11 @@ console.log('\n3. The auto-mapper against a foreign header set');
     return { m, rep: bwCsvMapReport(H, m),
              demo: bwCsvAutoMap(['first', 'last', 'email', 'phone', 'street', 'city', 'state', 'zip',
                                  'source', 'status', 'category', 'flags', 'salutation', 'note',
-                                 'next_action', 'next_action_date']) };
+                                 'next_action', 'next_action_date',
+                                 'property_section', 'property_lot', 'property_lot_alpha',
+                                 'property_space', 'property_sid', 'property_kind',
+                                 'property_spaces_owned', 'property_interments_used',
+                                 'property_deed', 'property_purchased_on']) };
   }, HEADER);
   ok('every recognisable column lands on the right field',
     same(r.m.slice(0, 14), ['given', 'family', 'email', 'phone', 'street', 'city', 'state', 'zip',
@@ -204,8 +208,11 @@ console.log('\n3. The auto-mapper against a foreign header set');
     new Set(r.m.filter(Boolean)).size === r.m.filter(Boolean).length, r.m);
   // The demo file's own header, and the trap it is built to catch: `next_action` and
   // `next_action_date` are two facts and must not collapse onto one field.
-  ok('the demo header maps all sixteen of its columns',
-    r.demo.filter(Boolean).length === 16, r.demo);
+  // Sixteen until sprint-05 Track A added the ten property columns at the END. Appending is
+  // deliberate: the first field that claims a header wins it, so a new field can never take a
+  // header away from one that existed before it.
+  ok('the demo header maps all twenty-six of its columns',
+    r.demo.filter(Boolean).length === 26, r.demo);
   ok('next_action is the to-do SUMMARY and next_action_date is its DUE DATE — two fields',
     r.demo[14] === 'nextAction' && r.demo[15] === 'nextActionDate', r.demo.slice(14));
   ok('no page errors', errs.length === 0, errs);
@@ -366,8 +373,8 @@ console.log('\n7. End to end — the demo file in, the five views, and the batch
     selected: [...document.querySelectorAll('#impBody select[data-col]')].map((s) => s.value),
     step: document.querySelector('.imp-step.active').textContent,
   }));
-  ok('the demo file reaches the mapping step with all sixteen columns listed',
-    mapStep.cols === 16, mapStep.cols);
+  ok('the demo file reaches the mapping step with all twenty-six columns listed',
+    mapStep.cols === 26, mapStep.cols);
   ok('every one of them is auto-mapped, and the screen says nothing was skipped',
     mapStep.selected.every(Boolean) && /nothing skipped/.test(mapStep.summary), mapStep.summary);
   ok('and it is step 2, not a one-click seed of the database', /2\. Map columns/.test(mapStep.step), mapStep.step);
@@ -690,7 +697,25 @@ console.log('\n11. data/demo-contacts.csv is synthetic, and provably so');
 
   // The future-dated follow-ups are what keep view "followup" at exactly 6. If one of them
   // ages into the past this says so by name rather than failing somewhere else.
-  const dates = (DEMO.match(/\b20\d\d-\d\d-\d\d\b/g) || []);
+  //
+  // Read out of the next_action_date COLUMN, not by scanning the whole file for anything that
+  // looks like a date: sprint-05 added property_purchased_on, and a whole-file scan would count
+  // a 2011 deed date as an overdue follow-up and fail this for the wrong reason.
+  const cellsOf = (line) => {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (q) { if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === ',') { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur); return out;
+  };
+  const head = cellsOf(lines[0]);
+  const naCol = head.indexOf('next_action_date');
+  ok('the demo file still has a next_action_date column', naCol > -1, head);
+  const dates = lines.slice(1).map((l) => cellsOf(l)[naCol]).filter((v) => /^\d{4}-\d\d-\d\d$/.test(v || ''));
   const today = (() => { const d = new Date(), p = (n) => String(n).padStart(2, '0');
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); })();
   const past = dates.filter((d) => d <= today), future = dates.filter((d) => d > today);

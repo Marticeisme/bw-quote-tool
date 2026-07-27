@@ -12197,6 +12197,386 @@ function bwWhen(ts) {
     + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// SECTION TYPES — what kind of property a WMP section code names
+// ═══════════════════════════════════════════════════════════════
+// Until now the tool treated a section code as ONE opaque namespace: a link could be built for
+// "18" or for "MVC" without knowing that one is a lawn grave and the other a niche. Nothing
+// classified them, so nothing could tell a counselor what a family actually owns.
+//
+// Data, not an enum — same reason as BW_ROLES. A code that does not resolve renders as the RAW
+// CODE, never blank, because a blank reads as "no value" when the truth is "a code we have not
+// classified yet".
+//
+// EVERY entry carries `src`, naming the evidence it came from, so a future reader can tell a
+// measured classification from an inferred one without re-deriving all 57:
+//   map:marker    wmp-cemetery-map/data/garden-markers.json — the garden's own name
+//   map:file      a named file in wmp-cemetery-map/data/mausolea/ or garden*/columbarium.json
+//   map:cremation wmp-cemetery-map/data/garden*/cremation.json, whose features carry kind
+//                 "niche" / "rock" / "bench" ("Niche walls, benches and boulders - NOT graves")
+//   tool          this file's own product lists — the niche, mausoleum and scattering dropdowns
+//   guide         scattering-guide.html
+//   mis:shape     the address grammar in MIS's own export (Sec-.. Blk-.. Lot-.. Sp-.. is lawn;
+//                 Bldg-.. Wall-.. Lvl-.. Sp-.. is a structure)
+//   inferred      a reading, not a measurement — listed in the track report as such
+//   unclassified  we do not know. kind 'unknown', label falls back to the raw code.
+//
+// Vocabulary comes from wmp-cemetery-map/docs/INDOOR_AND_NICHE_BUILDINGS.md and is not ours to
+// invent: a CRYPT is one casket chamber, a NICHE is one urn compartment, a TIER is the letter
+// and a SPACE is the number. Never "bay" — Martice corrected that twice.
+
+// The kinds themselves are data too, so adding one is an entry rather than a code change.
+//
+// `capacity` is the number of interment rights ONE unit carries, and it is the reason this table
+// exists at all: subtracting interments from spaces owned is wrong for every niche owner in the
+// database. Operator-confirmed 2026-07-27:
+//   · a NICHE holds TWO urns — every niche at WMP, not only a "companion" variant. The Veterans
+//     Court of Honor is the one exception at one, and it carries that override on its own entry.
+//   · a LAKE URN GARDEN ground space holds ONE urn. Its override is on the LUG entry.
+//   · a standard GROUND SPACE is one casket burial — but it will take up to three urns, with a
+//     charge for the second and third. Capacity 1 is the interment right the space is SOLD as;
+//     a record placing urns instead carries its own `capacity`.
+// capacity null means "we do not know, and will not guess": the display then shows what is owned
+// and what is interred and says nothing about what is available. A crypt is the honest example —
+// single and companion crypts sit side by side in the same wall and only the unit knows which.
+var BW_SECTION_KINDS = [
+  { kind: 'grave',      label: 'Burial plot',      capacity: 1    },
+  { kind: 'crypt',      label: 'Crypt',            capacity: null },
+  { kind: 'niche',      label: 'Niche',            capacity: 2    },
+  { kind: 'urn-garden', label: 'Urn garden',       capacity: null },
+  { kind: 'scattering', label: 'Scattering',       capacity: null },
+  { kind: 'veteran',    label: 'Veteran plot',     capacity: 1    },
+  { kind: 'boulder',    label: 'Memorial boulder', capacity: null },
+  { kind: 'mixed',      label: 'Mixed',            capacity: null },
+  { kind: 'unknown',    label: '',                 capacity: null }
+];
+
+// All 57 section codes that appear in MIS's lot-inquiry export, every one LocationCode = WMP.
+// `label` is what renders; `name` is the proper name when it differs; `alphaLabel` is what the
+// LETTER is called in that section (a tier in a wall, a row in a lawn, a compass face in ROA).
+var BW_SECTION_TYPES = [
+  // ── lawn gardens, addressed Sec-<n> Blk-<n> Lot-<A-D> Sp-<n> ───────────────────────
+  { code: '06',  kind: 'grave', label: 'Garden 06', name: 'Sunrise Garden',           src: 'map:marker' },
+  { code: '07',  kind: 'grave', label: 'Garden 07', name: 'Lakeside Garden',          src: 'map:marker' },
+  { code: '08',  kind: 'grave', label: 'Garden 08', name: 'Garden of Memories',       src: 'map:marker' },
+  { code: '09',  kind: 'grave', label: 'Garden 09', name: 'Garden of Hope',           src: 'map:marker' },
+  { code: '10',  kind: 'grave', label: 'Garden 10', name: 'Garden of Reflection',     src: 'map:marker' },
+  { code: '11',  kind: 'grave', label: 'Garden 11', name: 'Garden of Devotion',       src: 'map:marker' },
+  { code: '12',  kind: 'grave', label: 'Garden 12', name: 'Garden of Good Shepherd',  src: 'map:marker' },
+  { code: '13',  kind: 'grave', label: 'Garden 13', name: 'Friendship Garden',        src: 'map:marker' },
+  { code: '14',  kind: 'grave', label: 'Garden 14', name: 'Garden of Meditation',     src: 'map:marker' },
+  { code: '15',  kind: 'grave', label: 'Garden 15', name: 'Garden of Communion',      src: 'map:marker' },
+  { code: '16',  kind: 'grave', label: 'Garden 16', name: 'Sunset Garden',            src: 'map:marker' },
+  { code: '17',  kind: 'grave', label: 'Garden 17', name: 'Sundial Garden',           src: 'map:marker' },
+  { code: '17S', kind: 'grave', label: 'Garden 17S', name: 'Sundial Garden South',    src: 'map:marker' },
+  { code: '18',  kind: 'grave', label: 'Garden 18', name: 'Garden of Flowers',        src: 'map:marker' },
+  { code: '19',  kind: 'grave', label: 'Garden 19', name: 'Rock of Ages',             src: 'map:marker' },
+  { code: '20',  kind: 'grave', label: 'Garden 20', name: 'Garden of Light',          src: 'map:marker' },
+  { code: '21',  kind: 'grave', label: 'Garden 21', name: 'Garden of Prayer',         src: 'map:marker' },
+  { code: '23',  kind: 'grave', label: 'Garden 23', name: 'Garden of Gethsemane',     src: 'map:marker' },
+
+  // ── veterans lawn ─────────────────────────────────────────────────────────────────
+  { code: 'VETS',  kind: 'veteran', label: 'Veterans Garden',       src: 'map:marker' },
+  { code: 'VETSN', kind: 'veteran', label: 'Veterans North Garden', src: 'map:marker' },
+
+  // ── mausolea and columbaria, addressed Bldg-<code> Wall-.. Lvl-<tier> Sp-<n> ───────
+  // COM and GCM hold BOTH products in the same building and a section code alone cannot say
+  // which. Recorded as 'mixed' rather than guessed: the per-record `kind` decides.
+  { code: 'COM',  kind: 'mixed', label: 'Chapel of Memories Mausoleum', alphaLabel: 'Tier',
+    note: '301 niches and 574 crypts, separated by angle in the map data', src: 'map:file' },
+  { code: 'GCM',  kind: 'mixed', label: 'Garden Court Mausoleum', alphaLabel: 'Tier',
+    note: '613 of its 1,011 units are niches; the rest are crypts', src: 'map:file+map:cremation' },
+  { code: 'ELM',  kind: 'crypt', label: 'Eternal Light Mausoleum', name: 'Eternal Light Mausoleum — Crypts', alphaLabel: 'Tier', src: 'map:file' },
+  { code: 'TGM',  kind: 'crypt', label: 'Terrace Garden Mausoleum', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'MVC',  kind: 'niche', label: 'Mountain View Columbarium', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'ELN',  kind: 'niche', label: 'Eternal Light Niches', name: 'Eternal Light Mausoleum — Niches', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'ECL',  kind: 'niche', label: 'Eternal Light Columbarium', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'CN',   kind: 'niche', label: 'Crystal Niches', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'RAD',  kind: 'niche', label: 'Radiance Wall', name: 'Radiance Wall — Chapel of Memories', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'SER',  kind: 'niche', label: 'Serenity Wall', name: 'Serenity Wall — Chapel of Memories', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'GCN',  kind: 'niche', label: 'Garden Court Niches', alphaLabel: 'Tier', src: 'map:cremation+tool' },
+  { code: 'GOG',  kind: 'niche', label: 'Garden of Gethsemane Niches', alphaLabel: 'Tier', src: 'map:cremation+tool' },
+  { code: 'GOM',  kind: 'niche', label: 'Garden of Meditation Niches', alphaLabel: 'Tier', src: 'map:cremation+tool' },
+  { code: 'GOLN', kind: 'niche', label: 'Garden of Light Niches', src: 'map:cremation' },
+  { code: 'LCG',  kind: 'niche', label: 'Lakeside Cremation Garden', src: 'map:cremation+map:cad-label' },
+  { code: 'RH',   kind: 'niche', label: 'Rock of Ages niche wall (RH)', src: 'map:cremation' },
+  { code: 'LGP',  kind: 'niche', label: 'Lake Urn Garden niche wall (LGP)', src: 'map:cremation' },
+  { code: 'SHOW21', kind: 'niche', label: 'Garden of Prayer niche wall (SHOW21)', src: 'map:cremation' },
+  { code: 'VETSM', kind: 'niche', label: 'Veterans Garden niche wall (VETSM)', src: 'map:cremation' },
+  // ROA and ROAC are SEPARATE, on Martice's instruction (2026-07-25): "roa is separate, its the
+  // courtyard niches". ROAC is the Rock of Ages Columbarium — 350 niches, 5 tiers x 5 spaces per
+  // face; ROA is the courtyard, where MIS's Lvl- field holds a COMPASS FACE, not a tier.
+  { code: 'ROAC', kind: 'niche', label: 'Rock of Ages Columbarium', alphaLabel: 'Tier', src: 'map:file+tool' },
+  { code: 'ROA',  kind: 'niche', label: 'Rock of Ages courtyard niches', alphaLabel: 'Face', src: 'map:cremation' },
+  // The Court of Honor niche holds ONE urn, not two. The one exception at WMP (Martice, 2026-07-27).
+  { code: 'COH',  kind: 'niche', label: 'Veterans Court of Honor', alphaLabel: 'Tier', capacity: 1, src: 'map:file+tool' },
+
+  // ── urn gardens — ground inurnment, not a wall ────────────────────────────────────
+  // A Lake Urn Garden space holds ONE urn (Martice, 2026-07-27). The other urn gardens have no
+  // confirmed per-space capacity, so they carry none and the display says nothing about it.
+  { code: 'LUG',  kind: 'urn-garden', label: 'Lake Urn Garden', capacity: 1, src: 'map:marker+tool' },
+  { code: 'VCUG', kind: 'urn-garden', label: 'Veterans Court urn garden (VCUG)', src: 'map:cremation' },
+  { code: 'RUG',  kind: 'urn-garden', label: 'Urn garden, section 18 (RUG)', alphaLabel: 'Side', src: 'inferred' },
+
+  // ── scattering ────────────────────────────────────────────────────────────────────
+  { code: 'SCGF', kind: 'scattering', label: 'Rose Scattering Garden', name: 'Rose Scattering Garden (Garden of Flowers)', src: 'tool+guide' },
+  { code: 'SCER', kind: 'scattering', label: 'Eternal Rest Scattering Garden', src: 'tool+guide' },
+  { code: 'SCTG', kind: 'scattering', label: 'Terrace Garden Ossuary', src: 'tool' },
+
+  // ── memorial boulders — the map calls these features "rock" ───────────────────────
+  { code: 'GGBE', kind: 'boulder', label: 'Garden of Gethsemane memorial boulders', src: 'map:cremation' },
+  { code: 'LCGB', kind: 'boulder', label: 'Lakeside Cremation Garden memorial boulders', src: 'map:cremation' },
+  { code: 'RHB',  kind: 'boulder', label: 'Rock of Ages memorial boulders (RHB)', src: 'map:cremation' },
+  { code: 'LUGB', kind: 'mixed',   label: 'Lake Urn Garden boulders and niches (LUGB)',
+    note: '90 boulders and 4 niches in the map data', src: 'map:cremation' },
+
+  // ── both products under one name ──────────────────────────────────────────────────
+  // The tool's own price list carries "Garden of Verses - Burial" AND "Garden of Verses - Niches".
+  { code: 'VERSES', kind: 'mixed', label: 'Garden of Verses', src: 'tool+map:cad-label' },
+
+  // ── NOT CLASSIFIED. Present in MIS, absent from the map, and not named by any product
+  // list in this file. They render as the raw code rather than as a guess. Listed in the
+  // sprint-05 Track A report; each needs one sentence from Martice to resolve.
+  { code: 'CC',   kind: 'unknown', label: '', src: 'unclassified' },
+  { code: 'ELBW', kind: 'unknown', label: '', src: 'unclassified' },
+  { code: 'GOVN', kind: 'unknown', label: '', src: 'unclassified' },
+  { code: 'RGBE', kind: 'unknown', label: '', src: 'unclassified' }
+];
+
+var _bwSectionIx = null;
+function _bwSectionIndex() {
+  if (!_bwSectionIx) {
+    _bwSectionIx = {};
+    for (var i = 0; i < BW_SECTION_TYPES.length; i++) _bwSectionIx[BW_SECTION_TYPES[i].code] = BW_SECTION_TYPES[i];
+  }
+  return _bwSectionIx;
+}
+// Section codes are compared upper-case and trimmed: MIS writes "18" and a spreadsheet writes
+// " mvc ". Never a fuzzy match — a code that is not ours must fail to resolve, not resolve wrong.
+function bwSectionCode(raw) { return String(raw == null ? '' : raw).trim().toUpperCase(); }
+function bwSectionType(code) { return _bwSectionIndex()[bwSectionCode(code)] || null; }
+// The RAW CODE when it does not resolve, and when it resolves to an unclassified entry. Never ''
+// for a non-empty input.
+function bwSectionLabel(code) {
+  var c = bwSectionCode(code); if (!c) return '';
+  var e = _bwSectionIndex()[c];
+  return (e && e.label) ? e.label : c;
+}
+function bwSectionName(code) { var e = bwSectionType(code); return (e && e.name) || ''; }
+function bwSectionKind(code) { var e = bwSectionType(code); return (e && e.kind) || 'unknown'; }
+function bwKindEntry(kind) {
+  for (var i = 0; i < BW_SECTION_KINDS.length; i++) if (BW_SECTION_KINDS[i].kind === kind) return BW_SECTION_KINDS[i];
+  return null;
+}
+function bwKindLabel(kind) { var e = bwKindEntry(kind); return (e && e.label) || ''; }
+function bwKindCapacity(kind) { var e = bwKindEntry(kind); return e ? e.capacity : null; }
+// What the LETTER in this section is called. A tier in a wall, a row in a lawn, a compass face
+// in the Rock of Ages courtyard.
+function bwSectionAlphaLabel(code) {
+  var e = bwSectionType(code);
+  if (e && e.alphaLabel) return e.alphaLabel;
+  var k = e ? e.kind : 'unknown';
+  return (k === 'crypt' || k === 'niche' || k === 'mixed') ? 'Tier' : 'Row';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROPERTY — what a family already owns, as a record of its own
+// ═══════════════════════════════════════════════════════════════
+// Its own node beside contactNotes and contactTasks, for the same reason: saveParty() writes
+// parties/<id> with .set(), so anything nested inside a party is destroyed by the next edit of
+// a phone number.
+//
+// NOT derived from quotes, and that is the whole point. A family who bought in 1998 has no saved
+// quote in this tool and never will have one. Existing holdings (bwHoldingsFor, via contractRoles)
+// are untouched — property sits BESIDE them and the detail view shows both.
+//
+// Shape: { id, partyId, sectionCode, lot, lotAlpha, space, sid, kind, capacity,
+//          spacesOwned, intermentsUsed, deedNumber, purchasedOn, status, note, ownerUid, _prov }
+var _propStore = {};        // id -> property record
+var _propsByParty = {};     // partyId -> [propertyId], by section then lot then row then space
+
+function _bwPropSortKey(r) {
+  var pad = function (v, n) { v = String(v == null ? '' : v); while (v.length < n) v = '0' + v; return v; };
+  var num = function (v) { var m = String(v == null ? '' : v).match(/\d+/); return m ? pad(m[0], 6) : '000000'; };
+  return bwSectionCode(r.sectionCode) + '|' + num(r.lot) + '|' + String(r.lotAlpha || '') + '|' + num(r.space);
+}
+function _rebuildPropertyIndexes() {
+  _propsByParty = {};
+  Object.keys(_propStore).forEach(function (id) {
+    var r = _propStore[id];
+    if (!r || !r.partyId) return;
+    (_propsByParty[r.partyId] = _propsByParty[r.partyId] || []).push(id);
+  });
+  Object.keys(_propsByParty).forEach(function (pid) {
+    _propsByParty[pid].sort(function (a, b) {
+      var x = _bwPropSortKey(_propStore[a]), y = _bwPropSortKey(_propStore[b]);
+      return x < y ? -1 : (x > y ? 1 : 0);
+    });
+  });
+}
+function bwPropertyFor(partyId) {
+  return (_propsByParty[partyId] || []).map(function (id) { return _propStore[id]; }).filter(Boolean);
+}
+function bwPropertyById(id) { return _propStore[id] || null; }
+
+// A record may override its section's kind — COM and GCM hold niches and crypts in the same
+// building, so the section alone cannot say which one this family bought.
+function bwPropertyKind(r) {
+  if (!r) return 'unknown';
+  if (r.kind && bwKindEntry(r.kind)) return r.kind;
+  return bwSectionKind(r.sectionCode);
+}
+// Rights per unit. null means unknown, and unknown is reported as unknown rather than as 1.
+function bwPropertyCapacity(r) {
+  if (!r) return null;
+  if (r.capacity != null && r.capacity !== '') {
+    var n = Math.floor(Number(r.capacity));
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  var e = bwSectionType(r.sectionCode);
+  var k = bwPropertyKind(r);
+  // A record that overrides its section's kind takes the KIND's capacity: a crypt inside the
+  // Chapel of Memories is a crypt, whatever the section-level entry says.
+  if (!e || (r.kind && r.kind !== e.kind)) return bwKindCapacity(k);
+  return (e.capacity === undefined) ? bwKindCapacity(e.kind) : e.capacity;
+}
+// THE qualifying fact. A family with unused rights is the most qualified lead in the building.
+function bwPropertyCounts(r) {
+  var owned = Math.max(0, Math.floor(Number((r && r.spacesOwned) || 0)) || 0);
+  var used  = Math.max(0, Math.floor(Number((r && r.intermentsUsed) || 0)) || 0);
+  var cap = bwPropertyCapacity(r);
+  var rights = (cap == null) ? null : owned * cap;
+  return { owned: owned, used: used, capacity: cap, rights: rights,
+           available: (rights == null) ? null : Math.max(0, rights - used) };
+}
+function bwPropertyStatus(r) {
+  var c = bwPropertyCounts(r);
+  if (!c.used) return 'owned';
+  if (c.available === 0) return 'fully-used';
+  return 'partially-used';
+}
+// Everything a party owns, rolled up. `unknown` counts the records whose capacity we will not
+// guess at, so the summary can say "at least" instead of a wrong total.
+function bwPropertySummary(partyId) {
+  var rows = bwPropertyFor(partyId);
+  var out = { records: rows.length, owned: 0, used: 0, available: 0, unknown: 0 };
+  rows.forEach(function (r) {
+    var c = bwPropertyCounts(r);
+    out.owned += c.owned; out.used += c.used;
+    if (c.available == null) out.unknown++; else out.available += c.available;
+  });
+  return out;
+}
+
+// "Garden 12 · Row B · Space 5" / "Mountain View Columbarium · Tier F · Space 13".
+function bwPropertyLocator(r) {
+  if (!r) return '';
+  var bits = [bwSectionLabel(r.sectionCode)];
+  if (String(r.lotAlpha || '').trim()) bits.push(bwSectionAlphaLabel(r.sectionCode) + ' ' + String(r.lotAlpha).trim());
+  if (String(r.space || '').trim()) bits.push('Space ' + String(r.space).trim());
+  return bits.filter(Boolean).join(' · ');
+}
+// The map is a separate app on localhost, so this link only works on a machine running it. It is
+// an ordinary anchor: off that machine it fails to load, which is a browser problem and not an
+// exception in ours. Absent entirely when there is no sid — an inert link is worse than none.
+function bwPropertyMapUrl(r) {
+  var sid = String((r && r.sid) || '').trim();
+  if (!sid) return '';
+  try { return bwMapUrl('space', sid); } catch (e) { return ''; }
+}
+
+// ── writes: one record, one path ─────────────────────────────────────────────────────
+// NEVER contactProperty.set(...). That call shape has destroyed real data on this project twice.
+function saveContactProperty(r) {
+  if (!r || !r.partyId) return Promise.reject(new Error('A property record needs a contact.'));
+  var code = bwSectionCode(r.sectionCode);
+  if (!code) return Promise.reject(new Error('A property record needs a section.'));
+  var isNew = !r.id;
+  if (isNew) {
+    r.id = window._fbDB ? _fbDB.ref('contactProperty').push().key
+                        : 'pr' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+    if (!r._prov) r._prov = bwProv('manual');
+    if (!r.ownerUid) r.ownerUid = (window._bwUser && window._bwUser.uid) || '';
+  }
+  r.sectionCode = code;
+  r.lot = String(r.lot == null ? '' : r.lot).trim();
+  r.lotAlpha = String(r.lotAlpha == null ? '' : r.lotAlpha).trim().toUpperCase();
+  r.space = String(r.space == null ? '' : r.space).trim();
+  r.sid = String(r.sid == null ? '' : r.sid).trim();
+  if (r.kind && !bwKindEntry(r.kind)) r.kind = '';
+  r.spacesOwned = Math.max(0, Math.floor(Number(r.spacesOwned) || 0));
+  r.intermentsUsed = Math.max(0, Math.floor(Number(r.intermentsUsed) || 0));
+  if (!r.spacesOwned) r.spacesOwned = 1;      // owning nothing is not a property record
+  r.deedNumber = String(r.deedNumber == null ? '' : r.deedNumber).trim();
+  r.purchasedOn = String(r.purchasedOn == null ? '' : r.purchasedOn).trim() || null;
+  // Status is derived unless it was set deliberately, so it can never disagree with the numbers.
+  r.status = bwPropertyStatus(r);
+  _bwStamp(r, isNew);
+  _propStore[r.id] = r;
+  _rebuildPropertyIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve(r);
+  return _fbDB.ref('contactProperty/' + r.id).set(r).then(function () { return r; });
+}
+function deleteContactProperty(id) {
+  delete _propStore[id];
+  _rebuildPropertyIndexes();
+  _bwContactsChanged();
+  if (!window._fbDB) return Promise.resolve();
+  return _fbDB.ref('contactProperty/' + id).remove();
+}
+
+// ── the property band in the contact detail ──────────────────────────────────────────
+function _bwPropertyCountsHtml(r) {
+  var c = bwPropertyCounts(r);
+  var out = '<span style="font-weight:700;color:var(--navy);">Owns ' + c.owned + '</span>'
+    + '<span> · ' + c.used + ' interred</span>';
+  if (c.available != null) {
+    out += '<span style="font-weight:700;color:' + (c.available ? 'var(--orange-dark)' : 'var(--text-light)') + ';">'
+      + ' · ' + c.available + ' available</span>';
+    if (c.capacity > 1) out += '<span style="color:var(--text-light);"> · holds ' + c.capacity + ' per unit</span>';
+  } else {
+    out += '<span style="color:var(--text-light);"> · how many are available depends on the unit</span>';
+  }
+  return out;
+}
+function _bwPropertyRowHtml(r) {
+  var kind = bwPropertyKind(r);
+  var pill = bwKindLabel(kind);
+  var url = bwPropertyMapUrl(r);
+  var sub = [];
+  var nm = bwSectionName(r.sectionCode);
+  if (nm) sub.push(_ceEsc(nm));
+  if (String(r.lot || '').trim()) sub.push('Block ' + _ceEsc(String(r.lot).trim()));
+  if (r.deedNumber) sub.push('Deed ' + _ceEsc(r.deedNumber));
+  if (r.purchasedOn) sub.push('Purchased ' + _ceEsc(r.purchasedOn));
+  return '<div class="ct-prop" data-prop="' + _ceEsc(r.id || '') + '"'
+    + ' style="display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">'
+    + '<div style="flex:1;min-width:210px;">'
+    + '<div class="ct-prop-loc" style="font-size:13.5px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPropertyLocator(r)) + '</div>'
+    + '<div class="ct-prop-counts" style="font-size:12px;margin-top:2px;">' + _bwPropertyCountsHtml(r) + '</div>'
+    + (sub.length ? '<div class="ct-prop-sub" style="font-size:11.5px;color:var(--text-light);margin-top:1px;">' + sub.join(' · ') + '</div>' : '')
+    + '</div>'
+    + (pill ? '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(pill) + '</span>' : '')
+    + (url ? '<a class="ct-prop-map" href="' + _ceEsc(url) + '" target="_blank" rel="noopener"'
+           + ' title="Opens the cemetery map, which runs on this machine only"'
+           + ' style="font-size:12px;color:var(--navy);">View on map</a>' : '')
+    + '</div>';
+}
+function _bwPropertyBlockHtml(partyId) {
+  var rows = bwPropertyFor(partyId);
+  if (!rows.length) return '';
+  var s = bwPropertySummary(partyId);
+  var meta = s.records + ' record' + (s.records === 1 ? '' : 's') + ' · ' + s.owned
+    + ' space' + (s.owned === 1 ? '' : 's') + ' · ' + s.used + ' interred';
+  if (s.unknown < s.records) meta += ' · ' + s.available + (s.unknown ? '+' : '') + ' available';
+  return '<div style="margin-top:14px;" id="ctProperty">'
+    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
+    + '<span style="font-size:12px;font-weight:700;color:var(--navy);">Property owned</span>'
+    + '<span style="font-size:11.5px;color:var(--text-light);">' + _ceEsc(meta) + '</span></div>'
+    + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwPropertyRowHtml).join('') + '</div></div>';
+}
 // ── listener registration ────────────────────────────────────────────────────────────
 // One spec per collection, in the same array _attachContactListeners has always used: a path,
 // a store keyed by child key, and what to rebuild afterwards.
@@ -12206,6 +12586,9 @@ function _bwListenerSpecs() {
     ['contractRoles', _roleStore, function(){ _rebuildRoleIndexes(); _bwContactsChanged(); }],
     ['contactNotes', _noteStore, function(){ _rebuildNoteIndexes(); _bwContactsChanged(); }],
     ['contactTasks', _taskStore, function(){ _rebuildTaskIndexes(); _bwContactsChanged(); }],
+    // Property a family already owns. Its own node for the same reason notes and to-dos have
+    // one: saveParty() replaces parties/<id> wholesale, so nothing may live inside a party.
+    ['contactProperty', _propStore, function(){ _rebuildPropertyIndexes(); _bwContactsChanged(); }],
     ['savedViews', _savedViewStore, function(){ _rebuildSavedViews(); _bwContactsChanged(); }],
     // Import batches. Read like everything else so an import run in Randy's browser is
     // undoable from ours — the batch is the record of what happened, not a local variable.
@@ -13605,7 +13988,20 @@ var BW_CSV_FIELDS = [
   { key: 'owner',      label: 'Owner',         syn: ['owner', 'assignedto', 'counselor', 'counsellor', 'advisor', 'salesrep'] },
   { key: 'note',       label: 'Note (creates one note)', syn: ['note', 'notes', 'comment', 'comments', 'remarks', 'memo'] },
   { key: 'nextAction', label: 'Next action (creates one to-do)', syn: ['nextaction', 'nextactionsummary', 'followup', 'followupaction', 'task', 'todo'] },
-  { key: 'nextActionDate', label: 'Next action date', syn: ['nextactiondate', 'nextactiondue', 'nextactionon', 'followupdate', 'followupduedate', 'duedate', 'due', 'nextcontactdate'], date: true }
+  { key: 'nextActionDate', label: 'Next action date', syn: ['nextactiondate', 'nextactiondue', 'nextactionon', 'followupdate', 'followupduedate', 'duedate', 'due', 'nextcontactdate'], date: true },
+  // Property a family already owns. Appended LAST on purpose: the first field that claims a
+  // header wins it, so adding these can never take a header away from a field that existed
+  // before them. A real owner book is bulk-loaded through exactly this path.
+  { key: 'propSection',   label: 'Property — section',      syn: ['propertysection', 'section', 'sectioncode', 'gardensection'] },
+  { key: 'propLot',       label: 'Property — lot / block',  syn: ['propertylot', 'lotnumber', 'block', 'blocknumber'] },
+  { key: 'propLotAlpha',  label: 'Property — row / tier',   syn: ['propertylotalpha', 'lotnumberalpha', 'lotalpha', 'row', 'rowletter', 'tier'] },
+  { key: 'propSpace',     label: 'Property — space',        syn: ['propertyspace', 'lotspacenumber', 'spacenumber', 'space'] },
+  { key: 'propSid',       label: 'Property — map id (sid)', syn: ['propertysid', 'sid', 'mapid'] },
+  { key: 'propKind',      label: 'Property — type',         syn: ['propertykind', 'propertytype', 'spacetype'] },
+  { key: 'propOwned',     label: 'Property — spaces owned', syn: ['propertyspacesowned', 'spacesowned', 'spacesheld'] },
+  { key: 'propUsed',      label: 'Property — interments used', syn: ['propertyintermentsused', 'intermentsused', 'interments'] },
+  { key: 'propDeed',      label: 'Property — deed number',  syn: ['propertydeed', 'deednumber', 'deed', 'deedno'] },
+  { key: 'propPurchased', label: 'Property — purchased on', syn: ['propertypurchasedon', 'purchasedon', 'purchasedate', 'deeddate'], date: true }
 ];
 function bwCsvFieldDef(key) {
   for (var i = 0; i < BW_CSV_FIELDS.length; i++) if (BW_CSV_FIELDS[i].key === key) return BW_CSV_FIELDS[i];
@@ -13818,8 +14214,38 @@ function bwCsvPlanRow(row, mapping, line, seen) {
   // with no due date. Neither is a reason to drop the other.
   if (!taskSummary && taskDue) taskSummary = 'Follow up';
 
+  // Property. Only a SECTION makes a record: everything else is optional, and a row with no
+  // section simply has no property — which is what a prospect looks like.
+  var property = null;
+  if (v.propSection) {
+    var pkind = '';
+    if (v.propKind) {
+      var want = String(v.propKind).toLowerCase().replace(/[^a-z]/g, '');
+      for (var pk = 0; pk < BW_SECTION_KINDS.length; pk++) {
+        var kk = BW_SECTION_KINDS[pk];
+        if (kk.kind === 'unknown') continue;
+        if (kk.kind.replace(/[^a-z]/g, '') === want || String(kk.label).toLowerCase().replace(/[^a-z]/g, '') === want) { pkind = kk.kind; break; }
+      }
+      if (!pkind) dropped.push({ field: 'property type', value: v.propKind });
+    }
+    var pdate = '';
+    if (v.propPurchased) {
+      pdate = bwCsvDate(v.propPurchased);
+      if (!pdate) dropped.push({ field: 'property purchased on', value: v.propPurchased });
+    }
+    property = {
+      sectionCode: bwSectionCode(v.propSection),
+      lot: v.propLot || '', lotAlpha: String(v.propLotAlpha || '').toUpperCase(),
+      space: v.propSpace || '', sid: v.propSid || '', kind: pkind,
+      spacesOwned: Math.max(1, Math.floor(Number(v.propOwned) || 0) || 1),
+      intermentsUsed: Math.max(0, Math.floor(Number(v.propUsed) || 0)),
+      deedNumber: v.propDeed || '', purchasedOn: pdate
+    };
+  }
+
   var e = {
     line: line, party: p, note: v.note || '', taskSummary: taskSummary, taskDue: taskDue,
+    property: property,
     dropped: dropped, name: bwPartyName(p), cells: (row || []).length,
     valid: bwPartyIsValid(p), dupOf: null, dupWhy: '', nameWarn: 0
   };
@@ -13840,7 +14266,7 @@ function bwCsvPlan(rows, mapping, opts) {
   var seen = { emails: {}, phones: {} };
   var plan = {
     header: header, mapping: mapping, importDupes: importDupes, rows: [], dropped: [],
-    counts: { total: data.length, willImport: 0, dupes: 0, invalid: 0, dropped: 0, notes: 0, tasks: 0, ragged: 0 }
+    counts: { total: data.length, willImport: 0, dupes: 0, invalid: 0, dropped: 0, notes: 0, tasks: 0, ragged: 0, property: 0 }
   };
   data.forEach(function(r, i) {
     var e = bwCsvPlanRow(r, mapping, i + 2, seen);   // line 1 is the header, as a spreadsheet counts
@@ -13852,6 +14278,7 @@ function bwCsvPlan(rows, mapping, opts) {
       plan.counts.willImport++;
       if (e.note) plan.counts.notes++;
       if (e.taskSummary) plan.counts.tasks++;
+      if (e.property) plan.counts.property++;
       var k = bwCsvContactKeys(e.party);
       k.emails.forEach(function(x){ if (!seen.emails[x]) seen.emails[x] = e.name; });
       k.phones.forEach(function(x){ if (!seen.phones[x]) seen.phones[x] = e.name; });
@@ -13895,11 +14322,12 @@ function bwCsvImport(plan, meta) {
   var uid = (window._bwUser && window._bwUser.uid) || '';
   var batch = {
     id: batchId, filename: (meta && meta.filename) || 'contacts.csv', at: at, by: uid,
-    rowCount: plan.counts.total, createdPartyIds: [], createdNoteIds: [], createdTaskIds: []
+    rowCount: plan.counts.total, createdPartyIds: [], createdNoteIds: [], createdTaskIds: [],
+    createdPropertyIds: []
   };
   var result = {
     batchId: batchId, filename: batch.filename, created: 0, skipped: 0, failed: 0,
-    notes: 0, tasks: 0, skippedRows: [], failedRows: [], dropped: plan.dropped.slice()
+    notes: 0, tasks: 0, property: 0, skippedRows: [], failedRows: [], dropped: plan.dropped.slice()
   };
   // The batch record goes in FIRST, empty. An import interrupted half-way is then still a
   // findable, undoable batch rather than a pile of orphans nobody can identify.
@@ -13943,6 +14371,16 @@ function bwCsvImport(plan, meta) {
                     function(){});
           });
         }
+        if (e.property) {
+          after = after.then(function() {
+            var pr = JSON.parse(JSON.stringify(e.property));
+            pr.partyId = saved.id;
+            pr._prov = { src: prov.src, ref: prov.ref, at: prov.at };
+            return saveContactProperty(pr)
+              .then(function(prec){ result.property++; batch.createdPropertyIds.push(prec.id); },
+                    function(){ /* a property row that will not save never costs us the contact */ });
+          });
+        }
         return after;
       }, function(err) {
         result.failed++;
@@ -13984,8 +14422,9 @@ function bwUndoImport(batchId) {
   var partyIds = _bwUnionIds(b.createdPartyIds, _bwIdsFromProv(_partyStore, batchId));
   var noteIds  = _bwUnionIds(b.createdNoteIds,  _bwIdsFromProv(_noteStore,  batchId));
   var taskIds  = _bwUnionIds(b.createdTaskIds,  _bwIdsFromProv(_taskStore,  batchId));
+  var propIds  = _bwUnionIds(b.createdPropertyIds, _bwIdsFromProv(_propStore, batchId));
   var res = { batchId: batchId, deletedParties: 0, deletedNotes: 0, deletedTasks: 0,
-              kept: [], batchRemoved: false };
+              deletedProperty: 0, kept: [], batchRemoved: false };
   var keptParties = {};
   var chain = Promise.resolve();
 
@@ -14015,6 +14454,13 @@ function bwUndoImport(batchId) {
       return deleteContactTask(id).then(function(){ res.deletedTasks++; });
     });
   });
+  propIds.forEach(function(id) {
+    chain = chain.then(function() {
+      var r = _propStore[id];
+      if (!r || keptParties[r.partyId]) return;
+      return deleteContactProperty(id).then(function(){ res.deletedProperty++; });
+    });
+  });
 
   return chain.then(function() {
     if (!res.kept.length) return _bwDeleteBatch(batchId).then(function(){ res.batchRemoved = true; return res; });
@@ -14022,6 +14468,7 @@ function bwUndoImport(batchId) {
     b2.createdPartyIds = partyIds.filter(function(id){ return !!keptParties[id]; });
     b2.createdNoteIds  = noteIds.filter(function(id){ return !!_noteStore[id]; });
     b2.createdTaskIds  = taskIds.filter(function(id){ return !!_taskStore[id]; });
+    b2.createdPropertyIds = propIds.filter(function(id){ return !!_propStore[id]; });
     b2.undoneAt = Date.now();
     return _bwWriteBatch(b2).then(function(){ return res; });
   });
@@ -14031,7 +14478,7 @@ function bwUndoImport(batchId) {
 // THE IMPORT SCREEN — pick, map, preview, import
 // ═══════════════════════════════════════════════════════════════
 var BW_DEMO_CSV_URL = 'data/demo-contacts.csv';
-var BW_DEMO_CSV_HEADER = 'first,last,email,phone,street,city,state,zip,source,status,category,flags,salutation,note,next_action,next_action_date';
+var BW_DEMO_CSV_HEADER = 'first,last,email,phone,street,city,state,zip,source,status,category,flags,salutation,note,next_action,next_action_date,property_section,property_lot,property_lot_alpha,property_space,property_sid,property_kind,property_spaces_owned,property_interments_used,property_deed,property_purchased_on';
 
 // A body that is an HTML page, not a CSV. This is not paranoia: dev-server.mjs has an SPA
 // fallback and a MISSING file under data/ answers HTTP 200 with the whole 2.75 MB index.html
@@ -14277,9 +14724,10 @@ function _bwImpPreviewHtml() {
     + '<span' + (c.dupes ? ' class="warn"' : '') + '><strong>' + c.dupes + '</strong> skipped as duplicates</span>'
     + '<span' + (c.invalid ? ' class="warn"' : '') + '><strong>' + c.invalid + '</strong> with no name and no contact method (cannot import)</span>'
     + '</div>';
-  if (c.notes || c.tasks) {
-    html += '<p class="imp-hint">Also creating ' + c.notes + ' note' + (c.notes === 1 ? '' : 's')
-      + ' and ' + c.tasks + ' to-do' + (c.tasks === 1 ? '' : 's') + '.</p>';
+  if (c.notes || c.tasks || c.property) {
+    html += '<p class="imp-hint" id="impAlso">Also creating ' + c.notes + ' note' + (c.notes === 1 ? '' : 's')
+      + ', ' + c.tasks + ' to-do' + (c.tasks === 1 ? '' : 's')
+      + ' and ' + c.property + ' property record' + (c.property === 1 ? '' : 's') + '.</p>';
   }
   if (c.ragged) {
     html += '<p class="imp-hint">' + c.ragged + ' row' + (c.ragged === 1 ? '' : 's')
@@ -14335,10 +14783,12 @@ function _bwImpResultHtml() {
     + '<span><strong>' + r.tasks + '</strong> to-dos</span>'
     + '<span' + (r.skipped ? ' class="warn"' : '') + '><strong>' + r.skipped + '</strong> skipped</span>'
     + '<span' + (r.failed ? ' class="warn"' : '') + '><strong>' + r.failed + '</strong> failed</span>'
+    + '<span><strong>' + (r.property || 0) + '</strong> property</span>'
     + '</div>';
   if (r.undone) {
     html += '<p class="imp-hint" id="impUndone">Undone — ' + r.undone.deletedParties + ' contacts, '
-      + r.undone.deletedNotes + ' notes and ' + r.undone.deletedTasks + ' to-dos removed.'
+      + r.undone.deletedNotes + ' notes, ' + r.undone.deletedTasks + ' to-dos and '
+      + (r.undone.deletedProperty || 0) + ' property records removed.'
       + (r.undone.kept.length ? ' ' + r.undone.kept.length + ' kept (still attached to a quote or contract).' : '')
       + '</p>';
   }
@@ -14947,7 +15397,11 @@ function renderContactDetail() {
     html += _bwTasksTabHtml(p);
   } else {
     // The headline. A family with nothing yet is a prospect, and saying so is more useful than
-    // an empty panel.
+    // an empty panel — but PROPERTY counts as something on file. Until sprint-05 a family who
+    // bought in 1998 and has no saved quote in this tool was described as a prospect with
+    // nothing on file, which is worse than missing data: it is confidently wrong in the
+    // direction that loses business.
+    var props = bwPropertyFor(p.id);
     var count = h.cemetery.length + h.funeral.length;
     html += '<div style="margin:4px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">'
       + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">What this family owns</span>';
@@ -14955,14 +15409,23 @@ function renderContactDetail() {
       html += '<span style="font-size:15px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
            + '<span style="font-size:12px;color:var(--text-light);">across ' + count + ' record' + (count === 1 ? '' : 's') + '</span>';
     }
+    if (props.length) {
+      var _ps = bwPropertySummary(p.id);
+      html += '<span id="ctPropSummary" style="font-size:12px;color:var(--text-light);">'
+        + _ps.owned + ' space' + (_ps.owned === 1 ? '' : 's') + ' in ' + _ps.records
+        + ' location' + (_ps.records === 1 ? '' : 's') + '</span>';
+    }
     html += '</div>';
 
-    if (!count) {
+    // Property first: it is the question a counselor asks before any other.
+    html += _bwPropertyBlockHtml(p.id);
+
+    if (!count && !props.length) {
       html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--navy);">'
         + 'Nothing on file yet — this contact is a prospect.'
         + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
         + '</div>';
-    } else {
+    } else if (count) {
       [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
         var rows = h[pair[0]];
         if (!rows.length) return;
