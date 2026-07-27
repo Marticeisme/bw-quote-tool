@@ -807,9 +807,6 @@ tr:hover td{background:#eef3f8;}
             <option value="7655">Copper Triune — $7,655</option>
             <option value="8605">Bronze Triune — $8,605</option>
             <option value="29815">Wilbert Bronze — $29,815</option>
-            <option value="505">Loved &amp; Cherished 19" — $505</option>
-            <option value="715">Loved &amp; Cherished 2' — $715</option>
-            <option value="925">Loved &amp; Cherished 3' — $925</option>
             <option value="1255">Venetian Urn Vault — $1,255</option>
             <option value="1675">Cameo Rose Urn Vault — $1,675</option>
             <option value="1885">Bronze Triune Urn Vault — $1,885</option>
@@ -1324,8 +1321,6 @@ tr:hover td{background:#eef3f8;}
               <option value="2825">Continental Burial Vault $2,825</option>
               <option value="2305">*Veteran Salute Burial Vault $2,305</option>
               <option value="2305">Monticello Burial Vault $2,305</option>
-              <option value="4085">Oversize Monticello $4,085</option>
-              <option value="3355">40# Oversize Rough Box $3,355</option>
               <optgroup label="── Urn Vaults ──">
                 <option value="1885">Bronze Triune Urn Vault $1,885</option>
                 <option value="1885">Copper Triune Urn Vault $1,885</option>
@@ -1336,11 +1331,6 @@ tr:hover td{background:#eef3f8;}
                 <option value="1255">Venetian Short Urn Vault $1,255</option>
                 <option value="935">Monticello Urn Vault $935</option>
                 <option value="935">Monticello Short Urn Vault $935</option>
-              </optgroup>
-              <optgroup label="── Loved &amp; Cherished ──">
-                <option value="505">19&quot; Loved and Cherished $505</option>
-                <option value="715">2&apos; Loved and Cherished $715</option>
-                <option value="925">3&apos; Loved and Cherished $925</option>
               </optgroup>
             </select>
             <span class="qty-x">×</span>
@@ -6270,7 +6260,6 @@ var SEARCH_INDEX = [
   // Vaults & merchandise
   {terms:['monticello','burial vault','wilbert','continental','venetian','tribute','cameo','triune','stainless vault'], id:'burial-vaults', label:'Burial Vaults'},
   {terms:['urn vault','monticello urn','bronze triune urn','urn container'], id:'urn-vaults', label:'Urn Vaults'},
-  {terms:['loved and cherished','cherished','infant vault','baby vault','small vault'], id:'loved', label:'Loved & Cherished'},
   {terms:['wilbert way','wilbert setup','wilbert set-up'], id:'wilbert-way', label:'Wilbert Way Set-Up'},
   {terms:['setting fee','vault setting','cremation vault setting','set fee'], id:'setting', label:'Setting Fees'},
   // Markers & memorials
@@ -10900,12 +10889,37 @@ function captureFieldState(fields) {
   });
   return state;
 }
+// A saved quote can name an option that no longer exists — a discontinued product, or a price
+// that was reissued at a new figure. Assigning a missing value to a <select> leaves it at
+// selectedIndex -1 with value '', so the line silently drops out of the reloaded quote at $0:
+// the five discontinued vaults removed on 2026-07-26 are exactly this case for cmpB_vault,
+// whose lines are recomputed on every render and are not covered by the saved-lines snapshot.
+// Re-attach the stored value as a disabled, clearly-labelled option so the amount survives the
+// reload and the counselor can SEE it needs re-picking. Disabled keeps it unpickable for new
+// quotes; BW_RETIRED_OPT_CLASS marks it so the next restore cleans it up.
+var BW_RETIRED_OPT_CLASS = 'bw-retired-option';
+var BW_RETIRED_OPT_TEXT  = '\u26A0 No longer offered \u2014 as previously quoted';
 function restoreFieldState(state) {
   if (!state) return;
   Object.keys(state).forEach(function(id) {
     var e = el(id); if (!e) return;
-    if (e.type === 'checkbox' || e.type === 'radio') e.checked = !!state[id];
-    else e.value = state[id] || '';
+    if (e.type === 'checkbox' || e.type === 'radio') { e.checked = !!state[id]; return; }
+    var isSel = e.tagName === 'SELECT';
+    if (isSel) {
+      var stale = e.querySelectorAll('option.' + BW_RETIRED_OPT_CLASS);
+      for (var k = 0; k < stale.length; k++) stale[k].parentNode.removeChild(stale[k]);
+    }
+    var v = state[id] || '';
+    e.value = v;
+    if (isSel && v !== '' && e.selectedIndex === -1) {
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.disabled = true;
+      opt.className = BW_RETIRED_OPT_CLASS;
+      opt.textContent = BW_RETIRED_OPT_TEXT;
+      e.appendChild(opt);
+      e.value = v;
+    }
   });
 }
 function captureCustomLines(containerId) {
