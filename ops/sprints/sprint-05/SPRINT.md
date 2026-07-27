@@ -1,113 +1,193 @@
-# Sprint 05 — The tool's print surfaces, and paying off debt
+# Sprint 05 — What they own, and a page worth looking at
 
-**DRAFT, written 2026-07-27 while sprint-04 was still running.** It exists so the items held back
-from sprint-04 are not lost, and so the operator can see what is queued. **The closing director
-of sprint-04 reconciles this against what actually shipped before spawning anything** — reality
-wins over a plan written in advance, and this one was written before Tracks B, C and D reported.
+**Supersedes the mid-sprint-04 draft of this file.** That draft held the two `index.html` items
+pulled out of the guides punch list. They are still here, at the back, but the sprint's centre of
+gravity moved after Martice imported the demo contacts on 2026-07-27 and reported what was
+missing.
 
-**Runs ROADMAP milestone S3** (the saved-list focus bug and accumulated debt) **plus the
-tool-side half of S9**, which sprint-04 could not take because Tracks A–C owned `index.html` for
-its whole duration.
+**Runs ROADMAP milestone S10** (new) plus the tool half of S9 and the S3 debt.
 
 ---
 
-## Where this came from
+## What he said, and why the third item reorders the sprint
 
-Martice's punch list of 2026-07-27 (`E:\Downloads\Guids Issues 07.25.26.docx`) had 23 items.
-Twenty-one lived in the guides and catalogs and went to sprint-04 Track D. **Two needed
-`index.html` and were deliberately held**, because three sequential tracks were already queued
-against that file and a fourth would have been a merge fight for no benefit.
+Verbatim, 2026-07-27, after importing the 30 demo contacts:
 
-They are the two below, plus the debt S3 has been carrying since the roadmap was written.
+1. *"there is still no home screen when clicking on contacts. it just shows a running list of all
+   of the contacts that you can sort by. it still needs some sort of home screen with different
+   options (even if some of those options aren't available yet)."*
+2. *"when clicking into a contact itself it needs to use better use of the whole page. right now
+   it is so small."*
+3. *"also where is the location for existing owners etc etc? **that's the most important part**
+   (even if they're fake for this)."*
+4. *"make sure that there is an identifier (since the quote tool already has this data) that in
+   the contact tool it shows what each type of location is, burial plot, crypt, niche etc etc."*
 
----
-
-## Scope
-
-### 1. Comparison print — the operator's words, and his choice
-
-*"Quote tool comparison function when pressing the print button needs to do a better job of using
-the available space. Two options. Either show the payment options for each method that have no
-ACH for both. Or enlarge each option significantly."*
-
-**He chose enlargement** (2026-07-27). Payment options stay as they are; the space comes from
-laying the comparison out properly rather than from deleting rows. The test of success is a
-counselor reading it across a table, sometimes upside down, while talking — so type size and
-whitespace are the deliverable, not density.
-
-### 2. Naming the compared options
-
-*"Also give the ability to name each option so instead of it showing a vs b it can be option:
-casket vs option: urn etc etc."*
-
-Free text per option, defaulting to the current A / B labels so nothing breaks if it is left
-alone. The name has to reach the printed output, which is the whole point — it is what the family
-takes home and reads a week later.
-
-### 3. The print header on the tool itself
-
-*"I think the header for all of the files when printing or downloading to pdf should be a lot
-smaller. it is fine in html format but on print or pdf it takes too much of a page up."*
-
-Sprint-04 Track D fixed this across the guides. **The same complaint applies to the tool's own
-printed surfaces and was not in that track's scope** — it was explicitly forbidden from touching
-`index.html`. Whatever approach Track D landed on for the guides is the reference; match it
-rather than inventing a second convention, and say in the report how the two now compare.
-
-### 4. S3 debt — cheap, self-contained, no dependencies
-
-- **The saved-quote search focus bug.** The saved-list search box rebuilds its list via
-  `innerHTML` on every keystroke, destroying and recreating the `<input>` and losing focus.
-  Pre-existing and known. **Contacts escapes this only because its search input sits outside the
-  rebuilt container** — that is the fix pattern, and sprint-04 Track B has an assertion for it
-  worth copying.
-- **Delete `BW_Quote_Tool_merged_11.html`.** Verified dead 2026-07-27: **6,286,954 bytes**,
-  tracked since `7f5e944`, and referenced by nothing that runs — the only mentions are
-  `.claude/settings.local.json`, a June debrief, `ops/ROADMAP.md`, and a scratch draft. No HTML,
-  JS, script or test loads it.
-- **The duplicate root-level marker image.** Confirm it is genuinely a duplicate before removing
-  it, and say what you compared — a filename match is not proof.
+**Item 3 is not a layout problem, it is a missing entity**, and it inverts the priority. Martice
+chose the order himself: **property, then detail layout, then home.**
 
 ---
 
-## Out of scope
+## Measured reality — 2026-07-27, after the sprint-04 push
 
-- Anything in the contact layer. Sprint-04 owns it end to end.
-- The remaining ~750 non-overlapping prices (caskets, urns, vaults, FH packages). They have real
-  sources — the two 2026-03-01 price books named in `sprints/sprint-03/SPRINT.md` — and deserve
-  their own sprint, not a corner of this one.
-- **The two mismatched templates.** `pdf-templates/ClearPoint Contract 2026.pdf` and
-  `WMP_Retail_Installment_Contract_2026.pdf` differ from the bytes actually shipping. Adopting
-  them silently would change a live contract. Its own sprint, never a side errand.
+| Thing | Measured |
+|---|---|
+| Property location in the tool today | **Derived only.** contact → `contractRoles` → a saved quote → `rec.spaces[0].loc`, rendered as a grey subtitle in `_bwHoldingRow` |
+| A contact with no linked quote | Renders **"Nothing on file yet — this contact is a prospect."** |
+| The 30 imported demo contacts | **All 30 show as prospects.** `data/demo-contacts.csv` has no property columns at all |
+| Section → property-type classification | **Does not exist.** `index.html` treats section codes as one opaque namespace (see the integration comment at ~16052) |
+| Why the detail view is cramped | **NOT a max-width.** `.main` is `padding` only and `.section` sets `display` only. The detail is a single stacked column of cards that never lays out into width it already has. *(The director's first guess was a width constraint; checked, and wrong.)* |
+| Contact detail render | `renderContactDetail()`, tab strip from Track A, holdings from `bwHoldingsFor()` |
+
+**The consequence, stated plainly:** the tool describes its most valuable contacts — families who
+already own property — as prospects with nothing on file. That is worse than missing data; it is
+confidently wrong in the direction that loses business.
+
+---
+
+## The location data, and the rule attached to it
+
+Source supplied by Martice: **`E:\Downloads\LotInquiryList.csv`**.
+
+**It is malformed and will silently mis-parse.** The header row is **tab**-delimited; every data
+row is **comma**-delimited and quoted. A `DictReader(delimiter='\t')` reads 40,816 rows and
+returns blank for every field without erroring. Skip the header line and parse the body with a
+plain comma reader.
+
+Column order: `ID, FirstName, LastName, DeathDate, BornDate, BurialDate, LocationCode, Section,
+LotNumber, LotNumberAlpha, LotSpaceNumber, Created, Updated`.
+
+> **PII — absolute.** Every one of the 40,816 rows is a **real interment**, with names and birth,
+> death and burial dates. Columns 1–5 are never read into anything printed, written, committed or
+> reported. Only `Section` / `LotNumber` / `LotNumberAlpha` / `LotSpaceNumber` leave the parsing
+> script, and only as aggregates. Same rule as `wmp-cemetery-map/` (`DESIGN.md` §6).
+
+**Measured vocabulary — 57 sections, all `LocationCode = WMP`:**
+
+- **17 numeric sections** (`06`–`23`): gardens. Row letters **A–D**, spaces **1–4** or **1–5**,
+  a few to 24.
+- **40 lettered sections**: `MVC GCM COH GOM TGM ELM COM` (mausolea), `CN GCN ELN GOLN GOVN
+  VETSN RAD ROAC` (niches), `LUG RUG VCUG SCTG GOG LCG` (urn gardens), `VETS VETSM VETSN`
+  (veterans), `ROA` (Rock of Ages columbarium), `SER`, `VERSES`, `17S`, `SCER`, `SCGF`, `CC`,
+  `ECL`, `RH`, and small `B`/`BE` variants.
+
+**Authoritative type vocabulary comes from the map repo, not from invention**
+(`wmp-cemetery-map/docs/INDOOR_AND_NICHE_BUILDINGS.md`): a **crypt** is one casket chamber; a
+**niche** is one urn compartment. **Never say "bay"** — Martice corrected that twice. `ROA` (Rock
+of Ages Columbarium) and `ROAC` (the courtyard niches) are **separate**, on his instruction. `COM`
+contains both products — 301 niches and 574 crypts, separated by `angle`, so a section code alone
+does not always determine the product.
+
+### Demo positions must not collide with real graves
+
+Martice asked for locations taken from that file. **Taking them literally would publish, in a
+public repo, a record asserting that an invented person owns a grave a real person is buried in.**
+
+So: use the real section codes, the real row letters and the real space-number ranges, and
+**generate positions that provably do not collide with any occupied `(section, alpha, space)`
+tuple in the file.** The file supplies every occupied tuple, so zero collisions is checkable —
+**and must be asserted in a test**, not assumed. Same realism, no false claim about a real grave.
+Director's call, 2026-07-27; flagged to Martice in the same message.
+
+---
+
+## Tracks — three, sequential, in Martice's stated order
+
+| # | Track | Branch | Depends on |
+|---|---|---|---|
+| A | Property as a first-class record + section-type identifier + demo property data | `s05/contact-property` | — |
+| B | The contact detail page — full-width, three-column | `s05/contact-detail` | A merged |
+| C | The Contacts home screen | `s05/contact-home` | A + B merged |
+
+Sequential because all three land in `index.html`. Per `SPRINT_GUIDELINES.md` the cap is on
+parallelism, not count.
+
+### Track A — property
+
+- **`BW_SECTION_TYPES`**: all 57 real section codes → `{ kind, label }` where `kind` is
+  `grave | crypt | niche | urn-garden | scattering | veteran`. Data, not an enum, exactly like
+  `BW_ROLES`. An unknown code renders as the raw code, never blank. **`COM` cannot be classified
+  by section alone** — record that honestly rather than guessing a single kind for it.
+- **`contactProperty/<id>`**, its own per-record node beside `contactNotes` / `contactTasks`:
+  `{ id, partyId, sectionCode, lot, lotAlpha, space, sid, kind, spacesOwned, intermentsUsed,
+  deedNumber, purchasedOn, status, _prov }`.
+- **Display**: `Garden 18 · Row B · Space 3` with a type pill, and the qualifying line
+  **`Owns 4 · 2 interred · 2 available`**. A **View on map** link via `bwMapUrl('space', sid)`
+  when a sid is known — `BW_MAP_BASE` is still localhost, so the link must degrade, not break.
+- **CSV import gains property columns** so a real owner book can be bulk-loaded later, and
+  `data/demo-contacts.csv` gains property for roughly two-thirds of its rows — enough that the
+  existing-owner case is visible and the prospect case still exists.
+- **The generator lives in `scripts/`**, not `scratch/`, so the demo file can be regenerated from
+  a fresh clone (the rule `DESIGN.md` §5 sets for the baseline harness).
+- **A "prospect" is now a real state, not a default.** A contact with no property and no holdings
+  says so; a contact with property never does.
+
+### Track B — the detail page
+
+Three-column, which is where HubSpot's 2026 redesign, Salesforce Lightning, Attio and Zoho have
+all independently converged:
+
+- **Header strip** — name, status, next action, and one-click actions (log note, add to-do, edit).
+- **Property band directly under the header** — full width. It is the first question a counselor
+  asks and it gets the most valuable real estate.
+- **Left rail** — identity, contact methods, classification, salutation. Inline edit.
+- **Centre** — tabs, with an **activity timeline** as the default: notes, to-dos, imports and
+  changes merged into one chronological stream. This is the pattern every major CRM settled on.
+- **Right rail** — holdings (quotes and contracts), related people, attachments-later placeholder.
+
+Must work at 1100px. Must not reintroduce the focus bug: persistent controls stay outside any
+container rebuilt with `innerHTML`.
+
+### Track C — the home screen
+
+Progressive disclosure, the strongest 2026 dashboard pattern: answer *"is everything okay?"*
+first, then let him drill in.
+
+- **A needs-attention strip** — Overdue · Due today · Unworked · No next action, as live counts
+  that are also links.
+- **The five built-in views as cards**, with counts.
+- **Saved views**, pinned first.
+- **Recently viewed contacts.**
+- **Quick actions** — Add contact, Import, Export, Settings.
+- **Placeholders for what is not built yet** — Martice asked for these explicitly (*"even if some
+  of those options aren't available yet"*). They must read as *coming*, not as broken: visibly
+  inert, labelled, and never a dead link. Candidates: Calendar, Letters, Email, Reports.
 
 ---
 
 ## Verification
 
-Standing gates, unchanged in kind:
+Standing gates, every track, quoted verbatim:
 
 - `npm run check` → `index.html: 8 blocks, 0 errors`
-- `npm test` → at or above whatever sprint-04 left on `main`; counts rise, never fall
-- **Generator baseline 14/14 identical** — and this sprint touches print paths, so that gate is
-  doing real work rather than standing by. A comparison print change that moves a number on a
-  contract is exactly what it exists to catch.
+- `npm test` → at or above `1038 passed across 23 suites` (1036 without `wmp-cemetery-map/`);
+  counts rise, never fall
+- Generator baseline **14/14 identical** — this sprint must not move a number on any document
 
-Specific to this sprint, and the reason it needs care despite looking cosmetic:
+Per track:
 
-- **Print layout is not testable by looking at it.** Assert page counts and measured element
-  sizes, the way Track D's `verify_print_header.mjs` does for the guides. "It looks better" is
-  not a gate.
-- **Deleting a 6.29 MB tracked file is a git operation on a public repo.** It removes the file
-  going forward; it does not remove it from history, and **history is not to be rewritten**
-  (`DESIGN.md` §1). Say so plainly rather than implying the bytes are gone.
-- The option-name field is free text that reaches a printed document — **escape it**. The
-  contact layer's `_ceEsc()` is the existing helper.
+- **A** — every one of the 57 section codes classifies or is explicitly recorded as unclassifiable;
+  an unknown code renders raw, not blank; **zero demo positions collide with a real occupied
+  tuple**, asserted against the source file; a property record survives a `saveParty()`; the
+  demo file regenerates byte-identically from `scripts/`.
+- **B** — renders at 1100px and 1500px with no horizontal page scroll; the search input keeps
+  focus across a re-render; property band present whenever a contact has property.
+- **C** — every count on the home screen equals the row count of the view it links to. A card
+  that says 6 must open a list of 6. Placeholders are inert and none is a dead link.
 
----
+**No test may read a value from the same constant the code reads.** Assert against rendered DOM.
 
-## Operator gates
+## Then, and only then — the sprint-04 leftovers
 
-1. Review the merges on local `main`.
-2. `git push origin main` — **only on Martice's explicit go.**
-3. The comparison print is a judgement call about what reads well in front of a family. **Print
-   one and look at it.** No amount of measurement settles whether it is legible across a table.
+- **Comparison print**: significantly enlarged options (his choice over trimming ACH rows), and
+  the ability to name each one — "Option: Casket" vs "Option: Urn" rather than A vs B.
+- **The tool's own print header**, matching the convention Track D landed for the guides.
+- **S3 debt**: the saved-quote search focus bug; delete `BW_Quote_Tool_merged_11.html`
+  (6,286,954 bytes, verified dead); the duplicate root-level marker image.
+
+## Out of scope
+
+- The contact layer's storage model, the quoting path, contract generators, `prices.json`.
+- Reading the map at runtime. It is localhost-only with no remote; a deployed tool cannot fetch
+  it. Property is entered or imported, and the map is a *link out*.
+- Anything touching MIS directly. Unreachable from here.
