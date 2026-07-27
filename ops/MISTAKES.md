@@ -115,7 +115,7 @@ sabotage actually broke what you aimed at before concluding anything from it.
 "have no external source at all and no schema in `prices.json` to hold them". The first half is
 false. Martice has two current price books:
 
-- `E:\Downloads6 PCM Markers Price Book EFF 03.01.2026.xlsx` — most marker pricing (2.7 MB)
+- `E:\Downloads\2026 PCM Markers Price Book EFF 03.01.2026.xlsx` — most marker pricing (2.7 MB)
 - `E:\Downloads\CEMETERY MERCH & SERVICES PRICE LIST EFF-03.01.2026.xlsx` — most merch and
   service pricing (67 KB)
 
@@ -124,6 +124,14 @@ cover them, which is a statement about the file, not about the world.
 
 **Lesson: "there is no source" is a claim about the operator's filing cabinet, and only the
 operator can confirm it.** Ask before scoping work out on that basis.
+
+*Footnote, minutes later:* the first commit of this entry mangled that path to
+`E:\Downloads<U+0082>6 PCM...` — a Python heredoc read `\2` as an octal escape and emitted a C1
+control character, invisible in every terminal and in `sed`, which is why two repair attempts
+matched nothing. Same character class as the ligature corruption the guides audit found the
+same morning. A document about mistakes, containing a mistake, of exactly the class as #8.
+**Windows paths need raw strings; read the SyntaxWarning; and when a replace "cannot find"
+text you can plainly see, print the bytes.**
 
 ---
 
