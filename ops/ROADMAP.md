@@ -34,6 +34,14 @@ Worse, the same fees now live in **three places and are already drifting**: the 
 the WMP map's hardcoded `COLUMBARIUM_FEES`, and an older unused Rock of Ages sheet. Nothing
 links them.
 
+**MIS is the source of truth for price, and printed sheets are not** (Martice, 2026-07-26).
+A Serenity wall pricing PDF turned out to price only 5 of 48 niches, and three of those five
+are `reserved` in MIS — sold pre-need. Six niches MIS calls available carried no price at all,
+and nothing on the sheet said whether a price meant the niche right alone or a bundle. Its
+real value was geometry, not prices. **If a story here involves importing a price sheet, this
+rule applies to it.** Related: `wmp-cemetery-map/scripts/build-prices.py` already encodes the
+resolution rule — a price is ALWAYS today's price, read `current`, never resolve as-of a date.
+
 **Build for repeated updates, not a one-time extraction** — the deliverable is a price file
 plus an update path Martice can run himself each year, not just a refactor. Depends on S1
 only for file-size headroom; otherwise independent.

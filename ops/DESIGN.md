@@ -332,3 +332,4 @@ map has no remote, so map-side work is committed locally and never pushed.
 | 2026-07-26 | Two-user scope is sequencing, not a ceiling. Org rollout is a roadmap milestone; nothing may be designed that makes org-readiness a rewrite. |
 | 2026-07-26 | The generator baseline covers 14 scenarios and runs on a frozen clock. Signature equality is exact — a diff is a real diff. |
 | 2026-07-26 | A template LOAD failure must surface by name; a field-FILL failure may still be warned and swallowed. Widens "loader in, literals out" by design. |
+| 2026-07-26 | **MIS is the pricing source of truth. Never load prices out of a printed or PDF sheet** into the map or the tool. A Serenity wall sheet priced 5 of 48 niches and priced three MIS calls `reserved`. |
