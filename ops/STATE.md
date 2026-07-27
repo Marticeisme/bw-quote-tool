@@ -288,14 +288,25 @@ with its caveat: **1038 with the map present, 1036 without.**
 
 ## Open, and needing Martice
 
-0. **⚠ Correct cell C16 in the marker price book itself.** Martice ruled 2026-07-27 that the
-   base is **2610**; the tool and the guide now both say so, and the exception list is empty.
-   But **the vendor workbook still contains the typo** — `2026 PCM Markers Price Book EFF
-   03.01.2026.xlsx`, sheet `Flush Markers`, cell **C16**, hard-coded `32610`. `build-prices.py`
-   already reads workbooks from `E:/Documents/CEMETERY MAPS`, so **any future price update that
-   reads that sheet mechanically will reintroduce this.** `tests/test-marker-guide-prices.mjs`
-   is now the thing that would catch it. Fixing the workbook is the durable fix; an agent did
-   not edit his master price book without being asked.
+0. **CLOSED 2026-07-27 — the marker price chain now agrees end to end.** Tool, guide and
+   workbook all say **2610**, on Martice's ruling. The exception list is empty at 18 reconciled,
+   0 escalated.
+
+   **The workbook was corrected at source**, on his explicit instruction:
+   `E:\Downloads\2026 PCM Markers Price Book EFF 03.01.2026.xlsx`, sheet `Flush Markers`,
+   cell **C16**, `32610` → `2610`. Backup at
+   `…BACKUP-2026-07-27.xlsx` before anything was touched.
+
+   **Done by XML surgery, not `openpyxl`.** That workbook has **106 zip entries** including
+   drawings; a library round-trip can silently drop images and conditional formatting. Only
+   `xl/worksheets/sheet1.xml` was rewritten and every other entry was copied byte-for-byte with
+   its original `ZipInfo`. Cleared first: C16 is a plain literal with no `<f>`, the sheet has
+   **zero formulas**, **nothing anywhere references `'Flush Markers'!C16`**, there are no defined
+   names and no `calcChain` — so nothing downstream needed recalculating.
+
+   **Verified afterwards by diffing every cell of all 12 sheets against the backup: exactly one
+   cell differs.** The tariffed/non-tariffed ratio is now 1.2000, matching rows 10 and 20 to four
+   decimals; before, it was 14.9931 against a 1.1981–1.2008 spread everywhere else.
 
    *Why it was flagged:* every other row's tariffed/non-tariffed ratio sits in 1.1981–1.2008;
    that row's was **14.9931**. The guide's printed `$4,146.62` back-solved to the typo ÷ 10, and
