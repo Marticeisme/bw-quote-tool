@@ -96,6 +96,48 @@ flagged, and it is small enough to do correctly.
 **Out:** the remaining ~750 priced items. They need a schema `prices.json` does not have and a
 source that is not MIS. A later sprint.
 
+## Operator resolutions, 2026-07-26 — the tool is right, the FILE is wrong
+
+Track A escalated four disagreements rather than guessing. Martice settled two, and both land
+in `prices.json`, not in the code. **Neither is fixed yet** — `prices.json` is generated, so the
+correction belongs in `wmp-cemetery-map/scripts/build-prices.py` followed by a rebuild, never a
+hand-edit.
+
+**1. `MONOBAR_INSTALL:crypt` is 225.** The file says 215; the tool quotes 225. The tool is
+correct. The amount comes from `workbook_fees()`, so the fix is a dated correction record that
+wins under the file's own "append and rebuild, newest wins" rule. Track A pinned the
+disagreement in a test, so that test flips to asserting agreement once this lands.
+
+**2. ECF — the file's SHAPE is wrong, not just its number.** `build-prices.py` hardcodes
+`{rate: 0.10, appliesTo: "all property"}`. Reality, confirmed against the tool:
+
+- **Niches and crypts: exactly 10%.**
+- **Garden spaces: a stored per-garden AMOUNT, not a rate.** The option values carry it
+  literally — `6_good|14995|2250`, `10_good|8995|1350`, `23_uprights|11995|1800`. Those land at
+  0.1500–0.1501, so **"15%" is a rounded label on real amounts, not the calculation.**
+
+**Do not "fix" this by setting `rate: 0.15`.** 15% of 8,995 is 1,349.25; the real figure is
+1,350. A rate cannot express this and should not pretend to. The tool's calculation is
+authoritative (Martice, 2026-07-26).
+
+Still open, both needing MIS: **`VASE`** (one vase per structure in the file, three distinct
+SKUs in the tool at $375/$275/$195 — not the same item) and the **O&C write-back loop**, where
+`build-prices.py` scrapes the eight O&C amounts out of `index.html`, so a price cannot yet be
+changed from the file end.
+
+## Sources for the ~750 out-of-scope prices — they DO exist
+
+This document originally scoped them out as having "no external source at all". That was wrong
+(see `ops/MISTAKES.md` #9). Martice supplied two current price books, both effective 2026-03-01:
+
+- `E:\Downloads\2026 PCM Markers Price Book EFF 03.01.2026.xlsx` — most marker pricing, 2.7 MB
+- `E:\Downloads\CEMETERY MERCH & SERVICES PRICE LIST EFF-03.01.2026.xlsx` — most merch and service
+  pricing, 67 KB
+
+They are the input for a later sprint, not this one. Note `build-prices.py` already reads
+workbooks from `E:/Documents/CEMETERY MAPS`, so a workbook-ingest path exists to extend rather
+than invent.
+
 ## The rule that governs this sprint
 
 **MIS is the pricing source of truth** (Martice, 2026-07-26). Never load prices out of a printed
