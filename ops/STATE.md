@@ -158,7 +158,32 @@ restored → 0 failed, exit 0.
 served-tree guard correctly refuses to test against another tree's server. `npm run check` is
 green. Run the suite once Track B lands; expect roughly 758 + 20.
 
-### ⚠ TWO LIVE PRICE DISAGREEMENTS — escalated, unchanged, and one is a real under-quote
+### The 28″ × 34″ marker under-quote — FIXED 2026-07-27 (`2996575`, local only)
+
+Operator instruction, direct: *"fix the 28x34 marker price too."* Done by the director as an
+audit fix, on `main` in the ops worktree, while Track B held `index.html` in the main tree. The
+change is one row in `FLUSH_SIZES`, in a region no other track is editing.
+
+`['28"x34"x4"',2175,2610,3015,4060,5115,6135,495]` →
+`['28"x34"x4"',2735,3280,4110,5050,6010,7210,495]`.
+
+**Column mapping was validated, not assumed.** `guide price = (base + setting fee) × 1.104`
+reproduces the printed marker guide **to the cent** on four independent cells, which
+simultaneously confirms the six price columns and that the setting fee stays **495**, not the
+795 used by the larger sizes.
+
+**All 14 flush rows were reconciled against the book, not just the one that was reported.**
+Eleven agree exactly. Of the three that did not: one was this defect; one is the book's own C16
+typo (item 0 above); one is `36″ × 72″` encoding "call for quote" as `null`, which is correct.
+Three other rows are legitimately identical to a neighbour because the book prices them the same
+— so a duplicate row is not by itself evidence of a bug, which is why every row was checked
+rather than every duplicate flagged.
+
+**Generator baseline 14/14 identical.** No contract carries a 28 × 34 marker, so no generated
+document moved — verified by a real capture, not inferred from a grep. Captured against a
+dev server on port **3738** so the running track's server on 3737 was never disturbed.
+
+### The two price disagreements as originally escalated
 
 Both verified independently by the director, reading the price book and `index.html` directly.
 **Nothing was changed. Only Martice can settle these.**
@@ -186,12 +211,17 @@ count found the defect; the story told about it did not survive contact with the
 
 ## Open, and needing Martice
 
-0. **⚠ The 28″ × 34″ flush marker is under-quoted in the tool** — `index.html:6935` duplicates the
-   `32″ × 20″` row. Price book says `[2735, 3280, 4110, 5050, 6010, 7210]`; the tool says
-   `[2175, 2610, 3015, 4060, 5115, 6135]`. This is money leaving on live quotes. Needs a
-   tool-side fix once `index.html` is free. **And separately: cell C16 of the marker price book
-   (`32610`) is a typo for `2610` — the book needs correcting at source.** Both verified by the
-   director against the book and the code; see the Track D section above.
+0. **The marker price book needs correcting at source.** Cell **C16** of
+   `2026 PCM Markers Price Book EFF 03.01.2026.xlsx`, sheet `Flush Markers`, is a hard-coded
+   `32610` where every other row's tariffed/non-tariffed ratio (1.1981–1.2008) says `2610`.
+   The tool already uses 2610 and is right. **Consequence still live in the guide:**
+   `markers-guide.html` prints **$4,146.62** for 32″ × 20″ G1 Tariffed, which back-solves to the
+   typo ÷ 10. Once Martice confirms 2610, that cell becomes **$3,427.92** — the figure is ready
+   and the arithmetic `(2610 + 495) × 1.104` is verified against four other cells. **Not changed
+   without his ruling**, because it is a live price on a family-facing document.
+
+0b. **RESOLVED 2026-07-27 — the 28″ × 34″ under-quote is fixed** (`2996575`, local only).
+   See below.
 1. **Two possible double sales** in CN and ELN - two spaces each recording two different people at
    one interment position. Nothing in the data was changed; only MIS settles it.
 2. **`VASE` and the O&C write-back loop** - the file has one vase per structure, the tool sells
