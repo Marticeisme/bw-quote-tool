@@ -283,7 +283,7 @@ contract lines keying the same place is the data shape of a double sale.
 |---|---|
 | `sid-index.json` | `sid → locator`, so a `#space=<sid>` route resolves without loading every section. **~2.6 MB (79,493 entries), lazily fetched only when a `#space` route arrives** — do not load it eagerly. |
 | `search/` + `search-index-manifest.json` | sharded by the first character of the **normalised** surname `ln` (A–Z plus `_other`). `l` = surname as MIS spells it, for DISPLAY; `ln` = normalised for MATCHING (upper, suffixes and punctuation stripped). Never match on `l`. |
-| `prices.json` | **schema 2**, the single fee/price schedule shared by both apps, replacing three copies that disagreed. **Read `current`.** A price is always today's price — do not resolve a fee as-of a date. `fees`/`inventory` keep dated history for reference only. |
+| `prices.json` | **schema 2**, the single fee/price schedule shared by both apps. **Canonical copy now lives in THIS repo at `data/prices.json`** (Martice, 2026-07-26) because the deployed tool cannot fetch anything out of the gitignored, remote-less map repo. `scripts/build-prices.py` in the map writes **both** copies in one run — the map still reads its own at runtime, and two files that are never written separately cannot drift. **Never hand-edit either; change the source and rebuild.** **Read `current`.** A price is always today's price — do not resolve a fee as-of a date. `fees`/`inventory` keep dated history for reference only. |
 
 **`prices.json` already exists and the map already emits it.** Sprint S2 is therefore about
 making the *tool* consume it, not about inventing the format.

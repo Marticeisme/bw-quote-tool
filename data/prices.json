@@ -1,0 +1,945 @@
+{
+ "schema": 2,
+ "generated": "2026-07-26",
+ "purpose": "Single fee/price schedule shared by the cemetery map and the quote tool, replacing three copies that disagreed.",
+ "resolve": "READ `current`. A price is always today's price (Martice, 2026-07-25) - do not resolve a fee as-of a date. `fees`/`inventory` keep the dated history as provenance only: what a number was and when it changed. To change a price, APPEND a record and rebuild; the newest wins.",
+ "current": {
+  "fees": {
+   "INSCRIPTION:all": 660.0,
+   "MONOBAR:crypt": 1445.0,
+   "MONOBAR_INSTALL:crypt": 215.0,
+   "OC:boulder_inurnment": 1425.0,
+   "OC:ground_inurnment": 985.0,
+   "OC:lawn_double_1st": 2085.0,
+   "OC:lawn_double_2nd": 1535.0,
+   "OC:lawn_single": 1535.0,
+   "OC:mausoleum_entombment": 1205.0,
+   "OC:niche_inurnment": 875.0,
+   "OC:niche_non_inurnment": 375.0,
+   "RECORDING:all": 235.0,
+   "VASE:crypt": 415.0,
+   "VASE:niche": 260.0
+  },
+  "rates": {
+   "ECF": 0.1,
+   "TAX": 0.104
+  },
+  "inventory": {
+   "ROAC:A-INT:A": 12095.0,
+   "ROAC:A-INT:B": 13195.0,
+   "ROAC:A-INT:C": 14295.0,
+   "ROAC:A-INT:D": 15395.0,
+   "ROAC:A-INT:E": 16495.0,
+   "ROAC:B-INT:A": 13195.0,
+   "ROAC:B-INT:B": 14295.0,
+   "ROAC:B-INT:C": 15395.0,
+   "ROAC:B-INT:D": 16495.0,
+   "ROAC:B-INT:E": 17595.0,
+   "ROAC:C-INT:A": 8795.0,
+   "ROAC:C-INT:B": 9895.0,
+   "ROAC:C-INT:C": 10995.0,
+   "ROAC:C-INT:D": 12095.0,
+   "ROAC:C-INT:E": 13195.0,
+   "ROAC:D-INT:A": 13195.0,
+   "ROAC:D-INT:B": 14295.0,
+   "ROAC:D-INT:C": 15395.0,
+   "ROAC:D-INT:D": 16495.0,
+   "ROAC:D-INT:E": 17595.0,
+   "ROAC:E-INT:A": 8795.0,
+   "ROAC:E-INT:B": 9895.0,
+   "ROAC:E-INT:C": 10995.0,
+   "ROAC:E-INT:D": 12095.0,
+   "ROAC:E-INT:E": 13195.0,
+   "ROAC:F-INT:A": 13195.0,
+   "ROAC:F-INT:B": 14295.0,
+   "ROAC:F-INT:C": 15395.0,
+   "ROAC:F-INT:D": 16495.0,
+   "ROAC:F-INT:E": 17595.0,
+   "ROAC:G-INT:A": 12095.0,
+   "ROAC:G-INT:B": 13195.0,
+   "ROAC:G-INT:C": 14295.0,
+   "ROAC:G-INT:D": 15395.0,
+   "ROAC:G-INT:E": 16495.0,
+   "ROAC:A-EXT:A": 8795.0,
+   "ROAC:A-EXT:B": 9895.0,
+   "ROAC:A-EXT:C": 10995.0,
+   "ROAC:A-EXT:D": 12095.0,
+   "ROAC:A-EXT:E": 13195.0,
+   "ROAC:B-EXT:A": 8795.0,
+   "ROAC:B-EXT:B": 9895.0,
+   "ROAC:B-EXT:C": 10995.0,
+   "ROAC:B-EXT:D": 12095.0,
+   "ROAC:B-EXT:E": 13195.0,
+   "ROAC:C-EXT:A": 8795.0,
+   "ROAC:C-EXT:B": 9895.0,
+   "ROAC:C-EXT:C": 10995.0,
+   "ROAC:C-EXT:D": 12095.0,
+   "ROAC:C-EXT:E": 13195.0,
+   "ROAC:D-EXT:A": 8795.0,
+   "ROAC:D-EXT:B": 9895.0,
+   "ROAC:D-EXT:C": 10995.0,
+   "ROAC:D-EXT:D": 12095.0,
+   "ROAC:D-EXT:E": 13195.0,
+   "ROAC:E-EXT:A": 8795.0,
+   "ROAC:E-EXT:B": 9895.0,
+   "ROAC:E-EXT:C": 10995.0,
+   "ROAC:E-EXT:D": 12095.0,
+   "ROAC:E-EXT:E": 13195.0,
+   "ROAC:F-EXT:A": 8795.0,
+   "ROAC:F-EXT:B": 9895.0,
+   "ROAC:F-EXT:C": 10995.0,
+   "ROAC:F-EXT:D": 12095.0,
+   "ROAC:F-EXT:E": 13195.0,
+   "ROAC:G-EXT:A": 7995.0,
+   "ROAC:G-EXT:B": 8995.0,
+   "ROAC:G-EXT:C": 9995.0,
+   "ROAC:G-EXT:D": 10995.0,
+   "ROAC:G-EXT:E": 11995.0
+  }
+ },
+ "keys": {
+  "fees": "code + product. `product` is the dimension the fee actually varies by: for OC that is the quote tool's INTERMENT TYPE (niche_inurnment 875, mausoleum_entombment 1205, lawn_single 1535, ...); for crypt/niche merchandise it is the structure; and `all` means the fee is the same for everything, which is true of RECORDING and INSCRIPTION in every source.",
+  "rates": "code",
+  "inventory": "structure + wall + level"
+ },
+ "caution": "`effective: null` means the SOURCE printed no date, not that the price is unknown - those are the live values in use today, which is what `current` asks for. They were deliberately not given a plausible date: the date is provenance and inventing one would put a false claim in the file. Listed in `undated` for the record; nothing is blocked on them.",
+ "undated": [
+  {
+   "what": "VASE niche $260",
+   "why": "no effective date printed in the source",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (ROAC)"
+  },
+  {
+   "what": "OC mausoleum_entombment $1,150",
+   "why": "no effective date printed in the source",
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)"
+  },
+  {
+   "what": "MONOBAR crypt $1,445",
+   "why": "no effective date printed in the source",
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)"
+  },
+  {
+   "what": "MONOBAR_INSTALL crypt $215",
+   "why": "no effective date printed in the source",
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)"
+  },
+  {
+   "what": "VASE crypt $415",
+   "why": "no effective date printed in the source",
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)"
+  },
+  {
+   "what": "RECORDING all $235",
+   "why": "no effective date printed in the source",
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
+  },
+  {
+   "what": "INSCRIPTION all $660",
+   "why": "no effective date printed in the source",
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
+  },
+  {
+   "what": "OC niche_inurnment $875",
+   "why": "no effective date printed in the source",
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
+  },
+  {
+   "what": "OC lawn_single $1,535",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC lawn_double_1st $2,085",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC lawn_double_2nd $1,535",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC mausoleum_entombment $1,205",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC ground_inurnment $985",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC boulder_inurnment $1,425",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "OC niche_non_inurnment $375",
+   "why": "no effective date printed in the source",
+   "source": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "what": "rate ECF 0.1",
+   "why": "no effective date printed in the source",
+   "source": "E:/Documents/CEMETERY MAPS drawings"
+  },
+  {
+   "what": "rate TAX 0.104",
+   "why": "no effective date printed in the source",
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html"
+  }
+ ],
+ "rates": [
+  {
+   "code": "ECF",
+   "label": "Endowment Care Fund",
+   "rate": 0.1,
+   "appliesTo": "all property",
+   "effective": null,
+   "note": "Stated as 10% and NOT included in listed prices on every drawing (ROAC, MVC, Eternal Light, Garden Court). No effective date is printed.",
+   "source": "E:/Documents/CEMETERY MAPS drawings"
+  },
+  {
+   "code": "TAX",
+   "label": "WA sales tax",
+   "rate": 0.104,
+   "appliesTo": "taxable merchandise (inscription)",
+   "effective": null,
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html"
+  }
+ ],
+ "fees": [
+  {
+   "code": "INSCRIPTION",
+   "label": "Inscription",
+   "product": "all",
+   "amount": 660.0,
+   "effective": null,
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)",
+   "source_text": "Inscription \u2014 $660"
+  },
+  {
+   "code": "INSCRIPTION",
+   "label": "Inscription",
+   "product": "all",
+   "amount": 605.0,
+   "effective": "2024-02-27",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (ROAC)",
+   "source_text": "Inscription:  $605.00 each | Effective February 27, 2024",
+   "also_in": "NICHES - MT VIEW COLUMBARIUM 1-30-25.xlsx (MVC)"
+  },
+  {
+   "code": "MONOBAR",
+   "label": "Monobar",
+   "product": "crypt",
+   "amount": 1445.0,
+   "effective": null,
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)",
+   "source_text": "Monobar (each):  #5015 (S & T)       #5103 (Dlx LN) #5104 (Dlx FN/Yr)",
+   "also_in": "CRYPTS - GARDEN COURT -2025.xlsx (GCM)"
+  },
+  {
+   "code": "MONOBAR_INSTALL",
+   "label": "Monobar install",
+   "product": "crypt",
+   "amount": 215.0,
+   "effective": null,
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)",
+   "source_text": "Monobar Install Fee (each)",
+   "also_in": "CRYPTS - GARDEN COURT -2025.xlsx (GCM)"
+  },
+  {
+   "code": "OC",
+   "label": "Boulder Inurnment",
+   "product": "boulder_inurnment",
+   "amount": 1425.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Boulder Inurnment"
+  },
+  {
+   "code": "OC",
+   "label": "Ground Inurnment",
+   "product": "ground_inurnment",
+   "amount": 985.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Ground Inurnment"
+  },
+  {
+   "code": "OC",
+   "label": "Lawn Interment \u2013 Double Depth (1st)",
+   "product": "lawn_double_1st",
+   "amount": 2085.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Lawn Interment \u2013 Double Depth (1st)"
+  },
+  {
+   "code": "OC",
+   "label": "Lawn Interment \u2013 Double Depth (2nd)",
+   "product": "lawn_double_2nd",
+   "amount": 1535.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Lawn Interment \u2013 Double Depth (2nd)"
+  },
+  {
+   "code": "OC",
+   "label": "Lawn Interment \u2013 Single Depth",
+   "product": "lawn_single",
+   "amount": 1535.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Lawn Interment \u2013 Single Depth"
+  },
+  {
+   "code": "OC",
+   "label": "Opening & Closing",
+   "product": "mausoleum_entombment",
+   "amount": 1150.0,
+   "effective": null,
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)",
+   "source_text": "Open & Close:",
+   "also_in": "CRYPTS - GARDEN COURT -2025.xlsx (GCM)"
+  },
+  {
+   "code": "OC",
+   "label": "Mausoleum Entombment",
+   "product": "mausoleum_entombment",
+   "amount": 1205.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Mausoleum Entombment"
+  },
+  {
+   "code": "OC",
+   "label": "Opening & Closing",
+   "product": "niche_inurnment",
+   "amount": 875.0,
+   "effective": null,
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)",
+   "source_text": "O&amp;C \u2014 $875",
+   "also_in": "index.html (live quote tool, qOC* inputs)"
+  },
+  {
+   "code": "OC",
+   "label": "Opening & Closing",
+   "product": "niche_inurnment",
+   "amount": 835.0,
+   "effective": "2025-01-13",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (ROAC)",
+   "source_text": "Open & Closing:  $835.00 each | Effective January 13, 2025",
+   "also_in": "NICHES - MT VIEW COLUMBARIUM 1-30-25.xlsx (MVC)"
+  },
+  {
+   "code": "OC",
+   "label": "Niche (Non-Inurnment)",
+   "product": "niche_non_inurnment",
+   "amount": 375.0,
+   "effective": null,
+   "source": "index.html (live quote tool, qOC* inputs)",
+   "source_text": "Niche (Non-Inurnment)"
+  },
+  {
+   "code": "RECORDING",
+   "label": "Recording fee",
+   "product": "all",
+   "amount": 235.0,
+   "effective": null,
+   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)",
+   "source_text": "Recording Fee \u2014 $235"
+  },
+  {
+   "code": "RECORDING",
+   "label": "Recording fee",
+   "product": "all",
+   "amount": 225.0,
+   "effective": "2025-01-13",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (ROAC)",
+   "source_text": "Recording Fee:  $225.00 each | Effective January 13, 2025",
+   "also_in": "NICHES - MT VIEW COLUMBARIUM 1-30-25.xlsx (MVC)"
+  },
+  {
+   "code": "VASE",
+   "label": "Vase",
+   "product": "crypt",
+   "amount": 415.0,
+   "effective": null,
+   "source": "CRYPTS - ETERNAL LIGHT MAUSOLEUM_01-2025.xlsx (ELM)",
+   "source_text": "Vase"
+  },
+  {
+   "code": "VASE",
+   "label": "Vase",
+   "product": "niche",
+   "amount": 260.0,
+   "effective": null,
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (ROAC)",
+   "source_text": "Small Bronze Niche Vase:  $260.00 each | Must be drilled/installed by PCM"
+  }
+ ],
+ "inventory": [
+  {
+   "structure": "ROAC",
+   "wall": "A-INT",
+   "level": "A",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-INT",
+   "level": "B",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-INT",
+   "level": "C",
+   "amount": 14295.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-INT",
+   "level": "D",
+   "amount": 15395.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-INT",
+   "level": "E",
+   "amount": 16495.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-INT",
+   "level": "A",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-INT",
+   "level": "B",
+   "amount": 14295.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-INT",
+   "level": "C",
+   "amount": 15395.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-INT",
+   "level": "D",
+   "amount": 16495.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-INT",
+   "level": "E",
+   "amount": 17595.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-INT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-INT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-INT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-INT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-INT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-INT",
+   "level": "A",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-INT",
+   "level": "B",
+   "amount": 14295.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-INT",
+   "level": "C",
+   "amount": 15395.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-INT",
+   "level": "D",
+   "amount": 16495.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-INT",
+   "level": "E",
+   "amount": 17595.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-INT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-INT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-INT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-INT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-INT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-INT",
+   "level": "A",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-INT",
+   "level": "B",
+   "amount": 14295.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-INT",
+   "level": "C",
+   "amount": 15395.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-INT",
+   "level": "D",
+   "amount": 16495.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-INT",
+   "level": "E",
+   "amount": 17595.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-INT",
+   "level": "A",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-INT",
+   "level": "B",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-INT",
+   "level": "C",
+   "amount": 14295.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-INT",
+   "level": "D",
+   "amount": 15395.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-INT",
+   "level": "E",
+   "amount": 16495.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "A-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "B-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "C-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "D-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "E-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-EXT",
+   "level": "A",
+   "amount": 8795.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-EXT",
+   "level": "B",
+   "amount": 9895.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-EXT",
+   "level": "C",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-EXT",
+   "level": "D",
+   "amount": 12095.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "F-EXT",
+   "level": "E",
+   "amount": 13195.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-EXT",
+   "level": "A",
+   "amount": 7995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-EXT",
+   "level": "B",
+   "amount": 8995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-EXT",
+   "level": "C",
+   "amount": 9995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-EXT",
+   "level": "D",
+   "amount": 10995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  },
+  {
+   "structure": "ROAC",
+   "wall": "G-EXT",
+   "level": "E",
+   "amount": 11995.0,
+   "effective": "2025-01-30",
+   "source": "NICHES - ROCK OF AGES COLUMBARIUM 1-30-25.xlsx (AVERAGES)"
+  }
+ ]
+}

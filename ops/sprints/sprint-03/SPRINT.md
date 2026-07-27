@@ -42,7 +42,29 @@ hyphen. **Get the dash or the spacing wrong and the item silently vanishes from 
 the price list** — no error, no log. That is the actual danger in editing prices by hand today,
 and it is worth fixing whether or not the rest of this sprint happens.
 
-## Gate 0 — an operator decision, and it blocks everything
+## Gate 0 — ANSWERED and DONE 2026-07-26
+
+**Martice chose option 1: the canonical `prices.json` lives in this repo**, at `data/prices.json`,
+served from Pages alongside the tool. In place and committed. PII re-checked on the copy that
+goes public — the only name-shaped string in 26 KB is the fee label "Endowment Care Fund".
+
+**One adjustment reality forced, and it is worth knowing.** The map *reads* `data/prices.json` at
+runtime (`loadPrices`, map `index.html:3984`) and falls back to a hardcoded table when it is
+missing — the very table this file exists to replace. So the map's copy could not simply be
+deleted. `scripts/build-prices.py` now writes **both copies in one run** (map commit `c7d31af`).
+That is what makes "single source of truth" true rather than aspirational: two files that are
+never written separately cannot drift. **Neither copy may be hand-edited** — change the source
+and rebuild.
+
+Verified: a real rebuild produces byte-identical files in both locations, and the only difference
+against the previously committed version is the `generated` date — **no price moved.** Map suite
+green at 19 + 7 + 8 + 11 + 24 plus validate.
+
+**What remains for the track:** make the tool actually read `data/prices.json` instead of its own
+literals, for the overlapping ~88 prices. The file being present changes nothing on its own — the
+tool still has zero references to it.
+
+### The decision as it was originally posed
 
 **`prices.json` lives in `wmp-cemetery-map/data/`, which is gitignored from this repo and whose
 own repo has no remote. The deployed tool therefore cannot fetch it — there is no URL.**
