@@ -1,26 +1,50 @@
 # STATE — Living Ledger
 
-**Current sprint:** sprint-01 **SHIPPED AND LIVE** (pushed, verified on GitHub Pages).
-Next: `sprints/sprint-03/` — `prices.json`, drafted and **blocked on Gate 0** (where the file lives).
-**Last updated:** 2026-07-26 (sprint-02 merged; sprint-03 drafted, Gate 0 open)
+**Current sprint:** none active. sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2)
+**partially shipped** - the 11 overlapping fees are live, the remaining scope is re-drafted below.
+**Last updated:** 2026-07-26, end of session. Everything merged and PUSHED; `main` = `875bcaf`.
 
 ## Status
 
-The contact/CRM layer shipped 2026-07-24 (12 commits). On 2026-07-25 the verification
-contract was made real: the 13 test suites moved out of gitignored `scratch/` into `tests/`
-with a single runner (`npm test`, 368 assertions), real customer data was scrubbed from
-them and from `index.html`'s comments, and both fixes are pushed and live.
+**2026-07-26 was a full day. Everything below is merged, pushed and verified live.**
 
-**As of 2026-07-26, four bodies of work landed.** Sprint-01 (templates externalized) is pushed
-and verified live on GitHub Pages. The guides audit is merged and pushed — granite swatches, 57
-blank photos in the Cremation Guide, 101 corrupt characters across eight PDFs, and the Burial
-Vault Guide rebuilt without seven discontinued prices. Advisor identity is **merged locally and
-NOT pushed**. The map audit is **done but deliberately unmerged** — it touches
-`wmp-cemetery-map/index.html` where another session has uncommitted work, so sequencing that
-merge is theirs.
+| Shipped | What |
+|---|---|
+| sprint-01 (S1) | 11 contract templates externalized. `index.html` 11.96 MB to 2.55 MB raw, 7.30 to 0.88 MB gzipped (**8.3x**, not the 11x predicted - the target had omitted fonts it had already excluded). Verified live: all 11 templates resolve over HTTPS with SHA-256 matching the Gate 0 manifest, and a RIC generated from the deployed site is identical to the recorded baseline. |
+| Guides audit | Granite swatches restored (27 lazy images never loaded in a headless print). **The Cremation Guide had 0 of 57 product photos.** 101 corrupt characters across 8 PDFs - a 2026-07-24 'fix' had been verified against the wrong codepoint. Burial Vault Guide rebuilt. |
+| Advisor identity | Randy's own name, email and phone now reach his paperwork. The name was hardcoded at **37 sites**, including the Insurance Producer of record and the Overview contact panel that had been showing him Martice's details to read to a family. GA producer ID deliberately BLANK for anyone without one. |
+| Map audit (S4 groundwork) | **`#space=<sid>` resolved for no unsold space at all** - 19,800 sids unindexed, including all 16,921 available ones. Three mausolea rendered 450px off-screen with Back unreachable. Niche lasso resolved nothing in 9 of 12 structures. |
+| sprint-02 (S7) | Map inventory styling: one outline colour, state in the fill, labels rotated to each row's bearing. Gates proven by sabotage. |
+| Discontinued vaults | Five products the tool was still offering families removed; the two setting fees KEPT, because they are components of the Standard Arrangement bundles. |
+| cemUpdate | Stale arrangement subtotals cleared. **The reported crash did not exist** - closed as not-reproducible. |
+| sprint-03 (S2), partial | 11 cemetery fees resolve from `data/prices.json`; `MONOBAR_INSTALL` corrected to 225; garden ECF carried as real per-garden amounts. |
 
-**Two things need Martice, not a director:** push the advisor-identity merge, and resolve the
-two possible double sales in CN and ELN against MIS (see the map audit section).
+**Verification contract moved from 368 assertions across 12 suites to 636 across 19**, and all 14
+generator signatures are still byte-identical to the reference - so none of the day's work moved a
+price on a contract.
+
+**The apparatus is the real deliverable.** A generator baseline that runs on a frozen clock and
+covers the scenario that was silently uncovered; a served-tree guard that refuses to test or
+capture against another worktree's dev-server; a map suite that fails when sabotaged; a
+data-integrity check that surfaced two possible double sales; and a screenshot guard that aborts
+rather than redacting a name.
+
+**Every real defect found today came from counting something and comparing it to an expectation** -
+images per page, sids indexed, pages in a contract, dollar figures before and after, served bytes
+versus disk bytes. None came from looking at the thing and judging it. See `MISTAKES.md`.
+
+## Open, and needing Martice
+
+1. **Two possible double sales** in CN and ELN - two spaces each recording two different people at
+   one interment position. Nothing in the data was changed; only MIS settles it.
+2. **`VASE` and the O&C write-back loop** - the file has one vase per structure, the tool sells
+   three SKUs; and `build-prices.py` scrapes the eight O&C amounts out of `index.html`, so they
+   cannot yet be changed from the file end (~20 lines map-side).
+3. **The map tint** - measurably real (24.7/255) but subtle over bright dry grass. One token,
+   `--tint-alpha`. Only Martice can judge the photo case.
+4. **Randy's GA producer ID** - blank by design until he has one.
+5. **`available` is cream outdoors, green indoors** - deliberate, worth a decision.
+6. **Five parked niche accuracy items** - recorded as DEFERRED in the map's docs, not to be chased.
 
 ## Read this too: `MISTAKES.md`
 
@@ -32,13 +56,20 @@ often than measurements have.
 
 ## Background jobs
 
-| Job | Status | Manifest/where to check | Started | Notes |
-|---|---|---|---|---|
-| Track A — externalize templates | **DONE, merged `4019c92`** | branch `s01/externalize-templates` (kept; durable) | 2026-07-26 | Audited and merged. Port 3737 released. |
-| Guides audit + granite marker PDF | **DONE, merged** | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
-| Map bug audit + fix | **DONE and MERGED (`b9677db`)** | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
-| sprint-02 Track A — map inventory styling | **DONE, merged** | map branch `s02/map-inventory-styling`, worktree `C:\Users\Martice\map-styling\wmp-cemetery-map` | 2026-07-26 | Gate 0 met (`b9677db`). Environment verified before spawn: `npm install` + `playwright` via `--no-save` so `package.json` stays clean, suite green at 19+7+8, port 8642 freed of a stale server. Worktree is OUTSIDE `bw-quote-tool` with the `wmp-cemetery-map` basename so the guard hook still applies. Director must `git worktree remove` at cleanup. |
+| Job | Status | Where | Notes |
+|---|---|---|---|
+| sprint-01 Track A | **shipped, live** | `s01/externalize-templates` | merge `4019c92` |
+| Guides audit | **shipped, live** | `guides/marker-pdf-colors` | merge `1e39642` |
+| Advisor identity | **shipped, live** | `fix/advisor-identity` | merge `cd16fdf` |
+| Map audit | **merged, local-only** | map `audit/map-bugs` | merge `b9677db`; map repo has no remote |
+| sprint-02 Track A | **merged, local-only** | map `s02/map-inventory-styling` | map repo has no remote |
+| Discontinued vaults | **shipped, live** | `fix/discontinued-vault-products` | merge `3c0228c` |
+| cemUpdate (other session) | **shipped, live** | `claude/awesome-cerf-226213` | merge `56e3d49` |
+| sprint-03 Track A | **shipped, live** | `s03/prices-single-source` | merge `875bcaf` |
 
+All worktrees removed at close except the map's, which stay until their branches are pruned.
+**Every branch above is LOCAL ONLY** - none was pushed, per the corrected rule that every push is
+an operator gate.
 ## Director's boot audit, 2026-07-26 — what changed before Track A spawned
 
 The 2026-07-25 Gate 0 ticks did not survive re-verification. Three defects, all found by

@@ -38,7 +38,7 @@ Rules of work for every sprint, track, and director. Director runbook:
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
    - `npm run check` → must print `index.html: 8 blocks, 0 errors`
-   - `npm test` → must print `504 passed, 0 failed across 15 suites`
+   - `npm test` → must print `636 passed, 0 failed across 19 suites`
      (the count rises as suites are added; it must never fall silently)
    - any generator-signature diff its sprint file specifies
 5. **Never trust, always verify.** "Done"/"pushed"/"loaded" are claims; the report quotes
@@ -81,7 +81,15 @@ Rules of work for every sprint, track, and director. Director runbook:
   in-flight edits in this working tree. `.claude/hooks/pre-git-guard.js` blocks bulk adds,
   blocks a push when `index.html` has a syntax error, and blocks any attempt to commit
   `wmp-cemetery-map/`.
-- **`git pull --rebase` at boot and again before any push.** Check `git log origin/main..main`.
+- **`git fetch` before any push, then check the BEHIND count** — `git rev-list --count main..origin/main`.
+  Integrate only if it is non-zero.
+
+  **Do NOT `git pull --rebase` on a `main` that carries merge commits.** This file used to say
+  exactly that, and on 2026-07-26 it tried to LINEARISE three `--no-ff` track merges — while the
+  branch was 15 ahead and 0 behind, so there was nothing to integrate at all. It conflicted
+  mid-replay; had it succeeded it would have destroyed the merge structure this same file tells
+  you to preserve. `git rebase --abort` restored it. `--rebase` is right for a linear branch and
+  wrong for an integration branch.
 - **Ops bookkeeping stays out of code commits.** `ops/` churn (STATE.md / SPRINT.md /
   TRACK-*.md) commits SEPARATELY from code, tagged `[sNN/ops]` — never mixed into a code or
   merge commit. Keeps the code history clean and bisectable.

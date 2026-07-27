@@ -9,12 +9,12 @@ trivial audit fixes; tracks build.
 1. Read `STATE.md`, `DESIGN.md`, `SPRINT_GUIDELINES.md`, then the current
    `sprints/sprint-NN/SPRINT.md` + its `TRACK-*.md` files.
 2. Analyze sprint requirements **vs reality**:
-   - `git pull --rebase`; `git log origin/main..main`; `git status --short`. Compare repo
+   - `git fetch`; `git log origin/main..main`; `git status --short`. Compare repo
      state against the sprint doc's assumptions. **Read the other sessions' recent commits**
      — someone else works on `docs/` and `*-guide.html` in this same tree.
    - Verify claimed prior state against actual artifacts:
      - `npm run check` → `index.html: 8 blocks, 0 errors`
-     - `npm test` → `504 passed, 0 failed across 15 suites`
+     - `npm test` → `636 passed, 0 failed across 19 suites`
      - if a sprint depends on a captured baseline, confirm the artifacts and
        `signatures.json` still exist where `STATE.md` says
      - if a sprint depends on extracted templates, re-verify their SHA-256s against

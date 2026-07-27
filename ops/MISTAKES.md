@@ -133,6 +133,32 @@ same morning. A document about mistakes, containing a mistake, of exactly the cl
 **Windows paths need raw strings; read the SyntaxWarning; and when a replace "cannot find"
 text you can plainly see, print the bytes.**
 
+### 10. Followed this project's own pre-push rule into a history rewrite.
+
+`SPRINT_GUIDELINES.md` said *"`git pull --rebase` at boot and again before any push"*. Run on a
+`main` carrying three `--no-ff` track merges, it tried to **linearise them** - while the branch
+was 15 ahead and 0 BEHIND, so there was nothing to integrate in the first place. It conflicted
+mid-replay; had it succeeded it would have destroyed the merge structure the same file tells you
+to preserve. `git rebase --abort` restored everything.
+
+**Lesson: `--rebase` is for a linear feature branch, not an integration branch.** Before a push:
+`git fetch`, check `git rev-list --count main..origin/main`, and integrate only if it is
+non-zero. Corrected in both guideline files.
+
+### 11. Compared the wrong bytes and nearly declared a good deploy broken.
+
+After pushing, the live page still contained the five discontinued vaults and was 18,090 bytes
+smaller than local. I reported it as a stale deploy and started polling.
+
+18,090 is almost exactly `index.html`'s line count. Git stores LF, the working copy is CRLF, so
+the served file **was** the new build - just normalised. Comparing raw bytes across that boundary
+is meaningless. Normalising line endings showed live and local identical, and the content markers
+confirmed it: all five products gone, both setting fees present.
+
+**Lesson: never byte-compare a working file against a served or committed one.** Normalise line
+endings first, or compare content markers. Had I stopped at the byte count I would have told
+Martice a correct deploy had failed.
+
 ---
 
 ## The pattern across all of them
