@@ -43,12 +43,12 @@ import { pathToFileURL } from 'url';
 // $618.24 to $2,880.24 depending on colour group. Fixing it means editing
 // index.html, which this track is forbidden to touch. Escalated, not patched.
 const TAX = 1.104;   // 10.4% WA sales tax, stated on the guide itself
-const TOOL_BUG = 'index.html carries the 32x20 prices on the 28x34 row; the price book and the guide agree against it. Escalated 2026-07-27.';
+// RESOLVED 2026-07-27 (commit 2996575): index.html's 28x34 row carried the 32x20
+// prices. Corrected to the price book's row 15. The three 28x34 exceptions below were
+// deleted the same day, which is the only reason this suite is green again — the
+// exception assertions fail when a listed disagreement starts agreeing, on purpose.
 const ESCALATED = new Map([
   ['32" x 20"|G1 Tariffed', 'price book cell C16 reads 32610; guide says $4,146.62; tool says 2610. Escalated 2026-07-27, unresolved.'],
-  ['28" x 34"|G1 Non-Tariffed', TOOL_BUG],
-  ['28" x 34"|G1 Tariffed', TOOL_BUG],
-  ['28" x 34"|Group 2', TOOL_BUG],
 ]);
 
 let pass = 0, fail = 0;
