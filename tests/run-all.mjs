@@ -13,6 +13,7 @@
 // harmless diagnostic — in a worktree without node_modules every suite crashed, printed
 // nothing, and the run reported green. Silence is now a failure, not a pass.
 import { spawn } from 'child_process';
+import { assertServesThisTree } from '../scripts/served-tree-check.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -55,7 +56,11 @@ const up = async () => {
 
 let server = null;
 if (await up()) {
-  console.log('dev-server already listening on ' + PORT + ' (reusing)\n');
+  // Reusing a server we did not start is only safe if it serves THIS tree. dev-server.mjs
+  // serves the directory of the SCRIPT, so a server from another worktree answers here and
+  // the suite silently tests the wrong code. Hit on 2026-07-26, in both directions.
+  await assertServesThisTree(URL_, ROOT, 'npm test');
+  console.log('dev-server already listening on ' + PORT + ' (reusing, verified as this tree)\n');
 } else {
   server = spawn(process.execPath, ['dev-server.mjs'], { cwd: ROOT, stdio: 'ignore' });
   const started = Date.now();

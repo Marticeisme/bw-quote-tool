@@ -5,10 +5,23 @@
 // Run BEFORE any externalization edit. The post-change run must reproduce these signatures.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { assertServesThisTree } from './served-tree-check.mjs';
 import path from 'path';
+
+// A capture that reads another worktree reports 14/14 identical and means nothing, because
+// on an unmodified tree 14/14 is trivially true. ROOT is this script's repo; the guard
+// refuses to capture unless the server is serving exactly that.
+const BASE = process.env.BASELINE_BASE || 'http://localhost:3737/';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const OUT = process.env.BASELINE_OUT ||
   path.join(process.env.TEMP || '/tmp', 'bw-baseline', process.env.TAG || 'before');
+// Identify the server BEFORE destroying anything. This check used to sit further down, so a
+// run against a foreign server wiped the output directory and only then refused - which is
+// how an accidental `TAG=before` run could have destroyed the reference irrecoverably.
+await assertServesThisTree(BASE, ROOT, 'baseline capture');
+
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -54,7 +67,7 @@ async function open() {
   page.on('dialog', async (d) => { errs.push('dialog: ' + d.message().slice(0, 120)); await d.accept(); });
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(IDENT)},'pw');`);
-  await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.evaluate((id) => _fbAuth.signInWithEmailAndPassword(id, 'pw'), IDENT);
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(300);
