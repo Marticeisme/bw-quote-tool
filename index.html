@@ -6925,6 +6925,10 @@ function cemUpdate() {
   var gardenPrice = 0, gardenEcf = 0, gardenLabel = '';
   var gardenQty = qty('qGardenQty') || 1;
   var spacePrice = 0;
+  // Hoisted to function scope: the Burial/Urn Arrangement guards below read both, so they
+  // must stay evaluable on every path through this function, not just the garden branch.
+  var gardenKey = '';
+  var scatterPlaques = {'scatter_rose': 605, 'scatter_eternal': 625, 'scatter_ossuary': 715};
   if (gardenVal) {
     var parts = gardenVal.split('|');
     gardenPrice = parseFloat(parts[1]) || 0;
@@ -6954,8 +6958,7 @@ function cemUpdate() {
       lines.push({label: 'Endowment Care Fund (ECF)', amount: gardenEcf * gardenQty, taxable: false, isSpace: true});
     }
     // Scattering package: add recording fee + plaque automatically
-    var gardenKey = parts[0];
-    var scatterPlaques = {'scatter_rose': 605, 'scatter_eternal': 625, 'scatter_ossuary': 715};
+    gardenKey = parts[0];
     if (scatterPlaques[gardenKey] !== undefined) {
       el('q2ndRightRow').style.display = 'none';
       if (el('q3rdRightRow')) el('q3rdRightRow').style.display = 'none';
@@ -7014,6 +7017,10 @@ function cemUpdate() {
     if (el('qUrnArrangeRow')) el('qUrnArrangeRow').style.display='none';
     if (el('qSpaceLocationRow')) el('qSpaceLocationRow').style.display='none';
     setDisp('qGardenDisp', 0); setDisp('qEcfDisp', 0);
+    // The rows holding these were just hidden; clear their amounts too, otherwise a stale
+    // figure from the previous garden is still sitting there when a garden is re-selected.
+    setDisp('qBurialArrangeDisp', 0); setDisp('qUrnArrangeDisp', 0);
+    setDisp('q2ndRightDisp', 0); setDisp('q3rdRightDisp', 0);
   }
 
   // Niche
