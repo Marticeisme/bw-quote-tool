@@ -331,6 +331,43 @@ tr:hover td{background:#eef3f8;}
 .ct-fix{padding:1px 8px;font-size:11px;font-family:inherit;background:var(--orange-tint);color:var(--orange-dark);border:1px solid var(--orange-tint);border-radius:20px;cursor:pointer;margin:1px 4px 1px 0;}
 .ct-fix:hover{border-color:var(--orange-dark);}
 .ct-fixin{padding:4px 7px;font-size:12px;font-family:inherit;border:1px solid var(--navy);border-radius:5px;background:#fff;color:var(--ink);min-width:150px;}
+/* CRM — the CSV import screen */
+.imp-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.imp-step{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:20px;background:var(--gray-light);color:var(--text-light);border:1px solid var(--gray-mid);}
+.imp-step.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.imp-step.done{background:var(--blue-light);color:var(--navy);}
+.imp-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.imp-card h3{margin:0 0 8px;font-size:15px;color:var(--navy);}
+.imp-card h4{margin:0 0 6px;font-size:12.5px;color:var(--navy);}
+.imp-hint{margin:0 0 10px;font-size:12.5px;color:var(--text-light);line-height:1.6;max-width:660px;}
+.imp-link{background:none;border:none;padding:0;font:inherit;font-weight:700;color:var(--navy);text-decoration:underline;cursor:pointer;}
+.imp-tblwrap{overflow-x:auto;margin-bottom:10px;}
+.imp-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.imp-tbl th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-light);border-bottom:1px solid var(--gray-mid);padding:6px 8px;}
+.imp-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.imp-tbl td.imp-h{font-weight:700;color:var(--navy);white-space:nowrap;}
+.imp-tbl td.imp-sample{color:var(--text-light);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imp-tbl tr.imp-skip{opacity:.6;}
+.imp-why{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 7px;border-radius:20px;background:var(--orange-tint);color:var(--orange-dark);margin-left:5px;}
+.imp-summary{margin:0 0 12px;font-size:12.5px;color:var(--ink);line-height:1.6;}
+.imp-counts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.imp-counts span{font-size:12px;padding:4px 11px;border-radius:20px;background:var(--gray-light);color:var(--text-light);border:1px solid var(--gray-mid);}
+.imp-counts span strong{color:var(--navy);font-size:13px;}
+.imp-counts span.ok{background:var(--blue-light);color:var(--navy);}
+.imp-counts span.warn{background:var(--orange-tint);color:var(--orange-dark);}
+.imp-counts span.warn strong{color:var(--orange-dark);}
+.imp-list{border-top:1px solid var(--border);padding-top:10px;margin-bottom:10px;}
+.imp-list ul{margin:0 0 8px;padding-left:18px;font-size:12.5px;color:var(--ink);line-height:1.7;}
+.imp-check{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink);cursor:pointer;}
+.imp-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.imp-go{padding:8px 18px;font-size:13px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;}
+.imp-go[disabled]{background:var(--gray-mid);cursor:not-allowed;}
+.imp-err{padding:10px 13px;border-radius:8px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.6;margin-bottom:14px;}
+.imp-progress{font-size:13px;color:var(--navy);font-weight:700;}
+.imp-batch{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);}
+.imp-batch:last-child{border-bottom:none;}
+.imp-batch-name{font-size:13px;font-weight:700;color:var(--navy);}
+.imp-batch-meta{font-size:11.5px;color:var(--text-light);flex:1;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -2909,6 +2946,8 @@ tr:hover td{background:#eef3f8;}
       <input id="contactSearch" type="text" placeholder="Search name, phone, email or notes…" oninput="bwCtSetQuery(this.value)"
              style="flex:1;min-width:220px;padding:8px 12px;font-size:13px;font-family:inherit;border:1px solid var(--gray-mid);border-radius:7px;background:var(--gray-light);color:var(--ink);">
       <button onclick="openContactEditor()" style="padding:8px 16px;font-size:13px;font-weight:700;font-family:inherit;color:#fff;background:var(--navy);border:none;border-radius:7px;cursor:pointer;white-space:nowrap;">+ New Contact</button>
+      <button id="ctExportBtn" onclick="bwExportContactsCsv()" title="Download every contact in this view as a CSV" style="padding:8px 14px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;white-space:nowrap;">Export CSV</button>
+      <button id="ctImportBtn" onclick="show('import-contacts',null)" style="padding:8px 14px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;white-space:nowrap;">Import</button>
       <button onclick="show('crm-settings',null)" style="padding:8px 14px;font-size:13px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;white-space:nowrap;">Settings</button>
     </div>
 
@@ -3068,6 +3107,25 @@ tr:hover td{background:#eef3f8;}
   </p>
   <button onclick="show('contacts',null)" style="padding:5px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);margin-bottom:16px;">← All contacts</button>
   <div id="crmSettingsBody"></div>
+</div>
+
+<!-- ══ IMPORT CONTACTS ═══════════════════════════════════════════════════════════════
+     Reached from the Contacts header, like Contact Settings — not a 37th nav item.
+     Four steps, each of which can be backed out of, and nothing is written until the last
+     one. #impBody is rebuilt on every step change but never on a store change, so no
+     control in it is ever destroyed mid-word. -->
+<div class="section" id="section-import-contacts">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="file-spreadsheet" data-lc-sz="18"></span></div>
+    <h2>Import Contacts</h2>
+  </div>
+  <p style="margin:0 0 14px;font-size:12.5px;color:var(--text-light);line-height:1.6;max-width:660px;">
+    Bring a book of contacts in from any CSV — you map its columns onto ours, see exactly what
+    would land, and only then write. Every import is one batch, and <strong>a batch can be undone
+    completely</strong>, so a wrong file is a mistake you can take back.
+  </p>
+  <button onclick="show('contacts',null)" style="padding:5px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);margin-bottom:16px;">← All contacts</button>
+  <div id="impBody"></div>
 </div>
 
 <div class="section" id="section-cem-saved">
@@ -12148,7 +12206,10 @@ function _bwListenerSpecs() {
     ['contractRoles', _roleStore, function(){ _rebuildRoleIndexes(); _bwContactsChanged(); }],
     ['contactNotes', _noteStore, function(){ _rebuildNoteIndexes(); _bwContactsChanged(); }],
     ['contactTasks', _taskStore, function(){ _rebuildTaskIndexes(); _bwContactsChanged(); }],
-    ['savedViews', _savedViewStore, function(){ _rebuildSavedViews(); _bwContactsChanged(); }]
+    ['savedViews', _savedViewStore, function(){ _rebuildSavedViews(); _bwContactsChanged(); }],
+    // Import batches. Read like everything else so an import run in Randy's browser is
+    // undoable from ours — the batch is the record of what happened, not a local variable.
+    ['importBatches', _batchStore, function(){ _rebuildBatches(); if (typeof renderContactImport === 'function') renderContactImport(); }]
   ];
   BW_TAXONOMY_KINDS.forEach(function(kind) {
     specs.push(['crmTaxonomy/' + kind, _taxStore[kind], function() {
@@ -12527,8 +12588,8 @@ function crmSettingsRemove(kind, code) {
 // rather than in code, so fixing the format is a one-line change.
 var BW_SALUTATION = { couple: 'Dear {a} & {b},', single: 'Dear {a},' };
 
-function bwProv(src) {
-  return { src: src || 'manual', ref: null, at: Date.now() };
+function bwProv(src, ref, at) {
+  return { src: src || 'manual', ref: ref == null ? null : ref, at: at || Date.now() };
 }
 function _bwStamp(rec, isNew) {
   var uid = (window._bwUser && window._bwUser.uid) || 'unknown';
@@ -13408,7 +13469,9 @@ var BW_CT_CSV_COLUMNS = [
   ['Interest',      function(p){ return p.interest || ''; }],
   ['Date of Birth', function(p){ return p.dob || ''; }],
   ['Owner',         function(p){ return p.ownerUid ? bwUidName(p.ownerUid) : ''; }],
-  ['Next Action',   function(p){ return (bwNextActionFor(p.id) || {}).dueOn || ''; }],
+  ['Next Action',      function(p){ return (bwNextActionFor(p.id) || {}).summary || ''; }],
+  ['Next Action Date', function(p){ return (bwNextActionFor(p.id) || {}).dueOn || ''; }],
+  ['Note',             function(p){ return bwCtNoteText(p.id).replace(/ \n /g, '\n'); }],
   ['Open To-Dos',   function(p){ return String(bwCtOpenTaskCount(p.id)); }],
   ['Last Activity', function(p){ return _bwDayFromTs(bwLastActivityFor(p.id)); }],
   ['Created',       function(p){ return _bwDayFromTs(p.createdAt); }],
@@ -13420,16 +13483,17 @@ function _bwCsvCell(v) {
   var s = String(v == null ? '' : v);
   return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
+// The ONE export. No ids means the current view; ids means the current selection, which is
+// what the bulk bar passes. Track B built the selection case and Track C the view case;
+// keeping two functions would have let them drift apart on the column list, and the column
+// list is the contract the importer reads back.
 function bwContactsToCsv(ids) {
   var list = (ids && ids.length ? ids.map(bwPartyById) : bwCtRows()).filter(Boolean);
-  var rows = [BW_CT_CSV_COLUMNS.map(function(c){ return _bwCsvCell(c[0]); }).join(',')];
-  list.forEach(function(p) {
-    rows.push(BW_CT_CSV_COLUMNS.map(function(c) {
-      var v; try { v = c[1](p); } catch (e) { v = ''; }
-      return _bwCsvCell(v);
-    }).join(','));
-  });
-  return rows.join('\r\n');
+  return bwToCsv(list.map(function(p) {
+    return BW_CT_CSV_COLUMNS.map(function(c) {
+      try { return c[1](p); } catch (e) { return ''; }
+    });
+  }), BW_CT_CSV_COLUMNS.map(function(c){ return c[0]; }));
 }
 function bwExportContactsCsv(ids) {
   var csv = bwContactsToCsv(ids);
@@ -13444,6 +13508,870 @@ function bwExportContactsCsv(ids) {
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   return csv;
 }
+// ═══════════════════════════════════════════════════════════════
+// CSV IN — parse, map, preview, import, undo         (sprint-04 Track C)
+// ═══════════════════════════════════════════════════════════════
+// This is the one path in the tool that writes a hundred records into a LIVE production
+// database in a single go, on the strength of a file nobody has read line by line. Everything
+// below is shaped by that fact: nothing is written until a preview has been seen and
+// confirmed, every write goes one record at a time, every record is stamped with the batch
+// that made it, and the whole batch can be taken back out again (D7).
+
+// ── the parser (D6) ──────────────────────────────────────────────────────────────────
+// Ours, no dependency. Sprint-01 spent a whole sprint taking 9.4 MB of vendored payload out
+// of this file; adding a CSV library back to save an hour is the wrong trade.
+//
+// RFC 4180 plus what actually arrives: a UTF-8 BOM on the front (Excel always writes one),
+// CRLF *and* LF records, "" as an escaped quote, commas and newlines inside quotes, ragged
+// rows, and trailing blank lines. It returns an array of arrays and nothing else — every
+// decision about what a column MEANS is made later, by the mapper, where it can be seen and
+// corrected.
+function bwCsvParse(text) {
+  var s = String(text == null ? '' : text);
+  if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+  var rows = [], row = [], cell = '', inQ = false, i = 0, n = s.length;
+  while (i < n) {
+    var c = s.charAt(i);
+    if (inQ) {
+      if (c === '"') {
+        if (s.charAt(i + 1) === '"') { cell += '"'; i += 2; continue; }   // "" is one quote
+        inQ = false; i++; continue;
+      }
+      cell += c; i++; continue;      // a comma or a newline in here is DATA, not a delimiter
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(cell); cell = ''; i++; continue; }
+    if (c === '\r' || c === '\n') {
+      if (c === '\r' && s.charAt(i + 1) === '\n') i++;                    // CRLF is one break
+      row.push(cell); rows.push(row); row = []; cell = ''; i++; continue;
+    }
+    cell += c; i++;
+  }
+  row.push(cell); rows.push(row);
+  // Trailing blank lines. A file ending in a newline leaves one empty final row and Excel
+  // often leaves several; dropping only rows that are a SINGLE empty cell can never eat a
+  // real record, because a real record of one empty cell is not a record.
+  while (rows.length && rows[rows.length - 1].length === 1 && rows[rows.length - 1][0] === '') rows.pop();
+  return rows;
+}
+
+// The inverse, and the ONE serialiser in the file — bwContactsToCsv() below is a thin caller.
+// Quotes only what needs it, via the same _bwCsvCell() the export has always used, so
+// bwCsvParse(bwToCsv(x)) returns x. Asserted over a fixture holding a comma, a quote, a
+// newline and a leading '+' in tests/test-contact-csv.mjs rather than assumed here.
+// `rows` may be arrays (positional) or objects keyed by column name.
+function bwToCsv(rows, columns) {
+  var cols = columns || [], out = [];
+  if (cols.length) out.push(cols.map(function(c){ return _bwCsvCell(c); }).join(','));
+  (rows || []).forEach(function(r) {
+    var cells = Object.prototype.toString.call(r) === '[object Array]'
+      ? r
+      : cols.map(function(c){ return r ? r[c] : ''; });
+    out.push(cells.map(function(c){ return _bwCsvCell(c); }).join(','));
+  });
+  return out.join('\r\n');
+}
+
+// ── the column mapper ────────────────────────────────────────────────────────────────
+// Headers are normalised to lowercase alphanumerics before anything is compared, so
+// "First Name", "first_name", "FIRSTNAME" and "First-Name" are one thing.
+function _bwNormHeader(h) {
+  return String(h == null ? '' : h).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// The tool fields a column can land in. `syn` is matched against the NORMALISED header.
+// Order matters: the first field that claims a header wins it.
+var BW_CSV_FIELDS = [
+  { key: 'given',      label: 'First name',    syn: ['first', 'firstname', 'fname', 'given', 'givenname'] },
+  { key: 'family',     label: 'Last name',     syn: ['last', 'lastname', 'lname', 'surname', 'family', 'familyname'] },
+  { key: 'middle',     label: 'Middle name',   syn: ['middle', 'middlename', 'mi'] },
+  { key: 'prefix',     label: 'Title / prefix', syn: ['prefix', 'title'] },
+  { key: 'suffix',     label: 'Suffix',        syn: ['suffix'] },
+  { key: 'nickname',   label: 'Goes by',       syn: ['nickname', 'goesby', 'nick', 'preferredname'] },
+  { key: 'fullname',   label: 'Full name (split into first/last)', syn: ['name', 'fullname', 'contactname'] },
+  { key: 'email',      label: 'Email',         syn: ['email', 'emailaddress', 'email1', 'primaryemail', 'emailhome'] },
+  { key: 'phone',      label: 'Phone',         syn: ['phone', 'phonenumber', 'mobile', 'cell', 'cellphone', 'home', 'homephone', 'primaryphone', 'telephone', 'tel'] },
+  { key: 'street',     label: 'Street',        syn: ['street', 'address', 'address1', 'addressline1', 'streetaddress', 'mailingaddress'] },
+  { key: 'city',       label: 'City',          syn: ['city', 'town'] },
+  { key: 'state',      label: 'State',         syn: ['state', 'st', 'province'] },
+  { key: 'zip',        label: 'ZIP',           syn: ['zip', 'zipcode', 'postal', 'postalcode', 'postcode'] },
+  { key: 'dob',        label: 'Date of birth', syn: ['dob', 'dateofbirth', 'birthdate', 'birthday'], date: true },
+  { key: 'source',     label: 'Source',        syn: ['source', 'leadsource', 'howheard'], tax: 'sources' },
+  { key: 'status',     label: 'Status',        syn: ['status', 'contactstatus', 'stage'], tax: 'statuses' },
+  { key: 'category',   label: 'Category',      syn: ['category', 'contacttype'], tax: 'categories' },
+  { key: 'flags',      label: 'Flags',         syn: ['flags', 'flag', 'tags', 'tag', 'labels'], tax: 'flags', multi: true },
+  { key: 'salutation', label: 'Salutation',    syn: ['salutation', 'greeting'] },
+  { key: 'interest',   label: 'Interested in', syn: ['interest', 'interestedin', 'interests'] },
+  { key: 'owner',      label: 'Owner',         syn: ['owner', 'assignedto', 'counselor', 'counsellor', 'advisor', 'salesrep'] },
+  { key: 'note',       label: 'Note (creates one note)', syn: ['note', 'notes', 'comment', 'comments', 'remarks', 'memo'] },
+  { key: 'nextAction', label: 'Next action (creates one to-do)', syn: ['nextaction', 'nextactionsummary', 'followup', 'followupaction', 'task', 'todo'] },
+  { key: 'nextActionDate', label: 'Next action date', syn: ['nextactiondate', 'nextactiondue', 'nextactionon', 'followupdate', 'followupduedate', 'duedate', 'due', 'nextcontactdate'], date: true }
+];
+function bwCsvFieldDef(key) {
+  for (var i = 0; i < BW_CSV_FIELDS.length; i++) if (BW_CSV_FIELDS[i].key === key) return BW_CSV_FIELDS[i];
+  return null;
+}
+
+// Auto-map a header row. Returns one entry per column: a field key, or '' meaning skip.
+//
+// TWO COLUMNS MAY NEVER AUTO-MAP TO ONE FIELD. An export carrying both "Name" and "First
+// Name", or both "Phone" and "Home Phone", would otherwise have the second silently overwrite
+// the first: the import reports success and half a column is gone. The loser falls back to
+// Skip and is reported like any other unmapped column, where it can be corrected by hand.
+function bwCsvAutoMap(header) {
+  var used = {}, out = [];
+  (header || []).forEach(function(h) {
+    var n = _bwNormHeader(h), hit = '';
+    if (n) {
+      for (var i = 0; i < BW_CSV_FIELDS.length && !hit; i++) {
+        if (BW_CSV_FIELDS[i].syn.indexOf(n) > -1) hit = BW_CSV_FIELDS[i].key;
+      }
+    }
+    if (hit && used[hit]) hit = '';
+    if (hit) used[hit] = true;
+    out.push(hit);
+  });
+  return out;
+}
+// What the mapping screen has to say out loud. Silently dropping a column is how an import
+// looks successful and loses half the data.
+function bwCsvMapReport(header, mapping) {
+  var skipped = [], dupTargets = {}, seen = {};
+  (header || []).forEach(function(h, i) {
+    var k = (mapping || [])[i] || '';
+    var name = String(h == null ? '' : h).trim() || '(column ' + (i + 1) + ')';
+    if (!k) { skipped.push(name); return; }
+    if (seen[k]) dupTargets[k] = true; else seen[k] = name;
+  });
+  return {
+    mapped: (mapping || []).filter(Boolean).length,
+    skipped: skipped,
+    skippedCount: skipped.length,
+    doubleMapped: Object.keys(dupTargets)
+  };
+}
+
+// A taxonomy cell arriving as a LABEL ("Walk-In") resolves to its CODE ("walk-in"), by exact
+// code, then exact label, then a normalised compare so "Walk In" and "walkin" also land.
+// Anything that resolves to none of those is DROPPED AND COUNTED — never invented, and never
+// written through as a code that does not exist (D5: an unresolvable code renders as itself,
+// which would silently put "Referal" in the filter list forever).
+function bwCsvResolveTax(kind, raw) {
+  var v = String(raw == null ? '' : raw).trim();
+  if (!v) return { code: '', ok: true, blank: true };
+  var list = bwTaxonomy(kind), i;
+  for (i = 0; i < list.length; i++) if (list[i] && list[i].code === v) return { code: v, ok: true };
+  var lc = v.toLowerCase();
+  for (i = 0; i < list.length; i++) if (list[i] && String(list[i].label || '').toLowerCase() === lc) return { code: list[i].code, ok: true };
+  var n = _bwNormHeader(v);
+  for (i = 0; i < list.length; i++) {
+    if (!list[i]) continue;
+    if (_bwNormHeader(list[i].code) === n || _bwNormHeader(list[i].label) === n) return { code: list[i].code, ok: true };
+  }
+  return { code: '', ok: false, raw: v };
+}
+
+// An Owner column carries a NAME, and a production uid is an opaque Firebase id that cannot be
+// derived from one. So: it resolves only when it names the signed-in counselor, and otherwise
+// it is dropped and reported. saveParty() then falls back to the importing user, which is the
+// honest answer — better than inventing a uid that owns nobody.
+function bwCsvResolveOwner(raw) {
+  var v = String(raw == null ? '' : raw).trim().toLowerCase();
+  if (!v) return '';
+  var me = (window._bwUser && window._bwUser.uid) || '';
+  if (!me) return '';
+  var a = {};
+  try { a = bwCurrentAdvisor() || {}; } catch (e) {}
+  var mine = [String(a.name || '').toLowerCase(), String(a.handle || '').toLowerCase(),
+              String(a.email || '').toLowerCase(), String(a.name || '').split(' ')[0].toLowerCase()];
+  return mine.indexOf(v) > -1 ? me : '';
+}
+
+// ISO in, ISO out; US M/D/YYYY and M/D/YY also, because that is what a spreadsheet exports.
+// Anything else returns '' and is reported as dropped rather than guessed — a date read the
+// wrong way round schedules a follow-up eleven months late and nobody notices.
+function bwCsvDate(raw) {
+  var s = String(raw == null ? '' : raw).trim();
+  if (!s) return '';
+  var pad = function(x){ return (String(x).length < 2 ? '0' : '') + x; };
+  var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return m[1] + '-' + pad(+m[2]) + '-' + pad(+m[3]);
+  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if (m) return m[3] + '-' + pad(+m[1]) + '-' + pad(+m[2]);
+  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2})$/);
+  if (m) { var y = +m[3]; return (y > 50 ? 1900 + y : 2000 + y) + '-' + pad(+m[1]) + '-' + pad(+m[2]); }
+  return '';
+}
+
+// ── duplicates (D8) ──────────────────────────────────────────────────────────────────
+function _bwTenDigits(v) {
+  var d = String(v == null ? '' : v).replace(/\D/g, '');
+  if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+  return d.length === 10 ? d : '';
+}
+function bwCsvContactKeys(p) {
+  var out = { emails: [], phones: [] };
+  if (!p) return out;
+  _bwAllValues(p.emails).forEach(function(e) {
+    e = String(e).trim().toLowerCase(); if (e) out.emails.push(e);
+  });
+  _bwAllValues(p.phones).forEach(function(v) {
+    var d = _bwTenDigits(v); if (d) out.phones.push(d);
+  });
+  return out;
+}
+// A row is a duplicate when its email matches an existing email exactly (case-insensitive) or
+// its phone matches on all ten digits — against the contacts already in the tool AND against
+// the rows earlier in this same file, which is where "the same person typed twice" actually
+// comes from. A NAME-only match is NOT a duplicate: bwFindPossibleDuplicates() warns about
+// those and the row still imports. Nothing is ever merged automatically.
+function bwCsvFindDuplicate(p, seen) {
+  var k = bwCsvContactKeys(p), i, j;
+  if (!k.emails.length && !k.phones.length) return null;
+  for (i = 0; i < _parties.length; i++) {
+    var q = _parties[i]; if (!q) continue;
+    var qk = bwCsvContactKeys(q);
+    for (j = 0; j < k.emails.length; j++) {
+      if (qk.emails.indexOf(k.emails[j]) > -1) return { of: bwPartyName(q), why: 'email ' + k.emails[j], id: q.id };
+    }
+    for (j = 0; j < k.phones.length; j++) {
+      if (qk.phones.indexOf(k.phones[j]) > -1) return { of: bwPartyName(q), why: 'phone ' + bwFmtPhone(k.phones[j]), id: q.id };
+    }
+  }
+  if (seen) {
+    for (j = 0; j < k.emails.length; j++) {
+      if (seen.emails[k.emails[j]]) return { of: seen.emails[k.emails[j]], why: 'email ' + k.emails[j], inFile: true };
+    }
+    for (j = 0; j < k.phones.length; j++) {
+      if (seen.phones[k.phones[j]]) return { of: seen.phones[k.phones[j]], why: 'phone ' + bwFmtPhone(k.phones[j]), inFile: true };
+    }
+  }
+  return null;
+}
+
+// ── one CSV row → one draft contact ──────────────────────────────────────────────────
+function _bwCsvAt(row, i) { return String((row && row[i] != null) ? row[i] : '').trim(); }
+
+function bwCsvPlanRow(row, mapping, line, seen) {
+  var v = {};
+  // First non-empty wins when two columns were mapped to the same field by hand. The
+  // auto-mapper never does that (see bwCsvAutoMap), but the user is allowed to.
+  (mapping || []).forEach(function(k, idx) {
+    if (!k) return;
+    var raw = _bwCsvAt(row, idx);
+    if (raw && !v[k]) v[k] = raw;
+  });
+
+  var dropped = [], p = { kind: 'person' };
+
+  if (v.fullname && !v.given && !v.family) {
+    var n = null;
+    try { n = bwSplitName(v.fullname); } catch (e) {}
+    if (n) { if (n.given) p.given = n.given; if (n.middle) p.middle = n.middle; if (n.family) p.family = n.family; }
+    else p.family = v.fullname;
+  }
+  ['prefix', 'given', 'middle', 'family', 'suffix', 'nickname', 'salutation', 'interest'].forEach(function(k) {
+    if (v[k]) p[k] = v[k];
+  });
+  if (v.dob) {
+    var d = bwCsvDate(v.dob);
+    if (d) p.dob = d; else dropped.push({ field: 'date of birth', value: v.dob });
+  }
+  if (v.email) p.emails = { e1: { value: v.email, isPrimary: true, note: '' } };
+  if (v.phone) {
+    // Digits only in storage, formatted for display (DESIGN §4). A number that is not ten
+    // digits is still stored — it is a Data-health row, not a reason to lose the contact.
+    var digits = String(v.phone).replace(/\D/g, '');
+    if (digits) p.phones = { p1: { value: digits, type: 'mobile', isPrimary: true, note: '' } };
+  }
+  if (v.street || v.city || v.state || v.zip) {
+    p.addresses = { a1: { type: 'mailing', street1: v.street || '', street2: '',
+                          city: v.city || '', state: v.state || '', postal: v.zip || '', isPrimary: true } };
+  }
+  [['source', 'sources'], ['status', 'statuses'], ['category', 'categories']].forEach(function(pair) {
+    if (!v[pair[0]]) return;
+    var r = bwCsvResolveTax(pair[1], v[pair[0]]);
+    if (r.ok && r.code) p[pair[0]] = r.code;
+    else if (!r.ok) dropped.push({ field: pair[0], value: r.raw });
+  });
+  if (v.flags) {
+    var codes = [];
+    String(v.flags).split(/[;|,]/).forEach(function(f) {
+      f = f.trim(); if (!f) return;
+      var r = bwCsvResolveTax('flags', f);
+      if (r.ok && r.code) { if (codes.indexOf(r.code) === -1) codes.push(r.code); }
+      else dropped.push({ field: 'flags', value: f });
+    });
+    if (codes.length) p.flags = codes;
+  }
+  if (v.owner) {
+    var uid = bwCsvResolveOwner(v.owner);
+    if (uid) p.ownerUid = uid; else dropped.push({ field: 'owner', value: v.owner });
+  }
+
+  var taskSummary = v.nextAction || '', taskDue = '';
+  if (v.nextActionDate) {
+    taskDue = bwCsvDate(v.nextActionDate);
+    if (!taskDue) dropped.push({ field: 'next action date', value: v.nextActionDate });
+  }
+  // A date with nothing to do on it is still a follow-up; a summary with no date is a to-do
+  // with no due date. Neither is a reason to drop the other.
+  if (!taskSummary && taskDue) taskSummary = 'Follow up';
+
+  var e = {
+    line: line, party: p, note: v.note || '', taskSummary: taskSummary, taskDue: taskDue,
+    dropped: dropped, name: bwPartyName(p), cells: (row || []).length,
+    valid: bwPartyIsValid(p), dupOf: null, dupWhy: '', nameWarn: 0
+  };
+  if (e.valid) {
+    var dup = bwCsvFindDuplicate(p, seen);
+    if (dup) { e.dupOf = dup.of; e.dupWhy = dup.why; e.dupInFile = !!dup.inFile; }
+    try { e.nameWarn = bwFindPossibleDuplicates(p).length; } catch (err) { e.nameWarn = 0; }
+  }
+  return e;
+}
+
+// The whole file, planned but not written. Everything the preview screen shows comes from
+// here, so what he is shown and what would be written cannot disagree.
+function bwCsvPlan(rows, mapping, opts) {
+  var header = (rows && rows[0]) || [];
+  var data = (rows || []).slice(1);
+  var importDupes = !!(opts && opts.importDupes);
+  var seen = { emails: {}, phones: {} };
+  var plan = {
+    header: header, mapping: mapping, importDupes: importDupes, rows: [], dropped: [],
+    counts: { total: data.length, willImport: 0, dupes: 0, invalid: 0, dropped: 0, notes: 0, tasks: 0, ragged: 0 }
+  };
+  data.forEach(function(r, i) {
+    var e = bwCsvPlanRow(r, mapping, i + 2, seen);   // line 1 is the header, as a spreadsheet counts
+    if (e.cells !== header.length) plan.counts.ragged++;
+    plan.rows.push(e);
+    if (!e.valid) plan.counts.invalid++;
+    else if (e.dupOf && !importDupes) plan.counts.dupes++;
+    else {
+      plan.counts.willImport++;
+      if (e.note) plan.counts.notes++;
+      if (e.taskSummary) plan.counts.tasks++;
+      var k = bwCsvContactKeys(e.party);
+      k.emails.forEach(function(x){ if (!seen.emails[x]) seen.emails[x] = e.name; });
+      k.phones.forEach(function(x){ if (!seen.phones[x]) seen.phones[x] = e.name; });
+    }
+    plan.counts.dropped += e.dropped.length;
+    e.dropped.forEach(function(d){ plan.dropped.push({ line: e.line, field: d.field, value: d.value }); });
+  });
+  return plan;
+}
+
+// ── import batches (D7) ──────────────────────────────────────────────────────────────
+var _batchStore = {};     // id -> batch record
+var _bwBatches = [];      // derived, newest first
+function _rebuildBatches() {
+  _bwBatches = Object.keys(_batchStore).map(function(k){ return _batchStore[k]; }).filter(Boolean)
+    .sort(function(a, b){ return (b.at || 0) - (a.at || 0); });
+}
+function _bwWriteBatch(b) {
+  _batchStore[b.id] = JSON.parse(JSON.stringify(b));
+  _rebuildBatches();
+  if (!window._fbDB) return Promise.resolve(b);
+  return _fbDB.ref('importBatches/' + b.id).set(b).then(function(){ return b; });
+}
+function _bwDeleteBatch(id) {
+  delete _batchStore[id];
+  _rebuildBatches();
+  if (!window._fbDB) return Promise.resolve();
+  return _fbDB.ref('importBatches/' + id).remove();
+}
+function bwImportBatches() { return _bwBatches.slice(); }
+
+// THE write. One record at a time, always: parties/<id>, contactNotes/<id>, contactTasks/<id>,
+// importBatches/<id>. Nothing here writes a collection node — that call shape has destroyed
+// real data on this project twice (2026-07-11, 2026-07-16) and there is no version of this
+// function that needs it.
+function bwCsvImport(plan, meta) {
+  var batchId = window._fbDB
+    ? _fbDB.ref('importBatches').push().key
+    : 'b' + Date.now() + '_' + Math.floor(Math.random() * 1e6);
+  var at = Date.now();
+  var uid = (window._bwUser && window._bwUser.uid) || '';
+  var batch = {
+    id: batchId, filename: (meta && meta.filename) || 'contacts.csv', at: at, by: uid,
+    rowCount: plan.counts.total, createdPartyIds: [], createdNoteIds: [], createdTaskIds: []
+  };
+  var result = {
+    batchId: batchId, filename: batch.filename, created: 0, skipped: 0, failed: 0,
+    notes: 0, tasks: 0, skippedRows: [], failedRows: [], dropped: plan.dropped.slice()
+  };
+  // The batch record goes in FIRST, empty. An import interrupted half-way is then still a
+  // findable, undoable batch rather than a pile of orphans nobody can identify.
+  var chain = _bwWriteBatch(batch);
+  var done = 0, prov = { src: 'csv-import', ref: batchId, at: at };
+
+  plan.rows.forEach(function(e) {
+    chain = chain.then(function() {
+      done++;
+      if (typeof _bwImpTick === 'function') _bwImpTick(done, plan.rows.length);
+      if (!e.valid) {
+        result.skipped++;
+        result.skippedRows.push({ line: e.line, name: e.name, why: 'no name and no phone or email' });
+        return;
+      }
+      if (e.dupOf && !plan.importDupes) {
+        result.skipped++;
+        result.skippedRows.push({ line: e.line, name: e.name,
+          why: 'duplicate of ' + e.dupOf + (e.dupInFile ? ' earlier in this file' : '') + ' — ' + e.dupWhy });
+        return;
+      }
+      var p = JSON.parse(JSON.stringify(e.party));
+      p._prov = { src: prov.src, ref: prov.ref, at: prov.at };
+      return saveParty(p).then(function(saved) {
+        result.created++;
+        batch.createdPartyIds.push(saved.id);
+        var after = Promise.resolve();
+        if (e.note) {
+          after = after.then(function() {
+            return saveContactNote({ partyId: saved.id, body: e.note, pinned: false,
+              _prov: { src: prov.src, ref: prov.ref, at: prov.at } })
+              .then(function(nrec){ result.notes++; batch.createdNoteIds.push(nrec.id); },
+                    function(){ /* a note that will not save never costs us the contact */ });
+          });
+        }
+        if (e.taskSummary) {
+          after = after.then(function() {
+            return saveContactTask({ partyId: saved.id, summary: e.taskSummary, dueOn: e.taskDue || null,
+              category: 'follow-up', _prov: { src: prov.src, ref: prov.ref, at: prov.at } })
+              .then(function(trec){ result.tasks++; batch.createdTaskIds.push(trec.id); },
+                    function(){});
+          });
+        }
+        return after;
+      }, function(err) {
+        result.failed++;
+        result.failedRows.push({ line: e.line, name: e.name, why: (err && err.message) || String(err) });
+      });
+    });
+  });
+  return chain.then(function(){ return _bwWriteBatch(batch); }).then(function() {
+    result.batch = JSON.parse(JSON.stringify(_batchStore[batchId] || batch));
+    return result;
+  });
+}
+
+// ── undo (D7) — the property that makes importing into a live database acceptable ────
+function _bwIdsFromProv(store, batchId) {
+  return Object.keys(store).filter(function(id) {
+    var r = store[id];
+    return r && r._prov && r._prov.src === 'csv-import' && r._prov.ref === batchId;
+  });
+}
+function _bwUnionIds(a, b) {
+  var seen = {}, out = [];
+  (a || []).concat(b || []).forEach(function(id){ if (id && !seen[id]) { seen[id] = 1; out.push(id); } });
+  return out;
+}
+// Deletes exactly the ids this batch created — the parties, their notes, their to-dos — and
+// then the batch record. Nothing else, ever.
+//
+// The recorded id lists are the primary record; provenance is the backstop, so a run that was
+// interrupted before the batch could be rewritten is still completely undoable.
+//
+// It refuses to delete a contact that has since gained a contractRole. deleteParty() already
+// refuses that, and this SURFACES the refusal rather than working around it: the contact and
+// its imported notes stay, the batch stays holding exactly what survived, and the undo can be
+// run again once the links are cleared.
+function bwUndoImport(batchId) {
+  var b = _batchStore[batchId];
+  if (!b) return Promise.reject(new Error('No such import batch.'));
+  var partyIds = _bwUnionIds(b.createdPartyIds, _bwIdsFromProv(_partyStore, batchId));
+  var noteIds  = _bwUnionIds(b.createdNoteIds,  _bwIdsFromProv(_noteStore,  batchId));
+  var taskIds  = _bwUnionIds(b.createdTaskIds,  _bwIdsFromProv(_taskStore,  batchId));
+  var res = { batchId: batchId, deletedParties: 0, deletedNotes: 0, deletedTasks: 0,
+              kept: [], batchRemoved: false };
+  var keptParties = {};
+  var chain = Promise.resolve();
+
+  partyIds.forEach(function(id) {
+    chain = chain.then(function() {
+      if (!_partyStore[id]) return;                    // already gone; nothing to do
+      var name = bwPartyName(_partyStore[id]) || id;
+      return deleteParty(id).then(
+        function(){ res.deletedParties++; },
+        function(err) {
+          keptParties[id] = true;
+          res.kept.push({ id: id, name: name, why: (err && err.message) || String(err) });
+        });
+    });
+  });
+  noteIds.forEach(function(id) {
+    chain = chain.then(function() {
+      var n = _noteStore[id];
+      if (!n || keptParties[n.partyId]) return;        // never strand a surviving contact
+      return deleteContactNote(id).then(function(){ res.deletedNotes++; });
+    });
+  });
+  taskIds.forEach(function(id) {
+    chain = chain.then(function() {
+      var t = _taskStore[id];
+      if (!t || keptParties[t.partyId]) return;
+      return deleteContactTask(id).then(function(){ res.deletedTasks++; });
+    });
+  });
+
+  return chain.then(function() {
+    if (!res.kept.length) return _bwDeleteBatch(batchId).then(function(){ res.batchRemoved = true; return res; });
+    var b2 = JSON.parse(JSON.stringify(_batchStore[batchId] || b));
+    b2.createdPartyIds = partyIds.filter(function(id){ return !!keptParties[id]; });
+    b2.createdNoteIds  = noteIds.filter(function(id){ return !!_noteStore[id]; });
+    b2.createdTaskIds  = taskIds.filter(function(id){ return !!_taskStore[id]; });
+    b2.undoneAt = Date.now();
+    return _bwWriteBatch(b2).then(function(){ return res; });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THE IMPORT SCREEN — pick, map, preview, import
+// ═══════════════════════════════════════════════════════════════
+var BW_DEMO_CSV_URL = 'data/demo-contacts.csv';
+var BW_DEMO_CSV_HEADER = 'first,last,email,phone,street,city,state,zip,source,status,category,flags,salutation,note,next_action,next_action_date';
+
+// A body that is an HTML page, not a CSV. This is not paranoia: dev-server.mjs has an SPA
+// fallback and a MISSING file under data/ answers HTTP 200 with the whole 2.75 MB index.html
+// (measured 2026-07-27: data/does-not-exist.csv -> 200, 2,750,192 bytes, "<!DOCTYPE html>").
+// A captive portal or a proxy error page behaves identically in production. res.ok is
+// therefore worth nothing here — the BODY is what gets checked, before a single row is shown.
+// Sprint-01 produced a silently wrong 4-page RIC by trusting a 200; the same mistake here
+// would hand the parser a megabyte of markup with a live database on the other end.
+function bwCsvLooksLikeHtml(text) {
+  var head = String(text == null ? '' : text).replace(/^﻿/, '').slice(0, 500).trim().toLowerCase();
+  return head.indexOf('<!doctype') === 0 || head.indexOf('<html') === 0
+      || head.indexOf('<head') === 0 || head.indexOf('<body') === 0;
+}
+function bwLoadDemoCsv(url) {
+  var u = url || BW_DEMO_CSV_URL;
+  return fetch(u, { cache: 'no-store' }).then(function(res) {
+    return res.text().then(function(text) {
+      if (!res.ok) throw new Error('Could not load ' + u + ' — the server answered ' + res.status + '.');
+      if (bwCsvLooksLikeHtml(text)) {
+        throw new Error('Could not load ' + u + ' — the server returned an HTML page, not a CSV ('
+          + text.length + ' bytes). The file is missing from this deploy.');
+      }
+      var rows = bwCsvParse(text);
+      var got = ((rows[0] || []).map(_bwNormHeader)).join(',');
+      var want = BW_DEMO_CSV_HEADER.split(',').map(_bwNormHeader).join(',');
+      if (got !== want) {
+        throw new Error('Could not load ' + u + ' — its header row is not the demo file\'s. '
+          + 'Expected: ' + BW_DEMO_CSV_HEADER);
+      }
+      return text;
+    });
+  });
+}
+
+// { step:1|2|3|4, filename, rows, header, mapping, importDupes, plan, result, busy }
+var _bwImp = null;
+var _bwImpError = '';
+
+function bwImpReset() { _bwImp = null; _bwImpError = ''; renderContactImport(); }
+function bwImpBack() {
+  if (!_bwImp) return;
+  if (_bwImp.step === 3) { _bwImp.step = 2; _bwImp.plan = null; }
+  else if (_bwImp.step === 2) { _bwImp = null; }
+  _bwImpError = '';
+  renderContactImport();
+}
+function bwImpBegin(text, filename) {
+  _bwImpError = '';
+  if (bwCsvLooksLikeHtml(text)) {
+    _bwImpError = filename + ' is an HTML page, not a CSV. Nothing has been imported.';
+    _bwImp = null; renderContactImport(); return null;
+  }
+  var rows = bwCsvParse(text);
+  if (rows.length < 2) {
+    _bwImpError = filename + ' has a header row but no data rows. Nothing has been imported.';
+    _bwImp = null; renderContactImport(); return null;
+  }
+  _bwImp = {
+    step: 2, filename: filename || 'contacts.csv', rows: rows, header: rows[0],
+    mapping: bwCsvAutoMap(rows[0]), importDupes: false, plan: null, result: null, busy: false
+  };
+  renderContactImport();
+  return _bwImp;
+}
+function bwImpPickFile(input) {
+  var f = input && input.files && input.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function(){ bwImpBegin(String(r.result || ''), f.name); };
+  r.onerror = function() {
+    _bwImpError = 'Could not read ' + f.name + '.'; _bwImp = null; renderContactImport();
+  };
+  r.readAsText(f);
+}
+// The demo file enters at step 2 like any other file. A one-click "seed my live database"
+// button is a foot-gun; this one still has to be mapped, previewed and confirmed.
+function bwImpLoadDemo() {
+  _bwImpError = 'Loading ' + BW_DEMO_CSV_URL + '…';
+  renderContactImport();
+  return bwLoadDemoCsv().then(function(text) {
+    bwImpBegin(text, 'demo-contacts.csv');
+  }, function(err) {
+    _bwImp = null;
+    _bwImpError = (err && err.message) || String(err);
+    renderContactImport();
+  });
+}
+function bwImpSetMap(i, key) {
+  if (!_bwImp) return;
+  _bwImp.mapping[i] = key || '';
+  var s = el('impMapSummary');
+  if (s) s.innerHTML = _bwImpMapSummaryHtml();
+}
+function bwImpSetDupes(on) {
+  if (!_bwImp) return;
+  _bwImp.importDupes = !!on;
+  _bwImp.plan = bwCsvPlan(_bwImp.rows, _bwImp.mapping, { importDupes: _bwImp.importDupes });
+  renderContactImport();
+}
+function bwImpToPreview() {
+  if (!_bwImp) return;
+  _bwImp.plan = bwCsvPlan(_bwImp.rows, _bwImp.mapping, { importDupes: _bwImp.importDupes });
+  _bwImp.step = 3;
+  _bwImpError = '';
+  renderContactImport();
+}
+function _bwImpTick(done, total) {
+  var b = el('impProgress');
+  if (b) b.textContent = 'Importing… row ' + done + ' of ' + total;
+}
+function bwImpRun() {
+  if (!_bwImp || _bwImp.busy || !_bwImp.plan) return Promise.resolve(null);
+  _bwImp.busy = true;
+  _bwImp.step = 4;
+  renderContactImport();
+  var plan = _bwImp.plan, filename = _bwImp.filename;
+  return bwCsvImport(plan, { filename: filename }).then(function(result) {
+    _bwImp.busy = false;
+    _bwImp.result = result;
+    renderContactImport();
+    return result;
+  }, function(err) {
+    _bwImp.busy = false;
+    _bwImpError = 'The import stopped: ' + ((err && err.message) || String(err))
+      + ' Anything already written is in the batch below and can be undone.';
+    renderContactImport();
+    throw err;
+  });
+}
+function bwImpUndo(batchId) {
+  _bwImpError = '';
+  return bwUndoImport(batchId).then(function(res) {
+    if (res.kept.length) {
+      _bwImpError = res.kept.length + ' contact' + (res.kept.length === 1 ? '' : 's')
+        + ' could not be removed: ' + res.kept.map(function(k){ return k.name + ' — ' + k.why; }).join(' · ');
+    }
+    if (_bwImp && _bwImp.result && _bwImp.result.batchId === batchId) _bwImp.result.undone = res;
+    renderContactImport();
+    return res;
+  }, function(err) {
+    _bwImpError = (err && err.message) || String(err);
+    renderContactImport();
+    throw err;
+  });
+}
+
+// ── render ───────────────────────────────────────────────────────────────────────────
+function _bwImpMapSummaryHtml() {
+  if (!_bwImp) return '';
+  var rep = bwCsvMapReport(_bwImp.header, _bwImp.mapping);
+  var out = '<strong>' + rep.mapped + '</strong> column' + (rep.mapped === 1 ? '' : 's') + ' mapped';
+  if (rep.skippedCount) {
+    out += ' · <strong>' + rep.skippedCount + '</strong> skipped and not imported: '
+      + _ceEsc(rep.skipped.join(', '));
+  } else {
+    out += ' · nothing skipped';
+  }
+  if (rep.doubleMapped.length) {
+    out += ' · <span style="color:var(--orange-dark);">two columns point at ' + _ceEsc(rep.doubleMapped.join(', '))
+      + ' — the first one with a value wins</span>';
+  }
+  return out;
+}
+function _bwImpStepsHtml(n) {
+  var names = ['Pick a file', 'Map columns', 'Preview', 'Import'];
+  return '<div class="imp-steps">' + names.map(function(t, i) {
+    return '<span class="imp-step' + (i + 1 === n ? ' active' : (i + 1 < n ? ' done' : '')) + '">'
+      + (i + 1) + '. ' + t + '</span>';
+  }).join('') + '</div>';
+}
+function _bwImpBatchesHtml() {
+  var list = bwImportBatches();
+  if (!list.length) return '';
+  return '<div class="imp-card" id="impBatches"><h3>Imports</h3>'
+    + '<p class="imp-hint">Undo removes exactly the contacts, notes and to-dos that import created, and nothing else.</p>'
+    + list.map(function(b) {
+        var n = (b.createdPartyIds || []).length;
+        return '<div class="imp-batch" data-batch="' + _ceEsc(b.id) + '">'
+          + '<span class="imp-batch-name">' + _ceEsc(b.filename || 'contacts.csv') + '</span>'
+          + '<span class="imp-batch-meta">' + _ceEsc(bwWhen(b.at)) + ' · ' + n + ' contact' + (n === 1 ? '' : 's')
+          + (b.undoneAt ? ' · partly undone' : '') + '</span>'
+          + '<button class="ct-mini" onclick="bwImpUndo(\'' + _ceEsc(b.id) + '\')">Undo this import</button>'
+          + '</div>';
+      }).join('') + '</div>';
+}
+function _bwImpPickHtml() {
+  return '<div class="imp-card"><h3>Choose a CSV</h3>'
+    + '<p class="imp-hint">Any contacts export will do — you map its columns onto ours in the next step. '
+    + 'Nothing is written until you have seen the preview and pressed Import.</p>'
+    + '<input type="file" id="impFile" accept=".csv,text/csv" onchange="bwImpPickFile(this)">'
+    + '<p class="imp-hint" style="margin-top:14px;">Or <button class="imp-link" id="impDemoBtn" onclick="bwImpLoadDemo()">load the demo file</button>'
+    + ' — thirty invented contacts, for trying this out. It goes through the same mapping, preview and confirm as any other file.</p>'
+    + '</div>';
+}
+function _bwImpMapHtml() {
+  var imp = _bwImp;
+  var sample = imp.rows[1] || [];
+  var opts = function(cur) {
+    return '<option value="">— Skip this column —</option>'
+      + BW_CSV_FIELDS.map(function(f) {
+          return '<option value="' + f.key + '"' + (f.key === cur ? ' selected' : '') + '>' + _ceEsc(f.label) + '</option>';
+        }).join('');
+  };
+  var rows = imp.header.map(function(h, i) {
+    return '<tr><td class="imp-h">' + _ceEsc(String(h == null ? '' : h).trim() || '(column ' + (i + 1) + ')') + '</td>'
+      + '<td class="imp-sample">' + _ceEsc(_bwCsvAt(sample, i) || '—') + '</td>'
+      + '<td><select class="ct-sel" data-col="' + i + '" onchange="bwImpSetMap(' + i + ',this.value)">'
+      + opts(imp.mapping[i]) + '</select></td></tr>';
+  }).join('');
+  return '<div class="imp-card"><h3>Map the columns of ' + _ceEsc(imp.filename) + '</h3>'
+    + '<p class="imp-hint">' + (imp.rows.length - 1) + ' data rows. A column left on “Skip” is not imported at all.</p>'
+    + '<div class="imp-tblwrap"><table class="imp-tbl"><thead><tr><th>Column in the file</th><th>First value</th><th>Import as</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>'
+    + '<p class="imp-summary" id="impMapSummary">' + _bwImpMapSummaryHtml() + '</p>'
+    + '<div class="imp-actions"><button class="imp-go" onclick="bwImpToPreview()">Preview →</button>'
+    + '<button class="ct-mini" onclick="bwImpBack()">Start over</button></div></div>';
+}
+function _bwImpPreviewHtml() {
+  var imp = _bwImp, plan = imp.plan, c = plan.counts;
+  var shown = plan.rows.slice(0, 5);
+  var cols = ['Name', 'Email', 'Phone', 'Status', 'Source', 'Note', 'Next action'];
+  var body = shown.map(function(e) {
+    var p = e.party;
+    var why = !e.valid ? 'cannot import' : (e.dupOf && !plan.importDupes ? 'duplicate — skipped' : '');
+    return '<tr class="' + (why ? 'imp-skip' : '') + '" data-line="' + e.line + '">'
+      + '<td>' + _ceEsc(e.name) + (why ? ' <span class="imp-why">' + _ceEsc(why) + '</span>' : '') + '</td>'
+      + '<td>' + _ceEsc(_bwPrimary(p.emails) || '—') + '</td>'
+      + '<td>' + _ceEsc(bwFmtPhone(_bwPrimary(p.phones)) || '—') + '</td>'
+      + '<td>' + _ceEsc(p.status ? bwStatusLabel(p.status) : '—') + '</td>'
+      + '<td>' + _ceEsc(p.source ? bwSourceLabel(p.source) : '—') + '</td>'
+      + '<td>' + _ceEsc(e.note ? (e.note.length > 40 ? e.note.slice(0, 40) + '…' : e.note) : '—') + '</td>'
+      + '<td>' + _ceEsc(e.taskSummary ? (e.taskSummary + (e.taskDue ? ' · ' + e.taskDue : '')) : '—') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  var dupes = plan.rows.filter(function(e){ return e.valid && e.dupOf; });
+  var bad = plan.rows.filter(function(e){ return !e.valid; });
+
+  var html = '<div class="imp-card"><h3>Preview — ' + _ceEsc(imp.filename) + '</h3>'
+    + '<div class="imp-counts">'
+    + '<span><strong>' + c.total + '</strong> rows</span>'
+    + '<span class="ok"><strong>' + c.willImport + '</strong> will import</span>'
+    + '<span' + (c.dupes ? ' class="warn"' : '') + '><strong>' + c.dupes + '</strong> skipped as duplicates</span>'
+    + '<span' + (c.invalid ? ' class="warn"' : '') + '><strong>' + c.invalid + '</strong> with no name and no contact method (cannot import)</span>'
+    + '</div>';
+  if (c.notes || c.tasks) {
+    html += '<p class="imp-hint">Also creating ' + c.notes + ' note' + (c.notes === 1 ? '' : 's')
+      + ' and ' + c.tasks + ' to-do' + (c.tasks === 1 ? '' : 's') + '.</p>';
+  }
+  if (c.ragged) {
+    html += '<p class="imp-hint">' + c.ragged + ' row' + (c.ragged === 1 ? '' : 's')
+      + ' had a different number of cells than the header. Missing cells import as blank; extra cells are ignored.</p>';
+  }
+  html += '<div class="imp-tblwrap"><table class="imp-tbl"><thead><tr>'
+    + cols.map(function(t){ return '<th>' + t + '</th>'; }).join('')
+    + '</tr></thead><tbody>' + body + '</tbody></table></div>'
+    + '<p class="imp-hint">The first ' + shown.length + ' rows, as they would land.</p>';
+
+  if (dupes.length) {
+    html += '<div class="imp-list" id="impDupes"><h4>' + dupes.length + ' duplicate row'
+      + (dupes.length === 1 ? '' : 's') + '</h4><ul>'
+      + dupes.map(function(e) {
+          return '<li>Line ' + e.line + ' — ' + _ceEsc(e.name) + ' matches ' + _ceEsc(e.dupOf)
+            + (e.dupInFile ? ' earlier in this file' : ' already in Contacts') + ' on ' + _ceEsc(e.dupWhy) + '</li>';
+        }).join('') + '</ul>'
+      + '<label class="imp-check"><input type="checkbox" id="impDupChk"' + (plan.importDupes ? ' checked' : '')
+      + ' onchange="bwImpSetDupes(this.checked)"> Import these anyway — nothing is ever merged automatically</label>'
+      + '</div>';
+  }
+  if (bad.length) {
+    html += '<div class="imp-list"><h4>' + bad.length + ' row' + (bad.length === 1 ? '' : 's')
+      + ' cannot be imported</h4><ul>'
+      + bad.slice(0, 20).map(function(e){ return '<li>Line ' + e.line + ' — no name and no phone or email</li>'; }).join('')
+      + '</ul></div>';
+  }
+  if (plan.dropped.length) {
+    html += '<div class="imp-list" id="impDropped"><h4>' + plan.dropped.length + ' value'
+      + (plan.dropped.length === 1 ? '' : 's') + ' could not be understood and will be dropped</h4><ul>'
+      + plan.dropped.slice(0, 20).map(function(d) {
+          return '<li>Line ' + d.line + ' — ' + _ceEsc(d.field) + ': “' + _ceEsc(d.value) + '” is not one of ours</li>';
+        }).join('') + '</ul>'
+      + '<p class="imp-hint">The rest of each of those rows still imports. Add the value under '
+      + '<button class="imp-link" onclick="show(\'crm-settings\',null)">Contact Settings</button> first if you want it kept.</p></div>';
+  }
+  html += '<div class="imp-actions">'
+    + '<button class="imp-go" id="impRunBtn" onclick="bwImpRun()"' + (c.willImport ? '' : ' disabled')
+    + '>Import ' + c.willImport + ' contact' + (c.willImport === 1 ? '' : 's') + '</button>'
+    + '<button class="ct-mini" onclick="bwImpBack()">← Back to mapping</button></div></div>';
+  return html;
+}
+function _bwImpResultHtml() {
+  var imp = _bwImp, r = imp.result;
+  if (!r) {
+    return '<div class="imp-card"><h3>Importing</h3>'
+      + '<p class="imp-progress" id="impProgress">Importing…</p></div>';
+  }
+  var html = '<div class="imp-card" id="impResult"><h3>Imported ' + _ceEsc(r.filename) + '</h3>'
+    + '<div class="imp-counts">'
+    + '<span class="ok"><strong>' + r.created + '</strong> created</span>'
+    + '<span><strong>' + r.notes + '</strong> notes</span>'
+    + '<span><strong>' + r.tasks + '</strong> to-dos</span>'
+    + '<span' + (r.skipped ? ' class="warn"' : '') + '><strong>' + r.skipped + '</strong> skipped</span>'
+    + '<span' + (r.failed ? ' class="warn"' : '') + '><strong>' + r.failed + '</strong> failed</span>'
+    + '</div>';
+  if (r.undone) {
+    html += '<p class="imp-hint" id="impUndone">Undone — ' + r.undone.deletedParties + ' contacts, '
+      + r.undone.deletedNotes + ' notes and ' + r.undone.deletedTasks + ' to-dos removed.'
+      + (r.undone.kept.length ? ' ' + r.undone.kept.length + ' kept (still attached to a quote or contract).' : '')
+      + '</p>';
+  }
+  if (r.skippedRows.length) {
+    html += '<div class="imp-list"><h4>Skipped</h4><ul>'
+      + r.skippedRows.map(function(s){ return '<li>Line ' + s.line + ' — ' + _ceEsc(s.name) + ': ' + _ceEsc(s.why) + '</li>'; }).join('')
+      + '</ul></div>';
+  }
+  if (r.failedRows.length) {
+    html += '<div class="imp-list"><h4>Failed</h4><ul>'
+      + r.failedRows.map(function(s){ return '<li>Line ' + s.line + ' — ' + _ceEsc(s.name) + ': ' + _ceEsc(s.why) + '</li>'; }).join('')
+      + '</ul></div>';
+  }
+  html += '<div class="imp-actions">'
+    + '<button class="ct-mini" onclick="show(\'contacts\',null)">See the contacts</button>'
+    + (r.undone ? '' : '<button class="ct-mini" onclick="bwImpUndo(\'' + _ceEsc(r.batchId) + '\')">Undo this import</button>')
+    + '<button class="ct-mini" onclick="bwImpReset()">Import another file</button></div></div>';
+  return html;
+}
+function renderContactImport() {
+  var box = el('impBody'); if (!box) return;
+  var step = _bwImp ? _bwImp.step : 1;
+  var html = _bwImpStepsHtml(step);
+  if (_bwImpError) html += '<div class="imp-err" id="impError">' + _ceEsc(_bwImpError) + '</div>';
+  if (step === 1)      html += _bwImpPickHtml();
+  else if (step === 2) html += _bwImpMapHtml();
+  else if (step === 3) html += _bwImpPreviewHtml();
+  else                 html += _bwImpResultHtml();
+  if (step === 1 || step === 4) html += _bwImpBatchesHtml();
+  box.innerHTML = html;
+  try { paintLucide(box); } catch (e) {}
+}
+
 
 // ═══════════════════════════════════════════════════════════════
 // DATA HEALTH — fixable where it is listed (D10)
@@ -15070,6 +15998,7 @@ function show(id, navEl) {
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
   if (id === 'crm-settings') { try { renderCrmSettings(); } catch(e) {} }
+  if (id === 'import-contacts') { try { renderContactImport(); } catch(e) {} }
   // Leaving Contacts drops back to the list, so returning never lands on a stale detail panel.
   if (id !== 'contacts' && _bwDetailId) { try { closeContactDetail(); } catch(e) {} }
   // Each module renders its own link row on arrival.
