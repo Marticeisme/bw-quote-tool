@@ -1,19 +1,19 @@
 # STATE — Living Ledger
 
 **Current sprint:** **sprint-04 — Contacts becomes a CRM (S8) + the guides audit (S9).** In
-flight. Track **A merged** (`f481637`), Track **D merged** (`64d2f3f`), Track **B running**,
-Track C not yet spawned. See `sprints/sprint-04/SPRINT.md`.
+flight. Tracks **A** (`f481637`), **D** (`64d2f3f`) and **B** (`49ec0a5`) merged; Track **C running**. See `sprints/sprint-04/SPRINT.md`.
 
 sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
 overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
 
-**Last updated:** 2026-07-27. `main` = `64d2f3f`. **Nothing beyond `4fa7171` is pushed** — every
+**Last updated:** 2026-07-27. `main` = `17a668b`. **Nothing beyond `4fa7171` is pushed** — every
 sprint-04 merge is local only, awaiting the operator's push gate.
 
-**Three worktrees are live**, which is unusual for this project and worth knowing at boot:
-`bw-quote-tool` (Track B, on `s04/contact-search`), `bw-quote-tool-guides` (Track D, merged —
-removable), and `bw-quote-tool-ops` on `main`, created so the director can merge and keep the
-ledger without committing onto a live track's branch. See `MISTAKES.md` #12 for why that exists.
+**Two worktrees are live:** `bw-quote-tool` (Track C) and `bw-quote-tool-ops` on `main`, the
+latter created so the director can merge and keep the ledger without committing onto a live
+track's branch — see `MISTAKES.md` #12. The guides worktree was removed at Track D's merge; its
+`node_modules` junction was deleted non-recursively first, per `DESIGN.md` §5, and the real
+`node_modules` was confirmed intact afterwards.
 
 ## Sprint-04 — opened 2026-07-27
 
@@ -209,6 +209,37 @@ typo divided by ten. So the guide had inherited a data-entry error out of the pr
 explanation offered — "two values swapped between columns" — was not what was underneath. The
 count found the defect; the story told about it did not survive contact with the source.
 
+### Sprint-04 Track B — merged 2026-07-27 (`49ec0a5`)
+
+Contacts is now a worklist whose entire state is a URL. Sortable table (Name · Status · Source ·
+Next action · Last activity · Owner), basic filter bar plus an unlimited advanced builder (21
+fields, 11 operators), filter chips, five built-in views with live counts, saved views at
+`savedViews/<id>`, and in-place selection with a bulk action bar — no work-group screen, per D2.
+
+**Director-verified rather than taken from the report:** `8 blocks, 0 errors`; **903 passed, 0
+failed across 22 suites** — and the arithmetic reconciles exactly (636 at boot + 122 Track A + 20
+Track D + 125 Track B = 903), with `test-contacts.mjs` still reporting its original 47 despite
+Track B editing it; **14/14 baseline identical**, captured against a server proven by content
+marker to be serving the merged tree; no generator, price or template touched.
+
+**The merge was the risk and it was checked, not assumed.** Track B branched from `983b574`,
+which predates the 28 × 34 price fix. A silent revert of that row would have put the under-quote
+straight back. Verified after merging: corrected values present exactly once, old values absent.
+
+**Track B caught a hollow test in its own suite, which is the report's most valuable line.** Its
+first round-trip fixture used `status` + `source` + `q=ada`, where `q` alone was decisive — so a
+serialiser that silently dropped `source` still round-tripped green. It reshaped the fixture so
+every param is individually load-bearing **and added an assertion that verifies that property
+before the round-trip runs**. Same class as the sprint-02 sabotage that hit the wrong object.
+
+**Two UI reductions the director accepted but which Martice should see:** the per-row Edit button
+is gone (the row name opens the detail, which has Edit — editing is one click deeper), and role
+pills no longer appear on the row. Both follow from D9's column list; both are reversible.
+
+**Open, and not a defect yet:** bulk actions have no undo. D7's undoable-batch rule was scoped to
+import. A bulk status change across 40 records is currently irreversible. Worth deciding before
+it bites.
+
 ## Open, and needing Martice
 
 0. **The marker price book needs correcting at source.** Cell **C16** of
@@ -254,8 +285,8 @@ often than measurements have.
 | cemUpdate (other session) | **shipped, live** | `claude/awesome-cerf-226213` | merge `56e3d49` |
 | sprint-03 Track A | **shipped, live** | `s03/prices-single-source` | merge `875bcaf` |
 | sprint-04 Track A | **merged, local only** | `s04/contact-record` | merge `f481637`; audited and re-verified by the director |
-| sprint-04 Track B | **running** (spawned 2026-07-27) | `s04/contact-search` | main tree |
-| sprint-04 Track C | not spawned | `s04/contact-csv` | blocked on A + B merging |
+| sprint-04 Track B | **merged, local only** | `s04/contact-search` | merge `49ec0a5`; audited, and the 28x34 price fix verified to survive it |
+| sprint-04 Track C | **running** (spawned 2026-07-27) | `s04/contact-csv` | main tree; final track of the sprint |
 | sprint-04 Track D | **merged, local only** (2026-07-27) | `s04/guides-audit` | merge `64d2f3f`; all 21 items done. Ran S9 in worktree `../bw-quote-tool-guides`. Never touched `index.html`, verified against its own merge base |
 
 All worktrees removed at close except the map's, which stay until their branches are pruned.
