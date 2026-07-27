@@ -29,7 +29,7 @@ two possible double sales in CN and ELN against MIS (see the map audit section).
 | Track A — externalize templates | **DONE, merged `4019c92`** | branch `s01/externalize-templates` (kept; durable) | 2026-07-26 | Audited and merged. Port 3737 released. |
 | Guides audit + granite marker PDF | **DONE, merged** | branch `guides/marker-pdf-colors`, own worktree | 2026-07-26 | **Out-of-sprint**, operator-requested. Not part of sprint-01's definition of done — merge and audit it separately so S1 stays auditable. Fixes the granite-swatch bug **and everything else it finds** (scope widened by the operator mid-flight); escalates rather than guesses on anything needing a business decision — prices, policy, which page is source of truth. Worktree + its `node_modules` junction need director cleanup. |
 | Map bug audit + fix | **DONE and MERGED (`b9677db`)** | map branch `audit/map-bugs`, worktree at `C:\Users\Martice\map-audit\wmp-cemetery-map` | 2026-07-26 | **Out-of-sprint**, operator-requested. Deliberately placed OUTSIDE `bw-quote-tool` — a map worktree inside the parent would fall outside both the `.gitignore` entry and the guard hook's `wmp-cemetery-map` basename check, putting real burial PII in a public repo's working tree as untracked files. Worktree kept the `wmp-cemetery-map` basename so the hook still treats it as its own repo. Director must `git worktree remove` at cleanup. |
-| sprint-02 Track A — map inventory styling | running | map branch `s02/map-inventory-styling`, worktree `C:\Users\Martice\map-styling\wmp-cemetery-map` | 2026-07-26 | Gate 0 met (`b9677db`). Environment verified before spawn: `npm install` + `playwright` via `--no-save` so `package.json` stays clean, suite green at 19+7+8, port 8642 freed of a stale server. Worktree is OUTSIDE `bw-quote-tool` with the `wmp-cemetery-map` basename so the guard hook still applies. Director must `git worktree remove` at cleanup. |
+| sprint-02 Track A — map inventory styling | **DONE, merged** | map branch `s02/map-inventory-styling`, worktree `C:\Users\Martice\map-styling\wmp-cemetery-map` | 2026-07-26 | Gate 0 met (`b9677db`). Environment verified before spawn: `npm install` + `playwright` via `--no-save` so `package.json` stays clean, suite green at 19+7+8, port 8642 freed of a stale server. Worktree is OUTSIDE `bw-quote-tool` with the `wmp-cemetery-map` basename so the guard hook still applies. Director must `git worktree remove` at cleanup. |
 
 ## Director's boot audit, 2026-07-26 — what changed before Track A spawned
 
@@ -345,6 +345,55 @@ someone reaches generation without a signed-in user, documents carry Martice's f
 **including his producer ID** — the exact bug just fixed, resurfacing on one edge path. The
 sign-in gate normally prevents it. Worth deciding whether an unauthenticated generation should
 instead produce a visibly blank advisor.
+
+## Sprint-02 (map inventory styling) — MERGED 2026-07-26
+
+Branch `s02/map-inventory-styling`, 3 commits, merged `--no-ff` in the map repo. That repo has
+no remote, so nothing is pushed and nothing can be.
+
+**Director-verified rather than taken from the report.** Both new gates were proven by
+**sabotage**, which is the only way to know a verification gate is real:
+
+- dropping `--tint-alpha` to `.02` → `render.test.mjs` **exits 1**, five assertions red,
+  including the direction check flipping to `rgb -6.7,-5.8,-0.1`. That one fires if the
+  available/buried difference ever starts coming from headstones rather than from the styling.
+- removing one `STATUS_TREATMENT` entry → `status-coverage` **exits 1**, `no treatment for: tree`.
+- restored → `npm test` exits 0. Suite is now **19 + 7 + 8 + 11 + 24** plus validate; counts rose,
+  none fell.
+
+A first sabotage attempt hit a colour table instead of `STATUS_TREATMENT` and passed, which
+would have been reported as a toothless gate. **Confirm a sabotage actually broke what you aimed
+at before concluding anything from it.**
+
+**Twelve indoor and routing functions are byte-identical to `b9677db`** — verified by extracting
+each function body and comparing, not by reading the claim. That matters because `b9677db` was
+the hand-resolved merge; all three of its markers (`data-wall`, `min(2400px, 100%)`,
+`var(--col-cell)`) survive.
+
+**OPERATOR GATE, open.** The 15% tint is *measurably* real — 24.7/255 at overview, 16.5 at scan
+zoom, with wide machine margins — but over bright dry grass at zoom 4–8 it reads as a light cast
+across whole blocks rather than something that jumps out. In digital mode it is unmistakable.
+**Only Martice can judge the photo case.** Tuning is one token, `--tint-alpha` in `:root`, and
+the thresholds sit at roughly half the measured values so raising it stays green.
+
+**Known inconsistency, deliberate:** `available` is cream outdoors and green indoors. The indoor
+palette was left alone because the sprint's visual argument is about photographic ground, and
+indoors there is no photo. Worth a decision; was not worth risking in this sprint.
+
+**New coupling to watch:** the map suite now needs Playwright, which is *not* a declared
+dependency — `scripts/playwright-resolve.mjs` borrows this repo's install and fails loudly rather
+than skipping. So that repo can no longer run its own suite from a clean clone. Same class of
+durability gap as the baseline harness moved into `scripts/` earlier today.
+
+**Pre-existing bug fixed in passing:** per-label `font-size` never applied — an SVG presentation
+attribute outranks an author CSS rule, so 3,148 Lake Urn Garden labels rendered 4.5× too large
+and hid the outlines beneath them.
+
+**Pre-existing bug found and deliberately NOT fixed:** re-entering `#space=<sid>` while that
+garden is *already open* never highlights — `showDetail` rebuilds the overlay asynchronously and
+the wait is satisfied by the outgoing garden's polygons. Confirmed identical on `b9677db`, so not
+a regression. Cold-load deep links, the real path from the quote tool, work. Routing, not
+styling — wants its own ticket.
 
 ## Open items for upcoming sprints
 
