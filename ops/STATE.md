@@ -8,14 +8,14 @@ See `sprints/sprint-04/SPRINT.md`.
 sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
 overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
 
-**Last updated:** 2026-07-27. `main` = `17a668b`. **Nothing beyond `4fa7171` is pushed** — every
-sprint-04 merge is local only, awaiting the operator's push gate.
+**Last updated:** 2026-07-27, sprint-04 close. **Nothing beyond `4fa7171` is pushed** — all
+nineteen commits since are local, awaiting the operator's push gate.
 
-**Two worktrees are live:** `bw-quote-tool` (Track C) and `bw-quote-tool-ops` on `main`, the
-latter created so the director can merge and keep the ledger without committing onto a live
-track's branch — see `MISTAKES.md` #12. The guides worktree was removed at Track D's merge; its
-`node_modules` junction was deleted non-recursively first, per `DESIGN.md` §5, and the real
-`node_modules` was confirmed intact afterwards.
+**All worktrees were removed at close**; only `bw-quote-tool` on `main` remains. During the
+sprint a director worktree on `main` was used so bookkeeping never landed on a live track's
+branch — see `MISTAKES.md` #12, and consider doing that from the start next time. Each
+`node_modules` junction was deleted **non-recursively** before its worktree was removed, per
+`DESIGN.md` §5, and the real `node_modules` was confirmed intact afterwards.
 
 ## Sprint-04 — opened 2026-07-27
 
