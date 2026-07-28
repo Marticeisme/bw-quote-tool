@@ -659,7 +659,7 @@ tr:hover td{background:#eef3f8;}
   <div class="nav-item active highlight" onclick="show('home',this)"><span class="ni-ic" data-lc="home"></span>Home / Quick Ref</div>
   <div class="nav-item highlight" onclick="show('price-list',this)"><span class="ni-ic" data-lc="tag"></span>Price List</div>
 
-  <div class="nav-item highlight" onclick="show('contacts',this)" id="navContacts"><span class="ni-ic" data-lc="users"></span>Contacts</div>
+  <div class="nav-item highlight" onclick="show('contacts-home',this)" id="navContacts"><span class="ni-ic" data-lc="users"></span>Contacts</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Cemetery</div>
   <div class="nav-item highlight" onclick="show('cem-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
@@ -4759,6 +4759,22 @@ tr:hover td{background:#eef3f8;}
     <button onclick="gaclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
     <button onclick="gaclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
+</div>
+
+
+<!-- ══ CONTACTS HOME ══════════════════════════════════════════════════════════════════
+     Sprint-05 Track C. What "Contacts" in the sidebar now opens. The list is still a real,
+     linkable destination at #contacts — it is reached FROM here rather than being the
+     landing page. Everything inside #ctHome is rebuilt with innerHTML by
+     renderContactsHome(), so nothing holding focus or state may live in there: that is the
+     same invariant #ctChrome exists to protect on the list, and it is why this screen
+     deliberately has no search box of its own. -->
+<div class="section" id="section-contacts-home">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="users" data-lc-sz="18"></span></div>
+    <h2>Contacts</h2>
+  </div>
+  <div id="ctHome"></div>
 </div>
 
 </main>
@@ -19780,6 +19796,280 @@ function formatPhoneInput(inp) {
     if (t && t.id && /^anSigner\d+Phone$/.test(t.id)) formatPhoneInput(t);
   });
 })();
+
+// ═══════════════════════════════════════════════════════════════════════════════════════
+// CONTACTS HOME — sprint-05 Track C
+// ═══════════════════════════════════════════════════════════════════════════════════════
+// The landing screen for Contacts, and the answer to "there is still no home screen when
+// clicking on contacts". Progressive disclosure: say whether everything is okay first, then
+// let the counselor drill in. The list is now a DESTINATION reached from here — but it keeps
+// its own URL, so a saved view bookmarked yesterday or pasted to the other counselor still
+// lands on the filtered list and never bounces to this screen.
+//
+// WHY THE WHOLE FEATURE IS ONE APPENDED BLOCK, WRAPPERS AND ALL:
+// this shipped in parallel with a rewrite of the contact DETAIL page on another branch, in a
+// separate worktree, against this same 20,000-line file. Every line of it is appended in one
+// contiguous place and there is no edit inside any existing function, so the two diffs cannot
+// overlap. The three wrappers at the bottom are the price of that. Once both branches are
+// merged they are safe to inline; until then they are cheaper than a hand-resolved conflict.
+//
+// THE ONE RULE THIS SCREEN LIVES OR DIES BY: every count is derived from the hash it links
+// to. A card is a view SPEC; its number and its link are both computed from that single spec,
+// through the LIST'S OWN bwCtFilteredParties() and bwCtHash(). A card that says 6 opens a list
+// of 6 by construction, not because two pieces of code happen to agree — which is the failure
+// mode every dashboard badge eventually has.
+
+var BW_CT_HOME_RECENT_KEY = 'bw_ct_recent';
+var BW_CT_HOME_RECENT_MAX = 10;
+// Martice asked for the options that are not built yet to be visible ("even if some of those
+// options aren't available yet"). They must read as COMING, never as broken — so they are
+// rendered as spans with no handler and no href, and a test clicks every one of them.
+var BW_CT_HOME_SOON = ['Calendar', 'Letters', 'Email', 'Reports'];
+
+// A complete list-view state from a partial spec, using exactly the defaults bwCtApplyHash()
+// restores from a bare hash (sort=next, dir=asc, join=and). Anything else here and a spec
+// would count one set of people and link to another.
+function _bwCtHomeView(spec) {
+  spec = spec || {};
+  return {
+    q: spec.q || '', status: spec.status || '', source: spec.source || '',
+    category: spec.category || '', flag: spec.flag || '', owner: spec.owner || '',
+    view: spec.view || '', sort: spec.sort || 'next',
+    dir: spec.dir === 'desc' ? 'desc' : 'asc',
+    join: spec.join === 'or' ? 'or' : 'and',
+    adv: (spec.adv || []).slice()
+  };
+}
+// Run fn with the list's own view state temporarily set to `spec`, then put it back. The
+// alternative — a second copy of the filter, or of the serialiser, living up here — is
+// precisely how a badge starts lying about its own list.
+function _bwCtHomeWith(spec, fn) {
+  var keepView = _bwCtView, keepId = _bwDetailId;
+  _bwCtView = _bwCtHomeView(spec);
+  _bwDetailId = null;                       // so bwCtHash() does not append an open contact
+  try { return fn(); } finally { _bwCtView = keepView; _bwDetailId = keepId; }
+}
+function bwCtHomeCount(spec) { return _bwCtHomeWith(spec, function() { return bwCtFilteredParties().length; }); }
+function bwCtHomeHash(spec)  { return _bwCtHomeWith(spec, function() { return bwCtHash(); }); }
+
+// The needs-attention strip. Overdue and Due today are NOT new built-in views: they are the
+// advanced grammar the list already understands, over the `next` field (the next-action due
+// date). That costs no new predicate, and — just as importantly — adds no sixth and seventh
+// chip to the list's own view strip, which is a surface this track does not own.
+// `next` is empty for a contact with no open to-do, and `before`/`on` are positive operators,
+// so those contacts are excluded from both, which is what a counselor means by "overdue".
+function bwCtHomeAttention() {
+  var today = bwToday();
+  return [
+    { key: 'overdue',  label: 'Overdue',        warn: true, spec: { adv: [{ f: 'next', op: 'before', v: today }] } },
+    { key: 'duetoday', label: 'Due today',      warn: true, spec: { adv: [{ f: 'next', op: 'on',     v: today }] } },
+    { key: 'unworked', label: 'Unworked',                   spec: { view: 'unworked' } },
+    { key: 'nonext',   label: 'No next action',             spec: { view: 'nonext' } }
+  ];
+}
+// One lookup, used by BOTH the rendered count and the click. Two lookups is how a card ends
+// up counting one view and opening another.
+function _bwCtHomeSpec(kind, key) {
+  if (kind === 'att') {
+    var hit = bwCtHomeAttention().filter(function(c) { return c.key === key; })[0];
+    return hit ? hit.spec : null;
+  }
+  if (kind === 'view') return bwCtViewDef(key) ? { view: key } : null;
+  if (kind === 'all')  return {};
+  return null;
+}
+
+// ── recently viewed ──────────────────────────────────────────────────────────────────
+// localStorage, not Firebase, deliberately: this is a convenience, not a record. Another node
+// to keep consistent between two browsers would be a cost with no benefit. Ids only — names
+// are looked up live, so a renamed, merged or deleted contact cannot go stale here.
+function bwCtRecentIds() {
+  var raw;
+  try { raw = JSON.parse(localStorage.getItem(BW_CT_HOME_RECENT_KEY) || '[]'); } catch (e) { raw = []; }
+  if (!Array.isArray(raw)) raw = [];
+  var seen = {}, out = [];
+  raw.forEach(function(id) {
+    if (typeof id !== 'string' || !id || seen[id]) return;
+    seen[id] = 1; out.push(id);
+  });
+  return out.slice(0, BW_CT_HOME_RECENT_MAX);
+}
+function bwCtRecentPush(id) {
+  if (!id || typeof id !== 'string') return bwCtRecentIds();
+  var list = bwCtRecentIds().filter(function(x) { return x !== id; });
+  list.unshift(id);
+  list = list.slice(0, BW_CT_HOME_RECENT_MAX);
+  try { localStorage.setItem(BW_CT_HOME_RECENT_KEY, JSON.stringify(list)); } catch (e) {}
+  return list;
+}
+function bwCtRecentClear() {
+  try { localStorage.removeItem(BW_CT_HOME_RECENT_KEY); } catch (e) {}
+  try { if (el('ctHome')) renderContactsHome(); } catch (e) {}
+}
+
+// ── going to the list ────────────────────────────────────────────────────────────────
+// _bwCtLastHash is the guard that stops bwCtApplyHash() re-applying a hash it has already
+// applied. Leaving Contacts closes an open detail, and closing a detail writes a bare
+// "#contacts" into that guard — so without clearing it, a card whose target IS the bare
+// "#contacts" would arrive on a list still carrying the previous filters. The card's number
+// and the rows on screen would disagree, which is the one thing this screen must never do.
+function bwCtHomeOpen(hash) {
+  hash = hash || '#contacts';
+  if (location.hash === hash) {
+    show('contacts', null);
+    bwCtApplyHash(true);
+  } else {
+    _bwCtLastHash = null;
+    location.hash = hash;
+  }
+}
+function bwCtHomeGo(kind, key) {
+  var spec = _bwCtHomeSpec(kind, key);
+  if (!spec) return;
+  bwCtHomeOpen(bwCtHomeHash(spec));
+}
+function bwCtHomeOpenContact(id) {
+  if (!id) return;
+  bwCtHomeOpen('#contacts?id=' + encodeURIComponent(id));
+}
+function bwCtHomeApplySaved(id) {
+  var v = _savedViewStore[id];
+  if (!v || !v.hash) return;
+  bwCtHomeOpen(v.hash);
+}
+
+// ── the screen ───────────────────────────────────────────────────────────────────────
+function _bwCtHomeCardHtml(c) {
+  var n = bwCtHomeCount(c.spec);
+  return '<button class="cth-card' + (c.warn && n ? ' warn' : '') + (n ? '' : ' zero') + '"'
+    + ' data-att="' + _ceEsc(c.key) + '" onclick="bwCtHomeGo(\'att\',\'' + _ceEsc(c.key) + '\')">'
+    + '<span class="n">' + n + '</span><span class="l">' + _ceEsc(c.label) + '</span></button>';
+}
+function renderContactsHome() {
+  var box = el('ctHome'); if (!box) return;
+  var total = _parties.length;
+  var html = '<div class="cth-wrap">';
+
+  // A fresh database says so plainly instead of showing five zeroes and no explanation.
+  if (!total) {
+    html += '<div class="cth-panel" id="cthEmpty"><div class="cth-h">No contacts yet</div>'
+      + '<div class="cth-empty">Add the first one, or import a list. Everything below will fill in '
+      + 'as soon as there are people to work.</div></div>';
+  }
+
+  html += '<div class="cth-panel"><div class="cth-h">Needs attention</div>'
+    + '<div class="cth-att" id="cthAtt">'
+    + bwCtHomeAttention().map(_bwCtHomeCardHtml).join('')
+    + '</div></div>';
+
+  html += '<div class="cth-panel"><div class="cth-h">Quick actions</div><div class="cth-acts" id="cthActions">'
+    + '<button class="cth-act primary" data-act="new" onclick="openContactEditor()">+ New contact</button>'
+    + '<button class="cth-act" data-act="import" onclick="show(\'import-contacts\',null)">Import</button>'
+    + '<button class="cth-act" data-act="export" onclick="bwExportContactsCsv()">Export CSV</button>'
+    + '<button class="cth-act" data-act="settings" onclick="show(\'crm-settings\',null)">Settings</button>'
+    + '<button class="cth-act" data-act="all" data-all="1" onclick="bwCtHomeGo(\'all\',\'\')">All contacts'
+    + '<span class="n">' + bwCtHomeCount({}) + '</span></button>'
+    + '</div></div>';
+
+  html += '<div class="cth-cols">';
+
+  html += '<div class="cth-panel"><div class="cth-h">Views</div><div id="cthViews">'
+    + BW_CT_VIEWS.map(function(v) {
+        var n = bwCtHomeCount({ view: v.code });
+        return '<button class="cth-row" data-view="' + _ceEsc(v.code) + '"'
+          + ' onclick="bwCtHomeGo(\'view\',\'' + _ceEsc(v.code) + '\')">'
+          + '<span class="nm">' + _ceEsc(v.label) + '</span>'
+          + '<span class="n">' + n + '</span></button>';
+      }).join('')
+    + '</div></div>';
+
+  html += '<div class="cth-stack">';
+
+  var rec = bwCtRecentIds().map(function(id) { return bwPartyById(id); }).filter(Boolean);
+  html += '<div class="cth-panel"><div class="cth-h">Recently viewed</div><div id="cthRecent">';
+  if (!rec.length) {
+    html += '<div class="cth-empty">Contacts you open will show up here.</div>';
+  } else {
+    html += rec.map(function(p) {
+      var st = bwPartyStatus(p);
+      return '<button class="cth-row" data-recent="' + _ceEsc(p.id) + '"'
+        + ' onclick="bwCtHomeOpenContact(\'' + _ceEsc(p.id) + '\')">'
+        + '<span class="nm">' + _ceEsc(bwPartyName(p))
+        + (st ? '<span class="sub"> &middot; ' + _ceEsc(bwStatusLabel(st)) + '</span>' : '')
+        + '</span></button>';
+    }).join('');
+  }
+  html += '</div></div>';
+
+  html += '<div class="cth-panel"><div class="cth-h">Saved views</div><div id="cthSaved">';
+  if (!_savedViews.length) {
+    html += '<div class="cth-empty">Save a view from the list and it will appear here, pinned ones first.</div>';
+  } else {
+    html += _savedViews.map(function(v) {
+      return '<button class="cth-row" data-saved="' + _ceEsc(v.id) + '"'
+        + ' onclick="bwCtHomeApplySaved(\'' + _ceEsc(v.id) + '\')">'
+        + '<span class="nm">' + (v.pinned ? '&#9733; ' : '') + _ceEsc(v.name || '(unnamed)') + '</span></button>';
+    }).join('');
+  }
+  html += '</div></div>';
+
+  html += '</div></div>';   // /cth-stack /cth-cols
+
+  // Coming soon. Spans, not buttons and not links: nothing to click, nothing to navigate to,
+  // nothing to throw. Labelled so it reads as a roadmap rather than as something broken.
+  html += '<div class="cth-panel"><div class="cth-h">Coming soon</div>'
+    + '<div class="cth-soonwrap" id="cthSoon">'
+    + BW_CT_HOME_SOON.map(function(s) {
+        return '<span class="cth-soon" data-soon="' + _ceEsc(s) + '" aria-disabled="true">'
+          + _ceEsc(s) + '<em>Soon</em></span>';
+      }).join('')
+    + '</div><div class="cth-note">Not built yet &mdash; listed so you can see what is coming.</div></div>';
+
+  html += '</div>';
+  box.innerHTML = html;
+  try { if (typeof paintLucide === 'function') paintLucide(box); } catch (e) {}
+}
+
+// ── the three wrappers, all in one place ─────────────────────────────────────────────
+(function bwCtHomeInstall() {
+  // 1. "Contacts" in the sidebar opens the home screen; the list keeps its own URL.
+  var _show = show;
+  show = function(id) {
+    var r = _show.apply(this, arguments);
+    try {
+      if (id === 'contacts-home') renderContactsHome();
+      // Both screens are "Contacts" as far as the sidebar is concerned. show() clears every
+      // nav highlight and re-adds only the element it was handed, and _bwNavElFor('contacts')
+      // matches nothing now that the item points at contacts-home — so arriving at the list
+      // by URL would otherwise leave the whole sidebar unhighlighted.
+      if (id === 'contacts' || id === 'contacts-home') {
+        var n = el('navContacts'); if (n) n.classList.add('active');
+      }
+    } catch (e) { console.warn('contacts home: show hook', e); }
+    return r;
+  };
+
+  // 2. Opening a contact is what "recently viewed" records. Wrapped rather than edited in
+  //    place so the detail page could be rebuilt on another branch at the same time.
+  var _open = openContactDetail;
+  openContactDetail = function(id) {
+    try { bwCtRecentPush(id); } catch (e) {}
+    return _open.apply(this, arguments);
+  };
+
+  // 3. Every contact-store change already funnels through renderContactsList()
+  //    (_bwContactsChanged does nothing else). Home is live for the same reason the list is:
+  //    a to-do added in the other browser has to move the Overdue number here too.
+  var _list = renderContactsList;
+  renderContactsList = function() {
+    var r = _list.apply(this, arguments);
+    try {
+      var sec = el('section-contacts-home');
+      if (sec && sec.classList.contains('active')) renderContactsHome();
+    } catch (e) { console.warn('contacts home: list hook', e); }
+    return r;
+  };
+})();
 </script>
 
 <style>
@@ -19788,6 +20078,40 @@ function formatPhoneInput(inp) {
 #finTable tbody tr.ach-zero td.ach-rate { color:#2d6a2d !important; font-weight:700; }
 input[type=checkbox] { accent-color:#466e86; width:15px; height:15px; cursor:pointer; }
 input[type=checkbox]:focus { outline:2px solid #466e86; outline-offset:2px; }
+
+/* ══ CONTACTS HOME — sprint-05 Track C ═══════════════════════════════════════════════
+   One contiguous appended block. The prefix is .cth- and nothing in here selects any of
+   the .ct- classes the contact list and the contact detail own. */
+.cth-wrap{display:flex;flex-direction:column;gap:16px;max-width:1180px;}
+.cth-panel{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:14px 16px;}
+.cth-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-light);margin:0 0 10px;}
+.cth-att{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;}
+.cth-card{display:flex;flex-direction:column;gap:1px;align-items:flex-start;padding:12px 14px;border:1px solid var(--gray-mid);border-radius:10px;background:var(--gray-light);cursor:pointer;font-family:inherit;text-align:left;}
+.cth-card:hover{border-color:var(--navy);background:var(--blue-light);}
+.cth-card .n{font-size:27px;font-weight:700;line-height:1.05;color:var(--navy);}
+.cth-card .l{font-size:12px;font-weight:700;color:var(--text-light);}
+.cth-card.warn .n{color:var(--orange-dark);}
+.cth-card.zero .n{color:var(--gray-dark);opacity:.55;}
+.cth-acts{display:flex;gap:8px;flex-wrap:wrap;}
+.cth-act{padding:8px 14px;font-size:13px;font-weight:700;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:8px;cursor:pointer;white-space:nowrap;}
+.cth-act:hover{border-color:var(--navy);}
+.cth-act.primary{color:#fff;background:var(--navy);border-color:var(--navy);}
+.cth-act .n{font-weight:400;opacity:.75;margin-left:6px;}
+.cth-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.cth-stack{display:flex;flex-direction:column;gap:16px;}
+.cth-row{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:none;border-bottom:1px solid var(--border);background:none;font-family:inherit;font-size:13px;color:var(--navy);cursor:pointer;text-align:left;}
+.cth-row:last-child{border-bottom:none;}
+.cth-row:hover{background:var(--gray-light);}
+.cth-row .nm{flex:1;font-weight:700;min-width:0;}
+.cth-row .sub{font-size:11.5px;font-weight:400;color:var(--text-light);}
+.cth-row .n{font-size:12.5px;font-weight:700;color:var(--text-light);min-width:26px;text-align:right;}
+.cth-empty{font-size:12.5px;color:var(--text-light);padding:6px 2px;}
+.cth-note{font-size:11.5px;color:var(--text-light);margin-top:9px;}
+.cth-soonwrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+/* Visibly inert by construction: a <span>, no href, no handler, default cursor. */
+.cth-soon{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;font-size:13px;font-weight:700;color:var(--gray-dark);background:var(--gray-light);border:1px dashed var(--gray-mid);border-radius:8px;cursor:default;user-select:none;}
+.cth-soon em{font-style:normal;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:20px;background:var(--gray-mid);color:var(--gray-dark);}
+@media (max-width:1000px){.cth-cols{grid-template-columns:1fr;}}
 </style>
 
 <script>
