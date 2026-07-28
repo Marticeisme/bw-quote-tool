@@ -1327,6 +1327,80 @@ records these four as named exceptions:
 
 ---
 
+### 2026-07-28 — Terramation guide added (sprint-06 Track G)
+
+New family guide `terramation-guide.html`, written from BW's own on-hand materials rather
+than uploading them: the Terramation Description sheet, the 12-page BW/Return Home family
+booklet and the Return Home partner training guide, all of which live in gitignored
+`reference-docs/internal/` and stay there. Structure and CSS are the `scattering-guide.html`
+house pattern (doc-sheet / cover / contents / `.section-wrap` / `.sidebar` / `.doc-footer`)
+plus the `.faq` `<details>` component from `who-decides-guide.html`. Eight sections: what it
+is, the process, the laying-in ceremony, receiving the soil, where the soil may go, cost,
+practical matters, FAQ. Card added to `guides.html` under **Burial & Cremation** (pill 3 → 4).
+
+**Photos: `terramation-images/`, seven JPEGs, 794 KB total.** The booklet has no separately
+embedded photographs — every page is one flattened 1650×2550 image — so the usable
+photographs were located by bounding-box detection against each page's flat background and
+cropped out of the 300 dpi page bitmaps, then inset 22 px to drop the source cards' rounded
+corners. The laying-in vessel is a **two-page spread**, reassembled from page 2's right
+column and page 3's left column (both y 438–2111, seam invisible). Resized to 1200 px wide
+for full-width figures, 1000 for the burlap bags, 720 for the tall vessel, 382 for the
+organics trio; JPEG q82 progressive. The "Anatomy of a Wisp" garment photo was **rejected** —
+its dotted callout leaders run into the garment and no crop removes them without clipping it;
+the Wisp is described in prose instead.
+
+**Pricing is the two GPL figures and nothing else** — Terramation $7,795.00 and Laying in
+Ceremony $895.00, with the GPL's own inclusion sentences reproduced verbatim, re-verified
+against `pdf-assets/General Price List.pdf` page index 12 with PyMuPDF. No other dollar
+amount appears anywhere on the page, deliberately: the guide names the categories that are
+priced separately (cemetery property, placement, marker, death certificates, shipping) and
+sends the family to a written quote.
+
+**What was deliberately left out**, because a family guide is not a sales document and a
+wrong sentence here is one a counselor has to walk back in a living room:
+
+- Everything from the partner training guide's Section 5 — the "Terramation Affinity Test",
+  the prospect archetypes, the scripted opening question, all five quizzes. Its *facts* were
+  used; none of its sales apparatus was.
+- The internal "roughly 60% of families take the full amount" figure.
+- Return Home's own published $5,950 direct price. Real, but it measures a different thing
+  than BW's $7,795 and printing them together shows a markup with no explanation.
+- "Burns no green-house gasses" (terramation is aerobic decomposition — it produces CO₂ by
+  definition) and the 87% / 0.84–1.4 t CO₂ figures (provider-commissioned LCA, not confirmed
+  peer-reviewed). Replaced with a directional claim the page can defend.
+- "First place in the world" → **"the first state in the United States"**, which is verified
+  against the Legislature's own SB 5001 page. The booklet's 2017/2018 chronology is wrong and
+  was replaced with signed May 2019, effective May 1, 2020.
+- The "Funeral Home of the Year / Best of the Best" award (no awarding body or year nameable)
+  and "fastest-growing new disposition option in America" (no source).
+- The eligibility **list**, including the 500 lb limit no independent source corroborates and
+  which omits active TB. Replaced with "a few situations rule it out, we confirm with Return
+  Home before anything is arranged."
+- The 10 lb medium burlap bag — the booklet says 10, the training guide says 5. The page
+  prints only the numbers every source agrees on (≈20 lb large, ≈2 lb small, mini = a large
+  handful, 10–15 bags, ~1 cubic yard).
+- Soos Creek as a place to sit near the Woodland — single-sourced to the internal doc.
+- Religious perspectives, entirely, per Martice's ruling of 2026-07-28.
+
+**Three operator rulings are baked in** (2026-07-28): soil weight prints as **~250 lb** (the
+description sheet's 500 lb is superseded and does not appear); terramated remains **can be
+placed at WMP in a standard-size plot**, with the family sent to a family service director for
+specifics and no gardens/fees/container rules printed; religious perspectives omitted.
+
+**The Woodland is stated as not open for visits.** Return Home's public page calls it a
+peaceful resting place and never mentions this; a family that chooses Woodland donation
+believing they can visit has been misled about the only thing that matters to them.
+
+Registered in `scripts/build_guide_pdfs.mjs` (→ `pdf-assets/Terramation Guide.pdf`, **9 pages,
+795 KB**) and added to `scripts/verify_print_header.mjs` so the 40 mm cap covers it — it
+measures **31.3 mm print / 104.9 mm screen**. Verified by looking: all 9 PDF pages rendered
+and read, Letter 612×792 with navy to the paper edge, contact footer present, all FAQ answers
+printed open, zero U+00BA ligature corruption, all 7 photos embedded and none blank. Page and
+card also checked in the browser at 1280 px and 390 px. `verify_guides_page.mjs` green,
+26 cards; `npm run check` 8 blocks 0 errors; `npm test` 1300/0 across 26 suites.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

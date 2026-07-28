@@ -27,6 +27,7 @@ const JOBS = [
   ['direct-cremation.html',         'pdf-assets/Direct Cremation Plan Example.pdf'],
   ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
   ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
+  ['terramation-guide.html',        'pdf-assets/Terramation Guide.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added
