@@ -1,11 +1,41 @@
 # STATE — Living Ledger
 
-**Current sprint:** **sprint-05 — What they own, and a page worth looking at.** ALL THREE TRACKS
-MERGED and green. A (`s05/contact-property`), B (`s05/contact-detail`), C (`s05/contact-home`).
+**Current sprint:** **sprint-06 — Terramation guide + MVC glass-front niche map update.**
+Opened 2026-07-28 from the operator directly. Tracks: R (research, no branch),
+M (`s06/mvc-niche-map`), G (`s06/terramation-guide`).
 
-sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped.
+sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
+sprint-05 merged locally.
 
-**Last updated:** 2026-07-27, sprint-05 close.
+**Last updated:** 2026-07-28, sprint-06 open.
+
+## Sprint-06 — opened 2026-07-28
+
+Operator request, three parts: (1) a **new family-facing Terramation guide** matching the
+existing guide family — preceded by a real research pass; the four attached PDFs are source
+material to make a *better* guide from, explicitly **not** to be published directly; (2) update
+the **live MVC glass-front niche map** (`MAPS/MVC_NewGlassFront_NicheMap_1.html`) to the June
+2026 layout/price PDF **and sync `MVCN.json`** in the map repo (operator: "Sync both"); (3) move
+the four PDFs out of `E:\Downloads`.
+
+**Operator decisions 2026-07-28:** source PDFs live in `reference-docs/internal/`, **gitignored,
+local-only** — the internal Return Home partner training guide especially must never reach the
+public repo; track subagents run on **Opus** (restated; matches standing policy).
+
+**Gate 0 done at boot:** all four PDFs copied to `reference-docs/internal/`, SHA-256 verified
+identical to the Downloads originals, folder added to `.gitignore` and proven ignored
+(`git check-ignore` positive). Originals are deleted from Downloads at the close gate only.
+
+**Recon facts (director-verified):** the GPL (p13) already prices Terramation at **$7,795.00**
+plus **$895.00 Laying in Ceremony** — the guide's only permitted dollar figures; no repo page
+mentions terramation today; the live niche map has no MIS wall strings, no effective date, and
+a different price multiset than the June 2026 PDF (3×$48K vs 2×$48K+2×$42K); the PDF renames
+walls to `MVC-ISL-E/N/S/W-Level-Space` (Back=East, Side A=North, Side B=South, Front=West) and
+color-codes rights per niche; `MVCN.json` holds 146 units whose hand-maintained statuses must
+survive the sync.
+
+Spawn order: R + M in parallel (no file overlap), G after R completes; merge M then G. No track
+touches `index.html`, so the generator baseline is out of play by construction.
 
 ## Sprint-05 — closed 2026-07-27
 
