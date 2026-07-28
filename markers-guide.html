@@ -204,7 +204,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
   html{background:#f8f6f2;}
   body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  .site-nav,.site-footer,.nav-back,.nav-links{display:none!important;}
+  /* The contents grid stays VISIBLE in print. Hiding it left page 1 as a thin cover band
+     over ~88% white space — Martice, 2026-07-27. It is also the natural thing to put on
+     a cover page. */
   .site-nav,.filter-bar{position:static;}
   .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 0.5in;min-height:auto;}
   .cover{padding:20px 0 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;margin:0 -0.5in;padding-left:0.5in;padding-right:0.5in;}
@@ -218,6 +221,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .compare-card,.sidebar,.plan-card,.feature-card{break-inside:avoid;page-break-inside:avoid;}
   .compare-card:hover,.feature-card:hover{box-shadow:none;}
   .section-photo,.section-photo-inline{break-inside:avoid;page-break-inside:avoid;box-shadow:none;}
+  /* Constrain a section photo by WIDTH so the aspect ratio is preserved. A max-HEIGHT on
+     an height:auto image scales the whole picture down and leaves it a stamp inside a
+     full-size container — that is what went wrong on 2026-07-27. */
+  .section-photo{max-width:58%;margin-left:auto;margin-right:auto;}
+  /* Page 1 is the cover plus the contents grid; Section 1 starts clean on page 2. */
+  .contents{page-break-after:always;break-after:page;}
   .section-photo-inline{float:none;width:100%;margin:0 0 16px 0;}
   .scale-guide{break-inside:avoid;page-break-inside:avoid;page-break-before:always;padding:24px 0;margin-top:0;border:none;background:#f8f6f2!important;border-radius:0;}
   .scale-guide-label{font-size:16pt!important;margin-bottom:8px;}
@@ -229,13 +238,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .scale-companion{margin-top:24px;}
   .scale-companion .scale-markers{margin-bottom:60px;}
   .section-photo img,.section-photo-inline img{width:100%;max-width:none;}
-  /* A section photo may not eat a page. Capped so a section's heading, prose, sidebar
-     and policy box stay together on one sheet — the photo shrinks, the content wins. */
-  .section-photo img{max-height:1.6in;object-fit:cover;}
-  .section-photo-inline img{max-height:1.5in;object-fit:cover;}
-  /* Section 1 gets its own sheet. Sharing page 1 with the cover and the contents grid
-     is what split it, leaving a page that was mostly photograph. */
-  #overview{page-break-before:always;break-before:page;}
   .color-swatches{grid-template-columns:repeat(5,1fr);gap:8px;}
   .color-swatch img{aspect-ratio:1/1;}
   .color-group{break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;}
@@ -257,9 +259,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .tsg-full{page-break-before:always;break-before:page;margin-left:-0.5in;margin-right:-0.5in;}
   .tsg-full .tsg-diagram{justify-content:center;}
   .tsg-diagram{margin-bottom:12px;justify-content:flex-start;}
-  .policy-box{break-inside:avoid;page-break-inside:avoid;padding:16px 18px;}
-  .policy-box h3{margin-bottom:6px;}
-  .policy-box p{margin-bottom:6px;line-height:1.4;}
+  .policy-box{break-inside:avoid;page-break-inside:avoid;padding:14px 16px;}
+  .policy-box h3{margin-bottom:5px;}
+  .policy-box p{margin-bottom:5px;line-height:1.4;}
   .doc-footer{page-break-before:avoid;padding:24px 0 20px;border-top:1px solid #ddd6c8;text-align:center;}
   .doc-footer .footer-logo{height:20px;}
   .doc-footer .footer-hours{font-size:11pt;}
@@ -423,7 +425,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <tr>
           <td>32&Prime; &times; 20&Prime;<span class="size-note">Single (1 grave)</span></td>
           <td>$2,947.68</td>
-          <td>$3,427.92</td>
+          <td>$4,146.62</td>
           <td>$3,875.04</td>
         </tr>
         <tr>
