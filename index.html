@@ -331,6 +331,62 @@ tr:hover td{background:#eef3f8;}
 .ct-fix{padding:1px 8px;font-size:11px;font-family:inherit;background:var(--orange-tint);color:var(--orange-dark);border:1px solid var(--orange-tint);border-radius:20px;cursor:pointer;margin:1px 4px 1px 0;}
 .ct-fix:hover{border-color:var(--orange-dark);}
 .ct-fixin{padding:4px 7px;font-size:12px;font-family:inherit;border:1px solid var(--navy);border-radius:5px;background:#fff;color:var(--ink);min-width:150px;}
+/* CRM — THE CONTACT RECORD PAGE. Header strip, full-width property band, three rails.
+   The complaint this answers: the record 'is so small'. It never was a max-width — .main is
+   padding only and .section sets display only — it was a single stacked column of cards that
+   never laid out into width it already had. .main is 264px of sidebar and 64px of padding
+   narrower than the viewport, so the breakpoints below are in VIEWPORT terms: three columns
+   need ~1000px of content, which is ~1330px of window. */
+.ct-detail-head{background:#fff;border:1px solid var(--border);border-left:4px solid var(--navy);border-radius:10px;padding:13px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.ct-hd-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+/* The name never truncates: no nowrap, no ellipsis, and it may break inside a word rather
+   than push the page wider than the window. */
+.ct-hd-name{font-size:21px;font-weight:800;color:var(--navy);line-height:1.25;overflow-wrap:anywhere;min-width:0;}
+.ct-hd-acts{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;}
+.ct-hd-act{padding:5px 13px;font-size:12.5px;font-weight:700;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:7px;cursor:pointer;white-space:nowrap;}
+.ct-hd-act:hover{background:var(--blue-light);border-color:var(--navy);}
+.ct-hd-act.primary{background:var(--navy);border-color:var(--navy);color:#fff;}
+.ct-hd-act.primary:hover{background:var(--navy-dark);color:#fff;}
+.ct-hd-strip{display:flex;gap:8px 20px;align-items:center;flex-wrap:wrap;margin-top:9px;}
+.ct-hd-strip .ct-meta{margin-top:0;overflow-wrap:anywhere;min-width:0;}
+/* The property band. Full width, above the columns: it is the first question a counselor
+   asks about a family, so it gets the most valuable real estate on the page. */
+.ct-band{background:linear-gradient(180deg,var(--blue-light),#fff 78%);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:11px 16px 5px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.ct-band-hd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:2px;}
+.ct-band-ttl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--navy);}
+.ct-band-meta{font-size:11.5px;color:var(--text-light);}
+.ct-band-rows{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:0 24px;}
+.ct-band-rows > *{min-width:0;}
+.ct-grid{display:grid;grid-template-columns:262px minmax(0,1fr) 304px;gap:14px;align-items:start;}
+.ct-grid > *{min-width:0;}
+@media (max-width:1330px){.ct-grid{grid-template-columns:250px minmax(0,1fr);}.ct-grid .ct-rail-right{grid-column:1 / -1;}}
+@media (max-width:1010px){.ct-grid{grid-template-columns:minmax(0,1fr);}.ct-grid .ct-rail-right{grid-column:auto;}}
+#ctCentre .ct-tabs{margin:0 0 12px;}
+.ct-panel{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);min-width:0;}
+.ct-panel-ttl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--text-light);margin-bottom:7px;}
+.ct-field{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);}
+.ct-field:last-child{border-bottom:none;}
+.ct-field-lbl{flex:0 0 74px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-light);}
+.ct-field-val{flex:1;min-width:0;font-size:12.5px;color:var(--ink);overflow-wrap:anywhere;}
+.ct-editable{background:none;border:none;padding:2px 5px;margin:-2px -5px;font:inherit;color:inherit;text-align:left;border-radius:5px;cursor:text;max-width:100%;overflow-wrap:anywhere;}
+.ct-editable:hover{background:var(--blue-light);box-shadow:inset 0 0 0 1px var(--gray-mid);}
+.ct-editable.empty{color:var(--text-light);font-style:italic;}
+/* The activity timeline. Every entry is DERIVED from a record that already exists. */
+.ct-tl{display:block;}
+.ct-tl-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.ct-tl-item:last-child{border-bottom:none;}
+.ct-tl-dot{flex:0 0 9px;width:9px;height:9px;border-radius:50%;margin-top:5px;background:var(--gray-mid);}
+.ct-tl-dot.note{background:var(--navy);}
+.ct-tl-dot.todo{background:var(--blue);}
+.ct-tl-dot.done{background:var(--green);}
+.ct-tl-dot.property{background:var(--orange);}
+.ct-tl-dot.import{background:var(--gray-dark);}
+.ct-tl-body{flex:1;min-width:0;}
+.ct-tl-kind{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);}
+.ct-tl-what{font-size:12.5px;color:var(--ink);line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap;margin-top:1px;}
+.ct-tl-who{font-size:11px;color:var(--text-light);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;}
+.ct-rel{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.ct-rel:last-child{border-bottom:none;}
 /* CRM — the CSV import screen */
 .imp-steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
 .imp-step{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 11px;border-radius:20px;background:var(--gray-light);color:var(--text-light);border:1px solid var(--gray-mid);}
@@ -12554,7 +12610,7 @@ function _bwPropertyRowHtml(r) {
   return '<div class="ct-prop" data-prop="' + _ceEsc(r.id || '') + '"'
     + ' style="display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">'
     + '<div style="flex:1;min-width:210px;">'
-    + '<div class="ct-prop-loc" style="font-size:13.5px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPropertyLocator(r)) + '</div>'
+    + '<div class="ct-prop-loc" style="font-size:13.5px;font-weight:700;color:var(--navy);overflow-wrap:anywhere;">' + _ceEsc(bwPropertyLocator(r)) + '</div>'
     + '<div class="ct-prop-counts" style="font-size:12px;margin-top:2px;">' + _bwPropertyCountsHtml(r) + '</div>'
     + (sub.length ? '<div class="ct-prop-sub" style="font-size:11.5px;color:var(--text-light);margin-top:1px;">' + sub.join(' · ') + '</div>' : '')
     + '</div>'
@@ -12564,6 +12620,10 @@ function _bwPropertyRowHtml(r) {
            + ' style="font-size:12px;color:var(--navy);">View on map</a>' : '')
     + '</div>';
 }
+// THE PROPERTY BAND. Full width, directly under the header strip and ABOVE the three columns.
+// Track A built the row; this re-sites and restyles it. The class hooks #ctProperty, .ct-prop,
+// .ct-prop-loc, .ct-prop-counts, .ct-prop-sub and .ct-prop-map are read by
+// tests/test-contact-property.mjs and are deliberately unchanged.
 function _bwPropertyBlockHtml(partyId) {
   var rows = bwPropertyFor(partyId);
   if (!rows.length) return '';
@@ -12571,11 +12631,11 @@ function _bwPropertyBlockHtml(partyId) {
   var meta = s.records + ' record' + (s.records === 1 ? '' : 's') + ' · ' + s.owned
     + ' space' + (s.owned === 1 ? '' : 's') + ' · ' + s.used + ' interred';
   if (s.unknown < s.records) meta += ' · ' + s.available + (s.unknown ? '+' : '') + ' available';
-  return '<div style="margin-top:14px;" id="ctProperty">'
-    + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
-    + '<span style="font-size:12px;font-weight:700;color:var(--navy);">Property owned</span>'
-    + '<span style="font-size:11.5px;color:var(--text-light);">' + _ceEsc(meta) + '</span></div>'
-    + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwPropertyRowHtml).join('') + '</div></div>';
+  return '<div class="ct-band" id="ctProperty">'
+    + '<div class="ct-band-hd">'
+    + '<span class="ct-band-ttl">Property owned</span>'
+    + '<span class="ct-band-meta" id="ctPropSummary">' + _ceEsc(meta) + '</span></div>'
+    + '<div class="ct-band-rows">' + rows.map(_bwPropertyRowHtml).join('') + '</div></div>';
 }
 // ── listener registration ────────────────────────────────────────────────────────────
 // One spec per collection, in the same array _attachContactListeners has always used: a path,
@@ -12770,14 +12830,21 @@ function _bwReadFlagBox(id) {
 // ═══════════════════════════════════════════════════════════════
 // CONTACT DETAIL — Notes and To-Dos tabs
 // ═══════════════════════════════════════════════════════════════
-var _bwDetailTab = 'overview';
+// The ACTIVITY timeline is the default, which is where HubSpot, Salesforce Lightning, Attio
+// and Zoho have all independently landed: the chronological stream is what lets whoever picks
+// the record up next see where the last person left off. 'overview' was this tab's old name
+// and still resolves here, so an existing caller and an old URL both keep working.
+var _bwDetailTab = 'activity';
 // Drafts survive a re-render. renderContactDetail() rebuilds the panel's innerHTML, and a note
 // arriving from the other browser mid-sentence would otherwise wipe what you were typing.
 var _bwNoteDraft = '';
 var _bwTaskDraft = { summary: '', dueOn: '', kind: '' };
 
+function _bwNormDetailTab(t) {
+  return (t === 'notes' || t === 'todos') ? t : 'activity';
+}
 function bwSetDetailTab(tab) {
-  _bwDetailTab = tab;
+  _bwDetailTab = _bwNormDetailTab(tab);
   renderContactDetail();
 }
 function _bwNoteDraftChanged(v) { _bwNoteDraft = v; }
@@ -12867,6 +12934,87 @@ function _bwTasksTabHtml(p) {
       + '<div class="ct-card" style="margin-top:8px;">' + done.map(row).join('') + '</div></details>';
   }
   return html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTACT DETAIL — the activity timeline
+// ═══════════════════════════════════════════════════════════════
+// DERIVED, never stored, and there is deliberately NO events collection. Every entry below
+// already exists as a record; an events node would be a second copy of the truth to keep in
+// sync forever plus a backfill for every record already in the database. Same principle as
+// bwNextActionFor and bwLastActivityFor, which derive rather than store for the same reason.
+//
+// Five sources, and a to-do contributes TWICE — once when it was raised and once when it was
+// done, because 'we said we would call them' and 'we called them' are two different facts.
+var BW_ACTIVITY_KINDS = [
+  { kind: 'note',     label: 'Note'          },
+  { kind: 'todo',     label: 'To-do added'   },
+  { kind: 'done',     label: 'To-do done'    },
+  { kind: 'property', label: 'Property added'},
+  { kind: 'import',   label: 'Imported'      },
+  { kind: 'created',  label: 'Contact created' }
+];
+function bwActivityKindLabel(kind) {
+  for (var i = 0; i < BW_ACTIVITY_KINDS.length; i++) {
+    if (BW_ACTIVITY_KINDS[i].kind === kind) return BW_ACTIVITY_KINDS[i].label;
+  }
+  return kind;
+}
+function bwActivityFor(partyId) {
+  var p = bwPartyById(partyId);
+  if (!p) return [];
+  var out = [];
+  var push = function(kind, at, what, who, id) {
+    if (!at) return;
+    out.push({ kind: kind, at: at, what: what || '', who: who || '', id: id || '' });
+  };
+  bwNotesFor(partyId).forEach(function(n) {
+    push('note', n.createdAt, n.body || '', bwUidName(n.createdBy), n.id);
+  });
+  bwTasksFor(partyId).forEach(function(t) {
+    push('todo', t.createdAt, t.summary || '', bwUidName(t.createdBy), t.id);
+    if (t.status === 'done') push('done', t.doneAt, t.summary || '', bwUidName(t.updatedBy || t.createdBy), t.id);
+  });
+  bwPropertyFor(partyId).forEach(function(r) {
+    push('property', r.createdAt, bwPropertyLocator(r), bwUidName(r.createdBy), r.id);
+  });
+  // The import that carried this family in. Read off _prov, which every imported record already
+  // carries, and named from the batch record — the batch IS the record of what happened.
+  var prov = p._prov;
+  if (prov && prov.src === 'csv-import') {
+    var b = _batchStore[prov.ref];
+    push('import', prov.at || p.createdAt,
+      'Imported from ' + ((b && b.filename) || 'a CSV file'),
+      bwUidName((b && b.by) || p.createdBy), prov.ref || '');
+  }
+  push('created', p.createdAt, 'Contact created', bwUidName(p.createdBy), p.id);
+  // Newest first. The tie-break on kind matters: an import stamps the party, its note, its
+  // to-do and its property record in the SAME millisecond, and without it the stream would
+  // reshuffle itself on every re-render.
+  out.sort(function(a, b) {
+    if (b.at !== a.at) return b.at - a.at;
+    return a.kind < b.kind ? -1 : (a.kind > b.kind ? 1 : 0);
+  });
+  return out;
+}
+function _bwActivityTabHtml(p) {
+  var items = bwActivityFor(p.id);
+  var html = '<div class="ct-panel" id="ctActivity">'
+    + '<div class="ct-panel-ttl">Activity — everything on this family, newest first</div>';
+  if (!items.length) {
+    return html + '<p style="font-size:13px;color:var(--text-light);">Nothing recorded yet.</p></div>';
+  }
+  html += '<div class="ct-tl">' + items.map(function(e) {
+    return '<div class="ct-tl-item" data-kind="' + _ceEsc(e.kind) + '">'
+      + '<span class="ct-tl-dot ' + _ceEsc(e.kind) + '"></span>'
+      + '<div class="ct-tl-body">'
+      + '<div class="ct-tl-kind">' + _ceEsc(bwActivityKindLabel(e.kind)) + '</div>'
+      + '<div class="ct-tl-what">' + _ceEsc(e.what) + '</div>'
+      + '<div class="ct-tl-who"><span>' + _ceEsc(e.who) + '</span>'
+      + '<span>' + _ceEsc(bwWhen(e.at)) + '</span></div>'
+      + '</div></div>';
+  }).join('') + '</div>';
+  return html + '</div>';
 }
 
 function bwAddNoteFromDetail() {
@@ -15116,22 +15264,28 @@ function _bwCtNextCellHtml(p) {
   return '<span class="ct-due ' + state + '">' + _ceEsc(txt) + '</span>'
     + (na.summary ? '<div class="ct-rowmeta">' + _ceEsc(na.summary) + '</div>' : '');
 }
+// THE inline editor's control, in one place. The Data Health worklist (sprint-04 Track B) and
+// the record page's left rail are the same interaction — click the value, type, Enter, saved —
+// so they are the same markup and the same _bwCtFixing / bwCtFixCommit / bwCtFixCancel state,
+// rather than a second editing model that can drift from the first.
+function _bwFixControlHtml(partyId, field) {
+  var isTax = ['source', 'status', 'category'].indexOf(field) > -1;
+  var kind = { source: 'sources', status: 'statuses', category: 'categories' }[field];
+  return isTax
+    ? '<select class="ct-fixin" id="ctFixIn" onchange="bwCtFixCommit(\'' + partyId + '\',\'' + field + '\',this.value)">'
+        + '<option value="">Pick one…</option>'
+        + bwTaxonomy(kind).map(function(e) {
+            return '<option value="' + _ceEsc(e.code) + '">' + _ceEsc(e.label || e.code) + '</option>';
+          }).join('') + '</select>'
+    : '<input class="ct-fixin" id="ctFixIn" placeholder="' + _ceEsc(field) + '"'
+        + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();bwCtFixCommit(\'' + partyId + '\',\'' + field + '\',this.value);}'
+        + 'else if(event.key===\'Escape\'){bwCtFixCancel();}">';
+}
 function _bwCtHealthCellHtml(p) {
   var fx = _bwCtFixing;
   if (fx && fx.id === p.id) {
-    var f = bwCtField(fx.field === 'salutation' ? 'name' : fx.field);
-    var isTax = ['source', 'status', 'category'].indexOf(fx.field) > -1;
-    var kind = { source: 'sources', status: 'statuses', category: 'categories' }[fx.field];
-    var ctl = isTax
-      ? '<select class="ct-fixin" id="ctFixIn" onchange="bwCtFixCommit(\'' + p.id + '\',\'' + fx.field + '\',this.value)">'
-          + '<option value="">Pick one…</option>'
-          + bwTaxonomy(kind).map(function(e) {
-              return '<option value="' + _ceEsc(e.code) + '">' + _ceEsc(e.label || e.code) + '</option>';
-            }).join('') + '</select>'
-      : '<input class="ct-fixin" id="ctFixIn" placeholder="' + _ceEsc(fx.field) + '"'
-          + ' onkeydown="if(event.key===\'Enter\'){event.preventDefault();bwCtFixCommit(\'' + p.id + '\',\'' + fx.field + '\',this.value);}'
-          + 'else if(event.key===\'Escape\'){bwCtFixCancel();}">';
-    return ctl + '<button class="ct-mini" onclick="bwCtFixCancel()">Cancel</button>';
+    return _bwFixControlHtml(p.id, fx.field)
+      + '<button class="ct-mini" onclick="bwCtFixCancel()">Cancel</button>';
   }
   return bwCtHealthIssues(p).map(function(is) {
     // Every issue is a button, because the point of this view is that you can clear it here.
@@ -15299,7 +15453,7 @@ var _bwDetailId = null;
 function openContactDetail(id) {
   // A different family starts on Overview with a clean note box — carrying a half-typed
   // note across contacts is how it ends up on the wrong record.
-  if (id !== _bwDetailId) { _bwDetailTab = 'overview'; _bwNoteDraft = ''; _bwTaskDraft = { summary: '', dueOn: '', kind: '' }; }
+  if (id !== _bwDetailId) { _bwDetailTab = 'activity'; _bwNoteDraft = ''; _bwTaskDraft = { summary: '', dueOn: '', kind: '' }; }
   _bwDetailId = id;
   el('contactsList').style.display = 'none';
   var _ch = el('ctChrome'); if (_ch) _ch.style.display = 'none';
@@ -15332,12 +15486,147 @@ function _bwHoldingRow(h) {
     + '</div>';
 }
 
+// ── the left rail: identity and classification, editable in place ────────────────────
+// Which fields are editable is exactly what bwCtFixCommit can write. A row offering to edit
+// something the commit path would silently drop is worse than a read-only row.
+var BW_DETAIL_EDIT_FIELDS = ['phone', 'email', 'status', 'source', 'category', 'salutation'];
+function _bwIdentityRailHtml(p) {
+  var fx = _bwCtFixing;
+  var addr = p.addresses ? p.addresses[Object.keys(p.addresses)[0]] : null;
+  var row = function(label, valueHtml) {
+    return '<div class="ct-field"><span class="ct-field-lbl">' + _ceEsc(label) + '</span>'
+      + '<span class="ct-field-val">' + valueHtml + '</span></div>';
+  };
+  var editable = function(field, label, shownHtml) {
+    if (BW_DETAIL_EDIT_FIELDS.indexOf(field) === -1) return row(label, shownHtml);
+    if (fx && fx.id === p.id && fx.field === field) return row(label, _bwFixControlHtml(p.id, field));
+    var empty = !shownHtml;
+    return row(label, '<button class="ct-editable' + (empty ? ' empty' : '') + '" data-edit="' + field + '"'
+      + ' title="Click to edit" onclick="bwCtFixStart(\'' + p.id + '\',\'' + field + '\')">'
+      + (empty ? 'Add ' + _ceEsc(label.toLowerCase()) : shownHtml) + '</button>');
+  };
+  var ph = _bwPrimary(p.phones), em = _bwPrimary(p.emails);
+  var st = bwPartyStatus(p), flags = bwPartyFlags(p);
+  return '<div class="ct-panel" id="ctIdentity">'
+    + '<div class="ct-panel-ttl">Identity</div>'
+    + editable('phone', 'Phone', ph ? _ceEsc(bwFmtPhone(ph)) : '')
+    + editable('email', 'Email', em ? _ceEsc(em) : '')
+    + row('Address', (addr && (addr.street1 || addr.city || addr.postal))
+        ? _ceEsc([addr.street1, addr.street2, addr.city, addr.state, addr.postal].filter(Boolean).join(', '))
+        : '<span class="ct-none">Not on file</span>')
+    + (p.dob ? row('Born', _ceEsc(p.dob)) : '')
+    + '</div>'
+    + '<div class="ct-panel" id="ctClassification">'
+    + '<div class="ct-panel-ttl">Classification</div>'
+    + editable('status', 'Status', st ? _bwTagHtml('statuses', st) : '')
+    + editable('source', 'Source', p.source ? _bwTagHtml('sources', p.source) : '')
+    + editable('category', 'Category', p.category ? _bwTagHtml('categories', p.category) : '')
+    + row('Flags', flags.length ? flags.map(function(f){ return _bwTagHtml('flags', f); }).join('')
+                                : '<span class="ct-none">None</span>')
+    + (p.interest ? row('Interest', _ceEsc(p.interest)) : '')
+    + '</div>'
+    + '<div class="ct-panel" id="ctSalutation">'
+    + '<div class="ct-panel-ttl">How we address them</div>'
+    + editable('salutation', 'Salutation', p.salutation ? _ceEsc(p.salutation) : '')
+    + row('Owner', p.ownerUid ? _ceEsc(bwUidName(p.ownerUid)) : '<span class="ct-none">Unassigned</span>')
+    + '</div>';
+}
+
+// ── the right rail: what they own, and who else is on it ─────────────────────────────
+// Everyone else named on the same records. Derived from contractRoles, which already exists:
+// this invents no relationship entity and claims no relationship that is not on a document.
+function bwRelatedPeopleFor(partyId) {
+  var seen = {}, out = [];
+  bwRolesForParty(partyId).forEach(function(r) {
+    bwRolesForRecord(r.recordType, r.recordId).forEach(function(o) {
+      if (!o.partyId || o.partyId === partyId || seen[o.partyId]) return;
+      var q = bwPartyById(o.partyId);
+      if (!q) return;
+      seen[o.partyId] = true;
+      out.push({ party: q, role: o.role });
+    });
+  });
+  return out;
+}
+function _bwHoldingsRailHtml(p, h) {
+  var props = bwPropertyFor(p.id);
+  var count = h.cemetery.length + h.funeral.length;
+  var html = '<div class="ct-panel" id="ctHoldings">'
+    + '<div class="ct-panel-ttl">What this family owns</div>';
+  if (count) {
+    html += '<div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px;">'
+      + '<span style="font-size:17px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
+      + '<span style="font-size:12px;color:var(--text-light);">across ' + count
+      + ' record' + (count === 1 ? '' : 's') + '</span></div>';
+  }
+  if (props.length) {
+    var ps = bwPropertySummary(p.id);
+    html += '<div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">'
+      + ps.owned + ' space' + (ps.owned === 1 ? '' : 's') + ' in ' + ps.records
+      + ' location' + (ps.records === 1 ? '' : 's') + ' — see the band above</div>';
+  }
+  // A family with nothing at all is a prospect, and saying so is more useful than an empty
+  // panel. But PROPERTY counts as something on file: until sprint-05 a family who bought in
+  // 1998 and has no saved quote in this tool was called a prospect with nothing on file, which
+  // is worse than missing data — it is confidently wrong in the direction that loses business.
+  if (!count && !props.length) {
+    html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;'
+      + 'padding:11px 13px;font-size:12.5px;color:var(--navy);line-height:1.55;">'
+      + 'Nothing on file yet — this contact is a prospect.'
+      + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
+      + '</div>';
+  } else if (count) {
+    [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
+      var rows = h[pair[0]];
+      if (!rows.length) return;
+      var sub = rows.reduce(function(s, x){ return s + (x.rec.total || 0); }, 0);
+      html += '<div style="margin-top:10px;">'
+        + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:1px;">'
+        + '<span style="font-size:12px;font-weight:700;color:var(--navy);">' + pair[1] + '</span>'
+        + '<span style="font-size:11.5px;color:var(--text-light);">' + rows.length + ' · ' + fmt(sub) + '</span></div>'
+        + rows.map(_bwHoldingRow).join('') + '</div>';
+    });
+  }
+  // A role whose record is gone. Rare, but silence here would be worse than a line of text.
+  if (h.missing.length) {
+    html += '<div style="margin-top:10px;padding:9px 12px;border-radius:7px;background:var(--orange-tint);'
+      + 'color:var(--orange-dark);font-size:12px;line-height:1.55;">'
+      + h.missing.length + ' link' + (h.missing.length === 1 ? '' : 's') + ' point at a record that no longer exists'
+      + ' (' + h.missing.map(function(r){ return _ceEsc((BW_RECORD_TYPES[r.recordType] || {}).label || r.recordType); }).join(', ') + ').'
+      + ' The quote was probably deleted.</div>';
+  }
+  html += '</div>';
+
+  var rel = bwRelatedPeopleFor(p.id);
+  if (rel.length) {
+    html += '<div class="ct-panel" id="ctRelated">'
+      + '<div class="ct-panel-ttl">Also on these records</div>'
+      + rel.map(function(x) {
+          return '<div class="ct-rel">'
+            + '<button class="ct-rowname" style="white-space:normal;overflow-wrap:anywhere;"'
+            + ' onclick="openContactDetail(\'' + x.party.id + '\')">' + _ceEsc(bwPartyName(x.party)) + '</button>'
+            + '<span class="ct-pill" style="margin-left:auto;">' + _ceEsc(bwRoleLabel(x.role)) + '</span>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }
+  return html;
+}
+
+// ── THE RECORD PAGE ──────────────────────────────────────────────────────────────────
+// Header strip · full-width property band · left rail | tabbed centre | right rail.
+//
+// The complaint: "when clicking into a contact itself it needs to use better use of the whole
+// page. right now it is so small." It was never a width constraint — .main is padding only and
+// .section sets display only. It was a single stacked column of cards that never laid out into
+// width it already had. The fix is a layout, not the removal of a constraint.
 function renderContactDetail() {
   var box = el('contactDetail'); if (!box || !_bwDetailId) return;
   var p = bwPartyById(_bwDetailId);
   if (!p) { closeContactDetail(); return; }
   // What has focus right now. This panel is rebuilt wholesale on any store change, so without
-  // this a note arriving from the other browser yanks the cursor out of a half-typed sentence.
+  // this a note arriving from the other browser yanks the cursor out of a half-typed sentence,
+  // or out of the inline edit in the left rail.
   var focusId = '', caret = null;
   try {
     if (document.activeElement && box.contains(document.activeElement)) {
@@ -15347,105 +15636,62 @@ function renderContactDetail() {
   } catch (e) {}
 
   var h = bwHoldingsFor(p.id);
-  var ph = _bwPrimary(p.phones), em = _bwPrimary(p.emails);
-  var addr = p.addresses ? p.addresses[Object.keys(p.addresses)[0]] : null;
+  var tab = _bwNormDetailTab(_bwDetailTab);
 
-  var html = '<button onclick="closeContactDetail()" style="padding:5px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);margin-bottom:14px;">← All contacts</button>';
-
-  html += '<div class="ct-card" style="border-left-width:4px;">'
-    + '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'
-    + '<span style="font-size:18px;font-weight:800;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
-    + '<button onclick="openContactEditor(\'' + p.id + '\')" style="margin-left:auto;padding:4px 13px;font-size:12px;font-family:inherit;background:var(--gray-light);border:1px solid var(--gray-mid);border-radius:6px;cursor:pointer;color:var(--navy);">Edit</button>'
-    + '</div>';
+  // ── header strip ──────────────────────────────────────────────────────────────────
+  var html = '<button class="ct-hd-act" style="margin-bottom:11px;" onclick="closeContactDetail()">← All contacts</button>';
+  html += '<div class="ct-detail-head" id="ctHead">'
+    + '<div class="ct-hd-top">'
+    + '<span class="ct-hd-name" id="ctName">' + _ceEsc(bwPartyName(p)) + '</span>'
+    + '<span class="ct-hd-acts">'
+    + '<button class="ct-hd-act primary" onclick="bwSetDetailTab(\'notes\')">Log a note</button>'
+    + '<button class="ct-hd-act" onclick="bwSetDetailTab(\'todos\')">Add a to-do</button>'
+    + '<button class="ct-hd-act" onclick="openContactEditor(\'' + p.id + '\')">Edit</button>'
+    + '</span></div>';
   // Status / source / category / flags, all rendered from codes. An unresolved code shows the
   // code itself in a muted style — never a blank where a value used to be.
   var tags = bwPartyTagsHtml(p);
   if (tags) html += '<div id="ctTags" style="margin-top:7px;">' + tags + '</div>';
-  var bits = [];
-  if (ph) bits.push(_ceEsc(bwFmtPhone(ph)));
-  if (em) bits.push(_ceEsc(em));
-  if (addr && (addr.street1 || addr.city)) bits.push(_ceEsc([addr.street1, addr.city, addr.state, addr.postal].filter(Boolean).join(', ')));
-  if (p.salutation) bits.push('<span style="color:var(--text-light);">' + _ceEsc(p.salutation) + '</span>');
-  if (bits.length) html += '<div class="ct-meta" style="margin-top:5px;line-height:1.7;">' + bits.join('<br>') + '</div>';
-
   // The one line that answers "what do I do about this family". Derived, never stored.
   var na = bwNextActionFor(p.id);
-  html += '<div id="ctNextAction" class="ct-meta" style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+  var act = bwLastActivityFor(p.id);
+  html += '<div class="ct-hd-strip">'
+    + '<span id="ctNextAction" class="ct-meta" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
     + '<span style="font-weight:700;color:var(--navy);">Next action</span>'
     + (na
         ? '<span class="ct-due ' + bwNextActionState(na.dueOn) + '">' + _ceEsc(bwDueLabel(na.dueOn)) + '</span>'
           + '<span>' + _ceEsc(na.summary) + '</span>'
         : '<span class="ct-due">None</span>')
-    + '</div>';
-  html += '</div>';
+    + '</span>'
+    + '<span class="ct-meta" id="ctLastActivity">Last activity <strong style="color:var(--navy);">'
+    + _ceEsc(act ? bwRelTime(act) : 'never') + '</strong></span>'
+    + '</div></div>';
 
+  // ── the property band, full width, above the columns ──────────────────────────────
+  html += _bwPropertyBlockHtml(p.id);
+
+  // ── three columns ─────────────────────────────────────────────────────────────────
   var notes = bwNotesFor(p.id);
   var openTasks = bwTasksFor(p.id).filter(function(t){ return t.status !== 'done'; });
-  html += '<div class="ct-tabs">'
-    + [['overview', 'Overview', ''],
+  var centre = '<div class="ct-tabs">'
+    + [['activity', 'Activity', ''],
        ['notes', 'Notes', notes.length ? ' (' + notes.length + ')' : ''],
        ['todos', 'To-Dos', openTasks.length ? ' (' + openTasks.length + ')' : '']]
       .map(function(t) {
-        return '<button class="ct-tab' + (_bwDetailTab === t[0] ? ' active' : '') + '"'
+        return '<button class="ct-tab' + (tab === t[0] ? ' active' : '') + '"'
           + ' id="ctTab-' + t[0] + '" onclick="bwSetDetailTab(\'' + t[0] + '\')">' + t[1] + t[2] + '</button>';
       }).join('')
     + '</div>';
+  if (tab === 'notes') centre += _bwNotesTabHtml(p);
+  else if (tab === 'todos') centre += _bwTasksTabHtml(p);
+  else centre += _bwActivityTabHtml(p);
 
-  if (_bwDetailTab === 'notes') {
-    html += _bwNotesTabHtml(p);
-  } else if (_bwDetailTab === 'todos') {
-    html += _bwTasksTabHtml(p);
-  } else {
-    // The headline. A family with nothing yet is a prospect, and saying so is more useful than
-    // an empty panel — but PROPERTY counts as something on file. Until sprint-05 a family who
-    // bought in 1998 and has no saved quote in this tool was described as a prospect with
-    // nothing on file, which is worse than missing data: it is confidently wrong in the
-    // direction that loses business.
-    var props = bwPropertyFor(p.id);
-    var count = h.cemetery.length + h.funeral.length;
-    html += '<div style="margin:4px 0 10px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">'
-      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">What this family owns</span>';
-    if (count) {
-      html += '<span style="font-size:15px;font-weight:800;color:var(--navy);">' + fmt(h.total) + '</span>'
-           + '<span style="font-size:12px;color:var(--text-light);">across ' + count + ' record' + (count === 1 ? '' : 's') + '</span>';
-    }
-    if (props.length) {
-      var _ps = bwPropertySummary(p.id);
-      html += '<span id="ctPropSummary" style="font-size:12px;color:var(--text-light);">'
-        + _ps.owned + ' space' + (_ps.owned === 1 ? '' : 's') + ' in ' + _ps.records
-        + ' location' + (_ps.records === 1 ? '' : 's') + '</span>';
-    }
-    html += '</div>';
+  html += '<div class="ct-grid" id="ctGrid">'
+    + '<div class="ct-rail ct-rail-left" id="ctRailLeft">' + _bwIdentityRailHtml(p) + '</div>'
+    + '<div class="ct-col" id="ctCentre">' + centre + '</div>'
+    + '<div class="ct-rail ct-rail-right" id="ctRailRight">' + _bwHoldingsRailHtml(p, h) + '</div>'
+    + '</div>';
 
-    // Property first: it is the question a counselor asks before any other.
-    html += _bwPropertyBlockHtml(p.id);
-
-    if (!count && !props.length) {
-      html += '<div style="background:var(--blue-light);border:1px solid var(--blue);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--navy);">'
-        + 'Nothing on file yet — this contact is a prospect.'
-        + (p.interest ? ' Interested in <strong>' + _ceEsc(p.interest) + '</strong>.' : '')
-        + '</div>';
-    } else if (count) {
-      [['cemetery', 'Cemetery'], ['funeral', 'Funeral Home']].forEach(function(pair) {
-        var rows = h[pair[0]];
-        if (!rows.length) return;
-        var sub = rows.reduce(function(s, x){ return s + (x.rec.total || 0); }, 0);
-        html += '<div style="margin-top:14px;">'
-          + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px;">'
-          + '<span style="font-size:12px;font-weight:700;color:var(--navy);">' + pair[1] + '</span>'
-          + '<span style="font-size:11.5px;color:var(--text-light);">' + rows.length + ' · ' + fmt(sub) + '</span></div>'
-          + '<div class="ct-card" style="padding:2px 14px;">' + rows.map(_bwHoldingRow).join('') + '</div></div>';
-      });
-    }
-
-    // A role whose record is gone. Rare, but silence here would be worse than a line of text.
-    if (h.missing.length) {
-      html += '<div style="margin-top:14px;padding:10px 13px;border-radius:7px;background:var(--orange-tint);color:var(--orange-dark);font-size:12.5px;line-height:1.6;">'
-        + h.missing.length + ' link' + (h.missing.length === 1 ? '' : 's') + ' point at a record that no longer exists'
-        + ' (' + h.missing.map(function(r){ return _ceEsc((BW_RECORD_TYPES[r.recordType] || {}).label || r.recordType); }).join(', ') + ').'
-        + ' The quote was probably deleted.</div>';
-    }
-  }
   box.innerHTML = html;
 
   if (focusId) {
@@ -15456,6 +15702,12 @@ function renderContactDetail() {
         if (caret != null && typeof fe.setSelectionRange === 'function') fe.setSelectionRange(caret, caret);
       } catch (e2) {}
     }
+  } else if (_bwCtFixing && _bwCtFixing.id === p.id) {
+    // Just opened an inline edit: put the cursor in it so the click that opened it is the only
+    // click needed. (In headless Chromium this call is a no-op, which is why the suite drives
+    // this path with real Playwright keyboard input rather than asserting on it here.)
+    var fi = el('ctFixIn');
+    if (fi) { try { fi.focus(); } catch (e3) {} }
   }
 }
 
