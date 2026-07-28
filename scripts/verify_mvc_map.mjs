@@ -21,11 +21,25 @@ import { WALLS, WALL_ORDER, allNiches, cellDims } from './mvc-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/MVC_NewGlassFront_NicheMap_1.html';
-// HEAD, not origin/main: sprint-06's `901f4d5 [s06/mvc-niche-map] Bring the MVC
-// glass-front niche map level with June 2026` is merged locally and NOT pushed, so
-// origin/main still carries the pre-verification page (E&D-2 refs, $1,878,000 total).
-// Comparing against origin/main would report 5 false failures.
-const BASE = process.argv[2] || 'HEAD';
+// The baseline is the NEWEST commit whose copy of the page still uses buildGrid() —
+// i.e. the last flat version, which is sprint-06's `901f4d5 [s06/mvc-niche-map] Bring
+// the MVC glass-front niche map level with June 2026`.
+//
+// Deliberately NOT origin/main: 901f4d5 is merged locally and not pushed, so
+// origin/main still carries the pre-verification page (E&D-2 refs, $1,878,000 total)
+// and comparing against it reports five false failures. And deliberately not a fixed
+// HEAD~n, which stops meaning anything after the rebuild lands.
+function findBaseline() {
+  const log = execFileSync('git', ['-C', ROOT, 'log', '--format=%H', '--', REL], { encoding: 'utf8' });
+  for (const sha of log.trim().split('\n')) {
+    try {
+      const blob = execFileSync('git', ['-C', ROOT, 'show', `${sha}:${REL}`], { encoding: 'utf8', maxBuffer: 1 << 28 });
+      if (blob.includes("buildGrid('fw'")) return sha.slice(0, 7);
+    } catch { /* file absent in that commit */ }
+  }
+  throw new Error('no pre-rewrite version of ' + REL + ' found in history');
+}
+const BASE = process.argv[2] || findBaseline();
 
 const EXPECTED = { west: 48, east: 51, north: 23, south: 23 };
 const EXPECTED_TOTAL = 145;
