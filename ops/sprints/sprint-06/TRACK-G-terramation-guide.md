@@ -44,6 +44,18 @@ guides, not like a new species.
   originals). These extracted derivatives ARE committed (they are BW's own marketing
   assets for families); the source PDFs are not.
 
+## Operator rulings 2026-07-28 (these settle RESEARCH.md's blocking questions — binding)
+
+1. **Soil amount: print ~250 lb** plus the agreed volume (about a cubic yard, returned in
+   10–15 breathable burlap bags). The Description sheet's 500 lb figure is superseded — do
+   not print it.
+2. **WMP placement:** terramated remains CAN be placed at Washington Memorial Park in a
+   **standard-size plot**. The guide may say exactly that, and directs the family to their
+   family service director for specifics — print no gardens, fees, or container rules
+   beyond it.
+3. **Religious perspectives: omitted entirely.** No religious section, no claims about
+   any tradition's position.
+
 ## Content requirements
 
 - **Pricing: only the two GPL figures, verbatim** — Terramation (Natural Organic

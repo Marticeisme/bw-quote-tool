@@ -52,6 +52,11 @@ Opened 2026-07-28, from the operator directly (not the roadmap). Three asks:
 **Operator instruction 2026-07-28: track subagents run on Opus (not Fable).** Consistent
 with the standing model policy in `SPRINT_GUIDELINES.md`.
 
+**Added mid-sprint (operator, with screenshot): Track M2 — `TRACK-M2-map-zoom-floor.md`.**
+The internal WMP map lets you zoom out to the whole Puget Sound region; it needs a zoom
+floor at the designed overview framing. Map repo only, no parent-repo changes, runs in
+parallel with Track G (disjoint repos/files).
+
 **Parallelism:** R and M spawn together (R touches no repo file; M's files overlap with
 nothing else). G spawns after R completes — the guide is written FROM the research. No
 worktrees needed: M and G never run against the same files at the same time, and neither
