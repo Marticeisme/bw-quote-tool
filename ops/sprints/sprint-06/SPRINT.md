@@ -52,6 +52,14 @@ Opened 2026-07-28, from the operator directly (not the roadmap). Three asks:
 **Operator instruction 2026-07-28: track subagents run on Opus (not Fable).** Consistent
 with the standing model policy in `SPRINT_GUIDELINES.md`.
 
+**Added mid-sprint (operator, with the Matthews K25-377 fabrication blueprint): Track M3 —
+`TRACK-M3-mvc-3d-map.md`.** The 3D rebuild **replaces** the 2D niche map at the same URL
+(operator's explicit choice over companion/tab), keeping a print-reference mode. Runs in
+worktree `../bw-quote-tool-mvc3d` on `s06/mvc-3d`, parallel with Track G. The blueprint
+was moved to `reference-docs/internal/` (hash-verified, gitignored) — it is Matthews'
+copyrighted drawing and must never be committed or reproduced; only its dimensions become
+our data. Merge order becomes: M (done) → G → M3, M3 re-audited on top of G's merge.
+
 **Added mid-sprint (operator, with screenshot): Track M2 — `TRACK-M2-map-zoom-floor.md`.**
 The internal WMP map lets you zoom out to the whole Puget Sound region; it needs a zoom
 floor at the designed overview framing. Map repo only, no parent-repo changes, runs in
