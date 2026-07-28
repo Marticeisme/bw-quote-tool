@@ -44,7 +44,7 @@ Rules of work for every sprint, track, and director. Director runbook:
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
    - `npm run check` → must print `index.html: 8 blocks, 0 errors`
-   - `npm test` → must print `1135 passed, 0 failed across 24 suites (1133 without wmp-cemetery-map/)`
+   - `npm test` → must print `1300 passed, 0 failed across 26 suites (1298 without wmp-cemetery-map/)`
      (the count rises as suites are added; it must never fall silently)
    - any generator-signature diff its sprint file specifies
 5. **Never trust, always verify.** "Done"/"pushed"/"loaded" are claims; the report quotes

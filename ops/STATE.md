@@ -1,21 +1,58 @@
 # STATE — Living Ledger
 
-**Current sprint:** **sprint-04 — Contacts becomes a CRM (S8) + the guides audit (S9).**
-**ALL FOUR TRACKS MERGED, green on `main`, NOT PUSHED.** A (`f481637`), D (`64d2f3f`),
-B (`49ec0a5`), C. Awaiting the operator's push gate and then his own demo import.
-See `sprints/sprint-04/SPRINT.md`.
+**Current sprint:** **sprint-05 — What they own, and a page worth looking at.** ALL THREE TRACKS
+MERGED and green. A (`s05/contact-property`), B (`s05/contact-detail`), C (`s05/contact-home`).
 
-sprint-01 (S1) and sprint-02 (S7) SHIPPED; sprint-03 (S2) **partially shipped** - the 11
-overlapping fees are live, the remaining scope is recorded under "Open, and needing Martice".
+sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped.
 
-**Last updated:** 2026-07-27, sprint-04 close. **Nothing beyond `4fa7171` is pushed** — all
-nineteen commits since are local, awaiting the operator's push gate.
+**Last updated:** 2026-07-27, sprint-05 close.
 
-**All worktrees were removed at close**; only `bw-quote-tool` on `main` remains. During the
-sprint a director worktree on `main` was used so bookkeeping never landed on a live track's
-branch — see `MISTAKES.md` #12, and consider doing that from the start next time. Each
-`node_modules` junction was deleted **non-recursively** before its worktree was removed, per
-`DESIGN.md` §5, and the real `node_modules` was confirmed intact afterwards.
+## Sprint-05 — closed 2026-07-27
+
+Came from Martice after he imported the 30 demo contacts. Three complaints; the third reordered
+the sprint, because it was not a layout problem but a missing entity: **the tool could not
+represent the property a family already owns**, so every existing owner — the most valuable
+contacts in the book — rendered as *"a prospect with nothing on file."*
+
+| Track | Shipped |
+|---|---|
+| A | `contactProperty/<id>` as a first-class record, independent of any quote. `BW_SECTION_TYPES` classifies all **57 real WMP section codes**, each carrying a `src` naming its evidence. Capacity is data: a niche holds 2, Court of Honor 1, a Lake Urn Garden space 1. Demo property from real locations, **provably not colliding with any occupied grave**. |
+| B | The record is a page: header strip, full-width property band, three columns, and an **activity timeline** merging notes, to-dos raised and completed, property, the import batch and creation — derived, not stored. |
+| C | Contacts opens a **home screen**: needs-attention counts, quick actions, the five views as cards, recently viewed, saved views, labelled coming-soon placeholders. The list keeps its own URL. |
+
+**Verification contract moved from 1038/23 to `1300 passed, 0 failed across 26 suites`**, with
+14/14 generator signatures still identical — so none of it moved a number on a document.
+
+### B and C ran in PARALLEL against the same file, and it held
+
+The guidelines cap that for good reason. The operator asked for it, and the mitigation was a hard
+boundary plus append-only discipline: Track C's entire diff **removes one line** and adds four
+contiguous hunks, and it crossed none of Track B's territory. They auto-merged with **zero
+conflicts**, and — the check that actually matters — **both suites pass together on the merged
+result**. A clean textual merge proves nothing on its own; Track C wraps three functions Track B
+rewrote.
+
+**The lesson worth keeping:** parallel same-file tracks are survivable *when the second one is
+scoped to append*. Scattered edits would not have merged.
+
+### Two pre-existing bugs found and correctly NOT fixed
+
+1. **The page scrolls sideways by 88px below ~985px** — every screen, not just contacts. The top
+   bar: 264px sidebar + a 300px search + two buttons. 28px at 960px, zero at 1010px.
+2. **A cold load of `#contacts?id=<partyId>` does not open the detail panel.** `bwCtApplyHash()`
+   runs before Firebase delivers the parties, so the lookup finds nothing. Verified identical on
+   unmodified `main`, so not a regression — but that is the link shape one counselor pastes to
+   the other.
+
+### Still needing Martice
+
+- **Four section codes unclassified** — `CC`, `ELBW`, `GOVN`, `RGBE`. They render as raw codes
+  rather than guessing. `RUG` is labelled an urn garden on inference, not measurement.
+- **Ground-space capacity is 1**, correct for a casket; a standard space takes up to three urns.
+  A per-record override today.
+- **MIS calls the row letter `Lot-B`; the guide and map call it a row.** Display says "Row B".
+- **"Not occupied" is not "not sold."** The lot export only knows interments, so a demo position
+  could name a niche someone owns but nobody occupies. Only MIS knows, and it is unreachable.
 
 ## Sprint-04 — opened 2026-07-27
 
