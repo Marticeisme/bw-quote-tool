@@ -52,6 +52,16 @@
   /* Row label */
   .rlbl{width:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);}
 
+  /* MIS location string (from the June 2026 price sheet) */
+  .mis{font-size:10px;color:var(--gold-light);letter-spacing:.08em;text-align:center;margin-bottom:10px;opacity:.85;}
+
+  /* Rights-per-niche legend + page footer */
+  .rightsleg{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;justify-content:center;}
+  .rs2{background:linear-gradient(135deg,rgba(90,120,170,.75),rgba(90,120,170,.55));border-color:rgba(90,120,170,.68);}
+  .rs4{background:linear-gradient(135deg,rgba(8,14,30,.97),rgba(3,7,18,.97));border:1px solid var(--gold);}
+  .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
+  .pfoot b{color:var(--gold);font-weight:600;}
+
   /* Legend */
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
@@ -110,6 +120,10 @@
     .n { border-color:#00000030 !important; }
     .legend { color:#1a1a1a !important; }
     .li { color:#333 !important; }
+    .mis { color:#555 !important; }
+    .rightsleg { color:#1a1a1a !important; }
+    .pfoot { color:#333 !important; }
+    .pfoot b { color:#1a2744 !important; }
     .fees { background:#f5f5f2 !important; border-color:#c8a96e !important; }
     .fl { color:#1a2744 !important; }
     .fv { color:#333 !important; }
@@ -151,10 +165,10 @@
   <button class="ptab" onclick="swProp('tgn')">Terrace Garden Niches</button>
 </div>
 <div class="tabs" id="mvc-tabs">
-  <button class="tab active" onclick="sw('front')">Front Wall (Entry)</button>
-  <button class="tab" onclick="sw('back')">Back Wall</button>
-  <button class="tab" onclick="sw('north')">North Wall</button>
-  <button class="tab" onclick="sw('south')">South Wall</button>
+  <button class="tab active" onclick="sw('front')">Front Wall (West)</button>
+  <button class="tab" onclick="sw('back')">Back Wall (East)</button>
+  <button class="tab" onclick="sw('north')">Side A (North)</button>
+  <button class="tab" onclick="sw('south')">Side B (South)</button>
   <button class="tab" onclick="swOverview()" style="margin-left:auto;border-left:1px solid var(--gb);">Overview (All Walls)</button>
 </div>
 <div class="main">
@@ -162,38 +176,56 @@
   <div class="owrap">
     <div class="otitle">Structure Orientation — tap a wall to navigate</div>
     <div class="obox">
-      <div class="ow ot"     id="od-back"  onclick="sw('back')">Back Wall</div>
-      <div class="ow ob act" id="od-front" onclick="sw('front')">Front (Entry)</div>
-      <div class="ow ol"     id="od-north" onclick="sw('north')">North</div>
-      <div class="ow or"     id="od-south" onclick="sw('south')">South</div>
+      <div class="ow ot"     id="od-back"  onclick="sw('back')">Back (East)</div>
+      <div class="ow ob act" id="od-front" onclick="sw('front')">Front (West · Entry)</div>
+      <div class="ow ol"     id="od-north" onclick="sw('north')">Side A · North</div>
+      <div class="ow or"     id="od-south" onclick="sw('south')">Side B · South</div>
       <div class="oint">Interior</div>
     </div>
     <div class="oentry">▲ Entry Doors</div>
   </div>
 
   <div class="wview active" id="wall-front">
-    <div class="wlabel">Front Wall — Entry Side</div>
-    <div class="wsub">A = bottom · G = top · $42K niches span rows E &amp; D · Access panel center rows A–C</div>
+    <div class="wlabel">Front Wall (West)</div>
+    <div class="wsub">Entry side · A = bottom · G = top · $42K D/E companions span rows E &amp; D · Access panel center rows A–C</div>
+    <div class="mis">MVC-ISL-W-Level-Space</div>
     <div class="gwrap"><div id="fw"></div></div>
     <div class="legend" id="lg-front"></div>
+    <div class="rightsleg">
+      <div class="li"><div class="ls rs2"></div><span>(2) Rights per Niche — standard</span></div>
+      <div class="li"><div class="ls rs4"></div><span>(4) Rights per Niche — D/E companion</span></div>
+    </div>
   </div>
   <div class="wview" id="wall-back">
-    <div class="wlabel">Back Wall</div>
-    <div class="wsub">A = bottom · G = top · $48K companion niches span rows E &amp; D</div>
+    <div class="wlabel">Back Wall (East)</div>
+    <div class="wsub">A = bottom · G = top · $48K D/E companion niches span rows E &amp; D</div>
+    <div class="mis">MVC-ISL-E-Level-Space</div>
     <div class="gwrap"><div id="bw"></div></div>
     <div class="legend" id="lg-back"></div>
+    <div class="rightsleg">
+      <div class="li"><div class="ls rs2"></div><span>(2) Rights per Niche — standard</span></div>
+      <div class="li"><div class="ls rs4"></div><span>(4) Rights per Niche — D/E companion</span></div>
+    </div>
   </div>
   <div class="wview" id="wall-north">
-    <div class="wlabel">North Wall</div>
-    <div class="wsub">A = bottom · G = top · Same dimensions as South Wall</div>
+    <div class="wlabel">Side A (North)</div>
+    <div class="wsub">A = bottom · G = top · Same dimensions as Side B (South)</div>
+    <div class="mis">MVC-ISL-N-Level-Space</div>
     <div class="gwrap"><div id="nw"></div></div>
     <div class="legend" id="lg-north"></div>
+    <div class="rightsleg">
+      <div class="li"><div class="ls rs2"></div><span>(2) Rights per Niche — standard</span></div>
+    </div>
   </div>
   <div class="wview" id="wall-south">
-    <div class="wlabel">South Wall</div>
-    <div class="wsub">A = bottom · G = top · Same dimensions as North Wall</div>
+    <div class="wlabel">Side B (South)</div>
+    <div class="wsub">A = bottom · G = top · Same dimensions as Side A (North)</div>
+    <div class="mis">MVC-ISL-S-Level-Space</div>
     <div class="gwrap"><div id="sww"></div></div>
     <div class="legend" id="lg-south"></div>
+    <div class="rightsleg">
+      <div class="li"><div class="ls rs2"></div><span>(2) Rights per Niche — standard</span></div>
+    </div>
   </div>
 
   <div class="wview" id="wall-overview">
@@ -201,23 +233,27 @@
     <div class="wsub">Print this page for a complete reference of all four walls</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px;margin:0 auto;">
       <div class="overview-panel">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Front Wall (Entry)</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Front Wall (West) — MVC-ISL-W-Level-Space</div>
         <div class="gwrap" style="padding:10px 12px;"><div id="ov-fw"></div></div>
       </div>
       <div class="overview-panel">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Back Wall</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Back Wall (East) — MVC-ISL-E-Level-Space</div>
         <div class="gwrap" style="padding:10px 12px;"><div id="ov-bw"></div></div>
       </div>
       <div class="overview-panel">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">North Wall</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Side A (North) — MVC-ISL-N-Level-Space</div>
         <div class="gwrap" style="padding:10px 12px;"><div id="ov-nw"></div></div>
       </div>
       <div class="overview-panel">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">South Wall</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;">Side B (South) — MVC-ISL-S-Level-Space</div>
         <div class="gwrap" style="padding:10px 12px;"><div id="ov-sww"></div></div>
       </div>
     </div>
     <div class="legend" id="lg-overview"></div>
+    <div class="rightsleg">
+      <div class="li"><div class="ls rs2"></div><span>(2) Rights per Niche — standard</span></div>
+      <div class="li"><div class="ls rs4"></div><span>(4) Rights per Niche — D/E companion</span></div>
+    </div>
   </div>
 
   <div class="fees">
@@ -232,6 +268,10 @@
     <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
     <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
     <div class="fi"><span class="fl">Companion Niches ($42K/$48K)</span><span class="fv">Up to 4 inurnments</span></div>
+  </div>
+  <div class="pfoot">
+    <b>Prices effective: June 2026</b><br>
+    Individual niche dimensions are available in MIS/Enterprise (Advantage\Cemetery\Property).
   </div>
   </div><!-- /psec-mvc -->
 
@@ -408,8 +448,8 @@ function buildGrid(containerId, gridDef){
 // Column assignments (1-indexed, 20 sub-cols):
 //   Row G: 10 niches, each 2 cols → G-1=1-2, G-2=3-4 ... G-10=19-20
 //   Row F: F-1=1-3, F-2=4-6, F-3=7-9, F-4=10-11, F-5=12-14, F-6=15-17, F-7=18-20
-//   Row E: E-1=1-2, 42K-L=3-6(rows3-4), E-3=7-10, E-4=11-14, 42K-R=15-18(rows3-4), E-7=19-20
-//   Row D: D-1=1-2, [42K=3-6], D-3=7-9, D-4=10-11, D-5=12-14, [42K=15-18], D-7=19-20
+//   Row E: E-1=1-2, D/E-1=3-6(rows3-4), E-2=7-10, E-3=11-14, D/E-2=15-18(rows3-4), E-4=19-20
+//   Row D: D-1=1-2, [D/E-1=3-6], D-2=7-9, D-3=10-11, D-4=12-14, [D/E-2=15-18], D-5=19-20
 //   Row C: C-1=1-3, C-2=4-6, C-3=7-8, PANEL=9-12(rows5-7), C-4=13-14, C-5=15-17, C-6=18-20
 //   Row B: B-1=1-3, B-2=4-8, B-3=7-8 — wait, need to redo B.
 //     B: B-1=1-2, B-2=3-6, B-3=7-8, PANEL=9-12, B-4=13-14, B-5=15-18, B-6=19-20
@@ -447,26 +487,26 @@ buildGrid('fw', {
     {id:'F-5',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:12,c2:15},
     {id:'F-6',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:15,c2:18},
     {id:'F-7',dim:'16-5/16" x 12-1/2"',price:14000,urn:2,r1:2,r2:3,c1:18,c2:21},
-    // Row E — E-1=2, 42K=4(rows3-4), E-3=4, E-4=4, 42K=4(rows3-4), E-7=2
+    // Row E — E-1=2, D/E-1=4(rows3-4), E-2=4, E-3=4, D/E-2=4(rows3-4), E-4=2
     {id:'E-1',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:3,r2:4,c1:1,c2:3},
-    {id:'E&D-2',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:3,c2:7},   // spans E+D
-    {id:'E-3',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:7,c2:11},
-    {id:'E-4',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:11,c2:15},
-    {id:'E&D-6',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:15,c2:19},  // spans E+D
-    {id:'E-7',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:3,r2:4,c1:19,c2:21},
-    // Row D — D-1=2, [42K=3-6], D-3=3, D-4=2, D-5=3, [42K=15-18], D-7=2
+    {id:'D/E-1',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:3,c2:7},   // spans E+D
+    {id:'E-2',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:7,c2:11},
+    {id:'E-3',dim:'21-3/4" x 12-1/2"',price:18000,urn:2,r1:3,r2:4,c1:11,c2:15},
+    {id:'D/E-2',dim:'21-3/4" x 25"',price:42000,urn:4,r1:3,r2:5,c1:15,c2:19},  // spans E+D
+    {id:'E-4',dim:'10-7/8" x 12-1/2"',price:12000,urn:2,r1:3,r2:4,c1:19,c2:21},
+    // Row D — D-1=2, [D/E-1=3-6], D-2=3, D-3=2, D-4=3, [D/E-2=15-18], D-5=2
     {id:'D-1',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:4,r2:5,c1:1,c2:3},
-    {id:'D-3',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:7,c2:10},
-    {id:'D-4',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:10,c2:12},
-    {id:'D-5',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:12,c2:15},
-    {id:'D-7',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:4,r2:5,c1:19,c2:21},
+    {id:'D-2',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:7,c2:10},
+    {id:'D-3',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:10,c2:12},
+    {id:'D-4',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:12,c2:15},
+    {id:'D-5',dim:'10-7/8" x 10-1/2"',price:12000,urn:2,r1:4,r2:5,c1:19,c2:21},
     // CONTROL PANEL — cols 9-12, rows 5-7 (C+B+A)
     {panel:true,r1:5,r2:8,c1:9,c2:13},
     // Row C — C-1=3, C-2=3, C-3=2, [PANEL=9-12], C-4=2, C-5=3, C-6=3
     {id:'C-1',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:1,c2:4},
     {id:'C-2',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:4,c2:7},
-    {id:'C-3',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:7,c2:9},
-    {id:'C-4',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:13,c2:15},
+    {id:'C-3',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:5,r2:6,c1:7,c2:9},
+    {id:'C-4',dim:'10-7/8" x 10-1/2"',price:10000,urn:2,r1:5,r2:6,c1:13,c2:15},
     {id:'C-5',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:15,c2:18},
     {id:'C-6',dim:'16-5/16" x 10-1/2"',price:14000,urn:2,r1:5,r2:6,c1:18,c2:21},
     // Row B — B-1=2, B-2=4, B-3=2, [PANEL], B-4=2, B-5=4, B-6=2
@@ -528,19 +568,19 @@ buildGrid('bw', {
     {id:'F-5',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:12,c2:15},
     {id:'F-6',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:15,c2:18},
     {id:'F-7',dim:'16-5/16" x 12-1/2"',price:16000,urn:2,r1:2,r2:3,c1:18,c2:21},
-    // Row E — E-1=2, 48K=4(spans E+D), E-2=4, E-3=4, 48K=4(spans E+D), E-4=2
+    // Row E — E-1=2, D/E-1=4(spans E+D), E-2=4, E-3=4, D/E-2=4(spans E+D), E-4=2
     {id:'E-1',dim:'10-7/8" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:1,c2:3},
-    {id:'D&E-2',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:3,c2:7},
+    {id:'D/E-1',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:3,c2:7},
     {id:'E-2',dim:'21-3/4" x 12-1/2"',price:20000,urn:2,r1:3,r2:4,c1:7,c2:11},
     {id:'E-3',dim:'21-3/4" x 12-1/2"',price:20000,urn:2,r1:3,r2:4,c1:11,c2:15},
-    {id:'D&E-6',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:15,c2:19},
+    {id:'D/E-2',dim:'21-3/4" x 25"',price:48000,urn:4,r1:3,r2:5,c1:15,c2:19},
     {id:'E-4',dim:'10-7/8" x 12-1/2"',price:14000,urn:2,r1:3,r2:4,c1:19,c2:21},
-    // Row D — D-1=2, [48K=3-6], D-3=3, D-4=2, D-5=3, [48K=15-18], D-7=2
+    // Row D — D-1=2, [D/E-1=3-6], D-2=3, D-3=2, D-4=3, [D/E-2=15-18], D-5=2
     {id:'D-1',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:1,c2:3},
-    {id:'D-3',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:7,c2:10},
-    {id:'D-4',dim:'10-7/8" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:10,c2:12},
-    {id:'D-5',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:12,c2:15},
-    {id:'D-7',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:19,c2:21},
+    {id:'D-2',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:7,c2:10},
+    {id:'D-3',dim:'10-7/8" x 10-1/2"',price:16000,urn:2,r1:4,r2:5,c1:10,c2:12},
+    {id:'D-4',dim:'16-5/16" x 10-1/2"',price:18000,urn:2,r1:4,r2:5,c1:12,c2:15},
+    {id:'D-5',dim:'10-7/8" x 10-1/2"',price:14000,urn:2,r1:4,r2:5,c1:19,c2:21},
     // Row C — C-1=3, C-2=3, C-3=4($20K wider), C-4=4($20K wider), C-5=3, C-6=3
     {id:'C-1',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:1,c2:4},
     {id:'C-2',dim:'16-5/16" x 10-1/2"',price:16000,urn:2,r1:5,r2:6,c1:4,c2:7},
