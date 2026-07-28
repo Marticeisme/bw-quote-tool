@@ -219,6 +219,50 @@ what it found**, rather than shipping a list to be trusted. Track A's `src` fiel
 the 57 entries — naming the evidence behind each classification — is the shape that fixes this,
 and it is worth copying.
 
+### 15. Broke a family-facing guide twice, then reverted a wrong price back onto it.
+
+Martice asked for Section 1 of the marker guide to fit one page. I capped the section photo with
+`max-height` plus `object-fit:cover`. **On an `height:auto` image, `max-height` scales the whole
+picture down proportionally** — the marker shrank to a stamp floating inside a full-size grey
+container. I verified "Section 1 is on one page" and "19 pages, down from 20", **and never looked
+at the document.** He found it. The same change also stranded page 1 as a thin cover band over
+~88% white space, because `.contents` was already `display:none` in print and I had not checked.
+
+Then, undoing it, I ran `git checkout <old-commit> -- markers-guide.html` to revert the photo
+change — **on a file that had two changes on it.** The other was the $3,427.92 price correction.
+The guide went back to printing the price-book typo, on a document families read. Worse, I had
+chained `git commit` after a piped `npm test` in one compound command, so the failing suite never
+gated anything and the bad commit landed.
+
+**Four lessons, and the last one is the real one:**
+
+- **`max-height` is not a crop.** `object-fit` only engages when the box differs from the
+  intrinsic ratio; with `height:auto` it never does. Constrain a photo by **width**.
+- **Revert a change, not a file.** A file-level `git checkout` takes everything that ever landed
+  on it. Check `git log -- <path>` first.
+- **Never chain a commit after a piped test.** SPRINT_GUIDELINES has said this all along, and it
+  is the only reason the regression was committed rather than caught.
+- **I verified page counts and never opened the PDF.** Every check I ran was true and the document
+  was still wrong. *Counting is necessary and it is not sufficient — for anything a person looks
+  at, look at it.*
+
+### 16. Four measurement errors in one afternoon, all the same shape.
+
+In sequence, while working on that guide: `get_image_rects` reported an image "unchanged at 46%"
+because it returns the **unclipped** placement box and `object-fit:cover` clips; a page-placement
+check said Section 1 was on page 1 because **"About Flush Markers" also appears in the table of
+contents**; an aspect-ratio check flagged the companion marker as distorted when
+`.companion-rotate` **rotates it -90° on purpose**; and a pre-push PII gate failed on 15 "real
+names" that were **given-name collisions in a 40,816-row file with 6,426 distinct given names** —
+surname collisions were zero.
+
+Each time the instrument was wrong, not the thing measured. Three times I caught it by suspecting
+the check; once Martice caught it.
+
+**Lesson: a measurement is a claim about an instrument as much as about the world.** When a number
+surprises you, the first hypothesis is that you measured the wrong thing — and when a check is
+about something visual, render it and look before believing either answer.
+
 ---
 
 ## The pattern across all of them
