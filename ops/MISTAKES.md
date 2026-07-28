@@ -265,6 +265,26 @@ about something visual, render it and look before believing either answer.
 
 ---
 
+## 2026-07-28
+
+### 17. Repeated #12 with the check present but toothless — then fixed the check, and it worked.
+
+Committing Track R's research brief, I ran `git rev-parse --abbrev-ref HEAD && git add … &&
+git commit`. The rev-parse **printed** `s06/mvc-niche-map` — Track M had checked out its branch
+in the main tree — and the chain committed anyway, because printing a value is not testing it.
+Entry #12's lesson said "rev-parse before every commit"; I performed the ritual and ignored its
+output. The ops commit rode into `main` with the merge, harmlessly, same as before.
+
+Every later ops commit used `git rev-parse --abbrev-ref HEAD | grep -qx main && …` — and the
+very next one **correctly refused** to run while Track G held the tree. The gate caught in one
+sprint what the ritual missed twice.
+
+**Lesson: a check must be load-bearing, not ceremonial — pipe the value into the decision
+(`grep -qx main &&`), don't print it next to the decision.** Where a track occupies the main
+tree, ops bookkeeping waits for the merge; the gate makes the waiting automatic.
+
+---
+
 ## The pattern across all of them
 
 Every real defect this session — mine and the code's — was found by **counting something and
