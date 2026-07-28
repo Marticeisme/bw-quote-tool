@@ -62,6 +62,15 @@ const FACE_TRANSFORM = {
 const GRID_ROWS_FR = [...ROW_HEIGHTS_IN, ISLAND.basePanel].map((h) => h + 'fr').join(' ');
 const FACE_H_IN = ROW_HEIGHTS_IN.reduce((a, b) => a + b, 0) + ISLAND.basePanel; // 87.5
 
+// Unfolded-plan offsets: each wall hinges down into the floor plane, its inner edge
+// meeting the island footprint, so the panel centre sits half a wall-height out.
+const H_PX = px(FACE_H_IN);
+const PLAN_Y = +(H_PX / 2).toFixed(2);                          // floor plane, island-local
+const PLAN_Z = +(px(ISLAND.depth) / 2 + H_PX / 2).toFixed(2);   // West / East panels
+const PLAN_X = +(px(ISLAND.length) / 2 + H_PX / 2).toFixed(2);  // North / South panels
+const PLAN_W = +(px(ISLAND.length) + 2 * H_PX).toFixed(2);      // unfolded extent, x
+const PLAN_D = +(px(ISLAND.depth) + 2 * H_PX).toFixed(2);       // unfolded extent, z
+
 function nicheAttrs(wall, c) {
   const d = cellDims(wall, c);
   return [
@@ -90,7 +99,7 @@ function face3d(wall) {
   }).join('\n');
   return `    <div class="face face-${wall.key}" data-face="${wall.key}" style="width:${w}px;height:${h}px;grid-template-columns:repeat(${wall.subcols},1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) ${FACE_TRANSFORM[wall.key]}">
 ${cells}
-      <div class="baseband" style="grid-row:8/9;grid-column:1/${wall.subcols + 1}"><span>${esc(wall.short.toUpperCase())}</span></div>
+      <div class="baseband" style="grid-row:8/9;grid-column:1/${wall.subcols + 1}"><b>${esc(wall.label.toUpperCase())}</b><span>${esc(wall.mis)}</span></div>
     </div>`;
 }
 
@@ -112,10 +121,11 @@ function scene3d() {
   <div class="stage" id="stage">
     <div class="room">
       <div class="floor" style="width:${px(ROOM.across)}px;height:${px(ROOM.between)}px;clip-path:${oct};transform:translate(-50%,-50%) translateY(${px(1)}px) rotateX(-90deg)">
-        <span class="fcomp fc-e">BACK &middot; EAST</span>
-        <span class="fcomp fc-w">FRONT &middot; WEST &middot; ENTRY</span>
-        <span class="fcomp fc-n">SIDE A &middot; NORTH</span>
-        <span class="fcomp fc-s">SIDE B &middot; SOUTH</span>
+${WALL_ORDER.map((k) => {
+    const w = WALLS[k];
+    const extra = k === 'west' ? ' &middot; ENTRY' : '';
+    return `        <span class="fcomp fc-${k[0]}"><b>${esc(w.label.toUpperCase())}${extra}</b><i>${esc(w.mis)}</i></span>`;
+  }).join('\n')}
       </div>
 ${edges}
     </div>
@@ -123,6 +133,13 @@ ${edges}
 ${WALL_ORDER.map((k) => face3d(WALLS[k])).join('\n')}
 ${cap}
     </div>
+  </div>
+  <div class="planlabels" aria-hidden="true">
+${[['e', 'east'], ['w', 'west'], ['n', 'north'], ['s', 'south']].map(([abbr, k]) => {
+    const w = WALLS[k];
+    const extra = k === 'west' ? ' &middot; ENTRY' : '';
+    return `    <span class="pl-${abbr}">${esc(w.label.toUpperCase())}${extra}<i>${esc(w.mis)}</i></span>`;
+  }).join('\n')}
   </div>
 </div>`;
 }
@@ -240,10 +257,16 @@ const CSS = `
   @media (max-width:760px){.ovgrid{grid-template-columns:1fr;}}
 
   /* ── Flat niche cell ── */
-  .n{border-radius:3px;border:1px solid rgba(200,169,110,.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;text-align:center;padding:2px;line-height:1.2;color:rgba(255,255,255,.92);font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;}
+  .n{border-radius:3px;border:1px solid rgba(200,169,110,.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.2;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;}
   .n:hover{transform:scale(1.04);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
   .n:focus-visible,.n3:focus-visible{outline:2px solid #fff;outline-offset:1px;z-index:20;}
-  .n.sel,.n3.sel{box-shadow:0 0 0 2px #fff,0 0 18px rgba(255,255,255,.5);z-index:15;}
+  /* SELECTED (clicked/tapped) — deliberately louder than hover, and drawn with an
+     INSET outline so it survives the tight 1.5px gaps and the 3D stacking order
+     that were clipping the old outer ring. Mirrored into the flat wall tabs. */
+  .n.sel,.n3.sel{outline:3px solid #fff;outline-offset:-3px;z-index:25;
+    filter:brightness(1.28) saturate(1.15);
+    box-shadow:0 0 0 2px var(--gold),0 0 22px 4px rgba(255,255,255,.45);}
+  .n.sel{transform:scale(1.06);}
   .pnl{background:#0d111a!important;border-color:rgba(255,255,255,.06)!important;cursor:default;color:rgba(255,255,255,.18);font-size:7px;letter-spacing:.06em;text-transform:uppercase;}
   .pnl:hover{transform:none!important;box-shadow:none!important;}
   .nid{font-size:8px;opacity:.6;}
@@ -253,24 +276,31 @@ const CSS = `
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(200,169,110,.3);}
   .ncap{font-size:8px;opacity:.72;}
 
-  /* ── Price colours (shared by flat + 3D) ── */
-  .c7{background:linear-gradient(135deg,rgba(50,100,65,.78),rgba(50,100,65,.58));border-color:rgba(50,100,65,.7);}
-  .c8{background:linear-gradient(135deg,rgba(74,124,92,.78),rgba(74,124,92,.58));border-color:rgba(74,124,92,.7);}
-  .c10{background:linear-gradient(135deg,rgba(90,120,170,.75),rgba(90,120,170,.55));border-color:rgba(90,120,170,.68);}
-  .c12{background:linear-gradient(135deg,rgba(80,138,105,.75),rgba(80,138,105,.55));border-color:rgba(80,138,105,.68);}
-  .c14{background:linear-gradient(135deg,rgba(115,105,162,.75),rgba(115,105,162,.55));border-color:rgba(115,105,162,.68);}
-  .c16{background:linear-gradient(135deg,rgba(190,78,10,.78),rgba(190,78,10,.58));border-color:rgba(190,78,10,.7);}
-  .c18{background:linear-gradient(135deg,rgba(170,60,0,.78),rgba(170,60,0,.58));border-color:rgba(170,60,0,.7);}
-  .c20{background:linear-gradient(135deg,rgba(130,25,0,.78),rgba(130,25,0,.58));border-color:rgba(130,25,0,.7);}
-  .c42{background:linear-gradient(135deg,rgba(20,32,60,.96),rgba(10,18,38,.96));border:2px solid var(--gold);}
-  .c48{background:linear-gradient(135deg,rgba(8,14,30,.97),rgba(3,7,18,.97));border:2px solid var(--gold);}
+  /* ── Price colours (shared by flat + 3D) ─────────────────────────────
+     OPAQUE fills on a measured ramp. The previous set was translucent
+     (alpha .55–.78) over a dark room, which is what made the classes read
+     "muddy and low-contrast" on the operator's phone: every tier was
+     dragged toward the same navy and the labels floated on top of it.
+     Each fill now carries its own label colour, and every pair clears
+     WCAG AA (worst 4.52:1); every fill clears 3.0:1 against the backdrop.
+     See scratch/_mvc3dpolish/contrast.mjs for the measurement. */
+  .c7{background:#1a6fae;border-color:#63a8dd;color:#fff;}
+  .c8{background:#0f8f96;border-color:#5fd0d6;color:#0e1729;}
+  .c10{background:#237a3a;border-color:#5fc077;color:#fff;}
+  .c12{background:#7d9a18;border-color:#c3dc5e;color:#0e1729;}
+  .c14{background:#c39a10;border-color:#f0cf5c;color:#0e1729;}
+  .c16{background:#e07b12;border-color:#ffb964;color:#0e1729;}
+  .c18{background:#cf4a1c;border-color:#ff9469;color:#fff;}
+  .c20{background:#c2332b;border-color:#ff8378;color:#fff;}
+  .c42{background:#8b4fbb;border:2px solid var(--gold);color:#fff;}
+  .c48{background:#c02f84;border:2px solid var(--gold);color:#fff;}
 
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
   .ls{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
   .rightsleg{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px;justify-content:center;}
-  .rs2{background:linear-gradient(135deg,rgba(90,120,170,.75),rgba(90,120,170,.55));border-color:rgba(90,120,170,.68);}
-  .rs4{background:linear-gradient(135deg,rgba(8,14,30,.97),rgba(3,7,18,.97));border:1px solid var(--gold);}
+  .rs2{background:#237a3a;border-color:#5fc077;}
+  .rs4{background:#c02f84;border:1px solid var(--gold);}
 
   /* ── 3D scene ── */
   .toolbar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;max-width:900px;margin:10px auto 8px;}
@@ -288,36 +318,92 @@ const CSS = `
   .stage{position:absolute;left:50%;top:74%;width:0;height:0;transform-style:preserve-3d;
     transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,16deg)) rotateY(var(--yaw,-28deg));}
   .room,.island{position:absolute;transform-style:preserve-3d;}
+  /* The room is CONTEXT, not the subject. The lit-floor stripes read as glare in
+     the operator's screenshot, so the floor is now a single quiet wash and the
+     room walls sit well back in value. */
   .floor{position:absolute;left:0;top:0;background:
-      repeating-linear-gradient(90deg,rgba(200,169,110,.07) 0 38px,transparent 38px 76px),
-      radial-gradient(ellipse at 50% 50%,rgba(200,169,110,.3),rgba(14,22,42,.85) 76%);}
-  .rwall{position:absolute;left:0;top:0;background:linear-gradient(180deg,rgba(44,60,102,.34),rgba(22,33,60,.72));
-    border:1px solid rgba(200,169,110,.28);border-bottom:2px solid rgba(200,169,110,.4);backface-visibility:hidden;}
-  .rwall.entry{background:linear-gradient(180deg,rgba(36,49,86,.1),rgba(20,30,54,.4));}
+      radial-gradient(ellipse at 50% 50%,rgba(126,146,186,.16),rgba(9,15,30,.9) 78%);
+    border:1px solid rgba(200,169,110,.10);}
+  .rwall{position:absolute;left:0;top:0;background:linear-gradient(180deg,rgba(30,42,72,.30),rgba(14,22,42,.62));
+    border:1px solid rgba(200,169,110,.14);border-bottom:1px solid rgba(200,169,110,.2);backface-visibility:hidden;}
+  .rwall.entry{background:linear-gradient(180deg,rgba(28,38,66,.08),rgba(14,22,42,.28));}
   .doorway{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:38%;height:74%;
     background:linear-gradient(180deg,rgba(200,169,110,.06),rgba(200,169,110,.22));
     border:1px solid rgba(200,169,110,.5);border-bottom:none;border-radius:3px 3px 0 0;
     color:var(--gold);font-size:11px;letter-spacing:.14em;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;}
   .cap{position:absolute;left:0;top:0;background:linear-gradient(135deg,rgba(74,61,43,.82),rgba(42,34,24,.82));border:1px solid rgba(200,169,110,.35);}
-  /* Compass labels painted flat on the room floor — the point of the overhead view. */
-  .fcomp{position:absolute;color:rgba(200,169,110,.72);font-size:13px;letter-spacing:.18em;white-space:nowrap;}
-  .fc-e{top:10px;left:50%;transform:translateX(-50%);}
-  .fc-w{bottom:10px;left:50%;transform:translateX(-50%);}
-  .fc-n{left:16px;top:50%;transform:translateY(-50%) rotate(-90deg);}
-  .fc-s{right:16px;top:50%;transform:translateY(-50%) rotate(90deg);}
+  /* Orientation labels painted flat on the room floor. They carry the FULL MIS
+     location string, not a bare compass word — a director reading the floor must
+     be able to name the location exactly as the price sheet spells it. */
+  .fcomp{position:absolute;color:rgba(232,213,168,.9);font-size:12px;letter-spacing:.1em;white-space:nowrap;text-align:center;line-height:1.35;}
+  .fcomp b{display:block;color:var(--gold);font-weight:600;letter-spacing:.16em;font-size:12px;}
+  .fcomp i{display:block;font-style:normal;font-size:11px;letter-spacing:.04em;color:rgba(232,213,168,.78);}
+  .fc-e{top:8px;left:50%;transform:translateX(-50%);}
+  .fc-w{bottom:8px;left:50%;transform:translateX(-50%);}
+  .fc-n{left:4px;top:50%;transform:translateY(-50%) rotate(-90deg);}
+  .fc-s{right:4px;top:50%;transform:translateY(-50%) rotate(90deg);}
   .face{position:absolute;left:0;top:0;display:grid;gap:1.5px;background:var(--bronze);
-    padding:1.5px;border:1.5px solid #57462f;
-    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.55);}
+    padding:1.5px;border:1.5px solid #6b573a;
+    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.55);
+    transition:transform .55s cubic-bezier(.4,.1,.2,1);}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    overflow:hidden;line-height:1.05;color:rgba(255,255,255,.95);padding:0;min-width:0;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 4px rgba(0,0,0,.4);}
-  .n3:hover{filter:brightness(1.45);}
-  .n3id{font-size:7px;opacity:.72;letter-spacing:.02em;}
-  .n3p{font-size:9px;font-weight:600;}
+    overflow:hidden;line-height:1.05;padding:0;min-width:0;transition:filter .15s;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 2px rgba(0,0,0,.22);}
+  .n3:hover{filter:brightness(1.18) saturate(1.1);}
+  .n3id{font-size:7.5px;opacity:.85;letter-spacing:.02em;}
+  .n3p{font-size:10px;font-weight:600;}
   .pnl3{background:#241d14;color:rgba(255,255,255,.3);font-size:6px;letter-spacing:.06em;text-align:center;
     display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 8px rgba(0,0,0,.6);}
-  .baseband{background:linear-gradient(180deg,#3d3225,#241c12);
-    display:flex;align-items:center;justify-content:center;color:rgba(200,169,110,.5);font-size:8px;letter-spacing:.3em;}
+  /* The base course doubles as each wall's nameplate: friendly name + the full MIS
+     location string, so no face is ever identified by a bare compass word. */
+  .baseband{background:linear-gradient(180deg,#4a3c2b,#241c12);
+    display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold-light);
+    font-size:8.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;}
+  .baseband b{color:var(--gold);font-weight:600;letter-spacing:.16em;}
+  .face-north .baseband,.face-south .baseband{font-size:6.5px;letter-spacing:.02em;gap:4px;}
+  /* ── Unfolded plan view ──────────────────────────────────────────────
+     Replaces the old "Overhead" button, which showed only the island's lid and
+     was — the operator's words — a view that "doesn't really work functionally".
+     Here the four walls hinge down flat around the island footprint, so all 145
+     openings are visible at once in their true compass positions, each panel
+     captioned with its full MIS location string. Because a niche front points
+     AWAY from the island, a panel laid face-up necessarily meets the footprint
+     at its TOP course (row G) and ends outward at its base band — the nameplate
+     therefore lands on the outside edge of each panel, which is where it reads
+     best anyway. Inline transforms must be beaten, hence !important. */
+  #stage.plan .face-west{transform:translate(-50%,-50%) translate3d(0,${PLAN_Y}px,${PLAN_Z}px) rotateX(90deg)!important;}
+  #stage.plan .face-east{transform:translate(-50%,-50%) translate3d(0,${PLAN_Y}px,${-PLAN_Z}px) rotateY(180deg) rotateX(90deg)!important;}
+  #stage.plan .face-north{transform:translate(-50%,-50%) translate3d(${-PLAN_X}px,${PLAN_Y}px,0) rotateY(-90deg) rotateX(90deg)!important;}
+  #stage.plan .face-south{transform:translate(-50%,-50%) translate3d(${PLAN_X}px,${PLAN_Y}px,0) rotateY(90deg) rotateX(90deg)!important;}
+  #stage.plan .cap{transform:translate(-50%,-50%) translateY(${PLAN_Y}px) rotateX(90deg)!important;
+    background:linear-gradient(135deg,#5b4a33,#33291c);border:1.5px solid rgba(200,169,110,.75);}
+  #stage.plan .room{opacity:.14;}
+  #stage.plan .face{box-shadow:0 14px 40px rgba(0,0,0,.6);}
+  .cap{transition:transform .55s cubic-bezier(.4,.1,.2,1);}
+  /* Upright orientation labels for the plan view. The panels themselves land rotated —
+     the far wall inverts and the end walls turn on their side, which is what an
+     unfolded interior elevation always does — so the captions live in SCREEN space
+     instead, where they always read the right way up. They hide the moment the camera
+     leaves the plan angle, because then they would be pointing at nothing. */
+  .planlabels{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;z-index:5;}
+  .view3d.planmode .scene.plansquare .planlabels{opacity:1;}
+  /* Chipped, not bare text: on a narrow screen the net fills the box and these
+     captions land on top of the end panels. */
+  .planlabels span{position:absolute;color:var(--gold);font-size:11px;letter-spacing:.14em;white-space:nowrap;text-align:center;line-height:1.4;
+    background:rgba(7,12,24,.86);border:1px solid rgba(200,169,110,.4);border-radius:4px;padding:3px 9px;}
+  .planlabels i{display:block;font-style:normal;font-size:10px;letter-spacing:.03em;color:var(--gold-light);}
+  .pl-e{top:6px;left:50%;transform:translateX(-50%);}
+  .pl-w{bottom:6px;left:50%;transform:translateX(-50%);}
+  .pl-n{left:6px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;}
+  .pl-s{right:6px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;}
+  /* Seen edge-on at eye level the floor captions collapse into an unreadable smear
+     across the bottom of the scene. Hide them until the camera is actually looking down. */
+  #stage.flat .fcomp{opacity:0;}
+  .fcomp{transition:opacity .25s;}
+  .planhint{display:none;text-align:center;font-size:10px;color:var(--gold);margin-top:7px;letter-spacing:.05em;}
+  .view3d.planmode .planhint{display:block;}
+  .view3d.planmode .hint{display:none;}
+  .view3d.planmode .scene{height:min(78vh,760px);}
   .hint{text-align:center;font-size:10px;color:var(--gold-light);opacity:.7;margin-top:7px;letter-spacing:.05em;}
   .modelnote{text-align:center;font-size:9.5px;color:var(--gold-light);opacity:.55;margin-top:3px;}
 
@@ -364,6 +450,9 @@ const CSS = `
     .tbtn{padding:6px 9px;font-size:10px;}
     .tbsep{display:none;}
     .scene{height:min(52vh,420px);min-height:300px;border-radius:8px;}
+    .view3d.planmode .scene{height:min(70vh,560px);}
+    .planlabels span{font-size:9px;letter-spacing:.06em;padding:2px 6px;}
+    .planlabels i{font-size:8.5px;}
     .gwrap{padding:12px 10px;}
     .hint,.modelnote{font-size:9px;}
   }
@@ -448,25 +537,40 @@ function readNiche(el) {
   return d;
 }
 
+// Selection lights up EVERY rendering of the same opening — the 3D face and the flat
+// wall tab both carry data-wall/data-id, so mirroring costs one querySelectorAll. The
+// mini overview grids are excluded: they are a print artefact, not a control surface.
+function clearSel() {
+  var s = document.querySelectorAll('.sel');
+  for (var i = 0; i < s.length; i++) s[i].classList.remove('sel');
+}
+function markSel(el) {
+  clearSel();
+  var w = el.getAttribute('data-wall'), id = el.getAttribute('data-id');
+  var all = document.querySelectorAll('[data-wall="' + w + '"][data-id="' + id + '"]');
+  for (var i = 0; i < all.length; i++) if (!all[i].closest('.mini')) all[i].classList.add('sel');
+}
+
 function showCard(el, pin) {
   var d = readNiche(el);
   card.innerHTML = cardHtml(d);
   card.classList.add('show');
-  if (pin) {
-    if (pinned) pinned.classList.remove('sel');
-    pinned = el; el.classList.add('sel');
-  }
+  if (pin) { pinned = el; markSel(el); }
 }
 function hideCard() {
   card.classList.remove('show');
-  if (pinned) { pinned.classList.remove('sel'); pinned = null; }
+  pinned = null;
+  clearSel();
 }
 
 document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
   var n = ev.target.closest('.n:not(.pnl), .n3:not(.pnl3)');
   if (n && n.hasAttribute('data-id')) { showCard(n, true); return; }
-  if (!ev.target.closest('#card')) hideCard();
+  // Clicking the chrome — a wall tab, a camera button — must not drop the selection.
+  // Switching to the flat wall tab to see the niche you just picked in 3D is the whole
+  // point of mirroring the selected state across both renderings.
+  if (!ev.target.closest('#card, .tab, .tbtn, .ptab')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
@@ -474,9 +578,16 @@ document.addEventListener('mouseover', function (ev) {
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
 });
+// Keyboard focus pins; a MOUSE press must not. Chromium focuses a <button> on
+// mousedown, so without the :focus-visible test, starting an orbit drag on top of a
+// niche silently selected it — visible as a stray highlight the moment click=highlight
+// was made loud enough to notice.
 document.addEventListener('focusin', function (ev) {
   var n = ev.target.closest('.n:not(.pnl), .n3:not(.pnl3)');
-  if (n && n.hasAttribute('data-id')) showCard(n, true);
+  if (!n || !n.hasAttribute('data-id')) return;
+  var kb = true;
+  try { kb = n.matches(':focus-visible'); } catch (e) { kb = true; }
+  if (kb) showCard(n, true);
 });
 document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hideCard(); });
 ['oc-qty', 'rec-qty', 'tgn-oc-qty', 'tgn-rec-qty', 'tgn-inscr-qty'].forEach(function (id) {
@@ -485,8 +596,11 @@ document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hi
 });
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
+// NOTE: this deliberately does NOT hide the card. A selection made in the 3D view is
+// mirrored onto the same niche in the flat wall tab, and clearing it on every tab
+// switch made that mirroring unobservable — the two renderings are never on screen at
+// the same time. Select in 3D, switch to the wall tab, the niche is still lit.
 function showView(v) {
-  hideCard();
   var views = document.querySelectorAll('.wview, .view3d');
   for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
   var el = document.getElementById(v === '3d' ? 'view-3d' : 'wall-' + v);
@@ -518,10 +632,16 @@ document.querySelectorAll('.ptab').forEach(function (t) {
 });
 
 // ── 3D camera ──────────────────────────────────────────────────────────────
-var scene = document.getElementById('scene'), stage = document.getElementById('stage');
-var DEF = { yaw: -28, pitch: 16, zoom: 1 };
+var scene = document.getElementById('scene'), stage = document.getElementById('stage'), view3d = document.getElementById('view-3d');
+// NEGATIVE pitch is ABOVE the island, positive is BELOW it — measured, not assumed
+// (scratch/_mvc3dpolish/probe2.mjs projects the island's cap and compares it with the
+// west face). The shipped defaults had this backwards: pitch +16 opened the page
+// looking UP at the island from under the floor, and "Overhead" at +54 was further
+// underneath still. PMAX is therefore 0 — dead eye level, the lowest the camera may
+// ever sit — and the eye can rise to straight down at -90.
+var DEF = { yaw: 0, pitch: 0, zoom: 1 };
 var cam = { yaw: DEF.yaw, pitch: DEF.pitch, zoom: DEF.zoom, lift: 0 };
-var ZMIN = 0.32, ZMAX = 2.6, PMIN = -12, PMAX = 84;
+var ZMIN = 0.32, ZMAX = 2.6, PMIN = -90, PMAX = 0;
 var fitZoom = 1;
 var ISLAND_HALF_PX = ${px(FACE_H_IN / 2)};   // island centre height above the floor
 var STAGE_TOP = 0.74;                        // must match .stage{top:}
@@ -535,6 +655,10 @@ function apply() {
   stage.style.setProperty('--pitch', cam.pitch.toFixed(2) + 'deg');
   stage.style.setProperty('--zoom', cam.zoom.toFixed(3));
   stage.style.setProperty('--lift', cam.lift.toFixed(1) + 'px');
+  // Floor captions are only legible from above; the screen-space plan captions are
+  // only true while the camera is square over the net.
+  stage.classList.toggle('flat', cam.pitch > -14);
+  scene.classList.toggle('plansquare', Math.abs(cam.pitch + 90) < 8 && Math.abs(cam.yaw % 360) < 8);
   var f = null, best = -2;
   ['west', 'east', 'north', 'south'].forEach(function (k) {
     var normal = { west: 0, east: 180, north: 270, south: 90 }[k];
@@ -553,6 +677,7 @@ function fitScene() {
   fitZoom = clamp(scene.offsetWidth / 900, 0.58, 1);
   if (Math.abs(cam.zoom - DEF.zoom) < 0.001 || cam.zoom === fitZoom) { cam.zoom = fitZoom; }
   DEF.zoom = fitZoom;
+  if (planOn) { planView(); return; }
   apply();
 }
 window.addEventListener('resize', fitScene);
@@ -561,6 +686,7 @@ window.addEventListener('resize', fitScene);
 // clip off the top), and lift the stage so the wall sits centred rather than
 // hanging above the floor origin.
 function faceOn(k) {
+  setPlan(false);
   cam.yaw = { west: 0, east: 180, north: 90, south: -90 }[k];
   cam.pitch = 0;
   var f = document.querySelector('.face-' + k);
@@ -573,20 +699,33 @@ function faceOn(k) {
 document.querySelectorAll('[data-facebtn]').forEach(function (b) {
   b.addEventListener('click', function () { faceOn(b.getAttribute('data-facebtn')); });
 });
-// Overhead is an ORIENTATION view, not a niche view: straight down you only see the
-// island's lid. 54 degrees keeps the wall faces readable while showing the whole room.
-document.getElementById('btn-aerial').addEventListener('click', function () {
-  cam.yaw = 0; cam.pitch = 54;
-  var floorW = ${px(ROOM.across)}, floorD = ${px(ROOM.between)};
-  var pr = 54 * Math.PI / 180;
-  cam.zoom = clamp(Math.min(scene.clientWidth * 0.92 / floorW,
-                            scene.clientHeight * 0.82 / (floorD * Math.sin(pr) + ISLAND_HALF_PX * 2 * Math.cos(pr))), ZMIN, ZMAX);
-  cam.lift = ISLAND_HALF_PX * cam.zoom * Math.cos(pr) - (STAGE_TOP - 0.5) * scene.clientHeight;
+// UNFOLDED PLAN — the replacement for the old "Overhead" button. Straight down on a
+// closed island shows nothing but the lid, so the four walls hinge flat into the floor
+// plane and the camera looks straight down at the resulting net: all 145 openings at
+// once, in their true compass positions, each panel captioned with its MIS string.
+var planOn = false;
+function setPlan(on) {
+  if (planOn === on) return;
+  planOn = on;
+  stage.classList.toggle('plan', on);
+  view3d.classList.toggle('planmode', on);
+  document.getElementById('btn-plan').classList.toggle('on', on);
+}
+function planView() {
+  setPlan(true);
+  cam.yaw = 0; cam.pitch = -90;
+  cam.zoom = clamp(Math.min(scene.clientWidth * 0.94 / ${PLAN_W},
+                            scene.clientHeight * 0.92 / ${PLAN_D}), ZMIN, ZMAX);
+  // At -90 the island's own height projects to nothing, so only the stage offset matters.
+  cam.lift = -(STAGE_TOP - 0.5) * scene.clientHeight;
   apply();
+}
+document.getElementById('btn-plan').addEventListener('click', function () {
+  if (planOn) { faceOn('west'); } else { planView(); }
 });
-document.getElementById('btn-reset').addEventListener('click', function () {
-  cam.yaw = DEF.yaw; cam.pitch = DEF.pitch; cam.zoom = fitZoom; cam.lift = 0; apply();
-});
+// The FRONT (West) face-on view is the page's home view: it is what a counselor sees
+// walking in the entry doors. Reset returns to it.
+document.getElementById('btn-reset').addEventListener('click', function () { faceOn('west'); });
 document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
 document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
 
@@ -658,8 +797,10 @@ scene.addEventListener('keydown', function (ev) {
   apply();
 });
 
+// Home view: Front (West), face on. Not a 3/4 orbit — the operator opens this page to
+// the wall he is standing in front of.
 fitScene();
-apply();
+faceOn('west');
 `;
 
 const FEES_MVC = `<div class="fees">
@@ -708,19 +849,20 @@ const HTML = `<!DOCTYPE html>
 
   <div class="view3d active" id="view-3d">
     <div class="toolbar no-print">
-      <button class="tbtn" data-facebtn="west">Front · West</button>
-      <button class="tbtn" data-facebtn="east">Back · East</button>
-      <button class="tbtn" data-facebtn="north">Side A · North</button>
-      <button class="tbtn" data-facebtn="south">Side B · South</button>
+${WALL_ORDER.map((k) => {
+    const w = WALLS[k];
+    return `      <button class="tbtn" data-facebtn="${k}" title="${esc(w.label)} — ${esc(w.mis)}" aria-label="${esc(w.label)}, ${esc(w.mis)}">${esc(w.label.replace(' Wall', '').replace(' (', ' · ').replace(')', ''))}</button>`;
+  }).join('\n')}
       <div class="tbsep"></div>
-      <button class="tbtn" id="btn-aerial">Overhead</button>
+      <button class="tbtn" id="btn-plan" title="Unfold all four walls flat around the island footprint">Unfolded plan</button>
       <button class="tbtn" id="btn-reset">Reset view</button>
       <div class="tbsep"></div>
       <button class="tbtn" id="btn-out" aria-label="Zoom out">&minus;</button>
       <button class="tbtn" id="btn-in" aria-label="Zoom in">+</button>
     </div>
 ${scene3d()}
-    <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a niche for price &amp; dimensions &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
+    <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a niche to select it &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
+    <div class="planhint">Unfolded plan — all four walls laid flat around the island footprint, seen from above. Each panel meets the island at its top course (row G) and ends at its base band, which names the wall and its MIS location. Tap any niche; press “Unfolded plan” again to fold the island back up.</div>
     <div class="modelnote">Island ${ISLAND.length}&Prime; long &times; ${ISLAND.depth}&Prime; deep &times; 7&prime;-4&frac34;&Prime; tall &nbsp;·&nbsp; 145 openings &nbsp;·&nbsp; niche depth 1&prime;-0&Prime; &nbsp;·&nbsp; octagonal room 24&prime;-0&Prime; &times; 12&prime;-0&Prime;, entry doors on the West side, electrical access panel behind the West wall</div>
     <div class="legend">${legendHtml(TIERS.map((t) => t.p))}</div>
     ${RIGHTS_LEG(true)}
