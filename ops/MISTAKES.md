@@ -283,6 +283,28 @@ sprint what the ritual missed twice.
 (`grep -qx main &&`), don't print it next to the decision.** Where a track occupies the main
 tree, ops bookkeeping waits for the merge; the gate makes the waiting automatic.
 
+### 18. "Verified" an interaction through an event path the user never uses.
+
+The M4 close recorded click-to-highlight as done and director-verified. The operator came back
+with "I still can't highlight a space when clicking on it" — and he was right. The scene called
+`setPointerCapture()` on every `pointerdown`, and under pointer capture the browser retargets the
+resulting `click` to the capturing element, so a tap on a 3D niche was delivered to the SCENE,
+never to the niche button. The highlight genuinely worked — in the flat wall tabs, and under any
+test that dispatched a synthetic `click` directly at the button, which is exactly what the M4
+verification did. The one path that never fired was the real one: a finger, on the 3D face,
+through the pointer-capture pipeline.
+
+Fixed in s06/mvc-corner-realism by deferring capture until a drag is real (>8px, or a second
+finger), and re-verified with Playwright's `touchscreen.tap()` at page coordinates — the same
+gesture the operator makes — plus a drag-must-NOT-select case.
+
+**Lesson: an interaction is verified only through the same event pipeline the user's gesture
+takes — coordinates in, through capture/suppression layers — not by dispatching the terminal
+event at the element. `el.click()` proves the handler works; it cannot prove the handler is
+reachable.**
+
+---
+
 ---
 
 ## The pattern across all of them
