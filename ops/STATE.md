@@ -29,6 +29,14 @@ pushed on the operator's instruction 2026-07-28.
    air, between fields; only Wall D freestanding); benches face each other at Inside B /
    Inside F; status colour-coded (amber=Reserved, red=Occupied, violet=On Hold) so an FSD
    can't mistake an unavailable space — operator kept the rest of the palette as-is.
+4. **M6c** (`c6771d8`, `8966d49`, `e0f97de`): benches grounded (were floating — positioned from
+   the wrapper centre, not the floor plane); sold/occupied spaces show NO price in any rendering
+   (data kept, gates still prove it); exact prices on every chip ($13,195 not $13.2K, ROAC PPI
+   2.2→2.7, presets perspective-compensated); and the pre-push drag-guard: selection comes ONLY
+   from a pointer-stream tap detector (native clicks after gestures swallowed), hover frozen
+   mid-drag, and hover cards made pointer-transparent — a camera jump could park a stale hover
+   card OVER the niches and eat the next tap (found by elementFromPoint mid-suite).
+   `scratch/test-drag-guard.mjs` = 15 checks, both maps.
 
 sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
 sprint-05 merged locally.
