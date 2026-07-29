@@ -501,6 +501,7 @@ const CSS = `
   .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
   .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
   .fees input{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
   .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
@@ -543,6 +544,21 @@ const CSS = `
        print started with a blank page. Name it. */
     #wall-west{break-before:avoid!important;}
     #wall-overview{display:none!important;}
+    /* On a wall tab, print ONLY that wall (operator). From the 3D view or the
+       overview, print keeps all four. */
+    body.pv-one .psec.active .wview{display:none!important;}
+    body.pv-one .psec.active .wview.active{display:block!important;break-before:avoid!important;}
+    /* The highlighted space prints its full pricing card too. */
+    body.has-printsel .printcard{display:block!important;border:2px solid #1a2744;border-radius:8px;
+      padding:12px 16px;max-width:360px;margin:0 auto 14px;break-inside:avoid;font-size:11px;color:#1a1a1a;}
+    .printcard .cclose{display:none!important;}
+    .printcard .cardid{color:#1a2744!important;}
+    .printcard .cardwall,.printcard .cardmis,.printcard .cl,.printcard .cnote{color:#444!important;}
+    .printcard .cv{color:#111!important;}
+    .printcard .cdim,.printcard .cdim b{color:#1a2744!important;}
+    .printcard .ctl,.printcard .ctv{color:#c8540a!important;}
+    .printcard .ctot{border-top:1px solid #c8540a;}
+    .printcard .cr{border-bottom:1px solid #ddd;}
     .wlabel{color:#1a2744!important;}
     .wsub,.mis,.li,.pfoot{color:#444!important;}
     .gwrap{background:#fff!important;border:1px solid #999!important;}
@@ -644,17 +660,26 @@ function placeCard(el) {
   card.style.left = x + 'px'; card.style.top = y + 'px';
 }
 
+// The pinned space's pricing card also lands in a print-only block, so the printout
+// carries the same information the hover card shows on screen.
+function setPrintCard(d) {
+  document.getElementById('printcard').innerHTML = cardHtml(d);
+  document.body.classList.add('has-printsel');
+}
 function showCard(el, pin) {
   var d = readNiche(el);
   card.innerHTML = cardHtml(d);
   card.classList.add('show');
   placeCard(el);
   if (pin) { pinned = el; markSel(el); }
+  if (pinned === el) setPrintCard(d);
 }
 function hideCard() {
   card.classList.remove('show');
   pinned = null;
   clearSel();
+  document.getElementById('printcard').innerHTML = '';
+  document.body.classList.remove('has-printsel');
 }
 
 document.addEventListener('click', function (ev) {
@@ -701,6 +726,8 @@ function showView(v) {
   if (el) el.classList.add('active');
   var tabs = document.querySelectorAll('#mvc-tabs .tab');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-view') === v);
+  // On a wall tab, print only that wall.
+  document.body.classList.toggle('pv-one', ['west', 'east', 'north', 'south'].indexOf(v) > -1);
   if (v === '3d') fitScene();
 }
 document.querySelectorAll('#mvc-tabs .tab').forEach(function (t) {
@@ -951,6 +978,7 @@ const HTML = `<!DOCTYPE html>
   <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">Overview (All Walls)</button>
 </div>
 <div class="main">
+<div class="printcard" id="printcard" aria-hidden="true"></div>
 <div class="psec active" id="psec-mvc">
 
   <div class="view3d active" id="view-3d">

@@ -26,7 +26,7 @@ export const GEO = {
   baseH: 10,          // granite base course
   capH: 4,            // cap slab
   slabT: 26,          // section thickness (two 12" niches back to back + core)
-  gap: 18,            // gap between sections in a bank
+  gap: 18,            // granite pier between niche fields — banks are ONE continuous structure
   courtW: 150,        // courtyard width between the two banks' interior faces
   dGap: 24,           // gap from the banks' west ends to Wall D
   benchW: 60, benchD: 18, benchH: 17,

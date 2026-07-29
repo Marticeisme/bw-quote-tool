@@ -87,17 +87,24 @@ ${cells}
 
 function slab3d() {
   const parts = [];
-  // section end panels + caps
-  const secs = [
-    ...SEC_X.map((cx) => [cx, BANK_Z]), ...SEC_X.map((cx) => [cx, -BANK_Z]),
-  ];
-  for (const [cx, cz] of secs) {
+  // Each bank is ONE CONTINUOUS granite structure (operator, from the photos): the
+  // separation between Walls C/B/A and E/F/G is just granite piers between the niche
+  // fields, not air. So a bank gets end panels only at its outer ends, ONE cap running
+  // its full length, and pier strips filling the gaps on both face planes. Only Wall D
+  // stands free.
+  for (const bz of [BANK_Z, -BANK_Z]) {
     for (const sgn of [-1, 1]) {
-      parts.push(`      <div class="gside" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(cx + sgn * GEO.faceW / 2)}px,0,${px(cz)}px) rotateY(${sgn * 90}deg)"></div>`);
+      parts.push(`      <div class="gside" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(sgn * BANK_W / 2)}px,0,${px(bz)}px) rotateY(${sgn * 90}deg)"></div>`);
     }
-    parts.push(`      <div class="gcap" style="width:${px(GEO.faceW)}px;height:${px(GEO.slabT)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(-H / 2)}px,${px(cz)}px) rotateX(90deg)"></div>`);
+    parts.push(`      <div class="gcap" style="width:${px(BANK_W)}px;height:${px(GEO.slabT)}px;transform:translate(-50%,-50%) translate3d(0,${px(-H / 2)}px,${px(bz)}px) rotateX(90deg)"></div>`);
+    const extZ = bz + Math.sign(bz) * GEO.slabT / 2, intZ = bz - Math.sign(bz) * GEO.slabT / 2;
+    const extRy = bz > 0 ? 0 : 180, intRy = bz > 0 ? 180 : 0;
+    for (const gx of [-(GEO.faceW + GEO.gap) / 2, (GEO.faceW + GEO.gap) / 2]) {
+      parts.push(`      <div class="gpier" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(extZ)}px) rotateY(${extRy}deg)"></div>`);
+      parts.push(`      <div class="gpier" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(intZ)}px) rotateY(${intRy}deg)"></div>`);
+    }
   }
-  // Wall D ends + cap
+  // Wall D ends + cap (freestanding)
   for (const sgn of [-1, 1]) {
     parts.push(`      <div class="gside" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(D_X)}px,0,${px(sgn * GEO.faceW / 2)}px) rotateY(${sgn === 1 ? 0 : 180}deg)"></div>`);
   }
@@ -105,16 +112,18 @@ function slab3d() {
   return parts.join('\n');
 }
 
-function bench3d(cx) {
+// The two benches face one another across the courtyard's centre line: one against
+// Inside B (south bank middle), one against Inside F (north bank middle) — operator.
+function bench3d(cx, cz) {
   const { benchW: bw, benchD: bd, benchH: bh } = GEO;
   const y = -bh / 2; // sits on the floor (origin y=0)
   const p = [];
-  p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(bd / 2)}px)"></div>`);
-  p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(-bd / 2)}px) rotateY(180deg)"></div>`);
+  p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(cz + bd / 2)}px)"></div>`);
+  p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(cz - bd / 2)}px) rotateY(180deg)"></div>`);
   for (const sgn of [-1, 1]) {
-    p.push(`      <div class="bench" style="width:${px(bd)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx + sgn * bw / 2)}px,${px(y)}px,0) rotateY(${sgn * 90}deg)"></div>`);
+    p.push(`      <div class="bench" style="width:${px(bd)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx + sgn * bw / 2)}px,${px(y)}px,${px(cz)}px) rotateY(${sgn * 90}deg)"></div>`);
   }
-  p.push(`      <div class="bench btop" style="width:${px(bw)}px;height:${px(bd)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(-bh)}px,0) rotateX(90deg)"></div>`);
+  p.push(`      <div class="bench btop" style="width:${px(bw)}px;height:${px(bd)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(-bh)}px,${px(cz)}px) rotateX(90deg)"></div>`);
   return p.join('\n');
 }
 
@@ -133,8 +142,8 @@ function scene3d() {
     <div class="yard" style="transform:translateY(${px(-H / 2)}px)">
 ${FACE_ORDER.map(face3d).join('\n')}
 ${slab3d()}
-${bench3d(45)}
-${bench3d(-45)}
+${bench3d(0, GEO.courtW / 2 - GEO.benchD / 2 - 14)}
+${bench3d(0, -(GEO.courtW / 2 - GEO.benchD / 2 - 14))}
     </div>
   </div>
 </div>`;
@@ -173,7 +182,7 @@ function sectionView(s) {
   return `  <div class="wview" id="wall-${s}">
     <div class="wlabel">Wall ${s}</div>
     <div class="wsub">Outside &amp; inside faces · Tier A = bottom, E = top · Spaces 1–5 left to right</div>
-${['EXT', 'INT'].map((f) => `    <div class="sideT">${f === 'EXT' ? 'Outside' : 'Inside (courtyard)'} — ${esc(WALLS[s + '-' + f].label)}</div>
+${['EXT', 'INT'].map((f) => `    <div class="sideT">${f === 'EXT' ? 'Outside face' : 'Inside face (courtyard)'} — ${s}-${f}</div>
     <div class="gwrap">
 ${flatGrid(s + '-' + f)}
     </div>`).join('\n')}
@@ -260,19 +269,30 @@ const CSS = `
   .nid{font-size:8px;opacity:.65;}
   .nprice{font-weight:600;font-size:10.5px;padding:0 5px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);}
   .ncap{font-size:7.5px;opacity:.7;}
-  .nstatus{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.9;color:#ffd9a0;}
+  .nstatus,.n3st{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:0 3px;border-radius:2px;background:var(--stc,#ffd9a0);color:#1c1508;}
   .fgrid.mini .nid{font-size:5px;}.fgrid.mini .nprice{font-size:6.5px;padding:0 2px;}.fgrid.mini .ncap,.fgrid.mini .nstatus{display:none;}
   .fgrid.mini .n{padding:1px;cursor:default;}
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(0,0,0,.45);}
-  /* sold / reserved / hold: dimmed but still inspectable */
-  .st-reserved,.st-buried,.st-hold{opacity:.5;}
-  .st-reserved .nprice,.st-buried .nprice,.st-hold .nprice{filter:saturate(.4);}
+  /* ── Status colour code (operator: an FSD must never mistake these for sellable).
+     A colored ring + badge per status, drawn as an ::before overlay so it never
+     fights the cell's own shadows or the white selection ring:
+       Reserved = amber, Occupied = red, On Hold = violet. Available has no ring. */
+  .n,.n3{position:relative;}
+  .st-reserved{--stc:#ffb020;}
+  .st-buried{--stc:#ff5a48;}
+  .st-hold{--stc:#b391e0;}
+  .st-reserved,.st-buried,.st-hold{opacity:.72;}
+  .st-reserved::before,.st-buried::before,.st-hold::before{content:'';position:absolute;inset:0;
+    pointer-events:none;border:2.5px solid var(--stc);border-radius:inherit;}
+  .st-reserved .nprice,.st-buried .nprice,.st-hold .nprice{filter:saturate(.35);}
+  .fgrid.mini .st-reserved::before,.fgrid.mini .st-buried::before,.fgrid.mini .st-hold::before{border-width:1.5px;}
 
 ${TIER_CSS}
   .stleg-a{background:linear-gradient(180deg,#3d4046,#212329);}
-  .stleg-r{background:linear-gradient(180deg,#3d4046,#212329);opacity:.5;border-color:#ffd9a0!important;}
-  .stleg-b{background:linear-gradient(180deg,#3d4046,#212329);opacity:.5;}
-  .stleg-h{background:linear-gradient(180deg,#3d4046,#212329);opacity:.5;border-style:dashed!important;}
+  .stleg-r{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #ffb020!important;}
+  .stleg-b{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #ff5a48!important;}
+  .stleg-h{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #b391e0!important;}
 
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
@@ -312,6 +332,9 @@ ${TIER_CSS}
     backface-visibility:hidden;box-shadow:0 0 22px rgba(0,0,0,.45);}
   .gside{position:absolute;left:0;top:0;background:linear-gradient(180deg,#bdbab2,#95928a);border:1px solid #86837b;backface-visibility:hidden;}
   .gcap{position:absolute;left:0;top:0;background:linear-gradient(135deg,#cfccc4,#a5a29a);border:1px solid #8f8c84;}
+  /* granite pier between two niche fields — same stone as the frames, so a bank
+     reads as the single continuous structure it is */
+  .gpier{position:absolute;left:0;top:0;background:linear-gradient(180deg,#c6c3bb,#aeaba2);border:1px solid #8f8c84;backface-visibility:hidden;}
   .bench{position:absolute;left:0;top:0;background:linear-gradient(180deg,#b5ae9e,#8f887a);border:1px solid #7d7669;backface-visibility:hidden;}
   .btop{background:linear-gradient(135deg,#c4bdad,#9a9385);}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -325,7 +348,7 @@ ${TIER_CSS}
     box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.18);}
   .n3id{font-size:7px;opacity:.7;letter-spacing:.02em;}
   .n3p{font-size:8.5px;font-weight:600;padding:0 3px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);}
-  .n3st{font-size:5.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffd9a0;}
+  .n3st{font-size:5.5px;letter-spacing:.06em;}
   .baseband{background:linear-gradient(180deg,#93908a,#6d6a64);
     display:flex;align-items:center;justify-content:center;color:#26241f;
     font-size:7.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;font-weight:600;}
@@ -355,6 +378,7 @@ ${TIER_CSS}
   .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
   .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
   .fees input{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
   .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
@@ -387,6 +411,21 @@ ${TIER_CSS}
     .wview{display:block!important;break-before:page;}
     #wall-A{break-before:avoid!important;}
     #wall-overview,#wall-bench{display:none!important;}
+    /* On a wall tab, print ONLY that wall (operator). From the 3D view / overview /
+       benches, print keeps all seven. */
+    body.pv-one .wview{display:none!important;}
+    body.pv-one .wview.active{display:block!important;break-before:avoid!important;}
+    /* The highlighted space prints its full pricing card too. */
+    body.has-printsel .printcard{display:block!important;border:2px solid #1a2744;border-radius:8px;
+      padding:12px 16px;max-width:360px;margin:0 auto 14px;break-inside:avoid;font-size:11px;color:#1a1a1a;}
+    .printcard .cclose{display:none!important;}
+    .printcard .cardid{color:#1a2744!important;}
+    .printcard .cardwall,.printcard .cardmis,.printcard .cl,.printcard .cnote{color:#444!important;}
+    .printcard .cv{color:#111!important;}
+    .printcard .cardst{color:#b02818!important;}
+    .printcard .ctl,.printcard .ctv{color:#c8540a!important;}
+    .printcard .ctot{border-top:1px solid #c8540a;}
+    .printcard .cr{border-bottom:1px solid #ddd;}
     .wlabel,.sideT{color:#1a2744!important;}
     .wsub,.li,.pfoot{color:#444!important;}
     .gwrap{background:#fff!important;border:1px solid #999!important;}
@@ -478,16 +517,26 @@ function placeCard(el) {
   card.style.left = x + 'px'; card.style.top = y + 'px';
 }
 
+// The pinned space's pricing card also lands in a print-only block, so the printout
+// carries the same information the hover card shows on screen.
+function setPrintCard(d) {
+  document.getElementById('printcard').innerHTML = cardHtml(d);
+  document.body.classList.add('has-printsel');
+}
 function showCard(el, pin) {
-  card.innerHTML = cardHtml(readNiche(el));
+  var d = readNiche(el);
+  card.innerHTML = cardHtml(d);
   card.classList.add('show');
   placeCard(el);
   if (pin) { pinned = el; markSel(el); }
+  if (pinned === el) setPrintCard(d);
 }
 function hideCard() {
   card.classList.remove('show');
   pinned = null;
   clearSel();
+  document.getElementById('printcard').innerHTML = '';
+  document.body.classList.remove('has-printsel');
 }
 
 document.addEventListener('click', function (ev) {
@@ -523,6 +572,8 @@ function showView(v) {
   if (el) el.classList.add('active');
   var tabs = document.querySelectorAll('.tabs .tab');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-view') === v);
+  // On a wall tab, print only that wall.
+  document.body.classList.toggle('pv-one', ${JSON.stringify(SECTION_ORDER)}.indexOf(v) > -1);
   if (v === '3d') fitScene();
 }
 document.querySelectorAll('.tabs .tab').forEach(function (t) {
@@ -701,6 +752,7 @@ ${SECTION_ORDER.map((s) => `  <button class="tab" data-view="${s}">Wall ${s}</bu
   <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">Overview</button>
 </div>
 <div class="main">
+  <div class="printcard" id="printcard" aria-hidden="true"></div>
 
   <div class="view3d active" id="view-3d">
     <div class="toolbar no-print">
