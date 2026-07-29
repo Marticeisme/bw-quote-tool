@@ -37,6 +37,10 @@ pushed on the operator's instruction 2026-07-28.
    mid-drag, and hover cards made pointer-transparent — a camera jump could park a stale hover
    card OVER the niches and eat the next tap (found by elementFromPoint mid-suite).
    `scratch/test-drag-guard.mjs` = 15 checks, both maps.
+5. **M6d** (`0d100d8`, LOCAL — awaiting push): ROAC Inside views for every face incl. Wall D
+   (occluding bank fades to a ghost; presets are toggles back to Courtyard; signed-distance
+   perspective fit for interior planes), and print-follows-the-highlight on BOTH maps
+   (selection > wall tab > everything). Round-3 suite now 24 checks.
 
 sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
 sprint-05 merged locally.
