@@ -161,8 +161,8 @@ function scene3d() {
     <div class="yard" style="transform:translateY(${px(-H / 2)}px)">
 ${FACE_ORDER.map(face3d).join('\n')}
 ${slab3d()}
-${bench3d(0, GEO.courtW / 2 - GEO.benchD / 2 - 14)}
-${bench3d(0, -(GEO.courtW / 2 - GEO.benchD / 2 - 14))}
+${bench3d(0, GEO.courtW / 2 - GEO.benchD / 2 - 26)}
+${bench3d(0, -(GEO.courtW / 2 - GEO.benchD / 2 - 26))}
     </div>
   </div>
 </div>`;
