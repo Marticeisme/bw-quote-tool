@@ -1416,6 +1416,34 @@ strings corrected on the operator's 2026-07-28 approval. Brand tokens unchanged 
 
 ---
 
+**Medicaid guides linked from guides.html (2026-07-29).**
+The two Medicaid spend-down guides (`medicaid-family-guide.html`,
+`medicaid-professional-reference.html`, pushed 2026-07-27 in `8da2240`) were live but
+unlinked — nothing on the site pointed at them. Added both as cards in guides.html's
+**Getting Started** category (now 7 cards) with their `pdf-assets/` downloads. Search
+keywords deliberately include "medicare" — that's the word people reach for.
+
+---
+
+**Print-This-Product sheet fixed on all 7 catalog pages (2026-07-29).**
+The single-product print sheet (metal/wood/all caskets, cremation containers, urns,
+keepsake urns, vaults) printed the product image tiny and left-pinned — smaller than the
+product-name font. Root cause: the show-the-sheet rule
+`body.modal-printing #printSheet *{display:block!important}` contains an ID, so it
+out-ranked every component layout rule (`.ps-photo-wrap{display:flex!important}` etc.),
+un-centering the photo and stacking the masthead/specs/footer tall. Fix: hide everything
+*except* the sheet (`body.modal-printing > :not(#printSheet){display:none!important}`)
+instead of force-reblocking its contents, and let the image fill its box
+(`width/height:100%` + `object-fit:contain` — max-width/max-height never scale UP).
+Casket now prints ~62% larger and centered. Verified by Playwright print-to-PDF →
+PyMuPDF → look at it, all 7 pages. **Harness scar:** `page.pdf()` fires `afterprint`,
+which the pages use to remove `modal-printing` — block that in the proof script or the
+sheet vanishes mid-render. Also: fixed-position sheets clip to the *screen viewport*
+height in headless PDFs — match the Playwright viewport to the paper size (816×1056)
+before judging a "clipped" print; real print dialogs re-lay out and are unaffected.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
