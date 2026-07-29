@@ -23,6 +23,12 @@ pushed on the operator's instruction 2026-07-28.
    Photos Misc\ROAC Photos` — no fabrication drawing), so the page shows no niche dimensions.
    Banks C-B-A / E-F-G + Wall D at the head + sold benches; granite materials; same
    interaction stack as MVC (deferred capture, mirrored selection, card-beside, print ring).
+3. **M6b** (`fee30c2`): print scope on BOTH maps — a wall tab prints only that wall, and a
+   highlighted space prints its full pricing card (hover-card content as a static block).
+   ROAC corrections from the photos: banks are ONE continuous structure (granite piers, not
+   air, between fields; only Wall D freestanding); benches face each other at Inside B /
+   Inside F; status colour-coded (amber=Reserved, red=Occupied, violet=On Hold) so an FSD
+   can't mistake an unavailable space — operator kept the rest of the palette as-is.
 
 sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
 sprint-05 merged locally.
