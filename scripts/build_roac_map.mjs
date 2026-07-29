@@ -74,6 +74,12 @@ function ariaName(k, n) {
 }
 
 // ── 3D pieces ──────────────────────────────────────────────────────────────
+// Which structure an element belongs to, for the inside views: looking face-on at a
+// bank's INTERIOR puts the OTHER bank between camera and subject, so the occluding
+// bank fades out. bk-s = C/B/A bank, bk-n = E/F/G bank, bk-d = Wall D.
+const bankOf = (section) => 'DEFG'.includes(section) && section !== 'D'
+  ? 'bk-n' : (section === 'D' ? 'bk-d' : 'bk-s');
+
 function face3d(k) {
   const [cx, cz, ry] = FACE_POS[k];
   const w = WALLS[k];
@@ -87,7 +93,7 @@ function face3d(k) {
     const chip = (n.st === 'reserved' || n.st === 'buried') ? '' : `<span class="n3p ${tier(n.p).c}">${money(n.p)}</span>`;
     return `      <button type="button" class="n3 front3${st}" style="grid-row:${ri};grid-column:${n.s}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="n3id">${n.l}-${n.s}</span>${chip}${stTag}</button>`;
   }).join('\n');
-  return `    <div class="face" data-face="${k}" style="width:${px(GEO.faceW)}px;height:${px(H)}px;grid-template-columns:repeat(5,1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) translate3d(${px(cx)}px,0,${px(cz)}px) rotateY(${ry}deg)">
+  return `    <div class="face ${bankOf(w.section)}" data-face="${k}" style="width:${px(GEO.faceW)}px;height:${px(H)}px;grid-template-columns:repeat(5,1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) translate3d(${px(cx)}px,0,${px(cz)}px) rotateY(${ry}deg)">
 ${cells}
       <div class="baseband" style="grid-row:6;grid-column:1/6"><b>${esc(faceLabel(k).toUpperCase())}</b></div>
     </div>`;
@@ -101,22 +107,23 @@ function slab3d() {
   // its full length, and pier strips filling the gaps on both face planes. Only Wall D
   // stands free.
   for (const bz of [BANK_Z, -BANK_Z]) {
+    const bk = bz > 0 ? 'bk-s' : 'bk-n';
     for (const sgn of [-1, 1]) {
-      parts.push(`      <div class="gside" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(sgn * BANK_W / 2)}px,0,${px(bz)}px) rotateY(${sgn * 90}deg)"></div>`);
+      parts.push(`      <div class="gside ${bk}" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(sgn * BANK_W / 2)}px,0,${px(bz)}px) rotateY(${sgn * 90}deg)"></div>`);
     }
-    parts.push(`      <div class="gcap" style="width:${px(BANK_W)}px;height:${px(GEO.slabT)}px;transform:translate(-50%,-50%) translate3d(0,${px(-H / 2)}px,${px(bz)}px) rotateX(90deg)"></div>`);
+    parts.push(`      <div class="gcap ${bk}" style="width:${px(BANK_W)}px;height:${px(GEO.slabT)}px;transform:translate(-50%,-50%) translate3d(0,${px(-H / 2)}px,${px(bz)}px) rotateX(90deg)"></div>`);
     const extZ = bz + Math.sign(bz) * GEO.slabT / 2, intZ = bz - Math.sign(bz) * GEO.slabT / 2;
     const extRy = bz > 0 ? 0 : 180, intRy = bz > 0 ? 180 : 0;
     for (const gx of [-(GEO.faceW + GEO.gap) / 2, (GEO.faceW + GEO.gap) / 2]) {
-      parts.push(`      <div class="gpier" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(extZ)}px) rotateY(${extRy}deg)"></div>`);
-      parts.push(`      <div class="gpier" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(intZ)}px) rotateY(${intRy}deg)"></div>`);
+      parts.push(`      <div class="gpier ${bk}" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(extZ)}px) rotateY(${extRy}deg)"></div>`);
+      parts.push(`      <div class="gpier ${bk}" style="width:${px(GEO.gap)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(gx)}px,0,${px(intZ)}px) rotateY(${intRy}deg)"></div>`);
     }
   }
   // Wall D ends + cap (freestanding)
   for (const sgn of [-1, 1]) {
-    parts.push(`      <div class="gside" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(D_X)}px,0,${px(sgn * GEO.faceW / 2)}px) rotateY(${sgn === 1 ? 0 : 180}deg)"></div>`);
+    parts.push(`      <div class="gside bk-d" style="width:${px(GEO.slabT)}px;height:${px(H)}px;transform:translate(-50%,-50%) translate3d(${px(D_X)}px,0,${px(sgn * GEO.faceW / 2)}px) rotateY(${sgn === 1 ? 0 : 180}deg)"></div>`);
   }
-  parts.push(`      <div class="gcap" style="width:${px(GEO.slabT)}px;height:${px(GEO.faceW)}px;transform:translate(-50%,-50%) translate3d(${px(D_X)}px,${px(-H / 2)}px,0) rotateX(90deg)"></div>`);
+  parts.push(`      <div class="gcap bk-d" style="width:${px(GEO.slabT)}px;height:${px(GEO.faceW)}px;transform:translate(-50%,-50%) translate3d(${px(D_X)}px,${px(-H / 2)}px,0) rotateX(90deg)"></div>`);
   return parts.join('\n');
 }
 
@@ -351,6 +358,10 @@ ${TIER_CSS}
   /* granite pier between two niche fields — same stone as the frames, so a bank
      reads as the single continuous structure it is */
   .gpier{position:absolute;left:0;top:0;background:linear-gradient(180deg,#c6c3bb,#aeaba2);border:1px solid #8f8c84;backface-visibility:hidden;}
+  /* Inside views: the bank between the camera and the subject fades to a ghost so
+     the interior faces are actually visible face-on. */
+  .face,.gside,.gcap,.gpier{transition:opacity .3s;}
+  #stage.hide-bkn .bk-n,#stage.hide-bks .bk-s{opacity:.05;pointer-events:none;}
   .bench{position:absolute;left:0;top:0;background:linear-gradient(180deg,#b5ae9e,#8f887a);border:1px solid #7d7669;backface-visibility:hidden;}
   .btop{background:linear-gradient(135deg,#c4bdad,#9a9385);}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -437,6 +448,10 @@ ${TIER_CSS}
        benches, print keeps all seven. */
     body.pv-one .wview{display:none!important;}
     body.pv-one .wview.active{display:block!important;break-before:avoid!important;}
+    /* A highlighted space narrows it further: only ITS wall prints (operator). This
+       outranks the tab scope — the rules sit later, so they win. */
+    body.pv-sel .wview{display:none!important;}
+    body.pv-sel .wview.printsel{display:block!important;break-before:avoid!important;}
     /* The highlighted space prints its full pricing card too. */
     body.has-printsel .printcard{display:block!important;border:2px solid #1a2744;border-radius:8px;
       padding:12px 16px;max-width:360px;margin:0 auto 14px;break-inside:avoid;font-size:11px;color:#1a1a1a;}
@@ -553,6 +568,11 @@ function placeCard(el) {
 function setPrintCard(d) {
   document.getElementById('printcard').innerHTML = cardHtml(d);
   document.body.classList.add('has-printsel');
+  // Print follows the highlight: only the wall carrying the selected space prints.
+  var old = document.querySelectorAll('.wview.printsel');
+  for (var i = 0; i < old.length; i++) old[i].classList.remove('printsel');
+  var wv = document.getElementById('wall-' + d.wall.charAt(0));
+  if (wv) { wv.classList.add('printsel'); document.body.classList.add('pv-sel'); }
 }
 function showCard(el, pin) {
   var d = readNiche(el);
@@ -570,6 +590,9 @@ function hideCard() {
   clearSel();
   document.getElementById('printcard').innerHTML = '';
   document.body.classList.remove('has-printsel');
+  document.body.classList.remove('pv-sel');
+  var old = document.querySelectorAll('.wview.printsel');
+  for (var i = 0; i < old.length; i++) old[i].classList.remove('printsel');
 }
 
 document.addEventListener('click', function (ev) {
@@ -633,15 +656,8 @@ function apply() {
   stage.style.setProperty('--pitch', cam.pitch.toFixed(2) + 'deg');
   stage.style.setProperty('--zoom', cam.zoom.toFixed(3));
   stage.style.setProperty('--lift', cam.lift.toFixed(1) + 'px');
-  var map = { 'out-s': 0, 'out-n': 180, 'wall-d': 90, court: -90 };
-  var f = null, best = -2;
-  Object.keys(map).forEach(function (k) {
-    var a = (map[k] + cam.yaw) * Math.PI / 180;
-    var d = Math.cos(a) * Math.cos(cam.pitch * Math.PI / 180);
-    if (d > best) { best = d; f = k; }
-  });
   document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
-    b.classList.toggle('on', b.getAttribute('data-viewbtn') === f && best > 0.86);
+    b.classList.toggle('on', b.getAttribute('data-viewbtn') === curPreset);
   });
 }
 
@@ -654,33 +670,49 @@ function fitScene() {
 }
 window.addEventListener('resize', fitScene);
 
-// Presets. out-s / out-n square onto a bank's exterior; wall-d onto Wall D's
-// exterior; court looks down the courtyard from the east entry.
+// Presets. Every bank face — outside AND inside — gets a square-on view; the inside
+// ones fade the occluding bank (hide). dist is the viewed face plane's SIGNED offset
+// toward the camera from the stage origin: perspective (1700px) magnifies a positive
+// dist and shrinks a negative one, so the fit compensates once either way.
+var curPreset = null;
+var VIEWS = {
+  court:   { yaw: -90 },
+  'out-s': { yaw: 0,   w: BANK_W_PX,        dist: ${px(BANK_Z + GEO.slabT / 2)} },
+  'in-s':  { yaw: 180, w: BANK_W_PX,        dist: ${-px(BANK_Z - GEO.slabT / 2)}, hide: 'bk-n' },
+  'out-n': { yaw: 180, w: BANK_W_PX,        dist: ${px(BANK_Z + GEO.slabT / 2)} },
+  'in-n':  { yaw: 0,   w: BANK_W_PX,        dist: ${-px(BANK_Z - GEO.slabT / 2)}, hide: 'bk-s' },
+  'd-out': { yaw: 90,  w: ${px(GEO.faceW)}, dist: ${px(-D_X + GEO.slabT / 2)} },
+  'd-in':  { yaw: -90, w: ${px(GEO.faceW)}, dist: ${-px(-D_X - GEO.slabT / 2)} },
+};
 function viewTo(k) {
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the niches. Drop it.
   if (!pinned) card.classList.remove('show');
-  var y = { 'out-s': 0, 'out-n': 180, 'wall-d': 90, court: -90 }[k];
-  cam.yaw = y;
+  var v = VIEWS[k];
+  curPreset = k;
+  stage.classList.toggle('hide-bkn', v.hide === 'bk-n');
+  stage.classList.toggle('hide-bks', v.hide === 'bk-s');
+  cam.yaw = v.yaw;
   if (k === 'court') {
     cam.pitch = -22;
     cam.zoom = clamp(scene.clientHeight * 0.9 / (YARD_D_PX * 1.15), ZMIN, ZMAX);
     cam.lift = HALF_PX * cam.zoom * 0.4 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
   } else {
     cam.pitch = 0;
-    var w = k === 'wall-d' ? ${px(GEO.faceW)} : BANK_W_PX;
-    // The viewed face plane sits DIST closer to the camera than the stage origin, so
-    // perspective (1700px) magnifies it past a naive fit — compensate once.
-    var dist = k === 'wall-d' ? ${px(-D_X + GEO.slabT / 2)} : ${px(BANK_Z + GEO.slabT / 2)};
-    var z0 = clamp(Math.min(scene.clientWidth * 0.86 / w, scene.clientHeight * 0.72 / ${px(H)}), ZMIN, ZMAX);
-    var pf = Math.max(0.3, (1700 - dist * z0) / 1700);
+    var z0 = clamp(Math.min(scene.clientWidth * 0.86 / v.w, scene.clientHeight * 0.72 / ${px(H)}), ZMIN, ZMAX);
+    var pf = Math.max(0.3, (1700 - v.dist * z0) / 1700);
     cam.zoom = clamp(z0 * pf, ZMIN, ZMAX);
     cam.lift = HALF_PX * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
   }
   apply();
 }
+// A lit preset button is a TOGGLE: tap Inside C·B·A again (or any active view) and
+// the camera returns to the standard courtyard view (operator).
 document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
-  b.addEventListener('click', function () { viewTo(b.getAttribute('data-viewbtn')); });
+  b.addEventListener('click', function () {
+    var k = b.getAttribute('data-viewbtn');
+    viewTo(curPreset === k && k !== 'court' ? 'court' : k);
+  });
 });
 document.getElementById('btn-reset').addEventListener('click', function () { viewTo('court'); });
 document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
@@ -695,6 +727,10 @@ function capturePts() {
   if (captured) return;
   captured = true;
   scene.classList.add('dragging');
+  // Orbiting away from a preset: the faded bank comes back and no button stays lit.
+  curPreset = null;
+  stage.classList.remove('hide-bkn');
+  stage.classList.remove('hide-bks');
   // A lingering HOVER card must not ride along under the drag; a pinned one stays.
   if (!pinned) card.classList.remove('show');
   Object.keys(pts).forEach(function (id) {
@@ -778,6 +814,11 @@ scene.addEventListener('keydown', function (ev) {
   else if (k === '+' || k === '=') cam.zoom *= 1.2;
   else if (k === '-' || k === '_') cam.zoom /= 1.2;
   else return;
+  if (k.indexOf('Arrow') === 0) {
+    curPreset = null;
+    stage.classList.remove('hide-bkn');
+    stage.classList.remove('hide-bks');
+  }
   ev.preventDefault();
   apply();
 });
@@ -823,8 +864,11 @@ ${SECTION_ORDER.map((s) => `  <button class="tab" data-view="${s}">Wall ${s}</bu
     <div class="toolbar no-print">
       <button class="tbtn" data-viewbtn="court" title="Into the courtyard from the entry">Courtyard</button>
       <button class="tbtn" data-viewbtn="out-s" title="Outside faces of Walls C, B, A">Outside C·B·A</button>
+      <button class="tbtn" data-viewbtn="in-s" title="Inside (courtyard) faces of Walls C, B, A — the E·F·G bank fades out of the way">Inside C·B·A</button>
       <button class="tbtn" data-viewbtn="out-n" title="Outside faces of Walls E, F, G">Outside E·F·G</button>
-      <button class="tbtn" data-viewbtn="wall-d" title="Wall D, outside face">Wall D</button>
+      <button class="tbtn" data-viewbtn="in-n" title="Inside (courtyard) faces of Walls E, F, G — the C·B·A bank fades out of the way">Inside E·F·G</button>
+      <button class="tbtn" data-viewbtn="d-out" title="Wall D, outside face">Wall D · Out</button>
+      <button class="tbtn" data-viewbtn="d-in" title="Wall D, inside (courtyard) face, seen down the courtyard">Wall D · In</button>
       <div class="tbsep"></div>
       <button class="tbtn" id="btn-reset">Reset view</button>
       <div class="tbsep"></div>

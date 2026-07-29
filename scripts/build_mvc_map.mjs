@@ -554,6 +554,9 @@ const CSS = `
        overview, print keeps all four. */
     body.pv-one .psec.active .wview{display:none!important;}
     body.pv-one .psec.active .wview.active{display:block!important;break-before:avoid!important;}
+    /* A highlighted space narrows it further: only ITS wall prints (operator). */
+    body.pv-sel .psec.active .wview{display:none!important;}
+    body.pv-sel .psec.active .wview.printsel{display:block!important;break-before:avoid!important;}
     /* The highlighted space prints its full pricing card too. */
     body.has-printsel .printcard{display:block!important;border:2px solid #1a2744;border-radius:8px;
       padding:12px 16px;max-width:360px;margin:0 auto 14px;break-inside:avoid;font-size:11px;color:#1a1a1a;}
@@ -671,6 +674,12 @@ function placeCard(el) {
 function setPrintCard(d) {
   document.getElementById('printcard').innerHTML = cardHtml(d);
   document.body.classList.add('has-printsel');
+  // Print follows the highlight: only the wall carrying the selected space prints.
+  // (A Terrace Garden selection has no wall view — the TGN section prints as-is.)
+  var old = document.querySelectorAll('.wview.printsel');
+  for (var i = 0; i < old.length; i++) old[i].classList.remove('printsel');
+  var wv = document.getElementById('wall-' + d.wall);
+  if (wv) { wv.classList.add('printsel'); document.body.classList.add('pv-sel'); }
 }
 function showCard(el, pin) {
   var d = readNiche(el);
@@ -688,6 +697,9 @@ function hideCard() {
   clearSel();
   document.getElementById('printcard').innerHTML = '';
   document.body.classList.remove('has-printsel');
+  document.body.classList.remove('pv-sel');
+  var old = document.querySelectorAll('.wview.printsel');
+  for (var i = 0; i < old.length; i++) old[i].classList.remove('printsel');
 }
 
 document.addEventListener('click', function (ev) {
