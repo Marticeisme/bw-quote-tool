@@ -66,6 +66,8 @@ function nicheAttrs(k, n) {
 }
 function ariaName(k, n) {
   const st = n.st === 'available' ? 'available' : (STATUS_LABEL[n.st] || n.st);
+  // Sold/occupied spaces carry no price in any rendering, screen readers included.
+  if (n.st === 'reserved' || n.st === 'buried') return `${n.l}-${n.s}, ${faceLabel(k)}, ${st}`;
   return `${n.l}-${n.s}, ${faceLabel(k)}, ${money(n.p)}, ${st}`;
 }
 
@@ -77,7 +79,10 @@ function face3d(k) {
     const ri = LEVELS.indexOf(n.l) + 1;
     const st = n.st !== 'available' ? ` st-${n.st}` : '';
     const stTag = n.st !== 'available' ? `<span class="n3st">${STATUS_LABEL[n.st]}</span>` : '';
-    return `      <button type="button" class="n3 front3${st}" style="grid-row:${ri};grid-column:${n.s}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="n3id">${n.l}-${n.s}</span><span class="n3p ${tier(n.p).c}">${shortMoney(n.p)}</span>${stTag}</button>`;
+    // Sold (reserved) or occupied: no price shown anywhere — nothing to mis-quote.
+    // The data-price attribute stays so the equality gate can still prove the data.
+    const chip = (n.st === 'reserved' || n.st === 'buried') ? '' : `<span class="n3p ${tier(n.p).c}">${shortMoney(n.p)}</span>`;
+    return `      <button type="button" class="n3 front3${st}" style="grid-row:${ri};grid-column:${n.s}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="n3id">${n.l}-${n.s}</span>${chip}${stTag}</button>`;
   }).join('\n');
   return `    <div class="face" data-face="${k}" style="width:${px(GEO.faceW)}px;height:${px(H)}px;grid-template-columns:repeat(5,1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) translate3d(${px(cx)}px,0,${px(cz)}px) rotateY(${ry}deg)">
 ${cells}
@@ -116,14 +121,18 @@ function slab3d() {
 // Inside B (south bank middle), one against Inside F (north bank middle) — operator.
 function bench3d(cx, cz) {
   const { benchW: bw, benchD: bd, benchH: bh } = GEO;
-  const y = -bh / 2; // sits on the floor (origin y=0)
+  // Inside .yard the FLOOR is at y = +H/2 (the wrapper lifts everything by H/2 so the
+  // walls' bottoms meet the ground). A bench "sitting on the floor" therefore centres
+  // at H/2 - bh/2, NOT at -bh/2 — the first build got this wrong and both benches
+  // floated at wall mid-height.
+  const y = H / 2 - bh / 2;
   const p = [];
   p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(cz + bd / 2)}px)"></div>`);
   p.push(`      <div class="bench" style="width:${px(bw)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y)}px,${px(cz - bd / 2)}px) rotateY(180deg)"></div>`);
   for (const sgn of [-1, 1]) {
     p.push(`      <div class="bench" style="width:${px(bd)}px;height:${px(bh)}px;transform:translate(-50%,-50%) translate3d(${px(cx + sgn * bw / 2)}px,${px(y)}px,${px(cz)}px) rotateY(${sgn * 90}deg)"></div>`);
   }
-  p.push(`      <div class="bench btop" style="width:${px(bw)}px;height:${px(bd)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(-bh)}px,${px(cz)}px) rotateX(90deg)"></div>`);
+  p.push(`      <div class="bench btop" style="width:${px(bw)}px;height:${px(bd)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(y - bh / 2)}px,${px(cz)}px) rotateX(90deg)"></div>`);
   return p.join('\n');
 }
 
@@ -158,7 +167,11 @@ function flatGrid(k, { mini = false } = {}) {
     const ri = LEVELS.indexOf(n.l) + 1;
     const st = n.st !== 'available' ? ` st-${n.st}` : '';
     const stTag = n.st !== 'available' ? `<span class="nstatus">${STATUS_LABEL[n.st]}</span>` : '';
-    return `    <button type="button" class="n flatn${st}" style="grid-row:${ri};grid-column:${n.s + 1}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="nid">${n.l}-${n.s}</span><span class="nprice ${tier(n.p).c}">${money(n.p)}</span><span class="ncap">2-urn</span>${stTag}</button>`;
+    const priced = !(n.st === 'reserved' || n.st === 'buried');
+    const body = priced
+      ? `<span class="nprice ${tier(n.p).c}">${money(n.p)}</span><span class="ncap">2-urn</span>`
+      : '';
+    return `    <button type="button" class="n flatn${st}" style="grid-row:${ri};grid-column:${n.s + 1}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="nid">${n.l}-${n.s}</span>${body}${stTag}</button>`;
   }).join('\n');
   return `  <div class="fgrid${mini ? ' mini' : ''}" style="grid-template-columns:24px repeat(5,1fr);grid-template-rows:repeat(5,${rowPx}px);max-width:${mini ? 300 : 460}px;">
 ${labels}
@@ -458,6 +471,15 @@ var card = document.getElementById('card');
 var pinned = null;
 
 function cardHtml(d) {
+  // Sold or occupied: the card names the space and its status, and shows NO pricing.
+  if (d.st === 'reserved' || d.st === 'buried') {
+    return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
+      '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
+      '<button class="cclose" type="button" aria-label="Close">\\u00d7</button></div>' +
+      '<div class="cardmis">ROAC \\u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
+      '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
+      '<div class="cnote">Not available \\u2014 no pricing shown. Confirm in MIS/Enterprise.</div>';
+  }
   var price = +d.price, e = ecf(price), tot = price + e, rows = '';
   rows += '<div class="cr"><span class="cl">Niche Price</span><span class="cv">' + fm(price) + '</span></div>';
   rows += '<div class="cr"><span class="cl">ECF (10%)</span><span class="cv">' + fm(e) + '</span></div>';
