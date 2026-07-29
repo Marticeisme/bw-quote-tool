@@ -152,6 +152,8 @@
   .n3{transition:filter .15s,transform .15s;}
   .n3:not(.pnl3):hover{filter:brightness(1.12) saturate(1.08);transform:scale(1.5);z-index:30;
     box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,248,225,.8),inset 0 0 0 1px rgba(58,44,20,.28);}
+  /* While orbiting, niches under the moving cursor must not pop. */
+  .scene.dragging .n3:hover{transform:none!important;filter:none!important;}
   .n3id{font-size:7.5px;opacity:.8;letter-spacing:.02em;font-weight:500;}
   .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:3px;line-height:1.4;
     letter-spacing:-.02em;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.35);}
@@ -224,6 +226,10 @@
   .card{position:fixed;right:16px;bottom:16px;width:274px;background:rgba(16,24,44,.97);border:1px solid var(--gold);
     border-radius:9px;padding:13px 15px;z-index:900;box-shadow:0 10px 40px rgba(0,0,0,.65);font-size:11px;display:none;}
   .card.show{display:block;}
+  /* A HOVER card is display-only: taps pass through it to the niche beneath (a camera
+     move can leave it parked over the model). Only a pinned card takes pointer events. */
+  .card{pointer-events:none;}
+  .card.pinned{pointer-events:auto;}
   .cardhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px;}
   .cardid{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--gold);}
   .cardwall{font-size:9px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;}
@@ -1225,10 +1231,12 @@ function showCard(el, pin) {
   card.classList.add('show');
   placeCard(el);
   if (pin) { pinned = el; markSel(el); }
+  card.classList.toggle('pinned', pinned === el);
   if (pinned === el) setPrintCard(d);
 }
 function hideCard() {
   card.classList.remove('show');
+  card.classList.remove('pinned');
   pinned = null;
   clearSel();
   document.getElementById('printcard').innerHTML = '';
@@ -1246,6 +1254,7 @@ document.addEventListener('click', function (ev) {
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
+  if (last) return; // mid-drag: sweeping the cursor across niches must not hover-pop them
   var n = ev.target.closest('.n:not(.pnl), .n3:not(.pnl3)');
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
@@ -1361,6 +1370,9 @@ window.addEventListener('resize', fitScene);
 // hanging above the floor origin.
 function faceOn(k) {
   setPlan(false);
+  // A camera jump moves the model under a stationary cursor; Chrome then fires a
+  // synthetic hover that can park a stale card over the niches. Drop it.
+  if (!pinned) card.classList.remove('show');
   cam.yaw = { west: 0, east: 180, north: 90, south: -90 }[k];
   cam.pitch = 0;
   var f = document.querySelector('.face-' + k);
@@ -1387,6 +1399,7 @@ function setPlan(on) {
 }
 function planView() {
   setPlan(true);
+  if (!pinned) card.classList.remove('show');
   cam.yaw = 0; cam.pitch = -90;
   cam.zoom = clamp(Math.min(scene.clientWidth * 0.94 / 1117.57,
                             scene.clientHeight * 0.92 / 792.45), ZMIN, ZMAX);
@@ -1405,6 +1418,7 @@ document.getElementById('btn-out').addEventListener('click', function () { cam.z
 
 // Drag to orbit / pinch to zoom. Zoom is CLAMPED at both ends.
 var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
+var downNiche = null, downAt = 0;
 // Capture is deferred until a drag is REAL (or a second finger lands). Capturing on
 // pointerdown retargeted the subsequent click event to the scene itself, so a tap on
 // a 3D niche never reached the niche button — the document click handler saw only
@@ -1413,12 +1427,25 @@ var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = 
 function capturePts() {
   if (captured) return;
   captured = true;
+  scene.classList.add('dragging');
+  // A lingering HOVER card must not ride along under the drag; a pinned one stays.
+  if (!pinned) card.classList.remove('show');
   Object.keys(pts).forEach(function (id) {
     try { scene.setPointerCapture(+id); } catch (e) { /* pointer already gone */ }
   });
 }
 scene.addEventListener('pointerdown', function (ev) {
-  if (ev.target.closest('.n3')) { /* still allow drag-from-niche */ }
+  // Selection inside the scene is decided by OUR tap detector in endPtr, never by the
+  // native click that follows — a micro-drag that stayed under the threshold used to
+  // count as a click and pin whatever niche it started on (the operator's "I highlight
+  // things accidentally when I move around"). Remember where the gesture began.
+  if (Object.keys(pts).length === 0) {
+    var n = ev.target.closest('.n3');
+    downNiche = (n && !n.classList.contains('pnl3') && n.hasAttribute('data-id')) ? n : null;
+    downAt = performance.now();
+  } else {
+    downNiche = null; // a second finger means pinch, never a tap
+  }
   pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
   var ids = Object.keys(pts);
   if (ids.length === 1) { last = { x: ev.clientX, y: ev.clientY }; moved = 0; }
@@ -1447,15 +1474,24 @@ scene.addEventListener('pointermove', function (ev) {
   last = { x: ev.clientX, y: ev.clientY };
   apply();
 });
-// A drag must not also count as a niche tap — but a TOUCH drag fires no click at
-// all, so the suppression has to expire on its own clock. Latching a flag until the
-// next click swallowed the first tap after every touch orbit.
+// EVERY native click that follows a pointer gesture in the scene is swallowed — the
+// tap detector below is the only way a gesture selects a niche. (Keyboard activation
+// still works: Enter fires a click with no preceding pointer gesture, so the window
+// has long expired.) The window must outlive the click's dispatch on slow phones.
 var suppressUntil = 0;
 function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
-    if (moved > 8) suppressUntil = performance.now() + 300;
+    suppressUntil = performance.now() + 450;
+    // A clean tap: one finger, started on a niche, barely moved, briefly held.
+    if (ev.type === 'pointerup' && downNiche && moved <= 8 && performance.now() - downAt < 700) {
+      showCard(downNiche, true);
+    } else if (ev.type === 'pointerup' && !downNiche && moved <= 8 && !ev.target.closest('#card')) {
+      hideCard(); // a tap on empty scene still clears, as a native click used to
+    }
+    downNiche = null;
     last = null; pinchStart = 0; moved = 0; captured = false;
+    scene.classList.remove('dragging');
   }
 }
 scene.addEventListener('pointerup', endPtr);
