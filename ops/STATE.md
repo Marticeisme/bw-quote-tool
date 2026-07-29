@@ -37,10 +37,17 @@ pushed on the operator's instruction 2026-07-28.
    mid-drag, and hover cards made pointer-transparent — a camera jump could park a stale hover
    card OVER the niches and eat the next tap (found by elementFromPoint mid-suite).
    `scratch/test-drag-guard.mjs` = 15 checks, both maps.
-5. **M6d** (`0d100d8`, LOCAL — awaiting push): ROAC Inside views for every face incl. Wall D
+5. **M6d** (`0d100d8`): ROAC Inside views for every face incl. Wall D
    (occluding bank fades to a ghost; presets are toggles back to Courtyard; signed-distance
    perspective fit for interior planes), and print-follows-the-highlight on BOTH maps
    (selection > wall tab > everything). Round-3 suite now 24 checks.
+6. **M6e** (`789a9a4`): status recoded PATTERN+darkness, never hue (amber/red rings collided
+   with the $12–15K chip hues): Occupied = blacked out, Reserved = diagonal stripes, On Hold =
+   dashed outline, white badges. "← Quote Tool" back buttons on both map headers (maps had no
+   route back; new tabs had no history). Preset fit replaced with the exact perspective solve —
+   the one-step correction had under-zoomed Wall D to half frame.
+   **Everything above PUSHED LIVE 2026-07-29** (`…2d4cd66`, then `789a9a4`), deploys verified
+   on the wire each time.
 
 sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
 sprint-05 merged locally.
