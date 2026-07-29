@@ -293,29 +293,37 @@ const CSS = `
   .nprice{font-weight:600;font-size:10.5px;padding:0 5px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);}
   .ncap{font-size:7.5px;opacity:.7;}
   .nstatus,.n3st{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-    padding:0 3px;border-radius:2px;background:var(--stc,#ffd9a0);color:#1c1508;}
+    padding:0 3px;border-radius:2px;background:rgba(255,255,255,.88);color:#17181b;}
   .fgrid.mini .nid{font-size:5px;}.fgrid.mini .nprice{font-size:6.5px;padding:0 2px;}.fgrid.mini .ncap,.fgrid.mini .nstatus{display:none;}
   .fgrid.mini .n{padding:1px;cursor:default;}
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(0,0,0,.45);}
-  /* ── Status colour code (operator: an FSD must never mistake these for sellable).
-     A colored ring + badge per status, drawn as an ::before overlay so it never
-     fights the cell's own shadows or the white selection ring:
-       Reserved = amber, Occupied = red, On Hold = violet. Available has no ring. */
+  /* ── Status code (operator: an FSD must never mistake these for sellable).
+     PATTERN + darkness, never hue — every hue on this page belongs to a price tier,
+     and the first cut (amber/red rings) sat right next to the $12-15K chip colours.
+       Occupied  = blacked-out cell (closed)
+       Reserved  = diagonal-striped grey
+       On Hold   = dashed outline, price still shown
+     All badges neutral white-on-dark; nothing here shares a colour with a price. */
   .n,.n3{position:relative;}
-  .st-reserved{--stc:#ffb020;}
-  .st-buried{--stc:#ff5a48;}
-  .st-hold{--stc:#b391e0;}
-  .st-reserved,.st-buried,.st-hold{opacity:.72;}
-  .st-reserved::before,.st-buried::before,.st-hold::before{content:'';position:absolute;inset:0;
-    pointer-events:none;border:2.5px solid var(--stc);border-radius:inherit;}
-  .st-reserved .nprice,.st-buried .nprice,.st-hold .nprice{filter:saturate(.35);}
-  .fgrid.mini .st-reserved::before,.fgrid.mini .st-buried::before,.fgrid.mini .st-hold::before{border-width:1.5px;}
+  .st-reserved,.st-buried,.st-hold{color:#d9d8d4;}
+  .st-buried{background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;}
+  .st-reserved{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 4px,rgba(255,255,255,0) 4px 9px),
+      linear-gradient(180deg,#35373c 0%,#222428 100%)!important;}
+  .st-hold{opacity:.85;}
+  .st-hold::before{content:'';position:absolute;inset:1px;pointer-events:none;
+    border:2px dashed rgba(255,255,255,.7);border-radius:inherit;}
+  .st-hold .nprice{filter:saturate(.45);}
+  .fgrid.mini .st-hold::before{border-width:1px;}
 
 ${TIER_CSS}
   .stleg-a{background:linear-gradient(180deg,#3d4046,#212329);}
-  .stleg-r{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #ffb020!important;}
-  .stleg-b{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #ff5a48!important;}
-  .stleg-h{background:linear-gradient(180deg,#3d4046,#212329);border:2.5px solid #b391e0!important;}
+  .stleg-r{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 3px,rgba(255,255,255,0) 3px 6px),
+      linear-gradient(180deg,#35373c,#222428);}
+  .stleg-b{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
+  .stleg-h{background:linear-gradient(180deg,#3d4046,#212329);border:2px dashed rgba(255,255,255,.7)!important;}
 
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
@@ -414,7 +422,9 @@ ${TIER_CSS}
   .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
-  .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+  .back-btn{margin-left:auto;flex-shrink:0;background:none;border:1px solid var(--gb);color:var(--gold-light);padding:9px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
+  .back-btn:hover{background:rgba(200,169,110,.15);color:var(--cream);}
+  .print-btn{flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
   .print-btn:hover{background:rgba(200,169,110,.28);}
 
   @media (max-width:640px){
@@ -423,6 +433,7 @@ ${TIER_CSS}
     .htxt h1{font-size:14px;}
     .htxt p{font-size:9px;}
     .print-btn{margin-left:0;padding:6px 12px;font-size:11px;}
+    .back-btn{margin-left:0;padding:6px 10px;font-size:11px;}
     .main{padding:8px;}
     .tab{padding:9px 11px;font-size:10px;}
     .toolbar{gap:5px;margin:8px auto 6px;}
@@ -699,9 +710,13 @@ function viewTo(k) {
     cam.lift = HALF_PX * cam.zoom * 0.4 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
   } else {
     cam.pitch = 0;
-    var z0 = clamp(Math.min(scene.clientWidth * 0.86 / v.w, scene.clientHeight * 0.72 / ${px(H)}), ZMIN, ZMAX);
-    var pf = Math.max(0.3, (1700 - v.dist * z0) / 1700);
-    cam.zoom = clamp(z0 * pf, ZMIN, ZMAX);
+    // Exact perspective fit: displayed size = real * z * P/(P - dist*z), so the z
+    // that hits a target T is z = T*P / (real*P + T*dist). dist is SIGNED toward
+    // the camera; the earlier one-step correction under-zoomed Wall D badly.
+    var Tw = scene.clientWidth * 0.86, Th = scene.clientHeight * 0.72, P = 1700;
+    var zw = (Tw * P) / (v.w * P + Tw * v.dist);
+    var zh = (Th * P) / (${px(H)} * P + Th * v.dist);
+    cam.zoom = clamp(Math.min(zw, zh), ZMIN, ZMAX);
     cam.lift = HALF_PX * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
   }
   apply();
@@ -849,6 +864,7 @@ const HTML = `<!DOCTYPE html>
     <h1>Rock of Ages Columbarium — Niche Map</h1>
     <p>Washington Memorial Park &nbsp;·&nbsp; Garden 19</p>
   </div>
+  <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="tabs">

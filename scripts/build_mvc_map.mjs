@@ -510,7 +510,9 @@ const CSS = `
   .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
-  .print-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+  .back-btn{margin-left:auto;flex-shrink:0;background:none;border:1px solid var(--gb);color:var(--gold-light);padding:9px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
+  .back-btn:hover{background:rgba(200,169,110,.15);color:var(--cream);}
+  .print-btn{flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
   .print-btn:hover{background:rgba(200,169,110,.28);}
 
   /* ── Phone (counselors hold this in the columbarium) ── */
@@ -520,6 +522,7 @@ const CSS = `
     .htxt h1{font-size:14px;}
     .htxt p{font-size:9px;}
     .print-btn{margin-left:0;padding:6px 12px;font-size:11px;}
+    .back-btn{margin-left:0;padding:6px 10px;font-size:11px;}
     .main{padding:8px;}
     .ptab{padding:10px 14px;font-size:11px;}
     .tab{padding:9px 12px;font-size:10px;}
@@ -1011,6 +1014,7 @@ const HTML = `<!DOCTYPE html>
     <h1>Mountain View Columbarium — New Glass Front Niches</h1>
     <p>Washington Memorial Park &nbsp;·&nbsp; Center Island Structure</p>
   </div>
+  <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="ptabs">
