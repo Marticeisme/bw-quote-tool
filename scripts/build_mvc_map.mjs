@@ -192,7 +192,7 @@ function flatGrid(wall, { mini = false } = {}) {
     if (c.panel) {
       return `    <div class="n pnl" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + 1}/${c.c2 + 1}">CONTROL<br>PANEL</div>`;
     }
-    return `    <button type="button" class="n ${tierClass(c.price)}" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + 1}/${c.c2 + 1}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="nid">${esc(c.id)}</span><span class="nprice">${money(c.price)}</span><span class="ncap">${c.urn}-urn</span></button>`;
+    return `    <button type="button" class="n flatn" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + 1}/${c.c2 + 1}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="nid">${esc(c.id)}</span><span class="nprice ${tierClass(c.price)}">${money(c.price)}</span><span class="ncap">${c.urn}-urn</span></button>`;
   }).join('\n');
   const maxw = wall.kind === 'end' ? 'max-width:420px;' : '';
   return `  <div class="fgrid${mini ? ' mini' : ''}" style="grid-template-columns:24px repeat(${wall.subcols},1fr);grid-template-rows:${rowStr};${maxw}">
@@ -252,7 +252,7 @@ function tgnGrid() {
   const labels = TGN.rows.map((L, i) => `    <div class="rlbl" style="grid-column:1;grid-row:${i + 1}/${i + 2}">${L}</div>`).join('\n');
   const cells = TGN.rows.flatMap((L, ri) => Array.from({ length: TGN.cols }, (_, ci) => {
     const p = TGN.rowPrices[L], id = `${L}-${ci + 1}`;
-    return `    <button type="button" class="n ${tierClass(p)}" style="grid-row:${ri + 1}/${ri + 2};grid-column:${ci + 2}/${ci + 3}" data-wall="tgn" data-id="${id}" data-price="${p}" data-urn="2" data-mis="Terrace Garden Niches" data-inside="${esc(TGN.dim)}" aria-label="${id}, Terrace Garden Niches, ${money(p)}, 2 rights"><span class="nid">${id}</span><span class="nprice">${money(p)}</span><span class="ncap">2-urn</span></button>`;
+    return `    <button type="button" class="n flatn" style="grid-row:${ri + 1}/${ri + 2};grid-column:${ci + 2}/${ci + 3}" data-wall="tgn" data-id="${id}" data-price="${p}" data-urn="2" data-mis="Terrace Garden Niches" data-inside="${esc(TGN.dim)}" aria-label="${id}, Terrace Garden Niches, ${money(p)}, 2 rights"><span class="nid">${id}</span><span class="nprice ${tierClass(p)}">${money(p)}</span><span class="ncap">2-urn</span></button>`;
   })).join('\n');
   return `  <div class="fgrid" style="grid-template-columns:24px repeat(${TGN.cols},1fr);grid-template-rows:${rowStr};max-width:780px;">
 ${labels}
@@ -296,9 +296,15 @@ const CSS = `
   .ovtitle{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--gold);margin-bottom:6px;text-align:center;}
   @media (max-width:760px){.ovgrid{grid-template-columns:1fr;}}
 
-  /* ── Flat niche cell ── */
-  .n{border-radius:3px;border:1px solid rgba(200,169,110,.3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.2;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;}
-  .n:hover{transform:scale(1.04);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
+  /* ── Flat niche cell ──
+     Champagne like the 3D faces (operator: one look everywhere, print included);
+     the price tier lives on the chip, not the cell fill. */
+  .n{border-radius:3px;border:1px solid rgba(58,44,20,.4);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.2;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;
+    color:#3a2c14;gap:1px;
+    background:
+      linear-gradient(115deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,0) 30%),
+      linear-gradient(180deg,#f2dda6 0%,#e2bd79 38%,#cd9d58 100%);}
+  .n:hover{transform:scale(1.18);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
   .n:focus-visible,.n3:focus-visible{outline:2px solid #fff;outline-offset:1px;z-index:20;}
   /* SELECTED (clicked/tapped) — deliberately louder than hover, and drawn with an
      INSET outline so it survives the tight 1.5px gaps and the 3D stacking order
@@ -309,9 +315,9 @@ const CSS = `
   .n.sel{transform:scale(1.06);}
   .pnl{background:#0d111a!important;border-color:rgba(255,255,255,.06)!important;cursor:default;color:rgba(255,255,255,.18);font-size:7px;letter-spacing:.06em;text-transform:uppercase;}
   .pnl:hover{transform:none!important;box-shadow:none!important;}
-  .nid{font-size:8px;opacity:.6;}
-  .nprice{font-weight:600;font-size:11px;}
-  .fgrid.mini .nid{font-size:5px;}.fgrid.mini .nprice{font-size:7px;}.fgrid.mini .ncap{font-size:5px;}
+  .nid{font-size:8px;opacity:.65;}
+  .nprice{font-weight:600;font-size:11px;padding:0 5px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .fgrid.mini .nid{font-size:5px;}.fgrid.mini .nprice{font-size:7px;padding:0 2px;}.fgrid.mini .ncap{font-size:5px;}
   .fgrid.mini .n{padding:1px;cursor:default;}
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(200,169,110,.3);}
   .ncap{font-size:8px;opacity:.72;}
@@ -398,7 +404,11 @@ const CSS = `
       linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 30%),
       linear-gradient(180deg,#f2dda6 0%,#e2bd79 38%,#cd9d58 100%);
     box-shadow:inset 0 2px 3px rgba(255,248,225,.8),inset 0 -6px 10px -5px rgba(96,58,12,.55),inset 0 0 0 1px rgba(58,44,20,.28);}
-  .n3:hover{filter:brightness(1.12) saturate(1.08);}
+  /* Hover pops the space itself — the 7.5px labels are unreadable at rest and the
+     operator asked for the space to appear LARGER, not for a corner card. */
+  .n3{transition:filter .15s,transform .15s;}
+  .n3:not(.pnl3):hover{filter:brightness(1.12) saturate(1.08);transform:scale(1.5);z-index:30;
+    box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,248,225,.8),inset 0 0 0 1px rgba(58,44,20,.28);}
   .n3id{font-size:7.5px;opacity:.8;letter-spacing:.02em;font-weight:500;}
   .n3p{font-size:9px;font-weight:600;padding:0 4px;border-radius:3px;line-height:1.3;
     box-shadow:0 1px 2px rgba(0,0,0,.35);}
@@ -538,6 +548,10 @@ const CSS = `
     .gwrap{background:#fff!important;border:1px solid #999!important;}
     .rlbl,.pfoot b,.fl,.ovtitle{color:#1a2744!important;}
     .n{border-color:#00000030!important;}
+    /* A space highlighted on screen prints highlighted: the .sel class is mirrored
+       onto the flat grid cell, which is exactly what the printer renders. */
+    .n.sel{outline:4px solid #c8540a!important;outline-offset:-2px;
+      box-shadow:0 0 0 2px #1a2744!important;filter:none!important;transform:none!important;}
     .fv{color:#333!important;}
     .fees{background:#f5f5f2!important;border-color:#c8a96e!important;}
     .fees input{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
@@ -611,10 +625,30 @@ function markSel(el) {
   for (var i = 0; i < all.length; i++) if (!all[i].closest('.mini')) all[i].classList.add('sel');
 }
 
+// The card opens NEXT TO the space it describes (operator: "not in the far right
+// corner"), preferring the right side of the niche, flipping left when cramped,
+// always clamped on screen. Phones keep the fixed bottom sheet: on a small screen
+// "beside the niche" and "over the niche map" are the same place.
+function placeCard(el) {
+  if (window.matchMedia('(max-width:700px)').matches) {
+    card.style.left = card.style.top = card.style.right = card.style.bottom = '';
+    return;
+  }
+  var r = el.getBoundingClientRect();
+  card.style.right = 'auto'; card.style.bottom = 'auto';
+  var cw = card.offsetWidth || 274, ch = card.offsetHeight || 240;
+  var x = r.right + 14, y = r.top + r.height / 2 - ch / 2;
+  if (x + cw > window.innerWidth - 8) x = r.left - cw - 14;
+  if (x < 8) x = Math.min(Math.max(8, r.right + 14), window.innerWidth - cw - 8);
+  y = Math.max(8, Math.min(y, window.innerHeight - ch - 8));
+  card.style.left = x + 'px'; card.style.top = y + 'px';
+}
+
 function showCard(el, pin) {
   var d = readNiche(el);
   card.innerHTML = cardHtml(d);
   card.classList.add('show');
+  placeCard(el);
   if (pin) { pinned = el; markSel(el); }
 }
 function hideCard() {
