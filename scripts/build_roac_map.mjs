@@ -23,11 +23,13 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'ROAC_NicheMap.html');
 
-const PPI = 2.2;
+// 2.2 left a 5-space cell ~32px wide — too narrow for a full "$13,195" chip once the
+// operator banned rounded prices. 2.7 gives the chip room; the camera's fit-zoom
+// scales the larger scene back down, so nothing else changes.
+const PPI = 2.7;
 const px = (v) => +(v * PPI).toFixed(2);
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const money = (n) => '$' + n.toLocaleString('en-US');
-const shortMoney = (n) => '$' + (n / 1000).toFixed(n % 1000 ? 1 : 0) + 'K'; // $13.2K
 const tier = (p) => TIERS.find((t) => t.p === p);
 
 // ── Courtyard layout (all inches; see roac-niche-data GEO) ────────────────
@@ -81,7 +83,8 @@ function face3d(k) {
     const stTag = n.st !== 'available' ? `<span class="n3st">${STATUS_LABEL[n.st]}</span>` : '';
     // Sold (reserved) or occupied: no price shown anywhere — nothing to mis-quote.
     // The data-price attribute stays so the equality gate can still prove the data.
-    const chip = (n.st === 'reserved' || n.st === 'buried') ? '' : `<span class="n3p ${tier(n.p).c}">${shortMoney(n.p)}</span>`;
+    // Full dollar figures, never rounded — $13,195, not "$13.2K" (operator).
+    const chip = (n.st === 'reserved' || n.st === 'buried') ? '' : `<span class="n3p ${tier(n.p).c}">${money(n.p)}</span>`;
     return `      <button type="button" class="n3 front3${st}" style="grid-row:${ri};grid-column:${n.s}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="n3id">${n.l}-${n.s}</span>${chip}${stTag}</button>`;
   }).join('\n');
   return `    <div class="face" data-face="${k}" style="width:${px(GEO.faceW)}px;height:${px(H)}px;grid-template-columns:repeat(5,1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) translate3d(${px(cx)}px,0,${px(cz)}px) rotateY(${ry}deg)">
@@ -360,7 +363,7 @@ ${TIER_CSS}
   .n3:hover{filter:brightness(1.18) saturate(1.08);transform:scale(1.5);z-index:30;
     box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.18);}
   .n3id{font-size:7px;opacity:.7;letter-spacing:.02em;}
-  .n3p{font-size:8.5px;font-weight:600;padding:0 3px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);}
+  .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.02em;white-space:nowrap;}
   .n3st{font-size:5.5px;letter-spacing:.06em;}
   .baseband{background:linear-gradient(180deg,#93908a,#6d6a64);
     display:flex;align-items:center;justify-content:center;color:#26241f;
@@ -654,7 +657,12 @@ function viewTo(k) {
   } else {
     cam.pitch = 0;
     var w = k === 'wall-d' ? ${px(GEO.faceW)} : BANK_W_PX;
-    cam.zoom = clamp(Math.min(scene.clientWidth * 0.86 / w, scene.clientHeight * 0.72 / ${px(H)}), ZMIN, ZMAX);
+    // The viewed face plane sits DIST closer to the camera than the stage origin, so
+    // perspective (1700px) magnifies it past a naive fit — compensate once.
+    var dist = k === 'wall-d' ? ${px(-D_X + GEO.slabT / 2)} : ${px(BANK_Z + GEO.slabT / 2)};
+    var z0 = clamp(Math.min(scene.clientWidth * 0.86 / w, scene.clientHeight * 0.72 / ${px(H)}), ZMIN, ZMAX);
+    var pf = Math.max(0.3, (1700 - dist * z0) / 1700);
+    cam.zoom = clamp(z0 * pf, ZMIN, ZMAX);
     cam.lift = HALF_PX * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
   }
   apply();

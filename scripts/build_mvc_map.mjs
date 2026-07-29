@@ -24,7 +24,7 @@ const px = (v) => +(v * PPI).toFixed(2);
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const money = (n) => '$' + n.toLocaleString('en-US');
-const shortMoney = (n) => '$' + (n / 1000) + 'K';
+// Full dollar figures on the 3D chips too — "$7,000", never "$7K" (operator, 2026-07-29).
 const tierClass = (p) => (TIERS.find((t) => t.p === p) || { c: 'c8' }).c;
 const misOf = (wall, id) => wall.mis.replace(/-Level-Space$/, '') + '-' + id;
 
@@ -131,7 +131,7 @@ function face3d(wall) {
     if (c.panel) {
       return `      <div class="n3 pnl3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + off}/${c.c2 + off}" aria-hidden="true"><span>ACCESS<br>PANEL</span></div>`;
     }
-    return `      <button type="button" class="n3 front3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + off}/${c.c2 + off}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="n3id">${esc(c.id)}</span><span class="n3p ${tierClass(c.price)}">${shortMoney(c.price)}</span></button>`;
+    return `      <button type="button" class="n3 front3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + off}/${c.c2 + off}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="n3id">${esc(c.id)}</span><span class="n3p ${tierClass(c.price)}">${money(c.price)}</span></button>`;
   }).join('\n');
   const strips = long
     ? cornerStrip(wall.key, 'left', 1) + '\n' + cornerStrip(wall.key, 'right', totalCols)
@@ -410,8 +410,8 @@ const CSS = `
   .n3:not(.pnl3):hover{filter:brightness(1.12) saturate(1.08);transform:scale(1.5);z-index:30;
     box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,248,225,.8),inset 0 0 0 1px rgba(58,44,20,.28);}
   .n3id{font-size:7.5px;opacity:.8;letter-spacing:.02em;font-weight:500;}
-  .n3p{font-size:9px;font-weight:600;padding:0 4px;border-radius:3px;line-height:1.3;
-    box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:3px;line-height:1.4;
+    letter-spacing:-.02em;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.35);}
   .n3p.c42,.n3p.c48{border-width:1px;}
   /* Glass corner returns: the SIDE of the adjacent end-wall niche, seen through the
      corner. Slightly cooler and dimmer than a lit front, darkening toward the inner
