@@ -4,8 +4,9 @@
 caught up to the twelve close commits at some point on 2026-07-28 — verified by `git status -sb`,
 not assumed). Six tracks done and merged: R (research), M (`s06/mvc-niche-map`),
 G (`s06/terramation-guide`), M2 (map repo `469c25d`), M3 (`s06/mvc-3d`), M4 (3D polish),
-plus post-push **Track M5** (`s06/mvc-corner-realism`, merge `ba623dd`) — local `main` is now
-**2 ahead of origin**, fully green, awaiting his next push.
+plus post-push **Track M5** (`s06/mvc-corner-realism`, commit `ae7b9c2` — landed LINEAR: a
+`git pull --rebase` before the push flattened the original `--no-ff` merge, content identical) —
+pushed on the operator's instruction 2026-07-28.
 
 sprint-01 (S1), sprint-02 (S7) and sprint-04 (S8+S9) SHIPPED; sprint-03 (S2) partially shipped;
 sprint-05 merged locally.
