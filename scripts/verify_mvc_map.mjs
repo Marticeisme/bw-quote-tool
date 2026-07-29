@@ -88,7 +88,11 @@ function parseRendered(src, scopeRe, cls) {
   }
   return out;
 }
-const from3d = parseRendered(newSrc, null, 'n3 ');
+// 3D niche FRONTS only. 'n3 side3' buttons are the glass corner returns — a second
+// rendering of the end walls' edge-column niches seen through the long faces — and
+// they are verified separately below, never counted as openings.
+const from3d = parseRendered(newSrc, null, 'n3 front3');
+const fromSides = parseRendered(newSrc, null, 'n3 side3');
 const fromFlat = parseRendered(newSrc, null, 'n ').filter((c) => c.wall !== 'tgn');
 
 const key = (c) => `${c.wall}|${c.id}`;
@@ -133,6 +137,38 @@ for (const [name, list] of [['3D faces', from3d], ['flat wall grids', flatFull],
   const have = new Set(list.map(key));
   for (const k of oldSet.keys()) if (!have.has(k)) bad.push(`missing ${k}`);
   (bad.length === 0 ? pass : fail)(`${name}: ${bad.length ? bad.slice(0, 8).join('; ') : 'all 145 identical (ref, price, rights, wall)'}`);
+}
+
+// ── 4b. Glass corner returns ──────────────────────────────────────────────
+// The long faces carry 4 corner strips x 7 rows = 28 side-glass buttons, each a
+// SECOND rendering of an end-wall edge-column niche. Every one must point at a niche
+// that exists in the data module with identical price/rights, the set must be exactly
+// the four edge columns (c1===1 or c2===subcols+1 on north/south), and each niche must
+// appear exactly once as a strip.
+console.log('\nGlass corner returns (side3 strips on the long faces)');
+{
+  const dataSet = new Map(allNiches().map((n) => [`${n.wall}|${n.id}`, `${n.wall}|${n.id}|${n.price}|${n.urn}`]));
+  const expect = new Set();
+  for (const w of ['north', 'south']) {
+    for (const c of WALLS[w].cells) {
+      if (c.panel) continue;
+      if (c.c1 === 1 || c.c2 === WALLS[w].subcols + 1) expect.add(`${w}|${c.id}`);
+    }
+  }
+  const bad = [];
+  if (fromSides.length !== 28) bad.push(`count ${fromSides.length} vs 28`);
+  const seen = new Map();
+  for (const c of fromSides) {
+    const k = key(c);
+    seen.set(k, (seen.get(k) || 0) + 1);
+    if (!expect.has(k)) bad.push(`not an edge-column niche: ${k}`);
+    else if (dataSet.get(k) !== sig(c)) bad.push(`${k}: data ${dataSet.get(k)} -> strip ${sig(c)}`);
+  }
+  for (const k of expect) if (!seen.has(k)) bad.push(`edge niche missing a strip: ${k}`);
+  for (const [k, n] of seen) if (n !== 1) bad.push(`${k} rendered ${n} strips`);
+  (bad.length === 0 ? pass : fail)(bad.length
+    ? bad.slice(0, 8).join('; ')
+    : 'all 28 strips match the four end-wall edge columns 1:1 (ref, price, rights)');
 }
 
 // ── 5. Money totals ───────────────────────────────────────────────────────

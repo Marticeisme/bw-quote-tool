@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  WALLS, WALL_ORDER, ISLAND, ROOM, ROW_LETTERS, ROW_HEIGHTS_IN,
+  WALLS, WALL_ORDER, ISLAND, ROOM, ROW_LETTERS, ROW_HEIGHTS_IN, SUBCOL_IN,
   cellDims, TIERS, FEES, EFFECTIVE, TGN,
 } from './mvc-niche-data.mjs';
 
@@ -89,17 +89,57 @@ function ariaName(wall, c) {
   return `${c.id}, ${wall.label}, ${money(c.price)}, ${c.urn} rights`;
 }
 
+// ── Corner returns ─────────────────────────────────────────────────────────
+// The long walls' niche field is 20 sub-columns x 5.4375" = 108.75" (9'-0 3/4" C/C),
+// but the island is 135.4375" long. The ~13.34" left over at EACH end is not framing:
+// it is where the end walls' 12"-deep corner niches meet the long face, and their
+// SIDE panels are glass — stand at the Front wall and you see straight through the
+// corner into the lit interior of Side A/B's edge niches (operator photos,
+// D:\Cemetery Photos Misc\New MVC Photos). The old build stretched the 20-column
+// grid across the full face, so every front/back niche drew ~24% too wide and the
+// corners read as solid niche fronts instead of glass returns.
+const SIDE_STRIP_IN = +((ISLAND.length - 20 * SUBCOL_IN.long) / 2).toFixed(4); // 13.34
+// Which end-wall column adjoins which long-face edge (verified against the scene
+// transforms: north sits at -x and renders on the WEST face's screen-left; east
+// views mirror). 'first' = the wall's c1===1 column, 'last' = its c2===subcols+1.
+const CORNER_ADJ = {
+  west: { left: ['north', 'last'], right: ['south', 'first'] },
+  east: { left: ['south', 'last'], right: ['north', 'first'] },
+};
+function edgeCells(wallKey, side) {
+  const w = WALLS[wallKey];
+  return w.cells.filter((c) => !c.panel && (side === 'first' ? c.c1 === 1 : c.c2 === w.subcols + 1));
+}
+function cornerStrip(faceKey, edge, gridCol) {
+  const [adjKey, side] = CORNER_ADJ[faceKey][edge];
+  const adj = WALLS[adjKey];
+  return edgeCells(adjKey, side).map((c) =>
+    `      <button type="button" class="n3 side3" style="grid-row:${c.r1}/${c.r2};grid-column:${gridCol}" ${nicheAttrs(adj, c)} aria-label="${esc(ariaName(adj, c))}, seen through its glass side"><span class="s3id">${esc(c.id)}</span></button>`
+  ).join('\n');
+}
+
 function face3d(wall) {
   const w = px(wall.widthIn), h = px(FACE_H_IN);
+  const long = wall.kind === 'long';
+  // Long faces: true-width niche field flanked by the two glass corner returns.
+  const colTemplate = long
+    ? `${SIDE_STRIP_IN}fr repeat(${wall.subcols},${SUBCOL_IN.long}fr) ${SIDE_STRIP_IN}fr`
+    : `repeat(${wall.subcols},1fr)`;
+  const off = long ? 1 : 0;
+  const totalCols = wall.subcols + 2 * off;
   const cells = wall.cells.map((c) => {
     if (c.panel) {
-      return `      <div class="n3 pnl3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1}/${c.c2}" aria-hidden="true"><span>ACCESS<br>PANEL</span></div>`;
+      return `      <div class="n3 pnl3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + off}/${c.c2 + off}" aria-hidden="true"><span>ACCESS<br>PANEL</span></div>`;
     }
-    return `      <button type="button" class="n3 ${tierClass(c.price)}" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1}/${c.c2}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="n3id">${esc(c.id)}</span><span class="n3p">${shortMoney(c.price)}</span></button>`;
+    return `      <button type="button" class="n3 front3" style="grid-row:${c.r1}/${c.r2};grid-column:${c.c1 + off}/${c.c2 + off}" ${nicheAttrs(wall, c)} aria-label="${esc(ariaName(wall, c))}"><span class="n3id">${esc(c.id)}</span><span class="n3p ${tierClass(c.price)}">${shortMoney(c.price)}</span></button>`;
   }).join('\n');
-  return `    <div class="face face-${wall.key}" data-face="${wall.key}" style="width:${w}px;height:${h}px;grid-template-columns:repeat(${wall.subcols},1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) ${FACE_TRANSFORM[wall.key]}">
+  const strips = long
+    ? cornerStrip(wall.key, 'left', 1) + '\n' + cornerStrip(wall.key, 'right', totalCols)
+    : '';
+  return `    <div class="face face-${wall.key}" data-face="${wall.key}" style="width:${w}px;height:${h}px;grid-template-columns:${colTemplate};grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) ${FACE_TRANSFORM[wall.key]}">
 ${cells}
-      <div class="baseband" style="grid-row:8/9;grid-column:1/${wall.subcols + 1}"><b>${esc(wall.label.toUpperCase())}</b><span>${esc(wall.mis)}</span></div>
+${strips}
+      <div class="baseband" style="grid-row:8/9;grid-column:1/${totalCols + 1}"><b>${esc(wall.label.toUpperCase())}</b><span>${esc(wall.mis)}</span></div>
     </div>`;
 }
 
@@ -321,8 +361,9 @@ const CSS = `
   /* The room is CONTEXT, not the subject. The lit-floor stripes read as glare in
      the operator's screenshot, so the floor is now a single quiet wash and the
      room walls sit well back in value. */
+  /* Carpet in the room is a mauve-taupe (photos), not blue. */
   .floor{position:absolute;left:0;top:0;background:
-      radial-gradient(ellipse at 50% 50%,rgba(126,146,186,.16),rgba(9,15,30,.9) 78%);
+      radial-gradient(ellipse at 50% 50%,rgba(162,140,148,.18),rgba(16,12,16,.9) 78%);
     border:1px solid rgba(200,169,110,.10);}
   .rwall{position:absolute;left:0;top:0;background:linear-gradient(180deg,rgba(30,42,72,.30),rgba(14,22,42,.62));
     border:1px solid rgba(200,169,110,.14);border-bottom:1px solid rgba(200,169,110,.2);backface-visibility:hidden;}
@@ -331,7 +372,7 @@ const CSS = `
     background:linear-gradient(180deg,rgba(200,169,110,.06),rgba(200,169,110,.22));
     border:1px solid rgba(200,169,110,.5);border-bottom:none;border-radius:3px 3px 0 0;
     color:var(--gold);font-size:11px;letter-spacing:.14em;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;}
-  .cap{position:absolute;left:0;top:0;background:linear-gradient(135deg,rgba(74,61,43,.82),rgba(42,34,24,.82));border:1px solid rgba(200,169,110,.35);}
+  .cap{position:absolute;left:0;top:0;background:linear-gradient(135deg,#262014,#120f09);border:1px solid rgba(200,169,110,.45);}
   /* Orientation labels painted flat on the room floor. They carry the FULL MIS
      location string, not a bare compass word — a director reading the floor must
      be able to name the location exactly as the price sheet spells it. */
@@ -342,23 +383,42 @@ const CSS = `
   .fc-w{bottom:8px;left:50%;transform:translateX(-50%);}
   .fc-n{left:4px;top:50%;transform:translateY(-50%) rotate(-90deg);}
   .fc-s{right:4px;top:50%;transform:translateY(-50%) rotate(90deg);}
-  .face{position:absolute;left:0;top:0;display:grid;gap:1.5px;background:var(--bronze);
-    padding:1.5px;border:1.5px solid #6b573a;
-    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.55);
+  /* ── Real materials (operator photos, D:\\Cemetery Photos Misc\\New MVC Photos) ──
+     Near-black bronze frame with a brass trim line; every niche is champagne-gold
+     satin metal lit from above by its LED strip, behind glass. Price tier moves from
+     the full cell onto a compact chip so the island reads as the real structure. */
+  .face{position:absolute;left:0;top:0;display:grid;gap:2px;background:#15120d;
+    padding:2px;border:2px solid #8a7147;
+    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.55),inset 0 0 0 1px #2b2417;
     transition:transform .55s cubic-bezier(.4,.1,.2,1);}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    overflow:hidden;line-height:1.05;padding:0;min-width:0;transition:filter .15s;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 2px rgba(0,0,0,.22);}
-  .n3:hover{filter:brightness(1.18) saturate(1.1);}
-  .n3id{font-size:7.5px;opacity:.85;letter-spacing:.02em;}
-  .n3p{font-size:10px;font-weight:600;}
-  .pnl3{background:#241d14;color:rgba(255,255,255,.3);font-size:6px;letter-spacing:.06em;text-align:center;
-    display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 8px rgba(0,0,0,.6);}
+    overflow:hidden;line-height:1.05;padding:0;min-width:0;transition:filter .15s;gap:1px;
+    color:#3a2c14;
+    background:
+      linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 30%),
+      linear-gradient(180deg,#f2dda6 0%,#e2bd79 38%,#cd9d58 100%);
+    box-shadow:inset 0 2px 3px rgba(255,248,225,.8),inset 0 -6px 10px -5px rgba(96,58,12,.55),inset 0 0 0 1px rgba(58,44,20,.28);}
+  .n3:hover{filter:brightness(1.12) saturate(1.08);}
+  .n3id{font-size:7.5px;opacity:.8;letter-spacing:.02em;font-weight:500;}
+  .n3p{font-size:9px;font-weight:600;padding:0 4px;border-radius:3px;line-height:1.3;
+    box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .n3p.c42,.n3p.c48{border-width:1px;}
+  /* Glass corner returns: the SIDE of the adjacent end-wall niche, seen through the
+     corner. Slightly cooler and dimmer than a lit front, darkening toward the inner
+     (deep) edge, with the brass mullion reading at the corner itself. */
+  .side3{background:
+      linear-gradient(90deg,rgba(20,14,6,.42),rgba(20,14,6,0) 42% 58%,rgba(20,14,6,.42)),
+      linear-gradient(180deg,#e0c58e 0%,#c8a266 50%,#a97f45 100%);
+    color:#4a3818;box-shadow:inset 0 2px 3px rgba(255,244,214,.5),inset 0 0 0 1px rgba(30,22,10,.4);}
+  .s3id{font-size:6.5px;opacity:.65;letter-spacing:.02em;writing-mode:vertical-rl;}
+  .pnl3{background:#2e2b27;color:rgba(255,255,255,.32);font-size:6px;letter-spacing:.06em;text-align:center;
+    display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 10px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.05);}
   /* The base course doubles as each wall's nameplate: friendly name + the full MIS
      location string, so no face is ever identified by a bare compass word. */
-  .baseband{background:linear-gradient(180deg,#4a3c2b,#241c12);
+  .baseband{background:linear-gradient(180deg,#2b251c,#131007);
     display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold-light);
-    font-size:8.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;}
+    font-size:8.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(200,169,110,.5);}
   .baseband b{color:var(--gold);font-weight:600;letter-spacing:.16em;}
   .face-north .baseband,.face-south .baseband{font-size:6.5px;letter-spacing:.02em;gap:4px;}
   /* ── Unfolded plan view ──────────────────────────────────────────────
@@ -376,7 +436,7 @@ const CSS = `
   #stage.plan .face-north{transform:translate(-50%,-50%) translate3d(${-PLAN_X}px,${PLAN_Y}px,0) rotateY(-90deg) rotateX(90deg)!important;}
   #stage.plan .face-south{transform:translate(-50%,-50%) translate3d(${PLAN_X}px,${PLAN_Y}px,0) rotateY(90deg) rotateX(90deg)!important;}
   #stage.plan .cap{transform:translate(-50%,-50%) translateY(${PLAN_Y}px) rotateX(90deg)!important;
-    background:linear-gradient(135deg,#5b4a33,#33291c);border:1.5px solid rgba(200,169,110,.75);}
+    background:linear-gradient(135deg,#332a1c,#1a150c);border:1.5px solid rgba(200,169,110,.75);}
   #stage.plan .room{opacity:.14;}
   #stage.plan .face{box-shadow:0 14px 40px rgba(0,0,0,.6);}
   .cap{transition:transform .55s cubic-bezier(.4,.1,.2,1);}
@@ -730,14 +790,25 @@ document.getElementById('btn-in').addEventListener('click', function () { cam.zo
 document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
 
 // Drag to orbit / pinch to zoom. Zoom is CLAMPED at both ends.
-var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0;
+var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
+// Capture is deferred until a drag is REAL (or a second finger lands). Capturing on
+// pointerdown retargeted the subsequent click event to the scene itself, so a tap on
+// a 3D niche never reached the niche button — the document click handler saw only
+// "scene", missed, and closed the card. That is why click-to-highlight worked in the
+// flat wall tabs but never from a tap in the 3D view.
+function capturePts() {
+  if (captured) return;
+  captured = true;
+  Object.keys(pts).forEach(function (id) {
+    try { scene.setPointerCapture(+id); } catch (e) { /* pointer already gone */ }
+  });
+}
 scene.addEventListener('pointerdown', function (ev) {
   if (ev.target.closest('.n3')) { /* still allow drag-from-niche */ }
   pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
-  scene.setPointerCapture(ev.pointerId);
   var ids = Object.keys(pts);
   if (ids.length === 1) { last = { x: ev.clientX, y: ev.clientY }; moved = 0; }
-  else if (ids.length === 2) { pinchStart = dist(); zoomStart = cam.zoom; }
+  else if (ids.length === 2) { pinchStart = dist(); zoomStart = cam.zoom; capturePts(); }
 });
 function dist() {
   var k = Object.keys(pts); if (k.length < 2) return 0;
@@ -756,6 +827,7 @@ scene.addEventListener('pointermove', function (ev) {
   if (!last) return;
   var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
   moved += Math.abs(dx) + Math.abs(dy);
+  if (moved > 8) capturePts();
   cam.yaw += dx * 0.35;
   cam.pitch -= dy * 0.28;
   last = { x: ev.clientX, y: ev.clientY };
@@ -769,7 +841,7 @@ function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
     if (moved > 8) suppressUntil = performance.now() + 300;
-    last = null; pinchStart = 0; moved = 0;
+    last = null; pinchStart = 0; moved = 0; captured = false;
   }
 }
 scene.addEventListener('pointerup', endPtr);
