@@ -67,10 +67,10 @@ export const FACE_H = ROWS.length * GEO.rowH + GEO.baseH; // 91
 // Sheet order: South, Front (North), West, East.
 export const FACE_ORDER = ['S', 'N', 'W', 'E'];
 export const FACE_META = {
-  S: { label: 'South', caption: 'SOUTH ELEVATION', rotY: 0, wide: true },
-  N: { label: 'Front (North)', caption: 'FRONT — NORTH ELEVATION', rotY: 180, wide: true },
-  W: { label: 'West', caption: 'WEST ELEVATION', rotY: -90, wide: false },
-  E: { label: 'East', caption: 'EAST ELEVATION', rotY: 90, wide: false },
+  S: { label: 'South', caption: 'SOUTH', rotY: 0, wide: true },
+  N: { label: 'Front (North)', caption: 'FRONT — NORTH', rotY: 180, wide: true },
+  W: { label: 'West', caption: 'WEST', rotY: -90, wide: false },
+  E: { label: 'East (Front Door)', caption: 'EAST — FRONT DOOR', rotY: 90, wide: false },
 };
 
 export const STATUS_LABEL = { sold: 'Sold', unpriced: 'Not Priced' };

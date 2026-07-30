@@ -180,7 +180,7 @@ function faceView(f) {
   const prices = WALLS[f].niches.filter(sellable).map((n) => n.p);
   const avail = WALLS[f].niches.filter(sellable).length;
   return `  <div class="wview" id="wall-${f}">
-    <div class="wlabel">${esc(faceLabel(f))} Elevation</div>
+    <div class="wlabel">${esc(faceLabel(f))}</div>
     <div class="wsub">ECL-1-${f}-X-X &nbsp;·&nbsp; Row A = bottom, F = top &nbsp;·&nbsp; ${WALLS[f].niches.length} niches, ${avail} available</div>
     <div class="gwrap">
 ${flatGrid(f)}
@@ -198,7 +198,7 @@ ${flatGrid(f, { mini: true })}
         </div>
       </div>`).join('\n');
   return `  <div class="wview" id="wall-overview">
-    <div class="wlabel">All Four Elevations</div>
+    <div class="wlabel">All Four Sides</div>
     <div class="wsub">The whole cabinet at a glance &nbsp;·&nbsp; corners are solid: no niche appears on two faces</div>
     <div class="ovgrid">
 ${panels}
@@ -800,10 +800,10 @@ ${FACE_ORDER.map((f) => `  <button class="tab" data-view="${f}">${esc(faceLabel(
   <div class="view3d active" id="view-3d">
     <div class="toolbar no-print">
       <button class="tbtn" data-viewbtn="room" title="Three-quarter view of the cabinet in the room">Room view</button>
-      <button class="tbtn" data-viewbtn="f-s" title="South elevation, face on">South</button>
-      <button class="tbtn" data-viewbtn="f-n" title="Front (north) elevation, face on">Front (North)</button>
-      <button class="tbtn" data-viewbtn="f-w" title="West elevation, face on">West</button>
-      <button class="tbtn" data-viewbtn="f-e" title="East elevation, face on — the front door side">East</button>
+      <button class="tbtn" data-viewbtn="f-s" title="South side, face on">South</button>
+      <button class="tbtn" data-viewbtn="f-n" title="Front (north) side, face on">Front (North)</button>
+      <button class="tbtn" data-viewbtn="f-w" title="West side, face on">West</button>
+      <button class="tbtn" data-viewbtn="f-e" title="East side, face on — the front door side">East (Front Door)</button>
       <div class="tbsep"></div>
       <button class="tbtn" id="btn-reset">Reset view</button>
       <div class="tbsep"></div>
@@ -830,8 +830,8 @@ ${overviewView()}
     <div class="fi"><span class="fl">Vase with Ring — $${FEES.VASE}</span><span class="fv">Optional add-on</span></div>
   </div>
   <div class="pfoot">
-    <b>Row A is the bottom row; Row F the top. Niches are numbered left to right facing each elevation.</b><br>
-    References read <b>ECL-1-&lt;S/N/W/E&gt;-&lt;row&gt;-&lt;niche&gt;</b>. The four corners are solid — no niche appears on two elevations.<br>
+    <b>Row A is the bottom row; Row F the top. Niches are numbered left to right facing each side.</b><br>
+    References read <b>ECL-1-&lt;S/N/W/E&gt;-&lt;row&gt;-&lt;niche&gt;</b>. The four corners are solid — no niche appears on two sides.<br>
     Niche availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
   </div>
 </div><!-- /main -->
