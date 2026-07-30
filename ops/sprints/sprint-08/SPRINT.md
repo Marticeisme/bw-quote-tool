@@ -67,8 +67,19 @@ path into the main tree) to compute per-garden price RANGES; aggregates only, no
 else crosses (no refs, statuses, coordinates, names). Log the exception in the
 decisions table at close.
 
-Parallelism stays ≤2: F + H spawn together; P spawns when F completes; Q after P and H
-merge; U after Q merges (same shared guide files). Merge order: **F → P → H → Q → U**.
+| V — GOMN map (2D) | `s08/gomn-map` | `../bw-quote-tool-gomn` | NEW `scripts/gomn-niche-data.mjs`, `build_gomn_map.mjs`, `verify_gomn_map.mjs`, `MAPS/GOMN_NicheMap.html`; `guides.html` Maps card |
+
+Track V added mid-boot (operator, sixth request): Garden of Meditation niche wall,
+**2D is fine** (flat-grid style, no 3D scene). Sheets in `D:/Cemetery Photos Misc/GOMN
+Niches`: GOM-1-1-ROW-SPACE, stepped wall (wings 1–8 / 25–32, center 9–24 rows A–G),
+prices effective Jan 30 2025; fail-safe status reading; sheet rules carried verbatim
+(Companions (2) + one vase included, Interlude Urn only, Inscription $605, NO PHOTOS
+ALLOWED). Track H and Track V both append a Maps card — director resolves the pill
+count at merge.
+
+Parallelism stays ≤2: F + H spawn together; when F completes, P and V spawn as the
+running pair alongside/after H as slots free; Q after P and H merge; U after Q. Merge
+order: **F → (P, V as they land) → H → Q → U**.
 
 ## Gates
 
