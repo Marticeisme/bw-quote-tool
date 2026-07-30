@@ -46,8 +46,13 @@ data — say so at the top of the data module.
   Inscription toggle, default off, matching the ECL toggle pattern Track F just
   landed if it has merged by your branch point — check `git log`; if F hasn't merged,
   a plain listed line is fine and say so).
-- **"ONLY the Interlude Urn is allowed in these Niches due to size. Refer to URN
-  price list for price."** — carry verbatim (it's a sales-critical constraint).
+- **The companion capacity and the urn requirement are ONE fact, not two** (operator
+  clarification 2026-07-29): these niches hold two urns ONLY because the compact
+  Interlude Urn fits two to a niche — that is why it is the only urn allowed. Explain
+  it that way on the page and card, e.g. "Sold as a companion niche (2 inurnment
+  rights). Due to niche size, the Interlude Urn is required — two fit per niche. See
+  the urn price list for Interlude pricing." Keep the sheet's own sentence available
+  verbatim in the rules footer.
 - **"NO PHOTOS ALLOWED"** — carry verbatim in the rules footer. Do not reinterpret it;
   quote the sheet.
 - Effective date on the page footer.
