@@ -1537,6 +1537,51 @@ the new ≤2 cap; `verify_print_header.mjs` 23 pages, 0 over cap (this one 24.6 
 
 ---
 
+### 2026-07-29 — Granite Niches guide: Terrace fees restored, GOMN photographed (sprint-08 Track P2)
+Branch `s08/roac-guide`, fast-forwarded onto `main` first — Track P was already merged, and
+`main` carried the `FEES`/`FEE_SOURCE` exports in `scripts/tgmp-data.mjs` that this work
+reconciles against. Two operator rulings, both reversing something the entry above records
+as settled. PDF rebuilt: **still 2 pages, 150 KB**.
+
+**1. The Terrace Garden does have a fee schedule after all.** The ruling is "MVC schedule
+applies" to the whole Terrace Garden Memorial Path. The section now carries the same
+*Charges in addition to the price* table as Rock of Ages and the Garden of Meditation —
+O&C **$875**, recording **$235**, inscription **$660**, E.C.F. **10%**, sales tax **10.4%**
+*on the inscription charge only* — and the at-a-glance row prints the same list instead of
+"None printed on the price sheet".
+
+**Borrowed numbers need borrowed-number provenance, and the gate now enforces that too.**
+These fees are not printed on the Terrace Garden sheet; they are the Mountain View
+Columbarium June-2026 schedule applied by operator ruling. So the page says so in as many
+words, and `verify_granite_niche_ranges.mjs` asserts the page repeats
+`TGMP.FEE_SOURCE.schedule` and `.confirmedOn` **verbatim** and states that the sheet prints
+none. The two old "fee abstinence" assertions are gone, replaced by: every non-`QTY_MAX` key
+of `tgmp-data`'s `FEES` is printed in the Terrace section and equal to the module, and no fee
+is tagged that the module has no key for. All three failure modes were negative-tested
+(wrong amount, missing row, altered provenance string) rather than assumed to bite.
+
+**2. Legible names in property photos are fine to publish**, so the Garden of Meditation is
+no longer the one section without a picture. `granite-niche-images/gomn-wall.jpg`
+(1400×546, 154 KB) is the overcast front elevation, cropped to drop the neighbouring wall and
+most of the road. It was picked over the two sunlit frames on merit: they are backlit and
+flare-hazed, the wall reads as a dark mass and the right wing is lost in shrubs, whereas the
+flat light shows exactly what the prose claims — low wings stepping up to a taller centre
+section, bronze plates and vase holders throughout. The paragraph explaining the absence is
+deleted. No other photo changed: none of Track P's six was cropped to hide a name (Rock of
+Ages and the Terrace Garden are uninscribed), so there was nothing to un-crop.
+
+**The 2-page cap was never at risk, for a reason worth writing down:** the condense block
+sets `.figure,.figure-pair{display:none!important}` in print, so *adding a photograph cannot
+cost a printed page*. What moved the print flow here was text — a five-row table in, a
+two-paragraph sidebar and a footnote out. Both PDF pages were rendered and looked at.
+
+Gates: `verify_granite_niche_ranges.mjs` all green (now 15 tagged fees + 5 Terrace-scoped
++ provenance); `verify_guide_pages.mjs` green, Granite Niches 2 pages against its cap of 2;
+`verify_guides_page.mjs` ALL OK, 33 cards; `verify_print_header.mjs` 23 pages, 0 over cap;
+`npm run check` 8 blocks, 0 errors.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
