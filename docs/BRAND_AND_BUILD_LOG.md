@@ -1491,6 +1491,52 @@ audience bar outside `.doc-sheet`, and page 1 came out holding nothing but that 
 
 ---
 
+### 2026-07-29 — Granite Niches family guide (sprint-08 Track P)
+Branch `s08/roac-guide`. New `granite-niches-guide.html` covers **all three of WMP's
+granite-front niche locations in one place** — Rock of Ages Columbarium, the Garden of
+Meditation wall, and the brand-new Terrace Garden Memorial Path (the TGN bank plus the nine
+other placements along the path). It is the counterpart of the glass-front material: a short
+paragraph in Section 1 says the glass-front locations exist and links their maps rather than
+duplicating them. PDF `pdf-assets/Granite Niches Guide.pdf`, **2 pages, 149 KB**. Card in
+guides.html → **Getting Started** (now 8), beside the Cemetery Property Guide.
+
+**No figure on the page was typed from memory.** `scripts/verify_granite_niche_ranges.mjs`
+recomputes every printed range and every fee from `scripts/roac-niche-data.mjs`,
+`scripts/gomn-niche-data.mjs` and `scripts/tgmp-data.mjs` and compares them string for
+string; the page tags each one (`data-range`, `data-fee`, `data-rights`) so the check is an
+equality, not a regex hunt. Current values: ROAC **$7,995–$17,595** (304 of 350 available),
+GOMN **$4,995–$8,995** (37 sellable), TGN **$12,000–$16,000** (40 niches), other Terrace
+Garden placements **$8,000–$52,000 with 1–4 rights**. A range moves as spaces sell — rerun
+the script rather than editing the number.
+
+**The Terrace Garden carries no fees, and the check enforces that.** Its pricing sheet prints
+a sales price and a rights count and nothing else, so the guide shows no E.C.F., no O&C, no
+recording and no inscription for it. The verifier fails on any `data-fee="tgmp.*"` *and* on
+any MVC/ROAC amount ($875 / $235 / $660 / 10.4%) appearing inside the Terrace Garden section
+— that exact borrowing is the bug the TGMP map track had to undo.
+
+**Photographs: six ship, and the Garden of Meditation ships none.** `granite-niche-images/`
+holds three Rock of Ages and three Terrace Garden photos, resized to ≤1400 px and 116–305 KB.
+Every one was chosen or cropped so no plate, ground marker or portrait is legible: two ROAC
+frames were rejected outright for readable ground markers, one for a readable plate, and the
+Terrace Garden crops all cut the mausoleum wall out of frame. **All three Garden of Meditation
+photographs show readable surnames across the whole wall and cannot be cropped clear**, which
+is what `gomn-niche-data.mjs` already recorded; the guide therefore says in print why no
+picture of that wall appears rather than leaving a silent gap. Photography is `display:none`
+in print, so the built PDF embeds **zero raster images** — confirmed with PyMuPDF, not assumed.
+
+**Two print-layout scars.** (1) `overflow:hidden` on a table clips its `<caption>`, which
+lives outside the table box — it ate the first character of both fee-table captions in the
+two-column print flow; round the edge cells instead. (2) `.prose .footnote` (0,2,0) out-ranks
+the condense block's `.prose p` (0,1,1), so screen's 13px survived into print and the
+footnotes set *larger* than the body copy. Both are worth checking on any future condense.
+
+Gates: `verify_granite_niche_ranges.mjs` all green; `verify_guide_pages.mjs` green including
+the new ≤2 cap; `verify_print_header.mjs` 23 pages, 0 over cap (this one 24.6 mm print /
+104.9 mm screen); `verify_guides_page.mjs` ALL OK, 33 cards; `npm run check` 8 blocks 0 errors.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
