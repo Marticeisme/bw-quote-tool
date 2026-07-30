@@ -19396,6 +19396,45 @@ async function generateClearPointContract() {
       } catch(e) { console.warn('ClearPoint Cremation Authorization page failed:', e.message); }
     }
 
+    // ── Strip Acrobat's own field JavaScript from the DOWNLOADED copy ─────────
+    // The template ships a live calculation chain: AcroForm /CO with 6 entries (e.g.
+    // `Amount Trusted` runs AFSimple_Calculate("PRD", ["90%","FPTotal"])) plus AF
+    // number-format (/F) and keystroke (/K) scripts on ~36 fields. We fill values like
+    // "1,234.56"; the moment ANY field is edited in Acrobat the chain re-fires, can't
+    // parse the state, warns "The value entered does not match the format of the field
+    // [FPTotal]" and collapses PLAN TOTAL to $1.#R.
+    // Operator decision 2026-07-29: strip the field-level JS from the downloaded copy.
+    // Accepted trade-off — totals no longer auto-recalculate when edited in Acrobat.
+    // Field VALUES and appearances are untouched. Do NOT flatten: flattening blanks
+    // this template (see the appearance note above). ClearPoint only.
+    try {
+      var _PN = PDFLib.PDFName, _AAk = _PN.of('AA');
+      // 1. Every AcroForm field dict + each of its widget dicts.
+      form.getFields().forEach(function(f){
+        try { f.acroField.dict.delete(_AAk); } catch(e) {}
+        try { f.acroField.getWidgets().forEach(function(w){ try { w.dict.delete(_AAk); } catch(e) {} }); } catch(e) {}
+      });
+      // 2. Widgets that arrived with the copied Cremation Authorization page are not in
+      //    /Fields, so sweep page annotations too.
+      try {
+        newDoc.getPages().forEach(function(pg){
+          var annots = pg.node.Annots();
+          if (!annots) return;
+          for (var _ai = 0; _ai < annots.size(); _ai++) {
+            try { var _an = annots.lookup(_ai, PDFLib.PDFDict); if (_an) _an.delete(_AAk); } catch(e) {}
+          }
+        });
+      } catch(e) {}
+      // 3. AcroForm /CO (calculation order).
+      try { var _cpAcro = newDoc.catalog.lookup(_PN.of('AcroForm')); if (_cpAcro) _cpAcro.delete(_PN.of('CO')); } catch(e) {}
+      // 4. Document-level JavaScript name tree, and a JS /OpenAction if present.
+      try { var _cpNames = newDoc.catalog.lookup(_PN.of('Names')); if (_cpNames) _cpNames.delete(_PN.of('JavaScript')); } catch(e) {}
+      try {
+        var _cpOA = newDoc.catalog.lookup(_PN.of('OpenAction'));
+        if (_cpOA && _cpOA.get && _cpOA.get(_PN.of('S')) === _PN.of('JavaScript')) newDoc.catalog.delete(_PN.of('OpenAction'));
+      } catch(e) {}
+    } catch(e) { console.warn('ClearPoint: field-JavaScript strip failed:', e.message); }
+
     var filledBytes = await newDoc.save();
     var blob  = new Blob([filledBytes], { type: 'application/pdf' });
     var url   = URL.createObjectURL(blob);
