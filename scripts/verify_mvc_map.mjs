@@ -93,6 +93,10 @@ function parseRendered(src, scopeRe, cls) {
 // they are verified separately below, never counted as openings.
 const from3d = parseRendered(newSrc, null, 'n3 front3');
 const fromSides = parseRendered(newSrc, null, 'n3 side3');
+// The Terrace Garden niches moved off this page in sprint-08 (operator ruling: one
+// home). This filter used to exclude them from the island's counts; it is kept as a
+// tripwire — if a TGN cell ever comes back to this page it must not be silently folded
+// into the island totals — and the move itself is asserted just below.
 const fromFlat = parseRendered(newSrc, null, 'n ').filter((c) => c.wall !== 'tgn');
 
 const key = (c) => `${c.wall}|${c.id}`;
@@ -236,6 +240,25 @@ for (const w of WALL_ORDER) {
   const keys = new Set([...Object.keys(TABLES[w]), ...Object.keys(got)]);
   const bad = [...keys].filter((k) => (TABLES[w][k] || 0) !== (got[k] || 0));
   (bad.length === 0 ? pass : fail)(`Unit ${WALLS[w].unit} (${w}): ${bad.length ? bad.map((k) => `${k} drawing=${TABLES[w][k] || 0} page=${got[k] || 0}`).join('; ') : `all ${Object.values(TABLES[w]).reduce((a, b) => a + b, 0)} openings match the drawing's dimension table`}`);
+}
+
+// ── 8b. The Terrace Garden has left this page ─────────────────────────────
+// Operator ruling, sprint-08: one home per property. The TGN tab, its grid and its
+// fee boxes come off the MVC page and a pointer to MAPS/TGMP_Map.html takes their
+// place, so a counselor who knows the old route is not left at a dead end.
+console.log('\nTerrace Garden moved to MAPS/TGMP_Map.html');
+{
+  const tgnCells = (newSrc.match(/data-wall="tgn"/g) || []).length;
+  (tgnCells === 0 ? pass : fail)(`no Terrace Garden niche is rendered on this page (found ${tgnCells})`);
+  const stragglers = ['psec-tgn', 'tgn-oc-qty', 'tgn-rec-qty', 'tgn-inscr-qty', 'data-prop="tgn"']
+    .filter((t) => newSrc.includes(t));
+  (stragglers.length === 0 ? pass : fail)(`no Terrace Garden tab, section or fee box remains${stragglers.length ? ' — ' + stragglers.join(', ') : ''}`);
+  (/href="TGMP_Map\.html"/.test(newSrc) ? pass : fail)('the page links to MAPS/TGMP_Map.html in the spot the tab occupied');
+  (/Terrace Garden niches have moved/.test(newSrc) ? pass : fail)('the pointer says the Terrace Garden niches have moved');
+  (fs.existsSync(path.join(ROOT, 'MAPS', 'TGMP_Map.html')) ? pass : fail)('MAPS/TGMP_Map.html exists on disk');
+  // The pointer must survive the printout: a printed MVC map that still advertised a
+  // Terrace Garden tab would send an FSD to a page that no longer has one.
+  (/\.ptabs\{border:none!important/.test(newSrc) ? pass : fail)('the pointer is not hidden by the print stylesheet');
 }
 
 // ── 9. Print path needs no JS ─────────────────────────────────────────────
