@@ -40,6 +40,15 @@ const CAPPED_GUIDES = [
   'Cemetery Property Guide.pdf', 'Medicaid and Planning Ahead.pdf',
   'Medicaid Professional Reference.pdf', 'Cremation or Burial.pdf',
   'Urn Placement Options.pdf', 'Scattering Garden Pricing.pdf', 'Burial Guide.pdf',
+  'Granite Niches Guide.pdf',
+];
+
+// Guides whose own requirement is tighter than the family-guide cap. The granite-niche
+// guide is a one-page screen guide that the operator asked to print to NO MORE THAN TWO
+// pages (sprint-08 Track P), so 3 pages is a regression even though it clears the 4-page
+// cap above.
+const TIGHT_CAPS = [
+  ['Granite Niches Guide.pdf', 2],
 ];
 
 let bad = 0;
@@ -61,6 +70,15 @@ for (const name of CAPPED_GUIDES) {
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
   if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} pages`);
   else fail(`${name}: ${n} pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
+}
+
+console.log('\n=== TIGHTER PER-GUIDE CAPS ===');
+for (const [name, cap] of TIGHT_CAPS) {
+  const file = `pdf-assets/${name}`;
+  if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  if (n <= cap) ok(`${name.padEnd(36)} ${n} pages (cap ${cap})`);
+  else fail(`${name}: ${n} pages, over its own ${cap}-page cap`);
 }
 
 console.log('\n=== "ALL ON ONE PAGE" (print layout) ===');
