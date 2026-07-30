@@ -1,4 +1,4 @@
-# TRACK P — Granite niches one-page family guide: Rock of Ages + Garden of Meditation (prints ≤2 pages)
+# TRACK P — Granite niches one-page family guide: Rock of Ages + Garden of Meditation + Terrace Garden (prints ≤2 pages)
 
 Repo: `C:\Users\Martice\bw-quote-tool`; you run in the WORKTREE
 `C:\Users\Martice\bw-quote-tool-roacg` on branch `s08/roac-guide` (node_modules junction
@@ -68,15 +68,16 @@ contrast with glass-front, keep the wording factual.
   weather-proofing guarantees, appreciation/investment, or anything the repo cannot
   back. Tone matches the existing guide family (see `urn-placement-guide.html`,
   `terramation-guide.html`).
-- **Cross-link:** the live maps `MAPS/ROAC_NicheMap.html` and
-  `MAPS/GOMN_NicheMap.html` ("see live availability and
-  exact pricing"), and mention Washington Memorial Park placement.
+- **Cross-link:** the live maps `MAPS/ROAC_NicheMap.html`, `MAPS/GOMN_NicheMap.html`
+  and `MAPS/TGMP_Map.html` ("see live availability and exact pricing"), and mention
+  Washington Memorial Park placement.
 
 ## Photos — his real ones, PII-guarded
 
-Source `D:\Cemetery Photos Misc\ROAC Photos`. Pick the best 4–6 (sharp, well-lit,
-showing: the courtyard/structure wide, a glass-front detail, the granite/bench
-setting). **HARD RULE: no legible occupant name, plate text, dates, or portrait of a
+Sources: `D:\Cemetery Photos Misc\ROAC Photos` (pick the best 3–4: courtyard wide,
+niche-front detail, bench setting — these are granite fronts, not glass),
+`D:\Cemetery Photos Misc\GOMN Niches`, and
+`D:\Cemetery Photos Misc\Terrace Garden Memorial Path` (1–2 each). **HARD RULE: no legible occupant name, plate text, dates, or portrait of a
 person may appear in any published image.** Crop or choose angles so plates are
 illegible at final resolution; zoom your rendered output to VERIFY illegibility —
 if in doubt, don't use the photo. Resize/compress per the repo's image conventions
@@ -85,10 +86,10 @@ folder; stage each by name.
 
 ## Deliverables
 
-1. `rock-of-ages-guide.html` — matches the guide family (masthead, brand tokens,
+1. `granite-niches-guide.html` — matches the guide family (masthead, brand tokens,
    footer, ≤40 mm print header) with a condensed `@media print` layout (s07 style).
 2. PDF: register in `scripts/build_guide_pdfs.mjs` JOBS (e.g.
-   `pdf-assets/Rock of Ages Niche Guide.pdf`), rebuild — **≤2 pages**, and add it to
+   `pdf-assets/Granite Niches Guide.pdf`), rebuild — **≤2 pages**, and add it to
    the ≤4-page FAMILY GUIDE PAGE CAP list in `scripts/verify_guide_pages.mjs` with its
    own ≤2 assertion.
 3. `guides.html`: ONE card in the most fitting existing category (not Maps — the map
