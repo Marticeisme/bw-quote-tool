@@ -1,6 +1,27 @@
 # STATE — Living Ledger
 
-**Current sprint: sprint-08 — IN FLIGHT 2026-07-29 evening.** Seven tracks (F merged;
+**Current sprint: sprint-08 — CLOSED AND PUSHED 2026-07-30** (push pre-authorized by
+the operator; executed after all nine tracks merged and the full contract ran green on
+final main: `8 blocks, 0 errors`; **1327 passed, 0 failed across 27 suites**; all SIX
+map gates PASS exit 0 (MVC, ROAC, ECL, COM, GOMN, TGMP); all three range verifiers;
+guide pages / guides page / print header / catalogs green — every one re-run by the
+director on the final tree). Nine tracks: F, H, V, W, W2, P, P2, Q, U — see the
+per-track records below.
+
+**Track U MERGED (director-audited, final track):** `urn-gardens-guide.html` +
+exactly-1-page PDF from the operator's slide (3 photos extracted; LUG space $5,495 +
+$825 endowment from index.html's own options, O&C $985 ground / $1,425 boulder, REC
+$235 from prices.json, memorial band $2,015–$5,670; verifier reconciles every figure
+and negative-tests 5 ways). **The DESIGN §6 map-repo price exception was exercised
+and came back EMPTY** — no urn-garden price exists in the map repo, so nothing
+crossed; the verifier's probe fails if one ever appears. OPEN for Martice:
+(1) **Rose Urn Garden has NO published price anywhere** — page prints "Ask us today's
+price", gate fails if a number is typed in; supply the price and it's a 5-minute
+follow-up. (2) **LUG rights conflict**: the slide says 1 OR 2 rights/space; index.html
+records capacity 1 ("holds ONE urn", Martice 2026-07-27). The page follows the slide;
+reconcile in the tool when settled.
+
+**(opened 2026-07-29 evening)** Seven tracks (F merged;
 H, V running; W, P, Q, U queued — see `sprints/sprint-08/SPRINT.md`). **PUSH
 PRE-AUTHORIZED by the operator 2026-07-29: "push it all once every track is done and
 verified"** — the close-gate push happens WITHOUT a further ask, but ONLY after every
