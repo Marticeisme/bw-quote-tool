@@ -15,7 +15,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, allNiches, refOf, sellable,
+  WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -191,7 +191,85 @@ console.log('\nNo price is rendered for a sold or unpriced niche');
   ck(ariaBad.length === 0, `zero dollar figures in the aria-labels of unsellable niches${ariaBad.length ? ' — ' + ariaBad.slice(0, 3).join('; ') : ''}`);
   // and every one of them is pattern-coded, not hue-coded
   const notMarked = [...from3d, ...flatFull].filter((c) => unsell.has(c.ref) && !/class="[^"]*st-(sold|unpriced)/.test(c.html));
-  ck(notMarked.length === 0, 'every unsellable niche carries the blacked-out st- class in both renderings');
+  ck(notMarked.length === 0, 'every unsellable niche carries the dimmed/frosted st- class in both renderings');
+}
+
+// ── 6b. Materials: champagne everywhere, sold is DIMMED not BLACK ─────────────
+// Operator ruling 2026-07-29: "black does not look good here" — the niches read as
+// champagne-lit glass like the MVC page, and a sold niche is a dimmed, frosted
+// champagne, never a solid black cell. Sold/available stay separated by BRIGHTNESS
+// and PATTERN, never by hue (every hue on the page belongs to a price tier).
+console.log('\nMaterials (champagne, per the operator ruling)');
+{
+  // The declaration block that begins at an exact selector string.
+  const rule = (sel) => {
+    const i = src.indexOf(sel);
+    return i < 0 ? '' : src.slice(i, src.indexOf('}', i) + 1);
+  };
+  const CHAMPAGNE = /#f2dda6[\s\S]*#e2bd79[\s\S]*#cd9d58/;
+  const flat = rule('\r\n  .n{border-radius:3px');
+  const three = rule('\r\n  .n3{border:none');
+  const sold = rule('\r\n  .st-sold,.st-unpriced{color');
+  const face = rule('\r\n  .face{position:absolute');
+  ck(CHAMPAGNE.test(flat), 'flat niche cell is the champagne ramp #f2dda6/#e2bd79/#cd9d58');
+  ck(CHAMPAGNE.test(three), '3D niche front is the same champagne ramp');
+  ck(/#b0a389[\s\S]{0,120}#786f5b/.test(sold),
+    'sold / not-priced cells are the DIMMED champagne #b0a389→#786f5b, not black');
+  ck(/repeating-linear-gradient\(135deg,rgba\(255,255,255,\.40\)/.test(sold),
+    'sold / not-priced cells carry the frosted diagonal hatch (pattern, not hue)');
+  ck(!/#1b1c20|#0e0f12/.test(src), 'the old near-black niche fill is gone from the page entirely');
+  ck(/background:#15120d/.test(face), 'the mullion frame is near-black bronze (#15120d)');
+  ck(/border:2px solid #8a7147/.test(face), 'the frame carries the brass trim line #8a7147');
+}
+
+// ── 6c. Price-chip contrast: every tier label clears WCAG AA (4.5:1) ──────────
+console.log('\nPrice-chip contrast (WCAG AA, 4.5:1)');
+{
+  const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const lum = (hex) => {
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map((x) => x + x).join('');
+    const [r, g, b] = [0, 2, 4].map((i) => lin(parseInt(h.slice(i, i + 2), 16) / 255));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (a, b) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+  let worst = 99, worstT = '';
+  for (const t of TIERS) {
+    const r = ratio(t.bg, t.fg);
+    if (r < worst) { worst = r; worstT = t.l; }
+    ck(r >= 4.5, `${t.l.padEnd(8)} ${t.fg} on ${t.bg} = ${r.toFixed(2)}:1`);
+  }
+  pass(`worst tier chip contrast ${worst.toFixed(2)}:1 (${worstT}) — all ${TIERS.length} clear AA`);
+}
+
+// ── 6d. Add-on toggles feed the card math (operator, 2026-07-29) ──────────────
+console.log('\nBronze Scroll / Vase add-on toggles');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  ck(new RegExp(`SCROLL = ${FEES.SCROLL}`).test(js), `the page carries SCROLL = ${FEES.SCROLL}`);
+  ck(new RegExp(`VASE = ${FEES.VASE}`).test(js), `the page carries VASE = ${FEES.VASE}`);
+  for (const [id, label] of [['scroll-on', 'Bronze Scroll'], ['vase-on', 'Vase with Ring']]) {
+    const m = new RegExp(`<input type="checkbox" id="${id}"[^>]*>`).exec(src);
+    ck(!!m, `${label} renders a checkbox #${id}`);
+    ck(!!m && !/\bchecked\b/.test(m[0]), `${label} defaults to OFF (no checked attribute)`);
+    ck(new RegExp(`addOn\\('${id}'\\)`).test(js), `${label} is read by the card math via addOn('${id}')`);
+  }
+  ck(/tot \+= SCROLL;/.test(js) && /tot \+= VASE;/.test(js),
+    'each toggle adds its flat amount to the card total');
+  // E.C.F. must be 10% of the NICHE PRICE only. The one call site takes `price`, and
+  // the add-on lines are appended to `tot` afterwards, so no add-on can ever be taxed.
+  ck(/var price = \+d\.price, e = ecf\(price\), tot = price \+ e,/.test(js),
+    'E.C.F. is computed once, from the niche price alone');
+  ck(!/ecf\((?!price\))/.test(js), 'ecf() is never called on anything but the niche price');
+  const scrollAt = js.indexOf('tot += SCROLL'), ecfAt = js.indexOf('e = ecf(price)');
+  ck(ecfAt > -1 && scrollAt > ecfAt, 'the add-ons are added AFTER the E.C.F. line, never into its base');
+  ck(/'oc-qty', 'rec-qty', 'scroll-on', 'vase-on'/.test(js),
+    'both toggles re-render the pinned card (and therefore its print block) on change');
+  ck(/closest\('#card, \.tab, \.tbtn, \.fees'\)/.test(js),
+    'clicking the fee footer does not unpin the card the toggles are updating');
 }
 
 // ── 7. Print path ─────────────────────────────────────────────────────────────

@@ -90,7 +90,9 @@ export const FEES = {
 export const TIERS = [
   { p: 10995, l: '$10,995', c: 'r0', bg: '#1a6fae', fg: '#fff' },
   { p: 12095, l: '$12,095', c: 'r1', bg: '#0f8f96', fg: '#0e1729' },
-  { p: 14295, l: '$14,295', c: 'r2', bg: '#1f8f5e', fg: '#0e1729' },
+  // #1f8f5e measured 4.39:1 against #0e1729 — below WCAG AA. Brightened to #219866
+  // (4.90:1) 2026-07-29; hue unchanged, so its place in the ramp is unchanged.
+  { p: 14295, l: '$14,295', c: 'r2', bg: '#219866', fg: '#0e1729' },
   { p: 15395, l: '$15,395', c: 'r3', bg: '#237a3a', fg: '#fff' },
   { p: 17595, l: '$17,595', c: 'r4', bg: '#5c9022', fg: '#0e1729' },
   { p: 18695, l: '$18,695', c: 'r5', bg: '#7d9a18', fg: '#0e1729' },
