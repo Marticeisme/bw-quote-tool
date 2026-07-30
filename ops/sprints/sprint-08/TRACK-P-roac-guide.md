@@ -1,4 +1,4 @@
-# TRACK P — Rock of Ages one-page family guide (prints ≤2 pages)
+# TRACK P — Granite niches one-page family guide: Rock of Ages + Garden of Meditation (prints ≤2 pages)
 
 Repo: `C:\Users\Martice\bw-quote-tool`; you run in the WORKTREE
 `C:\Users\Martice\bw-quote-tool-roacg` on branch `s08/roac-guide` (node_modules junction
@@ -12,16 +12,34 @@ and append your entry to it when done.
 
 ## Operator request (2026-07-29, verbatim intent)
 
-A one-page guide (screen), printing to NO MORE THAN TWO PAGES, covering the Rock of
-Ages Columbarium (ROAC) in more detail: what a glass-front niche is, the benefit of
-one, the GENERAL PRICE RANGE of these niches, and that **each niche comes with two
-rights**. Uses his real photos from `D:\Cemetery Photos Misc\ROAC Photos` — "sample
-the best ones you think of."
+A one-page guide (screen), printing to NO MORE THAN TWO PAGES, covering **both of
+WMP's GRANITE-front niche locations** (operator amendment 2026-07-29: "gomn niches
+should be added … since those are the granite niches we have and the others are the
+glass front niches"):
+
+1. **Rock of Ages Columbarium (ROAC)** — what a niche is, the benefit, the GENERAL
+   PRICE RANGE, and that **each niche comes with two rights**. Photos from
+   `D:\Cemetery Photos Misc\ROAC Photos` — "sample the best ones you think of."
+2. **Garden of Meditation Niches (GOMN)** — the stepped garden wall. Price range from
+   `scripts/gomn-niche-data.mjs` (landed by Track V before you — read it, never the
+   sheet). Its distinct rules, presented as ONE connected fact: sold as a companion
+   niche (2 inurnment rights) BECAUSE two compact Interlude Urns fit per niche —
+   which is why that urn is required; one niche vase included; inscription $605; the
+   sheet's "NO PHOTOS ALLOWED" rule carried verbatim. Photos from
+   `D:\Cemetery Photos Misc\GOMN Niches` (the front .jpeg + two 2026-07 shots), same
+   PII rule.
+
+Frame the guide as "granite niches at Washington Memorial Park" — the counterpart of
+the glass-front infographic (Track Q). A short line may note the glass-front
+locations exist and point to their maps, without duplicating them. Note ROAC niches
+are granite-FRONT (bronze/engraved face, contents not visible) — that is the honest
+contrast with glass-front, keep the wording factual.
 
 ## Content sources — nothing invented
 
-- **Prices/inventory:** `scripts/roac-niche-data.mjs` (the live ROAC dataset in this
-  repo). Compute the general price range FROM AVAILABLE NICHES in that module and
+- **Prices/inventory:** `scripts/roac-niche-data.mjs` AND `scripts/gomn-niche-data.mjs`
+  (the live datasets in this repo — Track V lands the GOMN one before you spawn).
+  Compute each general price range FROM AVAILABLE NICHES in the module and
   state it as a range ("generally $X–$Y depending on row and location" style). A tiny
   script must reconcile the printed range against the module — the range on the page
   is generated-or-verified, never typed from memory. Fees (O&C, recording, ECF) only
@@ -29,13 +47,17 @@ the best ones you think of."
 - **Two rights:** each ROAC niche includes TWO inurnment rights (up to two urns).
   Consistent with the tool's capacity model. Say it plainly; do not invent policy
   detail beyond it (no transfer/upgrade claims).
-- **What a niche is / benefits:** general, verifiable statements only (permanent
-  glass-front memorial in a granite courtyard structure, personalization visible
-  through the glass, a permanent place for family to visit, no ground burial needed,
-  companion capacity via the two rights). NO claims about religion, weather-proofing
-  guarantees, appreciation/investment, or anything the repo cannot back. Tone matches
-  the existing guide family (see `urn-placement-guide.html`, `terramation-guide.html`).
-- **Cross-link:** the live map `MAPS/ROAC_NicheMap.html` ("see live availability and
+- **What a niche is / benefits:** general, verifiable statements only. These are
+  GRANITE-front niches: a permanent granite memorial (ROAC: courtyard columbarium
+  structure; GOMN: garden wall) with an engraved/bronze face — contents are not
+  visible, which some families prefer for its classic, uniform look; a permanent
+  place for family to visit; no ground burial needed; companion capacity via the two
+  rights (GOMN: because two Interlude Urns fit). NO claims about religion,
+  weather-proofing guarantees, appreciation/investment, or anything the repo cannot
+  back. Tone matches the existing guide family (see `urn-placement-guide.html`,
+  `terramation-guide.html`).
+- **Cross-link:** the live maps `MAPS/ROAC_NicheMap.html` and
+  `MAPS/GOMN_NicheMap.html` ("see live availability and
   exact pricing"), and mention Washington Memorial Park placement.
 
 ## Photos — his real ones, PII-guarded
@@ -62,8 +84,9 @@ folder; stage each by name.
 
 ## Verification gates (quote outputs verbatim)
 
-1. Price-range reconciliation script output: the range printed on the page equals the
-   min/max available price in `scripts/roac-niche-data.mjs`.
+1. Price-range reconciliation script output: BOTH printed ranges equal the min/max
+   available price in `scripts/roac-niche-data.mjs` and `scripts/gomn-niche-data.mjs`
+   respectively.
 2. PDF page count ≤2 (PyMuPDF), `verify_guide_pages.mjs` green including your new cap
    entry; `verify_guides_page.mjs` ALL OK; `verify_print_header.mjs` under cap.
 3. `npm run check` 8/0; `npm test` ≥ `1327 passed, 0 failed across 27 suites`.

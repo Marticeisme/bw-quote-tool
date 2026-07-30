@@ -77,9 +77,14 @@ prices effective Jan 30 2025; fail-safe status reading; sheet rules carried verb
 ALLOWED). Track H and Track V both append a Maps card — director resolves the pill
 count at merge.
 
-Parallelism stays ≤2: F + H spawn together; when F completes, P and V spawn as the
-running pair alongside/after H as slots free; Q after P and H merge; U after Q. Merge
-order: **F → (P, V as they land) → H → Q → U**.
+Operator amendment: Track P covers BOTH granite locations (ROAC + GOMN) — the granite
+counterpart of Track Q's glass-front infographic. P therefore depends on Track V's
+`gomn-niche-data.mjs` and runs AFTER V.
+
+Parallelism stays ≤2: F + H spawn together; when F completes, V takes its slot; when V
+completes, P; Q after P and H merge; U after Q. Merge order:
+**F → V → P → H → Q → U** (H merges whenever it lands relative to V/P; guides.html
+pill conflicts resolved by the director at each merge).
 
 ## Gates
 

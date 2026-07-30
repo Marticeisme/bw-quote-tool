@@ -29,8 +29,8 @@ appropriate PRICE RANGE for each area.
   "current availability" wording. ECF/O&C/recording fees mentioned only as each
   location's module/map carries them (they differ: ECL vase $370 vs COM vase $415 —
   never cross-apply).
-- **Glass vs granite comparison:** granite-front = ROAC (and traditional bronze/granite
-  front niches). Verifiable contrasts only: glass front shows the urns and personal
+- **Glass vs granite comparison:** granite-front = ROAC and GOMN (WMP's two granite
+  locations — Track P's guide covers them; link it). Verifiable contrasts only: glass front shows the urns and personal
   items (photos, keepsakes) — personalization visible; granite front presents an
   engraved/bronze exterior face. Interior placement (MVC/RAD/SER; ECL per its photos)
   vs ROAC's open-air courtyard where true. NO claims of superiority on durability,
