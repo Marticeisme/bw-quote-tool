@@ -6,19 +6,28 @@
  * View Columbarium page carried before the Terrace Garden moved off it; that the nine
  * additional properties match the pricing sheet line for line; and — the part that
  * matters in front of a family — that NOT ONE dollar figure is rendered for anything
- * that cannot be sold, and no fee from another area's sheet has crept in.
+ * that cannot be sold.
+ *
+ * FEES, INVERTED 2026-07-29. This gate used to assert that no MVC fee amount appeared
+ * anywhere on the page, because the Terrace Garden sheet prints none. Martice then ruled
+ * that the MVC schedule applies to the whole Terrace Garden Memorial Path, so the gate
+ * now asserts the OPPOSITE for those amounts: the schedule must be present, exact, and
+ * labelled with where it came from. The ECL amounts are still asserted absent — the
+ * ruling named one schedule, not "any schedule". Section 8 also EXECUTES the page's own
+ * emitted fee arithmetic and anchors a full card computation against it.
  *
  *   node scripts/verify_tgmp_map.mjs
  *
- * Exit 1 on any failure. Sabotage a price, a rights count or a status in the data
- * module and this must go red.
+ * Exit 1 on any failure. Sabotage a price, a rights count, a status or a fee amount in
+ * the data module and this must go red.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  TGN, TGMP_ITEMS, TIERS, tgnNiches, tgnRef, sellable, allProperties,
+  TGN, TGMP_ITEMS, TIERS, FEES, FEE_SOURCE, ecf, estTotal,
+  tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
 
@@ -48,14 +57,35 @@ const TGN_TOTAL = 544000;     // 8 x (12+14+16+14+12) thousand
 const ITEM_TOTAL = 218000;
 const RIGHTS_TOTAL = 100;     // 40 x 2 + (2+4+4+4+1+2+1+1+1)
 
-// Fees belonging to OTHER areas' sheets. None may appear on this page — the Terrace
-// Garden sheet prints no fee at all, and borrowing one is how a family gets quoted a
-// charge that does not exist here.
+// ── The fee schedule, typed from the MVC June-2026 sheet ─────────────────────
+// NOT read from the data module: these are the amounts a counselor reads off the
+// Mountain View Columbarium schedule, which Martice ruled on 2026-07-29 applies to the
+// whole Terrace Garden Memorial Path. Typing them here means a slip in tgmp-data.mjs
+// fails, not propagates.
+const SCHEDULE = { OC: 875, REC: 235, INSCR: 660, TAX: 0.104, ECF_RATE: 0.1 };
+const SCHEDULE_SOURCE = 'Mountain View Columbarium, June 2026';
+const SCHEDULE_RULED_ON = '2026-07-29';
+
+// A FULL card computation, worked by hand off the schedule above and typed as a literal.
+// TGN-C-4 is a row-C niche at $16,000, with one of each quantity fee turned on:
+//   16,000 sales price
+//  + 1,600 E.C.F. (10%, rounded up)
+//  +   875 O&C x1
+//  +   235 recording x1
+//  +   660 inscription x1
+//  + 68.64 sales tax (10.4% of the inscription only)
+//  = 19,438.64 -> Est. Total $19,439 (rounded to the dollar)
+const ANCHOR = { ref: 'TGN-C-4', price: 16000, q: { oc: 1, rec: 1, inscr: 1 }, total: 19439 };
+// And the default state every card opens in: nothing toggled on, E.C.F. still shown.
+const ANCHOR_OFF = { ref: 'TGN-C-4', q: {}, total: 17600 };
+// The same schedule reaches the nine additional properties: TGMP-3 at $52,000, O&C x4.
+//   52,000 + 5,200 E.C.F. + 3,500 O&C = 60,700
+const ANCHOR_ITEM = { ref: 'TGMP-3', q: { oc: 4 }, total: 60700 };
+
+// Fees belonging to OTHER areas' sheets. The 2026-07-29 ruling named the MVC schedule
+// and only that one, so the East Chapel Lawn amounts must still never appear here:
+// borrowing one is how a family gets quoted a charge that does not exist for them.
 const FOREIGN_FEES = [
-  ['875', 'MVC opening & closing'],
-  ['235', 'MVC recording fee'],
-  ['660', 'MVC inscription'],
-  ['10.4%', 'MVC sales tax'],
   ['835', 'ECL opening & closing'],
   ['225', 'ECL recording fee'],
   ['785', 'ECL bronze scroll'],
@@ -280,27 +310,95 @@ console.log('\nNo price is rendered for anything unsellable');
     'sold cells are coded by the frosted diagonal hatch (pattern, not hue)');
 }
 
-// ── 8. No fee from another area's sheet ──────────────────────────────────────
-// The Terrace Garden Memorial Path sheet prints a sales price and a rights count and
-// nothing else. Before the move, the MVC page applied its OWN fee schedule to these
-// niches; that must not follow them here.
-console.log("\nNo fee borrowed from another area's price sheet");
+// ── 8. THE FEE SCHEDULE — present, exact, sourced, and arithmetically anchored ─
+// Inverted 2026-07-29 (see the file header). The MVC June-2026 schedule now applies to
+// this whole area by operator ruling, so its amounts MUST be here and MUST be right.
+console.log('\nFee schedule — the MVC June-2026 amounts, applied by operator ruling');
 {
-  // Match a fee AS MONEY only. A bare `\b225\b` also hits an SVG path command and an
-  // rgba() channel — the first cut failed on `H225a` in the logo and on `,225,` in a
-  // colour, which is a false alarm that would train a reader to ignore this line.
-  const asMoney = (amt) => new RegExp(`\\$\\s?${amt.replace('.', '\\.')}(?![\\d.])|(?<![\\d.])${amt.replace('.', '\\.')}\\s?(?:ea\\b|each\\b|%)`, 'i');
-  const strays = FOREIGN_FEES.filter(([amt]) => asMoney(amt).test(src));
-  ck(strays.length === 0, `none of the MVC / ECL fee amounts appear on the page${strays.length ? ' — ' + strays.map(([a, w]) => `$${a} (${w})`).join(', ') : ''}`);
-  for (const t of ['E.C.F', 'ECF']) {
-    const m = [...src.matchAll(new RegExp(`${t.replace('.', '\\.')}`, 'g'))].length;
-    ck(m === 0 || /no E\.C\.F\./.test(src), `"${t}" appears only inside the "no fees are printed" notice (${m} mention${m === 1 ? '' : 's'})`);
+  // 8a. The data module transcribed the schedule correctly.
+  const sBad = Object.entries(SCHEDULE).filter(([k, v]) => FEES[k] !== v);
+  ck(sBad.length === 0, `the data module carries the schedule as typed off the MVC sheet` +
+    (sBad.length ? ' — ' + sBad.map(([k, v]) => `${k}: want ${v}, got ${FEES[k]}`).join('; ')
+      : ` (O&C ${money(SCHEDULE.OC)} / recording ${money(SCHEDULE.REC)} / inscription ${money(SCHEDULE.INSCR)} / tax ${(SCHEDULE.TAX * 100).toFixed(1)}% / E.C.F. ${SCHEDULE.ECF_RATE * 100}%)`));
+  ck(FEE_SOURCE.schedule === SCHEDULE_SOURCE && FEE_SOURCE.confirmedOn === SCHEDULE_RULED_ON &&
+     FEE_SOURCE.printedOnThisSheet === false,
+  `the module records the schedule as ${SCHEDULE_SOURCE}, ruled ${SCHEDULE_RULED_ON}, not printed on this sheet`);
+
+  // 8b. Every amount is rendered on the page, as money, where a counselor can read it.
+  const asMoney = (amt) => new RegExp(`\\$\\s?${String(amt).replace('.', '\\.')}(?![\\d.])`);
+  for (const [amt, what] of [[SCHEDULE.OC, 'opening & closing'], [SCHEDULE.REC, 'recording fee'], [SCHEDULE.INSCR, 'inscription']]) {
+    ck(asMoney(amt).test(src), `the page prints ${money(amt)} for ${what}`);
   }
-  ck(!/id="oc-qty"|id="rec-qty"|id="inscr-qty"|type="number"/.test(src),
-    'the page has no fee quantity boxes — there are no fees on this sheet to count');
-  ck(/Fees are not printed on this area's price sheet|FEES ARE NOT PRINTED/i.test(src),
-    'the footer states plainly that the sheet prints no fees');
-  ck(/Confirm current fees in MIS\/Enterprise/.test(src), 'and sends the counselor to MIS for them');
+  ck(/10\.4%/.test(src), 'the page prints the 10.4% sales-tax rate');
+  ck(/10% of the sales price/.test(src), 'the page prints the E.C.F. as 10% of the sales price');
+  ck(/not included in the listed price/.test(src), 'and says the E.C.F. is not included in the listed price');
+  ck(/applies to the inscription only/.test(src), 'and that the tax applies to the inscription only');
+
+  // 8c. The three quantity boxes exist, are labelled, and are DEFAULT-OFF.
+  for (const [id, label] of [['oc-qty', 'Opening and closing'], ['rec-qty', 'Recording fee'], ['inscr-qty', 'Inscription']]) {
+    const m = new RegExp(`<input type="number" id="${id}" min="0" max="${FEES.QTY_MAX}" value="0" aria-label="${label} quantity">`).test(src);
+    ck(m, `#${id} is a 0..${FEES.QTY_MAX} quantity box defaulting to 0, labelled "${label} quantity"`);
+  }
+  ck(/\['oc-qty', 'rec-qty', 'inscr-qty'\]\.forEach/.test(src) && /if \(pinned\) showCard\(pinned, false\)/.test(src),
+    'changing a quantity re-renders the pinned card (and showCard re-renders the print card with it)');
+  ck(/closest\('#card, \.tab, \.tbtn, \.fees'\)/.test(src),
+    'clicking into a quantity box does not unpin the card it is meant to update');
+
+  // 8d. PROVENANCE — the one sentence that keeps this honest.
+  ck(src.includes('not printed on the Terrace Garden Memorial Path price sheet'),
+    "the footer says plainly that these fees are NOT printed on this area's sheet");
+  ck(src.includes(SCHEDULE_SOURCE), `and names the schedule they came from (${SCHEDULE_SOURCE})`);
+  ck(src.includes(`${FEE_SOURCE.confirmedBy} of ${SCHEDULE_RULED_ON}`),
+    `and names the ${FEE_SOURCE.confirmedBy} of ${SCHEDULE_RULED_ON} as the authority`);
+  ck(/the niche bank and the nine additional properties alike/.test(src),
+    'and says the schedule covers the niche bank and the nine properties alike');
+  ck(/Confirm current fees in MIS\/Enterprise/.test(src), 'and still sends the counselor to MIS for the current amounts');
+  ck(/E\.C\.F\. is not included in the listed price\. Fees are the Mountain View Columbarium, June 2026 schedule/.test(src),
+    'every detail card repeats the provenance in its own note');
+
+  // 8e. THE ANCHOR. Extract the page's OWN emitted fee arithmetic and run it. This is
+  // not a re-implementation of the math — it is the page's code, executed, with a
+  // document stub standing in for the quantity boxes.
+  const a = src.indexOf('// >>> FEE MATH >>>'), b = src.indexOf('// <<< FEE MATH <<<');
+  ck(a > 0 && b > a, 'the page marks its fee-math block for extraction');
+  if (a > 0 && b > a) {
+    const block = src.slice(a, b);
+    const makeCard = (q) => {
+      const doc = { getElementById: (id) => (q[id] === undefined ? null : { value: String(q[id]) }) };
+      // eslint-disable-next-line no-new-func
+      return new Function('document', block + '\nreturn cardHtml;')(doc);
+    };
+    const totalOf = (ref, q) => {
+      const html = makeCard({ 'oc-qty': q.oc || 0, 'rec-qty': q.rec || 0, 'inscr-qty': q.inscr || 0 })(ref);
+      const m = /<span class="ctv">([^<]*)<\/span>/.exec(html);
+      return { label: (/<span class="ctl">([^<]*)<\/span>/.exec(html) || [, ''])[1], total: m ? m[1] : null, html };
+    };
+    for (const A of [ANCHOR_OFF, ANCHOR, ANCHOR_ITEM]) {
+      const got = totalOf(A.ref, A.q);
+      const on = Object.entries(A.q).filter(([, v]) => v).map(([k, v]) => `${k}x${v}`).join(' + ') || 'nothing toggled on';
+      ck(got.label === 'Est. Total' && got.total === money(A.total),
+        `${A.ref} with ${on}: the page's own math gives Est. Total ${money(A.total)} (got ${got.label} ${got.total})`);
+    }
+    // The E.C.F. row is always present and never folded into the price.
+    const base = totalOf(ANCHOR.ref, {});
+    ck(/<span class="cl">E\.C\.F\. \(10%\)<\/span><span class="cv">\$1,600<\/span>/.test(base.html),
+      `${ANCHOR.ref} shows a ${money(ecf(ANCHOR.price))} E.C.F. row even with every quantity at 0`);
+    // A quantity of 0 must print NO row at all — a "$0" line reads as a real charge.
+    ck(!/O&amp;C|Recording ×|Inscription ×|Sales Tax/.test(base.html),
+      'and prints no O&C, recording, inscription or tax row until one is turned on');
+    const full = totalOf(ANCHOR.ref, ANCHOR.q);
+    ck(/<span class="cl">Sales Tax \(10\.4%\)<\/span><span class="cv">\$68\.64<\/span>/.test(full.html),
+      'the tax row is 10.4% of the inscription alone ($68.64 on one $660 inscription), to the cent');
+    ck(!/\$1,663\.60|\$2,020/.test(full.html), 'and the tax is not levied on the sales price or the whole subtotal');
+  }
+  // 8f. The module's own helper agrees with the page — two independent paths, one number.
+  ck(estTotal(ANCHOR.price, ANCHOR.q) === ANCHOR.total,
+    `the data module's estTotal() reaches the same ${money(ANCHOR.total)} the page does`);
+
+  // 8g. Still no ECL fee. The ruling named one schedule, not "any schedule".
+  const asFee = (amt) => new RegExp(`\\$\\s?${amt.replace('.', '\\.')}(?![\\d.])|(?<![\\d.])${amt.replace('.', '\\.')}\\s?(?:ea\\b|each\\b|%)`, 'i');
+  const strays = FOREIGN_FEES.filter(([amt]) => asFee(amt).test(src));
+  ck(strays.length === 0, `no East Chapel Lawn fee amount appears on the page${strays.length ? ' — ' + strays.map(([a2, w]) => `$${a2} (${w})`).join(', ') : ` (${FOREIGN_FEES.length} checked)`}`);
 }
 
 // ── 9. Sourcing honesty ──────────────────────────────────────────────────────
