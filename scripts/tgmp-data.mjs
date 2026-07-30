@@ -16,14 +16,24 @@
  * pricing. The only differences are typographic (the PDF prints
  * "Shutter12x9x18" / "Shutters18x9x18" with no space before the dimensions).
  *
- * ── FEES: THE SHEET PRINTS NONE ────────────────────────────────────────────────────
- * The pricing PDF states a Sales Price and a Rights-of-Interment count and nothing
- * else. There is no E.C.F. line, no opening & closing, no recording fee, no inscription
- * charge and no tax note anywhere on it. Per the track ruling, fees from another area
- * are NEVER borrowed: the MVC page's Terrace Garden tab applied the MVC June-2026
- * schedule (O&C $875 / recording $235 / inscription $660 / 10.4% tax / 10% E.C.F.) to
- * these niches, and that schedule belongs to the Mountain View Columbarium sheet, not
- * to this one. This page therefore shows price + rights only and says so in its footer.
+ * ── FEES: OPERATOR-CONFIRMED, NOT PRINTED ON THIS SHEET ────────────────────────────
+ * The Terrace Garden Memorial Path pricing PDF states a Sales Price and a
+ * Rights-of-Interment count and NOTHING else. There is no E.C.F. line, no opening &
+ * closing, no recording fee, no inscription charge and no tax note anywhere on it.
+ *
+ * The fee schedule below is therefore NOT sheet data. It is the Mountain View
+ * Columbarium June-2026 schedule, which the MVC page's Terrace Garden tab applied to
+ * these niches before the area moved onto its own page. Martice ruled on 2026-07-29
+ * that "MVC schedule applies" to the whole Terrace Garden Memorial Path — the niche
+ * bank AND the nine additional cremation properties. That ruling is what authorises it;
+ * nothing on this area's own sheet does.
+ *
+ *   schedule           MVC June-2026 (scripts/mvc-niche-data.mjs FEES)
+ *   operator-confirmed 2026-07-29, Martice Morrison
+ *   printed on the TGMP sheet?  NO — confirm current fees in MIS/Enterprise
+ *
+ * The page footer and every detail card must say exactly that. Do not restate it as
+ * "the sheet's fees": that is the one sentence a family could be misled by.
  *
  * ── THE TERRACE GARDEN OSSUARY IS NOT INVENTORY HERE ───────────────────────────────
  * The layout drawing names an ossuary block beside the reflection pool, but the pricing
@@ -236,6 +246,51 @@ export const TIERS = [
 ];
 
 export const STATUS_LABEL = { sold: 'Sold', unpriced: 'Not Priced' };
+
+// ── Fee schedule ─────────────────────────────────────────────────────────────
+// See the header. These amounts come from the Mountain View Columbarium June-2026
+// schedule and are applied here on the operator's 2026-07-29 ruling — they are NOT
+// printed on the Terrace Garden Memorial Path sheet. Same schedule for the TGN niches
+// and for the nine additional properties.
+//
+// Applied exactly as the old MVC page's Terrace Garden tab applied it:
+//   E.C.F.       ceil(price x 10%), always shown, never included in the listed price
+//   O&C          $875 each, quantity chosen by the counselor, default 0
+//   Recording    $235 each, quantity chosen by the counselor, default 0
+//   Inscription  $660 each, quantity chosen by the counselor, default 0 — TAXABLE
+//   Sales tax    10.4%, on the inscription subtotal ONLY (taxable merchandise)
+// Est. Total is the rounded sum of the price, the E.C.F. and whichever fees are on.
+export const FEES = {
+  OC: 875,
+  REC: 235,
+  INSCR: 660,
+  TAX: 0.104,
+  ECF_RATE: 0.1,
+  QTY_MAX: 4,
+};
+
+/** Where the schedule came from and what it is not. Rendered verbatim on the page. */
+export const FEE_SOURCE = {
+  schedule: 'Mountain View Columbarium, June 2026',
+  confirmedOn: '2026-07-29',
+  confirmedBy: 'operator ruling',
+  printedOnThisSheet: false,
+};
+
+/** E.C.F. as the old MVC card computed it — rounded UP to the dollar. */
+export const ecf = (price) => Math.ceil(price * FEES.ECF_RATE);
+
+/**
+ * The card's arithmetic, in one place, so the gate can anchor a full computation
+ * against the same rules the page runs. `q` = { oc, rec, inscr }, all defaulting to 0.
+ * Tax applies to the inscription subtotal only. Est. Total is rounded to the dollar.
+ */
+export function estTotal(price, q = {}) {
+  const oc = q.oc || 0, rec = q.rec || 0, inscr = q.inscr || 0;
+  const inscrSub = FEES.INSCR * inscr;
+  const tax = Math.round(inscrSub * FEES.TAX * 100) / 100;
+  return Math.round(price + ecf(price) + FEES.OC * oc + FEES.REC * rec + inscrSub + tax);
+}
 
 /** A property may show a price only when it is available AND has one. */
 export const sellable = (x) => x.st === 'available' && typeof x.price === 'number';
