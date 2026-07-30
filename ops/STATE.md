@@ -103,6 +103,19 @@ falsified it (23/0 in the main tree); it was the port-3737 worktree artifact aga
 Track H also fixed pinned-card-overwritten-by-hover on COM; RECOMMENDED backport to
 ROAC/MVC/ECL, queued as a sprint-09 candidate.
 
+**Track V MERGED (director-audited):** `MAPS/GOMN_NicheMap.html` — 2D stepped granite
+wall, 168 niches (L28/C112/R28), 37 priced $241,815 list ($4,995×9 / $5,995×14 /
+$6,995×5 / $7,995×3 / $8,995×6), refs GOM-1-1-<row>-<space>; gate 88 checks
+sabotage-proven 5 ways incl. the void-growth and hand-edit cases; 48-check Playwright
+suite; Inscription $605 toggle on the F pattern; sheet rules carried (Companions-2
+because two Interlude Urns fit, one vase included, NO PHOTOS ALLOWED verbatim); no
+photo ships (plates legible — gate asserts zero <img>). Track V also fixed a
+document-wide tap-suppressor swallowing tab clicks (now scoped, gate-asserted).
+guides.html merged with the predicted textually-identical pill collision (both H and V
+wrote 5→6) — auto-merge produced pill 6 / 7 cards, caught by verify_guides_page at
+director merge, resolved to 7. OPEN operator call: GOMN O&C qty defaults to 1
+(matching ECL) on an all-companion wall — should it default to 2?
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.
