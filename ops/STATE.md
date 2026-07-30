@@ -1,7 +1,17 @@
 # STATE — Living Ledger
 
-**Current sprint: sprint-07 — MERGED LOCALLY 2026-07-29, awaiting the operator's close
-gate (Acrobat edit test + push).** Three operator tasks, three tracks, all merged
+**Current sprint: sprint-08 — IN FLIGHT 2026-07-29 evening.** Seven tracks (F merged;
+H, V running; W, P, Q, U queued — see `sprints/sprint-08/SPRINT.md`). **PUSH
+PRE-AUTHORIZED by the operator 2026-07-29: "push it all once every track is done and
+verified"** — the close-gate push happens WITHOUT a further ask, but ONLY after every
+track is merged and the full verification contract is green on final main (suite
+counts, all map gates, guide verifiers, syntax check; generator baseline if
+`index.html` was touched — no track in this sprint touches it). Any red gate voids the
+authorization until it is green.
+
+**sprint-07 — CLOSED AND PUSHED 2026-07-29** (operator Acrobat-tested ClearPoint, then
+pushed live `b9e54fd..f2cf0ac`; N-B-2 sold ruling + ECL face-title fixes pushed after,
+`2ebcfad`, deploys verified on the wire). Three operator tasks, three tracks, all merged
 `--no-ff` in order C (`be39d86`) → E (`70b6bf1`) → G (`9139314`). Director verified on
 final main: `8 blocks, 0 errors`; **1327 passed, 0 failed across 27 suites** (the new
 contract number — 1300+27 from `test-clearpoint-nojs.mjs`; 1325 without
