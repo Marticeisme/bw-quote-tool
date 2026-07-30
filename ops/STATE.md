@@ -1,6 +1,29 @@
 # STATE — Living Ledger
 
-**Current sprint:** **sprint-06 — CLOSED 2026-07-28; the operator PUSHED the close** (origin/main
+**Current sprint: sprint-07 — IN FLIGHT, opened 2026-07-29.** Three operator tasks:
+ClearPoint Acrobat-JS strip (Track C, **MERGED** `be39d86`), Eternal Light Columbarium 3D
+map (Track E, running in worktree `../bw-quote-tool-ecl` on `s07/ecl-map`), condensed
+≤4-page guide PDFs (Track G, running in main tree on `s07/guide-pdf-condense`). Merge
+order C → E → G. See `sprints/sprint-07/SPRINT.md` for decisions and gates.
+
+**Track C shipped (director-audited and re-verified):** `generateClearPointContract()`
+strips the template's live Acrobat JS (44 field/widget `/AA` dicts, 6-entry `/CO` calc
+chain, doc-level JS names, JS OpenAction) from the DOWNLOADED copy in-memory — the
+template on disk untouched, form still editable, not flattened. Root cause of the
+operator's "value entered does not match the format of the field [FPTotal]" / `$1.#R`
+errors: the template's own AFNumber/AFSimple_Calculate scripts re-fired on any Acrobat
+edit and choked on the tool's comma-formatted fills. New suite
+`tests/test-clearpoint-nojs.mjs` (27 checks incl. a negative control proving the audit
+can SEE unstripped JS). Director fixed one hollow assertion at audit (`names` shadowing
+made `hasDocJS` always-false; `f8d21a9`), re-ran everything: `8 blocks, 0 errors`;
+**1327 passed, 0 failed across 27 suites** (1300 + the new 27); **generator baseline
+14/14 IDENTICAL** vs the 2026-07-26 reference, captured and compared by the director's
+own run. Track recon: GA (`/CO`×13) and RIC (`/CO`×16) templates carry the same
+machinery — unreported so untouched; a GA strip would interact with the orphan-widget
+de-flatten history, a RIC strip costs an Acrobat gate. **Operator must still do the
+Acrobat edit test at close** (agents cannot run Acrobat).
+
+**Previous sprint:** **sprint-06 — CLOSED 2026-07-28; the operator PUSHED the close** (origin/main
 caught up to the twelve close commits at some point on 2026-07-28 — verified by `git status -sb`,
 not assumed). Six tracks done and merged: R (research), M (`s06/mvc-niche-map`),
 G (`s06/terramation-guide`), M2 (map repo `469c25d`), M3 (`s06/mvc-3d`), M4 (3D polish),
