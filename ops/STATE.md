@@ -142,6 +142,15 @@ Martice: ROAC's fee amounts have no dated sheet in the repo (carried from the ol
 page's math) — confirm in MIS; and what does GOMN's "NO PHOTOS ALLOWED" actually
 prohibit?
 
+**Operator rulings late 2026-07-29:** (1) **Photo PII rule RELAXED** — "it really
+doesnt matter if there are names in the photo or not": legible memorial-plate
+names/dates in his property photos are fine to publish (public physical memorials).
+Scope: photos only; customer records, FDCRM names, and map-repo unit data stay
+prohibited. Track Q updated mid-flight; TRACK-U file amended; P2 will add a GOMN photo
+to the granite guide and drop its no-photo paragraph. (2) **Push re-confirmed**: "once
+all tracks are done and you check them you can push everything live on github you have
+my word" — push fires after final merge + full green contract, no further ask.
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.

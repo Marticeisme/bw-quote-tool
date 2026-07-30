@@ -40,12 +40,14 @@ code, comments, fixtures, or your report.** If the map repo's garden data is mis
 or ambiguous, STOP on prices: ship the page with the ranges marked as an explicit
 TODO note in the report, and escalate — never guess.
 
-## Photos — PII check
+## Photos
 
-The extracted marker-row photo shows memorial plaques. At final resolution every
-plaque must be ILLEGIBLE — downscale/crop and zoom the rendered output to verify; if
-any name can be read, crop those plaques out or drop the photo. Same for the garden
-photo's flush markers. Compress per repo image conventions; stage each file by name.
+Operator ruling 2026-07-29 (binding, supersedes earlier drafts): legible names on
+memorial plaques/markers in his property photos are FINE to publish — they are public
+physical memorials. Extract the three photos from the slide at the best quality it
+allows, pick on merit, no plaque cropping needed. Only exclusions: recognizable
+people's faces, and non-photo data sources (customer records, map-repo unit data)
+which are unchanged. Compress per repo image conventions; stage each file by name.
 
 ## Deliverables
 
@@ -68,8 +70,7 @@ photo's flush markers. Compress per repo image conventions; stage each file by n
 2. PDF page count == 1 (PyMuPDF); `verify_guide_pages.mjs`, `verify_guides_page.mjs`,
    `verify_print_header.mjs` all green.
 3. `npm run check` 8/0; `npm test` counts never fall from what you find at branch time.
-4. Render the PDF and LOOK; zoom every plaque region and quote your PII verdict per
-   photo.
+4. Render the PDF and LOOK at every page (layout quality, no clipping).
 5. Diff hygiene: no edits outside your file set; grep your own diff for any
    `LUG|RUG|-\d+-` style space references that should not have crossed.
 
