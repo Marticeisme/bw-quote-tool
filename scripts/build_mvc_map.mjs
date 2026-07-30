@@ -12,7 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   WALLS, WALL_ORDER, ISLAND, ROOM, ROW_LETTERS, ROW_HEIGHTS_IN, SUBCOL_IN,
-  cellDims, TIERS, FEES, EFFECTIVE, TGN,
+  cellDims, TIERS, FEES, EFFECTIVE,
 } from './mvc-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -246,20 +246,6 @@ ${panels}
   </div>`;
 }
 
-// ── Terrace Garden ─────────────────────────────────────────────────────────
-function tgnGrid() {
-  const rowStr = TGN.rows.map(() => '64px').join(' ');
-  const labels = TGN.rows.map((L, i) => `    <div class="rlbl" style="grid-column:1;grid-row:${i + 1}/${i + 2}">${L}</div>`).join('\n');
-  const cells = TGN.rows.flatMap((L, ri) => Array.from({ length: TGN.cols }, (_, ci) => {
-    const p = TGN.rowPrices[L], id = `${L}-${ci + 1}`;
-    return `    <button type="button" class="n flatn" style="grid-row:${ri + 1}/${ri + 2};grid-column:${ci + 2}/${ci + 3}" data-wall="tgn" data-id="${id}" data-price="${p}" data-urn="2" data-mis="Terrace Garden Niches" data-inside="${esc(TGN.dim)}" aria-label="${id}, Terrace Garden Niches, ${money(p)}, 2 rights"><span class="nid">${id}</span><span class="nprice ${tierClass(p)}">${money(p)}</span><span class="ncap">2-urn</span></button>`;
-  })).join('\n');
-  return `  <div class="fgrid" style="grid-template-columns:24px repeat(${TGN.cols},1fr);grid-template-rows:${rowStr};max-width:780px;">
-${labels}
-${cells}
-  </div>`;
-}
-
 // ── Assemble ───────────────────────────────────────────────────────────────
 const LOGO = fs.readFileSync(path.join(ROOT, 'scripts', 'bw-logo.svg.txt'), 'utf8').trim();
 
@@ -274,9 +260,9 @@ const CSS = `
   .htxt h1{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--cream);}
   .htxt p{font-size:10px;font-weight:300;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
   .ptabs{display:flex;background:#0f1830;border-bottom:1px solid var(--gb);overflow-x:auto;}
-  .ptab{padding:12px 22px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;}
-  .ptab:hover{color:var(--cream);background:rgba(200,169,110,.06);}
-  .ptab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(200,169,110,.1);}
+  .moved{padding:10px 20px;font-size:11.5px;color:var(--gold-light);letter-spacing:.03em;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;}
+  .movedlink{color:var(--gold);font-weight:600;text-decoration:none;border-bottom:1px solid var(--gb);white-space:nowrap;}
+  .movedlink:hover{color:var(--cream);border-bottom-color:var(--cream);}
   .psec{display:none;}.psec.active{display:block;}
   .tabs{display:flex;background:var(--navy-light);border-bottom:1px solid var(--gb);overflow-x:auto;}
   .tab{padding:10px 18px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;}
@@ -524,7 +510,7 @@ const CSS = `
     .print-btn{margin-left:0;padding:6px 12px;font-size:11px;}
     .back-btn{margin-left:0;padding:6px 10px;font-size:11px;}
     .main{padding:8px;}
-    .ptab{padding:10px 14px;font-size:11px;}
+    .moved{padding:9px 12px;font-size:10.5px;}
     .tab{padding:9px 12px;font-size:10px;}
     .toolbar{gap:5px;margin:8px auto 6px;}
     .tbtn{padding:6px 9px;font-size:10px;}
@@ -542,7 +528,10 @@ const CSS = `
      the working reference counselors carry. Needs no JavaScript: every wall
      view is real static HTML and print forces them all visible. */
   @media print {
-    .no-print,.ptabs,.tabs,.card,.toolbar,.view3d,.owrap,.hint,.modelnote{display:none!important;}
+    .no-print,.tabs,.card,.toolbar,.view3d,.owrap,.hint,.modelnote{display:none!important;}
+    .ptabs{border:none!important;background:#fff!important;}
+    .moved{color:#444!important;padding:6px 0;font-size:10px;}
+    .movedlink{color:#1a2744!important;}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
     body{background:#fff!important;color:#1a1a1a!important;}
     .header{background:#fff!important;border-bottom:2px solid #c8540a!important;padding:10px 0;}
@@ -589,7 +578,7 @@ const CSS = `
 // ── Page runtime ───────────────────────────────────────────────────────────
 const JS = `
 'use strict';
-var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, TAX = ${FEES.TAX};
+var OC = ${FEES.OC}, REC = ${FEES.REC};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * ${FEES.ECF_RATE}); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
@@ -600,21 +589,11 @@ var pinned = null;
 
 function cardHtml(d) {
   var price = +d.price, e = ecf(price), tot = price + e, rows = '';
-  var tgn = d.wall === 'tgn';
   rows += '<div class="cr"><span class="cl">Niche Price</span><span class="cv">' + fm(price) + '</span></div>';
   rows += '<div class="cr"><span class="cl">ECF (10%)</span><span class="cv">' + fm(e) + '</span></div>';
-  var oc = qty(tgn ? 'tgn-oc-qty' : 'oc-qty'), rc = qty(tgn ? 'tgn-rec-qty' : 'rec-qty');
+  var oc = qty('oc-qty'), rc = qty('rec-qty');
   if (oc > 0) { rows += '<div class="cr"><span class="cl">O&amp;C \\u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
   if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording \\u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
-  if (tgn) {
-    var iq = qty('tgn-inscr-qty');
-    if (iq > 0) {
-      var sub = INSCR * iq, tx = Math.round(sub * TAX * 100) / 100;
-      rows += '<div class="cr"><span class="cl">Inscription \\u00d7' + iq + '</span><span class="cv">' + fm(sub) + '</span></div>';
-      rows += '<div class="cr"><span class="cl">Sales Tax (10.4%)</span><span class="cv">$' + tx.toFixed(2) + '</span></div>';
-      tot += sub + tx;
-    }
-  }
   var dims = '<div class="cdim"><div>Inside niche: <b>' + d.inside + '</b></div>';
   if (d.opening) dims += '<div>Urn opening: ' + d.opening + '</div>';
   if (d.plate) dims += '<div>Face plate: ' + d.plate + '</div>';
@@ -628,7 +607,7 @@ function cardHtml(d) {
     '<div class="cnote">ECF is not included in the listed price.</div>' + dims;
 }
 
-var WALL_LABEL = { west: 'Front Wall (West)', east: 'Back Wall (East)', north: 'Side A (North)', south: 'Side B (South)', tgn: 'Terrace Garden' };
+var WALL_LABEL = { west: 'Front Wall (West)', east: 'Back Wall (East)', north: 'Side A (North)', south: 'Side B (South)' };
 
 function readNiche(el) {
   var d = {};
@@ -678,7 +657,6 @@ function setPrintCard(d) {
   document.getElementById('printcard').innerHTML = cardHtml(d);
   document.body.classList.add('has-printsel');
   // Print follows the highlight: only the wall carrying the selected space prints.
-  // (A Terrace Garden selection has no wall view — the TGN section prints as-is.)
   var old = document.querySelectorAll('.wview.printsel');
   for (var i = 0; i < old.length; i++) old[i].classList.remove('printsel');
   var wv = document.getElementById('wall-' + d.wall);
@@ -712,7 +690,7 @@ document.addEventListener('click', function (ev) {
   // Clicking the chrome — a wall tab, a camera button — must not drop the selection.
   // Switching to the flat wall tab to see the niche you just picked in 3D is the whole
   // point of mirroring the selected state across both renderings.
-  if (!ev.target.closest('#card, .tab, .tbtn, .ptab')) hideCard();
+  if (!ev.target.closest('#card, .tab, .tbtn')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
@@ -733,7 +711,7 @@ document.addEventListener('focusin', function (ev) {
   if (kb) showCard(n, true);
 });
 document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hideCard(); });
-['oc-qty', 'rec-qty', 'tgn-oc-qty', 'tgn-rec-qty', 'tgn-inscr-qty'].forEach(function (id) {
+['oc-qty', 'rec-qty'].forEach(function (id) {
   var e = document.getElementById(id);
   if (e) e.addEventListener('input', function () { if (pinned) showCard(pinned, false); });
 });
@@ -756,24 +734,6 @@ function showView(v) {
 }
 document.querySelectorAll('#mvc-tabs .tab').forEach(function (t) {
   t.addEventListener('click', function () { showView(t.getAttribute('data-view')); });
-});
-
-var HEAD = {
-  mvc: ['Mountain View Columbarium \\u2014 New Glass Front Niches', 'Washington Memorial Park \\u00b7 Center Island Structure'],
-  tgn: ['Terrace Garden Niches', 'Washington Memorial Park \\u00b7 Terrace Garden Memorial Path']
-};
-document.querySelectorAll('.ptab').forEach(function (t) {
-  t.addEventListener('click', function () {
-    var p = t.getAttribute('data-prop');
-    hideCard();
-    document.querySelectorAll('.psec').forEach(function (s) { s.classList.remove('active'); });
-    document.querySelectorAll('.ptab').forEach(function (x) { x.classList.remove('active'); });
-    document.getElementById('psec-' + p).classList.add('active');
-    t.classList.add('active');
-    document.getElementById('mvc-tabs').style.display = (p === 'mvc') ? 'flex' : 'none';
-    document.getElementById('header-txt').innerHTML = '<h1>' + HEAD[p][0] + '</h1><p>' + HEAD[p][1] + '</p>';
-    if (p === 'mvc') fitScene();
-  });
 });
 
 // ── 3D camera ──────────────────────────────────────────────────────────────
@@ -1018,8 +978,8 @@ const HTML = `<!DOCTYPE html>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="ptabs">
-  <button class="ptab active" data-prop="mvc">Mountain View Columbarium</button>
-  <button class="ptab" data-prop="tgn">Terrace Garden Niches</button>
+  <div class="moved">Terrace Garden niches have moved &mdash; they now live with the rest of the Terrace Garden Memorial Path.
+    <a class="movedlink" href="TGMP_Map.html">Open the Terrace Garden Memorial Path map &rarr;</a></div>
 </div>
 <div class="tabs" id="mvc-tabs">
   <button class="tab active" data-view="3d">3D View</button>
@@ -1064,26 +1024,6 @@ ${overviewView()}
     Structure dimensions on this page are taken from the Matthews Gibraltar fabrication drawing K25-377.
   </div>
 </div><!-- /psec-mvc -->
-
-<div class="psec" id="psec-tgn">
-  <div class="wlabel" style="margin-top:0;">Terrace Garden Niches</div>
-  <div class="wsub">A = bottom · E = top · Outdoor granite-front niche wall · Single wall, no sections</div>
-  <div class="gwrap">
-${tgnGrid()}
-  </div>
-  <div class="legend">${legendHtml([12000, 14000, 16000])}</div>
-  <div class="fees">
-    <div class="fi"><span class="fl">Niche Inurnment O&amp;C — $${FEES.OC} ea</span>
-      <span class="fv">Qty: <input type="number" id="tgn-oc-qty" min="0" max="4" value="0" aria-label="Opening and closing quantity"></span></div>
-    <div class="fi"><span class="fl">Recording Fee — $${FEES.REC} ea</span>
-      <span class="fv">Qty: <input type="number" id="tgn-rec-qty" min="0" max="4" value="0" aria-label="Recording fee quantity"></span></div>
-    <div class="fi"><span class="fl">Niche Inscription — $${FEES.INSCR} ea (taxable)</span>
-      <span class="fv">Qty: <input type="number" id="tgn-inscr-qty" min="0" max="4" value="0" aria-label="Inscription quantity"></span></div>
-    <div class="fi"><span class="fl">ECF</span><span class="fv">10% of niche price — not included in listed prices</span></div>
-    <div class="fi"><span class="fl">Sales Tax</span><span class="fv">10.4% — applies to inscription only (taxable merchandise)</span></div>
-    <div class="fi"><span class="fl">Standard Niches</span><span class="fv">Up to 2 inurnments</span></div>
-  </div>
-</div><!-- /psec-tgn -->
 
 </div><!-- /main -->
 

@@ -269,11 +269,10 @@ export const TIERS = [
   { p: 42000, l: '$42,000 — 4-urn', c: 'c42' }, { p: 48000, l: '$48,000 — 4-urn', c: 'c48' },
 ];
 
-// Terrace Garden Niches — outdoor granite-front wall, 8 cols x 5 rows.
-export const TGN = {
-  rows: ['E', 'D', 'C', 'B', 'A'],
-  rowPrices: { E: 12000, D: 14000, C: 16000, B: 14000, A: 12000 },
-  cols: 8,
-  dim: '12.5" W x 12.5" H',
-  depth: '12"',
-};
+// The Terrace Garden niches used to live here, as a second tab on the MVC page. They
+// moved to their own map in sprint-08 (operator ruling: one home per property) and now
+// live in scripts/tgmp-data.mjs, which the Terrace Garden Memorial Path page is built
+// from. The dataset was carried across by scripts/extract_tgn_from_mvc.mjs and is
+// gated niche-for-niche by scripts/verify_tgmp_map.mjs. Nothing about the Terrace
+// Garden belongs in this file any more — a copy left behind would be a second, silently
+// stale price book.
