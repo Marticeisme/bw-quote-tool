@@ -46,9 +46,18 @@ price range (computed from `scripts/roac-niche-data.mjs`, never typed), and that
 niche carries TWO inurnment rights. Photo PII rule: no legible plate text in any
 published image.
 
-Parallelism stays ≤2: F + H spawn together; P spawns when F completes. Merge order:
-**F → P → H** (H's guides.html card merges last onto a settled main; P and H both touch
-guides.html in different categories — director resolves any touch-conflict at merge).
+| Q — glass infographic | `s08/glass-infographic` | `../bw-quote-tool-glassinfo` | NEW `glass-front-niches-guide.html` + photos + PDF; registrations in `build_guide_pdfs.mjs` / `verify_guide_pages.mjs`; `guides.html` card; build-log append |
+
+Track Q added mid-boot (operator, fourth request): a glass-front niche INFOGRAPHIC,
+exactly 4 printed pages, covering ECL + MVC + Serenity + Radiance — advantages of
+glass-front vs granite-front (ROAC as the granite contrast, verifiable claims only),
+photos from his folders (PII rule applies), and per-location price ranges COMPUTED from
+the repo's data modules (RAD/SER ranges depend on Track H's landed data — hence Q runs
+LAST). Q shares files with P (build_guide_pdfs, verify_guide_pages, guides.html), so
+they are strictly sequential.
+
+Parallelism stays ≤2: F + H spawn together; P spawns when F completes; Q spawns when
+BOTH P and H have merged. Merge order: **F → P → H → Q**.
 
 ## Gates
 
