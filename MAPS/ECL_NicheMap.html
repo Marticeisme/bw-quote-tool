@@ -32,19 +32,23 @@
   .ovgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;max-width:1100px;margin:0 auto;align-items:start;}
   .ovtitle{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--gold);margin-bottom:5px;text-align:center;}
 
-  /* ── Flat niche cell: bronze frame + dark glass (photos) ── */
-  .n{border-radius:3px;border:1px solid rgba(0,0,0,.45);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.25;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;
-    color:#e9e8e4;gap:2px;
+  /* ── Flat niche cell ──
+     CHAMPAGNE-LIT like the MVC page (operator, 2026-07-29: "black does not look good
+     here"). The photographs show exactly this: a near-black bronze mullion grid, and
+     behind each smoked-glass front a warm champagne interior lit from above. The price
+     tier lives on the chip, never on the cell fill. */
+  .n{border-radius:3px;border:1px solid rgba(58,44,20,.42);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.25;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;
+    color:#3a2c14;gap:2px;
     background:
-      linear-gradient(115deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 32%),
-      linear-gradient(180deg,#3b3a37 0%,#2b2a27 55%,#1f1e1c 100%);}
+      linear-gradient(115deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,0) 32%),
+      linear-gradient(180deg,#f2dda6 0%,#e2bd79 38%,#cd9d58 100%);}
   .n:hover{transform:scale(1.1);border-color:var(--gold);z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 1px var(--gold);}
   .n:focus-visible,.n3:focus-visible{outline:2px solid #fff;outline-offset:1px;z-index:20;}
   .n.sel,.n3.sel{outline:3px solid #fff;outline-offset:-3px;z-index:25;
-    filter:brightness(1.28) saturate(1.15);
+    filter:brightness(1.16) saturate(1.12);
     box-shadow:0 0 0 2px var(--gold),0 0 22px 4px rgba(255,255,255,.45);}
   .n.sel{transform:scale(1.04);}
-  .nid{font-size:8px;opacity:.65;}
+  .nid{font-size:8px;opacity:.7;}
   .nprice{font-weight:600;font-size:10.5px;padding:0 5px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);}
   .nstatus,.n3st{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     padding:0 3px;border-radius:2px;background:rgba(255,255,255,.88);color:#17181b;}
@@ -52,21 +56,30 @@
   .fgrid.mini .n{padding:1px;cursor:default;}
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(0,0,0,.45);}
   /* ── Status code (operator: an FSD must never mistake these for sellable).
-     PATTERN + darkness, never hue — every hue on this page belongs to a price tier.
-       Sold        = blacked-out cell (closed), white badge
-       Not Priced  = blacked-out cell + dashed outline, white badge
+     PATTERN + brightness, never hue — every hue on this page belongs to a price tier,
+     so a sold niche stays in the same champagne family and is separated by being
+     DIMMED and FROSTED instead (operator 2026-07-29: sold must not be solid black).
+       Sold        = dimmed, desaturated champagne under a frosted diagonal hatch,
+                     white SOLD badge
+       Not Priced  = the same frosted fill plus a dashed outline, white badge
      Neither renders a price anywhere. */
   .n,.n3{position:relative;}
-  .st-sold,.st-unpriced{color:#d9d8d4;}
-  .st-sold,.st-unpriced{background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;}
+  .st-sold,.st-unpriced{color:#463d2d;
+    background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 3px,rgba(255,255,255,0) 3px 7px),
+      linear-gradient(180deg,#b0a389 0%,#928670 55%,#786f5b 100%)!important;
+    box-shadow:inset 0 0 0 1px rgba(46,35,16,.38),inset 0 -5px 9px -5px rgba(38,28,10,.5)!important;}
+  .fgrid.mini .st-sold,.fgrid.mini .st-unpriced{
+    background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
+      linear-gradient(180deg,#b0a389 0%,#928670 55%,#786f5b 100%)!important;}
   .st-unpriced::before{content:'';position:absolute;inset:1px;pointer-events:none;
-    border:2px dashed rgba(255,255,255,.65);border-radius:inherit;}
+    border:2px dashed rgba(40,30,10,.8);border-radius:inherit;}
   .fgrid.mini .st-unpriced::before{border-width:1px;}
 
   .r0{background:#1a6fae;color:#fff;}
   .r1{background:#0f8f96;color:#0e1729;}
-  .r2{background:#1f8f5e;color:#0e1729;}
+  .r2{background:#219866;color:#0e1729;}
   .r3{background:#237a3a;color:#fff;}
   .r4{background:#5c9022;color:#0e1729;}
   .r5{background:#7d9a18;color:#0e1729;}
@@ -77,9 +90,13 @@
   .r10{background:#c2332b;color:#fff;}
   .r11{background:#8b4fbb;color:#fff;}
   .r12{background:#c02f84;color:#fff;}
-  .stleg-a{background:linear-gradient(180deg,#3b3a37,#1f1e1c);}
-  .stleg-s{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
-  .stleg-u{background:linear-gradient(180deg,#1b1c20,#0e0f12);border:2px dashed rgba(255,255,255,.65)!important;}
+  .stleg-a{background:linear-gradient(180deg,#f2dda6,#cd9d58);}
+  .stleg-s{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
+      linear-gradient(180deg,#b0a389,#786f5b);}
+  .stleg-u{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
+      linear-gradient(180deg,#b0a389,#786f5b);border:2px dashed rgba(40,30,10,.8)!important;}
 
   .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;justify-content:center;}
   .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
@@ -112,33 +129,39 @@
   .fc-s{left:50%;bottom:8%;transform:translateX(-50%);}
   .fc-w{left:7%;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;}
   .fc-e{right:7%;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;}
-  /* bronze-framed glass front */
+  /* ── Real materials (operator photos, D:\Cemetery Photos Misc\Eternal Light
+     Columbarium (NEW)) — the same family as the MVC page: a near-black bronze mullion
+     grid with a brass trim line, and behind every smoked-glass front a warm champagne
+     interior lit from above. */
   .face{position:absolute;left:0;top:0;display:grid;gap:3px;
-    background:linear-gradient(180deg,#6b6152,#4a4338);
-    padding:3px;border:1px solid #3a352c;
-    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.5);}
-  /* CLEAR CORNERS — solid stucco pilasters, deliberately NOT glass */
-  .post{position:absolute;left:0;top:0;background:linear-gradient(180deg,#ded5c2,#b9b0a0);border:1px solid #9a9284;backface-visibility:hidden;}
+    background:#15120d;
+    padding:3px;border:2px solid #8a7147;
+    backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.55),inset 0 0 0 1px #2b2417;}
+  /* CLEAR CORNERS — solid stucco pilasters, deliberately NOT glass. Held back in value
+     so the lit champagne glass stays the brightest thing in the scene. */
+  .post{position:absolute;left:0;top:0;background:linear-gradient(180deg,#cfc3ab,#a89e8c);border:1px solid #8d8577;backface-visibility:hidden;}
   .crown{position:absolute;left:0;top:0;background:linear-gradient(180deg,#5c3620,#41240f);border:1px solid #2e1a0b;backface-visibility:hidden;}
   .crowntop{position:absolute;left:0;top:0;background:linear-gradient(135deg,#6d4227,#4a2a14);border:1px solid #2e1a0b;}
   .plinth{position:absolute;left:0;top:0;background:linear-gradient(180deg,#4a2a14,#331c0c);border:1px solid #241307;backface-visibility:hidden;}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
     overflow:hidden;line-height:1.1;padding:0;min-width:0;transition:filter .15s,transform .15s;gap:1px;
-    color:#e9e8e4;
+    color:#3a2c14;
     background:
-      linear-gradient(115deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,0) 34%),
-      linear-gradient(180deg,#3b3a37 0%,#2b2a27 55%,#1f1e1c 100%);
-    box-shadow:inset 0 1px 1px rgba(255,255,255,.18),inset 0 -3px 6px -3px rgba(0,0,0,.6);}
-  .n3:hover{filter:brightness(1.18) saturate(1.08);transform:scale(1.25);z-index:30;
-    box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 1px 1px rgba(255,255,255,.18);}
+      linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 30%),
+      linear-gradient(180deg,#f2dda6 0%,#e2bd79 38%,#cd9d58 100%);
+    box-shadow:inset 0 2px 3px rgba(255,248,225,.8),inset 0 -6px 10px -5px rgba(96,58,12,.55),inset 0 0 0 1px rgba(58,44,20,.28);}
+  .n3:hover{filter:brightness(1.12) saturate(1.08);transform:scale(1.25);z-index:30;
+    box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,248,225,.8),inset 0 0 0 1px rgba(58,44,20,.28);}
   /* While orbiting, niches under the moving cursor must not pop. */
   .scene.dragging .n3:hover{transform:none!important;filter:none!important;}
-  .n3id{font-size:7px;opacity:.7;letter-spacing:.02em;}
+  .n3id{font-size:7px;opacity:.8;letter-spacing:.02em;font-weight:500;}
   .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.02em;white-space:nowrap;}
   .n3st{font-size:5.5px;letter-spacing:.06em;}
-  .baseband{background:linear-gradient(180deg,#8d8577,#655e53);
-    display:flex;align-items:center;justify-content:center;color:#211e18;
-    font-size:7.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;font-weight:600;}
+  .baseband{background:linear-gradient(180deg,#2b251c,#131007);
+    display:flex;align-items:center;justify-content:center;color:var(--gold-light);
+    font-size:7.5px;letter-spacing:.1em;white-space:nowrap;overflow:hidden;font-weight:600;
+    box-shadow:inset 0 1px 0 rgba(200,169,110,.5);}
+  .baseband b{color:var(--gold);font-weight:600;}
   .hint{text-align:center;font-size:10px;color:var(--gold-light);opacity:.7;margin-top:7px;letter-spacing:.05em;}
   .modelnote{text-align:center;font-size:9.5px;color:var(--gold-light);opacity:.55;margin-top:3px;}
 
@@ -168,7 +191,14 @@
   /* ── Fees / footer ── */
   .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:900px;margin-left:auto;margin-right:auto;justify-content:center;}
   .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
-  .fees input{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  .fees input[type=number]{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  /* Add-on toggles: same chrome as the qty boxes beside them — gold rule, gold accent,
+     cream label — so the footer reads as one row of controls. Both default OFF. */
+  .ftog{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--cream);
+    background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;padding:1px 7px 1px 5px;font-size:11px;}
+  .ftog:hover{background:rgba(200,169,110,.24);}
+  .ftog input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--gold);cursor:pointer;}
+  .ftog input:focus-visible{outline:2px solid #fff;outline-offset:1px;}
   .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
@@ -233,7 +263,8 @@
       box-shadow:0 0 0 2px #1a2744!important;filter:none!important;transform:none!important;}
     .fv{color:#333!important;}
     .fees{background:#f5f5f2!important;border-color:#c8a96e!important;}
-    .fees input{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
+    .fees input[type=number]{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
+    .ftog{background:#fff!important;border:1px solid #999!important;color:#1a1a1a!important;}
   }
 </style>
 </head>
@@ -743,8 +774,10 @@
     <div class="fi"><span class="fl">Recording Fee — $225 ea</span>
       <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="1" aria-label="Recording fee quantity"></span></div>
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% of niche price — not included in listed prices</span></div>
-    <div class="fi"><span class="fl">#5108 Bronze Scroll — $785</span><span class="fv">Optional add-on</span></div>
-    <div class="fi"><span class="fl">Vase with Ring — $370</span><span class="fv">Optional add-on</span></div>
+    <div class="fi"><span class="fl">#5108 Bronze Scroll — $785</span>
+      <span class="fv"><label class="ftog"><input type="checkbox" id="scroll-on" aria-label="Include the $785 bronze scroll in the niche total"> Add to total</label></span></div>
+    <div class="fi"><span class="fl">Vase with Ring — $370</span>
+      <span class="fv"><label class="ftog"><input type="checkbox" id="vase-on" aria-label="Include the $370 vase with ring in the niche total"> Add to total</label></span></div>
   </div>
   <div class="pfoot">
     <b>Row A is the bottom row; Row F the top. Niches are numbered left to right facing each side.</b><br>
@@ -758,12 +791,15 @@
 <script>
 
 'use strict';
-var OC = 835, REC = 225;
+var OC = 835, REC = 225, SCROLL = 785, VASE = 370;
 var STATUS_LABEL = {"sold":"Sold","unpriced":"Not Priced"};
 var FACE_LABEL = {"S":"South","N":"Front (North)","W":"West","E":"East (Front Door)"};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * 0.1); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
+// Add-on toggles (default OFF). They are flat merchandise charges, so they are added
+// AFTER the E.C.F.: E.C.F. is 10% of the NICHE PRICE only and never of an add-on.
+var addOn = function (id) { var e = document.getElementById(id); return !!(e && e.checked); };
 
 // ── Detail card ───────────────────────────────────────────────────────────────
 var card = document.getElementById('card');
@@ -792,9 +828,11 @@ function cardHtml(d) {
   var oc = qty('oc-qty'), rc = qty('rec-qty');
   if (oc > 0) { rows += '<div class="cr"><span class="cl">Open &amp; Closing \u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
   if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording Fee \u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
+  if (addOn('scroll-on')) { rows += '<div class="cr"><span class="cl">#5108 Bronze Scroll</span><span class="cv">' + fm(SCROLL) + '</span></div>'; tot += SCROLL; }
+  if (addOn('vase-on')) { rows += '<div class="cr"><span class="cl">Vase with Ring</span><span class="cv">' + fm(VASE) + '</span></div>'; tot += VASE; }
   return cardHead(d) + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
-    '<div class="cnote">E.C.F. is not included in the listed price. Bronze scroll and vase are optional add-ons \u2014 see the footer.</div>';
+    '<div class="cnote">E.C.F. is 10% of the niche price only \u2014 add-ons are not subject to it. Bronze scroll and vase are optional; toggle them in the footer.</div>';
 }
 
 function readNiche(el) {
@@ -868,7 +906,10 @@ document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
   var n = ev.target.closest('.n, .n3');
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) { showCard(n, true); return; }
-  if (!ev.target.closest('#card, .tab, .tbtn')) hideCard();
+  // The fee footer is part of the card's math, so touching it must NOT dismiss the
+  // pinned card — before the add-on toggles existed, clicking into a qty box unpinned
+  // the very card it was meant to update, and the re-render silently did nothing.
+  if (!ev.target.closest('#card, .tab, .tbtn, .fees')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
@@ -885,9 +926,15 @@ document.addEventListener('focusin', function (ev) {
   if (kb) showCard(n, true);
 });
 document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hideCard(); });
-['oc-qty', 'rec-qty'].forEach(function (id) {
+// A fee change re-renders the pinned card AND its print block (showCard re-runs
+// setPrintCard whenever the element it is given is the pinned one), so the printed
+// pricing card always reflects the toggle state at print time.
+['oc-qty', 'rec-qty', 'scroll-on', 'vase-on'].forEach(function (id) {
   var e = document.getElementById(id);
-  if (e) e.addEventListener('input', function () { if (pinned) showCard(pinned, false); });
+  if (!e) return;
+  var redraw = function () { if (pinned) showCard(pinned, false); };
+  e.addEventListener('input', redraw);
+  e.addEventListener('change', redraw);
 });
 
 // ── Tabs (selection survives tab switches, same as the MVC/ROAC pages) ────────
