@@ -1442,6 +1442,53 @@ sheet vanishes mid-render. Also: fixed-position sheets clip to the *screen viewp
 height in headless PDFs — match the Playwright viewport to the paper size (816×1056)
 before judging a "clipped" print; real print dialogs re-lay out and are unaffected.
 
+### 2026-07-29 — Family guide PDFs condensed to a 4-page leave-behind (sprint-07 Track G)
+Branch `s07/guide-pdf-condense`. Operator decision: the downloadable guides were prints
+of the whole web page — up to 20 pages — and they are emailed and printed **for
+families**. Every family guide whose PDF exceeded 4 pages now has a compact print layout
+capped at 4. Product catalogs are explicitly out of scope; a catalog is as long as its
+catalog.
+
+| Guide | before | after | | Guide | before | after |
+|---|---|---|---|---|---|---|
+| Granite Marker Guide | 20 | **4** | | Medicaid and Planning Ahead | 8 | **3** |
+| Cremation Guide | 14 | **4** | | Medicaid Professional Reference | 8 | **3** |
+| Veterans Guide | 12 | **4** | | Cremation or Burial | 8 | **3** |
+| Who Decides | 11 | **4** | | Urn Placement Options | 5 | **2** |
+| Burial Vault Guide | 10 | **4** | | Scattering Garden Pricing | 5 | **1** |
+| Terramation Guide | 9 | **3** | | Burial Guide | 5 | **3** |
+| Cemetery Property Guide | 9 | **3** | | | | |
+
+**How, and the conventions to keep.** Each guide gained ONE new `@media print` block at
+the end of its `<style>`, fenced by `/* === PRINT CONDENSE (sprint-07 Track G) === */`
+… `/* === END PRINT CONDENSE === */`. Screen CSS was not touched: before/after full-page
+screenshots of all thirteen at 1280px diffed to **0 differing pixels**.
+
+- **The big lever is one document-wide two-column flow**, not a multicol per section:
+  `.doc-sheet{column-count:2}` with only the cover, the wide comparison tables and the
+  footer at `column-span:all`. A per-section multicol has to balance its own columns, and
+  eight ragged column bottoms cost about a page on their own.
+- **`column-span:all` is expensive.** Every spanning element forces the columns above it
+  to balance and end early. On the marker and cremation guides, letting the price tables
+  and product grids ride *inside* a column was worth a page each.
+- Print type is 8pt/1.32 with the existing navy `#3d5a7a` / orange `#c8540a` chrome, the
+  fleur footer logo and the ≤40 mm masthead all unchanged.
+- **Nothing priced was removed.** Measured, not eyeballed: every `$n,nnn` string and every
+  RCW citation extracted from each OLD PDF must appear in the new one — 301 price tokens
+  and 29 citations across the set, **0 lost**. Where art had to go (the marker guide's
+  five true-size portrait templates, pinned to 8in × 10in and costing a page each; the
+  terramation process photography), the prices in their legends stayed and now read as a
+  compact list.
+- `scripts/verify_guide_pages.mjs` now asserts the 4-page cap on the built PDFs
+  (`CAPPED_GUIDES`), so a future edit that re-inflates a guide fails the gate.
+
+**Two Chromium print scars worth remembering.** (1) A multi-column container preceded by
+block content starts on a *fresh page* — `medicaid-professional-reference.html` has an
+audience bar outside `.doc-sheet`, and page 1 came out holding nothing but that bar until
+`.doc-sheet{break-before:avoid}`. (2) Grid rows fragment across pages unpredictably; on
+`vault-guide.html` a 4-column product grid stranded half a page, and making each
+`.products-wrap` atomic (`break-inside:avoid`) at 5 columns packed it properly.
+
 ---
 
 ## 5. Working rules that keep biting us

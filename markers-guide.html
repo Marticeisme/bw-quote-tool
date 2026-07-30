@@ -286,6 +286,135 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .cover-footer{display:none;}
   .cover-stripe{display:none;}
 }
+/* === PRINT CONDENSE (sprint-07 Track G) === */
+/* Operator decision 2026-07-29: these guides are printed and emailed to families as
+   leave-behinds, and this one's PDF ran to 20 pages. Capped at 4. Every rule below is
+   PRINT MEDIA ONLY - screen rendering is untouched and pixel-diffed. Prices, table rows
+   and hard rules (eligibility, deadlines, RCW citations) are preserved verbatim; only
+   spacing, type scale and decorative art are compressed. */
+@media print{
+/* -- masthead + base type ---------------------------------------------- */
+  body{font-size:8pt;line-height:1.32}
+  .doc-sheet{padding:0 .4in}
+  .cover{margin:0 -.4in;padding:9px .4in 8px}
+  .cover h1{font-size:14pt;margin-bottom:3px}
+  .cover-sub{font-size:8pt;line-height:1.3;max-width:none}
+  .cover-logo{height:16px;margin-bottom:5px}
+  .cover-kicker{font-size:6.5px;margin-bottom:2px}
+  .cover-rule{margin:5px 0 0}
+
+  /* -- one document-wide two-column flow ---------------------------------
+     A multicol per section has to balance its own columns, and eight ragged
+     column bottoms cost roughly a page on their own. Flowing the whole sheet
+     packs continuously; only the masthead, the wide tables and the footer span
+     both columns. */
+  .doc-sheet{column-count:2;column-gap:15px}
+  .cover,.contents,.doc-footer,.cta{column-span:all}
+  .price-table,.photo-prices{column-span:all}
+  .section-wrap{padding:5px 0 3px}
+  .section-wrap h2{font-size:12.5pt;margin-bottom:1px;break-after:avoid;page-break-after:avoid}
+  .section-sub{font-size:8pt;margin-bottom:4px}
+  /* Keep the kicker/heading/rule stack together: a column break between the
+     orange SECTION N kicker and its title leaves an orphan kicker at the foot of
+     a column, which is what happened to Section 4 of the scattering guide. */
+  .section-kicker{font-size:7pt;letter-spacing:.12em;margin-bottom:1px;break-after:avoid;page-break-after:avoid}
+  .section-rule{height:2px;margin-bottom:5px;break-after:avoid;page-break-after:avoid}
+  .section-sub{break-after:avoid;page-break-after:avoid}
+  .prose p{font-size:8pt;line-height:1.32;margin-bottom:5px}
+  .prose li{font-size:8pt;line-height:1.32;padding:1px 0}
+  .prose ul{margin-bottom:5px;padding-left:13px}
+  .prose-sidebar{display:block}
+
+  .sidebar{padding:7px 9px;margin-bottom:6px;border-radius:6px;break-inside:avoid}
+  .sidebar-label{font-size:7pt;margin-bottom:4px}
+  .sidebar p{font-size:8pt;line-height:1.34}
+  .sidebar p + p{margin-top:4px}
+  .sidebar li{font-size:8pt;padding:3px 0 3px 11px;line-height:1.3}
+
+  .policy-box{padding:8px 11px;margin-bottom:6px;border-radius:8px;break-inside:avoid;
+              page-break-after:auto!important;break-after:auto!important}
+  .policy-box h3{font-size:11pt;margin-bottom:3px}
+  .policy-box p{font-size:8pt;line-height:1.38;margin:0 0 4px}
+
+  .compare-grid,.feature-grid{display:block;margin-bottom:6px}
+  .compare-card,.feature-card{padding:7px 9px;margin:0 0 6px;border-radius:6px;break-inside:avoid}
+  .compare-card h3{font-size:10pt;margin-bottom:2px}
+  .compare-card .mat-tag{font-size:7pt;margin-bottom:4px}
+  .compare-card li{font-size:8pt;padding:3px 0;gap:5px}
+  .compare-card .card-note{font-size:7.5pt;margin-top:5px;padding-top:4px}
+  .feature-card h4{font-size:9pt;margin-bottom:1px}
+  .feature-card p{font-size:8pt;line-height:1.32}
+
+  /* -- price tables span both columns and keep every row -------------------- */
+  .price-table{margin-bottom:7px;break-inside:avoid}
+  .price-table caption{font-size:7pt;padding-bottom:4px}
+  .price-table th{font-size:7.5pt;padding:4px 7px}
+  .price-table td{padding:3.5px 7px;font-size:8pt}
+  .price-table .size-note{font-size:7pt}
+  .photo-prices th{font-size:7pt;padding:3px 6px}
+  .photo-prices td{padding:3px 6px;font-size:8pt}
+
+  /* -- footer -------------------------------------------------------------- */
+  .doc-footer{padding:9px 0 7px}
+  .doc-footer .footer-logo{height:14px;margin-bottom:5px}
+  .doc-footer .footer-hours{font-size:8pt;margin-bottom:2px}
+  .doc-footer .footer-legal{font-size:7pt}
+
+  /* Marker price tables are narrow (size + two or three price columns), so they
+     ride inside a column rather than spanning: a spanning element forces the
+     columns above it to balance and end the page, which cost most of page 1. */
+  .price-table{column-span:none}
+  .price-table th{font-size:7pt;padding:3px 5px}
+  .price-table td{padding:2px 5px;font-size:7.5pt}
+  .price-table caption{padding-bottom:2px}
+  .price-table{margin-bottom:5px}
+
+  /* -- marker guide: the page's own art is what made this 20 pages ---------
+     The five true-size portrait templates are pinned to their exact physical
+     dimensions (up to 8in x 10in), so they cost one page each and nothing can
+     shrink them without making them lie. They are a screen/measure tool, not
+     leave-behind content, so print hides the diagrams and keeps every price
+     from their legends in a print-only list below. Section photos and the
+     scale-guide block go the same way. */
+  #true-size .tsg-diagram,.tsg-full .tsg-diagram{display:none!important}
+  .tsg-full{page-break-before:auto!important;break-before:auto!important;
+            margin-left:0!important;margin-right:0!important}
+  .tsg-section{margin-bottom:4px;break-inside:avoid}
+  /* The footer is centred text that reads fine in one column; letting it span
+     would force the columns above it to balance and start a fifth page. */
+  .doc-footer{column-span:none}
+  .tsg-label{font-size:9pt;margin-bottom:2px}
+  .tsg-note{padding:5px 8px;font-size:7.5pt;margin-bottom:5px}
+  .tsg-legend{gap:2px 10px;margin-bottom:4px}
+  .tsg-legend-item{font-size:7.5pt}
+  .tsg-legend-price{font-size:7pt}
+  /* The scale guide carries six installed-with-tax prices, so it stays. What
+     goes is the 1.5x transform and the 200px of clearance it needed: at natural
+     size the markers still read as relative sizes and the block spans both
+     columns instead of a whole page. */
+  .scale-guide{column-span:all;break-inside:avoid;page-break-before:auto!important;
+               break-before:auto!important;padding:5px 0;margin-bottom:6px;border:none;
+               background:transparent!important}
+  .scale-guide-label{font-size:9pt!important;margin-bottom:2px}
+  .scale-guide-sub{font-size:7.5pt!important;margin-bottom:6px}
+  .scale-markers{display:flex;transform:none;margin-bottom:0;gap:6px;justify-content:flex-start}
+  .scale-companion{margin-top:6px;padding-top:6px}
+  .scale-companion-label{font-size:8pt;margin-bottom:5px}
+  .scale-companion .scale-markers{margin-bottom:0}
+  .section-photo,.section-photo-inline{display:none!important}
+  .color-swatches{grid-template-columns:repeat(6,1fr);gap:3px}
+  .color-group{margin-bottom:6px;break-inside:avoid}
+  .color-group-label{font-size:8.5pt;margin-bottom:1px}
+  .color-group-desc{font-size:7.5pt;margin-bottom:4px}
+  .color-swatch-name{padding:2px 3px;font-size:6.5pt;line-height:1.15}
+  .color-swatch-note{font-size:5.5pt}
+  .photo-option{padding:5px 0;gap:8px}
+  .po-badge{width:22px;height:22px;font-size:11px;border-radius:5px}
+  .po-content h4{font-size:9pt;margin-bottom:1px}
+  .po-content p{font-size:8pt;line-height:1.32;margin-bottom:2px}
+  .po-price{font-size:7.5pt}
+}
+/* === END PRINT CONDENSE === */
 </style>
 </head>
 <body>
