@@ -56,8 +56,19 @@ the repo's data modules (RAD/SER ranges depend on Track H's landed data — henc
 LAST). Q shares files with P (build_guide_pdfs, verify_guide_pages, guides.html), so
 they are strictly sequential.
 
-Parallelism stays ≤2: F + H spawn together; P spawns when F completes; Q spawns when
-BOTH P and H have merged. Merge order: **F → P → H → Q**.
+| U — urn gardens | `s08/urn-gardens` | `../bw-quote-tool-urngarden` | NEW `urn-gardens-guide.html` + photos extracted from the operator's slide + PDF; registrations; `guides.html` card; build-log append |
+
+Track U added mid-boot (operator, fifth request): ONE-page Lake + Rose Urn Garden
+infographic from his slide (`E:/Downloads/Urn Garden 1 Page Infographic Use Photos.png`
+— Windows path with backslashes in the track file) — photos extracted from it,
+1-or-2-rights-per-space, lake boulders + cremation posts. **Prices: operator-directed
+NARROW exception to DESIGN §6** — the track may read `wmp-cemetery-map/data/` (absolute
+path into the main tree) to compute per-garden price RANGES; aggregates only, nothing
+else crosses (no refs, statuses, coordinates, names). Log the exception in the
+decisions table at close.
+
+Parallelism stays ≤2: F + H spawn together; P spawns when F completes; Q after P and H
+merge; U after Q merges (same shared guide files). Merge order: **F → P → H → Q → U**.
 
 ## Gates
 
