@@ -69,6 +69,15 @@ machinery — unreported so untouched; a GA strip would interact with the orphan
 de-flatten history, a RIC strip costs an Acrobat gate. **Operator must still do the
 Acrobat edit test at close** (agents cannot run Acrobat).
 
+**Sprint-08 progress (2026-07-29 evening):** Track F MERGED (director-audited: gate
+PASS same anchors 85/28/$685,175, interaction suite 30/30, 8/0, **1327/27 on merged
+main**) — ECL niches champagne-lit (sold = dimmed/frosted hatch, no black), Bronze
+Scroll/Vase are card toggles (default off, post-ECF, print-mirrored), $14,295 chip
+lifted to 4.90:1 AA, footer-unpins-card bug fixed. Track H (COM map) still running.
+Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
+and cannot pass in a worktree while another tree's dev server owns the port — suite is
+green on the tree that owns it; consider a --port flag some sprint.
+
 **Previous sprint:** **sprint-06 — CLOSED 2026-07-28; the operator PUSHED the close** (origin/main
 caught up to the twelve close commits at some point on 2026-07-28 — verified by `git status -sb`,
 not assumed). Six tracks done and merged: R (research), M (`s06/mvc-niche-map`),
