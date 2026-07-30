@@ -46,9 +46,9 @@ const AUDIT = `(function(bytesB64){
     var acro = doc.catalog.lookup(PN.of('AcroForm'));
     var names = doc.catalog.lookup(PN.of('Names'));
     var oa = doc.catalog.lookup(PN.of('OpenAction'));
-    var values = {}, names = [];
+    var values = {}, fieldNames = [];
     form.getFields().forEach(function(f){
-      names.push(f.getName());
+      fieldNames.push(f.getName());
       try { if (f.getText) { var t = f.getText(); if (t) values[f.getName()] = t; } } catch(e) {}
     });
     return {
@@ -57,7 +57,7 @@ const AUDIT = `(function(bytesB64){
       hasCO: !!(acro && acro.get(PN.of('CO'))),
       hasDocJS: !!(names && names.get && names.get(PN.of('JavaScript'))),
       hasJsOpenAction: !!(oa && oa.get && oa.get(PN.of('S')) === PN.of('JavaScript')),
-      names: names, values: values
+      names: fieldNames, values: values
     };
   })();
 })`;
