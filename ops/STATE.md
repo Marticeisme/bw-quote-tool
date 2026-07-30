@@ -84,6 +84,25 @@ PASS same anchors 85/28/$685,175, interaction suite 30/30, 8/0, **1327/27 on mer
 main**) — ECL niches champagne-lit (sold = dimmed/frosted hatch, no black), Bronze
 Scroll/Vase are card toggles (default off, post-ECF, print-mirrored), $14,295 chip
 lifted to 4.90:1 AA, footer-unpins-card bug fixed. Track H (COM map) still running.
+**Track H MERGED (director-audited):** `MAPS/COM_CryptMap.html` — 17 crypt banks /
+785 purchasable units over 893 spaces + Radiance (74) and Serenity (48) niche walls,
+generated/gated like the rest of the family; floor-plan SVG + whole-building 3D + 6
+area tabs + overview from one dataset. **Crypt prices deliberately NOT shipped:** the
+crypt sheet's price text is 4px and its font provably renders 8 glyph shapes for 10
+digits (digits collide) — every crypt card says "confirm in MIS"; the 51 available
+crypts' ambiguous decodes are kept as never-rendered `sheetRaw` diagnostics awaiting a
+hi-res export or MIS list. Niche-wall prices are legible and exact (RAD $156,115 /
+SER $76,960 available, per-row anchors + positional checksums, sabotage-proven).
+Fees: crypt O&C and Monobar illegible ⇒ omitted; sheet Recording $225 / Monobar
+Install $215 / Vase $415 used as instructed (sheet is older vintage than
+prices.json's 235/225 — operator should reconcile). OPEN for Martice: cols 101–102
+deluxe-vs-hidden (sources disagree; crypts sheet won), bank 116–123 tier G drawn as
+8 singles under companion headers, $61,155-or-$61,455, the 51 crypt prices, real
+O&C/Monobar. H's report claimed the price-update suite red on main — director
+falsified it (23/0 in the main tree); it was the port-3737 worktree artifact again.
+Track H also fixed pinned-card-overwritten-by-hover on COM; RECOMMENDED backport to
+ROAC/MVC/ECL, queued as a sprint-09 candidate.
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.
