@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  TGN, TGMP_ITEMS, GEO, TIERS, STATUS_LABEL,
+  TGN, TGMP_ITEMS, GEO, TIERS, STATUS_LABEL, FEES, FEE_SOURCE,
   BANK_FIELD_W, BANK_FIELD_H, BANK_W, BANK_H,
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
@@ -484,9 +484,14 @@ ${TIER_CSS}
   @media (max-width:700px){.card{right:8px;left:8px;bottom:8px;width:auto;}}
 
   /* ── Footer ── */
-  .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 14px;max-width:900px;margin-left:auto;margin-right:auto;text-align:center;}
-  .fl{color:var(--gold);font-weight:600;display:block;margin-bottom:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
+  .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 14px;max-width:900px;margin-left:auto;margin-right:auto;
+    display:flex;flex-wrap:wrap;gap:12px 16px;justify-content:center;}
+  .fi{font-size:11px;}
+  .fl{color:var(--gold);font-weight:600;display:block;margin-bottom:2px;font-size:11px;letter-spacing:.04em;}
   .fv{color:var(--cream);font-size:11px;line-height:1.6;}
+  .fees input{width:44px;background:rgba(200,169,110,.14);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  .fsrc{flex:1 0 100%;text-align:center;font-size:10px;line-height:1.6;color:var(--gold-light);border-top:1px solid var(--gb);padding-top:9px;margin-top:1px;}
+  .fsrc b{color:var(--gold);}
   .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
@@ -549,6 +554,9 @@ ${TIER_CSS}
       box-shadow:0 0 0 2px #1a2744!important;filter:none!important;transform:none!important;}
     .fees{background:#f5f5f2!important;border-color:#c8a96e!important;}
     .fv{color:#333!important;}
+    .fees input{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
+    .fsrc{color:#444!important;border-top-color:#c8a96e!important;}
+    .fsrc b{color:#1a2744!important;}
   }
 `;
 
@@ -580,17 +588,25 @@ const CARD_META = Object.fromEntries([
 
 const JS = `
 'use strict';
+// ── Detail card + fee math ────────────────────────────────────────────────────
+// The Terrace Garden Memorial Path pricing sheet prints a Sales Price and a Rights of
+// Interment count and NOTHING else. The fee schedule applied below is the Mountain View
+// Columbarium June-2026 schedule, applied to this whole area on the operator's ruling of
+// ${FEE_SOURCE.confirmedOn}. It is NOT printed on this area's sheet, and the card says so.
+// Applied exactly as the MVC page's Terrace Garden tab applied it: E.C.F. always, the
+// three quantity fees only when the counselor turns them on, tax on inscription only.
+//
+// EVERYTHING BETWEEN THE TWO MARKERS IS EXTRACTED AND EXECUTED BY
+// scripts/verify_tgmp_map.mjs, which anchors a full card computation against it. Keep
+// this block free of anything that touches the DOM at load time.
+// >>> FEE MATH >>>
 var META = ${JSON.stringify(CARD_META)};
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
+var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, TAX = ${FEES.TAX}, ECF_RATE = ${FEES.ECF_RATE};
+var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are the ${FEE_SOURCE.schedule} schedule, applied to the Terrace Garden Memorial Path by ${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn} \\u2014 they are NOT printed on this area\\'s price sheet. Confirm current fees in MIS/Enterprise before writing.';
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
-
-// ── Detail card ───────────────────────────────────────────────────────────────
-// The Terrace Garden Memorial Path pricing sheet prints a Sales Price and a Rights of
-// Interment count and NOTHING else — no E.C.F., no opening & closing, no recording fee,
-// no inscription, no tax. Fees are never borrowed from another area's sheet, so this
-// card does exactly what the sheet does and says where the rest has to come from.
-var card = document.getElementById('card');
-var pinned = null;
+var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
+var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
 
 function cardHtml(ref) {
   var m = META[ref];
@@ -603,16 +619,30 @@ function cardHtml(ref) {
     return head + '<div class="cardst">' + (STATUS_LABEL[m.st] || m.st) + '</div>' +
       '<div class="cnote">Not available \\u2014 no pricing shown. Confirm in MIS/Enterprise.</div>';
   }
-  var rows = '<div class="cr"><span class="cl">Sales Price</span><span class="cv">' + fm(m.price) + '</span></div>';
+  var price = +m.price, e = ecf(price), tot = price + e;
+  var rows = '<div class="cr"><span class="cl">Sales Price</span><span class="cv">' + fm(price) + '</span></div>';
+  rows += '<div class="cr"><span class="cl">E.C.F. (10%)</span><span class="cv">' + fm(e) + '</span></div>';
+  var oc = qty('oc-qty'), rc = qty('rec-qty'), iq = qty('inscr-qty');
+  if (oc > 0) { rows += '<div class="cr"><span class="cl">O&amp;C \\u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
+  if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording \\u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
+  if (iq > 0) {
+    var sub = INSCR * iq, tx = Math.round(sub * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">Inscription \\u00d7' + iq + '</span><span class="cv">' + fm(sub) + '</span></div>';
+    rows += '<div class="cr"><span class="cl">Sales Tax (10.4%)</span><span class="cv">$' + tx.toFixed(2) + '</span></div>';
+    tot += sub + tx;
+  }
   rows += '<div class="cr"><span class="cl">Rights of Interment</span><span class="cv">' + m.rights + '</span></div>';
   if (m.dims) rows += '<div class="cr"><span class="cl">Dimensions</span><span class="cv">' + m.dims + '</span></div>';
   if (m.depth) rows += '<div class="cr"><span class="cl">Depth</span><span class="cv">' + m.depth + '</span></div>';
-  var note = 'The Terrace Garden Memorial Path pricing sheet lists a sales price and a rights count only \\u2014 no E.C.F., opening &amp; closing, recording or inscription charge is printed for this area. Confirm current fees in MIS/Enterprise before writing.';
-  if (m.dimNote) note = m.dimNote + ' ' + note;
+  var note = m.dimNote ? m.dimNote + ' ' + FEE_NOTE : FEE_NOTE;
   return head + rows +
-    '<div class="ctot"><span class="ctl">Sales Price</span><span class="ctv">' + fm(m.price) + '</span></div>' +
+    '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">' + note + '</div>';
 }
+// <<< FEE MATH <<<
+
+var card = document.getElementById('card');
+var pinned = null;
 
 function refOfEl(el) { return el.getAttribute('data-ref'); }
 
@@ -677,7 +707,11 @@ document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
   var n = ev.target.closest(SEL);
   if (n && n.hasAttribute('data-ref') && !n.closest('.mini')) { showCard(n, true); return; }
-  if (!ev.target.closest('#card, .tab, .tbtn')) hideCard();
+  // Clicking the chrome must not drop the selection. '.fees' is in this list because
+  // without it, clicking into a quantity box unpins the very card the box is meant to
+  // update — the input listener then sees pinned === null and does nothing. (The old
+  // MVC page had exactly that defect; its live re-render was unreachable with a mouse.)
+  if (!ev.target.closest('#card, .tab, .tbtn, .fees')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
@@ -869,6 +903,16 @@ scene.addEventListener('keydown', function (ev) {
   apply();
 });
 
+// ── Fee quantities ────────────────────────────────────────────────────────────
+// All three default to 0, so a card opens showing price + E.C.F. and nothing else —
+// the counselor turns on what the family is actually buying. Changing a quantity
+// re-renders the pinned card, and showCard() re-renders the print card with it, so the
+// printout can never disagree with the screen.
+['oc-qty', 'rec-qty', 'inscr-qty'].forEach(function (id) {
+  var e = document.getElementById(id);
+  if (e) e.addEventListener('input', function () { if (pinned) showCard(pinned, false); });
+});
+
 fitScene();
 apply();
 `;
@@ -957,13 +1001,24 @@ ${itemsView()}
 ${overviewView()}
 
   <div class="fees">
-    <span class="fl">Fees are not printed on this area's price sheet</span>
-    <span class="fv">The Terrace Garden Memorial Path pricing sheet states a <b>Sales Price</b> and a <b>Rights of Interment</b> count and nothing else — no E.C.F., no opening &amp; closing, no recording fee, no inscription charge and no tax note. None has been carried over from another area's sheet. Confirm current fees in MIS/Enterprise before writing.</span>
+    <div class="fi"><span class="fl">Inurnment O&amp;C — ${money(FEES.OC)} ea</span>
+      <span class="fv">Qty: <input type="number" id="oc-qty" min="0" max="${FEES.QTY_MAX}" value="0" aria-label="Opening and closing quantity"></span></div>
+    <div class="fi"><span class="fl">Recording Fee — ${money(FEES.REC)} ea</span>
+      <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="${FEES.QTY_MAX}" value="0" aria-label="Recording fee quantity"></span></div>
+    <div class="fi"><span class="fl">Inscription — ${money(FEES.INSCR)} ea (taxable)</span>
+      <span class="fv">Qty: <input type="number" id="inscr-qty" min="0" max="${FEES.QTY_MAX}" value="0" aria-label="Inscription quantity"></span></div>
+    <div class="fi"><span class="fl">E.C.F.</span>
+      <span class="fv">${FEES.ECF_RATE * 100}% of the sales price — not included in the listed prices</span></div>
+    <div class="fi"><span class="fl">Sales Tax</span>
+      <span class="fv">${(FEES.TAX * 100).toFixed(1)}% — applies to the inscription only (taxable merchandise)</span></div>
+    <div class="fsrc">These fees are <b>not printed on the Terrace Garden Memorial Path price sheet</b>, which states a sales price and a rights-of-interment count and nothing else.
+      They are the <b>${FEE_SOURCE.schedule}</b> schedule, applied to this whole area — the niche bank and the nine additional properties alike — by <b>${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn}</b>.
+      Confirm current fees in MIS/Enterprise before writing.</div>
   </div>
   <div class="pfoot">
     <b>Niche bank: row A is the bottom row, row E the top; niches are numbered 1–${TGN.cols} left to right. References read TGN-&lt;row&gt;-&lt;n&gt;.</b><br>
     Additional properties are numbered TGMP-1 … TGMP-${TGMP_ITEMS.length} in the order the pricing sheet prints them; their dimensions are the sheet's own catalog dimensions.<br>
-    ${money(AVAIL_TOTAL)} available at list across ${N_AVAIL} properties, ${RIGHTS_TOTAL} rights of interment. Availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
+    ${money(AVAIL_TOTAL)} available at list across ${N_AVAIL} properties, ${RIGHTS_TOTAL} rights of interment — sales prices only, E.C.F. and fees are additional. Availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
   </div>
 </div><!-- /main -->
 

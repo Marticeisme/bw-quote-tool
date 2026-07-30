@@ -207,9 +207,14 @@
   @media (max-width:700px){.card{right:8px;left:8px;bottom:8px;width:auto;}}
 
   /* ── Footer ── */
-  .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 14px;max-width:900px;margin-left:auto;margin-right:auto;text-align:center;}
-  .fl{color:var(--gold);font-weight:600;display:block;margin-bottom:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
+  .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 14px;max-width:900px;margin-left:auto;margin-right:auto;
+    display:flex;flex-wrap:wrap;gap:12px 16px;justify-content:center;}
+  .fi{font-size:11px;}
+  .fl{color:var(--gold);font-weight:600;display:block;margin-bottom:2px;font-size:11px;letter-spacing:.04em;}
   .fv{color:var(--cream);font-size:11px;line-height:1.6;}
+  .fees input{width:44px;background:rgba(200,169,110,.14);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
+  .fsrc{flex:1 0 100%;text-align:center;font-size:10px;line-height:1.6;color:var(--gold-light);border-top:1px solid var(--gb);padding-top:9px;margin-top:1px;}
+  .fsrc b{color:var(--gold);}
   .printcard{display:none;}
   .pfoot{max-width:900px;margin:12px auto 0;text-align:center;font-size:10px;color:var(--gold-light);line-height:1.6;}
   .pfoot b{color:var(--gold);font-weight:600;}
@@ -272,6 +277,9 @@
       box-shadow:0 0 0 2px #1a2744!important;filter:none!important;transform:none!important;}
     .fees{background:#f5f5f2!important;border-color:#c8a96e!important;}
     .fv{color:#333!important;}
+    .fees input{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
+    .fsrc{color:#444!important;border-top-color:#c8a96e!important;}
+    .fsrc b{color:#1a2744!important;}
   }
 </style>
 </head>
@@ -625,13 +633,24 @@
   </div>
 
   <div class="fees">
-    <span class="fl">Fees are not printed on this area's price sheet</span>
-    <span class="fv">The Terrace Garden Memorial Path pricing sheet states a <b>Sales Price</b> and a <b>Rights of Interment</b> count and nothing else — no E.C.F., no opening &amp; closing, no recording fee, no inscription charge and no tax note. None has been carried over from another area's sheet. Confirm current fees in MIS/Enterprise before writing.</span>
+    <div class="fi"><span class="fl">Inurnment O&amp;C — $875 ea</span>
+      <span class="fv">Qty: <input type="number" id="oc-qty" min="0" max="4" value="0" aria-label="Opening and closing quantity"></span></div>
+    <div class="fi"><span class="fl">Recording Fee — $235 ea</span>
+      <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="0" aria-label="Recording fee quantity"></span></div>
+    <div class="fi"><span class="fl">Inscription — $660 ea (taxable)</span>
+      <span class="fv">Qty: <input type="number" id="inscr-qty" min="0" max="4" value="0" aria-label="Inscription quantity"></span></div>
+    <div class="fi"><span class="fl">E.C.F.</span>
+      <span class="fv">10% of the sales price — not included in the listed prices</span></div>
+    <div class="fi"><span class="fl">Sales Tax</span>
+      <span class="fv">10.4% — applies to the inscription only (taxable merchandise)</span></div>
+    <div class="fsrc">These fees are <b>not printed on the Terrace Garden Memorial Path price sheet</b>, which states a sales price and a rights-of-interment count and nothing else.
+      They are the <b>Mountain View Columbarium, June 2026</b> schedule, applied to this whole area — the niche bank and the nine additional properties alike — by <b>operator ruling of 2026-07-29</b>.
+      Confirm current fees in MIS/Enterprise before writing.</div>
   </div>
   <div class="pfoot">
     <b>Niche bank: row A is the bottom row, row E the top; niches are numbered 1–8 left to right. References read TGN-&lt;row&gt;-&lt;n&gt;.</b><br>
     Additional properties are numbered TGMP-1 … TGMP-9 in the order the pricing sheet prints them; their dimensions are the sheet's own catalog dimensions.<br>
-    $762,000 available at list across 49 properties, 100 rights of interment. Availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
+    $762,000 available at list across 49 properties, 100 rights of interment — sales prices only, E.C.F. and fees are additional. Availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
   </div>
 </div><!-- /main -->
 
@@ -640,17 +659,25 @@
 <script>
 
 'use strict';
+// ── Detail card + fee math ────────────────────────────────────────────────────
+// The Terrace Garden Memorial Path pricing sheet prints a Sales Price and a Rights of
+// Interment count and NOTHING else. The fee schedule applied below is the Mountain View
+// Columbarium June-2026 schedule, applied to this whole area on the operator's ruling of
+// 2026-07-29. It is NOT printed on this area's sheet, and the card says so.
+// Applied exactly as the MVC page's Terrace Garden tab applied it: E.C.F. always, the
+// three quantity fees only when the counselor turns them on, tax on inscription only.
+//
+// EVERYTHING BETWEEN THE TWO MARKERS IS EXTRACTED AND EXECUTED BY
+// scripts/verify_tgmp_map.mjs, which anchors a full card computation against it. Keep
+// this block free of anything that touches the DOM at load time.
+// >>> FEE MATH >>>
 var META = {"TGN-E-1":{"title":"TGN-E-1","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 1","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-2":{"title":"TGN-E-2","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 2","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-3":{"title":"TGN-E-3","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 3","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-4":{"title":"TGN-E-4","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 4","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-5":{"title":"TGN-E-5","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 5","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-6":{"title":"TGN-E-6","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 6","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-7":{"title":"TGN-E-7","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 7","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-E-8":{"title":"TGN-E-8","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row E · Niche 8","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-1":{"title":"TGN-D-1","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 1","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-2":{"title":"TGN-D-2","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 2","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-3":{"title":"TGN-D-3","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 3","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-4":{"title":"TGN-D-4","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 4","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-5":{"title":"TGN-D-5","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 5","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-6":{"title":"TGN-D-6","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 6","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-7":{"title":"TGN-D-7","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 7","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-D-8":{"title":"TGN-D-8","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row D · Niche 8","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-1":{"title":"TGN-C-1","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 1","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-2":{"title":"TGN-C-2","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 2","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-3":{"title":"TGN-C-3","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 3","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-4":{"title":"TGN-C-4","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 4","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-5":{"title":"TGN-C-5","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 5","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-6":{"title":"TGN-C-6","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 6","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-7":{"title":"TGN-C-7","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 7","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-C-8":{"title":"TGN-C-8","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row C · Niche 8","price":16000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-1":{"title":"TGN-B-1","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 1","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-2":{"title":"TGN-B-2","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 2","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-3":{"title":"TGN-B-3","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 3","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-4":{"title":"TGN-B-4","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 4","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-5":{"title":"TGN-B-5","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 5","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-6":{"title":"TGN-B-6","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 6","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-7":{"title":"TGN-B-7","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 7","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-B-8":{"title":"TGN-B-8","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row B · Niche 8","price":14000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-1":{"title":"TGN-A-1","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 1","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-2":{"title":"TGN-A-2","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 2","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-3":{"title":"TGN-A-3","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 3","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-4":{"title":"TGN-A-4","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 4","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-5":{"title":"TGN-A-5","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 5","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-6":{"title":"TGN-A-6","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 6","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-7":{"title":"TGN-A-7","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 7","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGN-A-8":{"title":"TGN-A-8","where":"Niche Bank","sub":"Terrace Garden Memorial Path · Niche bank · Row A · Niche 8","price":12000,"rights":2,"st":"available","dims":"12.5\" W x 12.5\" H","depth":"12\"","dimNote":"Niche size carried from MAPS/MVC_NewGlassFront_NicheMap_1.html (Terrace Garden Niches tab); the Terrace Garden pricing sheet prints no niche dimensions."},"TGMP-1":{"title":"TGMP-1","where":"Additional Property","sub":"Paradiso Pedestal Bench - Seat 36x14x4 Pedestal 30x8x14","price":24000,"rights":2,"st":"available","dims":"Seat 36x14x4 · Pedestal 30x8x14","depth":null,"dimNote":"Overall height 18\" = 4\" seat + 14\" pedestal (the sheet prints the two parts, not a total)."},"TGMP-2":{"title":"TGMP-2","where":"Additional Property","sub":"Paradiso Pedestal Bench - Seat 48x14x4 Pedestal 40x8x14","price":42000,"rights":4,"st":"available","dims":"Seat 48x14x4 · Pedestal 40x8x14","depth":null,"dimNote":"Overall height 18\" = 4\" seat + 14\" pedestal (the sheet prints the two parts, not a total)."},"TGMP-3":{"title":"TGMP-3","where":"Additional Property","sub":"Classic Gray Companion Columbarium with Alcove and Paradiso Shutters 30x17x37","price":52000,"rights":4,"st":"available","dims":"30x17x37","depth":null,"dimNote":null},"TGMP-4":{"title":"TGMP-4","where":"Additional Property","sub":"Paradiso Birdbath and Pedestal","price":52000,"rights":4,"st":"available","dims":null,"depth":null,"dimNote":"The pricing sheet prints no dimensions for this item."},"TGMP-5":{"title":"TGMP-5","where":"Additional Property","sub":"Paradiso Cremation Posts with Absolute Black Shutter12x9x18","price":8000,"rights":1,"st":"available","dims":"12x9x18","depth":null,"dimNote":null},"TGMP-6":{"title":"TGMP-6","where":"Additional Property","sub":"Paradiso Double Cremation Post with Absolute Black Shutters18x9x18","price":16000,"rights":2,"st":"available","dims":"18x9x18","depth":null,"dimNote":null},"TGMP-7":{"title":"TGMP-7","where":"Additional Property","sub":"Paradiso Cremation Post with Carved Rose Antique Finish 6x6x10","price":8000,"rights":1,"st":"available","dims":"6x6x10","depth":null,"dimNote":null},"TGMP-8":{"title":"TGMP-8","where":"Additional Property","sub":"Paradiso Cremation Post with Shaped Carved Antique Daffodils 9x9x12","price":8000,"rights":1,"st":"available","dims":"9x9x12","depth":null,"dimNote":null},"TGMP-9":{"title":"TGMP-9","where":"Additional Property","sub":"Paradiso Cremation Post with Shaped Carved Antique Birds 9x9x12","price":8000,"rights":1,"st":"available","dims":"9x9x12","depth":null,"dimNote":null}};
 var STATUS_LABEL = {"sold":"Sold","unpriced":"Not Priced"};
+var OC = 875, REC = 235, INSCR = 660, TAX = 0.104, ECF_RATE = 0.1;
+var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are the Mountain View Columbarium, June 2026 schedule, applied to the Terrace Garden Memorial Path by operator ruling of 2026-07-29 \u2014 they are NOT printed on this area\'s price sheet. Confirm current fees in MIS/Enterprise before writing.';
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
-
-// ── Detail card ───────────────────────────────────────────────────────────────
-// The Terrace Garden Memorial Path pricing sheet prints a Sales Price and a Rights of
-// Interment count and NOTHING else — no E.C.F., no opening & closing, no recording fee,
-// no inscription, no tax. Fees are never borrowed from another area's sheet, so this
-// card does exactly what the sheet does and says where the rest has to come from.
-var card = document.getElementById('card');
-var pinned = null;
+var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
+var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
 
 function cardHtml(ref) {
   var m = META[ref];
@@ -663,16 +690,30 @@ function cardHtml(ref) {
     return head + '<div class="cardst">' + (STATUS_LABEL[m.st] || m.st) + '</div>' +
       '<div class="cnote">Not available \u2014 no pricing shown. Confirm in MIS/Enterprise.</div>';
   }
-  var rows = '<div class="cr"><span class="cl">Sales Price</span><span class="cv">' + fm(m.price) + '</span></div>';
+  var price = +m.price, e = ecf(price), tot = price + e;
+  var rows = '<div class="cr"><span class="cl">Sales Price</span><span class="cv">' + fm(price) + '</span></div>';
+  rows += '<div class="cr"><span class="cl">E.C.F. (10%)</span><span class="cv">' + fm(e) + '</span></div>';
+  var oc = qty('oc-qty'), rc = qty('rec-qty'), iq = qty('inscr-qty');
+  if (oc > 0) { rows += '<div class="cr"><span class="cl">O&amp;C \u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
+  if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording \u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
+  if (iq > 0) {
+    var sub = INSCR * iq, tx = Math.round(sub * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">Inscription \u00d7' + iq + '</span><span class="cv">' + fm(sub) + '</span></div>';
+    rows += '<div class="cr"><span class="cl">Sales Tax (10.4%)</span><span class="cv">$' + tx.toFixed(2) + '</span></div>';
+    tot += sub + tx;
+  }
   rows += '<div class="cr"><span class="cl">Rights of Interment</span><span class="cv">' + m.rights + '</span></div>';
   if (m.dims) rows += '<div class="cr"><span class="cl">Dimensions</span><span class="cv">' + m.dims + '</span></div>';
   if (m.depth) rows += '<div class="cr"><span class="cl">Depth</span><span class="cv">' + m.depth + '</span></div>';
-  var note = 'The Terrace Garden Memorial Path pricing sheet lists a sales price and a rights count only \u2014 no E.C.F., opening &amp; closing, recording or inscription charge is printed for this area. Confirm current fees in MIS/Enterprise before writing.';
-  if (m.dimNote) note = m.dimNote + ' ' + note;
+  var note = m.dimNote ? m.dimNote + ' ' + FEE_NOTE : FEE_NOTE;
   return head + rows +
-    '<div class="ctot"><span class="ctl">Sales Price</span><span class="ctv">' + fm(m.price) + '</span></div>' +
+    '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">' + note + '</div>';
 }
+// <<< FEE MATH <<<
+
+var card = document.getElementById('card');
+var pinned = null;
 
 function refOfEl(el) { return el.getAttribute('data-ref'); }
 
@@ -737,7 +778,11 @@ document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
   var n = ev.target.closest(SEL);
   if (n && n.hasAttribute('data-ref') && !n.closest('.mini')) { showCard(n, true); return; }
-  if (!ev.target.closest('#card, .tab, .tbtn')) hideCard();
+  // Clicking the chrome must not drop the selection. '.fees' is in this list because
+  // without it, clicking into a quantity box unpins the very card the box is meant to
+  // update — the input listener then sees pinned === null and does nothing. (The old
+  // MVC page had exactly that defect; its live re-render was unreachable with a mouse.)
+  if (!ev.target.closest('#card, .tab, .tbtn, .fees')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
@@ -927,6 +972,16 @@ scene.addEventListener('keydown', function (ev) {
   if (k.indexOf('Arrow') === 0) curPreset = null;
   ev.preventDefault();
   apply();
+});
+
+// ── Fee quantities ────────────────────────────────────────────────────────────
+// All three default to 0, so a card opens showing price + E.C.F. and nothing else —
+// the counselor turns on what the family is actually buying. Changing a quantity
+// re-renders the pinned card, and showCard() re-renders the print card with it, so the
+// printout can never disagree with the screen.
+['oc-qty', 'rec-qty', 'inscr-qty'].forEach(function (id) {
+  var e = document.getElementById(id);
+  if (e) e.addEventListener('input', function () { if (pinned) showCard(pinned, false); });
 });
 
 fitScene();
