@@ -28,6 +28,10 @@ const PDF_PAGES = [
   // PDF ran past 4 pages gets a compact PRINT layout capped at 4, because these are
   // emailed and printed for families as leave-behinds. See GUIDE_MAX_PAGES below.
   ['pdf-assets/Burial Vault Guide.pdf', 4],
+  // Sprint-08 Track Q: the operator asked for an infographic that is EXACTLY four
+  // printed pages, so this one is an equality, not a cap. Three pages is a regression
+  // too — it means the print condense shrank and the last page is a lone footer.
+  ['pdf-assets/Glass-Front Niche Guide.pdf', 4],
 ];
 
 // The 4-page cap, asserted on the built artifact. Product catalogs (caskets, urns,
@@ -40,7 +44,7 @@ const CAPPED_GUIDES = [
   'Cemetery Property Guide.pdf', 'Medicaid and Planning Ahead.pdf',
   'Medicaid Professional Reference.pdf', 'Cremation or Burial.pdf',
   'Urn Placement Options.pdf', 'Scattering Garden Pricing.pdf', 'Burial Guide.pdf',
-  'Granite Niches Guide.pdf',
+  'Granite Niches Guide.pdf', 'Glass-Front Niche Guide.pdf',
 ];
 
 // Guides whose own requirement is tighter than the family-guide cap. The granite-niche
