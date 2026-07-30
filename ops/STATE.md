@@ -116,6 +116,32 @@ wrote 5→6) — auto-merge produced pill 6 / 7 cards, caught by verify_guides_p
 director merge, resolved to 7. OPEN operator call: GOMN O&C qty defaults to 1
 (matching ECL) on an all-companion wall — should it default to 2?
 
+**Track W MERGED (director-audited):** `MAPS/TGMP_Map.html` — Terrace Garden Memorial
+Path 3D (TGN bank 40 niches $544,000 + 9 TGMP properties $218,000; $762,000 / 100
+rights available). **TGN moved OFF the MVC page** (operator ruling, one home): carried
+by script-proven parity 40/40 identical on ref+price+status+rights vs
+`789a9a4:MAPS/MVC_…`, removed from `mvc-niche-data.mjs` entirely, MVC island anchors
+untouched (145 / $1,870,000, gate re-run PASS), pointer notice in the old tab's spot.
+Gate sabotaged 8 ways. The niche size 12.5"×12.5" carried from the MVC page and
+labelled as such. guides.html Maps pill hit the predicted collision AGAIN (V+W both
+appended; real conflict this time) — resolved by director to pill 8, verify green.
+**Fee follow-up in flight (Track W2):** W shipped fee-less (TGMP sheet prints none);
+operator then ruled "MVC schedule applies" — W2 is restoring O&C $875 / Recording $235
+/ Inscription $660 + 10.4% / ECF 10% via the data module and INVERTING the gate's
+fee-abstinence section.
+
+**Track P MERGED (director-audited):** `granite-niches-guide.html` + 2-page PDF —
+ROAC $7,995–$17,595 / GOMN $4,995–$8,995 / TGN $12,000–$16,000 / TGMP band
+$8,000–$52,000 · 1–4 rights, every figure reconciled by NEW
+`scripts/verify_granite_niche_ranges.mjs` against the live modules; fees printed for
+ROAC+GOMN, none for Terrace (needs P2 follow-up now that the operator ruled MVC
+schedule applies); 6 photos shipped with per-photo PII verdicts, GOMN deliberately
+photo-less (all its photos show legible names — the page says so); PDF embeds ZERO
+raster images (print hides photography). Card in Getting Started, pill 8. OPEN for
+Martice: ROAC's fee amounts have no dated sheet in the repo (carried from the old
+page's math) — confirm in MIS; and what does GOMN's "NO PHOTOS ALLOWED" actually
+prohibit?
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.
