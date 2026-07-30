@@ -295,6 +295,97 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   .cover-footer{display:none;}
   .cover-stripe{display:none;}
 }
+/* === PRINT CONDENSE (sprint-07 Track G) === */
+/* Operator decision 2026-07-29: these guides are printed and emailed to families as
+   leave-behinds, and this one's PDF ran to 11 pages. Capped at 4. Every rule below is
+   PRINT MEDIA ONLY - screen rendering is untouched and pixel-diffed. Prices, table rows
+   and hard rules (eligibility, deadlines, RCW citations) are preserved verbatim; only
+   spacing, type scale and decorative art are compressed. */
+@media print{
+/* -- masthead + base type ---------------------------------------------- */
+  body{font-size:8pt;line-height:1.32}
+  .doc-sheet{padding:0 .4in}
+  .cover{margin:0 -.4in;padding:9px .4in 8px}
+  .cover h1{font-size:14pt;margin-bottom:3px}
+  .cover-sub{font-size:8pt;line-height:1.3;max-width:none}
+  .cover-logo{height:16px;margin-bottom:5px}
+  .cover-kicker{font-size:6.5px;margin-bottom:2px}
+  .cover-rule{margin:5px 0 0}
+
+  /* -- one document-wide two-column flow ---------------------------------
+     A multicol per section has to balance its own columns, and eight ragged
+     column bottoms cost roughly a page on their own. Flowing the whole sheet
+     packs continuously; only the masthead, the wide tables and the footer span
+     both columns. */
+  .doc-sheet{column-count:2;column-gap:15px}
+  .cover,.contents,.doc-footer,.cta{column-span:all}
+  .compare{column-span:all}
+  .section{padding:5px 0 3px}
+  .section h2{font-size:12.5pt;margin:0 0 1px;break-after:avoid;page-break-after:avoid}
+  .section .sub{font-size:8pt;margin:0 0 4px}
+  .section .subhead,.subhead{font-size:10.5pt;margin:7px 0 3px;break-after:avoid;page-break-after:avoid}
+  /* Keep the kicker/heading/rule stack together: a column break between the
+     orange SECTION N kicker and its title leaves an orphan kicker at the foot of
+     a column, which is what happened to Section 4 of the scattering guide. */
+  .section-label{font-size:7pt;letter-spacing:.12em;margin:0 0 1px;break-after:avoid;page-break-after:avoid}
+  .rule{height:2px;margin:0 0 5px;break-after:avoid;page-break-after:avoid}
+  .section .sub{break-after:avoid;page-break-after:avoid}
+  .section p{margin:0 0 5px;font-size:8pt;line-height:1.32;max-width:none}
+
+  /* -- cards flow down a column instead of a wide grid -------------------- */
+  .grid{display:block;margin:3px 0 5px}
+  .card{padding:7px 9px 6px;margin:0 0 6px;border-radius:6px;break-inside:avoid}
+  .card h3{font-size:10pt;margin:0 0 2px}
+  .card p{font-size:8pt;line-height:1.34}
+  .card p + p{margin-top:5px}
+  .card .fig{font-size:13pt;margin:0 0 2px}
+
+  /* -- callouts ----------------------------------------------------------- */
+  .band{padding:8px 11px;margin:5px 0 6px;border-radius:8px;break-inside:avoid}
+  .band h3{font-size:11pt;margin:0 0 4px}
+  .band p{font-size:8pt;line-height:1.38}
+  .band p + p{margin-top:5px}
+  .note{padding:7px 11px;margin:5px 0 6px;border-left-width:3px;border-radius:0 6px 6px 0;break-inside:avoid}
+  .note h3{font-size:10pt;margin:0 0 3px}
+  .note p{font-size:8pt;line-height:1.38}
+  .note p + p{margin-top:5px}
+
+  /* -- comparison table: spans both columns, tight cells ------------------ */
+  .compare{font-size:8pt;margin:4px 0 7px;border-radius:6px}
+  .compare th,.compare td{padding:5px 7px}
+  .compare thead th{font-size:10.5pt}
+  .compare thead th:first-child{font-size:7pt}
+  .compare tbody th{font-size:8pt}
+
+  /* -- charge list -------------------------------------------------------- */
+  .costs{padding:2px 11px;margin:4px 0 6px;border-radius:6px;break-inside:avoid}
+  .charge-list li{padding:5px 0}
+  .charge-list strong{font-size:9.5pt;margin-bottom:1px}
+  .charge-list span{font-size:8pt;line-height:1.35}
+
+  /* -- FAQ ---------------------------------------------------------------- */
+  .faq{margin-top:4px}
+  .faq details{break-inside:avoid;padding:0 0 2px}
+  .faq summary{padding:4px 0 2px;font-size:9.5pt}
+  .faq .answer{padding:0 0 5px}
+  .faq .answer p{font-size:8pt;line-height:1.34}
+  .faq .answer p + p{margin-top:4px}
+
+  /* -- footer -------------------------------------------------------------- */
+  .doc-footer{padding:9px 0 7px}
+  .doc-footer .footer-logo{height:14px;margin-bottom:5px}
+  .doc-footer .footer-hours{font-size:8pt;margin-bottom:2px}
+  .doc-footer .footer-legal{font-size:7pt}
+
+  /* -- statute citations stay verbatim, only the chrome shrinks ------------ */
+  .lawcite{font-size:7.5pt}
+  .section table{font-size:8pt;margin:4px 0 6px;border-radius:6px}
+  .section th,.section td{padding:5px 7px}
+  .section thead th{font-size:10pt}
+  .section thead th:first-child{font-size:7pt}
+  .section tbody th{font-size:8pt}
+}
+/* === END PRINT CONDENSE === */
 </style>
 </head>
 <body>

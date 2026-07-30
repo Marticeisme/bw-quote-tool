@@ -24,7 +24,22 @@ const PAGE_PX = 1056; // 11in at 96dpi, matching @page{size:letter;margin:0}
 
 const PDF_PAGES = [
   ['pdf-assets/Direct Cremation Plan Example.pdf', 2],
-  ['pdf-assets/Burial Vault Guide.pdf', 10],
+  // Was 10 until 2026-07-29. Operator decision that day: every family guide whose
+  // PDF ran past 4 pages gets a compact PRINT layout capped at 4, because these are
+  // emailed and printed for families as leave-behinds. See GUIDE_MAX_PAGES below.
+  ['pdf-assets/Burial Vault Guide.pdf', 4],
+];
+
+// The 4-page cap, asserted on the built artifact. Product catalogs (caskets, urns,
+// keepsakes, cremation containers, the GPL, marker sizes) are deliberately NOT here:
+// a catalog is as long as its catalog.
+const GUIDE_MAX_PAGES = 4;
+const CAPPED_GUIDES = [
+  'Granite Marker Guide.pdf', 'Cremation Guide.pdf', 'Veterans Guide.pdf',
+  'Who Decides.pdf', 'Burial Vault Guide.pdf', 'Terramation Guide.pdf',
+  'Cemetery Property Guide.pdf', 'Medicaid and Planning Ahead.pdf',
+  'Medicaid Professional Reference.pdf', 'Cremation or Burial.pdf',
+  'Urn Placement Options.pdf', 'Scattering Garden Pricing.pdf', 'Burial Guide.pdf',
 ];
 
 let bad = 0;
@@ -37,6 +52,15 @@ for (const [file, want] of PDF_PAGES) {
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
   if (n === want) ok(`${path.basename(file).padEnd(36)} ${n} pages`);
   else fail(`${path.basename(file)}: expected ${want} pages, built PDF has ${n}`);
+}
+
+console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages) ===`);
+for (const name of CAPPED_GUIDES) {
+  const file = `pdf-assets/${name}`;
+  if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} pages`);
+  else fail(`${name}: ${n} pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
 }
 
 console.log('\n=== "ALL ON ONE PAGE" (print layout) ===');
