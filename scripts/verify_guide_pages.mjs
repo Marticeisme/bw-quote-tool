@@ -32,6 +32,10 @@ const PDF_PAGES = [
   // printed pages, so this one is an equality, not a cap. Three pages is a regression
   // too — it means the print condense shrank and the last page is a lone footer.
   ['pdf-assets/Glass-Front Niche Guide.pdf', 4],
+  // Sprint-08 Track U: the operator asked for a ONE-page infographic covering the Lake
+  // and Rose urn gardens, so this is an equality too. Two pages means the print condense
+  // stopped fitting; it is a regression even though it clears the 4-page family cap.
+  ['pdf-assets/Urn Gardens at Washington Memorial Park.pdf', 1],
 ];
 
 // The 4-page cap, asserted on the built artifact. Product catalogs (caskets, urns,
@@ -45,6 +49,7 @@ const CAPPED_GUIDES = [
   'Medicaid Professional Reference.pdf', 'Cremation or Burial.pdf',
   'Urn Placement Options.pdf', 'Scattering Garden Pricing.pdf', 'Burial Guide.pdf',
   'Granite Niches Guide.pdf', 'Glass-Front Niche Guide.pdf',
+  'Urn Gardens at Washington Memorial Park.pdf',
 ];
 
 // Guides whose own requirement is tighter than the family-guide cap. The granite-niche

@@ -28,6 +28,7 @@ const PAGES = [
   'burial-guide.html', 'cremation-guide.html', 'scattering-guide.html',
   'direct-cremation.html', 'vault-guide.html', 'outside-marker-rules.html',
   'terramation-guide.html', 'granite-niches-guide.html', 'glass-front-niches-guide.html',
+  'urn-gardens-guide.html',
   // Catalogs print and download as PDFs too, so item 20 applies to them equally.
   'urns-guide.html', 'keepsake-urns-guide.html', 'wood-caskets.html', 'metal-caskets.html',
   'all-caskets.html', 'cremation-containers-rental-caskets.html',

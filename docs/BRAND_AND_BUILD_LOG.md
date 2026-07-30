@@ -1628,6 +1628,67 @@ check` 8 blocks 0 errors.
 
 ---
 
+### 2026-07-29 — Urn Gardens one-page infographic (sprint-08 Track U)
+Branch `s08/urn-gardens`. New `urn-gardens-guide.html` covers the **Lake Urn Garden** and
+the **Rose Urn Garden**, built from the operator's own slide
+(`Urn Garden 1 Page Infographic Use Photos.png`). PDF
+`pdf-assets/Urn Gardens at Washington Memorial Park.pdf`, **exactly 1 page, 724 KB**.
+Card in guides.html → **Getting Started** (now 10), after Track Q's.
+
+**The map-repo price exception was exercised and came back empty — write that down rather
+than repeat it.** Track U was authorised to read price aggregates out of the gitignored
+`wmp-cemetery-map/` because `data/prices.json` carries no urn-garden prices. It was read:
+the ONLY two files under `wmp-cemetery-map/data/` with a `price` field are
+`garden19/columbarium.json` and `mausolea/MVCN.json` — Rock of Ages and the Mountain View
+island. Neither garden is priced there, so **no map data crossed into this repo at all**.
+The figures instead come from sources already public here: `index.html`'s own `qGarden`
+option `lake_urn|5495|825` for the space and its endowment care, its `qBronze` options for
+the five urn-garden memorials, and `data/prices.json` for the O&C and recording fees.
+`scripts/verify_urn_garden_ranges.mjs` reconciles all of it, and its **map probe re-checks
+the map repo at gate time and FAILS if urn-garden prices ever appear there** — at that
+point the page would have a better source than the one it uses. The probe skips with an
+explicit NOTE when the folder is absent, which it is in every worktree and fresh clone.
+
+**The Rose Urn Garden has no published price anywhere, and the gate enforces the silence.**
+Not in `data/prices.json`, not in the map repo, not in `index.html`, not in `MAPS/` or
+`reference-docs/`. So the page prints *"Ask us today's price"* and the verifier **fails if
+anybody types a number into it**. Escalated to the operator rather than guessed.
+
+**Rights: the slide and `index.html` disagree, and the slide is newer.** The operator's
+slide says *"1 OR 2 Rights Per Space"*; `index.html`'s `SECTION_SHAPES` records the Lake
+Urn Garden as `capacity: 1` ("holds ONE urn", Martice 2026-07-27). The page follows the
+slide, `index.html` was **not** touched (scope discipline), and the verifier pins the
+string verbatim so the disagreement surfaces if either side moves. **Operator question.**
+
+**Three print-layout scars, all measured rather than guessed.** (1) `break-inside:avoid`
+on the charge table forced all ten rows into one column, 375 px tall, and that alone cost
+a second sheet; letting it break across the two columns halved it, and Chrome repeats the
+`<thead>` on the continuation. (2) `break-after:avoid` on a heading is **not** honoured in
+a Chrome multicol flow — Section 3's heading stranded itself at the foot of column one
+with its cards at the head of column two; wrapping heading+cards in one `break-inside:avoid`
+block fixed it. (3) Chrome **balances** columns, so trimming one column's content buys you
+only about half of it back — the reliable levers were the full-width bands and the
+photograph heights. Final print height 1031 px of a 1056 px page: 25 px of headroom.
+
+**Photographs: three, `urn-garden-images/`, all cut from the one slide** (595×661, 591×661,
+1220×656; 150–275 KB), re-encoded so no EXIF/GPS travels with them. Per the operator's
+2026-07-29 ruling, legible names on memorial plaques are fine to publish; no frame contains
+a recognisable face. Two of the three are **portrait**, which mattered twice: uncapped they
+made the screen page a five-screen scroll, and a centred crop of the marker-row frame kept
+the trees and threw away the memorials its own caption points at. Both are fixed with
+height caps plus per-filename `object-position` overrides that apply on screen **and** in
+print.
+
+Gates: `verify_urn_garden_ranges.mjs` all green, and all five of its failure modes
+(wrong space price, wrong fee, stale range, a price typed into the Rose Urn Garden, an
+altered rights band) were negative-tested rather than assumed to bite;
+`verify_guide_pages.mjs` all green with Urn Gardens at 1 page, exact;
+`verify_guides_page.mjs` ALL OK, 35 cards; `verify_print_header.mjs` 25 pages, 0 over cap
+(this one 23.4 mm print / 76.8 mm screen); `npm run check` 8 blocks, 0 errors. The built
+page was rendered and looked at.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
