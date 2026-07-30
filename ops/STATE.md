@@ -163,6 +163,22 @@ defect (fee panel unreachable with a mouse) — sprint-09 candidate alongside th
 pinned-card-hover backport. Open judgement call for Martice: inscription is offered on
 the nine properties too (the old tab was niche-only) — one-line change if wrong.
 
+**Track Q MERGED (director-audited):** `glass-front-niches-guide.html` + exactly-4-page
+PDF — ECL $10,995–$82,500 (28/85), MVC island $7,000–$48,000 (145 openings, 2–4
+rights), Radiance $5,495–$12,095 (17/74), Serenity $2,195–$16,495 (10/48); every
+figure + fee reconciled by NEW `scripts/verify_glass_niche_ranges.mjs` incl.
+no-cross-applied-fee assertions; glass-vs-granite claims each carry a named backing,
+superiority claims explicitly disclaimed; 7 photos under the operator's relaxed
+photo ruling (two frames rejected for LIVING people in frame — the ruling was read as
+covering plate text, not bystanders). Merge conflicted only in BRAND_AND_BUILD_LOG
+(P2+Q both appended; both entries kept). NOTE: the harness attached a security flag to
+Q suspecting the photo-rule change was injected — false positive: the ruling is the
+operator's own message in the main conversation, and nothing was pushed. OPEN for
+Martice: (a) confirm which photo is Radiance vs Serenity (inferred from column counts
+8 vs 6); (b) memorial PORTRAITS of the deceased inside occupied niches appear at
+thumbnail scale in honest photos of occupied walls — Q kept them, reading the
+face-exclusion as living people; say the word to go unsold-inventory-only.
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.
