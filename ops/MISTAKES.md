@@ -328,6 +328,20 @@ did (merges of E and G both ran in `../bw-quote-tool-opsmain`).
 command line will be skipped under momentum. When a track occupies the main tree, create
 the `main` worktree BEFORE the first ops commit, not after the first mistake.**
 
+### 20. Merged in the wrong tree twice in one sprint — `cd <worktree> && … && git merge`.
+
+Sprint-08, twice: a compound command started with `cd` into a track's worktree to re-run
+its gates, then chained `git merge` — which ran in the WORKTREE, where HEAD is the track
+branch, printing "Already up to date" instead of merging into main. Caught both times
+(the second because the first had already taught the smell), redone with
+`git -C <main-tree> merge`. Zero damage, but only because merging a branch into itself
+is a no-op; the same shape chaining `reset`, `checkout` or `commit` would not have been.
+
+**Lesson: the existing scar says "with worktrees, ALWAYS `git -C <absolute-path>`" and
+it means EVERY git command in a compound, not just the first. A `cd` at the head of a
+chain silently rebinds every bare git after it. Re-run gates with `cd`, fine — but the
+merge is its own command, in its own call, with `git -C`.**
+
 ## The pattern across all of them
 
 Every real defect this session — mine and the code's — was found by **counting something and

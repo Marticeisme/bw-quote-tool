@@ -151,6 +151,18 @@ to the granite guide and drop its no-photo paragraph. (2) **Push re-confirmed**:
 all tracks are done and you check them you can push everything live on github you have
 my word" — push fires after final merge + full green contract, no further ask.
 
+**Track W2 MERGED (director-audited):** the TGMP map now carries the MVC June-2026
+fee schedule per the operator's ruling (O&C $875 / Recording $235 / Inscription $660 +
+10.4% tax on the inscription alone / ECF 10%), applied to the TGN niches AND the nine
+properties, with provenance stated on the page (schedule not printed on this area's
+sheet; operator-confirmed 2026-07-29; confirm amounts in MIS). Gate §8 inverted from
+fee-abstinence to schedule-presence with executable card-math anchors ($19,439 /
+$60,700, proven two independent ways) and a fee-amount sabotage. W2 also fixed
+click-into-qty-box-unpins-the-card on TGMP and reports the OLD MVC page has the same
+defect (fee panel unreachable with a mouse) — sprint-09 candidate alongside the
+pinned-card-hover backport. Open judgement call for Martice: inscription is offered on
+the nine properties too (the old tab was niche-only) — one-line change if wrong.
+
 Known environment fact from F's run: `test-price-update-path.mjs` hardcodes port 3737
 and cannot pass in a worktree while another tree's dev server owns the port — suite is
 green on the tree that owns it; consider a --port flag some sprint.
