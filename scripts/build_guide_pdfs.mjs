@@ -29,6 +29,7 @@ const JOBS = [
   ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
   ['terramation-guide.html',        'pdf-assets/Terramation Guide.pdf'],
   ['granite-niches-guide.html',     'pdf-assets/Granite Niches Guide.pdf'],
+  ['glass-front-niches-guide.html', 'pdf-assets/Glass-Front Niche Guide.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added

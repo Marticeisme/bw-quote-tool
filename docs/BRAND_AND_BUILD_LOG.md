@@ -1537,6 +1537,55 @@ the new ≤2 cap; `verify_print_header.mjs` 23 pages, 0 over cap (this one 24.6 
 
 ---
 
+### 2026-07-29 — Glass-Front Niches infographic (sprint-08 Track Q)
+Branch `s08/glass-infographic`. New `glass-front-niches-guide.html` is the counterpart to
+Track P's granite guide and covers **all four glass-front locations**: the Eternal Light
+Columbarium, the new Mountain View island, and the Radiance and Serenity walls in the
+Chapel of Memories. Each guide links the other. PDF `pdf-assets/Glass-Front Niche
+Guide.pdf`, **exactly 4 pages, 572 KB**. Card in guides.html → **Getting Started** (now 9),
+beside the Granite Niches card.
+
+**Four pages is a requirement, not an outcome.** The operator asked for exactly four
+printed pages. At the granite guide's condense settings the content came to three pages
+plus a lone-footer fourth, so the print type scale here is deliberately **larger** (body
+9 pt vs the granite guide's 8 pt, tables 8.5 pt, photographs 2.3–2.7 in tall) and the
+photography **prints** instead of being `display:none`. `verify_guide_pages.mjs` asserts
+`== 4` in `PDF_PAGES`, not just the ≤4 family cap: shrink the condense and it fails.
+
+**Every figure is computed.** `scripts/verify_glass_niche_ranges.mjs` mirrors Track P's
+verifier and reconciles ranges, fees, availability counts, the rights band and both size
+tables against `ecl-niche-data.mjs`, `mvc-niche-data.mjs` and the RAD/SER data in
+`com-crypt-data.mjs`. Current values: ECL **$10,995–$82,500** (28 of 85 available), MVC
+**$7,000–$48,000** (145 openings, 2–4 rights), Radiance **$5,495–$12,095** (17 of 74),
+Serenity **$2,195–$16,495** (10 of 48). The MVC range is the **145-opening island only** —
+the Terrace Garden left that module this sprint.
+
+**Fees are never carried across, and the check enforces it.** These four locations have
+three different fee boxes (ECL $835/$225 + optional scroll $785 and vase $370; MVC
+$875/$235/$660 + 10.4 % tax; RAD/SER $835/$225). The verifier fails if an MVC-only amount
+appears in the ECL or Chapel of Memories section, if the ECL vase escapes its section, or
+if the **Chapel of Memories CRYPT vase ($415)** appears anywhere on a niche page.
+
+**Photographs: seven, `glass-niche-images/` (six new) plus one reused granite frame.**
+All ≤1400 px, 173–296 KB, re-encoded so no EXIF/GPS travels with them. Per the operator's
+2026-07-29 ruling, legible names and dates on memorial plates are fine to publish; frames
+with a **living person** in them are not, which is why the sharpest ECL elevation was
+dropped (the photographer is reflected in the glass, face recognisable) and a second was
+cropped to its lower bank to lose a fainter reflection. The glass-vs-granite pair reuses
+Track P's `granite-niche-images/tgn-niche-bank.jpg` — at thumbnail size a blank granite
+bank reads as "granite front" and a close-up of polished stone does not.
+
+**Radiance vs Serenity was identified by column count**, not by filename: Radiance is 8
+spaces across and Serenity 6, and the double-height Family openings visible mid-wall
+confirm the Radiance frame. Worth re-checking with the operator.
+
+Gates: `verify_glass_niche_ranges.mjs` all green; `verify_guide_pages.mjs` all green
+(Glass-Front 4 pages, exact); `verify_print_header.mjs` 24 pages, 0 over cap (this one
+24.6 mm print / 104.9 mm screen); `verify_guides_page.mjs` ALL OK, 34 cards; `npm run
+check` 8 blocks 0 errors.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
