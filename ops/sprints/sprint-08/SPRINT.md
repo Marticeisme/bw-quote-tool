@@ -77,14 +77,20 @@ prices effective Jan 30 2025; fail-safe status reading; sheet rules carried verb
 ALLOWED). Track H and Track V both append a Maps card — director resolves the pill
 count at merge.
 
-Operator amendment: Track P covers BOTH granite locations (ROAC + GOMN) — the granite
-counterpart of Track Q's glass-front infographic. P therefore depends on Track V's
-`gomn-niche-data.mjs` and runs AFTER V.
+| W — Terrace Garden Memorial Path | `s08/tgmp-map` | `../bw-quote-tool-tgmp` | NEW `scripts/tgmp-data.mjs`, `build_tgmp_map.mjs`, `verify_tgmp_map.mjs`, `MAPS/TGMP_Map.html`; TGN MOVED OUT of the MVC page (data/builder/gate edits, island anchors untouched); `guides.html` Maps card |
 
-Parallelism stays ≤2: F + H spawn together; when F completes, V takes its slot; when V
-completes, P; Q after P and H merge; U after Q. Merge order:
-**F → V → P → H → Q → U** (H merges whenever it lands relative to V/P; guides.html
-pill conflicts resolved by the director at each merge).
+Operator amendments: Track P covers ALL granite/urn-placement locations — ROAC + GOMN
++ the brand-new Terrace Garden (TGN niches + TGMP placements) — the granite counterpart
+of Track Q's glass-front infographic. P depends on V's `gomn-niche-data.mjs` AND W's
+`tgmp-data.mjs`. Track W builds the Terrace Garden Memorial Path 3D map (sheet: TGN
+8×5=40 @ $12k/$14k/$16k rows, 2 rights each; 9 TGMP items $8k–$52k, 1–4 rights;
+pricing PDF wins over screenshot) and MOVES TGN out of the MVC map to its one home
+(operator ruling; MVC island anchors 145/$1,870,000 untouched, pointer link left).
+
+Parallelism stays ≤2: F + H spawned together; V took F's slot; W takes the next free
+slot (V or H landing); then P (after V+W); Q after P and H; U last. Merge order:
+**F → V → W → P → H → Q → U** (H merges whenever it lands; guides.html pill conflicts
+resolved by the director at each merge).
 
 ## Gates
 

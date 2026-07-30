@@ -28,6 +28,17 @@ glass front niches"):
    sheet's "NO PHOTOS ALLOWED" rule carried verbatim. Photos from
    `D:\Cemetery Photos Misc\GOMN Niches` (the front .jpeg + two 2026-07 shots), same
    PII rule.
+3. **Terrace Garden Memorial Path (TGN + TGMP)** — operator amendment 2026-07-29:
+   "these options need to be added to the granite niche guide as well since these
+   are brand new granite niches and other urn placement options." From
+   `scripts/tgmp-data.mjs` (landed by Track W before you): the BRAND-NEW TGN granite
+   niche bank (40 niches, 2 rights per niche, price range from the module) and the
+   other urn placement options along the path — Paradiso benches, cremation posts
+   (single/double/carved), the Companion Columbarium with Alcove, the Birdbath —
+   presented compactly (a short "other placements along the path, $8,000–$52,000
+   with 1–4 rights of interment" band computed from the module, not an item-by-item
+   catalog). Photos from `D:\Cemetery Photos Misc\Terrace Garden Memorial Path`,
+   same PII rule. Cross-link `MAPS/TGMP_Map.html`.
 
 Frame the guide as "granite niches at Washington Memorial Park" — the counterpart of
 the glass-front infographic (Track Q). A short line may note the glass-front
@@ -37,9 +48,10 @@ contrast with glass-front, keep the wording factual.
 
 ## Content sources — nothing invented
 
-- **Prices/inventory:** `scripts/roac-niche-data.mjs` AND `scripts/gomn-niche-data.mjs`
-  (the live datasets in this repo — Track V lands the GOMN one before you spawn).
-  Compute each general price range FROM AVAILABLE NICHES in the module and
+- **Prices/inventory:** `scripts/roac-niche-data.mjs`, `scripts/gomn-niche-data.mjs`
+  AND `scripts/tgmp-data.mjs` (the live datasets in this repo — Tracks V and W land
+  the last two before you spawn).
+  Compute each general price range FROM AVAILABLE inventory in the module and
   state it as a range ("generally $X–$Y depending on row and location" style). A tiny
   script must reconcile the printed range against the module — the range on the page
   is generated-or-verified, never typed from memory. Fees (O&C, recording, ECF) only
@@ -84,9 +96,10 @@ folder; stage each by name.
 
 ## Verification gates (quote outputs verbatim)
 
-1. Price-range reconciliation script output: BOTH printed ranges equal the min/max
-   available price in `scripts/roac-niche-data.mjs` and `scripts/gomn-niche-data.mjs`
-   respectively.
+1. Price-range reconciliation script output: ALL printed ranges (ROAC, GOMN, TGN,
+   and the TGMP other-placements band) equal the min/max available figures in
+   `scripts/roac-niche-data.mjs`, `scripts/gomn-niche-data.mjs` and
+   `scripts/tgmp-data.mjs` respectively.
 2. PDF page count ≤2 (PyMuPDF), `verify_guide_pages.mjs` green including your new cap
    entry; `verify_guides_page.mjs` ALL OK; `verify_print_header.mjs` under cap.
 3. `npm run check` 8/0; `npm test` ≥ `1327 passed, 0 failed across 27 suites`.
