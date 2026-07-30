@@ -172,7 +172,9 @@ ck(AVAIL_TOTAL === 685175, `available total is ${money(685175)} (got ${money(AVA
 console.log('\nNo price is rendered for a sold or unpriced niche');
 {
   const unsell = new Set(data.filter((n) => !sellable(n)).map((n) => n.ref));
-  ck(unsell.size === SHEET_TOTAL - 28, `${unsell.size} niches are not sellable (56 sold + 1 unpriced)`);
+  const nSold = data.filter((n) => n.st === 'sold').length;
+  const nUnpriced = data.filter((n) => n.st === 'unpriced').length;
+  ck(unsell.size === SHEET_TOTAL - 28, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
   const offenders = [];
   for (const [name, list] of [['3D', from3d], ['flat', flatFull], ['overview', flatMini]]) {
     for (const c of list) {

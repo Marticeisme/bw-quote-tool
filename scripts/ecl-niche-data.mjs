@@ -20,12 +20,12 @@
  * The sheet header spells the north face "ELC-1-N-X-X". That is a typo for ECL; every
  * ref in this file uses ECL-1-N-<row>-<n>.
  *
- * ── ONE CELL DOES NOT FIT THE TWO-STATUS RULE ──────────────────────────────────────
- * North B-2 is drawn as a niche and is inside the sheet's own count of 30, but the cell
- * contains NO price and NOT the word SOLD — it is blank apart from the label. It can
- * therefore be neither "available" (nothing to quote) nor honestly labelled "Sold". It
- * is carried as st:'unpriced', renders exactly like a sold niche (blacked out, no price
- * anywhere) and is excluded from the available inventory. Flagged for the operator.
+ * ── NORTH B-2 ──────────────────────────────────────────────────────────────────────
+ * The sheet's B-2 cell is blank (no price, not the word SOLD) although it sits inside
+ * the sheet's own count of 30. It was first carried as a third status 'unpriced';
+ * the operator confirmed on 2026-07-29 that it is in fact SOLD, and it is recorded as
+ * such below. The 'unpriced' status stays defined in case a future sheet produces
+ * another cell that fits neither status.
  *
  * ── PRICES OF SOLD NICHES ARE NOT KNOWN ────────────────────────────────────────────
  * Unlike ROAC, this sheet prints no price for a sold niche, so p is null for every one
@@ -189,8 +189,8 @@ export const WALLS = {
       { r: 'C', n: 5, c: 13, w: 2, p: 26395, st: 'available' },
 
       { r: 'B', n: 1, c: 1, w: 3, p: null, st: 'sold' },
-      // The sheet's B-2 cell is BLANK — no price, and not marked SOLD. See the header.
-      { r: 'B', n: 2, c: 4, w: 2, p: null, st: 'unpriced' },
+      // Blank on the sheet; operator confirmed SOLD 2026-07-29. See the header.
+      { r: 'B', n: 2, c: 4, w: 2, p: null, st: 'sold' },
       { r: 'B', n: 3, c: 6, w: 4, p: null, st: 'sold' },
       { r: 'B', n: 4, c: 10, w: 2, p: 15395, st: 'available' },
       { r: 'B', n: 5, c: 12, w: 3, p: null, st: 'sold' },
