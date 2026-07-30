@@ -307,6 +307,27 @@ reachable.**
 
 ---
 
+## 2026-07-29
+
+### 19. Committed ops onto a live track's branch. Third time (#12, #17).
+
+Sprint-07: after merging Track C, I spawned Track G into the main tree, then immediately
+committed a STATE.md update — `git add && git commit` with no branch gate at all. Track G
+had already created `s07/guide-pdf-condense`, so the ops commit (`96974c6`) landed on the
+track's branch. #17's fix — `git rev-parse --abbrev-ref HEAD | grep -qx main && …` — was
+recorded, worked when used, and I simply did not use it. Recovered by `git reset --mixed
+HEAD~1` on the track's branch (racing the live agent, a risk the gate would have avoided)
+and re-committing through a `main` worktree.
+
+The sequencing error was upstream of the git command: the moment Track G was spawned into
+the main tree, that tree stopped being mine, and the ops commit should have gone through a
+worktree holding `main` from the start — which is exactly what the rest of the sprint then
+did (merges of E and G both ran in `../bw-quote-tool-opsmain`).
+
+**Lesson: the gate exists and works; a lesson that lives in this file but not in the
+command line will be skipped under momentum. When a track occupies the main tree, create
+the `main` worktree BEFORE the first ops commit, not after the first mistake.**
+
 ## The pattern across all of them
 
 Every real defect this session — mine and the code's — was found by **counting something and
