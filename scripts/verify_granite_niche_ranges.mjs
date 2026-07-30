@@ -8,10 +8,14 @@
 //   TGMP  scripts/tgmp-data.mjs         band  = min/max price and min/max rights of the
 //                                              nine additional path placements
 //
-// Fees are checked the same way, against each module's own FEES export. The Terrace
-// Garden deliberately has NO fee schedule — its sheet prints none, and borrowing the MVC
-// or ROAC schedule is the specific mistake this check also guards against, so any
-// data-fee="tgmp.*" on the page is a failure.
+// Fees are checked the same way, against each module's own FEES export — INCLUDING the
+// Terrace Garden. Its own price sheet prints no fees, but the operator ruled on
+// 2026-07-29 that the Mountain View Columbarium June-2026 schedule applies to the whole
+// Terrace Garden Memorial Path, and `scripts/tgmp-data.mjs` carries that schedule as its
+// FEES export. This gate used to assert the opposite ("fee abstinence") and now asserts
+// the schedule IS present, complete, equal to the module, and — because the numbers are
+// borrowed rather than printed — accompanied verbatim by the module's FEE_SOURCE
+// provenance. An unsourced fee on this page is the mistake now being guarded against.
 //
 // Every checked figure is tagged in the HTML:
 //   <span data-range="roac">$7,995–$17,595</span>
@@ -91,7 +95,7 @@ console.log('\n=== TGMP RIGHTS BAND ===');
 // ── fees ─────────────────────────────────────────────────────────────────────
 // A rate (0 < v < 1) prints as a percentage; anything else as dollars.
 const feeStr = (v) => (v > 0 && v < 1 ? +(v * 100).toFixed(1) + '%' : money(v));
-const FEE_SOURCES = { roac: ROAC.FEES, gomn: GOMN.FEES };
+const FEE_SOURCES = { roac: ROAC.FEES, gomn: GOMN.FEES, tgmp: TGMP.FEES };
 
 console.log('\n=== FEES vs MODULES ===');
 for (const m of html.matchAll(/<[^>]*\bdata-fee="([a-z]+)\.([A-Z_]+)"[^>]*>([\s\S]*?)<\//g)) {
@@ -105,19 +109,47 @@ for (const m of html.matchAll(/<[^>]*\bdata-fee="([a-z]+)\.([A-Z_]+)"[^>]*>([\s\
   else fail(`data-fee="${area}.${key}": page prints "${got}", module says "${want}"`);
 }
 
-// ── the Terrace Garden must carry no fee schedule at all ─────────────────────
-console.log('\n=== TERRACE GARDEN FEE ABSTINENCE ===');
+// ── the Terrace Garden carries the MVC schedule, in full, with its provenance ─
+// Replaces the former "fee abstinence" pair of assertions. `QTY_MAX` lives in the same
+// FEES export but is a quantity ceiling for the map's calculator, not a charge, so it is
+// the one key the page is not expected to print.
+const NOT_A_CHARGE = new Set(['QTY_MAX']);
+
+console.log('\n=== TERRACE GARDEN FEE SCHEDULE vs tgmp-data FEES ===');
 {
-  const borrowed = [...html.matchAll(/data-fee="(tgmp|tgn|terrace)\./g)].map((m) => m[0]);
-  if (borrowed.length) fail(`the Terrace Garden price sheet prints no fees, but the page tags ${borrowed.length}: ${borrowed.join(', ')}`);
-  else ok('no fee is attributed to the Terrace Garden (its sheet prints none)');
-  // The MVC schedule is the one that was wrongly applied to these niches before; make
-  // sure none of its amounts drifted into the Terrace Garden section.
   const terrace = html.slice(html.indexOf('id="terrace"'), html.indexOf('id="glance"'));
-  const mvcOnly = ['$875', '$235', '$660', '10.4%'];
-  const leaked = mvcOnly.filter((s) => terrace.includes(s));
-  if (leaked.length) fail(`MVC/ROAC fee amounts appear inside the Terrace Garden section: ${leaked.join(', ')}`);
-  else ok('no MVC/ROAC fee amount appears inside the Terrace Garden section');
+  const tagsIn = (s) => Object.fromEntries(
+    [...s.matchAll(/<[^>]*\bdata-fee="tgmp\.([A-Z_]+)"[^>]*>([\s\S]*?)<\//g)].map((m) => [m[1], m[2].trim()]),
+  );
+  const printed = tagsIn(terrace);
+
+  // 1. every charge in the module is on the page, in the Terrace Garden section, equal.
+  for (const key of Object.keys(TGMP.FEES)) {
+    if (NOT_A_CHARGE.has(key)) continue;
+    const want = feeStr(TGMP.FEES[key]);
+    if (!(key in printed)) { fail(`tgmp-data FEES.${key} (${want}) is not printed in the Terrace Garden section`); continue; }
+    if (printed[key] === want) ok(`data-fee="tgmp.${key}"`.padEnd(26) + printed[key]);
+    else fail(`data-fee="tgmp.${key}": page prints "${printed[key]}", tgmp-data says "${want}"`);
+  }
+  const extra = Object.keys(printed).filter((k) => !(k in TGMP.FEES));
+  if (extra.length) fail(`the Terrace Garden section tags fees tgmp-data has no key for: ${extra.join(', ')}`);
+  else ok(`the section tags no fee tgmp-data does not define`);
+
+  // 2. borrowed numbers must carry the module's own provenance, verbatim. The schedule
+  //    string and the confirmation date come from FEE_SOURCE, and because
+  //    printedOnThisSheet is false the page must say so in as many words.
+  const src = TGMP.FEE_SOURCE;
+  const needs = [
+    [src.schedule, 'FEE_SOURCE.schedule'],
+    [src.confirmedOn, 'FEE_SOURCE.confirmedOn'],
+  ];
+  for (const [needle, what] of needs) {
+    if (terrace.includes(needle)) ok(`provenance names ${what}`.padEnd(26) + `"${needle}"`);
+    else fail(`the Terrace Garden section never states ${what} ("${needle}")`);
+  }
+  if (src.printedOnThisSheet) fail('FEE_SOURCE.printedOnThisSheet flipped to true — this gate needs rewriting');
+  else if (/no fees appear on it|not printed on this/i.test(terrace)) ok('provenance says the fees are NOT printed on this area\'s sheet');
+  else fail('FEE_SOURCE.printedOnThisSheet is false, but the section does not say the sheet prints no fees');
 }
 
 // ── the at-a-glance table repeats the ranges in plain text; keep it honest ───
