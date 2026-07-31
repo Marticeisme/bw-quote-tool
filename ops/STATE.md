@@ -1,6 +1,21 @@
 # STATE — Living Ledger
 
-**Current sprint: sprint-08 — CLOSED AND PUSHED 2026-07-30** (push pre-authorized by
+**Current sprint: sprint-09 — OPENED 2026-07-31** (director: Fable session; tracks:
+Opus). Sources: three operator docs (`Quote Tool Issues 07.30.26.docx`, `Map Issues
+07.31.26.docx`, `followupemailtoolhandoff.md`) + the urn-garden packages workbook
+supplied mid-boot. Boot audit clean: tree clean, main==origin/main, `8 blocks, 0
+errors`, `1327 passed, 0 failed across 27 suites`. Eight tracks (A quote fixes, B
+follow-up emails, C glass fees, D GOMN+granite, U urn pricing, S scattering move,
+T TGMP layout, M COM rework flagship) — see `sprints/sprint-09/SPRINT.md`.
+**Operator rulings at boot:** Interlude Urn (Matthews) $665; GOMN fees = MVC June-2026
+schedule (O&C $875 / Rec $235 / Insc $660 +10.4% on inscription, toggle ×2); all
+glass-front niches O&C $875 / Rec $235 / NO inscription / 10% ECF / no tax except ECL
+vase+scroll add-ons; **Rose Urn Garden priced at last: $4,395 + $660 ECF** (from the
+06/2026 packages sheet — closes the sprint-08 open item); COM and TGMP reworks both run
+this sprint. **NO push pre-authorization this sprint — push is an explicit close-gate
+ask.**
+
+**Previous sprint: sprint-08 — CLOSED AND PUSHED 2026-07-30** (push pre-authorized by
 the operator; executed after all nine tracks merged and the full contract ran green on
 final main: `8 blocks, 0 errors`; **1327 passed, 0 failed across 27 suites**; all SIX
 map gates PASS exit 0 (MVC, ROAC, ECL, COM, GOMN, TGMP); all three range verifiers;
