@@ -308,6 +308,90 @@ console.log('\n5. With no Co-Purchaser the IOA is unchanged');
   await ctx.close();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n6. Importing a saved CIRGAS contract keeps decedent and purchaser apart');
+{
+  const { ctx, page, errs } = await open(browser);
+  await fillCirgasContract(page, FX, { coPurchaser: true });
+  // Push the snapshot straight into the in-memory list. saveAnContract() is deliberately NOT
+  // called: it persists, and no test in this repo may write anywhere near a save path.
+  const r = await page.evaluate(() => {
+    _anSavedContracts.length = 0;
+    _anSavedContracts.push({ id: 4242, label: 'Fixture contract', total: 0, state: captureAnState(), date: 'Jul 1, 2026' });
+    show('atneed-checklist', null);
+    anclPopulateCirgasPicker();
+    document.getElementById('anclCirgasPicker').value = '4242';
+    anclImportFromCirgas();
+    const v = id => document.getElementById(id).value;
+    const d = anclWorksheetData();
+    return { purchaser: v('anclPurchaser'), recipient: v('anclRecipient'),
+      dataPurchaser: d.purchaser, dataRecipient: d.recipient,
+      display: document.getElementById('anclImportDisplay').textContent,
+      copyText: document.getElementById('anclCopyPanelPre').textContent };
+  });
+  const decFull = FX.decFirst + ' ' + FX.decMiddle + ' ' + FX.decLast;
+  ok('Purchaser field gets the purchaser', r.purchaser === FX.purchName, r.purchaser);
+  ok('Recipient / Deceased field gets the decedent', r.recipient === decFull, r.recipient);
+  ok('the two are not the same person in this fixture', FX.purchName !== decFull);
+  ok('worksheet data carries the purchaser as purchaser', r.dataPurchaser === FX.purchName, r.dataPurchaser);
+  ok('worksheet data carries the decedent as recipient', r.dataRecipient === decFull, r.dataRecipient);
+  ok('the copy/reference panel names each correctly',
+    new RegExp('Purchaser Name:\\s+' + FX.purchName).test(r.copyText)
+    && new RegExp('Recipient/Deceased Name:\\s+' + decFull).test(r.copyText),
+    r.copyText.split('\n').slice(0, 5));
+  ok('the status line names both', /Deceased:/.test(r.display) && /Purchaser:/.test(r.display), r.display);
+
+  // End to end: the checklist PDF the counselor actually submits.
+  const dl = page.waitForEvent('download', { timeout: 60000 });
+  await page.evaluate(() => anclGeneratePdf());
+  const d = await dl;
+  const tmp = (process.env.TEMP || '/tmp') + '/bw-ancl-' + process.pid + '.pdf';
+  await d.saveAs(tmp);
+  const { PDFDocument } = await import('pdf-lib');
+  const doc = await PDFDocument.load(fs.readFileSync(tmp), { ignoreEncryption: true });
+  fs.unlinkSync(tmp);
+  const field = nm => { try { return doc.getForm().getTextField(nm).getText() || ''; } catch { return null; } };
+  ok('checklist PDF Purchaser field = the purchaser', field('Purchaser') === FX.purchName, field('Purchaser'));
+  ok('checklist PDF Recipient field = the decedent', field('Recipient') === decFull, field('Recipient'));
+  ok('no page errors', unexpected(errs).length === 0, errs);
+  await ctx.close();
+}
+
+console.log('\n7. Importing from the Cemetery Quote treats the client name as the DECEDENT');
+{
+  const { ctx, page, errs } = await open(browser);
+  await buildAtNeedQuote(page);
+  // Nothing on the CIRGAS tab yet — the only name available is the quote's client name, which
+  // on an at-need quote is the deceased. It must not be presented as the buyer.
+  const bare = await page.evaluate(fx => {
+    show('atneed-checklist', null);
+    anclImport();
+    return { purchaser: document.getElementById('anclPurchaser').value,
+      recipient: document.getElementById('anclRecipient').value,
+      display: document.getElementById('anclImportDisplay').textContent };
+  }, FX);
+  ok('the client name lands in Recipient / Deceased',
+    bare.recipient === FX.decFirst + ' ' + FX.decLast, bare.recipient);
+  ok('Purchaser is left blank rather than guessed', bare.purchaser === '', bare.purchaser);
+  ok('the counselor is told the purchaser is missing', /not set/.test(bare.display), bare.display);
+
+  // Now fill the CIRGAS tab and re-import: the real purchaser and the full decedent name arrive.
+  const filled = await page.evaluate(fx => {
+    const set = (id, v) => { document.getElementById(id).value = v; };
+    set('anDecFirst', fx.decFirst); set('anDecMiddle', fx.decMiddle); set('anDecLast', fx.decLast);
+    set('anPurchName', fx.purchName);
+    show('atneed-checklist', null);
+    anclImport();
+    return { purchaser: document.getElementById('anclPurchaser').value,
+      recipient: document.getElementById('anclRecipient').value };
+  }, FX);
+  ok('Purchaser now comes from the CIRGAS tab', filled.purchaser === FX.purchName, filled.purchaser);
+  ok('Recipient is the full decedent name',
+    filled.recipient === FX.decFirst + ' ' + FX.decMiddle + ' ' + FX.decLast, filled.recipient);
+  ok('no page errors', unexpected(errs).length === 0, errs);
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

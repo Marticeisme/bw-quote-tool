@@ -20794,16 +20794,26 @@ function anclImport() {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">No client name found — fill in the Cemetery Quote Builder (Client Information) first.</span>';
     return;
   }
+  // On an At-Need quote the Cemetery Quote Builder's Client / Family Name IS THE DECEDENT —
+  // anImportFromCemeteryQuote() splits that same value into anDecFirst/Middle/Last for exactly
+  // that reason. It used to be written straight into Purchaser, so the checklist PDF and the
+  // commission worksheet both named the deceased as the buyer (reported 2026-07-30). The
+  // purchaser is a surviving family member and comes from the CIRGAS Contract tab if it has
+  // been filled in; otherwise it is left blank to be typed rather than silently guessed.
+  var anclDecedent  = [val('anDecFirst'), val('anDecMiddle'), val('anDecLast')].filter(Boolean).join(' ').replace(/\s+/g,' ').trim() || name;
+  var anclPurchaser = val('anPurchName').trim();
   if (typeof cemQuoteType === 'function' && cemQuoteType() !== 'atneed') {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Cemetery Quote Builder is set to Pre-Need, not At-Need. Switch its Quote Type to At-Need before importing here.</span>';
     return;
   }
-  el('anclPurchaser').value  = name;
+  el('anclPurchaser').value  = anclPurchaser;
+  el('anclRecipient').value  = anclDecedent;
   el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
   el('anclPromotion').value  = (typeof _cemDiscData !== 'undefined' && _cemDiscData && _cemDiscData.label) || '';
+  var anclWho = 'Deceased: ' + anclDecedent + ' · Purchaser: ' + (anclPurchaser || '<strong>not set — enter it above</strong>');
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) {
-    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Client name imported, but the Cemetery Quote is empty — add items in the Quote Builder, then re-import here.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">' + anclWho + ' — but the Cemetery Quote is empty; add items in the Quote Builder, then re-import here.</span>';
   } else {
     var bucket = clCremationBucket(lines);
     var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
@@ -20814,7 +20824,7 @@ function anclImport() {
     // subset above, which excludes ECF, discounts, O&C, recording and setting fees.
     var grandTotal = (typeof _cemTotal === 'number' && _cemTotal > 0) ? _cemTotal : lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
     if (el('anclPmtReceived')) el('anclPmtReceived').value = grandTotal.toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Total contract paid: ' + fmt(grandTotal) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:' + (anclPurchaser ? '#15803d' : '#b45309') + ';">' + (anclPurchaser ? '✅ Imported' : '⚠ Imported (no purchaser on the CIRGAS tab yet)') + ' — ' + anclWho + ' — Total contract paid: ' + fmt(grandTotal) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
@@ -20836,16 +20846,26 @@ function anclImportFromCirgas() {
     return;
   }
   var f = snap.state.fields || {};
-  var name = (f.anPurchName || ((f.anDecFirst||'') + ' ' + (f.anDecLast||'')).replace(/\s+/g,' ').trim() || '').trim();
-  if (!name) {
+  // The saved CIRGAS contract records these as two separate people, and on an at-need case
+  // they almost always ARE two people — the decedent and a surviving family member who buys.
+  // This used to collapse them to "purchaser OR decedent" and write the winner into Purchaser,
+  // leaving Recipient/Deceased empty, so a contract with no purchaser typed yet put the
+  // deceased's name in the buyer's box on both the checklist PDF and the worksheet (I4/I5).
+  // Reported 2026-07-30. Route each to its own field and never substitute one for the other.
+  var purchaser = (f.anPurchName || '').trim();
+  var decedent  = [f.anDecFirst, f.anDecMiddle, f.anDecLast].filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+  if (!purchaser && !decedent) {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">That saved contract has no purchaser or decedent name.</span>';
     return;
   }
-  el('anclPurchaser').value  = name;
+  var name = purchaser || decedent; // for the download filename / status line only
+  var who  = 'Deceased: ' + (decedent || '<strong>not on the contract</strong>') + ' · Purchaser: ' + (purchaser || '<strong>not on the contract — enter it above</strong>');
+  el('anclPurchaser').value  = purchaser;
+  el('anclRecipient').value  = decedent;
   el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
   var lines = (snap.state.anPricing && snap.state.anPricing.lines) || [];
   if (!lines.length) {
-    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser imported, but that CIRGAS contract has no pricing — import from the Cemetery Quote Builder instead, or add pricing on the CIRGAS Contract tab first.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">' + who + ' — but that CIRGAS contract has no pricing; import from the Cemetery Quote Builder instead, or add pricing on the CIRGAS Contract tab first.</span>';
   } else {
     var bucket = clCremationBucket(lines);
     var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
@@ -20856,7 +20876,7 @@ function anclImportFromCirgas() {
     var grandTotal = (snap.state.anPricing && snap.state.anPricing.total) || snap.total
                   || lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
     if (el('anclPmtReceived')) el('anclPmtReceived').value = (+grandTotal || 0).toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported from saved CIRGAS contract: ' + name + ' — Total contract paid: ' + fmt(+grandTotal || 0) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:' + (purchaser ? '#15803d' : '#b45309') + ';">' + (purchaser ? '✅ Imported from saved CIRGAS contract' : '⚠ Imported from saved CIRGAS contract (no purchaser on it yet)') + ' — ' + who + ' — Total contract paid: ' + fmt(+grandTotal || 0) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
