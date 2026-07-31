@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow-Up Emails · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#466e86; --navy-dark:#33505f; --orange:#e84610; --orange-dark:#c23a0d; --white:#ffffff;
+  --offwhite:#f4f6f8; --cream:#f8f6f2; --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
+  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --muted:#9aaab8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
+
+.site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header-inner{max-width:1300px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
+.header-logo{height:22px;width:auto;flex-shrink:0;}
+.header-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-spacer{flex:1;}
+.header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;transition:background .15s;}
+.header-back:hover{background:rgba(255,255,255,.12);}
+
+.page-wrap{max-width:1300px;margin:0 auto;padding:36px 24px 60px;}
+.page-intro h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.page-intro p{color:var(--text-light);font-size:14.5px;max-width:800px;}
+
+.howto{margin-top:18px;background:#fff7ec;border:1px solid #f0d9b5;border-radius:10px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;}
+.howto p{margin:0;color:#7a5a20;font-size:13px;max-width:none;}
+.howto strong{color:#5c4116;}
+
+.timing{margin-top:12px;background:var(--gray-light);border:1px solid var(--gray-mid);border-left:3px solid var(--navy);border-radius:10px;padding:14px 18px;}
+.timing p{margin:0;color:var(--text-light);font-size:13px;max-width:none;}
+.timing strong{color:var(--navy);}
+
+.layout{margin-top:28px;display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:flex-start;}
+@media (max-width: 900px){.layout{grid-template-columns:1fr;}}
+
+.panel{background:var(--white);border:1px solid var(--gray-mid);border-radius:12px;padding:22px;}
+.panel-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--navy);}
+
+.pills{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.pill{display:block;cursor:pointer;}
+.pill input{position:absolute;opacity:0;width:0;height:0;}
+.pill span{display:block;text-align:center;padding:9px 8px;border:1px solid var(--gray-mid);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--text-light);background:var(--white);transition:background .15s,color .15s,border-color .15s;}
+.pill:hover span{border-color:var(--navy);color:var(--navy);}
+.pill input:checked + span{background:var(--navy);border-color:var(--navy);color:#fff;}
+.pill input:focus-visible + span{box-shadow:0 0 0 3px rgba(61,90,122,.25);}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.field .hint{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:3px;}
+.field input, .field textarea, .field select{width:100%;padding:9px 11px;border:1px solid var(--gray-mid);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;color:var(--text);outline:none;background:var(--white);}
+.field input:focus, .field textarea:focus, .field select:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(61,90,122,.12);}
+.field textarea{resize:vertical;min-height:56px;}
+.field.check{display:flex;align-items:flex-start;gap:9px;}
+.field.check input{width:auto;margin-top:2px;flex-shrink:0;}
+.field.check label{margin-bottom:0;}
+.field.hidden{display:none;}
+
+.sticky-actions{position:sticky;top:78px;}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;border:none;transition:transform .1s,box-shadow .15s;}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 3px 10px rgba(200,84,10,.3);margin-bottom:10px;}
+.btn-primary:hover{background:#b34a08;}
+.btn-secondary{background:var(--gray-light);color:var(--navy);border:1px solid var(--gray-mid);margin-bottom:10px;}
+.btn-secondary:hover{background:var(--gray-mid);}
+.btn-ghost{background:transparent;color:var(--text-light);border:1px dashed var(--gray-mid);font-weight:600;}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+
+.toast{margin-top:10px;font-size:12.5px;color:#1a7a3a;background:#e9f7ee;border:1px solid #bfe6cc;border-radius:7px;padding:8px 12px;text-align:center;display:none;}
+.toast.show{display:block;}
+.toast.error{color:#a13a1f;background:#fdece6;border-color:#f2c3ac;}
+
+/* EMAIL PREVIEW */
+.letter-wrap{background:var(--white);border:1px solid var(--gray-mid);border-radius:12px;overflow:hidden;}
+.letter-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--gray-light);border-bottom:1px solid var(--gray-mid);}
+.letter-toolbar span{font-size:12px;color:var(--text-light);font-weight:600;}
+#letter{padding:44px 56px;font-size:14px;color:#1a1a1a;line-height:1.65;}
+#letter .subj-block{margin-bottom:26px;padding-bottom:16px;border-bottom:2px solid var(--orange);}
+#letter .subj-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+#letter .subj-text{font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:17px;margin-top:2px;}
+#letter p{margin-bottom:14px;}
+#letter .sig{margin-top:2px;line-height:1.5;}
+.blank{color:#b4753a;font-style:italic;}
+
+.site-footer{margin-top:60px;background:var(--cream);border-top:1px solid var(--rule);padding:32px 24px;text-align:center;}
+.site-footer .footer-logo{height:24px;width:auto;margin:0 auto 10px;display:block;}
+.site-footer .footer-text{font-size:13px;color:var(--text);margin-bottom:4px;}
+.site-footer .footer-url{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);}
+.site-footer .footer-legal{font-size:11px;color:var(--muted);margin-top:6px;}
+
+@media print {
+  .site-header,.page-intro,.howto,.timing,.panel,.site-footer,.letter-toolbar{display:none !important;}
+  .layout{display:block;}
+  .letter-wrap{border:none;}
+  #letter{padding:0;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="header-logo">
+    <span class="header-est">Est. 1868</span>
+    <div class="header-title">Follow-Up Emails</div>
+    <div class="header-spacer"></div>
+    <a class="header-back" href="guides.html">&larr; Family Guides</a>
+  </div>
+</header>
+
+<div class="page-wrap">
+  <div class="page-intro">
+    <h1>Follow-Up Emails</h1>
+    <p>Pick a follow-up type, fill in the details on the left, and the email on the right updates as you type. When it reads right, use <strong>Copy for Email</strong> to paste it straight into a new message in Outlook.</p>
+  </div>
+
+  <div class="howto">
+    <p><strong>Best way to send this:</strong> click <strong>Copy for Email</strong> below, then paste (Ctrl+V) directly into the body of a new email in Outlook. The subject line copies along with the body, so paste it into the subject field and delete that line from the body. Nothing here is saved or uploaded anywhere &mdash; it only lives in this browser tab, so it's safe to fill in with a family's real information.</p>
+  </div>
+
+  <div class="timing" id="timingNote">
+    <p><strong>When to send:</strong> Industry best practice is to check in 4-8 weeks after services, then again around 3-6 months. Birthday and anniversary dates of the deceased are also good touchpoints. For marker follow-ups, 2-3 months after burial gives families time to settle in before thinking about next steps.</p>
+  </div>
+
+  <div class="layout">
+    <div class="panel sticky-actions">
+      <div class="panel-title">Follow-Up Details</div>
+
+      <div class="pills" id="catPills">
+        <label class="pill"><input type="radio" name="cat" value="marker" id="cat-marker" checked><span>Marker</span></label>
+        <label class="pill"><input type="radio" name="cat" value="cremation" id="cat-cremation"><span>Cremation Only</span></label>
+        <label class="pill"><input type="radio" name="cat" value="outside" id="cat-outside"><span>Outside Burial</span></label>
+        <label class="pill"><input type="radio" name="cat" value="full" id="cat-full"><span>Full Service at WMP</span></label>
+      </div>
+
+      <div class="field">
+        <label for="subject">Subject Line</label>
+        <input type="text" id="subject" placeholder="Checking In &mdash; [Decedent Full Name]">
+      </div>
+      <div class="field">
+        <label for="recipientFirst">Recipient First Name</label>
+        <input type="text" id="recipientFirst" placeholder="e.g. Karen">
+      </div>
+      <div class="field">
+        <label for="decedentFull">Decedent Full Name</label>
+        <input type="text" id="decedentFull" placeholder="e.g. Robert Whitfield">
+      </div>
+      <div class="field">
+        <label for="relationship">Recipient's relationship to the deceased</label>
+        <select id="relationship">
+          <option value="son">I'm their Son</option>
+          <option value="daughter">I'm their Daughter</option>
+          <option value="wife">I'm their Wife</option>
+          <option value="husband">I'm their Husband</option>
+          <option value="mother">I'm their Mother</option>
+          <option value="father">I'm their Father</option>
+          <option value="brother">I'm their Brother</option>
+          <option value="sister">I'm their Sister</option>
+          <option value="grandson">I'm their Grandson</option>
+          <option value="granddaughter">I'm their Granddaughter</option>
+          <option value="nephew">I'm their Nephew</option>
+          <option value="niece">I'm their Niece</option>
+          <option value="uncle">I'm their Uncle</option>
+          <option value="aunt">I'm their Aunt</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field hidden" id="f-decWho">
+        <label for="decWho">How should the email refer to them?
+          <span class="hint">The relationship above doesn't say which one it was, so pick how the email should read.</span>
+        </label>
+        <select id="decWho"></select>
+      </div>
+      <div class="field hidden" id="f-survivingParent">
+        <label for="survivingParent">Surviving parent?</label>
+        <select id="survivingParent">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="field hidden" id="f-survivingParentName">
+        <label for="survivingParentName">Surviving Parent's First Name</label>
+        <input type="text" id="survivingParentName" placeholder="e.g. Linda">
+      </div>
+      <div class="field check hidden" id="f-veteran">
+        <input type="checkbox" id="veteran">
+        <label for="veteran">Veteran <span class="hint">Adds the VA bronze marker paragraph.</span></label>
+      </div>
+      <div class="field check hidden" id="f-hasMarker">
+        <input type="checkbox" id="hasMarker">
+        <label for="hasMarker">Marker already in place <span class="hint">Leave unchecked to include a gentle marker mention.</span></label>
+      </div>
+
+      <div style="margin-top:22px;">
+        <button class="btn btn-primary" onclick="copyForEmail()">Copy for Email</button>
+        <button class="btn btn-secondary" onclick="copyPlainText()">Copy Plain Text</button>
+        <button class="btn btn-ghost" onclick="window.print()">Print / Save as PDF</button>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+
+    <div class="letter-wrap">
+      <div class="letter-toolbar">
+        <span>Live Preview</span>
+        <span id="letterMeta"></span>
+      </div>
+      <div id="letter"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+  <div class="footer-text">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+  <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url" style="text-decoration:none;">bonneywatson.com</a>
+  <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794</div>
+</footer>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Follow-Up Email Generator.
+   Email copy is operator-approved (followupemailtoolhandoff.md, 2026-07-29).
+   Voice rules: "Hi <first>," never "Dear"; closing "With care,"; contractions
+   stay; NO em dashes in the body. The subject line's em dash is specified
+   verbatim in the handoff and is deliberate.
+   Nothing is saved or uploaded: no network calls, no storage.
+--------------------------------------------------------------------------- */
+
+var DESIGN_LINK = 'https://designmemorials.com/design-books/';
+
+/* Which family group the recipient's relationship puts them in. This drives the
+   decedent reference, the tone of the check-in, and who the pre-planning
+   paragraph is aimed at. */
+var GROUP = {
+  son:'child', daughter:'child',
+  wife:'spouse', husband:'spouse',
+  mother:'parent', father:'parent',
+  brother:'sibling', sister:'sibling',
+  grandson:'grandchild', granddaughter:'grandchild',
+  nephew:'extended', niece:'extended', uncle:'extended', aunt:'extended', other:'extended'
+};
+
+/* "I'm their Son" does not say whether the parent who died was the mother or the
+   father, and the same holds for sibling and grandchild. Those three groups get a
+   small follow-up selector. Default is the decedent's first name, so the email
+   never asserts a relation the counselor did not choose. */
+var WHO_OPTIONS = {
+  child:      [['first','Use their first name'], ['mother','Mother'], ['father','Father']],
+  sibling:    [['first','Use their first name'], ['brother','Brother'], ['sister','Sister']],
+  grandchild: [['first','Use their first name'], ['grandmother','Grandmother'], ['grandfather','Grandfather']]
+};
+var WHO_LABEL = {
+  mother:'your mother', father:'your father',
+  brother:'your brother', sister:'your sister',
+  grandmother:'your grandmother', grandfather:'your grandfather'
+};
+
+var SIGNATURE = [
+  'Martice Morrison',
+  'Family Service &amp; Advanced Planning Director',
+  'Bonney Watson Washington Memorial Park',
+  '(206) 445-9794',
+  'mmorrison@bonneywatson.com',
+  'calendly.com/mmorrison-bonneywatson/30min',
+  '16445 International Blvd, SeaTac, WA 98188'
+];
+
+var el = function(id){ return document.getElementById(id); };
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function blank(label){ return '<span class="blank">[' + label + ']</span>'; }
+function val(id, label){
+  var v = el(id).value.trim();
+  return v ? esc(v) : blank(label);
+}
+function raw(id){ return el(id).value.trim(); }
+
+/* ---- derived names ------------------------------------------------------ */
+function decFirst(){
+  var v = raw('decedentFull');
+  return v ? esc(v.split(/\s+/)[0]) : blank('Decedent First Name');
+}
+function decFull(){ return val('decedentFull', 'Decedent Full Name'); }
+
+/* How the email refers to the person who died, e.g. "your mother" or "Robert". */
+function decedentRef(){
+  var rel = raw('relationship');
+  var g = GROUP[rel] || 'extended';
+  if (g === 'spouse') return rel === 'wife' ? 'your husband' : 'your wife';
+  if (g === 'parent') return decFirst();              // a lost child: first name only
+  if (g === 'extended') return decFull();
+  var who = raw('decWho');
+  return WHO_LABEL[who] || decFirst();
+}
+/* Possessive form of the reference: "your mother's" / "Robert's". */
+function decedentPoss(){ return decedentRef() + "'s"; }
+
+/* ---- pre-planning paragraph -------------------------------------------- */
+function preplanning(cat){
+  var g = GROUP[raw('relationship')] || 'extended';
+  if (g === 'parent') return null;                    // a parent who lost a child: omit
+
+  var named = null;
+  if (g === 'child' && raw('survivingParent') === 'yes') {
+    var n = raw('survivingParentName');
+    named = n ? esc(n) : blank("Surviving Parent's First Name");
+  }
+
+  if (cat === 'full') {
+    if (named) return 'If ' + named + ' or anyone else in the family ever thinks about planning ahead and securing property here at the park, I\'m happy to walk you through the options whenever you\'re ready. A lot of families find it helpful to take care of that while they already have a connection here. No pressure at all, just want you to know I\'m here.';
+    if (g === 'spouse') return 'If you or anyone else in the family ever think about planning ahead and securing property here at the park, I\'m happy to walk you through the options whenever you\'re ready. A lot of families find it helpful to take care of that. No pressure at all.';
+    return 'If you or anyone else in the family ever think about planning ahead and securing property here at the park, I\'m happy to walk you through the options whenever you\'re ready. A lot of families find it helpful to take care of that while they already have a connection here. No pressure at all, just want you to know I\'m here.';
+  }
+
+  if (cat === 'outside') {
+    if (named) return 'If ' + named + ' or anyone else in the family ever wants to sit down and talk about planning ahead, whether that\'s securing cemetery property or pre-arranging services, I\'m happy to help whenever you\'re ready. No pressure at all, just want you to know I\'m here.';
+    if (g === 'spouse') return 'If you or anyone else in the family ever want to talk about planning ahead, I\'m here whenever you\'re ready. No pressure at all.';
+    return 'If you or anyone else in the family ever want to talk about planning ahead, whether that\'s securing cemetery property or pre-arranging services, I\'m happy to help whenever you\'re ready. No pressure at all, just want you to know I\'m here.';
+  }
+
+  /* marker + cremation share the general wording */
+  if (named) return 'If ' + named + ' or anyone else in the family ever wants to sit down and talk about planning ahead, I\'m happy to help whenever you\'re ready. No pressure at all, just want you to know I\'m here.';
+  if (g === 'spouse') return 'If you or anyone else in the family ever want to talk about planning ahead, I\'m here whenever you\'re ready. No pressure at all.';
+  return 'If you or anyone else in the family ever want to talk about planning ahead, I\'m happy to help whenever you\'re ready. No pressure at all, just want you to know I\'m here.';
+}
+
+/* ---- the four emails ---------------------------------------------------- */
+function bodyMarker(g){
+  var p = [];
+  if (g === 'parent') {
+    p.push('I hope you and your family are doing well. I\'ve been thinking about ' + decFirst() + ' and wanted to reach out.');
+    p.push('When you\'re ready, I\'d love to help you choose a marker for ' + decFirst() + '\'s resting place.');
+  } else if (g === 'spouse') {
+    p.push('I hope you\'re doing well. I\'ve been thinking about you and just wanted to check in and see how you\'re doing.');
+    p.push('I also wanted to reach out about getting a marker for ' + decedentPoss() + ' resting place.');
+  } else {
+    p.push('I hope you and your family are doing well. I wanted to reach out about getting a marker for ' + decedentPoss() + ' resting place.');
+  }
+  p.push('I\'m attaching our Granite Marker Guide, which covers the sizes, colors, and pricing we offer. There are also options for adding a ceramic photo or diamond etched photo, which is explained in the guide.');
+  p.push('There\'s no rush on any of this. Whenever you\'re ready, I\'m happy to walk you through it and put together a rough draft of a design. You can also browse some design ideas here: ' + DESIGN_LINK);
+  if (el('veteran').checked) {
+    p.push('I also wanted to mention that since ' + decFirst() + ' was a veteran, the family may be eligible for a government-issued bronze marker through the VA at no cost. The family would just be responsible for the granite base and installation. I\'m happy to walk you through that option as well.');
+  }
+  var pre = preplanning('marker');
+  if (pre) p.push(pre);
+  p.push('Please let me know if you have any questions.');
+  return p;
+}
+
+function bodyCremation(g){
+  var p = [];
+  if (g === 'parent') {
+    p.push('I hope you\'re doing well. I\'ve been thinking about ' + decFirst() + ' and wanted to check in and see how you and your family are doing.');
+  } else if (g === 'spouse') {
+    p.push('I hope you\'re doing well. I\'ve been thinking about you and just wanted to check in and see how you\'re doing.');
+  } else {
+    p.push('I hope you\'re doing well. I just wanted to check in and see how you and your family are doing since ' + decedentPoss() + ' services.');
+  }
+  p.push('If there\'s anything I can help with or any questions have come up, please don\'t hesitate to reach out. I\'m always happy to help.');
+  p.push('I also wanted to let you know that if you or anyone in the family ever want to explore having a permanent place to visit here at Washington Memorial Park, we have several options, from cremation niches to garden placements.');
+  var pre = preplanning('cremation');
+  if (pre) p.push(pre);
+  p.push('Please let me know if you need anything at all.');
+  return p;
+}
+
+function bodyOutside(g){
+  var p = [];
+  if (g === 'parent') {
+    p.push('I hope you and your family are doing well. I\'ve been thinking about ' + decFirst() + ' and wanted to check in and see how everyone is doing.');
+  } else if (g === 'spouse') {
+    p.push('I hope you\'re doing well. I\'ve been thinking about you and just wanted to check in and see how you\'re doing.');
+  } else {
+    p.push('I hope you and your family are doing well. I just wanted to check in and see how everyone is doing since ' + decedentPoss() + ' services.');
+  }
+  p.push('If anything has come up or you have any questions, I\'m always here to help.');
+  var pre = preplanning('outside');
+  if (pre) p.push(pre);
+  p.push('Please don\'t hesitate to reach out if you need anything.');
+  return p;
+}
+
+function bodyFull(g){
+  var p = [];
+  if (g === 'parent') {
+    p.push('I hope you and your family are doing well. I\'ve been thinking about ' + decFirst() + ' and wanted to check in and see how everyone is doing.');
+  } else if (g === 'spouse') {
+    p.push('I hope you\'re doing well. I\'ve been thinking about you and just wanted to check in and see how you\'re doing.');
+  } else {
+    p.push('I hope you and your family are doing well. I just wanted to check in and see how everyone is doing.');
+  }
+  p.push('If anything has come up regarding ' + decedentPoss() + ' property here at the park, or if you have any questions at all, I\'m always here to help.');
+  if (!el('hasMarker').checked) {
+    p.push('If you haven\'t had a chance to think about a marker yet, there\'s no rush at all. Whenever you\'re ready, I\'m happy to walk you through the options and put together a rough draft of a design. You can also browse some ideas here: ' + DESIGN_LINK);
+  }
+  var pre = preplanning('full');
+  if (pre) p.push(pre);
+  p.push('Please don\'t hesitate to reach out.');
+  return p;
+}
+
+/* ---- form wiring -------------------------------------------------------- */
+function currentCat(){
+  var r = document.querySelector('input[name="cat"]:checked');
+  return r ? r.value : 'marker';
+}
+
+/* The subject stays auto-filled from the decedent's name until the counselor
+   edits it; after that it is theirs. */
+var subjectDirty = false;
+function autoSubject(){
+  var v = raw('decedentFull');
+  return 'Checking In — ' + (v || '[Decedent Full Name]');
+}
+function syncSubject(){
+  if (!subjectDirty) el('subject').value = autoSubject();
+}
+
+function syncFields(){
+  var cat = currentCat();
+  var rel = raw('relationship');
+  var g = GROUP[rel] || 'extended';
+
+  /* the "which one was it" selector, for the three ambiguous groups */
+  var opts = WHO_OPTIONS[g];
+  var sel = el('decWho');
+  if (opts) {
+    var want = opts.map(function(o){ return o[0]; }).join(',');
+    if (sel.getAttribute('data-opts') !== want) {
+      sel.innerHTML = opts.map(function(o){
+        return '<option value="' + o[0] + '">' + o[1] + '</option>';
+      }).join('');
+      sel.setAttribute('data-opts', want);
+      sel.value = opts[0][0];
+    }
+  }
+  el('f-decWho').classList.toggle('hidden', !opts);
+
+  var isChild = (g === 'child');
+  el('f-survivingParent').classList.toggle('hidden', !isChild);
+  el('f-survivingParentName').classList.toggle('hidden',
+    !(isChild && raw('survivingParent') === 'yes'));
+
+  el('f-veteran').classList.toggle('hidden', cat !== 'marker');
+  el('f-hasMarker').classList.toggle('hidden', cat !== 'full');
+}
+
+function render(){
+  syncFields();
+  var cat = currentCat();
+  var g = GROUP[raw('relationship')] || 'extended';
+
+  var paras;
+  if (cat === 'cremation') paras = bodyCremation(g);
+  else if (cat === 'outside') paras = bodyOutside(g);
+  else if (cat === 'full') paras = bodyFull(g);
+  else paras = bodyMarker(g);
+
+  var subject = raw('subject') || autoSubject();
+
+  var html =
+    '<div class="subj-block">' +
+      '<div class="subj-label">Subject</div>' +
+      '<div class="subj-text" id="previewSubject">' + esc(subject) + '</div>' +
+    '</div>' +
+    '<p>Hi ' + val('recipientFirst', 'Recipient First Name') + ',</p>' +
+    paras.map(function(t){ return '<p>' + t + '</p>'; }).join('') +
+    '<p>With care,</p>' +
+    '<p class="sig">' + SIGNATURE.join('<br>') + '</p>';
+
+  el('letter').innerHTML = html;
+
+  var to = raw('recipientFirst');
+  el('letterMeta').textContent = to ? 'To: ' + to : '';
+}
+
+['recipientFirst','decedentFull','survivingParentName'].forEach(function(id){
+  el(id).addEventListener('input', function(){
+    if (id === 'decedentFull') syncSubject();
+    render();
+  });
+});
+['relationship','decWho','survivingParent'].forEach(function(id){
+  el(id).addEventListener('change', render);
+});
+['veteran','hasMarker'].forEach(function(id){
+  el(id).addEventListener('change', render);
+});
+el('subject').addEventListener('input', function(){ subjectDirty = true; render(); });
+Array.prototype.forEach.call(document.querySelectorAll('input[name="cat"]'), function(r){
+  /* Category switching only changes which paragraphs are assembled; every common
+     field keeps its value. */
+  r.addEventListener('change', render);
+});
+
+/* ---- copy / toast ------------------------------------------------------- */
+function showToast(msg, isError){
+  var t = el('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+}
+
+function emailPlainText(){
+  var subject = raw('subject') || autoSubject();
+  var letterEl = el('letter').cloneNode(true);
+  var sb = letterEl.querySelector('.subj-block');
+  if (sb) sb.parentNode.removeChild(sb);
+  return 'Subject: ' + subject + '\n\n' + letterEl.innerText.trim();
+}
+
+async function copyForEmail(){
+  var subject = raw('subject') || autoSubject();
+  var letterEl = el('letter').cloneNode(true);
+  var sb = letterEl.querySelector('.subj-block');
+  if (sb) sb.parentNode.removeChild(sb);
+  var html = '<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#1a1a1a;">' +
+    '<p><strong>Subject:</strong> ' + esc(subject) + '</p>' +
+    letterEl.innerHTML.replace(/class="blank"/g, '') +
+    '</div>';
+  var text = emailPlainText();
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      var item = new ClipboardItem({
+        'text/html': new Blob([html], {type:'text/html'}),
+        'text/plain': new Blob([text], {type:'text/plain'})
+      });
+      await navigator.clipboard.write([item]);
+      showToast('Copied! Paste (Ctrl+V) into the body of a new email.');
+    } else {
+      await navigator.clipboard.writeText(text);
+      showToast('Copied as plain text (your browser doesn\'t support rich formatting).');
+    }
+  } catch (err) {
+    showToast('Copy failed. Select the email text on the right and press Ctrl+C instead.', true);
+  }
+}
+
+async function copyPlainText(){
+  try {
+    await navigator.clipboard.writeText(emailPlainText());
+    showToast('Copied as plain text.');
+  } catch (err) {
+    showToast('Copy failed. Select the email text on the right and press Ctrl+C instead.', true);
+  }
+}
+
+syncSubject();
+render();
+</script>
+
+</body>
+</html>
