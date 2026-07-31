@@ -23,8 +23,8 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  ROWS, BLOCKS, ROW_RUNS, TIERS, FEES, SHEET_TEXT, COMPANION_NOTE,
-  allNiches, refOf, sellable,
+  ROWS, BLOCKS, ROW_RUNS, TIERS, FEES, FEE_SOURCE, INSCR_MAX, URN,
+  SHEET_TEXT, COMPANION_NOTE, allNiches, refOf, sellable, ecf, estTotal,
 } from './gomn-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -49,6 +49,28 @@ const SHEET_AVAIL = 37;
 const SHEET_AVAIL_BY_BLOCK = { L: 3, C: 31, R: 3 };
 const SHEET_AVAIL_TOTAL = 241815;
 const SHEET_PRICE_MULTISET = { 4995: 9, 5995: 14, 6995: 5, 7995: 3, 8995: 6 };
+
+// ── FEE ANCHORS, typed from the operator's 2026-07-31 ruling ─────────────────
+// NOT from the GOMN sheet — the sheet prints O&C $835 / Recording $225 / Inscription
+// $605, and the ruling replaces all three with the Mountain View Columbarium June-2026
+// schedule. Typed here by hand for the same reason as the counts above: derived anchors
+// agree with their own bugs.
+const RULED = { OC: 875, REC: 235, INSCR: 660, TAX: 0.104, ECF_RATE: 0.1 };
+const SHEET_PRINTS = { OC: 835, REC: 225, INSCR: 605 };   // superseded, must not appear
+const RULED_INSCR_MAX = 2;      // "you can add two inscriptions on the front"
+const RULED_URN_PRICE = 665;    // Interlude (Matthews), operator-supplied 2026-07-31
+const RULED_URN_MAX = 2;        // two Interlude urns fit — that IS the companion capacity
+
+// Two full card computations, arithmetic done by hand off the ruled schedule:
+//
+//   C-7 $5,995, O&C ×1, Recording ×1, Inscription ×2, Interlude ×2
+//     5995 + ecf 600 + 875 + 235 + inscription 1320 + tax 137.28 + urns 1330 = 10492.28
+//   G-13 $8,995, nothing but one inscription
+//     8995 + ecf 900 + 660 + tax 68.64 = 10623.64
+const CARD_ANCHORS = [
+  { ref: 'GOM-1-1-C-7', price: 5995, q: { oc: 1, rec: 1, inscr: 2, urn: 2 }, total: 10492 },
+  { ref: 'GOM-1-1-G-13', price: 8995, q: { inscr: 1 }, total: 10624 },
+];
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -262,29 +284,115 @@ console.log("\nThe price sheet's rules, carried onto the page");
   ck(/two fit per niche/.test(src), 'the page says two Interlude urns fit per niche');
   ck(new RegExp(`Open &amp; Closing — \\$${FEES.OC} ea`).test(src), `Open & Closing $${FEES.OC} ea is in the fee footer`);
   ck(new RegExp(`Recording Fee — \\$${FEES.REC} ea`).test(src), `Recording Fee $${FEES.REC} ea is in the fee footer`);
-  ck(new RegExp(`Inscription — \\$${FEES.INSCRIPTION} ea`).test(src), `Inscription $${FEES.INSCRIPTION} ea is in the fee footer`);
+  ck(new RegExp(`Inscription — \\$${FEES.INSCR} ea`).test(src), `Inscription $${FEES.INSCR} ea is in the fee footer`);
 }
 
-// ── 8. Inscription toggle feeds the card math ─────────────────────────────────
-console.log('\nInscription add-on toggle');
+// ── 7b. THE RULED FEE SCHEDULE, and its provenance ───────────────────────────
+// The three dollar amounts are NOT this sheet's. A page that prints them without saying
+// so is the specific way a family gets misled here, so provenance is a gate item.
+console.log('\nThe ruled fee schedule (MVC June-2026), and where the page says it came from');
+{
+  for (const k of Object.keys(RULED)) {
+    ck(FEES[k] === RULED[k],
+      `FEES.${k.padEnd(9)} = ${RULED[k]} as ruled 2026-07-31 (module says ${FEES[k]})`);
+  }
+  ck(!('INSCRIPTION' in FEES), 'the superseded FEES.INSCRIPTION key is gone (renamed INSCR, as ROAC/TGMP spell it)');
+  // The sheet's own superseded amounts may appear in exactly ONE place: the provenance
+  // sentence that names what the ruling replaced. Anywhere else they would read as a
+  // live charge. Strip that sentence and nothing may be left.
+  {
+    const replaces = FEE_SOURCE.replaces.replace(/&/g, '&amp;');
+    const rest = src.split(replaces).join('');
+    for (const [k, v] of Object.entries(SHEET_PRINTS)) {
+      ck(replaces.includes(`$${v}`), `the provenance sentence names the superseded $${v} (${k})`);
+      const hit = new RegExp(`\\$${v}(?:\\.00)?\\b`).test(rest);
+      ck(!hit, `and $${v} appears NOWHERE else on the page — it is not a live charge`);
+    }
+  }
+  ck(src.includes(FEE_SOURCE.schedule), `provenance names the schedule ("${FEE_SOURCE.schedule}")`);
+  ck(src.includes(FEE_SOURCE.confirmedOn), `provenance names the confirmation date (${FEE_SOURCE.confirmedOn})`);
+  ck(src.includes(FEE_SOURCE.replaces.replace(/&/g, '&amp;')), 'provenance names the three sheet amounts it replaces');
+  ck(FEE_SOURCE.printedOnThisSheet === false && /not printed on this area/i.test(src),
+    'the page says in as many words that these fees are NOT printed on this area\'s sheet');
+  ck(/Confirm the current charges in MIS/i.test(src), 'and tells the counselor to confirm them in MIS');
+  ck(new RegExp(`E\\.C\\.F\\. rate is the one fee figure still taken from this sheet`).test(src),
+    'the page distinguishes the E.C.F. (still the sheet\'s) from the three replaced amounts');
+}
+
+// ── 8. Inscription ×2, the urn add-on, and the card arithmetic ───────────────
+console.log('\nInscription quantity (×2), the Interlude Urn add-on, and the card math');
 {
   const js = src.slice(src.lastIndexOf('<script>'));
-  ck(new RegExp(`INSCRIPTION = ${FEES.INSCRIPTION}`).test(js), `the page carries INSCRIPTION = ${FEES.INSCRIPTION}`);
-  const m = /<input type="checkbox" id="insc-on"[^>]*>/.exec(src);
-  ck(!!m, 'Inscription renders a checkbox #insc-on');
-  ck(!!m && !/\bchecked\b/.test(m[0]), 'Inscription defaults to OFF (no checked attribute)');
-  ck(/addOn\('insc-on'\)/.test(js), "Inscription is read by the card math via addOn('insc-on')");
-  ck(/tot \+= INSCRIPTION;/.test(js), 'the toggle adds its flat amount to the card total');
+  ck(new RegExp(`INSCR = ${FEES.INSCR}`).test(js), `the page carries INSCR = ${FEES.INSCR}`);
+  ck(new RegExp(`TAX = ${FEES.TAX}`).test(js), `the page carries TAX = ${FEES.TAX}`);
+  ck(new RegExp(`URN_PRICE = ${URN.price}`).test(js), `the page carries URN_PRICE = ${URN.price}`);
+
+  // --- Inscription is a QUANTITY now, 0..2, defaulting to 0 -------------------
+  ck(INSCR_MAX === RULED_INSCR_MAX, `the module's INSCR_MAX is ${RULED_INSCR_MAX} ("you can add two inscriptions on the front")`);
+  const ins = /<input type="number" id="insc-qty"([^>]*)>/.exec(src);
+  ck(!!ins, 'Inscription renders a number input #insc-qty (no longer a checkbox)');
+  ck(!/id="insc-on"/.test(src), 'the old #insc-on checkbox is gone from the page');
+  ck(!/addOn\(/.test(js), 'the old addOn() boolean helper is gone from the runtime');
+  ck(!!ins && /min="0"/.test(ins[1]), 'inscription quantity floors at 0');
+  ck(!!ins && new RegExp(`max="${RULED_INSCR_MAX}"`).test(ins[1]), `inscription quantity is capped at ${RULED_INSCR_MAX}`);
+  ck(!!ins && /value="0"/.test(ins[1]), 'inscription defaults to 0 — nothing is added unless the counselor asks');
+  ck(/var inscrSub = INSCR \* ins;/.test(js), 'the card multiplies the inscription charge by the quantity');
+  ck(/var tax = Math\.round\(inscrSub \* TAX \* 100\) \/ 100;/.test(js),
+    'sales tax is computed on the inscription subtotal alone, to the cent');
+  ck(/tot \+= inscrSub \+ tax;/.test(js), 'inscription and its tax both reach the card total');
+
+  // --- The Interlude Urn is MERCHANDISE, not a fee ---------------------------
+  ck(URN.price === RULED_URN_PRICE, `the module prices the Interlude Urn at $${RULED_URN_PRICE} (operator-supplied 2026-07-31)`);
+  ck(URN.maxQty === RULED_URN_MAX, `up to ${RULED_URN_MAX} Interlude urns per niche — the companion capacity itself`);
+  const urn = /<input type="number" id="urn-qty"([^>]*)>/.exec(src);
+  ck(!!urn, 'the Interlude Urn renders a number input #urn-qty');
+  ck(!!urn && new RegExp(`max="${RULED_URN_MAX}"`).test(urn[1]), `urn quantity is capped at the ${RULED_URN_MAX} rights the niche carries`);
+  ck(!!urn && /value="0"/.test(urn[1]), 'urn quantity defaults to 0');
+  ck(new RegExp(`\\$${URN.price} ea`).test(src), `the footer prints the Interlude Urn at $${URN.price} ea`);
+  ck(/merchandise, not a fee/.test(src), 'the page says in as many words that the urn is merchandise, not a fee');
+  ck(/\(merchandise\)/.test(js), 'the card line itself is labelled merchandise');
+  ck(/tot \+= URN_PRICE \* urn;/.test(js), 'the urn line reaches the card total at list price');
+  ck(!/URN_PRICE[^;]*TAX/.test(js) && !/TAX[^;]*URN_PRICE/.test(js),
+    'no tax is invented for the urn — only the inscription is taxed, which is all the operator ruled');
+
+  // --- Order of operations: E.C.F. never touches an add-on -------------------
   ck(/var price = \+d\.price, e = ecf\(price\), tot = price \+ e,/.test(js),
     'E.C.F. is computed once, from the niche price alone');
   ck(!/ecf\((?!price\))/.test(js), 'ecf() is never called on anything but the niche price');
-  const inscAt = js.indexOf('tot += INSCRIPTION'), ecfAt = js.indexOf('e = ecf(price)');
-  ck(ecfAt > -1 && inscAt > ecfAt, 'the add-on is added AFTER the E.C.F. line, never into its base');
-  ck(/'oc-qty', 'rec-qty', 'insc-on'/.test(js), 'the toggle re-renders the pinned card (and therefore its print block)');
-  ck(/closest\('#card, \.tab, \.fees'\)/.test(js), 'clicking the fee footer does not unpin the card the toggle is updating');
+  const ecfAt = js.indexOf('e = ecf(price)');
+  for (const [what, needle] of [['inscription', 'tot += inscrSub + tax;'], ['urn', 'tot += URN_PRICE * urn;']]) {
+    const at = js.indexOf(needle);
+    ck(ecfAt > -1 && at > ecfAt, `the ${what} is added AFTER the E.C.F. line, never into its base`);
+  }
+  ck(/'oc-qty', 'rec-qty', 'insc-qty', 'urn-qty'/.test(js),
+    'all four quantity boxes re-render the pinned card (and therefore its print block)');
+  ck(/closest\('#card, \.tab, \.fees'\)/.test(js), 'clicking the fee footer does not unpin the card the boxes are updating');
+  // A pinned niche in a hidden view has a ZERO rect, and a card placed against zero
+  // lands on the tab bar and eats the tab clicks. Found by driving the page, 2026-07-31.
+  ck(/function visibleTwin\(el\)/.test(js), 'the card places itself against a rendering that is actually laid out');
+  ck(/var t = visibleTwin\(el\);/.test(js) && /if \(!t\) \{ card\.style\.left/.test(js),
+    'and parks in its default corner when no rendering of the pinned niche is visible');
+  ck(!/var r = el\.getBoundingClientRect\(\);\s*\r?\n\s*card\.style\.right = 'auto'/.test(js),
+    'placeCard no longer measures the pinned element directly (the zero-rect path)');
   // The tap suppressor must not eat clicks on the chrome — it did, and the tabs died.
   ck(/closest\('\.gwrap'\) && performance\.now\(\) < suppressUntil/.test(js),
     'the tap suppressor is scoped to the grid, so tabs and fee controls still receive clicks');
+}
+
+// ── 8b. The card arithmetic, computed end to end ─────────────────────────────
+console.log('\nCard arithmetic vs hand-typed totals');
+{
+  for (const a of CARD_ANCHORS) {
+    const n = data.find((x) => x.ref === a.ref);
+    ck(!!n && n.p === a.price, `${a.ref} carries $${a.price.toLocaleString('en-US')} in the data module`);
+    const got = estTotal(a.price, a.q);
+    const q = Object.entries(a.q).map(([k, v]) => `${k}×${v}`).join(' ');
+    ck(got === a.total, `${a.ref}  ${q.padEnd(28)} anchor ${money(a.total)}, estTotal ${money(got)}`);
+  }
+  // E.C.F. rounds UP to the dollar, as every other niche page does.
+  ck(ecf(5995) === 600 && ecf(8995) === 900, 'E.C.F. rounds UP to the dollar (5995→600, 8995→900)');
+  // A niche with no add-ons is price + E.C.F. and nothing else.
+  ck(estTotal(4995) === 4995 + 500, 'with every quantity at 0 the total is the price plus E.C.F. alone');
 }
 
 // ── 9. Print path ─────────────────────────────────────────────────────────────
@@ -321,6 +429,28 @@ ck(/class="back-btn no-print" href="\.\.\/"/.test(src), '"← Quote Tool" back b
   const imgs = [...src.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
   ck(imgs.length === 0, `no <img> on the page${imgs.length ? ' — ' + imgs.slice(0, 2).join(' ') : ' (no photograph ships)'}`);
   ck(!/\.jpe?g|\.png/i.test(src), 'no photograph is referenced anywhere in the page source');
+}
+
+// ── 10b. Price-chip SIZE (operator: "very hard to read", 07.31.26) ───────────
+// Anchored so a later tidy-up cannot quietly shrink the one number a counselor reads
+// across the room. The cell widths are anchored with them because the chip only fits if
+// the track was widened for it.
+console.log('\nPrice-chip size (operator complaint 2026-07-31)');
+{
+  const px = (re) => { const m = re.exec(src); return m ? parseFloat(m[1]) : NaN; };
+  const full = px(/\.nprice\{font-weight:600;font-size:([\d.]+)px/);
+  const block = px(/\.fg-L \.nprice,\.fg-R \.nprice,\.fg-C \.nprice\{font-size:([\d.]+)px/);
+  const print = px(/\.nprice\{font-size:([\d.]+)px;padding:0 1px;box-shadow:none;\}/);
+  ck(full >= 12, `full-wall chip is ${full}px — at least 12px (was 9.5px)`);
+  ck(block >= 14, `block-view chip is ${block}px — at least 14px (was 11px)`);
+  ck(print >= 7.5, `printed chip is ${print}px — at least 7.5px (was 6.5px)`);
+  const cw = px(/--lw:20px;--lh:20px;--cw:(\d+)px/);
+  ck(cw >= 50, `the full-wall column is ${cw}px, widened from 44px so the bigger chip cannot clip`);
+  const pcw = px(/\.fgrid\{--lw:16px;--lh:15px;--cw:(\d+)px/);
+  // 32 spaces + 33 gaps + two 16px row-letter gutters must stay inside a landscape
+  // Letter page: 11in − 0.8in margin = 10.2in ≈ 979px at 96dpi.
+  const paperWidth = 32 * pcw + 33 * 2 + 2 * 16;
+  ck(paperWidth <= 979, `the printed wall is ${paperWidth}px wide — inside the 979px landscape Letter track`);
 }
 
 // ── 11. Price-chip contrast (WCAG AA, 4.5:1) ──────────────────────────────────
