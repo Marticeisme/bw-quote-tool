@@ -20574,8 +20574,9 @@ function clWorksheetHtml(prefix, rates, updateFn, opts) {
     + '</div>'
     + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
     + clField(prefix + 'PropDesig', 'Property Designation', '', false, 'Manual entry')
-    + (opts.showPmtReceived ? '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Total Payment Received</label>'
-        + '<input type="number" id="' + prefix + 'PmtReceived" step="0.01" oninput="' + updateFn + '()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>' : '')
+    + (opts.showPmtReceived ? '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">' + (opts.pmtLabel || 'Total Payment Received') + '</label>'
+        + '<input type="number" id="' + prefix + 'PmtReceived" step="0.01" oninput="' + updateFn + '()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">'
+        + (opts.pmtHint ? '<div style="font-size:10.5px;color:var(--text-light);margin-top:3px;">' + opts.pmtHint + '</div>' : '') + '</div>' : '')
     + '</div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">'
     + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
@@ -20809,7 +20810,11 @@ function anclImport() {
     el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
     el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
     el('anclMerchSale').value   = merchTotal.toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+    // The full contract total (everything the family pays) — separate from the commissionable
+    // subset above, which excludes ECF, discounts, O&C, recording and setting fees.
+    var grandTotal = (typeof _cemTotal === 'number' && _cemTotal > 0) ? _cemTotal : lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
+    if (el('anclPmtReceived')) el('anclPmtReceived').value = grandTotal.toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Total contract paid: ' + fmt(grandTotal) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
@@ -20847,7 +20852,11 @@ function anclImportFromCirgas() {
     el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
     el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
     el('anclMerchSale').value   = merchTotal.toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported from saved CIRGAS contract: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+    // The saved contract's own frozen grand total — what the family actually pays.
+    var grandTotal = (snap.state.anPricing && snap.state.anPricing.total) || snap.total
+                  || lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
+    if (el('anclPmtReceived')) el('anclPmtReceived').value = (+grandTotal || 0).toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported from saved CIRGAS contract: ' + name + ' — Total contract paid: ' + fmt(+grandTotal || 0) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
@@ -20855,7 +20864,7 @@ function anclUpdate() { clRenderWorksheetCopyPanel('anclCopyPanel', anclWorkshee
 function anclClearAll() {
   ['anclPurchaser','anclRecipient','anclDateOfSale','anclPromotion','anclPropDesig',
    'anclCremSale','anclCremMgrPct','anclCremMgrDollar','anclNoncremSale','anclNoncremMgrPct','anclNoncremMgrDollar',
-   'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar',
+   'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar','anclPmtReceived',
    'anclSplit2Name','anclSplit2Pct','anclSplit3Name','anclSplit3Pct','anclSplit4Name','anclSplit4Pct',
    'anclPricesConfirmedBy','anclDateSubmitted','anclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
   if (el('anclSplit1Pct')) el('anclSplit1Pct').value = 100;
@@ -20897,10 +20906,15 @@ function anclWorksheetData() {
     ],
     isRewrite: false, total: r.total,
     // A CIRGAS at-need sale is paid in full at time of service, so Total Payment Received (F6 on
-    // the worksheet) always equals the amount sold — there is nothing for the counselor to enter.
-    // Note r.total is the total COMMISSION, not the sale; payment received is the sum of the three
-    // commissionable-sale amounts (the CIRGAS total). Auto-fill it per Martice's 2026-07-23 request.
-    pmtReceived: num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale'),
+    // the worksheet) always equals the amount sold. That is the amount ON THE CONTRACT, which is
+    // NOT the sum of the three Commissionable Sale boxes: commissionable sale excludes ECF,
+    // discounts, opening & closing, recording and install/setting fees. Summing the boxes made a
+    // $5,070.96 case print $2,305 (2026-07-30 operator report). anclPmtReceived is auto-filled
+    // with the quote's own grand total on import and stays editable; the old sum is kept only as
+    // a fallback for a worksheet typed in by hand with nothing imported.
+    // Note r.total is the total COMMISSION, not a sale figure.
+    pmtReceived: num('anclPmtReceived') || (num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale')),
+    commissionableTotal: num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale'),
     splits: [1,2,3,4].map(function(n){ return { name: val('anclSplit'+n+'Name'), pct: num('anclSplit'+n+'Pct') }; })
   };
 }
@@ -22048,6 +22062,9 @@ function _clWorksheetCopyText(data) {
   lines.push('Date of Sale:  ' + (data.dateOfSale || ''));
   if (data.promotion) lines.push('Promotion:  ' + data.promotion);
   if (data.pmtReceived !== undefined) lines.push('Total Payment Received:  ' + fmt(data.pmtReceived));
+  // Printed right under it so the two figures can never be mistaken for each other again: the
+  // family pays the total above; commission is earned on the (smaller) commissionable subset.
+  if (data.commissionableTotal !== undefined) lines.push('  of which Commissionable Sale:  ' + fmt(data.commissionableTotal));
   lines.push('');
   var sectionLabel = data.type === 'ric' ? 'RETAIL INSTALLMENT CONTRACT section:' : data.type === 'atneed' ? 'AT NEED section:' : 'FUNERAL TRUST (CLEARPOINT) section:';
   lines.push(sectionLabel);
@@ -22087,7 +22104,13 @@ function clCopyWorksheetValues(containerId) {
   var riclBody = el('riclWorksheetBody');
   if (!riclBody) return;
   riclBody.innerHTML             = clWorksheetHtml('ricl', CL_RATES.ric,    'riclUpdate', {showPmtReceived: true,  showRewrite: true});
-  el('anclWorksheetBody').innerHTML = clWorksheetHtml('ancl', CL_RATES.atneed, 'anclUpdate', {showPmtReceived: false, showRewrite: false});
+  // At-Need is paid in full at time of service, so F6 "Total Payment Received" is the WHOLE
+  // contract — ECF, opening & closing, recording and setting fees included — not the
+  // commissionable subset in the table below it. Reported 2026-07-30: a $5,070.96 at-need case
+  // printed $2,305 (the vault alone) because this figure was derived by adding the three
+  // Commissionable Sale boxes together. It is now imported and shown as its own editable field.
+  el('anclWorksheetBody').innerHTML = clWorksheetHtml('ancl', CL_RATES.atneed, 'anclUpdate', {showPmtReceived: true, showRewrite: false,
+    pmtLabel: 'Total Contract Amount Paid', pmtHint: 'Worksheet cell F6 — the FULL amount the family pays (incl. ECF, O&amp;C, fees). Auto-fills on import; the Commissionable Sale boxes below stay separate.'});
   el('cpclWorksheetBody').innerHTML = cpclWorksheetHtml();
   el('riclAdminBody').innerHTML = clAdminHtml('ricl');
   el('anclAdminBody').innerHTML = clAdminHtml('ancl');
