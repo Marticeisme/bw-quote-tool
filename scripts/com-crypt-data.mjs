@@ -73,8 +73,15 @@ export const OMITTED_FEES = [
   'Open & Closing — printed as ######## on the sheet',
   'Monobar (each) — printed as ######## on the sheet',
 ];
-// Radiance / Serenity fee box (both sheets carry the same figures).
-export const NICHE_FEES = { OC: 835, RECORDING: 225, ECF_RATE: 0.1 };
+// Radiance / Serenity fee box — both walls are GLASS-FRONT, so they carry the uniform
+// glass-front schedule, not the figures printed on their own wall sheets ($835 / $225).
+// OPERATOR RULING, Map Issues 07.31.26: "All glass front niches should have the same
+// opening and closing and recording fee ... The opening and closing fee is 875 and the
+// recording fee is 235 same 10% ecf applies." No inscription fee, and no sales tax —
+// the tax exception is ECL's bronze add-ons only, which these walls do not offer.
+// This schedule must never be applied to the COM CRYPTS above (CRYPT_FEES) — crypts are
+// a different product with their own, unchanged fee box.
+export const NICHE_FEES = { OC: 875, RECORDING: 235, ECF_RATE: 0.1 };
 export const NICHE_PRICES_EFFECTIVE = 'Prices effective January 13, 2025';
 
 // ── Areas ─────────────────────────────────────────────────────────────────────

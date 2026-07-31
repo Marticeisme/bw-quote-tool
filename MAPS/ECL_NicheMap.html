@@ -37,7 +37,7 @@
      here"). The photographs show exactly this: a near-black bronze mullion grid, and
      behind each smoked-glass front a warm champagne interior lit from above. The price
      tier lives on the chip, never on the cell fill. */
-  .n{border-radius:3px;border:1px solid rgba(58,44,20,.42);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.25;font-size:8.5px;min-width:0;font-family:'Jost',sans-serif;
+  .n{border-radius:3px;border:1px solid rgba(58,44,20,.42);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s,filter .15s;text-align:center;padding:2px;line-height:1.25;font-size:8.5px;min-width:0;container-type:inline-size;font-family:'Jost',sans-serif;
     color:#3a2c14;gap:2px;
     background:
       linear-gradient(115deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,0) 32%),
@@ -48,11 +48,21 @@
     filter:brightness(1.16) saturate(1.12);
     box-shadow:0 0 0 2px var(--gold),0 0 22px 4px rgba(255,255,255,.45);}
   .n.sel{transform:scale(1.04);}
-  .nid{font-size:8px;opacity:.7;}
-  .nprice{font-weight:600;font-size:10.5px;padding:0 5px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .nid{font-size:9px;opacity:.75;}
+  /* Price legibility (operator, 2026-07-31): "the font size for the prices on the
+     niche need to be increased right now they are very hard to read". Flat-grid chip
+     10.5px -> 13.5px, 3D face chip 7.5px -> 10.5px, overview mini 6.5px -> 8px.
+     Sizes only — every chip keeps its tier colours, so the measured contrast ratios
+     (worst 4.90:1) are untouched. */
+  /* The chip is sized from the CELL's own width (cqw), so a wide niche gets a big
+     price and the narrowest niche still fits inside its own borders. Floor 11px is
+     already larger than the old flat 10.5px, which overflowed the two narrowest
+     cells; ceiling 15px. Sizes only — tier colours and therefore the measured
+     contrast ratios are untouched. */
+  .nprice{font-weight:700;font-size:clamp(11px,20cqw,15px);padding:0 2px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.3);white-space:nowrap;}
   .nstatus,.n3st{font-size:6px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     padding:0 3px;border-radius:2px;background:rgba(255,255,255,.88);color:#17181b;}
-  .fgrid.mini .nid{font-size:5px;}.fgrid.mini .nprice{font-size:6.5px;padding:0 2px;}.fgrid.mini .nstatus{display:none;}
+  .fgrid.mini .nid{font-size:6px;}.fgrid.mini .nprice{font-size:clamp(6.5px,20cqw,8.5px);padding:0 2px;}.fgrid.mini .nstatus{display:none;}
   .fgrid.mini .n{padding:1px;cursor:default;}
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(0,0,0,.45);}
   /* ── Status code (operator: an FSD must never mistake these for sellable).
@@ -144,7 +154,7 @@
   .crowntop{position:absolute;left:0;top:0;background:linear-gradient(135deg,#6d4227,#4a2a14);border:1px solid #2e1a0b;}
   .plinth{position:absolute;left:0;top:0;background:linear-gradient(180deg,#4a2a14,#331c0c);border:1px solid #241307;backface-visibility:hidden;}
   .n3{border:none;border-radius:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    overflow:hidden;line-height:1.1;padding:0;min-width:0;transition:filter .15s,transform .15s;gap:1px;
+    overflow:hidden;line-height:1.1;padding:0;min-width:0;container-type:inline-size;transition:filter .15s,transform .15s;gap:1px;
     color:#3a2c14;
     background:
       linear-gradient(115deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 30%),
@@ -154,8 +164,8 @@
     box-shadow:0 4px 18px rgba(0,0,0,.55),inset 0 2px 3px rgba(255,248,225,.8),inset 0 0 0 1px rgba(58,44,20,.28);}
   /* While orbiting, niches under the moving cursor must not pop. */
   .scene.dragging .n3:hover{transform:none!important;filter:none!important;}
-  .n3id{font-size:7px;opacity:.8;letter-spacing:.02em;font-weight:500;}
-  .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.02em;white-space:nowrap;}
+  .n3id{font-size:8px;opacity:.85;letter-spacing:.02em;font-weight:500;}
+  .n3p{font-size:clamp(8.5px,20cqw,12px);font-weight:700;padding:0 2px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.02em;white-space:nowrap;}
   .n3st{font-size:5.5px;letter-spacing:.06em;}
   .baseband{background:linear-gradient(180deg,#2b251c,#131007);
     display:flex;align-items:center;justify-content:center;color:var(--gold-light);
@@ -769,15 +779,19 @@
   </div>
 
   <div class="fees">
-    <div class="fi"><span class="fl">Open &amp; Closing — $835 ea</span>
+    <div class="fi"><span class="fl">Open &amp; Closing — $875 ea</span>
       <span class="fv">Qty: <input type="number" id="oc-qty" min="0" max="4" value="1" aria-label="Open and closing quantity"></span></div>
-    <div class="fi"><span class="fl">Recording Fee — $225 ea</span>
+    <div class="fi"><span class="fl">Recording Fee — $235 ea</span>
       <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="1" aria-label="Recording fee quantity"></span></div>
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% of niche price — not included in listed prices</span></div>
     <div class="fi"><span class="fl">#5108 Bronze Scroll — $785</span>
       <span class="fv"><label class="ftog"><input type="checkbox" id="scroll-on" aria-label="Include the $785 bronze scroll in the niche total"> Add to total</label></span></div>
     <div class="fi"><span class="fl">Vase with Ring — $370</span>
       <span class="fv"><label class="ftog"><input type="checkbox" id="vase-on" aria-label="Include the $370 vase with ring in the niche total"> Add to total</label></span></div>
+    <div class="fi"><span class="fl">Sales Tax — 10.4%</span>
+      <span class="fv">scroll and vase only — no other glass-front charge is taxed</span></div>
+    <div class="fi"><span class="fl">Inscription</span>
+      <span class="fv">none — glass-front niches carry no inscription fee</span></div>
   </div>
   <div class="pfoot">
     <b>Row A is the bottom row; Row F the top. Niches are numbered left to right facing each side.</b><br>
@@ -791,7 +805,7 @@
 <script>
 
 'use strict';
-var OC = 835, REC = 225, SCROLL = 785, VASE = 370;
+var OC = 875, REC = 235, SCROLL = 785, VASE = 370, TAX = 0.104;
 var STATUS_LABEL = {"sold":"Sold","unpriced":"Not Priced"};
 var FACE_LABEL = {"S":"South","N":"Front (North)","W":"West","E":"East (Front Door)"};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
@@ -828,11 +842,20 @@ function cardHtml(d) {
   var oc = qty('oc-qty'), rc = qty('rec-qty');
   if (oc > 0) { rows += '<div class="cr"><span class="cl">Open &amp; Closing \u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
   if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording Fee \u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
-  if (addOn('scroll-on')) { rows += '<div class="cr"><span class="cl">#5108 Bronze Scroll</span><span class="cv">' + fm(SCROLL) + '</span></div>'; tot += SCROLL; }
-  if (addOn('vase-on')) { rows += '<div class="cr"><span class="cl">Vase with Ring</span><span class="cv">' + fm(VASE) + '</span></div>'; tot += VASE; }
+  // The bronze scroll and the vase are the ONLY taxable items on any glass-front
+  // niche (operator, 2026-07-31). The niche price, the E.C.F., the O&C and the
+  // recording fee are never taxed, so the tax base is the add-ons alone.
+  var taxable = 0;
+  if (addOn('scroll-on')) { rows += '<div class="cr"><span class="cl">#5108 Bronze Scroll</span><span class="cv">' + fm(SCROLL) + '</span></div>'; taxable += SCROLL; }
+  if (addOn('vase-on')) { rows += '<div class="cr"><span class="cl">Vase with Ring</span><span class="cv">' + fm(VASE) + '</span></div>'; taxable += VASE; }
+  if (taxable > 0) {
+    var tx = Math.round(taxable * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">Sales Tax (10.4%)</span><span class="cv">$' + tx.toFixed(2) + '</span></div>';
+    tot += taxable + tx;
+  }
   return cardHead(d) + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
-    '<div class="cnote">E.C.F. is 10% of the niche price only \u2014 add-ons are not subject to it. Bronze scroll and vase are optional; toggle them in the footer.</div>';
+    '<div class="cnote">E.C.F. is 10% of the niche price only \u2014 add-ons are not subject to it. Bronze scroll and vase are optional; toggle them in the footer. Sales tax applies to those two add-ons only \u2014 nothing else on a glass-front niche is taxed, and there is no inscription fee.</div>';
 }
 
 function readNiche(el) {

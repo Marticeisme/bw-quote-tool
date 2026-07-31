@@ -257,19 +257,87 @@ console.log('\nBronze Scroll / Vase add-on toggles');
     ck(!!m && !/\bchecked\b/.test(m[0]), `${label} defaults to OFF (no checked attribute)`);
     ck(new RegExp(`addOn\\('${id}'\\)`).test(js), `${label} is read by the card math via addOn('${id}')`);
   }
-  ck(/tot \+= SCROLL;/.test(js) && /tot \+= VASE;/.test(js),
-    'each toggle adds its flat amount to the card total');
+  ck(/taxable \+= SCROLL;/.test(js) && /taxable \+= VASE;/.test(js),
+    'each toggle adds its flat amount to the taxable add-on subtotal');
+  ck(/tot \+= taxable \+ tx;/.test(js),
+    'the add-on subtotal and its tax are both added to the card total');
   // E.C.F. must be 10% of the NICHE PRICE only. The one call site takes `price`, and
   // the add-on lines are appended to `tot` afterwards, so no add-on can ever be taxed.
   ck(/var price = \+d\.price, e = ecf\(price\), tot = price \+ e,/.test(js),
     'E.C.F. is computed once, from the niche price alone');
   ck(!/ecf\((?!price\))/.test(js), 'ecf() is never called on anything but the niche price');
-  const scrollAt = js.indexOf('tot += SCROLL'), ecfAt = js.indexOf('e = ecf(price)');
+  const scrollAt = js.indexOf('taxable += SCROLL'), ecfAt = js.indexOf('e = ecf(price)');
   ck(ecfAt > -1 && scrollAt > ecfAt, 'the add-ons are added AFTER the E.C.F. line, never into its base');
   ck(/'oc-qty', 'rec-qty', 'scroll-on', 'vase-on'/.test(js),
     'both toggles re-render the pinned card (and therefore its print block) on change');
   ck(/closest\('#card, \.tab, \.tbtn, \.fees'\)/.test(js),
     'clicking the fee footer does not unpin the card the toggles are updating');
+}
+
+// ── 6e. The uniform glass-front fee schedule (operator, 2026-07-31) ───────────
+// "All glass front niches should have the same opening and closing and recording fee.
+//  Also there is no inscription fee on any glass front niche. The opening and closing
+//  fee is 875 and the recording fee is 235 same 10% ecf applies. There will be no tax
+//  on a glass front niche unless its ecl and they add the vase and scroll"
+//
+// These are ASSERTED, not merely echoed from the module: the literal 875 / 235 / 0.1 /
+// 0.104 are written out here so that changing ecl-niche-data.mjs alone fails this gate.
+// ECL is the one glass-front surface that carries any tax, and only on the two bronze
+// add-ons — hence the "nothing else is taxed" checks below.
+console.log('\nGlass-front fee schedule (operator ruling 2026-07-31)');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  ck(FEES.OC === 875, `module O&C is $875 (got ${money(FEES.OC)})`);
+  ck(FEES.REC === 235, `module recording fee is $235 (got ${money(FEES.REC)})`);
+  ck(FEES.ECF_RATE === 0.1, `module E.C.F. rate is 10% (got ${FEES.ECF_RATE * 100}%)`);
+  ck(FEES.TAX === 0.104, `module add-on tax rate is 10.4% (got ${FEES.TAX * 100}%)`);
+  ck(new RegExp(`Open &amp; Closing — \\$875 ea`).test(src), 'the fee footer prints Open & Closing $875 ea');
+  ck(/Recording Fee — \$235 ea/.test(src), 'the fee footer prints Recording Fee $235 ea');
+  ck(/OC = 875,/.test(js) && /REC = 235,/.test(js), 'the page carries OC = 875 and REC = 235');
+  ck(/TAX = 0\.104/.test(js), 'the page carries TAX = 0.104');
+
+  // No inscription fee exists on ANY glass-front niche — not as a line, not as a toggle.
+  ck(!('INSCR' in FEES) && !('INSCRIPTION' in FEES), 'the module exports no inscription fee at all');
+  ck(!/insc/i.test(js) || /no inscription fee/i.test(js),
+    'the page script contains no inscription math');
+  ck(!/id="insc[^"]*"/.test(src), 'the page renders no inscription input or toggle');
+  ck(/Inscription<\/span>\s*\r?\n?\s*<span class="fv">none/.test(src),
+    'the fee footer states explicitly that there is no inscription fee');
+
+  // Tax base: the scroll and the vase, and nothing else.
+  ck(/var taxable = 0;/.test(js), 'the tax base starts at zero and is built from add-ons only');
+  const taxLines = [...js.matchAll(/taxable \+= (\w+);/g)].map((m) => m[1]).sort();
+  ck(JSON.stringify(taxLines) === JSON.stringify(['SCROLL', 'VASE']),
+    `only the scroll and the vase are taxable (found: ${taxLines.join(', ') || 'nothing'})`);
+  ck(!/OC \* oc[\s\S]{0,200}taxable/.test(js) && !/taxable \+= (OC|REC|price|e)\b/.test(js),
+    'neither the O&C, the recording fee, the niche price nor the E.C.F. is ever taxed');
+  ck(/Sales Tax \(10\.4%\)/.test(js), 'the card labels the tax line at 10.4%');
+  ck(/scroll and vase only/.test(src), 'the fee footer scopes the tax to the two add-ons');
+}
+
+// ── 6f. Price legibility (operator, 2026-07-31) ───────────────────────────────
+// "the font size for the prices on the niche need to be increased right now they are
+//  very hard to read". The chip is sized from its own cell's inline size, so a wide
+//  niche gets a large price and the narrowest niche still fits inside its borders.
+// The FLOOR is what matters: it must exceed the flat 10.5px / 7.5px this replaced.
+console.log('\nPrice-chip legibility');
+{
+  const rule = (sel) => {
+    const i = src.indexOf(sel);
+    return i < 0 ? '' : src.slice(i, src.indexOf('}', i) + 1);
+  };
+  const flatChip = rule('\r\n  .nprice{');
+  const threeChip = rule('\r\n  .n3p{');
+  const grab = (r) => (/clamp\(([\d.]+)px,\s*([\d.]+)cqw,\s*([\d.]+)px\)/.exec(r) || []).slice(1).map(Number);
+  const [fLo, , fHi] = grab(flatChip);
+  const [tLo, , tHi] = grab(threeChip);
+  ck(fLo >= 11 && fHi >= 15, `flat-grid price chip scales ${fLo}px–${fHi}px (was a flat 10.5px)`);
+  ck(tLo >= 8.5 && tHi >= 12, `3D-face price chip scales ${tLo}px–${tHi}px (was a flat 7.5px)`);
+  ck(/container-type:inline-size/.test(rule('\r\n  .n{border-radius:3px')),
+    'the flat niche cell is a size container, so cqw resolves against the cell');
+  ck(/container-type:inline-size/.test(rule('\r\n  .n3{border:none')),
+    'the 3D niche front is a size container too');
+  ck(/white-space:nowrap/.test(flatChip), 'a price never wraps inside its chip');
 }
 
 // ── 7. Print path ─────────────────────────────────────────────────────────────

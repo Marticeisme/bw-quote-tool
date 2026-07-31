@@ -967,6 +967,10 @@ ${overviewView()}
     <div class="fi"><span class="fl">Niche Recording — ${money(NICHE_FEES.RECORDING)} ea</span>
       <span class="fv">Qty: <input type="number" id="nrec-qty" min="0" max="4" value="0" aria-label="Niche recording quantity"></span></div>
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% — not included in listed prices</span></div>
+    <div class="fi"><span class="fl">Niche Inscription</span>
+      <span class="fv">none — glass-front niches carry no inscription fee</span></div>
+    <div class="fi"><span class="fl">Niche Sales Tax</span>
+      <span class="fv">none — glass-front niches are not taxed</span></div>
     <div class="fi"><span class="fl">Omitted (illegible on the sheet)</span><span class="fv">${OMITTED_FEES.map((f) => esc(f.split(' — ')[0])).join(' · ')}</span></div>
   </div>
   <div class="pfoot">

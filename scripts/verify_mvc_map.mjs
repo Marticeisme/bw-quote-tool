@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { WALLS, WALL_ORDER, allNiches, cellDims } from './mvc-niche-data.mjs';
+import { WALLS, WALL_ORDER, allNiches, cellDims, FEES } from './mvc-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/MVC_NewGlassFront_NicheMap_1.html';
@@ -259,6 +259,39 @@ console.log('\nTerrace Garden moved to MAPS/TGMP_Map.html');
   // The pointer must survive the printout: a printed MVC map that still advertised a
   // Terrace Garden tab would send an FSD to a page that no longer has one.
   (/\.ptabs\{border:none!important/.test(newSrc) ? pass : fail)('the pointer is not hidden by the print stylesheet');
+}
+
+// ── 8c. The uniform glass-front fee schedule (operator, 2026-07-31) ───────
+// "All glass front niches should have the same opening and closing and recording fee.
+//  Also there is no inscription fee on any glass front niche. The opening and closing
+//  fee is 875 and the recording fee is 235 same 10% ecf applies. There will be no tax
+//  on a glass front niche unless its ecl and they add the vase and scroll"
+//
+// The island is glass on all four faces, so: O&C $875, recording $235, E.C.F. 10%, and
+// nothing else. The $660 inscription and the 10.4% tax this module used to export
+// belong to the GRANITE-front locations (ROAC, Terrace Garden) and were removed here on
+// 2026-07-31 — they must not come back. The literals are written out below so that
+// editing mvc-niche-data.mjs alone fails this gate.
+console.log('\nGlass-front fee schedule (operator ruling 2026-07-31)');
+{
+  (FEES.OC === 875 ? pass : fail)(`module O&C is $875 (got $${FEES.OC})`);
+  (FEES.REC === 235 ? pass : fail)(`module recording fee is $235 (got $${FEES.REC})`);
+  (FEES.ECF_RATE === 0.1 ? pass : fail)(`module E.C.F. rate is 10% (got ${FEES.ECF_RATE * 100}%)`);
+  (!('INSCR' in FEES) ? pass : fail)('the module exports no inscription fee');
+  (!('TAX' in FEES) ? pass : fail)('the module exports no sales-tax rate');
+  (/Niche Inurnment O&amp;C — \$875 ea/.test(newSrc) ? pass : fail)('the fee footer prints O&C $875 ea');
+  (/Recording Fee — \$235 ea/.test(newSrc) ? pass : fail)('the fee footer prints Recording Fee $235 ea');
+  (/var OC = 875, REC = 235;/.test(newSrc) ? pass : fail)('the page script carries OC = 875, REC = 235');
+  // Strip the two explanatory "none — ..." footer lines first, so the search for a
+  // surviving inscription/tax mechanism cannot be satisfied by the notices denying one.
+  const stripped = newSrc.replace(
+    /<div class="fi"><span class="fl">(Inscription|Sales Tax)<\/span>[\s\S]*?<\/div>/g, '');
+  (!/inscr/i.test(stripped) ? pass : fail)('no inscription amount, input or toggle survives anywhere on the page');
+  (!/\bTAX\b|Sales Tax —|sales tax/i.test(stripped) ? pass : fail)('no sales-tax math or amount appears on the page');
+  (/Inscription<\/span>[\s\S]{0,90}none — glass-front niches carry no inscription fee/.test(newSrc) ? pass : fail)(
+    'the fee footer states there is no inscription fee');
+  (/Sales Tax<\/span>[\s\S]{0,90}none — glass-front niches are not taxed/.test(newSrc) ? pass : fail)(
+    'the fee footer states glass-front niches are not taxed');
 }
 
 // ── 9. Print path needs no JS ─────────────────────────────────────────────
