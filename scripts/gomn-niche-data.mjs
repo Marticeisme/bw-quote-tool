@@ -108,13 +108,82 @@ export const STATUS_LABEL = { unavailable: 'Confirm in MIS' };
 /** Statuses that must never render a price, anywhere, in any view. */
 export const UNSELLABLE = ['unavailable'];
 
-// ── Fees, verbatim off the sheet's right-hand boxes (2026-07-29) ─────────────
+// ── Fees ─────────────────────────────────────────────────────────────────────
+// ── THESE ARE NO LONGER THE SHEET'S OWN NUMBERS (operator ruling 2026-07-31) ──
+// The GOMN price sheet's right-hand boxes print Open & Closing $835.00ea, Recording Fee
+// $225.00ea and Inscription $605.00ea. Martice ruled on 2026-07-31 that the **Mountain
+// View Columbarium June-2026 schedule** applies to the Garden of Meditation, exactly as
+// it already applies to the Terrace Garden Memorial Path. That schedule REPLACES the
+// three amounts printed on this sheet:
+//
+//   E.C.F.       ceil(price × 10%) — unchanged, and the sheet's own sentence still
+//                stands verbatim: not included in listed pricing
+//   O&C          $875 each   (sheet said $835)
+//   Recording    $235 each   (sheet said $225)
+//   Inscription  $660 each   (sheet said $605) — TAXABLE, and addable ×2
+//   Sales tax    10.4%, on the inscription subtotal ONLY
+//
+// The sheet's E.C.F. rate is untouched, so `SHEET_TEXT.ecf` is still a verbatim quote.
+// The three dollar amounts are NOT, and the page must say where they come from — see
+// FEE_SOURCE. Do not restate them as "the sheet's fees": that is the one sentence a
+// family could be misled by.
 export const FEES = {
-  ECF_RATE: 0.1,     // "E.C.F: 10%  ***E.C.F is not included in listed pricing***"
-  OC: 835,           // "Open & Closing:  $835.00ea"
-  REC: 225,          // "Recording Fee:   $225.00ea"
-  INSCRIPTION: 605,  // "Inscription:     $605.00ea"  — optional toggle, default OFF
+  ECF_RATE: 0.1,   // "E.C.F: 10%  ***E.C.F is not included in listed pricing***" (sheet)
+  OC: 875,         // MVC June-2026
+  REC: 235,        // MVC June-2026
+  INSCR: 660,      // MVC June-2026 — taxable merchandise
+  TAX: 0.104,      // MVC June-2026 — applies to the inscription subtotal only
 };
+
+/** Where the schedule came from and what it is not. Rendered verbatim on the page. */
+export const FEE_SOURCE = {
+  schedule: 'Mountain View Columbarium, June 2026',
+  confirmedOn: '2026-07-31',
+  confirmedBy: 'operator ruling',
+  printedOnThisSheet: false,
+  replaces: 'Open & Closing $835 · Recording Fee $225 · Inscription $605',
+};
+
+/**
+ * Inscriptions are a QUANTITY, not a yes/no (operator, 2026-07-31): "you can add two
+ * inscriptions on the front". A companion niche carries two names, so the ceiling is the
+ * niche's two rights of interment. Default 0.
+ */
+export const INSCR_MAX = 2;
+
+/**
+ * The Interlude Urn — a MERCHANDISE add-on, not a fee.
+ * Price operator-supplied 2026-07-31. The sheet names the urn ("ONLY the Interlude Urn
+ * is allowed in these Niches due to size. Refer to URN price list for price.") but does
+ * not price it; this is the URN price list figure the sheet points at. Two fit per
+ * niche, which is exactly why the wall is sold as a companion — so the quantity ceiling
+ * is the niche's two rights.
+ */
+export const URN = {
+  name: 'Interlude Urn',
+  maker: 'Matthews',
+  price: 665,
+  maxQty: 2,
+  source: 'operator-supplied 2026-07-31, from the urn price list',
+};
+
+/** E.C.F., rounded UP to the dollar — the same rule the MVC/TGMP cards use. */
+export const ecf = (price) => Math.ceil(price * FEES.ECF_RATE);
+
+/**
+ * The card's arithmetic in one place, so the gate can anchor a full computation against
+ * the same rules the page runs. `q` = { oc, rec, inscr, urn }, all defaulting to 0.
+ *
+ * Order matters and is asserted: E.C.F. is 10% of the NICHE PRICE alone and is never
+ * charged on an add-on, so every add-on is summed AFTER it. Sales tax applies to the
+ * inscription subtotal only — the urn is quoted at list, its tax confirmed at contract.
+ */
+export function estTotal(price, q = {}) {
+  const oc = q.oc || 0, rec = q.rec || 0, inscr = q.inscr || 0, urn = q.urn || 0;
+  const inscrSub = FEES.INSCR * inscr;
+  const tax = Math.round(inscrSub * FEES.TAX * 100) / 100;
+  return Math.round(price + ecf(price) + FEES.OC * oc + FEES.REC * rec + inscrSub + tax + URN.price * urn);
+}
 
 /** The sheet's own sentences. Carried onto the page verbatim; do not reinterpret. */
 export const SHEET_TEXT = {
@@ -132,7 +201,8 @@ export const SHEET_TEXT = {
  */
 export const COMPANION_NOTE =
   'Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn ' +
-  'is required — two fit per niche. See the urn price list for Interlude pricing.';
+  `is required — two fit per niche. The ${URN.name} (${URN.maker}) is ` +
+  `$${URN.price.toLocaleString('en-US')} each on the urn price list — merchandise, not a fee.`;
 
 // ── Price tiers (5 distinct prices on the sheet) ─────────────────────────────
 // The tier hue lives on the price CHIP only, never on the cell fill — the cell fill is
