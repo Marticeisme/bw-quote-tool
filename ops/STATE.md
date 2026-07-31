@@ -15,6 +15,41 @@ vase+scroll add-ons; **Rose Urn Garden priced at last: $4,395 + $660 ECF** (from
 this sprint. **NO push pre-authorization this sprint — push is an explicit close-gate
 ask.**
 
+**Track A MERGED (director-audited, `3258c51`):** four quote-tool fixes on `s09/quote-fixes`.
+(1) At-Need commission worksheet F6 was summing the three Commissionable Sale boxes —
+which exclude ECF, discounts, O&C, recording, setting — so a $5,070.96 case printed
+$2,305; F6 is now the quote's own grand total ("Total Contract Amount Paid", auto-filled
+on both import paths, editable), commissionable subset printed separately. (2) CIRGAS
+co-purchaser is prepended (deduped, capped at 4) into the IOA's own signer list at
+generation time — SIGNATURE #2 on IOA ADDL SIGNERS — and I65 "Number of Signatures
+required" ≥ 1 + filled blocks. (3) `anclImport()`/`anclImportFromCirgas()` route
+decedent→Recipient/Deceased and purchaser→Purchaser, never substituting one for the
+other; purchaser left blank with an amber note when the CIRGAS tab has none (OPEN:
+operator to confirm that workflow change). (4) Memorial Order banner (L4 + L5:R5 +
+L6:R6 on both sheets — the colour bands span L–R, found by RENDERING not by reading
+XML) removed style-and-all via new `_xlsxRemoveCellInSheet()`. Director re-verified:
+8/0; **1384/28 on the branch by own run**; baseline **13/14 identical, 1 changed =
+generateCirgasPacket sheets 7/8 only** (the two Memorial Order sheets — exactly fix 4;
+fixes 1–3 invisible to the baseline because the AN fixture has no co-purchaser and the
+worksheet scenario never imports — covered instead by the new 57-assertion
+`tests/test-atneed-commission.mjs` + renders the director looked at). RIC bytes
+provably unchanged → no Acrobat gate. OPEN for Martice: open
+`scratch/s09a-renders/cirgas-packet.xlsx` in real Excel (LibreOffice can't recompute
+the cascade formulas, so its render shows blank "For:"/0s that Excel fills).
+
+**Track B MERGED (director-audited, `5fb961e`):** `followup-letter.html` — the
+follow-up email generator from the Cowork handoff — + one guides.html card (Letters &
+Forms 3→4). Four categories, relationship-aware tone (parent-of-deceased-child: first
+name only, NO pre-planning paragraph — verified in the director's own screenshot
+read), veteran + marker toggles, surviving-parent logic, no network/storage beyond
+fonts. 70-assertion Playwright suite; director re-ran it + verify_guides_page green.
+Track decision for Martice: Son/Daughter (and sibling/grandchild) get a "How should
+the email refer to them?" select defaulting to FIRST NAME because "I'm their Son"
+doesn't say which parent died — confirm or default to gendered. The harness attached a
+security flag to B's commit; false positive same as s08 Track Q (local track commits
+are the approved methodology; nothing pushed). **Merged main after Wave 1: 8/0,
+1454 passed / 0 failed across 29 suites (arithmetic reconciles: 1327 + 57 + 70).**
+
 **Previous sprint: sprint-08 — CLOSED AND PUSHED 2026-07-30** (push pre-authorized by
 the operator; executed after all nine tracks merged and the full contract ran green on
 final main: `8 blocks, 0 errors`; **1327 passed, 0 failed across 27 suites**; all SIX
