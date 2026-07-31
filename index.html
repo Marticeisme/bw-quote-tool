@@ -20574,8 +20574,9 @@ function clWorksheetHtml(prefix, rates, updateFn, opts) {
     + '</div>'
     + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">'
     + clField(prefix + 'PropDesig', 'Property Designation', '', false, 'Manual entry')
-    + (opts.showPmtReceived ? '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">Total Payment Received</label>'
-        + '<input type="number" id="' + prefix + 'PmtReceived" step="0.01" oninput="' + updateFn + '()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;"></div>' : '')
+    + (opts.showPmtReceived ? '<div style="flex:1;min-width:170px;"><label style="font-size:12px;">' + (opts.pmtLabel || 'Total Payment Received') + '</label>'
+        + '<input type="number" id="' + prefix + 'PmtReceived" step="0.01" oninput="' + updateFn + '()" style="width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;">'
+        + (opts.pmtHint ? '<div style="font-size:10.5px;color:var(--text-light);margin-top:3px;">' + opts.pmtHint + '</div>' : '') + '</div>' : '')
     + '</div>'
     + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;">'
     + '<thead><tr style="background:var(--navy);color:#fff;"><th style="padding:6px 8px;text-align:left;">Item</th>'
@@ -20793,23 +20794,37 @@ function anclImport() {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">No client name found — fill in the Cemetery Quote Builder (Client Information) first.</span>';
     return;
   }
+  // On an At-Need quote the Cemetery Quote Builder's Client / Family Name IS THE DECEDENT —
+  // anImportFromCemeteryQuote() splits that same value into anDecFirst/Middle/Last for exactly
+  // that reason. It used to be written straight into Purchaser, so the checklist PDF and the
+  // commission worksheet both named the deceased as the buyer (reported 2026-07-30). The
+  // purchaser is a surviving family member and comes from the CIRGAS Contract tab if it has
+  // been filled in; otherwise it is left blank to be typed rather than silently guessed.
+  var anclDecedent  = [val('anDecFirst'), val('anDecMiddle'), val('anDecLast')].filter(Boolean).join(' ').replace(/\s+/g,' ').trim() || name;
+  var anclPurchaser = val('anPurchName').trim();
   if (typeof cemQuoteType === 'function' && cemQuoteType() !== 'atneed') {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Cemetery Quote Builder is set to Pre-Need, not At-Need. Switch its Quote Type to At-Need before importing here.</span>';
     return;
   }
-  el('anclPurchaser').value  = name;
+  el('anclPurchaser').value  = anclPurchaser;
+  el('anclRecipient').value  = anclDecedent;
   el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
   el('anclPromotion').value  = (typeof _cemDiscData !== 'undefined' && _cemDiscData && _cemDiscData.label) || '';
+  var anclWho = 'Deceased: ' + anclDecedent + ' · Purchaser: ' + (anclPurchaser || '<strong>not set — enter it above</strong>');
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) {
-    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Client name imported, but the Cemetery Quote is empty — add items in the Quote Builder, then re-import here.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">' + anclWho + ' — but the Cemetery Quote is empty; add items in the Quote Builder, then re-import here.</span>';
   } else {
     var bucket = clCremationBucket(lines);
     var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
     el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
     el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
     el('anclMerchSale').value   = merchTotal.toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+    // The full contract total (everything the family pays) — separate from the commissionable
+    // subset above, which excludes ECF, discounts, O&C, recording and setting fees.
+    var grandTotal = (typeof _cemTotal === 'number' && _cemTotal > 0) ? _cemTotal : lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
+    if (el('anclPmtReceived')) el('anclPmtReceived').value = grandTotal.toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:' + (anclPurchaser ? '#15803d' : '#b45309') + ';">' + (anclPurchaser ? '✅ Imported' : '⚠ Imported (no purchaser on the CIRGAS tab yet)') + ' — ' + anclWho + ' — Total contract paid: ' + fmt(grandTotal) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
@@ -20831,23 +20846,37 @@ function anclImportFromCirgas() {
     return;
   }
   var f = snap.state.fields || {};
-  var name = (f.anPurchName || ((f.anDecFirst||'') + ' ' + (f.anDecLast||'')).replace(/\s+/g,' ').trim() || '').trim();
-  if (!name) {
+  // The saved CIRGAS contract records these as two separate people, and on an at-need case
+  // they almost always ARE two people — the decedent and a surviving family member who buys.
+  // This used to collapse them to "purchaser OR decedent" and write the winner into Purchaser,
+  // leaving Recipient/Deceased empty, so a contract with no purchaser typed yet put the
+  // deceased's name in the buyer's box on both the checklist PDF and the worksheet (I4/I5).
+  // Reported 2026-07-30. Route each to its own field and never substitute one for the other.
+  var purchaser = (f.anPurchName || '').trim();
+  var decedent  = [f.anDecFirst, f.anDecMiddle, f.anDecLast].filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+  if (!purchaser && !decedent) {
     el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">That saved contract has no purchaser or decedent name.</span>';
     return;
   }
-  el('anclPurchaser').value  = name;
+  var name = purchaser || decedent; // for the download filename / status line only
+  var who  = 'Deceased: ' + (decedent || '<strong>not on the contract</strong>') + ' · Purchaser: ' + (purchaser || '<strong>not on the contract — enter it above</strong>');
+  el('anclPurchaser').value  = purchaser;
+  el('anclRecipient').value  = decedent;
   el('anclDateOfSale').value = new Date().toISOString().slice(0,10);
   var lines = (snap.state.anPricing && snap.state.anPricing.lines) || [];
   if (!lines.length) {
-    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">Purchaser imported, but that CIRGAS contract has no pricing — import from the Cemetery Quote Builder instead, or add pricing on the CIRGAS Contract tab first.</span>';
+    el('anclImportDisplay').innerHTML = '<span style="color:#b45309;">' + who + ' — but that CIRGAS contract has no pricing; import from the Cemetery Quote Builder instead, or add pricing on the CIRGAS Contract tab first.</span>';
   } else {
     var bucket = clCremationBucket(lines);
     var propTotal = clPropertyTotal(lines), merchTotal = clMerchTotal(lines);
     el('anclCremSale').value    = bucket === 'crem'    ? propTotal.toFixed(2) : '0';
     el('anclNoncremSale').value = bucket === 'noncrem' ? propTotal.toFixed(2) : '0';
     el('anclMerchSale').value   = merchTotal.toFixed(2);
-    el('anclImportDisplay').innerHTML = '<span style="color:#15803d;">✅ Imported from saved CIRGAS contract: ' + name + ' — Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + '. Review/adjust before generating the PDF.</span>';
+    // The saved contract's own frozen grand total — what the family actually pays.
+    var grandTotal = (snap.state.anPricing && snap.state.anPricing.total) || snap.total
+                  || lines.reduce(function(t,l){ return t + (l.amount || 0); }, 0);
+    if (el('anclPmtReceived')) el('anclPmtReceived').value = (+grandTotal || 0).toFixed(2);
+    el('anclImportDisplay').innerHTML = '<span style="color:' + (purchaser ? '#15803d' : '#b45309') + ';">' + (purchaser ? '✅ Imported from saved CIRGAS contract' : '⚠ Imported from saved CIRGAS contract (no purchaser on it yet)') + ' — ' + who + ' — Total contract paid: ' + fmt(+grandTotal || 0) + ' (Property (' + (bucket === 'crem' ? 'Cremation' : 'Non-Cremation') + '): ' + fmt(propTotal) + ' · Merchandise: ' + fmt(merchTotal) + ' are the commissionable parts). Review/adjust before generating the PDF.</span>';
   }
   anclUpdate();
 }
@@ -20855,7 +20884,7 @@ function anclUpdate() { clRenderWorksheetCopyPanel('anclCopyPanel', anclWorkshee
 function anclClearAll() {
   ['anclPurchaser','anclRecipient','anclDateOfSale','anclPromotion','anclPropDesig',
    'anclCremSale','anclCremMgrPct','anclCremMgrDollar','anclNoncremSale','anclNoncremMgrPct','anclNoncremMgrDollar',
-   'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar',
+   'anclMerchSale','anclMerchMgrPct','anclMerchMgrDollar','anclPmtReceived',
    'anclSplit2Name','anclSplit2Pct','anclSplit3Name','anclSplit3Pct','anclSplit4Name','anclSplit4Pct',
    'anclPricesConfirmedBy','anclDateSubmitted','anclComments'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
   if (el('anclSplit1Pct')) el('anclSplit1Pct').value = 100;
@@ -20897,10 +20926,15 @@ function anclWorksheetData() {
     ],
     isRewrite: false, total: r.total,
     // A CIRGAS at-need sale is paid in full at time of service, so Total Payment Received (F6 on
-    // the worksheet) always equals the amount sold — there is nothing for the counselor to enter.
-    // Note r.total is the total COMMISSION, not the sale; payment received is the sum of the three
-    // commissionable-sale amounts (the CIRGAS total). Auto-fill it per Martice's 2026-07-23 request.
-    pmtReceived: num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale'),
+    // the worksheet) always equals the amount sold. That is the amount ON THE CONTRACT, which is
+    // NOT the sum of the three Commissionable Sale boxes: commissionable sale excludes ECF,
+    // discounts, opening & closing, recording and install/setting fees. Summing the boxes made a
+    // $5,070.96 case print $2,305 (2026-07-30 operator report). anclPmtReceived is auto-filled
+    // with the quote's own grand total on import and stays editable; the old sum is kept only as
+    // a fallback for a worksheet typed in by hand with nothing imported.
+    // Note r.total is the total COMMISSION, not a sale figure.
+    pmtReceived: num('anclPmtReceived') || (num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale')),
+    commissionableTotal: num('anclCremSale') + num('anclNoncremSale') + num('anclMerchSale'),
     splits: [1,2,3,4].map(function(n){ return { name: val('anclSplit'+n+'Name'), pct: num('anclSplit'+n+'Pct') }; })
   };
 }
@@ -21265,6 +21299,19 @@ async function _xlsxSetCellInSheet(zip, pathMap, cache, sheetName, coord, type, 
   }
   if (cache[sheetName] == null) return;
   cache[sheetName] = _xlsxSetCell(cache[sheetName], coord, type, value);
+}
+async function _xlsxRemoveCellInSheet(zip, pathMap, cache, sheetName, coord) {
+  if (cache[sheetName] === undefined) {
+    var rp = pathMap[sheetName]; if (!rp) { cache[sheetName] = null; return; }
+    cache[sheetName] = await zip.file(rp).async('string');
+  }
+  if (cache[sheetName] == null) return;
+  var rx = cache[sheetName];
+  var rm = rx.match(new RegExp('<c r="' + coord + '"([^>]*?)(/>|>[\\s\\S]*?</c>)'));
+  if (!rm) return;
+  // Keep the cell element (so spans/row structure stay valid) but drop the value AND the
+  // s="N" style reference — style 0 is the workbook default: no fill, no border, no text.
+  cache[sheetName] = rx.slice(0, rm.index) + '<c r="' + coord + '"/>' + rx.slice(rm.index + rm[0].length);
 }
 function _xlsxFlushSheetCache(zip, pathMap, cache) {
   Object.keys(cache).forEach(function(name) {
@@ -21807,7 +21854,12 @@ async function _fillCirgasXlsx(data) {
     await setIa('B71', 's', purchAddr);
     await setIa('R71', 's', data.purchCellPhone || data.purchHomePhone);
     await setIa('R67', 's', _xlsxDateStr(new Date().toISOString().slice(0,10)));
-    await setIa('I65', 'n', data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1);
+    // anIaNumSignatures ships defaulted to "1", so an explicit 1 is indistinguishable from an
+    // untouched field — take whichever is larger rather than trusting the box over the data.
+    var iaSigCount = data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1;
+    if (!(iaSigCount > 0)) iaSigCount = 1;
+    if (data.iaMinSignatures > iaSigCount) iaSigCount = data.iaMinSignatures;
+    await setIa('I65', 'n', iaSigCount);
     await setIa('A56', 's', data.iaRemarks);
     // Family Location Verification — Purchaser's printed name repeats a second time here (real
     // completed files always show it twice: once at the primary signature block above, again here).
@@ -21828,10 +21880,14 @@ async function _fillCirgasXlsx(data) {
     await setIa('L44', 'n', data.preArrAmountOwed ? parseFloat(data.preArrAmountOwed) : null);
     await setIa('S44', 's', _xlsxDateStr(data.preArrDatePaid));
     // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 above IS the primary purchaser
-    // (B69/O69/B71/R71 just written), no separate cascade formula involved.
+    // (B69/O69/B71/R71 just written), no separate cascade formula involved. data.iaSigners is
+    // the Information-sheet signer list with the Co-Purchaser prepended, so SIGNATURE #2 is the
+    // co-purchaser whenever there is one; it falls back to data.signers for any caller that
+    // does not build the IOA list.
+    var iaSignerList = data.iaSigners || data.signers;
     var IA_SIGNER_ROWS = [8, 16, 24, 32];
     for (var ii = 0; ii < 4; ii++) {
-      var isg = (data.signers && data.signers[ii]) || {};
+      var isg = (iaSignerList && iaSignerList[ii]) || {};
       var ir = IA_SIGNER_ROWS[ii];
       var addr = [isg.street, isg.city, isg.state, isg.zip].filter(Boolean).join(', ');
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 2), 's', isg.name);
@@ -21857,8 +21913,6 @@ async function _fillCirgasXlsx(data) {
   // "BLUE FIELDS ARE SELF POPULATING FROM THE INFORMATION TAB" banners. Blanking keeps each cell's
   // style; the fields they annotate still cascade from Information exactly as before.
   var INSTRUCTION_CELLS = [
-    ['Mem Order Flat Mrkr & Bronze', 'L5'],
-    ['Mem Order Form Upright & Other', 'L5'],
     ['Mem Order Form Addl Signers', 'U3'],
     ['INTERMENT AUTH NEW', 'V60'],
     ['INTERMENT AUTH NEW', 'V76'],
@@ -21866,6 +21920,26 @@ async function _fillCirgasXlsx(data) {
   ];
   for (var ic = 0; ic < INSTRUCTION_CELLS.length; ic++) {
     await _xlsxSetCellInSheet(zip, pathMap, cache, INSTRUCTION_CELLS[ic][0], INSTRUCTION_CELLS[ic][1], 's', '');
+  }
+  // Both Memorial Order sheets carry a three-line instruction banner at L4/L5/L6 telling the
+  // reader how to fill the blank template in — "NOTE THAT THIS FORM IS INTENDED TO PRINT AND
+  // COMPLETE...", the blue "BLUE FIELDS ARE SELF POPULATING..." band, and "GREEN FIELDS CAN
+  // HAVE ENTRIES TYPED BEFORE PRINTING." None of it belongs on a generated, already-filled
+  // order form (operator request 2026-07-30). L5 was previously blanked by INSTRUCTION_CELLS
+  // above, which kept its style and so left an empty blue stripe between the other two lines —
+  // these are removed style and all instead.
+  // L4 holds the "NOTE THAT..." line and carries no fill. Rows 5 and 6 are the blue and the
+  // green band: the text sits in L, but the colour is painted right across M-R as well, so
+  // clearing only the L cell leaves two stripes hanging off the right of the form (and R6's
+  // stray ")"). Verified by rendering the generated workbook, not by reading the XML.
+  var MEM_ORDER_BANNER_SHEETS = ['Mem Order Flat Mrkr & Bronze', 'Mem Order Form Upright & Other'];
+  var MEM_ORDER_BANNER_COLS = ['L','M','N','O','P','Q','R'];
+  for (var mb = 0; mb < MEM_ORDER_BANNER_SHEETS.length; mb++) {
+    await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], 'L4');
+    for (var mc = 0; mc < MEM_ORDER_BANNER_COLS.length; mc++) {
+      await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], MEM_ORDER_BANNER_COLS[mc] + '5');
+      await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], MEM_ORDER_BANNER_COLS[mc] + '6');
+    }
   }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
@@ -21939,6 +22013,28 @@ async function generateCirgasPacket() {
       phone: val('anSigner'+i+'Phone'), email: val('anSigner'+i+'Email')
     });
   }
+  // The IOA's SIGNATURE #1 is the purchaser (written straight onto the Interment Auth sheet at
+  // B69/O69/B71/R71); SIGNATURE #2 is the first row of the "IOA ADDL SIGNERS" sheet. When a
+  // Co-Purchaser exists they ARE that second signer — a co-purchaser is a party to the contract,
+  // not an extra witness — but nothing put them there unless the counselor happened to run
+  // "Import from Cemetery Quote" AFTER typing the co-purchaser in (that import pre-fills Signer 1
+  // and only when it is still blank), so in practice they had to be retyped by hand. Reported
+  // 2026-07-30. Prepend them here, at generation time, so the order of data entry cannot matter.
+  // Deduped by name so the pre-fill path does not produce the same person twice.
+  var iaSigners = signers.slice();
+  var _coName = (val('anCoPurchName') || '').trim();
+  if (_coName && !iaSigners.some(function(sg){ return (sg.name || '').trim().toLowerCase() === _coName.toLowerCase(); })) {
+    iaSigners.unshift({
+      name: _coName, relation: val('anCoPurchRelation'),
+      street: val('anCoPurchStreet'), city: val('anCoPurchCity'),
+      state: val('anCoPurchState'), zip: val('anCoPurchZip'),
+      phone: val('anCoPurchCellPhone') || val('anCoPurchHomePhone'), email: val('anCoPurchEmail')
+    });
+    iaSigners = iaSigners.slice(0, 4); // the sheet has four #2-#5 blocks; #6 is left to hand
+  }
+  // "Number of Signatures required" (I65) can never be fewer than the signatures actually
+  // printed: 1 for the purchaser plus every filled additional-signer block.
+  var iaMinSignatures = 1 + iaSigners.filter(function(sg){ return (sg.name || '').trim(); }).length;
   var data = {
     contractType: el('anContractType') ? el('anContractType').value : 'original',
     contractNum: val('anContractNum'), funeralHome: val('anFuneralHome'), fsd: val('anFSD'),
@@ -21975,7 +22071,7 @@ async function generateCirgasPacket() {
     },
     preArrContractNum: val('anPreArrContractNum'), preArrAmountOwed: val('anPreArrAmountOwed'), preArrDatePaid: el('anPreArrDatePaid').value,
     contractPaidDate: el('anContractPaidDate').value,
-    signers: signers,
+    signers: signers, iaSigners: iaSigners, iaMinSignatures: iaMinSignatures,
     lines: anLines()
   };
   // Memorial Order — optional (some families buy a marker at time of passing, many wait and add
@@ -22048,6 +22144,9 @@ function _clWorksheetCopyText(data) {
   lines.push('Date of Sale:  ' + (data.dateOfSale || ''));
   if (data.promotion) lines.push('Promotion:  ' + data.promotion);
   if (data.pmtReceived !== undefined) lines.push('Total Payment Received:  ' + fmt(data.pmtReceived));
+  // Printed right under it so the two figures can never be mistaken for each other again: the
+  // family pays the total above; commission is earned on the (smaller) commissionable subset.
+  if (data.commissionableTotal !== undefined) lines.push('  of which Commissionable Sale:  ' + fmt(data.commissionableTotal));
   lines.push('');
   var sectionLabel = data.type === 'ric' ? 'RETAIL INSTALLMENT CONTRACT section:' : data.type === 'atneed' ? 'AT NEED section:' : 'FUNERAL TRUST (CLEARPOINT) section:';
   lines.push(sectionLabel);
@@ -22087,7 +22186,13 @@ function clCopyWorksheetValues(containerId) {
   var riclBody = el('riclWorksheetBody');
   if (!riclBody) return;
   riclBody.innerHTML             = clWorksheetHtml('ricl', CL_RATES.ric,    'riclUpdate', {showPmtReceived: true,  showRewrite: true});
-  el('anclWorksheetBody').innerHTML = clWorksheetHtml('ancl', CL_RATES.atneed, 'anclUpdate', {showPmtReceived: false, showRewrite: false});
+  // At-Need is paid in full at time of service, so F6 "Total Payment Received" is the WHOLE
+  // contract — ECF, opening & closing, recording and setting fees included — not the
+  // commissionable subset in the table below it. Reported 2026-07-30: a $5,070.96 at-need case
+  // printed $2,305 (the vault alone) because this figure was derived by adding the three
+  // Commissionable Sale boxes together. It is now imported and shown as its own editable field.
+  el('anclWorksheetBody').innerHTML = clWorksheetHtml('ancl', CL_RATES.atneed, 'anclUpdate', {showPmtReceived: true, showRewrite: false,
+    pmtLabel: 'Total Contract Amount Paid', pmtHint: 'Worksheet cell F6 — the FULL amount the family pays (incl. ECF, O&amp;C, fees). Auto-fills on import; the Commissionable Sale boxes below stay separate.'});
   el('cpclWorksheetBody').innerHTML = cpclWorksheetHtml();
   el('riclAdminBody').innerHTML = clAdminHtml('ricl');
   el('anclAdminBody').innerHTML = clAdminHtml('ancl');
