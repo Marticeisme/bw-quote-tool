@@ -392,6 +392,64 @@ console.log('\n7. Importing from the Cemetery Quote treats the client name as th
   await ctx.close();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+console.log('\n8. The Memorial Order form has no print-instructions banner');
+{
+  const { ctx, page, errs } = await open(browser);
+  await fillCirgasContract(page, FX, { coPurchaser: false });
+  // Turn the optional Memorial Order section on so the marker sheets are actually filled.
+  await page.evaluate(() => {
+    const mk = document.getElementById('anMkEnabled');
+    if (mk) { mk.checked = true; if (typeof anMkToggle === 'function') anMkToggle(); }
+    const flat = document.querySelector('input[name="anoMkCategory"][value="flat"]');
+    if (flat) flat.checked = true;
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+    set('anoMkManufacturer', 'Matthews'); set('anoMkGraniteColor', 'Georgia Grey');
+  });
+  const dl = page.waitForEvent('download', { timeout: 60000 });
+  await page.evaluate(() => generateCirgasPacket());
+  const d = await dl;
+  const tmp = (process.env.TEMP || '/tmp') + '/bw-cirgas-mem-' + process.pid + '.xlsx';
+  await d.saveAs(tmp);
+  const buf = fs.readFileSync(tmp);
+  fs.unlinkSync(tmp);
+
+  const zip = await JSZip.loadAsync(buf);
+  const wb = await zip.file('xl/workbook.xml').async('string');
+  const rels = await zip.file('xl/_rels/workbook.xml.rels').async('string');
+  const relMap = {};
+  for (const m of rels.matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/g)) relMap[m[1]] = m[2];
+  const paths = {};
+  for (const m of wb.matchAll(/<sheet name="([^"]+)"[^>]*r:id="(rId\d+)"/g)) {
+    paths[m[1].replace(/&amp;/g, '&')] = 'xl/' + relMap[m[2]].replace(/^\.?\/?/, '');
+  }
+  const ssXml = await zip.file('xl/sharedStrings.xml').async('string');
+  const BANNER = /NOTE THAT THIS FORM IS INTENDED TO PRINT|GREEN FIELDS CAN HAVE ENTRIES TYPED|BLUE FIELDS ARE SELF POPULATING/i;
+
+  for (const sheet of ['Mem Order Flat Mrkr & Bronze', 'Mem Order Form Upright & Other']) {
+    const xml = await zip.file(paths[sheet]).async('string');
+    for (const coord of ['L4', 'L5', 'L6']) {
+      const m = xml.match(new RegExp('<c r="' + coord + '"([^>]*?)(/>|>[\\s\\S]*?</c>)'));
+      const raw = m ? m[0] : '(absent)';
+      ok(sheet + ' ' + coord + ' carries no text', !m || !/<v>|<is>/.test(m[0]), raw);
+      // The empty coloured band is the style reference, not the text — it has to go too.
+      ok(sheet + ' ' + coord + ' carries no fill/border style', !m || !/\bs="\d+"/.test(m[1]), raw);
+    }
+    // Anything that still renders these strings would have to come through a shared-string
+    // reference from some other cell on the sheet.
+    const usedIdx = [...xml.matchAll(/<c\b[^>]*\bt="s"[^>]*><v>(\d+)<\/v><\/c>/g)].map(m => +m[1]);
+    const si = [...ssXml.matchAll(/<si>([\s\S]*?)<\/si>/g)].map(m => [...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join(''));
+    ok(sheet + ' references no banner string anywhere', !usedIdx.some(i => BANNER.test(si[i] || '')),
+      usedIdx.filter(i => BANNER.test(si[i] || '')).map(i => si[i]));
+  }
+  // Guard: the rest of the Memorial Order form is untouched.
+  const flatXml = await zip.file(paths['Mem Order Flat Mrkr & Bronze']).async('string');
+  ok('the form title is still there', /<c r="G1"[^>]*t="s"/.test(flatXml));
+  ok('the Contract # cascade formula is still there', /<c r="G8"[^>]*>[\s\S]{0,200}?Information!F3/.test(flatXml));
+  ok('no page errors', unexpected(errs).length === 0, errs);
+  await ctx.close();
+}
+
 await browser.close();
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

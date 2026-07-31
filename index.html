@@ -21300,6 +21300,19 @@ async function _xlsxSetCellInSheet(zip, pathMap, cache, sheetName, coord, type, 
   if (cache[sheetName] == null) return;
   cache[sheetName] = _xlsxSetCell(cache[sheetName], coord, type, value);
 }
+async function _xlsxRemoveCellInSheet(zip, pathMap, cache, sheetName, coord) {
+  if (cache[sheetName] === undefined) {
+    var rp = pathMap[sheetName]; if (!rp) { cache[sheetName] = null; return; }
+    cache[sheetName] = await zip.file(rp).async('string');
+  }
+  if (cache[sheetName] == null) return;
+  var rx = cache[sheetName];
+  var rm = rx.match(new RegExp('<c r="' + coord + '"([^>]*?)(/>|>[\\s\\S]*?</c>)'));
+  if (!rm) return;
+  // Keep the cell element (so spans/row structure stay valid) but drop the value AND the
+  // s="N" style reference — style 0 is the workbook default: no fill, no border, no text.
+  cache[sheetName] = rx.slice(0, rm.index) + '<c r="' + coord + '"/>' + rx.slice(rm.index + rm[0].length);
+}
 function _xlsxFlushSheetCache(zip, pathMap, cache) {
   Object.keys(cache).forEach(function(name) {
     if (cache[name] != null && pathMap[name]) zip.file(pathMap[name], cache[name]);
@@ -21900,8 +21913,6 @@ async function _fillCirgasXlsx(data) {
   // "BLUE FIELDS ARE SELF POPULATING FROM THE INFORMATION TAB" banners. Blanking keeps each cell's
   // style; the fields they annotate still cascade from Information exactly as before.
   var INSTRUCTION_CELLS = [
-    ['Mem Order Flat Mrkr & Bronze', 'L5'],
-    ['Mem Order Form Upright & Other', 'L5'],
     ['Mem Order Form Addl Signers', 'U3'],
     ['INTERMENT AUTH NEW', 'V60'],
     ['INTERMENT AUTH NEW', 'V76'],
@@ -21909,6 +21920,24 @@ async function _fillCirgasXlsx(data) {
   ];
   for (var ic = 0; ic < INSTRUCTION_CELLS.length; ic++) {
     await _xlsxSetCellInSheet(zip, pathMap, cache, INSTRUCTION_CELLS[ic][0], INSTRUCTION_CELLS[ic][1], 's', '');
+  }
+  // Both Memorial Order sheets carry a three-line instruction banner at L4/L5/L6 telling the
+  // reader how to fill the blank template in — "NOTE THAT THIS FORM IS INTENDED TO PRINT AND
+  // COMPLETE...", the blue "BLUE FIELDS ARE SELF POPULATING..." band, and "GREEN FIELDS CAN
+  // HAVE ENTRIES TYPED BEFORE PRINTING." None of it belongs on a generated, already-filled
+  // order form (operator request 2026-07-30). L5 was previously blanked by INSTRUCTION_CELLS
+  // above, which kept its style and so left an empty blue stripe between the other two lines —
+  // these are removed style and all instead.
+  var MEM_ORDER_BANNER_CELLS = [
+    ['Mem Order Flat Mrkr & Bronze', 'L4'],
+    ['Mem Order Flat Mrkr & Bronze', 'L5'],
+    ['Mem Order Flat Mrkr & Bronze', 'L6'],
+    ['Mem Order Form Upright & Other', 'L4'],
+    ['Mem Order Form Upright & Other', 'L5'],
+    ['Mem Order Form Upright & Other', 'L6']
+  ];
+  for (var mb = 0; mb < MEM_ORDER_BANNER_CELLS.length; mb++) {
+    await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_CELLS[mb][0], MEM_ORDER_BANNER_CELLS[mb][1]);
   }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
