@@ -77,13 +77,29 @@ export const STATUS_LABEL = { sold: 'Sold', unpriced: 'Not Priced' };
 /** Statuses that must never render a price, anywhere, in any view. */
 export const UNSELLABLE = ['sold', 'unpriced'];
 
-// ── Fees (sheet footers, 2026-07-29) ─────────────────────────────────────────
+// ── Fees ─────────────────────────────────────────────────────────────────────
+// OPERATOR RULING, Map Issues 07.31.26 — supersedes the sheet footers this file
+// originally carried ($835 / $225):
+//
+//   "All glass front niches should have the same opening and closing and recording
+//    fee. Also there is no inscription fee on any glass front niche. The opening and
+//    closing fee is 875 and the recording fee is 235 same 10% ecf applies. There will
+//    be no tax on a glass front niche unless its ecl and they add the vase and scroll"
+//
+// So O&C $875 / recording $235 / E.C.F. 10% are IDENTICAL across ECL, the MVC island
+// and the Radiance & Serenity walls. There is no inscription fee on any of them —
+// glass plates are etched differently, so the line does not exist.
+//
+// ECL is the ONE glass-front surface that carries sales tax, and only on the two
+// optional bronze add-ons (scroll and vase), which are taxable merchandise. The niche
+// price, the E.C.F., the O&C and the recording fee are never taxed.
 export const FEES = {
   ECF_RATE: 0.1,   // "E.C.F. 10% - E.C.F. not included is listed prices."
-  OC: 835,         // Open & Closing, each
-  REC: 225,        // Recording Fee, each
-  SCROLL: 785,     // #5108 Bronze Scroll — optional add-on, NOT in per-niche math
-  VASE: 370,       // Vase with Ring — optional add-on, NOT in per-niche math
+  OC: 875,         // Open & Closing, each — operator 2026-07-31 (was 835)
+  REC: 235,        // Recording Fee, each — operator 2026-07-31 (was 225)
+  SCROLL: 785,     // #5108 Bronze Scroll — optional add-on, taxable, NOT in per-niche math
+  VASE: 370,       // Vase with Ring — optional add-on, taxable, NOT in per-niche math
+  TAX: 0.104,      // applies to the scroll/vase add-ons only, nothing else
 };
 
 // ── Price tiers (13 distinct prices on the sheet) ────────────────────────────
