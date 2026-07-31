@@ -19,8 +19,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ROWS, BLOCK_ORDER, BLOCKS, ROW_RUNS, TIERS, FEES, SHEET_TEXT, COMPANION_NOTE,
-  STATUS_LABEL, allNiches, sellable, runsIn,
+  ROWS, BLOCK_ORDER, BLOCKS, ROW_RUNS, TIERS, FEES, FEE_SOURCE, INSCR_MAX, URN,
+  SHEET_TEXT, COMPANION_NOTE, STATUS_LABEL, allNiches, sellable, runsIn,
 } from './gomn-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -131,7 +131,7 @@ const TIER_CSS = TIERS.map((t) => `  .${t.c}{background:${t.bg};color:${t.fg};}`
 
 const CSS = `
   :root{--navy:#1a2744;--navy-light:#243156;--gold:#c8a96e;--gold-light:#e8d5a8;--cream:#f7f4ef;--gb:rgba(200,169,110,0.45);
-    --lw:20px;--lh:20px;--cw:44px;--rh:54px;}
+    --lw:20px;--lh:20px;--cw:50px;--rh:58px;}
   *{box-sizing:border-box;margin:0;padding:0;}
   html{overflow-x:hidden;}
   body{font-family:'Jost',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;overflow-x:hidden;max-width:100vw;}
@@ -149,10 +149,10 @@ const CSS = `
   .wlabel{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);margin-bottom:2px;margin-top:10px;text-align:center;}
   .wsub{font-size:10px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;text-align:center;}
   .gwrap{background:linear-gradient(160deg,#0f1a30,#1a2744 60%,#0d1528);border:1px solid var(--gb);border-radius:8px;
-    padding:22px 16px 12px;overflow-x:auto;max-width:1620px;margin:0 auto;}
+    padding:22px 16px 12px;overflow-x:auto;max-width:1800px;margin:0 auto;}
   .fgrid{display:grid;gap:3px;margin:0 auto;width:max-content;}
-  .fg-L,.fg-R{--cw:84px;--rh:64px;}
-  .fg-C{--cw:60px;--rh:64px;}
+  .fg-L,.fg-R{--cw:88px;--rh:68px;}
+  .fg-C{--cw:64px;--rh:68px;}
   .rlbl{display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:700;color:var(--gold);}
   .clbl{display:flex;align-items:flex-start;justify-content:center;font-size:9px;font-weight:600;color:var(--gold);letter-spacing:.02em;padding-top:3px;}
 
@@ -180,15 +180,20 @@ const CSS = `
   .n.sel{outline:3px solid #fff;outline-offset:-3px;z-index:25;transform:scale(1.04);
     filter:brightness(1.2) saturate(1.1);
     box-shadow:0 0 0 2px var(--gold),0 0 22px 4px rgba(255,255,255,.42);}
-  .nid{font-size:8px;opacity:.72;letter-spacing:.02em;}
-  .nprice{font-weight:600;font-size:9.5px;padding:0 3px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap;letter-spacing:-.01em;}
+  .nid{font-size:8.5px;opacity:.72;letter-spacing:.02em;}
+  /* PRICE LEGIBILITY (operator, Map Issues 07.31.26: "very hard to read"). The chip is
+     the one thing a counselor reads across the room, so it is sized first and the cell
+     is tracked to fit it — full wall 9.5→12px, block views 11→14px, with the column
+     width moved 44→50px (full) and 60/84→64/88px (blocks) so nothing clips. */
+  .nprice{font-weight:600;font-size:12px;padding:0 4px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap;letter-spacing:-.01em;}
   .nstatus{font-size:5.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
     padding:0 3px;border-radius:2px;background:rgba(255,255,255,.86);color:#17181b;white-space:nowrap;}
   /* On the 32-space full wall a cell is 44px: "CONFIRM IN MIS" does not fit, so the
      badge is dropped there and the hatch, the dashed outline and the legend carry the
      status. The three block views are wide enough to spell it out. */
   .fg-full .nstatus{display:none;}
-  .fg-L .nprice,.fg-R .nprice,.fg-C .nprice{font-size:11px;padding:0 5px;}
+  .fg-L .nprice,.fg-R .nprice,.fg-C .nprice{font-size:14px;padding:0 6px;}
+  .fg-L .nid,.fg-R .nid,.fg-C .nid{font-size:9.5px;}
 
   /* ── Status code (operator's fail-safe rule) ──
      A printed price means AVAILABLE; anything else means UNAVAILABLE. The two are
@@ -243,13 +248,13 @@ ${TIER_CSS}
   .fees{margin-top:14px;background:rgba(200,169,110,.07);border:1px solid var(--gb);border-radius:6px;padding:11px 13px;display:flex;flex-wrap:wrap;gap:12px;max-width:960px;margin-left:auto;margin-right:auto;justify-content:center;}
   .fi{font-size:11px;}.fl{color:var(--gold);font-weight:600;display:block;margin-bottom:1px;}.fv{color:var(--cream);}
   .fees input[type=number]{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
-  /* Add-on toggle: same chrome as the qty boxes beside it, so the footer reads as one
-     row of controls. Defaults OFF. */
-  .ftog{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--cream);
-    background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;padding:1px 7px 1px 5px;font-size:11px;}
-  .ftog:hover{background:rgba(200,169,110,.24);}
-  .ftog input[type=checkbox]{width:13px;height:13px;margin:0;accent-color:var(--gold);cursor:pointer;}
-  .ftog input:focus-visible{outline:2px solid #fff;outline-offset:1px;}
+  /* Every add-on is a QUANTITY box now — the inscription became one on 2026-07-31
+     ("you can add two inscriptions on the front") and the Interlude Urn is one by
+     nature. So the footer is a single uniform row of qty controls; the old checkbox
+     chrome is gone. */
+  .fnote{font-size:9px;color:var(--gold-light);opacity:.8;letter-spacing:.02em;}
+  .fi-urn .fl{color:var(--gold-light);}
+  .fi-urn{border-left:1px solid var(--gb);padding-left:12px;}
   .printcard{display:none;}
   .rules{max-width:960px;margin:12px auto 0;background:rgba(200,169,110,.05);border:1px solid var(--gb);border-radius:6px;padding:12px 16px;}
   .rules h3{font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--gold);font-weight:600;margin-bottom:6px;letter-spacing:.04em;}
@@ -275,8 +280,8 @@ ${TIER_CSS}
     .main{padding:8px;}
     .tab{padding:9px 11px;font-size:10px;}
     .gwrap{padding:18px 8px 10px;}
-    .fg-L,.fg-R{--cw:74px;}
-    .fg-C{--cw:56px;}
+    .fg-L,.fg-R{--cw:80px;}
+    .fg-C{--cw:62px;}
     .hint{font-size:9px;}
   }
 
@@ -333,21 +338,26 @@ ${TIER_CSS}
     .stleg-a{background:#fff!important;box-shadow:none!important;border:1px solid #8d8d8d!important;}
     .stleg-u{background:repeating-linear-gradient(135deg,rgba(0,0,0,.13) 0 2px,rgba(0,0,0,0) 2px 4px),#f2f1ee!important;border:1px dashed #a8a8a8!important;}
     /* Re-track for the page: 32 spaces have to fit inside a landscape Letter. */
-    .fgrid{--lw:16px;--lh:15px;--cw:26px;--rh:34px;gap:2px;}
-    .fg-L,.fg-R{--cw:66px;--rh:42px;}
-    .fg-C{--cw:50px;--rh:42px;}
-    .nid{font-size:6px;}
-    .nprice{font-size:6.5px;padding:0 1px;box-shadow:none;}
+    /* The paper track is the tight one: 32 spaces plus two row-letter gutters have to
+       fit inside a landscape Letter page (10.2in ≈ 979px at 96dpi). 32×27 + 31×2 gaps +
+       2×16 gutters = 958px, which is what lets the printed chip go 6.5→7.5px. */
+    .fgrid{--lw:16px;--lh:15px;--cw:27px;--rh:36px;gap:2px;}
+    .fg-L,.fg-R{--cw:70px;--rh:44px;}
+    .fg-C{--cw:54px;--rh:44px;}
+    .nid{font-size:6.5px;}
+    .nprice{font-size:7.5px;padding:0 1px;box-shadow:none;}
     .nstatus{font-size:4.5px;padding:0 1px;}
-    .fg-L .nid,.fg-R .nid,.fg-C .nid{font-size:8px;}
-    .fg-L .nprice,.fg-R .nprice,.fg-C .nprice{font-size:9.5px;padding:0 3px;}
+    .fg-L .nid,.fg-R .nid,.fg-C .nid{font-size:8.5px;}
+    .fg-L .nprice,.fg-R .nprice,.fg-C .nprice{font-size:11px;padding:0 3px;}
     .fg-L .nstatus,.fg-R .nstatus,.fg-C .nstatus{font-size:5.5px;padding:0 2px;}
     .n.sel{outline:4px solid #c8540a!important;outline-offset:-2px;
       box-shadow:0 0 0 2px #1a2744!important;filter:none!important;transform:none!important;}
     .fv{color:#333!important;}
     .fees{background:#f5f5f2!important;border-color:#c8a96e!important;}
     .fees input[type=number]{border:1px solid #999!important;background:#fff!important;color:#1a1a1a!important;}
-    .ftog{background:#fff!important;border:1px solid #999!important;color:#1a1a1a!important;}
+    .fnote,.fi-urn .fl{color:#444!important;}
+    .fi-urn{border-left-color:#c8a96e!important;}
+    .printcard .cnote em{color:#444!important;}
   }
 `;
 
@@ -357,16 +367,15 @@ const BLOCK_LABEL_JSON = JSON.stringify(
 
 const JS = `
 'use strict';
-var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCRIPTION = ${FEES.INSCRIPTION};
+var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, TAX = ${FEES.TAX};
+var URN_NAME = ${JSON.stringify(URN.name)}, URN_PRICE = ${URN.price};
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
 var BLOCK_LABEL = ${BLOCK_LABEL_JSON};
 var COMPANION_NOTE = ${JSON.stringify(COMPANION_NOTE)};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
+var fm2 = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 var ecf = function (p) { return Math.ceil(p * ${FEES.ECF_RATE}); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
-// Add-on toggle (default OFF). Inscription is a flat merchandise charge, so it is added
-// AFTER the E.C.F.: E.C.F. is 10% of the NICHE PRICE only and never of an add-on.
-var addOn = function (id) { var e = document.getElementById(id); return !!(e && e.checked); };
 
 // ── Detail card ───────────────────────────────────────────────────────────────
 var card = document.getElementById('card');
@@ -390,13 +399,30 @@ function cardHtml(d) {
   var price = +d.price, e = ecf(price), tot = price + e, rows = '';
   rows += '<div class="cr"><span class="cl">Niche Price</span><span class="cv">' + fm(price) + '</span></div>';
   rows += '<div class="cr"><span class="cl">E.C.F. (10%)</span><span class="cv">' + fm(e) + '</span></div>';
-  var oc = qty('oc-qty'), rc = qty('rec-qty');
+  // Everything below the E.C.F. line is an ADD-ON and is summed after it: E.C.F. is 10%
+  // of the NICHE PRICE alone and is never charged on an add-on.
+  var oc = qty('oc-qty'), rc = qty('rec-qty'), ins = qty('insc-qty'), urn = qty('urn-qty');
   if (oc > 0) { rows += '<div class="cr"><span class="cl">Open &amp; Closing \\u00d7' + oc + '</span><span class="cv">' + fm(OC * oc) + '</span></div>'; tot += OC * oc; }
   if (rc > 0) { rows += '<div class="cr"><span class="cl">Recording Fee \\u00d7' + rc + '</span><span class="cv">' + fm(REC * rc) + '</span></div>'; tot += REC * rc; }
-  if (addOn('insc-on')) { rows += '<div class="cr"><span class="cl">Inscription</span><span class="cv">' + fm(INSCRIPTION) + '</span></div>'; tot += INSCRIPTION; }
+  if (ins > 0) {
+    // Two inscriptions fit on the front of a companion niche (operator, 2026-07-31).
+    var inscrSub = INSCR * ins;
+    var tax = Math.round(inscrSub * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">Inscription \\u00d7' + ins + '</span><span class="cv">' + fm(inscrSub) + '</span></div>';
+    rows += '<div class="cr"><span class="cl">Sales tax on inscription (10.4%)</span><span class="cv">' + fm2(tax) + '</span></div>';
+    tot += inscrSub + tax;
+  }
+  if (urn > 0) {
+    rows += '<div class="cr"><span class="cl">' + URN_NAME + ' \\u00d7' + urn + ' <em>(merchandise)</em></span><span class="cv">' + fm(URN_PRICE * urn) + '</span></div>';
+    tot += URN_PRICE * urn;
+  }
   return cardHead(d) + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
-    '<div class="cnote">' + COMPANION_NOTE + ' E.C.F. is 10% of the niche price only \\u2014 add-ons are not subject to it. The Interlude urns are NOT included above.</div>';
+    '<div class="cnote">' + COMPANION_NOTE + ' E.C.F. is 10% of the niche price only \\u2014 add-ons are not subject to it. ' +
+    (urn > 0
+      ? 'Sales tax on the ' + URN_NAME + ' is confirmed at contract.'
+      : 'The Interlude urns are NOT included above \\u2014 add them with the urn box in the footer.') +
+    '</div>';
 }
 
 function readNiche(el) {
@@ -420,6 +446,24 @@ function markSel(el) {
   for (var i = 0; i < all.length; i++) all[i].classList.add('sel');
 }
 
+// A niche is rendered twice. After a tab switch the pinned niche's OWN element may be
+// inside a display:none view, where getBoundingClientRect() is all zeros — and a card
+// placed against a zero rect lands at the top-left corner, on top of the tab bar, where
+// (being pinned, and therefore pointer-events:auto) it swallowed the clicks meant for
+// the tabs. Found 2026-07-31 by driving the page. So: always place against whichever
+// rendering of this ref is actually laid out, and if none is, park the card in its
+// default bottom-right corner rather than over the chrome.
+function visibleTwin(el) {
+  var ref = el.getAttribute('data-ref');
+  if (!ref) return el;
+  var all = document.querySelectorAll('[data-ref="' + ref + '"]');
+  for (var i = 0; i < all.length; i++) {
+    var b = all[i].getBoundingClientRect();
+    if (b.width > 0 && b.height > 0) return all[i];
+  }
+  return null;
+}
+
 // Card opens NEXT TO the niche (same behaviour as the three glass-front pages); phones
 // keep the bottom sheet.
 function placeCard(el) {
@@ -427,7 +471,9 @@ function placeCard(el) {
     card.style.left = card.style.top = card.style.right = card.style.bottom = '';
     return;
   }
-  var r = el.getBoundingClientRect();
+  var t = visibleTwin(el);
+  if (!t) { card.style.left = card.style.top = card.style.right = card.style.bottom = ''; return; }
+  var r = t.getBoundingClientRect();
   card.style.right = 'auto'; card.style.bottom = 'auto';
   var cw = card.offsetWidth || 296, ch = card.offsetHeight || 220;
   var x = r.right + 14, y = r.top + r.height / 2 - ch / 2;
@@ -530,7 +576,7 @@ document.addEventListener('keydown', function (ev) {
 });
 // A fee change re-renders the pinned card AND its print block, so the printed pricing
 // card always reflects the toggle state at print time.
-['oc-qty', 'rec-qty', 'insc-on'].forEach(function (id) {
+['oc-qty', 'rec-qty', 'insc-qty', 'urn-qty'].forEach(function (id) {
   var e = document.getElementById(id);
   if (!e) return;
   var redraw = function () { if (pinned) showCard(pinned, false); };
@@ -596,19 +642,32 @@ ${BLOCK_ORDER.map(view).join('\n')}
     <div class="fi"><span class="fl">Recording Fee — $${FEES.REC} ea</span>
       <span class="fv">Qty: <input type="number" id="rec-qty" min="0" max="4" value="1" aria-label="Recording fee quantity"></span></div>
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% of niche price — not included in listed prices</span></div>
-    <div class="fi"><span class="fl">Inscription — $${FEES.INSCRIPTION} ea</span>
-      <span class="fv"><label class="ftog"><input type="checkbox" id="insc-on" aria-label="Include the $${FEES.INSCRIPTION} inscription in the niche total"> Add to total</label></span></div>
+    <div class="fi"><span class="fl">Inscription — $${FEES.INSCR} ea + 10.4% tax</span>
+      <span class="fv">Qty: <input type="number" id="insc-qty" min="0" max="${INSCR_MAX}" value="0" aria-label="Inscription quantity, up to ${INSCR_MAX} on the niche front"> <span class="fnote">up to ${INSCR_MAX} on the front</span></span></div>
+    <div class="fi fi-urn"><span class="fl">${esc(URN.name)} (${esc(URN.maker)}) — $${URN.price} ea</span>
+      <span class="fv">Qty: <input type="number" id="urn-qty" min="0" max="${URN.maxQty}" value="0" aria-label="${esc(URN.name)} quantity, up to ${URN.maxQty} per niche"> <span class="fnote">merchandise, not a fee — ${URN.maxQty} fit per niche</span></span></div>
   </div>
 
   <div class="rules">
     <h3>From the price sheet — read these to the family</h3>
     <ul>
-      <li><b>Companion niche, and why only one urn fits.</b> ${esc(COMPANION_NOTE)}</li>
+      <!-- This lead used to read "why only ONE urn fits", which contradicted the sentence
+           right after it (two fit — that is the companion capacity). Corrected s09/D. -->
+      <li><b>Companion niche, and why only the Interlude Urn fits.</b> ${esc(COMPANION_NOTE)}</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.companion)}&rdquo;</span></li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span></li>
+      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span> The urn price list figure is <b>${esc(URN.name)} (${esc(URN.maker)}) $${URN.price}.00</b> each &mdash; merchandise, not a fee, and up to ${URN.maxQty} per niche.</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.ecf)}&rdquo;</span></li>
-      <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCRIPTION}.00ea</b></li>
       <li><span class="shout">${esc(SHEET_TEXT.photos)}</span></li>
+    </ul>
+  </div>
+
+  <div class="rules">
+    <h3>Fee schedule &mdash; where these numbers come from</h3>
+    <ul>
+      <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCR}.00ea + 10.4% sales tax on the inscription alone &nbsp;·&nbsp; E.C.F. 10%</b></li>
+      <li><b>These are the ${esc(FEE_SOURCE.schedule)} schedule</b>, applied to the Garden of Meditation by ${esc(FEE_SOURCE.confirmedBy)} on ${esc(FEE_SOURCE.confirmedOn)}. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints ${esc(FEE_SOURCE.replaces)}, which these amounts replace. Confirm the current charges in MIS/Enterprise before quoting.</li>
+      <li>The E.C.F. rate is the one fee figure still taken from this sheet, and it is unchanged at 10%.</li>
+      <li><b>Two inscriptions may be added to the front</b> of a companion niche &mdash; the quantity box above goes to ${INSCR_MAX}.</li>
     </ul>
   </div>
 
