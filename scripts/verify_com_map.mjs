@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import {
   BANKS, TIERS, VOIDS, WALLS, UNITS,
   cryptUnits, wallNiches, allNiches, cryptSpaces,
+  NICHE_FEES, CRYPT_FEES,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -246,6 +247,44 @@ console.log('\nMoney discipline');
   chk(raws.length > 0 && leaked.length === 0, `the ${raws.length} sheetRaw glyph decodes stay out of the HTML (${leaked.length} leaked)`);
 }
 
+// ── 6b. The uniform glass-front fee schedule (operator, 2026-07-31) ───────────
+// "All glass front niches should have the same opening and closing and recording fee.
+//  Also there is no inscription fee on any glass front niche. The opening and closing
+//  fee is 875 and the recording fee is 235 same 10% ecf applies. There will be no tax
+//  on a glass front niche unless its ecl and they add the vase and scroll"
+//
+// Radiance and Serenity are GLASS-front walls, so they carry $875 / $235 / 10% — NOT
+// the $835 / $225 printed on their own wall sheets, and not the crypt fee box either.
+// The literals are written out here so that editing com-crypt-data.mjs alone fails this
+// gate. The CRYPTS are a different product: their fee box is asserted unchanged below,
+// because the one thing that must never happen is the niche schedule leaking onto them.
+console.log('\nGlass-front niche fee schedule (operator ruling 2026-07-31)');
+{
+  chk(NICHE_FEES.OC === 875, `niche O&C is $875 (got $${NICHE_FEES.OC})`);
+  chk(NICHE_FEES.RECORDING === 235, `niche recording fee is $235 (got $${NICHE_FEES.RECORDING})`);
+  chk(NICHE_FEES.ECF_RATE === 0.1, `niche E.C.F. rate is 10% (got ${NICHE_FEES.ECF_RATE * 100}%)`);
+  chk(!('INSCR' in NICHE_FEES) && !('INSCRIPTION' in NICHE_FEES) && !('TAX' in NICHE_FEES),
+    'the niche fee box exports no inscription fee and no tax rate');
+  chk(/Niche O&amp;C — \$875 ea/.test(src), 'the fee footer prints Niche O&C $875 ea');
+  chk(/Niche Recording — \$235 ea/.test(src), 'the fee footer prints Niche Recording $235 ea');
+  chk(/var N_OC = 875, N_REC = 235;/.test(src), 'the page script carries N_OC = 875, N_REC = 235');
+  chk(/Niche Inscription<\/span>[\s\S]{0,110}none — glass-front niches carry no inscription fee/.test(src),
+    'the fee footer states there is no niche inscription fee');
+  chk(/Niche Sales Tax<\/span>[\s\S]{0,110}none — glass-front niches are not taxed/.test(src),
+    'the fee footer states glass-front niches are not taxed');
+  // Strip the two explanatory notices, then prove no inscription/tax MECHANISM remains.
+  const stripped = src.replace(
+    /<div class="fi"><span class="fl">Niche (Inscription|Sales Tax)<\/span>[\s\S]*?<\/div>/g, '');
+  chk(!/inscr/i.test(stripped), 'no niche inscription amount, input or toggle survives on the page');
+  chk(!/sales tax|\bTAX\b/i.test(stripped.replace(/ECF_RATE|CRYPT_FEES/g, '')),
+    'no sales-tax math or amount appears on the page');
+  // The crypt fee box is a DIFFERENT product and is deliberately unchanged.
+  chk(CRYPT_FEES.RECORDING === 225 && CRYPT_FEES.MONOBAR_INSTALL === 215 && CRYPT_FEES.VASE === 415,
+    `the CRYPT fee box is untouched ($${CRYPT_FEES.RECORDING} / $${CRYPT_FEES.MONOBAR_INSTALL} / $${CRYPT_FEES.VASE})`);
+  chk(NICHE_FEES.OC !== CRYPT_FEES.RECORDING && !/Recording Fee — \$235/.test(src),
+    'the niche schedule has not leaked onto the crypt fee lines');
+}
+
 // ── 7. Print path ─────────────────────────────────────────────────────────────
 console.log('\nPrint path');
 {
@@ -269,6 +308,12 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("['101-110', 'G', [103], 'tandem', 'unavailable', null]", "['101-110', 'G', [103], 'tandem', 'available', null]")],
     ['a niche price moved to another valid row: Radiance K-1 $5,495 -> row G-1',
       (s) => s.replace("['K', 1, 5495]", "['K', 1, null]").replace("['G', 1, null], ['G', 2, null]", "['G', 1, 5495], ['G', 2, null]")],
+    ['the glass-front O&C fee perturbed: $875 -> $835 (the old wall-sheet figure)',
+      (s) => s.replace('NICHE_FEES = { OC: 875,', 'NICHE_FEES = { OC: 835,')],
+    ['the glass-front recording fee perturbed: $235 -> $225',
+      (s) => s.replace('OC: 875, RECORDING: 235,', 'OC: 875, RECORDING: 225,')],
+    ['an inscription fee reintroduced onto a glass-front niche',
+      (s) => s.replace('OC: 875, RECORDING: 235, ECF_RATE: 0.1 }', 'OC: 875, RECORDING: 235, INSCR: 660, ECF_RATE: 0.1 }')],
     ['a unit deleted: bank 201-212 tier A space 212',
       (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\r\n", '')
         .replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\n", '')],

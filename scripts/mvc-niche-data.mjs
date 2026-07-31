@@ -258,7 +258,13 @@ export function allNiches() {
 }
 
 // ── Fees / prices ──────────────────────────────────────────────────────────
-export const FEES = { OC: 875, REC: 235, INSCR: 660, TAX: 0.104, ECF_RATE: 0.1 };
+// OPERATOR RULING, Map Issues 07.31.26 — the glass-front schedule is uniform:
+// O&C $875, recording $235, E.C.F. 10%, NO inscription fee and NO sales tax.
+// `INSCR: 660` and `TAX: 0.104` were removed on 2026-07-31: neither exists on a
+// glass-front niche. The island is glass on all four faces, so nothing here is taxed.
+// (The $660 inscription and 10.4% tax still apply at the GRANITE-front locations —
+// ROAC and the Terrace Garden — and live in their own modules.)
+export const FEES = { OC: 875, REC: 235, ECF_RATE: 0.1 };
 export const EFFECTIVE = 'June 2026';
 
 export const TIERS = [

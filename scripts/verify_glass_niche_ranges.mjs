@@ -12,15 +12,19 @@
 //   RAD   scripts/com-crypt-data.mjs    range = min/max price of AVAILABLE Radiance cells
 //   SER   scripts/com-crypt-data.mjs    range = min/max price of AVAILABLE Serenity cells
 //
-// Fees are checked the same way against each location's own FEES export. **Fees differ
-// between these locations and must never be cross-applied** — ECL's vase is $370 while
-// the Chapel of Memories CRYPT vase is $415, and the MVC schedule (O&C $875 / recording
-// $235 / inscription $660 / tax 10.4%) is not the ECL or Radiance/Serenity schedule
-// ($835 / $225 / no tax line). Dedicated cross-contamination checks are below.
+// Fees are checked the same way against each location's own FEES export. **The core
+// schedule is now IDENTICAL at all three locations** — operator ruling, Map Issues
+// 07.31.26: O&C $875, recording $235, E.C.F. 10%, no inscription fee anywhere, and no
+// sales tax on a glass-front niche except ECL's optional bronze scroll and vase. Before
+// that ruling the three carried three different schedules read off three sheet footers.
+//
+// What must still never be cross-applied is what remains LOCAL: the Chapel of Memories
+// CRYPT vase ($415, a different product), the ECL vase ($370) and the ECL-only 10.4%
+// add-on tax. Dedicated cross-contamination checks are below.
 //
 // Every checked figure is tagged in the HTML:
 //   <div data-range="ecl">$10,995–$82,500</div>
-//   <td data-fee="ecl.OC">$835</td>
+//   <td data-fee="ecl.OC">$875</td>
 //   <b data-count="ecl.available">28</b>
 //   <span data-rights="mvc">2–4 rights of interment</span>
 //
@@ -142,9 +146,52 @@ for (const m of html.matchAll(/<[^>]*\bdata-fee="([a-z]+)\.([A-Z_]+)"[^>]*>([\s\
   else fail(`data-fee="${area}.${key}": page prints "${got}", module says "${want}"`);
 }
 
+// ── the uniform glass-front schedule (operator, Map Issues 07.31.26) ─────────
+// "All glass front niches should have the same opening and closing and recording fee.
+//  Also there is no inscription fee on any glass front niche. The opening and closing
+//  fee is 875 and the recording fee is 235 same 10% ecf applies. There will be no tax
+//  on a glass front niche unless its ecl and they add the vase and scroll"
+//
+// Before 2026-07-31 the three locations carried three different schedules, taken from
+// three different sheet footers ($835/$225 at ECL and Radiance/Serenity, $875/$235 plus
+// a $660 inscription and 10.4% tax at MVC). They are now ONE schedule, and this section
+// asserts that with literals rather than by echoing the modules back at themselves.
+console.log('\n=== UNIFORM GLASS-FRONT FEE SCHEDULE ===');
+{
+  const SCHEDULE = [
+    ['ECL', ECL.FEES.OC, ECL.FEES.REC, ECL.FEES.ECF_RATE],
+    ['MVC', MVC.FEES.OC, MVC.FEES.REC, MVC.FEES.ECF_RATE],
+    ['RAD/SER', COM.NICHE_FEES.OC, COM.NICHE_FEES.RECORDING, COM.NICHE_FEES.ECF_RATE],
+  ];
+  for (const [name, oc, rec, ecf] of SCHEDULE) {
+    if (oc === 875 && rec === 235 && ecf === 0.1) ok(`${name.padEnd(8)} O&C $875 · recording $235 · E.C.F. 10%`);
+    else fail(`${name}: schedule is ${money(oc)} / ${money(rec)} / ${ecf * 100}%, must be $875 / $235 / 10%`);
+  }
+
+  // No inscription fee exists on any glass-front niche, in any module or on the page.
+  for (const [name, fees] of [['ECL', ECL.FEES], ['MVC', MVC.FEES], ['RAD/SER', COM.NICHE_FEES]]) {
+    const has = Object.keys(fees).filter((k) => /INSCR/i.test(k));
+    if (has.length) fail(`${name} still exports an inscription fee (${has.join(', ')})`);
+    else ok(`${name.padEnd(8)} exports no inscription fee`);
+  }
+  const inscrAmounts = [...html.matchAll(/Inscription[^<]*<\/td>\s*<td[^>]*>([^<]*)</g)].map((m) => m[1].trim());
+  if (inscrAmounts.length !== 3) fail(`expected 3 "Inscription" fee rows (one per location), found ${inscrAmounts.length}`);
+  else if (inscrAmounts.every((v) => v === 'none')) ok('all three fee tables print Inscription = none');
+  else fail(`an Inscription row prints an amount: ${inscrAmounts.join(', ')}`);
+  if (html.includes('$660')) fail('the $660 granite-front inscription fee appears on this glass-front page');
+  else ok('the $660 granite-front inscription fee appears nowhere on this page');
+
+  // Tax: ECL's two bronze add-ons and nothing else.
+  if (!('TAX' in MVC.FEES) && !('TAX' in COM.NICHE_FEES)) ok('MVC and Radiance/Serenity export no tax rate at all');
+  else fail('MVC or Radiance/Serenity still exports a tax rate — glass-front niches are not taxed');
+  if (ECL.FEES.TAX === 0.104) ok('ECL exports the 10.4% add-on tax rate for the scroll and vase');
+  else fail(`ECL add-on tax rate is ${ECL.FEES.TAX}, must be 0.104`);
+}
+
 // ── no fee schedule may leak from one location into another ──────────────────
-// ECL vase $370 vs Chapel of Memories CRYPT vase $415 is the named trap; the MVC-only
-// amounts are the second. Each is checked inside the OTHER locations' sections.
+// The O&C, recording fee and E.C.F. are now deliberately IDENTICAL everywhere, so the
+// cross-contamination risk has moved: what must not leak is the crypt fee box, the ECL
+// vase, and the ECL-only tax line.
 console.log('\n=== NO CROSS-APPLIED FEES ===');
 {
   const at = (id) => html.indexOf(`id="${id}"`);
@@ -160,63 +207,29 @@ console.log('\n=== NO CROSS-APPLIED FEES ===');
   if (strays.length) fail(`the ECL vase (${eclVase}) appears in the ${strays.join(', ')} section(s)`);
   else ok(`the ECL vase (${eclVase}) stays inside the Eternal Light section`);
 
-  const mvcOnly = [money(MVC.FEES.OC), money(MVC.FEES.REC), money(MVC.FEES.INSCR), feeStr(MVC.FEES.TAX)];
-  for (const s of ['ecl', 'com']) {
-    const leaked = mvcOnly.filter((v) => SECTIONS[s].includes(v));
-    if (leaked.length) fail(`MVC-only fee amounts appear in the ${s} section: ${leaked.join(', ')}`);
-    else ok(`no MVC-only fee amount appears in the ${s} section`);
-  }
+  const taxRate = feeStr(ECL.FEES.TAX);
+  const taxStrays = ['mvc', 'com'].filter((s) => SECTIONS[s].includes(taxRate));
+  if (taxStrays.length) fail(`the ${taxRate} add-on tax appears in the ${taxStrays.join(', ')} section(s) — only ECL is taxed`);
+  else ok(`the ${taxRate} add-on tax stays inside the Eternal Light section`);
 }
 
-// ── the size tables are static HTML; check them row for row ─────────────────
-// Section 6 prints every MVC opening size and both Chapel of Memories size legends.
-// They are hand-written rows in the page, so they can rot; these two checks rebuild the
-// expected rows from the modules and compare the whole table, in order.
-const tableRows = (id) => {
-  const start = html.indexOf(`id="${id}"`);
-  if (start < 0) return null;
-  const body = html.slice(html.indexOf('<tbody>', start), html.indexOf('</tbody>', start));
-  return [...body.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map((m) =>
-    [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)]
-      .map((c) => c[1].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').trim()));
-};
-
-console.log('\n=== SIZE TABLES vs MODULES ===');
+// ── the "Sizes, and What Fits" section is GONE (operator, 2026-07-31) ────────
+// Section 6 printed every MVC opening size and both Chapel of Memories size legends.
+// The operator removed it outright; these checks now assert its ABSENCE, so nobody
+// reinstates a size table without the ruling being revisited.
+console.log('\n=== SIZE SECTION REMOVED ===');
 {
-  const by = new Map();
-  for (const n of mvcAll) {
-    const k = `${n.inside}|${n.opening}|${n.plate}|${n.urn}`;
-    if (!by.has(k)) by.set(k, { inside: n.inside, opening: n.opening, plate: n.plate, rights: n.urn, n: 0 });
-    by.get(k).n++;
+  for (const id of ['sizes', 'mvc-sizes', 'com-sizes']) {
+    if (html.includes(`id="${id}"`)) fail(`the removed size section is back: id="${id}"`);
+    else ok(`no element carries id="${id}"`);
   }
-  const want = [...by.values()].sort((a, b) => b.n - a.n || b.rights - a.rights)
-    .map((r) => [r.inside, r.opening, r.plate, String(r.n), String(r.rights)]);
-  const got = tableRows('mvc-sizes');
-  if (!got) fail('no table with id="mvc-sizes"');
-  else if (JSON.stringify(got) !== JSON.stringify(want)) {
-    fail(`#mvc-sizes does not match the module (${got.length} rows printed, ${want.length} expected)`);
-    for (let i = 0; i < Math.max(got.length, want.length); i++) {
-      const a = JSON.stringify(got[i] || null), b = JSON.stringify(want[i] || null);
-      if (a !== b) console.log(`        row ${i + 1}: page ${a}\n                 module ${b}`);
-    }
-  } else {
-    ok(`#mvc-sizes ${want.length} opening sizes, ${want.reduce((s, r) => s + +r[3], 0)} openings`);
-  }
-
-  const wantCom = [];
-  for (const [wid, name] of [['RAD', 'Radiance'], ['SER', 'Serenity']])
-    for (const [cls, dim] of COM.WALLS[wid].sizes) wantCom.push([name, cls, dim]);
-  const gotCom = tableRows('com-sizes');
-  if (!gotCom) fail('no table with id="com-sizes"');
-  else if (JSON.stringify(gotCom) !== JSON.stringify(wantCom)) {
-    fail('#com-sizes does not match the RAD/SER size legends');
-    for (let i = 0; i < Math.max(gotCom.length, wantCom.length); i++) {
-      const a = JSON.stringify(gotCom[i] || null), b = JSON.stringify(wantCom[i] || null);
-      if (a !== b) console.log(`        row ${i + 1}: page ${a}\n                 module ${b}`);
-    }
-  } else {
-    ok(`#com-sizes ${wantCom.length} size classes, verbatim from the wall sheets`);
-  }
+  const nums = [...html.matchAll(/<span class="contents-num">(\d+)<\/span>/g)].map((m) => +m[1]);
+  const want = nums.map((_, i) => i + 1);
+  if (JSON.stringify(nums) === JSON.stringify(want)) ok(`the contents list is numbered 1-${nums.length} with no gap`);
+  else fail(`the contents list is numbered ${nums.join(', ')} — renumbering was missed`);
+  const kick = [...html.matchAll(/<div class="section-kicker">SECTION (\d+)<\/div>/g)].map((m) => +m[1]);
+  if (JSON.stringify(kick) === JSON.stringify(want)) ok(`section kickers run SECTION 1-${kick.length} with no gap`);
+  else fail(`section kickers run ${kick.join(', ')} — renumbering was missed`);
 }
 
 // ── the at-a-glance table repeats the ranges in plain text; keep it honest ───
