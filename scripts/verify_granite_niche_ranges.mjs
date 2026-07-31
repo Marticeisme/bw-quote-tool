@@ -152,6 +152,59 @@ console.log('\n=== TERRACE GARDEN FEE SCHEDULE vs tgmp-data FEES ===');
   else fail('FEE_SOURCE.printedOnThisSheet is false, but the section does not say the sheet prints no fees');
 }
 
+// ── the Garden of Meditation carries the MVC schedule too, with its provenance ─
+// Added sprint-09 Track D. The GOMN sheet DOES print fees ($835 / $225 / $605) and the
+// operator replaced all three with the Mountain View Columbarium June-2026 schedule on
+// 2026-07-31. That makes this page's fee table borrowed numbers standing in front of a
+// sheet that says something else — so the provenance sentence is load-bearing, and the
+// superseded amounts must not survive anywhere on the page.
+const GOMN_SUPERSEDED = { OC: '$835', REC: '$225', INSCR: '$605' };
+
+console.log('\n=== GARDEN OF MEDITATION FEE SCHEDULE vs gomn-niche-data FEES ===');
+{
+  const gomn = html.slice(html.indexOf('id="gomn"'), html.indexOf('id="terrace"'));
+  const printed = Object.fromEntries(
+    [...gomn.matchAll(/<[^>]*\bdata-fee="gomn\.([A-Z_]+)"[^>]*>([\s\S]*?)</g)].map((m) => [m[1], m[2].trim()]),
+  );
+
+  // 1. every charge the module defines is printed in the GOMN section, and equal.
+  for (const key of Object.keys(GOMN.FEES)) {
+    const want = feeStr(GOMN.FEES[key]);
+    if (!(key in printed)) { fail(`gomn-niche-data FEES.${key} (${want}) is not printed in the Garden of Meditation section`); continue; }
+    if (printed[key] === want) ok(`data-fee="gomn.${key}"`.padEnd(26) + printed[key]);
+    else fail(`data-fee="gomn.${key}": page prints "${printed[key]}", gomn-niche-data says "${want}"`);
+  }
+  const extra = Object.keys(printed).filter((k) => !(k in GOMN.FEES));
+  if (extra.length) fail(`the Garden of Meditation section tags fees gomn-niche-data has no key for: ${extra.join(', ')}`);
+  else ok('the section tags no fee gomn-niche-data does not define');
+
+  // 2. the superseded amounts printed on the sheet must be gone from the whole page.
+  for (const [key, amount] of Object.entries(GOMN_SUPERSEDED)) {
+    if (html.includes(amount)) fail(`the superseded GOMN ${key} amount ${amount} still appears on the page`);
+    else ok(`superseded GOMN ${key} ${amount} is gone from the page`);
+  }
+
+  // 3. borrowed numbers carry the module's own provenance, verbatim.
+  const src = GOMN.FEE_SOURCE;
+  for (const [needle, what] of [[src.schedule, 'FEE_SOURCE.schedule'], [src.confirmedOn, 'FEE_SOURCE.confirmedOn']]) {
+    if (gomn.includes(needle)) ok(`provenance names ${what}`.padEnd(26) + `"${needle}"`);
+    else fail(`the Garden of Meditation section never states ${what} ("${needle}")`);
+  }
+  if (src.printedOnThisSheet) fail('GOMN FEE_SOURCE.printedOnThisSheet flipped to true — this gate needs rewriting');
+  else if (/replace the older ones printed on the sheet|instead/i.test(gomn)) ok('provenance says these amounts replace the ones printed on the sheet');
+  else fail('the section never says the printed amounts were replaced');
+  if (/confirm the current charges in MIS/i.test(gomn)) ok('and tells the reader the charges are confirmed in MIS');
+  else fail('the section never sends the reader to MIS to confirm');
+
+  // 4. the ×2 inscription allowance, and the urn as merchandise at its module price.
+  if (/up to two on the niche front/i.test(gomn) && /Two inscriptions may be added/i.test(gomn))
+    ok('the page states the ×2 inscription allowance, in the table and in prose');
+  else fail('the page does not state that two inscriptions may be added to the front');
+  const urn = `$${GOMN.URN.price.toLocaleString('en-US')}`;
+  if (gomn.includes(urn) && /merchandise/i.test(gomn)) ok(`the Interlude Urn is priced ${urn} and named as merchandise`);
+  else fail(`the Garden of Meditation section does not price the Interlude Urn at ${urn} as merchandise`);
+}
+
 // ── the at-a-glance table repeats the ranges in plain text; keep it honest ───
 console.log('\n=== AT-A-GLANCE TABLE ===');
 {
