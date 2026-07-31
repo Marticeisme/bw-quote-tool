@@ -426,15 +426,21 @@ console.log('\n8. The Memorial Order form has no print-instructions banner');
   const ssXml = await zip.file('xl/sharedStrings.xml').async('string');
   const BANNER = /NOTE THAT THIS FORM IS INTENDED TO PRINT|GREEN FIELDS CAN HAVE ENTRIES TYPED|BLUE FIELDS ARE SELF POPULATING/i;
 
+  // L4 holds the "NOTE THAT..." line; the blue and green bands are painted across L..R on
+  // rows 5 and 6, so clearing only column L leaves two coloured stripes on the printed form.
+  const BANNER_CELLS = ['L4'];
+  for (const col of ['L', 'M', 'N', 'O', 'P', 'Q', 'R']) BANNER_CELLS.push(col + '5', col + '6');
   for (const sheet of ['Mem Order Flat Mrkr & Bronze', 'Mem Order Form Upright & Other']) {
     const xml = await zip.file(paths[sheet]).async('string');
-    for (const coord of ['L4', 'L5', 'L6']) {
+    let clean = 0;
+    for (const coord of BANNER_CELLS) {
       const m = xml.match(new RegExp('<c r="' + coord + '"([^>]*?)(/>|>[\\s\\S]*?</c>)'));
-      const raw = m ? m[0] : '(absent)';
-      ok(sheet + ' ' + coord + ' carries no text', !m || !/<v>|<is>/.test(m[0]), raw);
-      // The empty coloured band is the style reference, not the text — it has to go too.
-      ok(sheet + ' ' + coord + ' carries no fill/border style', !m || !/\bs="\d+"/.test(m[1]), raw);
+      const bad = m && (/<v>|<is>/.test(m[0]) || /\bs="\d+"/.test(m[1]));
+      if (!bad) clean++;
+      else ok(sheet + ' ' + coord + ' is cleared (no text, no fill)', false, m[0]);
     }
+    ok(sheet + ': all ' + BANNER_CELLS.length + ' banner cells cleared of text AND fill',
+      clean === BANNER_CELLS.length, clean + '/' + BANNER_CELLS.length);
     // Anything that still renders these strings would have to come through a shared-string
     // reference from some other cell on the sheet.
     const usedIdx = [...xml.matchAll(/<c\b[^>]*\bt="s"[^>]*><v>(\d+)<\/v><\/c>/g)].map(m => +m[1]);

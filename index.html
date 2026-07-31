@@ -21928,16 +21928,18 @@ async function _fillCirgasXlsx(data) {
   // order form (operator request 2026-07-30). L5 was previously blanked by INSTRUCTION_CELLS
   // above, which kept its style and so left an empty blue stripe between the other two lines —
   // these are removed style and all instead.
-  var MEM_ORDER_BANNER_CELLS = [
-    ['Mem Order Flat Mrkr & Bronze', 'L4'],
-    ['Mem Order Flat Mrkr & Bronze', 'L5'],
-    ['Mem Order Flat Mrkr & Bronze', 'L6'],
-    ['Mem Order Form Upright & Other', 'L4'],
-    ['Mem Order Form Upright & Other', 'L5'],
-    ['Mem Order Form Upright & Other', 'L6']
-  ];
-  for (var mb = 0; mb < MEM_ORDER_BANNER_CELLS.length; mb++) {
-    await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_CELLS[mb][0], MEM_ORDER_BANNER_CELLS[mb][1]);
+  // L4 holds the "NOTE THAT..." line and carries no fill. Rows 5 and 6 are the blue and the
+  // green band: the text sits in L, but the colour is painted right across M-R as well, so
+  // clearing only the L cell leaves two stripes hanging off the right of the form (and R6's
+  // stray ")"). Verified by rendering the generated workbook, not by reading the XML.
+  var MEM_ORDER_BANNER_SHEETS = ['Mem Order Flat Mrkr & Bronze', 'Mem Order Form Upright & Other'];
+  var MEM_ORDER_BANNER_COLS = ['L','M','N','O','P','Q','R'];
+  for (var mb = 0; mb < MEM_ORDER_BANNER_SHEETS.length; mb++) {
+    await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], 'L4');
+    for (var mc = 0; mc < MEM_ORDER_BANNER_COLS.length; mc++) {
+      await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], MEM_ORDER_BANNER_COLS[mc] + '5');
+      await _xlsxRemoveCellInSheet(zip, pathMap, cache, MEM_ORDER_BANNER_SHEETS[mb], MEM_ORDER_BANNER_COLS[mc] + '6');
+    }
   }
 
   _xlsxFlushSheetCache(zip, pathMap, cache);
