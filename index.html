@@ -21821,7 +21821,12 @@ async function _fillCirgasXlsx(data) {
     await setIa('B71', 's', purchAddr);
     await setIa('R71', 's', data.purchCellPhone || data.purchHomePhone);
     await setIa('R67', 's', _xlsxDateStr(new Date().toISOString().slice(0,10)));
-    await setIa('I65', 'n', data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1);
+    // anIaNumSignatures ships defaulted to "1", so an explicit 1 is indistinguishable from an
+    // untouched field — take whichever is larger rather than trusting the box over the data.
+    var iaSigCount = data.iaNumSignatures ? parseFloat(data.iaNumSignatures) : 1;
+    if (!(iaSigCount > 0)) iaSigCount = 1;
+    if (data.iaMinSignatures > iaSigCount) iaSigCount = data.iaMinSignatures;
+    await setIa('I65', 'n', iaSigCount);
     await setIa('A56', 's', data.iaRemarks);
     // Family Location Verification — Purchaser's printed name repeats a second time here (real
     // completed files always show it twice: once at the primary signature block above, again here).
@@ -21842,10 +21847,14 @@ async function _fillCirgasXlsx(data) {
     await setIa('L44', 'n', data.preArrAmountOwed ? parseFloat(data.preArrAmountOwed) : null);
     await setIa('S44', 's', _xlsxDateStr(data.preArrDatePaid));
     // Additional signers (#2-5) on IOA ADDL SIGNERS — signer #1 above IS the primary purchaser
-    // (B69/O69/B71/R71 just written), no separate cascade formula involved.
+    // (B69/O69/B71/R71 just written), no separate cascade formula involved. data.iaSigners is
+    // the Information-sheet signer list with the Co-Purchaser prepended, so SIGNATURE #2 is the
+    // co-purchaser whenever there is one; it falls back to data.signers for any caller that
+    // does not build the IOA list.
+    var iaSignerList = data.iaSigners || data.signers;
     var IA_SIGNER_ROWS = [8, 16, 24, 32];
     for (var ii = 0; ii < 4; ii++) {
-      var isg = (data.signers && data.signers[ii]) || {};
+      var isg = (iaSignerList && iaSignerList[ii]) || {};
       var ir = IA_SIGNER_ROWS[ii];
       var addr = [isg.street, isg.city, isg.state, isg.zip].filter(Boolean).join(', ');
       await _xlsxSetCellInSheet(zip, pathMap, cache, 'IOA ADDL SIGNERS', 'B' + (ir + 2), 's', isg.name);
@@ -21953,6 +21962,28 @@ async function generateCirgasPacket() {
       phone: val('anSigner'+i+'Phone'), email: val('anSigner'+i+'Email')
     });
   }
+  // The IOA's SIGNATURE #1 is the purchaser (written straight onto the Interment Auth sheet at
+  // B69/O69/B71/R71); SIGNATURE #2 is the first row of the "IOA ADDL SIGNERS" sheet. When a
+  // Co-Purchaser exists they ARE that second signer — a co-purchaser is a party to the contract,
+  // not an extra witness — but nothing put them there unless the counselor happened to run
+  // "Import from Cemetery Quote" AFTER typing the co-purchaser in (that import pre-fills Signer 1
+  // and only when it is still blank), so in practice they had to be retyped by hand. Reported
+  // 2026-07-30. Prepend them here, at generation time, so the order of data entry cannot matter.
+  // Deduped by name so the pre-fill path does not produce the same person twice.
+  var iaSigners = signers.slice();
+  var _coName = (val('anCoPurchName') || '').trim();
+  if (_coName && !iaSigners.some(function(sg){ return (sg.name || '').trim().toLowerCase() === _coName.toLowerCase(); })) {
+    iaSigners.unshift({
+      name: _coName, relation: val('anCoPurchRelation'),
+      street: val('anCoPurchStreet'), city: val('anCoPurchCity'),
+      state: val('anCoPurchState'), zip: val('anCoPurchZip'),
+      phone: val('anCoPurchCellPhone') || val('anCoPurchHomePhone'), email: val('anCoPurchEmail')
+    });
+    iaSigners = iaSigners.slice(0, 4); // the sheet has four #2-#5 blocks; #6 is left to hand
+  }
+  // "Number of Signatures required" (I65) can never be fewer than the signatures actually
+  // printed: 1 for the purchaser plus every filled additional-signer block.
+  var iaMinSignatures = 1 + iaSigners.filter(function(sg){ return (sg.name || '').trim(); }).length;
   var data = {
     contractType: el('anContractType') ? el('anContractType').value : 'original',
     contractNum: val('anContractNum'), funeralHome: val('anFuneralHome'), fsd: val('anFSD'),
@@ -21989,7 +22020,7 @@ async function generateCirgasPacket() {
     },
     preArrContractNum: val('anPreArrContractNum'), preArrAmountOwed: val('anPreArrAmountOwed'), preArrDatePaid: el('anPreArrDatePaid').value,
     contractPaidDate: el('anContractPaidDate').value,
-    signers: signers,
+    signers: signers, iaSigners: iaSigners, iaMinSignatures: iaMinSignatures,
     lines: anLines()
   };
   // Memorial Order — optional (some families buy a marker at time of passing, many wait and add

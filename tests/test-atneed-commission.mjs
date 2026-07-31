@@ -24,6 +24,10 @@ import JSZip from 'jszip';
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
 const ok = (n, c, x) => { if (c) { pass++; console.log('  PASS  ' + n); } else { fail++; console.log('  FAIL  ' + n + (x !== undefined ? '\n        ' + JSON.stringify(x) : '')); } };
+// generateCirgasPacket legitimately confirms before generating a packet with no pricing
+// imported — these cases exercise the signature block, not the price grid, so that one
+// prompt is expected. Everything else in errs is a real page error.
+const unexpected = errs => errs.filter(e => !/No pricing imported yet/.test(e));
 
 // Synthetic family: the decedent and the purchaser are DIFFERENT people, which is the whole
 // point of case 3 — a conflating import looks correct whenever they happen to match.
@@ -191,6 +195,116 @@ console.log('\n3. The downloaded Commission Worksheet .xlsx carries the total in
   ok('F6 is greater than the sum of the commissionable rows (the reported bug)',
     f6 > rowSum + 0.005, { f6, rowSum, rows });
   ok('no page errors', errs.length === 0, errs);
+  await ctx.close();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generates the real CIRGAS packet and reads cells straight out of the workbook.
+// Helpers below resolve a sheet by NAME (the packet has 31 sheets and sheetN.xml order is
+// not tab order) and read shared strings, exactly as Excel would render them.
+async function cirgasSheets(buf) {
+  const zip = await JSZip.loadAsync(buf);
+  const wb = await zip.file('xl/workbook.xml').async('string');
+  const rels = await zip.file('xl/_rels/workbook.xml.rels').async('string');
+  const relMap = {};
+  for (const m of rels.matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/g)) relMap[m[1]] = m[2];
+  const paths = {};
+  for (const m of wb.matchAll(/<sheet name="([^"]+)"[^>]*r:id="(rId\d+)"/g)) {
+    paths[m[1].replace(/&amp;/g, '&')] = 'xl/' + relMap[m[2]].replace(/^\.?\/?/, '');
+  }
+  const ssXml = await zip.file('xl/sharedStrings.xml').async('string');
+  const ss = [];
+  for (const m of ssXml.matchAll(/<si>([\s\S]*?)<\/si>/g)) ss.push([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join(''));
+  const cache = {};
+  return async (sheet, coord) => {
+    if (!(sheet in cache)) cache[sheet] = paths[sheet] ? await zip.file(paths[sheet]).async('string') : null;
+    const xml = cache[sheet];
+    if (!xml) return undefined;
+    const m = xml.match(new RegExp('<c r="' + coord + '"([^>]*?)(?:/>|>([\\s\\S]*?)</c>)'));
+    if (!m) return undefined;
+    const inner = m[2] || '';
+    const t = (m[1].match(/\bt="([^"]+)"/) || [])[1];
+    if (t === 'inlineStr' || /<is>/.test(inner)) return [...inner.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join('');
+    const v = inner.match(/<v>([\s\S]*?)<\/v>/);
+    if (!v) return '';
+    return t === 's' ? ss[+v[1]] : v[1];
+  };
+}
+
+const fillCirgasContract = async (page, fx, opts) => page.evaluate(([fx, opts]) => {
+  show('an-contract', null);
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+  set('anDecFirst', fx.decFirst); set('anDecMiddle', fx.decMiddle); set('anDecLast', fx.decLast);
+  set('anPurchName', fx.purchName); set('anPurchRelation', fx.purchRelation);
+  set('anPurchStreet', fx.purchStreet); set('anPurchCity', fx.purchCity);
+  set('anPurchState', fx.purchState); set('anPurchZip', fx.purchZip);
+  set('anPurchCellPhone', fx.purchCell); set('anPurchEmail', fx.purchEmail);
+  if (opts.coPurchaser) {
+    set('anCoPurchName', fx.coPurchName); set('anCoPurchRelation', fx.coPurchRelation);
+    set('anCoPurchStreet', fx.coPurchStreet); set('anCoPurchCity', fx.coPurchCity);
+    set('anCoPurchState', fx.coPurchState); set('anCoPurchZip', fx.coPurchZip);
+    set('anCoPurchCellPhone', fx.coPurchCell); set('anCoPurchEmail', fx.coPurchEmail);
+  }
+  return true;
+}, [fx, opts]);
+
+console.log('\n4. A Co-Purchaser becomes the IOA\'s SECOND signer');
+{
+  const { ctx, page, errs } = await open(browser);
+  await fillCirgasContract(page, FX, { coPurchaser: true });
+  const dl = page.waitForEvent('download', { timeout: 60000 });
+  await page.evaluate(() => generateCirgasPacket());
+  const d = await dl;
+  const tmp = (process.env.TEMP || '/tmp') + '/bw-cirgas-co-' + process.pid + '.xlsx';
+  await d.saveAs(tmp);
+  const cell = await cirgasSheets(fs.readFileSync(tmp));
+  fs.unlinkSync(tmp);
+
+  // SIGNATURE #1 — the purchaser, on the Interment Auth sheet itself. Must NOT move.
+  ok('IOA signature #1 is still the purchaser',
+    (await cell('INTERMENT AUTH NEW', 'B69')) === FX.purchName, await cell('INTERMENT AUTH NEW', 'B69'));
+  ok('IOA signature #1 relationship is the purchaser\'s',
+    (await cell('INTERMENT AUTH NEW', 'O69')) === FX.purchRelation, await cell('INTERMENT AUTH NEW', 'O69'));
+  // SIGNATURE #2 — rows 8..13 of IOA ADDL SIGNERS: name B10, relation O10, address B12, phone Q12.
+  ok('IOA signature #2 printed name is the co-purchaser',
+    (await cell('IOA ADDL SIGNERS', 'B10')) === FX.coPurchName, await cell('IOA ADDL SIGNERS', 'B10'));
+  ok('IOA signature #2 relationship is the co-purchaser\'s',
+    (await cell('IOA ADDL SIGNERS', 'O10')) === FX.coPurchRelation, await cell('IOA ADDL SIGNERS', 'O10'));
+  ok('IOA signature #2 address is the co-purchaser\'s',
+    (await cell('IOA ADDL SIGNERS', 'B12')) === [FX.coPurchStreet, FX.coPurchCity, FX.coPurchState, FX.coPurchZip].join(', '),
+    await cell('IOA ADDL SIGNERS', 'B12'));
+  ok('IOA signature #2 phone is the co-purchaser\'s',
+    (await cell('IOA ADDL SIGNERS', 'Q12')) === FX.coPurchCell, await cell('IOA ADDL SIGNERS', 'Q12'));
+  ok('"Number of Signatures required" rises to 2', +(await cell('INTERMENT AUTH NEW', 'I65')) === 2,
+    await cell('INTERMENT AUTH NEW', 'I65'));
+  ok('signature #3 stays empty (the co-purchaser is not duplicated down the sheet)',
+    !(await cell('IOA ADDL SIGNERS', 'B18')), await cell('IOA ADDL SIGNERS', 'B18'));
+  // The co-purchaser's own block on the Information / Cemetery Contract sheets is untouched.
+  ok('the Information sheet still carries the co-purchaser in their own block',
+    (await cell('Information', 'E25')) === FX.coPurchName, await cell('Information', 'E25'));
+  ok('the Information sheet additional-signer list is NOT hijacked',
+    !(await cell('Information', 'D48')), await cell('Information', 'D48'));
+  ok('no page errors', unexpected(errs).length === 0, errs);
+  await ctx.close();
+}
+
+console.log('\n5. With no Co-Purchaser the IOA is unchanged');
+{
+  const { ctx, page, errs } = await open(browser);
+  await fillCirgasContract(page, FX, { coPurchaser: false });
+  const dl = page.waitForEvent('download', { timeout: 60000 });
+  await page.evaluate(() => generateCirgasPacket());
+  const d = await dl;
+  const tmp = (process.env.TEMP || '/tmp') + '/bw-cirgas-noco-' + process.pid + '.xlsx';
+  await d.saveAs(tmp);
+  const cell = await cirgasSheets(fs.readFileSync(tmp));
+  fs.unlinkSync(tmp);
+  ok('IOA signature #1 is the purchaser',
+    (await cell('INTERMENT AUTH NEW', 'B69')) === FX.purchName, await cell('INTERMENT AUTH NEW', 'B69'));
+  ok('IOA signature #2 stays blank', !(await cell('IOA ADDL SIGNERS', 'B10')), await cell('IOA ADDL SIGNERS', 'B10'));
+  ok('"Number of Signatures required" stays 1', +(await cell('INTERMENT AUTH NEW', 'I65')) === 1,
+    await cell('INTERMENT AUTH NEW', 'I65'));
+  ok('no page errors', unexpected(errs).length === 0, errs);
   await ctx.close();
 }
 
