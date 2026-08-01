@@ -423,7 +423,8 @@ console.log('\nCard arithmetic vs hand-typed totals');
     const ROUNDED_DELTA = 1469;        // 10631 − 9162, each total rounded separately
     const noUrn = estTotal(a.price, { ...a.q, urn: 0 });
     ck(noUrn === NO_URN_TOTAL, `${a.ref} with the urns removed is still ${money(NO_URN_TOTAL)} (got ${money(noUrn)})`);
-    ck(a.total - noUrn === ROUNDED_DELTA,
+    // COMPUTED minus computed, not typed minus computed: an untaxed urn must move this.
+    ck(estTotal(a.price, a.q) - noUrn === ROUNDED_DELTA,
       `adding the 2 urns moves the card by ${money(ROUNDED_DELTA)} — ${money(URN.price * a.q.urn)} merchandise + ${money(C7_URN_TAX)} tax, each total rounded on its own`);
     ck(Math.round(URN.price * a.q.urn * FEES.TAX * 100) / 100 === C7_URN_TAX,
       `the urn tax on that card is ${money(C7_URN_TAX)} — ${a.q.urn} × $${URN.price} at ${FEES.TAX * 100}%`);
