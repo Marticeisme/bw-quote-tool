@@ -5,7 +5,7 @@
 // The other half of this suite is the one that matters more. Three live figures look exactly
 // like the discontinued ones and were nearly swept up with them:
 //   Burial Vault Setting $685 and Cremation Vault Setting $575 are COMPONENTS of the two
-//   Standard Arrangement bundles ($4,760 and $2,730). Deleting them under-quotes every
+//   Standard Arrangement bundles ($4,760 and $2,620). Deleting them under-quotes every
 //   standard arrangement on a signed contract.
 //   The $715 Mausoleum/Columbarium on-site shutter merely shares a price with the 2' vault.
 // A future "remove the discontinued item" pass that searches by dollar amount fails here.
@@ -95,7 +95,10 @@ console.log('\n2. The look-alike LIVE figures survived');
   ok('Burial Vault Setting still prices at $685', r.burialSetting === 685, { got: r.burialSetting, labels: r.labels });
   ok('Cremation Vault Setting still prices at $575', r.cremSetting === 575, { got: r.cremSetting, labels: r.labels });
   ok('Standard Burial Arrangement still totals $4,760', /4,?760/.test(r.burialBundle || ''), r.burialBundle);
-  ok('Standard Urn Arrangement still totals $2,730', /2,?730/.test(r.urnBundle || ''), r.urnBundle);
+  // $2,620 since 2026-07-31, not $2,730: urn vault 935 + setting 575 + recording 235 +
+  // ground inurnment O&C, and that O&C dropped 985 -> 875 on the operator's ruling against
+  // the 06/2026 urn-garden packages sheet (sprint-09 Track S). The bundle itself is unchanged.
+  ok('Standard Urn Arrangement still totals $2,620', /2,?620/.test(r.urnBundle || ''), r.urnBundle);
   ok('the $715 on-site shutter inscription is untouched', r.shutter && r.shutter.value === '715', r.shutter);
   ok('no page errors', errs.length === 0, errs);
   await ctx.close();

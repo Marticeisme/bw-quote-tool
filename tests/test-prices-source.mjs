@@ -339,6 +339,47 @@ console.log('\n8. The map\'s build-prices.py can still read our O&C labels');
   ok('and each reads the amount data/prices.json holds', wrong.length === 0, wrong);
 }
 
+// 9. The amounts themselves, pinned.
+//
+// Everything above proves the tool AGREES with data/prices.json. That is drift protection, and
+// it is not the same as knowing the file is right: regenerate prices.json with a broken scrape,
+// run `npm run sync-prices`, and the tool moves to the wrong number in lockstep — silently, and
+// green. It has already happened once. On 2026-07-31 a rebuild produced INSCRIPTION:all at $605
+// instead of $660 and dropped the sales-tax rate entirely, because the glass-front niche map no
+// longer states either and build-prices.py returned quietly with fewer records.
+//
+// So the sourced amounts are written down HERE, in a repo that regeneration does not touch, and
+// a move has to be made deliberately in two places.
+//
+// OPERATOR RULING 2026-07-31 (sprint-09): the $875 O&C applies ONLY to urn-garden GROUND
+// inurnment. The lawn, mausoleum and boulder O&C fees are deliberately different and
+// deliberately higher; they did not move, and must not be swept along by some later
+// "make the O&C fees consistent" pass. That is why this is an explicit table and not a loop
+// over whatever keys happen to be in the file.
+console.log('\n9. The sourced amounts are what the operator says they are');
+{
+  const PINNED = {
+    'OC:ground_inurnment': 875,          // 985 -> 875, the 06/2026 urn-garden packages sheet
+    'OC:lawn_single': 1535,              // unchanged - casket burial, deliberately higher
+    'OC:lawn_double_1st': 2085,          // unchanged
+    'OC:lawn_double_2nd': 1535,          // unchanged
+    'OC:mausoleum_entombment': 1205,     // unchanged
+    'OC:boulder_inurnment': 1425,        // unchanged - the sheet has no boulder column
+    'OC:niche_inurnment': 875,           // unchanged - already 875, for an unrelated reason
+    'OC:niche_non_inurnment': 375,       // unchanged
+    'RECORDING:all': 235,
+    'INSCRIPTION:all': 660,              // the 2026-07-31 regression landed exactly here
+    'MONOBAR:crypt': 1445,
+  };
+  Object.keys(PINNED).forEach((k) => {
+    ok(k + ' is $' + PINNED[k].toLocaleString(), FEES[k] === PINNED[k], { got: FEES[k], want: PINNED[k] });
+  });
+  ok('the sales-tax rate survived the last regeneration', PRICES.current.rates.TAX === 0.104,
+    { got: PRICES.current.rates.TAX });
+  ok('the ECF rate survived the last regeneration', PRICES.current.rates.ECF === 0.10,
+    { got: PRICES.current.rates.ECF });
+}
+
 await browser.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

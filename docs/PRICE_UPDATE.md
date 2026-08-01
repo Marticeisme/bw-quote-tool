@@ -12,7 +12,7 @@ path works end to end for opening & closing.
 | `OC:lawn_double_1st` | 2,085 | O&C checkbox |
 | `OC:lawn_double_2nd` | 1,535 | O&C checkbox |
 | `OC:mausoleum_entombment` | 1,205 | O&C checkbox, both mausoleum bundles, comparison panel |
-| `OC:ground_inurnment` | 985 | O&C checkbox, Standard Urn bundle, comparison panel |
+| `OC:ground_inurnment` | 875 | O&C checkbox, Standard Urn bundle, comparison panel |
 | `OC:boulder_inurnment` | 1,425 | O&C checkbox |
 | `OC:niche_inurnment` | 875 | O&C checkbox, both niche bundles, comparison panel |
 | `OC:niche_non_inurnment` | 375 | O&C checkbox |
@@ -95,6 +95,30 @@ because the function returns an empty list rather than failing.
 `sync-prices` therefore regenerates those eight amounts as text, and
 `test-prices-source.mjs` section 8 runs the same regex over `index.html` so a tidy-up cannot
 re-break it.
+
+**Worked example, 2026-07-31 (sprint-09 Track S).** Urn-garden O&C moved 985 → 875 on the
+operator's ruling against the 06/2026 packages sheet. Because of the loop, step 1 is the
+`qOCGround` label in `index.html`, not the file: change the label, then
+`python scripts/build-prices.py` in the map, then `npm run sync-prices` here. The dated
+record in `CORRECTIONS` carries the provenance — it cannot carry the *value*, because
+`current_of()` prefers a live-quote-tool record over a dated one and the scrape would win.
+
+### The other scrape, and why it now fails loudly
+
+Two figures used to be read out of `MAPS/MVC_NewGlassFront_NicheMap_1.html`, which had since
+been reworked: it now says glass-front niches carry **no** inscription fee and no longer
+defines a `TAX` constant. Both true for that page — but `quote_tool_fees()` returned quietly
+with fewer records, so the first rebuild after the rework would have shipped
+`INSCRIPTION:all` at **$605** (the Jan-2025 workbook) and **no tax rate at all**, to both
+apps, with a green run. Caught on 2026-07-31 by diffing the rebuild against the previous file.
+
+Fixed map-side: inscription now comes from the tool's own `<select id="qInscType">`, the tax
+rate from `index.html`'s `const TAX`, and **every scrape in `quote_tool_fees()` is required —
+a pattern that stops matching calls `sys.exit`** instead of falling back to an older source.
+`quote_tool_garden_ecf()` already worked that way; now they all do.
+
+**If you rebuild `prices.json`, diff `current.fees` against the previous copy before you
+commit it.** One intended amount should move and nothing else.
 
 **The consequence, stated plainly: an O&C price cannot yet be changed from the file end.**
 Step 1 would rebuild `prices.json` by reading the old amount straight back out of `index.html`.

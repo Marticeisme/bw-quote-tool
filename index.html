@@ -1407,7 +1407,7 @@ tr:hover td{background:#eef3f8;}
             </div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCGround" onchange="cemUpdateD()">
-              <label for="qOCGround">Ground Inurnment — $985</label>
+              <label for="qOCGround">Ground Inurnment — $875</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCGroundQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
@@ -3810,7 +3810,7 @@ tr:hover td{background:#eef3f8;}
 
           <label style="font-size:13px;" for="anOcOpening">Opening &amp; Closing</label>
           <div style="text-align:center;"><input type="checkbox" id="anOcOpening"></div>
-          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"><input type="number" id="anAmtOpening" min="0" step="1" placeholder="0.00" style="width:100px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"><select onchange="anQFsel(this,'anAmtOpening')" style="font-size:11px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;"><option value="">＋ O&amp;C…</option><option value="1535">Lawn Interment $1,535</option><option value="985">Ground Inurnment $985</option><option value="875">Niche Inurnment $875</option><option value="1205">Mausoleum Entombment $1,205</option></select></div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"><input type="number" id="anAmtOpening" min="0" step="1" placeholder="0.00" style="width:100px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"><select onchange="anQFsel(this,'anAmtOpening')" style="font-size:11px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;"><option value="">＋ O&amp;C…</option><option value="1535">Lawn Interment $1,535</option><option value="875">Ground Inurnment $875</option><option value="875">Niche Inurnment $875</option><option value="1205">Mausoleum Entombment $1,205</option></select></div>
 
           <label style="font-size:13px;" for="anOcRecording">Recording Fee</label>
           <div style="text-align:center;"><input type="checkbox" id="anOcRecording"></div>
@@ -6070,12 +6070,12 @@ function bwPrefetchTemplates(moduleType) {
 // ── GENERATED FROM data/prices.json — DO NOT EDIT BY HAND ─────────────────────
 // Regenerate with:  npm run sync-prices
 var BW_PRICES_URL = 'data/prices.json';
-var BW_PRICES_GENERATED = '2026-07-26';
+var BW_PRICES_GENERATED = '2026-07-31';
 var BW_FEES = {
   'INSCRIPTION:all': 660,
   'MONOBAR:crypt': 1445,
   'OC:boulder_inurnment': 1425,
-  'OC:ground_inurnment': 985,
+  'OC:ground_inurnment': 875,
   'OC:lawn_double_1st': 2085,
   'OC:lawn_double_2nd': 1535,
   'OC:lawn_single': 1535,
@@ -17234,7 +17234,7 @@ async function generateRICContractCore(clientData) {
     var secRight  = exemptLines.find(function(l){ return l.isSpace && (l.isSecondRight || l.label.match(/2nd Right|Second Right/i)) && !l.label.match(/ECF/i); });
     var secECF    = exemptLines.find(function(l){ return l.label.match(/2nd Right|Second Right/i) && l.label.match(/ECF/i); });
     // O&C lines: match "Inurnment" broadly (Ground/Boulder/Niche Inurnment are all cremation O&C),
-    // not just "Inurnment O&C" — a plain "Ground Inurnment" ($985) was being missed, so a case with
+    // not just "Inurnment O&C" — a plain "Ground Inurnment" line was being missed, so a case with
     // both a burial O&C and a cremation O&C only imported one of the two. "Recording Fee – Inurnment"
     // is still excluded by the Recording guard.
     var ocLines   = exemptLines.filter(function(l){ return !l.isSpace && l.label.match(/Opening|Closing|Inurnment|Entombment|Interment/i) && !l.label.match(/ECF|Recording/i); });

@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "generated": "2026-07-26",
+ "generated": "2026-07-31",
  "purpose": "Single fee/price schedule shared by the cemetery map and the quote tool, replacing three copies that disagreed.",
  "resolve": "READ `current`. A price is always today's price (Martice, 2026-07-25) - do not resolve a fee as-of a date. `fees`/`inventory` keep the dated history as provenance only: what a number was and when it changed. To change a price, APPEND a record and rebuild; the newest wins.",
  "current": {
@@ -19,7 +19,7 @@
    "MONOBAR:crypt": 1445.0,
    "MONOBAR_INSTALL:crypt": 225.0,
    "OC:boulder_inurnment": 1425.0,
-   "OC:ground_inurnment": 985.0,
+   "OC:ground_inurnment": 875.0,
    "OC:lawn_double_1st": 2085.0,
    "OC:lawn_double_2nd": 1535.0,
    "OC:lawn_single": 1535.0,
@@ -145,14 +145,14 @@
    "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
   },
   {
-   "what": "INSCRIPTION all $660",
+   "what": "OC niche_inurnment $875",
    "why": "no effective date printed in the source",
    "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
   },
   {
-   "what": "OC niche_inurnment $875",
+   "what": "INSCRIPTION all $660",
    "why": "no effective date printed in the source",
-   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)"
+   "source": "index.html <select id=\"qInscType\"> (live quote tool)"
   },
   {
    "what": "OC lawn_single $1,535",
@@ -171,11 +171,6 @@
   },
   {
    "what": "OC mausoleum_entombment $1,205",
-   "why": "no effective date printed in the source",
-   "source": "index.html (live quote tool, qOC* inputs)"
-  },
-  {
-   "what": "OC ground_inurnment $985",
    "why": "no effective date printed in the source",
    "source": "index.html (live quote tool, qOC* inputs)"
   },
@@ -247,7 +242,7 @@
   {
    "what": "rate TAX 0.104",
    "why": "no effective date printed in the source",
-   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html"
+   "source": "index.html `const TAX` (live quote tool)"
   }
  ],
  "rates": [
@@ -266,7 +261,7 @@
    "rate": 0.104,
    "appliesTo": "taxable merchandise (inscription)",
    "effective": null,
-   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html"
+   "source": "index.html `const TAX` (live quote tool)"
   }
  ],
  "fees": [
@@ -376,8 +371,8 @@
    "product": "all",
    "amount": 660.0,
    "effective": null,
-   "source": "MAPS/MVC_NewGlassFront_NicheMap_1.html (live quote tool)",
-   "source_text": "Inscription \u2014 $660"
+   "source": "index.html <select id=\"qInscType\"> (live quote tool)",
+   "source_text": "<option value=\"660\">Crypt/Niche Shutter \u2014 In-shop: regular delivery"
   },
   {
    "code": "INSCRIPTION",
@@ -429,12 +424,13 @@
   },
   {
    "code": "OC",
-   "label": "Ground Inurnment",
+   "label": "Opening & Closing",
    "product": "ground_inurnment",
-   "amount": 985.0,
-   "effective": null,
-   "source": "index.html (live quote tool, qOC* inputs)",
-   "source_text": "Ground Inurnment"
+   "amount": 875.0,
+   "effective": "2026-07-31",
+   "source": "Martice, 2026-07-31, against URN_GARDEN___GARDEN_OF_VERSES_PACKAGES_06_2026.xlsx",
+   "note": "Was $985, undated, carried only by the quote tool's own O&C label. The 06/2026 urn-garden packages sheet prints a flat $875 for every urn-garden ground placement and the operator ruled '875 - sheet wins' (sprint-09). The label in bw-quote-tool/index.html was changed to match; this record dates it. The sheet is SILENT on boulder inurnment, so OC:boulder_inurnment stays at $1,425.",
+   "also_in": "index.html (live quote tool, qOC* inputs)"
   },
   {
    "code": "OC",

@@ -181,7 +181,9 @@ console.log('\n3. Same path with the urn arrangement, and with both ticked');
     return { urnOn, urnCleared, both, bothCleared };
   });
   ok('the urn arrangement adds its four items', URN.every(l => has(r.urnOn.labels, l)), r.urnOn.labels);
-  ok('and shows its subtotal', r.urnOn.urnDisp === '$2,730.00', r.urnOn.urnDisp);
+  // 935 + 575 + 235 + 875. The ground-inurnment O&C moved 985 -> 875 on 2026-07-31
+  // (operator ruling, 06/2026 urn-garden packages sheet; sprint-09 Track S).
+  ok('and shows its subtotal', r.urnOn.urnDisp === '$2,620.00', r.urnOn.urnDisp);
   ok('clearing the garden with the urn arrangement ticked does not throw', cemErrs.length === 0, cemErrs);
   ok('the urn items are gone', URN_ONLY.every(l => !has(r.urnCleared.labels, l)), r.urnCleared.labels);
   ok('the urn subtotal is cleared', r.urnCleared.urnDisp === '—', r.urnCleared.urnDisp);
