@@ -1,6 +1,7 @@
 // What happens to a SAVED quote when prices change? Read-only investigation, fake Firebase.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 
 const browser = await chromium.launch();
@@ -9,7 +10,7 @@ await ctx.route(/gstatic\.com\/firebasejs/, r => r.abort());
 const page = await ctx.newPage();
 await page.addInitScript(FAKE);
 await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
-await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
 await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
 await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 

@@ -16,8 +16,8 @@
 // Firebase only; the gstatic firebasejs request is aborted, so production is never contacted.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
-const BASE = process.env.BW_BASE || 'http://localhost:3737/';
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
 const ok = (n, c, x) => { if (c) { pass++; console.log('  PASS  ' + n); } else { fail++; console.log('  FAIL  ' + n + (x !== undefined ? '\n        ' + JSON.stringify(x) : '')); } };

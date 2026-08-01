@@ -1,6 +1,7 @@
 // Contact layer slice one: party store, contract roles, editor UI. Fake Firebase only.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
 const ok = (n, c, x) => { if (c) { pass++; console.log('  PASS  ' + n); } else { fail++; console.log('  FAIL  ' + n + (x !== undefined ? '\n        ' + JSON.stringify(x) : '')); } };
@@ -15,7 +16,7 @@ async function open(browser) {
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push(m.text().slice(0, 200)); });
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');`);
-  await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(300);

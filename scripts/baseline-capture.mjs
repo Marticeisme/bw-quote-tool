@@ -12,7 +12,7 @@ import path from 'path';
 // A capture that reads another worktree reports 14/14 identical and means nothing, because
 // on an unmodified tree 14/14 is trivially true. ROOT is this script's repo; the guard
 // refuses to capture unless the server is serving exactly that.
-const BASE = process.env.BASELINE_BASE || 'http://localhost:3737/';
+const BASE = process.env.BASELINE_BASE || 'http://localhost:' + (process.env.PORT || 3737) + '/';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const OUT = process.env.BASELINE_OUT ||

@@ -24,7 +24,7 @@ import { fileURLToPath } from 'url';
 import { assertServesThisTree } from './served-tree-check.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const BASE = process.env.BASELINE_BASE || 'http://localhost:3737/';
+const BASE = process.env.BASELINE_BASE || 'http://localhost:' + (process.env.PORT || 3737) + '/';
 
 const golden = process.argv.includes('--golden');
 const outArg = process.argv.slice(2).find((a) => !a.startsWith('--'));

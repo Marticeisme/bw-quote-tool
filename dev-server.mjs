@@ -24,6 +24,17 @@ http.createServer((req, res) => {
 
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
+  // Identity endpoint for scripts/served-tree-check.mjs: which tree does this server
+  // actually serve? With several worktrees on one machine, whichever server grabbed the
+  // port first answers for everybody — this makes the answer checkable in one request.
+  // (Older servers without this route answer it with their index.html via the old
+  // unconditional SPA fallback; the checker detects that and probes the tree instead.)
+  if (req.url.split('?')[0] === '/__served-tree') {
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({ servedTreeRoot: ROOT }));
+    return;
+  }
+
   if (req.method === 'POST' && req.url.startsWith('/save-pdf')) {
     const chunks = [];
     req.on('data', c => chunks.push(c));
@@ -41,7 +52,10 @@ http.createServer((req, res) => {
   }
 
   let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
-  if (!fs.existsSync(filePath)) filePath = path.join(ROOT, 'index.html'); // SPA fallback
+  // SPA fallback for extensionless routes only. A missing FILE must 404: silently serving
+  // index.html in its place is how a worktree's test page came back as another tree's
+  // index.html and produced phantom results (GitHub Pages 404s here too).
+  if (!fs.existsSync(filePath) && !path.extname(filePath)) filePath = path.join(ROOT, 'index.html');
   const ext = path.extname(filePath);
   try {
     const data = fs.readFileSync(filePath);

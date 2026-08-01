@@ -17,6 +17,7 @@
 // Fake Firebase only — production is never contacted, and nothing is ever written.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 const IDENT = 'martice@bwquote.local';
@@ -71,7 +72,7 @@ async function open(browser) {
   page.on('dialog', async d => { errs.push('dialog: ' + d.message().slice(0, 120)); await d.accept(); });
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(IDENT)},'pw');`);
-  await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(id => _fbAuth.signInWithEmailAndPassword(id, 'pw'), IDENT);
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(300);

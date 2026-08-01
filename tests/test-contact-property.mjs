@@ -17,6 +17,7 @@
 import { chromium } from 'playwright';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 const DEMO_PATH = 'data/demo-contacts.csv';
@@ -65,7 +66,7 @@ async function open(browser, hash, seed) {
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');
     window.__fake.seed(${JSON.stringify(seed || {})});`);
-  await page.goto('http://localhost:3737/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE + (hash || ''), { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(200);
