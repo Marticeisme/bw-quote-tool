@@ -490,6 +490,7 @@ const CSS = `
   .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
   .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
   .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
+  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#2f8f79;stroke:#8d6a3a;}
   .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
   .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
   .pentr text{fill:var(--cream);font-size:10px;font-family:'Jost',sans-serif;text-anchor:middle;font-weight:600;}
@@ -573,6 +574,12 @@ const CSS = `
   .fk-altar{background:linear-gradient(180deg,#b9a06a,#7d6738);} .fk-altar.btop{background:linear-gradient(135deg,#cdb37a,#8d7643);}
   .fk-piano{background:linear-gradient(180deg,#3a2a1c,#1e150e);} .fk-piano.btop{background:linear-gradient(135deg,#4a3524,#241a11);}
   .fk-bench{background:linear-gradient(180deg,#8d7f5f,#5d523a);} .fk-bench.btop{background:linear-gradient(135deg,#a1946f,#6b5f44);}
+  /* Pedestal flower urn and the chapel's stained-glass window — both taken from the
+     2026-07-29 walkthrough video; the window is the interior's one orientation landmark. */
+  .fk-urn{background:linear-gradient(180deg,#3a3330,#141110);} .fk-urn.btop{background:radial-gradient(circle at 40% 35%,#c46a52,#6d3a2c 60%,#2a1a14);}
+  .fk-window{background:linear-gradient(200deg,#59c2a0 0%,#2f86ad 40%,#c9843a 72%,#7c4f2a 100%);
+    box-shadow:0 0 10px rgba(120,220,190,.35);border-color:#6d4f2a;}
+  .fk-window.btop{background:linear-gradient(135deg,#6d4f2a,#3c2a16);}
   .chair{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(0,0,0,.3);}
   .cseat{background:linear-gradient(135deg,#b98f60,#8a6640);}
   .cback{background:linear-gradient(180deg,#a87d52,#6d4f31);}

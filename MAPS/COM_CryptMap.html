@@ -97,6 +97,7 @@
   .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
   .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
   .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
+  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#2f8f79;stroke:#8d6a3a;}
   .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
   .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
   .pentr text{fill:var(--cream);font-size:10px;font-family:'Jost',sans-serif;text-anchor:middle;font-weight:600;}
@@ -180,6 +181,12 @@
   .fk-altar{background:linear-gradient(180deg,#b9a06a,#7d6738);} .fk-altar.btop{background:linear-gradient(135deg,#cdb37a,#8d7643);}
   .fk-piano{background:linear-gradient(180deg,#3a2a1c,#1e150e);} .fk-piano.btop{background:linear-gradient(135deg,#4a3524,#241a11);}
   .fk-bench{background:linear-gradient(180deg,#8d7f5f,#5d523a);} .fk-bench.btop{background:linear-gradient(135deg,#a1946f,#6b5f44);}
+  /* Pedestal flower urn and the chapel's stained-glass window — both taken from the
+     2026-07-29 walkthrough video; the window is the interior's one orientation landmark. */
+  .fk-urn{background:linear-gradient(180deg,#3a3330,#141110);} .fk-urn.btop{background:radial-gradient(circle at 40% 35%,#c46a52,#6d3a2c 60%,#2a1a14);}
+  .fk-window{background:linear-gradient(200deg,#59c2a0 0%,#2f86ad 40%,#c9843a 72%,#7c4f2a 100%);
+    box-shadow:0 0 10px rgba(120,220,190,.35);border-color:#6d4f2a;}
+  .fk-window.btop{background:linear-gradient(135deg,#6d4f2a,#3c2a16);}
   .chair{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(0,0,0,.3);}
   .cseat{background:linear-gradient(135deg,#b98f60,#8a6640);}
   .cback{background:linear-gradient(180deg,#a87d52,#6d4f31);}
@@ -1377,36 +1384,96 @@
     <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-374px,90px,-318px) rotateY(90deg)"><span>Altar</span></div>
     <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-444px,90px,-318px) rotateY(-90deg)"><span>Altar</span></div>
     <div class="furn fk-altar btop" data-px="166" data-pz="91" style="width:70px;height:32px;transform:translate(-50%,-50%) translate3d(-409px,68px,-318px) rotateX(90deg)"></div>
-    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-485px,94px,-306px) rotateY(0deg)"><span>Lectern</span></div>
-    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-485px,94px,-328px) rotateY(180deg)"><span>Lectern</span></div>
-    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-474px,94px,-317px) rotateY(90deg)"><span>Lectern</span></div>
-    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-496px,94px,-317px) rotateY(-90deg)"><span>Lectern</span></div>
-    <div class="furn fk-lectern btop" data-px="128" data-pz="92" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-485px,76px,-317px) rotateX(90deg)"></div>
-    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:68px;height:28px;transform:translate(-50%,-50%) translate3d(-318px,98px,-268px) rotateY(0deg)"><span>Piano</span></div>
-    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:68px;height:28px;transform:translate(-50%,-50%) translate3d(-318px,98px,-316px) rotateY(180deg)"><span>Piano</span></div>
-    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:48px;height:28px;transform:translate(-50%,-50%) translate3d(-284px,98px,-292px) rotateY(90deg)"><span>Piano</span></div>
-    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:48px;height:28px;transform:translate(-50%,-50%) translate3d(-352px,98px,-292px) rotateY(-90deg)"><span>Piano</span></div>
-    <div class="furn fk-piano btop" data-px="211" data-pz="104" style="width:68px;height:48px;transform:translate(-50%,-50%) translate3d(-318px,84px,-292px) rotateX(90deg)"></div>
-    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-354px,99px,-244px) rotateY(0deg)"></div>
-    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-354px,99px,-264px) rotateY(180deg)"></div>
-    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-344px,99px,-254px) rotateY(90deg)"></div>
-    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-364px,99px,-254px) rotateY(-90deg)"></div>
-    <div class="furn fk-seat btop" data-px="193" data-pz="123" style="width:20px;height:20px;transform:translate(-50%,-50%) translate3d(-354px,86px,-254px) rotateX(90deg)"></div>
-    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-290px,99px,-280px) rotateY(0deg)"></div>
-    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-290px,99px,-300px) rotateY(180deg)"></div>
-    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-280px,99px,-290px) rotateY(90deg)"></div>
-    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-300px,99px,-290px) rotateY(-90deg)"></div>
-    <div class="furn fk-seat btop" data-px="225" data-pz="105" style="width:20px;height:20px;transform:translate(-50%,-50%) translate3d(-290px,86px,-290px) rotateX(90deg)"></div>
-    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-476px,103px,-240px) rotateY(0deg)"></div>
-    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-476px,103px,-256px) rotateY(180deg)"></div>
-    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-436px,103px,-248px) rotateY(90deg)"></div>
-    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-516px,103px,-248px) rotateY(-90deg)"></div>
-    <div class="furn fk-bench btop" data-px="132" data-pz="126" style="width:80px;height:16px;transform:translate(-50%,-50%) translate3d(-476px,94px,-248px) rotateX(90deg)"></div>
-    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-340px,103px,-240px) rotateY(0deg)"></div>
-    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-340px,103px,-256px) rotateY(180deg)"></div>
-    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-300px,103px,-248px) rotateY(90deg)"></div>
-    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-380px,103px,-248px) rotateY(-90deg)"></div>
-    <div class="furn fk-bench btop" data-px="200" data-pz="126" style="width:80px;height:16px;transform:translate(-50%,-50%) translate3d(-340px,94px,-248px) rotateX(90deg)"></div>
+    <div class="furn fk-window" data-px="116" data-pz="54" style="width:48px;height:80px;transform:translate(-50%,-50%) translate3d(-508px,72px,-388px) rotateY(0deg)"></div>
+    <div class="furn fk-window" data-px="116" data-pz="54" style="width:48px;height:80px;transform:translate(-50%,-50%) translate3d(-508px,72px,-398px) rotateY(180deg)"></div>
+    <div class="furn fk-window" data-px="116" data-pz="54" style="width:10px;height:80px;transform:translate(-50%,-50%) translate3d(-484px,72px,-393px) rotateY(90deg)"></div>
+    <div class="furn fk-window" data-px="116" data-pz="54" style="width:10px;height:80px;transform:translate(-50%,-50%) translate3d(-532px,72px,-393px) rotateY(-90deg)"></div>
+    <div class="furn fk-window btop" data-px="116" data-pz="54" style="width:48px;height:10px;transform:translate(-50%,-50%) translate3d(-508px,32px,-393px) rotateX(90deg)"></div>
+    <div class="furn fk-piano" data-px="203" data-pz="111" style="width:84px;height:28px;transform:translate(-50%,-50%) translate3d(-334px,98px,-256px) rotateY(0deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="203" data-pz="111" style="width:84px;height:28px;transform:translate(-50%,-50%) translate3d(-334px,98px,-300px) rotateY(180deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="203" data-pz="111" style="width:44px;height:28px;transform:translate(-50%,-50%) translate3d(-292px,98px,-278px) rotateY(90deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="203" data-pz="111" style="width:44px;height:28px;transform:translate(-50%,-50%) translate3d(-376px,98px,-278px) rotateY(-90deg)"><span>Piano</span></div>
+    <div class="furn fk-piano btop" data-px="203" data-pz="111" style="width:84px;height:44px;transform:translate(-50%,-50%) translate3d(-334px,84px,-278px) rotateX(90deg)"></div>
+    <div class="furn fk-urn" data-px="172" data-pz="107" style="width:24px;height:52px;transform:translate(-50%,-50%) translate3d(-396px,86px,-274px) rotateY(0deg)"></div>
+    <div class="furn fk-urn" data-px="172" data-pz="107" style="width:24px;height:52px;transform:translate(-50%,-50%) translate3d(-396px,86px,-298px) rotateY(180deg)"></div>
+    <div class="furn fk-urn" data-px="172" data-pz="107" style="width:24px;height:52px;transform:translate(-50%,-50%) translate3d(-384px,86px,-286px) rotateY(90deg)"></div>
+    <div class="furn fk-urn" data-px="172" data-pz="107" style="width:24px;height:52px;transform:translate(-50%,-50%) translate3d(-408px,86px,-286px) rotateY(-90deg)"></div>
+    <div class="furn fk-urn btop" data-px="172" data-pz="107" style="width:24px;height:24px;transform:translate(-50%,-50%) translate3d(-396px,60px,-286px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="166" data-pz="132" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-409px,99px,-226px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="166" data-pz="132" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-409px,99px,-248px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="166" data-pz="132" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-398px,99px,-237px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="166" data-pz="132" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-420px,99px,-237px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="166" data-pz="132" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-409px,86px,-237px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="234" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-273px,99px,-262px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="234" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-273px,99px,-284px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="234" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-262px,99px,-273px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="234" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-284px,99px,-273px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="234" data-pz="114" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-273px,86px,-273px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="133" data-pz="133" style="width:92px;height:18px;transform:translate(-50%,-50%) translate3d(-474px,103px,-226px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="133" data-pz="133" style="width:92px;height:18px;transform:translate(-50%,-50%) translate3d(-474px,103px,-244px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="133" data-pz="133" style="width:18px;height:18px;transform:translate(-50%,-50%) translate3d(-428px,103px,-235px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="133" data-pz="133" style="width:18px;height:18px;transform:translate(-50%,-50%) translate3d(-520px,103px,-235px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="133" data-pz="133" style="width:92px;height:18px;transform:translate(-50%,-50%) translate3d(-474px,94px,-235px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="205" data-pz="130" style="width:44px;height:16px;transform:translate(-50%,-50%) translate3d(-330px,104px,-232px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="205" data-pz="130" style="width:44px;height:16px;transform:translate(-50%,-50%) translate3d(-330px,104px,-248px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="205" data-pz="130" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-308px,104px,-240px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="205" data-pz="130" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-352px,104px,-240px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="205" data-pz="130" style="width:44px;height:16px;transform:translate(-50%,-50%) translate3d(-330px,96px,-240px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="308" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-124px,103px,-226px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="308" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-124px,103px,-246px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="308" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-92px,103px,-236px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="308" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-156px,103px,-236px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="308" data-pz="132" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(-124px,94px,-236px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(36px,103px,-226px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(36px,103px,-246px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(68px,103px,-236px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(4px,103px,-236px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="388" data-pz="132" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(36px,94px,-236px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="464" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(188px,103px,-226px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="464" data-pz="132" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(188px,103px,-246px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="464" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(220px,103px,-236px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="464" data-pz="132" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(156px,103px,-236px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="464" data-pz="132" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(188px,94px,-236px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="174" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,-120px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="174" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,-184px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="174" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(462px,103px,-152px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="174" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(442px,103px,-152px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="596" data-pz="174" style="width:20px;height:64px;transform:translate(-50%,-50%) translate3d(452px,94px,-152px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="262" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,56px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="262" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,-8px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="262" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(462px,103px,24px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="262" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(442px,103px,24px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="596" data-pz="262" style="width:20px;height:64px;transform:translate(-50%,-50%) translate3d(452px,94px,24px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="350" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,232px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="350" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,168px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="350" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(462px,103px,200px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="350" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(442px,103px,200px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="596" data-pz="350" style="width:20px;height:64px;transform:translate(-50%,-50%) translate3d(452px,94px,200px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="438" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,408px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="438" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(452px,103px,344px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="438" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(462px,103px,376px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="596" data-pz="438" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(442px,103px,376px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="596" data-pz="438" style="width:20px;height:64px;transform:translate(-50%,-50%) translate3d(452px,94px,376px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="202" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-336px,103px,200px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="202" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-336px,103px,180px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="202" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-304px,103px,190px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="202" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-368px,103px,190px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="202" data-pz="345" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(-336px,94px,190px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="294" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-152px,103px,200px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="294" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(-152px,103px,180px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="294" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-120px,103px,190px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="294" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(-184px,103px,190px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="294" data-pz="345" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(-152px,94px,190px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(36px,103px,200px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(36px,103px,180px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(68px,103px,190px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="388" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(4px,103px,190px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="388" data-pz="345" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(36px,94px,190px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="482" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(224px,103px,200px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="482" data-pz="345" style="width:64px;height:18px;transform:translate(-50%,-50%) translate3d(224px,103px,180px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="482" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(256px,103px,190px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="482" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(192px,103px,190px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="482" data-pz="345" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(224px,94px,190px) rotateX(90deg)"></div>
     <div class="chair cseat" data-chair="chair-left-0-0" data-px="116" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-212px) rotateX(90deg)"></div>
     <div class="chair cback" data-px="116" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-204px)"></div>
     <div class="chair cseat" data-chair="chair-left-0-1" data-px="116" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-172px) rotateX(90deg)"></div>
@@ -1662,12 +1729,24 @@
     <rect class="pchair" x="220" y="240" width="8" height="8" rx="1.5"/>
     <rect class="pchair" x="220" y="260" width="8" height="8" rx="1.5"/>
     <g class="pfurn pf-altar"><rect x="148" y="83" width="35" height="16" rx="2"/><text x="165.5" y="94.5">Altar</text></g>
-    <g class="pfurn pf-lectern"><rect x="122" y="86" width="11" height="11" rx="2"/><text x="127.5" y="95">Lectern</text></g>
-    <g class="pfurn pf-piano"><rect x="194" y="92" width="34" height="24" rx="2"/><text x="211" y="107.5">Piano</text></g>
-    <g class="pfurn pf-seat"><rect x="188" y="118" width="10" height="10" rx="2"/></g>
-    <g class="pfurn pf-seat"><rect x="220" y="100" width="10" height="10" rx="2"/></g>
-    <g class="pfurn pf-bench"><rect x="112" y="122" width="40" height="8" rx="2"/></g>
-    <g class="pfurn pf-bench"><rect x="180" y="122" width="40" height="8" rx="2"/></g>
+    <g class="pfurn pf-window"><rect x="104" y="51" width="24" height="5" rx="2"/></g>
+    <g class="pfurn pf-piano"><rect x="182" y="100" width="42" height="22" rx="2"/><text x="203" y="114.5">Piano</text></g>
+    <g class="pfurn pf-urn"><rect x="166" y="101" width="12" height="12" rx="2"/></g>
+    <g class="pfurn pf-seat"><rect x="160" y="126" width="11" height="11" rx="2"/></g>
+    <g class="pfurn pf-seat"><rect x="228" y="108" width="11" height="11" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="110" y="128" width="46" height="9" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="194" y="126" width="22" height="8" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="292" y="127" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="372" y="127" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="448" y="127" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="591" y="158" width="10" height="32" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="591" y="246" width="10" height="32" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="591" y="334" width="10" height="32" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="591" y="422" width="10" height="32" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="186" y="340" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="278" y="340" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="372" y="340" width="32" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="466" y="340" width="32" height="10" rx="2"/></g>
     <g class="pentr" data-stop="entrance-main" tabindex="0" role="button" aria-label="Main Entrance — East corridor, shared with the Eternal Light Mausoleum. Walk in from here."><rect x="638" y="232" width="95" height="36" rx="3"/><text x="685.5" y="254">Main Entrance</text></g>
     <g class="pentr" data-stop="entrance-chapel" tabindex="0" role="button" aria-label="Chapel Entrance — South-west doors, straight into the worship space. Walk in from here."><rect x="69" y="379" width="44" height="42" rx="3"/><text x="91" y="404">Chapel Entrance</text></g>
     <g class="pbank" data-bank="111-115" data-area="north" tabindex="0" role="button" aria-label="Bank 111-115, facing south · True Companion (Tandem), 0 available"><rect x="3" y="3" width="95" height="95" rx="2"/><text class="pblab" x="50.5" y="54.5">111-115</text></g>

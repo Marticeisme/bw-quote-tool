@@ -384,9 +384,24 @@ console.log('\nEntrances, chapel layout and walkthrough (operator brief 2026-07-
   chk(chapel.w * chapel.h > 30000,
     `the worship space spans the CAD's whole CHAPEL AREA, ${chapel.w}x${chapel.h} plan units — it used to be a 150x100 box`);
   const kinds = FURNITURE.map((f) => f.kind);
-  for (const k of ['altar', 'lectern', 'piano', 'bench']) {
+  // 'lectern' was dropped 2026-08-01 (sprint-10 Track X): the walkthrough video's
+  // chapel segment, 0:00-0:15, covers the whole seating court and both flanking walls
+  // and shows no lectern. 'urn' and 'window' replaced it as required landmarks — the
+  // pedestal flower urn is the most prominent object in every chapel frame and the
+  // stained-glass window is the one thing a counselor standing there can orient by.
+  for (const k of ['altar', 'piano', 'bench', 'urn', 'window']) {
     chk(kinds.includes(k), `the chapel has ${/^[aeiou]/.test(k) ? 'an' : 'a'} ${k}`);
   }
+  // The corridors are furnished too — a bench per bay in all three halls (video
+  // 0:16-0:37 north/east, 0:43-1:03 south, 1:04-1:11 east). Before this they were
+  // bare floor, which is a large part of why the model did not read as the building.
+  const hallBenches = FURNITURE.filter((f) => f.id.startsWith('hb-'));
+  chk(hallBenches.length >= 10, `${hallBenches.length} corridor benches, one per hallway bay (>=10)`);
+  const halls = ROOMS.filter((r) => r.kind === 'hall');
+  const strayBench = hallBenches.filter((f) => !halls.some((h) =>
+    f.x >= h.x && f.x + f.w <= h.x + h.w && f.y >= h.y && f.y + f.h <= h.y + h.h));
+  chk(strayBench.length === 0,
+    `every corridor bench stands inside a hallway${strayBench.length ? `: ${strayBench.map((f) => f.id).join(', ')} outside` : ''}`);
   const chairs = chapelChairs();
   chk(chairs.length === 70, `70 chapel chairs, in two blocks either side of a centre aisle (${chairs.length})`);
   const outside = chairs.filter((c) => c.x < chapel.x || c.x + c.w > chapel.x + chapel.w
