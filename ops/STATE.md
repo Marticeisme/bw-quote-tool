@@ -1,5 +1,30 @@
 # STATE — Living Ledger
 
+**Sprint-10 COM finishing batch — PUSHED AND LIVE-VERIFIED 2026-08-01**
+(`9b6c295..155739c`). Shipped: N (search/jump over all 903 positions, camera-controls-
+semantics damping + inertia + floor-click walks with reticle, near-full-bleed scene,
+LOD labels 23.9px desktop/16.9px phone at fly-to distance, family callout, fee toggles
+Recording+O&C default UNCHECKED per operator, price-provenance prose removed), N2
+(overview→inside entry eases the full camera state ~0.6s, 23+ measured intermediates,
+interruptible — fixed after the DIRECTOR'S own hands-on drive found the snap), Y2
+(walkthrough black-screen root cause: worker's Float32Array view over a buffer sized
+from the GZIPPED Content-Length — 23,174,686 % 4 == 2 — threw on first message;
+loader now sizes from received rows only, gate runs its whole render pass behind a
+gzip proxy + vertexCount===bytes/32 assertion; LIVE pixel-verified post-deploy:
+750,000 vertices, 99.9% lit, 0 errors), follow-up email subjects reworked per operator
+(per-type, first-name: "[First]'s marker — whenever you're ready" / "Thinking of you
+and [First]" / "Thinking of you and your family" / "Thinking of you since [First]'s
+service"; auto-subject follows category until edited). Contract now **1538/31**.
+**Director scars this batch:** reported the live walkthrough "healthy" from presence
+checks (canvas/GL/api exist) while it rendered 0 lit pixels — operator caught it; only
+pixel readback counts as rendering-verified, and post-deploy pixel checks are now the
+close-gate norm. And the director edited followup-letter.html without re-running the
+tracked suite — Track Y2's contract run caught the 5 stale subject assertions.
+OPEN: operator's "not all the spaces are tandem crypts" remark never resolved to a
+specific defect (type census is 480 tandem / 189 single / 84 deluxe / 28 hidden from
+the sheet's own headers; massing is per-bank deepest-segment). Ask what he was seeing
+if it recurs.
+
 **Sprint-10 COM batch (2026-08-01) — PUSH PRE-AUTHORIZED: "once its done and verified
 push it all live."** Fires after the final Z2 commit is audited+merged, the walkthrough
 verifier is hardened (it can exit 0 after a headless browser crash — hollow-gate
