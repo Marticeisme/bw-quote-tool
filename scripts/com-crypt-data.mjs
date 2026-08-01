@@ -198,11 +198,37 @@ export const ENTRANCES = [
  * with small chairs").
  *
  * The altar rectangle is the CAD's own ALTAR box, at the north end of the worship
- * space in the recess between banks 111-115 and 124-140. Everything else is placed
- * from the 2026-07-29 walkthrough photographs, which show: rows of individual light-
- * wood chairs (NOT pews) in two blocks either side of a centre aisle facing the altar
- * end, a grand piano and two armchairs beside the altar, cushioned benches at the
- * front, and a lectern. Counts and spacings are ESTIMATED — no dimension is rendered.
+ * space in the recess in front of bank 116-123, between banks 111-115 and 124-140.
+ *
+ * ── REWORKED 2026-08-01 FROM THE WALKTHROUGH VIDEO (sprint-10 Track X) ────────
+ * `D:\Cemetery Photos Misc\Chapel of Memories\20260729_124129.mp4`, frames at 1 fps.
+ * The video's chapel segment runs 0:00-0:15 and shows the whole seating court and both
+ * flanking walls. Against the sprint-09 placement (which came from stills):
+ *
+ *  - CONFIRMED: the seating is loose rows of individual chairs in two blocks either
+ *    side of a centre aisle, all facing NORTH toward the recess. Frames 0:03 and 0:06
+ *    look along the rows at the recess; frame 0:03 (chair crop) shows the row pitch.
+ *  - DROPPED, `lectern`: no lectern stands anywhere in the court in 0:00-0:15. It was
+ *    inferred from a still; the video's wider coverage of the same room shows none.
+ *  - CORRECTED, `piano`: it is a SQUARE GRAND (rectangular case, carved cabriole legs,
+ *    ~6'8" x 3'4"), long axis running east-west across the front of the seating, not
+ *    the 34x24 block used before. Frames 0:04-0:07 show the case end-on and in plan.
+ *  - ADDED, `urn`: a tall black pedestal urn carrying a large floral arrangement stands
+ *    between the piano and the recess and is the most prominent object in every chapel
+ *    frame (0:01, 0:04, 0:06, 0:07). Its absence is why the rendered chapel read empty.
+ *  - CORRECTED, benches: ONE long upholstered bench runs across the front of the left
+ *    seating block (0:03, 0:04) and a short striped piano bench sits at the piano
+ *    (0:05-0:07) — not two matching benches.
+ *  - ADDED, `window`: a tall stained-glass window is set into the wall the seating
+ *    faces, immediately west of the recess (0:01, 0:03, 0:06; the same window family
+ *    appears again at 1:52-1:58). It is the one fixed landmark a counselor standing in
+ *    the chapel can orient by, and nothing represented it before.
+ *
+ * The altar box is KEPT: the CAD prints ALTAR in this recess, and in every video frame
+ * the recess floor is masked by the piano and the urn, so the video neither confirms
+ * nor denies a table there. Chair counts and spacings remain ESTIMATED — the video's
+ * angles are too oblique to count rows reliably, so the 5 x 7 x 2 grid is UNCHANGED
+ * rather than replaced with a worse guess. No dimension is rendered.
  */
 export const CHAIR_BLOCKS = [
   { id: 'left', x0: 112, cols: 5, dx: 11 },
@@ -212,12 +238,30 @@ export const CHAIR_ROWS = { z0: 140, rows: 7, dz: 20, w: 8, d: 8 };
 
 export const FURNITURE = [
   { id: 'altar', kind: 'altar', label: 'Altar', x: 148, y: 83, w: 35, h: 16, tall: 22 },
-  { id: 'lectern', kind: 'lectern', label: 'Lectern', x: 122, y: 86, w: 11, h: 11, tall: 18 },
-  { id: 'piano', kind: 'piano', label: 'Piano', x: 194, y: 92, w: 34, h: 24, tall: 14 },
-  { id: 'armchair-a', kind: 'seat', label: '', x: 188, y: 118, w: 10, h: 10, tall: 13 },
-  { id: 'armchair-b', kind: 'seat', label: '', x: 220, y: 100, w: 10, h: 10, tall: 13 },
-  { id: 'bench-a', kind: 'bench', label: '', x: 112, y: 122, w: 40, h: 8, tall: 9 },
-  { id: 'bench-b', kind: 'bench', label: '', x: 180, y: 122, w: 40, h: 8, tall: 9 },
+  { id: 'window-sg', kind: 'window', label: '', x: 104, y: 51, w: 24, h: 5, tall: 40 },
+  { id: 'piano', kind: 'piano', label: 'Piano', x: 182, y: 100, w: 42, h: 22, tall: 14 },
+  { id: 'urn', kind: 'urn', label: '', x: 166, y: 101, w: 12, h: 12, tall: 26 },
+  { id: 'armchair-a', kind: 'seat', label: '', x: 160, y: 126, w: 11, h: 11, tall: 13 },
+  { id: 'armchair-b', kind: 'seat', label: '', x: 228, y: 108, w: 11, h: 11, tall: 13 },
+  { id: 'bench-front', kind: 'bench', label: '', x: 110, y: 128, w: 46, h: 9, tall: 9 },
+  { id: 'bench-piano', kind: 'bench', label: '', x: 194, y: 126, w: 22, h: 8, tall: 8 },
+  // ── Corridor benches ────────────────────────────────────────────────────────
+  // Every hallway bay in the video has a low upholstered bench standing free in the
+  // middle of the floor, facing the crypt wall: north hall 0:16-0:23, east passage
+  // 0:24-0:37 and 1:04-1:11, south hall 0:43-1:03. They are what the corridors are
+  // furnished with, and the model had bare floor. Positions are one per bay and
+  // ESTIMATED; the fact of a bench in each bay is not.
+  { id: 'hb-n1', kind: 'bench', label: '', x: 292, y: 127, w: 32, h: 10, tall: 9 },
+  { id: 'hb-n2', kind: 'bench', label: '', x: 372, y: 127, w: 32, h: 10, tall: 9 },
+  { id: 'hb-n3', kind: 'bench', label: '', x: 448, y: 127, w: 32, h: 10, tall: 9 },
+  { id: 'hb-e1', kind: 'bench', label: '', x: 591, y: 158, w: 10, h: 32, tall: 9 },
+  { id: 'hb-e2', kind: 'bench', label: '', x: 591, y: 246, w: 10, h: 32, tall: 9 },
+  { id: 'hb-e3', kind: 'bench', label: '', x: 591, y: 334, w: 10, h: 32, tall: 9 },
+  { id: 'hb-e4', kind: 'bench', label: '', x: 591, y: 422, w: 10, h: 32, tall: 9 },
+  { id: 'hb-s1', kind: 'bench', label: '', x: 186, y: 340, w: 32, h: 10, tall: 9 },
+  { id: 'hb-s2', kind: 'bench', label: '', x: 278, y: 340, w: 32, h: 10, tall: 9 },
+  { id: 'hb-s3', kind: 'bench', label: '', x: 372, y: 340, w: 32, h: 10, tall: 9 },
+  { id: 'hb-s4', kind: 'bench', label: '', x: 466, y: 340, w: 32, h: 10, tall: 9 },
 ];
 
 /** Every chapel chair, generated from CHAIR_BLOCKS x CHAIR_ROWS. All face the altar. */
