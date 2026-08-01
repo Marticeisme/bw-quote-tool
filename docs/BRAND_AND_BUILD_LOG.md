@@ -1761,6 +1761,95 @@ passed, 0 failed across 29 suites. 28 Playwright renders (2/3/4 caskets, 2 and 4
 keepsakes, both tabs, screen and print) were **looked at**, not merely measured — the
 complaint was visual, so the evidence had to be.
 
+### 2026-08-01 — Chapel of Memory: photoreal walkthrough (gaussian splat)
+Sprint-10 Track Y. New surface: `MAPS/COM_Walkthrough.html` + `MAPS/COM_Walkthrough.splat`,
+built from Martice's own 2:08 phone walk-through of the building
+(`20260729_124129.mp4`, 1080x1920 after rotation, HEVC, 30 fps).
+
+**Pipeline, all local, all reproducible.** 386 frames at 3 fps → Laplacian-variance blur
+score → 340 kept (drop below the 15th percentile, never more than two in a row, so the
+trajectory stays continuous) → COLMAP 4.1.1 structure-from-motion → Brush 0.3.0 gaussian
+splat training on the 3090 → `scripts/build_com_splat.mjs` → a 32-byte-per-splat `.splat`
+→ `scripts/build_com_walkthrough.mjs` inlines the viewer and writes the page.
+
+**Sequential matching is what fragments an indoor walk; exhaustive matching is what fixes
+it.** The first SfM pass used `sequential_matcher` with overlap 20 and quadratic overlap —
+the obvious choice for a continuous walk — and produced **four disconnected models of
+14 / 112 / 85 / 65 images**, i.e. four buildings that share no coordinate frame. Re-running
+`exhaustive_matcher` over the *same* extracted features (the database is reusable; only the
+matching is redone, about 90 s on the 3090) closed the loops and produced **one model of
+279 of 340 images**, spanning frame 1 to frame 375 — effectively the whole walk. The lesson
+is not "always exhaustive"; it is that a corridor building revisits the same walls from
+opposite directions, and only a matcher that compares non-adjacent frames can notice.
+
+**The floaters are big, not faint.** An indoor reconstruction hangs translucent grey veils
+in front of the camera. They survive an importance ranking (volume x opacity) because their
+volume is enormous: measured on the trained model, the largest gaussian's longest axis was
+**388 world units against a p90 of 0.17**. `build_com_splat.mjs` therefore filters on
+`--max-scale` before ranking, plus `--min-alpha` for the near-invisible ones that only cost
+fill rate. Spherical-harmonic bands 1-3 are dropped entirely — the single biggest size win,
+and view-dependent shading is not missed on stone.
+
+**Viewer.** antimatter15/splat (MIT, Kevin Kwok), vendored *unmodified* at
+`scripts/vendor/antimatter15-splat.js` with its licence beside it, inlined by the builder
+under an assert-or-fail patch list so a future refresh of the vendored file cannot silently
+no-op a patch. Two patches are bug fixes worth knowing about:
+
+- Upstream sizes its receive buffer straight from `Content-Length`. A chunked response has
+  none, `new Uint8Array(null)` is zero-length, and the first `.set()` throws
+  `RangeError: offset is out of bounds` — the page shows a stack trace instead of the
+  building. Now grows on demand and trims at the end.
+- The error/status overlays had no `pointer-events:none`, so an error banner sitting across
+  the middle of the screen swallowed every `mousedown` and froze the view.
+
+The page opens standing where Martice actually stood: the default pose is one of the
+reconstruction's own camera matrices, read from `scripts/com-walkthrough-views.json`, which
+also drives the verifier's named viewpoints — page and screenshots cannot drift apart.
+No external URL appears in the page at all (checked, not asserted): no CDN fonts, no CDN
+scripts, nothing but the same-origin asset.
+
+**`scripts/verify_com_walkthrough.mjs` reads real framebuffer pixels**, not the DOM — a
+splat page can have perfect markup and draw a black rectangle. It forces
+`preserveDrawingBuffer` via an init script and calls `gl.readPixels`. Two traps it now
+avoids, both found by it failing honestly first:
+
+- The viewer auto-orbits on load, so "the pixels changed after I dragged" proves nothing.
+  The drag test asserts against the live camera matrix the page exposes as
+  `window.bwWalkthrough.view`.
+- Headless WebGL2 runs on SwiftShader, one to two orders of magnitude slower than a real
+  GPU. A first pass waited a fixed 6 s per viewpoint and **two different viewpoints returned
+  byte-identical pixel statistics** — it was screenshotting a stale frame and passing. It now
+  waits on ten real `requestAnimationFrame` ticks.
+
+**Numbers.** SfM: features 340 images in ~10 s (GPU SIFT, `--max-image-size 1600`),
+exhaustive matching ~90 s, mapper ~30 min, one model of 279 images / 1.04 px mean
+reprojection error. Training: Brush 0.3.0, 30,000 steps, `--max-splats 1200000`,
+`--max-resolution 1600`, **20 min 29 s wall** on the 3090 (12:02:16 → 12:22:45). Export
+283 MB `.ply` (1.2 M splats with SH3) → `--max-scale 0.5 --min-alpha 0.02
+--max-splats 750000` → **22.89 MB `.splat`, 750,000 splats**, comfortably under the 60 MB
+cap. `verify_com_walkthrough.mjs`: PASS, 0 mismatches, four viewpoints all rendering
+(lit 99.8–100 %, 237–747 distinct colours), zero page errors.
+
+**What it does not reconstruct.** Quality falls off over the last third of the clip. The
+**glass-front niche walls at the very end are unusable** — a brown-and-blue smear, kept as
+evidence at `scratch/splat/shots/EVIDENCE-glassfront-fails.png`. Two reasons, both
+structural: those frames are at the end of the walk so nothing revisits them from a second
+angle, and glass-front niches are reflective, which violates the constant-radiance
+assumption every splat trainer makes. The chapel, the stained glass and the marble crypt
+banks — the parts a family looks at — are sharp. Fixing the niche walls needs a new capture
+that circles back, not more training steps.
+
+**Postshot was the planned trainer and could not be used.** Jawset Postshot 1.1.0 is
+installed at `C:\Program Files\Jawset Postshot`; its CLI exists and its `train --export-splat`
+would have replaced both COLMAP and Brush in one command. Every invocation printed
+`License activation required. Please enter your Jawset login below.` and stopped at an
+`Email:` prompt, before and after Martice signed in to the desktop app. No credential is
+stored anywhere an agent can find (`HKCU\Software\Jawset\Postshot` holds only `shortcut=1`;
+`%LOCALAPPDATA%\Postshot\settings.json` still carries `"warn_free_project": true`). Entering
+his credentials is not something an agent may do, so the open-source path shipped instead —
+and it is the better outcome for the repo: COLMAP and Brush are free, scriptable and leave a
+reproducible command line in this log.
+
 ---
 
 ## 5. Working rules that keep biting us

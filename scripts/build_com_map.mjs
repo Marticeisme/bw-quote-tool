@@ -773,13 +773,16 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\
   .pfoot b{color:var(--gold);font-weight:600;}
   .back-btn{margin-left:auto;flex-shrink:0;background:none;border:1px solid var(--gb);color:var(--gold-light);padding:9px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
   .back-btn:hover{background:rgba(200,169,110,.15);color:var(--cream);}
+  .walk-btn{margin-left:auto;flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 14px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
+  .walk-btn:hover{background:rgba(200,169,110,.28);color:var(--cream);}
+  .walk-btn ~ .back-btn{margin-left:0;}
   .print-btn{flex-shrink:0;background:rgba(200,169,110,.15);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
   .print-btn:hover{background:rgba(200,169,110,.28);}
 
   @media (max-width:640px){
     .header{flex-wrap:wrap;padding:10px 12px;gap:9px;}
     .hlogo-svg{height:26px;} .htxt h1{font-size:14px;} .htxt p{font-size:9px;}
-    .print-btn,.back-btn{margin-left:0;padding:6px 11px;font-size:11px;}
+    .print-btn,.back-btn,.walk-btn{margin-left:0;padding:6px 11px;font-size:11px;}
     .main{padding:8px;} .tab{padding:9px 10px;font-size:10px;}
     .toolbar{gap:5px;margin:8px auto 6px;} .tbtn{padding:6px 9px;font-size:10px;} .tbsep{display:none;}
     .scene{height:min(52vh,430px);min-height:300px;border-radius:8px;}
@@ -1405,6 +1408,7 @@ const HTML = `<!DOCTYPE html>
     <h1>Chapel of Memory Mausoleum — Crypt &amp; Niche Map</h1>
     <p>Washington Memorial Park &nbsp;·&nbsp; COM-1-1-ROW-SPACE</p>
   </div>
+  <a class="walk-btn no-print" href="COM_Walkthrough.html">Photoreal walkthrough</a>
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
