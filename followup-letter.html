@@ -141,7 +141,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 
       <div class="field">
         <label for="subject">Subject Line</label>
-        <input type="text" id="subject" placeholder="Checking In &mdash; [Decedent Full Name]">
+        <input type="text" id="subject" placeholder="[Decedent First Name]'s marker &mdash; whenever you're ready">
       </div>
       <div class="field">
         <label for="recipientFirst">Recipient First Name</label>
@@ -410,12 +410,24 @@ function currentCat(){
   return r ? r.value : 'marker';
 }
 
-/* The subject stays auto-filled from the decedent's name until the counselor
-   edits it; after that it is theirs. */
+/* The subject stays auto-filled until the counselor edits it; after that it is
+   theirs. Reworked per the operator (2026-08-01): "Checking In — [Full Name]" read
+   like a case file. Each follow-up type now gets its own subject, built on the
+   decedent's FIRST name — the name the family actually uses — and carrying the
+   same no-pressure tone as the letters themselves. */
 var subjectDirty = false;
-function autoSubject(){
+function subjFirst(){
   var v = raw('decedentFull');
-  return 'Checking In — ' + (v || '[Decedent Full Name]');
+  return v ? v.split(/\s+/)[0] : '[Decedent First Name]';
+}
+function autoSubject(){
+  switch (currentCat()) {
+    case 'cremation': return 'Thinking of you and ' + subjFirst();
+    case 'outside':   return 'Thinking of you and your family';
+    case 'full':      return 'Thinking of you since ' + subjFirst() + "'s service";
+    case 'marker':
+    default:          return subjFirst() + "'s marker — whenever you're ready";
+  }
 }
 function syncSubject(){
   if (!subjectDirty) el('subject').value = autoSubject();
@@ -493,9 +505,9 @@ function render(){
 });
 el('subject').addEventListener('input', function(){ subjectDirty = true; render(); });
 Array.prototype.forEach.call(document.querySelectorAll('input[name="cat"]'), function(r){
-  /* Category switching only changes which paragraphs are assembled; every common
-     field keeps its value. */
-  r.addEventListener('change', render);
+  /* Category switching changes which paragraphs are assembled AND which subject
+     applies — the auto subject follows the type until the counselor has edited it. */
+  r.addEventListener('change', function(){ syncSubject(); render(); });
 });
 
 /* ---- copy / toast ------------------------------------------------------- */
