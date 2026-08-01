@@ -27,7 +27,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, CRYPT_FEES, OMITTED_FEES, NICHE_FEES,
+  TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, MIS, CRYPT_FEES, OMITTED_FEES, NICHE_FEES,
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
   ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
@@ -81,6 +81,20 @@ function nicheAttrs(n) {
     + (n.size ? ` data-size="${esc(n.size)}"` : '');
 }
 
+/**
+ * Cell badge per status. MIS-backed since 2026-08-01: a counselor reading a cell must
+ * be able to tell SOLD from HELD from NOT-KNOWN without opening the card, and none of
+ * these may read as sellable. Colour carries no meaning here — the badges are all
+ * neutral white-on-dark or dark-on-white; the CELL pattern is the status code.
+ */
+const CRYPT_BADGE = {
+  available: '<span class="cstat cs-a">Avail</span>',
+  occupied: '<span class="cstat cs-o">Occupied</span>',
+  reserved: '<span class="cstat cs-r">Reserved</span>',
+  blocked: '<span class="cstat cs-x">Not selling</span>',
+  unlisted: '<span class="cstat cs-u">Confirm</span>',
+};
+
 // ── flat per-bank grid (screen + print) ───────────────────────────────────────
 function bankGrid(b, { mini = false } = {}) {
   const n = b.c1 - b.c0 + 1;
@@ -92,9 +106,7 @@ function bankGrid(b, { mini = false } = {}) {
     const ci = u.cols[0] - b.c0 + 2;
     const span = u.cols.length;
     const st = u.st !== 'available' ? ` st-${u.st}` : '';
-    const badge = u.st === 'available'
-      ? '<span class="cstat cs-a">Avail</span>'
-      : (u.st === 'blocked' ? '<span class="cstat cs-x">Not selling</span>' : '<span class="cstat cs-u">Confirm</span>');
+    const badge = CRYPT_BADGE[u.st];
     cells.push(`    <button type="button" class="c flatc ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${span}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}"><span class="cid">${unitLabel(u)}</span>${mini ? '' : badge}</button>`);
   }
   // voids
@@ -228,6 +240,14 @@ function faceCentre(p, face) {
   return [p.x + p.w - PLAN_W / 2, mz];
 }
 
+/** 3D face tags. Only three fit at face scale; the rest read from the cell pattern. */
+const C3_TAG = {
+  available: '<span class="c3st c3av">AVAIL</span>',
+  blocked: '<span class="c3st">NS</span>',
+  occupied: '<span class="c3st">OCC</span>',
+  reserved: '<span class="c3st">RES</span>',
+};
+
 function bank3d(b) {
   const n = b.c1 - b.c0 + 1;
   const faceW = n * COLW;
@@ -236,7 +256,7 @@ function bank3d(b) {
     const ri = TIERS.indexOf(u.tier) + 1;
     const ci = u.cols[0] - b.c0 + 1;
     const st = u.st !== 'available' ? ` st-${u.st}` : '';
-    const tag = u.st === 'blocked' ? '<span class="c3st">NS</span>' : (u.st === 'available' ? '<span class="c3st c3av">AVAIL</span>' : '');
+    const tag = C3_TAG[u.st] || '';
     return `      <button type="button" class="c3 ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${u.cols.length}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}"><span class="c3id">${unitLabel(u)}</span>${tag}</button>`;
   });
   for (const v of VOIDS.filter((v) => v.bank === b.id)) {
@@ -467,6 +487,8 @@ const CSS = `
   .cstat{font-size:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:0 3px;border-radius:2px;}
   .cs-a{background:rgba(255,255,255,.92);color:#123a24;}
   .cs-u{background:rgba(255,255,255,.16);color:#e6e3dc;}
+  .cs-r{background:rgba(255,255,255,.30);color:#f2f0ec;}
+  .cs-o{background:rgba(255,255,255,.72);color:#16171a;}
   .cs-x{background:rgba(255,255,255,.9);color:#3a1212;}
   .cvoid,.c3void{display:flex;align-items:center;justify-content:center;border:1px dashed rgba(232,213,168,.35);border-radius:2px;
     background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 6px,rgba(255,255,255,0) 6px 12px);
@@ -474,15 +496,32 @@ const CSS = `
   .c3void{border-color:rgba(0,0,0,.3);}
 
   /* ── Status code: PATTERN + darkness, never hue. Nothing here shares a colour
-     with anything that means money. ── */
-  .st-unavailable{background:
+     with anything that means money. Crypt statuses became MIS-backed on 2026-08-01,
+     so the single old "unavailable" cell now splits three ways and each has to be
+     distinguishable from the others WITHOUT hue:
+       occupied  = blacked out, flat and closed (same family as ROAC's buried cell)
+       reserved  = diagonal stripe over a cool grey (same family as ROAC's reserved)
+       unlisted  = the ORIGINAL "Unavailable — confirm in MIS" cell, unchanged: the
+                   same stripe geometry over the warmer brown-grey. Kept identical on
+                   purpose — for those 18 crypts nothing about what we know changed.
+       unavailable = niches only. The MIS list covers Section = COM, so the RAD/SER
+                   walls are still sheet-derived and keep the old class.
+     reserved and unlisted share a stripe angle, so their BADGES carry the
+     distinction at cell scale ("Reserved" vs "Confirm") and their cards differ. ── */
+  .st-unavailable,.st-unlisted{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 4px,rgba(255,255,255,0) 4px 9px),
       linear-gradient(180deg,#3a3833 0%,#25231f 100%)!important;color:#cfccc5;}
+  .st-reserved{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 4px,rgba(255,255,255,0) 4px 9px),
+      linear-gradient(180deg,#35373c 0%,#222428 100%)!important;color:#d9d8d4;}
+  .st-occupied{background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;color:#a9a7a2;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)!important;}
   .st-blocked{background:linear-gradient(180deg,#1a1917 0%,#0d0c0b 100%)!important;color:#b8b5ae;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;}
   .st-blocked::after{content:'';position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(135deg,transparent 47%,rgba(255,255,255,.35) 47%,rgba(255,255,255,.35) 53%,transparent 53%);}
-  .flatc:not(.st-unavailable):not(.st-blocked)::before,.c3:not(.st-unavailable):not(.st-blocked):not(.n3glass)::before{
+  .flatc:not(.st-unavailable):not(.st-unlisted):not(.st-reserved):not(.st-occupied):not(.st-blocked)::before,
+  .c3:not(.st-unavailable):not(.st-unlisted):not(.st-reserved):not(.st-occupied):not(.st-blocked):not(.n3glass)::before{
     content:'';position:absolute;inset:1px;pointer-events:none;border:1px solid rgba(255,255,255,.55);border-radius:2px;}
 
   .legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;justify-content:center;}
@@ -490,6 +529,8 @@ const CSS = `
   .ls{width:14px;height:14px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
   .lg-a{background:linear-gradient(180deg,#6d6a63,#403d36);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
   .lg-u{background:repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#3a3833,#25231f);}
+  .lg-r{background:repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#35373c,#222428);}
+  .lg-o{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
   .lg-x{background:linear-gradient(180deg,#1a1917,#0d0c0b);}
   .lg-v{background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 3px,rgba(255,255,255,0) 3px 6px);border-style:dashed!important;}
 
@@ -778,6 +819,14 @@ function head(id, sub, mis) {
     '<div class="cardmis">' + mis + '</div>';
 }
 
+var MIS_PRINTED = '${MIS.printed}';
+var ST_NOTE = {
+  occupied: 'Occupied \\u2014 an interment is recorded at this crypt in the MIS lot inquiry list printed ' + MIS_PRINTED + '. Not sellable. No pricing shown.',
+  reserved: 'Reserved \\u2014 held for an owner in MIS as of ' + MIS_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
+  blocked: 'Marked NOT FOR SALE in MIS \\u2014 this crypt is withheld from sale. No pricing shown.',
+  unlisted: 'Unavailable \\u2014 confirm in MIS. The crypt sheet marked it NOT SELLING and the MIS lot inquiry list does not carry it at all, so there is no positive statement that it is for sale. No pricing shown.'
+};
+
 function cryptCard(d) {
   var spaces = d.cols.split('/');
   var mis = d.ref + (spaces.length > 1 ? ' &amp; ' + d.ref.replace(/\\d+$/, spaces[1]) : '');
@@ -786,9 +835,7 @@ function cryptCard(d) {
   h += '<div class="cr"><span class="cl">Type</span><span class="cv">' + (TYPE_LABEL[d.type] || d.type) + '</span></div>';
   h += '<div class="cr"><span class="cl">Capacity</span><span class="cv">' + (TYPE_CAP[d.type] || '') + '</span></div>';
   if (d.st !== 'available') {
-    h += '<div class="cnote">' + (d.st === 'blocked'
-      ? 'Marked NOT SELLING on the crypt sheet \\u2014 this crypt is not sellable. No pricing shown.'
-      : 'Unavailable \\u2014 confirm in MIS. The sheet does not say whether it is sold or reserved. No pricing shown.') + '</div>';
+    h += '<div class="cnote">' + (ST_NOTE[d.st] || ST_NOTE.unlisted) + '</div>';
     return h;
   }
   // Available, but the crypt sheet's price text is unreadable at source resolution:
@@ -799,7 +846,7 @@ function cryptCard(d) {
   var mq = qty('mbi-qty'), vq = qty('vase-qty');
   if (mq > 0) h += '<div class="cr"><span class="cl">Monobar Install \\u00d7' + mq + '</span><span class="cv">' + fm(MBI * mq) + '</span></div>';
   if (vq > 0) h += '<div class="cr"><span class="cl">Vase \\u00d7' + vq + '</span><span class="cv">' + fm(VASE * vq) + '</span></div>';
-  h += '<div class="cnote">A price IS printed for this crypt on the MIS sheet, but the sheet supplied is too low-resolution to read the digits with certainty, so no figure is shown here. Read the price from MIS. Open &amp; Closing and Monobar are obscured on the sheet and are not included.</div>';
+  h += '<div class="cnote">MIS listed this crypt as AVAILABLE on ' + MIS_PRINTED + '. No figure is shown here because the crypt price sheet supplied is too low-resolution to read its digits with certainty \\u2014 read the price from MIS. Open &amp; Closing and Monobar are obscured on the sheet and are not included.</div>';
   return h;
 }
 
@@ -1237,15 +1284,20 @@ const N_UNITS = units.length;
 const N_SPACES = cryptSpaces().length;
 const N_AVAIL = units.filter((u) => u.st === 'available').length;
 const N_BLOCK = units.filter((u) => u.st === 'blocked').length;
+const N_OCC = units.filter((u) => u.st === 'occupied').length;
+const N_RES = units.filter((u) => u.st === 'reserved').length;
+const N_UNL = units.filter((u) => u.st === 'unlisted').length;
 const niches = allNiches();
 const N_NICHE = niches.length;
 const N_NAVAIL = niches.filter((n) => n.st === 'available').length;
 const NICHE_VALUE = niches.filter((n) => n.p).reduce((s, n) => s + n.p, 0);
 
 const LEGEND = `<div class="legend">
-      <div class="li"><div class="ls lg-a"></div><span>Available (price printed on the sheet)</span></div>
-      <div class="li"><div class="ls lg-u"></div><span>Unavailable — confirm in MIS</span></div>
+      <div class="li"><div class="ls lg-a"></div><span>Available in MIS</span></div>
+      <div class="li"><div class="ls lg-r"></div><span>Reserved — held, no interment</span></div>
+      <div class="li"><div class="ls lg-o"></div><span>Occupied — interment recorded</span></div>
       <div class="li"><div class="ls lg-x"></div><span>Not Selling</span></div>
+      <div class="li"><div class="ls lg-u"></div><span>Unavailable — confirm in MIS</span></div>
       <div class="li"><div class="ls lg-v"></div><span>Empty area — no crypts</span></div>
     </div>`;
 
@@ -1253,8 +1305,8 @@ const WARN = `<div class="warn">
     <b>Crypt prices are not shown on this page.</b> The MIS crypt sheet supplied renders its
     price text four pixels tall, and at that size its font draws only eight distinct shapes
     for ten digits — a five-figure amount cannot be read from it with certainty, so no figure
-    is printed here rather than a wrong one. A crypt marked <b>Available</b> does carry a
-    printed price on the sheet; read the exact amount from MIS. The
+    is printed here rather than a wrong one. Availability comes from MIS, not from that sheet;
+    read the exact amount for any crypt marked <b>Available</b> from MIS. The
     <b>Radiance and Serenity niche-wall prices are legible and are exact.</b>
     <b>Open &amp; Closing</b> and <b>Monobar</b> print as <code>########</code> on the crypt sheet
     and are omitted from every total.
@@ -1336,9 +1388,10 @@ ${overviewView()}
   <div class="pfoot">
     <b>Tier G is the top row, tier A the bottom. Space numbers run 101–231 around the building.</b><br>
     A tandem or companion is ONE purchasable unit at one price and is never split.<br>
-    ${N_AVAIL} crypt units marked available &nbsp;·&nbsp; ${N_BLOCK} not selling &nbsp;·&nbsp;
+    ${N_AVAIL} crypt units available &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
+    ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — confirm in MIS &nbsp;·&nbsp;
     ${N_NAVAIL} niches available, ${money(NICHE_VALUE)} listed &nbsp;·&nbsp; ${esc(NICHE_PRICES_EFFECTIVE)}<br>
-    Availability shown is transcribed from the MIS sheets of 2026-07-29 — always confirm current status and price in MIS before writing.
+    Crypt availability comes from the MIS Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — always confirm current status and price in MIS before writing.
   </div>
 </div><!-- /main -->
 
