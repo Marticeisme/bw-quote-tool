@@ -61,16 +61,28 @@ const RULED_INSCR_MAX = 2;      // "you can add two inscriptions on the front"
 const RULED_URN_PRICE = 665;    // Interlude (Matthews), operator-supplied 2026-07-31
 const RULED_URN_MAX = 2;        // two Interlude urns fit — that IS the companion capacity
 
-// Two full card computations, arithmetic done by hand off the ruled schedule:
+// Two full card computations, arithmetic done by hand off the ruled schedule.
+//
+// ── THE URN IS TAXED (operator ruling 2026-07-31, second ruling of that day) ──────
+// Track D shipped the Interlude Urn untaxed, with the card saying its tax was "confirmed
+// at contract". Martice then ruled that it IS taxed at 10.4%, exactly like the
+// inscription. Both anchors below were RE-DERIVED by hand under that ruling; the C-7
+// figure moved by the urn tax and nothing else.
 //
 //   C-7 $5,995, O&C ×1, Recording ×1, Inscription ×2, Interlude ×2
-//     5995 + ecf 600 + 875 + 235 + inscription 1320 + tax 137.28 + urns 1330 = 10492.28
-//   G-13 $8,995, nothing but one inscription
-//     8995 + ecf 900 + 660 + tax 68.64 = 10623.64
+//     5995 + ecf 600 + 875 + 235
+//          + inscription 1320 + inscription tax 137.28
+//          + urns        1330 + urn tax         138.32   = 10630.60 → rounds to 10631
+//     (it was 10492.28 → 10492 before the urn tax; the delta is exactly $138.32)
+//   G-13 $8,995, nothing but one inscription — unchanged by this ruling
+//     8995 + ecf 900 + 660 + tax 68.64 = 10623.64 → 10624
 const CARD_ANCHORS = [
-  { ref: 'GOM-1-1-C-7', price: 5995, q: { oc: 1, rec: 1, inscr: 2, urn: 2 }, total: 10492 },
+  { ref: 'GOM-1-1-C-7', price: 5995, q: { oc: 1, rec: 1, inscr: 2, urn: 2 }, total: 10631 },
   { ref: 'GOM-1-1-G-13', price: 8995, q: { inscr: 1 }, total: 10624 },
 ];
+// The urn tax on the C-7 anchor, typed separately so the gate can assert the DELTA as
+// well as the total — a total can be right for the wrong reason.
+const C7_URN_TAX = 138.32;   // 2 × $665 × 10.4%
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -351,16 +363,26 @@ console.log('\nInscription quantity (×2), the Interlude Urn add-on, and the car
   ck(new RegExp(`\\$${URN.price} ea`).test(src), `the footer prints the Interlude Urn at $${URN.price} ea`);
   ck(/merchandise, not a fee/.test(src), 'the page says in as many words that the urn is merchandise, not a fee');
   ck(/\(merchandise\)/.test(js), 'the card line itself is labelled merchandise');
-  ck(/tot \+= URN_PRICE \* urn;/.test(js), 'the urn line reaches the card total at list price');
-  ck(!/URN_PRICE[^;]*TAX/.test(js) && !/TAX[^;]*URN_PRICE/.test(js),
-    'no tax is invented for the urn — only the inscription is taxed, which is all the operator ruled');
+  // --- ...and it is TAXED at 10.4%, like the inscription (ruling 2026-07-31) ---
+  // These four assertions are the INVERSION of Track D's, which asserted no urn tax
+  // existed anywhere in the runtime. The ruling reversed that; an untaxed urn line is now
+  // the bug, and removing the tax must take this gate red.
+  ck(/var urnSub = URN_PRICE \* urn;/.test(js), 'the card computes an urn subtotal at list × quantity');
+  ck(/var urnTax = Math\.round\(urnSub \* TAX \* 100\) \/ 100;/.test(js),
+    'sales tax is computed on the urn subtotal, to the cent, at the same TAX rate as the inscription');
+  ck(/Sales tax on urn \(10\.4%\)/.test(js), 'the urn tax is its own visible card row, not folded into another line');
+  ck(/tot \+= urnSub \+ urnTax;/.test(js), 'the urn AND its tax both reach the card total');
+  ck(!/confirmed at contract/.test(src),
+    'the superseded "sales tax on the urn is confirmed at contract" caveat is gone from the page');
+  ck(/carry 10\.4% sales tax/.test(js), 'and the card note says both merchandise lines carry the tax');
+  ck(new RegExp(`\\$${URN.price} ea \\+ 10\\.4% tax`).test(src), 'the fee footer prices the urn at list plus tax');
 
   // --- Order of operations: E.C.F. never touches an add-on -------------------
   ck(/var price = \+d\.price, e = ecf\(price\), tot = price \+ e,/.test(js),
     'E.C.F. is computed once, from the niche price alone');
   ck(!/ecf\((?!price\))/.test(js), 'ecf() is never called on anything but the niche price');
   const ecfAt = js.indexOf('e = ecf(price)');
-  for (const [what, needle] of [['inscription', 'tot += inscrSub + tax;'], ['urn', 'tot += URN_PRICE * urn;']]) {
+  for (const [what, needle] of [['inscription', 'tot += inscrSub + tax;'], ['urn', 'tot += urnSub + urnTax;']]) {
     const at = js.indexOf(needle);
     ck(ecfAt > -1 && at > ecfAt, `the ${what} is added AFTER the E.C.F. line, never into its base`);
   }
@@ -388,6 +410,30 @@ console.log('\nCard arithmetic vs hand-typed totals');
     const got = estTotal(a.price, a.q);
     const q = Object.entries(a.q).map(([k, v]) => `${k}×${v}`).join(' ');
     ck(got === a.total, `${a.ref}  ${q.padEnd(28)} anchor ${money(a.total)}, estTotal ${money(got)}`);
+  }
+  // The urn tax, isolated. The same card with the urn quantity at 0 is
+  //   5995 + 600 + 875 + 235 + 1320 + 137.28 = 9162.28 → 9162
+  // so the ruling's whole effect on this card is one subtraction. Note the two totals are
+  // each rounded on their own — the un-urned card ends .28 and the full one .60 — so the
+  // difference of the ROUNDED totals is $1,469 while the exact merchandise charge is
+  // $1,330 + $138.32 = $1,468.32. Both numbers are typed here on purpose.
+  {
+    const a = CARD_ANCHORS[0];
+    const NO_URN_TOTAL = 9162;         // same card, urn quantity 0
+    const ROUNDED_DELTA = 1469;        // 10631 − 9162, each total rounded separately
+    const noUrn = estTotal(a.price, { ...a.q, urn: 0 });
+    ck(noUrn === NO_URN_TOTAL, `${a.ref} with the urns removed is still ${money(NO_URN_TOTAL)} (got ${money(noUrn)})`);
+    // COMPUTED minus computed, not typed minus computed: an untaxed urn must move this.
+    ck(estTotal(a.price, a.q) - noUrn === ROUNDED_DELTA,
+      `adding the 2 urns moves the card by ${money(ROUNDED_DELTA)} — ${money(URN.price * a.q.urn)} merchandise + ${money(C7_URN_TAX)} tax, each total rounded on its own`);
+    ck(Math.round(URN.price * a.q.urn * FEES.TAX * 100) / 100 === C7_URN_TAX,
+      `the urn tax on that card is ${money(C7_URN_TAX)} — ${a.q.urn} × $${URN.price} at ${FEES.TAX * 100}%`);
+    ck(estTotal(a.price, { urn: 1 }) === Math.round(a.price + ecf(a.price) + URN.price + Math.round(URN.price * FEES.TAX * 100) / 100),
+      'a niche with one urn and nothing else is price + E.C.F. + urn + urn tax');
+    // And the ruling really did change something: an untaxed urn cannot reach the anchor.
+    ck(Math.round(a.price + ecf(a.price) + FEES.OC + FEES.REC + FEES.INSCR * 2
+      + Math.round(FEES.INSCR * 2 * FEES.TAX * 100) / 100 + URN.price * 2) !== a.total,
+      'the untaxed-urn arithmetic Track D shipped no longer reaches the anchor');
   }
   // E.C.F. rounds UP to the dollar, as every other niche page does.
   ck(ecf(5995) === 600 && ecf(8995) === 900, 'E.C.F. rounds UP to the dollar (5995→600, 8995→900)');

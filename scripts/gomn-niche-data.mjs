@@ -121,7 +121,13 @@ export const UNSELLABLE = ['unavailable'];
 //   O&C          $875 each   (sheet said $835)
 //   Recording    $235 each   (sheet said $225)
 //   Inscription  $660 each   (sheet said $605) — TAXABLE, and addable ×2
-//   Sales tax    10.4%, on the inscription subtotal ONLY
+//   Sales tax    10.4%, on MERCHANDISE — the inscription subtotal AND the urn subtotal
+//
+// The urn tax was an open question when this file was first written on 2026-07-31: the
+// page said "sales tax on the Interlude Urn is confirmed at contract" and quoted the urn
+// at list. Martice RULED later the same day that the Interlude Urn is taxed at 10.4%,
+// exactly like the inscription. There is no longer an untaxed line on this card, and the
+// "confirmed at contract" caveat is gone from the page and from the granite guide.
 //
 // The sheet's E.C.F. rate is untouched, so `SHEET_TEXT.ecf` is still a verbatim quote.
 // The three dollar amounts are NOT, and the page must say where they come from — see
@@ -132,7 +138,7 @@ export const FEES = {
   OC: 875,         // MVC June-2026
   REC: 235,        // MVC June-2026
   INSCR: 660,      // MVC June-2026 — taxable merchandise
-  TAX: 0.104,      // MVC June-2026 — applies to the inscription subtotal only
+  TAX: 0.104,      // MVC June-2026 — applies to ALL merchandise: inscription AND urn
 };
 
 /** Where the schedule came from and what it is not. Rendered verbatim on the page. */
@@ -158,6 +164,10 @@ export const INSCR_MAX = 2;
  * not price it; this is the URN price list figure the sheet points at. Two fit per
  * niche, which is exactly why the wall is sold as a companion — so the quantity ceiling
  * is the niche's two rights.
+ *
+ * TAXED at 10.4%, like the inscription (operator ruling 2026-07-31). It is merchandise,
+ * not a fee — that distinction is about which charges the E.C.F. is computed on, not
+ * about tax.
  */
 export const URN = {
   name: 'Interlude Urn',
@@ -175,14 +185,17 @@ export const ecf = (price) => Math.ceil(price * FEES.ECF_RATE);
  * the same rules the page runs. `q` = { oc, rec, inscr, urn }, all defaulting to 0.
  *
  * Order matters and is asserted: E.C.F. is 10% of the NICHE PRICE alone and is never
- * charged on an add-on, so every add-on is summed AFTER it. Sales tax applies to the
- * inscription subtotal only — the urn is quoted at list, its tax confirmed at contract.
+ * charged on an add-on, so every add-on is summed AFTER it. Sales tax applies to BOTH
+ * merchandise subtotals — the inscription and the urn — each rounded to the cent on its
+ * own line, so the card shows where every figure came from.
  */
 export function estTotal(price, q = {}) {
   const oc = q.oc || 0, rec = q.rec || 0, inscr = q.inscr || 0, urn = q.urn || 0;
   const inscrSub = FEES.INSCR * inscr;
   const tax = Math.round(inscrSub * FEES.TAX * 100) / 100;
-  return Math.round(price + ecf(price) + FEES.OC * oc + FEES.REC * rec + inscrSub + tax + URN.price * urn);
+  const urnSub = URN.price * urn;
+  const urnTax = Math.round(urnSub * FEES.TAX * 100) / 100;
+  return Math.round(price + ecf(price) + FEES.OC * oc + FEES.REC * rec + inscrSub + tax + urnSub + urnTax);
 }
 
 /** The sheet's own sentences. Carried onto the page verbatim; do not reinterpret. */
@@ -202,7 +215,8 @@ export const SHEET_TEXT = {
 export const COMPANION_NOTE =
   'Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn ' +
   `is required — two fit per niche. The ${URN.name} (${URN.maker}) is ` +
-  `$${URN.price.toLocaleString('en-US')} each on the urn price list — merchandise, not a fee.`;
+  `$${URN.price.toLocaleString('en-US')} each on the urn price list — merchandise, not a fee, ` +
+  'and taxed at 10.4% like the inscription.';
 
 // ── Price tiers (5 distinct prices on the sheet) ─────────────────────────────
 // The tier hue lives on the price CHIP only, never on the cell fill — the cell fill is

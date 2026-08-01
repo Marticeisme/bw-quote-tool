@@ -817,7 +817,7 @@
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% of niche price — not included in listed prices</span></div>
     <div class="fi"><span class="fl">Inscription — $660 ea + 10.4% tax</span>
       <span class="fv">Qty: <input type="number" id="insc-qty" min="0" max="2" value="0" aria-label="Inscription quantity, up to 2 on the niche front"> <span class="fnote">up to 2 on the front</span></span></div>
-    <div class="fi fi-urn"><span class="fl">Interlude Urn (Matthews) — $665 ea</span>
+    <div class="fi fi-urn"><span class="fl">Interlude Urn (Matthews) — $665 ea + 10.4% tax</span>
       <span class="fv">Qty: <input type="number" id="urn-qty" min="0" max="2" value="0" aria-label="Interlude Urn quantity, up to 2 per niche"> <span class="fnote">merchandise, not a fee — 2 fit per niche</span></span></div>
   </div>
 
@@ -826,9 +826,9 @@
     <ul>
       <!-- This lead used to read "why only ONE urn fits", which contradicted the sentence
            right after it (two fit — that is the companion capacity). Corrected s09/D. -->
-      <li><b>Companion niche, and why only the Interlude Urn fits.</b> Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn is required — two fit per niche. The Interlude Urn (Matthews) is $665 each on the urn price list — merchandise, not a fee.</li>
+      <li><b>Companion niche, and why only the Interlude Urn fits.</b> Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn is required — two fit per niche. The Interlude Urn (Matthews) is $665 each on the urn price list — merchandise, not a fee, and taxed at 10.4% like the inscription.</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;All Niches Sold as Companions (2) and includes one niche vase&rdquo;</span></li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;ONLY the Interlude Urn is allowed in these Niches due to size. Refer to URN price list for price.&rdquo;</span> The urn price list figure is <b>Interlude Urn (Matthews) $665.00</b> each &mdash; merchandise, not a fee, and up to 2 per niche.</li>
+      <li>Sheet, verbatim: <span class="quote">&ldquo;ONLY the Interlude Urn is allowed in these Niches due to size. Refer to URN price list for price.&rdquo;</span> The urn price list figure is <b>Interlude Urn (Matthews) $665.00</b> each &mdash; merchandise, not a fee, and up to 2 per niche. It carries <b>10.4% sales tax</b>, like the inscription (operator ruling 2026-07-31).</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;E.C.F: 10% — ***E.C.F is not included in listed pricing***&rdquo;</span></li>
       <li><span class="shout">NO PHOTOS ALLOWED</span></li>
     </ul>
@@ -837,7 +837,7 @@
   <div class="rules">
     <h3>Fee schedule &mdash; where these numbers come from</h3>
     <ul>
-      <li><b>Open &amp; Closing $875.00ea &nbsp;·&nbsp; Recording Fee $235.00ea &nbsp;·&nbsp; Inscription $660.00ea + 10.4% sales tax on the inscription alone &nbsp;·&nbsp; E.C.F. 10%</b></li>
+      <li><b>Open &amp; Closing $875.00ea &nbsp;·&nbsp; Recording Fee $235.00ea &nbsp;·&nbsp; Inscription $660.00ea &nbsp;·&nbsp; 10.4% sales tax on merchandise (inscription and urn) &nbsp;·&nbsp; E.C.F. 10%</b></li>
       <li><b>These are the Mountain View Columbarium, June 2026 schedule</b>, applied to the Garden of Meditation by operator ruling on 2026-07-31. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints Open &amp; Closing $835 · Recording Fee $225 · Inscription $605, which these amounts replace. Confirm the current charges in MIS/Enterprise before quoting.</li>
       <li>The E.C.F. rate is the one fee figure still taken from this sheet, and it is unchanged at 10%.</li>
       <li><b>Two inscriptions may be added to the front</b> of a companion niche &mdash; the quantity box above goes to 2.</li>
@@ -861,7 +861,7 @@ var OC = 875, REC = 235, INSCR = 660, TAX = 0.104;
 var URN_NAME = "Interlude Urn", URN_PRICE = 665;
 var STATUS_LABEL = {"unavailable":"Confirm in MIS"};
 var BLOCK_LABEL = {"L":"Left Wing","C":"Center Section","R":"Right Wing"};
-var COMPANION_NOTE = "Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn is required — two fit per niche. The Interlude Urn (Matthews) is $665 each on the urn price list — merchandise, not a fee.";
+var COMPANION_NOTE = "Sold as a companion niche (2 inurnment rights). Due to niche size, the Interlude Urn is required — two fit per niche. The Interlude Urn (Matthews) is $665 each on the urn price list — merchandise, not a fee, and taxed at 10.4% like the inscription.";
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var fm2 = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 var ecf = function (p) { return Math.ceil(p * 0.1); };
@@ -903,14 +903,19 @@ function cardHtml(d) {
     tot += inscrSub + tax;
   }
   if (urn > 0) {
-    rows += '<div class="cr"><span class="cl">' + URN_NAME + ' \u00d7' + urn + ' <em>(merchandise)</em></span><span class="cv">' + fm(URN_PRICE * urn) + '</span></div>';
-    tot += URN_PRICE * urn;
+    // TAXED at 10.4%, exactly like the inscription (operator ruling 2026-07-31). The tax
+    // is its own row so the family can see which subtotal it was computed on.
+    var urnSub = URN_PRICE * urn;
+    var urnTax = Math.round(urnSub * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">' + URN_NAME + ' \u00d7' + urn + ' <em>(merchandise)</em></span><span class="cv">' + fm(urnSub) + '</span></div>';
+    rows += '<div class="cr"><span class="cl">Sales tax on urn (10.4%)</span><span class="cv">' + fm2(urnTax) + '</span></div>';
+    tot += urnSub + urnTax;
   }
   return cardHead(d) + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">' + COMPANION_NOTE + ' E.C.F. is 10% of the niche price only \u2014 add-ons are not subject to it. ' +
     (urn > 0
-      ? 'Sales tax on the ' + URN_NAME + ' is confirmed at contract.'
+      ? 'Both merchandise lines \u2014 inscription and urn \u2014 carry 10.4% sales tax.'
       : 'The Interlude urns are NOT included above \u2014 add them with the urn box in the footer.') +
     '</div>';
 }
