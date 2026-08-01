@@ -8,8 +8,12 @@
  *   D:\Cemetery Photos Misc\Terrace Garden Memorial Path\
  *     Terrace Garden Memorial Path Pricingffff.pdf   the pricing sheet — AUTHORITATIVE
  *     Screenshot 2026-07-29 203810.png               the same sheet as an image
- *     What was replaced in the terrac garden.png     area layout: pool + ossuary
- *     7 photographs                                  geometry and materials only
+ *     COMING SOON Terrace Garden Memorial Path
+ *       (Billboard (Landscape)) (1).png              the official overhead PHASE 2
+ *                                                    render — AUTHORITATIVE FOR LAYOUT
+ *     What was replaced in the terrac garden.png     the OLD contents: pool + ossuary
+ *     7 photographs (2026-06-01 … 2026-07-03)        the built state; geometry and
+ *                                                    materials only
  *
  * Where the PDF and the screenshot disagree the PDF wins. Compared word for word
  * 2026-07-29: they carry identical prices, identical rights counts and identical row
@@ -35,17 +39,49 @@
  * The page footer and every detail card must say exactly that. Do not restate it as
  * "the sheet's fees": that is the one sentence a family could be misled by.
  *
- * ── THE TERRACE GARDEN OSSUARY IS NOT INVENTORY HERE ───────────────────────────────
- * The layout drawing names an ossuary block beside the reflection pool, but the pricing
- * PDF prices no ossuary placement. It is rendered as a LABELLED CONTEXT MASS with no
- * price, no rights count and no detail card. (Terrace Garden Ossuary scattering plans
- * are priced on the separate Scattering Garden sheet, reachable from guides.html.)
+ * ── THERE IS NO POOL. REBUILT 2026-07-31 (sprint-09 Track T) ───────────────────────
+ * The first cut of this scene rendered a reflection pool with a spout and a Terrace
+ * Garden Ossuary block, both taken from `What was replaced in the terrac garden.png`.
+ * That drawing is titled WHAT WAS REPLACED: it is the OLD contents of the terrace, not
+ * the built garden. Operator, Map Issues 07.31.26:
+ *
+ *   "Terrace garden memorial path also looks like its going to need a lot of work
+ *    there is not pool anymore the path removed the pool entirely."
+ *
+ * So the pool, its coping and its spout are gone from the data and from the page, and
+ * `scripts/verify_tgmp_map.mjs` §12 fails if any of them comes back.
+ *
+ * The ossuary block went with it. It appears in NEITHER the PHASE 2 render NOR any of
+ * the seven site photographs, and the same drawing lists it beside the pool as replaced
+ * content. It was never inventory here in any case — Terrace Garden Ossuary scattering
+ * is priced on the separate Scattering Garden sheet, reachable from guides.html — so
+ * removing the mass removes a context object, not a property. OPEN QUESTION for the
+ * operator: confirm the ossuary is gone from this footprint rather than merely absent
+ * from the render.
  *
  * ── GEOMETRY ───────────────────────────────────────────────────────────────────────
- * There is no site plan and no fabrication drawing. Every SITE dimension below — the
- * terrace, the pool, the ossuary block, the niche-bank frame, and every object's place
- * along the path — is an ESTIMATE for the 3D scene, derived from the photographs and
- * the layout drawing. The page says so, and PLACEMENT IS APPROXIMATE.
+ * There is no site plan and no fabrication drawing, so every SITE dimension below is an
+ * ESTIMATE for the 3D scene. What is SOURCED is the LAYOUT — which object stands where
+ * relative to the path — read off the PHASE 2 overhead render and confirmed against the
+ * June/July 2026 photographs:
+ *
+ *   sourced (shape/topology)   a long kerbed strip beside the mausoleum walkway; a
+ *                              concrete walk down the middle of it ending in a ROUND
+ *                              turn-around near the near end; planting beds either side
+ *                              of the walk; the far end paved as an open apron; the TGN
+ *                              bank standing across the far end facing down the path;
+ *                              benches, columbarium, birdbath and posts set in the beds
+ *                              and on the apron; planters along both kerbs.
+ *   estimated (every number)   the strip's 700x180 in footprint, the 60 in walk width,
+ *                              the 136 in turn-around, the kerb, and every x/z.
+ *
+ * The page says so, and PLACEMENT IS APPROXIMATE.
+ *
+ * ── BED FINISH ─────────────────────────────────────────────────────────────────────
+ * The PHASE 2 render draws the beds as bright artificial turf. Every photograph of the
+ * built garden (2026-06-01, 2026-06-13, 2026-07-03) shows DARK BARK MULCH around the
+ * posts instead. The scene follows the photographs, because that is what is on the
+ * ground; the page notes that the marketing render shows turf.
  *
  * The nine TGMP objects' own sizes are NOT estimated: they are the catalog dimensions
  * printed on the pricing sheet, read as W x D x H inches. Two exceptions, both flagged
@@ -114,7 +150,7 @@ export function tgnNiches() {
 //   w/d/h   inches, from the sheet's printed dimensions (see the header for the two
 //           exceptions). Used for the 3D mass and shown on the card.
 //   shape   which primitive the builder draws: 'bench' | 'cabinet' | 'birdbath' | 'post'
-//   x       position along the path, inches from the centre of the terrace. APPROXIMATE.
+//   x/z     where the object stands, filled in from PLACEMENT below. APPROXIMATE.
 export const TGMP_ITEMS = [
   {
     id: 'TGMP-1', shape: 'bench',
@@ -196,37 +232,69 @@ export const TGMP_ITEMS = [
   },
 ];
 
-// The nine properties stand in one line along the path, in the sheet's order, at the
-// tight spacing the photographs show (posts roughly a post-width apart in one bed) —
-// NOT spread across the whole terrace. Positions are computed from the items' own
-// widths, so they can never overlap and can never drift out of sheet order.
-export const ROW_GAP = 16;      // inches between neighbouring properties
-export const ROW_START = -330;  // left edge of the first property, inches from centre
-{
-  let left = ROW_START;
-  for (const it of TGMP_ITEMS) {
-    it.x = +(left + it.w / 2).toFixed(2);
-    left += it.w + ROW_GAP;
-  }
-}
-
 // ── Scene geometry (inches, ESTIMATED — the page says so) ────────────────────
+// The strip runs along x. z = 0 is the walk's centre line; +z is the MAUSOLEUM side
+// (the render's upper border, where the walkway and the crypt wall are) and -z is the
+// road side. The far end of the path — where it meets the mausoleum apron and where
+// the niche bank stands — is -x; the turn-around is at +x.
 export const GEO = {
-  terraceW: 700, terraceD: 220,   // the paved terrace the path runs along
-  terraceRise: 8,                 // low stucco kerb around it
-  pathZ: 70,                      // centre line the TGMP objects stand on
-  // Reflection pool, from the layout drawing's proportions.
-  poolW: 260, poolD: 90, poolX: 55, poolZ: -30, poolDepth: 10,
-  spoutW: 34, spoutD: 26, spoutH: 12,
-  // Terrace Garden Ossuary — a labelled context mass, never inventory.
-  ossW: 96, ossD: 96, ossH: 42, ossX: 270, ossZ: -30,
-  // TGN bank: a freestanding granite wall standing at the back of the terrace.
-  bankX: -215, bankZ: -88,
+  terraceW: 700, terraceD: 180,   // the kerbed garden strip, outside face to outside face
+  kerbT: 8, kerbH: 14,            // the low cream stucco kerb wall around it
+  // The memorial path: a concrete walk down the middle, an open paved apron at the far
+  // end, and a round flagstone-and-cobble turn-around near the near end. All three are
+  // shapes the render and the 2026-06-01 photograph agree on; the numbers are estimates.
+  pathW: 56,
+  apronX0: -350, apronX1: -186,   // the fully paved far end
+  headX: 244, headR: 50,          // the round turn-around
+  pathZ: 0,                       // the walk's centre line
+  bedZ: 56,                       // centre line of each planting bed
+  // TGN bank: a freestanding granite wall standing ACROSS the far end of the strip,
+  // facing back down the path. rotY turns its face from +z to +x.
+  bankX: -336, bankZ: 0, bankRotY: 90,
   nicheW: 12.5, nicheH: 12.5,     // the carried module size, used as the 3D grid pitch
   bankFrame: 5,                   // polished Paradiso surround
   bankBase: 12,                   // base course under the niche field
   bankT: 10,                      // wall thickness
 };
+
+/** Inner face of the kerb, either side of the walk. Beds live between this and pathW/2. */
+export const INNER_Z = GEO.terraceD / 2 - GEO.kerbT;   // 82
+export const INNER_X = GEO.terraceW / 2 - GEO.kerbT;   // 342
+
+// Where each of the nine properties stands, read off the PHASE 2 overhead render:
+//   the 36" bench and the columbarium flank the paved apron at the far end, with the
+//   birdbath just off it on the walk's edge; the five posts alternate between the two
+//   beds working toward the turn-around; the 48" bench sits along the mausoleum-side
+//   kerb at the near end, where the render draws a long low slab seat.
+// x ascends with the sheet's own numbering so "along the path" still reads in sheet
+// order; z is which bed. Both are APPROXIMATE — see the header.
+export const PLACEMENT = {
+  'TGMP-1': { x: -300, z: -48 },   // 36" pedestal bench, apron, road side
+  'TGMP-2': { x: 250, z: 60 },     // 48" pedestal bench, near end, mausoleum side
+  'TGMP-3': { x: -262, z: 50 },    // columbarium with alcove, apron, mausoleum side
+  'TGMP-4': { x: -206, z: -34 },   // birdbath, on the apron beside the walk's mouth
+  'TGMP-5': { x: -150, z: -56 },   // single post, road-side bed
+  'TGMP-6': { x: -90, z: 56 },     // double post, mausoleum-side bed
+  'TGMP-7': { x: 20, z: -56 },     // carved-rose post, road-side bed
+  'TGMP-8': { x: 96, z: -56 },     // daffodil post, road-side bed
+  'TGMP-9': { x: 156, z: 56 },     // bird post, mausoleum-side bed
+};
+for (const it of TGMP_ITEMS) {
+  const p = PLACEMENT[it.id];
+  if (!p) throw new Error(`${it.id} has no entry in PLACEMENT`);
+  it.x = p.x;
+  it.z = p.z;
+}
+
+// ── Planters (context, never inventory) ──────────────────────────────────────
+// The render draws two runs of dark cast planters — square blocks with a round mouth —
+// standing tight against the kerb, four to a side. They hold plants, they hold nothing
+// else: no price, no rights count, no reference, no detail card. Sizes estimated.
+export const PLANTER = { w: 14, d: 14, h: 16 };
+export const PLANTERS = [
+  ...[-40, 4, 48, 92].map((x) => ({ x, z: 70 })),      // mausoleum-side kerb
+  ...[160, 202, 244, 286].map((x) => ({ x, z: -70 })), // road-side kerb
+];
 export const BANK_FIELD_W = GEO.nicheW * TGN.cols;               // 100
 export const BANK_FIELD_H = GEO.nicheH * TGN.rows.length;        // 62.5
 export const BANK_W = BANK_FIELD_W + 2 * GEO.bankFrame;          // 110

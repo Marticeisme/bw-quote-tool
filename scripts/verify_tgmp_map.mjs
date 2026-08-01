@@ -25,8 +25,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import * as DATA from './tgmp-data.mjs';
 import {
   TGN, TGMP_ITEMS, TIERS, FEES, FEE_SOURCE, ecf, estTotal,
+  GEO, PLACEMENT, PLANTER, PLANTERS, INNER_X, INNER_Z, BANK_W,
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
@@ -120,16 +122,59 @@ console.log('Data module');
   ck(dup.length === 0, `all ${all.length} references unique${dup.length ? ' — dupes: ' + dup.join(', ') : ''}`);
   const badRef = all.filter((n) => !/^(TGN-[A-E]-[1-8]|TGMP-[1-9])$/.test(n.ref));
   ck(badRef.length === 0, `all refs match TGN-<row>-<n> or TGMP-<n>${badRef.length ? ' — ' + badRef.slice(0, 5).map((n) => n.ref).join(', ') : ''}`);
-  // Nine objects in one line: none may occupy the same stretch of path as its neighbour.
-  const xs = [...TGMP_ITEMS].sort((a, b) => a.x - b.x);
-  const overlap = [];
-  for (let i = 1; i < xs.length; i++) {
-    if (xs[i].x - xs[i].w / 2 < xs[i - 1].x + xs[i - 1].w / 2) overlap.push(`${xs[i - 1].id}/${xs[i].id}`);
+  ck(TGMP_ITEMS.every((it, i) => it.id === `TGMP-${i + 1}`),
+    'the nine objects are numbered TGMP-1 … TGMP-9 in the pricing sheet\'s own order');
+}
+if (failures) { console.log(`\nRESULT: ${failures} FAILURE(S) — the page cannot be built from this data`); process.exit(1); }
+
+// ── 0b. THE LAYOUT ───────────────────────────────────────────────────────────
+// Rewritten 2026-07-31 (Track T). The objects used to stand in ONE straight line, so a
+// 1-D "does this one start after the last one ends" check was enough. They are now set
+// in the two beds and on the apron, the way the PHASE 2 render arranges them, so the
+// check is a real 2-D footprint test — strictly stronger than the one it replaces, and
+// it must also keep everything inside the kerb and off the walking surface.
+console.log('\nLayout — footprints in plan');
+{
+  const rect = (cx, cz, w, d) => ({ x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2 });
+  const hits = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1;
+  const objs = [
+    ...TGMP_ITEMS.map((it) => ({ id: it.id, r: rect(it.x, it.z, it.w, it.d) })),
+    ...PLANTERS.map((p, i) => ({ id: `planter-${i + 1}`, r: rect(p.x, p.z, PLANTER.w, PLANTER.d) })),
+    // The bank is turned a quarter turn, so its 110" face runs along z and its 10"
+    // thickness along x.
+    { id: 'TGN bank', r: rect(GEO.bankX, GEO.bankZ, GEO.bankT, BANK_W) },
+  ];
+  ck(TGMP_ITEMS.every((it) => Number.isFinite(it.x) && Number.isFinite(it.z)) &&
+     TGMP_ITEMS.every((it) => PLACEMENT[it.id]),
+  `all ${TGMP_ITEMS.length} properties have an x and a z from PLACEMENT`);
+
+  const clash = [];
+  for (let i = 0; i < objs.length; i++) {
+    for (let j = i + 1; j < objs.length; j++) if (hits(objs[i].r, objs[j].r)) clash.push(`${objs[i].id}/${objs[j].id}`);
   }
-  ck(overlap.length === 0, `the nine objects do not overlap on the path${overlap.length ? ' — ' + overlap.join(', ') : ''}`);
-  ck(TGMP_ITEMS.every((it, i) => it.id === `TGMP-${i + 1}`) &&
-     TGMP_ITEMS.every((it, i) => i === 0 || it.x > TGMP_ITEMS[i - 1].x),
-  'the objects are laid out left to right in the pricing sheet\'s own order');
+  ck(clash.length === 0, `no two of the ${objs.length} standing objects overlap in plan${clash.length ? ' — ' + clash.join(', ') : ''}`);
+
+  const out = objs.filter((o) => o.r.x0 < -INNER_X || o.r.x1 > INNER_X || o.r.z0 < -INNER_Z || o.r.z1 > INNER_Z);
+  ck(out.length === 0, `everything stands inside the kerb (${-INNER_X}..${INNER_X} by ${-INNER_Z}..${INNER_Z} in)` +
+    (out.length ? ' — outside: ' + out.map((o) => o.id).join(', ') : ''));
+
+  // Nothing may stand in the walking surface. The apron at the far end is open paving
+  // and objects DO stand on it, so the test is the walk and the turn-around only.
+  const walk = { x0: GEO.apronX1, x1: GEO.headX, z0: -GEO.pathW / 2, z1: GEO.pathW / 2 };
+  const inWalk = objs.filter((o) => hits(o.r, walk));
+  ck(inWalk.length === 0, `nothing stands in the ${GEO.pathW}" walk${inWalk.length ? ' — ' + inWalk.map((o) => o.id).join(', ') : ''}`);
+  const nearHead = objs.filter((o) => {
+    const nx = Math.max(o.r.x0, Math.min(GEO.headX, o.r.x1));
+    const nz = Math.max(o.r.z0, Math.min(GEO.pathZ, o.r.z1));
+    return Math.hypot(nx - GEO.headX, nz - GEO.pathZ) < GEO.headR;
+  });
+  ck(nearHead.length === 0, `nothing stands on the ${GEO.headR * 2}" turn-around${nearHead.length ? ' — ' + nearHead.map((o) => o.id).join(', ') : ''}`);
+
+  // Each property is in a bed or on the apron — the two places the render puts them.
+  const stray = TGMP_ITEMS.filter((it) => !(it.x <= GEO.apronX1 || Math.abs(it.z) > GEO.pathW / 2));
+  ck(stray.length === 0, `every property is in a bed or on the far apron${stray.length ? ' — ' + stray.map((i) => i.id).join(', ') : ''}`);
+  ck(PLANTERS.length === 8 && PLANTERS.filter((p) => p.z > 0).length === 4,
+    `${PLANTERS.length} planters, four to a kerb, as the render draws them`);
 }
 if (failures) { console.log(`\nRESULT: ${failures} FAILURE(S) — the page cannot be built from this data`); process.exit(1); }
 
@@ -407,7 +452,13 @@ console.log('Sourcing honesty');
   ck(/layout estimated from photographs/i.test(src), 'the header says the layout is estimated from photographs');
   ck(/placement along the path is approximate/i.test(src), 'the page says object placement is approximate');
   ck(/not priced here/.test(src) && /Terrace Garden Ossuary/.test(src),
-    'the ossuary is labelled and explicitly not priced here');
+    'the ossuary is named and explicitly not priced here');
+  ck(/Layout .{0,20}the walk/.test(src) && /Every <i>number<\/i> is an estimate/.test(src),
+    'the page separates what is sourced (the layout) from what is estimated (every number)');
+  ck(/the built garden is bark mulch/.test(src),
+    'and says the beds are bark, not the turf the marketing render draws');
+  ck(/niche bank&rsquo;s position across the far end is estimated/.test(src),
+    "and flags the niche bank's position as estimated rather than shown in place");
   const ossPriced = [...from3d, ...fromObjs, ...rowFull].some((c) => /ossuary/i.test(c.html));
   ck(!ossPriced, 'the ossuary is not rendered as a sellable property');
   const noDims = TGMP_ITEMS.filter((it) => !it.dims);
@@ -453,7 +504,76 @@ ck(/class="back-btn no-print" href="\.\.\/"/.test(src), '"← Quote Tool" back b
   pass(`worst tier chip contrast ${worst.toFixed(2)}:1 (${worstT}) — all ${TIERS.length} clear WCAG AA`);
 }
 ck(!src.includes('__VIEWS__'), 'the camera presets were substituted into the page runtime');
+{
+  // The camera presets, read back out of the page's own runtime.
+  const vm = /var VIEWS = (\{.*?\});/.exec(src);
+  ck(!!vm, 'the page carries its camera presets as plain numbers');
+  if (vm) {
+    const V = JSON.parse(vm[1]);
+    const want = ['path', 'bank', 'props', 'over', 'midpath', 'stand'];
+    const miss = want.filter((k) => !V[k]);
+    ck(miss.length === 0, `${want.length} camera presets, including the two walk-through stops${miss.length ? ' — missing ' + miss.join(', ') : ' (' + want.join(', ') + ')'}`);
+    // The bank now faces down +x, so its face-on preset must have turned with it: a
+    // yaw of 0 would frame the wall edge-on and show nothing.
+    ck(V.bank && V.bank.yaw === -90, `the "niche bank" preset turns to the wall's new facing (yaw ${V.bank && V.bank.yaw})`);
+    ck(V.bank && V.bank.fit === '.bankface',
+      'and re-fits itself by measuring the wall, because the closed-form solve cannot reach a target that far behind the origin');
+    // Both stops stand on the walk at eye height, facing the bank, at different points.
+    ck(V.midpath && V.stand && V.midpath.yaw === -90 && V.stand.yaw === -90,
+      'both walk stops face the niche bank along the path');
+    ck(V.midpath && V.stand && V.midpath.t[0] < V.stand.t[0] &&
+       V.midpath.pitch > -12 && V.stand.pitch > -12 && V.midpath.t[1] < 0 && V.stand.t[1] < 0,
+    'and stand at eye level, one half way up and one at the turn-around');
+    for (const k of ['midpath', 'stand']) {
+      ck(new RegExp(`data-viewbtn="${k}"`).test(src), `a toolbar button drives the "${k}" walk stop`);
+    }
+  }
+}
 ck(tgnRef('C', 4) === 'TGN-C-4', 'refOf helper spells references the way the footer says it does');
+
+// ── 12. THERE IS NO POOL ─────────────────────────────────────────────────────
+// Added 2026-07-31 (Track T) on the operator's Map Issues 07.31.26 note: "there is not
+// pool anymore the path removed the pool entirely." The pool, its coping, its spout and
+// the ossuary mass beside it were all built from a drawing titled WHAT WAS REPLACED.
+// This section fails if any of them is reintroduced — in the data OR on the page.
+console.log('\nNo pool — the path replaced it');
+{
+  const geoKeys = Object.keys(GEO).filter((k) => /pool|water|spout|coping|oss/i.test(k));
+  ck(geoKeys.length === 0, `GEO carries no pool, spout, coping or ossuary geometry${geoKeys.length ? ' — ' + geoKeys.join(', ') : ` (${Object.keys(GEO).length} keys, none of them)`}`);
+  const dataKeys = Object.keys(DATA).filter((k) => /^(POOL|WATER|SPOUT|OSS)/i.test(k));
+  ck(dataKeys.length === 0, `the data module exports no pool/ossuary object${dataKeys.length ? ' — ' + dataKeys.join(', ') : ''}`);
+
+  // On the page: no water surface, no coping ring, no spout or ossuary mass, and no
+  // label naming a pool. Class names and the label are checked separately so a partial
+  // revival cannot slip through on the strength of the other half being gone.
+  const banned = [
+    [/class="[^"]*\bwater\b/, 'a water surface'],
+    [/class="[^"]*\bcoping\b/, 'a pool coping ring'],
+    [/class="[^"]*\bspout\b/, 'a pool spout mass'],
+    [/class="[^"]*\boss\b/, 'an ossuary mass'],
+    [/\.water\{/, 'a .water rule in the stylesheet'],
+    [/\.coping\{/, 'a .coping rule in the stylesheet'],
+    [/REFLECTION POOL/, 'a REFLECTION POOL label'],
+  ];
+  const back = banned.filter(([re]) => re.test(src));
+  ck(back.length === 0, `the page renders none of ${banned.length} pool/ossuary artefacts${back.length ? ' — back: ' + back.map(([, w]) => w).join(', ') : ''}`);
+  // "Pool" may appear only in the sentence that says there isn't one.
+  const pools = [...src.matchAll(/[^<>]{0,40}pool[^<>]{0,40}/gi)].map((m) => m[0].trim());
+  const badPools = pools.filter((s) => !/no reflection pool/i.test(s));
+  ck(badPools.length === 0, `the word "pool" appears only in the sentence saying there is none${badPools.length ? ' — ' + badPools.slice(0, 3).join(' | ') : ` (${pools.length} occurrence${pools.length === 1 ? '' : 's'})`}`);
+  ck(/There is no reflection pool/.test(src), 'and the footer states it outright');
+
+  // The context that IS there — kerb and planters — must stay context: no reference, no
+  // price, no card. A context mass that gained a data-ref would be sellable inventory
+  // the pricing sheet never priced.
+  const ctxTags = [...src.matchAll(/<(?:div|button)[^>]*class="ctx[^"]*"[^>]*>/g)].map((m) => m[0]);
+  const armed = ctxTags.filter((t) => /data-ref=|data-price=|<button/.test(t));
+  ck(ctxTags.length > 0 && armed.length === 0,
+    `all ${ctxTags.length} context faces (kerb + planters) are inert divs with no reference and no price${armed.length ? ' — armed: ' + armed.length : ''}`);
+  const KERB_FACES = 4 * 5, PLANTER_FACES = PLANTERS.length * 5;
+  ck(ctxTags.length === KERB_FACES + PLANTER_FACES,
+    `${KERB_FACES} kerb faces + ${PLANTER_FACES} planter faces = ${KERB_FACES + PLANTER_FACES} context faces (got ${ctxTags.length})`);
+}
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);
