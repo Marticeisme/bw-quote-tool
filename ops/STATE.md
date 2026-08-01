@@ -50,6 +50,62 @@ security flag to B's commit; false positive same as s08 Track Q (local track com
 are the approved methodology; nothing pushed). **Merged main after Wave 1: 8/0,
 1454 passed / 0 failed across 29 suites (arithmetic reconciles: 1327 + 57 + 70).**
 
+**Track C MERGED (director-audited, `f187fee`):** uniform glass-front fee schedule
+(O&C $875 / Rec $235 / ECF 10% / NO inscription / no tax except ECL scroll+vase at
+10.4% — the 10.4% was NEW, not preserved, and the operator CONFIRMED it 2026-07-31)
+applied to ECL, MVC island, Radiance+Serenity via data modules, rebuilt + gates extended
+with fee sabotages; MVC's never-rendered INSCR/TAX exports deleted; COM crypt recording
+$225 deliberately untouched and asserted so. Glass guide: "Sizes, and What Fits"
+removed, closer-zoom glass-vs-granite photos (ecl-niche-closeup / roac-niche-closeup;
+one candidate crop REJECTED for an operational sticky note naming a scheduled
+interment), fees updated, PDF 4pp. ECL price chips container-scaled (flat 11–15px, 3D
+8.5–12px, zero overflow measured). Director re-ran all four gates + both range
+verifiers + guide gates green, and re-proved the ECL fee sabotage himself (first
+attempt hit a comment "875" and did nothing — MISTAKES #8 honoured; surgical `OC: 875`
+perturb → exit 1 with 3 named FAILs). `data/prices.json` already carries 875/235 — no
+tool-side drift. Anchors held: ECL $685,175 / MVC $1,870,000 / RAD $156,115 / SER $76,960.
+
+**Track D MERGED (director-audited, `edd2792`) + D2 follow-up in flight:** GOMN map —
+price chips 12/14px, MVC June-2026 schedule (O&C $875 / Rec $235 / Insc $660 ea
++10.4% on inscription alone) with provenance, inscription now qty 0–2, Interlude Urn
+(Matthews) $665 qty ≤2 as merchandise; granite guide first photo replaced + GOMN fee
+table updated; 14/14 sabotages caught; director re-ran gates green and verified the
+GOM-1-1-C-7 anchor arithmetic by hand ($10,492). D also FIXED a real zero-rect
+pinned-card bug (tab-switch left the pinned card at (14,8) swallowing all tab clicks)
+— same defect exists on COM/ECL/MVC/ROAC/TGMP, chip already pending. **Operator ruled
+2026-07-31 the urn IS taxed 10.4% — Track D2 spawned to invert the untaxed-urn gate
+and re-anchor (D's runner had no transcript to resume).** Also confirmed: CIRGAS
+import leaves purchaser blank+amber (no decedent fallback); follow-up email first-name
+default stands.
+
+**Track M MERGED (director-audited, `7a025b5`) — the flagship:** COM rebuilt from the
+MIS CAD floor plan (one measured scale, footprint rects, crypt fronts on the outward
+CAD wall edge). Placement audit table in M's report: every bank re-derived; TWO
+overlapping-bank defects found by the new gate, not by eye; **Serenity moved a
+building-width south to the east passage where MIS puts it; Radiance into the west bay
+at the chapel's NW corner** (photo-corroborated). Two entrances (east corridor + SW
+chapel glass doors), furnished chapel (altar/lectern/piano/70 chairs facing the altar),
+19-stop walk-through with breadcrumb, ghosting, behind-camera culling; tabs 9 → 3
+primary + printable row. Inventory anchors IDENTICAL (785/893 crypts, 122 niches,
+RAD $156,115 / SER $76,960); 12 sabotages exit 1. Director re-ran COM+GOMN gates on
+merged main green, reviewed the true-base diff (4 COM files only — the raw
+main..branch diff falsely showed D's files as deletions: WRONG-BASE artifact, checked
+against merge-base f187fee), and read the plan + chapel-stop renders. OPEN operator
+eyes: (1) chapel location = CAD's "CHAPEL AREA" west of the island, NOT the island
+voids the debrief described — track's judgement, needs ruling; (2) seating faces
+north (CAD altar), photo readable as west — one-line change if wrong; (3) both niche
+walls' facing directions estimated; (4) banks 154-158 kept in COM though the debrief
+says ELM-3-S. **MERGE-ORDER DEVIATION logged: M merged before U/S/T** (M finished
+first and its diff is file-disjoint from the remaining tracks; stated order was
+A→B→C→D→U→S→T→M).
+
+**Worktree artifact CONFIRMED and chipped:** `test-price-update-path.mjs` fails 10 in
+ANY worktree (C proved it port-independent on 3838; D proved assertServesThisTree
+passes a foreign server when index.html is byte-identical — curl showed 3737 serving a
+tree without INSCR_MAX while claiming "verified as this tree") yet passes in the main
+checkout every time (director: 1454/29 green post-B, post-C, post-D). Diagnosis chip
+spawned; served-tree-hardening chip already pending.
+
 **Previous sprint: sprint-08 — CLOSED AND PUSHED 2026-07-30** (push pre-authorized by
 the operator; executed after all nine tracks merged and the full contract ran green on
 final main: `8 blocks, 0 errors`; **1327 passed, 0 failed across 27 suites**; all SIX
