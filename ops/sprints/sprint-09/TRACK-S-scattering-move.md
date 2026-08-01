@@ -47,6 +47,13 @@ and U. Two surfaces:
    Check whether `OC:boulder_inurnment` ($1,425) has any sheet contradiction — the
    sheet is silent on boulders, so leave it. Tool-side tests that pin 985 (grep for it)
    must be updated deliberately, never fudged.
+   **Operator clarification 2026-07-31 (mid-wave): the $875 applies ONLY to
+   `OC:ground_inurnment`.** Normal-plot O&C is deliberately higher and must not move:
+   lawn_single $1,535 / lawn_double_1st $2,085 / lawn_double_2nd $1,535 /
+   mausoleum_entombment $1,205 / boulder_inurnment $1,425 / niche_inurnment $875
+   (already) / niche_non_inurnment $375 all stay. Diff both regenerated prices.json
+   copies and prove ground_inurnment is the ONLY changed key; pin the unchanged fees
+   in the verifier.
 
 ## Verification (verbatim outputs)
 
