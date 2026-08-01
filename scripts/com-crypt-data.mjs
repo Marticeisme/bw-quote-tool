@@ -68,6 +68,7 @@ export const STATUS_LABEL = {
   reserved: 'Reserved',
   blocked: 'Not Selling',
   unlisted: 'Unavailable',
+  unpriced: 'Not Offered',
   unavailable: 'Unavailable',
 };
 
@@ -139,9 +140,9 @@ export const MIS = {
  * `available` from the 8/1/2026 lot inquiry list — no more, no fewer. The two MIS
  * exports were run the same day and agree completely; that is the reconciliation.
  *   530 rows carry a position suffix (265 (A) + 265 (B)) = the 265 tandem units.
- *   165 rows carry none = 63 single units + 37 deluxe + 14 hidden — two rows for a
- *     companion (one per space number), one row for a single.
- * `ecf` is exactly 10% of `price` on all 695 rows and `inventory_price` equals
+ *   165 rows carry none = 55 single units + 39 deluxe + 16 hidden — two rows for a
+ *     companion (one per space number), one row for a single. (55 + 2x39 + 2x16 = 165.
+ *     Tier G of bank 116-123 accounts for the shift from the 63/37/14 this file first
  * `price` on all 695 (`use_inventory_price` is 1 everywhere, `item_price` 0).
  *
  * PER-UNIT PRICE = THE VALUE MIS STAMPS ON THE UNIT'S ROWS, NOT THEIR SUM.
@@ -162,15 +163,40 @@ export const MIS = {
  *      stamped, bank 201-212 tier G prices them $12,995 and $26,395 against a $9,995
  *      single — the ordinary one-front / two-front spread.
  *
- * TWO AVAILABLE UNITS ARE DELIBERATELY NOT PRICED. Both render "Confirm in MIS":
- *   COM-1-1-E-166  both rows carry price 0 and ecf 0. Zero is not a price; MIS has
- *                  no figure for this crypt.
- *   COM-1-1-A-183  both rows carry 12497.5 — a half-dollar amount no list price in
- *                  this building has, and exactly half of $24,995. It is the ONE
- *                  unit where MIS split a unit price across its two space records
- *                  instead of stamping it. $24,995 is the obvious reading and is
- *                  NOT shipped: deriving a five-figure price from an anomaly is
- *                  precisely what this file refused to do with the 4px sheet.
+ * ── THE AVAILABILITY RULE (operator, 2026-08-01, binding) ────────────────────
+ *   "yes all 379 are available as long as a price is attached to it that is
+ *    greater than 0."
+ *
+ * So a unit renders AVAILABLE if and only if MIS says Available AND it carries a
+ * unit price > 0. Both halves are required; neither alone is enough. This is the
+ * rule, not a description of the current data — verify_com_map.mjs enforces it over
+ * every unit, so a future re-import cannot put a priceless crypt on the market.
+ *
+ * It decides the two units the export could not price straightforwardly, and it
+ * decides them in OPPOSITE directions:
+ *
+ *   COM-1-1-E-166  NOT OFFERED. Both rows carry price 0 and ecf 0, and zero is not
+ *                  a price greater than zero. MIS calls the space Available; this
+ *                  map does not, because there is nothing to sell it at. It takes
+ *                  the `unpriced` status, renders in the unsellable family with no
+ *                  figure, and does NOT count in the available histogram. Its card
+ *                  says exactly what is true: MIS lists it as available but carries
+ *                  no price — confirm in MIS before offering it.
+ *
+ *   COM-1-1-A-183  AVAILABLE at $24,995. Both rows carry 12497.5, and 12497.5 IS a
+ *                  price greater than zero, so the rule puts the unit on the market.
+ *                  This is the ONE unit where MIS SPLIT a unit price across its two
+ *                  space records instead of STAMPING it on both (see the derivation
+ *                  above), so the unit price is their SUM, 2 x 12497.5 = $24,995 —
+ *                  not 12497.5, which is half a crypt and a half-dollar amount no
+ *                  list price in this building has. $24,995 also equals the tier-D
+ *                  hidden companion in the same bank, and bank 173-178 shows the
+ *                  same tier A = tier D shape.
+ *
+ *                  PRICED BY SUMMATION IS AN EXCEPTION OF EXACTLY ONE UNIT. Every
+ *                  other multi-row unit is priced by the stamped value and summing
+ *                  it would DOUBLE the price. The gate asserts this by ref, so the
+ *                  exception cannot silently generalise to a second unit.
  *
  * Prices are HAND-MAINTAINED from here, exactly like the statuses: nothing re-reads
  * MIS, so a price change after 8/1/2026 is invisible until someone re-runs the export.
@@ -181,11 +207,13 @@ export const PRICES = {
   rows: 695,            // data rows in the export
   posRows: 530,         // rows carrying an (A)/(B) tandem position suffix
   spaceRows: 165,       // rows carrying no suffix — one per space number
-  unitsCovered: 379,    // = every unit this file calls `available`
-  unitsPriced: 377,
-  unitsUnpriced: 2,     // COM-1-1-E-166 (MIS price 0), COM-1-1-A-183 (half-dollar split)
-  distinctPrices: 29,
-  availableValue: 9111510,   // sum of the 377 shipped unit prices
+  unitsCovered: 375,    // rows in the export land on 375 MIS-Available UNITS (379 before
+                        // tier G of bank 116-123 became 4 companion pairs, not 8 singles)...
+  unitsOffered: 374,    // ...of which 374 clear the price > 0 rule and render available
+  unitsNotOffered: 1,   // COM-1-1-E-166, MIS price 0 — see the availability rule above
+  unitsSummed: 1,       // COM-1-1-A-183, the single split-row unit priced by summation
+  distinctPrices: 29,   // $24,995 already existed, so summing A-183 adds no new value
+  availableValue: 8952545,   // sum of the 374 shipped unit prices
   ECF_RATE: 0.1,        // the export's own `ecf` column: 10% of price on every row
 };
 
@@ -212,19 +240,84 @@ export const PRICE_BANDS = [
 ];
 export const priceBand = (p) => PRICE_BANDS.find((b) => p >= b.lo && p <= b.hi);
 
+/**
+ * The two units the availability rule decides, named so the gate can pin them by ref
+ * instead of by count. A count would let a SECOND summed unit or a SECOND priceless
+ * one appear as long as one of these was fixed; pinning the refs will not.
+ */
+/**
+ * BANK 116-123, TIER G — the sheet drew it wrong and the operator corrected it.
+ *
+ * The 2026-07-29 crypt sheet draws tier G of this bank as EIGHT separate single-space
+ * cells, and this file transcribed what was drawn. Two things then disagreed with it:
+ *
+ *   1. The MIS price export stamps $45,990 on each of the eight spaces. Read as eight
+ *      singles that is a $45,990 SINGLE crypt sitting directly above $51,990 PAIRS at
+ *      tier F — i.e. a single costing 88% of a two-space companion, and a per-space
+ *      price of $45,990 against tier F's $25,995. Read as four pairs the bank reads
+ *      G $45,990 < F $51,990 < E $55,990 < D $61,990 = A $61,990: one clean ladder.
+ *   2. Every other tier of this bank is companion pairs on the same eight columns.
+ *
+ * OPERATOR RULING, 2026-08-01, verbatim: "4 companion pairs." So tier G is FOUR
+ * two-column companion units, and the sheet's eight drawn cells are wrong.
+ *
+ * PAIRING AND TYPE come from the bank's own `segs` header — [[116,117,deluxe],
+ * [118,121,hidden],[122,123,deluxe]] — which is the same source that types tiers F, E,
+ * D and A, and which pairs them identically. So tier G is 116+117 Deluxe Companion,
+ * 118+119 and 120+121 Hidden Companion, 122+123 Deluxe Companion. Nothing here is
+ * invented: the pairing is the header's, the types are the header's, and the tier now
+ * matches the four tiers below it column for column.
+ *
+ * PRICE IS STAMPED, NOT SUMMED, like every other multi-row unit in this file: the pair
+ * price is $45,990, not 2 x $45,990. Capacity is 2 entombments, as for any companion.
+ */
+export const TIER_G_116_123 = {
+  sheetDrew: '8 single crypts',
+  operatorRuled: '4 companion pairs (2026-08-01)',
+  units: 4,
+  spaces: 8,
+  unitPrice: 45990,
+  pairs: [[116, 117], [118, 119], [120, 121], [122, 123]],
+  types: ['deluxe', 'hidden', 'hidden', 'deluxe'],   // from BANKS['116-123'].segs
+};
+
+export const PRICE_EXCEPTIONS = {
+  // Priced by SUMMING its two split rows. Exactly one unit, ever.
+  summed: { ref: 'COM-1-1-A-183', rows: [12497.5, 12497.5], price: 24995 },
+  // MIS says Available but carries no price, so this map does not offer it.
+  notOffered: { ref: 'COM-1-1-E-166', misPrice: 0, status: 'unpriced' },
+};
+
 // ── Fees ──────────────────────────────────────────────────────────────────────
 /**
- * Crypt fee box. RECORDING and VASE are read off COM Maus Crypts.png. The sheet's
- * other two rows printed as ######## (column too narrow) and were carried here as
- * OMITTED_FEES; the operator settled both on 2026-08-01, verbatim:
+ * Crypt fee box. THE QUOTE TOOL IS THE SOURCE for recording, opening & closing and
+ * the monobar; only VASE is still read off the sheet (COM Maus Crypts.png). The
+ * sheet's recording row was legible at $225 and its O&C and monobar rows printed as
+ * ######## (column too narrow) and were carried here as OMITTED_FEES. The operator
+ * settled all three across two rulings on 2026-08-01, verbatim:
  *
  *   "here all the crypt prices for the chapel of memories. the only other cost is
  *    the crypt monobar price which lives in the quote tool."
+ *   "opening and clsoing and recording fee prices need to be taken from the quote
+ *    tool as well."
  *
- * So:
- *  - the illegible OPEN & CLOSING row is NOT a crypt cost. No O&C is quoted on a
- *    crypt card, and OMITTED_FEES is gone.
- *  - the illegible MONOBAR row is sourced FROM THE QUOTE TOOL, which the ruling
+ * The second ruling SUPERSEDES the first reading of the first. On 2026-08-01 this
+ * file briefly recorded "a crypt carries no O&C" — that inference from "the only
+ * other cost" was wrong, and it is corrected here: crypts DO carry an opening &
+ * closing, and it comes from the tool like the rest. The crypt sheet's fee box is
+ * SUPERSEDED except for the vase.
+ *
+ * Every figure below that comes from the tool, with where it is written down:
+ *      RECORDING        index.html BW_FEES key 'RECORDING:all' = 235, generated from
+ *                       data/prices.json. SUPERSEDES the $225 the crypt sheet printed
+ *                       (this file carried 225 until the 2026-08-01 ruling). The tool
+ *                       quotes it as "Recording Fee – Entombment".
+ *      OC               index.html BW_FEES key 'OC:mausoleum_entombment' = 1205, from
+ *                       data/prices.json, quoted by the tool as "Mausoleum Entombment
+ *                       O&C" on both its Indoor and Outdoor Mausoleum arrangements.
+ *                       This is a DIFFERENT fee from the glass-front niche O&C of $875
+ *                       in NICHE_FEES, and the two must never be interchanged.
+ *  - the MONOBAR rows are sourced FROM THE QUOTE TOOL too, which the ruling
  *    names and which is the only place those two figures are written down:
  *      MONOBAR          index.html's BW_FEES key 'MONOBAR:crypt' = 1445, generated
  *                       from data/prices.json (source: CRYPTS - ETERNAL LIGHT
@@ -236,24 +329,28 @@ export const priceBand = (p) => PRICE_BANDS.find((b) => p >= b.lo && p <= b.hi);
  *                       note reads "The workbook prints 215. The tool quotes 225 and
  *                       is correct." This file used to carry the workbook's 215; it
  *                       now follows the tool, as the ruling directs.
- * The tool sells the two as ONE optional add-on at one quantity (its "Indoor
+ * The tool sells the monobar as ONE optional add-on at one quantity (its "Indoor
  * Mausoleum Arrangement" checkbox), billed as two taxable lines. The card mirrors
- * that framing exactly: optional, one quantity, two lines.
+ * that framing exactly: optional, one quantity, two lines. Recording and O&C are not
+ * optional and are not a quantity — the card applies each once, as the tool does per
+ * arrangement.
  *
- * OPEN QUESTION, flagged rather than silently resolved: index.html's indoor-mausoleum
- * arrangement ALSO charges Recording $235 (RECORDING:all) and Mausoleum Entombment
- * O&C $1,205 (OC:mausoleum_entombment). The ruling says the monobar is the only other
- * cost, and the crypt sheet's own recording row prints $225, so this card quotes $225
- * and no O&C. Only MIS can settle whether an entombment O&C belongs on a crypt
- * purchase and which recording figure is current.
+ * WHAT IS STILL THE SHEET'S: the vase only. And the E.C.F., which the MIS price export
+ * carries in its own `ecf` column at 10% of price and which agrees with the sheet.
  */
 export const CRYPT_FEES = {
-  RECORDING: 225,
+  RECORDING: 235,
+  OC: 1205,
   MONOBAR: 1445,
   MONOBAR_INSTALL: 225,
   VASE: 415,
   ECF_RATE: 0.1,
 };
+/**
+ * Where each crypt fee came from, rendered on the page so a counselor reading a total
+ * can see which book it was priced out of without opening this file.
+ */
+export const CRYPT_FEE_SOURCE = 'Recording, opening & closing and monobar come from the quote tool (operator, 2026-08-01); the crypt sheet’s fee box is superseded. The vase is the sheet’s.';
 // Radiance / Serenity fee box — both walls are GLASS-FRONT, so they carry the uniform
 // glass-front schedule, not the figures printed on their own wall sheets ($835 / $225).
 // OPERATOR RULING, Map Issues 07.31.26: "All glass front niches should have the same
@@ -261,7 +358,18 @@ export const CRYPT_FEES = {
 // recording fee is 235 same 10% ecf applies." No inscription fee, and no sales tax —
 // the tax exception is ECL's bronze add-ons only, which these walls do not offer.
 // This schedule must never be applied to the COM CRYPTS above (CRYPT_FEES) — crypts are
-// a different product with their own, unchanged fee box.
+// a different product with their own fee box.
+//
+// AND THE MIRROR, operator 2026-08-01 (binding): the ruling that recording and opening &
+// closing "need to be taken from the quote tool as well" — the one that moved CRYPT_FEES
+// to $235 / $1,205 — "only applies to the crypts not the niches." So NICHE_FEES is
+// UNCHANGED by that ruling and stays exactly as the 2026-07-31 glass-front ruling set it:
+// O&C $875, recording $235, 10% E.C.F., no inscription, no tax. The two schedules move
+// independently in BOTH directions, and verify_com_map.mjs asserts it both ways.
+//
+// The recording fees coinciding at $235 is not a shared value — it is two books that
+// happen to agree. The tell that they are separate is the O&C: $1,205 to entomb in a
+// crypt, $875 to inurn in a glass-front niche. Never interchange them.
 export const NICHE_FEES = { OC: 875, RECORDING: 235, ECF_RATE: 0.1 };
 export const NICHE_PRICES_EFFECTIVE = 'Prices effective January 13, 2025';
 
@@ -689,14 +797,13 @@ export const UNITS = [
   ['111-115', 'A', [113], 'tandem', 'reserved', null],
   ['111-115', 'A', [114], 'tandem', 'reserved', null],
   ['111-115', 'A', [115], 'tandem', 'available', 30995],
-  ['116-123', 'G', [116], 'single', 'available', 45990],
-  ['116-123', 'G', [117], 'single', 'available', 45990],
-  ['116-123', 'G', [118], 'single', 'available', 45990],
-  ['116-123', 'G', [119], 'single', 'available', 45990],
-  ['116-123', 'G', [120], 'single', 'available', 45990],
-  ['116-123', 'G', [121], 'single', 'available', 45990],
-  ['116-123', 'G', [122], 'single', 'available', 45990],
-  ['116-123', 'G', [123], 'single', 'available', 45990],
+  // OPERATOR OVERRIDE 2026-08-01 — see TIER_G_116_123 below. The sheet drew tier G of
+  // this bank as EIGHT single crypts; it is FOUR companion pairs, paired and typed by
+  // the bank's own segment header, exactly like tiers F/E/D/A below them.
+  ['116-123', 'G', [116, 117], 'deluxe', 'available', 45990],
+  ['116-123', 'G', [118, 119], 'hidden', 'available', 45990],
+  ['116-123', 'G', [120, 121], 'hidden', 'available', 45990],
+  ['116-123', 'G', [122, 123], 'deluxe', 'available', 45990],
   ['116-123', 'F', [116, 117], 'deluxe', 'available', 51990],
   ['116-123', 'F', [118, 119], 'hidden', 'available', 51990],
   ['116-123', 'F', [120, 121], 'hidden', 'available', 51990],
@@ -953,7 +1060,7 @@ export const UNITS = [
   ['159-167', 'E', [163], 'tandem', 'reserved', null],
   ['159-167', 'E', [164], 'tandem', 'reserved', null],
   ['159-167', 'E', [165], 'tandem', 'reserved', null],
-  ['159-167', 'E', [166], 'tandem', 'available', null],
+  ['159-167', 'E', [166], 'tandem', 'unpriced', null],   // MIS price 0 — see PRICE_EXCEPTIONS
   ['159-167', 'E', [167], 'tandem', 'reserved', null],
   ['159-167', 'D', [159], 'tandem', 'reserved', null],
   ['159-167', 'D', [160], 'tandem', 'occupied', null],
@@ -1095,7 +1202,7 @@ export const UNITS = [
   ['179-184', 'A', [179, 180], 'hidden', 'occupied', null],
   ['179-184', 'A', [181], 'single', 'reserved', null],
   ['179-184', 'A', [182], 'single', 'occupied', null],
-  ['179-184', 'A', [183, 184], 'hidden', 'available', null],
+  ['179-184', 'A', [183, 184], 'hidden', 'available', 24995],  // summed, see PRICE_EXCEPTIONS
   ['185-191', 'G', [185], 'tandem', 'reserved', null],
   ['185-191', 'G', [186], 'tandem', 'available', 22995],
   ['185-191', 'G', [187], 'tandem', 'available', 22995],

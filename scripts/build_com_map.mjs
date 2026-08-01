@@ -28,7 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, MIS, CRYPT_FEES, NICHE_FEES,
-  PRICES, PRICE_BANDS, priceBand,
+  PRICES, PRICE_BANDS, priceBand, CRYPT_FEE_SOURCE,
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
   ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
@@ -97,8 +97,16 @@ function cryptAttrs(u) {
     + ` data-tier="${u.tier}" data-cols="${u.cols.join('/')}" data-type="${u.type}" data-st="${u.st}"`
     + (cryptPrice(u) == null ? '' : ` data-price="${cryptPrice(u)}"`);
 }
-/** The one place "does this unit show money?" is decided. */
-const cryptPrice = (u) => (u.st === 'available' && u.p != null ? u.p : null);
+/**
+ * The one place "does this unit show money?" is decided, and the one place the
+ * operator's availability rule is applied on the render side: "yes all 379 are
+ * available as long as a price is attached to it that is greater than 0."
+ * A unit with no price, or a price of zero, has no business rendering a figure —
+ * and by the same rule it has no business rendering as available either, which is
+ * why COM-1-1-E-166 carries the `unpriced` status in the data instead of a special
+ * case here. This stays as a belt-and-braces guard.
+ */
+const cryptPrice = (u) => (u.st === 'available' && u.p > 0 ? u.p : null);
 const priceChip = (u, cls) => {
   const p = cryptPrice(u);
   return p == null ? '' : `<span class="${cls} ${priceBand(p).c}">${money(p)}</span>`;
@@ -121,6 +129,8 @@ const CRYPT_BADGE = {
   reserved: '<span class="cstat cs-r">Reserved</span>',
   blocked: '<span class="cstat cs-x">Not selling</span>',
   unlisted: '<span class="cstat cs-u">Confirm</span>',
+  // MIS says Available but attaches no price, so it is not on the market here.
+  unpriced: '<span class="cstat cs-u">No price</span>',
 };
 
 // ── flat per-bank grid (screen + print) ───────────────────────────────────────
@@ -552,7 +562,7 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\
                    walls are still sheet-derived and keep the old class.
      reserved and unlisted share a stripe angle, so their BADGES carry the
      distinction at cell scale ("Reserved" vs "Confirm") and their cards differ. ── */
-  .st-unavailable,.st-unlisted{background:
+  .st-unavailable,.st-unlisted,.st-unpriced{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 4px,rgba(255,255,255,0) 4px 9px),
       linear-gradient(180deg,#3a3833 0%,#25231f 100%)!important;color:#cfccc5;}
   .st-reserved{background:
@@ -843,7 +853,7 @@ const STOP_ORDER = JSON.stringify(STOPS.map((s) => s.id));
 
 const JS = `
 'use strict';
-var REC = ${CRYPT_FEES.RECORDING}, MB = ${CRYPT_FEES.MONOBAR}, MBI = ${CRYPT_FEES.MONOBAR_INSTALL}, VASE = ${CRYPT_FEES.VASE};
+var REC = ${CRYPT_FEES.RECORDING}, OC = ${CRYPT_FEES.OC}, MB = ${CRYPT_FEES.MONOBAR}, MBI = ${CRYPT_FEES.MONOBAR_INSTALL}, VASE = ${CRYPT_FEES.VASE};
 var N_OC = ${NICHE_FEES.OC}, N_REC = ${NICHE_FEES.RECORDING};
 var ECF_RATE = ${CRYPT_FEES.ECF_RATE};
 var TYPE_LABEL = ${JSON.stringify(TYPE_LABEL)};
@@ -873,7 +883,8 @@ var ST_NOTE = {
   occupied: 'Occupied \\u2014 an interment is recorded at this crypt in the MIS lot inquiry list printed ' + MIS_PRINTED + '. Not sellable. No pricing shown.',
   reserved: 'Reserved \\u2014 held for an owner in MIS as of ' + MIS_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
   blocked: 'Marked NOT FOR SALE in MIS \\u2014 this crypt is withheld from sale. No pricing shown.',
-  unlisted: 'Unavailable \\u2014 confirm in MIS. The crypt sheet marked it NOT SELLING and the MIS lot inquiry list does not carry it at all, so there is no positive statement that it is for sale. No pricing shown.'
+  unlisted: 'Unavailable \\u2014 confirm in MIS. The crypt sheet marked it NOT SELLING and the MIS lot inquiry list does not carry it at all, so there is no positive statement that it is for sale. No pricing shown.',
+  unpriced: 'Not offered \\u2014 MIS lists this crypt as AVAILABLE on ' + MIS_PRINTED + ' but carries NO PRICE for it (the price and E.C.F. fields are both zero). A crypt is only on the market here when a price greater than zero is attached to it, so nothing is quoted and no total is shown. Confirm in MIS before offering it.'
 };
 
 function cryptCard(d) {
@@ -887,22 +898,27 @@ function cryptCard(d) {
     h += '<div class="cnote">' + (ST_NOTE[d.st] || ST_NOTE.unlisted) + '</div>';
     return h;
   }
-  // AVAILABLE. Card math, per the operator ruling of 2026-08-01: crypt price, its 10%
-  // E.C.F., the $225 recording fee, and the monobar if the counselor adds one. There is
-  // deliberately NO opening-and-closing line \u2014 "the only other cost is the crypt
-  // monobar price". Two available crypts have no price in MIS and say so.
+  // AVAILABLE. Card math, per the two operator rulings of 2026-08-01: crypt price, its
+  // exact 10% E.C.F., and then the fees THE QUOTE TOOL carries \u2014 recording $235,
+  // mausoleum entombment O&C $1,205, and the monobar if the counselor adds one.
+  // "opening and clsoing and recording fee prices need to be taken from the quote tool
+  //  as well." The crypt sheet's own $225 recording row is superseded, and the earlier
+  // reading that a crypt carries no O&C is withdrawn: it carries the tool's $1,205.
+  // Two available crypts have no price in MIS and say so.
   var price = d.price ? +d.price : null;
   if (price === null) {
     h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">Confirm in MIS</span></div>';
     h += '<div class="cr"><span class="cl">E.C.F.</span><span class="cv">10% of price</span></div>';
     h += '<div class="cr"><span class="cl">Recording Fee</span><span class="cv">' + fm(REC) + '</span></div>';
+    h += '<div class="cr"><span class="cl">Entombment O&amp;C</span><span class="cv">' + fm(OC) + '</span></div>';
     h += '<div class="cnote">MIS lists this crypt as AVAILABLE on ' + MIS_PRINTED + ' but carries no usable price for it \\u2014 read the figure from MIS before quoting. No total is shown here rather than a guessed one.</div>';
     return h;
   }
-  var e = Math.round(price * 10) / 100, tot = price + e + REC;
+  var e = Math.round(price * 10) / 100, tot = price + e + REC + OC;
   h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">' + fm(price) + '</span></div>';
   h += '<div class="cr"><span class="cl">E.C.F. (10%)</span><span class="cv">' + fm(e) + '</span></div>';
   h += '<div class="cr"><span class="cl">Recording Fee</span><span class="cv">' + fm(REC) + '</span></div>';
+  h += '<div class="cr"><span class="cl">Entombment O&amp;C</span><span class="cv">' + fm(OC) + '</span></div>';
   var mq = qty('mb-qty'), vq = qty('vase-qty');
   if (mq > 0) {
     h += '<div class="cr"><span class="cl">Monobar Memorial \\u00d7' + mq + '</span><span class="cv">' + fm(MB * mq) + '</span></div>';
@@ -914,7 +930,7 @@ function cryptCard(d) {
     tot += VASE * vq;
   }
   h += '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(tot) + '</span></div>';
-  h += '<div class="cnote">MIS listed this crypt as AVAILABLE and priced it on ' + MIS_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. No opening &amp; closing is quoted on a crypt. Always confirm status and price in MIS before writing.</div>';
+  h += '<div class="cnote">MIS listed this crypt as AVAILABLE and priced it on ' + MIS_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are the QUOTE TOOL\\u2019s figures (operator, ' + MIS_PRINTED + '), not the crypt sheet\\u2019s. Always confirm status and price in MIS before writing.</div>';
   return h;
 }
 
@@ -1358,6 +1374,7 @@ const N_BLOCK = units.filter((u) => u.st === 'blocked').length;
 const N_OCC = units.filter((u) => u.st === 'occupied').length;
 const N_RES = units.filter((u) => u.st === 'reserved').length;
 const N_UNL = units.filter((u) => u.st === 'unlisted').length;
+const N_NOPRICE = units.filter((u) => u.st === 'unpriced').length;
 const niches = allNiches();
 const N_NICHE = niches.length;
 const N_NAVAIL = niches.filter((n) => n.st === 'available').length;
@@ -1369,6 +1386,7 @@ const LEGEND = `<div class="legend">
       <div class="li"><div class="ls lg-o"></div><span>Occupied — interment recorded</span></div>
       <div class="li"><div class="ls lg-x"></div><span>Not Selling</span></div>
       <div class="li"><div class="ls lg-u"></div><span>Unavailable — confirm in MIS</span></div>
+      <div class="li"><div class="ls lg-u"></div><span>Not offered — no price in MIS</span></div>
       <div class="li"><div class="ls lg-v"></div><span>Empty area — no crypts</span></div>
     </div>`;
 
@@ -1382,10 +1400,11 @@ ${PRICE_BANDS.map((b) => `      <div class="pli"><div class="pls ${b.c}"></div><
 const WARN = `<div class="warn">
     <b>Crypt prices come from MIS and are exact.</b> Every available crypt shows the price
     MIS carried on ${PRICES.exported} (${PRICES.rows.toLocaleString('en-US')} priced positions over
-    ${PRICES.unitsCovered} available units), and a tandem or companion crypt is ONE unit at ONE
+    ${PRICES.unitsCovered} MIS-available units), and a tandem or companion crypt is ONE unit at ONE
     price \u2014 never split, never doubled. Nothing is rounded.
-    <b>${PRICES.unitsUnpriced} available crypts carry no price in MIS</b> and say
-    &ldquo;Confirm in MIS&rdquo; instead of a figure. The
+    <b>A crypt is offered here only when a price greater than zero is attached to it</b>
+    (operator, ${PRICES.exported}), so ${PRICES.unitsNotOffered} of those ${PRICES.unitsCovered} is marked
+    <b>Not Offered</b>: MIS calls it available but carries no price for it. The
     <b>Radiance and Serenity niche-wall prices</b> are from their own 2026-07-29 wall sheets.
     Nothing unsellable shows money anywhere on this page.
     ${PRICE_LEGEND}
@@ -1449,7 +1468,8 @@ ${overviewView()}
   ${WARN}
 
   <div class="fees">
-    <div class="fi"><span class="fl">Recording Fee — ${money(CRYPT_FEES.RECORDING)}</span><span class="fv">applies to every crypt</span></div>
+    <div class="fi"><span class="fl">Recording Fee — ${money(CRYPT_FEES.RECORDING)}</span><span class="fv">applies to every crypt · quote tool</span></div>
+    <div class="fi"><span class="fl">Entombment O&amp;C — ${money(CRYPT_FEES.OC)}</span><span class="fv">applies to every crypt · quote tool</span></div>
     <div class="fi"><span class="fl">Monobar — ${money(CRYPT_FEES.MONOBAR + CRYPT_FEES.MONOBAR_INSTALL)} ea</span>
       <span class="fv">${money(CRYPT_FEES.MONOBAR)} memorial + ${money(CRYPT_FEES.MONOBAR_INSTALL)} install ·
       Qty: <input type="number" id="mb-qty" min="0" max="4" value="0" aria-label="Monobar quantity"></span></div>
@@ -1464,14 +1484,14 @@ ${overviewView()}
       <span class="fv">none — glass-front niches carry no inscription fee</span></div>
     <div class="fi"><span class="fl">Niche Sales Tax</span>
       <span class="fv">none — glass-front niches are not taxed</span></div>
-    <div class="fi"><span class="fl">Crypt Open &amp; Closing</span>
-      <span class="fv">none — a crypt carries no O&amp;C (operator, ${PRICES.exported})</span></div>
+    <div class="fi"><span class="fl">Crypt fee source</span>
+      <span class="fv">${esc(CRYPT_FEE_SOURCE)}</span></div>
   </div>
   <div class="pfoot">
     <b>Tier G is the top row, tier A the bottom. Space numbers run 101–231 around the building.</b><br>
     A tandem or companion is ONE purchasable unit at one price and is never split.<br>
-    ${N_AVAIL} crypt units available, ${money(AVAIL_VALUE)} listed over ${N_PRICED} of them &nbsp;·&nbsp;
-    ${N_AVAIL - N_PRICED} available with no price in MIS &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
+    ${N_AVAIL} crypt units available, ${money(AVAIL_VALUE)} listed &nbsp;·&nbsp;
+    ${N_NOPRICE} not offered (MIS available, no price) &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
     ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — confirm in MIS &nbsp;·&nbsp;
     ${N_NAVAIL} niches available, ${money(NICHE_VALUE)} listed &nbsp;·&nbsp; ${esc(NICHE_PRICES_EFFECTIVE)}<br>
     Crypt availability comes from the MIS Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces) and crypt PRICES from the MIS crypt-price export of ${PRICES.exported} (${PRICES.rows} priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — always confirm current status and price in MIS before writing.
