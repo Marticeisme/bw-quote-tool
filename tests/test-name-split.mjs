@@ -10,6 +10,7 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { BASE } from './_base.mjs';
 
 const SYNTHETIC = {
   LABEL: 'synthetic',
@@ -91,7 +92,7 @@ page.on('pageerror', e => errs.push(e.message));
 page.on('dialog', async d => { if (d.type() === 'prompt') await d.accept('T'); else await d.accept(); });
 await page.addInitScript(FAKE);
 await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
-await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
+await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
 await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
 await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 

@@ -24,6 +24,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 const NEW_RECORDING = 999;
@@ -87,7 +88,6 @@ try {
   // this tree. Without it, a server rooted elsewhere served its own index.html in place of
   // the test page (dev-server's old unconditional SPA fallback) and every browser read
   // below reported stale prices — burned sprint-08 Track H and sprint-09 Track C.
-  const BASE = 'http://localhost:' + (process.env.PORT || 3737) + '/';
   const servedRes = await fetch(BASE + TEST_PAGE, { cache: 'no-store' });
   const servedSha = servedRes.ok
     ? crypto.createHash('sha256').update(Buffer.from(await servedRes.arrayBuffer())).digest('hex')

@@ -8,6 +8,7 @@
 // Fake Firebase only — production is never contacted.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
@@ -26,7 +27,7 @@ async function signedInAs(browser, handle) {
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(handle + '@bwquote.local')}, 'pw');`);
-  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.fill('#bwUser', handle);
   await page.fill('#bwPass', 'pw');
   await page.click('#bwGateBtn');

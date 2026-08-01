@@ -3,9 +3,10 @@
 // window.firebase is replaced before any page script runs.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
-const URL = 'http://localhost:' + (process.env.PORT || 3737) + '/';
+const URL = BASE;
 
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => {

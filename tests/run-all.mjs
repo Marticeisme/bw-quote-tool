@@ -1,7 +1,9 @@
 // Runs the whole verification suite. From the repo root: `npm test`
 //
 // Starts dev-server.mjs on $PORT (default 3737) if nothing is listening — or on a free
-// port when 3737 is owned by another tree's server — and stops it again afterwards
+// port when 3737 is owned by another tree's server — and stops it again afterwards.
+// `PORT=3747 npm test` runs everything on 3747; `BW_BASE=http://...:.../` pins the run to
+// an already-running server (verified, never rerouted). Suites read both via tests/_base.mjs.
 // (a zombie dev server from an earlier run produces phantom results, so this never
 // reuses a server it cannot account for — it only reuses one that already answers).
 //
@@ -15,12 +17,16 @@
 // nothing, and the run reported green. Silence is now a failure, not a pass.
 import { spawn } from 'child_process';
 import { assertServesThisTree } from '../scripts/served-tree-check.mjs';
+import { PORT as ENV_PORT, BASE as ENV_BASE } from './_base.mjs';
 import fs from 'fs';
 import net from 'net';
 import path from 'path';
 
 const ROOT = process.cwd();
-let PORT = parseInt(process.env.PORT, 10) || 3737;
+let PORT = ENV_PORT;
+let URL_ = ENV_BASE;
+// An explicit BW_BASE is a pin: verify it and use it, never silently go elsewhere.
+const PINNED = !!process.env.BW_BASE;
 const urlFor = (p) => 'http://localhost:' + p + '/';
 
 // An OS-assigned free port, for when 3737 is owned by another tree's server.
@@ -53,11 +59,11 @@ if (!fs.existsSync(path.join(ROOT, 'node_modules', 'playwright'))) {
   process.exit(2);
 }
 
-const up = async (p) => {
+const up = async (base) => {
   try {
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), 1500);
-    await fetch(urlFor(p), { signal: c.signal });
+    await fetch(base, { signal: c.signal });
     clearTimeout(t);
     return true;
   } catch { return false; }
@@ -68,7 +74,7 @@ const startOwn = async (p) => {
   server = spawn(process.execPath, ['dev-server.mjs'],
     { cwd: ROOT, stdio: 'ignore', env: { ...process.env, PORT: String(p) } });
   const started = Date.now();
-  while (!(await up(p))) {
+  while (!(await up(urlFor(p)))) {
     if (Date.now() - started > 20000) {
       console.error('dev-server did not come up on ' + p);
       server.kill();
@@ -78,30 +84,40 @@ const startOwn = async (p) => {
   }
 };
 
-if (await up(PORT)) {
+if (await up(URL_)) {
   // Reusing a server we did not start is only safe if it serves THIS tree. dev-server.mjs
   // serves the directory of the SCRIPT, so a server from another worktree answers here and
-  // the suite silently tests the wrong code. Hit on 2026-07-26, in both directions — and
-  // again on 2026-07-30/31 from worktrees at the SAME commit, where index.html bytes match
-  // but files this tree writes (index.prices-test.html) are invisible to the other server.
-  // When the check fails, don't die: this tree gets its own server on a free port.
+  // the suite silently tests the wrong code. Hit on 2026-07-26 in both directions, and again
+  // on 2026-07-31 in two forms: a scripts/-only change left index.html identical across
+  // trees, and two worktrees at the SAME commit are identical everywhere while files this
+  // tree writes (index.prices-test.html) stay invisible to the other server. The check now
+  // asks the server which tree it serves (/__served-tree), probes with a nonce file for
+  // older servers, and when it fails — and no BW_BASE pin says otherwise — this tree simply
+  // gets its own server on a free port.
   try {
-    await assertServesThisTree(urlFor(PORT), ROOT, 'npm test');
-    console.log('dev-server already listening on ' + PORT + ' (reusing, verified as this tree)\n');
+    await assertServesThisTree(URL_, ROOT, 'npm test');
+    console.log('dev-server already listening at ' + URL_ + ' (reusing, verified as this tree)\n');
   } catch (e) {
+    if (PINNED) throw e;
     console.log('the server on ' + PORT + ' is not this tree\'s — starting our own.\n(' +
       String(e.message).split('\n')[0] + ')\n');
     PORT = await freePort();
+    URL_ = urlFor(PORT);
     await startOwn(PORT);
     console.log('started this tree\'s dev-server on ' + PORT + '\n');
   }
 } else {
+  if (PINNED) {
+    console.error('BW_BASE=' + process.env.BW_BASE + ' does not answer; not starting a ' +
+      'server elsewhere for an explicitly pinned base.');
+    process.exit(2);
+  }
   await startOwn(PORT);
   console.log('started dev-server on ' + PORT + '\n');
 }
 
-// Every suite reads the port from the environment (default 3737), so the whole run —
-// including one rerouted to a free port above — drives one known-good server.
+// Every suite computes its base from the same variables (tests/_base.mjs), so the whole
+// run — including one rerouted to a free port above — drives one known-good server.
 process.env.PORT = String(PORT);
 
 const files = fs.readdirSync(path.join(ROOT, 'tests'))

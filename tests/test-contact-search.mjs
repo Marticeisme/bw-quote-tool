@@ -12,6 +12,7 @@
 // if the serialiser dropped every filter it was given.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
@@ -116,7 +117,7 @@ async function open(browser, hash) {
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');
     window.__fake.seed(${JSON.stringify(SEED)});`);
-  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE + (hash || ''), { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForFunction(() => typeof _parties !== 'undefined' && _parties.length === 13, { timeout: 20000 });

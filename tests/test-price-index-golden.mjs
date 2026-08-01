@@ -20,6 +20,7 @@
 // Fake Firebase only; production is never contacted.
 import { chromium } from 'playwright';
 import fs from 'fs';
+import { BASE } from './_base.mjs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 const GOLDEN = JSON.parse(fs.readFileSync('tests/fixtures/price-index-golden.json', 'utf8'));
@@ -39,7 +40,7 @@ page.on('pageerror', (e) => errs.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push(m.text().slice(0, 200)); });
 await page.addInitScript(FAKE);
 await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
-await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
+await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
 await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
 await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 await page.waitForTimeout(250);
