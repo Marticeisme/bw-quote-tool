@@ -9,13 +9,23 @@
  * nothing about the controls — so the drag test asserts against the live camera matrix that
  * the page exposes as `window.bwWalkthrough.view`.
  *
+ * It also serves the asset the way PRODUCTION does. GitHub Pages gzips the .splat, so the
+ * Content-Length header is the COMPRESSED byte count; the dev server sends it uncompressed,
+ * where Content-Length happens to equal the decoded size. An earlier loader bug that derived
+ * a buffer size from that header was therefore invisible here and black on the live site. So
+ * the full render pass now runs behind a gzipping proxy, and the page must report a
+ * vertexCount that is exactly assetBytes/32 — a number it can only get by counting whole
+ * 32-byte rows off the wire. A short second pass re-checks the uncompressed path.
+ *
  * Screenshots for a human to LOOK at are written to scratch/splat/shots/ (gitignored).
  *
  *   node scripts/verify_com_walkthrough.mjs
  */
 import fs from 'node:fs';
 import net from 'node:net';
+import http from 'node:http';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -36,6 +46,45 @@ const freePort = () => new Promise((res, rej) => {
   const s = net.createServer();
   s.on('error', rej);
   s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); });
+});
+
+/**
+ * Production-shaped front end for the dev server: everything is passed through untouched
+ * except the .splat, which is gzipped with `Content-Encoding: gzip` and a `Content-Length`
+ * equal to the COMPRESSED size — exactly what GitHub Pages sends.
+ */
+function startGzipProxy(upstreamPort, port) {
+  let cached = null;
+  const server = http.createServer(async (req, res) => {
+    try {
+      const up = await fetch(`http://127.0.0.1:${upstreamPort}${req.url}`);
+      const raw = Buffer.from(await up.arrayBuffer());
+      const headers = { 'Content-Type': up.headers.get('content-type') || 'application/octet-stream' };
+      let body = raw;
+      if (req.url.split('?')[0].endsWith('.splat')) {
+        body = cached ||= zlib.gzipSync(raw, { level: 6 });
+        headers['Content-Encoding'] = 'gzip';
+      }
+      headers['Content-Length'] = String(body.length);
+      res.writeHead(up.status, headers);
+      res.end(body);
+    } catch (e) {
+      res.writeHead(502);
+      res.end(String(e));
+    }
+  });
+  return new Promise((r) => server.listen(port, '127.0.0.1', () => r(server)));
+}
+
+/** What the page says it loaded, and how the asset actually arrived over the wire. */
+const loadFacts = (page) => page.evaluate(() => {
+  const e = performance.getEntriesByType('resource').find((r) => r.name.endsWith('.splat'));
+  return {
+    vertexCount: window.bwWalkthrough?.vertexCount ?? null,
+    bytesRead: window.bwWalkthrough?.bytesRead ?? null,
+    transferSize: e ? e.transferSize : null,
+    decodedBodySize: e ? e.decodedBodySize : null,
+  };
 });
 
 // Named viewpoints, as camera-to-world matrices. Filled in from the trained scene; each is
@@ -83,8 +132,13 @@ async function pixelStats(page) {
   const server = spawn(process.execPath, [path.join(ROOT, 'dev-server.mjs')], {
     env: { ...process.env, PORT: String(port) }, stdio: 'ignore',
   });
-  const base = `http://127.0.0.1:${port}`;
+  const plainBase = `http://127.0.0.1:${port}`;
   await new Promise((r) => setTimeout(r, 700));
+
+  // The whole suite below runs production-shaped: the .splat arrives gzipped.
+  const proxyPort = await freePort();
+  const proxy = await startGzipProxy(port, proxyPort);
+  const base = `http://127.0.0.1:${proxyPort}`;
 
   const browser = await chromium.launch({
     args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
@@ -99,8 +153,10 @@ async function pixelStats(page) {
   page.on('requestfailed', (r) => errors.push(`request failed: ${r.url()}`));
 
   // The viewer creates its context without preserveDrawingBuffer, which would make
-  // readPixels return a cleared buffer. Force it on before any page script runs.
-  await page.addInitScript(() => {
+  // readPixels return a cleared buffer. Force it on before any page script runs — on the
+  // CONTEXT, so the second (uncompressed-transport) page gets it too. Adding it to the first
+  // page only made that page's readPixels honest and the second page's silently all-zero.
+  await ctx.addInitScript(() => {
     const orig = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type, attrs) {
       if (type === 'webgl2' || type === 'webgl') attrs = { ...(attrs || {}), preserveDrawingBuffer: true };
@@ -113,7 +169,7 @@ async function pixelStats(page) {
   if (path.resolve(served.servedTreeRoot) === ROOT) ok(`dev-server on ${port} serves this tree`);
   else fail(`dev-server serves ${served.servedTreeRoot}, not ${ROOT}`);
 
-  head('Page load and first render');
+  head('Page load and first render (asset served GZIPPED, as production does)');
   await page.goto(`${base}/${PAGE}`, { waitUntil: 'load' });
   await page.waitForFunction(
     () => document.getElementById('spinner')?.style.display === 'none',
@@ -124,6 +180,24 @@ async function pixelStats(page) {
   const msg = (await page.locator('#message').innerText()).trim();
   if (!msg) ok('no error message on the page');
   else fail(`page shows an error: ${msg}`);
+
+  // The reason this whole gzip apparatus exists. If any sizing still came from
+  // Content-Length, this is the number that would come back fractional or short.
+  head('Sizing comes from bytes received, not from Content-Length');
+  const gz = await loadFacts(page);
+  if (gz.transferSize !== null && gz.decodedBodySize === bytes && gz.transferSize < bytes) {
+    ok(`asset really arrived compressed: ${gz.transferSize} bytes on the wire, ${gz.decodedBodySize} decoded`);
+  } else {
+    fail(`asset did not arrive gzipped as production serves it: ${JSON.stringify(gz)} (asset is ${bytes} bytes)`);
+  }
+  const expectVerts = bytes / 32;
+  if (gz.vertexCount === expectVerts && Number.isInteger(gz.vertexCount)) {
+    ok(`page reports vertexCount ${gz.vertexCount} — exactly assetBytes/32, an integer`);
+  } else {
+    fail(`page reports vertexCount ${gz.vertexCount}, expected exactly ${expectVerts} (assetBytes/32)`);
+  }
+  if (gz.bytesRead === bytes) ok(`page read all ${gz.bytesRead} decoded bytes off the stream`);
+  else fail(`page read ${gz.bytesRead} bytes, expected ${bytes}`);
 
   fs.mkdirSync(SHOTS, { recursive: true });
 
@@ -199,17 +273,49 @@ async function pixelStats(page) {
   if (/href="MAPS\/COM_Walkthrough\.html"/.test(guides)) ok('guides.html has a walkthrough card');
   else fail('guides.html has no walkthrough card');
 
+  // The gzip path is the one production uses, but the uncompressed path is what anyone
+  // opening the file locally gets, and it must not regress either.
+  head('Uncompressed transport still renders');
+  const page2 = await ctx.newPage();
+  page2.on('pageerror', (e) => errors.push(`[plain] ${e}`));
+  page2.on('console', (m) => { if (m.type() === 'error') errors.push(`[plain] ${m.text()}`); });
+  await page2.goto(`${plainBase}/${PAGE}`, { waitUntil: 'load' });
+  await page2.waitForFunction(
+    () => document.getElementById('spinner')?.style.display === 'none',
+    null, { timeout: 120000 },
+  ).then(() => ok('uncompressed: loader finished (spinner hidden)'), () => fail('uncompressed: splat never finished loading'));
+  await page2.evaluate(() => new Promise((resolve) => {
+    let n = 0;
+    const tick = () => (++n >= 10 ? resolve(n) : requestAnimationFrame(tick));
+    requestAnimationFrame(tick);
+  }), { timeout: 180000 });
+  const plain = await loadFacts(page2);
+  if (plain.vertexCount === expectVerts && plain.transferSize >= bytes) {
+    ok(`uncompressed: ${plain.transferSize} bytes on the wire, vertexCount ${plain.vertexCount}`);
+  } else {
+    fail(`uncompressed: ${JSON.stringify(plain)}, expected vertexCount ${expectVerts} and an uncompressed transfer`);
+  }
+  const ps = await pixelStats(page2);
+  await page2.screenshot({ path: path.join(SHOTS, 'walkthrough-uncompressed.png'), timeout: 180000 });
+  const pdesc = `uncompressed: lit ${(ps.litFraction * 100).toFixed(1)}%, stdev ${ps.stdev.toFixed(1)}, ${ps.colours} distinct colours`;
+  if (ps.litFraction > 0.25 && ps.stdev > 12 && ps.colours > 60) ok(pdesc);
+  else fail(`${pdesc} — blank or near-flat over the uncompressed transport`);
+  await page2.close();
+
   head('Page errors');
   if (errors.length === 0) ok('zero page errors');
   else { fail(`${errors.length} page error(s):`); errors.slice(0, 8).forEach((e) => console.log(`        ${e}`)); }
 
   await browser.close();
+  proxy.close();
   server.kill();
 
   // A crashed/closed browser must never read as green: every run of this suite exercises
   // a fixed set of assertions, so a run that produced fewer than the floor bailed early
   // somewhere (SwiftShader crash, page closed, skipped loop) even if nothing threw.
-  const CHECK_FLOOR = 14;
+  // Raised from 14 when the gzip transport pass added three sizing checks and the
+  // uncompressed pass added three more.
+  const CHECK_FLOOR = 20;
   if (checks < CHECK_FLOOR) fail(`only ${checks} checks ran (floor ${CHECK_FLOOR}) — the suite bailed early`);
 
   console.log(`\nScreenshots: ${path.relative(ROOT, SHOTS)}`);
