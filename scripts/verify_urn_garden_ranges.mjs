@@ -297,13 +297,14 @@ console.log('\n=== SHEET vs data/prices.json ===');
 }
 
 // ── the rights band ──────────────────────────────────────────────────────────
-// The operator's slide, 2026-07-29: "1 OR 2 Rights Per Space". Asserted verbatim so it
-// cannot drift, and because index.html's own SECTION_SHAPES entry records the Lake Urn
-// Garden as capacity 1 (2026-07-27) — the two disagree and the operator's later slide
-// governs this page. Pinning the string makes the disagreement visible if either moves.
+// Operator ruling 2026-07-30, resolving the slide-vs-tool disagreement: "rose urn
+// garden is two rights the lug area is only one right per burial space but some of the
+// cremation posts are two rights." The page prints the per-space breakdown; index.html
+// keeps LUG capacity 1 (correct for burial spaces) and RUG now carries capacity 2.
+// Pinned verbatim so neither the page nor the ruling can drift silently.
 console.log('\n=== RIGHTS BAND ===');
 {
-  const want = '1 or 2 rights per space';
+  const want = '1 or 2 rights, by space';
   const got = tagged('data-rights', 'urn-garden');
   if (!got.length) fail('no element carries data-rights="urn-garden"');
   else for (const g of got) {
