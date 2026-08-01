@@ -7,9 +7,11 @@
  * print overview) agree with each other, that the build is deterministic, and that
  * NO money string is rendered for anything that is not an available niche.
  *
- * Sabotage-proven: `node scripts/verify_com_map.mjs --sabotage` runs three mutations
- * (a status flipped, a niche price moved to another valid row, a unit deleted) and
- * asserts the gate fails on each and passes again once restored.
+ * Sabotage-proven: `node scripts/verify_com_map.mjs --sabotage` mutates the data module
+ * once per run — an occupied / reserved / unlisted crypt flipped to available, two
+ * statuses swapped between positions, a re-parse that drops rows, a niche price moved
+ * to another valid row, a bank moved off its CAD line, a unit deleted — and asserts the
+ * gate fails on each and passes again once restored.
  *
  *   node scripts/verify_com_map.mjs
  */
@@ -21,7 +23,7 @@ import {
   BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
   PLAN_W, PLAN_H, COLW, TANDEM_DEPTH, SINGLE_DEPTH, bankDepth,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
-  NICHE_FEES, CRYPT_FEES,
+  NICHE_FEES, CRYPT_FEES, MIS, STATUS_LABEL,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -39,6 +41,23 @@ const A = {
   blocked: 18,
   unavailable: 716,
   voidSlots: 24,
+  // ── MIS-BACKED STATUS ANCHORS, replaced 2026-08-01 ──────────────────────────
+  // Old (sheet of 2026-07-29):  available 51 / blocked 18 / unavailable 716,
+  //                             cryptChecksum 374857 on weights {a:3,b:7,u:1}.
+  // New: every crypt status comes from the MIS Lot Inquiry List printed 8/1/2026,
+  // so `unavailable` splits into occupied / reserved / unlisted and 328 units MIS
+  // itself calls Available stop being hidden. Derived from the PARSE, not from the
+  // built page. Every non-status anchor in this file is byte-identical to before.
+  available: 379,
+  occupied: 229,
+  reserved: 156,
+  blocked: 3,
+  unlisted: 18,
+  // The data module stores status per UNIT, so a two-column companion crypt gives both
+  // its spaces the more-committed of the two MIS rows. 17 companion units hold one
+  // occupied space and one reserved space, which is why this differs from MIS.spaceStatus
+  // by exactly 17 in those two buckets and by zero everywhere else.
+  spaceHist: { available: 430, occupied: 261, reserved: 181, blocked: 3, unlisted: 18 },
   niches: 122,
   nichesAvail: 27,
   nicheValue: 233075,   // Radiance $156,115 + Serenity $76,960
@@ -52,8 +71,11 @@ const A = {
   serPerRow: { K: 6590, J: 14295, H: 29685, G: 16495, A: 9895 },
   radChecksum: 2596925,
   serChecksum: 2400750,
-  cryptChecksum: 374857,
+  cryptChecksum: 2439477,
 };
+// Position weights for the crypt status checksum. Five distinct values so that ANY
+// swap between two statuses at two positions changes the sum.
+const CW = { available: 3, unlisted: 5, blocked: 7, reserved: 11, occupied: 13 };
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -124,8 +146,14 @@ chk(cryptSpaces().length === A.spaces, `${A.spaces} crypt spaces = 131 columns x
 {
   const h = {};
   for (const u of units) h[u.st] = (h[u.st] || 0) + 1;
-  chk(h.available === A.available && h.blocked === A.blocked && h.unavailable === A.unavailable,
-    `crypt status histogram ${JSON.stringify(h)} matches the sheet (${A.available} available / ${A.blocked} not selling / ${A.unavailable} unavailable)`);
+  chk(h.available === A.available && h.occupied === A.occupied && h.reserved === A.reserved
+    && h.blocked === A.blocked && h.unlisted === A.unlisted && !h.unavailable,
+    `crypt status histogram ${JSON.stringify(h)} matches the MIS list (${A.available} available / ${A.reserved} reserved / ${A.occupied} occupied / ${A.blocked} not selling / ${A.unlisted} unlisted)`);
+  const sh = {};
+  for (const s of cryptSpaces()) sh[s.st] = (sh[s.st] || 0) + 1;
+  chk(JSON.stringify(Object.keys(A.spaceHist).sort().map((k) => [k, sh[k]]))
+    === JSON.stringify(Object.keys(A.spaceHist).sort().map((k) => [k, A.spaceHist[k]])),
+    `crypt SPACE status histogram ${JSON.stringify(sh)} matches the MIS list space by space`);
 }
 chk(niches.length === A.niches, `${A.niches} niches across the two walls (${niches.length})`);
 {
@@ -151,10 +179,58 @@ chk(niches.length === A.niches, `${A.niches} niches across the two walls (${nich
     for (const n of ns) ck += n.p * (1 + ROWS.indexOf(n.row) * 10 + n.col);
     chk(ck === wantCk, `${wid} position-weighted price checksum ${ck} (a price moved to another valid row breaks this)`);
   }
-  const W = { available: 3, blocked: 7, unavailable: 1 };
   let cc = 0, i = 0;
-  for (const u of units) { i++; cc = (cc + i * W[u.st]) % 1000000007; }
+  for (const u of units) { i++; cc = (cc + i * CW[u.st]) % 1000000007; }
   chk(cc === A.cryptChecksum, `crypt status position checksum ${cc} (a status moved between two units breaks this)`);
+}
+
+// ── 2b. The MIS list's own arithmetic ─────────────────────────────────────────
+// The source is E:\Downloads — local-only and full of real customer names, so it can
+// never be committed and this gate can never re-read it. What CAN be pinned is the
+// arithmetic the parse has to satisfy, written out as literals so a re-parse that
+// silently drops rows (the CSV export of the same list is famously malformed) cannot
+// be landed without these numbers moving too:
+//     printed Results (1355) - depth rows (480) == spaces MIS covers (875)
+//     spaces MIS covers      == every crypt space (893) - the unlisted 18
+//     the per-space histogram of MIS-derived statuses sums to the same 875
+console.log('\nMIS lot inquiry list arithmetic (printed ' + MIS.printed + ')');
+{
+  chk(MIS.resultRows === 1355 && MIS.criteria === 'Location = WMP, Section = COM',
+    `the list printed "Results: ${MIS.resultRows}" for ${MIS.criteria}`);
+  chk(MIS.resultRows - MIS.depthRows === MIS.spaces,
+    `${MIS.resultRows} rows less ${MIS.depthRows} extra depth rows ((B), (2nd), (3rd)) = ${MIS.spaces} distinct crypt spaces (${MIS.resultRows - MIS.depthRows})`);
+  const spaces = cryptSpaces();
+  const unlisted = spaces.filter((s) => s.st === 'unlisted').length;
+  chk(spaces.length - unlisted === MIS.spaces,
+    `the ${spaces.length} crypt spaces less the ${unlisted} the list does not carry = ${MIS.spaces} (${spaces.length - unlisted})`);
+  const sum = Object.values(MIS.spaceStatus).reduce((a, b) => a + b, 0);
+  chk(sum === MIS.spaces, `the per-space MIS status counts sum to ${MIS.spaces} (${sum})`);
+  // A companion crypt is ONE purchasable unit, so its two spaces take one status: the
+  // more committed of the two MIS rows. That, and only that, is why the rendered
+  // per-space counts differ from the parse — by exactly MIS.mergedSpaces, one way.
+  const live = {};
+  for (const s of spaces) if (s.st !== 'unlisted') live[s.st] = (live[s.st] || 0) + 1;
+  chk(live.available === MIS.spaceStatus.available && live.blocked === MIS.spaceStatus.blocked
+    && live.occupied === MIS.spaceStatus.occupied + MIS.mergedSpaces
+    && live.reserved === MIS.spaceStatus.reserved - MIS.mergedSpaces,
+    `the ${MIS.spaces} listed spaces render as ${JSON.stringify(live)} — the parse ${JSON.stringify(MIS.spaceStatus)} plus the ${MIS.mergedSpaces} reserved halves of a companion crypt whose other half is occupied`);
+  const merged = units.filter((u) => u.cols.length > 1 && u.st === 'occupied').length;
+  chk(merged >= MIS.mergedSpaces,
+    `at least ${MIS.mergedSpaces} occupied units are two-column companions (${merged})`);
+  chk(Object.values(MIS.blockedCodes).reduce((a, b) => a + b, 0) === MIS.spaceStatus.blocked,
+    `the two ST codes that collapse into "not selling" ${JSON.stringify(MIS.blockedCodes)} sum to ${MIS.spaceStatus.blocked}`);
+  chk(unlisted === A.unlisted && units.filter((u) => u.st === 'unlisted').length === A.unlisted,
+    `all ${A.unlisted} unlisted crypts are single-column units above the two EMPTY-AREA voids (${unlisted})`);
+  const stray = units.filter((u) => u.st === 'unlisted')
+    .filter((u) => !['E', 'F', 'G'].includes(u.tier) || u.cols.some((c) => c < 138 || c > 143))
+    .map((u) => u.ref);
+  chk(stray.length === 0,
+    `every unlisted crypt is tier E/F/G of columns 138-143${stray.length ? ': ' + stray.join(', ') : ''}`);
+  // The fail-safe the whole pass exists to enforce.
+  const sellableWithInterment = units.filter((u) => u.st === 'available'
+    && cryptSpaces().some((s) => u.cols.includes(s.col) && s.tier === u.tier && s.st !== 'available'));
+  chk(sellableWithInterment.length === 0,
+    `no unit is marked available while one of its spaces is occupied, reserved or withheld${sellableWithInterment.length ? ': ' + sellableWithInterment.slice(0, 5).map((u) => u.ref).join(', ') : ''}`);
 }
 
 // ── 3. Per-bank and per-column counts ─────────────────────────────────────────
@@ -524,8 +600,22 @@ if (process.argv.includes('--sabotage')) {
   console.log('\nSabotage (each mutation must make this gate exit 1)');
   const orig = fs.readFileSync(DATA, 'utf8');
   const runs = [
-    ['a status flipped: one unavailable crypt marked available',
-      (s) => s.replace("['101-110', 'G', [103], 'tandem', 'unavailable', null]", "['101-110', 'G', [103], 'tandem', 'available', null]")],
+    // NEW 2026-08-01. The one thing that must never happen now that statuses are
+    // MIS-backed: a crypt MIS says is sold, or held, or does not carry at all, coming
+    // out of this build as sellable.
+    ['an OCCUPIED crypt flipped to available (MIS records an interment there)',
+      (s) => s.replace("['101-110', 'G', [103], 'tandem', 'occupied', null]", "['101-110', 'G', [103], 'tandem', 'available', null]")],
+    ['a RESERVED crypt flipped to available (MIS holds it for an owner)',
+      (s) => s.replace("['168-172', 'G', [168], 'single', 'reserved', null]", "['168-172', 'G', [168], 'single', 'available', null]")],
+    ['an UNLISTED crypt flipped to available (the list does not carry it at all)',
+      (s) => s.replace("['124-140', 'G', [138], 'tandem', 'unlisted', null]", "['124-140', 'G', [138], 'tandem', 'available', null]")],
+    ['two statuses SWAPPED between positions — totals unchanged, checksum must break',
+      (s) => s.replace("['168-172', 'G', [169], 'single', 'occupied', null],\r\n  ['168-172', 'G', [170], 'single', 'occupied', null],\r\n  ['168-172', 'G', [171], 'single', 'reserved', null]",
+        "['168-172', 'G', [169], 'single', 'reserved', null],\r\n  ['168-172', 'G', [170], 'single', 'occupied', null],\r\n  ['168-172', 'G', [171], 'single', 'occupied', null]")],
+    ['a re-parse that dropped rows: MIS.resultRows 1355 -> 1300',
+      (s) => s.replace('resultRows: 1355,', 'resultRows: 1300,')],
+    ['a re-parse that lost a space: MIS.spaces 875 -> 874',
+      (s) => s.replace('spaces: 875,', 'spaces: 874,')],
     ['a niche price moved to another valid row: Radiance K-1 $5,495 -> row G-1',
       (s) => s.replace("['K', 1, 5495]", "['K', 1, null]").replace("['G', 1, null], ['G', 2, null]", "['G', 1, 5495], ['G', 2, null]")],
     ['the glass-front O&C fee perturbed: $875 -> $835 (the old wall-sheet figure)',
@@ -550,8 +640,8 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("sub: 'Seating, looking toward the altar', x: 166, z: 292",
         "sub: 'Seating, looking toward the altar', x: 40, z: 292")],
     ['a unit deleted: bank 201-212 tier A space 212',
-      (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\r\n", '')
-        .replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\n", '')],
+      (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'available', null],\r\n", '')
+        .replace("  ['201-212', 'A', [212], 'tandem', 'available', null],\n", '')],
   ];
   let sabFail = 0;
   for (const [label, mut] of runs) {
