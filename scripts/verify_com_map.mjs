@@ -18,8 +18,9 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  BANKS, TIERS, VOIDS, WALLS, UNITS,
-  cryptUnits, wallNiches, allNiches, cryptSpaces,
+  BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
+  PLAN_W, PLAN_H, COLW,
+  cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
   NICHE_FEES, CRYPT_FEES,
 } from './com-crypt-data.mjs';
 
@@ -285,6 +286,151 @@ console.log('\nGlass-front niche fee schedule (operator ruling 2026-07-31)');
     'the niche schedule has not leaked onto the crypt fee lines');
 }
 
+// ── 6c. Building layout: where things actually ARE ────────────────────────────
+// Operator, Map Issues 07.31.26: "The niche walls are not in the right area ... There
+// are two entrances into the chapel of memories not one ... Review and audit your
+// placements of locations as well."
+//
+// Every box below is read straight off the MIS CAD plan (Chapel Of Memories
+// Overview.png) through the one scale documented in com-crypt-data.mjs. They are
+// deliberately written as LITERALS here so that moving a wall in the data module alone
+// fails this gate — the same discipline the fee schedule uses.
+console.log('\nBuilding layout (measured against the MIS CAD floor plan)');
+const rect = (r) => ({ x0: r.x, y0: r.y, x1: r.x + r.w, y1: r.y + r.h });
+const inside = (r, b) => r.x0 >= b[0] && r.x1 <= b[2] && r.y0 >= b[1] && r.y1 <= b[3];
+const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+{
+  // -- the two glass-front niche walls ---------------------------------------
+  const rad = rect(WALLS.RAD.plan), ser = rect(WALLS.SER.plan);
+  const b101 = rect(BANKS.find((b) => b.id === '101-110').plan);
+  const b111 = rect(BANKS.find((b) => b.id === '111-115').plan);
+  const b213 = rect(BANKS.find((b) => b.id === '213-219').plan);
+  const rooms = Object.fromEntries(ROOMS.map((r) => [r.id, rect(r)]));
+
+  chk(inside(rad, [0, 98, 140, 172]),
+    `RADIANCE sits in the west bay between bank 111-115 and bank 101-110 — CAD (110,340)-(255,462) (x ${rad.x0}-${rad.x1}, y ${rad.y0}-${rad.y1})`);
+  chk(rad.y0 >= b111.y1 && rad.y1 <= b101.y0,
+    `RADIANCE is south of bank 111-115 (y>=${b111.y1}) and north of bank 101-110 (y<=${b101.y0})`);
+  chk(rad.x0 < 20 && rad.x1 < rooms.chapel.x0 + COLW,
+    'RADIANCE hugs the far west wall, at the north-west corner of the chapel — not out on the plan margin');
+  chk(WALLS.RAD.homeArea === 'west', `RADIANCE's home area is the chapel/west side (${WALLS.RAD.homeArea})`);
+
+  chk(inside(ser, [494, 98, 638, 230]),
+    `SERENITY sits on the east passage between COM and the Eternal Light complex — CAD (1355,335)-(1455,440) (x ${ser.x0}-${ser.x1}, y ${ser.y0}-${ser.y1})`);
+  chk(ser.y0 >= rooms.restrooms.y1,
+    `SERENITY is SOUTH of the rest rooms (y>=${rooms.restrooms.y1}) — it used to be drawn beside them, a building-width north of where MIS puts it`);
+  chk(ser.x0 >= b213.x0,
+    `SERENITY is east of the island's east face 213-219 (x>=${b213.x0})`);
+  chk(WALLS.SER.homeArea === 'island', `SERENITY's home area is the island/east passage (${WALLS.SER.homeArea})`);
+  chk(!overlap(rad, ser), 'the two niche walls are in two different parts of the building');
+
+  // -- placement audit: no bank may sit on top of another, or off the plan ----
+  const bad = [];
+  for (const b of BANKS) {
+    const r = rect(b.plan);
+    if (r.x0 < 0 || r.y0 < 0 || r.x1 > PLAN_W || r.y1 > PLAN_H) bad.push(`${b.id} off-plan`);
+  }
+  chk(bad.length === 0, `all ${BANKS.length} crypt banks lie inside the ${PLAN_W}x${PLAN_H} plan${bad.length ? ': ' + bad.join(', ') : ''}`);
+  const clash = [];
+  for (let i = 0; i < BANKS.length; i++) {
+    for (let j = i + 1; j < BANKS.length; j++) {
+      // 141-148 and 149-153 share the corridor corner by 5 units on the CAD; anything
+      // more than that is two banks drawn on top of each other.
+      const a = rect(BANKS[i].plan), c = rect(BANKS[j].plan);
+      const ox = Math.min(a.x1, c.x1) - Math.max(a.x0, c.x0);
+      const oy = Math.min(a.y1, c.y1) - Math.max(a.y0, c.y0);
+      if (ox > 6 && oy > 6) clash.push(`${BANKS[i].id} x ${BANKS[j].id} (${ox}x${oy})`);
+    }
+  }
+  chk(clash.length === 0, `no two crypt banks overlap on the plan${clash.length ? ': ' + clash.join(', ') : ` (${BANKS.length * (BANKS.length - 1) / 2} pairs checked)`}`);
+
+  // -- the CAD's own anchor points -------------------------------------------
+  const anchors = [
+    ['101-110', 'E', 98], ['194-200', 'W', 234], ['213-219', 'E', 562],
+    ['220-231', 'N', 166], ['201-212', 'S', 312], ['124-140', 'S', 98],
+    ['185-191', 'N', 378], ['168-172', 'W', 518], ['149-153', 'S', 232], ['154-158', 'N', 268],
+  ];
+  const off = anchors.filter(([id, f, v]) => {
+    const p = BANKS.find((b) => b.id === id).plan;
+    const got = f === 'N' ? p.y : f === 'S' ? p.y + p.h : f === 'W' ? p.x : p.x + p.w;
+    return got !== v;
+  }).map(([id, f, v]) => `${id}.${f}!=${v}`);
+  chk(off.length === 0, `every crypt front sits on its CAD wall line${off.length ? ': ' + off.join(', ') : ` (${anchors.length} faces checked)`}`);
+}
+
+// ── 6d. Two entrances, the chapel layout, and the walkthrough ─────────────────
+console.log('\nEntrances, chapel layout and walkthrough (operator brief 2026-07-31)');
+{
+  chk(ENTRANCES.length === 2, `TWO entrances are modelled, not one (${ENTRANCES.length})`);
+  const ids = ENTRANCES.map((e) => e.id).sort().join(',');
+  chk(ids === 'entrance-chapel,entrance-main',
+    `the east corridor entrance and the south-west chapel entrance (${ids})`);
+  const main = ENTRANCES.find((e) => e.id === 'entrance-main');
+  const chap = ENTRANCES.find((e) => e.id === 'entrance-chapel');
+  const b149 = BANKS.find((b) => b.id === '149-153').plan;
+  const b154 = BANKS.find((b) => b.id === '154-158').plan;
+  chk(main.y === b149.y + b149.h && main.y + main.h === b154.y,
+    `the main entrance IS the corridor gap between banks 149-153 and 154-158 (y ${main.y}-${main.y + main.h})`);
+  chk(chap.x < 140 && chap.y > 340,
+    `the chapel entrance is on the south-west wall, at the CAD's two-leaf door swing (x ${chap.x}, y ${chap.y})`);
+  const doorways = (src.match(/class="doorway"/g) || []).length;
+  chk(doorways === 2, `both entrances render as clickable doorways in the 3D model (${doorways})`);
+  const pentr = (src.match(/class="pentr"/g) || []).length;
+  chk(pentr === 2, `both entrances render on the floor plan (${pentr})`);
+
+  // -- the chapel is furnished ------------------------------------------------
+  const chapel = ROOMS.find((r) => r.id === 'chapel');
+  chk(!!chapel && chapel.kind === 'chapel', 'the chapel worship space is a room on the plan');
+  chk(chapel.w * chapel.h > 30000,
+    `the worship space spans the CAD's whole CHAPEL AREA, ${chapel.w}x${chapel.h} plan units — it used to be a 150x100 box`);
+  const kinds = FURNITURE.map((f) => f.kind);
+  for (const k of ['altar', 'lectern', 'piano', 'bench']) {
+    chk(kinds.includes(k), `the chapel has ${/^[aeiou]/.test(k) ? 'an' : 'a'} ${k}`);
+  }
+  const chairs = chapelChairs();
+  chk(chairs.length === 70, `70 chapel chairs, in two blocks either side of a centre aisle (${chairs.length})`);
+  const outside = chairs.filter((c) => c.x < chapel.x || c.x + c.w > chapel.x + chapel.w
+    || c.y < chapel.y || c.y + c.h > chapel.y + chapel.h);
+  chk(outside.length === 0, `every chair stands inside the worship space${outside.length ? `: ${outside.length} outside` : ''}`);
+  const seats = (src.match(/class="chair cseat"/g) || []).length;
+  chk(seats === chairs.length, `all ${chairs.length} chairs render in the 3D model (${seats})`);
+  const pchairs = (src.match(/class="pchair"/g) || []).length;
+  chk(pchairs === chairs.length, `all ${chairs.length} chairs render on the floor plan (${pchairs})`);
+  chk(/class="pf-altar"|pf-altar/.test(src), 'the altar renders on the floor plan');
+
+  // -- the walkthrough --------------------------------------------------------
+  chk(STOPS.length >= 15, `${STOPS.length} walk-to positions cover the building (>=15)`);
+  const areaIds = new Set(AREAS.map((a) => a.id));
+  const badArea = STOPS.filter((s) => !areaIds.has(s.area)).map((s) => s.id);
+  chk(badArea.length === 0, `every stop belongs to a real area${badArea.length ? ': ' + badArea.join(', ') : ''}`);
+  const noStop = AREAS.filter((a) => !STOPS.some((s) => s.id === a.stop)).map((a) => a.id);
+  chk(noStop.length === 0, `every area button walks to a real stop${noStop.length ? ': ' + noStop.join(', ') : ` (${AREAS.length})`}`);
+  // You must not be standing inside a wall.
+  const inWall = [];
+  for (const s of STOPS) {
+    for (const b of BANKS) {
+      const r = rect(b.plan);
+      if (s.x > r.x0 && s.x < r.x1 && s.z > r.y0 && s.z < r.y1) inWall.push(`${s.id} inside ${b.id}`);
+    }
+    if (s.x < 0 || s.x > PLAN_W || s.z < 0 || s.z > PLAN_H) inWall.push(`${s.id} off-plan`);
+  }
+  chk(inWall.length === 0, `no walk-to position stands inside a crypt bank${inWall.length ? ': ' + inWall.slice(0, 4).join('; ') : ` (${STOPS.length} checked)`}`);
+  for (const [wid, sid] of [['RAD', 'radiance'], ['SER', 'serenity']]) {
+    const s = STOPS.find((x) => x.id === sid);
+    const p = WALLS[wid].plan;
+    const d = Math.hypot(s.x - (p.x + p.w / 2), s.z - (p.y + p.h / 2));
+    chk(!!s && d < 90, `you can walk to the ${WALLS[wid].name} wall and stand ${Math.round(d)} plan units from it`);
+  }
+  const hots = (src.match(/class="hot"/g) || []).length;
+  chk(hots === STOPS.length, `every stop has a clickable floor marker (${hots}/${STOPS.length})`);
+  chk(/id="crumbs"/.test(src), 'the walkthrough carries a persistent breadcrumb / area switcher');
+  chk(/id="btn-ghost"/.test(src), 'the ghost-surrounding-walls toggle is present');
+  chk(/function goStop\(/.test(src) && /function goHome\(/.test(src) && /function goBack\(/.test(src),
+    'the runtime can walk to a stop, go home and go back');
+  chk(/function cullBehind\(/.test(src), 'geometry behind the camera is hidden inside the building');
+  chk(/data-px="/.test(src), 'every solid carries its plan position for the culling pass');
+}
+
 // ── 7. Print path ─────────────────────────────────────────────────────────────
 console.log('\nPrint path');
 {
@@ -314,6 +460,19 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace('OC: 875, RECORDING: 235,', 'OC: 875, RECORDING: 225,')],
     ['an inscription fee reintroduced onto a glass-front niche',
       (s) => s.replace('OC: 875, RECORDING: 235, ECF_RATE: 0.1 }', 'OC: 875, RECORDING: 235, INSCR: 660, ECF_RATE: 0.1 }')],
+    ['SERENITY moved back to its old wrong place beside the rest rooms',
+      (s) => s.replace("plan: { x: 552, y: 104, w: 20, h: 78 }, face: 'E',", "plan: { x: 494, y: 20, w: 114, h: 26 }, face: 'S',")],
+    ['RADIANCE moved east into the middle of the chapel',
+      (s) => s.replace("plan: { x: 6, y: 112, w: 104, h: 20 }, face: 'S',", "plan: { x: 150, y: 220, w: 104, h: 20 }, face: 'S',")],
+    ['a crypt bank slid off its CAD wall line: 101-110 moved 20 units east',
+      (s) => s.replace("face: 'E', plan: { x: 3, y: 172, w: 95, h: 190 }", "face: 'E', plan: { x: 23, y: 172, w: 95, h: 190 }")],
+    ['the second entrance deleted, leaving only the east corridor',
+      (s) => s.replace(/\{\r?\n    id: 'entrance-chapel',[\s\S]*?\r?\n  \},\r?\n\];/, '];')],
+    ['the chapel emptied of chairs',
+      (s) => s.replace("{ id: 'right', x0: 176, cols: 5, dx: 11 },", "{ id: 'right', x0: 176, cols: 0, dx: 11 },")],
+    ['a walk-to position pushed inside a crypt bank',
+      (s) => s.replace("sub: 'Seating, looking toward the altar', x: 166, z: 292",
+        "sub: 'Seating, looking toward the altar', x: 40, z: 292")],
     ['a unit deleted: bank 201-212 tier A space 212',
       (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\r\n", '')
         .replace("  ['201-212', 'A', [212], 'tandem', 'unavailable', null],\n", '')],

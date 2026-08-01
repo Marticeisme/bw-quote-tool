@@ -20,6 +20,10 @@
   .tab{padding:10px 13px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;}
   .tab:hover{color:var(--cream);background:rgba(200,169,110,.08);}
   .tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(200,169,110,.12);}
+  .tabs2{background:rgba(15,23,44,.85);border-bottom:1px solid var(--gb);align-items:center;}
+  .tabs2 .tab{font-size:10px;padding:7px 11px;opacity:.9;}
+  .tabl{flex-shrink:0;padding:0 12px 0 20px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);opacity:.75;white-space:nowrap;}
   .main{padding:14px;}
   .wview,.view3d{display:none;}.wview.active,.view3d.active{display:block;}
   .wlabel{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);margin:14px 0 2px;text-align:center;}
@@ -89,7 +93,15 @@
   .pshell{fill:rgba(255,255,255,.03);stroke:var(--gb);stroke-width:2;}
   .proom rect{fill:rgba(200,169,110,.09);stroke:rgba(200,169,110,.35);stroke-width:1;}
   .pr-hall rect{fill:rgba(255,255,255,.03);stroke-dasharray:4 4;}
-  .pr-entrance rect{fill:rgba(200,169,110,.18);}
+  .pr-chapel rect{fill:rgba(200,169,110,.05);stroke-dasharray:5 4;}
+  .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
+  .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
+  .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
+  .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
+  .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
+  .pentr text{fill:var(--cream);font-size:10px;font-family:'Jost',sans-serif;text-anchor:middle;font-weight:600;}
+  .pentr{cursor:pointer;} .pentr:hover rect{fill:var(--gold);} .pentr:hover text{fill:#16203a;}
+  .pentr:focus{outline:none;} .pentr:focus rect{stroke:#fff;stroke-width:2.5;}
   .proom text{fill:var(--gold-light);font-size:12px;font-family:'Jost',sans-serif;text-anchor:middle;opacity:.85;}
   .pbank rect{fill:#4a463d;stroke:#20304f;stroke-width:1.5;}
   .pbank.has-av rect{fill:#6f6a5c;stroke:var(--gold);}
@@ -115,8 +127,13 @@
   .scene:active{cursor:grabbing;}
   .scene:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
   .stage{position:absolute;left:50%;top:70%;width:0;height:0;transform-style:preserve-3d;
-    transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,0deg)) rotateY(var(--yaw,0deg));}
-  .bldg{position:absolute;transform-style:preserve-3d;}
+    transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,0deg)) rotateY(var(--yaw,0deg));
+    transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .bldg{position:absolute;transform-style:preserve-3d;
+    transform:translate3d(var(--px,0px),0,var(--pz,0px));
+    transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .scene.dragging .stage,.scene.dragging .bldg{transition:none;}
+  @media (prefers-reduced-motion:reduce){.stage,.bldg{transition:none;}}
   .floor{position:absolute;left:0;top:0;background:
       linear-gradient(135deg,rgba(196,190,178,.22),rgba(120,116,108,.16) 60%,rgba(88,85,79,.2));
     border:1px solid rgba(200,196,186,.22);}
@@ -154,6 +171,51 @@
       repeating-linear-gradient(135deg,rgba(0,0,0,.16) 0 4px,rgba(0,0,0,0) 4px 9px),
       linear-gradient(180deg,#8a8272 0%,#6a6355 100%)!important;color:#efece5;}
   .n3p{font-size:4.4px;font-weight:700;white-space:nowrap;}
+  /* ── Walkthrough: structure blocks, chapel furniture, doorways, floor markers ── */
+  .blk{position:absolute;left:0;top:0;background:rgba(150,144,132,.16);border:1px solid rgba(200,196,186,.22);}
+  .furn{position:absolute;left:0;top:0;background:linear-gradient(180deg,#7a5a38,#4d3722);border:1px solid rgba(0,0,0,.35);
+    backface-visibility:hidden;display:flex;align-items:center;justify-content:center;}
+  .furn.btop{background:linear-gradient(135deg,#8c6a42,#5b4128);}
+  .furn span{font-size:5px;letter-spacing:.12em;color:#f3e6d0;text-transform:uppercase;}
+  .fk-altar{background:linear-gradient(180deg,#b9a06a,#7d6738);} .fk-altar.btop{background:linear-gradient(135deg,#cdb37a,#8d7643);}
+  .fk-piano{background:linear-gradient(180deg,#3a2a1c,#1e150e);} .fk-piano.btop{background:linear-gradient(135deg,#4a3524,#241a11);}
+  .fk-bench{background:linear-gradient(180deg,#8d7f5f,#5d523a);} .fk-bench.btop{background:linear-gradient(135deg,#a1946f,#6b5f44);}
+  .chair{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(0,0,0,.3);}
+  .cseat{background:linear-gradient(135deg,#b98f60,#8a6640);}
+  .cback{background:linear-gradient(180deg,#a87d52,#6d4f31);}
+  .doorway{position:absolute;left:0;top:0;cursor:pointer;backface-visibility:hidden;
+    background:linear-gradient(180deg,rgba(232,213,168,.5),rgba(160,132,74,.35));
+    border:2px solid var(--gold);display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;}
+  .doorway span{font-size:7px;font-weight:700;letter-spacing:.1em;color:#1b2338;text-transform:uppercase;
+    background:var(--gold-light);padding:1px 4px;border-radius:2px;}
+  .doorway:hover{filter:brightness(1.25);} .doorway:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .doormat{position:absolute;left:0;top:0;background:rgba(200,169,110,.3);border:1px dashed var(--gold);}
+  .hot{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;padding:0;border-radius:50%;
+    background:rgba(200,169,110,.24);border:1.5px solid var(--gold);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;}
+  .hot span{position:absolute;top:34px;white-space:nowrap;font-size:7px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--gold-light);background:rgba(10,16,32,.75);padding:1px 4px;border-radius:2px;pointer-events:none;}
+  .hot::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--gold);}
+  .hot:hover{background:rgba(200,169,110,.55);}
+  .hot:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .hot.here{background:rgba(255,255,255,.4);border-color:#fff;}
+  .hot.here::before{background:#fff;}
+  .ghost{opacity:.16!important;pointer-events:none!important;}
+  .behind{display:none!important;}
+  .scene.inside .floor{filter:brightness(1.15);}
+
+  /* ── Breadcrumb / area switcher ── */
+  .crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:1200px;margin:0 auto 6px;padding:7px 11px;
+    background:rgba(200,169,110,.09);border:1px solid var(--gb);border-radius:6px;}
+  .crumb{background:none;border:none;color:var(--gold-light);font-size:11px;font-weight:600;letter-spacing:.05em;
+    cursor:pointer;padding:2px 5px;border-radius:3px;text-transform:uppercase;}
+  .crumb:hover:not(.cur):not([disabled]){background:rgba(200,169,110,.22);color:var(--cream);}
+  .crumb.cur{color:var(--gold);cursor:default;}
+  .crumb[disabled]{opacity:.35;cursor:default;}
+  .csep{color:var(--gold);opacity:.6;font-size:12px;}
+  .cnote2{font-size:10px;color:var(--gold-light);opacity:.7;font-style:italic;margin-left:4px;}
+  .cback2{margin-left:auto;border:1px solid var(--gb);}
+
   .hint{text-align:center;font-size:10px;color:var(--gold-light);opacity:.72;margin-top:7px;letter-spacing:.05em;}
   .modelnote{text-align:center;font-size:9.5px;color:var(--gold-light);opacity:.55;margin-top:3px;}
 
@@ -272,15 +334,18 @@
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="tabs">
+  <button class="tab active" data-view="3d">Walk Through</button>
   <button class="tab" data-view="plan">Floor Plan</button>
-  <button class="tab active" data-view="3d">3D View</button>
-  <button class="tab" data-view="north">North Wall</button>
-  <button class="tab" data-view="west">West Wall &amp; Chapel</button>
+  <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">All Banks</button>
+</div>
+<div class="tabs tabs2">
+  <span class="tabl">Printable lists</span>
+  <button class="tab" data-view="north">North Wing</button>
+  <button class="tab" data-view="west">Chapel &amp; West Wall</button>
   <button class="tab" data-view="island">Centre Island</button>
   <button class="tab" data-view="south">South Wall</button>
-  <button class="tab" data-view="east">East Wall &amp; Entrance</button>
+  <button class="tab" data-view="east">East Corridor &amp; Entrance</button>
   <button class="tab" data-view="niches">Niche Walls</button>
-  <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">Overview</button>
 </div>
 <div class="main">
   <div class="printcard" id="printcard" aria-hidden="true"></div>
@@ -288,23 +353,40 @@
   <div class="view3d active" id="view-3d">
     <div class="toolbar no-print">
       <button class="tbtn" data-viewbtn="home" title="The whole building from above">Whole Building</button>
-      <button class="tbtn" data-viewbtn="north" title="Altar end — banks 111-115, 116-123, 124-140">North Wall</button>
-      <button class="tbtn" data-viewbtn="west" title="Chapel area — bank 101-110">West Wall &amp; Chapel</button>
-      <button class="tbtn" data-viewbtn="island" title="Free-standing block — banks 194-200, 201-212, 213-219, 220-231">Centre Island</button>
-      <button class="tbtn" data-viewbtn="south" title="Banks 168-172, 173-178, 179-184, 185-191, 192-193">South Wall</button>
-      <button class="tbtn" data-viewbtn="east" title="Banks 141-148, 149-153, 154-158, 159-167">East Wall &amp; Entrance</button>
-      <button class="tbtn" data-viewbtn="niches" title="Radiance and Serenity glass-front niche walls">Niche Walls</button>
+      <button class="tbtn" data-viewbtn="north" title="Altar end — banks 111-115, 116-123, 124-140">North Wing</button>
+      <button class="tbtn" data-viewbtn="west" title="The worship space and bank 101-110">Chapel &amp; West Wall</button>
+      <button class="tbtn" data-viewbtn="island" title="Free-standing block — banks 194-200, 220-231, 201-212, 213-219">Centre Island</button>
+      <button class="tbtn" data-viewbtn="south" title="Banks 192-193, 185-191, 179-184, 173-178, 168-172">South Wall</button>
+      <button class="tbtn" data-viewbtn="east" title="Banks 141-148, 149-153, 154-158, 159-167">East Corridor &amp; Entrance</button>
+      <button class="tbtn" data-viewbtn="niches" title="Radiance (north-west of the chapel) and Serenity (east passage, toward the Eternal Light complex)">Niche Walls</button>
       <div class="tbsep"></div>
+      <button class="tbtn on" id="btn-ghost" aria-pressed="true" title="Fade the walls you are not standing in front of">Ghost other walls</button>
       <button class="tbtn" id="btn-reset">Reset view</button>
       <div class="tbsep"></div>
       <button class="tbtn" id="btn-out" aria-label="Zoom out">&minus;</button>
       <button class="tbtn" id="btn-in" aria-label="Zoom in">+</button>
     </div>
-<div class="scene" id="scene" tabindex="0" role="application" aria-label="Three-dimensional model of the Chapel of Memory Mausoleum interior. Use the area buttons below, or arrow keys, to change the view.">
+    <nav class="crumbs no-print" id="crumbs" aria-label="Where you are in the building"></nav>
+<div class="scene" id="scene" tabindex="0" role="application" aria-label="Three-dimensional walk-through model of the Chapel of Memory Mausoleum interior. Click a doorway or a floor marker to walk to that part of the building; drag to look around.">
   <div class="stage" id="stage">
-    <div class="floor" style="width:2020px;height:1300px;transform:translate(-50%,-50%) translate3d(0,113px,0) rotateX(-90deg)"></div>
-    <div class="bldg">
-    <div class="face ar-north" data-bankface="111-115" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-835px,0,-448px) rotateY(0deg)">
+    <div class="bldg" id="bldg">
+    <div class="floor" style="width:1480px;height:1000px;transform:translate(-50%,-50%) translate3d(0,113px,0) rotateX(-90deg)"></div>
+    <div class="hallpad hp-chapel" data-px="166" data-pz="240" style="width:272px;height:512px;transform:translate(-50%,-50%) translate3d(-408px,111.2px,-20px) rotateX(-90deg)"><span>Chapel — Worship Space</span></div>
+    <div class="mass mk-service" data-px="534" data-pz="51" style="width:112px;height:123.2px;transform:translate(-50%,-50%) translate3d(328px,50.4px,-304px) rotateY(0deg)"><span>Rest Rooms</span></div>
+    <div class="mass mk-service" data-px="534" data-pz="51" style="width:112px;height:123.2px;transform:translate(-50%,-50%) translate3d(328px,50.4px,-494px) rotateY(180deg)"><span>Rest Rooms</span></div>
+    <div class="mass mk-service" data-px="534" data-pz="51" style="width:190px;height:123.2px;transform:translate(-50%,-50%) translate3d(384px,50.4px,-399px) rotateY(90deg)"><span>Rest Rooms</span></div>
+    <div class="mass mk-service" data-px="534" data-pz="51" style="width:190px;height:123.2px;transform:translate(-50%,-50%) translate3d(272px,50.4px,-399px) rotateY(-90deg)"><span>Rest Rooms</span></div>
+    <div class="mass mtop mk-service" data-px="534" data-pz="51" style="width:112px;height:190px;transform:translate(-50%,-50%) translate3d(328px,-11.2px,-399px) rotateX(90deg)"></div>
+    <div class="mass mk-service" data-px="679" data-pz="51" style="width:194px;height:123.2px;transform:translate(-50%,-50%) translate3d(617px,50.4px,-304px) rotateY(0deg)"><span>Storage Room</span></div>
+    <div class="mass mk-service" data-px="679" data-pz="51" style="width:194px;height:123.2px;transform:translate(-50%,-50%) translate3d(617px,50.4px,-494px) rotateY(180deg)"><span>Storage Room</span></div>
+    <div class="mass mk-service" data-px="679" data-pz="51" style="width:190px;height:123.2px;transform:translate(-50%,-50%) translate3d(714px,50.4px,-399px) rotateY(90deg)"><span>Storage Room</span></div>
+    <div class="mass mk-service" data-px="679" data-pz="51" style="width:190px;height:123.2px;transform:translate(-50%,-50%) translate3d(520px,50.4px,-399px) rotateY(-90deg)"><span>Storage Room</span></div>
+    <div class="mass mtop mk-service" data-px="679" data-pz="51" style="width:194px;height:190px;transform:translate(-50%,-50%) translate3d(617px,-11.2px,-399px) rotateX(90deg)"></div>
+    <div class="hallpad hp-hall" data-px="367" data-pz="132" style="width:508px;height:136px;transform:translate(-50%,-50%) translate3d(-6px,111.2px,-236px) rotateX(-90deg)"><span>North Hall</span></div>
+    <div class="hallpad hp-hall" data-px="596" data-pz="291" style="width:136px;height:772px;transform:translate(-50%,-50%) translate3d(452px,111.2px,82px) rotateX(-90deg)"><span>East Passage</span></div>
+    <div class="hallpad hp-hall" data-px="342" data-pz="345" style="width:792px;height:132px;transform:translate(-50%,-50%) translate3d(-56px,111.2px,190px) rotateX(-90deg)"><span>South Hall</span></div>
+    <div class="blk ar-north" data-blk="111-115" data-px="51" data-pz="51" style="width:190px;height:190px;transform:translate(-50%,-50%) translate3d(-639px,112px,-399px) rotateX(-90deg)"></div>
+    <div class="face ar-north" data-bankface="111-115" data-area="north" data-px="51" data-pz="98" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-639px,0,-304px) rotateY(0deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="111-115" data-id="G-111" data-ref="COM-1-1-G-111" data-tier="G" data-cols="111" data-type="tandem" data-st="unavailable" aria-label="G-111, bank 111-115, True Companion (Tandem), Unavailable"><span class="c3id">G-111</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="111-115" data-id="G-112" data-ref="COM-1-1-G-112" data-tier="G" data-cols="112" data-type="tandem" data-st="unavailable" aria-label="G-112, bank 111-115, True Companion (Tandem), Unavailable"><span class="c3id">G-112</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="111-115" data-id="G-113" data-ref="COM-1-1-G-113" data-tier="G" data-cols="113" data-type="tandem" data-st="unavailable" aria-label="G-113, bank 111-115, True Companion (Tandem), Unavailable"><span class="c3id">G-113</span></button>
@@ -341,8 +423,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:4/span 1" data-kind="crypt" data-bank="111-115" data-id="A-114" data-ref="COM-1-1-A-114" data-tier="A" data-cols="114" data-type="tandem" data-st="unavailable" aria-label="A-114, bank 111-115, True Companion (Tandem), Unavailable"><span class="c3id">A-114</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:5/span 1" data-kind="crypt" data-bank="111-115" data-id="A-115" data-ref="COM-1-1-A-115" data-tier="A" data-cols="115" data-type="tandem" data-st="unavailable" aria-label="A-115, bank 111-115, True Companion (Tandem), Unavailable"><span class="c3id">A-115</span></button>
     </div>
-    <div class="fbase ar-north" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(-835px,119px,-448px) rotateY(0deg)"><b>111-115</b></div>
-    <div class="face ar-north" data-bankface="116-123" style="width:304px;height:224px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-558px,0,-584px) rotateY(0deg)">
+    <div class="fbase ar-north" data-area="north" data-px="51" data-pz="98" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(-639px,119px,-304px) rotateY(0deg)"><b>111-115</b></div>
+    <div class="blk ar-north" data-blk="116-123" data-px="174" data-pz="27" style="width:304px;height:94px;transform:translate(-50%,-50%) translate3d(-392px,112px,-447px) rotateX(-90deg)"></div>
+    <div class="face ar-north" data-bankface="116-123" data-area="north" data-px="174" data-pz="50" style="width:304px;height:224px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-392px,0,-400px) rotateY(0deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="116-123" data-id="G-116" data-ref="COM-1-1-G-116" data-tier="G" data-cols="116" data-type="single" data-st="unavailable" aria-label="G-116, bank 116-123, Single, Unavailable"><span class="c3id">G-116</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="116-123" data-id="G-117" data-ref="COM-1-1-G-117" data-tier="G" data-cols="117" data-type="single" data-st="unavailable" aria-label="G-117, bank 116-123, Single, Unavailable"><span class="c3id">G-117</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="116-123" data-id="G-118" data-ref="COM-1-1-G-118" data-tier="G" data-cols="118" data-type="single" data-st="unavailable" aria-label="G-118, bank 116-123, Single, Unavailable"><span class="c3id">G-118</span></button>
@@ -376,8 +459,9 @@
       <button type="button" class="c3 ty-hidden st-unavailable" style="grid-row:7;grid-column:5/span 2" data-kind="crypt" data-bank="116-123" data-id="A-120/121" data-ref="COM-1-1-A-120" data-tier="A" data-cols="120/121" data-type="hidden" data-st="unavailable" aria-label="A-120/121, bank 116-123, Hidden Companion, Unavailable"><span class="c3id">A-120/121</span></button>
       <button type="button" class="c3 ty-deluxe" style="grid-row:7;grid-column:7/span 2" data-kind="crypt" data-bank="116-123" data-id="A-122/123" data-ref="COM-1-1-A-122" data-tier="A" data-cols="122/123" data-type="deluxe" data-st="available" aria-label="A-122/123, bank 116-123, Deluxe Companion, Available"><span class="c3id">A-122/123</span><span class="c3st c3av">AVAIL</span></button>
     </div>
-    <div class="fbase ar-north" style="width:304px;height:14px;transform:translate(-50%,-50%) translate3d(-558px,119px,-584px) rotateY(0deg)"><b>116-123</b></div>
-    <div class="face ar-north" data-bankface="124-140" style="width:646px;height:224px;grid-template-columns:repeat(17,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-7px,0,-448px) rotateY(0deg)">
+    <div class="fbase ar-north" data-area="north" data-px="174" data-pz="50" style="width:304px;height:14px;transform:translate(-50%,-50%) translate3d(-392px,119px,-400px) rotateY(0deg)"><b>116-123</b></div>
+    <div class="blk ar-north" data-blk="124-140" data-px="402" data-pz="74" style="width:646px;height:96px;transform:translate(-50%,-50%) translate3d(63px,112px,-352px) rotateX(-90deg)"></div>
+    <div class="face ar-north" data-bankface="124-140" data-area="north" data-px="402" data-pz="98" style="width:646px;height:224px;grid-template-columns:repeat(17,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(63px,0,-304px) rotateY(0deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="124-140" data-id="G-124" data-ref="COM-1-1-G-124" data-tier="G" data-cols="124" data-type="tandem" data-st="unavailable" aria-label="G-124, bank 124-140, True Companion (Tandem), Unavailable"><span class="c3id">G-124</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="124-140" data-id="G-125" data-ref="COM-1-1-G-125" data-tier="G" data-cols="125" data-type="tandem" data-st="unavailable" aria-label="G-125, bank 124-140, True Companion (Tandem), Unavailable"><span class="c3id">G-125</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="124-140" data-id="G-126" data-ref="COM-1-1-G-126" data-tier="G" data-cols="126" data-type="tandem" data-st="unavailable" aria-label="G-126, bank 124-140, True Companion (Tandem), Unavailable"><span class="c3id">G-126</span></button>
@@ -487,8 +571,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:14/span 1" data-kind="crypt" data-bank="124-140" data-id="A-137" data-ref="COM-1-1-A-137" data-tier="A" data-cols="137" data-type="tandem" data-st="unavailable" aria-label="A-137, bank 124-140, True Companion (Tandem), Unavailable"><span class="c3id">A-137</span></button>
       <div class="c3void" style="grid-row:4/span 4;grid-column:15/span 3"></div>
     </div>
-    <div class="fbase ar-north" style="width:646px;height:14px;transform:translate(-50%,-50%) translate3d(-7px,119px,-448px) rotateY(0deg)"><b>124-140</b></div>
-    <div class="face ar-west" data-bankface="101-110" style="width:380px;height:224px;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-804px,0,100px) rotateY(90deg)">
+    <div class="fbase ar-north" data-area="north" data-px="402" data-pz="98" style="width:646px;height:14px;transform:translate(-50%,-50%) translate3d(63px,119px,-304px) rotateY(0deg)"><b>124-140</b></div>
+    <div class="blk ar-west" data-blk="101-110" data-px="51" data-pz="267" style="width:190px;height:380px;transform:translate(-50%,-50%) translate3d(-639px,112px,34px) rotateX(-90deg)"></div>
+    <div class="face ar-west" data-bankface="101-110" data-area="west" data-px="98" data-pz="267" style="width:380px;height:224px;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-544px,0,34px) rotateY(90deg)">
       <button type="button" class="c3 ty-deluxe st-unavailable" style="grid-row:1;grid-column:1/span 2" data-kind="crypt" data-bank="101-110" data-id="G-101/102" data-ref="COM-1-1-G-101" data-tier="G" data-cols="101/102" data-type="deluxe" data-st="unavailable" aria-label="G-101/102, bank 101-110, Deluxe Companion, Unavailable"><span class="c3id">G-101/102</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="101-110" data-id="G-103" data-ref="COM-1-1-G-103" data-tier="G" data-cols="103" data-type="tandem" data-st="unavailable" aria-label="G-103, bank 101-110, True Companion (Tandem), Unavailable"><span class="c3id">G-103</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="101-110" data-id="G-104" data-ref="COM-1-1-G-104" data-tier="G" data-cols="104" data-type="tandem" data-st="unavailable" aria-label="G-104, bank 101-110, True Companion (Tandem), Unavailable"><span class="c3id">G-104</span></button>
@@ -553,8 +638,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:9/span 1" data-kind="crypt" data-bank="101-110" data-id="A-109" data-ref="COM-1-1-A-109" data-tier="A" data-cols="109" data-type="tandem" data-st="unavailable" aria-label="A-109, bank 101-110, True Companion (Tandem), Unavailable"><span class="c3id">A-109</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:10/span 1" data-kind="crypt" data-bank="101-110" data-id="A-110" data-ref="COM-1-1-A-110" data-tier="A" data-cols="110" data-type="tandem" data-st="unavailable" aria-label="A-110, bank 101-110, True Companion (Tandem), Unavailable"><span class="c3id">A-110</span></button>
     </div>
-    <div class="fbase ar-west" style="width:380px;height:14px;transform:translate(-50%,-50%) translate3d(-804px,119px,100px) rotateY(90deg)"><b>101-110</b></div>
-    <div class="face ar-island" data-bankface="194-200" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-304px,0,-17px) rotateY(-90deg)">
+    <div class="fbase ar-west" data-area="west" data-px="98" data-pz="267" style="width:380px;height:14px;transform:translate(-50%,-50%) translate3d(-544px,119px,34px) rotateY(90deg)"><b>101-110</b></div>
+    <div class="blk ar-island" data-blk="194-200" data-px="261" data-pz="239" style="width:108px;height:266px;transform:translate(-50%,-50%) translate3d(-218px,112px,-23px) rotateX(-90deg)"></div>
+    <div class="face ar-island" data-bankface="194-200" data-area="island" data-px="234" data-pz="239" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-272px,0,-23px) rotateY(-90deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="194-200" data-id="G-194" data-ref="COM-1-1-G-194" data-tier="G" data-cols="194" data-type="single" data-st="unavailable" aria-label="G-194, bank 194-200, Single, Unavailable"><span class="c3id">G-194</span></button>
       <button type="button" class="c3 ty-deluxe" style="grid-row:1;grid-column:2/span 2" data-kind="crypt" data-bank="194-200" data-id="G-195/196" data-ref="COM-1-1-G-195" data-tier="G" data-cols="195/196" data-type="deluxe" data-st="available" aria-label="G-195/196, bank 194-200, Deluxe Companion, Available"><span class="c3id">G-195/196</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="194-200" data-id="G-197" data-ref="COM-1-1-G-197" data-tier="G" data-cols="197" data-type="single" data-st="unavailable" aria-label="G-197, bank 194-200, Single, Unavailable"><span class="c3id">G-197</span></button>
@@ -591,8 +677,9 @@
       <button type="button" class="c3 ty-deluxe" style="grid-row:7;grid-column:5/span 2" data-kind="crypt" data-bank="194-200" data-id="A-198/199" data-ref="COM-1-1-A-198" data-tier="A" data-cols="198/199" data-type="deluxe" data-st="available" aria-label="A-198/199, bank 194-200, Deluxe Companion, Available"><span class="c3id">A-198/199</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:7/span 1" data-kind="crypt" data-bank="194-200" data-id="A-200" data-ref="COM-1-1-A-200" data-tier="A" data-cols="200" data-type="single" data-st="unavailable" aria-label="A-200, bank 194-200, Single, Unavailable"><span class="c3id">A-200</span></button>
     </div>
-    <div class="fbase ar-island" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(-304px,119px,-17px) rotateY(-90deg)"><b>194-200</b></div>
-    <div class="face ar-island" data-bankface="220-231" style="width:456px;height:224px;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-50px,0,-124px) rotateY(180deg)">
+    <div class="fbase ar-island" data-area="island" data-px="234" data-pz="239" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(-272px,119px,-23px) rotateY(-90deg)"><b>194-200</b></div>
+    <div class="blk ar-island" data-blk="220-231" data-px="404" data-pz="193" style="width:456px;height:108px;transform:translate(-50%,-50%) translate3d(68px,112px,-114px) rotateX(-90deg)"></div>
+    <div class="face ar-island" data-bankface="220-231" data-area="island" data-px="404" data-pz="166" style="width:456px;height:224px;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(68px,0,-168px) rotateY(180deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="220-231" data-id="G-220" data-ref="COM-1-1-G-220" data-tier="G" data-cols="220" data-type="single" data-st="unavailable" aria-label="G-220, bank 220-231, Single, Unavailable"><span class="c3id">G-220</span></button>
       <button type="button" class="c3 ty-deluxe" style="grid-row:1;grid-column:2/span 2" data-kind="crypt" data-bank="220-231" data-id="G-221/222" data-ref="COM-1-1-G-221" data-tier="G" data-cols="221/222" data-type="deluxe" data-st="available" aria-label="G-221/222, bank 220-231, Deluxe Companion, Available"><span class="c3id">G-221/222</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="220-231" data-id="G-223" data-ref="COM-1-1-G-223" data-tier="G" data-cols="223" data-type="single" data-st="unavailable" aria-label="G-223, bank 220-231, Single, Unavailable"><span class="c3id">G-223</span></button>
@@ -664,8 +751,9 @@
       <button type="button" class="c3 ty-deluxe st-unavailable" style="grid-row:7;grid-column:10/span 2" data-kind="crypt" data-bank="220-231" data-id="A-229/230" data-ref="COM-1-1-A-229" data-tier="A" data-cols="229/230" data-type="deluxe" data-st="unavailable" aria-label="A-229/230, bank 220-231, Deluxe Companion, Unavailable"><span class="c3id">A-229/230</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:12/span 1" data-kind="crypt" data-bank="220-231" data-id="A-231" data-ref="COM-1-1-A-231" data-tier="A" data-cols="231" data-type="single" data-st="unavailable" aria-label="A-231, bank 220-231, Single, Unavailable"><span class="c3id">A-231</span></button>
     </div>
-    <div class="fbase ar-island" style="width:456px;height:14px;transform:translate(-50%,-50%) translate3d(-50px,119px,-124px) rotateY(180deg)"><b>220-231</b></div>
-    <div class="face ar-island" data-bankface="201-212" style="width:456px;height:224px;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-50px,0,90px) rotateY(0deg)">
+    <div class="fbase ar-island" data-area="island" data-px="404" data-pz="166" style="width:456px;height:14px;transform:translate(-50%,-50%) translate3d(68px,119px,-168px) rotateY(180deg)"><b>220-231</b></div>
+    <div class="blk ar-island" data-blk="201-212" data-px="404" data-pz="289" style="width:456px;height:92px;transform:translate(-50%,-50%) translate3d(68px,112px,78px) rotateX(-90deg)"></div>
+    <div class="face ar-island" data-bankface="201-212" data-area="island" data-px="404" data-pz="312" style="width:456px;height:224px;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(68px,0,124px) rotateY(0deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="201-212" data-id="G-201" data-ref="COM-1-1-G-201" data-tier="G" data-cols="201" data-type="tandem" data-st="unavailable" aria-label="G-201, bank 201-212, True Companion (Tandem), Unavailable"><span class="c3id">G-201</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="201-212" data-id="G-202" data-ref="COM-1-1-G-202" data-tier="G" data-cols="202" data-type="tandem" data-st="unavailable" aria-label="G-202, bank 201-212, True Companion (Tandem), Unavailable"><span class="c3id">G-202</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="201-212" data-id="G-203" data-ref="COM-1-1-G-203" data-tier="G" data-cols="203" data-type="tandem" data-st="unavailable" aria-label="G-203, bank 201-212, True Companion (Tandem), Unavailable"><span class="c3id">G-203</span></button>
@@ -744,8 +832,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:11/span 1" data-kind="crypt" data-bank="201-212" data-id="A-211" data-ref="COM-1-1-A-211" data-tier="A" data-cols="211" data-type="tandem" data-st="unavailable" aria-label="A-211, bank 201-212, True Companion (Tandem), Unavailable"><span class="c3id">A-211</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:12/span 1" data-kind="crypt" data-bank="201-212" data-id="A-212" data-ref="COM-1-1-A-212" data-tier="A" data-cols="212" data-type="tandem" data-st="unavailable" aria-label="A-212, bank 201-212, True Companion (Tandem), Unavailable"><span class="c3id">A-212</span></button>
     </div>
-    <div class="fbase ar-island" style="width:456px;height:14px;transform:translate(-50%,-50%) translate3d(-50px,119px,90px) rotateY(0deg)"><b>201-212</b></div>
-    <div class="face ar-island" data-bankface="213-219" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(204px,0,-17px) rotateY(90deg)">
+    <div class="fbase ar-island" data-area="island" data-px="404" data-pz="312" style="width:456px;height:14px;transform:translate(-50%,-50%) translate3d(68px,119px,124px) rotateY(0deg)"><b>201-212</b></div>
+    <div class="blk ar-island" data-blk="213-219" data-px="539" data-pz="239" style="width:92px;height:266px;transform:translate(-50%,-50%) translate3d(338px,112px,-23px) rotateX(-90deg)"></div>
+    <div class="face ar-island" data-bankface="213-219" data-area="island" data-px="562" data-pz="239" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(384px,0,-23px) rotateY(90deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="213-219" data-id="G-213" data-ref="COM-1-1-G-213" data-tier="G" data-cols="213" data-type="single" data-st="unavailable" aria-label="G-213, bank 213-219, Single, Unavailable"><span class="c3id">G-213</span></button>
       <button type="button" class="c3 ty-deluxe" style="grid-row:1;grid-column:2/span 2" data-kind="crypt" data-bank="213-219" data-id="G-214/215" data-ref="COM-1-1-G-214" data-tier="G" data-cols="214/215" data-type="deluxe" data-st="available" aria-label="G-214/215, bank 213-219, Deluxe Companion, Available"><span class="c3id">G-214/215</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="213-219" data-id="G-216" data-ref="COM-1-1-G-216" data-tier="G" data-cols="216" data-type="single" data-st="unavailable" aria-label="G-216, bank 213-219, Single, Unavailable"><span class="c3id">G-216</span></button>
@@ -782,8 +871,9 @@
       <button type="button" class="c3 ty-deluxe st-unavailable" style="grid-row:7;grid-column:5/span 2" data-kind="crypt" data-bank="213-219" data-id="A-217/218" data-ref="COM-1-1-A-217" data-tier="A" data-cols="217/218" data-type="deluxe" data-st="unavailable" aria-label="A-217/218, bank 213-219, Deluxe Companion, Unavailable"><span class="c3id">A-217/218</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:7/span 1" data-kind="crypt" data-bank="213-219" data-id="A-219" data-ref="COM-1-1-A-219" data-tier="A" data-cols="219" data-type="single" data-st="unavailable" aria-label="A-219, bank 213-219, Single, Unavailable"><span class="c3id">A-219</span></button>
     </div>
-    <div class="fbase ar-island" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(204px,119px,-17px) rotateY(90deg)"><b>213-219</b></div>
-    <div class="face ar-south" data-bankface="192-193" style="width:76px;height:224px;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-588px,0,376px) rotateY(180deg)">
+    <div class="fbase ar-island" data-area="island" data-px="562" data-pz="239" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(384px,119px,-23px) rotateY(90deg)"><b>213-219</b></div>
+    <div class="blk ar-south" data-blk="192-193" data-px="154" data-pz="402" style="width:76px;height:96px;transform:translate(-50%,-50%) translate3d(-432px,112px,304px) rotateX(-90deg)"></div>
+    <div class="face ar-south" data-bankface="192-193" data-area="south" data-px="154" data-pz="378" style="width:76px;height:224px;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-432px,0,256px) rotateY(180deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="192-193" data-id="G-192" data-ref="COM-1-1-G-192" data-tier="G" data-cols="192" data-type="single" data-st="unavailable" aria-label="G-192, bank 192-193, Single, Unavailable"><span class="c3id">G-192</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="192-193" data-id="G-193" data-ref="COM-1-1-G-193" data-tier="G" data-cols="193" data-type="single" data-st="unavailable" aria-label="G-193, bank 192-193, Single, Unavailable"><span class="c3id">G-193</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:2;grid-column:1/span 1" data-kind="crypt" data-bank="192-193" data-id="F-192" data-ref="COM-1-1-F-192" data-tier="F" data-cols="192" data-type="single" data-st="unavailable" aria-label="F-192, bank 192-193, Single, Unavailable"><span class="c3id">F-192</span></button>
@@ -799,8 +889,9 @@
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:1/span 1" data-kind="crypt" data-bank="192-193" data-id="A-192" data-ref="COM-1-1-A-192" data-tier="A" data-cols="192" data-type="single" data-st="unavailable" aria-label="A-192, bank 192-193, Single, Unavailable"><span class="c3id">A-192</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:2/span 1" data-kind="crypt" data-bank="192-193" data-id="A-193" data-ref="COM-1-1-A-193" data-tier="A" data-cols="193" data-type="single" data-st="unavailable" aria-label="A-193, bank 192-193, Single, Unavailable"><span class="c3id">A-193</span></button>
     </div>
-    <div class="fbase ar-south" style="width:76px;height:14px;transform:translate(-50%,-50%) translate3d(-588px,119px,376px) rotateY(180deg)"><b>192-193</b></div>
-    <div class="face ar-south" data-bankface="185-191" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-417px,0,376px) rotateY(180deg)">
+    <div class="fbase ar-south" data-area="south" data-px="154" data-pz="378" style="width:76px;height:14px;transform:translate(-50%,-50%) translate3d(-432px,119px,256px) rotateY(180deg)"><b>192-193</b></div>
+    <div class="blk ar-south" data-blk="185-191" data-px="240" data-pz="402" style="width:266px;height:96px;transform:translate(-50%,-50%) translate3d(-261px,112px,304px) rotateX(-90deg)"></div>
+    <div class="face ar-south" data-bankface="185-191" data-area="south" data-px="240" data-pz="378" style="width:266px;height:224px;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-261px,0,256px) rotateY(180deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="185-191" data-id="G-185" data-ref="COM-1-1-G-185" data-tier="G" data-cols="185" data-type="tandem" data-st="unavailable" aria-label="G-185, bank 185-191, True Companion (Tandem), Unavailable"><span class="c3id">G-185</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="185-191" data-id="G-186" data-ref="COM-1-1-G-186" data-tier="G" data-cols="186" data-type="tandem" data-st="unavailable" aria-label="G-186, bank 185-191, True Companion (Tandem), Unavailable"><span class="c3id">G-186</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="185-191" data-id="G-187" data-ref="COM-1-1-G-187" data-tier="G" data-cols="187" data-type="tandem" data-st="unavailable" aria-label="G-187, bank 185-191, True Companion (Tandem), Unavailable"><span class="c3id">G-187</span></button>
@@ -851,8 +942,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:6/span 1" data-kind="crypt" data-bank="185-191" data-id="A-190" data-ref="COM-1-1-A-190" data-tier="A" data-cols="190" data-type="tandem" data-st="unavailable" aria-label="A-190, bank 185-191, True Companion (Tandem), Unavailable"><span class="c3id">A-190</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:7/span 1" data-kind="crypt" data-bank="185-191" data-id="A-191" data-ref="COM-1-1-A-191" data-tier="A" data-cols="191" data-type="tandem" data-st="unavailable" aria-label="A-191, bank 185-191, True Companion (Tandem), Unavailable"><span class="c3id">A-191</span></button>
     </div>
-    <div class="fbase ar-south" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(-417px,119px,376px) rotateY(180deg)"><b>185-191</b></div>
-    <div class="face ar-south" data-bankface="179-184" style="width:228px;height:224px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(84px,0,496px) rotateY(180deg)">
+    <div class="fbase ar-south" data-area="south" data-px="240" data-pz="378" style="width:266px;height:14px;transform:translate(-50%,-50%) translate3d(-261px,119px,256px) rotateY(180deg)"><b>185-191</b></div>
+    <div class="blk ar-south" data-blk="179-184" data-px="363" data-pz="451" style="width:228px;height:100px;transform:translate(-50%,-50%) translate3d(-14px,112px,402px) rotateX(-90deg)"></div>
+    <div class="face ar-south" data-bankface="179-184" data-area="south" data-px="363" data-pz="426" style="width:228px;height:224px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(-14px,0,352px) rotateY(180deg)">
       <button type="button" class="c3 ty-hidden" style="grid-row:1;grid-column:1/span 2" data-kind="crypt" data-bank="179-184" data-id="G-179/180" data-ref="COM-1-1-G-179" data-tier="G" data-cols="179/180" data-type="hidden" data-st="available" aria-label="G-179/180, bank 179-184, Hidden Companion, Available"><span class="c3id">G-179/180</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="179-184" data-id="G-181" data-ref="COM-1-1-G-181" data-tier="G" data-cols="181" data-type="single" data-st="unavailable" aria-label="G-181, bank 179-184, Single, Unavailable"><span class="c3id">G-181</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="179-184" data-id="G-182" data-ref="COM-1-1-G-182" data-tier="G" data-cols="182" data-type="single" data-st="unavailable" aria-label="G-182, bank 179-184, Single, Unavailable"><span class="c3id">G-182</span></button>
@@ -882,8 +974,9 @@
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:4/span 1" data-kind="crypt" data-bank="179-184" data-id="A-182" data-ref="COM-1-1-A-182" data-tier="A" data-cols="182" data-type="single" data-st="unavailable" aria-label="A-182, bank 179-184, Single, Unavailable"><span class="c3id">A-182</span></button>
       <button type="button" class="c3 ty-hidden" style="grid-row:7;grid-column:5/span 2" data-kind="crypt" data-bank="179-184" data-id="A-183/184" data-ref="COM-1-1-A-183" data-tier="A" data-cols="183/184" data-type="hidden" data-st="available" aria-label="A-183/184, bank 179-184, Hidden Companion, Available"><span class="c3id">A-183/184</span><span class="c3st c3av">AVAIL</span></button>
     </div>
-    <div class="fbase ar-south" style="width:228px;height:14px;transform:translate(-50%,-50%) translate3d(84px,119px,496px) rotateY(180deg)"><b>179-184</b></div>
-    <div class="face ar-south" data-bankface="173-178" style="width:228px;height:224px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(396px,0,376px) rotateY(180deg)">
+    <div class="fbase ar-south" data-area="south" data-px="363" data-pz="426" style="width:228px;height:14px;transform:translate(-50%,-50%) translate3d(-14px,119px,352px) rotateY(180deg)"><b>179-184</b></div>
+    <div class="blk ar-south" data-blk="173-178" data-px="461" data-pz="402" style="width:228px;height:96px;transform:translate(-50%,-50%) translate3d(182px,112px,304px) rotateX(-90deg)"></div>
+    <div class="face ar-south" data-bankface="173-178" data-area="south" data-px="461" data-pz="378" style="width:228px;height:224px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(182px,0,256px) rotateY(180deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="173-178" data-id="G-173" data-ref="COM-1-1-G-173" data-tier="G" data-cols="173" data-type="tandem" data-st="unavailable" aria-label="G-173, bank 173-178, True Companion (Tandem), Unavailable"><span class="c3id">G-173</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="173-178" data-id="G-174" data-ref="COM-1-1-G-174" data-tier="G" data-cols="174" data-type="tandem" data-st="unavailable" aria-label="G-174, bank 173-178, True Companion (Tandem), Unavailable"><span class="c3id">G-174</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="173-178" data-id="G-175" data-ref="COM-1-1-G-175" data-tier="G" data-cols="175" data-type="tandem" data-st="unavailable" aria-label="G-175, bank 173-178, True Companion (Tandem), Unavailable"><span class="c3id">G-175</span></button>
@@ -927,8 +1020,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:5/span 1" data-kind="crypt" data-bank="173-178" data-id="A-177" data-ref="COM-1-1-A-177" data-tier="A" data-cols="177" data-type="tandem" data-st="unavailable" aria-label="A-177, bank 173-178, True Companion (Tandem), Unavailable"><span class="c3id">A-177</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:6/span 1" data-kind="crypt" data-bank="173-178" data-id="A-178" data-ref="COM-1-1-A-178" data-tier="A" data-cols="178" data-type="tandem" data-st="unavailable" aria-label="A-178, bank 173-178, True Companion (Tandem), Unavailable"><span class="c3id">A-178</span></button>
     </div>
-    <div class="fbase ar-south" style="width:228px;height:14px;transform:translate(-50%,-50%) translate3d(396px,119px,376px) rotateY(180deg)"><b>173-178</b></div>
-    <div class="face ar-south" data-bankface="168-172" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(560px,0,385px) rotateY(-90deg)">
+    <div class="fbase ar-south" data-area="south" data-px="461" data-pz="378" style="width:228px;height:14px;transform:translate(-50%,-50%) translate3d(182px,119px,256px) rotateY(180deg)"><b>173-178</b></div>
+    <div class="blk ar-south" data-blk="168-172" data-px="541" data-pz="426" style="width:92px;height:190px;transform:translate(-50%,-50%) translate3d(342px,112px,351px) rotateX(-90deg)"></div>
+    <div class="face ar-south" data-bankface="168-172" data-area="south" data-px="518" data-pz="426" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(296px,0,351px) rotateY(-90deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="168-172" data-id="G-168" data-ref="COM-1-1-G-168" data-tier="G" data-cols="168" data-type="single" data-st="unavailable" aria-label="G-168, bank 168-172, Single, Unavailable"><span class="c3id">G-168</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="168-172" data-id="G-169" data-ref="COM-1-1-G-169" data-tier="G" data-cols="169" data-type="single" data-st="unavailable" aria-label="G-169, bank 168-172, Single, Unavailable"><span class="c3id">G-169</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="168-172" data-id="G-170" data-ref="COM-1-1-G-170" data-tier="G" data-cols="170" data-type="single" data-st="unavailable" aria-label="G-170, bank 168-172, Single, Unavailable"><span class="c3id">G-170</span></button>
@@ -965,8 +1059,9 @@
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:4/span 1" data-kind="crypt" data-bank="168-172" data-id="A-171" data-ref="COM-1-1-A-171" data-tier="A" data-cols="171" data-type="single" data-st="unavailable" aria-label="A-171, bank 168-172, Single, Unavailable"><span class="c3id">A-171</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:5/span 1" data-kind="crypt" data-bank="168-172" data-id="A-172" data-ref="COM-1-1-A-172" data-tier="A" data-cols="172" data-type="single" data-st="unavailable" aria-label="A-172, bank 168-172, Single, Unavailable"><span class="c3id">A-172</span></button>
     </div>
-    <div class="fbase ar-south" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(560px,119px,385px) rotateY(-90deg)"><b>168-172</b></div>
-    <div class="face ar-east" data-bankface="141-148" style="width:304px;height:224px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(736px,0,-198px) rotateY(-90deg)">
+    <div class="fbase ar-south" data-area="south" data-px="518" data-pz="426" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(296px,119px,351px) rotateY(-90deg)"><b>168-172</b></div>
+    <div class="blk ar-east" data-blk="141-148" data-px="663" data-pz="117" style="width:100px;height:304px;transform:translate(-50%,-50%) translate3d(586px,112px,-266px) rotateX(-90deg)"></div>
+    <div class="face ar-east" data-bankface="141-148" data-area="east" data-px="638" data-pz="117" style="width:304px;height:224px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(536px,0,-266px) rotateY(-90deg)">
       <button type="button" class="c3 ty-tandem st-blocked" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="141-148" data-id="G-141" data-ref="COM-1-1-G-141" data-tier="G" data-cols="141" data-type="tandem" data-st="blocked" aria-label="G-141, bank 141-148, True Companion (Tandem), Not Selling"><span class="c3id">G-141</span><span class="c3st">NS</span></button>
       <button type="button" class="c3 ty-tandem st-blocked" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="141-148" data-id="G-142" data-ref="COM-1-1-G-142" data-tier="G" data-cols="142" data-type="tandem" data-st="blocked" aria-label="G-142, bank 141-148, True Companion (Tandem), Not Selling"><span class="c3id">G-142</span><span class="c3st">NS</span></button>
       <button type="button" class="c3 ty-tandem st-blocked" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="141-148" data-id="G-143" data-ref="COM-1-1-G-143" data-tier="G" data-cols="143" data-type="tandem" data-st="blocked" aria-label="G-143, bank 141-148, True Companion (Tandem), Not Selling"><span class="c3id">G-143</span><span class="c3st">NS</span></button>
@@ -1013,8 +1108,9 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:8/span 1" data-kind="crypt" data-bank="141-148" data-id="A-148" data-ref="COM-1-1-A-148" data-tier="A" data-cols="148" data-type="tandem" data-st="unavailable" aria-label="A-148, bank 141-148, True Companion (Tandem), Unavailable"><span class="c3id">A-148</span></button>
       <div class="c3void" style="grid-row:4/span 4;grid-column:1/span 3"></div>
     </div>
-    <div class="fbase ar-east" style="width:304px;height:14px;transform:translate(-50%,-50%) translate3d(736px,119px,-198px) rotateY(-90deg)"><b>141-148</b></div>
-    <div class="face ar-east" data-bankface="149-153" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(805px,0,-20px) rotateY(0deg)">
+    <div class="fbase ar-east" data-area="east" data-px="638" data-pz="117" style="width:304px;height:14px;transform:translate(-50%,-50%) translate3d(536px,119px,-266px) rotateY(-90deg)"><b>141-148</b></div>
+    <div class="blk ar-east" data-blk="149-153" data-px="686" data-pz="210" style="width:190px;height:88px;transform:translate(-50%,-50%) translate3d(631px,112px,-80px) rotateX(-90deg)"></div>
+    <div class="face ar-east" data-bankface="149-153" data-area="east" data-px="686" data-pz="232" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(631px,0,-36px) rotateY(0deg)">
       <button type="button" class="c3 ty-deluxe" style="grid-row:1;grid-column:1/span 2" data-kind="crypt" data-bank="149-153" data-id="G-149/150" data-ref="COM-1-1-G-149" data-tier="G" data-cols="149/150" data-type="deluxe" data-st="available" aria-label="G-149/150, bank 149-153, Deluxe Companion, Available"><span class="c3id">G-149/150</span><span class="c3st c3av">AVAIL</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="149-153" data-id="G-151" data-ref="COM-1-1-G-151" data-tier="G" data-cols="151" data-type="single" data-st="unavailable" aria-label="G-151, bank 149-153, Single, Unavailable"><span class="c3id">G-151</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:4/span 1" data-kind="crypt" data-bank="149-153" data-id="G-152" data-ref="COM-1-1-G-152" data-tier="G" data-cols="152" data-type="single" data-st="unavailable" aria-label="G-152, bank 149-153, Single, Unavailable"><span class="c3id">G-152</span></button>
@@ -1044,8 +1140,9 @@
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:4/span 1" data-kind="crypt" data-bank="149-153" data-id="A-152" data-ref="COM-1-1-A-152" data-tier="A" data-cols="152" data-type="single" data-st="unavailable" aria-label="A-152, bank 149-153, Single, Unavailable"><span class="c3id">A-152</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:5/span 1" data-kind="crypt" data-bank="149-153" data-id="A-153" data-ref="COM-1-1-A-153" data-tier="A" data-cols="153" data-type="single" data-st="unavailable" aria-label="A-153, bank 149-153, Single, Unavailable"><span class="c3id">A-153</span></button>
     </div>
-    <div class="fbase ar-east" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(805px,119px,-20px) rotateY(0deg)"><b>149-153</b></div>
-    <div class="face ar-east" data-bankface="154-158" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(805px,0,156px) rotateY(180deg)">
+    <div class="fbase ar-east" data-area="east" data-px="686" data-pz="232" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(631px,119px,-36px) rotateY(0deg)"><b>149-153</b></div>
+    <div class="blk ar-east" data-blk="154-158" data-px="686" data-pz="290" style="width:190px;height:88px;transform:translate(-50%,-50%) translate3d(631px,112px,80px) rotateX(-90deg)"></div>
+    <div class="face ar-east" data-bankface="154-158" data-area="east" data-px="686" data-pz="268" style="width:190px;height:224px;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(631px,0,36px) rotateY(180deg)">
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="154-158" data-id="G-154" data-ref="COM-1-1-G-154" data-tier="G" data-cols="154" data-type="single" data-st="unavailable" aria-label="G-154, bank 154-158, Single, Unavailable"><span class="c3id">G-154</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="154-158" data-id="G-155" data-ref="COM-1-1-G-155" data-tier="G" data-cols="155" data-type="single" data-st="unavailable" aria-label="G-155, bank 154-158, Single, Unavailable"><span class="c3id">G-155</span></button>
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="154-158" data-id="G-156" data-ref="COM-1-1-G-156" data-tier="G" data-cols="156" data-type="single" data-st="unavailable" aria-label="G-156, bank 154-158, Single, Unavailable"><span class="c3id">G-156</span></button>
@@ -1075,8 +1172,9 @@
       <button type="button" class="c3 ty-single st-unavailable" style="grid-row:7;grid-column:3/span 1" data-kind="crypt" data-bank="154-158" data-id="A-156" data-ref="COM-1-1-A-156" data-tier="A" data-cols="156" data-type="single" data-st="unavailable" aria-label="A-156, bank 154-158, Single, Unavailable"><span class="c3id">A-156</span></button>
       <button type="button" class="c3 ty-deluxe st-unavailable" style="grid-row:7;grid-column:4/span 2" data-kind="crypt" data-bank="154-158" data-id="A-157/158" data-ref="COM-1-1-A-157" data-tier="A" data-cols="157/158" data-type="deluxe" data-st="unavailable" aria-label="A-157/158, bank 154-158, Deluxe Companion, Unavailable"><span class="c3id">A-157/158</span></button>
     </div>
-    <div class="fbase ar-east" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(805px,119px,156px) rotateY(180deg)"><b>154-158</b></div>
-    <div class="face ar-east" data-bankface="159-167" style="width:342px;height:224px;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(736px,0,353px) rotateY(-90deg)">
+    <div class="fbase ar-east" data-area="east" data-px="686" data-pz="268" style="width:190px;height:14px;transform:translate(-50%,-50%) translate3d(631px,119px,36px) rotateY(180deg)"><b>154-158</b></div>
+    <div class="blk ar-east" data-blk="159-167" data-px="663" data-pz="398" style="width:100px;height:342px;transform:translate(-50%,-50%) translate3d(586px,112px,295px) rotateX(-90deg)"></div>
+    <div class="face ar-east" data-bankface="159-167" data-area="east" data-px="638" data-pz="398" style="width:342px;height:224px;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(7,1fr);transform:translate(-50%,-50%) translate3d(536px,0,295px) rotateY(-90deg)">
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:1/span 1" data-kind="crypt" data-bank="159-167" data-id="G-159" data-ref="COM-1-1-G-159" data-tier="G" data-cols="159" data-type="tandem" data-st="unavailable" aria-label="G-159, bank 159-167, True Companion (Tandem), Unavailable"><span class="c3id">G-159</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:2/span 1" data-kind="crypt" data-bank="159-167" data-id="G-160" data-ref="COM-1-1-G-160" data-tier="G" data-cols="160" data-type="tandem" data-st="unavailable" aria-label="G-160, bank 159-167, True Companion (Tandem), Unavailable"><span class="c3id">G-160</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:1;grid-column:3/span 1" data-kind="crypt" data-bank="159-167" data-id="G-161" data-ref="COM-1-1-G-161" data-tier="G" data-cols="161" data-type="tandem" data-st="unavailable" aria-label="G-161, bank 159-167, True Companion (Tandem), Unavailable"><span class="c3id">G-161</span></button>
@@ -1141,8 +1239,8 @@
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:8/span 1" data-kind="crypt" data-bank="159-167" data-id="A-166" data-ref="COM-1-1-A-166" data-tier="A" data-cols="166" data-type="tandem" data-st="unavailable" aria-label="A-166, bank 159-167, True Companion (Tandem), Unavailable"><span class="c3id">A-166</span></button>
       <button type="button" class="c3 ty-tandem st-unavailable" style="grid-row:7;grid-column:9/span 1" data-kind="crypt" data-bank="159-167" data-id="A-167" data-ref="COM-1-1-A-167" data-tier="A" data-cols="167" data-type="tandem" data-st="unavailable" aria-label="A-167, bank 159-167, True Companion (Tandem), Unavailable"><span class="c3id">A-167</span></button>
     </div>
-    <div class="fbase ar-east" style="width:342px;height:14px;transform:translate(-50%,-50%) translate3d(736px,119px,353px) rotateY(-90deg)"><b>159-167</b></div>
-    <div class="face nichewall ar-niches" data-bankface="RAD" style="width:304px;height:230.4px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(10,1fr);transform:translate(-50%,-50%) translate3d(-894px,-3.2px,-194px) rotateY(90deg)">
+    <div class="fbase ar-east" data-area="east" data-px="638" data-pz="398" style="width:342px;height:14px;transform:translate(-50%,-50%) translate3d(536px,119px,295px) rotateY(-90deg)"><b>159-167</b></div>
+    <div class="face nichewall ar-niches" data-bankface="RAD" data-area="niches" data-homearea="west" data-px="58" data-pz="132" style="width:208px;height:230.4px;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(10,1fr);transform:translate(-50%,-50%) translate3d(-624px,-3.2px,-236px) rotateY(0deg)">
       <button type="button" class="c3 n3glass" style="grid-row:1/span 1;grid-column:1" data-kind="niche" data-wall="RAD" data-id="K-1" data-ref="RAD-1-1-K-1" data-row="K" data-col="1" data-price="5495" data-st="available" aria-label="Radiance K-1, $5,495, Available"><span class="c3id">K-1</span><span class="n3p">$5,495</span></button>
       <button type="button" class="c3 n3glass" style="grid-row:1/span 1;grid-column:2" data-kind="niche" data-wall="RAD" data-id="K-2" data-ref="RAD-1-1-K-2" data-row="K" data-col="2" data-price="7695" data-st="available" aria-label="Radiance K-2, $7,695, Available"><span class="c3id">K-2</span><span class="n3p">$7,695</span></button>
       <button type="button" class="c3 n3glass" style="grid-row:1/span 1;grid-column:3" data-kind="niche" data-wall="RAD" data-id="K-3" data-ref="RAD-1-1-K-3" data-row="K" data-col="3" data-price="5495" data-st="available" aria-label="Radiance K-3, $5,495, Available"><span class="c3id">K-3</span><span class="n3p">$5,495</span></button>
@@ -1218,8 +1316,8 @@
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:10/span 1;grid-column:7" data-kind="niche" data-wall="RAD" data-id="A-7" data-ref="RAD-1-1-A-7" data-row="A" data-col="7" data-price="" data-st="unavailable" aria-label="Radiance A-7, Unavailable"><span class="c3id">A-7</span></button>
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:10/span 1;grid-column:8" data-kind="niche" data-wall="RAD" data-id="A-8" data-ref="RAD-1-1-A-8" data-row="A" data-col="8" data-price="" data-st="unavailable" aria-label="Radiance A-8, Unavailable"><span class="c3id">A-8</span></button>
     </div>
-    <div class="fbase ar-niches" style="width:304px;height:14px;transform:translate(-50%,-50%) translate3d(-894px,119px,-194px) rotateY(90deg)"><b>Radiance</b></div>
-    <div class="face nichewall ar-niches" data-bankface="SER" style="width:228px;height:230.4px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(10,1fr);transform:translate(-50%,-50%) translate3d(504px,-3.2px,-274px) rotateY(0deg)">
+    <div class="fbase ar-niches" data-area="niches" data-px="58" data-pz="132" style="width:208px;height:14px;transform:translate(-50%,-50%) translate3d(-624px,119px,-236px) rotateY(0deg)"><b>Radiance</b></div>
+    <div class="face nichewall ar-niches" data-bankface="SER" data-area="niches" data-homearea="island" data-px="572" data-pz="143" style="width:156px;height:230.4px;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(10,1fr);transform:translate(-50%,-50%) translate3d(404px,-3.2px,-214px) rotateY(90deg)">
       <button type="button" class="c3 n3glass" style="grid-row:1/span 1;grid-column:1" data-kind="niche" data-wall="SER" data-id="K-1" data-ref="SER-1-1-K-1" data-row="K" data-col="1" data-price="4395" data-st="available" aria-label="Serenity K-1, $4,395, Available"><span class="c3id">K-1</span><span class="n3p">$4,395</span></button>
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:1/span 1;grid-column:2" data-kind="niche" data-wall="SER" data-id="K-2" data-ref="SER-1-1-K-2" data-row="K" data-col="2" data-price="" data-st="unavailable" aria-label="Serenity K-2, Unavailable"><span class="c3id">K-2</span></button>
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:1/span 1;grid-column:3" data-kind="niche" data-wall="SER" data-id="K-3" data-ref="SER-1-1-K-3" data-row="K" data-col="3" data-price="" data-st="unavailable" aria-label="Serenity K-3, Unavailable"><span class="c3id">K-3</span></button>
@@ -1269,39 +1367,210 @@
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:10/span 1;grid-column:5" data-kind="niche" data-wall="SER" data-id="A-5" data-ref="SER-1-1-A-5" data-row="A" data-col="5" data-price="" data-st="unavailable" aria-label="Serenity A-5, Unavailable"><span class="c3id">A-5</span></button>
       <button type="button" class="c3 n3glass st-unavailable" style="grid-row:10/span 1;grid-column:6" data-kind="niche" data-wall="SER" data-id="A-6" data-ref="SER-1-1-A-6" data-row="A" data-col="6" data-price="" data-st="unavailable" aria-label="Serenity A-6, Unavailable"><span class="c3id">A-6</span></button>
     </div>
-    <div class="fbase ar-niches" style="width:228px;height:14px;transform:translate(-50%,-50%) translate3d(504px,119px,-274px) rotateY(0deg)"><b>Serenity</b></div>
-    <div class="mass mk-room" style="width:300px;height:123.2px;transform:translate(-50%,-50%) translate3d(-580px,50.4px,130px) rotateY(0deg)"><span>Chapel Area</span></div>
-    <div class="mass mk-room" style="width:300px;height:123.2px;transform:translate(-50%,-50%) translate3d(-580px,50.4px,-70px) rotateY(180deg)"><span>Chapel Area</span></div>
-    <div class="mass mk-room" style="width:200px;height:123.2px;transform:translate(-50%,-50%) translate3d(-430px,50.4px,30px) rotateY(90deg)"><span>Chapel Area</span></div>
-    <div class="mass mk-room" style="width:200px;height:123.2px;transform:translate(-50%,-50%) translate3d(-730px,50.4px,30px) rotateY(-90deg)"><span>Chapel Area</span></div>
-    <div class="mass mtop mk-room" style="width:300px;height:200px;transform:translate(-50%,-50%) translate3d(-580px,-11.2px,30px) rotateX(90deg)"></div>
-    <div class="mass mk-feature" style="width:120px;height:68px;transform:translate(-50%,-50%) translate3d(-540px,78px,-298px) rotateY(0deg)"><span>Altar</span></div>
-    <div class="mass mk-feature" style="width:120px;height:68px;transform:translate(-50%,-50%) translate3d(-540px,78px,-350px) rotateY(180deg)"><span>Altar</span></div>
-    <div class="mass mk-feature" style="width:52px;height:68px;transform:translate(-50%,-50%) translate3d(-480px,78px,-324px) rotateY(90deg)"><span>Altar</span></div>
-    <div class="mass mk-feature" style="width:52px;height:68px;transform:translate(-50%,-50%) translate3d(-600px,78px,-324px) rotateY(-90deg)"><span>Altar</span></div>
-    <div class="mass mtop mk-feature" style="width:120px;height:52px;transform:translate(-50%,-50%) translate3d(-540px,44px,-324px) rotateX(90deg)"></div>
-    <div class="mass mk-service" style="width:220px;height:123.2px;transform:translate(-50%,-50%) translate3d(450px,50.4px,-398px) rotateY(0deg)"><span>Rest Rooms</span></div>
-    <div class="mass mk-service" style="width:220px;height:123.2px;transform:translate(-50%,-50%) translate3d(450px,50.4px,-530px) rotateY(180deg)"><span>Rest Rooms</span></div>
-    <div class="mass mk-service" style="width:132px;height:123.2px;transform:translate(-50%,-50%) translate3d(560px,50.4px,-464px) rotateY(90deg)"><span>Rest Rooms</span></div>
-    <div class="mass mk-service" style="width:132px;height:123.2px;transform:translate(-50%,-50%) translate3d(340px,50.4px,-464px) rotateY(-90deg)"><span>Rest Rooms</span></div>
-    <div class="mass mtop mk-service" style="width:220px;height:132px;transform:translate(-50%,-50%) translate3d(450px,-11.2px,-464px) rotateX(90deg)"></div>
-    <div class="mass mk-service" style="width:260px;height:123.2px;transform:translate(-50%,-50%) translate3d(820px,50.4px,-450px) rotateY(0deg)"><span>Storage Room</span></div>
-    <div class="mass mk-service" style="width:260px;height:123.2px;transform:translate(-50%,-50%) translate3d(820px,50.4px,-590px) rotateY(180deg)"><span>Storage Room</span></div>
-    <div class="mass mk-service" style="width:140px;height:123.2px;transform:translate(-50%,-50%) translate3d(950px,50.4px,-520px) rotateY(90deg)"><span>Storage Room</span></div>
-    <div class="mass mk-service" style="width:140px;height:123.2px;transform:translate(-50%,-50%) translate3d(690px,50.4px,-520px) rotateY(-90deg)"><span>Storage Room</span></div>
-    <div class="mass mtop mk-service" style="width:260px;height:140px;transform:translate(-50%,-50%) translate3d(820px,-11.2px,-520px) rotateX(90deg)"></div>
-    <div class="mass mk-entrance" style="width:180px;height:123.2px;transform:translate(-50%,-50%) translate3d(880px,50.4px,100px) rotateY(0deg)"><span>Entrance</span></div>
-    <div class="mass mk-entrance" style="width:180px;height:123.2px;transform:translate(-50%,-50%) translate3d(880px,50.4px,40px) rotateY(180deg)"><span>Entrance</span></div>
-    <div class="mass mk-entrance" style="width:60px;height:123.2px;transform:translate(-50%,-50%) translate3d(970px,50.4px,70px) rotateY(90deg)"><span>Entrance</span></div>
-    <div class="mass mk-entrance" style="width:60px;height:123.2px;transform:translate(-50%,-50%) translate3d(790px,50.4px,70px) rotateY(-90deg)"><span>Entrance</span></div>
-    <div class="mass mtop mk-entrance" style="width:180px;height:60px;transform:translate(-50%,-50%) translate3d(880px,-11.2px,70px) rotateX(90deg)"></div>
-    <div class="hallpad" style="width:646px;height:100px;transform:translate(-50%,-50%) translate3d(-7px,112px,-340px) rotateX(-90deg)"><span>Hallway</span></div>
-    <div class="hallpad" style="width:760px;height:100px;transform:translate(-50%,-50%) translate3d(-170px,112px,280px) rotateX(-90deg)"><span>Hallway</span></div>
+    <div class="fbase ar-niches" data-area="niches" data-px="572" data-pz="143" style="width:156px;height:14px;transform:translate(-50%,-50%) translate3d(404px,119px,-214px) rotateY(90deg)"><b>Serenity</b></div>
+    <div class="doorway" data-stop="entrance-main" data-px="686" data-pz="250" role="button" tabindex="0" aria-label="Main Entrance — East corridor, shared with the Eternal Light Mausoleum. Walk in from here." style="width:72px;height:94.08px;transform:translate(-50%,-50%) translate3d(631px,64.96px,0px) rotateY(-90deg)"><span>Main Entrance</span></div>
+    <div class="doormat" data-px="686" data-pz="250" style="width:190px;height:72px;transform:translate(-50%,-50%) translate3d(631px,110.8px,0px) rotateX(-90deg)"></div>
+    <div class="doorway" data-stop="entrance-chapel" data-px="91" data-pz="400" role="button" tabindex="0" aria-label="Chapel Entrance — South-west doors, straight into the worship space. Walk in from here." style="width:88px;height:94.08px;transform:translate(-50%,-50%) translate3d(-558px,64.96px,300px) rotateY(180deg)"><span>Chapel Entrance</span></div>
+    <div class="doormat" data-px="91" data-pz="400" style="width:88px;height:84px;transform:translate(-50%,-50%) translate3d(-558px,110.8px,300px) rotateX(-90deg)"></div>
+    <div class="furn fk-altar" data-px="166" data-pz="91" style="width:70px;height:44px;transform:translate(-50%,-50%) translate3d(-409px,90px,-302px) rotateY(0deg)"><span>Altar</span></div>
+    <div class="furn fk-altar" data-px="166" data-pz="91" style="width:70px;height:44px;transform:translate(-50%,-50%) translate3d(-409px,90px,-334px) rotateY(180deg)"><span>Altar</span></div>
+    <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-374px,90px,-318px) rotateY(90deg)"><span>Altar</span></div>
+    <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-444px,90px,-318px) rotateY(-90deg)"><span>Altar</span></div>
+    <div class="furn fk-altar btop" data-px="166" data-pz="91" style="width:70px;height:32px;transform:translate(-50%,-50%) translate3d(-409px,68px,-318px) rotateX(90deg)"></div>
+    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-485px,94px,-306px) rotateY(0deg)"><span>Lectern</span></div>
+    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-485px,94px,-328px) rotateY(180deg)"><span>Lectern</span></div>
+    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-474px,94px,-317px) rotateY(90deg)"><span>Lectern</span></div>
+    <div class="furn fk-lectern" data-px="128" data-pz="92" style="width:22px;height:36px;transform:translate(-50%,-50%) translate3d(-496px,94px,-317px) rotateY(-90deg)"><span>Lectern</span></div>
+    <div class="furn fk-lectern btop" data-px="128" data-pz="92" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-485px,76px,-317px) rotateX(90deg)"></div>
+    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:68px;height:28px;transform:translate(-50%,-50%) translate3d(-318px,98px,-268px) rotateY(0deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:68px;height:28px;transform:translate(-50%,-50%) translate3d(-318px,98px,-316px) rotateY(180deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:48px;height:28px;transform:translate(-50%,-50%) translate3d(-284px,98px,-292px) rotateY(90deg)"><span>Piano</span></div>
+    <div class="furn fk-piano" data-px="211" data-pz="104" style="width:48px;height:28px;transform:translate(-50%,-50%) translate3d(-352px,98px,-292px) rotateY(-90deg)"><span>Piano</span></div>
+    <div class="furn fk-piano btop" data-px="211" data-pz="104" style="width:68px;height:48px;transform:translate(-50%,-50%) translate3d(-318px,84px,-292px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-354px,99px,-244px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-354px,99px,-264px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-344px,99px,-254px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="193" data-pz="123" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-364px,99px,-254px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="193" data-pz="123" style="width:20px;height:20px;transform:translate(-50%,-50%) translate3d(-354px,86px,-254px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-290px,99px,-280px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-290px,99px,-300px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-280px,99px,-290px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="225" data-pz="105" style="width:20px;height:26px;transform:translate(-50%,-50%) translate3d(-300px,99px,-290px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="225" data-pz="105" style="width:20px;height:20px;transform:translate(-50%,-50%) translate3d(-290px,86px,-290px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-476px,103px,-240px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-476px,103px,-256px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-436px,103px,-248px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="132" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-516px,103px,-248px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="132" data-pz="126" style="width:80px;height:16px;transform:translate(-50%,-50%) translate3d(-476px,94px,-248px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-340px,103px,-240px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:80px;height:18px;transform:translate(-50%,-50%) translate3d(-340px,103px,-256px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-300px,103px,-248px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="200" data-pz="126" style="width:16px;height:18px;transform:translate(-50%,-50%) translate3d(-380px,103px,-248px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="200" data-pz="126" style="width:80px;height:16px;transform:translate(-50%,-50%) translate3d(-340px,94px,-248px) rotateX(90deg)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-0" data-px="116" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-1" data-px="116" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-2" data-px="116" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-3" data-px="116" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-4" data-px="116" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-5" data-px="116" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-left-0-6" data-px="116" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="116" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-0" data-px="127" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-1" data-px="127" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-2" data-px="127" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-3" data-px="127" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-4" data-px="127" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-5" data-px="127" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-left-1-6" data-px="127" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-486px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="127" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-486px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-0" data-px="138" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-1" data-px="138" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-2" data-px="138" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-3" data-px="138" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-4" data-px="138" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-5" data-px="138" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-left-2-6" data-px="138" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-464px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="138" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-464px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-0" data-px="149" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-1" data-px="149" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-2" data-px="149" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-3" data-px="149" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-4" data-px="149" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-5" data-px="149" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-left-3-6" data-px="149" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-442px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="149" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-442px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-0" data-px="160" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-1" data-px="160" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-2" data-px="160" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-3" data-px="160" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-4" data-px="160" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-5" data-px="160" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-left-4-6" data-px="160" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-420px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="160" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-420px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-0" data-px="180" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-1" data-px="180" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-2" data-px="180" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-3" data-px="180" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-4" data-px="180" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-5" data-px="180" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-right-0-6" data-px="180" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-380px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="180" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-380px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-0" data-px="191" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-1" data-px="191" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-2" data-px="191" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-3" data-px="191" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-4" data-px="191" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-5" data-px="191" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-right-1-6" data-px="191" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-358px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="191" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-358px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-0" data-px="202" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-1" data-px="202" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-2" data-px="202" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-3" data-px="202" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-4" data-px="202" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-5" data-px="202" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-right-2-6" data-px="202" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-336px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="202" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-336px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-0" data-px="213" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-1" data-px="213" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-2" data-px="213" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-3" data-px="213" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-4" data-px="213" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-5" data-px="213" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-right-3-6" data-px="213" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-314px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="213" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-314px,93.28px,36px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-0" data-px="224" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-212px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-204px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-1" data-px="224" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-172px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="164" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-164px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-2" data-px="224" data-pz="184" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-132px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="184" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-124px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-3" data-px="224" data-pz="204" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-92px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="204" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-84px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-4" data-px="224" data-pz="224" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-52px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="224" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-44px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-5" data-px="224" data-pz="244" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,-12px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="244" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,-4px)"></div>
+    <div class="chair cseat" data-chair="chair-right-4-6" data-px="224" data-pz="264" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-292px,101.2px,28px) rotateX(90deg)"></div>
+    <div class="chair cback" data-px="224" data-pz="264" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-292px,93.28px,36px)"></div>
+    <button type="button" class="hot" data-stop="entrance-main" data-area="east" data-px="700" data-pz="250" aria-label="Walk to Main Entrance — East corridor, shared with Eternal Light" style="transform:translate(-50%,-50%) translate3d(660px,109.6px,0px) rotateX(-90deg)"><span>Main Entrance</span></button>
+    <button type="button" class="hot" data-stop="entrance-chapel" data-area="west" data-px="96" data-pz="392" aria-label="Walk to Chapel Entrance — South-west doors" style="transform:translate(-50%,-50%) translate3d(-548px,109.6px,284px) rotateX(-90deg)"><span>Chapel Entrance</span></button>
+    <button type="button" class="hot" data-stop="chapel" data-area="west" data-px="166" data-pz="292" aria-label="Walk to Chapel — Worship Space — Seating, looking toward the altar" style="transform:translate(-50%,-50%) translate3d(-408px,109.6px,84px) rotateX(-90deg)"><span>Chapel — Worship Space</span></button>
+    <button type="button" class="hot" data-stop="altar" data-area="north" data-px="166" data-pz="150" aria-label="Walk to Altar — North end of the worship space" style="transform:translate(-50%,-50%) translate3d(-408px,109.6px,-200px) rotateX(-90deg)"><span>Altar</span></button>
+    <button type="button" class="hot" data-stop="west-wall" data-area="west" data-px="150" data-pz="262" aria-label="Walk to West Wall — 101-110 — Deluxe Companion and tandem crypts" style="transform:translate(-50%,-50%) translate3d(-440px,109.6px,24px) rotateX(-90deg)"><span>West Wall — 101-110</span></button>
+    <button type="button" class="hot" data-stop="radiance" data-area="niches" data-px="58" data-pz="154" aria-label="Walk to Radiance Niche Wall — North-west of the chapel" style="transform:translate(-50%,-50%) translate3d(-624px,109.6px,-192px) rotateX(-90deg)"><span>Radiance Niche Wall</span></button>
+    <button type="button" class="hot" data-stop="north-wing" data-area="north" data-px="360" data-pz="150" aria-label="Walk to North Wing — 124-140 — Tandem crypts along the north hall" style="transform:translate(-50%,-50%) translate3d(-20px,109.6px,-200px) rotateX(-90deg)"><span>North Wing — 124-140</span></button>
+    <button type="button" class="hot" data-stop="north-hidden" data-area="north" data-px="174" data-pz="96" aria-label="Walk to North Wing — 116-123 — Hidden Companions and Deluxe Companions" style="transform:translate(-50%,-50%) translate3d(-392px,109.6px,-308px) rotateX(-90deg)"><span>North Wing — 116-123</span></button>
+    <button type="button" class="hot" data-stop="island-west" data-area="island" data-px="198" data-pz="240" aria-label="Walk to Island — West Face 194-200 — Faces the chapel" style="transform:translate(-50%,-50%) translate3d(-344px,109.6px,-20px) rotateX(-90deg)"><span>Island — West Face 194-200</span></button>
+    <button type="button" class="hot" data-stop="island-north" data-area="island" data-px="404" data-pz="130" aria-label="Walk to Island — North Face 220-231 — Deluxe Companions" style="transform:translate(-50%,-50%) translate3d(68px,109.6px,-240px) rotateX(-90deg)"><span>Island — North Face 220-231</span></button>
+    <button type="button" class="hot" data-stop="island-south" data-area="island" data-px="404" data-pz="350" aria-label="Walk to Island — South Face 201-212 — Deluxe Companions" style="transform:translate(-50%,-50%) translate3d(68px,109.6px,200px) rotateX(-90deg)"><span>Island — South Face 201-212</span></button>
+    <button type="button" class="hot" data-stop="island-east" data-area="island" data-px="600" data-pz="240" aria-label="Walk to Island — East Face 213-219 — Faces the east passage" style="transform:translate(-50%,-50%) translate3d(460px,109.6px,-20px) rotateX(-90deg)"><span>Island — East Face 213-219</span></button>
+    <button type="button" class="hot" data-stop="serenity" data-area="niches" data-px="606" data-pz="143" aria-label="Walk to Serenity Niche Wall — East passage, between COM and the Eternal Light complex" style="transform:translate(-50%,-50%) translate3d(472px,109.6px,-214px) rotateX(-90deg)"><span>Serenity Niche Wall</span></button>
+    <button type="button" class="hot" data-stop="south-wall" data-area="south" data-px="240" data-pz="340" aria-label="Walk to South Wall — 185-193 — Tandem and single crypts" style="transform:translate(-50%,-50%) translate3d(-260px,109.6px,180px) rotateX(-90deg)"><span>South Wall — 185-193</span></button>
+    <button type="button" class="hot" data-stop="south-hidden" data-area="south" data-px="362" data-pz="396" aria-label="Walk to South Wall — 179-184 — Hidden Companions" style="transform:translate(-50%,-50%) translate3d(-16px,109.6px,292px) rotateX(-90deg)"><span>South Wall — 179-184</span></button>
+    <button type="button" class="hot" data-stop="south-east" data-area="south" data-px="470" data-pz="344" aria-label="Walk to South Wall — 173-178 — Tandem crypts" style="transform:translate(-50%,-50%) translate3d(200px,109.6px,188px) rotateX(-90deg)"><span>South Wall — 173-178</span></button>
+    <button type="button" class="hot" data-stop="corner-168" data-area="south" data-px="484" data-pz="452" aria-label="Walk to South-East Corner — 168-172 — Single crypts" style="transform:translate(-50%,-50%) translate3d(228px,109.6px,404px) rotateX(-90deg)"><span>South-East Corner — 168-172</span></button>
+    <button type="button" class="hot" data-stop="east-north" data-area="east" data-px="700" data-pz="120" aria-label="Walk to East Corridor — 141-148 — North of the entrance" style="transform:translate(-50%,-50%) translate3d(660px,109.6px,-260px) rotateX(-90deg)"><span>East Corridor — 141-148</span></button>
+    <button type="button" class="hot" data-stop="east-south" data-area="east" data-px="700" data-pz="396" aria-label="Walk to East Corridor — 159-167 — South of the entrance" style="transform:translate(-50%,-50%) translate3d(660px,109.6px,292px) rotateX(-90deg)"><span>East Corridor — 159-167</span></button>
     </div>
   </div>
 </div>
-    <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
-    <div class="modelnote">17 crypt banks (785 purchasable units over 893 crypt spaces) plus the Radiance and Serenity niche walls (122 niches) &nbsp;·&nbsp; model proportions estimated from the CAD plan and photographs; no dimensions are implied</div>
+    <div class="hint">Click a <b>doorway</b> or a <b>floor marker</b> to walk there &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it &nbsp;·&nbsp; arrow keys look, +/&minus; zoom</div>
+    <div class="modelnote">2 entrances &nbsp;·&nbsp; 19 walk-to positions &nbsp;·&nbsp; 17 crypt banks (785 purchasable units over 893 crypt spaces) plus the Radiance and Serenity niche walls (122 niches) &nbsp;·&nbsp; wall POSITIONS are measured off the MIS CAD floor plan; heights, the chapel furniture and both niche walls' facing directions are ESTIMATED from the 2026-07-29 walk-through photographs. No dimensions are implied.</div>
     <div class="legend">
       <div class="li"><div class="ls lg-a"></div><span>Available (price printed on the sheet)</span></div>
       <div class="li"><div class="ls lg-u"></div><span>Unavailable — confirm in MIS</span></div>
@@ -1314,40 +1583,118 @@
     <div class="wlabel">Floor Plan</div>
     <div class="wsub">Chapel of Memory Mausoleum — every bank and both niche walls are selectable · the number after each bank id is how many units are available</div>
     <div class="planwrap">
-<svg class="plansvg" viewBox="0 0 1010 650" role="img" aria-label="Floor plan of the Chapel of Memory Mausoleum. Every crypt bank and both niche walls are selectable.">
-    <rect class="pshell" x="6" y="6" width="998" height="638" rx="6"/>
-    <g class="proom pr-room"><rect x="140" y="290" width="150" height="100" rx="3"/><text x="215" y="344">Chapel Area</text></g>
-    <g class="proom pr-feature"><rect x="205" y="150" width="60" height="26" rx="3"/><text x="235" y="167">Altar</text></g>
-    <g class="proom pr-service"><rect x="675" y="60" width="110" height="66" rx="3"/><text x="730" y="97">Rest Rooms</text></g>
-    <g class="proom pr-service"><rect x="850" y="30" width="130" height="70" rx="3"/><text x="915" y="69">Storage Room</text></g>
-    <g class="proom pr-entrance"><rect x="900" y="345" width="90" height="30" rx="3"/><text x="945" y="364">Entrance</text></g>
-    <g class="proom pr-hall"><rect x="340" y="130" width="323" height="50" rx="3"/><text x="501.5" y="159">Hallway</text></g>
-    <g class="proom pr-hall"><rect x="230" y="440" width="380" height="50" rx="3"/><text x="420" y="469">Hallway</text></g>
-    <g class="pbank" data-bank="111-115" data-area="north" tabindex="0" role="button" aria-label="Bank 111-115, facing south · True Companion (Tandem), 0 available"><rect x="40" y="88" width="95" height="26" rx="2"/><text class="pblab" x="87.5" y="105">111-115</text></g>
-    <g class="pbank has-av" data-bank="116-123" data-area="north" tabindex="0" role="button" aria-label="Bank 116-123, facing south · Deluxe Companion · Hidden Companion, 13 available"><rect x="150" y="20" width="152" height="26" rx="2"/><text class="pblab" x="226" y="37">116-123 · 13</text></g>
-    <g class="pbank" data-bank="124-140" data-area="north" tabindex="0" role="button" aria-label="Bank 124-140, facing south · True Companion (Tandem), 0 available"><rect x="340" y="88" width="323" height="26" rx="2"/><text class="pblab" x="501.5" y="105">124-140</text></g>
-    <g class="pbank has-av" data-bank="101-110" data-area="west" tabindex="0" role="button" aria-label="Bank 101-110, facing east · Deluxe Companion · True Companion (Tandem), 2 available"><rect x="90" y="280" width="26" height="190" rx="2"/><text class="pblab" x="103" y="379" transform="rotate(-90 103 375)">101-110 · 2</text></g>
-    <g class="pbank has-av" data-bank="194-200" data-area="island" tabindex="0" role="button" aria-label="Bank 194-200, facing west · Single · Deluxe Companion, 8 available"><rect x="340" y="250" width="26" height="133" rx="2"/><text class="pblab" x="353" y="320.5" transform="rotate(-90 353 316.5)">194-200 · 8</text></g>
-    <g class="pbank has-av" data-bank="220-231" data-area="island" tabindex="0" role="button" aria-label="Bank 220-231, facing north · Single · Deluxe Companion · True Companion (Tandem), 5 available"><rect x="366" y="250" width="228" height="26" rx="2"/><text class="pblab" x="480" y="267">220-231 · 5</text></g>
-    <g class="pbank has-av" data-bank="201-212" data-area="island" tabindex="0" role="button" aria-label="Bank 201-212, facing south · True Companion (Tandem) · Single · Deluxe Companion, 3 available"><rect x="366" y="357" width="228" height="26" rx="2"/><text class="pblab" x="480" y="374">201-212 · 3</text></g>
-    <g class="pbank has-av" data-bank="213-219" data-area="island" tabindex="0" role="button" aria-label="Bank 213-219, facing east · Single · Deluxe Companion, 7 available"><rect x="594" y="250" width="26" height="133" rx="2"/><text class="pblab" x="607" y="320.5" transform="rotate(-90 607 316.5)">213-219 · 7</text></g>
-    <g class="pbank" data-bank="192-193" data-area="south" tabindex="0" role="button" aria-label="Bank 192-193, facing north · Single, 0 available"><rect x="192" y="500" width="38" height="26" rx="2"/><text class="pblab" x="211" y="517">192-193</text></g>
-    <g class="pbank" data-bank="185-191" data-area="south" tabindex="0" role="button" aria-label="Bank 185-191, facing north · True Companion (Tandem), 0 available"><rect x="230" y="500" width="133" height="26" rx="2"/><text class="pblab" x="296.5" y="517">185-191</text></g>
-    <g class="pbank has-av" data-bank="179-184" data-area="south" tabindex="0" role="button" aria-label="Bank 179-184, facing north · Hidden Companion · Single, 9 available"><rect x="490" y="560" width="114" height="26" rx="2"/><text class="pblab" x="547" y="577">179-184 · 9</text></g>
-    <g class="pbank" data-bank="173-178" data-area="south" tabindex="0" role="button" aria-label="Bank 173-178, facing north · True Companion (Tandem), 0 available"><rect x="646" y="500" width="114" height="26" rx="2"/><text class="pblab" x="703" y="517">173-178</text></g>
-    <g class="pbank" data-bank="168-172" data-area="south" tabindex="0" role="button" aria-label="Bank 168-172, facing west · Single, 0 available"><rect x="772" y="470" width="26" height="95" rx="2"/><text class="pblab" x="785" y="521.5" transform="rotate(-90 785 517.5)">168-172</text></g>
-    <g class="pbank" data-bank="141-148" data-area="east" tabindex="0" role="button" aria-label="Bank 141-148, facing west · True Companion (Tandem), 0 available"><rect x="860" y="150" width="26" height="152" rx="2"/><text class="pblab" x="873" y="230" transform="rotate(-90 873 226)">141-148</text></g>
-    <g class="pbank has-av" data-bank="149-153" data-area="east" tabindex="0" role="button" aria-label="Bank 149-153, facing south · Deluxe Companion · Single, 3 available"><rect x="860" y="302" width="95" height="26" rx="2"/><text class="pblab" x="907.5" y="319">149-153 · 3</text></g>
-    <g class="pbank has-av" data-bank="154-158" data-area="east" tabindex="0" role="button" aria-label="Bank 154-158, facing north · Single · Deluxe Companion, 1 available"><rect x="860" y="390" width="95" height="26" rx="2"/><text class="pblab" x="907.5" y="407">154-158 · 1</text></g>
-    <g class="pbank" data-bank="159-167" data-area="east" tabindex="0" role="button" aria-label="Bank 159-167, facing west · True Companion (Tandem), 0 available"><rect x="860" y="416" width="26" height="171" rx="2"/><text class="pblab" x="873" y="505.5" transform="rotate(-90 873 501.5)">159-167</text></g>
-    <g class="pbank pniche has-av" data-bank="RAD" data-area="niches" tabindex="0" role="button" aria-label="Radiance niche wall, 17 available"><rect x="45" y="190" width="26" height="76" rx="2"/><text class="pblab" x="58" y="232" transform="rotate(-90 58 228)">Radiance · 17</text></g>
-    <g class="pbank pniche has-av" data-bank="SER" data-area="niches" tabindex="0" role="button" aria-label="Serenity niche wall, 10 available"><rect x="700" y="175" width="114" height="26" rx="2"/><text class="pblab" x="757" y="192">Serenity · 10</text></g>
+<svg class="plansvg" viewBox="0 0 740 500" role="img" aria-label="Floor plan of the Chapel of Memory Mausoleum. Every crypt bank and both niche walls are selectable.">
+    <rect class="pshell" x="1" y="1" width="738" height="498" rx="6"/>
+    <g class="proom pr-chapel"><rect x="98" y="112" width="136" height="256" rx="3"/><text x="166" y="359">Chapel — Worship Space</text></g>
+    <g class="proom pr-service"><rect x="506" y="3" width="56" height="95" rx="3"/><text x="534" y="54.5">Rest Rooms</text></g>
+    <g class="proom pr-service"><rect x="630" y="3" width="97" height="95" rx="3"/><text x="678.5" y="54.5">Storage Room</text></g>
+    <g class="proom pr-hall"><rect x="240" y="98" width="254" height="68" rx="3"/><text x="367" y="136">North Hall</text></g>
+    <g class="proom pr-hall"><rect x="562" y="98" width="68" height="386" rx="3"/><text x="596" y="295">East Passage</text></g>
+    <g class="proom pr-hall"><rect x="144" y="312" width="396" height="66" rx="3"/><text x="342" y="349">South Hall</text></g>
+    <rect class="pchair" x="112" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="112" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="123" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="134" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="145" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="156" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="176" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="187" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="198" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="209" y="260" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="140" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="160" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="180" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="200" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="220" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="240" width="8" height="8" rx="1.5"/>
+    <rect class="pchair" x="220" y="260" width="8" height="8" rx="1.5"/>
+    <g class="pfurn pf-altar"><rect x="148" y="83" width="35" height="16" rx="2"/><text x="165.5" y="94.5">Altar</text></g>
+    <g class="pfurn pf-lectern"><rect x="122" y="86" width="11" height="11" rx="2"/><text x="127.5" y="95">Lectern</text></g>
+    <g class="pfurn pf-piano"><rect x="194" y="92" width="34" height="24" rx="2"/><text x="211" y="107.5">Piano</text></g>
+    <g class="pfurn pf-seat"><rect x="188" y="118" width="10" height="10" rx="2"/></g>
+    <g class="pfurn pf-seat"><rect x="220" y="100" width="10" height="10" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="112" y="122" width="40" height="8" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="180" y="122" width="40" height="8" rx="2"/></g>
+    <g class="pentr" data-stop="entrance-main" tabindex="0" role="button" aria-label="Main Entrance — East corridor, shared with the Eternal Light Mausoleum. Walk in from here."><rect x="638" y="232" width="95" height="36" rx="3"/><text x="685.5" y="254">Main Entrance</text></g>
+    <g class="pentr" data-stop="entrance-chapel" tabindex="0" role="button" aria-label="Chapel Entrance — South-west doors, straight into the worship space. Walk in from here."><rect x="69" y="379" width="44" height="42" rx="3"/><text x="91" y="404">Chapel Entrance</text></g>
+    <g class="pbank" data-bank="111-115" data-area="north" tabindex="0" role="button" aria-label="Bank 111-115, facing south · True Companion (Tandem), 0 available"><rect x="3" y="3" width="95" height="95" rx="2"/><text class="pblab" x="50.5" y="54.5">111-115</text></g>
+    <g class="pbank has-av" data-bank="116-123" data-area="north" tabindex="0" role="button" aria-label="Bank 116-123, facing south · Deluxe Companion · Hidden Companion, 13 available"><rect x="98" y="3" width="152" height="47" rx="2"/><text class="pblab" x="174" y="30.5">116-123 · 13</text></g>
+    <g class="pbank" data-bank="124-140" data-area="north" tabindex="0" role="button" aria-label="Bank 124-140, facing south · True Companion (Tandem), 0 available"><rect x="240" y="50" width="266" height="48" rx="2"/><text class="pblab" x="373" y="78">124-140</text></g>
+    <g class="pbank has-av" data-bank="101-110" data-area="west" tabindex="0" role="button" aria-label="Bank 101-110, facing east · Deluxe Companion · True Companion (Tandem), 2 available"><rect x="3" y="172" width="95" height="190" rx="2"/><text class="pblab" x="50.5" y="271" transform="rotate(-90 50.5 267)">101-110 · 2</text></g>
+    <g class="pbank has-av" data-bank="194-200" data-area="island" tabindex="0" role="button" aria-label="Bank 194-200, facing west · Single · Deluxe Companion, 8 available"><rect x="234" y="172" width="54" height="133" rx="2"/><text class="pblab" x="261" y="242.5" transform="rotate(-90 261 238.5)">194-200 · 8</text></g>
+    <g class="pbank has-av" data-bank="220-231" data-area="island" tabindex="0" role="button" aria-label="Bank 220-231, facing north · Single · Deluxe Companion · True Companion (Tandem), 5 available"><rect x="290" y="166" width="228" height="54" rx="2"/><text class="pblab" x="404" y="197">220-231 · 5</text></g>
+    <g class="pbank has-av" data-bank="201-212" data-area="island" tabindex="0" role="button" aria-label="Bank 201-212, facing south · True Companion (Tandem) · Single · Deluxe Companion, 3 available"><rect x="290" y="266" width="228" height="46" rx="2"/><text class="pblab" x="404" y="293">201-212 · 3</text></g>
+    <g class="pbank has-av" data-bank="213-219" data-area="island" tabindex="0" role="button" aria-label="Bank 213-219, facing east · Single · Deluxe Companion, 7 available"><rect x="516" y="172" width="46" height="133" rx="2"/><text class="pblab" x="539" y="242.5" transform="rotate(-90 539 238.5)">213-219 · 7</text></g>
+    <g class="pbank" data-bank="192-193" data-area="south" tabindex="0" role="button" aria-label="Bank 192-193, facing north · Single, 0 available"><rect x="135" y="378" width="38" height="48" rx="2"/><text class="pblab" x="154" y="406" transform="rotate(-90 154 402)">192-193</text></g>
+    <g class="pbank" data-bank="185-191" data-area="south" tabindex="0" role="button" aria-label="Bank 185-191, facing north · True Companion (Tandem), 0 available"><rect x="173" y="378" width="133" height="48" rx="2"/><text class="pblab" x="239.5" y="406">185-191</text></g>
+    <g class="pbank has-av" data-bank="179-184" data-area="south" tabindex="0" role="button" aria-label="Bank 179-184, facing north · Hidden Companion · Single, 9 available"><rect x="306" y="426" width="114" height="50" rx="2"/><text class="pblab" x="363" y="455">179-184 · 9</text></g>
+    <g class="pbank" data-bank="173-178" data-area="south" tabindex="0" role="button" aria-label="Bank 173-178, facing north · True Companion (Tandem), 0 available"><rect x="404" y="378" width="114" height="48" rx="2"/><text class="pblab" x="461" y="406">173-178</text></g>
+    <g class="pbank" data-bank="168-172" data-area="south" tabindex="0" role="button" aria-label="Bank 168-172, facing west · Single, 0 available"><rect x="518" y="378" width="46" height="95" rx="2"/><text class="pblab" x="541" y="429.5" transform="rotate(-90 541 425.5)">168-172</text></g>
+    <g class="pbank" data-bank="141-148" data-area="east" tabindex="0" role="button" aria-label="Bank 141-148, facing west · True Companion (Tandem), 0 available"><rect x="638" y="98" width="50" height="95" rx="2"/><text class="pblab" x="663" y="149.5" transform="rotate(-90 663 145.5)">141-148</text></g>
+    <g class="pbank has-av" data-bank="149-153" data-area="east" tabindex="0" role="button" aria-label="Bank 149-153, facing south · Deluxe Companion · Single, 3 available"><rect x="638" y="188" width="95" height="44" rx="2"/><text class="pblab" x="685.5" y="214">149-153 · 3</text></g>
+    <g class="pbank has-av" data-bank="154-158" data-area="east" tabindex="0" role="button" aria-label="Bank 154-158, facing north · Single · Deluxe Companion, 1 available"><rect x="638" y="268" width="95" height="44" rx="2"/><text class="pblab" x="685.5" y="294">154-158 · 1</text></g>
+    <g class="pbank" data-bank="159-167" data-area="east" tabindex="0" role="button" aria-label="Bank 159-167, facing west · True Companion (Tandem), 0 available"><rect x="638" y="312" width="50" height="171" rx="2"/><text class="pblab" x="663" y="401.5" transform="rotate(-90 663 397.5)">159-167</text></g>
+    <g class="pbank pniche has-av" data-bank="RAD" data-area="niches" tabindex="0" role="button" aria-label="Radiance niche wall, 17 available"><rect x="6" y="112" width="104" height="20" rx="2"/><text class="pblab" x="58" y="126">Radiance · 17</text></g>
+    <g class="pbank pniche has-av" data-bank="SER" data-area="niches" tabindex="0" role="button" aria-label="Serenity niche wall, 10 available"><rect x="552" y="104" width="20" height="78" rx="2"/><text class="pblab" x="562" y="147" transform="rotate(-90 562 143)">Serenity · 10</text></g>
   </svg>
     </div>
     <div class="hint">Click a bank to open its area · the 3D tab swings the camera to the same place</div>
   </div>
   <div class="wview" id="area-north">
-    <div class="wlabel">North Wall</div>
+    <div class="wlabel">North Wing</div>
     <div class="wsub">Altar end — banks 111-115, 116-123, 124-140</div>
     <div class="bwrap">
       <div class="btitle">Bank 111-115</div>
@@ -1601,8 +1948,8 @@
     </div>
   </div>
   <div class="wview" id="area-west">
-    <div class="wlabel">West Wall &amp; Chapel</div>
-    <div class="wsub">Chapel area — bank 101-110</div>
+    <div class="wlabel">Chapel &amp; West Wall</div>
+    <div class="wsub">The worship space and bank 101-110</div>
     <div class="bwrap">
       <div class="btitle">Bank 101-110</div>
       <div class="bsub">facing east · Deluxe Companion · True Companion (Tandem)</div>
@@ -1694,7 +2041,7 @@
   </div>
   <div class="wview" id="area-island">
     <div class="wlabel">Centre Island</div>
-    <div class="wsub">Free-standing block — banks 194-200, 201-212, 213-219, 220-231</div>
+    <div class="wsub">Free-standing block — banks 194-200, 220-231, 201-212, 213-219</div>
     <div class="bwrap">
       <div class="btitle">Bank 194-200</div>
       <div class="bsub">facing west · Single · Deluxe Companion</div>
@@ -2013,7 +2360,7 @@
   </div>
   <div class="wview" id="area-south">
     <div class="wlabel">South Wall</div>
-    <div class="wsub">Banks 168-172, 173-178, 179-184, 185-191, 192-193</div>
+    <div class="wsub">Banks 192-193, 185-191, 179-184, 173-178, 168-172</div>
     <div class="bwrap">
       <div class="btitle">Bank 192-193</div>
       <div class="bsub">facing north · Single</div>
@@ -2285,7 +2632,7 @@
     </div>
   </div>
   <div class="wview" id="area-east">
-    <div class="wlabel">East Wall &amp; Entrance</div>
+    <div class="wlabel">East Corridor &amp; Entrance</div>
     <div class="wsub">Banks 141-148, 149-153, 154-158, 159-167</div>
     <div class="bwrap">
       <div class="btitle">Bank 141-148</div>
@@ -2541,10 +2888,10 @@
   </div>
   <div class="wview" id="area-niches">
     <div class="wlabel">Niche Walls</div>
-    <div class="wsub">Radiance and Serenity glass-front niche walls</div>
+    <div class="wsub">Radiance (north-west of the chapel) and Serenity (east passage, toward the Eternal Light complex)</div>
     <div class="bwrap">
       <div class="btitle">Radiance Niche Wall</div>
-      <div class="bsub">RAD-1-1-ROW-SPACE · rows K (top) to A (bottom) · West side of the chapel, north of bank 101-110.</div>
+      <div class="bsub">RAD-1-1-ROW-SPACE · rows K (top) to A (bottom) · Far west side, in the bay north of bank 101-110 — the north-west corner of the chapel.</div>
       <div class="gwrap">
   <div class="cgrid" style="grid-template-columns:20px repeat(8,minmax(0,1fr));grid-template-rows:repeat(10,46px);max-width:520px;">
     <div class="rlbl" style="grid-column:1;grid-row:1">K</div>
@@ -2639,7 +2986,7 @@
     </div>
     <div class="bwrap">
       <div class="btitle">Serenity Niche Wall</div>
-      <div class="bsub">SER-1-1-ROW-SPACE · rows K (top) to A (bottom) · North-east corner, off the north hallway.</div>
+      <div class="bsub">SER-1-1-ROW-SPACE · rows K (top) to A (bottom) · East passage, between the Chapel of Memories and the Eternal Light complex, just north of bank 213-219.</div>
       <div class="gwrap">
   <div class="cgrid" style="grid-template-columns:20px repeat(6,minmax(0,1fr));grid-template-rows:repeat(10,46px);max-width:520px;">
     <div class="rlbl" style="grid-column:1;grid-row:1">K</div>
@@ -4038,7 +4385,7 @@ var TYPE_CAP = {"single":"1 entombment","tandem":"2 entombments","deluxe":"2 ent
 var STATUS_LABEL = {"available":"Available","unavailable":"Unavailable","blocked":"Not Selling"};
 var BANK_AREA = {"111-115":"north","116-123":"north","124-140":"north","101-110":"west","194-200":"island","220-231":"island","201-212":"island","213-219":"island","192-193":"south","185-191":"south","179-184":"south","173-178":"south","168-172":"south","141-148":"east","149-153":"east","154-158":"east","159-167":"east","RAD":"niches","SER":"niches"};
 var BANK_LABEL = {"111-115":"Bank 111-115","116-123":"Bank 116-123","124-140":"Bank 124-140","101-110":"Bank 101-110","194-200":"Bank 194-200","220-231":"Bank 220-231","201-212":"Bank 201-212","213-219":"Bank 213-219","192-193":"Bank 192-193","185-191":"Bank 185-191","179-184":"Bank 179-184","173-178":"Bank 173-178","168-172":"Bank 168-172","141-148":"Bank 141-148","149-153":"Bank 149-153","154-158":"Bank 154-158","159-167":"Bank 159-167","RAD":"Radiance Niche Wall","SER":"Serenity Niche Wall"};
-var AREA_LABEL = {"north":"North Wall","west":"West Wall & Chapel","island":"Centre Island","south":"South Wall","east":"East Wall & Entrance","niches":"Niche Walls"};
+var AREA_LABEL = {"north":"North Wing","west":"Chapel & West Wall","island":"Centre Island","south":"South Wall","east":"East Corridor & Entrance","niches":"Niche Walls"};
 var WALL_NAME = { RAD: 'Radiance', SER: 'Serenity' };
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
@@ -4216,15 +4563,26 @@ document.querySelectorAll('.tabs .tab').forEach(function (t) {
   t.addEventListener('click', function () { showView(t.getAttribute('data-view')); });
 });
 
-// ── 3D camera ─────────────────────────────────────────────────────────────────
+// ── 3D camera + WALKTHROUGH ───────────────────────────────────────────────────
+// The camera has two modes. HOME is the old orbit: the whole building from above.
+// A STOP puts you INSIDE — the building is panned so the stop's floor position sits
+// under the camera, the eye drops to EYE_Y above the floor, and the walls you are not
+// standing in front of fade to ghosts so you can see out of the room you are in.
 var scene = document.getElementById('scene'), stage = document.getElementById('stage');
-var VIEWS = {"home":{"yaw":-30,"pitch":-52,"zoom":null},"north":{"yaw":0,"pitch":-8},"west":{"yaw":-90,"pitch":-8},"island":{"yaw":-20,"pitch":-34},"south":{"yaw":180,"pitch":-8},"east":{"yaw":90,"pitch":-8},"niches":{"yaw":-60,"pitch":-14}};
-var cam = { yaw: VIEWS.home.yaw, pitch: VIEWS.home.pitch, zoom: 1, lift: 0 };
+var bldg = document.getElementById('bldg');
+var HOME = {"yaw":-30,"pitch":-52};
+var STOPS = {"entrance-main":{"id":"entrance-main","area":"east","label":"Main Entrance","sub":"East corridor, shared with Eternal Light","x":700,"z":250,"yaw":-90,"pitch":-8,"zoom":0.7},"entrance-chapel":{"id":"entrance-chapel","area":"west","label":"Chapel Entrance","sub":"South-west doors","x":96,"z":392,"yaw":20,"pitch":-8,"zoom":0.75},"chapel":{"id":"chapel","area":"west","label":"Chapel — Worship Space","sub":"Seating, looking toward the altar","x":166,"z":292,"yaw":0,"pitch":-8,"zoom":1.3},"altar":{"id":"altar","area":"north","label":"Altar","sub":"North end of the worship space","x":166,"z":150,"yaw":0,"pitch":-3},"west-wall":{"id":"west-wall","area":"west","label":"West Wall — 101-110","sub":"Deluxe Companion and tandem crypts","x":150,"z":262,"yaw":-90,"pitch":-5},"radiance":{"id":"radiance","area":"niches","label":"Radiance Niche Wall","sub":"North-west of the chapel","x":58,"z":154,"yaw":0,"pitch":-3},"north-wing":{"id":"north-wing","area":"north","label":"North Wing — 124-140","sub":"Tandem crypts along the north hall","x":360,"z":150,"yaw":0,"pitch":-5},"north-hidden":{"id":"north-hidden","area":"north","label":"North Wing — 116-123","sub":"Hidden Companions and Deluxe Companions","x":174,"z":96,"yaw":0,"pitch":-4},"island-west":{"id":"island-west","area":"island","label":"Island — West Face 194-200","sub":"Faces the chapel","x":198,"z":240,"yaw":90,"pitch":-5},"island-north":{"id":"island-north","area":"island","label":"Island — North Face 220-231","sub":"Deluxe Companions","x":404,"z":130,"yaw":180,"pitch":-5},"island-south":{"id":"island-south","area":"island","label":"Island — South Face 201-212","sub":"Deluxe Companions","x":404,"z":350,"yaw":0,"pitch":-5},"island-east":{"id":"island-east","area":"island","label":"Island — East Face 213-219","sub":"Faces the east passage","x":600,"z":240,"yaw":-90,"pitch":-5},"serenity":{"id":"serenity","area":"niches","label":"Serenity Niche Wall","sub":"East passage, between COM and the Eternal Light complex","x":606,"z":143,"yaw":-90,"pitch":-3},"south-wall":{"id":"south-wall","area":"south","label":"South Wall — 185-193","sub":"Tandem and single crypts","x":240,"z":340,"yaw":180,"pitch":-5},"south-hidden":{"id":"south-hidden","area":"south","label":"South Wall — 179-184","sub":"Hidden Companions","x":362,"z":396,"yaw":180,"pitch":-5},"south-east":{"id":"south-east","area":"south","label":"South Wall — 173-178","sub":"Tandem crypts","x":470,"z":344,"yaw":180,"pitch":-5},"corner-168":{"id":"corner-168","area":"south","label":"South-East Corner — 168-172","sub":"Single crypts","x":484,"z":452,"yaw":90,"pitch":-5},"east-north":{"id":"east-north","area":"east","label":"East Corridor — 141-148","sub":"North of the entrance","x":700,"z":120,"yaw":90,"pitch":-5},"east-south":{"id":"east-south","area":"east","label":"East Corridor — 159-167","sub":"South of the entrance","x":700,"z":396,"yaw":90,"pitch":-5}};
+var STOP_ORDER = ["entrance-main","entrance-chapel","chapel","altar","west-wall","radiance","north-wing","north-hidden","island-west","island-north","island-south","island-east","serenity","south-wall","south-hidden","south-east","corner-168","east-north","east-south"];
+var AREA_STOP = {"north":"north-wing","west":"chapel","island":"island-west","south":"south-wall","east":"entrance-main","niches":"radiance"};
+var cam = { yaw: HOME.yaw, pitch: HOME.pitch, zoom: 1, lift: 0, px: 0, pz: 0 };
 var ZMIN = 0.18, ZMAX = 3.2, PMIN = -90, PMAX = 0;
 var HALF_PX = 112;
 var STAGE_TOP = 0.70;
-var PLAN_PX = 2020, PLAN_D_PX = 1300;
-var curPreset = 'home';
+var PLAN_PX = 1480, PLAN_D_PX = 1000;
+var PPI = 2, PLAN_W = 740, PLAN_H = 500, EYE_Y = 24, FACE_H = 112;
+var curStop = null;          // null = the home orbit
+var ghostOn = true;
+var trail = [];              // breadcrumb history for the Back button
 var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
 
 function apply() {
@@ -4234,41 +4592,159 @@ function apply() {
   stage.style.setProperty('--pitch', cam.pitch.toFixed(2) + 'deg');
   stage.style.setProperty('--zoom', cam.zoom.toFixed(3));
   stage.style.setProperty('--lift', cam.lift.toFixed(1) + 'px');
+  bldg.style.setProperty('--px', cam.px.toFixed(1) + 'px');
+  bldg.style.setProperty('--pz', cam.pz.toFixed(1) + 'px');
+  var area = curStop ? STOPS[curStop].area : null;
+  cullBehind();
   document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
-    b.classList.toggle('on', b.getAttribute('data-viewbtn') === curPreset);
+    var k = b.getAttribute('data-viewbtn');
+    b.classList.toggle('on', k === 'home' ? !curStop : k === area);
+  });
+  document.querySelectorAll('.hot').forEach(function (h) {
+    h.classList.toggle('here', h.getAttribute('data-stop') === curStop);
+  });
+  scene.classList.toggle('inside', !!curStop);
+  paintGhosts(area);
+  paintCrumbs();
+}
+
+// CSS 3D has no view frustum. Standing inside the building, anything BEHIND the camera
+// is still projected — and at interior range a wall two metres behind your head lands
+// across the whole screen as a bright slab. So at a stop we hide whatever is behind.
+// z' = -x*sin(yaw) + z*cos(yaw) in stop-local plan coords; z' > 0 is behind you.
+var solids = null, culled = false;
+function cullBehind() {
+  if (!solids) {
+    solids = [].slice.call(document.querySelectorAll('[data-px]')).map(function (el) {
+      return { el: el, x: +el.getAttribute('data-px'), z: +el.getAttribute('data-pz'), off: false };
+    });
+  }
+  var i, o;
+  if (!curStop) {
+    if (culled) { for (i = 0; i < solids.length; i++) { o = solids[i]; if (o.off) { o.el.classList.remove('behind'); o.off = false; } } culled = false; }
+    return;
+  }
+  culled = true;
+  var s = STOPS[curStop];
+  var r = cam.yaw * Math.PI / 180, si = Math.sin(r), co = Math.cos(r);
+  for (i = 0; i < solids.length; i++) {
+    o = solids[i];
+    var want = (-(o.x - s.x) * si + (o.z - s.z) * co) > 26;
+    if (want !== o.off) { o.el.classList.toggle('behind', want); o.off = want; }
+  }
+}
+
+// Ghosting. A niche wall belongs to the "niches" list but PHYSICALLY stands in another
+// area, so it stays solid when you are standing in that area too.
+function paintGhosts(area) {
+  var on = ghostOn && !!area;
+  document.querySelectorAll('.face, .fbase, .mass, .mtop, .blk').forEach(function (el) {
+    var a = el.getAttribute('data-area');
+    if (!a) { for (var i = 0; i < el.classList.length; i++) { var c = el.classList[i]; if (c.indexOf('ar-') === 0) { a = c.slice(3); break; } } }
+    var home = el.getAttribute('data-homearea');
+    var mine = a === area || home === area;
+    el.classList.toggle('ghost', on && !mine);
   });
 }
+
+function paintCrumbs() {
+  var bar = document.getElementById('crumbs');
+  var s = curStop ? STOPS[curStop] : null;
+  var h = '<button type="button" class="crumb" data-crumb="home">Whole Building</button>';
+  if (s) {
+    h += '<span class="csep">\u203a</span><button type="button" class="crumb" data-crumb="area:' + s.area + '">' +
+      (AREA_LABEL[s.area] || s.area) + '</button>';
+    h += '<span class="csep">\u203a</span><span class="crumb cur">' + s.label + '</span>';
+    h += '<span class="cnote2">' + s.sub + '</span>';
+  } else {
+    h += '<span class="cnote2">Click a doorway or a floor marker to walk in</span>';
+  }
+  h += '<button type="button" class="crumb cback2" id="btn-back"' + (trail.length ? '' : ' disabled') + '>\u2190 Back</button>';
+  bar.innerHTML = h;
+}
+
 function homeZoom() {
   var w = scene.clientWidth || 900, h = scene.clientHeight || 480;
   return clamp(Math.min(w * 0.80 / PLAN_PX, h * 0.80 / (PLAN_D_PX * 0.72)), ZMIN, ZMAX);
 }
-function fitScene() { if (scene.offsetWidth) { viewTo(curPreset, true); } }
+function insideZoom() {
+  return clamp(Math.min(scene.clientHeight * 0.62 / (FACE_H * PPI), scene.clientWidth * 0.62 / (150 * PPI)), ZMIN, ZMAX);
+}
+function fitScene() { if (scene.offsetWidth) { curStop ? goStop(curStop, true, true) : goHome(true); } }
 window.addEventListener('resize', fitScene);
 
-function viewTo(k, keep) {
+function dropCard() {
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the model. Drop it.
   if (!pinned) card.classList.remove('show');
-  var v = VIEWS[k] || VIEWS.home;
-  curPreset = k;
-  cam.yaw = v.yaw; cam.pitch = v.pitch;
-  if (k === 'home') {
-    cam.zoom = homeZoom();
-    cam.lift = HALF_PX * cam.zoom * 0.5 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
-  } else {
-    cam.zoom = clamp(Math.min(scene.clientWidth * 0.9 / (PLAN_PX * 0.62), scene.clientHeight * 0.8 / (224 * 1.9)), ZMIN, ZMAX);
-    cam.lift = HALF_PX * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
-  }
+}
+
+function goHome(keep) {
+  dropCard();
+  if (curStop && !keep) trail.push(curStop);
+  curStop = null;
+  cam.yaw = HOME.yaw; cam.pitch = HOME.pitch;
+  cam.px = 0; cam.pz = 0;
+  cam.zoom = homeZoom();
+  cam.lift = HALF_PX * cam.zoom * 0.5 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
+  apply();
+}
+
+function goStop(id, keep, silent) {
+  var s = STOPS[id];
+  if (!s) return goHome(keep);
+  dropCard();
+  if (!silent && curStop !== id) trail.push(curStop);
+  curStop = id;
+  cam.yaw = s.yaw; cam.pitch = s.pitch == null ? -5 : s.pitch;
+  cam.zoom = insideZoom() * (s.zoom || 1);
+  cam.px = -(s.x - PLAN_W / 2) * PPI;
+  cam.pz = -(s.z - PLAN_H / 2) * PPI;
+  cam.lift = (0.5 - STAGE_TOP) * scene.clientHeight - EYE_Y * PPI * cam.zoom;
   apply();
   if (!keep) window.scrollTo(0, 0);
 }
+
+function goBack() {
+  if (!trail.length) return;
+  var prev = trail.pop();
+  prev ? goStop(prev, true, true) : goHome(true);
+  paintCrumbs();
+}
+
+// Doorways, floor markers, breadcrumbs and the area buttons all move the camera.
+document.addEventListener('click', function (ev) {
+  var t = ev.target.closest('[data-stop]');
+  if (t) { ev.stopPropagation(); goStop(t.getAttribute('data-stop')); showView('3d'); return; }
+  var c = ev.target.closest('[data-crumb]');
+  if (c) {
+    var v = c.getAttribute('data-crumb');
+    if (v === 'home') goHome();
+    else goStop(AREA_STOP[v.slice(5)]);
+    return;
+  }
+  if (ev.target.closest('#btn-back')) goBack();
+}, true);
+document.addEventListener('keydown', function (ev) {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  var t = ev.target.closest && ev.target.closest('[data-stop]');
+  if (t) { ev.preventDefault(); goStop(t.getAttribute('data-stop')); showView('3d'); }
+});
+
 document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
   b.addEventListener('click', function () {
     var k = b.getAttribute('data-viewbtn');
-    viewTo(curPreset === k && k !== 'home' ? 'home' : k, true);
+    if (k === 'home') return goHome();
+    goStop(AREA_STOP[k]);
   });
 });
-document.getElementById('btn-reset').addEventListener('click', function () { viewTo('home', true); });
+document.getElementById('btn-reset').addEventListener('click', function () { goHome(); });
+document.getElementById('btn-ghost').addEventListener('click', function () {
+  ghostOn = !ghostOn;
+  this.classList.toggle('on', ghostOn);
+  this.setAttribute('aria-pressed', ghostOn ? 'true' : 'false');
+  apply();
+});
 document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
 document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
 
@@ -4281,7 +4757,9 @@ function capturePts() {
   if (captured) return;
   captured = true;
   scene.classList.add('dragging');
-  curPreset = null;
+  // Dragging inside a stop is LOOKING AROUND, not leaving: the stop (and therefore the
+  // breadcrumb and the ghosting) survives a drag. Only a doorway, a marker, a
+  // breadcrumb or Reset moves you.
   if (!pinned) card.classList.remove('show');
   Object.keys(pts).forEach(function (id) { try { scene.setPointerCapture(+id); } catch (e) { /* gone */ } });
 }
@@ -4348,11 +4826,10 @@ scene.addEventListener('keydown', function (ev) {
   else if (k === '+' || k === '=') cam.zoom *= 1.2;
   else if (k === '-' || k === '_') cam.zoom /= 1.2;
   else return;
-  if (k.indexOf('Arrow') === 0) curPreset = null;
   ev.preventDefault();
   apply();
 });
-viewTo('home', true);
+goHome(true);
 
 </script>
 </body>

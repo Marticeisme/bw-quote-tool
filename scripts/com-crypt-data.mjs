@@ -84,62 +84,191 @@ export const OMITTED_FEES = [
 export const NICHE_FEES = { OC: 875, RECORDING: 235, ECF_RATE: 0.1 };
 export const NICHE_PRICES_EFFECTIVE = 'Prices effective January 13, 2025';
 
-// ── Areas ─────────────────────────────────────────────────────────────────────
-export const PLAN_W = 1010;
-export const PLAN_H = 650;
-export const COLW = 19;
+// ── Geometry ──────────────────────────────────────────────────────────────────
+/**
+ * PLAN COORDINATES, REDERIVED 2026-07-31 (sprint-09 Track M).
+ *
+ * Every rectangle below is now measured off `Chapel Of Memories Overview.png` (the
+ * MIS CAD floor plan) at ONE constant scale instead of being placed by eye, which is
+ * what put the Serenity wall up by the rest rooms and left the chapel as a 150x100
+ * box floating beside the island.
+ *
+ *   plan_x = round((cad_px_x - 55) * 0.40)      plan_y = round((cad_px_y - 20) * 0.40)
+ *
+ * The 0.40 comes from the drawing itself: a crypt space measures ~47 CAD px across and
+ * a crypt space is ~3 ft, and COLW = 19 plan units already encodes 3 ft (7 tiers x
+ * ROWH 16 = 112 units tall next to 19 units wide is the ~17.5 ft x 3 ft of a real
+ * seven-high crypt bank). So 19/47.4 = 0.40 and the plan, the elevations and the 3D
+ * model are all on one scale.
+ *
+ * A bank's `plan` is now its FOOTPRINT (the block the CAD draws, including depth), and
+ * `face` says which edge of that footprint the crypt fronts are on — the 3D face is
+ * built on that edge, not at the centroid. Depth therefore reads correctly: the tandem
+ * (end-to-end) banks are drawn twice as deep as the single-depth ones, exactly as the
+ * CAD draws them.
+ *
+ * STILL ESTIMATED: everything vertical, the chapel furniture, and the two niche walls'
+ * facing directions (MIS draws a niche wall as an ELEVATION symbol dropped on the plan,
+ * so its footprint carries no orientation — see WALLS).
+ */
+export const PLAN_W = 740;
+export const PLAN_H = 500;
+export const COLW = 19;      // one crypt space across, ~3 ft
+export const NCOLW = 13;     // one niche column across, ~2 ft
 export const DEPTH = 26;
-export const ROWH = 16;
+export const ROWH = 16;      // one tier, ~2.5 ft
+export const EYE_Y = 24;     // walkthrough eye height above the model's floor plane
 
 export const AREAS = [
-  { id: 'north', label: 'North Wall', sub: 'Altar end — banks 111-115, 116-123, 124-140' },
-  { id: 'west', label: 'West Wall & Chapel', sub: 'Chapel area — bank 101-110' },
-  { id: 'island', label: 'Centre Island', sub: 'Free-standing block — banks 194-200, 201-212, 213-219, 220-231' },
-  { id: 'south', label: 'South Wall', sub: 'Banks 168-172, 173-178, 179-184, 185-191, 192-193' },
-  { id: 'east', label: 'East Wall & Entrance', sub: 'Banks 141-148, 149-153, 154-158, 159-167' },
-  { id: 'niches', label: 'Niche Walls', sub: 'Radiance and Serenity glass-front niche walls' },
+  { id: 'north', label: 'North Wing', sub: 'Altar end — banks 111-115, 116-123, 124-140', stop: 'north-wing' },
+  { id: 'west', label: 'Chapel & West Wall', sub: 'The worship space and bank 101-110', stop: 'chapel' },
+  { id: 'island', label: 'Centre Island', sub: 'Free-standing block — banks 194-200, 220-231, 201-212, 213-219', stop: 'island-west' },
+  { id: 'south', label: 'South Wall', sub: 'Banks 192-193, 185-191, 179-184, 173-178, 168-172', stop: 'south-wall' },
+  { id: 'east', label: 'East Corridor & Entrance', sub: 'Banks 141-148, 149-153, 154-158, 159-167', stop: 'entrance-main' },
+  { id: 'niches', label: 'Niche Walls', sub: 'Radiance (north-west of the chapel) and Serenity (east passage, toward the Eternal Light complex)', stop: 'radiance' },
 ];
 
 /**
- * Banks. `plan` is the schematic floor-plan rectangle (CAD-derived, 0-1000 x 0-700
- * plan units); `face` is the compass direction the crypt fronts look toward.
+ * Banks. `plan` is the CAD footprint in plan units; `face` is the edge of that
+ * footprint the crypt fronts are on, and the compass direction they look toward.
  * `segs` are the header segments of the crypt sheet, in column order.
  */
 export const BANKS = [
-  // ── North wall ──
-  { id: '111-115', area: 'north', c0: 111, c1: 115, face: 'S', plan: { x: 40, y: 88, w: 95, h: 26 }, segs: [[111, 115, 'tandem']] },
-  { id: '116-123', area: 'north', c0: 116, c1: 123, face: 'S', plan: { x: 150, y: 20, w: 152, h: 26 }, segs: [[116, 117, 'deluxe'], [118, 121, 'hidden'], [122, 123, 'deluxe']] },
-  { id: '124-140', area: 'north', c0: 124, c1: 140, face: 'S', plan: { x: 340, y: 88, w: 323, h: 26 }, segs: [[124, 140, 'tandem']] },
+  // ── North wing ── (111-115 is double-depth: the CAD draws both halves of the tandems)
+  { id: '111-115', area: 'north', c0: 111, c1: 115, face: 'S', plan: { x: 3, y: 3, w: 95, h: 95 }, segs: [[111, 115, 'tandem']] },
+  { id: '116-123', area: 'north', c0: 116, c1: 123, face: 'S', plan: { x: 98, y: 3, w: 152, h: 47 }, segs: [[116, 117, 'deluxe'], [118, 121, 'hidden'], [122, 123, 'deluxe']] },
+  { id: '124-140', area: 'north', c0: 124, c1: 140, face: 'S', plan: { x: 240, y: 50, w: 323, h: 48 }, segs: [[124, 140, 'tandem']] },
   // ── West wall ──
-  { id: '101-110', area: 'west', c0: 101, c1: 110, face: 'E', plan: { x: 90, y: 280, w: 26, h: 190 }, segs: [[101, 102, 'deluxe'], [103, 110, 'tandem']] },
-  // ── Centre island ──
-  { id: '194-200', area: 'island', c0: 194, c1: 200, face: 'W', plan: { x: 340, y: 250, w: 26, h: 133 }, segs: [[194, 194, 'single'], [195, 196, 'deluxe'], [197, 197, 'single'], [198, 199, 'deluxe'], [200, 200, 'single']] },
-  { id: '220-231', area: 'island', c0: 220, c1: 231, face: 'N', plan: { x: 366, y: 250, w: 228, h: 26 }, segs: [[220, 220, 'single'], [221, 222, 'deluxe'], [223, 223, 'single'], [224, 227, 'tandem'], [228, 228, 'single'], [229, 230, 'deluxe'], [231, 231, 'single']] },
-  { id: '201-212', area: 'island', c0: 201, c1: 212, face: 'S', plan: { x: 366, y: 357, w: 228, h: 26 }, segs: [[201, 204, 'tandem'], [205, 205, 'single'], [206, 207, 'deluxe'], [208, 208, 'single'], [209, 212, 'tandem']] },
-  { id: '213-219', area: 'island', c0: 213, c1: 219, face: 'E', plan: { x: 594, y: 250, w: 26, h: 133 }, segs: [[213, 213, 'single'], [214, 215, 'deluxe'], [216, 216, 'single'], [217, 218, 'deluxe'], [219, 219, 'single']] },
-  // ── South wall ──
-  { id: '192-193', area: 'south', c0: 192, c1: 193, face: 'N', plan: { x: 192, y: 500, w: 38, h: 26 }, segs: [[192, 193, 'single']] },
-  { id: '185-191', area: 'south', c0: 185, c1: 191, face: 'N', plan: { x: 230, y: 500, w: 133, h: 26 }, segs: [[185, 191, 'tandem']] },
-  { id: '179-184', area: 'south', c0: 179, c1: 184, face: 'N', plan: { x: 490, y: 560, w: 114, h: 26 }, segs: [[179, 180, 'hidden'], [181, 181, 'single'], [182, 182, 'single'], [183, 184, 'hidden']] },
-  { id: '173-178', area: 'south', c0: 173, c1: 178, face: 'N', plan: { x: 646, y: 500, w: 114, h: 26 }, segs: [[173, 178, 'tandem']] },
-  { id: '168-172', area: 'south', c0: 168, c1: 172, face: 'W', plan: { x: 772, y: 470, w: 26, h: 95 }, segs: [[168, 172, 'single']] },
-  // ── East wall & entrance ──
-  { id: '141-148', area: 'east', c0: 141, c1: 148, face: 'W', plan: { x: 860, y: 150, w: 26, h: 152 }, segs: [[141, 148, 'tandem']] },
-  { id: '149-153', area: 'east', c0: 149, c1: 153, face: 'S', plan: { x: 860, y: 302, w: 95, h: 26 }, segs: [[149, 150, 'deluxe'], [151, 153, 'single']] },
-  { id: '154-158', area: 'east', c0: 154, c1: 158, face: 'N', plan: { x: 860, y: 390, w: 95, h: 26 }, segs: [[154, 156, 'single'], [157, 158, 'deluxe']] },
-  { id: '159-167', area: 'east', c0: 159, c1: 167, face: 'W', plan: { x: 860, y: 416, w: 26, h: 171 }, segs: [[159, 167, 'tandem']] },
+  { id: '101-110', area: 'west', c0: 101, c1: 110, face: 'E', plan: { x: 3, y: 172, w: 95, h: 190 }, segs: [[101, 102, 'deluxe'], [103, 110, 'tandem']] },
+  // ── Centre island ── (footprint x 234-562, z 166-312)
+  { id: '194-200', area: 'island', c0: 194, c1: 200, face: 'W', plan: { x: 234, y: 172, w: 54, h: 133 }, segs: [[194, 194, 'single'], [195, 196, 'deluxe'], [197, 197, 'single'], [198, 199, 'deluxe'], [200, 200, 'single']] },
+  { id: '220-231', area: 'island', c0: 220, c1: 231, face: 'N', plan: { x: 290, y: 166, w: 228, h: 54 }, segs: [[220, 220, 'single'], [221, 222, 'deluxe'], [223, 223, 'single'], [224, 227, 'tandem'], [228, 228, 'single'], [229, 230, 'deluxe'], [231, 231, 'single']] },
+  { id: '201-212', area: 'island', c0: 201, c1: 212, face: 'S', plan: { x: 290, y: 266, w: 228, h: 46 }, segs: [[201, 204, 'tandem'], [205, 205, 'single'], [206, 207, 'deluxe'], [208, 208, 'single'], [209, 212, 'tandem']] },
+  { id: '213-219', area: 'island', c0: 213, c1: 219, face: 'E', plan: { x: 516, y: 172, w: 46, h: 133 }, segs: [[213, 213, 'single'], [214, 215, 'deluxe'], [216, 216, 'single'], [217, 218, 'deluxe'], [219, 219, 'single']] },
+  // ── South wall ── (numbering runs east to west: 185 nearest the middle, 193 at the west end)
+  { id: '192-193', area: 'south', c0: 192, c1: 193, face: 'N', plan: { x: 135, y: 378, w: 38, h: 48 }, segs: [[192, 193, 'single']] },
+  { id: '185-191', area: 'south', c0: 185, c1: 191, face: 'N', plan: { x: 173, y: 378, w: 133, h: 48 }, segs: [[185, 191, 'tandem']] },
+  { id: '179-184', area: 'south', c0: 179, c1: 184, face: 'N', plan: { x: 306, y: 426, w: 114, h: 50 }, segs: [[179, 180, 'hidden'], [181, 181, 'single'], [182, 182, 'single'], [183, 184, 'hidden']] },
+  { id: '173-178', area: 'south', c0: 173, c1: 178, face: 'N', plan: { x: 404, y: 378, w: 114, h: 48 }, segs: [[173, 178, 'tandem']] },
+  { id: '168-172', area: 'south', c0: 168, c1: 172, face: 'W', plan: { x: 518, y: 378, w: 46, h: 95 }, segs: [[168, 172, 'single']] },
+  // ── East corridor & entrance ── (a separate wing east of the COM shell; the ENTRANCE
+  //    is the gap between 149-153 and 154-158, shared with ELM-3)
+  { id: '141-148', area: 'east', c0: 141, c1: 148, face: 'W', plan: { x: 638, y: 41, w: 50, h: 152 }, segs: [[141, 148, 'tandem']] },
+  { id: '149-153', area: 'east', c0: 149, c1: 153, face: 'S', plan: { x: 638, y: 188, w: 95, h: 44 }, segs: [[149, 150, 'deluxe'], [151, 153, 'single']] },
+  { id: '154-158', area: 'east', c0: 154, c1: 158, face: 'N', plan: { x: 638, y: 268, w: 95, h: 44 }, segs: [[154, 156, 'single'], [157, 158, 'deluxe']] },
+  { id: '159-167', area: 'east', c0: 159, c1: 167, face: 'W', plan: { x: 638, y: 312, w: 50, h: 171 }, segs: [[159, 167, 'tandem']] },
 ];
 
-/** Rooms and circulation drawn on the plan so the operator can orient. */
+/** Rooms and circulation, all measured off the CAD plan. */
 export const ROOMS = [
-  { id: 'chapel', label: 'Chapel Area', x: 140, y: 290, w: 150, h: 100, kind: 'room' },
-  { id: 'altar', label: 'Altar', x: 205, y: 150, w: 60, h: 26, kind: 'feature' },
-  { id: 'restrooms', label: 'Rest Rooms', x: 675, y: 60, w: 110, h: 66, kind: 'service' },
-  { id: 'storage', label: 'Storage Room', x: 850, y: 30, w: 130, h: 70, kind: 'service' },
-  { id: 'entrance', label: 'Entrance', x: 900, y: 345, w: 90, h: 30, kind: 'entrance' },
-  { id: 'hall-n', label: 'Hallway', x: 340, y: 130, w: 323, h: 50, kind: 'hall' },
-  { id: 'hall-s', label: 'Hallway', x: 230, y: 440, w: 380, h: 50, kind: 'hall' },
+  { id: 'chapel', label: 'Chapel — Worship Space', x: 98, y: 112, w: 136, h: 256, kind: 'chapel' },
+  { id: 'restrooms', label: 'Rest Rooms', x: 506, y: 3, w: 56, h: 95, kind: 'service' },
+  { id: 'storage', label: 'Storage Room', x: 630, y: 3, w: 97, h: 95, kind: 'service' },
+  { id: 'hall-n', label: 'North Hall', x: 240, y: 98, w: 254, h: 68, kind: 'hall' },
+  { id: 'hall-e', label: 'East Passage', x: 562, y: 98, w: 68, h: 386, kind: 'hall' },
+  { id: 'hall-s', label: 'South Hall', x: 144, y: 312, w: 396, h: 66, kind: 'hall' },
 ];
+
+/**
+ * THE TWO ENTRANCES (operator, Map Issues 07.31.26: "There are two entrances into the
+ * chapel of memories not one").
+ *
+ *  - MAIN, east: the corridor labelled ENTRANCE on the CAD, the gap between COM's
+ *    149-153 and 154-158, shared with the Eternal Light Mausoleum (ELM-3).
+ *  - CHAPEL, south-west: the CAD draws a two-leaf DOOR SWING on the diagonal exterior
+ *    wall between bank 101-110's south end and bank 192-193's west end. It opens
+ *    straight into the chapel; the walkthrough photographs show glass doors with an
+ *    EXIT sign at that end of the worship space.
+ */
+export const ENTRANCES = [
+  {
+    id: 'entrance-main', label: 'Main Entrance', x: 638, y: 232, w: 95, h: 36, face: 'W',
+    sub: 'East corridor, shared with the Eternal Light Mausoleum',
+    note: 'Deluxe Companion crypts on both sides of the corridor — COM 149-153 on the west side, 154-158 on the east.',
+  },
+  {
+    id: 'entrance-chapel', label: 'Chapel Entrance', x: 69, y: 379, w: 44, h: 42, face: 'N',
+    sub: 'South-west doors, straight into the worship space',
+    note: 'Drawn as a two-leaf door swing on the CAD plan; the walkthrough photographs show glass doors and an EXIT sign at this end of the chapel.',
+  },
+];
+
+/**
+ * CHAPEL FURNITURE (operator: "The chapel area needs to be better laid out on the map
+ * with small chairs").
+ *
+ * The altar rectangle is the CAD's own ALTAR box, at the north end of the worship
+ * space in the recess between banks 111-115 and 124-140. Everything else is placed
+ * from the 2026-07-29 walkthrough photographs, which show: rows of individual light-
+ * wood chairs (NOT pews) in two blocks either side of a centre aisle facing the altar
+ * end, a grand piano and two armchairs beside the altar, cushioned benches at the
+ * front, and a lectern. Counts and spacings are ESTIMATED — no dimension is rendered.
+ */
+export const CHAIR_BLOCKS = [
+  { id: 'left', x0: 112, cols: 5, dx: 11 },
+  { id: 'right', x0: 176, cols: 5, dx: 11 },
+];
+export const CHAIR_ROWS = { z0: 140, rows: 7, dz: 20, w: 8, d: 8 };
+
+export const FURNITURE = [
+  { id: 'altar', kind: 'altar', label: 'Altar', x: 148, y: 83, w: 35, h: 16, tall: 22 },
+  { id: 'lectern', kind: 'lectern', label: 'Lectern', x: 122, y: 86, w: 11, h: 11, tall: 18 },
+  { id: 'piano', kind: 'piano', label: 'Piano', x: 194, y: 92, w: 34, h: 24, tall: 14 },
+  { id: 'armchair-a', kind: 'seat', label: '', x: 188, y: 118, w: 10, h: 10, tall: 13 },
+  { id: 'armchair-b', kind: 'seat', label: '', x: 220, y: 100, w: 10, h: 10, tall: 13 },
+  { id: 'bench-a', kind: 'bench', label: '', x: 112, y: 122, w: 40, h: 8, tall: 9 },
+  { id: 'bench-b', kind: 'bench', label: '', x: 180, y: 122, w: 40, h: 8, tall: 9 },
+];
+
+/** Every chapel chair, generated from CHAIR_BLOCKS x CHAIR_ROWS. All face the altar. */
+export function chapelChairs() {
+  const out = [];
+  for (const b of CHAIR_BLOCKS) {
+    for (let c = 0; c < b.cols; c++) {
+      for (let r = 0; r < CHAIR_ROWS.rows; r++) {
+        out.push({
+          id: `chair-${b.id}-${c}-${r}`,
+          x: b.x0 + c * b.dx, y: CHAIR_ROWS.z0 + r * CHAIR_ROWS.dz,
+          w: CHAIR_ROWS.w, h: CHAIR_ROWS.d, tall: 12, face: 'N',
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * WALKTHROUGH STOPS (operator: "I should be able to almost walk through the chapel and
+ * click through different areas not just the overview look ... the map is very hard to
+ * navigate through ... this area is very spread out with many different maps").
+ *
+ * Each stop puts the camera INSIDE the building at eye height (EYE_Y) at plan position
+ * (x, z) looking along `yaw` — 0 = north, 90 = east, 180 = south, -90 = west, matching
+ * the face rotations. `area` drives the breadcrumb and the ghosting of the walls you
+ * are not standing in front of.
+ */
+export const STOPS = [
+  { id: 'entrance-main', area: 'east', label: 'Main Entrance', sub: 'East corridor, shared with Eternal Light', x: 700, z: 250, yaw: -90, pitch: -8, zoom: 0.7 },
+  { id: 'entrance-chapel', area: 'west', label: 'Chapel Entrance', sub: 'South-west doors', x: 96, z: 392, yaw: 20, pitch: -8, zoom: 0.75 },
+  { id: 'chapel', area: 'west', label: 'Chapel — Worship Space', sub: 'Seating, looking toward the altar', x: 166, z: 292, yaw: 0, pitch: -8, zoom: 1.3 },
+  { id: 'altar', area: 'north', label: 'Altar', sub: 'North end of the worship space', x: 166, z: 150, yaw: 0, pitch: -3 },
+  { id: 'west-wall', area: 'west', label: 'West Wall — 101-110', sub: 'Deluxe Companion and tandem crypts', x: 150, z: 262, yaw: -90, pitch: -5 },
+  { id: 'radiance', area: 'niches', label: 'Radiance Niche Wall', sub: 'North-west of the chapel', x: 58, z: 154, yaw: 0, pitch: -3 },
+  { id: 'north-wing', area: 'north', label: 'North Wing — 124-140', sub: 'Tandem crypts along the north hall', x: 360, z: 150, yaw: 0, pitch: -5 },
+  { id: 'north-hidden', area: 'north', label: 'North Wing — 116-123', sub: 'Hidden Companions and Deluxe Companions', x: 174, z: 96, yaw: 0, pitch: -4 },
+  { id: 'island-west', area: 'island', label: 'Island — West Face 194-200', sub: 'Faces the chapel', x: 198, z: 240, yaw: 90, pitch: -5 },
+  { id: 'island-north', area: 'island', label: 'Island — North Face 220-231', sub: 'Deluxe Companions', x: 404, z: 130, yaw: 180, pitch: -5 },
+  { id: 'island-south', area: 'island', label: 'Island — South Face 201-212', sub: 'Deluxe Companions', x: 404, z: 350, yaw: 0, pitch: -5 },
+  { id: 'island-east', area: 'island', label: 'Island — East Face 213-219', sub: 'Faces the east passage', x: 600, z: 240, yaw: -90, pitch: -5 },
+  { id: 'serenity', area: 'niches', label: 'Serenity Niche Wall', sub: 'East passage, between COM and the Eternal Light complex', x: 606, z: 143, yaw: -90, pitch: -3 },
+  { id: 'south-wall', area: 'south', label: 'South Wall — 185-193', sub: 'Tandem and single crypts', x: 240, z: 340, yaw: 180, pitch: -5 },
+  { id: 'south-hidden', area: 'south', label: 'South Wall — 179-184', sub: 'Hidden Companions', x: 362, z: 396, yaw: 180, pitch: -5 },
+  { id: 'south-east', area: 'south', label: 'South Wall — 173-178', sub: 'Tandem crypts', x: 470, z: 344, yaw: 180, pitch: -5 },
+  { id: 'corner-168', area: 'south', label: 'South-East Corner — 168-172', sub: 'Single crypts', x: 484, z: 452, yaw: 90, pitch: -5 },
+  { id: 'east-north', area: 'east', label: 'East Corridor — 141-148', sub: 'North of the entrance', x: 700, z: 120, yaw: 90, pitch: -5 },
+  { id: 'east-south', area: 'east', label: 'East Corridor — 159-167', sub: 'South of the entrance', x: 700, z: 396, yaw: 90, pitch: -5 },
+];
+export const stopById = (id) => STOPS.find((s) => s.id === id);
 
 /** The two "EMPTY AREA — NO CRYPTS IN THIS SECTION" voids on the crypt sheet. */
 export const VOIDS = [
@@ -986,18 +1115,43 @@ export const SER_CELLS = [
   ['A', 1, null], ['A', 2, 9895], ['A', 3, null], ['A', 4, null], ['A', 5, null], ['A', 6, null],
 ];
 
+/**
+ * The two glass-front niche walls, REPLACED 2026-07-31.
+ *
+ * OPERATOR, Map Issues 07.31.26: "The niche walls are not in the right area."
+ *
+ * Corrected against the CAD plan and the MIS debrief:
+ *  - RADIANCE is the magenta block at CAD (110,340)-(255,462), i.e. the far WEST side,
+ *    in the bay between bank 111-115's south face and bank 101-110's north end, at the
+ *    north-west corner of the chapel. The debrief's "RADIANCE label visible on the far
+ *    west side" agrees. It was previously drawn as a thin north-south sliver on the
+ *    plan's west margin, detached from the chapel.
+ *  - SERENITY is the magenta block at CAD (1355,335)-(1455,440) — immediately NORTH of
+ *    the island's north-east corner, on the east passage. The debrief: "SERENITY NICHES
+ *    sit between the COM building and the ELM complex." It was previously drawn up
+ *    beside the rest rooms, a full building-width north of where MIS draws it.
+ *
+ * `homeArea` is the area a counselor would walk to in order to stand in front of the
+ * wall; the walls stay in the `niches` area for the printed lists so the two glass-front
+ * walls still print together.
+ *
+ * FACING IS ESTIMATED. MIS draws a niche wall as an ELEVATION symbol dropped onto the
+ * plan (the debrief says so explicitly for the Crystal Niches), so the symbol's
+ * footprint gives position but not orientation. Each wall is oriented toward the space
+ * a visitor stands in; NCOLW (~2 ft a niche column) sets the rendered width.
+ */
 export const WALLS = {
   RAD: {
     id: 'RAD', name: 'Radiance', prefix: 'RAD-1-1', rows: RAD_ROWS, cells: RAD_CELLS,
-    sizes: RAD_SIZES, cols: 8, area: 'niches',
-    plan: { x: 45, y: 190, w: 26, h: 76 }, face: 'E',
-    note: 'West side of the chapel, north of bank 101-110.',
+    sizes: RAD_SIZES, cols: 8, area: 'niches', homeArea: 'west', stop: 'radiance',
+    plan: { x: 6, y: 112, w: 104, h: 20 }, face: 'S',
+    note: 'Far west side, in the bay north of bank 101-110 — the north-west corner of the chapel.',
   },
   SER: {
     id: 'SER', name: 'Serenity', prefix: 'SER-1-1', rows: SER_ROWS, cells: SER_CELLS,
-    sizes: SER_SIZES, cols: 6, area: 'niches',
-    plan: { x: 700, y: 175, w: 114, h: 26 }, face: 'S',
-    note: 'North-east corner, off the north hallway.',
+    sizes: SER_SIZES, cols: 6, area: 'niches', homeArea: 'island', stop: 'serenity',
+    plan: { x: 552, y: 104, w: 20, h: 78 }, face: 'E',
+    note: 'East passage, between the Chapel of Memories and the Eternal Light complex, just north of bank 213-219.',
   },
 };
 
