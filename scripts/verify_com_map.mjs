@@ -490,7 +490,31 @@ console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
   chk(!/Crypt prices are not shown on this page/.test(src),
     'the "crypt prices are not shown on this page" banner is gone');
   chk(!/too low-resolution to read its digits/.test(src), 'the 4px-sheet excuse is gone from every card');
-  chk(/Crypt prices come from MIS and are exact/.test(src), 'the page states prices are MIS-sourced and exact');
+  // REMOVED 2026-08-01 at the operator's explicit instruction — he quoted the whole
+  // price-provenance paragraph and said to take all of it off the page. This assertion
+  // used to require the text; it now requires its ABSENCE, so it cannot creep back in.
+  // NOTHING IT DESCRIBED WAS RELAXED: exact MIS prices, one price per tandem/companion
+  // unit, no rounding, the price>0 availability rule and "nothing unsellable shows
+  // money" are all still enforced — by the assertions above and in §6, against the
+  // data, which is the only place a rule is worth anything. Only the prose is gone.
+  const GONE = [
+    'Crypt prices come from MIS and are exact',
+    'priced positions over',
+    'never split, never doubled',
+    'Nothing is rounded',
+    'A crypt is offered here only when a price greater than zero is attached to it',
+    'is marked',
+    'MIS calls it available but carries no price for it',
+    'are from their own 2026-07-29 wall sheets',
+    'Nothing unsellable shows money anywhere on this page',
+  ].filter((t) => src.includes(t));
+  chk(GONE.length === 0,
+    `the price-provenance paragraph is gone from the page (operator, 2026-08-01)${GONE.length ? ' — still present: ' + GONE.map((t) => JSON.stringify(t)).join(', ') : ''}`);
+  chk(!/class="warn"/.test(src), 'and its orange banner went with it');
+  // The band LEGEND survives on its own: it is the key to reading the coloured chips,
+  // not prose, and without it the six bands are unexplained.
+  chk(/class="pricekey"/.test(src) && /class="plegend"/.test(src),
+    'the price-band legend survives on its own outside the removed banner');
   chk(new RegExp(`\\$${A.availValue.toLocaleString('en-US').replace(/,/g, ',')} listed`).test(src),
     `the footer prints the available crypt value $${A.availValue.toLocaleString('en-US')}`);
 }
@@ -560,8 +584,45 @@ console.log('\nCrypt card math');
     'the page script carries REC 235, OC 1205, MB 1445, MBI 225, VASE 415');
   chk(/Monobar — \$1,670 ea/.test(src) && /\$1,445 memorial \+ \$225 install/.test(src),
     'the fee bar sells the monobar as $1,670 = $1,445 memorial + $225 install');
-  chk(/tot = price \+ e \+ REC \+ OC;/.test(src),
-    'the card total is price + E.C.F. + recording + entombment O&C');
+  // ── The two fee toggles (operator, 2026-08-01) ───────────────────────────────
+  // "the recording fee and entombment opening and closing need a toggle someone can
+  //  purchase a crypt without those things if they would like." Then, same day,
+  // reversing the first default: "they should start unchecked."
+  //
+  // So the card OPENS at property only — price + E.C.F. — and each toggle adds exactly
+  // its own figure and nothing else. The E.C.F. is 10% of the CRYPT PRICE, so no toggle
+  // may move it; that is asserted as the shape of the expression, not just its value.
+  chk(/tot = price \+ e \+ \(recOn \? REC : 0\) \+ \(ocOn \? OC : 0\);/.test(src),
+    'the card total is price + E.C.F., plus recording and entombment O&C only when toggled on');
+  chk(/var e = Math\.round\(price \* 10\) \/ 100,/.test(src),
+    'the E.C.F. is 10% of the crypt price alone — no fee toggle can move it');
+  chk(/id="rec-on"/.test(src) && /id="oc-on"/.test(src), 'both fee toggles exist in the fee box');
+  chk(!/id="rec-on" checked/.test(src) && !/id="oc-on" checked/.test(src),
+    'and both START UNCHECKED (operator, 2026-08-01)');
+  chk(/var feeOn = function \(id\) \{ var e = document\.getElementById\(id\); return !!\(e && e\.checked\); \};/.test(src),
+    'a missing toggle element reads as OFF, matching the unchecked default');
+  chk(/if \(recOn\) h \+= '<div class="cr"><span class="cl">Recording Fee/.test(src)
+    && /if \(ocOn\) h \+= '<div class="cr"><span class="cl">Entombment O&amp;C/.test(src),
+    'a toggled-off fee removes its LINE as well as its amount');
+  chk(/<b>Property only\.<\/b>/.test(src),
+    'and the card says so in as many words when either is off');
+  chk(/'rec-on', 'oc-on'\]\.forEach/.test(src) && /setPrintCard\(readEl\(pinned\)\)/.test(src),
+    'toggling re-renders the pinned card AND the print card');
+  // Arithmetic, computed here rather than trusted: the four combinations of the two
+  // toggles on one real priced crypt.
+  {
+    const P = 45990, E = Math.round(P * 10) / 100;
+    const combos = [
+      [false, false, P + E], [true, false, P + E + CRYPT_FEES.RECORDING],
+      [false, true, P + E + CRYPT_FEES.OC], [true, true, P + E + CRYPT_FEES.RECORDING + CRYPT_FEES.OC],
+    ];
+    const bad = combos.filter(([r, o, want]) =>
+      P + E + (r ? CRYPT_FEES.RECORDING : 0) + (o ? CRYPT_FEES.OC : 0) !== want);
+    chk(bad.length === 0,
+      `toggle arithmetic on a $${P.toLocaleString('en-US')} crypt: off/off $${combos[0][2].toLocaleString('en-US')}, `
+      + `+rec $${combos[1][2].toLocaleString('en-US')}, +O&C $${combos[2][2].toLocaleString('en-US')}, `
+      + `both $${combos[3][2].toLocaleString('en-US')}`);
+  }
   chk(/Entombment O&amp;C<\/span><span class="cv">' \+ fm\(OC\)/.test(src),
     'the card prints the entombment O&C as its own line, twice (priced and unpriced cards)');
   chk(/var e = Math\.round\(price \* 10\) \/ 100/.test(src),
@@ -882,6 +943,178 @@ console.log('\nPinned card vs the tab bar');
     'placeCard no longer measures the pinned element directly (the zero-rect path)');
 }
 
+// ── 7c. The jump box's search index ───────────────────────────────────────────
+// Operator, 2026-08-01: "hard to find a specific crypt — no way to jump to a ref or
+// search; you have to hunt tier by tier."
+console.log('\nSearch index (jump box)');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  const m = js.match(/var IDX = (\[[\s\S]*?\]);\r?\n/);
+  chk(!!m, 'the page carries a search index');
+  if (m) {
+    const idx = JSON.parse(m[1]);
+    const units = cryptUnits(), nn = allNiches();
+    chk(idx.length === units.length + nn.length && idx.length === 903,
+      `the index carries every sellable position: ${units.length} crypt units + ${nn.length} niches = ${idx.length} (expected 903)`);
+    const refs = idx.map((e) => e.r);
+    const seen = new Map();
+    for (const r of refs) seen.set(r, (seen.get(r) || 0) + 1);
+    const dup = [...seen].filter(([, v]) => v > 1);
+    chk(dup.length === 0, `every ref appears EXACTLY once${dup.length ? ': ' + dup.slice(0, 4).map(([k, v]) => k + ' x' + v).join(', ') : ` (${seen.size} distinct)`}`);
+    const want = new Set([...units.map((u) => u.ref), ...nn.map((x) => x.ref)]);
+    const missing = [...want].filter((r) => !seen.has(r));
+    const extra = refs.filter((r) => !want.has(r));
+    chk(missing.length === 0 && extra.length === 0,
+      `the index is exactly the data module's refs — no gaps, no strays${missing.length ? ' (missing ' + missing.slice(0, 3) + ')' : ''}${extra.length ? ' (extra ' + extra.slice(0, 3) + ')' : ''}`);
+
+    // THE ANTI-DRIFT CHECK. Re-derive the whole array here from the data module and
+    // require it BYTE FOR BYTE. A jump box whose index is maintained beside the data is
+    // a jump box that one day flies the camera to a crypt that no longer exists, so the
+    // build is required to have generated this from cryptUnits()/allNiches() and from
+    // nothing else. Any hand-written or stale parallel list fails here.
+    const areaOfBank = new Map(BANKS.map((b) => [b.id, b.area]));
+    const rebuilt = units.map((u) => ({
+      r: u.ref, k: 'c', t: u.tier, c: u.cols.slice(), b: u.bank, a: areaOfBank.get(u.bank),
+      s: u.st, p: (u.st === 'available' && u.p > 0 ? u.p : 0), n: `Bank ${u.bank}`,
+    })).concat(nn.map((x) => ({
+      r: x.ref, k: 'n', t: x.row, c: [x.col], b: x.wall, a: 'niches',
+      s: x.st, p: x.p || 0, n: `${WALLS[x.wall].name} Niche Wall`,
+    })));
+    chk(JSON.stringify(rebuilt) === m[1],
+      'the index is BYTE-IDENTICAL to a fresh derivation from com-crypt-data.mjs (not a parallel list)');
+
+    // No index entry may carry money for something that is not sellable — the same rule
+    // the cells obey, applied to the dropdown, which is a second place a price is shown.
+    const leaks = idx.filter((e) => e.p > 0 && e.s !== 'available');
+    chk(leaks.length === 0,
+      `no unsellable position carries a price in the index${leaks.length ? ': ' + leaks.slice(0, 4).map((e) => e.r).join(', ') : ` (${idx.filter((e) => e.p > 0).length} priced, all available)`}`);
+
+    // Shorthand must be unambiguous where the UI implies it is. Crypt tier+space is
+    // unique across all 17 banks; niche row+column is NOT (both walls run K..A / 1..n),
+    // which is exactly why the runtime also builds a wall-qualified key.
+    const shortC = new Set(units.map((u) => u.tier + '-' + u.cols[0]));
+    chk(shortC.size === units.length, `crypt shorthand (tier-space) is unique across all banks (${shortC.size}/${units.length})`);
+    chk(/k\.push\(nrm\(e\.b\) \+ e\.t \+ e\.c\[i\]\);/.test(js),
+      'and the two niche walls are separable by a wall-qualified key, since they share every row and column');
+    chk(/function keysOf\(e\)/.test(js) && !/var KEYS = \[/.test(js),
+      'match keys are derived from the index rows at runtime, not baked into a second list');
+  }
+  chk(/id="q"[\s\S]{0,400}role="combobox"/.test(src), 'the jump box is a labelled combobox in the header');
+  chk(/id="qlist"[^>]*role="listbox"/.test(src), 'with a listbox of results');
+  chk(/aria-activedescendant/.test(src) && /ev\.key === 'ArrowDown'/.test(src),
+    'keyboard: arrows move the active option and it is announced');
+  chk(/qList\.addEventListener\('pointerdown'/.test(src),
+    'touch: results are picked on pointerdown, before a blur can tear the list down');
+  chk(/Nothing matches/.test(src), 'a no-match query is handled and suggests the ref shapes');
+  chk(/function jumpTo\(e\)/.test(src) && /showCard\(el, true\)/.test(src),
+    'a pick lands through the SAME showCard a tap uses — one selection path, not two');
+}
+
+// ── 7d. Camera: fly-to, damping, walking ──────────────────────────────────────
+// Operator, 2026-08-01: "moving in 3D is clumsy — the walk/orbit/zoom controls fight
+// you; hard to get to the wall or view you want."
+console.log('\nCamera navigation');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  const m = js.match(/var FACES = (\{[\s\S]*?\});\r?\n/);
+  chk(!!m, 'the page carries a face table');
+  if (m) {
+    const faces = JSON.parse(m[1]);
+    const ids = Object.keys(faces);
+    chk(ids.length === BANKS.length + 2,
+      `every bank and both niche walls have a face-on standpoint (${ids.length} = ${BANKS.length} banks + 2 walls)`);
+    const missing = BANKS.map((b) => b.id).concat(['RAD', 'SER']).filter((id) => !faces[id]);
+    chk(missing.length === 0, `no face is missing${missing.length ? ': ' + missing.join(', ') : ''}`);
+
+    // The face table must agree with the geometry the SCENE is built from, or the
+    // camera flies to a wall that is not there. Recomputed from BANKS/WALLS here.
+    const YAW = { N: 180, S: 0, E: -90, W: 90 };
+    const at = (p, f) => (f === 'N' ? [p.x + p.w / 2, p.y] : f === 'S' ? [p.x + p.w / 2, p.y + p.h]
+      : f === 'W' ? [p.x, p.y + p.h / 2] : [p.x + p.w, p.y + p.h / 2]);
+    const bad = [];
+    for (const b of BANKS) {
+      const [x, z] = at(b.plan, b.face), f = faces[b.id];
+      if (f.x !== x || f.z !== z || f.face !== b.face || f.yaw !== YAW[b.face]
+        || f.n !== b.c1 - b.c0 + 1 || f.c0 !== b.c0) bad.push(b.id);
+    }
+    for (const wid of ['RAD', 'SER']) {
+      const w = WALLS[wid], [x, z] = at(w.plan, w.face), f = faces[wid];
+      if (f.x !== x || f.z !== z || f.face !== w.face || f.yaw !== YAW[w.face] || f.n !== w.cols) bad.push(wid);
+    }
+    chk(bad.length === 0,
+      `every face-on standpoint matches the geometry the 3D scene is drawn from${bad.length ? ': ' + bad.join(', ') : ` (${ids.length} checked)`}`);
+
+    // The 19 hand-tuned walkthrough stops are an independent witness for the yaw table:
+    // each looks at a known wall, and the tuned yaw must equal the derived one.
+    const witness = [['west-wall', '101-110'], ['north-wing', '124-140'], ['island-north', '220-231'],
+      ['island-east', '213-219'], ['east-north', '141-148'], ['corner-168', '168-172'], ['radiance', 'RAD']];
+    const off = witness.filter(([sid, fid]) => {
+      const s = STOPS.find((x) => x.id === sid);
+      return !s || !faces[fid] || s.yaw !== faces[fid].yaw;
+    });
+    chk(off.length === 0,
+      `the derived yaws agree with all ${witness.length} hand-tuned stops that face a known wall${off.length ? ': ' + off.map((w) => w[0]).join(', ') : ''}`);
+  }
+
+  const solids = (js.match(/var SOLIDS = (\[[\s\S]*?\]);\r?\n/) || [])[1];
+  chk(!!solids, 'the page carries a collision table');
+  if (solids) {
+    const rects = JSON.parse(solids);
+    const halls = ROOMS.filter((r) => r.kind === 'hall' || r.kind === 'chapel').length;
+    chk(rects.length === BANKS.length + 2 + (ROOMS.length - halls),
+      `every crypt bank, both niche walls and the ${ROOMS.length - halls} service masses are solid; the ${halls} halls and the chapel are walkable (${rects.length} rects)`);
+    // A walk-to position must not be inside a solid, or you spawn in a wall.
+    const stuck = STOPS.filter((s) => rects.some((r) =>
+      s.x > r[0] - 7 && s.x < r[0] + r[2] + 7 && s.z > r[1] - 7 && s.z < r[1] + r[3] + 7));
+    chk(stuck.length === 0,
+      `no walkthrough stop spawns inside a solid${stuck.length ? ': ' + stuck.map((s) => s.id).join(', ') : ` (${STOPS.length} checked)`}`);
+  }
+
+  chk(/function goFace\(id, ref, silent\)/.test(js), 'the camera can fly face-on to a wall');
+  chk(/scene\.addEventListener\('dblclick'/.test(js), 'a double-click on a wall flies to it');
+  chk(/lastTapFace === downFace && now - lastTapAt < 340/.test(js), 'and so does a double-TAP, for touch');
+  chk(/function travelTo\(tx, tz\)/.test(js) && /function floorPoint\(ev\)/.test(js),
+    'the whole floor is a walk-to target, not just the 19 markers');
+  chk(/id="reticle"/.test(src) && /function showReticle\(pt\)/.test(js),
+    'with a ground reticle under the pointer');
+  chk(/var d = Math\.pow\(DAMP, dt \/ 16\.67\);/.test(js),
+    'damping decays on ELAPSED TIME, so the glide feels the same at 30, 60 or 120 Hz');
+  chk(/function rotScale\(\)/.test(js), 'rotation speed scales with zoom — fine-grained up close');
+  chk(/if \(live\) glideRaf = requestAnimationFrame\(glide\);/.test(js),
+    'and the rAF loop sleeps when motion settles rather than spinning forever');
+  chk(/REDUCED/.test(js) && /prefers-reduced-motion/.test(js), 'prefers-reduced-motion turns the glide off');
+  // The family contract. The tap detector must key off POINTER TRAVEL, never off camera
+  // motion — the camera now keeps moving after the finger has left the glass.
+  chk(/var isTap = ev\.type === 'pointerup' && moved <= 8;/.test(js),
+    'a tap is still defined by pointer travel alone: drag never selects');
+  chk(/lk === 'w' \|\| lk === 's'/.test(js) && /lk === 'a' \|\| lk === 'd'/.test(js),
+    'WASD walks');
+  chk(/k === 'Home' \|\| k === 'r' \|\| k === 'R'/.test(js), 'R and Home reset the view');
+  chk(/function blocked\(x, z\)/.test(js) && /else if \(!blocked\(nx, cam\.ez\)\) cam\.ex = nx;/.test(js),
+    'walls stop you, and you slide along them rather than sticking');
+  chk(/function clampEye\(\)/.test(js), 'and you cannot walk out of the building and lose it');
+  chk(/clamp\(d, -60, 60\) \* 0\.0007/.test(js) && /ev\.deltaMode === 1/.test(js),
+    'the zoom curve is gentler and unit-agnostic (line/page scroll normalised, per-event cap)');
+
+  // Readability, which is what all of this is FOR.
+  chk(/--lod/.test(src) && /clamp\(cam\.zoom \* 1\.9, 1, 3\.2\)/.test(js),
+    'cell labels grow with the camera (level of detail)');
+  chk(/font-size:calc\(4\.6px \* var\(--lod,1\)\)/.test(src), 'the crypt ref label is LOD-scaled');
+  chk(/id="callout"/.test(src) && /function setCallout\(d\)/.test(js),
+    'the selected crypt gets a family-facing callout carrying its full ref');
+  chk(/\.cotag\{[^}]*font-size:26px/.test(src), 'sized to be read across a desk (26px)');
+  chk(/height:clamp\(400px,calc\(100vh - 300px\),1100px\)/.test(src),
+    'the 3D scene takes the viewport height the chrome does not');
+  // Nothing load-bearing under 12px. The mini overview grids are exempt: they are a
+  // thumbnail index, and the print path renders them at page scale.
+  {
+    const small = [...src.matchAll(/font-size:(\d+(?:\.\d+)?)px/g)]
+      .map((x) => +x[1]).filter((v) => v < 6);
+    chk(small.length === 0,
+      `no fixed font-size under 6px survives outside the LOD-scaled 3D labels${small.length ? ': ' + small.join(', ') : ''}`);
+  }
+}
+
 // ── 8. Sabotage ───────────────────────────────────────────────────────────────
 if (process.argv.includes('--sabotage')) {
   console.log('\nSabotage (each mutation must make this gate exit 1)');
@@ -987,6 +1220,73 @@ if (process.argv.includes('--sabotage')) {
   try { execFileSync(process.execPath, [__filename()], { cwd: ROOT, stdio: 'pipe' }); } catch (e) { restored = e.status ?? 1; }
   (restored === 0 ? pass : fail)(`data module restored, gate green again -> exit ${restored}`);
   failures += sabFail;
+
+  // ── 8b. Sabotage of the GENERATOR ──────────────────────────────────────────
+  // The runs above all perturb the DATA, which is the right test for the inventory
+  // anchors — but it cannot reach the navigation assertions added 2026-08-01, because
+  // the search index and the face table are derived from that same data and move with
+  // it. The failure those assertions exist to catch lives in the BUILD SCRIPT: a search
+  // index that drifts from the data, a face-on yaw that points at the wrong wall, a
+  // label that stops scaling. So this phase mutates the generator instead.
+  console.log('\nSabotage of the generator (the navigation assertions must have teeth)');
+  const origBuild = fs.readFileSync(BUILD, 'utf8');
+  const buildRuns = [
+    // NOTE: the first version of this mutation set G-116's price to $45,990 — which is
+    // what it already is. It "passed" because nothing changed. A sabotage that does not
+    // alter the artefact proves nothing; confirm the mutation actually bit before
+    // concluding anything from it.
+    ['the search index drifted from the data: one crypt filed under the wrong bank',
+      (s) => s.replace('const SEARCH_JSON = JSON.stringify(searchIndex());',
+        'const SEARCH_JSON = JSON.stringify(searchIndex().map((e) => (e.r === \'COM-1-1-G-116\' ? { ...e, b: \'111-115\' } : e)));')],
+    ['one position dropped from the index (902, not 903)',
+      (s) => s.replace('const SEARCH_JSON = JSON.stringify(searchIndex());',
+        'const SEARCH_JSON = JSON.stringify(searchIndex().slice(1));')],
+    ['a face-on yaw pointing at the wrong wall: east and west swapped',
+      (s) => s.replace("const FACE_YAW = { N: 180, S: 0, E: -90, W: 90 };",
+        "const FACE_YAW = { N: 180, S: 0, E: 90, W: -90 };")],
+    ['a face placed at the bank CENTROID instead of its outward face',
+      (s) => s.replace("  if (face === 'N') return [p.x + p.w / 2, p.y];",
+        "  if (face === 'N') return [p.x + p.w / 2, p.y + p.h / 2];")],
+    ['the halls made solid, so a counselor cannot walk down them',
+      (s) => s.replace("for (const r of ROOMS) if (r.kind !== 'hall' && r.kind !== 'chapel') out.push([r.x, r.y, r.w, r.h]);",
+        "for (const r of ROOMS) out.push([r.x, r.y, r.w, r.h]);")],
+    ['level-of-detail removed: crypt refs frozen at 4.6px again',
+      (s) => s.replace('font-size:calc(4.6px * var(--lod,1))', 'font-size:4.6px')],
+    ['frame-rate-dependent damping reinstated (a different gesture on a 120 Hz phone)',
+      (s) => s.replace('var d = Math.pow(DAMP, dt / 16.67);', 'var d = DAMP;')],
+    ['the tap detector keyed off camera motion instead of pointer travel (drag would select)',
+      (s) => s.replace("var isTap = ev.type === 'pointerup' && moved <= 8;",
+        "var isTap = ev.type === 'pointerup' && Math.abs(vYaw) < 0.2;")],
+    ['the removed price-provenance paragraph put back on the page',
+      (s) => s.replace('const PRICE_KEY = `<div class="pricekey">',
+        'const PRICE_KEY = `<div class="pricekey">Crypt prices come from MIS and are exact.')],
+    ['a fee toggle shipped pre-checked, silently restoring the old default total',
+      (s) => s.replace('<input type="checkbox" id="oc-on">', '<input type="checkbox" id="oc-on" checked>')],
+  ];
+  let bFail = 0;
+  try {
+    for (const [label, mut] of buildRuns) {
+      const mutated = mut(origBuild);
+      if (mutated === origBuild) { console.log('  FAIL  sabotage did not apply: ' + label); bFail++; continue; }
+      fs.writeFileSync(BUILD, mutated, 'utf8');
+      let code = 0;
+      try {
+        execFileSync(process.execPath, [BUILD], { cwd: ROOT, stdio: 'pipe' });
+        execFileSync(process.execPath, [__filename()], { cwd: ROOT, stdio: 'pipe' });
+      } catch (e) { code = e.status ?? 1; }
+      (code === 1 ? pass : (() => { bFail++; return (m) => console.log('  FAIL  ' + m); })())(`${label} -> exit ${code}`);
+      fs.writeFileSync(BUILD, origBuild, 'utf8');
+      execFileSync(process.execPath, [BUILD], { cwd: ROOT, stdio: 'pipe' });
+    }
+  } finally {
+    // The generator must be back on disk even if this phase throws.
+    fs.writeFileSync(BUILD, origBuild, 'utf8');
+    execFileSync(process.execPath, [BUILD], { cwd: ROOT, stdio: 'pipe' });
+  }
+  let brestored = 0;
+  try { execFileSync(process.execPath, [__filename()], { cwd: ROOT, stdio: 'pipe' }); } catch (e) { brestored = e.status ?? 1; }
+  (brestored === 0 ? pass : fail)(`generator restored, gate green again -> exit ${brestored}`);
+  failures += bFail;
 }
 function __filename() { return fileURLToPath(import.meta.url); }
 
