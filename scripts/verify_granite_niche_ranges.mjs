@@ -203,6 +203,21 @@ console.log('\n=== GARDEN OF MEDITATION FEE SCHEDULE vs gomn-niche-data FEES ===
   const urn = `$${GOMN.URN.price.toLocaleString('en-US')}`;
   if (gomn.includes(urn) && /merchandise/i.test(gomn)) ok(`the Interlude Urn is priced ${urn} and named as merchandise`);
   else fail(`the Garden of Meditation section does not price the Interlude Urn at ${urn} as merchandise`);
+
+  // 5. THE URN IS TAXED (operator ruling 2026-07-31, superseding Track D's untaxed urn).
+  //    Track D shipped this page saying the urn's tax was "confirmed at contract"; the
+  //    ruling replaced that with a flat 10.4%, the same rate as the inscription. The
+  //    taxed figure is asserted from the module's own TAX rate, and the withdrawn caveat
+  //    must be gone from the whole page — a family reading "confirmed at contract" beside
+  //    a taxed line is the exact confusion this check exists to prevent.
+  const taxPct = feeStr(GOMN.FEES.TAX);                     // "10.4%"
+  const urnTaxed = new RegExp(`${urn.replace('$', '\\$')}[^.]{0,80}\\b${taxPct.replace('.', '\\.')}\\s*sales tax`, 'i');
+  if (urnTaxed.test(gomn)) ok(`the Interlude Urn is stated as ${urn} plus ${taxPct} sales tax`);
+  else fail(`the Garden of Meditation section does not say the Interlude Urn carries ${taxPct} sales tax`);
+  if (/sales tax[^<]*interlude urn/i.test(gomn)) ok('the fee table names the urn alongside the inscription on the tax row');
+  else fail('the fee table\'s sales-tax row does not name the Interlude Urn');
+  if (/confirmed at contract/i.test(html)) fail('the withdrawn "confirmed at contract" urn-tax caveat is still on the page');
+  else ok('the withdrawn "confirmed at contract" urn-tax caveat is gone from the page');
 }
 
 // ── the at-a-glance table repeats the ranges in plain text; keep it honest ───
