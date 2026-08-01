@@ -23,7 +23,8 @@ import {
   BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
   PLAN_W, PLAN_H, COLW, TANDEM_DEPTH, SINGLE_DEPTH, bankDepth,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
-  NICHE_FEES, CRYPT_FEES, MIS, STATUS_LABEL, PRICES, PRICE_BANDS, priceBand,
+  NICHE_FEES, CRYPT_FEES, CRYPT_FEE_SOURCE, MIS, STATUS_LABEL, PRICES, PRICE_BANDS, priceBand,
+  PRICE_EXCEPTIONS, TIER_G_116_123,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,7 +36,11 @@ const BUILD = path.join(ROOT, 'scripts', 'build_com_map.mjs');
 // ── Anchors. These are the numbers the sabotage run must break. ───────────────
 const A = {
   banks: 17,
-  units: 785,
+  // 785 before 2026-08-01. Tier G of bank 116-123 was transcribed as the sheet DREW it,
+  // eight single crypts; the operator ruled it is four companion pairs, so eight units
+  // become four over the same eight spaces. `spaces` is unchanged at 893 on purpose —
+  // no crypt appeared or vanished, four purchasable units merged into pairs.
+  units: 781,
   spaces: 893,          // 131 columns x 7 tiers, less the 24 EMPTY-AREA slots
   available: 51,
   blocked: 18,
@@ -48,7 +53,11 @@ const A = {
   // so `unavailable` splits into occupied / reserved / unlisted and 328 units MIS
   // itself calls Available stop being hidden. Derived from the PARSE, not from the
   // built page. Every non-status anchor in this file is byte-identical to before.
-  available: 379,
+  // Old: available 379 / no `unpriced` class. New, after the operator's availability rule
+  // ("available as long as a price is attached to it that is greater than 0") and the
+  // tier-G consolidation: 379 - 8 tier-G singles + 4 tier-G pairs - 1 priceless = 374.
+  available: 374,
+  notOffered: 1,        // MIS says Available, MIS carries no price: COM-1-1-E-166
   occupied: 229,
   reserved: 156,
   blocked: 3,
@@ -57,7 +66,11 @@ const A = {
   // its spaces the more-committed of the two MIS rows. 17 companion units hold one
   // occupied space and one reserved space, which is why this differs from MIS.spaceStatus
   // by exactly 17 in those two buckets and by zero everywhere else.
-  spaceHist: { available: 430, occupied: 261, reserved: 181, blocked: 3, unlisted: 18 },
+  // Old: { available: 430, occupied: 261, reserved: 181, blocked: 3, unlisted: 18 }.
+  // One available SPACE moves to `unpriced` (E-166 is a one-space tandem); the tier-G
+  // consolidation moves no space at all, which is the point of checking spaces as well
+  // as units — a retyping must not change how much crypt exists.
+  spaceHist: { available: 429, occupied: 261, reserved: 181, blocked: 3, unlisted: 18, unpriced: 1 },
   niches: 122,
   nichesAvail: 27,
   nicheValue: 233075,   // Radiance $156,115 + Serenity $76,960
@@ -68,27 +81,29 @@ const A = {
   // the only price source was the 4px sheet. New: crypt prices come from the MIS
   // crypt-price export of 8/1/2026 and 377 of the 379 available units carry one.
   // EVERY figure below is derived from the CSV parse, not from the built page.
-  priced: 377,           // available units MIS priced
-  unpricedAvail: 2,      // COM-1-1-E-166 (MIS price 0), COM-1-1-A-183 (half-dollar split)
-  distinctPrices: 29,
-  availValue: 9111510,   // sum of the 377 unit prices
+  // Old: priced 377 / unpricedAvail 2 / availValue 9111510. The availability rule ended
+  // the idea of an available-but-unpriced crypt: there are now ZERO of them by rule.
+  priced: 374,           // = available. Every available unit is priced, or it is not available.
+  unpricedAvail: 0,      // enforced as a RULE below, not merely observed
+  distinctPrices: 29,    // unchanged: A-183 sums to $24,995, which already existed
+  availValue: 8952545,   // was 9111510: +24,995 (A-183) -367,920 +183,960 (tier G)
   // A plain total is blind to a price that MOVES between two units, and a multiset is
   // blind to a swap as well. sumSquares pins the multiset (any price changed to another
   // valid price breaks it) and priceChecksum pins POSITION: price x tierIndex x space.
-  priceSumSquares: 257585486000,
-  priceChecksum: 5166450550,
+  priceSumSquares: 249749915625,   // was 257585486000
+  priceChecksum: 5176393945,       // was 5166450550
   bankValue: {
-    '101-110': 1114820, '111-115': 577900, '116-123': 1109790, '124-140': 1338670,
+    '101-110': 1114820, '111-115': 577900, '116-123': 925830, '124-140': 1338670,   // 116-123 was 1109790: 8 singles -> 4 pairs
     '141-148': 426895, '149-153': 169840, '154-158': 93965, '159-167': 161950,
-    '168-172': 14995, '173-178': 532875, '179-184': 233930, '185-191': 1195795,
+    '168-172': 14995, '173-178': 532875, '179-184': 258925, '185-191': 1195795,   // 179-184 was 233930 (+A-183)
     '192-193': 173960, '194-200': 459915, '201-212': 725310, '213-219': 252835,
     '220-231': 528065,
   },
   // 377 priced units x the TWO renderings that show text: the 3D face and the flat
   // per-bank grid. The print-overview minis are label-only (they carry no badge either),
   // so they show no figure — but they DO carry the data-price attribute, hence two anchors.
-  cryptPriceCells: 754,
-  cryptPriceAttrs: 1131,   // 377 x 3 renderings
+  cryptPriceCells: 748,    // was 754
+  cryptPriceAttrs: 1122,   // was 1131; 374 x 3 renderings
   // POSITIONAL anchors. A plain total is blind to a price that MOVES to another
   // valid row, so each available-$ figure is also pinned per row and by a
   // position-weighted checksum.
@@ -96,11 +111,11 @@ const A = {
   serPerRow: { K: 6590, J: 14295, H: 29685, G: 16495, A: 9895 },
   radChecksum: 2596925,
   serChecksum: 2400750,
-  cryptChecksum: 2439477,
+  cryptChecksum: 2422293,   // was 2439477 — unit count and one status both changed
 };
 // Position weights for the crypt status checksum. Five distinct values so that ANY
 // swap between two statuses at two positions changes the sum.
-const CW = { available: 3, unlisted: 5, blocked: 7, reserved: 11, occupied: 13 };
+const CW = { available: 3, unlisted: 5, blocked: 7, reserved: 11, occupied: 13, unpriced: 17 };
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -231,11 +246,19 @@ console.log('\nMIS lot inquiry list arithmetic (printed ' + MIS.printed + ')');
   const sum = Object.values(MIS.spaceStatus).reduce((a, b) => a + b, 0);
   chk(sum === MIS.spaces, `the per-space MIS status counts sum to ${MIS.spaces} (${sum})`);
   // A companion crypt is ONE purchasable unit, so its two spaces take one status: the
-  // more committed of the two MIS rows. That, and only that, is why the rendered
-  // per-space counts differ from the parse — by exactly MIS.mergedSpaces, one way.
+  // more committed of the two MIS rows. That is why the rendered per-space counts differ
+  // from the parse — by exactly MIS.mergedSpaces, one way.
+  //
+  // AND, since 2026-08-01, by one more space in one more way: the operator's availability
+  // rule takes a space MIS calls Available but carries no price for and renders it
+  // `unpriced`. So the parse's `available` splits into rendered available + unpriced, and
+  // the identity is available + unpriced, not available alone. Both sides are still tied
+  // to MIS's own numbers — a dropped row still cannot hide here.
   const live = {};
   for (const s of spaces) if (s.st !== 'unlisted') live[s.st] = (live[s.st] || 0) + 1;
-  chk(live.available === MIS.spaceStatus.available && live.blocked === MIS.spaceStatus.blocked
+  chk(live.available + (live.unpriced || 0) === MIS.spaceStatus.available
+    && (live.unpriced || 0) === A.notOffered
+    && live.blocked === MIS.spaceStatus.blocked
     && live.occupied === MIS.spaceStatus.occupied + MIS.mergedSpaces
     && live.reserved === MIS.spaceStatus.reserved - MIS.mergedSpaces,
     `the ${MIS.spaces} listed spaces render as ${JSON.stringify(live)} — the parse ${JSON.stringify(MIS.spaceStatus)} plus the ${MIS.mergedSpaces} reserved halves of a companion crypt whose other half is occupied`);
@@ -384,8 +407,36 @@ console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
   const priced = av.filter((u) => u.p != null);
   chk(av.length === A.available, `${av.length} available units (${A.available})`);
   chk(priced.length === A.priced, `${priced.length} of them priced (${A.priced})`);
-  chk(av.length - priced.length === A.unpricedAvail,
-    `${av.length - priced.length} available units carry no price and say so (${A.unpricedAvail})`);
+  // ── THE AVAILABILITY RULE (operator, 2026-08-01) ─────────────────────────
+  //   "yes all 379 are available as long as a price is attached to it that is
+  //    greater than 0."
+  // Asserted as a RULE over every unit, not as a count: no unit may render available
+  // without a price greater than zero, now or after any future re-import.
+  const sellableNoPrice = units.filter((u) => u.st === 'available' && !(u.p > 0)).map((u) => u.ref);
+  chk(sellableNoPrice.length === A.unpricedAvail && sellableNoPrice.length === 0,
+    `no unit renders available without a price > 0${sellableNoPrice.length ? ': ' + sellableNoPrice.slice(0, 5).join(', ') : ''}`);
+  chk(priced.every((u) => u.p > 0), 'and every available price is strictly positive, not merely non-null');
+
+  // EXCEPTION 1, pinned by REF so it cannot generalise: exactly one unit is priced by
+  // SUMMING its two split rows. Every other multi-row unit takes the stamped value, and
+  // summing one of those would double it.
+  const summed = units.find((u) => u.ref === PRICE_EXCEPTIONS.summed.ref);
+  chk(summed && summed.st === 'available' && summed.p === PRICE_EXCEPTIONS.summed.price,
+    `${PRICE_EXCEPTIONS.summed.ref} is available at $${PRICE_EXCEPTIONS.summed.price.toLocaleString('en-US')} — the one summed unit`);
+  chk(PRICE_EXCEPTIONS.summed.rows.reduce((a, b) => a + b, 0) === PRICE_EXCEPTIONS.summed.price,
+    `and its price is exactly its two MIS rows added (${PRICE_EXCEPTIONS.summed.rows.join(' + ')})`);
+  chk(PRICES.unitsSummed === 1, `exactly one unit in the building is priced by summation (${PRICES.unitsSummed})`);
+
+  // EXCEPTION 2, also by ref: MIS says Available, MIS carries no price, so it is NOT
+  // offered here and must not appear in the available histogram.
+  const notOffered = units.filter((u) => u.st === PRICE_EXCEPTIONS.notOffered.status);
+  chk(notOffered.length === A.notOffered && notOffered[0] && notOffered[0].ref === PRICE_EXCEPTIONS.notOffered.ref,
+    `${PRICE_EXCEPTIONS.notOffered.ref} is the only not-offered unit (${notOffered.length})`);
+  chk(notOffered.every((u) => u.p == null), 'and it carries no price at all');
+  chk(!av.some((u) => u.ref === PRICE_EXCEPTIONS.notOffered.ref),
+    'it does not count in the available histogram');
+  chk(new RegExp(`data-ref="${PRICE_EXCEPTIONS.notOffered.ref}"[^>]*data-price=`).test(src) === false,
+    'and no rendering of it carries a data-price attribute');
   // Read the RAW UNITS rows, not cryptUnits(): the helper defensively nulls the price
   // on anything unsellable, so checking the helper would let a price typed onto an
   // occupied crypt sit in the source file unnoticed. The source must be clean too.
@@ -413,8 +464,9 @@ console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
   // The parse figures the data module records must stay self-consistent.
   chk(PRICES.rows === 695 && PRICES.posRows + PRICES.spaceRows === PRICES.rows,
     `the export reconciles: ${PRICES.posRows} position rows + ${PRICES.spaceRows} space rows = ${PRICES.rows}`);
-  chk(PRICES.unitsPriced + PRICES.unitsUnpriced === PRICES.unitsCovered && PRICES.unitsCovered === A.available,
-    `the export covers exactly the available units (${PRICES.unitsCovered})`);
+  chk(PRICES.unitsOffered + PRICES.unitsNotOffered === PRICES.unitsCovered,
+    `the export lands on ${PRICES.unitsCovered} units: ${PRICES.unitsOffered} offered + ${PRICES.unitsNotOffered} not offered`);
+  chk(PRICES.unitsOffered === A.available, `and the offered count is the available histogram (${PRICES.unitsOffered})`);
   chk(PRICES.availableValue === A.availValue, `PRICES.availableValue agrees with the parse ($${PRICES.availableValue.toLocaleString('en-US')})`);
   // Every price falls in exactly one band, and every band is used.
   chk(priced.every((u) => priceBand(u.p)), 'every price falls in a declared price band');
@@ -443,35 +495,91 @@ console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
     `the footer prints the available crypt value $${A.availValue.toLocaleString('en-US')}`);
 }
 
-// ── 6a-ii. Card math (operator ruling 2026-08-01) ────────────────────────────
+// ── 6a-ii. Card math (operator rulings 2026-08-01) ───────────────────────────
 // "here all the crypt prices for the chapel of memories. the only other cost is the
 //  crypt monobar price which lives in the quote tool."
-// So a crypt card is price + 10% E.C.F. + $225 recording + the optional monobar, and
-// carries NO opening & closing. The monobar figures are the QUOTE TOOL's: $1,445
-// memorial (index.html BW_FEES 'MONOBAR:crypt') + $225 install (the literal index.html
-// quotes, and the 2026-07-26 record in data/prices.json that overrides the 215 workbook
-// figure). Literals are written out here so editing the data module alone fails.
+// "opening and clsoing and recording fee prices need to be taken from the quote tool
+//  as well."
+//
+// So a crypt card is price + exact 10% E.C.F. + recording + entombment O&C + the
+// optional monobar. EVERY fee but the vase is the QUOTE TOOL's figure:
+//   RECORDING  $235  index.html BW_FEES 'RECORDING:all'          (was $225, the sheet)
+//   OC         $1205 index.html BW_FEES 'OC:mausoleum_entombment' (was: no O&C at all)
+//   MONOBAR    $1445 index.html BW_FEES 'MONOBAR:crypt'
+//   INSTALL    $225  the literal index.html quotes, over the 215 in the workbook
+// Literals are written out here so editing the data module alone fails this gate.
+//
+// SUPERSEDED, kept so the change is legible: this block used to assert RECORDING === 225,
+// that no crypt card row quoted an O&C, and that "1205" appeared nowhere on the page.
+// All three were the first ruling read too narrowly; the second ruling reverses them.
+// ── 6a-iii. Bank 116-123 tier G — four companion pairs, not eight singles ────
+// The sheet DREW eight single cells; the operator ruled 2026-08-01 "4 companion pairs."
+// Pinned hard, because this is the one place in the file where the rendered inventory
+// deliberately contradicts the source document it was transcribed from.
+console.log('\nBank 116-123 tier G (operator override 2026-08-01)');
+{
+  const g = units.filter((u) => u.bank === '116-123' && u.tier === 'G');
+  chk(g.length === TIER_G_116_123.units, `tier G is ${g.length} purchasable units, not 8 (${TIER_G_116_123.units})`);
+  chk(g.every((u) => u.cols.length === 2), 'every one of them is a TWO-column companion');
+  chk(g.every((u) => u.type !== 'single'), 'not one of them is typed single any more');
+  chk(JSON.stringify(g.map((u) => u.cols)) === JSON.stringify(TIER_G_116_123.pairs),
+    `paired 116+117, 118+119, 120+121, 122+123 (${JSON.stringify(g.map((u) => u.cols))})`);
+  chk(JSON.stringify(g.map((u) => u.type)) === JSON.stringify(TIER_G_116_123.types),
+    `typed deluxe / hidden / hidden / deluxe, from the bank segment header (${g.map((u) => u.type).join(', ')})`);
+  // The pairing and typing must MATCH the bank's own segs, not be a parallel list.
+  const segs = BANKS.find((b) => b.id === '116-123').segs;
+  const typeAt = (c) => (segs.find((sg) => c >= sg[0] && c <= sg[1]) || [])[2];
+  chk(g.every((u) => u.type === typeAt(u.cols[0]) && typeAt(u.cols[0]) === typeAt(u.cols[1])),
+    'every tier-G pair takes its type from the bank segment that covers both its columns');
+  // Same eight spaces as before, and the tiers below are paired the same way.
+  chk(g.reduce((t, u) => t + u.cols.length, 0) === TIER_G_116_123.spaces,
+    `still ${TIER_G_116_123.spaces} crypt spaces — units merged, no crypt appeared or vanished`);
+  const f = units.filter((u) => u.bank === '116-123' && u.tier === 'F');
+  chk(JSON.stringify(f.map((u) => u.cols)) === JSON.stringify(g.map((u) => u.cols)),
+    'tier G is now paired exactly like tier F beneath it');
+  // Stamped, not summed: the pair price is $45,990, not 2 x $45,990.
+  chk(g.every((u) => u.p === TIER_G_116_123.unitPrice),
+    `each pair is stamped $${TIER_G_116_123.unitPrice.toLocaleString('en-US')}, not doubled`);
+  // And the ladder that proved the ruling right holds on the built page.
+  const tierP = (t) => (units.find((u) => u.bank === '116-123' && u.tier === t && u.p) || {}).p;
+  chk(tierP('G') < tierP('F') && tierP('F') < tierP('E') && tierP('E') < tierP('D'),
+    `the bank ladder reads G $${tierP('G').toLocaleString('en-US')} < F $${tierP('F').toLocaleString('en-US')} < E $${tierP('E').toLocaleString('en-US')} < D $${tierP('D').toLocaleString('en-US')}`);
+  chk(/8 single crypts/.test(fs.readFileSync(DATA, 'utf8')),
+    'the data module records what the sheet drew, so the override stays legible');
+}
+
 console.log('\nCrypt card math');
 {
-  chk(CRYPT_FEES.RECORDING === 225, `crypt recording fee is $225 (got $${CRYPT_FEES.RECORDING})`);
+  chk(CRYPT_FEES.RECORDING === 235, `crypt recording fee is the tool's $235 (got $${CRYPT_FEES.RECORDING})`);
+  chk(CRYPT_FEES.OC === 1205, `crypt entombment O&C is the tool's $1,205 (got $${CRYPT_FEES.OC})`);
   chk(CRYPT_FEES.MONOBAR === 1445, `crypt monobar memorial is $1,445 (got $${CRYPT_FEES.MONOBAR})`);
   chk(CRYPT_FEES.MONOBAR_INSTALL === 225, `crypt monobar install is $225 (got $${CRYPT_FEES.MONOBAR_INSTALL})`);
   chk(CRYPT_FEES.VASE === 415, `crypt vase is $415 (got $${CRYPT_FEES.VASE})`);
   chk(CRYPT_FEES.ECF_RATE === 0.1, `crypt E.C.F. rate is 10% (got ${CRYPT_FEES.ECF_RATE * 100}%)`);
-  chk(/var REC = 225, MB = 1445, MBI = 225, VASE = 415;/.test(src),
-    'the page script carries REC 225, MB 1445, MBI 225, VASE 415');
+  chk(/var REC = 235, OC = 1205, MB = 1445, MBI = 225, VASE = 415;/.test(src),
+    'the page script carries REC 235, OC 1205, MB 1445, MBI 225, VASE 415');
   chk(/Monobar — \$1,670 ea/.test(src) && /\$1,445 memorial \+ \$225 install/.test(src),
     'the fee bar sells the monobar as $1,670 = $1,445 memorial + $225 install');
-  chk(/tot = price \+ e \+ REC;/.test(src), 'the card total is price + E.C.F. + recording');
+  chk(/tot = price \+ e \+ REC \+ OC;/.test(src),
+    'the card total is price + E.C.F. + recording + entombment O&C');
+  chk(/Entombment O&amp;C<\/span><span class="cv">' \+ fm\(OC\)/.test(src),
+    'the card prints the entombment O&C as its own line, twice (priced and unpriced cards)');
   chk(/var e = Math\.round\(price \* 10\) \/ 100/.test(src),
     'the E.C.F. is an exact 10% of the price, matching the export ecf column, not a ceiling');
   chk(/minimumFractionDigits: n % 1 \? 2 : 0/.test(src),
     'a fractional amount renders as cents ($2,639.50), never as $2,639.5');
   chk(/tot \+= \(MB \+ MBI\) \* mq;/.test(src), 'and adds both monobar lines together at one quantity');
-  // No opening & closing anywhere on the crypt side.
-  chk(/none — a crypt carries no O&amp;C/.test(src), 'the fee bar states a crypt carries no O&C');
-  chk(!/Open &amp; Closing<\/span><span class="cv">/.test(src), 'no crypt card row quotes an opening &amp; closing amount');
-  chk(!/1,205|1205/.test(src), "the tool's mausoleum entombment O&C never leaks onto this page");
+  // Opening & closing IS quoted on a crypt now, and the page says where it came from.
+  chk(/Entombment O&amp;C — \$1,205/.test(src), 'the fee bar prints Entombment O&C $1,205');
+  chk(/Recording Fee — \$235/.test(src), 'the fee bar prints Recording Fee $235, the tool figure');
+  chk(!/Recording Fee — \$225/.test(src) && !/Recording Fee<\/span><span class="cv">' \+ fm\(225\)/.test(src),
+    'the superseded $225 sheet recording fee appears nowhere on the page');
+  chk(/Crypt fee source/.test(src) && /the crypt sheet’s fee box is superseded/.test(src),
+    'the fee bar states the provenance: quote tool, sheet fee box superseded');
+  chk(src.includes(CRYPT_FEE_SOURCE.replace(/&/g, '&amp;')),
+    'the provenance string is rendered verbatim from the data module');
+  chk(/Recording, opening &amp; closing and the monobar are the QUOTE TOOL/.test(src),
+    'every priced card names the quote tool as the fee source');
   // OMITTED_FEES is retired: both illegible rows are resolved, not hidden.
   chk(!/Omitted \(illegible on the sheet\)/.test(src), 'the "omitted (illegible)" fee row is gone');
 }
@@ -512,12 +620,33 @@ console.log('\nGlass-front niche fee schedule (operator ruling 2026-07-31)');
   // 225, the figure index.html quotes, per the operator's ruling that the monobar price
   // lives in the quote tool. The point of this check is unchanged: the NICHE schedule
   // ($875 / $235) must never leak onto the crypts, which are a different product.
-  chk(CRYPT_FEES.RECORDING === 225 && CRYPT_FEES.MONOBAR_INSTALL === 225 && CRYPT_FEES.VASE === 415,
-    `the CRYPT fee box is crypt-only ($${CRYPT_FEES.RECORDING} / $${CRYPT_FEES.MONOBAR_INSTALL} / $${CRYPT_FEES.VASE})`);
-  chk(CRYPT_FEES.RECORDING !== NICHE_FEES.RECORDING && !("OC" in CRYPT_FEES),
-    'the crypt fee box has no O&C and does not share the niche recording fee');
-  chk(NICHE_FEES.OC !== CRYPT_FEES.RECORDING && !/Recording Fee — \$235/.test(src),
-    'the niche schedule has not leaked onto the crypt fee lines');
+  chk(CRYPT_FEES.RECORDING === 235 && CRYPT_FEES.MONOBAR_INSTALL === 225 && CRYPT_FEES.VASE === 415,
+    `the CRYPT fee box reads $${CRYPT_FEES.RECORDING} / $${CRYPT_FEES.MONOBAR_INSTALL} / $${CRYPT_FEES.VASE}`);
+  // The two products now SHARE a recording fee — both take the tool's RECORDING:all —
+  // so recording can no longer be the tell. The O&C is: a crypt entombment is $1,205
+  // and a glass-front inurnment is $875, and swapping them is the leak that matters.
+  chk(CRYPT_FEES.OC === 1205 && NICHE_FEES.OC === 875 && CRYPT_FEES.OC !== NICHE_FEES.OC,
+    `crypt O&C $${CRYPT_FEES.OC} and niche O&C $${NICHE_FEES.OC} stay distinct`);
+  chk(CRYPT_FEES.RECORDING === NICHE_FEES.RECORDING,
+    'crypt and niche recording deliberately coincide at $235 — both are the tool\'s RECORDING:all');
+  chk(!/Niche O&amp;C — \$1,205/.test(src) && !/Entombment O&amp;C — \$875/.test(src),
+    'neither O&C figure is rendered against the other product');
+  // THE MIRROR. Operator, 2026-08-01 (binding): the ruling that moved the CRYPT fees to
+  // the quote tool's figures "only applies to the crypts not the niches." NICHE_FEES is
+  // therefore frozen at the 2026-07-31 glass-front schedule, and the crypt-only fees must
+  // not appear in it. Written as literals so a future crypt-side edit that reaches across
+  // fails here, exactly as the niche-side check already fails a crypt-side leak.
+  chk(JSON.stringify(NICHE_FEES) === JSON.stringify({ OC: 875, RECORDING: 235, ECF_RATE: 0.1 }),
+    `NICHE_FEES is untouched by the crypt fee ruling (${JSON.stringify(NICHE_FEES)})`);
+  const crypOnly = ['OC', 'MONOBAR', 'MONOBAR_INSTALL', 'VASE']
+    .filter((k) => k !== 'OC' && k in NICHE_FEES)
+    .concat(NICHE_FEES.OC === CRYPT_FEES.OC ? ['OC'] : []);
+  chk(crypOnly.length === 0,
+    `no crypt-only fee has bled into the niche schedule${crypOnly.length ? ': ' + crypOnly.join(', ') : ''}`);
+  chk(!('MONOBAR' in NICHE_FEES) && !('MONOBAR_INSTALL' in NICHE_FEES) && !('VASE' in NICHE_FEES),
+    'the niche schedule carries no monobar and no vase — those are crypt products');
+  chk(Object.keys(CRYPT_FEES).length === 6 && Object.keys(NICHE_FEES).length === 3,
+    `the two fee schedules stay separate objects (${Object.keys(CRYPT_FEES).length} crypt keys, ${Object.keys(NICHE_FEES).length} niche keys)`);
 }
 
 // ── 6c. Building layout: where things actually ARE ────────────────────────────
@@ -809,6 +938,30 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("['101-110', 'G', [103], 'tandem', 'occupied', null]", "['101-110', 'G', [103], 'tandem', 'occupied', 30995]")],
     ['a price ROUNDED: $26,395 -> $26,400',
       (s) => s.replace("['201-212', 'G', [206, 207], 'deluxe', 'available', 26395]", "['201-212', 'G', [206, 207], 'deluxe', 'available', 26400]")],
+    ['a ZERO-PRICED unit marked available (the rule: a price > 0 or it is not for sale)',
+      (s) => s.replace("['159-167', 'E', [166], 'tandem', 'unpriced', null],", "['159-167', 'E', [166], 'tandem', 'available', null],")],
+    ['an available unit given a price of exactly 0',
+      (s) => s.replace("['168-172', 'C', [168], 'single', 'available', 14995]", "['168-172', 'C', [168], 'single', 'available', 0]")],
+    ['bank 116-123 tier G re-split into the 8 singles the sheet drew',
+      (s) => s.replace(
+        "  ['116-123', 'G', [116, 117], 'deluxe', 'available', 45990],\r\n"
+        + "  ['116-123', 'G', [118, 119], 'hidden', 'available', 45990],\r\n"
+        + "  ['116-123', 'G', [120, 121], 'hidden', 'available', 45990],\r\n"
+        + "  ['116-123', 'G', [122, 123], 'deluxe', 'available', 45990],",
+        [116, 117, 118, 119, 120, 121, 122, 123]
+          .map((c) => `  ['116-123', 'G', [${c}], 'single', 'available', 45990],`).join('\r\n'))],
+    ['the summed A-183 exception generalised to a second unit',
+      (s) => s.replace("['179-184', 'D', [183, 184], 'hidden', 'available', 24995]", "['179-184', 'D', [183, 184], 'hidden', 'available', 49990]")],
+    ['the crypt fee ruling bled into the NICHES: niche O&C $875 -> the crypt $1,205',
+      (s) => s.replace('NICHE_FEES = { OC: 875,', 'NICHE_FEES = { OC: 1205,')],
+    ['a crypt-only fee added to the niche schedule (monobar)',
+      (s) => s.replace('OC: 875, RECORDING: 235, ECF_RATE: 0.1 }', 'OC: 875, RECORDING: 235, MONOBAR: 1445, ECF_RATE: 0.1 }')],
+    ['the crypt O&C swapped for the glass-front niche figure: $1,205 -> $875',
+      (s) => s.replace('OC: 1205,', 'OC: 875,')],
+    ['the recording fee reverted to the superseded crypt-sheet figure: $235 -> $225',
+      (s) => s.replace('RECORDING: 235,', 'RECORDING: 225,')],
+    ['the entombment O&C dropped out of the crypt fee box entirely',
+      (s) => s.replace('  OC: 1205,\r\n', '').replace('  OC: 1205,\n', '')],
     ['the monobar memorial price dropped back out of the fee box',
       (s) => s.replace('MONOBAR: 1445,', 'MONOBAR: 0,')],
     ['the monobar install reverted to the workbook figure the tool overrides: 225 -> 215',
