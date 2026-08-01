@@ -662,7 +662,10 @@ void main () {
 
 let defaultViewMatrix = [0.8960084281453917, -0.05841883279039225, 0.44017739227251623, 0, -0.005225341892881187, 0.9898519671217823, 0.14200626390142268, 0, -0.4440062978095321, -0.1295388866732542, 0.8866104467830993, 0, 1.7601990140317674, -0.8078142500755143, 4.481599800585873, 1];
 let viewMatrix = defaultViewMatrix;
-window.bwWalkthrough = { get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; } };
+// bytesRead/vertexCount are filled in when the stream ends. They exist so the gate can
+// assert the page counted whole 32-byte rows off the wire and not a header value.
+window.bwWalkthrough = { bytesRead: null, vertexCount: null, expectedSplats: 750000,
+  get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; } };
 async function main() {
     let carousel = true;
     const params = new URLSearchParams(location.search);
@@ -679,10 +682,8 @@ async function main() {
 
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
     const reader = req.body.getReader();
-    const declaredLength = parseInt(req.headers.get("content-length"), 10);
-    let splatData = new Uint8Array(
-        Number.isFinite(declaredLength) && declaredLength > 0 ? declaredLength : 1 << 22,
-    );
+    // 4 MiB, a whole multiple of rowLength; doubling keeps it so. Never Content-Length.
+    let splatData = new Uint8Array(1 << 22);
     const growSplatData = (needed) => {
         if (needed <= splatData.length) return;
         let cap = splatData.length || 1 << 22;
@@ -691,10 +692,16 @@ async function main() {
         grown.set(splatData);
         splatData = grown;
     };
+    // The only two facts the worker is ever told, both from bytes actually received.
+    const receivedRows = () => Math.floor(bytesRead / rowLength);
+    const rowAlignedBuffer = () => splatData.buffer.slice(0, receivedRows() * rowLength);
 
-    const downsample =
-        splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
-    console.log(splatData.length / rowLength, downsample);
+    // Render scale and the progress bar both need a total up front. Upstream took it from the
+    // receive-buffer size, i.e. from Content-Length; the committed asset's real splat count is
+    // known at build time, so use that and leave the header out of it entirely.
+    const ASSET_SPLATS = 750000;
+    const downsample = ASSET_SPLATS > 500000 ? 1 : 1 / devicePixelRatio;
+    console.log("COM walkthrough: " + ASSET_SPLATS + " splats expected, downsample " + downsample);
 
     const worker = new Worker(
         URL.createObjectURL(
@@ -1296,7 +1303,7 @@ async function main() {
             document.getElementById("spinner").style.display = "";
             start = Date.now() + 2000;
         }
-        const progress = (100 * vertexCount) / (splatData.length / rowLength);
+        const progress = (100 * vertexCount) / 750000;
         if (progress < 100) {
             document.getElementById("progress").style.width = progress + "%";
         } else {
@@ -1390,22 +1397,26 @@ async function main() {
         if (vertexCount > lastVertexCount) {
             if (!isPly(splatData)) {
                 worker.postMessage({
-                    buffer: splatData.buffer,
-                    vertexCount: Math.floor(bytesRead / rowLength),
+                    buffer: rowAlignedBuffer(),
+                    vertexCount: receivedRows(),
                 });
             }
             lastVertexCount = vertexCount;
         }
     }
-    if (bytesRead > 0 && splatData.length !== bytesRead) splatData = splatData.slice(0, bytesRead);
+    // Stream end: keep exactly the whole rows received, never a declared length.
+    const finalBytes = receivedRows() * rowLength;
+    if (splatData.length !== finalBytes) splatData = splatData.slice(0, finalBytes);
+    window.bwWalkthrough.bytesRead = bytesRead;
+    window.bwWalkthrough.vertexCount = finalBytes / rowLength;
     if (!stopLoading) {
         if (isPly(splatData)) {
             // ply file magic header means it should be handled differently
             worker.postMessage({ ply: splatData.buffer, save: false });
         } else {
             worker.postMessage({
-                buffer: splatData.buffer,
-                vertexCount: Math.floor(bytesRead / rowLength),
+                buffer: rowAlignedBuffer(),
+                vertexCount: receivedRows(),
             });
         }
     }

@@ -23,6 +23,19 @@ const SRC = path.join(ROOT, 'scripts', 'vendor', 'antimatter15-splat.js');
 const OUT = path.join(ROOT, 'MAPS', 'COM_Walkthrough.html');
 const ASSET = 'COM_Walkthrough.splat';
 
+// A .splat file is a flat array of 32-byte rows. The committed asset's real splat count is
+// known here, on disk, so the page never has to infer it from a response header.
+const ROW_LENGTH = 32;
+const ASSET_PATH = path.join(ROOT, 'MAPS', ASSET);
+if (!fs.existsSync(ASSET_PATH)) {
+  throw new Error(`asset ${ASSET} is missing — run scripts/build_com_splat.mjs first`);
+}
+const ASSET_BYTES = fs.statSync(ASSET_PATH).size;
+if (ASSET_BYTES === 0 || ASSET_BYTES % ROW_LENGTH !== 0) {
+  throw new Error(`asset ${ASSET} is ${ASSET_BYTES} bytes — not a whole number of ${ROW_LENGTH}-byte splat rows`);
+}
+const ASSET_SPLATS = ASSET_BYTES / ROW_LENGTH;
+
 // Camera intrinsics for the viewer's projection. The source clip is a 1080x1920 portrait
 // phone capture; 26 mm-equivalent gives a ~68 deg horizontal field of view, so
 // fx = (w/2) / tan(hfov/2). fy is set to the same focal in pixels (square pixels).
@@ -96,17 +109,36 @@ patch(
   `let defaultViewMatrix = [${DEFAULT_VIEW.join(', ')}];`,
 );
 
-// 5. Upstream sizes the receive buffer straight from the Content-Length header. GitHub Pages
-//    sends one; a chunked response does not, and `new Uint8Array(null)` is a zero-length
-//    buffer whose first `.set()` throws "offset is out of bounds" — the page then shows a
-//    RangeError instead of the building. Grow on demand and trim at the end instead.
+// 5. NOTHING may be derived from the Content-Length header.
+//
+//    Upstream allocates the receive buffer at exactly `Content-Length` bytes and then hands
+//    `splatData.buffer` — the whole raw capacity — to the sorting worker on every progress
+//    tick. That is fine only while Content-Length equals the decoded size. GitHub Pages
+//    serves this asset GZIPPED, so Content-Length is the COMPRESSED count (23,174,686 for a
+//    24,000,000-byte asset). The worker's generateTexture() opens the buffer it was given
+//    with `new Float32Array(buffer)`, which throws
+//        RangeError: byte length of Float32Array should be a multiple of 4
+//    on any capacity that is not 4-aligned. That kills the worker's first message, so it
+//    never posts a texture back, so the main thread's `vertexCount` stays 0 forever, so
+//    `if (vertexCount > 0)` never draws: a black canvas and a spinner that never hides.
+//
+//    A previous pass patched the *growth* and *trim* paths but left Content-Length as the
+//    initial capacity and left both postMessage sites sending `splatData.buffer`, so the
+//    unaligned capacity still reached the worker. The dev server serves the asset
+//    uncompressed, where capacity == decoded size == a multiple of 32, which is exactly why
+//    the local gate stayed green while production was black.
+//
+//    So: fixed row-aligned starting capacity, grow on demand, and tell the worker only about
+//    whole 32-byte rows actually received, in a buffer trimmed to exactly that many rows.
 patch(
-  'growable receive buffer',
-  `    let splatData = new Uint8Array(req.headers.get("content-length"));`,
-  `    const declaredLength = parseInt(req.headers.get("content-length"), 10);
-    let splatData = new Uint8Array(
-        Number.isFinite(declaredLength) && declaredLength > 0 ? declaredLength : 1 << 22,
-    );
+  'row-aligned receive buffer',
+  `    let splatData = new Uint8Array(req.headers.get("content-length"));
+
+    const downsample =
+        splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
+    console.log(splatData.length / rowLength, downsample);`,
+  `    // 4 MiB, a whole multiple of rowLength; doubling keeps it so. Never Content-Length.
+    let splatData = new Uint8Array(1 << 22);
     const growSplatData = (needed) => {
         if (needed <= splatData.length) return;
         let cap = splatData.length || 1 << 22;
@@ -114,7 +146,17 @@ patch(
         const grown = new Uint8Array(cap);
         grown.set(splatData);
         splatData = grown;
-    };`,
+    };
+    // The only two facts the worker is ever told, both from bytes actually received.
+    const receivedRows = () => Math.floor(bytesRead / rowLength);
+    const rowAlignedBuffer = () => splatData.buffer.slice(0, receivedRows() * rowLength);
+
+    // Render scale and the progress bar both need a total up front. Upstream took it from the
+    // receive-buffer size, i.e. from Content-Length; the committed asset's real splat count is
+    // known at build time, so use that and leave the header out of it entirely.
+    const ASSET_SPLATS = ${ASSET_SPLATS};
+    const downsample = ASSET_SPLATS > 500000 ? 1 : 1 / devicePixelRatio;
+    console.log("COM walkthrough: " + ASSET_SPLATS + " splats expected, downsample " + downsample);`,
 );
 patch(
   'grow before write',
@@ -125,12 +167,45 @@ patch(
         bytesRead += value.length;`,
 );
 patch(
-  'trim after load',
+  'mid-stream buffer handoff',
+  `                worker.postMessage({
+                    buffer: splatData.buffer,
+                    vertexCount: Math.floor(bytesRead / rowLength),
+                });`,
+  `                worker.postMessage({
+                    buffer: rowAlignedBuffer(),
+                    vertexCount: receivedRows(),
+                });`,
+);
+patch(
+  'finalise on stream end',
   `    if (!stopLoading) {
         if (isPly(splatData)) {`,
-  `    if (bytesRead > 0 && splatData.length !== bytesRead) splatData = splatData.slice(0, bytesRead);
+  `    // Stream end: keep exactly the whole rows received, never a declared length.
+    const finalBytes = receivedRows() * rowLength;
+    if (splatData.length !== finalBytes) splatData = splatData.slice(0, finalBytes);
+    window.bwWalkthrough.bytesRead = bytesRead;
+    window.bwWalkthrough.vertexCount = finalBytes / rowLength;
     if (!stopLoading) {
         if (isPly(splatData)) {`,
+);
+patch(
+  'final buffer handoff',
+  `            worker.postMessage({
+                buffer: splatData.buffer,
+                vertexCount: Math.floor(bytesRead / rowLength),
+            });`,
+  `            worker.postMessage({
+                buffer: rowAlignedBuffer(),
+                vertexCount: receivedRows(),
+            });`,
+);
+// The progress bar divided by the receive-buffer capacity, which was Content-Length. Use the
+// known asset total so the bar reflects loading rather than the allocator.
+patch(
+  'progress denominator',
+  `        const progress = (100 * vertexCount) / (splatData.length / rowLength);`,
+  `        const progress = (100 * vertexCount) / ${ASSET_SPLATS};`,
 );
 
 // 6. Expose the live camera to the page so scripts/verify_com_walkthrough.mjs can park the
@@ -141,7 +216,10 @@ patch(
   'test hook',
   `let viewMatrix = defaultViewMatrix;`,
   `let viewMatrix = defaultViewMatrix;\n` +
-  `window.bwWalkthrough = { get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; } };`,
+  `// bytesRead/vertexCount are filled in when the stream ends. They exist so the gate can\n` +
+  `// assert the page counted whole 32-byte rows off the wire and not a header value.\n` +
+  `window.bwWalkthrough = { bytesRead: null, vertexCount: null, expectedSplats: ${ASSET_SPLATS},\n` +
+  `  get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; } };`,
 );
 
 const CSS = `
