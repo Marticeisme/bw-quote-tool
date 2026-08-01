@@ -27,8 +27,9 @@ const ASSET = path.join(ROOT, 'MAPS', 'COM_Walkthrough.splat');
 const MAX_ASSET_BYTES = 60 * 1024 * 1024;
 
 let fails = 0;
-const ok = (m) => console.log(`  ok    ${m}`);
-const fail = (m) => { fails++; console.log(`  FAIL  ${m}`); };
+let checks = 0;
+const ok = (m) => { checks++; console.log(`  ok    ${m}`); };
+const fail = (m) => { fails++; checks++; console.log(`  FAIL  ${m}`); };
 const head = (m) => console.log(`\n${m}`);
 
 const freePort = () => new Promise((res, rej) => {
@@ -205,7 +206,17 @@ async function pixelStats(page) {
   await browser.close();
   server.kill();
 
+  // A crashed/closed browser must never read as green: every run of this suite exercises
+  // a fixed set of assertions, so a run that produced fewer than the floor bailed early
+  // somewhere (SwiftShader crash, page closed, skipped loop) even if nothing threw.
+  const CHECK_FLOOR = 14;
+  if (checks < CHECK_FLOOR) fail(`only ${checks} checks ran (floor ${CHECK_FLOOR}) — the suite bailed early`);
+
   console.log(`\nScreenshots: ${path.relative(ROOT, SHOTS)}`);
   console.log(`\nRESULT: ${fails === 0 ? 'PASS' : 'FAIL'} — ${fails} mismatch${fails === 1 ? '' : 'es'}`);
   process.exit(fails === 0 ? 0 : 1);
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch((e) => {
+  console.error(e);
+  console.log('\nRESULT: FAIL — the suite crashed before completing');
+  process.exit(1);
+});
