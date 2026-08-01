@@ -1886,8 +1886,17 @@ try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 /** Finer rotation the closer you are standing; coarser out on the whole-building orbit. */
 function rotScale() { return clamp(1.1 / (0.4 + cam.zoom), 0.35, 1.4); }
 var travelX = null, travelZ = 0, lastGlideAt = 0;
+// ENTRY EASE. Walking in from the whole-building orbit is not just a translation: the
+// pitch flattens, the zoom drops you to eye height and the lift re-centres the stage.
+// Those three used to be assigned instantly while only ex/ez eased, which read as a
+// hard cut on the first click into the building. They now interpolate alongside the
+// travel, over ~0.6s (slower than the 0.35s floor walk — it is a bigger change), with
+// the same interruptible damping: stopGlide() clears them exactly like travelX, so any
+// drag, key or tap during the entry leaves the camera where you grabbed it.
+var camT = null;             // { pitch, zoom, lift } or null
+var CAM_EASE = 0.916;        // per-60Hz-frame retention -> settles in ~0.6s
 function stopGlide() {
-  vYaw = vPitch = vX = vZ = 0; travelX = null;
+  vYaw = vPitch = vX = vZ = 0; travelX = null; camT = null;
   if (glideRaf) { cancelAnimationFrame(glideRaf); glideRaf = 0; }
   lastGlideAt = 0;
   if (!captured) scene.classList.remove('dragging');
@@ -1908,6 +1917,16 @@ function glide(ts) {
     var dx = travelX - cam.ex, dz = travelZ - cam.ez;
     if (Math.abs(dx) + Math.abs(dz) < 1.2) { cam.ex = travelX; cam.ez = travelZ; clampEye(); applyEye(); travelX = null; }
     else { var ease = 1 - Math.pow(0.86, dt / 16.67); moveEye(dx * ease, dz * ease); live = true; }
+  }
+  // ...and the rest of the camera state eases with it on the way in.
+  if (camT) {
+    var ce = 1 - Math.pow(CAM_EASE, dt / 16.67);
+    var dp = camT.pitch - cam.pitch, dzm = camT.zoom - cam.zoom, dl = camT.lift - cam.lift;
+    if (Math.abs(dp) < 0.05 && Math.abs(dzm) < 0.002 && Math.abs(dl) < 0.5) {
+      cam.pitch = camT.pitch; cam.zoom = camT.zoom; cam.lift = camT.lift; camT = null;
+    } else {
+      cam.pitch += dp * ce; cam.zoom += dzm * ce; cam.lift += dl * ce; live = true;
+    }
   }
   vYaw *= d; vPitch *= d; vX *= d; vZ *= d;
   if (Math.abs(vYaw) >= SETTLE || Math.abs(vPitch) >= SETTLE
@@ -1934,17 +1953,20 @@ function travelTo(tx, tz) {
   var wasInside = inside();
   if (!wasInside) trail.push(null);
   curStop = null; curFace = null; faceRef = null; curFree = true;
+  var enterT = null;
   if (!wasInside) {
-    cam.pitch = -5;
-    cam.zoom = insideZoom();
-    cam.lift = (0.5 - STAGE_TOP) * scene.clientHeight - EYE_Y * PPI * cam.zoom;
+    var ez2 = clamp(insideZoom(), ZMIN, ZMAX);
+    enterT = { pitch: -5, zoom: ez2,
+      lift: (0.5 - STAGE_TOP) * scene.clientHeight - EYE_Y * PPI * ez2 };
   }
   vYaw = vPitch = vX = vZ = 0;
   if (REDUCED) {
-    travelX = null;
+    travelX = null; camT = null;
+    if (enterT) { cam.pitch = enterT.pitch; cam.zoom = enterT.zoom; cam.lift = enterT.lift; }
     cam.ex = tx; cam.ez = tz; clampEye(); applyEye(); apply();
     return;
   }
+  if (enterT) camT = enterT;
   travelX = tx; travelZ = tz;
   scene.classList.add('dragging');
   if (!glideRaf) glideRaf = requestAnimationFrame(glide);
