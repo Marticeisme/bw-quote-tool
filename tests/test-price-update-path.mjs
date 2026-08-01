@@ -81,6 +81,24 @@ try {
   ok('and data/prices.json is untouched — this repo never writes it', sha('data/prices.json') === beforePrices);
   ok('the synced page really changed', sha(TEST_PAGE) !== beforeIndex);
 
+  // ── premise gate: the server must serve the bytes this suite just wrote ──────────────────
+  // Not an assertion — a precondition. Two worktrees at one commit serve identical
+  // index.html, so only fetching THIS freshly-patched file proves the server is rooted in
+  // this tree. Without it, a server rooted elsewhere served its own index.html in place of
+  // the test page (dev-server's old unconditional SPA fallback) and every browser read
+  // below reported stale prices — burned sprint-08 Track H and sprint-09 Track C.
+  const BASE = 'http://localhost:' + (process.env.PORT || 3737) + '/';
+  const servedRes = await fetch(BASE + TEST_PAGE, { cache: 'no-store' });
+  const servedSha = servedRes.ok
+    ? crypto.createHash('sha256').update(Buffer.from(await servedRes.arrayBuffer())).digest('hex')
+    : 'HTTP ' + servedRes.status;
+  if (servedSha !== sha(TEST_PAGE)) {
+    throw new Error('the dev server at ' + BASE + ' is not serving this tree\'s ' + TEST_PAGE +
+      ' (served: ' + String(servedSha).slice(0, 16) + ', on disk: ' + sha(TEST_PAGE).slice(0, 16) + ').\n' +
+      'A server rooted in another worktree owns the port. Stop it, run via `npm test`\n' +
+      '(which reroutes to a free port automatically), or set PORT to this tree\'s own server.');
+  }
+
   // ── step 3: the number a counselor actually sees ─────────────────────────────────────────
   console.log('\n3. The new number reaches the screen');
   browser = await chromium.launch();
@@ -89,7 +107,7 @@ try {
   const page = await ctx.newPage();
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
-  await page.goto('http://localhost:3737/' + TEST_PAGE, { waitUntil: 'load', timeout: 120000 });
+  await page.goto(BASE + TEST_PAGE, { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 

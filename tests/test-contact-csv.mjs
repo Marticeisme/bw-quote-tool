@@ -92,7 +92,7 @@ async function open(browser, hash, seed) {
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');
     window.__fake.seed(${JSON.stringify(seed || {})});`);
-  await page.goto('http://localhost:3737/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
+  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(200);
@@ -313,11 +313,15 @@ console.log('\n5. Duplicates (D8) — contact method skips, a name alone does no
 console.log('\n6. A missing demo file must fail LOUDLY, and import nothing (the SPA-fallback trap)');
 {
   const { ctx, page, errs } = await open(browser, '#import-contacts');
-  // dev-server.mjs answers a missing path under data/ with HTTP 200 and the whole of
-  // index.html. Proven here, not assumed, and then proven that the loader rejects it.
+  // A server that answers a missing file with HTTP 200 and a full HTML page is the hazard
+  // this loader guard exists for — captive portals, SPA hosts, and dev-server.mjs before it
+  // learned to 404 missing files (2026-07-31). The dev server no longer produces it, so the
+  // hazard is manufactured here with a route: 200 + the whole of index.html, byte for byte.
+  await ctx.route('**/data/this-file-does-not-exist.csv', (r) =>
+    r.fulfill({ status: 200, contentType: 'text/html', body: fs.readFileSync('index.html', 'utf8') }));
   const probe = await page.evaluate(() => fetch('data/this-file-does-not-exist.csv')
     .then((res) => res.text().then((t) => ({ status: res.status, ok: res.ok, bytes: t.length, head: t.slice(0, 30).trim() }))));
-  ok('the server really does answer a missing data/ file with 200 + an HTML page',
+  ok('the hazard is in place: the missing data/ file answers 200 + an HTML page',
     probe.status === 200 && probe.ok === true && /^<!DOCTYPE/i.test(probe.head), probe);
   ok('…and it is enormous, so a naive parse would produce thousands of junk rows',
     probe.bytes > 1000000, probe.bytes);

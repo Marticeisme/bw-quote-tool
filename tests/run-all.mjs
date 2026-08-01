@@ -1,6 +1,7 @@
 // Runs the whole verification suite. From the repo root: `npm test`
 //
-// Starts dev-server.mjs on 3737 if nothing is listening, and stops it again afterwards
+// Starts dev-server.mjs on $PORT (default 3737) if nothing is listening — or on a free
+// port when 3737 is owned by another tree's server — and stops it again afterwards
 // (a zombie dev server from an earlier run produces phantom results, so this never
 // reuses a server it cannot account for — it only reuses one that already answers).
 //
@@ -15,11 +16,19 @@
 import { spawn } from 'child_process';
 import { assertServesThisTree } from '../scripts/served-tree-check.mjs';
 import fs from 'fs';
+import net from 'net';
 import path from 'path';
 
 const ROOT = process.cwd();
-const PORT = 3737;
-const URL_ = 'http://localhost:' + PORT + '/';
+let PORT = parseInt(process.env.PORT, 10) || 3737;
+const urlFor = (p) => 'http://localhost:' + p + '/';
+
+// An OS-assigned free port, for when 3737 is owned by another tree's server.
+const freePort = () => new Promise((resolve, reject) => {
+  const s = net.createServer();
+  s.on('error', reject);
+  s.listen(0, () => { const p = s.address().port; s.close(() => resolve(p)); });
+});
 
 // Scripts that legitimately print values instead of asserting. Explicit allowlist:
 // a suite that merely *stops* producing assertions must never quietly land here.
@@ -44,36 +53,56 @@ if (!fs.existsSync(path.join(ROOT, 'node_modules', 'playwright'))) {
   process.exit(2);
 }
 
-const up = async () => {
+const up = async (p) => {
   try {
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), 1500);
-    await fetch(URL_, { signal: c.signal });
+    await fetch(urlFor(p), { signal: c.signal });
     clearTimeout(t);
     return true;
   } catch { return false; }
 };
 
 let server = null;
-if (await up()) {
-  // Reusing a server we did not start is only safe if it serves THIS tree. dev-server.mjs
-  // serves the directory of the SCRIPT, so a server from another worktree answers here and
-  // the suite silently tests the wrong code. Hit on 2026-07-26, in both directions.
-  await assertServesThisTree(URL_, ROOT, 'npm test');
-  console.log('dev-server already listening on ' + PORT + ' (reusing, verified as this tree)\n');
-} else {
-  server = spawn(process.execPath, ['dev-server.mjs'], { cwd: ROOT, stdio: 'ignore' });
+const startOwn = async (p) => {
+  server = spawn(process.execPath, ['dev-server.mjs'],
+    { cwd: ROOT, stdio: 'ignore', env: { ...process.env, PORT: String(p) } });
   const started = Date.now();
-  while (!(await up())) {
+  while (!(await up(p))) {
     if (Date.now() - started > 20000) {
-      console.error('dev-server did not come up on ' + PORT);
+      console.error('dev-server did not come up on ' + p);
       server.kill();
       process.exit(2);
     }
     await new Promise((r) => setTimeout(r, 300));
   }
+};
+
+if (await up(PORT)) {
+  // Reusing a server we did not start is only safe if it serves THIS tree. dev-server.mjs
+  // serves the directory of the SCRIPT, so a server from another worktree answers here and
+  // the suite silently tests the wrong code. Hit on 2026-07-26, in both directions — and
+  // again on 2026-07-30/31 from worktrees at the SAME commit, where index.html bytes match
+  // but files this tree writes (index.prices-test.html) are invisible to the other server.
+  // When the check fails, don't die: this tree gets its own server on a free port.
+  try {
+    await assertServesThisTree(urlFor(PORT), ROOT, 'npm test');
+    console.log('dev-server already listening on ' + PORT + ' (reusing, verified as this tree)\n');
+  } catch (e) {
+    console.log('the server on ' + PORT + ' is not this tree\'s — starting our own.\n(' +
+      String(e.message).split('\n')[0] + ')\n');
+    PORT = await freePort();
+    await startOwn(PORT);
+    console.log('started this tree\'s dev-server on ' + PORT + '\n');
+  }
+} else {
+  await startOwn(PORT);
   console.log('started dev-server on ' + PORT + '\n');
 }
+
+// Every suite reads the port from the environment (default 3737), so the whole run —
+// including one rerouted to a free port above — drives one known-good server.
+process.env.PORT = String(PORT);
 
 const files = fs.readdirSync(path.join(ROOT, 'tests'))
   .filter((f) => /^test-.*\.mjs$/.test(f)).sort();

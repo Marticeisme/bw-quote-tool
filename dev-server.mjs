@@ -41,7 +41,10 @@ http.createServer((req, res) => {
   }
 
   let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
-  if (!fs.existsSync(filePath)) filePath = path.join(ROOT, 'index.html'); // SPA fallback
+  // SPA fallback for extensionless routes only. A missing FILE must 404: silently serving
+  // index.html in its place is how a worktree's test page came back as another tree's
+  // index.html and produced phantom results (GitHub Pages 404s here too).
+  if (!fs.existsSync(filePath) && !path.extname(filePath)) filePath = path.join(ROOT, 'index.html');
   const ext = path.extname(filePath);
   try {
     const data = fs.readFileSync(filePath);

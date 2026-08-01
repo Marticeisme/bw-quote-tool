@@ -14,7 +14,7 @@ page.on('pageerror', e => errs.push(e.message));
 page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push(m.text().slice(0, 160)); });
 await page.addInitScript(FAKE);
 await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');`);
-await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
 await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
 await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 

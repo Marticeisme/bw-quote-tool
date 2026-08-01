@@ -25,7 +25,7 @@ async function open() {
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.seed(${JSON.stringify(SEED)}); window.__fake.addAccount('martice@bwquote.local','pw');`);
-  await page.goto('http://localhost:3737/', { waitUntil: 'load' });
+  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load' });
   await page.fill('#bwUser', 'martice');
   await page.fill('#bwPass', 'pw');
   await page.click('#bwGateBtn');
@@ -142,7 +142,7 @@ console.log('\n3. PDF generation / download');
   const d = await dl;
   ok('the PDF downloaded', !!(await d.path()), d.suggestedFilename());
   ok('no beforeunload dialog was raised by generating', !dialogs.some(x => x.startsWith('beforeunload')), dialogs);
-  ok('the page is still alive on the same URL', page.url().includes('localhost:3737'), page.url());
+  ok('the page is still alive on the same URL', page.url().includes('localhost:' + (process.env.PORT || 3737)), page.url());
   ok('no page errors', errs.length === 0, errs);
   await ctx.close();
 }

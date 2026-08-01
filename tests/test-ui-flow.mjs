@@ -23,7 +23,7 @@ page.on('console', m => {
 });
 await page.addInitScript(FAKE);
 await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local', 'pw');`);
-await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
 await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
 await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 
@@ -81,7 +81,7 @@ p2.on('pageerror', e => errs.push('reload: ' + e.message));
 await p2.addInitScript(FAKE);
 await p2.addInitScript(`window.__fake.addAccount('tester@bwquote.local', 'pw');`);
 await p2.addInitScript(`(${(s) => window.__fake.seed(s)}).call(null, ${JSON.stringify(dump)});`);
-await p2.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+await p2.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
 await p2.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
 await p2.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
 await p2.waitForTimeout(400);

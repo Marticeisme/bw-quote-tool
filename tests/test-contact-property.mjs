@@ -65,7 +65,7 @@ async function open(browser, hash, seed) {
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('tester@bwquote.local','pw');
     window.__fake.seed(${JSON.stringify(seed || {})});`);
-  await page.goto('http://localhost:3737/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
+  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/' + (hash || ''), { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('tester@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(200);

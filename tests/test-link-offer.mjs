@@ -16,7 +16,7 @@ async function open(browser) {
   page.on('dialog', async d => { if (d.type() === 'prompt') await d.accept('T'); else await d.accept(); });
   await page.addInitScript(FAKE);
   await page.addInitScript(`window.__fake.addAccount('t@bwquote.local','pw');`);
-  await page.goto('http://localhost:3737/', { waitUntil: 'load', timeout: 120000 });
+  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/', { waitUntil: 'load', timeout: 120000 });
   await page.evaluate(() => _fbAuth.signInWithEmailAndPassword('t@bwquote.local', 'pw'));
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   await page.waitForTimeout(300);

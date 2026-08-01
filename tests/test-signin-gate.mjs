@@ -20,7 +20,7 @@ async function open(browser, { account = ['martice@bwquote.local', 'correct-hors
   await page.addInitScript(`(${(s, a) => { window.__fake.seed(s); if (a) window.__fake.addAccount(a[0], a[1]); }}).call(null, ${JSON.stringify(SEED)}, ${JSON.stringify(account)});`);
   // dev-server.mjs only special-cases req.url === '/', so '/?x=1' falls through to a directory
   // read and 404s. Request index.html explicitly whenever there is a query string.
-  await page.goto('http://localhost:3737/' + (query ? 'index.html' + query : ''), { waitUntil: 'load', timeout: 120000 });
+  await page.goto('http://localhost:' + (process.env.PORT || 3737) + '/' + (query ? 'index.html' + query : ''), { waitUntil: 'load', timeout: 120000 });
   await page.waitForTimeout(400);
   return { ctx, page, errs };
 }

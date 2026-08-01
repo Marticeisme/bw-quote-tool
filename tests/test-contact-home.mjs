@@ -17,7 +17,7 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 
-const BASE = process.env.BW_BASE || 'http://localhost:3737/';
+const BASE = process.env.BW_BASE || 'http://localhost:' + (process.env.PORT || 3737) + '/';
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
 let pass = 0, fail = 0;
 const ok = (n, c, x) => { if (c) { pass++; console.log('  PASS  ' + n); } else { fail++; console.log('  FAIL  ' + n + (x !== undefined ? '\n        ' + JSON.stringify(x) : '')); } };

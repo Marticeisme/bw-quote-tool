@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 
 const FAKE = fs.readFileSync('tests/fake-firebase.js', 'utf8');
-const URL = 'http://localhost:3737/';
+const URL = 'http://localhost:' + (process.env.PORT || 3737) + '/';
 
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => {
