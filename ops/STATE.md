@@ -1,5 +1,61 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-09 — CLOSED 2026-07-31.** Eleven tracks (A, B, C, D, D2, M,
+U, S, T, I, K) all merged and director-audited. **Final main: `8 blocks, 0 errors`;
+`1534 passed, 0 failed across 31 suites` (director's own readable run); baseline:
+from the 2026-07-26 reference exactly `generateCirgasPacket` sheets 7/8 moved (Track
+A's Memorial Order banner strip) and NOTHING else** — proven by the chain
+s09a-audit-vs-pristine-reference (13/14 + the named change) then close-capture-vs-
+re-captured-reference (14/14). NOTE: someone re-captured the `before` reference
+untagged mid-sprint (MISTAKES #7 repeat) — the pristine 2026-07-26 archive still
+exists beside it. **Everything through Track T is LIVE (pushed by a chip session,
+see the mid-sprint push event below). Tracks I and K — the August incentives and the
+casket-comparison fix — are LOCAL, 4 commits ahead of origin, awaiting the
+operator's push.** Close-gate checklist in the final report + sprint-10 draft at
+`sprints/sprint-10/SPRINT.md`.
+
+**MID-SPRINT PUSH EVENT (2026-07-31 ~19:52, logged for the record):** a chip session
+(the served-tree/price-update diagnosis work) ran `git pull --rebase` on the shared
+main — FLATTENING all sprint-09 `--no-ff` merges into linear commits (the exact
+SPRINT_GUIDELINES scar; triggered by CLAUDE.md's blanket "pull --rebase before you
+start" rule — the two rules conflict and should be reconciled) — merged its
+`claude/cranky-thompson-5cd19a` branch, and **PUSHED main live**. The director
+verified the rebase content-pure (`git diff 8494b54 fa2625c` empty) and accepted the
+linear history per the sprint-06 M5 precedent. The cranky merge is the REAL fix for
+the all-sprint port-3737 artifact: dev-server `/__served-tree` identity route +
+missing-files-404 (kills the SPA-fallback hazard), served-tree-check via identity
+route→nonce probe→byte-compare, `tests/_base.mjs` single port source, run-all
+auto-reroute off foreign servers, price-suite premise gate, 8-assert regression suite.
+Everything through Track T is LIVE (director spot-checked 4 deployed URLs incl. Rose
+UG $4,395); Tracks I and K merged locally after the push and await an explicit push.
+Track I was integrated by cherry-pick (`2868de4`, merge `258cbbb`) because its branch
+ancestry predated the rewrite.
+
+**Track I MERGED (director-audited, `258cbbb`):** August incentives replace July —
+banner/financing/optgroup/compare-calc all reworded (July remains only in month lists
+and comments); burial 10% / cremation 20% (2nd rights excluded, label says so) /
+maus rows E-F-G 20% via a new checkbox that round-trips save→load; O&C −$1,000
+burial / −$500 cremation per space, capped at actual, stacking as previous months;
+ECF never in the discount base; rights fold-in REMOVED for all August modes; internal
+mode ids kept so saved July quotes load and recompute at August rates (asserted both
+persisted shapes); Family 45-Day untouched. 59-assert suite; track's own A/B baseline
+14/14 identical on its port. **OPEN for the operator: generate ONE mixed-rate (10%+20%)
+quote's RIC and eyeball `compactDiscLabel` in Acrobat — the blended `13.3%`-style
+label is up to 2 chars longer than any July value and RIC field overflow only shows
+in Acrobat.**
+
+**Track K MERGED (director-audited, `768d3fa`):** the side-by-side comparison sheet
+(operator complaint w/ screenshot) now fills the page on all SIX catalog pages (the
+brief said five; urns-guide.html carries the identical block — all six md5-identical
+before and after): photos 110px fixed → 334px at 2 items / 218 at 3 / 161 at 4 via
+`cmp-cols-N`, footer at the page bottom (636→1056 of 1056, overflow 0 — matters
+because the sheet is position:fixed so overflow CLIPS not paginates), screen overlay
+scaled too, object-fit contain. Proven not argued: catalog PDFs need no rebuild
+(print-media page-1 IDENTICAL ×6 with no compare active); `build_all_caskets.py`
+re-run came back byte-identical (the compare block survives regeneration; hazard
+recorded in the build log — build_all_caskets templates from wood, build_cremation_rental
+from urns-guide). verify_catalogs ALL PAGES OK re-run by the director post-merge.
+
 **Current sprint: sprint-09 — OPENED 2026-07-31** (director: Fable session; tracks:
 Opus). Sources: three operator docs (`Quote Tool Issues 07.30.26.docx`, `Map Issues
 07.31.26.docx`, `followupemailtoolhandoff.md`) + the urn-garden packages workbook
