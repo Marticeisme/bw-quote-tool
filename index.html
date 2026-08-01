@@ -215,6 +215,8 @@ tr:hover td{background:#eef3f8;}
 .disc-row input[type=text]{flex:1;min-width:100px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:11px;}
 .disc-row .disc-val-wrap{display:none;align-items:center;gap:5px;flex:1;}
 .disc-row .disc-val-wrap.show{display:flex;}
+.disc-row .disc-efg-wrap{display:none;align-items:center;gap:4px;font-size:10.5px;color:#7f1d1d;font-weight:600;cursor:pointer;white-space:nowrap;}
+.disc-row .disc-efg-wrap input[type=checkbox]{margin:0;width:auto;}
 .disc-row .cl-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer;white-space:nowrap;}
 .pcm-group-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:5px 0;border-bottom:1px solid var(--gray-light);margin-bottom:4px;}
 .pcm-group-toggle:hover{color:var(--navy);}
@@ -1067,9 +1069,9 @@ tr:hover td{background:#eef3f8;}
               <option value="">— None —</option>
               <option value="pct_all">% — All Items</option>
               <option value="flat_all">$ — All Items</option>
-              <option value="promo_burial">July Incentive — Burial (10% property + O&C)</option>
-              <option value="promo_crem">July Incentive — Cremation (10% property + O&C)</option>
-              <option value="promo_property">July Incentive — Property Only (10%)</option>
+              <option value="promo_burial">August Incentive — Burial (10% property + $1,000 O&C)</option>
+              <option value="promo_crem">August Incentive — Cremation (20% property + $500 O&C)</option>
+              <option value="promo_property">August Incentive — Property Only (10% burial / 20% cremation)</option>
               <option value="promo_family45">Family 45-Day Certificate (15% property)</option>
               <option value="pct10_svc">10% off Services</option>
               <option value="pct10_merch">10% off Merchandise</option>
@@ -2159,12 +2161,16 @@ tr:hover td{background:#eef3f8;}
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="aprilPromoNote" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(127,29,29,.07);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.7;">
-            <strong>🏷️ July 2026 Pre-Need Sales Incentives</strong> — new property only<br>
-            • 10% off Property &amp; Additional Rights<br>
+            <strong>🏷️ August 2026 Pre-Need Sales Incentives</strong> — new property only<br>
+            • 10% off Burial Property<br>
+            • 20% off Select Mausoleum Rows: E, F &amp; G<br>
+            • 20% off Cremation Property (2nd rights not included)<br>
+            • 0% Financing for 60 Months with 10% Down (ACH required)<br>
+            • $1,000 off Burial Opening &amp; Closing<br>
             • $500 off Cremation Opening &amp; Closing<br>
-            • $1,000 off Interment Opening &amp; Closing<br>
-            • 0% financing for 60 months with 10% down (ACH required) — <strong>new property PN contracts only</strong><br>
-            <span style="color:#555;font-style:italic;">Cannot be combined with any other discount (free Veteran space, etc.) · ECF fees always required paid in full · At-Need property not eligible · Valid through July 31, 2026.</span>
+            <span style="color:#555;font-style:italic;">** Incentives are only applicable to purchases of new Pre-Need property.</span><br>
+            <span style="color:#555;font-style:italic;">** ECF must always be paid in full — it is never included in the property discount.</span><br>
+            <span style="color:#555;font-style:italic;">Cannot be combined with any other discount (free Veteran space, etc.) · New property PN contracts only · At-Need property not eligible · Valid through August 31, 2026.</span>
           </div>
           <div id="cemDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
           <div class="btn-add-line" onclick="addCemDiscount()">+ Add Discount</div>
@@ -2179,7 +2185,7 @@ tr:hover td{background:#eef3f8;}
             <strong>Financing Terms — Effective Jan 1, 2024</strong><br>
             Min. down: 10% · Min. monthly payment: $50 · Max. term: 72 months<br>
             0% financing requires ACH bank withdrawal · 25%+ down: tiered rate applies<br>
-            <span style="color:#7f1d1d;font-weight:700;">🏷️ July Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through July 31</span>
+            <span style="color:#7f1d1d;font-weight:700;">🏷️ August Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through August 31, 2026</span>
           </div>
           <div class="q-row" style="flex-wrap:wrap;gap:10px;align-items:flex-end;">
             <div style="flex:1;min-width:150px;">
@@ -7128,7 +7134,7 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
     html += '<div class="s-tax-note">' + _taxNoteText(containerId === 'fhSummary') + '</div>';
   }
 
-  // Estimated monthly payment hint (10% down, 60 months, 0% — July promo or standard)
+  // Estimated monthly payment hint (10% down, 60 months, 0% — August promo or standard)
   if (grandTotal > 0 && containerId === 'cemSummary') {
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
@@ -7750,44 +7756,72 @@ function cemUpdate() {
     var isPromo = mode.indexOf('promo_') === 0;
     var valWrap = row.querySelector('.disc-val-wrap');
     valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo ? '' : ' show'));
+    // Row E/F/G opt-in chip: hidden unless this promo row actually has mausoleum property.
+    var efgWrap = row.querySelector('.disc-efg-wrap');
+    if (efgWrap) efgWrap.style.display = 'none';
     var dAmt = 0, dLabel = '';
     if (isPromo) {
       hasPromo = true;
       // Family 45-Day Certificate (cert #1390): 15% off pre-need PROPERTY within 45 days of a
-      // family member's death. Unlike the July incentive it EXCLUDES 2nd/3rd rights, and — per the
-      // certificate — property exchanges, private estates, and group sales; the tool tracks none of
-      // those as property, so they never enter totalSP. ECF is excluded on both (never in totalSP).
+      // family member's death. It EXCLUDES 2nd/3rd rights, and — per the certificate — property
+      // exchanges, private estates, and group sales; the tool tracks none of those as property,
+      // so they never enter totalSP. ECF is excluded on every promo (it is never in totalSP).
       // The 10% minimum down is a payment-plan rule, enforced on the financing side, not here.
       var isFamily45 = mode.indexOf('promo_family45') === 0;
-      // July 2026 incentive: 10% off Property AND Additional Rights (2nd/3rd rights),
-      // unlike the old Memorial Day tiers this one folds rights into the same 10% base.
-      var propPct = isFamily45 ? 0.15 : 0.10;
-      var totalSP = 0;
-      if (spacePrice > 0 && gardenQty > 0) totalSP += spacePrice * gardenQty;
-      if (nicheP > 0 && nicheQ > 0)        totalSP += nicheP * nicheQ;
-      if (mausP > 0 && mausQ > 0)          totalSP += mausP * mausQ;
-      var rightsTotal = 0;
-      if (!isFamily45) {
-        var rightLines10 = lines.filter(function(l){ return l.isSecondRight; });
-        rightsTotal  = rightLines10.reduce(function(s,l){ return s + l.amount; }, 0);
-        totalSP += rightsTotal;
+      // AUGUST 2026 incentive (replaces July 2026). Differences from July, all deliberate:
+      //   • the property rate is no longer a single 10% — burial property is 10%, cremation
+      //     property is 20%, and a crypt in mausoleum Rows E/F/G is 20%.
+      //   • additional (2nd/3rd) interment rights are NOT discounted. July folded them into
+      //     the same 10% base; the August sheet does not mention them at all, and its
+      //     cremation line says '2nd rights not included' explicitly.
+      //   • O&C stacking is unchanged: -$1,000/space burial, -$500/space cremation, each
+      //     capped at the O&C actually quoted.
+      //   • ECF is never discounted, on any promo.
+      var AUG_BURIAL = 0.10, AUG_CREM = 0.20, AUG_EFG = 0.20;
+      var groundSP = (spacePrice > 0 && gardenQty > 0) ? spacePrice * gardenQty : 0;
+      var nicheSP  = (nicheP > 0 && nicheQ > 0)        ? nicheP * nicheQ         : 0;
+      var mausSP   = (mausP > 0 && mausQ > 0)          ? mausP * mausQ           : 0;
+      var totalSP  = groundSP + nicheSP + mausSP;
+      // The quote builder does not know which row a crypt is in, so the counselor says so.
+      // The chip only appears once a promo row has mausoleum property with a price.
+      var efgEl = row.querySelector('.disc-efg');
+      if (efgWrap) efgWrap.style.display = (!isFamily45 && mausSP > 0) ? 'inline-flex' : 'none';
+      var efgOn = !isFamily45 && mausSP > 0 && !!(efgEl && efgEl.checked);
+      // A ground space is burial property unless this is the cremation promo, in which case it
+      // is an urn-garden space and takes the cremation rate. Niches are always cremation.
+      var groundRate = isFamily45 ? 0.15 : (mode.indexOf('promo_crem') === 0 ? AUG_CREM : AUG_BURIAL);
+      var nicheRate  = isFamily45 ? 0.15 : AUG_CREM;
+      var mausRate   = isFamily45 ? 0.15 : (efgOn ? AUG_EFG : AUG_BURIAL);
+      var propDisc   = groundSP * groundRate + nicheSP * nicheRate + mausSP * mausRate;
+      // Effective property rate as a PERCENT, for the RIC's structured discount label. A mixed
+      // 10%/20% quote has no single rate, so report the blended one rather than a lie.
+      var propPctDisp = totalSP > 0 ? Math.round((propDisc / totalSP) * 1000) / 10 : (isFamily45 ? 15 : 10);
+      var rightsPresent = lines.some(function(l){ return l.isSecondRight; });
+      var propLbl;
+      if (isFamily45) {
+        propLbl = '15% off pre-need property';
+      } else {
+        var rateParts = [];
+        if (groundSP > 0) rateParts.push((groundRate * 100) + '% off ' + (groundRate === AUG_CREM ? 'cremation' : 'burial') + ' property');
+        if (mausSP  > 0)  rateParts.push((mausRate  * 100) + '% off mausoleum crypt' + (efgOn ? ' (Row E/F/G)' : ''));
+        if (nicheSP > 0)  rateParts.push((nicheRate * 100) + '% off cremation property');
+        propLbl = rateParts.length ? rateParts.join(' + ') : 'August incentive';
+        if (rightsPresent) propLbl += ' — additional rights not included';
       }
-      var propDisc = totalSP * propPct;
-      var propLbl  = (propPct * 100) + '% off property' + (rightsTotal > 0 ? ' & rights' : '');
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
       var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn/i); });
       var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
-      // Customer-facing line — describe what's discounted, not the internal promo name ("July
-      // Incentive" reads as internal jargon to a family reviewing their quote).
+      // Customer-facing line — describe what's discounted, not the internal promo name
+      // ("August Incentive" reads as internal jargon to a family reviewing their quote).
       if (isFamily45) {
         dAmt = propDisc;
-        dLabel = '15% off pre-need property — Family 45-Day Certificate';
+        dLabel = propLbl + ' — Family 45-Day Certificate';
       } else if (mode.indexOf('promo_burial') === 0) {
         var ocQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (mausP > 0 ? mausQ : 0));
         var ocActual = burialOCLines.reduce(function(s,l){return s+l.amount;},0);
         var ocDisc = Math.min(1000 * ocQ, ocActual);
         dAmt = propDisc + ocDisc;
-        dLabel = propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Interment O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '');
+        dLabel = propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Burial O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '');
       } else if (mode.indexOf('promo_crem') === 0) {
         var inQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (nicheP > 0 ? nicheQ : 0));
         var inurnActual = inurnOCLines.reduce(function(s,l){return s+l.amount;},0);
@@ -7830,7 +7864,7 @@ function cemUpdate() {
       lines.push({
         label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc,
         propertyDiscPortion: propDiscPortion,
-        propDiscPct:     isPromo ? (propPct * 100) : null,
+        propDiscPct:     isPromo ? propPctDisp : null,
         ocDiscAmount:    (isPromo && mode.indexOf('promo_burial') === 0) ? ocDisc    : 0,
         inurnDiscAmount: (isPromo && mode.indexOf('promo_crem')   === 0) ? inurnDisc : 0
       });
@@ -7959,13 +7993,14 @@ function addCemDiscount() {
     + '<optgroup label="All Items"><option value="percent">% — All Items</option><option value="flat">$ — All Items</option></optgroup>'
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
-    + '<optgroup label="🏷️ July 2026 Incentives (New Property PN)"><option value="promo_burial">July Incentive — Burial/Crypt Placement (10% property + rights)</option><option value="promo_crem">July Incentive — Cremation/Inurnment Placement (10% property + rights)</option><option value="promo_property">July Incentive — Property Only (10% off, incl. additional rights)</option></optgroup>'
+    + '<optgroup label="🏷️ August 2026 Incentives (New Property PN)"><option value="promo_burial">August Incentive — Burial/Crypt Placement (10% property + $1,000 O&C)</option><option value="promo_crem">August Incentive — Cremation/Inurnment Placement (20% property + $500 O&C)</option><option value="promo_property">August Incentive — Property Only (10% burial / 20% cremation, excl. rights)</option></optgroup>'
     + '<optgroup label="🎟️ Family Certificate"><option value="promo_family45">Family 45-Day Certificate — 15% off pre-need property (excl. ECF, 2nd rights)</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
     + '<input type="text" class="disc-note" placeholder="Label" oninput="cemUpdate()">'
     + '</div>'
+    + '<label class="disc-efg-wrap" title="August 2026: mausoleum Rows E, F and G are discounted 20% instead of 10%."><input type="checkbox" class="disc-efg" onchange="cemUpdate()"><span>Crypt in Row E, F or G — 20%</span></label>'
     + '<button class="cl-remove" onclick="this.parentElement.remove();cemUpdate()">✕</button>';
   el('cemDiscountList').appendChild(div);
 }
@@ -8462,16 +8497,17 @@ function calcBTotal() {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bMausP;
         var bOCA = lines.filter(function(l){return l.label.match(/Entombment|Interment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
         bDiscAmt = bSpV * 0.10 + Math.min(1000, bOCA);
-        bDiscLbl = '10% off Property + O&C (Burial)';
+        bDiscLbl = '10% off Property + $1,000 O&C (Burial)';
       } else if (bDiscType === 'promo_crem') {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : bNicheP;
         var bOCA = lines.filter(function(l){return l.label.match(/Inurnment/i)&&!l.isSpace;}).reduce(function(s,l){return s+l.amount;},0);
-        bDiscAmt = bSpV * 0.10 + Math.min(500, bOCA);
-        bDiscLbl = '10% off Property + O&C (Cremation)';
+        bDiscAmt = bSpV * 0.20 + Math.min(500, bOCA);
+        bDiscLbl = '20% off Property + $500 O&C (Cremation)';
       } else if (bDiscType === 'promo_property') {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : (bNicheP || bMausP);
-        bDiscAmt = bSpV * 0.10;
-        bDiscLbl = '10% off Property';
+        var bPropPct = (!bGardenVal && bNicheP > 0) ? 0.20 : 0.10;
+        bDiscAmt = bSpV * bPropPct;
+        bDiscLbl = (bPropPct * 100) + '% off Property';
       } else if (bDiscType === 'promo_family45') {
         // Family 45-Day Certificate: 15% off pre-need property only (no O&C, excludes ECF).
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : (bNicheP || bMausP);
@@ -17193,7 +17229,7 @@ async function generateRICContractCore(clientData) {
       return String(p || '');
     }
     function compactDiscLabel(dl) {
-      // Promo discounts (July Incentive) carry structured numeric fields — build the label
+      // Promo discounts (August Incentive) carry structured numeric fields — build the label
       // directly from those instead of regex-parsing the prose dLabel. The old regex only
       // recognized "Interment O&C" and matched the generic "o&c" substring test for ANY
       // O&C-mentioning sentence, so a combined Property + Cremation/Inurnment discount got
