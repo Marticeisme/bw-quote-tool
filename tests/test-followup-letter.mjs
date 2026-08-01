@@ -281,7 +281,7 @@ await page.evaluate(() => { delete window.__copiedText; });
 await page.click('button.btn-secondary');
 await page.waitForFunction(() => !!window.__copiedText);
 const plain = await page.evaluate(() => window.__copiedText);
-ok('Copy Plain Text also carries the subject', plain.startsWith('Subject: Checking In — Robert Whitfield'));
+ok('Copy Plain Text also carries the subject', plain.startsWith("Subject: Robert's marker — whenever you're ready"));
 ok('Copy Plain Text matches the rendered email', plain === copied);
 
 // --------------------------------------------------------- an edited subject is kept
