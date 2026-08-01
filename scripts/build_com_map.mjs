@@ -31,7 +31,7 @@ import {
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
   ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
-  cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
+  cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs, materialAt, MATERIAL_ZONES,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -157,6 +157,11 @@ function drawnPlan(b) {
 function planSvg() {
   const parts = [];
   parts.push(`<rect class="pshell" x="1" y="1" width="${PLAN_W - 2}" height="${PLAN_H - 2}" rx="6"/>`);
+  // Rose-marble wash: the north-east wing and the Radiance alcove are finished in a
+  // different stone from the chapel end (walkthrough video, see MATERIAL_ZONES).
+  for (const z of MATERIAL_ZONES) {
+    parts.push(`<rect class="pzone pz-${z.mat}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="4"/>`);
+  }
   for (const r of ROOMS) {
     // The chapel label goes at the TOP of its pad — the seating fills the middle.
     const ly = r.kind === 'chapel' ? r.y + r.h - 9 : r.y + r.h / 2 + 4;
@@ -179,7 +184,7 @@ function planSvg() {
     const list = unitsByBank.get(b.id);
     const av = list.filter((u) => u.st === 'available').length;
     const p = drawnPlan(b);
-    parts.push(`<g class="pbank${av ? ' has-av' : ''}" data-bank="${b.id}" data-area="${b.area}" tabindex="0" role="button" aria-label="${esc(bankLabel(b) + ', ' + bankSub(b) + ', ' + av + ' available')}">`
+    parts.push(`<g class="pbank mt-${materialAt(p.x + p.w / 2, p.y + p.h / 2)}${av ? ' has-av' : ''}" data-bank="${b.id}" data-area="${b.area}" tabindex="0" role="button" aria-label="${esc(bankLabel(b) + ', ' + bankSub(b) + ', ' + av + ' available')}">`
       + `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="2"/>`
       + `<text class="pblab" x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + 4}"${p.w < p.h ? ` transform="rotate(-90 ${p.x + p.w / 2} ${p.y + p.h / 2})"` : ''}>${b.id}${av ? ` · ${av}` : ''}</text>`
       + `</g>`);
@@ -187,7 +192,7 @@ function planSvg() {
   for (const wid of ['RAD', 'SER']) {
     const w = WALLS[wid], p = w.plan;
     const av = wallNiches(wid).filter((n) => n.st === 'available').length;
-    parts.push(`<g class="pbank pniche has-av" data-bank="${wid}" data-area="niches" tabindex="0" role="button" aria-label="${esc(w.name + ' niche wall, ' + av + ' available')}">`
+    parts.push(`<g class="pbank pniche mt-${materialAt(p.x + p.w / 2, p.y + p.h / 2)} has-av" data-bank="${wid}" data-area="niches" tabindex="0" role="button" aria-label="${esc(w.name + ' niche wall, ' + av + ' available')}">`
       + `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="2"/>`
       + `<text class="pblab" x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + 4}"${p.w < p.h ? ` transform="rotate(-90 ${p.x + p.w / 2} ${p.y + p.h / 2})"` : ''}>${w.name} · ${av}</text>`
       + `</g>`);
@@ -240,11 +245,12 @@ function bank3d(b) {
   const p = b.plan;
   const [fx, fz] = faceCentre(p, b.face);
   const [bx, bz] = [cx(p), cz(p)];
-  return `    <div class="blk ar-${b.area}" data-blk="${b.id}"${atR(p)} style="width:${px(p.w)}px;height:${px(p.h)}px;transform:translate(-50%,-50%) translate3d(${px(bx)}px,${px(FACE_H / 2)}px,${px(bz)}px) rotateX(-90deg)"></div>
-    <div class="face ar-${b.area}" data-bankface="${b.id}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(FACE_H)}px;grid-template-columns:repeat(${n},1fr);grid-template-rows:repeat(${TIERS.length},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,0,${px(fz)}px) rotateY(${ROT[b.face]}deg)">
+  const mt = materialAt(p.x + p.w / 2, p.y + p.h / 2);
+  return `    <div class="blk mt-${mt} ar-${b.area}" data-blk="${b.id}"${atR(p)} style="width:${px(p.w)}px;height:${px(p.h)}px;transform:translate(-50%,-50%) translate3d(${px(bx)}px,${px(FACE_H / 2)}px,${px(bz)}px) rotateX(-90deg)"></div>
+    <div class="face mt-${mt} ar-${b.area}" data-bankface="${b.id}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(FACE_H)}px;grid-template-columns:repeat(${n},1fr);grid-template-rows:repeat(${TIERS.length},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,0,${px(fz)}px) rotateY(${ROT[b.face]}deg)">
 ${cells.join('\n')}
     </div>
-    <div class="fbase ar-${b.area}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[b.face]}deg)"><b>${b.id}</b></div>`;
+    <div class="fbase mt-${mt} ar-${b.area}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[b.face]}deg)"><b>${b.id}</b></div>`;
 }
 
 function wall3d(wid) {
@@ -260,10 +266,17 @@ function wall3d(wid) {
     return `      <button type="button" class="c3 n3glass${st}" style="grid-row:${ri}/span ${span};grid-column:${nn.col}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="c3id">${nn.row}-${nn.col}</span>${chip}</button>`;
   }).join('\n');
   const [fx, fz] = faceCentre(p, w.face);
-  return `    <div class="face nichewall ar-niches" data-bankface="${wid}" data-area="niches" data-homearea="${w.homeArea}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(h)}px;grid-template-columns:repeat(${w.cols},1fr);grid-template-rows:repeat(${rows},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px((FACE_H - h) / 2)}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)">
+  // RECESSED, not free-standing (video 1:27 and 2:01-2:03): the surrounding marble
+  // wall runs past the glass on both sides and carries on above it, and a marble
+  // plinth returns at the floor. Draw that reveal so the wall reads as built in.
+  const mt = materialAt(p.x + p.w / 2, p.y + p.h / 2);
+  const rev = w.mount === 'recessed'
+    ? `    <div class="nreveal mt-${mt}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW + NCOLW * 1.6)}px;height:${px(FACE_H)}px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,0,${px(fz)}px) rotateY(${ROT[w.face]}deg)"></div>\n`
+    : '';
+  return rev + `    <div class="face nichewall mt-${mt} ar-niches" data-bankface="${wid}" data-area="niches" data-homearea="${w.homeArea}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(h)}px;grid-template-columns:repeat(${w.cols},1fr);grid-template-rows:repeat(${rows},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px((FACE_H - h) / 2)}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)">
 ${cells}
     </div>
-    <div class="fbase ar-niches" data-area="niches"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
+    <div class="fbase nplinth mt-${mt} ar-niches" data-area="niches"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW + NCOLW * 1.6)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
 }
 
 // ── Entrances, furniture, chairs and walk-in hotspots ────────────────────────
@@ -491,6 +504,7 @@ const CSS = `
   .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
   .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
   .pf-urn rect{fill:#191919;} .pf-window rect{fill:#2f8f79;stroke:#8d6a3a;}
+  .pf-archwin rect{fill:#bcdcf2;stroke:#6f8fa6;}
   .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
   .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
   .pentr text{fill:var(--cream);font-size:10px;font-family:'Jost',sans-serif;text-anchor:middle;font-weight:600;}
@@ -498,6 +512,11 @@ const CSS = `
   .pentr:focus{outline:none;} .pentr:focus rect{stroke:#fff;stroke-width:2.5;}
   .proom text{fill:var(--gold-light);font-size:12px;font-family:'Jost',sans-serif;text-anchor:middle;opacity:.85;}
   .pbank rect{fill:#4a463d;stroke:#20304f;stroke-width:1.5;}
+  /* Two stones, not one: rose marble through the north-east wing and the Radiance
+     alcove, cream travertine at the chapel end (walkthrough video 1:12 onward). */
+  .pzone{pointer-events:none;}
+  .pz-rose{fill:rgba(150,72,52,.16);stroke:rgba(178,96,72,.35);stroke-width:1;}
+  .pbank.mt-rose rect{fill:#5c3b31;stroke:#2b1a15;}
   .pbank.has-av rect{fill:#6f6a5c;stroke:var(--gold);}
   .pbank.pniche rect{fill:#2f5f6d;stroke:var(--gold);}
   .pbank{cursor:pointer;}
@@ -535,6 +554,12 @@ const CSS = `
     background:linear-gradient(180deg,#a9a396,#8b8478);padding:2px;border:1px solid #6f695e;
     backface-visibility:hidden;box-shadow:0 0 20px rgba(0,0,0,.45);}
   .face.nichewall{background:linear-gradient(180deg,#8d7a52,#6a5a3c);}
+  .face.mt-rose{background:linear-gradient(180deg,#8c5342,#5d372c);border-color:#4a2b22;}
+  .face.nichewall.mt-rose{background:linear-gradient(180deg,#6b4436,#41281f);}
+  /* The marble the recessed niche walls are set into, carried past the glass. */
+  .nreveal{position:absolute;left:0;top:0;background:linear-gradient(180deg,#9a6250,#5d372c);
+    border:1px solid #4a2b22;backface-visibility:hidden;box-shadow:inset 0 0 24px rgba(0,0,0,.5);}
+  .nreveal.mt-cream{background:linear-gradient(180deg,#a9a396,#8b8478);border-color:#6f695e;}
   .fbase{position:absolute;left:0;top:0;background:linear-gradient(180deg,#8a8478,#605b52);
     display:flex;align-items:center;justify-content:center;color:#1d1b17;font-size:7.5px;letter-spacing:.1em;
     font-weight:700;backface-visibility:hidden;overflow:hidden;}
@@ -567,6 +592,8 @@ const CSS = `
   .n3p{font-size:4.4px;font-weight:700;white-space:nowrap;}
   /* ── Walkthrough: structure blocks, chapel furniture, doorways, floor markers ── */
   .blk{position:absolute;left:0;top:0;background:rgba(150,144,132,.16);border:1px solid rgba(200,196,186,.22);}
+  .blk.mt-rose{background:rgba(150,72,52,.20);border-color:rgba(198,120,96,.28);}
+  .fbase.mt-rose{background:linear-gradient(180deg,#8a5646,#4f2f26);color:#f0ddd4;}
   .furn{position:absolute;left:0;top:0;background:linear-gradient(180deg,#7a5a38,#4d3722);border:1px solid rgba(0,0,0,.35);
     backface-visibility:hidden;display:flex;align-items:center;justify-content:center;}
   .furn.btop{background:linear-gradient(135deg,#8c6a42,#5b4128);}
@@ -580,6 +607,12 @@ const CSS = `
   .fk-window{background:linear-gradient(200deg,#59c2a0 0%,#2f86ad 40%,#c9843a 72%,#7c4f2a 100%);
     box-shadow:0 0 10px rgba(120,220,190,.35);border-color:#6d4f2a;}
   .fk-window.btop{background:linear-gradient(135deg,#6d4f2a,#3c2a16);}
+  /* The Radiance alcove's two arched clear-glazed windows (video 2:00 and 2:04) --
+     daylight is the thing that tells this room apart from every other bay. */
+  .fk-archwin{background:linear-gradient(180deg,#dff1ff 0%,#a8d6f2 46%,#7fae7a 74%,#4d7a52 100%);
+    border-color:#2a2723;border-radius:50% 50% 3px 3px / 26% 26% 3px 3px;
+    box-shadow:0 0 22px rgba(190,225,255,.55);}
+  .fk-archwin.btop{background:linear-gradient(135deg,#5d4a3a,#33291f);border-radius:0;}
   .chair{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(0,0,0,.3);}
   .cseat{background:linear-gradient(135deg,#b98f60,#8a6640);}
   .cback{background:linear-gradient(180deg,#a87d52,#6d4f31);}
@@ -1273,7 +1306,7 @@ ${AREAS.map((a) => `      <button class="tbtn" data-viewbtn="${a.id}" title="${e
     <nav class="crumbs no-print" id="crumbs" aria-label="Where you are in the building"></nav>
 ${scene3d()}
     <div class="hint">Click a <b>doorway</b> or a <b>floor marker</b> to walk there &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it &nbsp;·&nbsp; arrow keys look, +/&minus; zoom</div>
-    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the MIS CAD floor plan; heights, the chapel furniture and both niche walls' facing directions are ESTIMATED from the 2026-07-29 walk-through photographs. No dimensions are implied.</div>
+    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the MIS CAD floor plan and bank DEPTHS follow the crypt type (a tandem holds two caskets end to end); both niche walls' positions, facings, mounting and the stone each part of the building is finished in come from the 2026-07-29 walk-through video. Heights and the chapel furniture layout are still ESTIMATED. No dimensions are implied.</div>
     ${LEGEND}
   </div>
 

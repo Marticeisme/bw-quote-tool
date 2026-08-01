@@ -19,7 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
-  PLAN_W, PLAN_H, COLW,
+  PLAN_W, PLAN_H, COLW, TANDEM_DEPTH, SINGLE_DEPTH, bankDepth,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
   NICHE_FEES, CRYPT_FEES,
 } from './com-crypt-data.mjs';
@@ -305,6 +305,7 @@ const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.
   const b101 = rect(BANKS.find((b) => b.id === '101-110').plan);
   const b111 = rect(BANKS.find((b) => b.id === '111-115').plan);
   const b213 = rect(BANKS.find((b) => b.id === '213-219').plan);
+  const b220 = rect(BANKS.find((b) => b.id === '220-231').plan);
   const rooms = Object.fromEntries(ROOMS.map((r) => [r.id, rect(r)]));
 
   chk(inside(rad, [0, 98, 140, 172]),
@@ -314,13 +315,33 @@ const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.
   chk(rad.x0 < 20 && rad.x1 < rooms.chapel.x0 + COLW,
     'RADIANCE hugs the far west wall, at the north-west corner of the chapel — not out on the plan margin');
   chk(WALLS.RAD.homeArea === 'west', `RADIANCE's home area is the chapel/west side (${WALLS.RAD.homeArea})`);
+  // Settled by the walkthrough video 1:59-2:04 (Track X2): Radiance stands on the
+  // north end of bank 101-110 and looks NORTH across its daylit alcove. It used to be
+  // face 'S' on the far side of the bay, which pointed it at a blank wall.
+  chk(WALLS.RAD.face === 'N',
+    `RADIANCE looks NORTH across its alcove — settled by the video, not estimated (${WALLS.RAD.face})`);
+  chk(Math.abs(rad.y1 - b101.y0) <= 6,
+    `RADIANCE backs onto bank 101-110's north end (${rad.y1} vs ${b101.y0})`);
+  chk(WALLS.RAD.mount === 'recessed',
+    'RADIANCE is recessed into its marble surround, not free-standing (video 2:01-2:03)');
 
   chk(inside(ser, [494, 98, 638, 230]),
     `SERENITY sits on the east passage between COM and the Eternal Light complex — CAD (1355,335)-(1455,440) (x ${ser.x0}-${ser.x1}, y ${ser.y0}-${ser.y1})`);
   chk(ser.y0 >= rooms.restrooms.y1,
     `SERENITY is SOUTH of the rest rooms (y>=${rooms.restrooms.y1}) — it used to be drawn beside them, a building-width north of where MIS puts it`);
-  chk(ser.x0 >= b213.x0,
-    `SERENITY is east of the island's east face 213-219 (x>=${b213.x0})`);
+  // REPLACED 2026-08-01 (Track X2). The old assertion pinned Serenity out on the east
+  // passage EAST of bank 213-219. The walkthrough video shows it one turn past the
+  // rest rooms on the SOUTH side of the north hall, looking north: he passes it at
+  // 1:25-1:28 and then walks west along that hall into the chapel at 1:47. It caps the
+  // island's north-east corner. Position, refs, counts and prices are unchanged.
+  chk(Math.abs(ser.y1 - b220.y0) <= 6,
+    `SERENITY backs onto the island's north face line (${ser.y1} vs ${b220.y0})`);
+  chk(ser.x1 >= b213.x1 - 12,
+    `SERENITY caps the island's north-east corner (east end ${ser.x1} vs 213-219 at ${b213.x1})`);
+  chk(WALLS.SER.face === 'N',
+    `SERENITY looks NORTH across the north hall — settled by the video, not estimated (${WALLS.SER.face})`);
+  chk(WALLS.SER.mount === 'recessed',
+    'SERENITY is recessed into its marble surround, not free-standing (video 1:27)');
   chk(WALLS.SER.homeArea === 'island', `SERENITY's home area is the island/east passage (${WALLS.SER.homeArea})`);
   chk(!overlap(rad, ser), 'the two niche walls are in two different parts of the building');
 
@@ -356,6 +377,31 @@ const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.
     return got !== v;
   }).map(([id, f, v]) => `${id}.${f}!=${v}`);
   chk(off.length === 0, `every crypt front sits on its CAD wall line${off.length ? ': ' + off.join(', ') : ` (${anchors.length} faces checked)`}`);
+
+  // -- bank DEPTH is derived from the segment types ------------------------
+  // OPERATOR, 2026-08-01: "the crypts are pretty deep as usually two caskets fit
+  // inside one crypt (if its tandem)." A tandem holds two caskets END-TO-END from one
+  // face, so it is two casket-lengths deep; singles and the side-by-side companion
+  // types are one. Depth grows away from the crypt front, so the wall-line anchors
+  // above still hold. The centre island is exempt and is checked separately: its two
+  // long faces are back-to-back on one block and their tandem runs interleave by
+  // column, so it does not have to be two tandem-depths thick.
+  const depthOf = (b) => (b.face === 'N' || b.face === 'S' ? b.plan.h : b.plan.w);
+  const wallBanks = BANKS.filter((b) => b.area !== 'island');
+  const wrongD = wallBanks.filter((b) => depthOf(b) !== bankDepth(b))
+    .map((b) => `${b.id} ${depthOf(b)}!=${bankDepth(b)}`);
+  chk(wrongD.length === 0,
+    `every wall bank is as deep as its deepest segment type${wrongD.length ? ': ' + wrongD.join(', ') : ` (${wallBanks.length} banks, tandem ${TANDEM_DEPTH} / single ${SINGLE_DEPTH})`}`);
+  const tD = wallBanks.filter((b) => b.segs.some((g) => g[2] === 'tandem')).map(depthOf);
+  const sD = wallBanks.filter((b) => !b.segs.some((g) => g[2] === 'tandem')).map(depthOf);
+  chk(tD.length > 0 && sD.length > 0 && Math.min(...tD) > Math.max(...sD),
+    `every tandem bank is deeper than every single-depth bank (${Math.min(...tD)} > ${Math.max(...sD)})`);
+  chk(Math.min(...tD) >= 2 * Math.max(...sD) - 2,
+    `a tandem bank is about two casket-lengths deep, not one (${Math.min(...tD)} vs ${Math.max(...sD)})`);
+  const isl = BANKS.filter((b) => b.area === 'island').map((b) => rect(b.plan));
+  const islD = Math.max(...isl.map((r) => r.y1)) - Math.min(...isl.map((r) => r.y0));
+  chk(islD >= TANDEM_DEPTH,
+    `the centre island block is at least one tandem run deep (${islD} >= ${TANDEM_DEPTH})`);
 }
 
 // ── 6d. Two entrances, the chapel layout, and the walkthrough ─────────────────
@@ -489,15 +535,17 @@ if (process.argv.includes('--sabotage')) {
     ['an inscription fee reintroduced onto a glass-front niche',
       (s) => s.replace('OC: 875, RECORDING: 235, ECF_RATE: 0.1 }', 'OC: 875, RECORDING: 235, INSCR: 660, ECF_RATE: 0.1 }')],
     ['SERENITY moved back to its old wrong place beside the rest rooms',
-      (s) => s.replace("plan: { x: 552, y: 104, w: 20, h: 78 }, face: 'E',", "plan: { x: 494, y: 20, w: 114, h: 26 }, face: 'S',")],
+      (s) => s.replace("plan: { x: 494, y: 146, w: 78, h: 20 }, face: 'N',", "plan: { x: 494, y: 20, w: 114, h: 26 }, face: 'S',")],
     ['RADIANCE moved east into the middle of the chapel',
-      (s) => s.replace("plan: { x: 6, y: 112, w: 104, h: 20 }, face: 'S',", "plan: { x: 150, y: 220, w: 104, h: 20 }, face: 'S',")],
+      (s) => s.replace("plan: { x: 6, y: 152, w: 104, h: 20 }, face: 'N',", "plan: { x: 150, y: 220, w: 104, h: 20 }, face: 'S',")],
     ['a crypt bank slid off its CAD wall line: 101-110 moved 20 units east',
       (s) => s.replace("face: 'E', plan: { x: 3, y: 172, w: 95, h: 190 }", "face: 'E', plan: { x: 23, y: 172, w: 95, h: 190 }")],
     ['the second entrance deleted, leaving only the east corridor',
       (s) => s.replace(/\{\r?\n    id: 'entrance-chapel',[\s\S]*?\r?\n  \},\r?\n\];/, '];')],
     ['the chapel emptied of chairs',
       (s) => s.replace("{ id: 'right', x0: 176, cols: 5, dx: 11 },", "{ id: 'right', x0: 176, cols: 0, dx: 11 },")],
+    ['a tandem bank flattened to single-casket depth',
+      (s) => s.replace("face: 'S', plan: { x: 250, y: 3, w: 323, h: 95 }", "face: 'S', plan: { x: 250, y: 51, w: 323, h: 47 }")],
     ['a walk-to position pushed inside a crypt bank',
       (s) => s.replace("sub: 'Seating, looking toward the altar', x: 166, z: 292",
         "sub: 'Seating, looking toward the altar', x: 40, z: 292")],
