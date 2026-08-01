@@ -5,7 +5,7 @@
  * scripts/com-crypt-data.mjs — same refs, same types, same statuses, same counts per
  * bank AND per column — that its three renderings (3D faces, flat per-bank grids,
  * print overview) agree with each other, that the build is deterministic, and that
- * NO money string is rendered for anything that is not an available niche.
+ * NO money string is rendered for anything that is not an available, PRICED unit.
  *
  * Sabotage-proven: `node scripts/verify_com_map.mjs --sabotage` mutates the data module
  * once per run — an occupied / reserved / unlisted crypt flipped to available, two
@@ -23,7 +23,7 @@ import {
   BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
   PLAN_W, PLAN_H, COLW, TANDEM_DEPTH, SINGLE_DEPTH, bankDepth,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
-  NICHE_FEES, CRYPT_FEES, MIS, STATUS_LABEL,
+  NICHE_FEES, CRYPT_FEES, MIS, STATUS_LABEL, PRICES, PRICE_BANDS, priceBand,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,7 +63,32 @@ const A = {
   nicheValue: 233075,   // Radiance $156,115 + Serenity $76,960
   radValue: 156115,
   serValue: 76960,
-  cryptPriceStrings: 0, // no crypt anywhere renders a dollar amount
+  // ── CRYPT PRICE ANCHORS, new 2026-08-01 ────────────────────────────────────
+  // Old: `cryptPriceStrings: 0` — no crypt rendered a dollar amount anywhere, because
+  // the only price source was the 4px sheet. New: crypt prices come from the MIS
+  // crypt-price export of 8/1/2026 and 377 of the 379 available units carry one.
+  // EVERY figure below is derived from the CSV parse, not from the built page.
+  priced: 377,           // available units MIS priced
+  unpricedAvail: 2,      // COM-1-1-E-166 (MIS price 0), COM-1-1-A-183 (half-dollar split)
+  distinctPrices: 29,
+  availValue: 9111510,   // sum of the 377 unit prices
+  // A plain total is blind to a price that MOVES between two units, and a multiset is
+  // blind to a swap as well. sumSquares pins the multiset (any price changed to another
+  // valid price breaks it) and priceChecksum pins POSITION: price x tierIndex x space.
+  priceSumSquares: 257585486000,
+  priceChecksum: 5166450550,
+  bankValue: {
+    '101-110': 1114820, '111-115': 577900, '116-123': 1109790, '124-140': 1338670,
+    '141-148': 426895, '149-153': 169840, '154-158': 93965, '159-167': 161950,
+    '168-172': 14995, '173-178': 532875, '179-184': 233930, '185-191': 1195795,
+    '192-193': 173960, '194-200': 459915, '201-212': 725310, '213-219': 252835,
+    '220-231': 528065,
+  },
+  // 377 priced units x the TWO renderings that show text: the 3D face and the flat
+  // per-bank grid. The print-overview minis are label-only (they carry no badge either),
+  // so they show no figure — but they DO carry the data-price attribute, hence two anchors.
+  cryptPriceCells: 754,
+  cryptPriceAttrs: 1131,   // 377 x 3 renderings
   // POSITIONAL anchors. A plain total is blind to a price that MOVES to another
   // valid row, so each available-$ figure is also pinned per row and by a
   // position-weighted checksum.
@@ -298,30 +323,157 @@ console.log('\nRefs');
   chk(ns.size === niches.length, `all ${niches.length} niche refs unique (${ns.size})`);
 }
 
-// ── 6. No money where money must never appear ─────────────────────────────────
+// ── 6. Money: shown where it must be, absent where it must never be ──────────
 console.log('\nMoney discipline');
 {
-  // Every rendered $ amount inside a cell button must belong to an AVAILABLE niche.
-  const okAmounts = new Set(niches.filter((n) => n.st === 'available').map((n) => '$' + n.p.toLocaleString('en-US')));
+  // The ONE rule: a rendered $ amount inside a cell button belongs to an available
+  // niche or an available, MIS-priced crypt, and equals that unit's exact price.
+  const ok = new Map();
+  for (const n of niches) if (n.st === 'available') ok.set(n.ref, '$' + n.p.toLocaleString('en-US'));
+  for (const u of units) if (u.st === 'available' && u.p != null) ok.set(u.ref, '$' + u.p.toLocaleString('en-US'));
   const bad = [];
   for (const m of src.matchAll(/<button[^>]*data-ref="([^"]+)"[^>]*>([\s\S]*?)<\/button>/g)) {
     const ref = m[1];
     for (const mm of m[2].matchAll(/\$[\d,]+/g)) {
-      const n = niches.find((x) => x.ref === ref);
-      if (!n || n.st !== 'available' || !okAmounts.has(mm[0])) bad.push(`${ref} renders ${mm[0]}`);
+      if (ok.get(ref) !== mm[0]) bad.push(`${ref} renders ${mm[0]} (expected ${ok.get(ref) || 'nothing'})`);
     }
   }
-  chk(bad.length === 0, `no cell renders a price except available niches${bad.length ? ': ' + bad.slice(0, 6).join('; ') : ` (${A.nichesAvail} priced cells x 2 renderings)`}`);
-  const cryptPriced = [...src.matchAll(/<button[^>]*data-kind="crypt"[^>]*>([\s\S]*?)<\/button>/g)]
-    .filter((m) => /\$[\d,]/.test(m[1])).length;
-  chk(cryptPriced === A.cryptPriceStrings, `zero price strings rendered for any crypt, available or not (${cryptPriced})`);
-  chk(!/data-price="\d/.test(src.replace(/data-kind="niche"[^>]*/g, '')) || true, 'crypt cells carry no data-price attribute');
-  const cryptWithPriceAttr = [...src.matchAll(/<button[^>]*data-kind="crypt"[^>]*>/g)].filter((m) => /data-price=/.test(m[0])).length;
-  chk(cryptWithPriceAttr === 0, `no crypt button carries a data-price attribute (${cryptWithPriceAttr})`);
-  // The ambiguous glyph decode is diagnostic only and must never reach the page.
-  const raws = UNITS.map((u) => u[5]).filter(Boolean);
-  const leaked = raws.filter((r) => src.includes(r));
-  chk(raws.length > 0 && leaked.length === 0, `the ${raws.length} sheetRaw glyph decodes stay out of the HTML (${leaked.length} leaked)`);
+  chk(bad.length === 0, `every rendered cell price is the exact price of a sellable unit${bad.length ? ': ' + bad.slice(0, 6).join('; ') : ` (${A.priced} crypts + ${A.nichesAvail} niches)`}`);
+
+  // Crypt price CELLS: present in the right number, and never on an unsellable unit.
+  const cryptCells = [...src.matchAll(/<button[^>]*data-kind="crypt"[^>]*>([\s\S]*?)<\/button>/g)];
+  const cryptPricedCells = cryptCells.filter((m) => /\$[\d,]/.test(m[1])).length;
+  chk(cryptPricedCells === A.cryptPriceCells,
+    `${cryptPricedCells} crypt cells render a price (expected ${A.cryptPriceCells} = ${A.priced} priced units x 2 text renderings)`);
+  const moneyOnUnsellable = cryptCells.filter((m) => !/data-st="available"/.test(m[0]) && /\$[\d,]/.test(m[1])).length;
+  chk(moneyOnUnsellable === 0, `no unsellable crypt renders money (${moneyOnUnsellable})`);
+
+  // data-price is the card's only channel. It must exist for exactly the priced units,
+  // must never exist on an unsellable one, and must carry the raw figure.
+  const withAttr = [...src.matchAll(/<button[^>]*data-kind="crypt"[^>]*>/g)].filter((m) => /data-price=/.test(m[0]));
+  chk(withAttr.length === A.cryptPriceAttrs, `${withAttr.length} crypt buttons carry data-price (expected ${A.cryptPriceAttrs})`);
+  const attrBad = withAttr.filter((m) => !/data-st="available"/.test(m[0])).length;
+  chk(attrBad === 0, `no unsellable crypt button carries a data-price attribute (${attrBad})`);
+  const attrMismatch = withAttr.filter((m) => {
+    const ref = /data-ref="([^"]+)"/.exec(m[0])[1];
+    const p = /data-price="([^"]*)"/.exec(m[0])[1];
+    const u = units.find((x) => x.ref === ref);
+    return !u || String(u.p) !== p;
+  }).length;
+  chk(attrMismatch === 0, `every data-price equals the data module's unit price (${attrMismatch} mismatches)`);
+
+  // Nothing is rounded: every rendered crypt amount is a price the export actually has.
+  const realPrices = new Set(units.filter((u) => u.p != null).map((u) => '$' + u.p.toLocaleString('en-US')));
+  const rounded = [...new Set([].concat(...cryptCells.map((m) => [...m[1].matchAll(/\$[\d,]+/g)].map((x) => x[0]))))]
+    .filter((a) => !realPrices.has(a));
+  chk(rounded.length === 0, `no crypt cell shows a rounded or invented figure${rounded.length ? ': ' + rounded.join(', ') : ` (${realPrices.size} exact values)`}`);
+
+  // The 4px sheet decode is GONE from the data module, not merely unrendered.
+  const dataSrc = fs.readFileSync(DATA, 'utf8');
+  chk(!/sheetRaw:/.test(dataSrc) && !/'$[d?,]+'/.test(dataSrc),
+    'the sheetRaw glyph-decode FIELD and all 51 decode strings are deleted from the data module');
+  chk(!/\$[\d,?]*\?/.test(src), 'no ambiguous "$?" glyph decode survives anywhere in the HTML');
+  chk(UNITS.every((u) => u[5] === null || typeof u[5] === 'number'),
+    'every UNITS price slot is a number or null — no strings left over from the decode');
+}
+
+// ── 6a. The crypt price load, proven against the CSV parse ───────────────────
+console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
+{
+  const av = units.filter((u) => u.st === 'available');
+  const priced = av.filter((u) => u.p != null);
+  chk(av.length === A.available, `${av.length} available units (${A.available})`);
+  chk(priced.length === A.priced, `${priced.length} of them priced (${A.priced})`);
+  chk(av.length - priced.length === A.unpricedAvail,
+    `${av.length - priced.length} available units carry no price and say so (${A.unpricedAvail})`);
+  // Read the RAW UNITS rows, not cryptUnits(): the helper defensively nulls the price
+  // on anything unsellable, so checking the helper would let a price typed onto an
+  // occupied crypt sit in the source file unnoticed. The source must be clean too.
+  const rawLeak = UNITS.filter((u) => u[4] !== 'available' && u[5] !== null)
+    .map((u) => `COM-1-1-${u[1]}-${u[2][0]}=${u[5]}`);
+  chk(rawLeak.length === 0, `no unsellable unit carries a price in the data at all${rawLeak.length ? ': ' + rawLeak.slice(0, 5).join(', ') : ''}`);
+  chk(units.filter((u) => u.st !== 'available' && u.p != null).length === 0,
+    'and none reaches the render layer either');
+  const sum = priced.reduce((t, u) => t + u.p, 0);
+  chk(sum === A.availValue, `available crypt value $${sum.toLocaleString('en-US')} (anchor $${A.availValue.toLocaleString('en-US')})`);
+  const sq = priced.reduce((t, u) => t + u.p * u.p, 0);
+  chk(sq === A.priceSumSquares, `price multiset checksum ${sq} (${A.priceSumSquares})`);
+  const ck = priced.reduce((t, u) => t + u.p * (TIERS.indexOf(u.tier) + 1) * u.cols[0], 0);
+  chk(ck === A.priceChecksum, `position-weighted price checksum ${ck} (${A.priceChecksum})`);
+  chk(new Set(priced.map((u) => u.p)).size === A.distinctPrices,
+    `${new Set(priced.map((u) => u.p)).size} distinct prices (${A.distinctPrices})`);
+  chk(priced.every((u) => Number.isInteger(u.p) && u.p > 0), 'every price is a positive whole number of dollars');
+  // Per bank, so a price that moves between banks cannot hide inside the grand total.
+  const byBank = {};
+  for (const u of priced) byBank[u.bank] = (byBank[u.bank] || 0) + u.p;
+  const bankBad = Object.keys(A.bankValue).filter((b) => byBank[b] !== A.bankValue[b])
+    .map((b) => `${b}: ${byBank[b]} != ${A.bankValue[b]}`);
+  chk(bankBad.length === 0 && Object.keys(byBank).length === Object.keys(A.bankValue).length,
+    `all 17 per-bank available totals match${bankBad.length ? ': ' + bankBad.join('; ') : ''}`);
+  // The parse figures the data module records must stay self-consistent.
+  chk(PRICES.rows === 695 && PRICES.posRows + PRICES.spaceRows === PRICES.rows,
+    `the export reconciles: ${PRICES.posRows} position rows + ${PRICES.spaceRows} space rows = ${PRICES.rows}`);
+  chk(PRICES.unitsPriced + PRICES.unitsUnpriced === PRICES.unitsCovered && PRICES.unitsCovered === A.available,
+    `the export covers exactly the available units (${PRICES.unitsCovered})`);
+  chk(PRICES.availableValue === A.availValue, `PRICES.availableValue agrees with the parse ($${PRICES.availableValue.toLocaleString('en-US')})`);
+  // Every price falls in exactly one band, and every band is used.
+  chk(priced.every((u) => priceBand(u.p)), 'every price falls in a declared price band');
+  const used = new Set(priced.map((u) => priceBand(u.p).c));
+  chk(used.size === PRICE_BANDS.length, `all ${PRICE_BANDS.length} price bands carry inventory (${used.size})`);
+  chk(PRICE_BANDS.every((b, i) => i === 0 || b.lo > PRICE_BANDS[i - 1].hi), 'the price bands are ordered and do not overlap');
+  // WCAG AA on the chip, recomputed here rather than trusted from a comment.
+  const lum = (h) => {
+    const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+  const lowC = PRICE_BANDS.filter((b) => ratio(b.bg, b.fg) < 4.5).map((b) => `${b.c} ${ratio(b.bg, b.fg).toFixed(2)}:1`);
+  chk(lowC.length === 0, `every price chip clears WCAG AA 4.5:1${lowC.length ? ': ' + lowC.join(', ') : ' (' + PRICE_BANDS.map((b) => ratio(b.bg, b.fg).toFixed(2)).join(', ') + ')'}`);
+  // The page renders the band palette and the legend that explains it.
+  chk(PRICE_BANDS.every((b) => src.includes(`.${b.c}{background:${b.bg};color:${b.fg};}`)),
+    'the built page carries every price-band colour rule verbatim');
+  chk(PRICE_BANDS.every((b) => src.includes(`<span>${b.l}</span>`)), 'the price legend lists every band');
+  // The banner that said prices were not shown is GONE.
+  chk(!/Crypt prices are not shown on this page/.test(src),
+    'the "crypt prices are not shown on this page" banner is gone');
+  chk(!/too low-resolution to read its digits/.test(src), 'the 4px-sheet excuse is gone from every card');
+  chk(/Crypt prices come from MIS and are exact/.test(src), 'the page states prices are MIS-sourced and exact');
+  chk(new RegExp(`\\$${A.availValue.toLocaleString('en-US').replace(/,/g, ',')} listed`).test(src),
+    `the footer prints the available crypt value $${A.availValue.toLocaleString('en-US')}`);
+}
+
+// ── 6a-ii. Card math (operator ruling 2026-08-01) ────────────────────────────
+// "here all the crypt prices for the chapel of memories. the only other cost is the
+//  crypt monobar price which lives in the quote tool."
+// So a crypt card is price + 10% E.C.F. + $225 recording + the optional monobar, and
+// carries NO opening & closing. The monobar figures are the QUOTE TOOL's: $1,445
+// memorial (index.html BW_FEES 'MONOBAR:crypt') + $225 install (the literal index.html
+// quotes, and the 2026-07-26 record in data/prices.json that overrides the 215 workbook
+// figure). Literals are written out here so editing the data module alone fails.
+console.log('\nCrypt card math');
+{
+  chk(CRYPT_FEES.RECORDING === 225, `crypt recording fee is $225 (got $${CRYPT_FEES.RECORDING})`);
+  chk(CRYPT_FEES.MONOBAR === 1445, `crypt monobar memorial is $1,445 (got $${CRYPT_FEES.MONOBAR})`);
+  chk(CRYPT_FEES.MONOBAR_INSTALL === 225, `crypt monobar install is $225 (got $${CRYPT_FEES.MONOBAR_INSTALL})`);
+  chk(CRYPT_FEES.VASE === 415, `crypt vase is $415 (got $${CRYPT_FEES.VASE})`);
+  chk(CRYPT_FEES.ECF_RATE === 0.1, `crypt E.C.F. rate is 10% (got ${CRYPT_FEES.ECF_RATE * 100}%)`);
+  chk(/var REC = 225, MB = 1445, MBI = 225, VASE = 415;/.test(src),
+    'the page script carries REC 225, MB 1445, MBI 225, VASE 415');
+  chk(/Monobar — \$1,670 ea/.test(src) && /\$1,445 memorial \+ \$225 install/.test(src),
+    'the fee bar sells the monobar as $1,670 = $1,445 memorial + $225 install');
+  chk(/tot = price \+ e \+ REC;/.test(src), 'the card total is price + E.C.F. + recording');
+  chk(/var e = Math\.round\(price \* 10\) \/ 100/.test(src),
+    'the E.C.F. is an exact 10% of the price, matching the export ecf column, not a ceiling');
+  chk(/minimumFractionDigits: n % 1 \? 2 : 0/.test(src),
+    'a fractional amount renders as cents ($2,639.50), never as $2,639.5');
+  chk(/tot \+= \(MB \+ MBI\) \* mq;/.test(src), 'and adds both monobar lines together at one quantity');
+  // No opening & closing anywhere on the crypt side.
+  chk(/none — a crypt carries no O&amp;C/.test(src), 'the fee bar states a crypt carries no O&C');
+  chk(!/Open &amp; Closing<\/span><span class="cv">/.test(src), 'no crypt card row quotes an opening &amp; closing amount');
+  chk(!/1,205|1205/.test(src), "the tool's mausoleum entombment O&C never leaks onto this page");
+  // OMITTED_FEES is retired: both illegible rows are resolved, not hidden.
+  chk(!/Omitted \(illegible on the sheet\)/.test(src), 'the "omitted (illegible)" fee row is gone');
 }
 
 // ── 6b. The uniform glass-front fee schedule (operator, 2026-07-31) ───────────
@@ -356,8 +508,14 @@ console.log('\nGlass-front niche fee schedule (operator ruling 2026-07-31)');
   chk(!/sales tax|\bTAX\b/i.test(stripped.replace(/ECF_RATE|CRYPT_FEES/g, '')),
     'no sales-tax math or amount appears on the page');
   // The crypt fee box is a DIFFERENT product and is deliberately unchanged.
-  chk(CRYPT_FEES.RECORDING === 225 && CRYPT_FEES.MONOBAR_INSTALL === 215 && CRYPT_FEES.VASE === 415,
-    `the CRYPT fee box is untouched ($${CRYPT_FEES.RECORDING} / $${CRYPT_FEES.MONOBAR_INSTALL} / $${CRYPT_FEES.VASE})`);
+  // Was: MONOBAR_INSTALL === 215, the workbook figure. Changed DELIBERATELY 2026-08-01 to
+  // 225, the figure index.html quotes, per the operator's ruling that the monobar price
+  // lives in the quote tool. The point of this check is unchanged: the NICHE schedule
+  // ($875 / $235) must never leak onto the crypts, which are a different product.
+  chk(CRYPT_FEES.RECORDING === 225 && CRYPT_FEES.MONOBAR_INSTALL === 225 && CRYPT_FEES.VASE === 415,
+    `the CRYPT fee box is crypt-only ($${CRYPT_FEES.RECORDING} / $${CRYPT_FEES.MONOBAR_INSTALL} / $${CRYPT_FEES.VASE})`);
+  chk(CRYPT_FEES.RECORDING !== NICHE_FEES.RECORDING && !("OC" in CRYPT_FEES),
+    'the crypt fee box has no O&C and does not share the niche recording fee');
   chk(NICHE_FEES.OC !== CRYPT_FEES.RECORDING && !/Recording Fee — \$235/.test(src),
     'the niche schedule has not leaked onto the crypt fee lines');
 }
@@ -640,8 +798,23 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("sub: 'Seating, looking toward the altar', x: 166, z: 292",
         "sub: 'Seating, looking toward the altar', x: 40, z: 292")],
     ['a unit deleted: bank 201-212 tier A space 212',
-      (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'available', null],\r\n", '')
-        .replace("  ['201-212', 'A', [212], 'tandem', 'available', null],\n", '')],
+      (s) => s.replace("  ['201-212', 'A', [212], 'tandem', 'available', 24995],\r\n", '')
+        .replace("  ['201-212', 'A', [212], 'tandem', 'available', 24995],\n", '')],
+    // NEW 2026-08-01, now that the page shows money. A wrong price is as damaging as a
+    // wrong status, and two of these are invisible to any plain total.
+    ['a price MOVED to another valid price, same bank: G-116 $45,990 <-> F-116 $51,990',
+      (s) => s.replace("['116-123', 'G', [116], 'single', 'available', 45990]", "['116-123', 'G', [116], 'single', 'available', 51990]")
+        .replace("['116-123', 'F', [116, 117], 'deluxe', 'available', 51990]", "['116-123', 'F', [116, 117], 'deluxe', 'available', 45990]")],
+    ['an UNSELLABLE crypt given a price: the occupied 101-110 G-103',
+      (s) => s.replace("['101-110', 'G', [103], 'tandem', 'occupied', null]", "['101-110', 'G', [103], 'tandem', 'occupied', 30995]")],
+    ['a price ROUNDED: $26,395 -> $26,400',
+      (s) => s.replace("['201-212', 'G', [206, 207], 'deluxe', 'available', 26395]", "['201-212', 'G', [206, 207], 'deluxe', 'available', 26400]")],
+    ['the monobar memorial price dropped back out of the fee box',
+      (s) => s.replace('MONOBAR: 1445,', 'MONOBAR: 0,')],
+    ['the monobar install reverted to the workbook figure the tool overrides: 225 -> 215',
+      (s) => s.replace('MONOBAR_INSTALL: 225,', 'MONOBAR_INSTALL: 215,')],
+    ['a price chip palette entry dropped below WCAG AA contrast',
+      (s) => s.replace("bg: '#23a06b', fg: '#0e1729'", "bg: '#2f7a55', fg: '#0e1729'")],
   ];
   let sabFail = 0;
   for (const [label, mut] of runs) {
