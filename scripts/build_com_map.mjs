@@ -29,8 +29,9 @@ import { fileURLToPath } from 'node:url';
 import {
   TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, CRYPT_FEES, OMITTED_FEES, NICHE_FEES,
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
+  ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
-  cryptUnits, wallNiches, allNiches, cryptSpaces,
+  cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
 } from './com-crypt-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -130,17 +131,54 @@ ${cells}
   </div>`;
 }
 
+/**
+ * The plan footprint MINUS the EMPTY-AREA void columns at either end. MIS does not draw
+ * those columns at all — bank 124-140's 138/139/140 and 141-148's 141/142/143 are
+ * "EMPTY AREA — NO CRYPTS IN THIS SECTION" — and drawing them pushed the rectangle over
+ * the Rest Rooms and the Storage Room. The 3D face still carries the full column count
+ * with the void cells rendered as voids, exactly as the crypt sheet prints them.
+ */
+function drawnPlan(b) {
+  const p = b.plan;
+  const vs = VOIDS.filter((v) => v.bank === b.id);
+  if (!vs.length) return p;
+  const cols = new Set(vs.flatMap((v) => v.cols));
+  let lead = 0, trail = 0;
+  for (let c = b.c0; cols.has(c); c++) lead++;
+  for (let c = b.c1; cols.has(c); c--) trail++;
+  const cut = (lead + trail) * COLW;
+  if (!cut) return p;
+  const along = b.face === 'N' || b.face === 'S' ? 'x' : 'y';
+  const size = along === 'x' ? 'w' : 'h';
+  return { ...p, [along]: p[along] + lead * COLW, [size]: p[size] - cut };
+}
+
 // ── floor plan SVG ────────────────────────────────────────────────────────────
 function planSvg() {
   const parts = [];
-  parts.push(`<rect class="pshell" x="6" y="6" width="${PLAN_W - 12}" height="${PLAN_H - 12}" rx="6"/>`);
+  parts.push(`<rect class="pshell" x="1" y="1" width="${PLAN_W - 2}" height="${PLAN_H - 2}" rx="6"/>`);
   for (const r of ROOMS) {
-    parts.push(`<g class="proom pr-${r.kind}"><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="3"/><text x="${r.x + r.w / 2}" y="${r.y + r.h / 2 + 4}">${esc(r.label)}</text></g>`);
+    // The chapel label goes at the TOP of its pad — the seating fills the middle.
+    const ly = r.kind === 'chapel' ? r.y + r.h - 9 : r.y + r.h / 2 + 4;
+    parts.push(`<g class="proom pr-${r.kind}"><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="3"/><text x="${r.x + r.w / 2}" y="${ly}">${esc(r.label)}</text></g>`);
+  }
+  // Chapel furniture, so the plan reads as a chapel and not an empty box.
+  for (const c of chapelChairs()) {
+    parts.push(`<rect class="pchair" x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="1.5"/>`);
+  }
+  for (const f of FURNITURE) {
+    parts.push(`<g class="pfurn pf-${f.kind}"><rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="2"/>`
+      + (f.label ? `<text x="${f.x + f.w / 2}" y="${f.y + f.h / 2 + 3.5}">${esc(f.label)}</text>` : '') + `</g>`);
+  }
+  for (const e of ENTRANCES) {
+    parts.push(`<g class="pentr" data-stop="${e.id}" tabindex="0" role="button" aria-label="${esc(e.label + ' — ' + e.sub + '. Walk in from here.')}">`
+      + `<rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" rx="3"/>`
+      + `<text x="${e.x + e.w / 2}" y="${e.y + e.h / 2 + 4}"${e.w < e.h ? ` transform="rotate(-90 ${e.x + e.w / 2} ${e.y + e.h / 2})"` : ''}>${esc(e.label)}</text></g>`);
   }
   for (const b of BANKS) {
     const list = unitsByBank.get(b.id);
     const av = list.filter((u) => u.st === 'available').length;
-    const p = b.plan;
+    const p = drawnPlan(b);
     parts.push(`<g class="pbank${av ? ' has-av' : ''}" data-bank="${b.id}" data-area="${b.area}" tabindex="0" role="button" aria-label="${esc(bankLabel(b) + ', ' + bankSub(b) + ', ' + av + ' available')}">`
       + `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="2"/>`
       + `<text class="pblab" x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + 4}"${p.w < p.h ? ` transform="rotate(-90 ${p.x + p.w / 2} ${p.y + p.h / 2})"` : ''}>${b.id}${av ? ` · ${av}` : ''}</text>`
@@ -163,6 +201,28 @@ ${parts.map((s) => '    ' + s).join('\n')}
 const cx = (p) => p.x + p.w / 2 - PLAN_W / 2;
 const cz = (p) => p.y + p.h / 2 - PLAN_H / 2;
 
+/**
+ * The crypt fronts sit on the OUTWARD EDGE of the bank's footprint, not at its
+ * centroid. Placing them at the centroid is what buried the deep (tandem) banks half
+ * inside their own block and left the shallow ones floating off their wall.
+ */
+/**
+ * Every solid in the scene carries its PLAN position. CSS 3D has no view frustum: a
+ * wall standing behind the camera is still projected, and at interior range it lands
+ * across the screen as a huge slab. The runtime uses these two numbers to hide
+ * whatever is behind you at a walkthrough stop.
+ */
+const at = (x, z) => ` data-px="${Math.round(x)}" data-pz="${Math.round(z)}"`;
+const atR = (r) => at(r.x + r.w / 2, r.y + r.h / 2);
+
+function faceCentre(p, face) {
+  const mx = p.x + p.w / 2 - PLAN_W / 2, mz = p.y + p.h / 2 - PLAN_H / 2;
+  if (face === 'N') return [mx, p.y - PLAN_H / 2];
+  if (face === 'S') return [mx, p.y + p.h - PLAN_H / 2];
+  if (face === 'W') return [p.x - PLAN_W / 2, mz];
+  return [p.x + p.w - PLAN_W / 2, mz];
+}
+
 function bank3d(b) {
   const n = b.c1 - b.c0 + 1;
   const faceW = n * COLW;
@@ -178,15 +238,18 @@ function bank3d(b) {
     cells.push(`      <div class="c3void" style="grid-row:${TIERS.indexOf(v.tiers[0]) + 1}/span ${v.tiers.length};grid-column:${v.cols[0] - b.c0 + 1}/span ${v.cols.length}"></div>`);
   }
   const p = b.plan;
-  return `    <div class="face ar-${b.area}" data-bankface="${b.id}" style="width:${px(faceW)}px;height:${px(FACE_H)}px;grid-template-columns:repeat(${n},1fr);grid-template-rows:repeat(${TIERS.length},1fr);transform:translate(-50%,-50%) translate3d(${px(cx(p))}px,0,${px(cz(p))}px) rotateY(${ROT[b.face]}deg)">
+  const [fx, fz] = faceCentre(p, b.face);
+  const [bx, bz] = [cx(p), cz(p)];
+  return `    <div class="blk ar-${b.area}" data-blk="${b.id}"${atR(p)} style="width:${px(p.w)}px;height:${px(p.h)}px;transform:translate(-50%,-50%) translate3d(${px(bx)}px,${px(FACE_H / 2)}px,${px(bz)}px) rotateX(-90deg)"></div>
+    <div class="face ar-${b.area}" data-bankface="${b.id}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(FACE_H)}px;grid-template-columns:repeat(${n},1fr);grid-template-rows:repeat(${TIERS.length},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,0,${px(fz)}px) rotateY(${ROT[b.face]}deg)">
 ${cells.join('\n')}
     </div>
-    <div class="fbase ar-${b.area}" style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(cx(p))}px,${px(FACE_H / 2) + 7}px,${px(cz(p))}px) rotateY(${ROT[b.face]}deg)"><b>${b.id}</b></div>`;
+    <div class="fbase ar-${b.area}" data-area="${b.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[b.face]}deg)"><b>${b.id}</b></div>`;
 }
 
 function wall3d(wid) {
   const w = WALLS[wid], p = w.plan;
-  const faceW = w.cols * COLW;
+  const faceW = w.cols * NCOLW;
   const rows = w.rows.length;
   const h = rows * (ROWH * 0.72);
   const cells = wallNiches(wid).map((nn) => {
@@ -196,35 +259,79 @@ function wall3d(wid) {
     const chip = nn.p != null ? `<span class="n3p">${money(nn.p)}</span>` : '';
     return `      <button type="button" class="c3 n3glass${st}" style="grid-row:${ri}/span ${span};grid-column:${nn.col}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="c3id">${nn.row}-${nn.col}</span>${chip}</button>`;
   }).join('\n');
-  return `    <div class="face nichewall ar-niches" data-bankface="${wid}" style="width:${px(faceW)}px;height:${px(h)}px;grid-template-columns:repeat(${w.cols},1fr);grid-template-rows:repeat(${rows},1fr);transform:translate(-50%,-50%) translate3d(${px(cx(p))}px,${px((FACE_H - h) / 2)}px,${px(cz(p))}px) rotateY(${ROT[w.face]}deg)">
+  const [fx, fz] = faceCentre(p, w.face);
+  return `    <div class="face nichewall ar-niches" data-bankface="${wid}" data-area="niches" data-homearea="${w.homeArea}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(h)}px;grid-template-columns:repeat(${w.cols},1fr);grid-template-rows:repeat(${rows},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px((FACE_H - h) / 2)}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)">
 ${cells}
     </div>
-    <div class="fbase ar-niches" style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(cx(p))}px,${px(FACE_H / 2) + 7}px,${px(cz(p))}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
+    <div class="fbase ar-niches" data-area="niches"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
+}
+
+// ── Entrances, furniture, chairs and walk-in hotspots ────────────────────────
+/** A small solid box: four sides plus a lid, sitting ON the floor plane. */
+function box3d(o, cls, label) {
+  const w = o.w, d = o.h, mh = o.tall;
+  const x = o.x + w / 2 - PLAN_W / 2, z = o.y + d / 2 - PLAN_H / 2;
+  const y = FACE_H / 2 - mh / 2;
+  const out = [];
+  for (const [sw, ry, off] of [[w, 0, [0, d / 2]], [w, 180, [0, -d / 2]], [d, 90, [w / 2, 0]], [d, -90, [-w / 2, 0]]]) {
+    out.push(`    <div class="${cls}"${atR(o)} style="width:${px(sw)}px;height:${px(mh)}px;transform:translate(-50%,-50%) translate3d(${px(x + off[0])}px,${px(y)}px,${px(z + off[1])}px) rotateY(${ry}deg)">${label ? `<span>${esc(label)}</span>` : ''}</div>`);
+  }
+  out.push(`    <div class="${cls} btop"${atR(o)} style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(y - mh / 2)}px,${px(z)}px) rotateX(90deg)"></div>`);
+  return out.join('\n');
+}
+
+/** A chapel chair: a seat pad and an upright back on the side away from the altar. */
+function chair3d(c) {
+  const x = c.x + c.w / 2 - PLAN_W / 2, z = c.y + c.h / 2 - PLAN_H / 2;
+  const seatY = FACE_H / 2 - c.tall * 0.45;
+  const backY = FACE_H / 2 - c.tall * 0.78;
+  return `    <div class="chair cseat" data-chair="${c.id}"${atR(c)} style="width:${px(c.w)}px;height:${px(c.h)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(seatY)}px,${px(z)}px) rotateX(90deg)"></div>
+    <div class="chair cback"${atR(c)} style="width:${px(c.w)}px;height:${px(c.tall * 0.62)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(backY)}px,${px(z + c.h / 2)}px)"></div>`;
+}
+
+function entrance3d(e) {
+  const x = e.x + e.w / 2 - PLAN_W / 2, z = e.y + e.h / 2 - PLAN_H / 2;
+  const mh = FACE_H * 0.42;
+  const y = FACE_H / 2 - mh / 2;
+  const [sw, ry] = e.face === 'W' || e.face === 'E' ? [e.h, ROT[e.face]] : [e.w, ROT[e.face]];
+  return `    <div class="doorway" data-stop="${e.id}"${atR(e)} role="button" tabindex="0" aria-label="${esc(e.label + ' — ' + e.sub + '. Walk in from here.')}" style="width:${px(sw)}px;height:${px(mh)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(y)}px,${px(z)}px) rotateY(${ry}deg)"><span>${esc(e.label)}</span></div>
+    <div class="doormat"${atR(e)} style="width:${px(e.w)}px;height:${px(e.h)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(FACE_H / 2 - 0.6)}px,${px(z)}px) rotateX(-90deg)"></div>`;
+}
+
+/** A floor disc you can click to walk to that stop. */
+function hotspot3d(s) {
+  const x = s.x - PLAN_W / 2, z = s.z - PLAN_H / 2;
+  return `    <button type="button" class="hot" data-stop="${s.id}" data-area="${s.area}"${at(s.x, s.z)} aria-label="${esc('Walk to ' + s.label + ' — ' + s.sub)}" style="transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(FACE_H / 2 - 1.2)}px,${px(z)}px) rotateX(-90deg)"><span>${esc(s.label)}</span></button>`;
 }
 
 function mass3d(r) {
   const w = r.w, d = r.h, x = r.x + w / 2 - PLAN_W / 2, z = r.y + d / 2 - PLAN_H / 2;
-  const mh = r.kind === 'hall' ? 0 : (r.kind === 'feature' ? 34 : FACE_H * 0.55);
+  const mh = (r.kind === 'hall' || r.kind === 'chapel') ? 0 : FACE_H * 0.55;
   if (!mh) {
-    return `    <div class="hallpad" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(FACE_H / 2)}px,${px(z)}px) rotateX(-90deg)"><span>${esc(r.label)}</span></div>`;
+    return `    <div class="hallpad hp-${r.kind}"${atR(r)} style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(FACE_H / 2 - 0.4)}px,${px(z)}px) rotateX(-90deg)"><span>${esc(r.label)}</span></div>`;
   }
   const y = FACE_H / 2 - mh / 2;
   const out = [];
   for (const [sw, ry, off] of [[w, 0, [0, d / 2]], [w, 180, [0, -d / 2]], [d, 90, [w / 2, 0]], [d, -90, [-w / 2, 0]]]) {
-    out.push(`    <div class="mass mk-${r.kind}" style="width:${px(sw)}px;height:${px(mh)}px;transform:translate(-50%,-50%) translate3d(${px(x + off[0])}px,${px(y)}px,${px(z + off[1])}px) rotateY(${ry}deg)"><span>${esc(r.label)}</span></div>`);
+    out.push(`    <div class="mass mk-${r.kind}"${atR(r)} style="width:${px(sw)}px;height:${px(mh)}px;transform:translate(-50%,-50%) translate3d(${px(x + off[0])}px,${px(y)}px,${px(z + off[1])}px) rotateY(${ry}deg)"><span>${esc(r.label)}</span></div>`);
   }
-  out.push(`    <div class="mass mtop mk-${r.kind}" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(y - mh / 2)}px,${px(z)}px) rotateX(90deg)"></div>`);
+  out.push(`    <div class="mass mtop mk-${r.kind}"${atR(r)} style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(y - mh / 2)}px,${px(z)}px) rotateX(90deg)"></div>`);
   return out.join('\n');
 }
 
 function scene3d() {
-  return `<div class="scene" id="scene" tabindex="0" role="application" aria-label="Three-dimensional model of the Chapel of Memory Mausoleum interior. Use the area buttons below, or arrow keys, to change the view.">
+  const chairs = chapelChairs();
+  return `<div class="scene" id="scene" tabindex="0" role="application" aria-label="Three-dimensional walk-through model of the Chapel of Memory Mausoleum interior. Click a doorway or a floor marker to walk to that part of the building; drag to look around.">
   <div class="stage" id="stage">
+    <div class="bldg" id="bldg">
     <div class="floor" style="width:${px(PLAN_W)}px;height:${px(PLAN_H)}px;transform:translate(-50%,-50%) translate3d(0,${px(FACE_H / 2) + 1}px,0) rotateX(-90deg)"></div>
-    <div class="bldg">
+${ROOMS.map(mass3d).join('\n')}
 ${BANKS.map(bank3d).join('\n')}
 ${['RAD', 'SER'].map(wall3d).join('\n')}
-${ROOMS.map(mass3d).join('\n')}
+${ENTRANCES.map(entrance3d).join('\n')}
+${FURNITURE.map((f) => box3d(f, `furn fk-${f.kind}`, f.label)).join('\n')}
+${chairs.map(chair3d).join('\n')}
+${STOPS.map(hotspot3d).join('\n')}
     </div>
   </div>
 </div>`;
@@ -306,6 +413,10 @@ const CSS = `
   .tab{padding:10px 13px;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-light);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;background:none;}
   .tab:hover{color:var(--cream);background:rgba(200,169,110,.08);}
   .tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(200,169,110,.12);}
+  .tabs2{background:rgba(15,23,44,.85);border-bottom:1px solid var(--gb);align-items:center;}
+  .tabs2 .tab{font-size:10px;padding:7px 11px;opacity:.9;}
+  .tabl{flex-shrink:0;padding:0 12px 0 20px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);opacity:.75;white-space:nowrap;}
   .main{padding:14px;}
   .wview,.view3d{display:none;}.wview.active,.view3d.active{display:block;}
   .wlabel{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);margin:14px 0 2px;text-align:center;}
@@ -375,7 +486,15 @@ const CSS = `
   .pshell{fill:rgba(255,255,255,.03);stroke:var(--gb);stroke-width:2;}
   .proom rect{fill:rgba(200,169,110,.09);stroke:rgba(200,169,110,.35);stroke-width:1;}
   .pr-hall rect{fill:rgba(255,255,255,.03);stroke-dasharray:4 4;}
-  .pr-entrance rect{fill:rgba(200,169,110,.18);}
+  .pr-chapel rect{fill:rgba(200,169,110,.05);stroke-dasharray:5 4;}
+  .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
+  .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
+  .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
+  .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
+  .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
+  .pentr text{fill:var(--cream);font-size:10px;font-family:'Jost',sans-serif;text-anchor:middle;font-weight:600;}
+  .pentr{cursor:pointer;} .pentr:hover rect{fill:var(--gold);} .pentr:hover text{fill:#16203a;}
+  .pentr:focus{outline:none;} .pentr:focus rect{stroke:#fff;stroke-width:2.5;}
   .proom text{fill:var(--gold-light);font-size:12px;font-family:'Jost',sans-serif;text-anchor:middle;opacity:.85;}
   .pbank rect{fill:#4a463d;stroke:#20304f;stroke-width:1.5;}
   .pbank.has-av rect{fill:#6f6a5c;stroke:var(--gold);}
@@ -401,8 +520,13 @@ const CSS = `
   .scene:active{cursor:grabbing;}
   .scene:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
   .stage{position:absolute;left:50%;top:70%;width:0;height:0;transform-style:preserve-3d;
-    transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,0deg)) rotateY(var(--yaw,0deg));}
-  .bldg{position:absolute;transform-style:preserve-3d;}
+    transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,0deg)) rotateY(var(--yaw,0deg));
+    transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .bldg{position:absolute;transform-style:preserve-3d;
+    transform:translate3d(var(--px,0px),0,var(--pz,0px));
+    transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .scene.dragging .stage,.scene.dragging .bldg{transition:none;}
+  @media (prefers-reduced-motion:reduce){.stage,.bldg{transition:none;}}
   .floor{position:absolute;left:0;top:0;background:
       linear-gradient(135deg,rgba(196,190,178,.22),rgba(120,116,108,.16) 60%,rgba(88,85,79,.2));
     border:1px solid rgba(200,196,186,.22);}
@@ -440,6 +564,51 @@ const CSS = `
       repeating-linear-gradient(135deg,rgba(0,0,0,.16) 0 4px,rgba(0,0,0,0) 4px 9px),
       linear-gradient(180deg,#8a8272 0%,#6a6355 100%)!important;color:#efece5;}
   .n3p{font-size:4.4px;font-weight:700;white-space:nowrap;}
+  /* ── Walkthrough: structure blocks, chapel furniture, doorways, floor markers ── */
+  .blk{position:absolute;left:0;top:0;background:rgba(150,144,132,.16);border:1px solid rgba(200,196,186,.22);}
+  .furn{position:absolute;left:0;top:0;background:linear-gradient(180deg,#7a5a38,#4d3722);border:1px solid rgba(0,0,0,.35);
+    backface-visibility:hidden;display:flex;align-items:center;justify-content:center;}
+  .furn.btop{background:linear-gradient(135deg,#8c6a42,#5b4128);}
+  .furn span{font-size:5px;letter-spacing:.12em;color:#f3e6d0;text-transform:uppercase;}
+  .fk-altar{background:linear-gradient(180deg,#b9a06a,#7d6738);} .fk-altar.btop{background:linear-gradient(135deg,#cdb37a,#8d7643);}
+  .fk-piano{background:linear-gradient(180deg,#3a2a1c,#1e150e);} .fk-piano.btop{background:linear-gradient(135deg,#4a3524,#241a11);}
+  .fk-bench{background:linear-gradient(180deg,#8d7f5f,#5d523a);} .fk-bench.btop{background:linear-gradient(135deg,#a1946f,#6b5f44);}
+  .chair{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(0,0,0,.3);}
+  .cseat{background:linear-gradient(135deg,#b98f60,#8a6640);}
+  .cback{background:linear-gradient(180deg,#a87d52,#6d4f31);}
+  .doorway{position:absolute;left:0;top:0;cursor:pointer;backface-visibility:hidden;
+    background:linear-gradient(180deg,rgba(232,213,168,.5),rgba(160,132,74,.35));
+    border:2px solid var(--gold);display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;}
+  .doorway span{font-size:7px;font-weight:700;letter-spacing:.1em;color:#1b2338;text-transform:uppercase;
+    background:var(--gold-light);padding:1px 4px;border-radius:2px;}
+  .doorway:hover{filter:brightness(1.25);} .doorway:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .doormat{position:absolute;left:0;top:0;background:rgba(200,169,110,.3);border:1px dashed var(--gold);}
+  .hot{position:absolute;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;padding:0;border-radius:50%;
+    background:rgba(200,169,110,.24);border:1.5px solid var(--gold);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;}
+  .hot span{position:absolute;top:34px;white-space:nowrap;font-size:7px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--gold-light);background:rgba(10,16,32,.75);padding:1px 4px;border-radius:2px;pointer-events:none;}
+  .hot::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--gold);}
+  .hot:hover{background:rgba(200,169,110,.55);}
+  .hot:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .hot.here{background:rgba(255,255,255,.4);border-color:#fff;}
+  .hot.here::before{background:#fff;}
+  .ghost{opacity:.16!important;pointer-events:none!important;}
+  .behind{display:none!important;}
+  .scene.inside .floor{filter:brightness(1.15);}
+
+  /* ── Breadcrumb / area switcher ── */
+  .crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:1200px;margin:0 auto 6px;padding:7px 11px;
+    background:rgba(200,169,110,.09);border:1px solid var(--gb);border-radius:6px;}
+  .crumb{background:none;border:none;color:var(--gold-light);font-size:11px;font-weight:600;letter-spacing:.05em;
+    cursor:pointer;padding:2px 5px;border-radius:3px;text-transform:uppercase;}
+  .crumb:hover:not(.cur):not([disabled]){background:rgba(200,169,110,.22);color:var(--cream);}
+  .crumb.cur{color:var(--gold);cursor:default;}
+  .crumb[disabled]{opacity:.35;cursor:default;}
+  .csep{color:var(--gold);opacity:.6;font-size:12px;}
+  .cnote2{font-size:10px;color:var(--gold-light);opacity:.7;font-style:italic;margin-left:4px;}
+  .cback2{margin-left:auto;border:1px solid var(--gb);}
+
   .hint{text-align:center;font-size:10px;color:var(--gold-light);opacity:.72;margin-top:7px;letter-spacing:.05em;}
   .modelnote{text-align:center;font-size:9.5px;color:var(--gold-light);opacity:.55;margin-top:3px;}
 
@@ -538,16 +707,11 @@ const BANK_AREA = JSON.stringify(Object.fromEntries(
 const BANK_LABEL = JSON.stringify(Object.fromEntries(
   BANKS.map((b) => [b.id, bankLabel(b)]).concat([['RAD', 'Radiance Niche Wall'], ['SER', 'Serenity Niche Wall']])));
 const AREA_LABEL = JSON.stringify(Object.fromEntries(AREAS.map((a) => [a.id, a.label])));
-// Camera presets: [yaw, pitch] per area, plus the whole-building home view.
-const VIEW_JSON = JSON.stringify({
-  home: { yaw: -30, pitch: -52, zoom: null },
-  north: { yaw: 0, pitch: -8 },
-  west: { yaw: -90, pitch: -8 },
-  island: { yaw: -20, pitch: -34 },
-  south: { yaw: 180, pitch: -8 },
-  east: { yaw: 90, pitch: -8 },
-  niches: { yaw: -60, pitch: -14 },
-});
+const AREA_STOP = JSON.stringify(Object.fromEntries(AREAS.map((a) => [a.id, a.stop])));
+// The whole-building orbit. Everything else is a WALKTHROUGH STOP, below.
+const HOME_JSON = JSON.stringify({ yaw: -30, pitch: -52 });
+const STOPS_JSON = JSON.stringify(Object.fromEntries(STOPS.map((s) => [s.id, s])));
+const STOP_ORDER = JSON.stringify(STOPS.map((s) => s.id));
 
 const JS = `
 'use strict';
@@ -737,15 +901,26 @@ document.querySelectorAll('.tabs .tab').forEach(function (t) {
   t.addEventListener('click', function () { showView(t.getAttribute('data-view')); });
 });
 
-// ── 3D camera ─────────────────────────────────────────────────────────────────
+// ── 3D camera + WALKTHROUGH ───────────────────────────────────────────────────
+// The camera has two modes. HOME is the old orbit: the whole building from above.
+// A STOP puts you INSIDE — the building is panned so the stop's floor position sits
+// under the camera, the eye drops to EYE_Y above the floor, and the walls you are not
+// standing in front of fade to ghosts so you can see out of the room you are in.
 var scene = document.getElementById('scene'), stage = document.getElementById('stage');
-var VIEWS = ${VIEW_JSON};
-var cam = { yaw: VIEWS.home.yaw, pitch: VIEWS.home.pitch, zoom: 1, lift: 0 };
+var bldg = document.getElementById('bldg');
+var HOME = ${HOME_JSON};
+var STOPS = ${STOPS_JSON};
+var STOP_ORDER = ${STOP_ORDER};
+var AREA_STOP = ${AREA_STOP};
+var cam = { yaw: HOME.yaw, pitch: HOME.pitch, zoom: 1, lift: 0, px: 0, pz: 0 };
 var ZMIN = 0.18, ZMAX = 3.2, PMIN = -90, PMAX = 0;
 var HALF_PX = ${px(FACE_H / 2)};
 var STAGE_TOP = 0.70;
 var PLAN_PX = ${px(PLAN_W)}, PLAN_D_PX = ${px(PLAN_H)};
-var curPreset = 'home';
+var PPI = ${PPI}, PLAN_W = ${PLAN_W}, PLAN_H = ${PLAN_H}, EYE_Y = ${EYE_Y}, FACE_H = ${FACE_H};
+var curStop = null;          // null = the home orbit
+var ghostOn = true;
+var trail = [];              // breadcrumb history for the Back button
 var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
 
 function apply() {
@@ -755,41 +930,159 @@ function apply() {
   stage.style.setProperty('--pitch', cam.pitch.toFixed(2) + 'deg');
   stage.style.setProperty('--zoom', cam.zoom.toFixed(3));
   stage.style.setProperty('--lift', cam.lift.toFixed(1) + 'px');
+  bldg.style.setProperty('--px', cam.px.toFixed(1) + 'px');
+  bldg.style.setProperty('--pz', cam.pz.toFixed(1) + 'px');
+  var area = curStop ? STOPS[curStop].area : null;
+  cullBehind();
   document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
-    b.classList.toggle('on', b.getAttribute('data-viewbtn') === curPreset);
+    var k = b.getAttribute('data-viewbtn');
+    b.classList.toggle('on', k === 'home' ? !curStop : k === area);
+  });
+  document.querySelectorAll('.hot').forEach(function (h) {
+    h.classList.toggle('here', h.getAttribute('data-stop') === curStop);
+  });
+  scene.classList.toggle('inside', !!curStop);
+  paintGhosts(area);
+  paintCrumbs();
+}
+
+// CSS 3D has no view frustum. Standing inside the building, anything BEHIND the camera
+// is still projected — and at interior range a wall two metres behind your head lands
+// across the whole screen as a bright slab. So at a stop we hide whatever is behind.
+// z' = -x*sin(yaw) + z*cos(yaw) in stop-local plan coords; z' > 0 is behind you.
+var solids = null, culled = false;
+function cullBehind() {
+  if (!solids) {
+    solids = [].slice.call(document.querySelectorAll('[data-px]')).map(function (el) {
+      return { el: el, x: +el.getAttribute('data-px'), z: +el.getAttribute('data-pz'), off: false };
+    });
+  }
+  var i, o;
+  if (!curStop) {
+    if (culled) { for (i = 0; i < solids.length; i++) { o = solids[i]; if (o.off) { o.el.classList.remove('behind'); o.off = false; } } culled = false; }
+    return;
+  }
+  culled = true;
+  var s = STOPS[curStop];
+  var r = cam.yaw * Math.PI / 180, si = Math.sin(r), co = Math.cos(r);
+  for (i = 0; i < solids.length; i++) {
+    o = solids[i];
+    var want = (-(o.x - s.x) * si + (o.z - s.z) * co) > 26;
+    if (want !== o.off) { o.el.classList.toggle('behind', want); o.off = want; }
+  }
+}
+
+// Ghosting. A niche wall belongs to the "niches" list but PHYSICALLY stands in another
+// area, so it stays solid when you are standing in that area too.
+function paintGhosts(area) {
+  var on = ghostOn && !!area;
+  document.querySelectorAll('.face, .fbase, .mass, .mtop, .blk').forEach(function (el) {
+    var a = el.getAttribute('data-area');
+    if (!a) { for (var i = 0; i < el.classList.length; i++) { var c = el.classList[i]; if (c.indexOf('ar-') === 0) { a = c.slice(3); break; } } }
+    var home = el.getAttribute('data-homearea');
+    var mine = a === area || home === area;
+    el.classList.toggle('ghost', on && !mine);
   });
 }
+
+function paintCrumbs() {
+  var bar = document.getElementById('crumbs');
+  var s = curStop ? STOPS[curStop] : null;
+  var h = '<button type="button" class="crumb" data-crumb="home">Whole Building</button>';
+  if (s) {
+    h += '<span class="csep">\\u203a</span><button type="button" class="crumb" data-crumb="area:' + s.area + '">' +
+      (AREA_LABEL[s.area] || s.area) + '</button>';
+    h += '<span class="csep">\\u203a</span><span class="crumb cur">' + s.label + '</span>';
+    h += '<span class="cnote2">' + s.sub + '</span>';
+  } else {
+    h += '<span class="cnote2">Click a doorway or a floor marker to walk in</span>';
+  }
+  h += '<button type="button" class="crumb cback2" id="btn-back"' + (trail.length ? '' : ' disabled') + '>\\u2190 Back</button>';
+  bar.innerHTML = h;
+}
+
 function homeZoom() {
   var w = scene.clientWidth || 900, h = scene.clientHeight || 480;
   return clamp(Math.min(w * 0.80 / PLAN_PX, h * 0.80 / (PLAN_D_PX * 0.72)), ZMIN, ZMAX);
 }
-function fitScene() { if (scene.offsetWidth) { viewTo(curPreset, true); } }
+function insideZoom() {
+  return clamp(Math.min(scene.clientHeight * 0.62 / (FACE_H * PPI), scene.clientWidth * 0.62 / (150 * PPI)), ZMIN, ZMAX);
+}
+function fitScene() { if (scene.offsetWidth) { curStop ? goStop(curStop, true, true) : goHome(true); } }
 window.addEventListener('resize', fitScene);
 
-function viewTo(k, keep) {
+function dropCard() {
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the model. Drop it.
   if (!pinned) card.classList.remove('show');
-  var v = VIEWS[k] || VIEWS.home;
-  curPreset = k;
-  cam.yaw = v.yaw; cam.pitch = v.pitch;
-  if (k === 'home') {
-    cam.zoom = homeZoom();
-    cam.lift = HALF_PX * cam.zoom * 0.5 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
-  } else {
-    cam.zoom = clamp(Math.min(scene.clientWidth * 0.9 / (PLAN_PX * 0.62), scene.clientHeight * 0.8 / (${px(FACE_H)} * 1.9)), ZMIN, ZMAX);
-    cam.lift = HALF_PX * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
-  }
+}
+
+function goHome(keep) {
+  dropCard();
+  if (curStop && !keep) trail.push(curStop);
+  curStop = null;
+  cam.yaw = HOME.yaw; cam.pitch = HOME.pitch;
+  cam.px = 0; cam.pz = 0;
+  cam.zoom = homeZoom();
+  cam.lift = HALF_PX * cam.zoom * 0.5 - (STAGE_TOP - 0.5) * scene.clientHeight * 0.5;
+  apply();
+}
+
+function goStop(id, keep, silent) {
+  var s = STOPS[id];
+  if (!s) return goHome(keep);
+  dropCard();
+  if (!silent && curStop !== id) trail.push(curStop);
+  curStop = id;
+  cam.yaw = s.yaw; cam.pitch = s.pitch == null ? -5 : s.pitch;
+  cam.zoom = insideZoom() * (s.zoom || 1);
+  cam.px = -(s.x - PLAN_W / 2) * PPI;
+  cam.pz = -(s.z - PLAN_H / 2) * PPI;
+  cam.lift = (0.5 - STAGE_TOP) * scene.clientHeight - EYE_Y * PPI * cam.zoom;
   apply();
   if (!keep) window.scrollTo(0, 0);
 }
+
+function goBack() {
+  if (!trail.length) return;
+  var prev = trail.pop();
+  prev ? goStop(prev, true, true) : goHome(true);
+  paintCrumbs();
+}
+
+// Doorways, floor markers, breadcrumbs and the area buttons all move the camera.
+document.addEventListener('click', function (ev) {
+  var t = ev.target.closest('[data-stop]');
+  if (t) { ev.stopPropagation(); goStop(t.getAttribute('data-stop')); showView('3d'); return; }
+  var c = ev.target.closest('[data-crumb]');
+  if (c) {
+    var v = c.getAttribute('data-crumb');
+    if (v === 'home') goHome();
+    else goStop(AREA_STOP[v.slice(5)]);
+    return;
+  }
+  if (ev.target.closest('#btn-back')) goBack();
+}, true);
+document.addEventListener('keydown', function (ev) {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  var t = ev.target.closest && ev.target.closest('[data-stop]');
+  if (t) { ev.preventDefault(); goStop(t.getAttribute('data-stop')); showView('3d'); }
+});
+
 document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
   b.addEventListener('click', function () {
     var k = b.getAttribute('data-viewbtn');
-    viewTo(curPreset === k && k !== 'home' ? 'home' : k, true);
+    if (k === 'home') return goHome();
+    goStop(AREA_STOP[k]);
   });
 });
-document.getElementById('btn-reset').addEventListener('click', function () { viewTo('home', true); });
+document.getElementById('btn-reset').addEventListener('click', function () { goHome(); });
+document.getElementById('btn-ghost').addEventListener('click', function () {
+  ghostOn = !ghostOn;
+  this.classList.toggle('on', ghostOn);
+  this.setAttribute('aria-pressed', ghostOn ? 'true' : 'false');
+  apply();
+});
 document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
 document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
 
@@ -802,7 +1095,9 @@ function capturePts() {
   if (captured) return;
   captured = true;
   scene.classList.add('dragging');
-  curPreset = null;
+  // Dragging inside a stop is LOOKING AROUND, not leaving: the stop (and therefore the
+  // breadcrumb and the ghosting) survives a drag. Only a doorway, a marker, a
+  // breadcrumb or Reset moves you.
   if (!pinned) card.classList.remove('show');
   Object.keys(pts).forEach(function (id) { try { scene.setPointerCapture(+id); } catch (e) { /* gone */ } });
 }
@@ -869,11 +1164,10 @@ scene.addEventListener('keydown', function (ev) {
   else if (k === '+' || k === '=') cam.zoom *= 1.2;
   else if (k === '-' || k === '_') cam.zoom /= 1.2;
   else return;
-  if (k.indexOf('Arrow') === 0) curPreset = null;
   ev.preventDefault();
   apply();
 });
-viewTo('home', true);
+goHome(true);
 `;
 
 // ── Assemble ──────────────────────────────────────────────────────────────────
@@ -926,10 +1220,13 @@ const HTML = `<!DOCTYPE html>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="tabs">
+  <button class="tab active" data-view="3d">Walk Through</button>
   <button class="tab" data-view="plan">Floor Plan</button>
-  <button class="tab active" data-view="3d">3D View</button>
+  <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">All Banks</button>
+</div>
+<div class="tabs tabs2">
+  <span class="tabl">Printable lists</span>
 ${AREAS.map((a) => `  <button class="tab" data-view="${a.id}">${esc(a.label)}</button>`).join('\n')}
-  <button class="tab" data-view="overview" style="margin-left:auto;border-left:1px solid var(--gb);">Overview</button>
 </div>
 <div class="main">
   <div class="printcard" id="printcard" aria-hidden="true"></div>
@@ -939,14 +1236,16 @@ ${AREAS.map((a) => `  <button class="tab" data-view="${a.id}">${esc(a.label)}</b
       <button class="tbtn" data-viewbtn="home" title="The whole building from above">Whole Building</button>
 ${AREAS.map((a) => `      <button class="tbtn" data-viewbtn="${a.id}" title="${esc(a.sub)}">${esc(a.label)}</button>`).join('\n')}
       <div class="tbsep"></div>
+      <button class="tbtn on" id="btn-ghost" aria-pressed="true" title="Fade the walls you are not standing in front of">Ghost other walls</button>
       <button class="tbtn" id="btn-reset">Reset view</button>
       <div class="tbsep"></div>
       <button class="tbtn" id="btn-out" aria-label="Zoom out">&minus;</button>
       <button class="tbtn" id="btn-in" aria-label="Zoom in">+</button>
     </div>
+    <nav class="crumbs no-print" id="crumbs" aria-label="Where you are in the building"></nav>
 ${scene3d()}
-    <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
-    <div class="modelnote">${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; model proportions estimated from the CAD plan and photographs; no dimensions are implied</div>
+    <div class="hint">Click a <b>doorway</b> or a <b>floor marker</b> to walk there &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it &nbsp;·&nbsp; arrow keys look, +/&minus; zoom</div>
+    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the MIS CAD floor plan; heights, the chapel furniture and both niche walls' facing directions are ESTIMATED from the 2026-07-29 walk-through photographs. No dimensions are implied.</div>
     ${LEGEND}
   </div>
 
