@@ -1,6 +1,6 @@
 # STATE — Living Ledger
 
-**Current sprint: sprint-09 — CLOSED 2026-07-31.** Eleven tracks (A, B, C, D, D2, M,
+**Current sprint: sprint-09 — CLOSED AND FULLY PUSHED 2026-07-31** (operator: "push it all live"; 21f697d..5240db6; deploy verified on the wire — August banner + cmp-cols serving). Eleven tracks (A, B, C, D, D2, M,
 U, S, T, I, K) all merged and director-audited. **Final main: `8 blocks, 0 errors`;
 `1534 passed, 0 failed across 31 suites` (director's own readable run); baseline:
 from the 2026-07-26 reference exactly `generateCirgasPacket` sheets 7/8 moved (Track
