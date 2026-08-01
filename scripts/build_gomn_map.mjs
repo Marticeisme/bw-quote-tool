@@ -413,14 +413,19 @@ function cardHtml(d) {
     tot += inscrSub + tax;
   }
   if (urn > 0) {
-    rows += '<div class="cr"><span class="cl">' + URN_NAME + ' \\u00d7' + urn + ' <em>(merchandise)</em></span><span class="cv">' + fm(URN_PRICE * urn) + '</span></div>';
-    tot += URN_PRICE * urn;
+    // TAXED at 10.4%, exactly like the inscription (operator ruling 2026-07-31). The tax
+    // is its own row so the family can see which subtotal it was computed on.
+    var urnSub = URN_PRICE * urn;
+    var urnTax = Math.round(urnSub * TAX * 100) / 100;
+    rows += '<div class="cr"><span class="cl">' + URN_NAME + ' \\u00d7' + urn + ' <em>(merchandise)</em></span><span class="cv">' + fm(urnSub) + '</span></div>';
+    rows += '<div class="cr"><span class="cl">Sales tax on urn (10.4%)</span><span class="cv">' + fm2(urnTax) + '</span></div>';
+    tot += urnSub + urnTax;
   }
   return cardHead(d) + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">' + COMPANION_NOTE + ' E.C.F. is 10% of the niche price only \\u2014 add-ons are not subject to it. ' +
     (urn > 0
-      ? 'Sales tax on the ' + URN_NAME + ' is confirmed at contract.'
+      ? 'Both merchandise lines \\u2014 inscription and urn \\u2014 carry 10.4% sales tax.'
       : 'The Interlude urns are NOT included above \\u2014 add them with the urn box in the footer.') +
     '</div>';
 }
@@ -644,7 +649,7 @@ ${BLOCK_ORDER.map(view).join('\n')}
     <div class="fi"><span class="fl">E.C.F.</span><span class="fv">10% of niche price — not included in listed prices</span></div>
     <div class="fi"><span class="fl">Inscription — $${FEES.INSCR} ea + 10.4% tax</span>
       <span class="fv">Qty: <input type="number" id="insc-qty" min="0" max="${INSCR_MAX}" value="0" aria-label="Inscription quantity, up to ${INSCR_MAX} on the niche front"> <span class="fnote">up to ${INSCR_MAX} on the front</span></span></div>
-    <div class="fi fi-urn"><span class="fl">${esc(URN.name)} (${esc(URN.maker)}) — $${URN.price} ea</span>
+    <div class="fi fi-urn"><span class="fl">${esc(URN.name)} (${esc(URN.maker)}) — $${URN.price} ea + 10.4% tax</span>
       <span class="fv">Qty: <input type="number" id="urn-qty" min="0" max="${URN.maxQty}" value="0" aria-label="${esc(URN.name)} quantity, up to ${URN.maxQty} per niche"> <span class="fnote">merchandise, not a fee — ${URN.maxQty} fit per niche</span></span></div>
   </div>
 
@@ -655,7 +660,7 @@ ${BLOCK_ORDER.map(view).join('\n')}
            right after it (two fit — that is the companion capacity). Corrected s09/D. -->
       <li><b>Companion niche, and why only the Interlude Urn fits.</b> ${esc(COMPANION_NOTE)}</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.companion)}&rdquo;</span></li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span> The urn price list figure is <b>${esc(URN.name)} (${esc(URN.maker)}) $${URN.price}.00</b> each &mdash; merchandise, not a fee, and up to ${URN.maxQty} per niche.</li>
+      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span> The urn price list figure is <b>${esc(URN.name)} (${esc(URN.maker)}) $${URN.price}.00</b> each &mdash; merchandise, not a fee, and up to ${URN.maxQty} per niche. It carries <b>10.4% sales tax</b>, like the inscription (operator ruling ${esc(FEE_SOURCE.confirmedOn)}).</li>
       <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.ecf)}&rdquo;</span></li>
       <li><span class="shout">${esc(SHEET_TEXT.photos)}</span></li>
     </ul>
@@ -664,7 +669,7 @@ ${BLOCK_ORDER.map(view).join('\n')}
   <div class="rules">
     <h3>Fee schedule &mdash; where these numbers come from</h3>
     <ul>
-      <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCR}.00ea + 10.4% sales tax on the inscription alone &nbsp;·&nbsp; E.C.F. 10%</b></li>
+      <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCR}.00ea &nbsp;·&nbsp; 10.4% sales tax on merchandise (inscription and urn) &nbsp;·&nbsp; E.C.F. 10%</b></li>
       <li><b>These are the ${esc(FEE_SOURCE.schedule)} schedule</b>, applied to the Garden of Meditation by ${esc(FEE_SOURCE.confirmedBy)} on ${esc(FEE_SOURCE.confirmedOn)}. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints ${esc(FEE_SOURCE.replaces)}, which these amounts replace. Confirm the current charges in MIS/Enterprise before quoting.</li>
       <li>The E.C.F. rate is the one fee figure still taken from this sheet, and it is unchanged at 10%.</li>
       <li><b>Two inscriptions may be added to the front</b> of a companion niche &mdash; the quantity box above goes to ${INSCR_MAX}.</li>
