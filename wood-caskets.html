@@ -239,16 +239,23 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .compare-table{display:grid;border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;max-width:1500px;margin:0 auto;}
 .compare-table-row{display:contents;}
 .compare-corner{background:transparent;}
-.compare-label-cell{padding:12px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);background:var(--sidebar-bg);display:flex;align-items:center;border-top:1px solid var(--warm-border);}
-.compare-value-cell{padding:12px 14px;font-size:13.5px;color:var(--text);border-top:1px solid var(--warm-border);border-left:1px solid var(--warm-border);display:flex;align-items:center;}
+.compare-label-cell{padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);background:var(--sidebar-bg);display:flex;align-items:center;border-top:1px solid var(--warm-border);}
+.compare-value-cell{padding:9px 14px;font-size:13.5px;color:var(--text);border-top:1px solid var(--warm-border);border-left:1px solid var(--warm-border);display:flex;align-items:center;}
 /* Price is always ROW_LABELS[0], so the header row is child 1 and the Price row
    is child 2 — larger, navy, bold so pricing reads at a glance. Screen table
    only (#compareTable / .compare-table); the print table is .cmp-table. */
 .compare-table > .compare-table-row:nth-child(2) .compare-value-cell{font-size:19px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;}
 .compare-table-row.diff .compare-label-cell{background:#F6E4D1;color:var(--orange-dark);}
 .compare-table-row.diff .compare-value-cell{background:#FBF1E7;font-weight:700;color:var(--navy-dark);}
-.compare-col-header{padding:16px 14px;border-left:1px solid var(--warm-border);text-align:center;display:flex;flex-direction:column;align-items:center;}
-.compare-col-img{width:100%;max-width:320px;aspect-ratio:1/1;object-fit:cover;background:var(--sidebar-bg);mix-blend-mode:multiply;border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;}
+.compare-col-header{padding:12px 14px;border-left:1px solid var(--warm-border);text-align:center;display:flex;flex-direction:column;align-items:center;}
+/* object-fit is contain, not cover: every catalog photo is square today so the two
+   render identically, but cover would silently crop a non-square photo — and a crop
+   that clips the end of a casket is exactly what must not happen here.
+   max-height is in vh so a taller photo can never push the table off a short screen;
+   the per-count max-widths are what bind on a normal desktop. */
+.compare-col-img{width:100%;max-width:320px;max-height:42vh;aspect-ratio:1/1;object-fit:contain;background:var(--sidebar-bg);mix-blend-mode:multiply;border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;}
+.compare-table.cmp-cols-2 .compare-col-img{max-width:460px;}
+.compare-table.cmp-cols-3 .compare-col-img{max-width:400px;}
 .compare-col-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:6px;}
 .compare-col-remove{background:none;border:none;color:var(--text-muted);font-size:11.5px;cursor:pointer;text-decoration:underline;}
 .compare-col-remove:hover{color:var(--orange-dark);}
@@ -318,16 +325,31 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
   /* Specs & Differences print layout — hidden entirely when printing Photos mode */
   body.compare-printing #compareSheet.cmp-mode-photos .cmp-table{display:none!important;}
-  body.compare-printing #compareSheet .cmp-table{display:grid!important;margin:0 36px;border:1px solid #DBD3C4;border-radius:4px;overflow:hidden;}
+  body.compare-printing #compareSheet.cmp-mode-specs .cmp-table{flex:1;min-height:0;align-content:stretch;}
+  body.compare-printing #compareSheet .cmp-table{display:grid!important;margin:0 16px;border:1px solid #DBD3C4;border-radius:4px;overflow:hidden;}
   body.compare-printing #compareSheet .cmp-row{display:contents!important;}
   .cmp-corner{background:transparent;}
-  body.compare-printing #compareSheet .cmp-label-cell{display:flex!important;align-items:center;padding:8px 10px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a9299;background:#F1ECE0;border-top:1px solid #DBD3C4;}
+  body.compare-printing #compareSheet .cmp-label-cell{display:flex!important;align-items:center;padding:8px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a9299;background:#F1ECE0;border-top:1px solid #DBD3C4;}
+  .cmp-table.cmp-cols-2 .cmp-label-cell,.cmp-table.cmp-cols-3 .cmp-label-cell{font-size:9.5px;}
   body.compare-printing #compareSheet .cmp-value-cell{display:flex!important;align-items:center;padding:8px 10px;font-size:11px;color:#3b4a52;border-top:1px solid #DBD3C4;border-left:1px solid #DBD3C4;}
+  .cmp-table.cmp-cols-2 .cmp-value-cell,.cmp-table.cmp-cols-3 .cmp-value-cell{font-size:12.5px;}
   .cmp-row.cmp-diff .cmp-label-cell{background:#F6E4D1;color:#B5560E;}
   .cmp-row.cmp-diff .cmp-value-cell{background:#FBF1E7;font-weight:700;color:#2c445e;}
-  body.compare-printing #compareSheet .cmp-col-header{display:flex!important;flex-direction:column;align-items:center;padding:12px;border-left:1px solid #DBD3C4;text-align:center;}
-  .cmp-col-img{width:110px;height:110px;object-fit:contain;background:transparent;mix-blend-mode:multiply;margin-bottom:8px;}
+  body.compare-printing #compareSheet .cmp-col-header{display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;border-left:1px solid #DBD3C4;text-align:center;}
+  /* The photo is the thing a family actually decides on, so it scales with the
+     column instead of sitting at a fixed 110px thumbnail. Source photos are square
+     files with a wide, short casket floating in white space, so the RENDERED casket
+     is only about half the box height — width is the binding dimension, and the
+     per-count caps below are just under the width the grid column can give
+     (page 816 - 32 margin - 88 label column, less the 12px cell padding).
+     Fewer items compared = bigger photo; 4 items shrinks back down gracefully. */
+  .cmp-col-img{width:100%;height:auto;max-width:110px;object-fit:contain;background:transparent;mix-blend-mode:multiply;margin-bottom:8px;}
+  .cmp-table.cmp-cols-2 .cmp-col-img{max-width:334px;}
+  .cmp-table.cmp-cols-3 .cmp-col-img{max-width:220px;}
+  .cmp-table.cmp-cols-4 .cmp-col-img{max-width:163px;}
   .cmp-col-name{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:13px;font-weight:700;color:#3b4a52;line-height:1.15;}
+  .cmp-table.cmp-cols-2 .cmp-col-name{font-size:17px;}
+  .cmp-table.cmp-cols-3 .cmp-col-name{font-size:15px;}
 
   /* Photos print layout — the image row grows to fill remaining page height,
      same flex:1 trick already used by .ps-photo-wrap in the single-item sheet.
@@ -339,7 +361,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
      wrap to two rows, a much taller per-row budget too — the combination is
      what actually fills the page rather than just stretching an empty box. */
   body.compare-printing #compareSheet.cmp-mode-specs .cmp-photo-row{display:none!important;}
-  body.compare-printing #compareSheet .cmp-photo-row{display:grid!important;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;flex:1;min-height:0;gap:20px;padding:18px 36px 8px;}
+  body.compare-printing #compareSheet .cmp-photo-row{display:grid!important;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;flex:1;min-height:0;gap:20px;padding:14px 18px 6px;}
   body.compare-printing #compareSheet .cmp-photo-col{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
   body.compare-printing #compareSheet .cmp-photo-imgwrap{display:flex!important;align-items:center;justify-content:center;flex:1;width:100%;min-height:0;}
   .cmp-photo-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply;}
@@ -347,7 +369,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .cmp-photo-price{font-family:'Source Sans 3',sans-serif;font-size:13px;color:#4B6E81;font-weight:700;margin-top:2px;}
   .cmp-photo-item{font-family:'Source Sans 3',sans-serif;font-size:9.5px;color:#8a9299;margin-top:3px;}
 
-  body.compare-printing #compareSheet .cmp-footer{padding:10px 36px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;}
+  body.compare-printing #compareSheet .cmp-footer{margin-top:auto;padding:10px 22px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;}
   .cmp-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
   .cmp-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
   .cmp-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;text-align:right;}
@@ -2049,7 +2071,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   function renderSpecsTable(container, isPrint){
     container.innerHTML = '';
     var n = selected.length;
-    container.style.gridTemplateColumns = (isPrint ? '100px' : '150px') + ' repeat(' + n + ', 1fr)';
+    container.style.gridTemplateColumns = (isPrint ? '88px' : '150px') + ' repeat(' + n + ', 1fr)';
+    // The photo size scales with how many items are being compared, and CSS can't
+    // count siblings across a display:contents grid — so the count goes on the
+    // table as a class. Same call renders both the screen and the print table.
+    container.classList.remove('cmp-cols-2', 'cmp-cols-3', 'cmp-cols-4');
+    container.classList.add('cmp-cols-' + Math.min(Math.max(n, 2), 4));
     var datas = selected.map(getCardData);
     var diffRows = computeDiffRows(datas);
     var rowClass = isPrint ? 'cmp-row' : 'compare-table-row';

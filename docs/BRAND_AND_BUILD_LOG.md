@@ -1689,6 +1689,80 @@ page was rendered and looked at.
 
 ---
 
+### 2026-07-31 — Compare view: the photos now carry the sheet (all six catalogs)
+
+Operator, with a screenshot of the Cremation & Rental "Side-by-Side Comparison" print
+view: *"Side by side comparison casket photos needs to be much larger. look how much
+empty space is being left on this page. how is a family going to be able to decide on a
+casket like this?"* Three caskets across at a fixed **110 px** thumbnail, the table done
+by mid-page, and the **bottom 40% of the sheet blank** — measured, not eyeballed: the
+advisor footer sat at y=636 of a 1056 px Letter page.
+
+**Six pages, not five.** The track brief named `all-caskets`, `wood-caskets`,
+`metal-caskets`, `cremation-containers-rental-caskets` and `keepsake-urns-guide`.
+**`urns-guide.html` carries the identical block too** — the compare CSS block is
+byte-identical across all six (same md5, 5,535 bytes) — so it was fixed with them;
+leaving it behind would have made the one page a family compares urns on the odd one out.
+
+**Generated vs hand-edited — investigated, not assumed.** The compare markup lives **only
+in the emitted pages**; no build script mentions `cmp-` or `compare-` at all. But the
+pages are still the layer that survives a rebuild: `build_catalogs.py`,
+`build_sectioned_catalogs.py` and `build_metal_caskets.py` each *read the live page,
+regex-patch the product cards, and write it back*, so anything they do not target is
+preserved. Verified by actually running `build_all_caskets.py` after the change — the
+rebuilt page came back **byte-identical**, cmp block and the new `cmp-cols-` classes
+intact. The hazard worth writing down: `build_all_caskets.py` templates from
+**`wood-caskets.html`** and `build_cremation_rental.py` from **`urns-guide.html`**, so a
+compare change applied to only *some* pages would later be silently overwritten on those
+two by a rebuild. All six were changed together, which is what makes it safe here.
+
+**What changed** (the identical 49-line diff in each of the six):
+
+- `.cmp-col-img` is no longer a fixed 110 px square — `width:100%` with a per-count cap
+  (`.cmp-cols-2` 334 px · `.cmp-cols-3` 220 px · `.cmp-cols-4` 163 px). Rendered:
+  **110 → 334 px at 2 items (3.0x), 218 px at 3 (2.0x), 161 px at 4 (1.5x)** — 4 items
+  shrinks back down gracefully rather than overflowing.
+- The item count reaches CSS as a class on the table (`cmp-cols-N`, set in
+  `renderSpecsTable`), because CSS cannot count siblings across a `display:contents`
+  grid. The one call renders both the screen and the print table, so the two cannot drift.
+- Width is the binding dimension, so width was bought back: print table margin `0 36px` →
+  `0 16px`, print label column `100px` → `88px`, header-cell padding `12px` → `10px 6px`.
+- The sheet fills the page: `.cmp-table` gets `flex:1;align-content:stretch` in specs mode
+  and `.cmp-footer` gets `margin-top:auto`. **Footer bottom moved 636 → 1056 px** at every
+  item count, with `scrollHeight - clientHeight = 0`. That zero matters: the sheet is
+  `position:fixed;height:100%`, so overflow is *clipped, not paginated* — a row pushed off
+  the page would simply vanish, silently.
+- Print type scales with the room: label 8.5 → 9.5 px, value 11 → 12.5 px at 2–3 items,
+  column name 13 → 17/15 px. At 4 items everything keeps its original size.
+- **Screen overlay:** per-count caps 320 → 460 px (2 items) / 400 px (3), plus
+  `max-height:42vh` so a photo can never push the table off a short screen, and cell
+  padding 12 → 9 px to pay for it. Rendered 320 → **378 px** at 1440x900, with the
+  compare body's overflow unchanged (a pre-existing 21 px on the 8-row casket pages,
+  23 px after; the shorter urn/keepsake/cremation tables now fit where they did not).
+  `object-fit` went `cover` → **`contain`**: every catalog photo is square today so the
+  two render identically, but `cover` would silently crop a non-square photo, and a crop
+  that clips the end of a casket is exactly what must not happen on a comparison sheet.
+
+**Why 110 px looked even worse than 110 px sounds:** the source files are square, with a
+wide, short casket floating in white space, so the *rendered casket* was only about half
+the box height. Width is the only real lever — which is why the margins and the label
+column were worth the 30 px they gave back.
+
+**No `build_catalog_pdfs.mjs` rerun** — proven this time rather than argued. All six pages
+were rendered under emulated print media with no compare sheet active, HEAD vs working
+tree: **page 1 byte-identical on all six**, with `#compareSheet`, `#compareOverlay` and
+`#compareTray` all computing `display:none`. The multi-page catalog PDFs cannot see this
+change.
+
+Verified: `verify_catalogs.mjs` ALL PAGES OK · `verify_guides_page.mjs` ALL OK ·
+`verify_print_header.mjs` 25 pages, 0 over the 40 mm cap · `verify_table_alignment.mjs`
+21 tables / 292 cells, 0 failed · `npm run check` 8 blocks, 0 errors · `npm test` 1465
+passed, 0 failed across 29 suites. 28 Playwright renders (2/3/4 caskets, 2 and 4 urns and
+keepsakes, both tabs, screen and print) were **looked at**, not merely measured — the
+complaint was visual, so the evidence had to be.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
