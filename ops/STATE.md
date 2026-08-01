@@ -99,6 +99,61 @@ says ELM-3-S. **MERGE-ORDER DEVIATION logged: M merged before U/S/T** (M finishe
 first and its diff is file-disjoint from the remaining tracks; stated order was
 A→B→C→D→U→S→T→M).
 
+**Track U MERGED (director-audited, `3be39db`):** urn-gardens guide + tool reconciled
+against the operator's 06/2026 packages workbook (sheet governs — newer than
+prices.json and the s08 slide). **Rose Urn Garden priced: $4,395 + $660 ECF**, gate
+INVERTED from fails-if-priced to asserts-the-price (sabotaged both directions); Court
+of Honor comp. cremorial added as a garden option ($4,395/$660); GoV scroll $335→$355;
+memorial-package rows printed; guide still exactly 1 page; 14/14 baseline identical by
+the track's own A/B. Flagged, kept: GoV urn vault $505 has no product name (not
+invented); Rest Haven SOLD OUT has no tool record; LUG rights conflict still open.
+U's worktree run PASSED test-price-update-path on 3838 — refining the artifact theory:
+it's the foreign-server-on-3737 + weak guard, not worktrees per se.
+
+**Track S MERGED (director-audited, `08d476f`):** the WMP map (local repo, commits
+`5fb58df`/`68c8e9e`) no longer presents scattering as sellable — the availability
+split is replaced by "quoted in the quote tool, with the direct cremation options";
+marker/label/roster stay. **Tool side needed ZERO change** — scattering already lives
+in the cemetery quote's Garden optgroup (Rose $545+$80 / Eternal Rest $435+$65 /
+Terrace Ossuary $325+$50 + package block). **Urn-garden O&C 985→875 done at the
+SOURCE** (build-prices.py scrapes the qOCGround label; label changed, both prices.json
+copies regenerated together, diff proves `OC:ground_inurnment` is the ONLY moved key,
+all other O&C fees now PINNED in test-prices-source.mjs §9 +13). **S also found and
+fixed a latent build-prices.py regression:** since the MVC rework, any rebuild would
+have shipped inscription 660→605 and DROPPED the tax rate silently (scrape fell back
+to the Jan-2025 workbook); every scrape now sys.exits when its pattern stops matching.
+Suite on S's tree: 1467/29. DEVIATION logged: two director `[s09/ops]` commits
+(`4e017cd`, `ccc18de`) landed on S's branch because the shared main tree had S's
+branch checked out when the director committed — each commit is still ops-pure;
+they reached main via the S merge. Director lesson: after spawning a main-tree track,
+ops commits must wait or use `git -C` against a worktree with main checked out.
+PII note: S's oversized grep output holding burial names sat in the harness
+tool-results cache; the director deleted it (S's rm was permission-blocked).
+
+**Track T MERGED (director-audited, `0efd56e`):** TGMP rebuilt from the PHASE 2
+billboard render (pixel-segmented) cross-checked against seven 2026 site photos: pool
+AND ossuary deleted (ossuary on inference — the "what was replaced" drawing was the
+old model's source; operator to confirm), central walk ending in a round
+flagstone turn-around, far-end paved apron carrying bench/columbarium/birdbath, bark
+beds (photos beat the render's turf, stated on-page), 8 context planters (inert,
+gate-asserted no ref/price), TGN bank rotated across the far end facing down the path
+(weakest estimate, flagged on-page), 9 properties placed 2-D via PLACEMENT. Two camera
+bugs found by LOOKING: negative fit-solve root (bank preset clamped to orbit) and
+rotateX(-90) back-face ground slabs printing MEMORIAL PATH mirrored. Gate 132 ok / 12
+sabotages caught; inventory anchors unmoved ($544,000 + $218,000 = $762,000 / 100
+rights); card anchors $19,439/$17,600/$60,700 intact; 31-check interaction suite.
+1452/0 on port 3939 (foreign server PID 17896 owned 3737 mid-track and the guard
+crash-refused — correctly).
+
+**Mid-sprint operator additions (2026-07-31 evening):** August incentives replace July
+— TRACK-I drafted and spawned as the ninth track (10% burial / 20% maus rows E-F-G via
+checkbox / 20% cremation excl. 2nd rights / O&C −$1,000/−$500 stacking as previous
+months / ECF never discounted / 0%-60mo-10%-ACH financing / auto-language valid
+through Aug 31). Operator dismissed the four scoping questions, then ruled by
+instruction; burial-rights-excluded is a track decision flagged for his veto. He also
+started all three background chips as separate sessions — NOTE: the zero-rect chip
+session will touch build_tgmp_map.mjs and needs a rebase over T's merge.
+
 **Worktree artifact CONFIRMED and chipped:** `test-price-update-path.mjs` fails 10 in
 ANY worktree (C proved it port-independent on 3838; D proved assertServesThisTree
 passes a foreign server when index.html is byte-identical — curl showed 3737 serving a
