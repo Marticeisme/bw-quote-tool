@@ -72,10 +72,19 @@ ok('Veteran checkbox shows on Marker', await visible('#f-veteran'));
 ok('"Marker already in place" is hidden on Marker', !(await visible('#f-hasMarker')));
 
 // ---------------------------------------------------------------- subject line
+// Reworked per the operator 2026-08-01: per-type subjects on the decedent's FIRST
+// name ("Checking In — [Full Name]" read like a case file). The auto subject now
+// FOLLOWS the selected category until the counselor edits it, then it is theirs.
 await fill('recipientFirst', 'Karen');
 await fill('decedentFull', 'Robert Whitfield');
+const SUBJECTS = {
+  marker: "Robert's marker — whenever you're ready",
+  cremation: 'Thinking of you and Robert',
+  outside: 'Thinking of you and your family',
+  full: "Thinking of you since Robert's service",
+};
 ok('subject auto-fills per category spec',
-  (await page.inputValue('#subject')) === 'Checking In — Robert Whitfield',
+  (await page.inputValue('#subject')) === SUBJECTS.marker,
   await page.inputValue('#subject'));
 
 // ------------------------------------------------- category switching preserves fields
@@ -84,19 +93,31 @@ const before = {
   recipientFirst: await page.inputValue('#recipientFirst'),
   decedentFull: await page.inputValue('#decedentFull'),
   relationship: await page.inputValue('#relationship'),
-  subject: await page.inputValue('#subject'),
 };
-for (const cat of ['cremation', 'outside', 'full', 'marker']) await setCat(cat);
+for (const cat of ['cremation', 'outside', 'full', 'marker']) {
+  await setCat(cat);
+  ok(`subject follows the category: ${cat}`,
+    (await page.inputValue('#subject')) === SUBJECTS[cat],
+    await page.inputValue('#subject'));
+}
 const after = {
   recipientFirst: await page.inputValue('#recipientFirst'),
   decedentFull: await page.inputValue('#decedentFull'),
   relationship: await page.inputValue('#relationship'),
-  subject: await page.inputValue('#subject'),
 };
 ok('switching all four categories preserves the common fields',
   JSON.stringify(before) === JSON.stringify(after),
   JSON.stringify(before) + ' -> ' + JSON.stringify(after));
-ok('subject survives category switching', after.subject === 'Checking In — Robert Whitfield', after.subject);
+// A counselor's manual subject is theirs: category switches must not clobber it.
+await page.fill('#subject', 'My own subject');
+await page.dispatchEvent('#subject', 'input');
+await setCat('cremation');
+ok('an edited subject survives category switching',
+  (await page.inputValue('#subject')) === 'My own subject',
+  await page.inputValue('#subject'));
+await page.fill('#subject', SUBJECTS.marker);
+await page.dispatchEvent('#subject', 'input');
+await setCat('marker');
 
 // ---------------------------------------------------------------- greeting & signature
 let t = await body();
@@ -245,13 +266,14 @@ await page.waitForFunction(() => !!window.__copiedText);
 const copied = await page.evaluate(() => window.__copiedText);
 const copiedHtml = await page.evaluate(() => window.__copiedHtml);
 ok('Copy for Email starts with the subject line',
-  copied.startsWith('Subject: Checking In — Robert Whitfield'), copied.slice(0, 60));
+  copied.startsWith("Subject: Robert's marker — whenever you're ready"), copied.slice(0, 60));
 ok('Copy for Email includes the greeting', copied.includes('Hi Karen,'));
 ok('Copy for Email includes the body', copied.includes('Granite Marker Guide'));
 ok('Copy for Email includes the full signature',
   copied.includes('Martice Morrison') && copied.includes('16445 International Blvd, SeaTac, WA 98188'));
 ok('Copy for Email does not repeat the subject inside the body',
-  copied.split('Checking In — Robert Whitfield').length === 2, copied.split('Checking In').length - 1 + ' occurrences');
+  copied.split("Robert's marker — whenever you're ready").length === 2,
+  copied.split("Robert's marker").length - 1 + ' occurrences');
 ok('rich-text copy carries the subject and drops the placeholder styling',
   copiedHtml.includes('<strong>Subject:</strong>') && !copiedHtml.includes('class="blank"'));
 
