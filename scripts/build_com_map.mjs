@@ -14,7 +14,7 @@
  * Statuses are live hand-maintained data: edit scripts/com-crypt-data.mjs and
  * rebuild — never hand-edit the HTML.
  *
- * NO CRYPT CARRIES A PRICE. The crypt sheet's price text is four pixels tall and its
+ * CRYPTS CARRY MIS PRICES since 2026-08-01 (the 8/1 crypt-price export). Only an
  * font collides digits; see the header of com-crypt-data.mjs for the proof. The two
  * niche walls' sheets are legible, so those prices are real and drive the card math.
  *
@@ -27,7 +27,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, MIS, CRYPT_FEES, OMITTED_FEES, NICHE_FEES,
+  TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, MIS, CRYPT_FEES, NICHE_FEES,
+  PRICES, PRICE_BANDS, priceBand,
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
   ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
@@ -58,11 +59,28 @@ const bankSub = (b) => {
 };
 const areaOf = (id) => AREAS.find((a) => a.id === id);
 
+/**
+ * Per-bank availability line. The money is the sum of the bank's PRICED available
+ * units only, and it says so when MIS left one of them without a figure, so a
+ * counselor never reads the total as "everything available in this bank".
+ */
+function bankRollup(b) {
+  const av = (unitsByBank.get(b.id) || []).filter((u) => u.st === 'available');
+  if (!av.length) return 'Nothing available in this bank';
+  const priced = av.filter((u) => u.p != null);
+  const sum = priced.reduce((t, u) => t + u.p, 0);
+  const gap = av.length - priced.length;
+  return `${av.length} available · ${money(sum)} listed`
+    + (gap ? ` · ${gap} with no price in MIS — confirm` : '');
+}
+
 function unitLabel(u) {
   return u.cols.length > 1 ? `${u.tier}-${u.cols[0]}/${u.cols[1]}` : `${u.tier}-${u.cols[0]}`;
 }
 function unitAria(u) {
-  return `${unitLabel(u)}, bank ${u.bank}, ${TYPE_LABEL[u.type]}, ${STATUS_LABEL[u.st]}`;
+  const p = cryptPrice(u);
+  return `${unitLabel(u)}, bank ${u.bank}, ${TYPE_LABEL[u.type]}, ${STATUS_LABEL[u.st]}`
+    + (p == null ? (u.st === 'available' ? ', price to confirm in MIS' : '') : `, ${money(p)}`);
 }
 function nicheAria(n) {
   const w = WALLS[n.wall];
@@ -71,10 +89,20 @@ function nicheAria(n) {
 }
 
 // ── cell attribute payloads (the ONLY channel to the runtime card) ────────────
+// A crypt carries data-price ONLY when it is available AND MIS priced it. An unsellable
+// unit has no price attribute at all, so no card, no screen reader and no copy-paste can
+// surface a figure for it — the gate proves the attribute is absent, not merely unused.
 function cryptAttrs(u) {
   return `data-kind="crypt" data-bank="${u.bank}" data-id="${unitLabel(u)}" data-ref="${u.ref}"`
-    + ` data-tier="${u.tier}" data-cols="${u.cols.join('/')}" data-type="${u.type}" data-st="${u.st}"`;
+    + ` data-tier="${u.tier}" data-cols="${u.cols.join('/')}" data-type="${u.type}" data-st="${u.st}"`
+    + (cryptPrice(u) == null ? '' : ` data-price="${cryptPrice(u)}"`);
 }
+/** The one place "does this unit show money?" is decided. */
+const cryptPrice = (u) => (u.st === 'available' && u.p != null ? u.p : null);
+const priceChip = (u, cls) => {
+  const p = cryptPrice(u);
+  return p == null ? '' : `<span class="${cls} ${priceBand(p).c}">${money(p)}</span>`;
+};
 function nicheAttrs(n) {
   return `data-kind="niche" data-wall="${n.wall}" data-id="${n.row}-${n.col}" data-ref="${n.ref}"`
     + ` data-row="${n.row}" data-col="${n.col}" data-price="${n.p == null ? '' : n.p}" data-st="${n.st}"`
@@ -106,7 +134,9 @@ function bankGrid(b, { mini = false } = {}) {
     const ci = u.cols[0] - b.c0 + 2;
     const span = u.cols.length;
     const st = u.st !== 'available' ? ` st-${u.st}` : '';
-    const badge = CRYPT_BADGE[u.st];
+    // A priced cell shows the figure INSTEAD of the "Avail" badge: the chip already says
+    // available (only an available crypt can carry one) and two badges would not fit.
+    const badge = cryptPrice(u) != null ? priceChip(u, 'cprice') : CRYPT_BADGE[u.st];
     cells.push(`    <button type="button" class="c flatc ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${span}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}"><span class="cid">${unitLabel(u)}</span>${mini ? '' : badge}</button>`);
   }
   // voids
@@ -256,7 +286,7 @@ function bank3d(b) {
     const ri = TIERS.indexOf(u.tier) + 1;
     const ci = u.cols[0] - b.c0 + 1;
     const st = u.st !== 'available' ? ` st-${u.st}` : '';
-    const tag = C3_TAG[u.st] || '';
+    const tag = cryptPrice(u) != null ? priceChip(u, 'c3p') : (C3_TAG[u.st] || '');
     return `      <button type="button" class="c3 ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${u.cols.length}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}"><span class="c3id">${unitLabel(u)}</span>${tag}</button>`;
   });
   for (const v of VOIDS.filter((v) => v.bank === b.id)) {
@@ -379,6 +409,7 @@ function areaView(a) {
       <div class="gwrap">
 ${bankGrid(b)}
       </div>
+      <div class="bsub bmoney">${bankRollup(b)}</div>
     </div>`);
   if (a.id === 'niches') {
     for (const wid of ['RAD', 'SER']) {
@@ -484,6 +515,19 @@ const CSS = `
   .cid{font-size:8px;opacity:.85;font-weight:500;white-space:nowrap;}
   .cgrid.mini .cid{font-size:6px;}
   .nprice{font-weight:700;font-size:10px;padding:0 4px;border-radius:3px;background:#0f7a4a;color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  /* ── Crypt price chip. HUE MEANS MONEY on this page and means nothing else:
+     status is carried by pattern and darkness (see the status block below), so a
+     coloured chip can only ever be an available, MIS-priced crypt. Six bands over
+     29 distinct prices; the chip TEXT is always the exact figure, never rounded and
+     never a band label. Contrast is recomputed by verify_com_map.mjs. ── */
+  .cprice{font-weight:700;font-size:8.5px;padding:0 3px;border-radius:3px;white-space:nowrap;
+    max-width:100%;overflow:hidden;text-overflow:clip;box-shadow:0 1px 2px rgba(0,0,0,.4);}
+  .c3p{font-weight:700;font-size:7px;padding:0 2px;border-radius:2px;white-space:nowrap;
+    box-shadow:0 1px 2px rgba(0,0,0,.4);}
+${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\n')}
+  .plegend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px auto 0;max-width:1000px;}
+  .pli{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
+  .pls{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
   .cstat{font-size:6px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:0 3px;border-radius:2px;}
   .cs-a{background:rgba(255,255,255,.92);color:#123a24;}
   .cs-u{background:rgba(255,255,255,.16);color:#e6e3dc;}
@@ -796,7 +840,7 @@ const STOP_ORDER = JSON.stringify(STOPS.map((s) => s.id));
 
 const JS = `
 'use strict';
-var REC = ${CRYPT_FEES.RECORDING}, MBI = ${CRYPT_FEES.MONOBAR_INSTALL}, VASE = ${CRYPT_FEES.VASE};
+var REC = ${CRYPT_FEES.RECORDING}, MB = ${CRYPT_FEES.MONOBAR}, MBI = ${CRYPT_FEES.MONOBAR_INSTALL}, VASE = ${CRYPT_FEES.VASE};
 var N_OC = ${NICHE_FEES.OC}, N_REC = ${NICHE_FEES.RECORDING};
 var ECF_RATE = ${CRYPT_FEES.ECF_RATE};
 var TYPE_LABEL = ${JSON.stringify(TYPE_LABEL)};
@@ -806,7 +850,9 @@ var BANK_AREA = ${BANK_AREA};
 var BANK_LABEL = ${BANK_LABEL};
 var AREA_LABEL = ${AREA_LABEL};
 var WALL_NAME = { RAD: 'Radiance', SER: 'Serenity' };
-var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
+// Cents appear only where MIS itself has them: a 10% E.C.F. on a price ending in 5 is
+// an exact .50, and the export's own ecf column carries it. Whole amounts stay whole.
+var fm = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
 var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
 
@@ -838,15 +884,34 @@ function cryptCard(d) {
     h += '<div class="cnote">' + (ST_NOTE[d.st] || ST_NOTE.unlisted) + '</div>';
     return h;
   }
-  // Available, but the crypt sheet's price text is unreadable at source resolution:
-  // the page states that instead of guessing a five-figure number.
-  h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">Confirm in MIS</span></div>';
-  h += '<div class="cr"><span class="cl">E.C.F.</span><span class="cv">10% of price</span></div>';
+  // AVAILABLE. Card math, per the operator ruling of 2026-08-01: crypt price, its 10%
+  // E.C.F., the $225 recording fee, and the monobar if the counselor adds one. There is
+  // deliberately NO opening-and-closing line \u2014 "the only other cost is the crypt
+  // monobar price". Two available crypts have no price in MIS and say so.
+  var price = d.price ? +d.price : null;
+  if (price === null) {
+    h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">Confirm in MIS</span></div>';
+    h += '<div class="cr"><span class="cl">E.C.F.</span><span class="cv">10% of price</span></div>';
+    h += '<div class="cr"><span class="cl">Recording Fee</span><span class="cv">' + fm(REC) + '</span></div>';
+    h += '<div class="cnote">MIS lists this crypt as AVAILABLE on ' + MIS_PRINTED + ' but carries no usable price for it \\u2014 read the figure from MIS before quoting. No total is shown here rather than a guessed one.</div>';
+    return h;
+  }
+  var e = Math.round(price * 10) / 100, tot = price + e + REC;
+  h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">' + fm(price) + '</span></div>';
+  h += '<div class="cr"><span class="cl">E.C.F. (10%)</span><span class="cv">' + fm(e) + '</span></div>';
   h += '<div class="cr"><span class="cl">Recording Fee</span><span class="cv">' + fm(REC) + '</span></div>';
-  var mq = qty('mbi-qty'), vq = qty('vase-qty');
-  if (mq > 0) h += '<div class="cr"><span class="cl">Monobar Install \\u00d7' + mq + '</span><span class="cv">' + fm(MBI * mq) + '</span></div>';
-  if (vq > 0) h += '<div class="cr"><span class="cl">Vase \\u00d7' + vq + '</span><span class="cv">' + fm(VASE * vq) + '</span></div>';
-  h += '<div class="cnote">MIS listed this crypt as AVAILABLE on ' + MIS_PRINTED + '. No figure is shown here because the crypt price sheet supplied is too low-resolution to read its digits with certainty \\u2014 read the price from MIS. Open &amp; Closing and Monobar are obscured on the sheet and are not included.</div>';
+  var mq = qty('mb-qty'), vq = qty('vase-qty');
+  if (mq > 0) {
+    h += '<div class="cr"><span class="cl">Monobar Memorial \\u00d7' + mq + '</span><span class="cv">' + fm(MB * mq) + '</span></div>';
+    h += '<div class="cr"><span class="cl">Monobar Install \\u00d7' + mq + '</span><span class="cv">' + fm(MBI * mq) + '</span></div>';
+    tot += (MB + MBI) * mq;
+  }
+  if (vq > 0) {
+    h += '<div class="cr"><span class="cl">Vase \\u00d7' + vq + '</span><span class="cv">' + fm(VASE * vq) + '</span></div>';
+    tot += VASE * vq;
+  }
+  h += '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(tot) + '</span></div>';
+  h += '<div class="cnote">MIS listed this crypt as AVAILABLE and priced it on ' + MIS_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. No opening &amp; closing is quoted on a crypt. Always confirm status and price in MIS before writing.</div>';
   return h;
 }
 
@@ -987,7 +1052,7 @@ document.addEventListener('focusin', function (ev) {
   try { kb = n.matches(':focus-visible'); } catch (e) { kb = true; }
   if (kb) showCard(n, true);
 });
-['mbi-qty', 'vase-qty', 'noc-qty', 'nrec-qty'].forEach(function (id) {
+['mb-qty', 'vase-qty', 'noc-qty', 'nrec-qty'].forEach(function (id) {
   var e = document.getElementById(id);
   if (e) e.addEventListener('input', function () { if (pinned) showCard(pinned, false); });
 });
@@ -1283,6 +1348,9 @@ const LOGO = fs.readFileSync(path.join(ROOT, 'scripts', 'bw-logo.svg.txt'), 'utf
 const N_UNITS = units.length;
 const N_SPACES = cryptSpaces().length;
 const N_AVAIL = units.filter((u) => u.st === 'available').length;
+const PRICED = units.filter((u) => u.st === 'available' && u.p != null);
+const N_PRICED = PRICED.length;
+const AVAIL_VALUE = PRICED.reduce((t, u) => t + u.p, 0);
 const N_BLOCK = units.filter((u) => u.st === 'blocked').length;
 const N_OCC = units.filter((u) => u.st === 'occupied').length;
 const N_RES = units.filter((u) => u.st === 'reserved').length;
@@ -1301,15 +1369,23 @@ const LEGEND = `<div class="legend">
       <div class="li"><div class="ls lg-v"></div><span>Empty area — no crypts</span></div>
     </div>`;
 
+// The "crypt prices are not shown on this page" banner is GONE: as of 2026-08-01 they
+// are shown, from MIS. What replaces it is the price legend plus the two things a
+// counselor still has to know — the snapshot date and the two crypts MIS could not price.
+const PRICE_LEGEND = `<div class="plegend">
+${PRICE_BANDS.map((b) => `      <div class="pli"><div class="pls ${b.c}"></div><span>${b.l}</span></div>`).join('\n')}
+    </div>`;
+
 const WARN = `<div class="warn">
-    <b>Crypt prices are not shown on this page.</b> The MIS crypt sheet supplied renders its
-    price text four pixels tall, and at that size its font draws only eight distinct shapes
-    for ten digits — a five-figure amount cannot be read from it with certainty, so no figure
-    is printed here rather than a wrong one. Availability comes from MIS, not from that sheet;
-    read the exact amount for any crypt marked <b>Available</b> from MIS. The
-    <b>Radiance and Serenity niche-wall prices are legible and are exact.</b>
-    <b>Open &amp; Closing</b> and <b>Monobar</b> print as <code>########</code> on the crypt sheet
-    and are omitted from every total.
+    <b>Crypt prices come from MIS and are exact.</b> Every available crypt shows the price
+    MIS carried on ${PRICES.exported} (${PRICES.rows.toLocaleString('en-US')} priced positions over
+    ${PRICES.unitsCovered} available units), and a tandem or companion crypt is ONE unit at ONE
+    price \u2014 never split, never doubled. Nothing is rounded.
+    <b>${PRICES.unitsUnpriced} available crypts carry no price in MIS</b> and say
+    &ldquo;Confirm in MIS&rdquo; instead of a figure. The
+    <b>Radiance and Serenity niche-wall prices</b> are from their own 2026-07-29 wall sheets.
+    Nothing unsellable shows money anywhere on this page.
+    ${PRICE_LEGEND}
   </div>`;
 
 const HTML = `<!DOCTYPE html>
@@ -1370,8 +1446,9 @@ ${overviewView()}
 
   <div class="fees">
     <div class="fi"><span class="fl">Recording Fee — ${money(CRYPT_FEES.RECORDING)}</span><span class="fv">applies to every crypt</span></div>
-    <div class="fi"><span class="fl">Monobar Install Fee — ${money(CRYPT_FEES.MONOBAR_INSTALL)} ea</span>
-      <span class="fv">Qty: <input type="number" id="mbi-qty" min="0" max="4" value="0" aria-label="Monobar install quantity"></span></div>
+    <div class="fi"><span class="fl">Monobar — ${money(CRYPT_FEES.MONOBAR + CRYPT_FEES.MONOBAR_INSTALL)} ea</span>
+      <span class="fv">${money(CRYPT_FEES.MONOBAR)} memorial + ${money(CRYPT_FEES.MONOBAR_INSTALL)} install ·
+      Qty: <input type="number" id="mb-qty" min="0" max="4" value="0" aria-label="Monobar quantity"></span></div>
     <div class="fi"><span class="fl">Crypt Vase — ${money(CRYPT_FEES.VASE)} ea</span>
       <span class="fv">Qty: <input type="number" id="vase-qty" min="0" max="4" value="0" aria-label="Crypt vase quantity"></span></div>
     <div class="fi"><span class="fl">Niche O&amp;C — ${money(NICHE_FEES.OC)} ea</span>
@@ -1383,15 +1460,17 @@ ${overviewView()}
       <span class="fv">none — glass-front niches carry no inscription fee</span></div>
     <div class="fi"><span class="fl">Niche Sales Tax</span>
       <span class="fv">none — glass-front niches are not taxed</span></div>
-    <div class="fi"><span class="fl">Omitted (illegible on the sheet)</span><span class="fv">${OMITTED_FEES.map((f) => esc(f.split(' — ')[0])).join(' · ')}</span></div>
+    <div class="fi"><span class="fl">Crypt Open &amp; Closing</span>
+      <span class="fv">none — a crypt carries no O&amp;C (operator, ${PRICES.exported})</span></div>
   </div>
   <div class="pfoot">
     <b>Tier G is the top row, tier A the bottom. Space numbers run 101–231 around the building.</b><br>
     A tandem or companion is ONE purchasable unit at one price and is never split.<br>
-    ${N_AVAIL} crypt units available &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
+    ${N_AVAIL} crypt units available, ${money(AVAIL_VALUE)} listed over ${N_PRICED} of them &nbsp;·&nbsp;
+    ${N_AVAIL - N_PRICED} available with no price in MIS &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
     ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — confirm in MIS &nbsp;·&nbsp;
     ${N_NAVAIL} niches available, ${money(NICHE_VALUE)} listed &nbsp;·&nbsp; ${esc(NICHE_PRICES_EFFECTIVE)}<br>
-    Crypt availability comes from the MIS Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — always confirm current status and price in MIS before writing.
+    Crypt availability comes from the MIS Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces) and crypt PRICES from the MIS crypt-price export of ${PRICES.exported} (${PRICES.rows} priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — always confirm current status and price in MIS before writing.
   </div>
 </div><!-- /main -->
 
