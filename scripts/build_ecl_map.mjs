@@ -548,6 +548,26 @@ function markSel(el) {
   for (var i = 0; i < all.length; i++) if (!all[i].closest('.mini')) all[i].classList.add('sel');
 }
 
+// A niche is rendered twice. After a tab switch the pinned niche's OWN element may be
+// inside a display:none view, where getBoundingClientRect() is all zeros — and a card
+// placed against a zero rect lands at the top-left corner, on top of the tab bar, where
+// (being pinned, and therefore pointer-events:auto) it swallowed the clicks meant for
+// the tabs. Found 2026-07-31 by driving the GOMN page; the same code lived here. So:
+// always place against whichever rendering of this niche is actually laid out (skipping
+// the non-interactive minis), and if none is, park the card in its default bottom-right
+// corner rather than over the chrome.
+function visibleTwin(el) {
+  var f = el.getAttribute('data-face'), id = el.getAttribute('data-id');
+  if (!f || !id) return el;
+  var all = document.querySelectorAll('[data-face="' + f + '"][data-id="' + id + '"]');
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].closest('.mini')) continue;
+    var b = all[i].getBoundingClientRect();
+    if (b.width > 0 && b.height > 0) return all[i];
+  }
+  return null;
+}
+
 // Card opens NEXT TO the niche (same behavior as the MVC/ROAC pages); phones keep the
 // bottom sheet.
 function placeCard(el) {
@@ -555,7 +575,9 @@ function placeCard(el) {
     card.style.left = card.style.top = card.style.right = card.style.bottom = '';
     return;
   }
-  var r = el.getBoundingClientRect();
+  var t = visibleTwin(el);
+  if (!t) { card.style.left = card.style.top = card.style.right = card.style.bottom = ''; return; }
+  var r = t.getBoundingClientRect();
   card.style.right = 'auto'; card.style.bottom = 'auto';
   var cw = card.offsetWidth || 280, ch = card.offsetHeight || 220;
   var x = r.right + 14, y = r.top + r.height / 2 - ch / 2;
