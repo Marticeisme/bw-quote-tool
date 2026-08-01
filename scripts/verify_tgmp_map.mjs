@@ -483,6 +483,19 @@ console.log('\nPrint path');
   ck(scripts === 1, `page has ${scripts} <script> block(s); none is needed to render the flat views`);
 }
 
+// ── 10b. The pinned card must never cover the tab bar ────────────────────────
+console.log('\nPinned card vs the tab bar');
+{
+  // A pinned property in a hidden view has a ZERO rect, and a card placed against zero
+  // lands on the tab bar and eats the tab clicks. Found by driving the GOMN page, 2026-07-31.
+  const js = src.slice(src.lastIndexOf('<script>'));
+  ck(/function visibleTwin\(el\)/.test(js), 'the card places itself against a rendering that is actually laid out');
+  ck(/var t = visibleTwin\(el\);/.test(js) && /if \(!t\) \{ card\.style\.left/.test(js),
+    'and parks in its default corner when no rendering of the pinned property is visible');
+  ck(!/var r = el\.getBoundingClientRect\(\);\s*\r?\n\s*card\.style\.right = 'auto'/.test(js),
+    'placeCard no longer measures the pinned element directly (the zero-rect path)');
+}
+
 // ── 11. House rules ──────────────────────────────────────────────────────────
 console.log('\nHouse rules');
 ck(/class="back-btn no-print" href="\.\.\/"/.test(src), '"← Quote Tool" back button in the header');

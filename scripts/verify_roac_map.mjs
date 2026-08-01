@@ -139,5 +139,18 @@ const wallViews = (newSrc.match(/id="wall-[A-G]"/g) || []).length;
 const scripts = (newSrc.match(/<script/g) || []).length;
 (scripts === 1 ? pass : fail)(`page has ${scripts} <script> block(s); none is needed to render the flat grids`);
 
+// ── 7. The pinned card must never cover the tab bar ───────────────────────
+console.log('\nPinned card vs the tab bar');
+{
+  // A pinned space in a hidden view has a ZERO rect, and a card placed against zero
+  // lands on the tab bar and eats the tab clicks. Found by driving the GOMN page, 2026-07-31.
+  const js = newSrc.slice(newSrc.lastIndexOf('<script>'));
+  (/function visibleTwin\(el\)/.test(js) ? pass : fail)('the card places itself against a rendering that is actually laid out');
+  (/var t = visibleTwin\(el\);/.test(js) && /if \(!t\) \{ card\.style\.left/.test(js) ? pass : fail)(
+    'and parks in its default corner when no rendering of the pinned space is visible');
+  (!/var r = el\.getBoundingClientRect\(\);\s*\r?\n\s*card\.style\.right = 'auto'/.test(js) ? pass : fail)(
+    'placeCard no longer measures the pinned element directly (the zero-rect path)');
+}
+
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

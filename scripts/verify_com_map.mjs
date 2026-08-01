@@ -445,6 +445,19 @@ console.log('\nPrint path');
   chk(/class="back-btn no-print" href="\.\.\/"/.test(src), '"← Quote Tool" back button present');
 }
 
+// ── 7b. The pinned card must never cover the tab bar ──────────────────────────
+console.log('\nPinned card vs the tab bar');
+{
+  // A pinned crypt in a hidden view has a ZERO rect, and a card placed against zero
+  // lands on the tab bar and eats the tab clicks. Found by driving the GOMN page, 2026-07-31.
+  const js = src.slice(src.lastIndexOf('<script>'));
+  chk(/function visibleTwin\(el\)/.test(js), 'the card places itself against a rendering that is actually laid out');
+  chk(/var t = visibleTwin\(el\);/.test(js) && /if \(!t\) \{ card\.style\.left/.test(js),
+    'and parks in its default corner when no rendering of the pinned crypt is visible');
+  chk(!/var r = el\.getBoundingClientRect\(\);\s*\r?\n\s*card\.style\.right = 'auto'/.test(js),
+    'placeCard no longer measures the pinned element directly (the zero-rect path)');
+}
+
 // ── 8. Sabotage ───────────────────────────────────────────────────────────────
 if (process.argv.includes('--sabotage')) {
   console.log('\nSabotage (each mutation must make this gate exit 1)');
