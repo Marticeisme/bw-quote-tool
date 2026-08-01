@@ -1,5 +1,26 @@
 # STATE — Living Ledger
 
+**Sprint-10 COM batch (2026-08-01) — PUSH PRE-AUTHORIZED: "once its done and verified
+push it all live."** Fires after the final Z2 commit is audited+merged, the walkthrough
+verifier is hardened (it can exit 0 after a headless browser crash — hollow-gate
+defect, director-owned fix), and the full contract is green on final main. Merged so
+far, all director-audited: X (chapel/corridor geometry from the walkthrough video),
+X2 (RAD/SER placed from footage + rose-marble zones + type-derived bank depths:
+tandem 95 / single 47, island exempt+documented), Z (statuses MIS-backed from the
+8/1/2026 lot inquiry — 1355 rows reconciled, PII sweep proven empty), Z2 part 1 (694
+CSV prices loaded, tandem prices proven stamped-not-summed 3 ways, sheetRaw deleted as
+9/10 wrong), Z2 part 2 (crypt fees from the QUOTE TOOL per operator: O&C $1,205 /
+Recording $235 / monobar $1,670; niches explicitly untouched, boundary gated both
+ways), Y (photoreal walkthrough: COLMAP+Brush on the 3090 — Postshot activation never
+materialized on disk despite operator sign-in; 22.89 MB splat, chapel photoreal,
+glass-front walls DON'T reconstruct — needs a re-shoot that circles back).
+IN FLIGHT: Z2 part 3 = operator rulings: available iff MIS-available AND price>0
+(378 expected), A-183=$24,995 split-row exception, E-166 not offered ($0), bank
+116-123 tier G retyped 8 singles → 4 companion pairs @ $45,990 (units 785→781).
+Operator rulings log (all 2026-08-01): whole walk is inside COM; crypts ~2 caskets
+deep when tandem; software installs + 3090 use authorized; crypt O&C+recording from
+the tool, CRYPTS ONLY not niches; urn-garden rights fix pushed earlier (57ee209).
+
 **Current sprint: sprint-09 — CLOSED AND FULLY PUSHED 2026-07-31** (operator: "push it all live"; 21f697d..5240db6; deploy verified on the wire — August banner + cmp-cols serving). Eleven tracks (A, B, C, D, D2, M,
 U, S, T, I, K) all merged and director-audited. **Final main: `8 blocks, 0 errors`;
 `1534 passed, 0 failed across 31 suites` (director's own readable run); baseline:
