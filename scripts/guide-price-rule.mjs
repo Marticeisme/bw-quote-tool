@@ -206,7 +206,11 @@ export function suppressChips(html) {
   let n = 0, at = -1;
   const amounts = [];
   const out = html.replace(re, (m, tag, attrs, inner, offset) => {
-    if (/data-range=/.test(attrs) || /data-print-suppress=/.test(attrs)) return m;
+    // `data-typical` is a verified RANGE too — the middle-50% band the operator asked for
+    // on 2026-08-02 — and it lives on a `.plan-price` element, which is a chip class. Without
+    // this the band is suppressed in print and the leave-behind keeps only the wide span:
+    // the exact complaint, printed.
+    if (/data-range=/.test(attrs) || /data-typical=/.test(attrs) || /data-print-suppress=/.test(attrs)) return m;
     if (!/\$[0-9]/.test(inner)) return m;
     n++;
     if (at < 0) at = offset;

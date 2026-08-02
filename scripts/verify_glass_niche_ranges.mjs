@@ -34,6 +34,7 @@ import * as ECL from './ecl-niche-data.mjs';
 import * as MVC from './mvc-niche-data.mjs';
 import * as COM from './com-crypt-data.mjs';
 import { assertPrintRule } from './_print_rule_assert.mjs';
+import { typicalStr } from './_typical_band.mjs';
 
 const PAGE = 'glass-front-niches-guide.html';
 const html = fs.readFileSync(PAGE, 'utf8');
@@ -69,11 +70,34 @@ console.log(`   RAD   ${radAll.length} cells, ${radAvail.length} available`);
 console.log(`   SER   ${serAll.length} cells, ${serAvail.length} available`);
 
 // ── ranges ───────────────────────────────────────────────────────────────────
+const eclP = eclAvail.map((n) => n.p);
+const mvcP = mvcAll.map((n) => n.price);
+const radP = radAvail.map((n) => n.p);
+const serP = serAvail.map((n) => n.p);
+const glassP = [...eclP, ...mvcP, ...radP, ...serP];
+const [glassLo, glassHi] = minmax(glassP);
+
 const RANGES = {
   ecl: rangeStr(eclLo, eclHi),
   mvc: rangeStr(mvcLo, mvcHi),
   rad: rangeStr(radLo, radHi),
   ser: rangeStr(serLo, serHi),
+  // The whole glass-front population, the figure the 2026-08-02 ruling was aimed at.
+  glass: rangeStr(glassLo, glassHi),
+};
+
+// ── THE TYPICAL BAND (operator ruling, 2026-08-02) ───────────────────────────
+// "a very wide price range — also give a median price range on the glass front niches."
+// Each location's card, and the at-a-glance table, now LEAD with the middle 50% of the
+// prices that are actually for sale there and keep the full span as a secondary line.
+// Method and reasoning: scripts/_typical_band.mjs. Recomputed here from the same arrays
+// the ranges come from, and compared string-for-string, so a hand-typed band fails.
+const TYPICAL = {
+  ecl: typicalStr(eclP),
+  mvc: typicalStr(mvcP),
+  rad: typicalStr(radP),
+  ser: typicalStr(serP),
+  glass: typicalStr(glassP),
 };
 
 const tagged = (attr, key) => {
@@ -88,6 +112,39 @@ for (const [key, want] of Object.entries(RANGES)) {
   for (const got of found) {
     if (got === want) ok(`data-range="${key}"`.padEnd(26) + got);
     else fail(`data-range="${key}": page prints "${got}", module says "${want}"`);
+  }
+}
+
+console.log('\n=== PRINTED TYPICAL BANDS vs MODULES ===');
+{
+  const seen = new Set();
+  for (const [key, want] of Object.entries(TYPICAL)) {
+    const found = tagged('data-typical', key);
+    if (!found.length) { fail(`no element carries data-typical="${key}"`); continue; }
+    seen.add(key);
+    for (const got of found) {
+      if (got === want) ok(`data-typical="${key}"`.padEnd(26) + got);
+      else fail(`data-typical="${key}": page prints "${got}", module says "${want}"`);
+    }
+  }
+  // A band nobody can recompute is worse than no band — it looks authoritative and is not.
+  for (const m of html.matchAll(/\bdata-typical="([^"]+)"/g)) {
+    if (!(m[1] in TYPICAL)) fail(`data-typical="${m[1]}": no population is defined for that key`);
+  }
+  // The band must be TIGHTER than the span it leads, or it is decoration.
+  const span = (s) => { const [lo, hi] = s.split('&ndash;').map((x) => +x.replace(/[$,]/g, '')); return hi / lo; };
+  for (const key of seen) {
+    const f = span(RANGES[key]), t = span(TYPICAL[key]);
+    if (t < f) ok(`the ${key} band spans ${t.toFixed(1)}x inside a full range of ${f.toFixed(1)}x`);
+    else fail(`the ${key} band spans ${t.toFixed(1)}x, no tighter than its ${f.toFixed(1)}x full range`);
+  }
+  // The band leads and the full range follows. Asserted by position, because the whole
+  // point of the ruling is which number a family reads first.
+  for (const key of ['ecl', 'mvc', 'rad', 'ser', 'glass']) {
+    const iT = html.indexOf(`data-typical="${key}"`);
+    const iR = html.indexOf(`data-range="${key}"`);
+    if (iT > -1 && iR > -1 && iT < iR) ok(`the ${key} band is printed BEFORE its full range`);
+    else fail(`the ${key} full range appears before its typical band — the wide span leads again`);
   }
 }
 
@@ -263,10 +320,24 @@ console.log('\n=== AT-A-GLANCE TABLE ===');
   const start = html.indexOf('id="glance"');
   const table = start < 0 ? '' : html.slice(start, html.indexOf('</table>', start));
   if (!table) fail('no section with id="glance"');
-  else for (const [key, want] of Object.entries(RANGES)) {
-    if (table.includes(want)) ok(`at-a-glance repeats the ${key} range correctly`);
-    else fail(`at-a-glance is missing or misstates the ${key} range (${want})`);
+  else for (const key of ['ecl', 'mvc', 'rad', 'ser']) {
+    // `glass` is the whole-population aggregate; it leads the SECTION, not a table row,
+    // and is checked below.
+    if (table.includes(RANGES[key])) ok(`at-a-glance repeats the ${key} range correctly`);
+    else fail(`at-a-glance is missing or misstates the ${key} range (${RANGES[key]})`);
+    if (table.includes(TYPICAL[key])) ok(`at-a-glance repeats the ${key} typical band correctly`);
+    else fail(`at-a-glance is missing or misstates the ${key} typical band (${TYPICAL[key]})`);
   }
+
+  // The section lead carries the aggregate: the one figure the operator's ruling named.
+  const lead = start < 0 ? '' : html.slice(start, html.indexOf('<table', start));
+  if (lead.includes(TYPICAL.glass) && lead.includes(RANGES.glass)) ok('the section lead carries the glass-front typical band and the full span');
+  else fail(`the section lead must carry both the glass typical band (${TYPICAL.glass}) and the full span (${RANGES.glass})`);
+
+  // No percentile jargon reaches a family, anywhere on the page (operator, 2026-08-02).
+  const jargon = /percentile|quartile|interquartile|25th|75th|median/i.exec(html.replace(/<!--[\s\S]*?-->/g, ''));
+  if (jargon) fail(`the page uses statistical jargon in rendered text: "${jargon[0]}"`);
+  else ok('no percentile / quartile / median jargon appears in rendered text');
 }
 
 console.log('\n=== PRINTED-GUIDE PRICING RULE ===');
