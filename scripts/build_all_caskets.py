@@ -67,6 +67,11 @@ def main():
          '<div class="ps-eyebrow" id="psEyebrow">Caskets</div>'),
         ('<div class="compare-title">Compare Wood Caskets</div>',
          '<div class="compare-title">Compare Caskets</div>'),
+        # Filtered print sheet (s11 Track C): the eyebrow is the only per-catalog
+        # value that differs from the wood template — PER_PAGE and SHEET_TITLE are
+        # already right for a casket page.
+        ('  var SHEET_EYEBROW = "Wood Caskets";',
+         '  var SHEET_EYEBROW = "Caskets";'),
     ]
     for a, b in subs:
         if s.count(a) != 1:
@@ -76,14 +81,27 @@ def main():
     # cover-sub uses an em dash without entity? handle plain '—' fallback
     # (the wood file may use a literal em dash rather than &mdash;)
     # ---- facet config: add Casket Type + Color, relabel Material ----
-    combined_facets = ('  var COLOR_LABELS = { white:\'White\', ivory:\'Ivory / Champagne\', silver:\'Silver\', grey:\'Grey / Pewter\', black:\'Black\', blue:\'Blue\', green:\'Green\', purple:\'Purple\', pink:\'Pink / Rose\', red:\'Red / Burgundy\', brown:\'Brown / Copper\', gold:\'Gold\' };\n'
-                        '  var FACETS = [\n'
+    # COLOR_LABELS is injected separately, ahead of the shared PRICE_BANDS ladder, so
+    # the emitted order matches the hand-maintained pages exactly (COLOR_LABELS ->
+    # price helpers -> FACETS). Emitting it as part of the FACETS replacement would
+    # reorder it below the price helpers and break the byte-identical round-trip.
+    color_labels = ('  var COLOR_LABELS = { white:\'White\', ivory:\'Ivory / Champagne\', silver:\'Silver\', grey:\'Grey / Pewter\', black:\'Black\', blue:\'Blue\', green:\'Green\', purple:\'Purple\', pink:\'Pink / Rose\', red:\'Red / Burgundy\', brown:\'Brown / Copper\', gold:\'Gold\' };\n')
+    price_anchor = '  // Price bands. One ladder covers every catalog'
+    if s.count(price_anchor) != 1:
+        print('  !! price-helpers anchor not unique (found %d)' % s.count(price_anchor)); sys.exit(1)
+    s = s.replace(price_anchor, color_labels + price_anchor, 1)
+    combined_facets = ('  var FACETS = [\n'
+                        "    { key:'cremation', label:'Cremation', value:function(card){ return card.getAttribute('data-cremation')||''; } },\n"
                         "    { key:'cat',      label:'Casket Type', value:function(card){ var c=card.getAttribute('data-cat')||''; return c ? c.charAt(0).toUpperCase()+c.slice(1) : ''; } },\n"
                         "    { key:'material', label:'Material', value:firstDetail },\n"
                         "    { key:'fabric',   label:'Interior Fabric', value:fabric },\n"
-                        "    { key:'color',    label:'Color', value:function(card){ var c=card.getAttribute('data-color')||''; return c ? (COLOR_LABELS[c]||c) : ''; } }\n"
+                        "    { key:'color',    label:'Color', value:function(card){ var c=card.getAttribute('data-color')||''; return c ? (COLOR_LABELS[c]||c) : ''; } },\n"
+                        "    { key:'price', label:'Price', value:priceBand, order:PRICE_ORDER }\n"
                         '  ];')
-    facet_pat = re.compile(r"  var FACETS = \[\s*\{ key:'wood',[\s\S]*?\r?\n  \];")
+    # The wood block's FIRST facet has changed twice (wood -> cremation, 2026-07-30);
+    # anchor on the block opener and its trailing "];" instead of on whichever facet
+    # happens to lead, so adding a facet to wood cannot silently break this builder.
+    facet_pat = re.compile(r"  var FACETS = \[\r?\n[\s\S]*?\r?\n  \];")
     if len(facet_pat.findall(s)) != 1:
         print('  !! wood FACETS block not matched uniquely (found %d)' % len(facet_pat.findall(s))); sys.exit(1)
     s = facet_pat.sub(lambda m: combined_facets, s, count=1)
