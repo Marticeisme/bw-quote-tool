@@ -193,6 +193,10 @@ if (new RegExp(GIT + 'push\\b', 'i').test(cmd) && process.env.BW_SKIP_PAGE_VERIF
     'all-caskets.html',
   ];
 
+  // Guides built on the photo-first card template (sprint-11 Track D). The rollout track
+  // adds its guides both here and in scripts/verify_photo_first.mjs PAGES.
+  const PHOTO_FIRST_PAGES = ['urn-placement-guide.html', 'cemetery-property-guide.html'];
+
   // What is this push about to publish? Prefer the configured upstream; fall back to
   // origin/main. If neither resolves we cannot tell, and per this hook's fail-open
   // design we say nothing rather than wedge the push.
@@ -215,6 +219,13 @@ if (new RegExp(GIT + 'push\\b', 'i').test(cmd) && process.env.BW_SKIP_PAGE_VERIF
     }
     if (changed.includes('guides.html')) {
       jobs.push(['scripts/verify_guides_page.mjs', 'the guides hub']);
+    }
+    // The photo-first card template (sprint-11 Track D). Cheap — it reads the data
+    // modules and the two pages, no browser — so it runs whenever either page moves.
+    // What it catches is a price range that went stale because a niche sold, which is a
+    // wrong figure in front of a family and is invisible to every other gate here.
+    if (changed.some(f => PHOTO_FIRST_PAGES.includes(f))) {
+      jobs.push(['scripts/verify_photo_first.mjs', 'the photo-first guides']);
     }
 
     for (const [script, what] of jobs) {

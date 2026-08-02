@@ -33,6 +33,7 @@ import {
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
+import { assertNoMis } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/TGMP_Map.html';
@@ -398,7 +399,8 @@ console.log('\nFee schedule — the MVC June-2026 amounts, applied by operator r
     `and names the ${FEE_SOURCE.confirmedBy} of ${SCHEDULE_RULED_ON} as the authority`);
   ck(/the niche bank and the nine additional properties alike/.test(src),
     'and says the schedule covers the niche bank and the nine properties alike');
-  ck(/Confirm current fees in MIS\/Enterprise/.test(src), 'and still sends the counselor to MIS for the current amounts');
+  ck(/Confirm current fees with the cemetery office/.test(src),
+    'and still tells the reader to confirm the current amounts with us — without naming MIS (s11 Track D)');
   ck(/E\.C\.F\. is not included in the listed price\. Fees are the Mountain View Columbarium, June 2026 schedule/.test(src),
     'every detail card repeats the provenance in its own note');
 
@@ -625,6 +627,18 @@ console.log('\nMovement runtime');
   ck(!/downFloor[\s\S]{0,80}hideCard\(\)/.test(js),
     'and does NOT dismiss a pinned card on the way');
 }
+
+// ── ZERO RENDERED "MIS" ─────────────────────────────────────────────────────
+// Operator, 2026-08-02: "Never mention the word MIS on any guide to a family or any live
+// niche maps etc — that information does not need to be disclosed to families." This map
+// is a live niche map: he opens it in front of people. It used to send the reader to
+// "MIS/Enterprise", which names an internal system a family can neither see nor check.
+//
+// The assertion is here rather than in the sweep commit's diff because a wording fix is
+// exactly the kind of change that gets undone by the next person copying a sentence from
+// a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
+console.log('\nFamily-facing wording');
+assertNoMis((c, m) => (c ? pass : fail)(m), 'TGMP_Map.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

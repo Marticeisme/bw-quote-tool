@@ -68,8 +68,19 @@ function shrink(file) {
     '-sColorConversionStrategy=LeaveColorUnchanged',
     '-dNOPAUSE', '-dBATCH', `-sOutputFile=${tmp}`, file,
   ], { stdio: 'ignore' });
-  if (fs.existsSync(tmp) && fs.statSync(tmp).size > 1024) { fs.renameSync(tmp, file); return true; }
-  if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+  // Keep the rewrite only if it is actually SMALLER. Ghostscript re-encodes every image
+  // even when it is already under the target resolution, and on a photo-heavy page that
+  // costs size instead of saving it: Cemetery Property Guide went 1,937 KB in and came
+  // out 2,248 KB, and the old test — "the temp file exists and is over 1 KB" — accepted
+  // it. The point of this step is a smaller email attachment; a step that makes the file
+  // bigger has failed, however successfully it ran.
+  if (fs.existsSync(tmp)) {
+    if (fs.statSync(tmp).size > 1024 && fs.statSync(tmp).size < fs.statSync(file).size) {
+      fs.renameSync(tmp, file);
+      return true;
+    }
+    fs.unlinkSync(tmp);
+  }
   return false;
 }
 
@@ -119,15 +130,18 @@ for (const [src, out, opts = {}] of jobs) {
     badImages.forEach(s => console.error('     - ' + s));
   }
   await page.emulateMedia({ media: 'print' });
-  // The print cover's photo is a CSS background on an element that is display:none on
-  // screen, so its request only STARTS once print media is emulated — and page.pdf()
-  // does not wait for background images. loadAllImages() above cannot see it either
-  // (it walks document.images, and a background is not an <img>). Without this wait a
-  // hero that appears ONLY on the cover prints as blank navy — deterministic, not a
-  // race; it went unnoticed while every hero also appeared as a body <img>.
+  // Print-media-only background images and print-only image swaps only START their request
+  // once print media is emulated, and page.pdf() does not wait for either. loadAllImages()
+  // above cannot see them (it walks document.images before any swap, and a CSS background
+  // is not an <img> at all). The s10 cover's hero photo was one such asset and printed as
+  // blank navy until this wait was added; a print-only `content:url()` logo swap was tried
+  // and dropped in s11 (see guide-print.css §3). No such asset ships right now, so this
+  // loop is a no-op today — kept anyway, because the failure mode is deterministic, silent,
+  // and only visible by rasterising the PDF and looking at it.
   await page.evaluate(() => Promise.all(
-    Array.from(document.querySelectorAll('.pc-photo')).map((el) => {
-      const m = getComputedStyle(el).backgroundImage.match(/url\("?([^")]+)"?\)/);
+    Array.from(document.querySelectorAll('.cover-logo, .pc-photo')).map((el) => {
+      const cs = getComputedStyle(el);
+      const m = (cs.content + ' ' + cs.backgroundImage).match(/url\("?([^")]+)"?\)/);
       if (!m) return Promise.resolve();
       return new Promise((resolve) => {
         const img = new Image();

@@ -7,10 +7,18 @@
 //   1. <link rel="stylesheet" media="print" href="guide-print.css"> in <head>.
 //      `media="print"` is why the screen rendering is provably unchanged.
 //
-//   2. A marked block just inside <body> holding
-//        - a <style> with the per-guide constants that cannot live in the shared sheet:
-//          the @page @top-left title string, and `.print-cover{display:none}` for screen;
-//        - the generated cover markup.
+//   2. A marked block just inside <body> holding a <style> with the per-guide constants
+//      that cannot live in the shared sheet: the @page @top-left title string, and
+//      `.print-invite{display:none}` for screen.
+//
+// THERE IS NO COVER.  Sprint-11 Track D removed it on the operator's direction of
+// 2026-08-02 — "I don't like the idea of a cover page and I don't like any of the PDF
+// versions right now." This script used to emit a full-bleed cover page into every guide;
+// it no longer emits any, and because the block it writes is MARKED and rewritten in full
+// on every run, re-running this script is also what DELETES the covers s10 injected. The
+// rest of the s10 system stands: running footer, real page margins, range-only pricing.
+// `verify_guide_pages.mjs` asserts no page of any guide PDF is full-bleed, so a cover
+// cannot creep back in unnoticed.
 //
 // WHY THE TITLE IS A PER-GUIDE CONSTANT. A running header would normally use
 // `string-set: doc-title content()` on the masthead and `content: string(doc-title)` in
@@ -20,7 +28,7 @@
 // copy still comes from the guide's own masthead (see guide-print-meta.mjs), so it cannot
 // drift from the page.
 //
-// `.print-cover{display:none}` lives in this injected block rather than in guide-print.css
+// `.print-invite{display:none}` lives in this injected block rather than in guide-print.css
 // because that sheet is media="print" and therefore cannot say anything about screen.
 //
 // Run from repo root:  node scripts/build_guide_print_system.mjs [substring ...]
@@ -45,46 +53,22 @@ const decode = (s) => s.replace(/&[a-z]+;/g, (m) => ENT[m] ?? m);
 
 // A CSS string token: escape backslash and quote, and keep it on one line.
 const cssStr = (s) => '"' + decode(s).replace(/[\\"]/g, (c) => '\\' + c).replace(/\s+/g, ' ').trim() + '"';
-const attr = (s) => decode(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
-const asOf = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-function coverHtml(m) {
-  const typographic = m.hero ? '' : ' pc-typographic';
-  const photo = m.hero
-    ? `<div class="pc-photo" style="background-image:url('${m.hero}')"></div><div class="pc-scrim"></div>`
-    : '<div class="pc-photo"></div>';
-  // The h1 keeps the guide's own <br>, so a two-line title stays two lines on the cover.
-  return [
-    `<div class="print-cover${typographic}" data-print-cover="1" aria-hidden="true">`,
-    `  ${photo}`,
-    `  <div class="pc-top"><img src="logo.svg" alt="Bonney Watson"><div class="pc-place">${attr(m.place)}</div></div>`,
-    '  <div class="pc-plate">',
-    `    <div class="pc-kick">${attr(m.kicker)}</div>`,
-    `    <h1>${m.titleHtml}</h1>`,
-    '    <div class="pc-bar"></div>',
-    `    <div class="pc-sub">${m.subHtml}</div>`,
-    '    <div class="pc-foot">',
-    '      <div><b>Martice Morrison</b>Family Service Director &middot; (206) 445-9794<br>mmorrison@bonneywatson.com</div>',
-    `      <div style="text-align:right">16445 International Blvd<br>SeaTac, WA 98188<br><span class="pc-asof">Prices current as of ${asOf}</span></div>`,
-    '    </div>',
-    '  </div>',
-    '</div>',
-  ].join('\r\n');
-}
 
 function styleHtml(m) {
   return [
     '<style>',
     '/* Per-guide print constants. Screen is untouched: the only screen rule here hides',
-    '   the generated cover, which exists solely for the PDF. */',
-    '/* Both of these exist only for the PDF. Screen must never show them: the shared',
-    '   sheet is media=print and so cannot say anything about screen, which is exactly',
-    '   how the invitation blocks first shipped VISIBLE ON THE WEBSITE. */',
-    '.print-cover,.print-invite{display:none}',
+    '   the generated pricing invitation, which exists solely for the PDF. It must never',
+    '   show on screen — the shared sheet is media=print and so cannot say anything about',
+    '   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE',
+    '   WEBSITE. */',
+    '.print-invite{display:none}',
     '@media print{',
     '  @page{ @top-left{ content:' + cssStr('Bonney Watson · ' + m.title) + ';',
     "           font-family:'Source Sans 3',sans-serif; font-size:7.5pt; color:#6a7686; letter-spacing:.05em; } }",
+    '  /* Page 1 opens under the guide\'s own masthead, which states the title an inch',
+    '     below in 16pt. Repeating it in the running header would be the only thing on',
+    '     the page said twice. Every other page keeps it. */',
     '  @page :first{ @top-left{content:none} }',
     '}',
     '</style>',
@@ -101,12 +85,10 @@ for (const g of guides) {
   const before = html;
   const meta = extract(g);
 
-  // extract() already returns the raw title/subtitle HTML so the guide's own <br> and
-  // <em> survive onto the cover. Both are asserted: an empty one means the masthead
-  // markup changed shape and the cover would ship blank, which is exactly the bug the
-  // first cut of this generator shipped.
-  if (!meta.title) throw new Error(`${g}: no masthead title found — cover metadata cannot be derived`);
-  if (!meta.subHtml) throw new Error(`${g}: no masthead subtitle found — the cover would print an empty plate`);
+  // The title is the running header on every page after the first, so an empty one is a
+  // shipped defect: it means the masthead markup changed shape and every printed page
+  // would carry a blank header box.
+  if (!meta.title) throw new Error(`${g}: no masthead title found — the running header cannot be derived`);
 
   // ── 1. the stylesheet link ────────────────────────────────────────────────────
   const linkBlock = `${LINK_START}\r\n<link rel="stylesheet" media="print" href="guide-print.css">\r\n${LINK_END}`;
@@ -118,8 +100,8 @@ for (const g of guides) {
     html = html.slice(0, i) + linkBlock + '\r\n' + html.slice(i);
   }
 
-  // ── 2. the per-guide partial + cover ──────────────────────────────────────────
-  const block = [BLOCK_START, styleHtml(meta), coverHtml(meta), BLOCK_END].join('\r\n');
+  // ── 2. the per-guide partial (no cover — see the header) ─────────────────────
+  const block = [BLOCK_START, styleHtml(meta), BLOCK_END].join('\r\n');
   if (html.includes(BLOCK_START)) {
     html = html.replace(new RegExp(BLOCK_START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s\\S]*?' + BLOCK_END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), block);
   } else {
@@ -239,6 +221,6 @@ for (const g of guides) {
   const rule = EXEMPT.has(g) ? 'price rule EXEMPT'
     : applied.length ? applied.map(desc).join(' ')
     : 'no priced tables';
-  console.log(`  ${g.padEnd(38)} ${(meta.hero ? 'photo' : 'typographic').padEnd(12)} ${rule}`);
+  console.log(`  ${g.padEnd(38)} ${rule}`);
 }
 console.log(`\n${guides.length} guide(s) processed, ${changed} rewritten`);

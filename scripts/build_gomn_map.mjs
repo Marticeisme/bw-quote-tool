@@ -109,7 +109,7 @@ const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
       <div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>
       <div class="li"><div class="ls stleg-h"></div><span>On hold</span></div>
-      <div class="li"><div class="ls stleg-u"></div><span>Not available &mdash; confirm in MIS</span></div>
+      <div class="li"><div class="ls stleg-u"></div><span>Not available &mdash; ask us</span></div>
     </div>`;
 
 function view(block) {
@@ -192,9 +192,11 @@ const CSS = `
   .nprice{font-weight:600;font-size:12px;padding:0 4px;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap;letter-spacing:-.01em;}
   .nstatus{font-size:5.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
     padding:0 3px;border-radius:2px;background:rgba(255,255,255,.86);color:#17181b;white-space:nowrap;}
-  /* On the 32-space full wall a cell is 44px: "CONFIRM IN MIS" does not fit, so the
-     badge is dropped there and the hatch, the dashed outline and the legend carry the
-     status. The three block views are wide enough to spell it out. */
+  /* On the 32-space full wall a cell is 44px and the status badge does not fit, so it
+     is dropped there and the hatch, the dashed outline and the legend carry the status.
+     The three block views are wide enough to spell it out. (The badge that would not fit
+     used to read CONFIRM IN MIS; s11 shortened it to ASK US, which fits — the badge is
+     still dropped on the full wall because 44px is 44px.) */
   .fg-full .nstatus{display:none;}
   .fg-L .nprice,.fg-R .nprice,.fg-C .nprice{font-size:14px;padding:0 6px;}
   .fg-L .nid,.fg-R .nid,.fg-C .nid{font-size:9.5px;}
@@ -208,7 +210,7 @@ const CSS = `
        Occupied       blacked-out cell (closed)
        Reserved       diagonal-striped grey
        On Hold        dashed outline, the operator's ruling on the two unpriced spaces
-       Confirm in MIS the original fail-safe: matte granite, frosted hatch, dashed edge
+       Ask us         the original fail-safe: matte granite, frosted hatch, dashed edge
      Reserved keeps the exact treatment the single old 'unavailable' status carried, so
      the 54 reserved spaces look precisely as they did. */
   .st-reserved,.st-unavailable{color:#cfc7b6;
@@ -428,10 +430,10 @@ function cardHtml(d) {
     // Each unsellable status says the thing MIS actually knows. Only the fail-safe
     // 'unavailable' sends the counselor away to look it up.
     var note =
-      d.st === 'hold' ? 'This space is ON HOLD and is not offered. No price is attached to it in MIS, and none may be quoted. Ask before promising it to anyone.'
+      d.st === 'hold' ? 'This space is ON HOLD and is not offered. No price is attached to it anywhere, and none may be quoted. Ask before promising it to anyone.'
       : d.st === 'occupied' ? 'This space is occupied \\u2014 an interment has been made. It is not for sale and no price is shown.'
       : d.st === 'reserved' ? 'This space is reserved \\u2014 sold, with no interment yet. It is not for sale and no price is shown.'
-      : 'No price is printed for this niche on the current price sheet, so it is not quotable here. Confirm its status in MIS/Enterprise before saying anything to a family.';
+      : 'No price is printed for this niche on the current price sheet, so it is not quotable here. Confirm its status with the cemetery office before saying anything to a family.';
     return cardHead(d) +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
       '<div class="cnote">' + note + '</div>';
@@ -715,7 +717,7 @@ ${BLOCK_ORDER.map(view).join('\n')}
     <h3>Fee schedule &mdash; where these numbers come from</h3>
     <ul>
       <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCR}.00ea &nbsp;·&nbsp; 10.4% sales tax on merchandise (inscription and urn) &nbsp;·&nbsp; E.C.F. 10%</b></li>
-      <li><b>These are the ${esc(FEE_SOURCE.schedule)} schedule</b>, applied to the Garden of Meditation by ${esc(FEE_SOURCE.confirmedBy)} on ${esc(FEE_SOURCE.confirmedOn)}. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints ${esc(FEE_SOURCE.replaces)}, which these amounts replace. Confirm the current charges in MIS/Enterprise before quoting.</li>
+      <li><b>These are the ${esc(FEE_SOURCE.schedule)} schedule</b>, applied to the Garden of Meditation by ${esc(FEE_SOURCE.confirmedBy)} on ${esc(FEE_SOURCE.confirmedOn)}. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints ${esc(FEE_SOURCE.replaces)}, which these amounts replace. Confirm the current charges with the cemetery office before quoting.</li>
       <li>The E.C.F. rate is the one fee figure still taken from this sheet, and it is unchanged at 10%.</li>
       <li><b>Two inscriptions may be added to the front</b> of a companion niche &mdash; the quantity box above goes to ${INSCR_MAX}.</li>
     </ul>
@@ -724,8 +726,8 @@ ${BLOCK_ORDER.map(view).join('\n')}
   <div class="rules">
     <h3>Availability &mdash; where this reading comes from</h3>
     <ul>
-      <li><b>Availability is the operator&rsquo;s MIS list of ${esc(AVAILABILITY.asOf)}</b> &mdash; ${esc(AVAILABILITY.source)}. It supersedes ${esc(AVAILABILITY.supersedes)}: every figure on this wall is still the price sheet&rsquo;s own, unchanged. A level the list does not carry has sold out, so <b>levels B and F are now sold out entirely</b>.</li>
-      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed in MIS as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b>. The operator confirmed on ${esc(AVAILABILITY.asOf)} that ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>on hold</b>, and ${LISTED_NO_PRICE.length === 1 ? 'it shows' : 'they show'} that way on the wall. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
+      <li><b>Availability is the operator&rsquo;s list of ${esc(AVAILABILITY.asOf)}</b> &mdash; ${esc(AVAILABILITY.source)}. It supersedes ${esc(AVAILABILITY.supersedes)}: every figure on this wall is still the price sheet&rsquo;s own, unchanged. A level the list does not carry has sold out, so <b>levels B and F are now sold out entirely</b>.</li>
+      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b>. The operator confirmed on ${esc(AVAILABILITY.asOf)} that ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>on hold</b>, and ${LISTED_NO_PRICE.length === 1 ? 'it shows' : 'they show'} that way on the wall. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
       <li><b>Statuses</b> &mdash; occupied, reserved and on hold &mdash; come from the ${esc(AVAILABILITY.statusSource)}. A space shown as occupied or reserved is not for sale whatever a price sheet says.</li>
       <li><b>Resolved, ${esc(AVAILABILITY.resolved.on)}</b> (${esc(AVAILABILITY.resolved.source)}): ${esc(AVAILABILITY.resolved.finding)}</li>
     </ul>
@@ -734,8 +736,8 @@ ${BLOCK_ORDER.map(view).join('\n')}
   <div class="pfoot">
     <b>${esc(SHEET_TEXT.effective)}</b><br>
     Row A is the bottom row; Row G the top. Spaces are numbered 1&ndash;32 left to right across the whole wall.<br>
-    References read <b>GOM-1-1-&lt;row&gt;-&lt;space&gt;</b>. ${N_TOTAL} niches; ${N_AVAIL} are offered at a price on the ${esc(AVAILABILITY.asOf)} MIS list.<br>
-    A niche with no price shown is <b>not quotable here</b> — confirm it in MIS/Enterprise. Availability is maintained by hand; always confirm before writing.
+    References read <b>GOM-1-1-&lt;row&gt;-&lt;space&gt;</b>. ${N_TOTAL} niches; ${N_AVAIL} are offered at a price on the ${esc(AVAILABILITY.asOf)} availability list.<br>
+    A niche with no price shown is <b>not quotable here</b> — confirm it with the cemetery office. Availability is maintained by hand; always confirm before writing.
   </div>
 </div><!-- /main -->
 

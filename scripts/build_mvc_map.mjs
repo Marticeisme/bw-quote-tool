@@ -1048,7 +1048,7 @@ ${WALL_ORDER.map((k) => {
     </div>
 ${scene3d()}
     <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a niche to select it &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
-    <div class="planhint">Unfolded plan — all four walls laid flat around the island footprint, seen from above. Each panel meets the island at its top course (row G) and ends at its base band, which names the wall and its MIS location. Tap any niche; press “Unfolded plan” again to fold the island back up.</div>
+    <div class="planhint">Unfolded plan — all four walls laid flat around the island footprint, seen from above. Each panel meets the island at its top course (row G) and ends at its base band, which names the wall and its full location reference. Tap any niche; press “Unfolded plan” again to fold the island back up.</div>
     <div class="modelnote">Island ${ISLAND.length}&Prime; long &times; ${ISLAND.depth}&Prime; deep &times; 7&prime;-4&frac34;&Prime; tall &nbsp;·&nbsp; 145 openings &nbsp;·&nbsp; niche depth 1&prime;-0&Prime; &nbsp;·&nbsp; octagonal room 24&prime;-0&Prime; &times; 12&prime;-0&Prime;, entry doors on the West side, electrical access panel behind the West wall</div>
     <div class="legend">${legendHtml(TIERS.map((t) => t.p))}</div>
     ${RIGHTS_LEG(true)}
@@ -1060,7 +1060,7 @@ ${overviewView()}
   ${FEES_MVC}
   <div class="pfoot">
     <b>Prices effective: ${EFFECTIVE}</b><br>
-    Individual niche dimensions are available in MIS/Enterprise (Advantage\\Cemetery\\Property).<br>
+    Individual niche dimensions are available from the cemetery office.<br>
     Structure dimensions on this page are taken from the Matthews Gibraltar fabrication drawing K25-377.
   </div>
 </div><!-- /psec-mvc -->

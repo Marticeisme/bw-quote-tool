@@ -179,7 +179,7 @@ const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-a"></div><span>Available</span></div>
       <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
       <div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>
-      ${HAS_UNPRICED ? '<div class="li"><div class="ls stleg-u"></div><span>Not Priced &mdash; confirm in MIS</span></div>' : ''}
+      ${HAS_UNPRICED ? '<div class="li"><div class="ls stleg-u"></div><span>Not Priced &mdash; ask us</span></div>' : ''}
     </div>`;
 
 function faceView(f) {
@@ -522,8 +522,8 @@ function cardHtml(d) {
   // Sold or not priced: the card names the niche and its status, and shows NO pricing.
   if (d.st !== 'available' || !d.price) {
     var note = d.st === 'unpriced'
-      ? 'This niche carries no price on the price sheet and is not marked sold. Confirm in MIS/Enterprise before quoting.'
-      : 'Not available \\u2014 no pricing shown. Confirm in MIS/Enterprise.';
+      ? 'This niche carries no price on the price sheet and is not marked sold. Confirm today\u2019s availability with the cemetery office before quoting.'
+      : 'Not available \\u2014 no pricing shown. Ask us to confirm today\\u2019s availability.';
     return cardHead(d) +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
       '<div class="cnote">' + note + '</div>';
@@ -954,7 +954,7 @@ ${overviewView()}
   <div class="pfoot">
     <b>Row A is the bottom row; Row F the top. Niches are numbered left to right facing each side.</b><br>
     References read <b>ECL-1-&lt;S/N/W/E&gt;-&lt;row&gt;-&lt;niche&gt;</b>. The four corners are solid — no niche appears on two sides.<br>
-    Niche availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
+    Niche availability shown is maintained by hand — always confirm today’s availability with the cemetery office before writing.
   </div>
 </div><!-- /main -->
 

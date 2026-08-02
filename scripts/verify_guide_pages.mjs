@@ -48,38 +48,40 @@ async function pageStreams(file) {
 // that in fact spill by an inch.
 const PAGE_PX = Math.round(9.95 * 96); // 955
 
-// ── PAGE BUDGET, COUNTED AS *INTERIOR* PAGES ────────────────────────────────────────
-// Every family guide now opens with a generated full-bleed cover (Track P4). That cover
-// is a wrapper, not content, so the operator's 4-page leave-behind cap is asserted against
-// the pages AFTER it: `interior = total - 1`.
+// ── PAGE BUDGET, COUNTED AS TOTAL PAGES ─────────────────────────────────────────────
+// s10 counted the budget as INTERIOR pages — `total - 1` — because every guide opened with
+// a generated full-bleed cover that was a wrapper rather than content. Sprint-11 Track D
+// removed the cover on the operator's direction of 2026-08-02 ("I don't like the idea of a
+// cover page"), so interior and total are the same number again, and every count below is
+// a TOTAL page count — which is also the number he sees in a PDF reader.
 //
-// THIS IS A REAL CHANGE TO WHAT THE CAP MEANS, and it is flagged for the operator rather
-// than smuggled in. Holding the cap at 4 TOTAL would have required compressing every
-// interior by a full 25% — 6.5pt body type on a document read by grieving families — to
-// buy back the sheet the cover costs. The alternative he may prefer is no cover at all.
-// Measured outcome with the cap read this way: every one of the nineteen guides is cover
-// plus four interior pages or fewer, and eleven are cover plus three or fewer.
-const interior = (n) => n - 1;
+// The cap is unchanged in the only unit he ever stated it in: SIX PAGES, TOTAL. It simply
+// no longer spends one of them on a cover, so a guide has six content pages where it had
+// five. The per-guide equalities below were written as interior counts and are unchanged
+// as numbers for exactly that reason.
 
 const PDF_PAGES = [
   ['pdf-assets/Direct Cremation Plan Example.pdf', 2],
   // Burial Vault Guide was an EQUALITY at 4 pages, inherited from the 2026-07-29 condense
   // that brought it down from 10. It was never really an equality — the requirement was a
-  // cap — and the pricing rule shrank it to 3 interior pages by removing the per-item
+  // cap — and the pricing rule shrank it to 3 pages by removing the per-item
   // vault prices. Asserted by the shared cap below instead of pinning a number that only
   // ever meant 'no more than'.
   // Sprint-08 Track Q: the operator asked for an infographic that is EXACTLY four printed
-  // pages. Now three INTERIOR pages plus the cover — same amount of document.
+  // pages. s10's cover made it three interior + cover; s11 removed the cover, so it is
+  // three pages total and the same amount of document. Held at three deliberately: this
+  // is one of the five guides the photo-first template was applied to, and a photo-led
+  // page that grows the document back to four would be a regression, not a redesign.
   ['pdf-assets/Glass-Front Niche Guide.pdf', 3],
   // Sprint-08 Track U: a ONE-page infographic covering the Lake and Rose urn gardens.
-  // Still one interior page; the cover sits in front of it.
+  // With the cover gone it is one page, full stop — which is what the requirement said.
   ['pdf-assets/Urn Gardens at Washington Memorial Park.pdf', 1],
 ];
 
-// The 4-page cap, asserted on the built artifact. Product catalogs (caskets, urns,
+// The page cap, asserted on the built artifact. Product catalogs (caskets, urns,
 // keepsakes, cremation containers, the GPL, marker sizes) are deliberately NOT here:
 // a catalog is as long as its catalog.
-const GUIDE_MAX_PAGES = 5; // operator 2026-08-01: six pages TOTAL per guide, cover included (was 4 interior/5 total)
+const GUIDE_MAX_PAGES = 6; // operator 2026-08-01: six pages TOTAL per guide. s11 removed the cover, so all six are content.
 const CAPPED_GUIDES = [
   'Granite Marker Guide.pdf', 'Cremation Guide.pdf', 'Veterans Guide.pdf',
   'Who Decides.pdf', 'Burial Vault Guide.pdf', 'Terramation Guide.pdf',
@@ -94,12 +96,12 @@ const CAPPED_GUIDES = [
 
 // Guides whose own requirement is tighter than the family-guide cap. The granite-niche
 // guide is a one-page screen guide the operator asked to print to NO MORE THAN TWO pages
-// (sprint-08 Track P) — two interior pages, now behind a cover.
+// (sprint-08 Track P) — two pages, and with the cover gone that is two pages total.
 const TIGHT_CAPS = [
   ['Granite Niches Guide.pdf', 2],
 ];
 
-// Every guide the print system covers, for the cover / blank-page / pricing-rule gates.
+// Every guide the print system covers, for the no-cover / blank-page / pricing-rule gates.
 const ALL_GUIDE_PDFS = [...new Set([...CAPPED_GUIDES, 'Medicaid Professional Reference.pdf'])];
 
 let bad = 0;
@@ -109,27 +111,27 @@ const ok = m => console.log('   ok   ' + m);
 console.log('=== BUILT PDF PAGE COUNTS ===');
 for (const [file, want] of PDF_PAGES) {
   if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
-  const n = interior((await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount());
-  if (n === want) ok(`${path.basename(file).padEnd(36)} ${n} interior + cover`);
-  else fail(`${path.basename(file)}: expected ${want} interior pages, built PDF has ${n}`);
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  if (n === want) ok(`${path.basename(file).padEnd(36)} ${n} page(s)`);
+  else fail(`${path.basename(file)}: expected ${want} pages, built PDF has ${n}`);
 }
 
-console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} INTERIOR pages, cover excluded) ===`);
+console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages, total) ===`);
 for (const name of CAPPED_GUIDES) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
-  const n = interior((await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount());
-  if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} interior + cover`);
-  else fail(`${name}: ${n} interior pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} page(s)`);
+  else fail(`${name}: ${n} pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
 }
 
 console.log('\n=== TIGHTER PER-GUIDE CAPS ===');
 for (const [name, cap] of TIGHT_CAPS) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
-  const n = interior((await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount());
-  if (n <= cap) ok(`${name.padEnd(36)} ${n} interior (cap ${cap})`);
-  else fail(`${name}: ${n} interior pages, over its own ${cap}-page cap`);
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  if (n <= cap) ok(`${name.padEnd(36)} ${n} page(s) (cap ${cap})`);
+  else fail(`${name}: ${n} pages, over its own ${cap}-page cap`);
 }
 
 console.log('\n=== "ALL ON ONE PAGE" (print layout) ===');
@@ -199,39 +201,36 @@ await onePage('direct-cremation.html', '#options', '.sidebar, .prose, .section-p
 // ===================================================================================
 
 // ===================================================================================
-// PAGE 1 IS A GENERATED COVER  (sprint-10 Track P4, commit 2)
+// NO COVER PAGE ON ANY GUIDE  (sprint-11 Track D)
 //
-// Asserted on the ARTIFACT, structurally. The cover plate is a full-bleed fill in the
-// brand navy #1e3a55, and no interior page paints it — the masthead was changed to the
-// cream treatment in the same pass. "Page 1 has the navy plate and no other page does" is
-// therefore a marker that cannot be satisfied by accident.
+// The inverse of the s10 gate that stood here. That gate asserted page 1 WAS a generated
+// full-bleed cover; the operator ruled on 2026-08-02 that he does not want one, so this
+// now asserts that NO page of any guide PDF is full-bleed. Same measurement, opposite
+// sense — which is the point: it makes the reversal load-bearing instead of a deletion
+// nobody would notice being quietly undone.
 //
-// Colours are compared with a tolerance. Ghostscript's downsample rewrites the operands:
-// 0.117647 comes back as 0.117676. An exact string match would have passed only against
-// un-downsampled output, which is not what ships.
-// ===================================================================================
-// The marker is FULL-BLEED GEOMETRY, not colour. The first attempt keyed on the navy
-// plate fill and failed on all nineteen guides: #1e3a55 is also the masthead heading
-// colour, so every interior page paints it as text and the check flagged them all. Colour
-// is not evidence of a cover.
+// The marker is FULL-BLEED GEOMETRY, not colour, and that is worth keeping from the s10
+// note. The first attempt at the original gate keyed on the navy plate fill and flagged
+// all nineteen guides: #1e3a55 is also the masthead heading colour, so every content page
+// paints it as text. Colour is not evidence of a cover.
 //
-// Geometry is. Only `@page:first{margin:0}` can produce a painted box the size of the
-// whole sheet; every interior page is clipped to the 0.5in-margined content box. Measured:
-// covers carry a 6120 x 7920 rect (612 x 792pt at Chromium's 10x content scale), interiors
-// top out at 5400 x 7170. So this asserts both "there is a cover" and "@page:first is
-// still applying", which is the thing that silently broke once already.
+// Geometry is. Only an `@page{margin:0}` rule can produce a painted box the size of the
+// whole sheet; a normal content page is clipped to the 0.5in-margined content box.
+// Measured on the s10 artifacts: covers carried a 6120 x 7920 rect (612 x 792pt at
+// Chromium's 10x content scale) while content pages topped out at 5400 x 7170. So this
+// asserts both "no cover came back" and "the page margins are still applying" — the
+// second of which silently broke once already.
 const fullBleed = (stream) => [...stream.matchAll(/(-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+) re/g)]
   .some((m) => Math.abs(parseFloat(m[3])) > 6000 && Math.abs(parseFloat(m[4])) > 7800);
 
-console.log('\n=== PAGE 1 IS A COVER ===');
+console.log('\n=== NO COVER PAGE (no page is full-bleed) ===');
 for (const name of ALL_GUIDE_PDFS) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist`); continue; }
   const streams = await pageStreams(file);
-  if (!fullBleed(streams[0])) { fail(`${name}: page 1 has no full-bleed box — no generated cover, or @page:first stopped applying`); continue; }
-  const strays = streams.slice(1).map((x, i) => (fullBleed(x) ? i + 2 : 0)).filter(Boolean);
-  if (strays.length) fail(`${name}: page(s) ${strays.join(', ')} are also full-bleed — the interior lost its margins`);
-  else ok(`${name.padEnd(44)} cover on page 1, ${streams.length - 1} interior page(s)`);
+  const bleeders = streams.map((x, i) => (fullBleed(x) ? i + 1 : 0)).filter(Boolean);
+  if (bleeders.length) fail(`${name}: page(s) ${bleeders.join(', ')} are full-bleed — a cover page is back, or the page margins stopped applying`);
+  else ok(`${name.padEnd(44)} no cover, ${streams.length} content page(s)`);
 }
 
 // ===================================================================================
@@ -246,20 +245,26 @@ for (const name of ALL_GUIDE_PDFS) {
 //
 // Rasterising needs a PDF renderer this repo has no Node binding for, so the gate uses the
 // DECOMPRESSED content-stream length, calibrated against those rasterised measurements: a
-// real interior page runs 30,000-55,000 bytes; the thinnest page that survives review today is 6,230 (the outside-marker CTA,
+// real content page runs 30,000-55,000 bytes; the thinnest page that survives review today is 6,230 (the outside-marker CTA,
 // flagged in the track report as worth rebalancing); the furniture-only page that started all
-// this ran under 4,000. The cover is exempt — it is one image and one fill, about 3,000
-// bytes, and its size says nothing about ink.
+// this ran under 4,000.
+//
+// s11: this used to skip page 1, because page 1 was the generated cover — one image and one
+// fill, about 3,000 bytes, whose size said nothing about ink. With the cover gone page 1 is
+// content like any other, so it is measured like any other. That also closes the hole the
+// exemption left: a one-page guide had `slice(1)` return nothing, `Math.min()` of nothing is
+// Infinity, and the check passed without measuring a single byte.
 // ===================================================================================
 const MIN_INTERIOR_STREAM = 5000;
-console.log(`\n=== NO STRANDED SHEET (interior stream >= ${MIN_INTERIOR_STREAM} bytes) ===`);
+console.log(`\n=== NO STRANDED SHEET (every page's stream >= ${MIN_INTERIOR_STREAM} bytes) ===`);
 for (const name of ALL_GUIDE_PDFS) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist`); continue; }
-  const lens = (await pageStreams(file)).slice(1).map((x) => x.length);
+  const lens = (await pageStreams(file)).map((x) => x.length);
+  if (!lens.length) { fail(`${name}: no pages at all`); continue; }
   const worst = Math.min(...lens);
-  if (worst >= MIN_INTERIOR_STREAM) ok(`${name.padEnd(44)} thinnest interior page ${worst} bytes`);
-  else fail(`${name}: an interior page holds only ${worst} bytes of content — a stranded sheet`);
+  if (worst >= MIN_INTERIOR_STREAM) ok(`${name.padEnd(44)} thinnest page ${worst} bytes of ${lens.length}`);
+  else fail(`${name}: a page holds only ${worst} bytes of content — a stranded sheet`);
 }
 
 

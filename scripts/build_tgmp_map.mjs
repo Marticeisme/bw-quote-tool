@@ -691,7 +691,7 @@ const JS = `
 var META = ${JSON.stringify(CARD_META)};
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
 var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, TAX = ${FEES.TAX}, ECF_RATE = ${FEES.ECF_RATE};
-var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are the ${FEE_SOURCE.schedule} schedule, applied to the Terrace Garden Memorial Path by ${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn} \\u2014 they are NOT printed on this area\\'s price sheet. Confirm current fees in MIS/Enterprise before writing.';
+var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are the ${FEE_SOURCE.schedule} schedule, applied to the Terrace Garden Memorial Path by ${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn} \\u2014 they are NOT printed on this area\\'s price sheet. Confirm current fees with the cemetery office before writing.';
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
@@ -705,7 +705,7 @@ function cardHtml(ref) {
     '<div class="cardmis">' + m.sub + '</div>';
   if (m.st !== 'available' || m.price === null) {
     return head + '<div class="cardst">' + (STATUS_LABEL[m.st] || m.st) + '</div>' +
-      '<div class="cnote">Not available \\u2014 no pricing shown. Confirm in MIS/Enterprise.</div>';
+      '<div class="cnote">Not available \\u2014 no pricing shown. Ask us to confirm today\\u2019s availability.</div>';
   }
   var price = +m.price, e = ecf(price), tot = price + e;
   var rows = '<div class="cr"><span class="cl">Sales Price</span><span class="cv">' + fm(price) + '</span></div>';
@@ -1234,12 +1234,12 @@ ${overviewView()}
       <span class="fv">${(FEES.TAX * 100).toFixed(1)}% — applies to the inscription only (taxable merchandise)</span></div>
     <div class="fsrc">These fees are <b>not printed on the Terrace Garden Memorial Path price sheet</b>, which states a sales price and a rights-of-interment count and nothing else.
       They are the <b>${FEE_SOURCE.schedule}</b> schedule, applied to this whole area — the niche bank and the nine additional properties alike — by <b>${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn}</b>.
-      Confirm current fees in MIS/Enterprise before writing.</div>
+      Confirm current fees with the cemetery office before writing.</div>
   </div>
   <div class="pfoot">
     <b>Niche bank: row A is the bottom row, row E the top; niches are numbered 1–${TGN.cols} left to right. References read TGN-&lt;row&gt;-&lt;n&gt;.</b><br>
     Additional properties are numbered TGMP-1 … TGMP-${TGMP_ITEMS.length} in the order the pricing sheet prints them; their dimensions are the sheet's own catalog dimensions.<br>
-    ${money(AVAIL_TOTAL)} available at list across ${N_AVAIL} properties, ${RIGHTS_TOTAL} rights of interment — sales prices only, E.C.F. and fees are additional. Availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.<br>
+    ${money(AVAIL_TOTAL)} available at list across ${N_AVAIL} properties, ${RIGHTS_TOTAL} rights of interment — sales prices only, E.C.F. and fees are additional. Availability shown is maintained by hand — always confirm today’s availability with the cemetery office before writing.<br>
     <b>There is no reflection pool.</b> The path replaced it, and the ossuary block beside it, in full; both were drawn on the older &ldquo;what was replaced&rdquo; layout sketch and appear in neither the PHASE 2 render nor any 2026 site photograph. Terrace Garden Ossuary scattering is priced on the separate Scattering Garden sheet and is not priced here.<br>
     Layout — the walk, its round turn-around, the paved apron, the beds either side and which object stands where — is read off the official PHASE 2 overhead render and the June/July 2026 photographs. Every <i>number</i> is an estimate: there is no site plan. The render draws the beds as turf; the built garden is bark mulch, and the model follows the photographs. <b>The niche bank&rsquo;s position across the far end is estimated</b> — the render floats it over the garden as a callout rather than showing it in place.
   </div>

@@ -19,6 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { WALLS, WALL_ORDER, allNiches, cellDims, FEES } from './mvc-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
+import { assertNoMis } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/MVC_NewGlassFront_NicheMap_1.html';
@@ -346,6 +347,18 @@ console.log('\nMovement runtime');
   ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
   ck(!/function floorPoint\(/.test(js), 'no floor-travel on an orbit-a-cabinet page (presets + inertia only)');
 }
+
+// ── ZERO RENDERED "MIS" ─────────────────────────────────────────────────────
+// Operator, 2026-08-02: "Never mention the word MIS on any guide to a family or any live
+// niche maps etc — that information does not need to be disclosed to families." This map
+// is a live niche map: he opens it in front of people. It used to send the reader to
+// "MIS/Enterprise", which names an internal system a family can neither see nor check.
+//
+// The assertion is here rather than in the sweep commit's diff because a wording fix is
+// exactly the kind of change that gets undone by the next person copying a sentence from
+// a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
+console.log('\nFamily-facing wording');
+assertNoMis((c, m) => (c ? pass : fail)(m), 'MVC_NewGlassFront_NicheMap_1.html', newSrc);
 
 console.log('\n' + (failures ? `RESULT: ${failures} FAILURE(S)` : 'RESULT: PASS — 0 mismatches') + '\n');
 process.exit(failures ? 1 : 0);
