@@ -17,7 +17,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   WALLS, FACE_ORDER, SECTION_ORDER, LEVELS, GEO, FACE_H,
-  TIERS, FEES, STATUS_LABEL, allNiches,
+  TIERS, FEES, STATUS_LABEL, UNSELLABLE, RIGHTS, BENCHES, allNiches, sellable,
 } from './roac-niche-data.mjs';
 import { movementRuntime } from './map-movement.mjs';
 
@@ -65,12 +65,13 @@ function misOf(k, id) {
 
 function nicheAttrs(k, n) {
   const id = `${n.l}-${n.s}`;
-  return `data-wall="${k}" data-id="${id}" data-price="${n.p}" data-st="${n.st}" data-lvl="${n.l}" data-sp="${n.s}"`;
+  // An unsellable niche carries NO price in the attribute either — the card reads this.
+  return `data-wall="${k}" data-id="${id}" data-price="${sellable(n) ? n.p : ''}" data-st="${n.st}" data-lvl="${n.l}" data-sp="${n.s}"`;
 }
 function ariaName(k, n) {
   const st = n.st === 'available' ? 'available' : (STATUS_LABEL[n.st] || n.st);
-  // Sold/occupied spaces carry no price in any rendering, screen readers included.
-  if (n.st === 'reserved' || n.st === 'buried') return `${n.l}-${n.s}, ${faceLabel(k)}, ${st}`;
+  // An unsellable space carries no price in any rendering, screen readers included.
+  if (!sellable(n)) return `${n.l}-${n.s}, ${faceLabel(k)}, ${st}`;
   return `${n.l}-${n.s}, ${faceLabel(k)}, ${money(n.p)}, ${st}`;
 }
 
@@ -88,10 +89,10 @@ function face3d(k) {
     const ri = LEVELS.indexOf(n.l) + 1;
     const st = n.st !== 'available' ? ` st-${n.st}` : '';
     const stTag = n.st !== 'available' ? `<span class="n3st">${STATUS_LABEL[n.st]}</span>` : '';
-    // Sold (reserved) or occupied: no price shown anywhere — nothing to mis-quote.
-    // The data-price attribute stays so the equality gate can still prove the data.
+    // Reserved, occupied or not for sale: no price shown anywhere — nothing to
+    // mis-quote, and no data-price attribute for the card to read either.
     // Full dollar figures, never rounded — $13,195, not "$13.2K" (operator).
-    const chip = (n.st === 'reserved' || n.st === 'buried') ? '' : `<span class="n3p ${tier(n.p).c}">${money(n.p)}</span>`;
+    const chip = sellable(n) ? `<span class="n3p ${tier(n.p).c}">${money(n.p)}</span>` : '';
     return `      <button type="button" class="n3 front3${st}" style="grid-row:${ri};grid-column:${n.s}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="n3id">${n.l}-${n.s}</span>${chip}${stTag}</button>`;
   }).join('\n');
   return `    <div class="face ${bankOf(w.section)}" data-face="${k}" style="width:${px(GEO.faceW)}px;height:${px(H)}px;grid-template-columns:repeat(5,1fr);grid-template-rows:${GRID_ROWS_FR};transform:translate(-50%,-50%) translate3d(${px(cx)}px,0,${px(cz)}px) rotateY(${ry}deg)">
@@ -178,9 +179,8 @@ function flatGrid(k, { mini = false } = {}) {
     const ri = LEVELS.indexOf(n.l) + 1;
     const st = n.st !== 'available' ? ` st-${n.st}` : '';
     const stTag = n.st !== 'available' ? `<span class="nstatus">${STATUS_LABEL[n.st]}</span>` : '';
-    const priced = !(n.st === 'reserved' || n.st === 'buried');
-    const body = priced
-      ? `<span class="nprice ${tier(n.p).c}">${money(n.p)}</span><span class="ncap">2-urn</span>`
+    const body = sellable(n)
+      ? `<span class="nprice ${tier(n.p).c}">${money(n.p)}</span><span class="ncap">${RIGHTS}-urn</span>`
       : '';
     return `    <button type="button" class="n flatn${st}" style="grid-row:${ri};grid-column:${n.s + 1}" ${nicheAttrs(k, n)} aria-label="${esc(ariaName(k, n))}"><span class="nid">${n.l}-${n.s}</span>${body}${stTag}</button>`;
   }).join('\n');
@@ -198,6 +198,7 @@ const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-a"></div><span>Available</span></div>
       <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
       <div class="li"><div class="ls stleg-b"></div><span>Occupied</span></div>
+      <div class="li"><div class="ls stleg-n"></div><span>Not for sale</span></div>
       <div class="li"><div class="ls stleg-h"></div><span>On Hold</span></div>
     </div>`;
 
@@ -236,12 +237,12 @@ ${panels}
 const BENCH_VIEW = `  <div class="wview" id="wall-bench">
     <div style="max-width:460px;margin:0 auto;text-align:center;">
       <div class="wlabel">Memorial Benches</div>
-      <div class="wsub" style="margin-bottom:16px;">Both memorial benches have been sold</div>
+      <div class="wsub" style="margin-bottom:16px;">Both memorial benches have been sold &mdash; ${BENCHES.rights} rights of interment each</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-${[1, 2].map((i) => `        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:.5;">
+${Array.from({ length: BENCHES.count }, (_, j) => j + 1).map((i) => `        <div class="gwrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:.5;">
           <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--gold);margin-bottom:4px;">Bench #${i}</div>
-          <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">Up to 4 inurnments</div>
-          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">Sold</div>
+          <div style="font-size:11px;color:var(--gold-light);margin-bottom:2px;">${BENCHES.rights} rights of interment</div>
+          <div style="font-size:10px;color:rgba(200,169,110,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;">${esc(BENCHES.label)}</div>
         </div>`).join('\n')}
       </div>
     </div>
@@ -301,17 +302,24 @@ const CSS = `
   /* ── Status code (operator: an FSD must never mistake these for sellable).
      PATTERN + darkness, never hue — every hue on this page belongs to a price tier,
      and the first cut (amber/red rings) sat right next to the $12-15K chip colours.
-       Occupied  = blacked-out cell (closed)
-       Reserved  = diagonal-striped grey
-       On Hold   = dashed outline, price still shown
+       Occupied     = blacked-out cell (closed)
+       Reserved     = diagonal-striped grey
+       Not for sale = the striped grey under a solid gold-grey edge — added 2026-08-01
+                      with the MIS statuses. It is NOT reserved and NOT occupied: MIS
+                      is simply not offering it, so it must not read as either.
+       On Hold      = dashed outline, price still shown
      All badges neutral white-on-dark; nothing here shares a colour with a price. */
   .n,.n3{position:relative;}
-  .st-reserved,.st-buried,.st-hold{color:#d9d8d4;}
+  .st-reserved,.st-buried,.st-hold,.st-notforsale{color:#d9d8d4;}
   .st-buried{background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;}
   .st-reserved{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 4px,rgba(255,255,255,0) 4px 9px),
       linear-gradient(180deg,#35373c 0%,#222428 100%)!important;}
+  .st-notforsale{background:
+      repeating-linear-gradient(45deg,rgba(255,255,255,.13) 0 4px,rgba(255,255,255,0) 4px 9px),
+      linear-gradient(180deg,#2c2e33 0%,#1a1c20 100%)!important;
+    box-shadow:inset 0 0 0 2px rgba(200,169,110,.45)!important;}
   .st-hold{opacity:.85;}
   .st-hold::before{content:'';position:absolute;inset:1px;pointer-events:none;
     border:2px dashed rgba(255,255,255,.7);border-radius:inherit;}
@@ -323,6 +331,9 @@ ${TIER_CSS}
   .stleg-r{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 3px,rgba(255,255,255,0) 3px 6px),
       linear-gradient(180deg,#35373c,#222428);}
+  .stleg-n{background:
+      repeating-linear-gradient(45deg,rgba(255,255,255,.13) 0 3px,rgba(255,255,255,0) 3px 6px),
+      linear-gradient(180deg,#2c2e33,#1a1c20);border:2px solid rgba(200,169,110,.6)!important;}
   .stleg-b{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
   .stleg-h{background:linear-gradient(180deg,#3d4046,#212329);border:2px dashed rgba(255,255,255,.7)!important;}
 
@@ -496,6 +507,7 @@ const JS = `
 'use strict';
 var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, VASE = ${FEES.VASE}, TAX = ${FEES.TAX};
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
+var UNSELLABLE = ${JSON.stringify(UNSELLABLE)};
 var WALL_LABEL = ${FACE_LABEL_JSON};
 var MIS_SECTION = ${MIS_SECTION_JSON};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
@@ -507,14 +519,21 @@ var card = document.getElementById('card');
 var pinned = null;
 
 function cardHtml(d) {
-  // Sold or occupied: the card names the space and its status, and shows NO pricing.
-  if (d.st === 'reserved' || d.st === 'buried') {
+  // Reserved, occupied or not for sale: the card names the space and its status and
+  // shows NO pricing. The three read differently because MIS knows which is which, and
+  // "not for sale" is the one a counselor must not mistake for "someone bought it".
+  if (UNSELLABLE.indexOf(d.st) > -1) {
+    var note = d.st === 'notforsale'
+      ? 'Not for sale \\u2014 MIS is not offering this space. It is not reserved and not occupied. Confirm in MIS/Enterprise before saying anything to a family.'
+      : d.st === 'buried'
+        ? 'Occupied \\u2014 an inurnment has been made. Not available, and no pricing is shown.'
+        : 'Reserved \\u2014 sold, with no inurnment yet. Not available, and no pricing is shown.';
     return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
       '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
       '<button class="cclose" type="button" aria-label="Close">\\u00d7</button></div>' +
       '<div class="cardmis">ROAC \\u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
-      '<div class="cnote">Not available \\u2014 no pricing shown. Confirm in MIS/Enterprise.</div>';
+      '<div class="cnote">' + note + '</div>';
   }
   var price = +d.price, e = ecf(price), tot = price + e, rows = '';
   rows += '<div class="cr"><span class="cl">Niche Price</span><span class="cv">' + fm(price) + '</span></div>';
