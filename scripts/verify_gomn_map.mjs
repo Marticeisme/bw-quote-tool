@@ -39,7 +39,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ROWS, BLOCKS, ROW_RUNS, TIERS, FEES, FEE_SOURCE, INSCR_MAX, URN,
   SHEET_TEXT, COMPANION_NOTE, allNiches, refOf, sellable, ecf, estTotal,
-  PRICES, AVAILABILITY, LISTED_NO_PRICE, SOLD_SINCE_SHEET,
+  PRICES, AVAILABILITY, LISTED_NO_PRICE, ON_HOLD, OCCUPIED, RESERVED, SOLD_SINCE_SHEET,
 } from './gomn-niche-data.mjs';
 
 const DATA = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gomn-niche-data.mjs');
@@ -88,7 +88,39 @@ const LIST_ZERO_PRICED = ['B-10', 'D-18'];
 // edit quietly makes them agree, the operator's open question has been answered by a
 // script instead of by MIS, and this gate goes red until someone says which way.
 const LIST_SUMMARY = { B: 1, C: 12, D: 5, G: 3 };
-const LIST_SUMMARY_UNRECONCILED = { row: 'C', summary: 12, detail: 11 };
+// RESOLVED 2026-08-01 by the operator's MIS wall view, corroborated by the same-day lot
+// inquiry: row C's available set is exactly the detail's 11 spaces and the summary's
+// twelfth does not exist. This anchor used to be LIST_SUMMARY_UNRECONCILED and the gate
+// asserted the gap was flagged; it now asserts the gap is EXPLAINED and that the shipped
+// count is still the detail's. A twelfth available C space appearing without a new
+// operator ruling must fail here.
+const LIST_SUMMARY_RESOLVED = { row: 'C', summary: 12, detail: 11, wrongSide: 'summary' };
+const LIST_ROW_C_AVAILABLE = [7, 9, 12, 13, 14, 18, 20, 22, 24, 25, 26];
+
+// ── STATUS ANCHORS — MIS Lot Inquiry List for Bldg-GOM, exported 2026-08-01 ───
+// Typed from the export's own arithmetic, not read back from the data module. The
+// inquiry is one row per RIGHT of interment: 200 rows over 168 spaces, the surplus being
+// second interments in a space already counted.
+const MIS_ROWS = 200;
+const MIS_EXTRA_RIGHTS = 32;
+// Rolled up worst-status-wins. 'Available' here is the inquiry's own word and covers
+// BOTH the 18 offered and the 2 the operator has since ruled on hold.
+const MIS_RAW = { Occupied: 92, Reserved: 54, Available: 20, 'Not For Sale': 2 };
+// …and how those land on the wall once the price rule and the on-hold ruling apply.
+const MIS_HIST = { available: 18, occupied: 92, reserved: 54, hold: 2, unavailable: 2 };
+const MIS_PER_ROW = {
+  G: { occupied: 7, reserved: 6, hold: 0, unavailable: 0, available: 3 },
+  F: { occupied: 10, reserved: 6, hold: 0, unavailable: 0, available: 0 },
+  E: { occupied: 18, reserved: 6, hold: 0, unavailable: 0, available: 0 },
+  D: { occupied: 16, reserved: 3, hold: 1, unavailable: 0, available: 4 },
+  C: { occupied: 10, reserved: 3, hold: 0, unavailable: 0, available: 11 },
+  B: { occupied: 14, reserved: 15, hold: 1, unavailable: 2, available: 0 },
+  A: { occupied: 17, reserved: 15, hold: 0, unavailable: 0, available: 0 },
+};
+// The two spaces MIS marks Not For Sale. NO not-for-sale STATE ships — the operator has
+// not ruled on what it means here — so they must remain on the fail-safe 'unavailable'.
+// This anchor exists so that shipping one without a ruling fails.
+const MIS_NOT_FOR_SALE = ['B-7', 'B-11'];
 
 // ── INVENTORY ANCHORS — MOVED 2026-08-01, old value quoted beside each ────────
 // 19 of the sheet's 37 priced niches are gone from the export and are read as SOLD:
@@ -165,9 +197,9 @@ console.log('Data module');
   ck(pricedUnavail.length === 0, `no unavailable niche carries a price${pricedUnavail.length ? ' — ' + pricedUnavail.map((n) => n.ref).join(', ') : ' (fail-safe rule holds)'}`);
   const blank = data.filter((n) => n.st === 'available' && typeof n.p !== 'number');
   ck(blank.length === 0, `every available niche has a price${blank.length ? ' — ' + blank.map((n) => n.ref).join(', ') : ''}`);
-  const known = new Set(['available', 'unavailable']);
+  const known = new Set(['available', 'occupied', 'reserved', 'hold', 'unavailable']);
   const oddSt = data.filter((n) => !known.has(n.st));
-  ck(oddSt.length === 0, `every status is available or unavailable${oddSt.length ? ' — ' + oddSt.map((n) => n.ref + ':' + n.st).join(', ') : ''}`);
+  ck(oddSt.length === 0, `every status is one of available / occupied / reserved / hold / unavailable${oddSt.length ? ' — ' + oddSt.map((n) => n.ref + ':' + n.st).join(', ') : ''}`);
   // ROW_RUNS in the data module must be the shape typed from the outline sheet.
   ck(JSON.stringify(ROW_RUNS) === JSON.stringify(SHEET_RUNS),
     "the data module's ROW_RUNS is the wall shape typed from GOMN NICHE MAP.png");
@@ -373,22 +405,35 @@ console.log('\nThe operator MIS availability export (2026-08-01), space by space
   ck(JSON.stringify(AVAILABILITY.summaryCounts) === JSON.stringify(LIST_SUMMARY),
     `the module records the export's summary counts verbatim (${Object.entries(LIST_SUMMARY).map(([k, v]) => k + ':' + v).join(' ')})`);
   {
-    const { row, summary, detail } = LIST_SUMMARY_UNRECONCILED;
+    const { row, summary, detail } = LIST_SUMMARY_RESOLVED;
     const shipped = LIST_OFFERED[row].length;
     ck(shipped === detail && detail !== summary,
-      `level ${row}: summary says ${summary}, detail lists ${detail} — the DETAIL ships (${shipped}), the gap is UNRECONCILED`);
-    // Both counts and the level must be NAMED. "Something doesn't add up in row C" is not
-    // a reconcilable statement; "summary 12, detail 11" is what he takes to MIS.
-    const d = AVAILABILITY.discrepancy;
-    ck(new RegExp(`Level ${row}\\b`).test(d) && d.includes(String(summary)) && d.includes(String(detail)),
-      `the data module names the level and BOTH counts (${row}: ${summary} vs ${detail}) for whoever reads it next`);
-    ck(src.includes(AVAILABILITY.discrepancy),
-      'and the page carries the same sentence, so a counselor sees it before quoting row C');
-    for (const [r, n] of Object.entries(LIST_SUMMARY)) {
-      if (r === row) continue;
-      const off = (LIST_OFFERED[r] || []).length;
-      const zero = LIST_ZERO_PRICED.filter((k) => k[0] === r).length;
-      ck(off + zero === n, `level ${r}: summary ${n} = ${off} offered + ${zero} listed at $0`);
+      `level ${row}: summary said ${summary}, detail listed ${detail} — the DETAIL ships (${shipped})`);
+    // RESOLVED. The wall view settled it in the detail's favour, so the assertion flips:
+    // the module must now carry the FINDING, and the count must not move to the
+    // summary's 12 without a new ruling.
+    const r = AVAILABILITY.resolved;
+    ck(!!r && !!r.finding && !('discrepancy' in AVAILABILITY),
+      'the unreconciled flag is gone from the data module, replaced by the resolution');
+    ck(new RegExp(`Level ${row}\\b`).test(r.finding) && r.finding.includes(String(summary)) && r.finding.includes(String(detail)),
+      `the finding still names the level and BOTH counts (${row}: ${summary} vs ${detail}) — a reader needs the number that was wrong`);
+    ck(/wall view/i.test(r.source), `the finding cites its source (${r.source})`);
+    ck(r.on === AVAILABILITY.asOf, `resolved on the same day as the export (${r.on})`);
+    ck(src.includes(r.finding),
+      'and the page carries the same sentence, so a counselor who saw the old caveat sees it settled');
+    ck(!/Unreconciled/i.test(src), 'the page no longer calls row C unreconciled');
+    // The resolved set itself, space by space — this is what fails if a twelfth appears.
+    const shippedCols = LIST_OFFERED[row].slice().sort((a, b) => a - b);
+    ck(JSON.stringify(shippedCols) === JSON.stringify(LIST_ROW_C_AVAILABLE),
+      `row ${row}'s available set is exactly the ${detail} spaces the MIS wall view shows (${LIST_ROW_C_AVAILABLE.join(', ')})`);
+    const cAvail = data.filter((n) => n.row === row && sellable(n)).length;
+    ck(cAvail === detail,
+      `the built wall offers ${detail} in row ${row}, not the summary's ${summary} (${cAvail})`);
+    for (const [r2, n] of Object.entries(LIST_SUMMARY)) {
+      if (r2 === row) continue;
+      const off = (LIST_OFFERED[r2] || []).length;
+      const zero = LIST_ZERO_PRICED.filter((k) => k[0] === r2).length;
+      ck(off + zero === n, `level ${r2}: summary ${n} = ${off} offered + ${zero} listed at $0`);
     }
   }
 
@@ -427,14 +472,110 @@ console.log('\nNo price is rendered for a niche the sheet does not price');
     .map((m) => m[1])
     .filter((l) => unsell.has(l.split(',')[0]) && /\$/.test(l));
   ck(ariaBad.length === 0, `zero dollar figures in the aria-labels of unavailable niches${ariaBad.length ? ' — ' + ariaBad.slice(0, 3).join('; ') : ''}`);
-  const notMarked = cells.filter((c) => unsell.has(c.ref) && !/class="n st-unavailable"/.test(c.html));
-  ck(notMarked.length === 0, 'every unavailable niche carries the hatched st-unavailable class in both renderings');
+  const notMarked = cells.filter((c) => unsell.has(c.ref) && !/class="n st-(occupied|reserved|hold|unavailable)"/.test(c.html));
+  ck(notMarked.length === 0, 'every unsellable niche carries a status class in both renderings');
   // Status is coded by PATTERN and BRIGHTNESS, never by hue — every hue belongs to a tier.
   const rule = (sel) => { const i = src.indexOf(sel); return i < 0 ? '' : src.slice(i, src.indexOf('}', i) + 1); };
-  const st = rule('\r\n  .st-unavailable{color');
-  ck(/repeating-linear-gradient\(135deg/.test(st), 'unavailable cells carry the frosted diagonal hatch (pattern, not hue)');
-  ck(/#3a3c40[\s\S]{0,120}#202225/.test(st), 'unavailable cells are the dimmed granite #3a3c40→#202225');
+  const st = rule('\r\n  .st-reserved,.st-unavailable{color');
+  ck(/repeating-linear-gradient\(135deg/.test(st), 'reserved / unavailable cells carry the frosted diagonal hatch (pattern, not hue)');
+  ck(/#3a3c40[\s\S]{0,120}#202225/.test(st), 'reserved / unavailable cells are the dimmed granite #3a3c40→#202225');
   ck(/border:1px dashed/.test(rule('\r\n  .st-unavailable::before')), 'unavailable cells also carry the dashed outline');
+  // The three treatments added 2026-08-01 must be TOLD APART, and none by hue.
+  const occ = rule('\r\n  .st-occupied{color'), hold = rule('\r\n  .st-hold{color');
+  ck(/#1b1c20[\s\S]{0,60}#0e0f12/.test(occ), 'occupied cells are the blacked-out cell #1b1c20→#0e0f12 (the family treatment)');
+  ck(!/repeating-linear-gradient/.test(occ), 'occupied is SOLID — the hatch is what makes a cell reserved');
+  ck(!/repeating-linear-gradient/.test(hold), 'on-hold is not hatched either — it is the dashed outline');
+  ck(/border:2px dashed/.test(rule('\r\n  .st-hold::before')), 'on-hold cells carry the 2px dashed outline (ROAC\'s on-hold treatment)');
+  for (const [cls, hue] of [['occupied', occ], ['hold', hold]]) {
+    ck(!TIERS.some((t) => hue.includes(t.bg)), `no tier colour appears in .st-${cls} — status is never hue-coded`);
+  }
+  ck(/<span>Occupied<\/span>/.test(src) && /<span>Reserved<\/span>/.test(src) && /<span>On hold<\/span>/.test(src),
+    'the legend names all three new codes');
+}
+
+// ── 6b. MIS statuses: the histogram, the on-hold ruling, the NFS pair ─────────
+console.log('\nMIS statuses (Lot Inquiry List, 2026-08-01)');
+{
+  const hist = {};
+  for (const n of data) hist[n.st] = (hist[n.st] || 0) + 1;
+  ck(Object.keys(MIS_HIST).every((k) => hist[k] === MIS_HIST[k]) && Object.keys(hist).every((k) => k in MIS_HIST),
+    `whole wall: ${JSON.stringify(MIS_HIST)} (got ${JSON.stringify(hist)})`);
+  // The export's own arithmetic, so a re-parse that drops rows or double-counts a second
+  // interment as its own space fails here rather than shifting a status quietly.
+  ck(MIS_ROWS - MIS_EXTRA_RIGHTS === SHEET_TOTAL,
+    `${MIS_ROWS} export rows minus ${MIS_EXTRA_RIGHTS} second interments = ${SHEET_TOTAL} spaces`);
+  ck(Object.values(MIS_RAW).reduce((a, b) => a + b, 0) === SHEET_TOTAL,
+    `the inquiry's four raw classes account for all ${SHEET_TOTAL} spaces (${Object.entries(MIS_RAW).map(([k, v]) => k + ' ' + v).join(', ')})`);
+  ck(MIS_RAW.Available === MIS_HIST.available + MIS_HIST.hold,
+    `the inquiry's ${MIS_RAW.Available} Available = ${MIS_HIST.available} offered + ${MIS_HIST.hold} on hold`);
+  ck(MIS_RAW.Occupied === MIS_HIST.occupied && MIS_RAW.Reserved === MIS_HIST.reserved,
+    'occupied and reserved pass through the price rule unchanged');
+  // The three lists must PARTITION the unpriced spaces. statusOf() resolves a space in
+  // two lists by precedence, so a duplicate would be silently absorbed and the wall would
+  // show a state MIS never gave — found by sabotage, 2026-08-01.
+  {
+    const lists = { OCCUPIED, RESERVED, ON_HOLD };
+    for (const [name, list] of Object.entries(lists)) {
+      const dupes = list.filter((k, i) => list.indexOf(k) !== i);
+      ck(dupes.length === 0, `${name} has no duplicates${dupes.length ? ' — ' + dupes.join(', ') : ''}`);
+    }
+    const pairs = [['OCCUPIED', 'RESERVED'], ['OCCUPIED', 'ON_HOLD'], ['RESERVED', 'ON_HOLD']];
+    for (const [a, b] of pairs) {
+      const both = lists[a].filter((k) => lists[b].includes(k));
+      ck(both.length === 0, `${a} and ${b} are disjoint${both.length ? ' — in both: ' + both.join(', ') : ''}`);
+    }
+    const priced = Object.keys(PRICES);
+    const overlapPriced = [...OCCUPIED, ...RESERVED, ...ON_HOLD].filter((k) => priced.includes(k));
+    ck(overlapPriced.length === 0,
+      `no space is both priced and status-listed${overlapPriced.length ? ' — ' + overlapPriced.join(', ') : ''}`);
+    const ids = new Set(data.map((n) => n.id));
+    const ghosts = [...OCCUPIED, ...RESERVED, ...ON_HOLD].filter((k) => !ids.has(k));
+    ck(ghosts.length === 0, `every status-listed space exists on the wall${ghosts.length ? ' — ' + ghosts.join(', ') : ''}`);
+    ck(priced.length + OCCUPIED.length + RESERVED.length + ON_HOLD.length + MIS_NOT_FOR_SALE.length === SHEET_TOTAL,
+      `${priced.length} priced + ${OCCUPIED.length} occupied + ${RESERVED.length} reserved + ${ON_HOLD.length} on hold + ` +
+      `${MIS_NOT_FOR_SALE.length} unruled = all ${SHEET_TOTAL} spaces, each accounted for exactly once`);
+  }
+  for (const r of ROWS) {
+    const c = { occupied: 0, reserved: 0, hold: 0, unavailable: 0, available: 0 };
+    for (const n of data.filter((x) => x.row === r)) c[n.st]++;
+    ck(JSON.stringify(c) === JSON.stringify(MIS_PER_ROW[r]),
+      `row ${r}: ${JSON.stringify(MIS_PER_ROW[r])} (got ${JSON.stringify(c)})`);
+  }
+
+  // --- the on-hold ruling ---------------------------------------------------
+  // Operator 2026-08-01: "just put that theyr are on hold right now." Exactly these two,
+  // no price anywhere on either, and the card must say HOLD rather than send him to MIS.
+  const held = data.filter((n) => n.st === 'hold').map((n) => n.id).sort();
+  ck(JSON.stringify(held) === JSON.stringify([...ON_HOLD].sort()),
+    `exactly ${ON_HOLD.length} spaces are on hold, and they are the ${ON_HOLD.length} $0 spaces (${held.join(', ')})`);
+  ck(JSON.stringify([...ON_HOLD].sort()) === JSON.stringify([...LISTED_NO_PRICE].sort()),
+    'ON_HOLD and LISTED_NO_PRICE cannot drift apart');
+  for (const id of ON_HOLD) {
+    const n = data.find((x) => x.id === id);
+    ck(!!n && n.p === null && !sellable(n), `${n.ref} is on hold, carries no price and is not sellable`);
+    const rendered = cells.filter((c) => c.ref === n.ref);
+    ck(rendered.length > 0 && rendered.every((c) => /st-hold/.test(c.html) && !/\$\s*[\d,]/.test(c.html) && c.price === ''),
+      `${n.ref} renders as on-hold with no dollar figure in all ${rendered.length} renderings`);
+  }
+  ck(src.includes(AVAILABILITY.statusSource),
+    `the page names where the statuses came from (${AVAILABILITY.statusSource})`);
+  ck(/On Hold/.test(src), 'the page carries the On Hold badge');
+  ck(/is <b>on hold<\/b>/.test(src) || /on hold/i.test(src), 'the page states the operator\'s on-hold ruling in prose');
+  ck(/ON HOLD and is not offered/.test(src), 'the card wording says the space is on hold, not "confirm in MIS"');
+
+  // --- Not For Sale: observed, NOT shipped ----------------------------------
+  // Two sources say B-7 and B-11 are Not For Sale. The operator has not ruled on what
+  // that means here, so no such state ships and both stay on the fail-safe. If someone
+  // adds one without a ruling, this fails.
+  for (const id of MIS_NOT_FOR_SALE) {
+    const n = data.find((x) => x.id === id);
+    ck(!!n && n.st === 'unavailable',
+      `${n.ref} is MIS "Not For Sale" but ships as the fail-safe 'unavailable' — no ruling exists yet (got ${n && n.st})`);
+  }
+  ck(!data.some((n) => n.st === 'notforsale') && !/Not For Sale/.test(src),
+    'no not-for-sale status or wording ships anywhere — awaiting the operator');
+  ck(data.filter((n) => n.st === 'unavailable').length === MIS_NOT_FOR_SALE.length,
+    `the fail-safe 'unavailable' is down to the ${MIS_NOT_FOR_SALE.length} unruled spaces alone`);
 }
 
 // ── 7. The sheet's own rules reach the page ───────────────────────────────────
@@ -714,10 +855,33 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("  'D-9',\r\n", '')],
     ["the level-C discrepancy 'reconciled' by editing the summary instead of MIS",
       (s) => s.replace('summaryCounts: { B: 1, C: 12, D: 5, G: 3 }', 'summaryCounts: { B: 1, C: 11, D: 5, G: 3 }')],
-    ['the discrepancy sentence softened away, so nobody is told to reconcile it',
+    ["the level-C finding softened away, so the summary's wrong 12 is never explained",
       (s) => s.replace(
-        "    'The export summary says Level C has 12 available; its detail lists 11 C spaces. ' +",
-        "    'Every level reconciles. ' +")],
+        "      'The export summary said Level C had 12 available while its detail listed 11. ' +",
+        "      'Every level reconciles. ' +")],
+    ['the resolution reverted to the old unreconciled flag, as if MIS had never been read',
+      (s) => s.replace('  resolved: {', '  discrepancy: "unreconciled", resolved: {')],
+    ["a TWELFTH available C space added, taking the wall to the summary's wrong count",
+      (s) => s.replace("  'C-18': 5995,", "  'C-18': 5995, 'C-19': 5995,")],
+    ['an OCCUPIED space resurrected as available at the level price',
+      (s) => s.replace("  'C-9': 5995,", "  'C-9': 5995, 'C-10': 5995,")],
+    ['a RESERVED space resurrected as available',
+      (s) => s.replace("  'C-9': 5995,", "  'C-9': 5995, 'C-21': 5995,")],
+    ['a space dropped from the status lists, falling back to the fail-safe unnoticed',
+      (s) => s.replace("  'G-9', 'G-12', ", "  'G-12', ")],
+    ['a space in BOTH status lists, so the wall shows a state MIS never gave',
+      (s) => s.replace("  'G-10', 'G-11',", "  'G-9', 'G-10', 'G-11',")],
+    ['an occupied space relabelled reserved — the two MIS classes drift',
+      (s) => s.replace("  'G-9', 'G-12',", "  'G-12',").replace("  'G-10', 'G-11',", "  'G-9', 'G-10', 'G-11',")],
+    ['the on-hold ruling dropped, so the two held spaces read as generic "confirm in MIS"',
+      (s) => s.replace('export const ON_HOLD = [...LISTED_NO_PRICE];', 'export const ON_HOLD = [];')],
+    ['on-hold widened past the ruling to a third space',
+      (s) => s.replace('export const ON_HOLD = [...LISTED_NO_PRICE];', "export const ON_HOLD = [...LISTED_NO_PRICE, 'C-16'];")],
+    ['on-hold decoupled from the unpriced list, so the two can drift apart',
+      (s) => s.replace('export const ON_HOLD = [...LISTED_NO_PRICE];', "export const ON_HOLD = ['B-10'];")],
+    ['a not-for-sale state shipped for B-7 and B-11 without an operator ruling',
+      (s) => s.replace("  occupied: 'Occupied', reserved: 'Reserved',", "  notforsale: 'Not For Sale', occupied: 'Occupied', reserved: 'Reserved',")
+             .replace("  if (HOLD_SET.has(id)) return 'hold';", "  if (id === 'B-7' || id === 'B-11') return 'notforsale';\r\n  if (HOLD_SET.has(id)) return 'hold';")],
     ['a colour tier restored for a price no niche carries any more ($4,995)',
       (s) => s.replace("  { p: 5995, l: '$5,995', c: 't1'", "  { p: 4995, l: '$4,995', c: 't0', bg: '#1a6fae', fg: '#fff' },\r\n  { p: 5995, l: '$5,995', c: 't1'")],
     ['the wall shape narrowed: level G one space short',
@@ -769,8 +933,19 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace('${esc(AVAILABILITY.source)}', 'the current list')],
     ['the whole availability provenance block deleted',
       (s) => s.replace('    <h3>Availability &mdash; where this reading comes from</h3>', '    <h3>Availability</h3>')],
-    ['the unreconciled level-C note dropped from the page',
-      (s) => s.replace('${esc(AVAILABILITY.discrepancy)}', 'See MIS.')],
+    ['the level-C resolution dropped from the page',
+      (s) => s.replace('${esc(AVAILABILITY.resolved.finding)}', 'See MIS.')],
+    ['the status provenance line dropped — the page stops saying where occupied/reserved came from',
+      (s) => s.replace('${esc(AVAILABILITY.statusSource)}', 'our records')],
+    ['the on-hold card wording replaced by the generic one, hiding what MIS already told us',
+      (s) => s.replace("'This space is ON HOLD and is not offered.", "'No price is printed.")],
+    ['occupied and reserved rendered identically again — one hatch for both',
+      (s) => s.replace('    background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;',
+        '    background:repeating-linear-gradient(135deg,rgba(255,255,255,.16) 0 3px,rgba(255,255,255,0) 3px 7px),linear-gradient(180deg,#3a3c40 0%,#2a2c30 55%,#202225 100%)!important;')],
+    ['the on-hold dashed outline dropped, so a held space looks like any other',
+      (s) => s.replace('    border:2px dashed rgba(232,213,168,.85);border-radius:inherit;}', '')],
+    ['the new legend codes dropped, so the wall shows states it never explains',
+      (s) => s.replace('<div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>\r\n      ', '')],
     ['the $0-listed spaces printed with their $0 figure, as if it were a price',
       (s) => s.replace('with no price attached', 'at $0')],
     ['the $0-listed spaces no longer named, so nobody can find them again',

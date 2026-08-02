@@ -37,22 +37,69 @@
  *            Lvl-D Sp-18 -> $0
  *            Lvl-G Sp-13, 14, 15 -> $8,995
  *
- * ⚠ UNRECONCILED, FOR THE OPERATOR: the summary says **Level C: 12 available**, the
- * detail lists **11 C spaces**. The DETAIL is the per-space authority, so 11 ship. One C
- * space is either missing from the detail or miscounted in the summary — Martice must
- * reconcile which, in MIS. Until he does, this wall shows 11 available in row C.
+ * ✔ RESOLVED 2026-08-01 — the level-C discrepancy. The export's summary said **Level C:
+ * 12 available** while its detail listed **11 C spaces**, and this file shipped the
+ * detail's 11 with the difference flagged for the operator. The MIS WALL VIEW settles
+ * it: row C's available set is exactly those 11 spaces (7, 9, 12, 13, 14, 18, 20, 22,
+ * 24, 25, 26) and there is no twelfth. THE SUMMARY'S "12" WAS WRONG. The lot inquiry
+ * exported the same day agrees independently — it returns 11 Available rows in row C,
+ * and shows the three C spaces this file records as sold since the sheet (10, 11, 19)
+ * carrying owners. Nothing about what ships changes; the flag comes off.
+ * Level D corroborates too: available = 15, 20, 24, 26 plus the on-hold 18.
  *
  * The list is treated as the COMPLETE available set as of 2026-08-01: a level absent from
  * it (all of F) has sold out. Nineteen niches the sheet priced are therefore gone, and
  * they are recorded in SOLD_SINCE_SHEET below rather than silently deleted, so a later
  * reader can see what moved and when.
  *
- * ── $0 IS NOT A PRICE (operator's standing COM rule, applied here) ────────────────
+ * ── $0 IS NOT A PRICE → AND THESE TWO ARE ON HOLD (operator ruling 2026-08-01) ────
  * The export lists B-10 and D-18 as available at **$0**. The operator's rule from the
  * Columbarium — "available as long as a price greater than 0 is attached" — makes a $0
- * position NOT OFFERED. GOMN is two-status, so both render unavailable ("confirm in
- * MIS"); they are recorded in LISTED_NO_PRICE so they are findable the moment he supplies
- * prices. Nothing on the wall may ever print $0.
+ * position NOT OFFERED, and that still holds: nothing on this wall may ever print $0.
+ *
+ * Asked what those two actually are, the operator RULED on 2026-08-01, verbatim:
+ *
+ *     "just put that theyr are on hold right now."
+ *
+ * So they are no longer collapsed into the generic "confirm in MIS" — they carry an
+ * explicit ON HOLD status with the family's established on-hold treatment (dashed
+ * outline; pattern, never hue), and the card says the space is on hold rather than
+ * sending the counselor to MIS for a state MIS has already given us. They stay in
+ * LISTED_NO_PRICE and out of PRICES, so no figure can reach them; delete from that list
+ * and add to PRICES the day he issues one. The 2026-08-01 lot inquiry independently
+ * returns both as Available, which is consistent: held, unsold, and unpriced.
+ *
+ * ── STATUSES ARE MIS-BACKED AS OF 2026-08-01 ──────────────────────────────────────
+ * Until now this wall was TWO-STATUS: priced/available, or "confirm in MIS". The MIS Lot
+ * Inquiry List for Bldg-GOM, exported the same day (grammar "Wall-1 Lvl-C Sp-7" →
+ * GOM-1-1-C-7), gives the state of every one of the 168 spaces, so the unavailable side
+ * is now split the way ROAC's and ECL's are: OCCUPIED (an interment is present) and
+ * RESERVED (sold, no interment yet). The inquiry is one row per right of interment —
+ * 200 rows over 168 spaces, the surplus being second interments — and rolled up
+ * worst-status-wins it reconciles with this file EXACTLY:
+ *
+ *   MIS Available 20  ==  the 18 in PRICES + the 2 in LISTED_NO_PRICE. Not one space
+ *                         the inquiry calls available is missing from this file, and
+ *                         not one space this file offers is anything but Available in
+ *                         the inquiry. The available set does not move.
+ *   MIS Occupied  92  \  the 146 this file carried as the single 'unavailable'
+ *   MIS Reserved  54  /
+ *   MIS Not For Sale 2   B-7 and B-11 — see below
+ *
+ * An interment list can only ever REMOVE availability, never add it (absence from it is
+ * not proof a space is for sale). Nothing here needed removing.
+ *
+ * ── B-7 AND B-11: "NOT FOR SALE", NO RULING YET ───────────────────────────────────
+ * Two sources now agree that B-7 and B-11 are NOT FOR SALE, a state distinct from B-10's
+ * on-hold: the lot inquiry returns them with status "Not For Sale", and the operator's
+ * MIS wall view marks both with the X marker. This file previously read them as SOLD
+ * (they are in SOLD_SINCE_SHEET, having carried a price on the Jan-30-2025 sheet and
+ * dropped off the availability export).
+ *
+ * NO NOT-FOR-SALE STATE SHIPS FOR THEM YET — the operator has not ruled on what it means
+ * here, and every reading of it is unsellable anyway, so the safe states are identical.
+ * They stay exactly as they were. Recorded here so the observation is not lost, and
+ * open in the sprint report.
  *
  * ── THE FAIL-SAFE READING (operator's standing rule, 2026-07-29, binding) ──────────
  *   A PRINTED PRICE means AVAILABLE.  ANYTHING ELSE means UNAVAILABLE — "confirm in
@@ -148,6 +195,42 @@ export const PRICES = {
 export const LISTED_NO_PRICE = ['B-10', 'D-18'];
 
 /**
+ * ON HOLD — operator ruling 2026-08-01, verbatim: "just put that theyr are on hold right
+ * now." Exactly the two $0 spaces above; the list is derived from LISTED_NO_PRICE rather
+ * than retyped so the two can never drift apart. An on-hold space is UNSELLABLE and
+ * carries no price anywhere, but it is a different thing from "confirm in MIS": MIS has
+ * already told us what it is.
+ */
+export const ON_HOLD = [...LISTED_NO_PRICE];
+
+/**
+ * MIS-BACKED STATUSES, Lot Inquiry List for Bldg-GOM exported 2026-08-01 (see the
+ * header). Keyed `<row>-<column>`, in the wall's own reading order. Together with PRICES
+ * and ON_HOLD these cover all 168 spaces; anything left over is 'unavailable', which
+ * today is B-7 and B-11 alone.
+ *
+ * These are LIVE HAND-MAINTAINED DATA like everything else here: when a niche sells or an
+ * interment is made, edit this file and rebuild.
+ */
+export const OCCUPIED = [
+  'G-9', 'G-12', 'G-18', 'G-20', 'G-21', 'G-22', 'G-24', 'F-9', 'F-11', 'F-12', 'F-13', 'F-16',
+  'F-17', 'F-18', 'F-20', 'F-22', 'F-23', 'E-5', 'E-6', 'E-7', 'E-8', 'E-9', 'E-10', 'E-12',
+  'E-13', 'E-15', 'E-17', 'E-18', 'E-19', 'E-21', 'E-22', 'E-24', 'E-26', 'E-27', 'E-28',
+  'D-5', 'D-6', 'D-7', 'D-9', 'D-10', 'D-11', 'D-12', 'D-13', 'D-14', 'D-16', 'D-17', 'D-19',
+  'D-23', 'D-25', 'D-27', 'D-28', 'C-5', 'C-6', 'C-8', 'C-10', 'C-11', 'C-15', 'C-17', 'C-23',
+  'C-27', 'C-28', 'B-2', 'B-4', 'B-5', 'B-6', 'B-8', 'B-12', 'B-16', 'B-23', 'B-24', 'B-26',
+  'B-27', 'B-29', 'B-30', 'B-31', 'A-1', 'A-2', 'A-3', 'A-7', 'A-9', 'A-10', 'A-11', 'A-12',
+  'A-13', 'A-14', 'A-20', 'A-25', 'A-26', 'A-27', 'A-29', 'A-30', 'A-31',
+];
+export const RESERVED = [
+  'G-10', 'G-11', 'G-16', 'G-17', 'G-19', 'G-23', 'F-10', 'F-14', 'F-15', 'F-19', 'F-21',
+  'F-24', 'E-11', 'E-14', 'E-16', 'E-20', 'E-23', 'E-25', 'D-8', 'D-21', 'D-22', 'C-16',
+  'C-19', 'C-21', 'B-1', 'B-3', 'B-9', 'B-13', 'B-14', 'B-15', 'B-17', 'B-18', 'B-19', 'B-20',
+  'B-21', 'B-22', 'B-25', 'B-28', 'B-32', 'A-4', 'A-5', 'A-6', 'A-8', 'A-15', 'A-16', 'A-17',
+  'A-18', 'A-19', 'A-21', 'A-22', 'A-23', 'A-24', 'A-28', 'A-32',
+];
+
+/**
  * The 19 niches the Jan-30-2025 sheet priced that the 2026-08-01 export no longer lists.
  * Read as SOLD. Recorded rather than deleted so the change is auditable, and so the
  * emptied rows (all of level B, all of level F) read as history and not as a build bug.
@@ -173,18 +256,36 @@ export const AVAILABILITY = {
   supersedes: "the Jan-30-2025 price sheet's status reading (prices unchanged)",
   /** The export's own summary line, per level. Detail counts are derived from PRICES. */
   summaryCounts: { B: 1, C: 12, D: 5, G: 3 },
+  /** Where the statuses (not the availability) come from. */
+  statusSource: 'MIS Lot Inquiry List for Bldg-GOM, 2026-08-01',
   /**
-   * The one place the export contradicts itself. Surfaced on purpose: the page and the
-   * gate ship the DETAIL, and the operator has to reconcile the summary in MIS.
+   * The one place the export contradicted itself, and how it was settled. This field
+   * used to carry an UNRECONCILED warning; it now carries the finding, and the page
+   * prints it as a resolution rather than as a caveat. It is kept — rather than deleted
+   * — because a counselor who read the old page needs to see the summary's 12 explained,
+   * not silently vanish.
    */
-  discrepancy:
-    'The export summary says Level C has 12 available; its detail lists 11 C spaces. ' +
-    'The detail is authoritative here, so 11 are shown — the twelfth is unreconciled.',
+  resolved: {
+    on: '2026-08-01',
+    source: 'MIS wall view, corroborated by the same-day lot inquiry',
+    finding:
+      'The export summary said Level C had 12 available while its detail listed 11. ' +
+      'The MIS wall view shows row C’s available set is exactly those 11 spaces — ' +
+      'the summary’s twelfth does not exist. Nothing shown here changed.',
+  },
 };
 
-export const STATUS_LABEL = { unavailable: 'Confirm in MIS' };
+/**
+ * Status vocabulary. Extended 2026-08-01 from ONE unsellable status to four — the MIS
+ * lot inquiry can tell an interment from a reservation and the price sheet cannot, and
+ * the operator has ruled the two $0 spaces are on hold. 'unavailable' survives as the
+ * fail-safe for a space no source accounts for.
+ */
+export const STATUS_LABEL = {
+  occupied: 'Occupied', reserved: 'Reserved', hold: 'On Hold', unavailable: 'Confirm in MIS',
+};
 /** Statuses that must never render a price, anywhere, in any view. */
-export const UNSELLABLE = ['unavailable'];
+export const UNSELLABLE = ['occupied', 'reserved', 'hold', 'unavailable'];
 
 // ── Fees ─────────────────────────────────────────────────────────────────────
 // ── THESE ARE NO LONGER THE SHEET'S OWN NUMBERS (operator ruling 2026-07-31) ──
@@ -317,16 +418,35 @@ export const TIERS = [
 /** `GOM-1-1-C-7` — the OFFICIAL PROPERTY ADDRESS format printed on the sheet. */
 export const refOf = (row, col) => `GOM-1-1-${row}-${col}`;
 
+/**
+ * The unsellable status of a space that carries no price. ON HOLD is checked BEFORE the
+ * inquiry's own reading, because the operator's ruling about those two outranks it (the
+ * inquiry calls them Available, which they are not — they are held and unpriced).
+ * A space in none of the lists falls through to 'unavailable', the original fail-safe.
+ */
+const HOLD_SET = new Set(ON_HOLD), OCC_SET = new Set(OCCUPIED), RES_SET = new Set(RESERVED);
+function statusOf(id) {
+  if (HOLD_SET.has(id)) return 'hold';
+  if (OCC_SET.has(id)) return 'occupied';
+  if (RES_SET.has(id)) return 'reserved';
+  return 'unavailable';
+}
+
 /** Every niche the wall carries, in reading order (top row first, left to right). */
 export function allNiches() {
   const out = [];
   for (const r of ROWS) {
     for (const [a, b] of ROW_RUNS[r]) {
       for (let c = a; c <= b; c++) {
-        const p = Object.prototype.hasOwnProperty.call(PRICES, `${r}-${c}`) ? PRICES[`${r}-${c}`] : null;
+        const id = `${r}-${c}`;
+        const p = Object.prototype.hasOwnProperty.call(PRICES, id) ? PRICES[id] : null;
+        // A PRICE is what makes a space sellable — that rule is unchanged and comes
+        // first, so no MIS status can ever turn a priced space unsellable-by-accident or
+        // an unpriced one into money. Everything below only refines WHY a space is not
+        // for sale, and every branch of it is unsellable.
         out.push({
-          row: r, col: c, block: blockOf(c), id: `${r}-${c}`, ref: refOf(r, c),
-          p, st: p === null ? 'unavailable' : 'available',
+          row: r, col: c, block: blockOf(c), id, ref: refOf(r, c),
+          p, st: p !== null ? 'available' : statusOf(id),
         });
       }
     }
