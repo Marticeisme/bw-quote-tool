@@ -23,6 +23,7 @@ import {
   BANKS, TIERS, VOIDS, WALLS, UNITS, AREAS, ROOMS, ENTRANCES, FURNITURE, STOPS,
   PLAN_W, PLAN_H, COLW, TANDEM_DEPTH, SINGLE_DEPTH, bankDepth,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs,
+  NICHE_UPI, nicheSize, wallWidthIn, wallRowWidths,
   NICHE_FEES, CRYPT_FEES, CRYPT_FEE_SOURCE, MIS, STATUS_LABEL, PRICES, PRICE_BANDS, priceBand,
   PRICE_EXCEPTIONS, TIER_G_116_123,
 } from './com-crypt-data.mjs';
@@ -940,11 +941,237 @@ console.log('\nEntrances, chapel layout and walkthrough (operator brief 2026-07-
   chk(/data-px="/.test(src), 'every solid carries its plan position for the culling pass');
 }
 
+// ── 6e. Niche SIZES: measured per cell, drawn at true width ──────────────────
+// Operator, 2026-08-02: "On both the 3D version and the floor plan the niches are not
+// sized correctly — there are a few different sizes of glass front niches on each wall."
+//
+// The size classes were solved off the wall sheets by scripts/measure_niche_sheets.mjs.
+// Those sheets are the operator's and are not in this repo, so this gate cannot re-read
+// the pixels. What it CAN do is re-check the invariant the solve was pinned on — every
+// row of a wall spans the same physical wall — plus coverage, the Family exception by
+// ref, and that the built page draws each front at the width the data says. All four
+// together mean a wrong pattern cannot land quietly: change one cell's class and the
+// row sums stop matching; change a whole row and it stops matching the other rows.
+console.log('\nNiche size classes (measured from the wall sheets, 2026-08-02)');
+{
+  // `checksum` is POSITIONAL — row index x column x width in sixteenths of an inch.
+  // The histogram alone cannot see a row's classes PERMUTED (Radiance rows K and J hold
+  // the same four Smalls and four Larges in opposite order, and both still sum to 165"),
+  // so a swap that leaves every total intact still has to break something. This is it.
+  const SIZE_ANCHOR = {
+    RAD: { totalIn: 165, hist: { small: 32, large: 32, xlarge: 8, family: 2 }, classes: 4, checksum: 592888 },
+    SER: { totalIn: 88.5, hist: { large: 32, small: 16 }, classes: 2, checksum: 225852 },
+  };
+  const sizeChecksum = (wid) => wallNiches(wid)
+    .reduce((t, n) => t + (WALLS[wid].rows.indexOf(n.row) + 1) * n.col * Math.round(n.wIn * 16), 0);
+  for (const wid of ['RAD', 'SER']) {
+    const w = WALLS[wid], a = SIZE_ANCHOR[wid], ns = wallNiches(wid);
+    const unclassed = ns.filter((n) => !n.sizeKey);
+    chk(unclassed.length === 0,
+      `${w.name}: every niche carries a measured size class (${ns.length - unclassed.length}/${ns.length})${unclassed.length ? ' — missing ' + unclassed.slice(0, 4).map((n) => n.ref).join(', ') : ''}`);
+
+    // THE INVARIANT THE SOLVE WAS PINNED ON. Every row of one wall spans the same
+    // physical wall, so every row's classes must sum to the same number of inches —
+    // counting a Family cell on BOTH the rows it spans, which is what makes the
+    // six-cell E/D pair come out equal to the eight-cell rows.
+    const rows = wallRowWidths(wid);
+    const off = rows.filter((r) => Math.abs(r.inches - a.totalIn) > 1e-9);
+    chk(off.length === 0,
+      `${w.name}: all ${rows.length} rows span the same ${a.totalIn}" of wall${off.length ? ' — ' + off.map((r) => r.row + '=' + r.inches).join(', ') : ` (${[...new Set(rows.map((r) => r.cells))].sort((x, y) => x - y).join(' and ')} cells per row)`}`);
+    chk(wallWidthIn(wid) === a.totalIn, `${w.name} is ${a.totalIn}" wide (${wallWidthIn(wid)}")`);
+
+    // The classes are the sheet's legend, exactly — no invented class, none dropped.
+    chk(w.sizes.length === a.classes && w.sizes.every((s) => s.label && s.dims && s.w > 0 && s.h > 0 && s.d > 0),
+      `${w.name}: ${a.classes} legend classes, each with a label, printed dimensions and h/w/d (${w.sizes.map((s) => s.k).join(', ')})`);
+    const hist = {};
+    for (const n of ns) hist[n.sizeKey] = (hist[n.sizeKey] || 0) + 1;
+    chk(JSON.stringify(hist) === JSON.stringify(a.hist),
+      `${w.name}: class histogram ${JSON.stringify(hist)}`);
+
+    // THE OPERATOR'S ACTUAL COMPLAINT, asserted directly: the wall must not draw as one
+    // uniform column width. A regression to a `repeat(n, 1fr)` grid fails right here.
+    const widths = [...new Set(ns.map((n) => n.wIn))].sort((x, y) => x - y);
+    chk(widths.length === a.classes, `${w.name}: ${widths.length} distinct drawn widths on the wall — ${widths.map((v) => v + '"').join(', ')}`);
+
+    // Every cell's left edge + width must land inside the wall, and the last cell of a
+    // row must land exactly on its right edge.
+    const bad = ns.filter((n) => n.leftPct < -1e-6 || n.leftPct + n.widthPct > 100 + 1e-3);
+    chk(bad.length === 0, `${w.name}: every front lies within the wall (${ns.length} checked)`);
+    const ck = sizeChecksum(wid);
+    chk(ck === a.checksum, `${w.name}: positional size checksum ${a.checksum} (${ck}) — pins WHICH column is which class, not just how many`);
+  }
+
+  // FAMILY IS PINNED BY REF, NOT BY COUNT. A count would let the class move to another
+  // pair of cells as long as two of them carried it; these two are the cells the sheet
+  // draws two rows tall, and nothing else may be Family.
+  const fam = wallNiches('RAD').filter((n) => n.sizeKey === 'family').map((n) => n.ref).sort();
+  chk(JSON.stringify(fam) === JSON.stringify(['RAD-1-1-E-2', 'RAD-1-1-E-5']),
+    `the two Family niches are exactly RAD-1-1-E-2 and RAD-1-1-E-5 (${fam.join(', ') || 'none'})`);
+  const famSpans = wallNiches('RAD').filter((n) => n.sizeKey === 'family')
+    .every((n) => n.spanRows && n.spanRows.join('') === 'ED');
+  chk(famSpans, 'and both are the cells the sheet draws two rows tall (span E/D)');
+  const famRow = wallNiches('RAD').filter((n) => n.spanRows).map((n) => n.ref).sort();
+  chk(JSON.stringify(famRow) === JSON.stringify(fam),
+    'no OTHER niche spans two rows, on either wall');
+  const serFam = wallNiches('SER').filter((n) => n.sizeKey === 'family' || n.spanRows);
+  chk(serFam.length === 0, 'Serenity has no Family niche and no row-spanning cell (its sheet draws none)');
+
+  // The wall's rendered face is now sized in real inches, so the two walls stand in
+  // their true proportion instead of 8 columns against 6.
+  const ratio = wallWidthIn('SER') / wallWidthIn('RAD');
+  chk(Math.abs(ratio - 88.5 / 165) < 1e-9 && NICHE_UPI > 0,
+    `Serenity is drawn ${(ratio * 100).toFixed(1)}% as wide as Radiance, which is what the sheets measure (it was 75%, i.e. 6 columns over 8)`);
+}
+
+// ── 6e-ii. …and the BUILT PAGE draws exactly those sizes ─────────────────────
+console.log('\nNiche sizes, as rendered');
+{
+  // Both renderings place every front absolutely from its own measured left/width.
+  const styleOf = (cls) => {
+    const out = new Map();
+    const re = new RegExp(`<button[^>]*class="${cls}[^"]*"[^>]*>`, 'g');
+    for (const m of src.matchAll(re)) {
+      const tag = m[0];
+      const ref = /data-ref="([^"]*)"/.exec(tag);
+      const st = /style="([^"]*)"/.exec(tag);
+      const sz = /data-size="([^"]*)"/.exec(tag);
+      const dm = /data-dims="([^"]*)"/.exec(tag);
+      if (ref && !out.has(ref[1])) out.set(ref[1], { style: st ? st[1] : '', size: sz ? sz[1] : null, dims: dm ? dm[1] : null });
+    }
+    return out;
+  };
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const byRef = new Map(allNiches().map((n) => [n.ref, n]));
+  for (const [name, cls] of [['3D wall', 'c3 n3glass'], ['flat wall grid', 'c flatn']]) {
+    const got = styleOf(cls);
+    const bad = [];
+    for (const [ref, n] of byRef) {
+      const g = got.get(ref);
+      if (!g) { bad.push(`${ref} missing`); continue; }
+      if (g.size !== esc(n.size)) bad.push(`${ref} size ${g.size} != ${n.size}`);
+      if (g.dims !== esc(n.dims)) bad.push(`${ref} dims mismatch`);
+      if (!g.style.includes(`left:calc(${n.leftPct}% + 1px)`)) bad.push(`${ref} left`);
+      if (!g.style.includes(`width:calc(${n.widthPct}% - 2px)`)) bad.push(`${ref} width`);
+    }
+    chk(bad.length === 0,
+      `${name}: every front is drawn at its measured left and width and states its size class${bad.length ? ' — ' + bad.slice(0, 5).join('; ') : ` (${byRef.size})`}`);
+  }
+  // No niche rendering may fall back to a uniform grid.
+  chk(!/class="face nichewall[^"]*"[^>]*grid-template-columns/.test(src),
+    'the 3D niche wall is not laid out on uniform grid tracks any more');
+  chk(/\.nwall\{position:relative/.test(src) && /\.flatn\{position:absolute/.test(src),
+    'and neither is the flat wall grid');
+  // The legend is a key to what is drawn: every class, its dimensions and its count.
+  for (const wid of ['RAD', 'SER']) {
+    const miss = WALLS[wid].sizes.filter((z) => !src.includes(esc(z.dims)) || !src.includes(esc(z.label)));
+    chk(miss.length === 0, `${WALLS[wid].name}'s size legend prints every class's dimensions${miss.length ? ' — missing ' + miss.map((z) => z.k) : ''}`);
+  }
+  chk(new RegExp(`every row spans ${wallWidthIn('RAD')}&quot;`).test(src)
+    && new RegExp(`every row spans ${wallWidthIn('SER')}&quot;`).test(src),
+    'and states the wall width each row spans');
+  // The card answers "which size is this one?" for every niche, not only the Family two.
+  const js = src.slice(src.lastIndexOf('<script>'));
+  chk(/function sizeRows\(d\)/.test(js) && /Dimensions<\/span>/.test(js),
+    'the niche card states the size class AND its printed dimensions');
+  chk(/'size', 'dims'\]/.test(js), 'and reads both off the cell it was opened from');
+}
+
+// ── 6f. One selectable area PER WALL ─────────────────────────────────────────
+// Operator, 2026-08-02: "For the Chapel of Memory have one niche wall selection for
+// Radiance and one for Serenity. Right now it is just one niche walls [selection]."
+console.log('\nRadiance and Serenity are separately selectable');
+{
+  const ids = AREAS.map((a) => a.id);
+  chk(ids.includes('rad') && ids.includes('ser') && !ids.includes('niches'),
+    `the areas are ${ids.join(', ')} — the shared "niches" area is gone`);
+  chk(WALLS.RAD.area === 'rad' && WALLS.SER.area === 'ser',
+    'each wall carries its own area id');
+  for (const [wid, aid] of [['RAD', 'rad'], ['SER', 'ser']]) {
+    const w = WALLS[wid];
+    // exactly ONE wall block in that area's view, and it is this wall's
+    const view = src.slice(src.indexOf(`id="area-${aid}"`));
+    const end = view.indexOf('<div class="wview"', 10);
+    const body = end > 0 ? view.slice(0, end) : view;
+    const blks = [...body.matchAll(/data-blk="([^"]+)"/g)].map((m) => m[1]);
+    chk(blks.length === 1 && blks[0] === wid,
+      `the ${w.name} view holds exactly one section, ${wid} (${blks.join(', ') || 'none'})`);
+    chk(body.includes(`${w.name} Niche Wall`), `and is titled ${w.name}`);
+    // a tab, a 3D fly-to button and a walkthrough stop each
+    chk(src.includes(`class="tab" data-view="${aid}"`), `${w.name} has its own printable-list tab`);
+    chk(src.includes(`data-viewbtn="${aid}"`), `${w.name} has its own 3D fly-to button`);
+    const stop = STOPS.find((s) => s.id === w.stop);
+    chk(!!stop && stop.area === aid, `and its walk-through stop "${w.stop}" belongs to it (${stop ? stop.area : 'missing'})`);
+    // the wall's 3D face and its plan block both answer to that area
+    chk(new RegExp(`data-bankface="${wid}" data-area="${aid}"`).test(src), `the ${w.name} 3D face is tagged ${aid}`);
+    chk(new RegExp(`data-bank="${wid}" data-area="${aid}"`).test(src), `and so is its floor-plan block`);
+    // ...but it still stands PHYSICALLY in another part of the building, which is what
+    // keeps it solid rather than ghosted while you are standing there.
+    chk(new RegExp(`data-homearea="${w.homeArea}"`).test(src), `${w.name} still reports its physical home area (${w.homeArea})`);
+  }
+  // Both walks are still reachable.
+  chk(STOPS.filter((s) => s.id === 'radiance' || s.id === 'serenity').length === 2,
+    'both niche walls keep a walk-through stop');
+}
+
+// ── 6g. Floor-plan SECTION ISOLATION ─────────────────────────────────────────
+// Operator, 2026-08-02: "When clicking on a section on the floor plan just show that
+// section, not the whole north wing (for example)."
+console.log('\nFloor-plan section isolation');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  const blks = [...src.matchAll(/<div class="bwrap" data-blk="([^"]+)"/g)].map((m) => m[1]);
+  const want = BANKS.map((b) => b.id).concat(['RAD', 'SER']);
+  chk(blks.length === want.length && want.every((id) => blks.includes(id)),
+    `every section is individually addressable: ${blks.length} blocks for ${BANKS.length} banks + 2 niche walls`);
+  chk(/function showView\(v, isolate\)/.test(js), 'showView takes the section to isolate');
+  chk(/showView\(pb\.getAttribute\('data-area'\), pb\.getAttribute\('data-bank'\)\)/.test(js),
+    'a click on a plan section passes THAT section, not just its wing');
+  chk(/showView\(ev\.target\.getAttribute\('data-area'\), ev\.target\.getAttribute\('data-bank'\)\)/.test(js),
+    'and so does Enter/Space on a focused plan section (keyboard parity)');
+  chk(/\.wview\.isolated \.bwrap\{display:none;\}/.test(src) && /\.wview\.isolated \.bwrap\.iso\{display:block;\}/.test(src),
+    'an isolated view hides every sibling section');
+  chk(/\.wview\.isolated \.bwrap\{display:none!important;\}/.test(src),
+    'and prints the same way it displays');
+  const bars = (src.match(/class="isobar no-print"/g) || []).length;
+  chk(bars === AREAS.length, `every one of the ${AREAS.length} area views carries a way back (${bars} isolation bars)`);
+  chk(/data-iso="plan"/.test(src) && /data-iso="all"/.test(src),
+    'the bar offers both "back to the floor plan" and "show the whole area"');
+  chk(/function clearIso\(\)/.test(js) && /clearIso\(\);/.test(js),
+    'and any other navigation clears the isolation rather than leaving a section stranded');
+  chk(/Showing ' \+ \(BANK_LABEL\[isolate\] \|\| isolate\) \+ ' only'/.test(js),
+    'the bar names the section you are looking at');
+}
+
+// ── 6h. "MIS" appears nowhere a family can read it ───────────────────────────
+// Sprint-11 ruling: the string "MIS" must not appear on any family-facing surface.
+// Code comments and never-rendered data may keep it; nothing rendered may.
+console.log('\nNo internal system name on a family-facing surface');
+{
+  // Strip what a family can never see: HTML comments, CSS/JS block comments and
+  // whole-line JS comments. Everything left is markup, text, attributes or live code.
+  const visible = src
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ');
+  const hits = [...visible.matchAll(/\bMIS\b/g)];
+  const where = hits.slice(0, 5).map((m) => JSON.stringify(visible.slice(Math.max(0, m.index - 60), m.index + 40)));
+  chk(hits.length === 0, `the built page renders "MIS" ${hits.length} times${hits.length ? ': ' + where.join(' | ') : ' (0)'}`);
+  // The replacements have to say something useful, not just delete the word.
+  chk(/ask us for/i.test(src), 'the unavailable/no-price wording points a family at us instead');
+  chk(!/confirm in MIS/i.test(visible), 'no "confirm in MIS" survives on any surface a family sees');
+  // The word is still allowed — and still used — in the SOURCE, where it belongs.
+  chk(/MIS/.test(fs.readFileSync(DATA, 'utf8')),
+    'the data module keeps the word (it is a source citation, and it is never rendered)');
+}
+
 // ── 7. Print path ─────────────────────────────────────────────────────────────
 console.log('\nPrint path');
 {
-  const areas = (src.match(/id="area-(north|west|island|south|east|niches)"/g) || []).length;
-  chk(areas === 6, `all six area views exist as static HTML (${areas})`);
+  // SEVEN since 2026-08-02: the single "niches" area became one per wall (operator:
+  // "have one niche wall selection for Radiance and one for Serenity").
+  const areaIds = AREAS.map((a) => a.id);
+  const areaHits = areaIds.filter((id) => src.includes(`id="area-${id}"`)).length;
+  chk(areaHits === 7 && areaIds.length === 7, `all seven area views exist as static HTML (${areaHits} of ${areaIds.length})`);
   chk(/\.wview\{display:block!important/.test(src), 'print stylesheet forces every area view visible without JS');
   chk(/body\.pv-one \.wview\.active\{display:block!important/.test(src), 'an area tab narrows print to that area');
   chk(/body\.pv-sel \.wview\.printsel\{display:block!important/.test(src), 'print follows the highlight — only the selected unit\'s area prints');
@@ -1001,7 +1228,7 @@ console.log('\nSearch index (jump box)');
       r: u.ref, k: 'c', t: u.tier, c: u.cols.slice(), b: u.bank, a: areaOfBank.get(u.bank),
       s: u.st, p: (u.st === 'available' && u.p > 0 ? u.p : 0), n: `Bank ${u.bank}`,
     })).concat(nn.map((x) => ({
-      r: x.ref, k: 'n', t: x.row, c: [x.col], b: x.wall, a: 'niches',
+      r: x.ref, k: 'n', t: x.row, c: [x.col], b: x.wall, a: WALLS[x.wall].area,
       s: x.st, p: x.p || 0, n: `${WALLS[x.wall].name} Niche Wall`,
     })));
     chk(JSON.stringify(rebuilt) === m[1],
@@ -1304,6 +1531,22 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace('MONOBAR: 1445,', 'MONOBAR: 0,')],
     ['the monobar install reverted to the workbook figure the tool overrides: 225 -> 215',
       (s) => s.replace('MONOBAR_INSTALL: 225,', 'MONOBAR_INSTALL: 215,')],
+    // ── NEW 2026-08-02: the measured niche sizes ────────────────────────────
+    ['one niche re-classed: Radiance column 1 Small -> Large (the row stops spanning 165")',
+      (s) => s.replace("const RAD_P1 = ['small', 'large',", "const RAD_P1 = ['large', 'large',")],
+    ['a Radiance row PERMUTED to the other valid pattern — every total intact, position must break',
+      (s) => s.replace('  K: RAD_P1, J: RAD_P2,', '  K: RAD_P2, J: RAD_P1,')],
+    ['a Serenity row re-classed: the four narrow spaces widened to Large',
+      (s) => s.replace("const SER_P6 = ['large', 'small',", "const SER_P6 = ['large', 'large',")],
+    ['the Family class moved off the two cells the sheet draws two rows tall',
+      (s) => s.replace("const RAD_PE = ['xlarge', 'family', 'xlarge', 'xlarge', 'family', 'xlarge'];",
+        "const RAD_PE = ['family', 'xlarge', 'xlarge', 'xlarge', 'xlarge', 'family'];")],
+    ['a legend dimension mistyped: Radiance Large 23" -> 24"',
+      (s) => s.replace("dims: '11 7/8\" x 23\" x 12 3/4\"', h: 11.875, w: 23,", "dims: '11 7/8\" x 24\" x 12 3/4\"', h: 11.875, w: 24,")],
+    ['the two walls folded back into ONE shared "niches" selection',
+      (s) => s.replace("cols: 8, area: 'rad', homeArea: 'west'", "cols: 8, area: 'ser', homeArea: 'west'")],
+    ['a niche wall walk-through stop detached from its wall',
+      (s) => s.replace("{ id: 'serenity', area: 'ser',", "{ id: 'serenity', area: 'rad',")],
     // NOTE 2026-08-01: the palette-contrast sabotage MOVED from here to the generator
     // phase below. The chip colours are no longer in the data module — they are the
     // build's BAND_SKIN — so mutating `bg:` here would no longer change the page, and a
@@ -1384,6 +1627,20 @@ if (process.argv.includes('--sabotage')) {
         'const PRICE_KEY = `<div class="pricekey">Crypt prices come from MIS and are exact.')],
     ['a fee toggle shipped pre-checked, silently restoring the old default total',
       (s) => s.replace('<input type="checkbox" id="oc-on">', '<input type="checkbox" id="oc-on" checked>')],
+    // ── NEW 2026-08-02 ──────────────────────────────────────────────────────
+    ['the niche walls drawn back on uniform columns, ignoring the measured sizes',
+      (s) => s.replace('return `left:calc(${nn.leftPct}% + 1px);width:calc(${nn.widthPct}% - 2px);`',
+        'return `left:calc(${((nn.col - 1) * 100) / 8}% + 1px);width:calc(${100 / 8}% - 2px);`')],
+    ['the size class dropped off the niche cells again',
+      (s) => s.replace("+ (n.size ? ` data-size=\"${esc(n.size)}\"` : '')", "+ ''")],
+    ['"confirm in MIS" put back in front of a family',
+      (s) => s.replace('<span>Unavailable — ask us</span>', '<span>Unavailable — confirm in MIS</span>')],
+    ['a plan click reverted to opening the whole wing instead of the section',
+      (s) => s.replace("showView(pb.getAttribute('data-area'), pb.getAttribute('data-bank'))", "showView(pb.getAttribute('data-area'))")],
+    ['the per-section blocks left untagged, so nothing can be isolated',
+      (s) => s.replace('`    <div class="bwrap" data-blk="${b.id}">', '`    <div class="bwrap">')],
+    ['the way back out of an isolated section removed',
+      (s) => s.replace('data-iso="plan">&larr; Floor plan', 'data-x="plan">&larr; Floor plan')],
   ];
   let bFail = 0;
   try {
