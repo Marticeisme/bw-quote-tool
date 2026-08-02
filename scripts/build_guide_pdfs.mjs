@@ -119,6 +119,24 @@ for (const [src, out, opts = {}] of jobs) {
     badImages.forEach(s => console.error('     - ' + s));
   }
   await page.emulateMedia({ media: 'print' });
+  // The print cover's photo is a CSS background on an element that is display:none on
+  // screen, so its request only STARTS once print media is emulated — and page.pdf()
+  // does not wait for background images. loadAllImages() above cannot see it either
+  // (it walks document.images, and a background is not an <img>). Without this wait a
+  // hero that appears ONLY on the cover prints as blank navy — deterministic, not a
+  // race; it went unnoticed while every hero also appeared as a body <img>.
+  await page.evaluate(() => Promise.all(
+    Array.from(document.querySelectorAll('.pc-photo')).map((el) => {
+      const m = getComputedStyle(el).backgroundImage.match(/url\("?([^")]+)"?\)/);
+      if (!m) return Promise.resolve();
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = img.onerror = resolve;
+        img.src = m[1];
+        setTimeout(resolve, 15000);
+      });
+    }),
+  ));
   await pointLinksAtPages(page, server.base);
   // NO `margin` option. Passing one — even zeroes — makes Chromium use it INSTEAD of the
   // CSS @page margins, which leaves the @top-*/@bottom-* margin boxes with no area to

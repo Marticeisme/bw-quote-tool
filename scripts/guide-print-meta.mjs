@@ -42,7 +42,7 @@ export const HERO = {
   'granite-niches-guide.html':     'granite-niche-images/roac-courtyard.jpg',
   'glass-front-niches-guide.html': 'glass-niche-images/ecl-columbarium.jpg',
   'urn-gardens-guide.html':        'urn-garden-images/lug-lake-fountains.jpg',
-  'terramation-guide.html':        'terramation-images/washington-memorial-park.jpg',
+  'terramation-guide.html':        'terramation-images/memorial-lawn-tree.jpg', // operator-supplied cover, 2026-08-01
 };
 
 export const PLACE = {
