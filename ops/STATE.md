@@ -1,5 +1,27 @@
 # STATE — Living Ledger
 
+**Guide-PDF A+ system PUSHED LIVE 2026-08-01/02 (session close).** Track P3 audited all
+26 PDF-linked artifacts (verdict: prints of web pages — no covers, no folios, stranded
+blank sheets, 0.00–0.40" margins, THREE identities, and six guides shipping
+file:///C:/Users/... links leaking the username + a worktree name). Operator chose A+
+(polish + generated covers, packet C later) with the RANGE-ONLY pricing rule: printed
+guides keep computed ranges, per-item prices/fee tables come OUT, families ask Martice
+for exact quotes; web pages unchanged; catalogs + GPL untouched (GPL fully as-is per
+operator). Track P4 built it: scripts/guide-print-system (generator, idempotent),
+guide-print.css @page margins + running footer (name/phone/email, Page X of Y),
+generated covers (photo where a real scene ships, typographic else), guide-price-rule
+applied mechanically, file:// eradicated via _print-server (HTTP + Pages-origin
+anchors) + gate, .build-manifest content-hash staleness gate, 33mm masthead cap.
+Cap ruled SIX PAGES TOTAL (GUIDE_MAX_PAGES=5 interior). Terramation: operator-supplied
+tree cover (terramation-images/memorial-lawn-tree.jpg) — which exposed a deterministic
+blank-cover bug (cover hero = CSS background on screen-hidden element; page.pdf never
+waits for it; unnoticed while every hero doubled as a body <img>) — builder now waits
+for .pc-photo backgrounds. Terramation guide needed NO content additions: it already
+carries Return Home, the soil story, and no-chemicals better than bonneywatson.com.
+**FUTURE (operator): translated guide editions (site serves KO/VI/ES/UK/ZH) — do once
+he "feels better about the state of the guides." Family packet (Option C) also
+queued.** Session closed with all work pushed.
+
 **Track S (MIS statuses ×3) + G2 + E3+M ALL PUSHED LIVE 2026-08-01** (`fa71607`).
 The whole map family is now MIS-backed. ECL: statuses split occupied 36/reserved 28
 (availability unmoved at 21/$536,710, perfect reconciliation vs the operator's list);
