@@ -67,17 +67,17 @@ const MIS_MOVED = { ref: 'G-EXT|A-1', from: 'available', to: 'notforsale' };
 // 305 niches are priced by MIS (303 available + the 2 on hold); the other 45 carry null.
 const EXPECTED_PRICED = 305;
 const EXPECTED_UNPRICED = 45;
-const AVAIL_TOTAL = 3626785;      // the 303 available niches at list
+const AVAIL_TOTAL = 3625285;      // 303 available at list — operator 2026-08-01 ruled D-INT D-5 to $14,995 (was 3,626,785 on MIS's export figure)
 // The available price multiset, typed from the export. Old ramp had 13 distinct prices;
 // $14,295 / $15,395 / $17,595 are gone and $12,995 / $13,995 / $14,995 / $15,995 arrived.
 const AVAIL_MULTISET = {
   7995: 2, 8795: 30, 8995: 4, 9895: 36, 9995: 5, 10995: 43, 11995: 28,
-  12095: 38, 12995: 25, 13195: 33, 13995: 24, 14995: 20, 15995: 14, 16495: 1,
+  12095: 38, 12995: 25, 13195: 33, 13995: 24, 14995: 21, 15995: 14,
 };
 // Per face: available count and the sum of those niches at list.
 const PER_FACE_ANCHOR = {
   'A-EXT': [22, 237490], 'A-INT': [24, 309880], 'B-EXT': [22, 244090], 'B-INT': [25, 349875],
-  'C-EXT': [20, 227600], 'C-INT': [19, 210005], 'D-EXT': [12, 133040], 'D-INT': [21, 291395],
+  'C-EXT': [20, 227600], 'C-INT': [19, 210005], 'D-EXT': [12, 133040], 'D-INT': [21, 289895],
   'E-EXT': [25, 274875], 'E-INT': [21, 234195], 'F-EXT': [24, 261680], 'F-INT': [24, 334880],
   'G-EXT': [21, 216895], 'G-INT': [23, 300885],
 };
@@ -101,7 +101,9 @@ const SCHEDULE_OF = {
 // face, same level — are $14,995. Every other face/level in the export is uniform. MIS is
 // the price authority so $16,495 ships, and this anchor is what keeps it from being
 // "tidied" to match its neighbours without the operator confirming it first.
-const SCHEDULE_EXCEPTION = { wall: 'D-INT', id: 'D-5', price: 16495, scheduleSays: 14995 };
+// Operator ruled 2026-08-01: MIS's $16,495 on D-INT D-5 was a reprice miss — the ladder's
+// $14,995 ships. The assertion below now guards the RULED value against a 'helpful' revert.
+const SCHEDULE_EXCEPTION = { wall: 'D-INT', id: 'D-5', price: 14995, scheduleSays: 14995 };
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -266,8 +268,8 @@ console.log('\nPrices (MIS available-price export, 2026-08-01)');
     `every priced niche is on its face's export schedule${off.length ? ' — ' + off.slice(0, 6).join('; ') : ''}`);
   const ex = dataMod.find((c) => c.wall === SCHEDULE_EXCEPTION.wall && c.id === SCHEDULE_EXCEPTION.id);
   (ex && ex.price === SCHEDULE_EXCEPTION.price ? pass : fail)(
-    `${SCHEDULE_EXCEPTION.wall} ${SCHEDULE_EXCEPTION.id} ships MIS's $${SCHEDULE_EXCEPTION.price.toLocaleString('en-US')}, ` +
-    `not its face's $${SCHEDULE_EXCEPTION.scheduleSays.toLocaleString('en-US')} — unresolved, do not tidy (got ${ex && ex.price})`);
+    `${SCHEDULE_EXCEPTION.wall} ${SCHEDULE_EXCEPTION.id} ships the operator-ruled $${SCHEDULE_EXCEPTION.price.toLocaleString('en-US')} ` +
+    `(2026-08-01; MIS's $16,495 was a reprice miss — this guards against reverting it) (got ${ex && ex.price})`);
   // Tiers: one per sellable price, none for a price nobody can buy.
   const sellPrices = new Set(priced.map((c) => c.price));
   const orphan = [...sellPrices].filter((p) => !TIERS.some((t) => t.p === p));
@@ -477,7 +479,7 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("{ l: 'E', s: 5, p: 14995, st: 'hold' }", "{ l: 'E', s: 5, p: null, st: 'hold' }")],
     // The flagged exception — the specific "tidy" this track guards against.
     ["D-INT D-5 'tidied' to match its neighbours, past the operator",
-      (s) => s.replace("{ l: 'D', s: 5, p: 16495, st: 'available' }", "{ l: 'D', s: 5, p: 14995, st: 'available' }")],
+      (s) => s.replace("{ l: 'D', s: 5, p: 14995, st: 'available' }", "{ l: 'D', s: 5, p: 16495, st: 'available' }")],
     // Tiers.
     ['a colour tier kept for a price no niche carries any more ($17,595)',
       (s) => s.replace("];\r\n\r\n// ── Walls", "  { p: 17595, l: '$17,595', c: 'r13', bg: '#c02f84', fg: '#fff' },\r\n];\r\n\r\n// ── Walls")],

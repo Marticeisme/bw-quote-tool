@@ -171,11 +171,15 @@ function legendHtml(prices) {
   return TIERS.filter((t) => prices.includes(t.p))
     .map((t) => `<div class="li"><div class="ls ${t.c}"></div><span>${t.l}</span></div>`).join('');
 }
+// The "Not Priced" swatch renders only while a niche actually holds that status —
+// a legend entry nobody can act on is clutter (operator delegated, director dropped
+// it 2026-08-01). The status itself stays defined; the swatch returns with it.
+const HAS_UNPRICED = allNiches().some((n) => n.st === 'unpriced');
 const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-a"></div><span>Available</span></div>
       <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
       <div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>
-      <div class="li"><div class="ls stleg-u"></div><span>Not Priced &mdash; confirm in MIS</span></div>
+      ${HAS_UNPRICED ? '<div class="li"><div class="ls stleg-u"></div><span>Not Priced &mdash; confirm in MIS</span></div>' : ''}
     </div>`;
 
 function faceView(f) {

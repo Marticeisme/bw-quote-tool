@@ -89,7 +89,8 @@
  * An interment list can only ever REMOVE availability, never add it (absence from it is
  * not proof a space is for sale). Nothing here needed removing.
  *
- * ── B-7 AND B-11: "NOT FOR SALE", NO RULING YET ───────────────────────────────────
+ * ── B-7 AND B-11: "NOT FOR SALE" IN MIS — OPERATOR RULED 2026-08-01: "unavailable" ──
+ * They render as ordinary unavailable, deliberately — no separate blocked state.
  * Two sources now agree that B-7 and B-11 are NOT FOR SALE, a state distinct from B-10's
  * on-hold: the lot inquiry returns them with status "Not For Sale", and the operator's
  * MIS wall view marks both with the X marker. This file previously read them as SOLD

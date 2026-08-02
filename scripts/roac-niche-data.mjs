@@ -35,8 +35,9 @@
  * Every exterior face and the two plain interiors (C-INT, E-INT) are unchanged to the
  * dollar. Available inventory at list: $3,626,785 over 303 niches.
  *
- * ⚠ ONE EXCEPTION, FOR THE OPERATOR: D-INT D-5 is still exported at $16,495 while
- * D-INT D-1 and D-4 — the same face, the same level — come across at $14,995. Every
+ * D-INT D-5: the export carried $16,495 while D-1/D-4 — same face, same level — came
+ * across at $14,995. OPERATOR RULED 2026-08-01: "$14,995" — the export missed the
+ * reprice; the ladder value ships. Every
  * other face/level in the export is uniform. MIS is the price authority here so $16,495
  * is what ships, and it is the only niche on the wall carrying that figure. It looks
  * like a row the reprice missed; Martice should confirm it.
@@ -102,8 +103,9 @@ export const RIGHTS = 2;
  *
  * The 2026-08-01 lot inquiry corroborates: it carries four bench rows, "Bench-1 (A)/(B)"
  * and "Bench-2 (A)/(B)", every one of them RESERVED — sold, no interment yet. Note the
- * inquiry exposes only TWO positions per bench where the ruling says four rights; the
- * bench rows and the niche rows use the same (A)/(B) depth notation, so the export is
+ * inquiry exposes only TWO positions per bench where the ruling says four rights.
+ * OPERATOR CONFIRMED 2026-08-01: "it's two benches but each bench can hold 4 urns
+ * inside of it" — 4 rights per bench stands; the export's (A)/(B) is
  * almost certainly modelling depth rather than capacity. The RULING is authoritative on
  * capacity and the inquiry on state; they do not actually disagree, and neither reading
  * makes a bench sellable. Flagged for the operator all the same.
@@ -158,7 +160,7 @@ export const TIERS = [
   { p: 13995, l: '$13,995', c: 'r9', bg: '#cf4a1c', fg: '#fff' },
   { p: 14995, l: '$14,995', c: 'r10', bg: '#c2332b', fg: '#fff' },
   { p: 15995, l: '$15,995', c: 'r11', bg: '#8b4fbb', fg: '#fff' },
-  { p: 16495, l: '$16,495', c: 'r12', bg: '#c02f84', fg: '#fff' },
+  // r12 $16,495 retired 2026-08-01: D-INT D-5 (its last holder) ruled down to $14,995.
 ];
 
 // ── Walls: 14 faces x 25 niches, VERBATIM from the old page ────────────────
@@ -215,7 +217,7 @@ export const WALLS = {
   ] },
   'D-INT': { section: 'D', face: 'INT', label: "INSIDE - WALL D", niches: [
     { l: 'E', s: 1, p: 15995, st: 'available' }, { l: 'E', s: 2, p: 15995, st: 'available' }, { l: 'E', s: 3, p: 15995, st: 'hold' }, { l: 'E', s: 4, p: 15995, st: 'available' }, { l: 'E', s: 5, p: 15995, st: 'available' },
-    { l: 'D', s: 1, p: 14995, st: 'available' }, { l: 'D', s: 2, p: null, st: 'buried' }, { l: 'D', s: 3, p: null, st: 'buried' }, { l: 'D', s: 4, p: 14995, st: 'available' }, { l: 'D', s: 5, p: 16495, st: 'available' },
+    { l: 'D', s: 1, p: 14995, st: 'available' }, { l: 'D', s: 2, p: null, st: 'buried' }, { l: 'D', s: 3, p: null, st: 'buried' }, { l: 'D', s: 4, p: 14995, st: 'available' }, { l: 'D', s: 5, p: 14995, st: 'available' }, // operator 2026-08-01: MIS's $16,495 was a reprice miss; ladder value rules
     { l: 'C', s: 1, p: 13995, st: 'available' }, { l: 'C', s: 2, p: 13995, st: 'available' }, { l: 'C', s: 3, p: null, st: 'reserved' }, { l: 'C', s: 4, p: 13995, st: 'available' }, { l: 'C', s: 5, p: 13995, st: 'available' },
     { l: 'B', s: 1, p: 12995, st: 'available' }, { l: 'B', s: 2, p: 12995, st: 'available' }, { l: 'B', s: 3, p: 12995, st: 'available' }, { l: 'B', s: 4, p: 12995, st: 'available' }, { l: 'B', s: 5, p: 12995, st: 'available' },
     { l: 'A', s: 1, p: 11995, st: 'available' }, { l: 'A', s: 2, p: 11995, st: 'available' }, { l: 'A', s: 3, p: 11995, st: 'available' }, { l: 'A', s: 4, p: 11995, st: 'available' }, { l: 'A', s: 5, p: 11995, st: 'available' },
