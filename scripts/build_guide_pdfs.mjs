@@ -119,15 +119,18 @@ for (const [src, out, opts = {}] of jobs) {
     badImages.forEach(s => console.error('     - ' + s));
   }
   await page.emulateMedia({ media: 'print' });
-  // The print cover's photo is a CSS background on an element that is display:none on
-  // screen, so its request only STARTS once print media is emulated — and page.pdf()
-  // does not wait for background images. loadAllImages() above cannot see it either
-  // (it walks document.images, and a background is not an <img>). Without this wait a
-  // hero that appears ONLY on the cover prints as blank navy — deterministic, not a
-  // race; it went unnoticed while every hero also appeared as a body <img>.
+  // Print-media-only background images and print-only image swaps only START their request
+  // once print media is emulated, and page.pdf() does not wait for either. loadAllImages()
+  // above cannot see them (it walks document.images before any swap, and a CSS background
+  // is not an <img> at all). The s10 cover's hero photo was one such asset and printed as
+  // blank navy until this wait was added; a print-only `content:url()` logo swap was tried
+  // and dropped in s11 (see guide-print.css §3). No such asset ships right now, so this
+  // loop is a no-op today — kept anyway, because the failure mode is deterministic, silent,
+  // and only visible by rasterising the PDF and looking at it.
   await page.evaluate(() => Promise.all(
-    Array.from(document.querySelectorAll('.pc-photo')).map((el) => {
-      const m = getComputedStyle(el).backgroundImage.match(/url\("?([^")]+)"?\)/);
+    Array.from(document.querySelectorAll('.cover-logo, .pc-photo')).map((el) => {
+      const cs = getComputedStyle(el);
+      const m = (cs.content + ' ' + cs.backgroundImage).match(/url\("?([^")]+)"?\)/);
       if (!m) return Promise.resolve();
       return new Promise((resolve) => {
         const img = new Image();

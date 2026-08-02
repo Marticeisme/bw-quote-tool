@@ -19,13 +19,20 @@
       It does NOT support `string-set`/`content()`, so the title cannot be pulled from a
       running heading; it is emitted per guide as a constant by
       scripts/build_guide_print_system.mjs. That is a Chromium limitation, not a shortcut.
-   3. The full-bleed generated cover on page 1 (`@page:first`, margins off).
-   4. Widow/orphan control: break-inside:avoid on every callout and prose box.
-   5. The masthead contrast fix — the old navy-on-navy band becomes a cream plate.
-   6. The print-suppression class for the operator's pricing rule.
+   3. Widow/orphan control: break-inside:avoid on every callout and prose box.
+   4. The masthead contrast fix.
+   5. The print-suppression class for the operator's pricing rule.
 
-   Per-guide constants (title string, cover copy, hero photo) are injected by the build
-   script into a marked block in each guide. Nothing in this file is guide-specific.
+   THERE IS NO COVER PAGE.  Sprint-11 Track D, on the operator's direction of 2026-08-02:
+   "I don't like the idea of a cover page and I don't like any of the PDF versions right
+   now." The s10 generated full-bleed cover is REVERSED — page 1 of every guide PDF is now
+   content, opening under the guide's own masthead. What survives from s10 is the part he
+   did not object to: the running footer, the real page margins, and the range-only pricing
+   rule. Do not reintroduce a cover without a fresh operator ruling; `verify_guide_pages.mjs`
+   asserts that NO page of any guide PDF is full-bleed, so a returning cover fails the gate.
+
+   Per-guide constants (the running-header title string) are injected by the build script
+   into a marked block in each guide. Nothing in this file is guide-specific.
    ===================================================================================== */
 
 /* ── 1. PAGE GEOMETRY + RUNNING FOOTER ─────────────────────────────────────────────
@@ -51,14 +58,13 @@
   }
 }
 
-/* Page 1 is the generated cover: full bleed, no running furniture. */
-@page :first {
-  margin: 0;
-  @top-left { content: none }
-  @top-right { content: none }
-  @bottom-left { content: none }
-  @bottom-right { content: none }
-}
+/* There is no @page:first override any more. With the cover gone, page 1 is content and
+   carries the same margins and the same running furniture as every other page — which is
+   the whole point of a running footer: Martice's name, phone and email are on the FIRST
+   sheet a family reads, not only from page 2 onward.
+   The one exception is emitted per guide by scripts/build_guide_print_system.mjs:
+   `@page :first{@top-left{content:none}}`, because the @top-left box repeats the guide's
+   title and on page 1 the masthead states it an inch below in 16pt. */
 
 @media print {
 
@@ -86,80 +92,31 @@
      to 2.8% ink, i.e. a blank page a family is asked to print. Hidden. */
   .doc-footer { display: none !important; }
 
-  /* ── 2. THE GENERATED COVER ────────────────────────────────────────────────────
-     Content is injected per guide; the geometry is here. `height:100vh` is the page
-     box because @page:first has zero margins. */
-  .print-cover {
-    display: block !important;
-    position: relative;
-    width: 100%; height: 100vh;
-    break-after: page; page-break-after: always;
-    background: #1e3a55;
-    overflow: hidden;
-    color: #fff;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  .print-cover .pc-photo {
-    position: absolute; left: 0; right: 0; top: 0; height: 6.85in;
-    background-position: center 42%; background-size: cover; background-repeat: no-repeat;
-    filter: saturate(.86);
-  }
-  /* A dignified typographic cover for the guides that ship no photograph of their own:
-     the navy field is left plain rather than borrowing another guide's picture. */
-  .print-cover.pc-typographic .pc-photo {
-    background: linear-gradient(160deg, #2c445e 0%, #1e3a55 55%, #16293c 100%);
-  }
-  .print-cover .pc-scrim {
-    position: absolute; left: 0; right: 0; top: 0; height: 6.85in;
-    background: linear-gradient(180deg, rgba(30,58,85,.74) 0%, rgba(30,58,85,.20) 40%, rgba(30,58,85,.62) 100%);
-  }
-  .print-cover .pc-top {
-    position: absolute; top: .62in; left: .85in; right: .85in;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .print-cover .pc-top img { height: 26px; filter: brightness(0) invert(1); }
-  .print-cover .pc-top .pc-place {
-    font-family: 'Source Sans 3', sans-serif; font-size: 8pt; letter-spacing: .2em;
-    text-transform: uppercase; color: #e6ded0;
-  }
-  .print-cover .pc-plate {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 4.15in;
-    background: #1e3a55; padding: .5in .85in .5in;
-    display: flex; flex-direction: column;
-  }
-  .print-cover .pc-kick {
-    font-family: 'Source Sans 3', sans-serif; font-size: 8.5pt; letter-spacing: .26em;
-    text-transform: uppercase; color: #f0a880; font-weight: 700;
-  }
-  .print-cover h1 {
-    font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500;
-    font-size: 42pt; line-height: 1.0; margin: 10px 0 0; color: #fff;
-  }
-  .print-cover .pc-bar { width: 74px; height: 3px; background: #c8540a; margin: 15px 0 13px; }
-  .print-cover .pc-sub {
-    font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic;
-    font-size: 13pt; line-height: 1.35; color: #dfe6ec; max-width: 5.6in;
-  }
-  .print-cover .pc-foot {
-    margin-top: auto; border-top: 1px solid rgba(255,255,255,.22); padding-top: 11px;
-    display: flex; justify-content: space-between; align-items: flex-end;
-    font-family: 'Source Sans 3', sans-serif; font-size: 9pt; color: #c3d0da;
-  }
-  .print-cover .pc-foot b { color: #fff; font-weight: 700; display: block; font-size: 10pt; }
-  .print-cover .pc-asof { color: #8ea5b4; }
-
-  /* ── 3. MASTHEAD CONTRAST FIX (optA's cream treatment) ─────────────────────────
+  /* ── 3. MASTHEAD (cream treatment + contrast fix) ──────────────────────────────
      P3's audit: the navy masthead put a 55%-opacity white subtitle on navy — under
-     4.5:1, and the first thing a family reads. With a real cover on page 1 the second
-     navy slab was redundant as well as unreadable, so it becomes a cream plate with
-     navy type: contrast fixed, and it stops competing with the cover. */
+     4.5:1, and the first thing a family reads. The cream plate with navy type fixes it,
+     and it is kept now that the cover is gone: it is the lighter, less ink-heavy opening
+     for a document a family prints at home, and it is the treatment that was reviewed.
+
+     THE LOGO STAYS HIDDEN, and the s10 note beside it ("the logo is on the cover now") is
+     no longer the reason. It was tried both ways when the cover came out. `logo.svg` is
+     white artwork for navy backgrounds and is invisible on this cream plate, so restoring
+     it means a print-only swap to the navy cut — `.cover-logo{content:url("logo-navy.svg")}`,
+     which Chromium honours. MEASURED, that costs 15-16px of logo plus a 4-5px margin at
+     the top of the FIRST page of every guide, and two guides paid a whole extra sheet for
+     it: Glass-Front Niche went 3 pages to 4 and Urn Gardens 1 to 2, both of which are
+     documents whose exact page count is an operator requirement.
+     A fifth of an inch is not worth a sheet of paper for a mark the page already carries
+     three other ways — the masthead kicker reads BONNEY WATSON FAMILY GUIDE in orange
+     directly beneath it, "Bonney Watson" runs in the @top-right box of every page, and the
+     running footer carries Martice's name and @bonneywatson.com address. Hidden. */
   .cover {
     background: #f8f6f2 !important;
     border-bottom: 3px solid #2c445e;
     padding: 0 0 9px !important;
   }
   .cover::before { display: none !important; }
-  .cover-logo { display: none !important; }   /* the logo is on the cover now */
+  .cover-logo { display: none !important; }
   .cover-kicker { color: #a5450a !important; }
   .cover h1 { color: #1e3a55 !important; }
   .cover-sub { color: #4a5765 !important; }   /* was rgba(255,255,255,.7) on navy */
