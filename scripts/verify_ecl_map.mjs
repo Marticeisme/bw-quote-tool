@@ -18,6 +18,7 @@ import {
   WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, RIGHTS, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
+import { assertNoMis } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ECL_NicheMap.html';
@@ -601,6 +602,8 @@ if (process.argv.includes('--sabotage')) {
     ['an unsellable niche given the aria-label of an available one (price read aloud)',
       (s) => s.replace('  if (!sellable(n)) return `${refOf(f, n.r, n.n)}, ${faceLabel(f)}, ${STATUS_LABEL[n.st] || n.st}`;',
         '  if (false) return `${refOf(f, n.r, n.n)}, ${faceLabel(f)}, ${STATUS_LABEL[n.st] || n.st}`;')],
+    ['a rendered "MIS" put back into the page copy (operator: never name it to a family)',
+      (s) => s.replace('with the cemetery office', 'in MIS/Enterprise')],
   ]);
 
   let restored = 0;
@@ -608,6 +611,18 @@ if (process.argv.includes('--sabotage')) {
   (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
   failures += sabFail;
 }
+
+// ── ZERO RENDERED "MIS" ─────────────────────────────────────────────────────
+// Operator, 2026-08-02: "Never mention the word MIS on any guide to a family or any live
+// niche maps etc — that information does not need to be disclosed to families." This map
+// is a live niche map: he opens it in front of people. It used to send the reader to
+// "MIS/Enterprise", which names an internal system a family can neither see nor check.
+//
+// The assertion is here rather than in the sweep commit's diff because a wording fix is
+// exactly the kind of change that gets undone by the next person copying a sentence from
+// a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
+console.log('\nFamily-facing wording');
+assertNoMis((c, m) => (c ? pass : fail)(m), 'ECL_NicheMap.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

@@ -20,6 +20,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { FACE_ORDER, TIERS, FEES, UNSELLABLE, BENCHES, RIGHTS, allNiches } from './roac-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
+import { assertNoMis } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ROAC_NicheMap.html';
@@ -316,8 +317,8 @@ console.log('\nNo price is rendered for an unsellable niche');
     `the ${nfs.length} not-for-sale niche renders with st-notforsale in all three renderings (${marked})`);
   (/<span>Not for sale<\/span>/.test(newSrc) ? pass : fail)('the legend names the not-for-sale code');
   (/\.st-notforsale\{background:/.test(newSrc) ? pass : fail)('and it has a treatment of its own, distinct from reserved and occupied');
-  (/Not for sale \\u2014 MIS is not offering this space/.test(newSrc) ? pass : fail)(
-    'the card says MIS is not offering it — not that someone bought it');
+  (/Not for sale \\u2014 this space is not currently being offered/.test(newSrc) ? pass : fail)(
+    'the card says the space is not being offered — not that someone bought it (and does not name MIS)');
 }
 
 // ── 5b2. The fee schedule ─────────────────────────────────────────────────
@@ -517,7 +518,7 @@ if (process.argv.includes('--sabotage')) {
     ['the not-for-sale legend entry dropped, so the wall shows a code it never explains',
       (s) => s.replace('<div class="li"><div class="ls stleg-n"></div><span>Not for sale</span></div>\r\n      ', '')],
     ['the not-for-sale card wording replaced by the reserved one',
-      (s) => s.replace('MIS is not offering this space.', 'Reserved, sold.')],
+      (s) => s.replace('this space is not currently being offered.', 'Reserved, sold.')],
     ['the bench rights line dropped from the panel',
       (s) => s.replace('${BENCHES.rights} rights of interment</div>', '</div>')],
     ['the bench panel no longer says the benches are sold',
@@ -527,6 +528,8 @@ if (process.argv.includes('--sabotage')) {
     ['a price chip rendered on an unsellable niche again',
       (s) => s.replace("const chip = sellable(n) ? `<span class=\"n3p ${tier(n.p).c}\">${money(n.p)}</span>` : '';",
         "const chip = `<span class=\"n3p ${tier(n.p).c}\">${money(n.p)}</span>`;")],
+    ['a rendered "MIS" put back into the page copy (operator: never name it to a family)',
+      (s) => s.replace('with the cemetery office', 'in MIS/Enterprise')],
   ]);
 
   let restored = 0;
@@ -534,6 +537,18 @@ if (process.argv.includes('--sabotage')) {
   (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
   failures += sabFail;
 }
+
+// ── ZERO RENDERED "MIS" ─────────────────────────────────────────────────────
+// Operator, 2026-08-02: "Never mention the word MIS on any guide to a family or any live
+// niche maps etc — that information does not need to be disclosed to families." This map
+// is a live niche map: he opens it in front of people. It used to send the reader to
+// "MIS/Enterprise", which names an internal system a family can neither see nor check.
+//
+// The assertion is here rather than in the sweep commit's diff because a wording fix is
+// exactly the kind of change that gets undone by the next person copying a sentence from
+// a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
+console.log('\nFamily-facing wording');
+assertNoMis((c, m) => (c ? pass : fail)(m), 'ROAC_NicheMap.html', newSrc);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

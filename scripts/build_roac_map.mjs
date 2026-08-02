@@ -509,7 +509,7 @@ var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, VASE = ${FEES.VAS
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
 var UNSELLABLE = ${JSON.stringify(UNSELLABLE)};
 var WALL_LABEL = ${FACE_LABEL_JSON};
-var MIS_SECTION = ${MIS_SECTION_JSON};
+var WALL_SECTION = ${MIS_SECTION_JSON};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * ${FEES.ECF_RATE}); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
@@ -524,14 +524,14 @@ function cardHtml(d) {
   // "not for sale" is the one a counselor must not mistake for "someone bought it".
   if (UNSELLABLE.indexOf(d.st) > -1) {
     var note = d.st === 'notforsale'
-      ? 'Not for sale \\u2014 MIS is not offering this space. It is not reserved and not occupied. Confirm in MIS/Enterprise before saying anything to a family.'
+      ? 'Not for sale \\u2014 this space is not currently being offered. It is not reserved and not occupied. Confirm today\\u2019s availability with the cemetery office before saying anything to a family.'
       : d.st === 'buried'
         ? 'Occupied \\u2014 an inurnment has been made. Not available, and no pricing is shown.'
         : 'Reserved \\u2014 sold, with no inurnment yet. Not available, and no pricing is shown.';
     return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
       '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
       '<button class="cclose" type="button" aria-label="Close">\\u00d7</button></div>' +
-      '<div class="cardmis">ROAC \\u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
+      '<div class="cardmis">ROAC \\u00b7 ' + (WALL_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
       '<div class="cnote">' + note + '</div>';
   }
@@ -553,7 +553,7 @@ function cardHtml(d) {
   return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
     '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
     '<button class="cclose" type="button" aria-label="Close">\\u00d7</button></div>' +
-    '<div class="cardmis">ROAC \\u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
+    '<div class="cardmis">ROAC \\u00b7 ' + (WALL_SECTION[d.wall] || '') + ' \\u00b7 Tier ' + d.lvl + ' \\u00b7 Space ' + d.sp + '</div>' +
     st + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">Up to 2 inurnments per niche. ECF is not included in the listed price.</div>';
@@ -971,7 +971,7 @@ ${overviewView()}
   </div>
   <div class="pfoot">
     <b>Tier A is the bottom row; Tier E the top. Spaces run 1–5 left to right facing each wall.</b><br>
-    Niche availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
+    Niche availability shown is maintained by hand — always confirm today’s availability with the cemetery office before writing.
   </div>
 </div><!-- /main -->
 

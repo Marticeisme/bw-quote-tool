@@ -41,6 +41,7 @@ import {
   SHEET_TEXT, COMPANION_NOTE, allNiches, refOf, sellable, ecf, estTotal,
   PRICES, AVAILABILITY, LISTED_NO_PRICE, ON_HOLD, OCCUPIED, RESERVED, SOLD_SINCE_SHEET,
 } from './gomn-niche-data.mjs';
+import { assertNoMis } from './_no_mis_assert.mjs';
 
 const DATA = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gomn-niche-data.mjs');
 const BUILD = path.join(path.dirname(fileURLToPath(import.meta.url)), 'build_gomn_map.mjs');
@@ -626,7 +627,8 @@ console.log('\nThe ruled fee schedule (MVC June-2026), and where the page says i
   ck(src.includes(FEE_SOURCE.replaces.replace(/&/g, '&amp;')), 'provenance names the three sheet amounts it replaces');
   ck(FEE_SOURCE.printedOnThisSheet === false && /not printed on this area/i.test(src),
     'the page says in as many words that these fees are NOT printed on this area\'s sheet');
-  ck(/Confirm the current charges in MIS/i.test(src), 'and tells the counselor to confirm them in MIS');
+  ck(/Confirm the current charges with the cemetery office/i.test(src),
+    'and tells the reader to confirm the current charges with us — without naming MIS (s11 Track D)');
   ck(new RegExp(`E\\.C\\.F\\. rate is the one fee figure still taken from this sheet`).test(src),
     'the page distinguishes the E.C.F. (still the sheet\'s) from the three replaced amounts');
 }
@@ -934,7 +936,7 @@ if (process.argv.includes('--sabotage')) {
     ['the whole availability provenance block deleted',
       (s) => s.replace('    <h3>Availability &mdash; where this reading comes from</h3>', '    <h3>Availability</h3>')],
     ['the level-C resolution dropped from the page',
-      (s) => s.replace('${esc(AVAILABILITY.resolved.finding)}', 'See MIS.')],
+      (s) => s.replace('${esc(AVAILABILITY.resolved.finding)}', 'See the office.')],
     ['the status provenance line dropped — the page stops saying where occupied/reserved came from',
       (s) => s.replace('${esc(AVAILABILITY.statusSource)}', 'our records')],
     ['the on-hold card wording replaced by the generic one, hiding what MIS already told us',
@@ -955,6 +957,8 @@ if (process.argv.includes('--sabotage')) {
     ['an unavailable niche given the aria-label of an available one (price read aloud)',
       (s) => s.replace('  if (!sellable(n)) return `${n.ref}, ${BLOCKS[n.block].label}, row ${n.row}, space ${n.col}, ${STATUS_LABEL[n.st]}`;',
         '  if (false) return `${n.ref}, ${BLOCKS[n.block].label}, row ${n.row}, space ${n.col}, ${STATUS_LABEL[n.st]}`;')],
+    ['a rendered "MIS" put back into the page copy (operator: never name it to a family)',
+      (s) => s.replace('with the cemetery office', 'in MIS/Enterprise')],
   ]);
 
   let restored = 0;
@@ -962,6 +966,20 @@ if (process.argv.includes('--sabotage')) {
   (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
   failures += sabFail;
 }
+
+// ── ZERO RENDERED "MIS" ─────────────────────────────────────────────────────
+// Operator, 2026-08-02: "Never mention the word MIS on any guide to a family or any live
+// niche maps etc — that information does not need to be disclosed to families." This map
+// is a live niche map: he opens it in front of people. It used to send the reader to
+// "MIS/Enterprise", which names an internal system a family can neither see nor check.
+//
+// The assertion is here rather than only in the sweep's diff because a wording fix is
+// exactly the kind of change that gets undone by the next person copying a sentence from
+// a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs,
+// and note that this file's own anchors and console output still say MIS freely. They are
+// read by whoever maintains the wall, never by a family.
+console.log('\nFamily-facing wording');
+assertNoMis(ck, 'GOMN_NicheMap.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

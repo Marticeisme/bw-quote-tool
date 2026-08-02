@@ -253,12 +253,12 @@ export const SOLD_SINCE_SHEET = [
 /** Provenance of the availability reading, rendered on the page. */
 export const AVAILABILITY = {
   asOf: '2026-08-01',
-  source: 'operator MIS availability export (Wall-1 = GOM-1-1; Lvl = row, Sp = space)',
+  source: 'the operator\u2019s availability export (Wall-1 = GOM-1-1; Lvl = row, Sp = space)',
   supersedes: "the Jan-30-2025 price sheet's status reading (prices unchanged)",
   /** The export's own summary line, per level. Detail counts are derived from PRICES. */
   summaryCounts: { B: 1, C: 12, D: 5, G: 3 },
   /** Where the statuses (not the availability) come from. */
-  statusSource: 'MIS Lot Inquiry List for Bldg-GOM, 2026-08-01',
+  statusSource: 'Lot Inquiry List for Bldg-GOM, 2026-08-01',
   /**
    * The one place the export contradicted itself, and how it was settled. This field
    * used to carry an UNRECONCILED warning; it now carries the finding, and the page
@@ -268,10 +268,10 @@ export const AVAILABILITY = {
    */
   resolved: {
     on: '2026-08-01',
-    source: 'MIS wall view, corroborated by the same-day lot inquiry',
+    source: 'the cemetery wall view, corroborated by the same-day lot inquiry',
     finding:
       'The export summary said Level C had 12 available while its detail listed 11. ' +
-      'The MIS wall view shows row C’s available set is exactly those 11 spaces — ' +
+      'The cemetery wall view shows row C’s available set is exactly those 11 spaces — ' +
       'the summary’s twelfth does not exist. Nothing shown here changed.',
   },
 };
@@ -283,7 +283,7 @@ export const AVAILABILITY = {
  * fail-safe for a space no source accounts for.
  */
 export const STATUS_LABEL = {
-  occupied: 'Occupied', reserved: 'Reserved', hold: 'On Hold', unavailable: 'Confirm in MIS',
+  occupied: 'Occupied', reserved: 'Reserved', hold: 'On Hold', unavailable: 'Ask us',
 };
 /** Statuses that must never render a price, anywhere, in any view. */
 export const UNSELLABLE = ['occupied', 'reserved', 'hold', 'unavailable'];

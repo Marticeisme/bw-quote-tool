@@ -1904,7 +1904,7 @@
   </div>
   <div class="pfoot">
     <b>Tier A is the bottom row; Tier E the top. Spaces run 1–5 left to right facing each wall.</b><br>
-    Niche availability shown is maintained by hand — always confirm current status in MIS/Enterprise before writing.
+    Niche availability shown is maintained by hand — always confirm today’s availability with the cemetery office before writing.
   </div>
 </div><!-- /main -->
 
@@ -1917,7 +1917,7 @@ var OC = 875, REC = 235, INSCR = 660, VASE = 275, TAX = 0.104;
 var STATUS_LABEL = {"reserved":"Reserved","buried":"Occupied","hold":"On Hold","notforsale":"Not For Sale"};
 var UNSELLABLE = ["reserved","buried","notforsale"];
 var WALL_LABEL = {"A-EXT":"Wall A — Outside","A-INT":"Wall A — Inside","B-EXT":"Wall B — Outside","B-INT":"Wall B — Inside","C-EXT":"Wall C — Outside","C-INT":"Wall C — Inside","D-EXT":"Wall D — Outside","D-INT":"Wall D — Inside","E-EXT":"Wall E — Outside","E-INT":"Wall E — Inside","F-EXT":"Wall F — Outside","F-INT":"Wall F — Inside","G-EXT":"Wall G — Outside","G-INT":"Wall G — Inside"};
-var MIS_SECTION = {"A-EXT":"Wall A Exterior","A-INT":"Wall A Interior","B-EXT":"Wall B Exterior","B-INT":"Wall B Interior","C-EXT":"Wall C Exterior","C-INT":"Wall C Interior","D-EXT":"Wall D Exterior","D-INT":"Wall D Interior","E-EXT":"Wall E Exterior","E-INT":"Wall E Interior","F-EXT":"Wall F Exterior","F-INT":"Wall F Interior","G-EXT":"Wall G Exterior","G-INT":"Wall G Interior"};
+var WALL_SECTION = {"A-EXT":"Wall A Exterior","A-INT":"Wall A Interior","B-EXT":"Wall B Exterior","B-INT":"Wall B Interior","C-EXT":"Wall C Exterior","C-INT":"Wall C Interior","D-EXT":"Wall D Exterior","D-INT":"Wall D Interior","E-EXT":"Wall E Exterior","E-INT":"Wall E Interior","F-EXT":"Wall F Exterior","F-INT":"Wall F Interior","G-EXT":"Wall G Exterior","G-INT":"Wall G Interior"};
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * 0.1); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
@@ -1932,14 +1932,14 @@ function cardHtml(d) {
   // "not for sale" is the one a counselor must not mistake for "someone bought it".
   if (UNSELLABLE.indexOf(d.st) > -1) {
     var note = d.st === 'notforsale'
-      ? 'Not for sale \u2014 MIS is not offering this space. It is not reserved and not occupied. Confirm in MIS/Enterprise before saying anything to a family.'
+      ? 'Not for sale \u2014 this space is not currently being offered. It is not reserved and not occupied. Confirm today\u2019s availability with the cemetery office before saying anything to a family.'
       : d.st === 'buried'
         ? 'Occupied \u2014 an inurnment has been made. Not available, and no pricing is shown.'
         : 'Reserved \u2014 sold, with no inurnment yet. Not available, and no pricing is shown.';
     return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
       '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
       '<button class="cclose" type="button" aria-label="Close">\u00d7</button></div>' +
-      '<div class="cardmis">ROAC \u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \u00b7 Tier ' + d.lvl + ' \u00b7 Space ' + d.sp + '</div>' +
+      '<div class="cardmis">ROAC \u00b7 ' + (WALL_SECTION[d.wall] || '') + ' \u00b7 Tier ' + d.lvl + ' \u00b7 Space ' + d.sp + '</div>' +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
       '<div class="cnote">' + note + '</div>';
   }
@@ -1961,7 +1961,7 @@ function cardHtml(d) {
   return '<div class="cardhd"><span class="cardid">' + d.id + '</span>' +
     '<span class="cardwall">' + (WALL_LABEL[d.wall] || '') + '</span>' +
     '<button class="cclose" type="button" aria-label="Close">\u00d7</button></div>' +
-    '<div class="cardmis">ROAC \u00b7 ' + (MIS_SECTION[d.wall] || '') + ' \u00b7 Tier ' + d.lvl + ' \u00b7 Space ' + d.sp + '</div>' +
+    '<div class="cardmis">ROAC \u00b7 ' + (WALL_SECTION[d.wall] || '') + ' \u00b7 Tier ' + d.lvl + ' \u00b7 Space ' + d.sp + '</div>' +
     st + rows +
     '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>' +
     '<div class="cnote">Up to 2 inurnments per niche. ECF is not included in the listed price.</div>';

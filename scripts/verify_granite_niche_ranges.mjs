@@ -194,8 +194,13 @@ console.log('\n=== GARDEN OF MEDITATION FEE SCHEDULE vs gomn-niche-data FEES ===
   if (src.printedOnThisSheet) fail('GOMN FEE_SOURCE.printedOnThisSheet flipped to true — this gate needs rewriting');
   else if (/replace the older ones printed on the sheet|instead/i.test(gomn)) ok('provenance says these amounts replace the ones printed on the sheet');
   else fail('the section never says the printed amounts were replaced');
-  if (/confirm the current charges in MIS/i.test(gomn)) ok('and tells the reader the charges are confirmed in MIS');
-  else fail('the section never sends the reader to MIS to confirm');
+  // s11 Track D: the same assertion, minus the system name. The operator ruled on
+  // 2026-08-02 that MIS is never named to a family, so the sentence now says a family
+  // service director confirms the charges — which is the part a family can act on. The
+  // check is kept (not deleted) because the failure it guards is real: a fee schedule
+  // that came from a DIFFERENT area's sheet must always be presented as confirmable.
+  if (/confirm the current charges before quoting/i.test(gomn)) ok('and tells the reader the charges are confirmed before quoting');
+  else fail('the section never tells the reader the charges are confirmed before quoting');
 
   // 4. the ×2 inscription allowance, and the urn as merchandise at its module price.
   if (/up to two on the niche front/i.test(gomn) && /Two inscriptions may be added/i.test(gomn))
