@@ -1,5 +1,25 @@
 # STATE — Living Ledger
 
+**Track S (MIS statuses ×3) + G2 + E3+M ALL PUSHED LIVE 2026-08-01** (`fa71607`).
+The whole map family is now MIS-backed. ECL: statuses split occupied 36/reserved 28
+(availability unmoved at 21/$536,710, perfect reconciliation vs the operator's list);
+rights=2 per operator, stated on cards + glass guide. GOM: 92 occ/54 res/18 avail/
+2 hold (B-10, D-18 On Hold per operator)/2 unruled; **Level-C discrepancy RESOLVED —
+11 is correct, the summary's 12 was wrong** (settled by the operator's MIS wall
+screenshot + the inquiry independently). ROAC: hand-maintained drift was 349/350
+(only G-EXT A-1 available→not-for-sale); **118 interior niches REPRICED downward**
+(A/G-INT and B/D/F-INT ladders, ~-$1,100–1,600 each), available 303/$3,626,785;
+benches sold, 4 rights each (operator). Movement feel live on all five 3D maps
+(ROAC = presets+inertia only — its camera has no position axis; floor-walk there
+needs a camera-model change, operator ruling pending). Contract 1538/31; sabotage
+suites now exist on ECL (20) and ROAC (28) — their headers had CLAIMED teeth that
+didn't exist; Track S also fixed ROAC's absent fee assertions and a pre-existing
+4.39:1 chip.
+**OPEN (operator):** ROAC D-INT D-5 exports $16,495 where its face/level ladder says
+$14,995 — reprice miss or real?; GOM B-7/B-11 read "Not For Sale" in two sources —
+ruling pending, ship as unavailable; bench export shows 2 positions/bench vs the
+4-rights ruling (depth notation, flagged); ECL legend's unused "Not Priced" swatch.
+
 **N3 (dignified crypt fronts) PUSHED LIVE 2026-08-01** (`b3db930`): refs off the 3D
 fronts (hover/card/callout/flat grids keep them), prices take the LOD with per-cell
 `--pmax` ceilings (a wide companion can't shout over neighbours; nothing clips), tier
