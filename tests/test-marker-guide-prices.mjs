@@ -32,9 +32,12 @@
 // resolving one turns the exception itself red rather than letting the list go stale.
 // That is how both of these came back to be closed.
 import { chromium } from 'playwright';
+import { PDFDocument } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { BASE } from './_base.mjs';
+import { misHits } from '../scripts/_no_mis_assert.mjs';
 
 const TAX = 1.104;   // 10.4% WA sales tax, stated on the guide itself
 
@@ -120,5 +123,157 @@ for (const c of printed) {
 }
 
 console.log(`\nreconciled ${matched} cells, ${skipped} escalated, ${unknown} unmatched`);
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// SPRINT-11 TRACK B — TWO PDFs, AND THE ALL-IN TOTALS INSIDE THE MARKER
+//
+// Operator, 2026-08-02, near-verbatim:
+//   "separate the PDF version entirely. One of the marker guides will focus on the
+//    marker sizes and colors while the other focuses just on the photos, diamond
+//    etching, and the sizes of photos."
+//   "I want to very clearly mark the total price of Group 1, Group 2 and Group 1
+//    Non-Tariffed markers. The prices should display directly on the marker scale
+//    guide INSIDE the marker to save room."
+//
+// THE ALL-IN COMPOSITION, stated once so nobody has to infer it: marker + standard
+// engraving + setting/foundation, times 1.104 for WA sales tax. In index.html's
+// FLUSH_SIZES a row is [size, g1nt, g1t, g2, g3, g4nt, g4t, install]; the stone figure
+// already includes the standard engraving (the guide's own footnote and the tool's
+// "All-Inclusive Pricing" card both say so), and `install` IS the setting/foundation
+// fee. markerAdd() charges (price + install) and the cemetery summary taxes it at
+// 0.104, so an all-in figure printed inside a marker is EXACTLY what a counselor's
+// quote would say for that line. That is the property asserted below, cell by cell,
+// off index.html's own bytes — never off a printed sheet.
+//
+// These eighteen figures are the ONE operator-ordered exception to the range-only
+// printing rule (scripts/guide-price-rule.mjs). So this suite asserts both halves:
+// they must print, and nothing else that looks like a per-marker price may.
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+const PARTS = { sizes: ['#overview', '#why-granite', '#sizes', '#colors', '#pcm-designs'],
+                photos: ['#photos', '#etching', '#true-size'] };
+const ALL_SECTIONS = [...PARTS.sizes, ...PARTS.photos];
+
+const b2 = await chromium.launch();
+
+// ── 1. every in-marker figure, recomputed from index.html ──────────────────────────
+{
+  const p = await b2.newPage();
+  await p.goto(BASE + 'markers-guide.html', { waitUntil: 'networkidle' });
+  const chips = await p.evaluate(() => [...document.querySelectorAll('[data-allin]')]
+    .map((e) => ({ key: e.getAttribute('data-allin'), text: e.textContent.trim(),
+                   suppressed: e.hasAttribute('data-print-suppress') })));
+  await p.close();
+
+  ok('the scale guide carries 18 all-in figures (6 sizes x 3 colour groups)',
+     chips.length === 18, `got ${chips.length}`);
+
+  const COL = { g1nt: 'G1 Non-Tariffed', g1t: 'G1 Tariffed', g2: 'Group 2' };
+  for (const c of chips) {
+    const [size, col] = c.key.split('|');
+    const row = rows.get(size.replace('x', '" x ') + '"');
+    if (!row) { ok(`all-in key ${c.key} names a size index.html knows`, false); continue; }
+    const base = row[COL[col]];
+    if (base === undefined) { ok(`all-in key ${c.key} names a colour group index.html knows`, false); continue; }
+    const want = money(Math.round((base + row.install) * TAX * 100) / 100);
+    ok(`in-marker all-in ${size} ${COL[col]} = ${want}`, c.text === want, `marker prints ${c.text}`);
+  }
+
+  // The exception has to stay an exception. If the price rule ever tags these, the
+  // printed scale guide silently loses the only pricing the operator asked it to carry.
+  ok('no all-in figure is tagged for print suppression',
+     chips.every((c) => !c.suppressed));
+
+  // Guide table and marker outline must agree with each other, not only with the tool.
+  const tableSizes = new Set(printed.map((c) => norm(c.size).replace(/"/g, '').replace(' x ', 'x')));
+  const chipSizes = new Set(chips.map((c) => c.key.split('|')[0]));
+  ok('the scale guide prices exactly the sizes the tables price',
+     tableSizes.size === chipSizes.size && [...chipSizes].every((k) => tableSizes.has(k)),
+     `tables ${[...tableSizes].join(',')} vs markers ${[...chipSizes].join(',')}`);
+}
+
+// ── 2. the split: each ?part= prints its own half and only its own half ────────────
+async function partLayout(part) {
+  const p = await b2.newPage({ viewport: { width: 816, height: 955 } });
+  await p.goto(BASE + 'markers-guide.html' + (part ? '?part=' + part : ''), { waitUntil: 'networkidle' });
+  await p.emulateMedia({ media: 'print' });
+  const r = await p.evaluate((sel) => {
+    const h = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().height : -1; };
+    const vis = {};
+    for (const s of sel) vis[s] = h(s);
+    return {
+      vis,
+      allIn: [...document.querySelectorAll('[data-allin]')]
+        .filter((e) => e.getBoundingClientRect().height > 0).map((e) => e.textContent.trim()),
+      text: document.body.innerText,
+      download: h('.dl-block'),
+    };
+  }, ALL_SECTIONS);
+  await p.close();
+  return r;
+}
+
+const MONEY_RE = /\$[0-9][0-9,]*(?:\.[0-9]{2})?/g;
+
+for (const part of ['sizes', 'photos']) {
+  const r = await partLayout(part);
+  const mine = PARTS[part], theirs = PARTS[part === 'sizes' ? 'photos' : 'sizes'];
+  for (const s of mine) ok(`?part=${part}: ${s} prints`, r.vis[s] > 0, `height ${r.vis[s]}`);
+  for (const s of theirs) ok(`?part=${part}: ${s} does NOT print`, r.vis[s] === 0, `height ${r.vis[s]}`);
+  ok(`?part=${part}: the on-screen download block never prints`, r.download === 0);
+
+  // Nothing on a family-facing surface may name the internal system of record.
+  ok(`?part=${part}: zero rendered "MIS"`, misHits(r.text).length === 0);
+
+  if (part === 'sizes') {
+    ok('?part=sizes: all 18 all-in totals print', r.allIn.length === 18, `${r.allIn.length} printed`);
+    // The range-only rule, asserted from the other side: every money token on the printed
+    // sizes guide is either one of the eighteen all-in totals or an endpoint of the
+    // generated range invitation. A per-item marker price that crept back in fails here.
+    const seen = r.text.match(MONEY_RE) || [];
+    const allowed = new Set([...r.allIn, '$2,428', '$17,714']);
+    const stray = seen.filter((m) => !allowed.has(m));
+    ok('?part=sizes: no per-item marker price prints outside the all-in totals',
+       stray.length === 0, `stray: ${stray.join(', ')}`);
+  } else {
+    ok('?part=photos: no all-in marker total prints', r.allIn.length === 0, `${r.allIn.length} printed`);
+  }
+}
+
+// With no ?part= — which is every visit to the website — the page is whole. The split
+// must never be able to take half the guide off the live site.
+{
+  const r = await partLayout(null);
+  for (const s of ALL_SECTIONS) ok(`no ?part=: ${s} still prints`, r.vis[s] > 0, `height ${r.vis[s]}`);
+  ok('no ?part=: all 18 all-in totals still print', r.allIn.length === 18, `${r.allIn.length} printed`);
+}
+
+// The screen page is untouched by any of it — the surface a family actually browses.
+{
+  const p = await b2.newPage({ viewport: { width: 1200, height: 900 } });
+  await p.goto(BASE + 'markers-guide.html?part=sizes', { waitUntil: 'networkidle' });
+  const r = await p.evaluate((sel) => sel.map((s) => {
+    const e = document.querySelector(s); return e ? e.getBoundingClientRect().height : -1;
+  }), ALL_SECTIONS);
+  const dl = await p.evaluate(() => document.querySelectorAll('.dl-block a[href$=".pdf"]').length);
+  await p.close();
+  ok('on SCREEN a ?part= link still shows the whole guide', r.every((h) => h > 0), r.join(','));
+  ok('the web page offers both PDF downloads', dl === 2, `${dl} download link(s)`);
+}
+
+await b2.close();
+
+// ── 3. the two built PDFs ─────────────────────────────────────────────────────────
+for (const [file, cap] of [['pdf-assets/Granite Marker Sizes and Colors.pdf', 6],
+                           ['pdf-assets/Marker Photos and Etching.pdf', 6]]) {
+  if (!fs.existsSync(file)) { ok(`${file} exists`, false, 'run scripts/build_guide_pdfs.mjs'); continue; }
+  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
+  ok(`${path.basename(file)} is ${n} page(s), within the ${cap}-page leave-behind cap`, n <= cap);
+}
+// The single combined PDF the operator asked to replace must be gone, not left orphaned
+// beside its replacements — guides.html would still be able to link a stale document.
+ok('the old combined Granite Marker Guide.pdf is gone',
+   !fs.existsSync('pdf-assets/Granite Marker Guide.pdf'));
+
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

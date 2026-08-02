@@ -159,6 +159,41 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .scale-marker .sm-label{font-size:9px;color:rgba(255,255,255,.7);margin-top:2px;}
 .scale-marker .sm-price{font-size:8px;color:rgba(255,255,255,.55);margin-top:3px;font-weight:400;letter-spacing:.02em;}
 .scale-companion{margin-top:20px;padding-top:20px;border-top:1px solid var(--rule);}
+/* ALL-IN TOTALS INSIDE THE MARKER — operator, 2026-08-02: "I want to very clearly mark
+   the total price of Group 1, Group 2 and Group 1 Non-Tariffed markers. The prices
+   should display directly on the marker scale guide INSIDE the marker to save room."
+   Each figure is (marker + setting/foundation) x 1.104, which is exactly what the quote
+   tool charges for the same line — reconciled cell by cell in tests/test-marker-guide-prices.mjs. */
+.sm-allin{margin-top:5px;width:100%;padding:0 7px;display:flex;flex-direction:column;gap:1px;}
+.sm-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:8.5px;line-height:1.3;font-variant-numeric:tabular-nums;}
+.sm-k{color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.04em;}
+.sm-v{color:#fff;font-weight:700;}
+.scale-key{display:flex;flex-wrap:wrap;gap:4px 18px;margin-bottom:16px;font-size:11.5px;color:var(--text-muted);}
+.scale-key b{color:var(--navy);font-weight:700;}
+.scale-note{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;color:var(--text-muted);line-height:1.5;}
+.scale-note strong{color:var(--navy-dark);}
+
+/* ── THE TWO-PART SPLIT ────────────────────────────────────────────────────────
+   Operator, 2026-08-02: "separate the PDF version entirely. One of the marker guides
+   will focus on the marker sizes and colors while the other focuses just on the photos,
+   diamond etching, and the sizes of photos."
+   ONE page, TWO PDFs. `?part=sizes` / `?part=photos` sets data-print-part on <html>
+   (see the script at the foot of the page) and the print rules below drop the other
+   half. Nothing here touches screen: the website keeps the whole guide, which is why a
+   family following a link never lands on half a document. */
+.sub-sizes,.sub-photos{display:none;}
+
+/* Download block — screen only, hidden in print by guide-print.css's chrome rules
+   plus the explicit rule in the print block below. */
+.dl-block{margin:0 48px 8px;padding:20px 22px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;}
+.dl-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dl-card{display:block;padding:14px 16px;border:1px solid var(--warm-border);border-radius:10px;text-decoration:none;background:var(--sidebar-bg);transition:box-shadow .15s,border-color .15s;}
+.dl-card:hover{box-shadow:0 3px 12px rgba(61,90,122,.14);border-color:var(--navy);}
+.dl-card .dl-t{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.dl-card .dl-d{font-size:12.5px;color:var(--text-muted);line-height:1.45;}
+.dl-card .dl-a{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);}
+@media(max-width:768px){.dl-block{margin-left:24px;margin-right:24px;}.dl-grid{grid-template-columns:1fr;}}
 .scale-companion-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:12px;}
 
 /* True-size photo guide */
@@ -413,6 +448,52 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .po-content h4{font-size:9pt;margin-bottom:1px}
   .po-content p{font-size:8pt;line-height:1.32;margin-bottom:2px}
   .po-price{font-size:7.5pt}
+
+  /* -- the two-part split ------------------------------------------------------
+     Print media only, and only when a part is asked for. With no ?part= the page
+     still prints whole, so nothing about the existing behaviour is lost. */
+  .dl-block{display:none!important}
+  html[data-print-part="sizes"] .part-photos{display:none!important}
+  html[data-print-part="photos"] .part-sizes{display:none!important}
+  html[data-print-part="sizes"] .sub-both,
+  html[data-print-part="photos"] .sub-both{display:none}
+  html[data-print-part="sizes"] .sub-sizes{display:inline}
+  html[data-print-part="photos"] .sub-photos{display:inline}
+
+  /* -- the marker scale guide is now the pricing, not a diagram beside it -------
+     The all-in totals live INSIDE each outline, so the block has to be big enough
+     to read at true relative scale: 4.6px per inch of stone instead of 3.47, sized
+     so the widest row (28x16 + 32x20 + 28x34 + 36x72 + gaps = 589px) still fits the
+     6.7in content column without a transform. */
+  .scale-key{display:flex;gap:1px 12px;margin-bottom:5px;font-size:6.5pt}
+  .scale-note{margin-top:6px;padding-top:5px;font-size:6.5pt;line-height:1.35}
+  .sm-allin{margin-top:3px;padding:0 5px;gap:0}
+  .sm-row{font-size:8px;line-height:1.28}
+  .scale-marker .sm-size{font-size:9px}
+  .scale-marker .sm-label{font-size:7.5px;margin-top:1px}
+
+  /* -- true-size photo outlines PRINT in the photos guide -----------------------
+     They used to be hidden in every printed copy (see the condense note above):
+     five portrait templates pinned to physical size cost a page each and the guide
+     had a 4-page budget for all eight sections. Split in two, the photos guide is
+     the one the operator described as "the sizes of photos", so the outlines that
+     fit inside the 6.7in content column are exactly what it is for. The three
+     8in-wide ones stay hidden - they cannot be drawn true to size in a 6.7in
+     column, and a portrait outline that is not true to size is worse than none.
+     They keep their prices in the label, as they already did. */
+  html[data-print-part="photos"] #true-size .tsg-print{column-span:all;break-inside:avoid}
+  html[data-print-part="photos"] #true-size .tsg-print .tsg-diagram{display:flex!important;justify-content:center;margin-bottom:6px}
+  html[data-print-part="photos"] #true-size .tsg-print .tsg-legend{justify-content:center}
+
+  /* -- sizes guide: the colour groups get the full sheet width ------------------
+     Two-column flow put Group 2's twenty-four swatches on a third page that was
+     two thirds empty. Full-width bands fit them under the scale guide instead, and
+     the sidebar that restates the scale guide's own key further down the page is
+     redundant on a sheet where both would print. */
+  html[data-print-part="sizes"] .group-key{display:none}
+  html[data-print-part="sizes"] #colors,
+  html[data-print-part="sizes"] #pcm-designs{column-span:all}
+  html[data-print-part="sizes"] #colors .color-swatches{grid-template-columns:repeat(12,1fr);gap:3px}
 }
 /* === END PRINT CONDENSE === */
 </style>
@@ -464,26 +545,42 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Granite Marker Guide</h1>
-    <div class="cover-sub">Flush markers, sizes and pricing, stone colors, ceramic portraits, diamond etching, and why granite is the most popular choice at Washington Memorial Park.</div>
+    <div class="cover-sub"><span class="sub-both">Flush markers, sizes and pricing, stone colors, ceramic portraits, diamond etching, and why granite is the most popular choice at Washington Memorial Park.</span><span class="sub-sizes">Flush marker sizes drawn to scale with the complete all-in price inside each one, and the granite colors in every price group.</span><span class="sub-photos">Ceramic photo portraits, diamond and laser etching, and true-size outlines so you can see exactly how big each photo is.</span></div>
     <div class="cover-rule"></div>
-    <div class="cover-footer">Sizes &middot; pricing &middot; 20+ stone colors &middot; photo options &middot; printable</div>
+    <div class="cover-footer"><span class="sub-both">Sizes &middot; pricing &middot; 20+ stone colors &middot; photo options &middot; printable</span><span class="sub-sizes">Sizes &middot; all-in pricing &middot; 20+ stone colors</span><span class="sub-photos">Photo portraits &middot; etching &middot; true-size outlines</span></div>
   </div>
 
   <div class="contents">
     <div class="contents-label">In This Guide</div>
     <div class="contents-grid">
-      <div class="contents-item"><span class="contents-num">1</span><a href="#overview">About Flush Markers</a></div>
-      <div class="contents-item"><span class="contents-num">2</span><a href="#why-granite">Why Granite Is Preferred</a></div>
-      <div class="contents-item"><span class="contents-num">3</span><a href="#sizes">Marker Sizes &amp; Pricing</a></div>
-      <div class="contents-item"><span class="contents-num">4</span><a href="#colors">Stone Color Groups</a></div>
-      <div class="contents-item"><span class="contents-num">5</span><a href="#photos">Ceramic Steel Portraits</a></div>
-      <div class="contents-item"><span class="contents-num">6</span><a href="#etching">Diamond &amp; Laser Etching</a></div>
-      <div class="contents-item"><span class="contents-num">7</span><a href="#true-size">True Size Photo Guide</a></div>
-      <div class="contents-item"><span class="contents-num">8</span><a href="#pcm-designs">Design Inspiration</a></div>
+      <div class="contents-item part-sizes"><span class="contents-num">1</span><a href="#overview">About Flush Markers</a></div>
+      <div class="contents-item part-sizes"><span class="contents-num">2</span><a href="#why-granite">Why Granite Is Preferred</a></div>
+      <div class="contents-item part-sizes"><span class="contents-num">3</span><a href="#sizes">Marker Sizes &amp; Pricing</a></div>
+      <div class="contents-item part-sizes"><span class="contents-num">4</span><a href="#colors">Stone Color Groups</a></div>
+      <div class="contents-item part-photos"><span class="contents-num">5</span><a href="#photos">Ceramic Steel Portraits</a></div>
+      <div class="contents-item part-photos"><span class="contents-num">6</span><a href="#etching">Diamond &amp; Laser Etching</a></div>
+      <div class="contents-item part-photos"><span class="contents-num">7</span><a href="#true-size">True Size Photo Guide</a></div>
+      <div class="contents-item part-sizes"><span class="contents-num">8</span><a href="#pcm-designs">Design Inspiration</a></div>
     </div>
   </div>
 
-  <div class="policy-box">
+  <div class="dl-block">
+    <div class="dl-label">Download &amp; Print</div>
+    <div class="dl-grid">
+      <a class="dl-card" href="pdf-assets/Granite%20Marker%20Sizes%20and%20Colors.pdf" download>
+        <div class="dl-t">Marker Sizes &amp; Colors</div>
+        <div class="dl-d">Every flush marker size drawn to scale with the complete all-in price inside it, plus the granite colors in each price group.</div>
+        <span class="dl-a">PDF &darr;</span>
+      </a>
+      <a class="dl-card" href="pdf-assets/Marker%20Photos%20and%20Etching.pdf" download>
+        <div class="dl-t">Photos, Etching &amp; Photo Sizes</div>
+        <div class="dl-d">Ceramic photo portraits, diamond and laser etching, and true-size outlines of every photo size.</div>
+        <span class="dl-a">PDF &darr;</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="policy-box part-sizes">
     <h3>Washington Memorial Park Marker Policy</h3>
     <p>Nearly all sections require <span class="hl">flush (flat) markers only</span>. Upright monuments are permitted in very few areas &mdash; only Section 6, designated blocks of Section 23, and Cascade Court.</p>
     <p>For the vast majority of families, the choice comes down to two materials: <span class="hl">granite or bronze</span>. Both produce beautiful, lasting memorials &mdash; but granite has become the clear favorite for its unmatched personalization options.</p>
@@ -491,7 +588,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 1: OVERVIEW -->
-  <div class="section-wrap" id="overview">
+  <div class="section-wrap part-sizes" id="overview">
     <div class="section-kicker">SECTION 1</div>
     <h2>About Flush Markers</h2>
     <div class="section-sub">The most common memorial style at Washington Memorial Park</div>
@@ -522,7 +619,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 2: WHY GRANITE -->
-  <div class="section-wrap" id="why-granite">
+  <div class="section-wrap part-sizes" id="why-granite">
     <div class="section-kicker">SECTION 2</div>
     <h2>Why Granite Is the Most Popular Choice</h2>
     <div class="section-sub">Unmatched personalization that tells your loved one's story</div>
@@ -547,7 +644,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 4: SIZES & PRICING -->
-  <div class="section-wrap" id="sizes">
+  <div class="section-wrap part-sizes" id="sizes">
     <div class="section-kicker">SECTION 3</div>
     <h2>Marker Sizes &amp; Pricing</h2>
     <div class="section-sub">Complete installed pricing for every size and stone color group</div>
@@ -618,36 +715,42 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
     </div>
 
-    <div class="sidebar" style="margin-top:20px;">
+    <div class="sidebar group-key" style="margin-top:20px;">
       <div class="sidebar-label">WHAT THE COLOR GROUPS MEAN</div>
       <ul>
         <li><strong>G1 Non-Tariffed</strong> &mdash; Cloud White, Misty Pink, PC Violet</li>
         <li><strong>G1 Tariffed</strong> &mdash; Cascade Gray, Classic Gray</li>
-        <li><strong>Group 2</strong> &mdash; Absolute Black, Blue Pearl, Aurora, Bahama Blue, and more (see Section 5)</li>
+        <li><strong>Group 2</strong> &mdash; Absolute Black, Blue Pearl, Aurora, Bahama Blue, and more (see Section 4)</li>
       </ul>
     </div>
 
     <div class="scale-guide">
-      <div class="scale-guide-label">MARKER SIZE SCALE GUIDE</div>
-      <div class="scale-guide-sub">Markers shown at relative scale &mdash; prices are total installed with 10.4% WA sales tax</div>
+      <div class="scale-guide-label">MARKER SIZES &amp; TOTAL PRICE</div>
+      <div class="scale-guide-sub">Drawn to relative scale. The figure inside each marker is the <strong>complete price</strong> for that size in that color group.</div>
+      <div class="scale-key">
+        <span><b>G1 NT</b> Group 1 Non-Tariffed &mdash; Cloud White, Misty Pink, PC Violet</span>
+        <span><b>G1 T</b> Group 1 Tariffed &mdash; Cascade Gray, Classic Gray</span>
+        <span><b>G2</b> Group 2 &mdash; Absolute Black, Blue Pearl, Aurora, Bahama Blue and more</span>
+      </div>
       <div class="scale-markers">
-        <div class="scale-marker" style="width:97px;height:56px;"><span class="sm-size">28&Prime;&times;16&Prime;</span><span class="sm-label">Single</span><span class="sm-price" data-print-suppress="chip">from $2,429</span></div>
-        <div class="scale-marker" style="width:111px;height:69px;"><span class="sm-size">32&Prime;&times;20&Prime;</span><span class="sm-label">Single</span><span class="sm-price" data-print-suppress="chip">from $2,948</span></div>
-        <div class="scale-marker" style="width:97px;height:118px;"><span class="sm-size">28&Prime;&times;34&Prime;</span><span class="sm-label">Single or Companion</span><span class="sm-price" data-print-suppress="chip">from $3,566</span></div>
-        <div class="scale-marker" style="width:125px;height:250px;"><span class="sm-size">36&Prime;&times;72&Prime;</span><span class="sm-label">Full Ledger</span><span class="sm-price" data-print-suppress="chip">from $9,456</span></div>
+        <div class="scale-marker" data-marker-size="28x16" style="width:129px;height:74px;"><span class="sm-size">28&Prime;&times;16&Prime;</span><span class="sm-label">Single</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="28x16|g1nt">$2,428.80</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="28x16|g1t">$2,804.16</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="28x16|g2">$3,074.64</span></span></span></div>
+        <div class="scale-marker" data-marker-size="32x20" style="width:147px;height:92px;"><span class="sm-size">32&Prime;&times;20&Prime;</span><span class="sm-label">Single</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="32x20|g1nt">$2,947.68</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="32x20|g1t">$3,427.92</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="32x20|g2">$3,875.04</span></span></span></div>
+        <div class="scale-marker" data-marker-size="28x34" style="width:129px;height:156px;"><span class="sm-size">28&Prime;&times;34&Prime;</span><span class="sm-label">Single or Companion</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="28x34|g1nt">$3,565.92</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="28x34|g1t">$4,167.60</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="28x34|g2">$5,083.92</span></span></span></div>
+        <div class="scale-marker" data-marker-size="36x72" style="width:166px;height:331px;"><span class="sm-size">36&Prime;&times;72&Prime;</span><span class="sm-label">Full Ledger</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="36x72|g1nt">$9,455.76</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="36x72|g1t">$11,166.96</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="36x72|g2">$17,713.68</span></span></span></div>
       </div>
       <div class="scale-companion">
         <div class="scale-companion-label">Companion Markers (spanning two graves)</div>
         <div class="scale-markers">
-          <div class="scale-marker" style="width:153px;height:69px;"><span class="sm-size">44&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-price" data-print-suppress="chip">from $3,930</span></div>
-          <div class="scale-marker" style="width:208px;height:69px;"><span class="sm-size">60&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-price" data-print-suppress="chip">from $4,493</span></div>
+          <div class="scale-marker" data-marker-size="44x20" style="width:202px;height:92px;"><span class="sm-size">44&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="44x20|g1nt">$3,930.24</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="44x20|g1t">$4,537.44</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="44x20|g2">$5,415.12</span></span></span></div>
+          <div class="scale-marker" data-marker-size="60x20" style="width:276px;height:92px;"><span class="sm-size">60&Prime;&times;20&Prime;</span><span class="sm-label">Companion</span><span class="sm-allin"><span class="sm-row"><span class="sm-k">G1 NT</span><span class="sm-v" data-allin="60x20|g1nt">$4,493.28</span></span><span class="sm-row"><span class="sm-k">G1 T</span><span class="sm-v" data-allin="60x20|g1t">$5,216.40</span></span><span class="sm-row"><span class="sm-k">G2</span><span class="sm-v" data-allin="60x20|g2">$6,651.60</span></span></span></div>
         </div>
       </div>
+      <div class="scale-note">Every figure above is the <strong>all-in total</strong> &mdash; the granite marker, the standard engraving (names, dates and wording), the setting and foundation fee, and 10.4% Washington sales tax. There is nothing further to add for the marker itself. A ceramic photo portrait or an etched portrait is the only optional extra; those are priced in the companion guide.</div>
     </div>
   </div>
 
   <!-- SECTION 5: STONE COLORS -->
-  <div class="section-wrap" id="colors">
+  <div class="section-wrap part-sizes" id="colors">
     <div class="section-kicker">SECTION 4</div>
     <h2>Stone Color Groups</h2>
     <div class="section-sub">Available granite colors by pricing tier</div>
@@ -707,7 +810,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 6: PHOTOS -->
-  <div class="section-wrap" id="photos">
+  <div class="section-wrap part-photos" id="photos">
     <div class="section-kicker">SECTION 5</div>
     <h2>Ceramic Steel Portraits</h2>
     <div class="section-sub">Kiln-fired porcelain photo plaques with a lifetime warranty</div>
@@ -779,7 +882,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 7: ETCHING -->
-  <div class="section-wrap" id="etching">
+  <div class="section-wrap part-photos" id="etching">
     <div class="section-kicker">SECTION 6</div>
     <h2>Diamond &amp; Laser Etched Portraits</h2>
     <div class="section-sub">Permanent artwork carved directly into the granite</div>
@@ -839,16 +942,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 8: TRUE SIZE PHOTO GUIDE -->
-  <div class="section-wrap" id="true-size">
+  <div class="section-wrap part-photos" id="true-size">
     <div class="section-kicker">SECTION 7</div>
     <h2>True Size Photo Guide</h2>
     <div class="section-sub">Print this page at 100% to see each portrait size at actual scale</div>
     <div class="section-rule"></div>
 
-    <div class="tsg-note">Print at 100% (Actual Size). Do not choose &ldquo;Fit to Page&rdquo; or &ldquo;Shrink to Fit&rdquo; &mdash; these outlines will not measure true to life otherwise. The largest sizes (8&Prime;&times;10&Prime; and 8&Prime;&times;8&Prime;) each print on their own page at full scale.</div>
+    <div class="tsg-note">Print at 100% (Actual Size). Do not choose &ldquo;Fit to Page&rdquo; or &ldquo;Shrink to Fit&rdquo; &mdash; these outlines will not measure true to life otherwise. The 8&Prime; sizes are wider than a printed page will hold at true scale, so hold a sheet of letter paper (8&frac12;&Prime; wide) beside the price list for those &mdash; or view them on the web version of this guide.</div>
 
     <!-- OVAL — 72 DPI: 1in = 72 units. Largest = 5×7 → viewBox 360×504, center 180,252 -->
-    <div class="tsg-section">
+    <div class="tsg-section tsg-print">
       <div class="tsg-label">Oval Portraits</div>
       <div class="tsg-diagram">
         <svg width="5in" height="7in" viewBox="0 0 360 504" xmlns="http://www.w3.org/2000/svg">
@@ -883,7 +986,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
 
     <!-- CIRCLE — Largest = 6×6 → viewBox 432×432, center 216,216 -->
-    <div class="tsg-section">
+    <div class="tsg-section tsg-print">
       <div class="tsg-label">Circle Portraits</div>
       <div class="tsg-diagram">
         <svg width="6in" height="6in" viewBox="0 0 432 432" xmlns="http://www.w3.org/2000/svg">
@@ -912,7 +1015,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
 
     <!-- RECTANGLE — Largest = 5×7 → viewBox 360×504 -->
-    <div class="tsg-section">
+    <div class="tsg-section tsg-print">
       <div class="tsg-label">Rectangle Portraits</div>
       <div class="tsg-diagram">
         <svg width="5in" height="7in" viewBox="0 0 360 504" xmlns="http://www.w3.org/2000/svg">
@@ -937,7 +1040,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
 
     <!-- HEART — 6×6 → viewBox 432×432 -->
-    <div class="tsg-section">
+    <div class="tsg-section tsg-print">
       <div class="tsg-label">Heart Portraits</div>
       <div class="tsg-diagram">
         <svg width="6in" height="6in" viewBox="0 0 432 432" xmlns="http://www.w3.org/2000/svg">
@@ -966,7 +1069,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <!-- SECTION 8: PCM DESIGN INSPIRATION -->
-  <div class="section-wrap" id="pcm-designs">
+  <div class="section-wrap part-sizes" id="pcm-designs">
     <div class="section-kicker">SECTION 8</div>
     <h2>Design Inspiration</h2>
     <div class="section-sub">Browse hundreds of marker design ideas from Pacific Coast Memorials</div>
@@ -998,5 +1101,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
 </footer>
 
+<script>
+/* Two PDFs, one page. `?part=sizes` and `?part=photos` mark the document so the print
+   stylesheet can drop the other half; scripts/build_guide_pdfs.mjs prints both. With no
+   ?part= — which is every visit to the website — nothing is set and the whole guide
+   renders and prints, so a family who follows a link never gets half a document. */
+(function () {
+  var p = new URLSearchParams(location.search).get('part');
+  if (p === 'sizes' || p === 'photos') document.documentElement.setAttribute('data-print-part', p);
+})();
+</script>
 </body>
 </html>

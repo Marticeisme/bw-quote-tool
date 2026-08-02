@@ -83,7 +83,11 @@ const PDF_PAGES = [
 // a catalog is as long as its catalog.
 const GUIDE_MAX_PAGES = 6; // operator 2026-08-01: six pages TOTAL per guide. s11 removed the cover, so all six are content.
 const CAPPED_GUIDES = [
-  'Granite Marker Guide.pdf', 'Cremation Guide.pdf', 'Veterans Guide.pdf',
+  // markers-guide.html prints TWO PDFs (sprint-11 Track B) — sizes/colors and
+  // photos/etching. Each carries the full six-page family-guide budget in its own right;
+  // the operator asked for two separate documents, not one document in two files.
+  'Granite Marker Sizes and Colors.pdf', 'Marker Photos and Etching.pdf',
+  'Cremation Guide.pdf', 'Veterans Guide.pdf',
   'Who Decides.pdf', 'Burial Vault Guide.pdf', 'Terramation Guide.pdf',
   'Cemetery Property Guide.pdf', 'Medicaid and Planning Ahead.pdf',
   'Medicaid Professional Reference.pdf', 'Cremation or Burial.pdf',
@@ -355,9 +359,11 @@ console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
 {
   const r = manifestCheck();
   // An empty manifest is a HOLLOW GATE, not a pass — it is what you get when someone
-  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 25 = 19 guides + 6
-  // catalogs; the General Price List is not generated and is deliberately absent.
-  if (r.jobs < 25) fail(`build manifest records only ${r.jobs} job(s); expected 25 — rerun both builders`);
+  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 26 = 19 guides + 6
+  // catalogs + the marker guide's SECOND PDF (sprint-11 Track B prints markers-guide.html
+  // twice, once per `?part=`); the General Price List is not generated and is deliberately
+  // absent.
+  if (r.jobs < 26) fail(`build manifest records only ${r.jobs} job(s); expected 26 — rerun both builders`);
   for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
   for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
   if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);
