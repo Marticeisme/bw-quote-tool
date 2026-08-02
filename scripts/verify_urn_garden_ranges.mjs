@@ -50,6 +50,7 @@
 // Run from repo root:  node scripts/verify_urn_garden_ranges.mjs
 import fs from 'fs';
 import path from 'path';
+import { assertPrintRule } from './_print_rule_assert.mjs';
 
 const PAGE = 'urn-gardens-guide.html';
 const html = fs.readFileSync(PAGE, 'utf8');
@@ -352,6 +353,9 @@ console.log('\n=== MAP REPO PROBE (price aggregates only) ===');
     }
   }
 }
+
+console.log('\n=== PRINTED-GUIDE PRICING RULE ===');
+assertPrintRule('urn-gardens-guide.html', ok, fail);
 
 console.log('');
 console.log(bad ? `${bad} check(s) failed` : 'all urn-garden figures reconcile against their sources');

@@ -33,6 +33,7 @@ import fs from 'fs';
 import * as ECL from './ecl-niche-data.mjs';
 import * as MVC from './mvc-niche-data.mjs';
 import * as COM from './com-crypt-data.mjs';
+import { assertPrintRule } from './_print_rule_assert.mjs';
 
 const PAGE = 'glass-front-niches-guide.html';
 const html = fs.readFileSync(PAGE, 'utf8');
@@ -267,6 +268,9 @@ console.log('\n=== AT-A-GLANCE TABLE ===');
     else fail(`at-a-glance is missing or misstates the ${key} range (${want})`);
   }
 }
+
+console.log('\n=== PRINTED-GUIDE PRICING RULE ===');
+assertPrintRule('glass-front-niches-guide.html', ok, fail);
 
 console.log('');
 console.log(bad ? `${bad} check(s) failed` : 'all glass-front niche figures reconcile against the modules');
