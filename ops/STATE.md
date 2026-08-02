@@ -1,5 +1,15 @@
 # STATE — Living Ledger
 
+**N3 (dignified crypt fronts) PUSHED LIVE 2026-08-01** (`b3db930`): refs off the 3D
+fronts (hover/card/callout/flat grids keep them), prices take the LOD with per-cell
+`--pmax` ceilings (a wide companion can't shout over neighbours; nothing clips), tier
+palette moved from signal hues to stone materials (slate/verdigris/moss/bronze/
+terracotta/porphyry, all ≥5.2:1, saturation gate ≤0.34 so it can't be quietly
+re-brightened), statuses lifted out of near-black; contrast now measured off the BUILT
+page, not the data module. Contract 1538/31 green; deploy verified. NEXT CANDIDATE if
+the operator wants calmer still: the 1px white available-cell border is now the wall's
+brightest element.
+
 **Sprint-10 COM finishing batch — PUSHED AND LIVE-VERIFIED 2026-08-01**
 (`9b6c295..155739c`). Shipped: N (search/jump over all 903 positions, camera-controls-
 semantics damping + inertia + floor-click walks with reticle, near-full-bleed scene,
