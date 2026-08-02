@@ -1535,6 +1535,15 @@ export const UNITS = [
  * carries the legend's height and depth figures beside it unaltered. Nobody has invented
  * a reconciliation; if MIS settles it, change `spanRows` or `h`, not both silently.
  *
+ * PHOTO-CORROBORATED 2026-08-02 (director audit, operator request): D:Cemetery Photos
+ * MiscChapel of Memories60729_124445.jpg (Radiance, daylit alcove) confirms the
+ * solve independently of the sheet: column-1 widths alternate narrow/wide down the wall
+ * exactly as P1/P2 assign (S,L,S,L,S then the X rows, then S,L,S), the E-2 Family cell
+ * is a double-height compartment spanning rows E-D with no shelf through it, and the
+ * E/D rows carry fewer, wider cells than the 8-cell rows. The Serenity photos
+ * (D:...Radiance and Serenity Niches40404_1300*.jpg) likewise show 6-cell rows
+ * top/bottom and four wide cells mid-wall.
+ *
  * PRICES ARE UNTOUCHED BY THIS PASS. The sheets print prices; those are stale and were
  * not read (DESIGN §8, 2026-07-26: never price from a sheet). Only geometry was taken.
  */
