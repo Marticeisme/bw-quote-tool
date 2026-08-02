@@ -1995,6 +1995,100 @@ Gates: `verify_guide_pages.mjs` all page-shape checks passed; `verify_photo_firs
 
 ---
 
+### 2026-08-02 — The marker guide splits in two, and the price moves inside the marker (sprint-11 Track B)
+Branch `s11/marker-guides`, committed locally — **not pushed**. Files: `markers-guide.html`,
+`guides.html`, `scripts/build_guide_pdfs.mjs`, `scripts/verify_guide_pages.mjs`,
+`tests/test-marker-guide-prices.mjs`, `pdf-assets/Granite Marker Sizes and Colors.pdf` (new),
+`pdf-assets/Marker Photos and Etching.pdf` (new), `pdf-assets/Granite Marker Guide.pdf` (deleted).
+
+**Operator, 2026-08-02, near-verbatim:** *"The granite marker guide still does not look
+great... separate the PDF version entirely. One of the marker guides will focus on the marker
+sizes and colors while the other focuses just on the photos, diamond etching, and the sizes of
+photos."* And: *"I want to very clearly mark the total price of Group 1, Group 2 and Group 1
+Non-Tariffed markers. The prices should display directly on the marker scale guide INSIDE the
+marker to save room."*
+
+**1. ONE page, TWO PDFs — `?part=`, not a second HTML file.** `markers-guide.html?part=sizes`
+and `?part=photos`. A five-line script at the foot of the page copies the parameter onto
+`<html data-print-part>`; the guide's own `@media print` block then drops `.part-photos` or
+`.part-sizes`. `build_guide_pdfs.mjs` prints the same page twice. **Copying the guide into two
+files was the obvious move and is the wrong one**: the eighteen marker prices, the colour
+groups and the portrait tables would then exist in two places that nothing forces to agree,
+and this repo already has a suite whose whole job is stopping the guide from disagreeing with
+the tool. One source page cannot drift from itself.
+
+Consequences worth knowing:
+- **With no `?part=` the page is whole**, on screen and in print. That is asserted, because a
+  split that could take half the guide off the live site is a worse bug than the layout it fixes.
+- `_pdf_manifest.mjs` records FILES, so the builder strips the query before recording. Left in,
+  `fs.existsSync('markers-guide.html?part=sizes')` is false, the page silently drops out of the
+  job's sources, and **the staleness gate stops watching the guide entirely** while still
+  reporting green.
+- The manifest is now **26 jobs**, not 25 (19 guides + 6 catalogs + the marker guide's second PDF).
+
+**2. The all-in total lives inside the marker outline.** Each of the six flush sizes now carries
+three labelled figures — G1 NT / G1 T / G2 — inside its own to-scale rectangle, and the two
+price TABLES stay suppressed in print by the range-only rule. That is the room-saving the
+operator asked for: the same eighteen numbers, on the diagram, instead of in a grid beside it.
+
+**ALL-IN means marker + standard engraving + setting/foundation + 10.4% WA sales tax**, i.e.
+`(FLUSH_SIZES[row][colour] + FLUSH_SIZES[row][7]) × 1.104`. The stone figure already carries the
+standard engraving (the guide's own footnote and the tool's "All-Inclusive Pricing" card both
+say so) and index.html's `install` column IS the setting/foundation fee. `markerAdd()` charges
+`price + install` and the cemetery summary taxes it at `0.104`, so **a figure printed inside a
+marker is exactly what a counselor's quote line would say.** The guide states the composition
+in a footnote under the diagram, in the words a family needs: nothing further to add for the
+marker itself.
+
+The scale is **4.6px per inch of stone**, up from 3.47 — chosen as the smallest scale at which
+three price rows are legible inside the smallest marker (28″×16″ → 129×74px) while the widest
+row still fits the 6.7in print column without a transform. Rasterised and looked at, which is
+the only way to judge this.
+
+**3. Page budgets, and what did not fit.** Sizes = **3 pages**, Photos = **5**, both under the
+six-page cap; the combined guide was 4.
+- The **true-size portrait outlines now print** in the photos guide. They had been hidden in
+  every printed copy since the sprint-07 condense — a page each is unaffordable when eight
+  sections share a 4-page budget, and *"the sizes of photos"* is precisely what the operator
+  asked this PDF to be. Only the four multi-size shapes print (oval, circle, rectangle, heart).
+  **Square prints its price in the legend and no outline**: it has exactly one size, so its
+  sheet was a 4in box and nothing else — a stranded page by any reasonable reading.
+  The three 8in-wide outlines stay screen-only: 8in cannot be drawn true to size in a 6.7in
+  column, and an outline that is not true to size is worse than none. The on-page instruction
+  used to promise a full-scale page for them and now says what actually happens.
+- **Design Inspiration moved to the SIZES guide.** Left in the photos guide it trailed the
+  outlines; in the sizes guide it fills the sheet that Group 2's swatches would otherwise have
+  left two-thirds empty.
+- The Section 3 sidebar *"WHAT THE COLOR GROUPS MEAN"* is hidden in the printed sizes guide: the
+  scale guide's own key now says the same three lines on the same sheet. It stays on screen,
+  where it sits with the tables instead.
+- Fixed in passing: that sidebar pointed at *"see Section 5"* for the Group 2 colours; they are
+  Section 4.
+
+**4. The verifier.** `tests/test-marker-guide-prices.mjs` grew from 20 assertions to **78**. It
+already reconciled the guide's tables against index.html; it now also
+- recomputes all **eighteen in-marker totals** from index.html's own bytes (proved live by
+  sabotage: `$2,804.16` → `$2,804.17` fails that one cell and nothing else),
+- asserts the tables and the outlines price **the same set of sizes**,
+- measures **both parts in print layout** — each part's sections have height, the other part's
+  are zero, the download block never prints, and with no `?part=` everything still prints,
+- asserts **zero rendered "MIS"** in either printed part,
+- and asserts the range-only rule from the other side: **every money token on the printed sizes
+  guide is one of the eighteen all-in totals or an endpoint of the generated range invitation.**
+  The eighteen are the operator's one ordered exception; a per-item marker price creeping back
+  in anywhere else fails here.
+
+**5. `guides.html`** now shows two cards under Markers & Memorials (pill 2 → 3), one per PDF,
+both opening the same web guide — so `verify_guides_page.mjs` checks both download targets. The
+web page itself opens with a screen-only two-card download block.
+
+Gates: `npm run check` `index.html: 8 blocks, 0 errors`; `verify_guide_pages.mjs` all page-shape
+checks passed (26 built PDFs match their sources); `verify_guides_page.mjs` ALL OK, 38 cards;
+`verify_print_header.mjs` 25 pages, 0 over cap; `verify_catalogs.mjs` ALL PAGES OK.
+Renders of every page of both PDFs under `scratch/s11b-renders/`.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

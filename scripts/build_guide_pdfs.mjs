@@ -16,7 +16,15 @@ const JOBS = [
   ['veterans-guide.html',          'pdf-assets/Veterans Guide.pdf'],
   ['cemetery-property-guide.html', 'pdf-assets/Cemetery Property Guide.pdf'],
   ['cremation-or-burial-guide.html', 'pdf-assets/Cremation or Burial.pdf'],
-  ['markers-guide.html',           'pdf-assets/Granite Marker Guide.pdf'],
+  // TWO PDFs FROM ONE PAGE — sprint-11 Track B. Operator, 2026-08-02: "separate the PDF
+  // version entirely. One of the marker guides will focus on the marker sizes and colors
+  // while the other focuses just on the photos, diamond etching, and the sizes of photos."
+  // The `?part=` query marks the document (a five-line script at the foot of the guide sets
+  // data-print-part on <html>) and the guide's own print CSS drops the other half. One
+  // source page, so the two PDFs cannot drift from each other or from the website; the
+  // staleness manifest keys both on the same file, so editing the guide marks both stale.
+  ['markers-guide.html?part=sizes',  'pdf-assets/Granite Marker Sizes and Colors.pdf'],
+  ['markers-guide.html?part=photos', 'pdf-assets/Marker Photos and Etching.pdf'],
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
   ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf'],
@@ -164,7 +172,10 @@ for (const [src, out, opts = {}] of jobs) {
   const raw = Math.round(fs.statSync(out).size / 1024);
   const did = opts.noShrink ? false : shrink(out);
   const kb = Math.round(fs.statSync(out).size / 1024);
-  record(out, [src, ...GUIDE_SHARED_SOURCES].filter(f => fs.existsSync(f)));
+  // A job's source may carry a `?part=` query (see the markers-guide entries above); the
+  // manifest records FILES, so strip it. Left in, `fs.existsSync` would drop the page from
+  // the recorded sources and the staleness gate would stop watching the guide entirely.
+  record(out, [src.split('?')[0], ...GUIDE_SHARED_SOURCES].filter(f => fs.existsSync(f)));
   const note = opts.noShrink ? '(no downsample - keeps ligature text intact)'
              : did ? `(${raw} KB before downsample)` : '';
   console.log(`${path.basename(out).padEnd(30)} ${String(kb).padStart(5)} KB  ${note}`);
