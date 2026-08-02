@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ROWS, BLOCK_ORDER, BLOCKS, ROW_RUNS, TIERS, FEES, FEE_SOURCE, INSCR_MAX, URN,
   SHEET_TEXT, COMPANION_NOTE, STATUS_LABEL, allNiches, sellable, runsIn,
+  AVAILABILITY, LISTED_NO_PRICE, refOf,
 } from './gomn-niche-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -610,6 +611,11 @@ document.querySelectorAll('.tabs .tab').forEach(function (t) {
 const LOGO = fs.readFileSync(path.join(ROOT, 'scripts', 'bw-logo.svg.txt'), 'utf8').trim();
 const N_TOTAL = ALL.length;
 const N_AVAIL = ALL.filter(sellable).length;
+// The spaces MIS lists available at $0. Named on the page by REFERENCE only — never with
+// a dollar figure, because $0 is not a price and the wall must never appear to quote one.
+const NO_PRICE_REFS = LISTED_NO_PRICE
+  .map((id) => refOf(id.split('-')[0], +id.split('-')[1]))
+  .join(' and ');
 
 const HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -676,11 +682,20 @@ ${BLOCK_ORDER.map(view).join('\n')}
     </ul>
   </div>
 
+  <div class="rules">
+    <h3>Availability &mdash; where this reading comes from</h3>
+    <ul>
+      <li><b>Availability is the operator&rsquo;s MIS list of ${esc(AVAILABILITY.asOf)}</b> &mdash; ${esc(AVAILABILITY.source)}. It supersedes ${esc(AVAILABILITY.supersedes)}: every figure on this wall is still the price sheet&rsquo;s own, unchanged. A level the list does not carry has sold out, so <b>levels B and F are now sold out entirely</b>.</li>
+      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed in MIS as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b> and ${LISTED_NO_PRICE.length === 1 ? 'shows' : 'show'} as not available. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
+      <li><b>Unreconciled, ${esc(AVAILABILITY.asOf)}:</b> ${esc(AVAILABILITY.discrepancy)}</li>
+    </ul>
+  </div>
+
   <div class="pfoot">
     <b>${esc(SHEET_TEXT.effective)}</b><br>
     Row A is the bottom row; Row G the top. Spaces are numbered 1&ndash;32 left to right across the whole wall.<br>
-    References read <b>GOM-1-1-&lt;row&gt;-&lt;space&gt;</b>. ${N_TOTAL} niches; ${N_AVAIL} carry a price on the current sheet.<br>
-    A niche with no printed price is <b>not quotable here</b> — confirm it in MIS/Enterprise. Availability is maintained by hand; always confirm before writing.
+    References read <b>GOM-1-1-&lt;row&gt;-&lt;space&gt;</b>. ${N_TOTAL} niches; ${N_AVAIL} are offered at a price on the ${esc(AVAILABILITY.asOf)} MIS list.<br>
+    A niche with no price shown is <b>not quotable here</b> — confirm it in MIS/Enterprise. Availability is maintained by hand; always confirm before writing.
   </div>
 </div><!-- /main -->
 

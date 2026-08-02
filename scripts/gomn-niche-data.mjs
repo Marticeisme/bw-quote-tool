@@ -21,12 +21,47 @@
  * 25–32 (rows A–B full width, a raised block on cols 25–28 for rows C–E). No
  * discrepancy was found; had there been one, the PRICE sheet would win.
  *
+ * ── AVAILABILITY IS NOW THE OPERATOR'S MIS LIST, 2026-08-01 ───────────────────────
+ * The Jan-30-2025 price sheet is still the PRICE authority — every figure below is the
+ * sheet's own, unchanged. It is no longer the AVAILABILITY authority: the operator
+ * supplied an MIS-style availability export on 2026-08-01 (Wall-1 = this GOM-1-1 wall,
+ * Lvl = row, Sp = space), and that export supersedes the sheet's status reading. Statuses
+ * remain hand-maintained — when a niche sells, edit this file and rebuild.
+ *
+ * The export, verbatim:
+ *   Summary  Level B: 1 available, $0 | Level C: 12 available, $5,995
+ *            Level D: 5 available, $6,995 (4 of 5) | Level G: 3 available, $8,995
+ *   Detail   Wall-1 Lvl-B Sp-10 -> $0
+ *            Lvl-C Sp-7, 9, 12, 13, 14, 18, 20, 22, 24, 25, 26 -> $5,995
+ *            Lvl-D Sp-15, 20, 24, 26 -> $6,995
+ *            Lvl-D Sp-18 -> $0
+ *            Lvl-G Sp-13, 14, 15 -> $8,995
+ *
+ * ⚠ UNRECONCILED, FOR THE OPERATOR: the summary says **Level C: 12 available**, the
+ * detail lists **11 C spaces**. The DETAIL is the per-space authority, so 11 ship. One C
+ * space is either missing from the detail or miscounted in the summary — Martice must
+ * reconcile which, in MIS. Until he does, this wall shows 11 available in row C.
+ *
+ * The list is treated as the COMPLETE available set as of 2026-08-01: a level absent from
+ * it (all of F) has sold out. Nineteen niches the sheet priced are therefore gone, and
+ * they are recorded in SOLD_SINCE_SHEET below rather than silently deleted, so a later
+ * reader can see what moved and when.
+ *
+ * ── $0 IS NOT A PRICE (operator's standing COM rule, applied here) ────────────────
+ * The export lists B-10 and D-18 as available at **$0**. The operator's rule from the
+ * Columbarium — "available as long as a price greater than 0 is attached" — makes a $0
+ * position NOT OFFERED. GOMN is two-status, so both render unavailable ("confirm in
+ * MIS"); they are recorded in LISTED_NO_PRICE so they are findable the moment he supplies
+ * prices. Nothing on the wall may ever print $0.
+ *
  * ── THE FAIL-SAFE READING (operator's standing rule, 2026-07-29, binding) ──────────
  *   A PRINTED PRICE means AVAILABLE.  ANYTHING ELSE means UNAVAILABLE — "confirm in
  *   MIS". The sheet's cell fill colours (cream, salmon, purple, cyan, orange, pink,
  *   lime) carry NO meaning and are not interpreted here.
- * So `p` is a number exactly when the sheet printed one, and `null` for every other
- * niche. Nothing on the page may invent a price for an unavailable niche.
+ * So `p` is a number exactly when the CURRENT reading of the wall offers that niche at a
+ * price, and `null` for every other niche. Nothing on the page may invent a price for an
+ * unavailable niche. (Until 2026-08-01 "current reading" meant the sheet's printed cells;
+ * it now means the operator's MIS export, minus the $0 rows — see above.)
  *
  * Measured while transcribing, and recorded here as a fact about the source: on this
  * sheet every cell carrying text has the light-green fill (198,224,180) and every
@@ -78,30 +113,73 @@ export const ROW_RUNS = {
 };
 
 /**
- * THE TRANSCRIPTION. Every cell on the sheet that printed a price, keyed
- * `<row>-<column>`. A niche absent from this map is UNAVAILABLE by the fail-safe rule
- * above — there is no third state and no way to record a price for a niche that is not
- * for sale.
+ * WHAT IS FOR SALE. Every space the operator's 2026-08-01 MIS export lists as available
+ * AT A PRICE GREATER THAN ZERO, keyed `<row>-<column>`, at the Jan-30-2025 sheet's own
+ * figure. A niche absent from this map is UNAVAILABLE by the fail-safe rule above — there
+ * is no third state and no way to record a price for a niche that is not for sale.
  *
- * 37 entries: 3 in the left wing, 31 in the centre, 3 in the right wing.
+ * 18 entries: 1 in the left wing, 14 in the centre, 3 in the right wing.
+ * Every price here is IDENTICAL to the sheet's — the export moved availability only.
  */
 export const PRICES = {
   // ── Left wing (cols 1–8) ──
   'C-7': 5995,
-  'B-6': 4995, 'B-7': 4995,
 
   // ── Center section (cols 9–24) ──
-  'G-13': 8995, 'G-14': 8995, 'G-15': 8995, 'G-16': 8995, 'G-18': 8995, 'G-19': 8995,
-  'F-13': 7995, 'F-22': 7995, 'F-23': 7995,
-  'D-9': 6995, 'D-15': 6995, 'D-20': 6995, 'D-24': 6995,
-  'C-9': 5995, 'C-10': 5995, 'C-11': 5995, 'C-12': 5995, 'C-13': 5995, 'C-14': 5995,
-  'C-18': 5995, 'C-19': 5995, 'C-20': 5995, 'C-22': 5995, 'C-24': 5995,
-  'B-11': 4995, 'B-12': 4995, 'B-13': 4995, 'B-15': 4995, 'B-17': 4995, 'B-18': 4995,
-  'B-23': 4995,
+  'G-13': 8995, 'G-14': 8995, 'G-15': 8995,
+  'D-15': 6995, 'D-20': 6995, 'D-24': 6995,
+  'C-9': 5995, 'C-12': 5995, 'C-13': 5995, 'C-14': 5995,
+  'C-18': 5995, 'C-20': 5995, 'C-22': 5995, 'C-24': 5995,
 
   // ── Right wing (cols 25–32) ──
   'D-26': 6995,
   'C-25': 5995, 'C-26': 5995,
+};
+
+/**
+ * Listed by MIS as AVAILABLE but with NO PRICE ($0) on 2026-08-01. Not offered — a price
+ * greater than zero is what makes a position sellable (operator's standing COM rule). Kept
+ * here, not in PRICES, so they cannot reach the wall as money; delete from this list and
+ * add to PRICES the day the operator issues a figure.
+ *
+ * Both are NEW to the wall — neither carried a price on the Jan-30-2025 sheet either, so
+ * "no price" is the only thing MIS has ever said about them.
+ */
+export const LISTED_NO_PRICE = ['B-10', 'D-18'];
+
+/**
+ * The 19 niches the Jan-30-2025 sheet priced that the 2026-08-01 export no longer lists.
+ * Read as SOLD. Recorded rather than deleted so the change is auditable, and so the
+ * emptied rows (all of level B, all of level F) read as history and not as a build bug.
+ *   B ×9 @ $4,995 — 6, 7, 11, 12, 13, 15, 17, 18, 23  (level B is now sold out)
+ *   C ×3 @ $5,995 — 10, 11, 19
+ *   D ×1 @ $6,995 — 9
+ *   F ×3 @ $7,995 — 13, 22, 23                        (level F is now sold out)
+ *   G ×3 @ $8,995 — 16, 18, 19
+ * $120,905 of the sheet's $241,815 sold; $120,910 remains at list.
+ */
+export const SOLD_SINCE_SHEET = [
+  'B-6', 'B-7', 'B-11', 'B-12', 'B-13', 'B-15', 'B-17', 'B-18', 'B-23',
+  'C-10', 'C-11', 'C-19',
+  'D-9',
+  'F-13', 'F-22', 'F-23',
+  'G-16', 'G-18', 'G-19',
+];
+
+/** Provenance of the availability reading, rendered on the page. */
+export const AVAILABILITY = {
+  asOf: '2026-08-01',
+  source: 'operator MIS availability export (Wall-1 = GOM-1-1; Lvl = row, Sp = space)',
+  supersedes: "the Jan-30-2025 price sheet's status reading (prices unchanged)",
+  /** The export's own summary line, per level. Detail counts are derived from PRICES. */
+  summaryCounts: { B: 1, C: 12, D: 5, G: 3 },
+  /**
+   * The one place the export contradicts itself. Surfaced on purpose: the page and the
+   * gate ship the DETAIL, and the operator has to reconcile the summary in MIS.
+   */
+  discrepancy:
+    'The export summary says Level C has 12 available; its detail lists 11 C spaces. ' +
+    'The detail is authoritative here, so 11 are shown — the twelfth is unreconciled.',
 };
 
 export const STATUS_LABEL = { unavailable: 'Confirm in MIS' };
@@ -218,15 +296,21 @@ export const COMPANION_NOTE =
   `$${URN.price.toLocaleString('en-US')} each on the urn price list — merchandise, not a fee, ` +
   'and taxed at 10.4% like the inscription.';
 
-// ── Price tiers (5 distinct prices on the sheet) ─────────────────────────────
+// ── Price tiers (the 3 prices still for sale) ────────────────────────────────
 // The tier hue lives on the price CHIP only, never on the cell fill — the cell fill is
 // polished granite, and status is coded by pattern and brightness so no hue is ever
 // doing two jobs.
+//
+// The sheet printed FIVE prices. Levels B ($4,995) and F ($7,995) sold out entirely on
+// the 2026-08-01 export, so their tiers were removed: the gate refuses a tier no niche
+// carries, and a legend swatch for a price a family cannot buy is a promise the wall
+// can't keep. The class names of the surviving tiers are UNCHANGED (t1/t2/t4) so the
+// green/olive/red ramp a counselor already knows still means the same three prices.
+// If B or F is ever released again, restore its entry here — the old values were
+// t0 $4,995 #1a6fae/#fff and t4 $7,995 #e07b12/#0e1729.
 export const TIERS = [
-  { p: 4995, l: '$4,995', c: 't0', bg: '#1a6fae', fg: '#fff' },
   { p: 5995, l: '$5,995', c: 't1', bg: '#219866', fg: '#0e1729' },
   { p: 6995, l: '$6,995', c: 't2', bg: '#a89f14', fg: '#0e1729' },
-  { p: 7995, l: '$7,995', c: 't3', bg: '#e07b12', fg: '#0e1729' },
   { p: 8995, l: '$8,995', c: 't4', bg: '#c2332b', fg: '#fff' },
 ];
 

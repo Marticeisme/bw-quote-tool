@@ -11,12 +11,26 @@
  * Exit 1 on any failure. Sabotage a price, a status, or the wall's shape in the data
  * module and this must go red.
  *
+ * Sabotage-proven: `node scripts/verify_gomn_map.mjs --sabotage` mutates the data module
+ * one perturbation at a time, rebuilds, and requires this gate to exit 1 on every one.
+ *
  * ── WHY THIS GATE CARRIES ITS OWN NUMBERS ─────────────────────────────────────────
  * The ECL sheet printed COUNT fields the gate could check against. The Garden of
- * Meditation sheet prints none. So the anchors below are TYPED FROM THE TRANSCRIPTION,
- * by hand, and are deliberately NOT derived from the data module — if they were, a
+ * Meditation sheet prints none. So the anchors below are TYPED BY HAND from the source
+ * of record, and are deliberately NOT derived from the data module — if they were, a
  * mistyped cell would move the anchor with it and the gate would agree with the bug.
- * Every one of them must be re-derived from the price sheet if the sheet is reissued.
+ *
+ * ── THE ANCHORS SPLIT IN TWO ON 2026-08-01 ────────────────────────────────────────
+ * They used to come from one document. They now come from two, and the split is the
+ * point:
+ *   SHAPE and PRICES        still the Jan-30-2025 price sheet (GOMN MAP.png) — the wall
+ *                           is 168 niches and $5,995 still means $5,995.
+ *   AVAILABILITY            the operator's MIS export of 2026-08-01, typed out below
+ *                           space by space from the list he sent.
+ * The inventory anchors therefore MOVED, deliberately, and each old value is quoted
+ * beside its replacement so a reader can audit the change rather than take it on trust.
+ * Re-derive the price anchors if the sheet is reissued; re-type the availability anchors
+ * from the next export.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,7 +39,11 @@ import { fileURLToPath } from 'node:url';
 import {
   ROWS, BLOCKS, ROW_RUNS, TIERS, FEES, FEE_SOURCE, INSCR_MAX, URN,
   SHEET_TEXT, COMPANION_NOTE, allNiches, refOf, sellable, ecf, estTotal,
+  PRICES, AVAILABILITY, LISTED_NO_PRICE, SOLD_SINCE_SHEET,
 } from './gomn-niche-data.mjs';
+
+const DATA = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gomn-niche-data.mjs');
+const BUILD = path.join(path.dirname(fileURLToPath(import.meta.url)), 'build_gomn_map.mjs');
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/GOMN_NicheMap.html';
@@ -45,10 +63,51 @@ const SHEET_RUNS = {
 const SHEET_TOTAL = 168;
 const SHEET_ROW_COUNT = { G: 16, F: 16, E: 24, D: 24, C: 24, B: 32, A: 32 };
 const SHEET_BLOCK_COUNT = { L: 28, C: 112, R: 28 };
-const SHEET_AVAIL = 37;
-const SHEET_AVAIL_BY_BLOCK = { L: 3, C: 31, R: 3 };
-const SHEET_AVAIL_TOTAL = 241815;
-const SHEET_PRICE_MULTISET = { 4995: 9, 5995: 14, 6995: 5, 7995: 3, 8995: 6 };
+
+// ── AVAILABILITY ANCHORS, typed from the operator's MIS export of 2026-08-01 ──
+// Wall-1 is this GOM-1-1 wall; Lvl is the row, Sp the space. Typed out here in full, from
+// the list itself, so this gate does not simply agree with whatever the data module says.
+//
+//   Lvl-B Sp-10                                        -> $0     NOT OFFERED
+//   Lvl-C Sp-7, 9, 12, 13, 14, 18, 20, 22, 24, 25, 26  -> $5,995
+//   Lvl-D Sp-15, 20, 24, 26                            -> $6,995
+//   Lvl-D Sp-18                                        -> $0     NOT OFFERED
+//   Lvl-G Sp-13, 14, 15                                -> $8,995
+const LIST_OFFERED = {
+  C: [7, 9, 12, 13, 14, 18, 20, 22, 24, 25, 26],
+  D: [15, 20, 24, 26],
+  G: [13, 14, 15],
+};
+const LIST_PRICE_BY_ROW = { C: 5995, D: 6995, G: 8995 };
+// The export lists these two as available at $0. A price greater than zero is what makes a
+// position sellable (the operator's standing rule), so they must render UNAVAILABLE and
+// must never carry a figure. The gate checks both halves of that.
+const LIST_ZERO_PRICED = ['B-10', 'D-18'];
+// The export's own summary line. Level C is the one that does NOT agree with the detail —
+// summary 12, detail 11 — and that disagreement is asserted, not smoothed over: if a later
+// edit quietly makes them agree, the operator's open question has been answered by a
+// script instead of by MIS, and this gate goes red until someone says which way.
+const LIST_SUMMARY = { B: 1, C: 12, D: 5, G: 3 };
+const LIST_SUMMARY_UNRECONCILED = { row: 'C', summary: 12, detail: 11 };
+
+// ── INVENTORY ANCHORS — MOVED 2026-08-01, old value quoted beside each ────────
+// 19 of the sheet's 37 priced niches are gone from the export and are read as SOLD:
+//   B ×9 @$4,995 (6,7,11,12,13,15,17,18,23) — level B sold out
+//   C ×3 @$5,995 (10,11,19)
+//   D ×1 @$6,995 (9)
+//   F ×3 @$7,995 (13,22,23)                 — level F sold out
+//   G ×3 @$8,995 (16,18,19)
+// $120,905 of the sheet's $241,815 sold; $120,910 remains.
+const SHEET_AVAIL = 18;                                    // was 37 (sheet, Jan-30-2025)
+const SHEET_AVAIL_BY_BLOCK = { L: 1, C: 14, R: 3 };        // was { L: 3, C: 31, R: 3 }
+const SHEET_AVAIL_TOTAL = 120910;                          // was 241815
+const SHEET_PRICE_MULTISET = { 5995: 11, 6995: 4, 8995: 3 };
+// was { 4995: 9, 5995: 14, 6995: 5, 7995: 3, 8995: 6 } — the $4,995 and $7,995 bands are
+// empty now, and their colour tiers were removed with them (a legend swatch for a price
+// nobody can buy is a promise the wall cannot keep).
+const SOLD_SINCE_SHEET_COUNT = 19;
+const SHEET_PRICED_COUNT = 37;   // what the Jan-30-2025 sheet printed, for the arithmetic
+const SOLD_AT_LIST = 120905;     // 241815 − 120910
 
 // ── FEE ANCHORS, typed from the operator's 2026-07-31 ruling ─────────────────
 // NOT from the GOMN sheet — the sheet prints O&C $835 / Recording $225 / Inscription
@@ -250,6 +309,106 @@ ck(AVAIL_TOTAL === SHEET_AVAIL_TOTAL,
   const wanted = dataPrices.concat(dataPrices).sort((a, b) => a - b);
   ck(chips.length === wanted.length && chips.every((v, i) => v === wanted[i]),
     `rendered price chips = ${chips.length} (${SHEET_AVAIL} per rendering × 2 renderings), all matching`);
+}
+
+// ── 5b. THE MIS EXPORT OF 2026-08-01, space by space ─────────────────────────
+// The anchors above are aggregate; these are per-space. An aggregate can be right while
+// every space is wrong, and on a wall a family reads by position that is the failure that
+// matters. LIST_OFFERED is typed from the operator's list, not read from the module.
+console.log('\nThe operator MIS availability export (2026-08-01), space by space');
+{
+  const want = new Map();
+  for (const [row, spaces] of Object.entries(LIST_OFFERED)) {
+    for (const c of spaces) want.set(`${row}-${c}`, LIST_PRICE_BY_ROW[row]);
+  }
+  ck(want.size === SHEET_AVAIL, `the typed list offers ${SHEET_AVAIL} spaces (${want.size})`);
+
+  const got = new Map(Object.entries(PRICES));
+  const missing = [...want.keys()].filter((k) => !got.has(k));
+  const extra = [...got.keys()].filter((k) => !want.has(k));
+  ck(missing.length === 0, `every listed space is in the data module${missing.length ? ' — missing ' + missing.join(', ') : ''}`);
+  ck(extra.length === 0, `the data module offers nothing the list does not${extra.length ? ' — extra ' + extra.join(', ') : ''}`);
+  const wrong = [...want.entries()].filter(([k, p]) => got.has(k) && got.get(k) !== p);
+  ck(wrong.length === 0,
+    `every listed space carries the list's price${wrong.length ? ' — ' + wrong.map(([k, p]) => `${k}: list ${money(p)}, module ${money(got.get(k))}`).join('; ') : ' (prices unchanged from the sheet)'}`);
+  for (const [row, spaces] of Object.entries(LIST_OFFERED)) {
+    const n = data.filter((x) => x.row === row && sellable(x)).length;
+    ck(n === spaces.length, `level ${row}   list ${String(spaces.length).padStart(2)} offered   data ${n}   all at ${money(LIST_PRICE_BY_ROW[row])}`);
+  }
+  const otherRows = ROWS.filter((r) => !(r in LIST_OFFERED));
+  const leaked = data.filter((n) => otherRows.includes(n.row) && sellable(n));
+  ck(leaked.length === 0,
+    `levels ${otherRows.join(', ')} are absent from the export and offer nothing${leaked.length ? ' — ' + leaked.map((n) => n.ref).join(', ') : ' (A, B, E and F are sold out or unlisted)'}`);
+
+  // --- $0 is not a price -----------------------------------------------------
+  ck(JSON.stringify([...LISTED_NO_PRICE].sort()) === JSON.stringify([...LIST_ZERO_PRICED].sort()),
+    `the module records exactly the ${LIST_ZERO_PRICED.length} spaces MIS lists at $0 (${LISTED_NO_PRICE.join(', ')})`);
+  for (const id of LIST_ZERO_PRICED) {
+    const n = data.find((x) => x.id === id);
+    ck(!!n && !sellable(n) && n.p === null,
+      `${refOf(id.split('-')[0], +id.split('-')[1])} is listed available at $0 and is therefore NOT offered here`);
+    ck(!(id in PRICES), `${id} is absent from PRICES — a $0 row can never become a chip`);
+  }
+  const zeroPriced = data.filter((n) => n.p === 0);
+  ck(zeroPriced.length === 0, `no niche carries a price of exactly 0${zeroPriced.length ? ' — ' + zeroPriced.map((n) => n.ref).join(', ') : ''}`);
+  ck(!/\$0\b/.test(src), 'the string "$0" appears nowhere on the page');
+
+  // --- what sold ------------------------------------------------------------
+  ck(SOLD_SINCE_SHEET.length === SOLD_SINCE_SHEET_COUNT,
+    `${SOLD_SINCE_SHEET_COUNT} of the sheet's ${SHEET_PRICED_COUNT} priced niches are gone from the export (${SOLD_SINCE_SHEET.length})`);
+  ck(SHEET_PRICED_COUNT - SOLD_SINCE_SHEET_COUNT === SHEET_AVAIL,
+    `${SHEET_PRICED_COUNT} − ${SOLD_SINCE_SHEET_COUNT} = ${SHEET_AVAIL} still offered`);
+  const stillListed = SOLD_SINCE_SHEET.filter((k) => k in PRICES || LISTED_NO_PRICE.includes(k));
+  ck(stillListed.length === 0, `no sold niche is still offered${stillListed.length ? ' — ' + stillListed.join(', ') : ''}`);
+  const soldDupes = SOLD_SINCE_SHEET.filter((k, i) => SOLD_SINCE_SHEET.indexOf(k) !== i);
+  ck(soldDupes.length === 0, `the sold list has no duplicates${soldDupes.length ? ' — ' + soldDupes.join(', ') : ''}`);
+  ck(SHEET_AVAIL_TOTAL + SOLD_AT_LIST === 241815,
+    `${money(SOLD_AT_LIST)} sold + ${money(SHEET_AVAIL_TOTAL)} remaining = the sheet's ${money(241815)}`);
+  for (const r of ['B', 'F']) {
+    const left = data.filter((n) => n.row === r && sellable(n)).length;
+    ck(left === 0, `level ${r} is sold out — the export does not list it and the wall offers nothing there`);
+  }
+
+  // --- the summary line the operator must reconcile --------------------------
+  ck(JSON.stringify(AVAILABILITY.summaryCounts) === JSON.stringify(LIST_SUMMARY),
+    `the module records the export's summary counts verbatim (${Object.entries(LIST_SUMMARY).map(([k, v]) => k + ':' + v).join(' ')})`);
+  {
+    const { row, summary, detail } = LIST_SUMMARY_UNRECONCILED;
+    const shipped = LIST_OFFERED[row].length;
+    ck(shipped === detail && detail !== summary,
+      `level ${row}: summary says ${summary}, detail lists ${detail} — the DETAIL ships (${shipped}), the gap is UNRECONCILED`);
+    // Both counts and the level must be NAMED. "Something doesn't add up in row C" is not
+    // a reconcilable statement; "summary 12, detail 11" is what he takes to MIS.
+    const d = AVAILABILITY.discrepancy;
+    ck(new RegExp(`Level ${row}\\b`).test(d) && d.includes(String(summary)) && d.includes(String(detail)),
+      `the data module names the level and BOTH counts (${row}: ${summary} vs ${detail}) for whoever reads it next`);
+    ck(src.includes(AVAILABILITY.discrepancy),
+      'and the page carries the same sentence, so a counselor sees it before quoting row C');
+    for (const [r, n] of Object.entries(LIST_SUMMARY)) {
+      if (r === row) continue;
+      const off = (LIST_OFFERED[r] || []).length;
+      const zero = LIST_ZERO_PRICED.filter((k) => k[0] === r).length;
+      ck(off + zero === n, `level ${r}: summary ${n} = ${off} offered + ${zero} listed at $0`);
+    }
+  }
+
+  // --- provenance on the page ------------------------------------------------
+  // Scoped to the availability block, not to the whole page: every niche button carries a
+  // data-ref, so `src.includes('GOM-1-1-B-10')` is true whatever the prose says. A check
+  // that cannot fail is not a check.
+  const AV_H3 = '<h3>Availability &mdash; where this reading comes from</h3>';
+  const avStart = src.indexOf(AV_H3);
+  const avBlock = avStart < 0 ? '' : src.slice(avStart, src.indexOf('</div>', avStart));
+  ck(avBlock !== '', 'the page carries an availability-provenance block');
+  ck(avBlock.includes(AVAILABILITY.asOf), `it dates the availability reading (${AVAILABILITY.asOf})`);
+  ck(avBlock.includes(AVAILABILITY.source), 'it names the MIS export as the source of availability');
+  ck(avBlock.includes(AVAILABILITY.supersedes), "and says it supersedes the sheet's status reading");
+  for (const id of LIST_ZERO_PRICED) {
+    const ref = refOf(id.split('-')[0], +id.split('-')[1]);
+    ck(avBlock.includes(ref), `it names ${ref} as listed-without-a-price, so it is findable when a figure arrives`);
+  }
+  ck(/no price attached/i.test(avBlock) && /price greater than zero/i.test(avBlock),
+    'it states the rule: a niche is for sale when a price greater than zero is attached');
 }
 
 // ── 6. THE SAFETY GATE: no price anywhere on an unavailable niche ─────────────
@@ -517,6 +676,116 @@ console.log('\nPrice-chip contrast (WCAG AA, 4.5:1)');
     ck(r >= 4.5, `${t.l.padEnd(8)} ${t.fg} on ${t.bg} = ${r.toFixed(2)}:1`);
   }
   pass(`worst tier chip contrast ${worst.toFixed(2)}:1 (${worstT}) — all ${TIERS.length} clear AA`);
+}
+
+// ── 12. Sabotage ──────────────────────────────────────────────────────────────
+// Every check above is a claim that something WOULD be caught. This proves it: each
+// mutation is written to the real file, the page is rebuilt from it, and this gate is
+// re-run as a child process. Anything that does not come back exit 1 is a check with no
+// teeth. The file is restored and rebuilt after every run, including on a throw.
+//
+// Re-pointed 2026-08-01: the old runs perturbed sheet-derived cells (B-6, F-13, the
+// $4,995 band) that no longer exist. They now perturb the MIS export's own spaces, and
+// the set gained the run this update exists for — a $0-listed space rendered with money.
+if (process.argv.includes('--sabotage')) {
+  console.log('\nSabotage of the data module (each mutation must make this gate exit 1)');
+  const orig = fs.readFileSync(DATA, 'utf8');
+  const runs = [
+    // THE run for this update. MIS lists B-10 and D-18 available at $0; the operator's
+    // rule is that a price greater than zero is what makes a position sellable. A figure
+    // invented for either of them is the specific harm this track guards against.
+    ['a $0-LISTED space given a price: D-18 quoted at $6,995',
+      (s) => s.replace("  'D-26': 6995,", "  'D-18': 6995,\r\n  'D-26': 6995,")],
+    ['a $0-listed space given a price of exactly 0 (available at nothing)',
+      (s) => s.replace("  'D-26': 6995,", "  'D-18': 0,\r\n  'D-26': 6995,")],
+    ['the $0 record erased, so the two spaces become invisible instead of pending',
+      (s) => s.replace("export const LISTED_NO_PRICE = ['B-10', 'D-18'];", 'export const LISTED_NO_PRICE = [];')],
+    ['a SOLD niche resurrected: B-6 back on the wall at the old $4,995',
+      (s) => s.replace("  'C-7': 5995,", "  'C-7': 5995, 'B-6': 4995,")],
+    ['a listed space dropped: C-22 quietly gone from the export',
+      (s) => s.replace("'C-20': 5995, 'C-22': 5995, 'C-24': 5995,", "'C-20': 5995, 'C-24': 5995,")],
+    ['a price MOVED between listed spaces: C-9 charged the level-D price',
+      (s) => s.replace("'C-9': 5995,", "'C-9': 6995,")],
+    ['a price ROUNDED: the level-G niches at $9,000',
+      (s) => s.replace("'G-13': 8995, 'G-14': 8995, 'G-15': 8995,", "'G-13': 9000, 'G-14': 9000, 'G-15': 9000,")],
+    ['a space invented in a level the export does not list at all: E-12',
+      (s) => s.replace("  'C-7': 5995,", "  'C-7': 5995, 'E-12': 5995,")],
+    ['the sold list shortened, so the arithmetic no longer reconciles',
+      (s) => s.replace("  'D-9',\r\n", '')],
+    ["the level-C discrepancy 'reconciled' by editing the summary instead of MIS",
+      (s) => s.replace('summaryCounts: { B: 1, C: 12, D: 5, G: 3 }', 'summaryCounts: { B: 1, C: 11, D: 5, G: 3 }')],
+    ['the discrepancy sentence softened away, so nobody is told to reconcile it',
+      (s) => s.replace(
+        "    'The export summary says Level C has 12 available; its detail lists 11 C spaces. ' +",
+        "    'Every level reconciles. ' +")],
+    ['a colour tier restored for a price no niche carries any more ($4,995)',
+      (s) => s.replace("  { p: 5995, l: '$5,995', c: 't1'", "  { p: 4995, l: '$4,995', c: 't0', bg: '#1a6fae', fg: '#fff' },\r\n  { p: 5995, l: '$5,995', c: 't1'")],
+    ['the wall shape narrowed: level G one space short',
+      (s) => s.replace('  G: [[9, 24]],', '  G: [[9, 23]],')],
+    ['the O&C fee reverted to the superseded sheet figure: $875 -> $835',
+      (s) => s.replace('  OC: 875,', '  OC: 835,')],
+    ['the inscription reverted to the superseded sheet figure: $660 -> $605',
+      (s) => s.replace('  INSCR: 660,', '  INSCR: 605,')],
+    ['sales tax zeroed on the merchandise lines',
+      (s) => s.replace('  TAX: 0.104,', '  TAX: 0,')],
+    ['the Interlude Urn repriced away from the urn price list',
+      (s) => s.replace('  price: 665,', '  price: 595,')],
+    ['the E.C.F. rate cut to 5% — the one fee figure still taken from this sheet',
+      (s) => s.replace('  ECF_RATE: 0.1,', '  ECF_RATE: 0.05,')],
+  ];
+  const child = (args) => execFileSync(process.execPath, args, { cwd: ROOT, stdio: 'pipe' });
+  const self = fileURLToPath(import.meta.url);
+  let sabFail = 0;
+  const runSet = (file, origSrc, list) => {
+    try {
+      for (const [label, mut] of list) {
+        const mutated = mut(origSrc);
+        if (mutated === origSrc) { console.log('  FAIL  sabotage did not apply: ' + label); sabFail++; continue; }
+        fs.writeFileSync(file, mutated, 'utf8');
+        let code = 0;
+        try { child([BUILD]); child([self]); } catch (e) { code = e.status ?? 1; }
+        if (code === 1) pass(`${label} -> exit ${code}`);
+        else { sabFail++; console.log(`  FAIL  ${label} -> exit ${code} (expected 1)`); }
+        fs.writeFileSync(file, origSrc, 'utf8');
+      }
+    } finally {
+      // The source must be back on disk even if this phase throws.
+      fs.writeFileSync(file, origSrc, 'utf8');
+      child([BUILD]);
+    }
+  };
+  runSet(DATA, orig, runs);
+
+  // ── 12b. Sabotage of the GENERATOR ────────────────────────────────────────
+  // The provenance assertions cannot be reached by perturbing the data: the page renders
+  // those sentences FROM the module, so a mutated module moves the page with it and the
+  // comparison still holds. The failure they exist to catch — a build that stops telling
+  // the counselor where availability came from, or one that prints $0 as if it were a
+  // price — lives in the generator.
+  console.log('\nSabotage of the generator (the provenance assertions must have teeth)');
+  const origBuild = fs.readFileSync(BUILD, 'utf8');
+  runSet(BUILD, origBuild, [
+    ['the availability source unnamed — the page stops saying where this reading came from',
+      (s) => s.replace('${esc(AVAILABILITY.source)}', 'the current list')],
+    ['the whole availability provenance block deleted',
+      (s) => s.replace('    <h3>Availability &mdash; where this reading comes from</h3>', '    <h3>Availability</h3>')],
+    ['the unreconciled level-C note dropped from the page',
+      (s) => s.replace('${esc(AVAILABILITY.discrepancy)}', 'See MIS.')],
+    ['the $0-listed spaces printed with their $0 figure, as if it were a price',
+      (s) => s.replace('with no price attached', 'at $0')],
+    ['the $0-listed spaces no longer named, so nobody can find them again',
+      (s) => s.replace('<b>${esc(NO_PRICE_REFS)}</b>', '<b>Two spaces</b>')],
+    ['an unavailable niche leaking a data-price attribute the card could read',
+      (s) => s.replace('data-price="${sellable(n) ? n.p : \'\'}"', 'data-price="${n.p}"')],
+    ['an unavailable niche given the aria-label of an available one (price read aloud)',
+      (s) => s.replace('  if (!sellable(n)) return `${n.ref}, ${BLOCKS[n.block].label}, row ${n.row}, space ${n.col}, ${STATUS_LABEL[n.st]}`;',
+        '  if (false) return `${n.ref}, ${BLOCKS[n.block].label}, row ${n.row}, space ${n.col}, ${STATUS_LABEL[n.st]}`;')],
+  ]);
+
+  let restored = 0;
+  try { child([self]); } catch (e) { restored = e.status ?? 1; }
+  (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
+  failures += sabFail;
 }
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
