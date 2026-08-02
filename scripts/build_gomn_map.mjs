@@ -106,6 +106,9 @@ function legendHtml(prices) {
 }
 const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-a"></div><span>Available &mdash; price shown</span></div>
+      <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
+      <div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>
+      <div class="li"><div class="ls stleg-h"></div><span>On hold</span></div>
       <div class="li"><div class="ls stleg-u"></div><span>Not available &mdash; confirm in MIS</span></div>
     </div>`;
 
@@ -197,21 +200,40 @@ const CSS = `
   .fg-L .nid,.fg-R .nid,.fg-C .nid{font-size:9.5px;}
 
   /* ── Status code (operator's fail-safe rule) ──
-     A printed price means AVAILABLE; anything else means UNAVAILABLE. The two are
-     separated by PATTERN and BRIGHTNESS, never by hue — every hue on this page belongs
-     to a price tier. An unavailable niche is the same granite, gone matte and dull
-     under a frosted diagonal hatch, with a white CONFIRM IN MIS badge and no money
-     anywhere on it. */
-  .st-unavailable{color:#cfc7b6;
+     A printed price means AVAILABLE; anything else means NOT FOR SALE. Available and
+     not-available are separated by PATTERN and BRIGHTNESS, never by hue — every hue on
+     this page belongs to a price tier — and none of the four below renders money.
+     Extended 2026-08-01 when MIS statuses arrived; the treatments are the family's,
+     matching ROAC space for space:
+       Occupied       blacked-out cell (closed)
+       Reserved       diagonal-striped grey
+       On Hold        dashed outline, the operator's ruling on the two unpriced spaces
+       Confirm in MIS the original fail-safe: matte granite, frosted hatch, dashed edge
+     Reserved keeps the exact treatment the single old 'unavailable' status carried, so
+     the 54 reserved spaces look precisely as they did. */
+  .st-reserved,.st-unavailable{color:#cfc7b6;
     background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.16) 0 3px,rgba(255,255,255,0) 3px 7px),
       linear-gradient(180deg,#3a3c40 0%,#2a2c30 55%,#202225 100%)!important;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important;}
   .st-unavailable::before{content:'';position:absolute;inset:1px;pointer-events:none;
     border:1px dashed rgba(232,213,168,.34);border-radius:inherit;}
+  .st-occupied{color:#b9b3a6;
+    background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)!important;}
+  .st-hold{color:#e8d5a8;
+    background:linear-gradient(180deg,#3a3c40 0%,#2a2c30 55%,#202225 100%)!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)!important;}
+  .st-hold::before{content:'';position:absolute;inset:1px;pointer-events:none;
+    border:2px dashed rgba(232,213,168,.85);border-radius:inherit;}
 
 ${TIER_CSS}
   .stleg-a{background:linear-gradient(180deg,#4a4d55,#191b1f);box-shadow:inset 0 1px 0 rgba(214,178,110,.7);}
+  .stleg-r{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.16) 0 2px,rgba(255,255,255,0) 2px 4px),
+      linear-gradient(180deg,#3a3c40,#202225);}
+  .stleg-o{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
+  .stleg-h{background:linear-gradient(180deg,#3a3c40,#202225);border:2px dashed rgba(232,213,168,.85)!important;}
   .stleg-u{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.16) 0 2px,rgba(255,255,255,0) 2px 4px),
       linear-gradient(180deg,#3a3c40,#202225);border:1px dashed rgba(232,213,168,.5)!important;}
@@ -332,11 +354,21 @@ ${TIER_CSS}
     .run.capped{box-shadow:0 -5px 0 0 #cdcac3!important;}
     .n{background:#fff!important;color:#222!important;border:1px solid #8d8d8d!important;box-shadow:none!important;}
     .nid{color:#555!important;}
-    .st-unavailable{color:#555!important;
+    .st-reserved,.st-unavailable{color:#555!important;
       background:repeating-linear-gradient(135deg,rgba(0,0,0,.13) 0 3px,rgba(0,0,0,0) 3px 7px),#f2f1ee!important;}
     .st-unavailable::before{border-color:#a8a8a8!important;}
+    /* Occupied is the blacked-out cell on screen; on paper 92 solid black cells is a
+       toner brick, so it becomes the DENSEST hatch instead — still the darkest of the
+       four, still pattern-coded, still no money on it. */
+    .st-occupied{color:#333!important;
+      background:repeating-linear-gradient(135deg,rgba(0,0,0,.42) 0 2px,rgba(0,0,0,0) 2px 4px),#e2e0db!important;}
+    .st-hold{color:#333!important;background:#f7f6f3!important;}
+    .st-hold::before{border-color:#555!important;}
     .nstatus{background:#fff!important;color:#333!important;}
     .stleg-a{background:#fff!important;box-shadow:none!important;border:1px solid #8d8d8d!important;}
+    .stleg-r{background:repeating-linear-gradient(135deg,rgba(0,0,0,.13) 0 2px,rgba(0,0,0,0) 2px 4px),#f2f1ee!important;border:1px solid #8d8d8d!important;}
+    .stleg-o{background:repeating-linear-gradient(135deg,rgba(0,0,0,.42) 0 2px,rgba(0,0,0,0) 2px 4px),#e2e0db!important;border:1px solid #8d8d8d!important;}
+    .stleg-h{background:#f7f6f3!important;border:2px dashed #555!important;}
     .stleg-u{background:repeating-linear-gradient(135deg,rgba(0,0,0,.13) 0 2px,rgba(0,0,0,0) 2px 4px),#f2f1ee!important;border:1px dashed #a8a8a8!important;}
     /* Re-track for the page: 32 spaces have to fit inside a landscape Letter. */
     /* The paper track is the tight one: 32 spaces plus two row-letter gutters have to
@@ -393,9 +425,16 @@ function cardHead(d) {
 function cardHtml(d) {
   // Not available: the card names the niche and its status, and shows NO pricing.
   if (d.st !== 'available' || !d.price) {
+    // Each unsellable status says the thing MIS actually knows. Only the fail-safe
+    // 'unavailable' sends the counselor away to look it up.
+    var note =
+      d.st === 'hold' ? 'This space is ON HOLD and is not offered. No price is attached to it in MIS, and none may be quoted. Ask before promising it to anyone.'
+      : d.st === 'occupied' ? 'This space is occupied \\u2014 an interment has been made. It is not for sale and no price is shown.'
+      : d.st === 'reserved' ? 'This space is reserved \\u2014 sold, with no interment yet. It is not for sale and no price is shown.'
+      : 'No price is printed for this niche on the current price sheet, so it is not quotable here. Confirm its status in MIS/Enterprise before saying anything to a family.';
     return cardHead(d) +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
-      '<div class="cnote">No price is printed for this niche on the current price sheet, so it is not quotable here. Confirm its status in MIS/Enterprise before saying anything to a family.</div>';
+      '<div class="cnote">' + note + '</div>';
   }
   var price = +d.price, e = ecf(price), tot = price + e, rows = '';
   rows += '<div class="cr"><span class="cl">Niche Price</span><span class="cv">' + fm(price) + '</span></div>';
@@ -686,8 +725,9 @@ ${BLOCK_ORDER.map(view).join('\n')}
     <h3>Availability &mdash; where this reading comes from</h3>
     <ul>
       <li><b>Availability is the operator&rsquo;s MIS list of ${esc(AVAILABILITY.asOf)}</b> &mdash; ${esc(AVAILABILITY.source)}. It supersedes ${esc(AVAILABILITY.supersedes)}: every figure on this wall is still the price sheet&rsquo;s own, unchanged. A level the list does not carry has sold out, so <b>levels B and F are now sold out entirely</b>.</li>
-      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed in MIS as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b> and ${LISTED_NO_PRICE.length === 1 ? 'shows' : 'show'} as not available. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
-      <li><b>Unreconciled, ${esc(AVAILABILITY.asOf)}:</b> ${esc(AVAILABILITY.discrepancy)}</li>
+      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed in MIS as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b>. The operator confirmed on ${esc(AVAILABILITY.asOf)} that ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>on hold</b>, and ${LISTED_NO_PRICE.length === 1 ? 'it shows' : 'they show'} that way on the wall. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
+      <li><b>Statuses</b> &mdash; occupied, reserved and on hold &mdash; come from the ${esc(AVAILABILITY.statusSource)}. A space shown as occupied or reserved is not for sale whatever a price sheet says.</li>
+      <li><b>Resolved, ${esc(AVAILABILITY.resolved.on)}</b> (${esc(AVAILABILITY.resolved.source)}): ${esc(AVAILABILITY.resolved.finding)}</li>
     </ul>
   </div>
 
