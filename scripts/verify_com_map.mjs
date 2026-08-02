@@ -480,11 +480,35 @@ console.log('\nCrypt prices (MIS export ' + PRICES.exported + ')');
     return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
   };
   const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
-  const lowC = PRICE_BANDS.filter((b) => ratio(b.bg, b.fg) < 4.5).map((b) => `${b.c} ${ratio(b.bg, b.fg).toFixed(2)}:1`);
-  chk(lowC.length === 0, `every price chip clears WCAG AA 4.5:1${lowC.length ? ': ' + lowC.join(', ') : ' (' + PRICE_BANDS.map((b) => ratio(b.bg, b.fg).toFixed(2)).join(', ') + ')'}`);
-  // The page renders the band palette and the legend that explains it.
-  chk(PRICE_BANDS.every((b) => src.includes(`.${b.c}{background:${b.bg};color:${b.fg};}`)),
-    'the built page carries every price-band colour rule verbatim');
+  // CONTRAST IS MEASURED OFF THE BUILT PAGE, not off PRICE_BANDS (changed 2026-08-01).
+  // The band's RANGE is inventory and lives in the data module; the band's COLOUR is
+  // presentation and lives in the build script's BAND_SKIN, because the operator's
+  // "make the colros a little easier on the eyes" is a page decision, not a price
+  // decision. Reading the ratios out of the data module would therefore have measured
+  // a palette the page no longer uses — the exact shape of a check that passes while
+  // the artefact is wrong. So: parse the rules the page actually ships.
+  const skinned = new Map();
+  for (const b of PRICE_BANDS) {
+    const m = new RegExp(`\\.${b.c}\\{background:(#[0-9a-f]{6});color:(#[0-9a-f]{6});\\}`).exec(src);
+    if (m) skinned.set(b.c, { bg: m[1], fg: m[2] });
+  }
+  chk(skinned.size === PRICE_BANDS.length,
+    `the built page ships a colour rule for all ${PRICE_BANDS.length} price bands (${skinned.size})`);
+  const lowC = [...skinned].filter(([, v]) => ratio(v.bg, v.fg) < 4.5).map(([c, v]) => `${c} ${ratio(v.bg, v.fg).toFixed(2)}:1`);
+  chk(lowC.length === 0, `every price chip clears WCAG AA 4.5:1 AS RENDERED${lowC.length ? ': ' + lowC.join(', ') : ' (' + [...skinned].map(([c, v]) => `${c} ${ratio(v.bg, v.fg).toFixed(2)}`).join(', ') + ')'}`);
+  // ...and the palette is MUTED. "Easier on the eyes" is not a matter of taste that a
+  // future edit may quietly undo: the old chips were saturated signal colours (#23a06b,
+  // #c39a10, #cf4a1c) and these are stone. Saturation here is HSL S; every band stays
+  // under 0.34, which excludes anything that reads as a traffic light while leaving all
+  // the room a marble/bronze family needs.
+  const sat = (h) => {
+    const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+    const mx = Math.max(...c), mn = Math.min(...c), l = (mx + mn) / 2;
+    return mx === mn ? 0 : (mx - mn) / (l > 0.5 ? 2 - mx - mn : mx + mn);
+  };
+  const loud = [...skinned].filter(([, v]) => sat(v.bg) > 0.34).map(([c, v]) => `${c} S=${sat(v.bg).toFixed(2)}`);
+  chk(loud.length === 0, `no price band is a saturated signal colour${loud.length ? ': ' + loud.join(', ') : ' (S ' + [...skinned].map(([, v]) => sat(v.bg).toFixed(2)).join(', ') + ')'}`);
+  // The page renders the legend that explains the bands.
   chk(PRICE_BANDS.every((b) => src.includes(`<span>${b.l}</span>`)), 'the price legend lists every band');
   // The banner that said prices were not shown is GONE.
   chk(!/Crypt prices are not shown on this page/.test(src),
@@ -1099,9 +1123,90 @@ console.log('\nCamera navigation');
   // Readability, which is what all of this is FOR.
   chk(/--lod/.test(src) && /clamp\(cam\.zoom \* 1\.9, 1, 3\.2\)/.test(js),
     'cell labels grow with the camera (level of detail)');
-  chk(/font-size:calc\(4\.6px \* var\(--lod,1\)\)/.test(src), 'the crypt ref label is LOD-scaled');
+  // 2026-08-01. The LOD machinery now drives the PRICE, because the ref is off the
+  // fronts: "the locations do not have to be present on the crypt fronts just on the
+  // hover. it takes up too much space just make the prices larger."
+  chk(/\.c3p\{font-weight:700;font-size:min\(calc\(7px \* var\(--lod,1\)\),var\(--pmax,7px\)\)/.test(src),
+    'the 3D crypt PRICE is the LOD-scaled label now, floored at its old fixed 7px');
+  {
+    // THE CAP HAS TO BE REAL. An LOD-scaled price with no ceiling overflowed every chip
+    // on a wall by 2.3x at fly-to distance and the cell clipped it — "$24,9" in front of
+    // a family. So every 3D price chip carries a --pmax computed from ITS figure and ITS
+    // span, and this recomputes all of them from the data module rather than trusting
+    // the build's arithmetic.
+    const GLYPH_EM = { $: 0.60, ',': 0.31, 1: 0.49 };
+    const emW = (s) => [...s].reduce((t, ch) => t + (GLYPH_EM[ch] ?? 0.635), 0);
+    const want = (s, span) => Math.min(11, Math.floor(((36 * span - 3) / emW(s)) * 10) / 10);
+    const chips = [...src.matchAll(/<span class="c3p pb\d" style="--pmax:([\d.]+)px">(\$[\d,]+)<\/span>/g)];
+    chk(chips.length === A.priced,
+      `every priced 3D crypt front carries a per-cell price ceiling (${chips.length} of ${A.priced})`);
+    const byRef = new Map(units.filter((u) => u.p != null).map((u) => ['$' + u.p.toLocaleString('en-US'), u]));
+    const capBad = [];
+    let minCap = Infinity, maxCap = 0;
+    for (const m of src.matchAll(/<button[^>]*class="c3 ty-[^"]*"[^>]*data-ref="([^"]+)"[^>]*data-cols="([^"]*)"[^>]*>[\s\S]*?<\/button>/g)) {
+      const inner = /style="--pmax:([\d.]+)px">(\$[\d,]+)</.exec(m[0]);
+      if (!inner) continue;
+      const span = m[2].split('/').length;
+      const w = want(inner[2], span);
+      if (+inner[1] !== w) capBad.push(`${m[1]} ${inner[2]} span${span}: ${inner[1]} != ${w}`);
+      minCap = Math.min(minCap, +inner[1]); maxCap = Math.max(maxCap, +inner[1]);
+    }
+    chk(capBad.length === 0,
+      `every ceiling is the figure's own width in its own front${capBad.length ? ': ' + capBad.slice(0, 4).join('; ') : ` (${minCap}px on the tightest single, ${maxCap}px on the widest companion)`}`);
+    chk(minCap >= 7, `and no ceiling is below the price's old fixed size, so nothing shrank anywhere (${minCap}px)`);
+    chk(byRef.size > 0 && maxCap > 7 && maxCap <= 11,
+      `while a companion front carries a larger one, under the 11px calm ceiling (${maxCap}px vs 7px)`);
+  }
+  chk(/\.c3st\{[^}]*font-size:calc\(3\.4px \* var\(--lod,1\)\)/.test(src),
+    'the status badge is the quieter of the two (3.4px base, under the price)');
   chk(/id="callout"/.test(src) && /function setCallout\(d\)/.test(js),
     'the selected crypt gets a family-facing callout carrying its full ref');
+
+  // ── The ref is OFF the crypt fronts and ON every identification channel ──────
+  // Operator, 2026-08-01, verbatim: "the locations do not have to be present on the
+  // crypt fronts just on the hover. it takes up too much space just make the prices
+  // larger... reminder tehse are crypt fronts we're showing people."
+  //
+  // This is a pair of assertions, not one, and the pair is the point. Deleting a label
+  // is trivial; deleting a label and leaving no way to name the crypt would be worse
+  // than the crowding it fixed. So: absent from the 3D fronts, and present in ALL FOUR
+  // of the places a person can still get it — the hover card, the pinned card, the
+  // family callout, and the flat printable grids a counselor works down.
+  {
+    const c3crypt = [...src.matchAll(/<button[^>]*class="c3 ty-[^"]*"[^>]*>([\s\S]*?)<\/button>/g)];
+    chk(c3crypt.length === A.units,
+      `all ${c3crypt.length} 3D crypt fronts parsed (expected ${A.units})`);
+    const stillLabelled = c3crypt.filter((m) => /c3id/.test(m[1])).length;
+    chk(stillLabelled === 0,
+      `no 3D crypt front prints its tier-space ref (${stillLabelled} of ${c3crypt.length} still do)`);
+    // And nothing else sneaked a bare ref onto a front either — the only text a front
+    // may carry is a price or a status word.
+    const strayText = c3crypt.filter((m) => /(?:^|>)[^<>]*\b[A-G]-\d{3}\b/.test(m[1])).length;
+    chk(strayText === 0, `and no front carries a tier-space string by any other route (${strayText})`);
+    // The ref is still ON the element: the hover/click/focus path reads data-ref and
+    // data-id off exactly these buttons, so identification-by-hover is intact.
+    const withRef = c3crypt.filter((m) => /data-ref="COM-1-1-/.test(m[0]) && /data-id="[A-G]-\d/.test(m[0])).length;
+    chk(withRef === c3crypt.length,
+      `every front still carries data-ref + data-id for the hover card (${withRef})`);
+    const inAria = c3crypt.filter((m) => /aria-label="[A-G]-\d{3}/.test(m[0])).length;
+    chk(inAria === c3crypt.length, `and its aria-label still opens with the ref (${inAria})`);
+    // Hover is a real, immediate path to that ref — no delay, no click required.
+    chk(/document\.addEventListener\('mouseover'/.test(js) && /if \(n && n\.hasAttribute\('data-ref'\) && !n\.closest\('\.mini'\)\) showCard\(n, false\)/.test(js),
+      'mouseover opens the card immediately — no hover delay to sit through');
+    chk(/card\.innerHTML = cardHtml\(d\)/.test(js) && /'<div class="cardhd"><span class="cardid">' \+ id/.test(js),
+      'and that card leads with the ref');
+    // The FLAT grids are worklists, not fronts. They keep it.
+    const flatCells = [...src.matchAll(/<button[^>]*class="c flatc[^"]*"[^>]*>([\s\S]*?)<\/button>/g)];
+    const flatLabelled = flatCells.filter((m) => /<span class="cid">[A-G]-\d/.test(m[1])).length;
+    chk(flatCells.length > 0 && flatLabelled === flatCells.length,
+      `all ${flatCells.length} flat/printable crypt cells KEEP their ref (${flatLabelled})`);
+    // The niche glass fronts are a different surface and were not in scope; they keep
+    // their row-column label, which is why .c3id still exists in the stylesheet.
+    const n3 = [...src.matchAll(/<button[^>]*class="c3 n3glass[^"]*"[^>]*>([\s\S]*?)<\/button>/g)];
+    const n3Labelled = n3.filter((m) => /c3id/.test(m[1])).length;
+    chk(n3.length === A.niches && n3Labelled === n3.length,
+      `the ${n3.length} niche glass fronts are untouched and keep their label (${n3Labelled})`);
+  }
   chk(/\.cotag\{[^}]*font-size:26px/.test(src), 'sized to be read across a desk (26px)');
   chk(/height:clamp\(400px,calc\(100vh - 300px\),1100px\)/.test(src),
     'the 3D scene takes the viewport height the chrome does not');
@@ -1199,8 +1304,10 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace('MONOBAR: 1445,', 'MONOBAR: 0,')],
     ['the monobar install reverted to the workbook figure the tool overrides: 225 -> 215',
       (s) => s.replace('MONOBAR_INSTALL: 225,', 'MONOBAR_INSTALL: 215,')],
-    ['a price chip palette entry dropped below WCAG AA contrast',
-      (s) => s.replace("bg: '#23a06b', fg: '#0e1729'", "bg: '#2f7a55', fg: '#0e1729'")],
+    // NOTE 2026-08-01: the palette-contrast sabotage MOVED from here to the generator
+    // phase below. The chip colours are no longer in the data module — they are the
+    // build's BAND_SKIN — so mutating `bg:` here would no longer change the page, and a
+    // mutation that does not alter the artefact proves nothing. See buildRuns.
   ];
   let sabFail = 0;
   for (const [label, mut] of runs) {
@@ -1250,8 +1357,23 @@ if (process.argv.includes('--sabotage')) {
     ['the halls made solid, so a counselor cannot walk down them',
       (s) => s.replace("for (const r of ROOMS) if (r.kind !== 'hall' && r.kind !== 'chapel') out.push([r.x, r.y, r.w, r.h]);",
         "for (const r of ROOMS) out.push([r.x, r.y, r.w, r.h]);")],
-    ['level-of-detail removed: crypt refs frozen at 4.6px again',
-      (s) => s.replace('font-size:calc(4.6px * var(--lod,1))', 'font-size:4.6px')],
+    ['level-of-detail removed: the crypt PRICE frozen at one size again',
+      (s) => s.replace('font-size:min(calc(7px * var(--lod,1)),var(--pmax,7px))', 'font-size:7px')],
+    ['the per-cell price ceiling removed, so a wide figure clips on a narrow front',
+      (s) => s.replace('  Math.min(PMAX_CAP, Math.floor(((CELL_PX * span - CHIP_PAD) / emWidth(s)) * 10) / 10);',
+        '  Math.floor((((CELL_PX + 20) * span - CHIP_PAD) / emWidth(s)) * 10) / 10;')],
+    ['the status badge grown back over the price, so the front shouts OCC not money',
+      (s) => s.replace('.c3st{font-size:calc(3.4px * var(--lod,1))', '.c3st{font-size:calc(7px * var(--lod,1))')],
+    ['the tier-space ref put back on the crypt fronts',
+      (s) => s.replace('aria-label="${esc(unitAria(u))}">${tag}</button>',
+        'aria-label="${esc(unitAria(u))}"><span class="c3id">${unitLabel(u)}</span>${tag}</button>')],
+    ['the ref stripped from the FLAT worklist grids too (it belongs there)',
+      (s) => s.replace('<span class="cid">${unitLabel(u)}</span>${mini ? \'\' : badge}',
+        '${mini ? \'\' : badge}')],
+    ['a price chip palette entry dropped below WCAG AA contrast',
+      (s) => s.replace("pb2: { bg: '#41695b', fg: '#ffffff' }", "pb2: { bg: '#7d9b8c', fg: '#ffffff' }")],
+    ['the palette turned back up to signal colours (the operator asked for the opposite)',
+      (s) => s.replace("pb5: { bg: '#8f6151', fg: '#ffffff' }", "pb5: { bg: '#cf4a1c', fg: '#ffffff' }")],
     ['frame-rate-dependent damping reinstated (a different gesture on a 120 Hz phone)',
       (s) => s.replace('var d = Math.pow(DAMP, dt / 16.67);', 'var d = DAMP;')],
     ['the tap detector keyed off camera motion instead of pointer travel (drag would select)',

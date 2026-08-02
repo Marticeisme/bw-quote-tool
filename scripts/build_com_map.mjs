@@ -43,6 +43,37 @@ const px = (v) => +(v * PPI).toFixed(2);
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const money = (n) => '$' + n.toLocaleString('en-US');
 
+/**
+ * BAND_SKIN — the price-band PALETTE, 2026-08-01.
+ *
+ * Operator: "make the colros a little easier on the eyes. reminder tehse are crypt
+ * fronts we're showing people." The bands' MEANING (the six ranges, their edges and
+ * their labels) is inventory and stays in `com-crypt-data.mjs`, untouched. What a band
+ * LOOKS like is presentation and belongs to the page, so it lives here.
+ *
+ * The old palette was a six-hue chip scale — #1a6fae blue, #23a06b green, #7d9a18
+ * olive, #c39a10 yellow, #cf4a1c orange, #8b4fbb purple. Correct information design,
+ * wrong room: 781 of them tiled across a wall read as a dashboard, and a family is
+ * looking at the place they will bury someone. These are the same six steps desaturated
+ * and darkened into materials that exist in the building — slate, verdigris, moss,
+ * bronze, terracotta, aged porphyry. Ordinal and distinguishable, but quiet.
+ *
+ * Every band takes WHITE text, which makes the wall uniform instead of half the chips
+ * flipping to dark type. Measured ratios, recomputed by verify_com_map.mjs from the
+ * BUILT PAGE rather than from this table: 7.22, 6.18, 5.32, 5.22, 5.25, 7.52 : 1, and every
+ * band is desaturated to HSL S 0.18-0.29 where the old chips ran 0.44-0.85.
+ * Smallest separation between any two bands is 14.7 CIELAB dE (pb3/pb4).
+ */
+const BAND_SKIN = {
+  pb1: { bg: '#3f5a70', fg: '#ffffff' },   // slate
+  pb2: { bg: '#41695b', fg: '#ffffff' },   // verdigris
+  pb3: { bg: '#63704a', fg: '#ffffff' },   // moss
+  pb4: { bg: '#7d6a45', fg: '#ffffff' },   // bronze
+  pb5: { bg: '#8f6151', fg: '#ffffff' },   // terracotta
+  pb6: { bg: '#6a4a68', fg: '#ffffff' },   // aged porphyry
+};
+const skin = (b) => BAND_SKIN[b.c] || { bg: b.bg, fg: b.fg };
+
 const FACE_H = TIERS.length * ROWH;                 // 112 plan units
 const ROT = { N: 180, S: 0, E: 90, W: -90 };        // outward normal, degrees about Y
 const FACE_DIR = { N: 'facing north', S: 'facing south', E: 'facing east', W: 'facing west' };
@@ -107,9 +138,52 @@ function cryptAttrs(u) {
  * case here. This stays as a belt-and-braces guard.
  */
 const cryptPrice = (u) => (u.st === 'available' && u.p > 0 ? u.p : null);
+/**
+ * How large this exact figure may be printed on THIS crypt's front.
+ *
+ * "just make the prices larger" has a hard ceiling nobody can wish away: a one-space
+ * front is 38 layout px across, and "$24,995" is seven glyphs. Growing the label with
+ * --lod alone overflowed every chip on a wall by 2.3x at fly-to distance — the cell
+ * clipped it, so the family read "$24,9". Found by MEASURING the built page, not by
+ * reading the CSS; the gate could not have caught it, which is why the Playwright pass
+ * exists alongside it.
+ *
+ * So the cap is computed per cell, at build time, from the actual string and the actual
+ * span: a companion front is two spaces wide and can carry a figure twice the size of a
+ * single's. Advance widths are Jost 700 at letter-spacing -.01em, measured in-browser
+ * (a '1' is much narrower than a '0', and '$26,395' is genuinely narrower than
+ * '$24,995'); the default is rounded UP from the widest digit so the estimate errs
+ * toward fitting. verify_com_map.mjs recomputes every cap independently.
+ */
+const GLYPH_EM = { $: 0.60, ',': 0.31, 1: 0.49 };
+const emWidth = (s) => [...s].reduce((t, ch) => t + (GLYPH_EM[ch] ?? 0.635), 0);
+const CELL_PX = 36;      // usable width of one crypt space inside the 3D face grid
+const CHIP_PAD = 3;      // the chip's own horizontal padding, plus a pixel of slack
+/**
+ * ...and a HARD CEILING over the geometric one, at 11px.
+ *
+ * Letting each front use all the width it has looked right in the arithmetic and wrong
+ * on the wall: a companion crypt is two spaces across, so its figure came out at 17.5px
+ * beside an 8px single, and the two companions on bank 101-110 read as the wall's
+ * headline. They are not a headline. They are just wider crypts, and a family scanning
+ * for what they can afford should not have their eye pulled to the $36,995 because it
+ * happens to sit on a double-width front. 11px keeps a companion at most ~1.4x a single
+ * — still visibly the bigger plaque, no longer an announcement.
+ *
+ * Caught by looking at the render, not by any assertion. The gate can only check that
+ * the number is what the formula says; whether the formula produces a calm wall is a
+ * thing you have to open the screenshot and see.
+ */
+const PMAX_CAP = 11;
+const priceMaxPx = (s, span) =>
+  Math.min(PMAX_CAP, Math.floor(((CELL_PX * span - CHIP_PAD) / emWidth(s)) * 10) / 10);
+
 const priceChip = (u, cls) => {
   const p = cryptPrice(u);
-  return p == null ? '' : `<span class="${cls} ${priceBand(p).c}">${money(p)}</span>`;
+  if (p == null) return '';
+  const t = money(p);
+  const cap = cls === 'c3p' ? ` style="--pmax:${priceMaxPx(t, u.cols.length)}px"` : '';
+  return `<span class="${cls} ${priceBand(p).c}"${cap}>${t}</span>`;
 };
 function nicheAttrs(n) {
   return `data-kind="niche" data-wall="${n.wall}" data-id="${n.row}-${n.col}" data-ref="${n.ref}"`
@@ -391,7 +465,15 @@ function bank3d(b) {
     const ci = u.cols[0] - b.c0 + 1;
     const st = u.st !== 'available' ? ` st-${u.st}` : '';
     const tag = cryptPrice(u) != null ? priceChip(u, 'c3p') : (C3_TAG[u.st] || '');
-    return `      <button type="button" class="c3 ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${u.cols.length}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}"><span class="c3id">${unitLabel(u)}</span>${tag}</button>`;
+    // NO REF ON THE FRONT (2026-08-01). Operator: "the locations do not have to be
+    // present on the crypt fronts just on the hover. it takes up too much space just
+    // make the prices larger." A crypt front in the real building carries a name, not
+    // a grid coordinate; G-111 painted across 781 of them is a spreadsheet. The ref is
+    // still on the element (data-ref, data-id and the aria-label) and still reaches a
+    // person three ways — the hover card, the pinned card, and the family callout —
+    // so nothing is lost but the ink. The FLAT grids keep their ref: those are
+    // worklists a counselor reads down, not fronts a family looks at.
+    return `      <button type="button" class="c3 ty-${u.type}${st}" style="grid-row:${ri};grid-column:${ci}/span ${u.cols.length}" ${cryptAttrs(u)} aria-label="${esc(unitAria(u))}">${tag}</button>`;
   });
   for (const v of VOIDS.filter((v) => v.bank === b.id)) {
     cells.push(`      <div class="c3void" style="grid-row:${TIERS.indexOf(v.tiers[0]) + 1}/span ${v.tiers.length};grid-column:${v.cols[0] - b.c0 + 1}/span ${v.cols.length}"></div>`);
@@ -663,9 +745,17 @@ const CSS = `
      never a band label. Contrast is recomputed by verify_com_map.mjs. ── */
   .cprice{font-weight:700;font-size:10px;padding:0 3px;border-radius:3px;white-space:nowrap;
     max-width:100%;overflow:hidden;text-overflow:clip;box-shadow:0 1px 2px rgba(0,0,0,.4);}
-  .c3p{font-weight:700;font-size:7px;padding:0 2px;border-radius:2px;white-space:nowrap;
-    box-shadow:0 1px 2px rgba(0,0,0,.4);}
-${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\n')}
+  /* The price on a 3D crypt front. It is the ONLY thing written there now, so it takes
+     the LOD scaling the ref used to have — and a base of 7px, which is exactly what the
+     price was FIXED at before, so no price is ever smaller than it used to be at any
+     zoom. It grows from there until it reaches --pmax, the per-cell ceiling the build
+     computes from this figure's own glyphs and this front's own width (see priceMaxPx).
+     A one-space front tops out near 8px, a companion front at the 11px hard ceiling.
+     max-width + the cell's overflow:hidden are the belt-and-braces behind the cap. */
+  .c3p{font-weight:700;font-size:min(calc(7px * var(--lod,1)),var(--pmax,7px));
+    padding:0 1px;border-radius:2px;white-space:nowrap;
+    max-width:100%;overflow:hidden;letter-spacing:-.01em;box-shadow:0 1px 2px rgba(0,0,0,.35);}
+${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg};}`).join('\n')}
   .plegend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px auto 0;max-width:1000px;}
   .pli{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--gold-light);}
   .pls{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
@@ -692,19 +782,30 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\
        unavailable = niches only. The MIS list covers Section = COM, so the RAD/SER
                    walls are still sheet-derived and keep the old class.
      reserved and unlisted share a stripe angle, so their BADGES carry the
-     distinction at cell scale ("Reserved" vs "Confirm") and their cards differ. ── */
+     distinction at cell scale ("Reserved" vs "Confirm") and their cards differ.
+
+     SOFTENED 2026-08-01, same operator note about the colours. The four treatments
+     were pitched near black — occupied bottomed out at #0e0f12 — which punched holes
+     in the wall and made a bank of sold crypts look damaged rather than simply taken.
+     Every value is lifted a full step into dark STONE, and the distinctions are
+     untouched because none of them was ever carried by how dark the cell was:
+       occupied  = flat, no stripe, coolest and darkest of the four
+       blocked   = flat + the diagonal slash, and warm where occupied is cool
+       reserved  = stripe over a cool grey
+       unlisted  = the same stripe over a warm brown-grey
+     Occupied is still visibly the closed one; nothing now reads as a void. ── */
   .st-unavailable,.st-unlisted,.st-unpriced{background:
-      repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 4px,rgba(255,255,255,0) 4px 9px),
-      linear-gradient(180deg,#3a3833 0%,#25231f 100%)!important;color:#cfccc5;}
+      repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 4px,rgba(255,255,255,0) 4px 9px),
+      linear-gradient(180deg,#413e37 0%,#2c2924 100%)!important;color:#cfcbc2;}
   .st-reserved{background:
-      repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 4px,rgba(255,255,255,0) 4px 9px),
-      linear-gradient(180deg,#35373c 0%,#222428 100%)!important;color:#d9d8d4;}
-  .st-occupied{background:linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;color:#a9a7a2;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)!important;}
-  .st-blocked{background:linear-gradient(180deg,#1a1917 0%,#0d0c0b 100%)!important;color:#b8b5ae;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;}
+      repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 4px,rgba(255,255,255,0) 4px 9px),
+      linear-gradient(180deg,#3d4047 0%,#292b30 100%)!important;color:#d3d2ce;}
+  .st-occupied{background:linear-gradient(180deg,#33353b 0%,#212328 100%)!important;color:#b9b7b1;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)!important;}
+  .st-blocked{background:linear-gradient(180deg,#332f2a 0%,#201d19 100%)!important;color:#c6c1b8;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.11)!important;}
   .st-blocked::after{content:'';position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(135deg,transparent 47%,rgba(255,255,255,.35) 47%,rgba(255,255,255,.35) 53%,transparent 53%);}
+    background:linear-gradient(135deg,transparent 47%,rgba(255,255,255,.28) 47%,rgba(255,255,255,.28) 53%,transparent 53%);}
   .flatc:not(.st-unavailable):not(.st-unlisted):not(.st-reserved):not(.st-occupied):not(.st-blocked)::before,
   .c3:not(.st-unavailable):not(.st-unlisted):not(.st-reserved):not(.st-occupied):not(.st-blocked):not(.n3glass)::before{
     content:'';position:absolute;inset:1px;pointer-events:none;border:1px solid rgba(255,255,255,.55);border-radius:2px;}
@@ -713,10 +814,10 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\
   .li{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--gold-light);}
   .ls{width:14px;height:14px;border-radius:2px;border:1px solid rgba(255,255,255,.2);flex-shrink:0;}
   .lg-a{background:linear-gradient(180deg,#6d6a63,#403d36);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);}
-  .lg-u{background:repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#3a3833,#25231f);}
-  .lg-r{background:repeating-linear-gradient(135deg,rgba(255,255,255,.15) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#35373c,#222428);}
-  .lg-o{background:linear-gradient(180deg,#1b1c20,#0e0f12);}
-  .lg-x{background:linear-gradient(180deg,#1a1917,#0d0c0b);}
+  .lg-u{background:repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#413e37,#2c2924);}
+  .lg-r{background:repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 3px,rgba(255,255,255,0) 3px 6px),linear-gradient(180deg,#3d4047,#292b30);}
+  .lg-o{background:linear-gradient(180deg,#33353b,#212328);}
+  .lg-x{background:linear-gradient(180deg,#332f2a,#201d19);}
   .lg-v{background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 3px,rgba(255,255,255,0) 3px 6px);border-style:dashed!important;}
 
   /* ── Floor plan ── */
@@ -816,11 +917,22 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${b.bg};color:${b.fg};}`).join('\
      the label geometrically, but 4.6px x a 1.3 interior zoom is still ~6px on glass.
      --lod is set from the camera in apply(): 1 out on the whole-building orbit (where a
      legible label per crypt would be 781 overlapping labels) rising to ~3.2 standing at
-     a wall, where the ref has to be readable to someone sitting beside you. Contrast
-     rises with it too: opacity 1 and a dark halo, not .8 and none. */
+     a wall, where the label has to be readable to someone sitting beside you.
+
+     2026-08-01: the machinery now drives the PRICE, not the ref. The ref is off the
+     fronts entirely, so the price is the front's single text element and gets the whole
+     cell — see .c3p, which keeps the price's old FIXED 7px as its floor and grows from
+     there to a per-cell ceiling, instead of sharing the line with a ref at 4.6px.
+     .c3id survives for the NICHE glass fronts, which still carry their row-column
+     label; it does not appear on a crypt front any more. */
   .c3id{font-size:calc(4.6px * var(--lod,1));opacity:1;letter-spacing:-.02em;white-space:nowrap;
     font-weight:500;text-shadow:0 0 calc(1px * var(--lod,1)) rgba(0,0,0,.85);}
-  .c3st{font-size:calc(4px * var(--lod,1));font-weight:700;letter-spacing:.04em;padding:0 1px;border-radius:1px;background:rgba(255,255,255,.2);}
+  /* The badge is now the quieter half. With the pattern carrying status (blacked out,
+     striped, slashed) an OCC/RES badge only has to confirm what the cell already says,
+     so it is smaller than the price and its chip is barely there — 3.4px base against
+     4px, and a .12 wash instead of .2. */
+  .c3st{font-size:calc(3.4px * var(--lod,1));font-weight:700;letter-spacing:.04em;padding:0 1px;border-radius:1px;
+    background:rgba(255,255,255,.12);color:rgba(240,237,230,.82);}
   .c3av{background:rgba(255,255,255,.92);color:#123a24;}
   .n3glass{background:
       linear-gradient(118deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.05) 40%),
