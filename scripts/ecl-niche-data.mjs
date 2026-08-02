@@ -27,6 +27,23 @@
  * such below. The 'unpriced' status stays defined in case a future sheet produces
  * another cell that fits neither status.
  *
+ * ── AVAILABILITY PER OPERATOR MIS LIST 2026-08-01 ──────────────────────────────────
+ * The operator supplied an updated MIS-style niche list on 2026-08-01, read as THE
+ * available set as of that date: 21 niches, each with its price. Its notation maps
+ * "Wall-N Lvl-C Sp-2" → ECL-1-N-C-2.
+ *
+ *   - Every one of the 21 listed niches was already available here at EXACTLY the
+ *     listed price. Zero price changes, zero listed-but-sold. Checked, not assumed.
+ *   - The 7 niches that were available on the July sheet and are absent from this list
+ *     have SOLD since, and are recorded st:'sold' / p:null per ECL's convention (this
+ *     sheet never prints a price for a sold niche):
+ *       ECL-1-S-D-2 ($32,995)   ECL-1-S-B-6 ($15,395)
+ *       ECL-1-N-D-1 ($28,595)   ECL-1-N-C-5 ($26,395)
+ *       ECL-1-W-C-1 ($18,695)   ECL-1-W-B-2 ($14,295)   ECL-1-W-A-1 ($12,095)
+ *   - Available inventory therefore falls 28 → 21 niches, $685,175 → $536,710.
+ *   - E.C.F. on the operator's list is 10% of the price on all 21 rows, matching
+ *     FEES.ECF_RATE. E.C.F. stays COMPUTED, never stored per niche.
+ *
  * ── PRICES OF SOLD NICHES ARE NOT KNOWN ────────────────────────────────────────────
  * Unlike ROAC, this sheet prints no price for a sold niche, so p is null for every one
  * of them. Nothing in the page may invent one.
@@ -102,19 +119,19 @@ export const FEES = {
   TAX: 0.104,      // applies to the scroll/vase add-ons only, nothing else
 };
 
-// ── Price tiers (13 distinct prices on the sheet) ────────────────────────────
+// ── Price tiers (one per distinct AVAILABLE price) ───────────────────────────
+// The gate refuses a tier that no sellable niche carries — a legend swatch for a price
+// nobody can buy is a colour an FSD would go looking for. The 2026-08-01 MIS list sold
+// the last niche at $12,095 / $14,295 / $26,395 / $28,595, so those four tiers (r1, r2,
+// r7, r8) are retired here. The SURVIVING tiers keep their original class names and
+// hues, so no remaining niche changes colour and the measured contrast ratios stand;
+// the gaps in the r-numbering are the retired tiers and are deliberate.
 export const TIERS = [
   { p: 10995, l: '$10,995', c: 'r0', bg: '#1a6fae', fg: '#fff' },
-  { p: 12095, l: '$12,095', c: 'r1', bg: '#0f8f96', fg: '#0e1729' },
-  // #1f8f5e measured 4.39:1 against #0e1729 — below WCAG AA. Brightened to #219866
-  // (4.90:1) 2026-07-29; hue unchanged, so its place in the ramp is unchanged.
-  { p: 14295, l: '$14,295', c: 'r2', bg: '#219866', fg: '#0e1729' },
   { p: 15395, l: '$15,395', c: 'r3', bg: '#237a3a', fg: '#fff' },
   { p: 17595, l: '$17,595', c: 'r4', bg: '#5c9022', fg: '#0e1729' },
   { p: 18695, l: '$18,695', c: 'r5', bg: '#7d9a18', fg: '#0e1729' },
   { p: 20895, l: '$20,895', c: 'r6', bg: '#a89f14', fg: '#0e1729' },
-  { p: 26395, l: '$26,395', c: 'r7', bg: '#c39a10', fg: '#0e1729' },
-  { p: 28595, l: '$28,595', c: 'r8', bg: '#e07b12', fg: '#0e1729' },
   { p: 29695, l: '$29,695', c: 'r9', bg: '#cf4a1c', fg: '#fff' },
   { p: 32995, l: '$32,995', c: 'r10', bg: '#c2332b', fg: '#fff' },
   { p: 55000, l: '$55,000', c: 'r11', bg: '#8b4fbb', fg: '#fff' },
@@ -152,7 +169,7 @@ export const WALLS = {
       { r: 'E', n: 6, c: 9, w: 2, p: null, st: 'sold' },
 
       { r: 'D', n: 1, c: 1, w: 1, p: 17595, st: 'available' },
-      { r: 'D', n: 2, c: 2, w: 3, p: 32995, st: 'available' },
+      { r: 'D', n: 2, c: 2, w: 3, p: null, st: 'sold' }, // sold since July (was $32,995)
       { r: 'D', n: 3, c: 7, w: 3, p: 32995, st: 'available' },
       { r: 'D', n: 4, c: 10, w: 1, p: 17595, st: 'available' },
 
@@ -168,7 +185,7 @@ export const WALLS = {
       { r: 'B', n: 3, c: 4, w: 2, p: null, st: 'sold' },
       { r: 'B', n: 4, c: 6, w: 2, p: null, st: 'sold' },
       { r: 'B', n: 5, c: 8, w: 1, p: null, st: 'sold' },
-      { r: 'B', n: 6, c: 9, w: 2, p: 15395, st: 'available' },
+      { r: 'B', n: 6, c: 9, w: 2, p: null, st: 'sold' }, // sold since July (was $15,395)
 
       { r: 'A', n: 1, c: 1, w: 3, p: null, st: 'sold' },
       { r: 'A', n: 2, c: 4, w: 1, p: 10995, st: 'available' },
@@ -195,7 +212,7 @@ export const WALLS = {
       { r: 'E', n: 5, c: 10, w: 4, p: null, st: 'sold' },
       { r: 'E', n: 6, c: 14, w: 1, p: null, st: 'sold' },
 
-      { r: 'D', n: 1, c: 1, w: 2, p: 28595, st: 'available' },
+      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'sold' }, // sold since July (was $28,595)
       { r: 'D', n: 2, c: 7, w: 2, p: null, st: 'sold' },
       { r: 'D', n: 3, c: 13, w: 2, p: null, st: 'sold' },
 
@@ -204,7 +221,7 @@ export const WALLS = {
       { r: 'C', n: 2, c: 3, w: 4, h: 2, p: 55000, st: 'available' },
       { r: 'C', n: 3, c: 7, w: 2, p: 17595, st: 'available' },
       { r: 'C', n: 4, c: 9, w: 4, h: 2, p: 55000, st: 'available' },
-      { r: 'C', n: 5, c: 13, w: 2, p: 26395, st: 'available' },
+      { r: 'C', n: 5, c: 13, w: 2, p: null, st: 'sold' }, // sold since July (was $26,395)
 
       { r: 'B', n: 1, c: 1, w: 3, p: null, st: 'sold' },
       // Blank on the sheet; operator confirmed SOLD 2026-07-29. See the header.
@@ -232,11 +249,11 @@ export const WALLS = {
       { r: 'E', n: 2, c: 2, w: 2, p: null, st: 'sold' },
       { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'sold' },
       { r: 'D', n: 2, c: 3, w: 1, p: 18695, st: 'available' },
-      { r: 'C', n: 1, c: 1, w: 1, p: 18695, st: 'available' },
+      { r: 'C', n: 1, c: 1, w: 1, p: null, st: 'sold' }, // sold since July (was $18,695)
       { r: 'C', n: 2, c: 2, w: 2, p: null, st: 'sold' },
       { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 2, c: 3, w: 1, p: 14295, st: 'available' },
-      { r: 'A', n: 1, c: 1, w: 1, p: 12095, st: 'available' },
+      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'sold' }, // sold since July (was $14,295)
+      { r: 'A', n: 1, c: 1, w: 1, p: null, st: 'sold' }, // sold since July (was $12,095)
       { r: 'A', n: 2, c: 2, w: 2, p: null, st: 'sold' },
     ],
   },

@@ -27,6 +27,18 @@ const ABS = path.join(ROOT, REL);
 const SHEET_COUNT = { S: 31, N: 30, W: 12, E: 12 };
 const SHEET_TOTAL = 85;
 
+// ── AVAILABILITY ANCHORS — operator MIS list, 2026-08-01 ──────────────────────
+// Typed from the operator's list, NOT derived from the data module, so a niche that
+// silently flips status fails here. The list carried 21 niches; the 7 that had been
+// available on the July sheet and were absent from it have sold. Previous anchors
+// (July sheet): 28 available, $685,175 — S 14/$353,035 · N 8/$226,570 · W 5/$84,675 ·
+// E 1/$20,895. The seven that sold: S-D-2 $32,995, S-B-6 $15,395, N-D-1 $28,595,
+// N-C-5 $26,395, W-C-1 $18,695, W-B-2 $14,295, W-A-1 $12,095 — which is exactly the
+// $148,465 the whole-cabinet total drops by.
+const N_AVAIL = 21;
+const AVAIL_ANCHOR = 536710;
+const PER_FACE_ANCHOR = { S: [12, 304645], N: [6, 171580], W: [2, 39590], E: [1, 20895] };
+
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
 const pass = (m) => console.log('  ok    ' + m);
@@ -158,14 +170,21 @@ for (const [name, list] of [['3D faces', from3d], ['flat grids', flatFull], ['ov
   const wanted = dataPrices.concat(dataPrices).sort((a, b) => a - b); // full grids + overview
   chips.sort((a, b) => a - b);
   ck(chips.length === wanted.length && chips.every((v, i) => v === wanted[i]),
-    `rendered flat price chips = ${chips.length} (28 per rendering × 2 renderings), all matching`);
+    `rendered flat price chips = ${chips.length} (${N_AVAIL} per rendering × 2 renderings), all matching`);
 }
-ck(dataPrices.length === 28, `28 niches are available and priced (${dataPrices.length})`);
+ck(dataPrices.length === N_AVAIL, `${N_AVAIL} niches are available and priced (${dataPrices.length})`);
 pass(`available inventory at list = ${money(AVAIL_TOTAL)}`);
-ck(AVAIL_TOTAL === 685175, `available total is ${money(685175)} (got ${money(AVAIL_TOTAL)})`);
+ck(AVAIL_TOTAL === AVAIL_ANCHOR, `available total is ${money(AVAIL_ANCHOR)} (got ${money(AVAIL_TOTAL)})`);
 {
-  const perFace = FACE_ORDER.map((f) => `${f} ${money(WALLS[f].niches.filter(sellable).reduce((a, n) => a + n.p, 0))}`);
-  pass('by elevation: ' + perFace.join('  ·  '));
+  // Per-elevation sums are ANCHORED, not merely printed. A whole-cabinet total can stay
+  // right while two elevations swap a niche between them; these four cannot.
+  for (const f of FACE_ORDER) {
+    const avail = WALLS[f].niches.filter(sellable);
+    const sum = avail.reduce((a, n) => a + n.p, 0);
+    const [wantN, wantSum] = PER_FACE_ANCHOR[f];
+    ck(avail.length === wantN && sum === wantSum,
+      `${FACE_META[f].label.padEnd(14)} ${wantN} available, ${money(wantSum)} (got ${avail.length}, ${money(sum)})`);
+  }
 }
 
 // ── 6. THE SAFETY GATE: no price anywhere on an unsellable niche ──────────────
@@ -174,7 +193,7 @@ console.log('\nNo price is rendered for a sold or unpriced niche');
   const unsell = new Set(data.filter((n) => !sellable(n)).map((n) => n.ref));
   const nSold = data.filter((n) => n.st === 'sold').length;
   const nUnpriced = data.filter((n) => n.st === 'unpriced').length;
-  ck(unsell.size === SHEET_TOTAL - 28, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
+  ck(unsell.size === SHEET_TOTAL - N_AVAIL, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
   const offenders = [];
   for (const [name, list] of [['3D', from3d], ['flat', flatFull], ['overview', flatMini]]) {
     for (const c of list) {
