@@ -1850,6 +1850,45 @@ his credentials is not something an agent may do, so the open-source path shippe
 and it is the better outcome for the repo: COLMAP and Brush are free, scriptable and leave a
 reproducible command line in this log.
 
+### 2026-08-01 — Garden of Meditation: availability from MIS, not from the sheet (sprint-10 Track G2)
+Branch `s10/gomn-update`, committed locally — **not pushed**. Files: `scripts/gomn-niche-data.mjs`,
+`scripts/build_gomn_map.mjs`, `scripts/verify_gomn_map.mjs`, `MAPS/GOMN_NicheMap.html`
+(regenerated), `granite-niches-guide.html`, `pdf-assets/Granite Niches Guide.pdf`.
+
+The operator supplied an MIS-style availability export for the GOM-1-1 wall. It is now the
+**availability** authority; the Jan-30-2025 price sheet remains the **price** authority, and
+every surviving figure is unchanged. Treated as the complete available set, so a level absent
+from it has sold out.
+
+- **37 available → 18.** Nineteen of the sheet's priced niches are gone, read as sold and
+  recorded in the new `SOLD_SINCE_SHEET` export rather than deleted: B ×9 @$4,995 (level B
+  sold out), C ×3 @$5,995, D ×1 @$6,995, F ×3 @$7,995 (level F sold out), G ×3 @$8,995.
+  Available at list **$241,815 → $120,910**; $120,905 sold.
+- **$0 is not a price.** MIS lists B-10 and D-18 available at $0. Per the operator's standing
+  Columbarium rule — available only when a price greater than zero is attached — both render
+  unavailable ("confirm in MIS") and live in a new `LISTED_NO_PRICE` export so they are
+  findable the day he issues figures. The wall stayed two-status; the page names both
+  references in prose, without a dollar figure, and the gate asserts `$0` appears nowhere.
+- **Unreconciled, flagged not forced:** the export's summary says Level C has 12 available;
+  its detail lists 11. The detail is the per-space authority, so 11 ship — the gap is stated
+  in the data module, on the page, and asserted by the gate (a later edit that quietly makes
+  the two agree turns it red).
+- **Tiers 4995 and 7995 removed** with their bands — the gate refuses a colour tier no niche
+  carries, and a legend swatch for a price nobody can buy is a promise the wall can't keep.
+  Surviving class names unchanged (t1/t2/t4); old values recorded in the module for restore.
+- **Ripple:** level B selling out moved the guide's GOMN floor. `granite-niches-guide.html`
+  now prints **$5,995–$8,995** in the `data-range="gomn"` band and the at-a-glance row, and
+  its "only some of the wall is priced" prose now points at MIS rather than the sheet. PDF
+  rebuilt, still 2 pages (TIGHT_CAPS). ROAC and TGN reconciled unchanged — no sibling data moved.
+- `verify_gomn_map.mjs` gained a `--sabotage` mode (25 mutations, all exit 1), including a
+  $0-listed space rendered with a price, a sold niche resurrected, a "reconciled" summary
+  count, and a generator that stops naming where availability came from.
+
+Gates: gate PASS 0 mismatches; `--sabotage` 25/25; `verify_granite_niche_ranges.mjs` all
+reconcile; `verify_guide_pages.mjs` + `verify_guides_page.mjs` green; `npm run check`
+`index.html: 8 blocks, 0 errors`; `npm test` **1536 passed, 0 failed across 31 suites**
+(main's 1538 minus the 2 that need `wmp-cemetery-map/`, absent from a worktree).
+
 ---
 
 ## 5. Working rules that keep biting us
