@@ -27,6 +27,7 @@ import fs from 'fs';
 import * as ROAC from './roac-niche-data.mjs';
 import * as GOMN from './gomn-niche-data.mjs';
 import * as TGMP from './tgmp-data.mjs';
+import { assertPrintRule } from './_print_rule_assert.mjs';
 
 const PAGE = 'granite-niches-guide.html';
 const html = fs.readFileSync(PAGE, 'utf8');
@@ -231,6 +232,9 @@ console.log('\n=== AT-A-GLANCE TABLE ===');
     else fail(`at-a-glance is missing or misstates the ${key} range (${want})`);
   }
 }
+
+console.log('\n=== PRINTED-GUIDE PRICING RULE ===');
+assertPrintRule('granite-niches-guide.html', ok, fail);
 
 console.log('');
 console.log(bad ? `${bad} check(s) failed` : 'all granite-niche price figures reconcile against the modules');

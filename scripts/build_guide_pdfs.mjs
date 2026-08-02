@@ -120,8 +120,14 @@ for (const [src, out, opts = {}] of jobs) {
   }
   await page.emulateMedia({ media: 'print' });
   await pointLinksAtPages(page, server.base);
-  await page.pdf({ path: out, printBackground: true, preferCSSPageSize: true,
-                   margin: { top: '0', right: '0', bottom: '0', left: '0' } });
+  // NO `margin` option. Passing one — even zeroes — makes Chromium use it INSTEAD of the
+  // CSS @page margins, which leaves the @top-*/@bottom-* margin boxes with no area to
+  // live in. The symptom is subtle and was caught only by dumping word coordinates: the
+  // running header rendered at x=0,y=2, overlapping the body text in the very corner,
+  // while the footer boxes silently never rendered at all. guide-print.css owns the page
+  // geometry now, so let preferCSSPageSize carry both size and margins.
+  // (build_catalog_pdfs.mjs keeps margin:0 on purpose — catalogs are full-bleed.)
+  await page.pdf({ path: out, printBackground: true, preferCSSPageSize: true });
   await page.close();
   const raw = Math.round(fs.statSync(out).size / 1024);
   const did = opts.noShrink ? false : shrink(out);

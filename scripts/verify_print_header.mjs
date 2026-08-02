@@ -18,7 +18,13 @@ import { pathToFileURL } from 'url';
 
 // The printed masthead is `.cover` on most guides and `.hero` on vault-guide.html.
 const HEADER_SELECTOR = '.cover, .hero';
-const CAP_MM = 40;          // of a 279.4 mm page
+// Tightened from 40 mm to 33 mm at sprint-10 Track P4, deliberately. The 40 mm cap was set
+// in 2026-07-27 against the navy masthead slab. That masthead is now the cream plate (the
+// contrast fix — 55%-opacity white on navy was under 4.5:1 and was the first thing a family
+// read), and the logo moved to the generated cover, so every guide measures 17.7-26.4 mm and
+// the catalogues 31.3 mm. Leaving the cap at 40 would have left 14 mm of slack in which the
+// masthead could grow back unnoticed; a cap nobody can hit is not a gate.
+const CAP_MM = 33;          // of a 279.4 mm page
 const MM_PER_PX = 25.4 / 96; // CSS px at 96 dpi
 
 const PAGES = [
