@@ -1,5 +1,26 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-11 — OPENED 2026-08-02** (director: Fable session; tracks:
+Opus). Source: operator session notes + the two MIS wall sheets (originals at
+`D:\Cemetery Photos Misc\Radiance and Serenity Niches\{Radiance,Serenity}.png`).
+Boot audit clean: tree clean, main==origin/main `9e9dd34`, `8 blocks, 0 errors`,
+`1538 passed, 0 failed across 31 suites`. Director drove the walkthrough headless:
+renders 56fps but smeary on-path, fog off-path — capture problem; re-shoot queued.
+Six tracks: A COM niche walls (RAD/SER split selections, true sizes from the sheet
+PNGs, floor-plan section isolation), D guides wave-1 (covers OFF everywhere —
+REVERSES the s10 cover decision by operator ruling — MIS sweep on all family-facing
+surfaces, photo-first redesign of 5 property guides), B marker guide split (two
+PDFs; ALL-IN group totals G1T/G1NT/G2 printed inside the scale-guide markers),
+E PCM flat-marker design catalog (three PCM books on D:, 30 curated real photos,
+publishes public per Batesville precedent), C catalog filters + print-filtered
+(3/page caskets), F walkthrough constrained to filmed-path stops + preview label.
+**Operator rulings at boot (2026-08-02):** covers off + key-guide redesign this
+sprint (rest next); marker totals are all-in (marker+engraving+setting); PCM
+catalog publishes like other catalogs; walkthrough constrain+keep; never render
+"MIS" family-facing; sheet prices stale — sizes only; NO push pre-authorization —
+push is an explicit close-gate ask. Waves: A+D → B+E → C+F; merge order
+A→D→B→E→C→F. See `sprints/sprint-11/SPRINT.md`.
+
 **Guide-PDF A+ system PUSHED LIVE 2026-08-01/02 (session close).** Track P3 audited all
 26 PDF-linked artifacts (verdict: prints of web pages — no covers, no folios, stranded
 blank sheets, 0.00–0.40" margins, THREE identities, and six guides shipping
