@@ -127,6 +127,30 @@ console.log('\n=== MVC RIGHTS BAND ===');
   }
 }
 
+// ── the ECL rights figure (operator ruling 2026-08-01) ───────────────────────
+// "ecl niches are two rights each." Before that ruling this guide deliberately said
+// NOTHING about ECL capacity, because the ECL sheet is silent. It may say it now — and
+// only for ECL. Radiance and Serenity sheets carry an unexplained "(2)" the operator has
+// NOT ruled on, so the guide must stay silent about them; that silence is asserted here
+// so a later edit cannot quietly generalise ECL's ruling across the Chapel walls.
+console.log('\n=== ECL RIGHTS (operator ruling 2026-08-01) ===');
+{
+  const want = `${ECL.RIGHTS} rights of interment`;
+  const found = tagged('data-rights', 'ecl');
+  if (!found.length) fail('no element carries data-rights="ecl"');
+  else for (const got of found) {
+    if (got === want) ok(`data-rights="ecl"`.padEnd(26) + got);
+    else fail(`data-rights="ecl": page prints "${got}", module says "${want}"`);
+  }
+  for (const loc of ['rad', 'ser']) {
+    const f = tagged('data-rights', loc);
+    if (f.length) fail(`data-rights="${loc}" present — no ruling exists for the Chapel walls' "(2)"`);
+    else ok(`data-rights="${loc}"`.padEnd(26) + 'absent (no operator ruling — guide stays silent)');
+  }
+  const silent = /Neither niche sheet states how many people may be placed in one niche, so this guide does not\./.test(html);
+  (silent ? ok : fail)('the Radiance/Serenity footnote still declines to state a capacity');
+}
+
 // ── fees ─────────────────────────────────────────────────────────────────────
 // A rate (0 < v < 1) prints as a percentage; anything else as dollars.
 const feeStr = (v) => (v > 0 && v < 1 ? +(v * 100).toFixed(1) + '%' : money(v));

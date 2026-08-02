@@ -20,7 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   WALLS, FACE_ORDER, FACE_META, ROWS, GEO, FACE_H, BOX_W, BOX_D,
-  TIERS, FEES, STATUS_LABEL, allNiches, refOf, sellable,
+  TIERS, FEES, STATUS_LABEL, RIGHTS, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
 import { movementRuntime } from './map-movement.mjs';
 
@@ -173,7 +173,8 @@ function legendHtml(prices) {
 }
 const STATUS_LEG = `<div class="rightsleg">
       <div class="li"><div class="ls stleg-a"></div><span>Available</span></div>
-      <div class="li"><div class="ls stleg-s"></div><span>Sold</span></div>
+      <div class="li"><div class="ls stleg-r"></div><span>Reserved</span></div>
+      <div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>
       <div class="li"><div class="ls stleg-u"></div><span>Not Priced &mdash; confirm in MIS</span></div>
     </div>`;
 
@@ -273,31 +274,41 @@ const CSS = `
   .fgrid.mini .n:hover{transform:none;box-shadow:none;border-color:rgba(0,0,0,.45);}
   /* ── Status code (operator: an FSD must never mistake these for sellable).
      PATTERN + brightness, never hue — every hue on this page belongs to a price tier,
-     so a sold niche stays in the same champagne family and is separated by being
-     DIMMED and FROSTED instead (operator 2026-07-29: sold must not be solid black).
-       Sold        = dimmed, desaturated champagne under a frosted diagonal hatch,
-                     white SOLD badge
-       Not Priced  = the same frosted fill plus a dashed outline, white badge
-     Neither renders a price anywhere. */
+     so an unsellable niche stays in the same champagne family and is separated by being
+     DIMMED and PATTERNED instead (operator 2026-07-29: sold must not be solid black —
+     that ruling still binds, so ECL does NOT take ROAC's blacked-out cell).
+       Reserved    = dimmed, desaturated champagne under a frosted diagonal hatch —
+                     the treatment the single old 'sold' status carried, unchanged
+       Occupied    = the same champagne ramp taken DARKER and left SOLID, no hatch.
+                     Occupied and reserved differ by pattern AND brightness; neither
+                     differs from an available niche by hue.
+       Sold        = the reserved treatment (fallback status, no niche carries it today)
+       Not Priced  = the reserved treatment plus a dashed outline, white badge
+     None of them renders a price anywhere. */
   .n,.n3{position:relative;}
-  .st-sold,.st-unpriced{color:#463d2d;
+  .st-reserved,.st-sold,.st-unpriced{color:#463d2d;
     background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 3px,rgba(255,255,255,0) 3px 7px),
       linear-gradient(180deg,#b0a389 0%,#928670 55%,#786f5b 100%)!important;
     box-shadow:inset 0 0 0 1px rgba(46,35,16,.38),inset 0 -5px 9px -5px rgba(38,28,10,.5)!important;}
-  .fgrid.mini .st-sold,.fgrid.mini .st-unpriced{
+  .fgrid.mini .st-reserved,.fgrid.mini .st-sold,.fgrid.mini .st-unpriced{
     background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
       linear-gradient(180deg,#b0a389 0%,#928670 55%,#786f5b 100%)!important;}
+  .st-occupied{color:#e2d8c2;
+    background:linear-gradient(180deg,#6b6252 0%,#544d40 55%,#3e392f 100%)!important;
+    box-shadow:inset 0 0 0 1px rgba(24,18,7,.55),inset 0 -6px 11px -5px rgba(18,13,4,.6)!important;}
+  .st-occupied .nstatus,.st-occupied .n3st{background:rgba(247,244,239,.92);}
   .st-unpriced::before{content:'';position:absolute;inset:1px;pointer-events:none;
     border:2px dashed rgba(40,30,10,.8);border-radius:inherit;}
   .fgrid.mini .st-unpriced::before{border-width:1px;}
 
 ${TIER_CSS}
   .stleg-a{background:linear-gradient(180deg,#f2dda6,#cd9d58);}
-  .stleg-s{background:
+  .stleg-r{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
       linear-gradient(180deg,#b0a389,#786f5b);}
+  .stleg-o{background:linear-gradient(180deg,#6b6252,#3e392f);}
   .stleg-u{background:
       repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 2px,rgba(255,255,255,0) 2px 4px),
       linear-gradient(180deg,#b0a389,#786f5b);border:2px dashed rgba(40,30,10,.8)!important;}
@@ -381,6 +392,7 @@ ${TIER_CSS}
   .cardid{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--gold);}
   .cardwall{font-size:9px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;}
   .cardmis{font-size:9.5px;color:var(--gold-light);opacity:.8;letter-spacing:.05em;margin-bottom:7px;}
+  .cardrights{font-size:9.5px;color:var(--gold-light);letter-spacing:.04em;margin-bottom:7px;}
   .cardst{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ffd9a0;margin-bottom:6px;}
   .cr{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px solid rgba(200,169,110,.1);}
   .cr:last-of-type{border:none;}
@@ -452,7 +464,7 @@ ${TIER_CSS}
       padding:12px 16px;max-width:360px;margin:0 auto 14px;break-inside:avoid;font-size:11px;color:#1a1a1a;}
     .printcard .cclose{display:none!important;}
     .printcard .cardid{color:#1a2744!important;}
-    .printcard .cardwall,.printcard .cardmis,.printcard .cl,.printcard .cnote{color:#444!important;}
+    .printcard .cardwall,.printcard .cardmis,.printcard .cardrights,.printcard .cl,.printcard .cnote{color:#444!important;}
     .printcard .cv{color:#111!important;}
     .printcard .cardst{color:#b02818!important;}
     .printcard .ctl,.printcard .ctv{color:#c8540a!important;}
@@ -495,7 +507,11 @@ function cardHead(d) {
   return '<div class="cardhd"><span class="cardid">' + d.ref + '</span>' +
     '<span class="cardwall">' + (FACE_LABEL[d.face] || '') + '</span>' +
     '<button class="cclose" type="button" aria-label="Close">\\u00d7</button></div>' +
-    '<div class="cardmis">ECL-1 \\u00b7 ' + (FACE_LABEL[d.face] || '') + ' \\u00b7 Row ' + d.row + ' \\u00b7 Niche ' + d.n + '</div>';
+    '<div class="cardmis">ECL-1 \\u00b7 ' + (FACE_LABEL[d.face] || '') + ' \\u00b7 Row ' + d.row + ' \\u00b7 Niche ' + d.n + '</div>' +
+    // Capacity — operator ruling 2026-08-01, "ecl niches are two rights each". It goes
+    // on EVERY card, sellable or not: an occupied niche's capacity is the same fact,
+    // and a counselor reading a reserved niche still needs to know what was bought.
+    '<div class="cardrights">${RIGHTS} rights of interment</div>';
 }
 
 function cardHtml(d) {

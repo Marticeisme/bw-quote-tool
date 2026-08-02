@@ -15,7 +15,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, allNiches, refOf, sellable,
+  WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, RIGHTS, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
@@ -40,6 +40,26 @@ const N_AVAIL = 21;
 const AVAIL_ANCHOR = 536710;
 const PER_FACE_ANCHOR = { S: [12, 304645], N: [6, 171580], W: [2, 39590], E: [1, 20895] };
 
+// ── STATUS ANCHORS — MIS Lot Inquiry List for Bldg-ECL, exported 2026-08-01 ───
+// Typed from the inquiry's own arithmetic, NOT read back out of the data module.
+//
+// The inquiry is one row per RIGHT of interment, so it is longer than the wall: 97 rows
+// over 85 niches, the surplus being second/third interments in a niche already counted.
+// The arithmetic that has to close is therefore stated in BOTH shapes — if a re-parse
+// silently drops rows, or starts counting a "(2nd)" row as its own niche, one of these
+// two lines fails.
+const MIS_ROWS = 97;              // rows in the export
+const MIS_EXTRA_RIGHTS = 12;      // rows marked (2nd) / -2nd / (3rd) / -3rd
+const MIS_HIST = { occupied: 36, reserved: 28, available: 21 };
+// Per face, the same split. The previous reading (July price sheet) had ONE unsellable
+// status, so the whole 64 sat in 'sold': S 19, N 24, W 10, E 11.
+const MIS_PER_FACE = {
+  S: { occupied: 11, reserved: 8, available: 12 },
+  N: { occupied: 13, reserved: 11, available: 6 },
+  W: { occupied: 6, reserved: 4, available: 2 },
+  E: { occupied: 6, reserved: 5, available: 1 },
+};
+
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
 const pass = (m) => console.log('  ok    ' + m);
@@ -63,9 +83,35 @@ console.log('Data module');
   // the page, so it is a hard failure rather than a silent blank.
   const blank = allNiches().filter((n) => n.st === 'available' && typeof n.p !== 'number');
   ck(blank.length === 0, `every available niche has a price${blank.length ? ' — ' + blank.map((n) => n.ref).join(', ') : ''}`);
-  const known = new Set(['available', 'sold', 'unpriced']);
+  const known = new Set(['available', 'occupied', 'reserved', 'sold', 'unpriced']);
   const oddSt = allNiches().filter((n) => !known.has(n.st));
-  ck(oddSt.length === 0, `every status is one of available / sold / unpriced${oddSt.length ? ' — ' + oddSt.map((n) => n.ref + ':' + n.st).join(', ') : ''}`);
+  ck(oddSt.length === 0, `every status is one of available / occupied / reserved / sold / unpriced${oddSt.length ? ' — ' + oddSt.map((n) => n.ref + ':' + n.st).join(', ') : ''}`);
+  ck(RIGHTS === 2, `RIGHTS is 2 per niche (operator ruling 2026-08-01) — got ${RIGHTS}`);
+}
+
+// ── 0b. The MIS status histogram, whole wall and per face ─────────────────────
+console.log('\nStatus histogram (MIS Lot Inquiry List, 2026-08-01)');
+{
+  const hist = {};
+  for (const n of allNiches()) hist[n.st] = (hist[n.st] || 0) + 1;
+  const keys = Object.keys(MIS_HIST);
+  ck(keys.every((k) => hist[k] === MIS_HIST[k]) && Object.keys(hist).every((k) => k in MIS_HIST),
+    `whole wall: ${JSON.stringify(MIS_HIST)} (got ${JSON.stringify(hist)})`);
+  // The export's own arithmetic: one row per right of interment.
+  ck(MIS_HIST.occupied + MIS_HIST.reserved + MIS_HIST.available === SHEET_TOTAL,
+    `the three MIS classes account for all ${SHEET_TOTAL} niches`);
+  ck(MIS_ROWS - MIS_EXTRA_RIGHTS === SHEET_TOTAL,
+    `${MIS_ROWS} export rows minus ${MIS_EXTRA_RIGHTS} second/third interments = ${SHEET_TOTAL} niches`);
+  ck(MIS_HIST.available === N_AVAIL,
+    `the MIS Available class is exactly the ${N_AVAIL} niches the price list carries`);
+  for (const f of FACE_ORDER) {
+    const h = {};
+    for (const n of WALLS[f].niches) h[n.st] = (h[n.st] || 0) + 1;
+    const want = MIS_PER_FACE[f];
+    const got = { occupied: h.occupied || 0, reserved: h.reserved || 0, available: h.available || 0 };
+    ck(Object.keys(want).every((k) => got[k] === want[k]),
+      `${FACE_META[f].label.padEnd(14)} ${JSON.stringify(want)} (got ${JSON.stringify(got)})`);
+  }
 }
 if (failures) { console.log(`\nRESULT: ${failures} FAILURE(S) — the page cannot be built from this data`); process.exit(1); }
 
@@ -192,9 +238,9 @@ ck(AVAIL_TOTAL === AVAIL_ANCHOR, `available total is ${money(AVAIL_ANCHOR)} (got
 console.log('\nNo price is rendered for a sold or unpriced niche');
 {
   const unsell = new Set(data.filter((n) => !sellable(n)).map((n) => n.ref));
-  const nSold = data.filter((n) => n.st === 'sold').length;
-  const nUnpriced = data.filter((n) => n.st === 'unpriced').length;
-  ck(unsell.size === SHEET_TOTAL - N_AVAIL, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
+  const cnt = (s) => data.filter((n) => n.st === s).length;
+  ck(unsell.size === SHEET_TOTAL - N_AVAIL,
+    `${unsell.size} niches are not sellable (${cnt('occupied')} occupied + ${cnt('reserved')} reserved + ${cnt('sold')} sold + ${cnt('unpriced')} unpriced)`);
   const offenders = [];
   for (const [name, list] of [['3D', from3d], ['flat', flatFull], ['overview', flatMini]]) {
     for (const c of list) {
@@ -210,8 +256,30 @@ console.log('\nNo price is rendered for a sold or unpriced niche');
     .filter((l) => unsell.has(l.split(',')[0]) && /\$/.test(l));
   ck(ariaBad.length === 0, `zero dollar figures in the aria-labels of unsellable niches${ariaBad.length ? ' — ' + ariaBad.slice(0, 3).join('; ') : ''}`);
   // and every one of them is pattern-coded, not hue-coded
-  const notMarked = [...from3d, ...flatFull].filter((c) => unsell.has(c.ref) && !/class="[^"]*st-(sold|unpriced)/.test(c.html));
-  ck(notMarked.length === 0, 'every unsellable niche carries the dimmed/frosted st- class in both renderings');
+  const notMarked = [...from3d, ...flatFull].filter((c) => unsell.has(c.ref) && !/class="[^"]*st-(occupied|reserved|sold|unpriced)/.test(c.html));
+  ck(notMarked.length === 0, 'every unsellable niche carries a dimmed st- class in both renderings');
+  // …and the two MIS classes are told apart, not collapsed back into one look.
+  const byCls = (cls) => new Set([...from3d].filter((c) => new RegExp(`class="[^"]*st-${cls}\\b`).test(c.html)).map((c) => c.ref));
+  const occ = byCls('occupied'), res = byCls('reserved');
+  ck(occ.size === MIS_HIST.occupied, `${MIS_HIST.occupied} niches render with st-occupied (${occ.size})`);
+  ck(res.size === MIS_HIST.reserved, `${MIS_HIST.reserved} niches render with st-reserved (${res.size})`);
+  ck([...occ].every((r) => !res.has(r)), 'no niche carries both status classes');
+  const wrong = data.filter((n) => (n.st === 'occupied') !== occ.has(n.ref));
+  ck(wrong.length === 0, `the occupied set on the page is the occupied set in the data${wrong.length ? ' — ' + wrong.slice(0, 5).map((n) => n.ref).join(', ') : ''}`);
+}
+
+// ── 6a2. Rights of interment (operator ruling 2026-08-01) ────────────────────
+// "ecl niches are two rights each." Silent until this ruling, so the assertion is that
+// the page now SAYS it — on every card, occupied ones included.
+console.log('\nRights of interment');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  ck(new RegExp(`'<div class="cardrights">${RIGHTS} rights of interment</div>'`).test(js),
+    `the detail card states "${RIGHTS} rights of interment"`);
+  ck(/cardrights[\s\S]{0,10}\+/.test(js.slice(js.indexOf('function cardHead'))) || /cardHead\(d\) \+/.test(js),
+    'the rights line lives in cardHead, so an unsellable niche gets it too');
+  ck(/\.cardrights\{font-size/.test(src), 'the rights line is styled');
+  ck(!/rights of interment[^<]*\$/.test(src), 'the rights line never carries a dollar figure');
 }
 
 // ── 6b. Materials: champagne everywhere, sold is DIMMED not BLACK ─────────────
@@ -229,15 +297,27 @@ console.log('\nMaterials (champagne, per the operator ruling)');
   const CHAMPAGNE = /#f2dda6[\s\S]*#e2bd79[\s\S]*#cd9d58/;
   const flat = rule('\r\n  .n{border-radius:3px');
   const three = rule('\r\n  .n3{border:none');
-  const sold = rule('\r\n  .st-sold,.st-unpriced{color');
+  const sold = rule('\r\n  .st-reserved,.st-sold,.st-unpriced{color');
+  const occupied = rule('\r\n  .st-occupied{color');
   const face = rule('\r\n  .face{position:absolute');
   ck(CHAMPAGNE.test(flat), 'flat niche cell is the champagne ramp #f2dda6/#e2bd79/#cd9d58');
   ck(CHAMPAGNE.test(three), '3D niche front is the same champagne ramp');
   ck(/#b0a389[\s\S]{0,120}#786f5b/.test(sold),
-    'sold / not-priced cells are the DIMMED champagne #b0a389→#786f5b, not black');
+    'reserved / sold / not-priced cells are the DIMMED champagne #b0a389→#786f5b, not black');
   ck(/repeating-linear-gradient\(135deg,rgba\(255,255,255,\.40\)/.test(sold),
-    'sold / not-priced cells carry the frosted diagonal hatch (pattern, not hue)');
+    'reserved / sold / not-priced cells carry the frosted diagonal hatch (pattern, not hue)');
+  // Occupied is the SECOND unsellable treatment, added 2026-08-01 with the MIS statuses.
+  // It must be darker than reserved and must NOT be hatched — that is the whole
+  // distinction — and the 2026-07-29 ruling that ECL is never solid black still binds.
+  ck(/#6b6252[\s\S]{0,90}#3e392f/.test(occupied),
+    'occupied cells are the DARKENED champagne #6b6252→#3e392f');
+  ck(!/repeating-linear-gradient/.test(occupied),
+    'occupied cells are SOLID — the hatch is what makes a cell reserved, not unsellable');
   ck(!/#1b1c20|#0e0f12/.test(src), 'the old near-black niche fill is gone from the page entirely');
+  ck(/\.stleg-o\{background:linear-gradient\(180deg,#6b6252,#3e392f\)/.test(src),
+    'the legend carries an Occupied swatch matching the cell');
+  ck(/<span>Reserved<\/span>/.test(src) && /<span>Occupied<\/span>/.test(src),
+    'the legend names both MIS classes');
   ck(/background:#15120d/.test(face), 'the mullion frame is near-black bronze (#15120d)');
   ck(/border:2px solid #8a7147/.test(face), 'the frame carries the brass trim line #8a7147');
 }
@@ -431,6 +511,102 @@ console.log('\nMovement runtime');
   ck(/stopGlide\(\);\s*\/\/ any touch interrupts/.test(js), 'a pointerdown stops the camera');
   ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
   ck(!/function floorPoint\(/.test(js), 'no floor-travel on an orbit-a-cabinet page (presets + inertia only)');
+}
+
+// ── Sabotage: every mutation below must make this gate exit 1 ────────────────
+// `node scripts/verify_ecl_map.mjs --sabotage` perturbs the data module and the
+// generator, rebuilds, and re-runs this gate against each mutation. A run that exits 0
+// means the assertion above it is decoration. The sources are restored and rebuilt
+// after every run, including on a throw.
+//
+// Added 2026-08-01 with the MIS statuses: until then this gate had no sabotage phase at
+// all, so "sabotage a status and this must go red" was a claim in the header comment and
+// nothing more.
+if (process.argv.includes('--sabotage')) {
+  const DATA = path.join(ROOT, 'scripts', 'ecl-niche-data.mjs');
+  const BUILD = path.join(ROOT, 'scripts', 'build_ecl_map.mjs');
+  const child = (args) => execFileSync(process.execPath, args, { cwd: ROOT, stdio: 'pipe' });
+  const self = fileURLToPath(import.meta.url);
+  let sabFail = 0;
+  const runSet = (file, origSrc, list) => {
+    try {
+      for (const [label, mut] of list) {
+        const mutated = mut(origSrc);
+        if (mutated === origSrc) { console.log('  FAIL  sabotage did not apply: ' + label); sabFail++; continue; }
+        fs.writeFileSync(file, mutated, 'utf8');
+        let code = 0;
+        try { child([BUILD]); child([self]); } catch (e) { code = e.status ?? 1; }
+        if (code === 1) pass(`${label} -> exit ${code}`);
+        else { sabFail++; console.log(`  FAIL  ${label} -> exit ${code} (expected 1)`); }
+        fs.writeFileSync(file, origSrc, 'utf8');
+      }
+    } finally {
+      fs.writeFileSync(file, origSrc, 'utf8');
+      child([BUILD]);
+    }
+  };
+
+  console.log('\nSabotage of the data module (each mutation must make this gate exit 1)');
+  const origData = fs.readFileSync(DATA, 'utf8');
+  runSet(DATA, origData, [
+    // THE runs this update exists for: the MIS occupied/reserved split.
+    ['an OCCUPIED niche resurrected as available at the price it last carried',
+      (s) => s.replace("{ r: 'F', n: 1, c: 1, w: 3, p: null, st: 'occupied' },", "{ r: 'F', n: 1, c: 1, w: 3, p: 18695, st: 'available' },")],
+    ['a RESERVED niche resurrected as available',
+      (s) => s.replace("{ r: 'E', n: 2, c: 3, w: 1, p: null, st: 'reserved' },", "{ r: 'E', n: 2, c: 3, w: 1, p: 17595, st: 'available' },")],
+    ['occupied quietly relabelled reserved — the two MIS classes collapse',
+      (s) => s.replace("st: 'occupied' },", "st: 'reserved' },")],
+    ['a reserved niche relabelled occupied',
+      (s) => s.replace("st: 'reserved' },", "st: 'occupied' },")],
+    ['the whole split reverted to the single pre-MIS status',
+      (s) => s.replace(/st: 'occupied' \}/g, "st: 'sold' }")],
+    ['an occupied niche given back a price it must never render',
+      (s) => s.replace("{ r: 'F', n: 1, c: 1, w: 3, p: null, st: 'occupied' },", "{ r: 'F', n: 1, c: 1, w: 3, p: 18695, st: 'occupied' },")],
+    // Rights of interment, operator ruling 2026-08-01.
+    ['the rights-per-niche figure changed from the ruling: 2 -> 1',
+      (s) => s.replace('export const RIGHTS = 2;', 'export const RIGHTS = 1;')],
+    ['the rights figure inflated to ROAC\'s bench capacity: 2 -> 4',
+      (s) => s.replace('export const RIGHTS = 2;', 'export const RIGHTS = 4;')],
+    // Availability — unchanged by this export, and it has to stay that way.
+    ['an available niche invented in a row MIS lists as full',
+      (s) => s.replace("{ r: 'E', n: 5, c: 8, w: 1, p: null, st: 'occupied' },", "{ r: 'E', n: 5, c: 8, w: 1, p: 17595, st: 'available' },")],
+    ['an available niche dropped from the wall entirely',
+      (s) => s.replace("      { r: 'A', n: 2, c: 4, w: 1, p: 10995, st: 'available' },\r\n", '')],
+    ['a price moved between available niches',
+      (s) => s.replace("{ r: 'F', n: 2, c: 4, w: 1, p: 18695, st: 'available' },", "{ r: 'F', n: 2, c: 4, w: 1, p: 20895, st: 'available' },")],
+    ['the E.C.F. rate cut to 5%',
+      (s) => s.replace('  ECF_RATE: 0.1,', '  ECF_RATE: 0.05,')],
+    ['the O&C fee reverted to the superseded sheet figure: $875 -> $835',
+      (s) => s.replace('  OC: 875,', '  OC: 835,')],
+  ]);
+
+  console.log('\nSabotage of the generator (the rendering assertions must have teeth)');
+  const origBuild = fs.readFileSync(BUILD, 'utf8');
+  runSet(BUILD, origBuild, [
+    ['occupied and reserved rendered identically again — one hatch for both',
+      (s) => s.replace('  .st-occupied{color:#e2d8c2;', '  .st-occupied{color:#463d2d;')
+        .replace('    background:linear-gradient(180deg,#6b6252 0%,#544d40 55%,#3e392f 100%)!important;',
+          '    background:repeating-linear-gradient(135deg,rgba(255,255,255,.40) 0 3px,rgba(255,255,255,0) 3px 7px),linear-gradient(180deg,#b0a389 0%,#928670 55%,#786f5b 100%)!important;')],
+    ['occupied taken to ROAC\'s solid black, against the 2026-07-29 ruling',
+      (s) => s.replace('linear-gradient(180deg,#6b6252 0%,#544d40 55%,#3e392f 100%)!important;',
+        'linear-gradient(180deg,#1b1c20 0%,#0e0f12 100%)!important;')],
+    ['the Occupied legend swatch dropped, so the page shows a code it never explains',
+      (s) => s.replace('<div class="li"><div class="ls stleg-o"></div><span>Occupied</span></div>\r\n      ', '')],
+    ['the rights line deleted from the card',
+      (s) => s.replace("'<div class=\"cardrights\">${RIGHTS} rights of interment</div>';", "'';")],
+    ['the rights line hard-coded past the ruling instead of read from it',
+      (s) => s.replace('${RIGHTS} rights of interment', '1 right of interment')],
+    ['an unavailable niche leaking a data-price attribute the card could read',
+      (s) => s.replace("data-price=\"${sellable(n) ? n.p : ''}\"", 'data-price="${n.p}"')],
+    ['an unsellable niche given the aria-label of an available one (price read aloud)',
+      (s) => s.replace('  if (!sellable(n)) return `${refOf(f, n.r, n.n)}, ${faceLabel(f)}, ${STATUS_LABEL[n.st] || n.st}`;',
+        '  if (false) return `${refOf(f, n.r, n.n)}, ${faceLabel(f)}, ${STATUS_LABEL[n.st] || n.st}`;')],
+  ]);
+
+  let restored = 0;
+  try { child([self]); } catch (e) { restored = e.status ?? 1; }
+  (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
+  failures += sabFail;
 }
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');

@@ -44,6 +44,24 @@
  *   - E.C.F. on the operator's list is 10% of the price on all 21 rows, matching
  *     FEES.ECF_RATE. E.C.F. stays COMPUTED, never stored per niche.
  *
+ * ── STATUSES ARE MIS-BACKED AS OF 2026-08-01 ───────────────────────────────────────
+ * Source: MIS Lot Inquiry List for Bldg-ECL, exported 2026-08-01. Its grammar
+ * "Wall-S Lvl-F Sp-1" maps to ECL-1-S-F-1, one row per RIGHT OF INTERMENT rather than
+ * per niche: 97 rows over 85 niches, the extra 12 being second and third interments in
+ * a niche already counted (they are marked "(2nd)" / "-3rd" and never carry a status of
+ * their own that a base row does not already imply). Rolled up worst-status-wins, the
+ * 85 niches reconcile EXACTLY with this file as it stood:
+ *
+ *   MIS Available 21  ==  the 21 niches this file already had available, ref for ref
+ *   MIS Occupied  36  \  together the 64 this file carried as the single status 'sold'
+ *   MIS Reserved  28  /
+ *
+ * Zero disagreements in either direction, so nothing about WHAT IS FOR SALE changed and
+ * the availability anchors above stand untouched. What the inquiry adds is the split the
+ * price sheet could never express — which of the 64 are interred and which are reserved
+ * — and those two now render differently. Statuses remain hand-maintained: when a niche
+ * sells, edit THIS file and rebuild.
+ *
  * ── PRICES OF SOLD NICHES ARE NOT KNOWN ────────────────────────────────────────────
  * Unlike ROAC, this sheet prints no price for a sold niche, so p is null for every one
  * of them. Nothing in the page may invent one.
@@ -90,9 +108,32 @@ export const FACE_META = {
   E: { label: 'East (Front Door)', caption: 'EAST — FRONT DOOR', rotY: 90, wide: false },
 };
 
-export const STATUS_LABEL = { sold: 'Sold', unpriced: 'Not Priced' };
+/**
+ * Status vocabulary. Until 2026-08-01 this file had ONE unsellable status, 'sold' — the
+ * price sheet cannot tell an interred niche from a reserved one, so both read the same.
+ * The MIS lot inquiry can, so the vocabulary is extended the way ROAC's already was:
+ *   occupied  an interment is present   reserved  sold, no interment yet
+ * 'sold' stays defined (and styled) as the fallback for a niche recorded from a price
+ * sheet alone; no niche carries it today.
+ */
+export const STATUS_LABEL = {
+  occupied: 'Occupied', reserved: 'Reserved', sold: 'Sold', unpriced: 'Not Priced',
+};
 /** Statuses that must never render a price, anywhere, in any view. */
-export const UNSELLABLE = ['sold', 'unpriced'];
+export const UNSELLABLE = ['occupied', 'reserved', 'sold', 'unpriced'];
+
+/**
+ * RIGHTS OF INTERMENT PER NICHE.
+ *
+ * OPERATOR RULING, 2026-08-01, verbatim: "ecl niches are two rights each."
+ *
+ * The ECL price sheet is silent on capacity, so until this ruling the page and the
+ * glass-front guide said nothing at all about how many urns an ECL niche holds. It is
+ * two, uniformly — including the large multi-row family units, which the ruling does
+ * not carve out. The figure is stated on the detail card and in the guide; it is NOT a
+ * dimension and does not fall under the no-dimensions rule.
+ */
+export const RIGHTS = 2;
 
 // ── Fees ─────────────────────────────────────────────────────────────────────
 // OPERATOR RULING, Map Issues 07.31.26 — supersedes the sheet footers this file
@@ -155,21 +196,21 @@ export const WALLS = {
   S: {
     cols: [47, 23, 46, 62, 69, 69, 56, 46, 23, 45],
     niches: [
-      { r: 'F', n: 1, c: 1, w: 3, p: null, st: 'sold' },
+      { r: 'F', n: 1, c: 1, w: 3, p: null, st: 'occupied' },
       { r: 'F', n: 2, c: 4, w: 1, p: 18695, st: 'available' },
       { r: 'F', n: 3, c: 5, w: 2, p: 29695, st: 'available' },
       { r: 'F', n: 4, c: 7, w: 1, p: 18695, st: 'available' },
-      { r: 'F', n: 5, c: 8, w: 3, p: null, st: 'sold' },
+      { r: 'F', n: 5, c: 8, w: 3, p: null, st: 'occupied' },
 
-      { r: 'E', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'E', n: 2, c: 3, w: 1, p: null, st: 'sold' },
-      { r: 'E', n: 3, c: 4, w: 2, p: null, st: 'sold' },
-      { r: 'E', n: 4, c: 6, w: 2, p: null, st: 'sold' },
-      { r: 'E', n: 5, c: 8, w: 1, p: null, st: 'sold' },
-      { r: 'E', n: 6, c: 9, w: 2, p: null, st: 'sold' },
+      { r: 'E', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
+      { r: 'E', n: 2, c: 3, w: 1, p: null, st: 'reserved' },
+      { r: 'E', n: 3, c: 4, w: 2, p: null, st: 'reserved' },
+      { r: 'E', n: 4, c: 6, w: 2, p: null, st: 'reserved' },
+      { r: 'E', n: 5, c: 8, w: 1, p: null, st: 'occupied' },
+      { r: 'E', n: 6, c: 9, w: 2, p: null, st: 'occupied' },
 
       { r: 'D', n: 1, c: 1, w: 1, p: 17595, st: 'available' },
-      { r: 'D', n: 2, c: 2, w: 3, p: null, st: 'sold' }, // sold since July (was $32,995)
+      { r: 'D', n: 2, c: 2, w: 3, p: null, st: 'reserved' }, // sold since July (was $32,995)
       { r: 'D', n: 3, c: 7, w: 3, p: 32995, st: 'available' },
       { r: 'D', n: 4, c: 10, w: 1, p: 17595, st: 'available' },
 
@@ -178,20 +219,20 @@ export const WALLS = {
       // C-3 is the large two-row family unit in the centre of the south elevation.
       { r: 'C', n: 3, c: 5, w: 2, h: 2, p: 82500, st: 'available' },
       { r: 'C', n: 4, c: 7, w: 1, p: 17595, st: 'available' },
-      { r: 'C', n: 5, c: 8, w: 3, p: null, st: 'sold' },
+      { r: 'C', n: 5, c: 8, w: 3, p: null, st: 'occupied' },
 
-      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'sold' },
-      { r: 'B', n: 3, c: 4, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 4, c: 6, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 5, c: 8, w: 1, p: null, st: 'sold' },
-      { r: 'B', n: 6, c: 9, w: 2, p: null, st: 'sold' }, // sold since July (was $15,395)
+      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'reserved' },
+      { r: 'B', n: 3, c: 4, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 4, c: 6, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 5, c: 8, w: 1, p: null, st: 'reserved' },
+      { r: 'B', n: 6, c: 9, w: 2, p: null, st: 'reserved' }, // sold since July (was $15,395)
 
-      { r: 'A', n: 1, c: 1, w: 3, p: null, st: 'sold' },
+      { r: 'A', n: 1, c: 1, w: 3, p: null, st: 'occupied' },
       { r: 'A', n: 2, c: 4, w: 1, p: 10995, st: 'available' },
-      { r: 'A', n: 3, c: 5, w: 2, p: null, st: 'sold' },
+      { r: 'A', n: 3, c: 5, w: 2, p: null, st: 'reserved' },
       { r: 'A', n: 4, c: 7, w: 1, p: 10995, st: 'available' },
-      { r: 'A', n: 5, c: 8, w: 3, p: null, st: 'sold' },
+      { r: 'A', n: 5, c: 8, w: 3, p: null, st: 'occupied' },
     ],
   },
 
@@ -199,43 +240,43 @@ export const WALLS = {
   N: {
     cols: [70, 23, 23, 23, 46, 24, 24, 23, 23, 46, 23, 23, 23, 68],
     niches: [
-      { r: 'F', n: 1, c: 1, w: 3, p: null, st: 'sold' },
-      { r: 'F', n: 2, c: 4, w: 3, p: null, st: 'sold' },
-      { r: 'F', n: 3, c: 7, w: 2, p: null, st: 'sold' },
-      { r: 'F', n: 4, c: 9, w: 3, p: null, st: 'sold' },
-      { r: 'F', n: 5, c: 12, w: 3, p: null, st: 'sold' },
+      { r: 'F', n: 1, c: 1, w: 3, p: null, st: 'occupied' },
+      { r: 'F', n: 2, c: 4, w: 3, p: null, st: 'reserved' },
+      { r: 'F', n: 3, c: 7, w: 2, p: null, st: 'occupied' },
+      { r: 'F', n: 4, c: 9, w: 3, p: null, st: 'occupied' },
+      { r: 'F', n: 5, c: 12, w: 3, p: null, st: 'reserved' },
 
       { r: 'E', n: 1, c: 1, w: 1, p: 17595, st: 'available' },
-      { r: 'E', n: 2, c: 2, w: 4, p: null, st: 'sold' },
-      { r: 'E', n: 3, c: 6, w: 2, p: null, st: 'sold' },
-      { r: 'E', n: 4, c: 8, w: 2, p: null, st: 'sold' },
-      { r: 'E', n: 5, c: 10, w: 4, p: null, st: 'sold' },
-      { r: 'E', n: 6, c: 14, w: 1, p: null, st: 'sold' },
+      { r: 'E', n: 2, c: 2, w: 4, p: null, st: 'reserved' },
+      { r: 'E', n: 3, c: 6, w: 2, p: null, st: 'occupied' },
+      { r: 'E', n: 4, c: 8, w: 2, p: null, st: 'occupied' },
+      { r: 'E', n: 5, c: 10, w: 4, p: null, st: 'reserved' },
+      { r: 'E', n: 6, c: 14, w: 1, p: null, st: 'occupied' },
 
-      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'sold' }, // sold since July (was $28,595)
-      { r: 'D', n: 2, c: 7, w: 2, p: null, st: 'sold' },
-      { r: 'D', n: 3, c: 13, w: 2, p: null, st: 'sold' },
+      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'occupied' }, // sold since July (was $28,595)
+      { r: 'D', n: 2, c: 7, w: 2, p: null, st: 'occupied' },
+      { r: 'D', n: 3, c: 13, w: 2, p: null, st: 'occupied' },
 
-      { r: 'C', n: 1, c: 1, w: 2, p: null, st: 'sold' },
+      { r: 'C', n: 1, c: 1, w: 2, p: null, st: 'reserved' },
       // C-2 and C-4 are the two large two-row family units on the front elevation.
       { r: 'C', n: 2, c: 3, w: 4, h: 2, p: 55000, st: 'available' },
       { r: 'C', n: 3, c: 7, w: 2, p: 17595, st: 'available' },
       { r: 'C', n: 4, c: 9, w: 4, h: 2, p: 55000, st: 'available' },
-      { r: 'C', n: 5, c: 13, w: 2, p: null, st: 'sold' }, // sold since July (was $26,395)
+      { r: 'C', n: 5, c: 13, w: 2, p: null, st: 'reserved' }, // sold since July (was $26,395)
 
-      { r: 'B', n: 1, c: 1, w: 3, p: null, st: 'sold' },
+      { r: 'B', n: 1, c: 1, w: 3, p: null, st: 'reserved' },
       // Blank on the sheet; operator confirmed SOLD 2026-07-29. See the header.
-      { r: 'B', n: 2, c: 4, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 3, c: 6, w: 4, p: null, st: 'sold' },
+      { r: 'B', n: 2, c: 4, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 3, c: 6, w: 4, p: null, st: 'reserved' },
       { r: 'B', n: 4, c: 10, w: 2, p: 15395, st: 'available' },
-      { r: 'B', n: 5, c: 12, w: 3, p: null, st: 'sold' },
+      { r: 'B', n: 5, c: 12, w: 3, p: null, st: 'occupied' },
 
-      { r: 'A', n: 1, c: 1, w: 2, p: null, st: 'sold' },
+      { r: 'A', n: 1, c: 1, w: 2, p: null, st: 'reserved' },
       { r: 'A', n: 2, c: 3, w: 2, p: 10995, st: 'available' },
-      { r: 'A', n: 3, c: 5, w: 3, p: null, st: 'sold' },
-      { r: 'A', n: 4, c: 8, w: 3, p: null, st: 'sold' },
-      { r: 'A', n: 5, c: 11, w: 2, p: null, st: 'sold' },
-      { r: 'A', n: 6, c: 13, w: 2, p: null, st: 'sold' },
+      { r: 'A', n: 3, c: 5, w: 3, p: null, st: 'occupied' },
+      { r: 'A', n: 4, c: 8, w: 3, p: null, st: 'reserved' },
+      { r: 'A', n: 5, c: 11, w: 2, p: null, st: 'occupied' },
+      { r: 'A', n: 6, c: 13, w: 2, p: null, st: 'reserved' },
     ],
   },
 
@@ -243,18 +284,18 @@ export const WALLS = {
   W: {
     cols: [1, 1, 1],
     niches: [
-      { r: 'F', n: 1, c: 1, w: 2, p: null, st: 'sold' },
+      { r: 'F', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
       { r: 'F', n: 2, c: 3, w: 1, p: 20895, st: 'available' },
-      { r: 'E', n: 1, c: 1, w: 1, p: null, st: 'sold' },
-      { r: 'E', n: 2, c: 2, w: 2, p: null, st: 'sold' },
-      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'sold' },
+      { r: 'E', n: 1, c: 1, w: 1, p: null, st: 'occupied' },
+      { r: 'E', n: 2, c: 2, w: 2, p: null, st: 'occupied' },
+      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
       { r: 'D', n: 2, c: 3, w: 1, p: 18695, st: 'available' },
-      { r: 'C', n: 1, c: 1, w: 1, p: null, st: 'sold' }, // sold since July (was $18,695)
-      { r: 'C', n: 2, c: 2, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'sold' }, // sold since July (was $14,295)
-      { r: 'A', n: 1, c: 1, w: 1, p: null, st: 'sold' }, // sold since July (was $12,095)
-      { r: 'A', n: 2, c: 2, w: 2, p: null, st: 'sold' },
+      { r: 'C', n: 1, c: 1, w: 1, p: null, st: 'occupied' }, // sold since July (was $18,695)
+      { r: 'C', n: 2, c: 2, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'reserved' },
+      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'reserved' }, // sold since July (was $14,295)
+      { r: 'A', n: 1, c: 1, w: 1, p: null, st: 'reserved' }, // sold since July (was $12,095)
+      { r: 'A', n: 2, c: 2, w: 2, p: null, st: 'reserved' },
     ],
   },
 
@@ -264,18 +305,18 @@ export const WALLS = {
     cols: [1, 1, 1],
     niches: [
       // Sheet note on E F-1: "SOLD Previoiusly was showing as available but sold 1/23".
-      { r: 'F', n: 1, c: 1, w: 2, p: null, st: 'sold' },
+      { r: 'F', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
       { r: 'F', n: 2, c: 3, w: 1, p: 20895, st: 'available' },
-      { r: 'E', n: 1, c: 1, w: 1, p: null, st: 'sold' },
-      { r: 'E', n: 2, c: 2, w: 2, p: null, st: 'sold' },
-      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'D', n: 2, c: 3, w: 1, p: null, st: 'sold' },
-      { r: 'C', n: 1, c: 1, w: 1, p: null, st: 'sold' },
-      { r: 'C', n: 2, c: 2, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'sold' },
-      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'sold' },
-      { r: 'A', n: 1, c: 1, w: 1, p: null, st: 'sold' },
-      { r: 'A', n: 2, c: 2, w: 2, p: null, st: 'sold' },
+      { r: 'E', n: 1, c: 1, w: 1, p: null, st: 'reserved' },
+      { r: 'E', n: 2, c: 2, w: 2, p: null, st: 'reserved' },
+      { r: 'D', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
+      { r: 'D', n: 2, c: 3, w: 1, p: null, st: 'reserved' },
+      { r: 'C', n: 1, c: 1, w: 1, p: null, st: 'reserved' },
+      { r: 'C', n: 2, c: 2, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 1, c: 1, w: 2, p: null, st: 'occupied' },
+      { r: 'B', n: 2, c: 3, w: 1, p: null, st: 'occupied' },
+      { r: 'A', n: 1, c: 1, w: 1, p: null, st: 'reserved' },
+      { r: 'A', n: 2, c: 2, w: 2, p: null, st: 'occupied' },
     ],
   },
 };
