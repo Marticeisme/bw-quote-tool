@@ -34,6 +34,7 @@ import * as TGMP from './tgmp-data.mjs';
 import * as MVC from './mvc-niche-data.mjs';
 import * as ECL from './ecl-niche-data.mjs';
 import * as COM from './com-crypt-data.mjs';
+import { typicalStr } from './_typical_band.mjs';
 
 const PAGES = ['urn-placement-guide.html', 'cemetery-property-guide.html'];
 
@@ -73,6 +74,29 @@ const EXPECT = {
   // is computed here for the same reason as the rest: so it cannot drift from them.
   'all-niches': rangeStr([...gomn, ...roac, ...mvc, ...ecl, ...tgn, ...radser]),
 };
+
+// ── THE TYPICAL BAND ─────────────────────────────────────────────────────────
+// Operator, 2026-08-02, on $2,195-$82,500: "a very wide price range — also give a median
+// price range on the glass front niches." A card that leads with a 38x span tells a family
+// nothing, so the wide ones lead with the middle 50% of what is actually for sale and keep
+// the full span as a secondary line. Same populations as EXPECT above, same string
+// comparison — a hand-typed band fails here exactly as a hand-typed range does.
+//
+// `glass` is the aggregate the ruling was about: every currently-available GLASS-front
+// niche the repo has data for (ECL + the MVC island + Radiance + Serenity). Granite fronts
+// — ROAC, GOMN, TGN — are a different product and are deliberately out of it.
+const GLASS = [...ecl, ...mvc, ...radser];
+const EXPECT_TYPICAL = {
+  glass: typicalStr(GLASS),
+  ecl: typicalStr(ecl),
+  mvc: typicalStr(mvc),
+  radser: typicalStr(radser),
+  gomn: typicalStr(gomn),
+  roac: typicalStr(roac),
+  tgn: typicalStr(tgn),
+  tgmp: typicalStr(tgmp),
+  'all-niches': typicalStr([...gomn, ...roac, ...mvc, ...ecl, ...tgn, ...radser]),
+};
 // data-price keys are single figures, not ranges.
 const EXPECT_PRICE = {
   // The Lake Urn Garden ground space. verify_urn_garden_ranges.mjs is the authority on
@@ -86,6 +110,7 @@ console.log('=== DATASETS ===');
 console.log(`   GOMN ${gomn.length} sellable · ROAC ${roac.length} available · MVC ${mvc.length} openings`);
 console.log(`   ECL ${ecl.length} available · TGN ${tgn.length} available · RAD+SER ${radser.length} available`);
 console.log(`   all-niches aggregate over ${gomn.length + roac.length + mvc.length + ecl.length + tgn.length + radser.length} niches`);
+console.log(`   glass-front population ${GLASS.length} (ECL ${ecl.length} + MVC ${mvc.length} + RAD/SER ${radser.length}) · typical band ${EXPECT_TYPICAL.glass.replace('&ndash;', '-')}`);
 
 // ── card parsing ─────────────────────────────────────────────────────────────
 function cards(html) {
@@ -152,15 +177,49 @@ for (const page of PAGES) {
   }
 
   // ── ranges ────────────────────────────────────────────────────────────────
-  for (const [attr, table] of [['data-range', EXPECT], ['data-price', EXPECT_PRICE]]) {
+  for (const [attr, table] of [['data-range', EXPECT], ['data-price', EXPECT_PRICE], ['data-typical', EXPECT_TYPICAL]]) {
     const re = new RegExp(`<[^>]*\\b${attr}="([^"]+)"[^>]*>([\\s\\S]*?)</`, 'g');
     for (const m of html.matchAll(re)) {
       const [, key, raw] = m;
       const printed = raw.trim();
-      if (!(key in table)) continue;   // another gate owns this key
+      if (!(key in table)) {
+        // A data-typical key with no population behind it is a band nobody can recompute —
+        // which is the failure this whole mechanism exists to prevent. data-range/data-price
+        // keys may legitimately belong to another gate.
+        if (attr === 'data-typical') fail(`data-typical="${key}": no population is defined for that key, so the band is unverifiable`);
+        continue;
+      }
       if (printed === table[key]) ok(`${attr}="${key}" prints ${printed}, recomputed from the module`);
       else fail(`${attr}="${key}" prints ${printed}, the module says ${table[key]}`);
     }
+  }
+
+  // ── a wide span may never lead alone ──────────────────────────────────────
+  // The ruling was about $2,195-$82,500 specifically, but the fix has to be a rule or the
+  // next wide range ships bare. Two conditions, both computed from the modules so there is
+  // no per-key allow-list to rot:
+  //
+  //   WIDE      the full span runs more than 4x from end to end, and
+  //   USEFUL    the middle 50% is at least twice as tight as that span.
+  //
+  // The second condition is not softness, it is the difference between helping and
+  // pretending to. `tgmp` (nine path placements, $8,000-$52,000) has a middle 50% of
+  // $8,000-$42,000 — same floor, 5.3x instead of 6.5x. Printing that under "Most of
+  // these" would put a second near-identical range on the card and tell a family nothing
+  // it did not already know. Where the band cannot narrow the answer, the honest card is
+  // the range plus the invitation to call, which is what that card already carries.
+  const WIDE = 4;
+  const span = (s) => { const [lo, hi] = s.split('&ndash;').map((x) => +x.replace(/[$,]/g, '')); return hi / lo; };
+  const typicalKeys = new Set([...html.matchAll(/\bdata-typical="([^"]+)"/g)].map((m) => m[1]));
+  for (const key of new Set([...html.matchAll(/\bdata-range="([^"]+)"/g)].map((m) => m[1]))) {
+    if (!(key in EXPECT)) continue;
+    const full = span(EXPECT[key]);
+    if (full <= WIDE) continue;
+    const band = key in EXPECT_TYPICAL ? span(EXPECT_TYPICAL[key]) : Infinity;
+    const useful = band <= full / 2;
+    if (!useful) ok(`data-range="${key}" spans ${full.toFixed(1)}x; its middle 50% spans ${band.toFixed(1)}x and would not narrow it — no band required`);
+    else if (typicalKeys.has(key)) ok(`data-range="${key}" spans ${full.toFixed(1)}x and is led by a typical band spanning ${band.toFixed(1)}x`);
+    else fail(`data-range="${key}" spans ${full.toFixed(1)}x with no data-typical band beside it — the operator's 2026-08-02 ruling`);
   }
 }
 
