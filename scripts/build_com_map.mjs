@@ -19,7 +19,14 @@
  * niche walls' sheets are legible, so those prices are real and drive the card math.
  *
  * Geometry is ESTIMATED from the CAD plan and photographs; no dimensions are rendered
- * for crypts.
+ * for crypts. THE TWO NICHE WALLS ARE THE EXCEPTION and, since 2026-08-02, are drawn at
+ * TRUE SIZE: every glass front is placed from its own measured width (see wallGrid /
+ * wall3d and RAD_ROW_CLASSES in the data module), each wall is one selectable area, and
+ * clicking a section on the floor plan opens that section alone.
+ *
+ * NOTHING RENDERED HERE NAMES AN INTERNAL SYSTEM. The word "MIS" may appear in comments
+ * and in the data module's source citations; it must not reach any text, label, aria
+ * string or card a family reads. verify_com_map.mjs strips the comments and asserts it.
  *
  *   node scripts/build_com_map.mjs
  */
@@ -30,7 +37,7 @@ import {
   TIERS, TYPE_LABEL, TYPE_CAP, STATUS_LABEL, MIS, CRYPT_FEES, NICHE_FEES,
   PRICES, PRICE_BANDS, priceBand, CRYPT_FEE_SOURCE,
   NICHE_PRICES_EFFECTIVE, AREAS, BANKS, ROOMS, VOIDS, WALLS, UNITS,
-  ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW,
+  ENTRANCES, FURNITURE, STOPS, EYE_Y, NCOLW, NICHE_UPI, wallWidthIn,
   PLAN_W, PLAN_H, COLW, DEPTH, ROWH,
   cryptUnits, wallNiches, allNiches, cryptSpaces, chapelChairs, materialAt, MATERIAL_ZONES,
 } from './com-crypt-data.mjs';
@@ -102,7 +109,7 @@ function bankRollup(b) {
   const sum = priced.reduce((t, u) => t + u.p, 0);
   const gap = av.length - priced.length;
   return `${av.length} available · ${money(sum)} listed`
-    + (gap ? ` · ${gap} with no price in MIS — confirm` : '');
+    + (gap ? ` · ${gap} with no listed price — ask us` : '');
 }
 
 function unitLabel(u) {
@@ -111,12 +118,15 @@ function unitLabel(u) {
 function unitAria(u) {
   const p = cryptPrice(u);
   return `${unitLabel(u)}, bank ${u.bank}, ${TYPE_LABEL[u.type]}, ${STATUS_LABEL[u.st]}`
-    + (p == null ? (u.st === 'available' ? ', price to confirm in MIS' : '') : `, ${money(p)}`);
+    + (p == null ? (u.st === 'available' ? ', price on request' : '') : `, ${money(p)}`);
 }
 function nicheAria(n) {
   const w = WALLS[n.wall];
   const p = n.p ? `, ${money(n.p)}` : '';
-  return `${w.name} ${n.row}-${n.col}${p}, ${STATUS_LABEL[n.st]}`;
+  // The size class is spoken as well as drawn: the whole point of the 2026-08-02 pass is
+  // that these fronts are not all one size, and a screen reader gets no help from width.
+  const sz = n.size ? `, ${n.size} ${n.dims}` : '';
+  return `${w.name} ${n.row}-${n.col}${sz}${p}, ${STATUS_LABEL[n.st]}`;
 }
 
 // ── cell attribute payloads (the ONLY channel to the runtime card) ────────────
@@ -188,7 +198,8 @@ const priceChip = (u, cls) => {
 function nicheAttrs(n) {
   return `data-kind="niche" data-wall="${n.wall}" data-id="${n.row}-${n.col}" data-ref="${n.ref}"`
     + ` data-row="${n.row}" data-col="${n.col}" data-price="${n.p == null ? '' : n.p}" data-st="${n.st}"`
-    + (n.size ? ` data-size="${esc(n.size)}"` : '');
+    + (n.size ? ` data-size="${esc(n.size)}"` : '')
+    + (n.dims ? ` data-dims="${esc(n.dims)}"` : '');
 }
 
 // ── Search index ──────────────────────────────────────────────────────────────
@@ -215,7 +226,7 @@ function searchIndex() {
   }));
   for (const nn of allNiches()) {
     rows.push({
-      r: nn.ref, k: 'n', t: nn.row, c: [nn.col], b: nn.wall, a: 'niches',
+      r: nn.ref, k: 'n', t: nn.row, c: [nn.col], b: nn.wall, a: WALLS[nn.wall].area,
       s: nn.st, p: nn.p || 0, n: `${WALLS[nn.wall].name} Niche Wall`,
     });
   }
@@ -264,8 +275,11 @@ function faceTable() {
     const w = WALLS[wid];
     const [fx, fz] = facePlan(w.plan, w.face);
     out[wid] = {
-      area: 'niches', face: w.face, x: fx, z: fz, yaw: FACE_YAW[w.face],
-      n: w.cols, c0: 1, cw: NCOLW, label: `${w.name} Niche Wall`,
+      area: w.area, face: w.face, x: fx, z: fz, yaw: FACE_YAW[w.face],
+      // Niche columns are no longer uniform, so cw is the wall's MEAN column width —
+      // enough to centre the camera on a column, which is all fly-to uses it for.
+      n: w.cols, c0: 1, cw: +((wallWidthIn(wid) * NICHE_UPI) / w.cols).toFixed(3),
+      label: `${w.name} Niche Wall`,
     };
   }
   return out;
@@ -332,22 +346,45 @@ ${cl}
 }
 
 // ── flat niche-wall grid ──────────────────────────────────────────────────────
+/**
+ * TRUE SIZES, NOT A UNIFORM GRID (operator, 2026-08-02: "the niches are not sized
+ * correctly — there are a few different sizes of glass front niches on each wall").
+ *
+ * A CSS grid cannot do this. Column boundaries differ FROM ROW TO ROW on both walls —
+ * Radiance row K starts with an 18 1/4" Small where row J starts with a 23" Large, and
+ * rows E/D drop to six cells of 26" and 30 1/2" — so there is no set of column tracks
+ * that all ten rows share. Every cell is therefore placed absolutely from its own
+ * measured left edge and width, both expressed as a percentage of the wall's real
+ * width (165" for Radiance, 88.5" for Serenity). One geometry, used by this flat grid
+ * and by the 3D face alike, so the two renderings cannot disagree.
+ *
+ * The 1px insets are the old grid `gap` kept as a visible mortar line between fronts.
+ */
+const nicheBox = (nn, ri, span, nRows) => {
+  const top = (ri / nRows) * 100, hgt = (span / nRows) * 100;
+  return `left:calc(${nn.leftPct}% + 1px);width:calc(${nn.widthPct}% - 2px);`
+    + `top:calc(${top.toFixed(4)}% + 1px);height:calc(${hgt.toFixed(4)}% - 2px)`;
+};
+
 function wallGrid(wid, { mini = false } = {}) {
   const w = WALLS[wid];
   const niches = wallNiches(wid);
   const rowPx = mini ? 20 : 46;
+  const nRows = w.rows.length;
   const cells = niches.map((nn) => {
-    const ri = w.rows.indexOf(nn.row) + 1;
+    const ri = w.rows.indexOf(nn.row);
     const span = nn.spanRows ? nn.spanRows.length : 1;
     const st = nn.st !== 'available' ? ` st-${nn.st}` : '';
     const body = nn.p != null && !mini ? `<span class="nprice">${money(nn.p)}</span>` : '';
     const badge = mini ? '' : (nn.st === 'available' ? '' : '<span class="cstat cs-u">Confirm</span>');
-    return `    <button type="button" class="c flatn${st}" style="grid-row:${ri}/span ${span};grid-column:${nn.col + 1}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="cid">${nn.row}-${nn.col}</span>${body}${badge}</button>`;
+    return `    <button type="button" class="c flatn sz-${nn.sizeKey}${st}" style="${nicheBox(nn, ri, span, nRows)}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="cid">${nn.row}-${nn.col}</span>${body}${badge}</button>`;
   }).join('\n');
-  const rl = w.rows.map((r, i) => `    <div class="rlbl" style="grid-column:1;grid-row:${i + 1}">${r}</div>`).join('\n');
-  return `  <div class="cgrid${mini ? ' mini' : ''}" style="grid-template-columns:20px repeat(${w.cols},minmax(0,1fr));grid-template-rows:repeat(${w.rows.length},${rowPx}px);max-width:${mini ? 260 : 520}px;">
+  const rl = w.rows.map((r, i) => `    <div class="rlbl nrl" style="top:${((i / nRows) * 100).toFixed(4)}%;height:${(100 / nRows).toFixed(4)}%">${r}</div>`).join('\n');
+  return `  <div class="nwall${mini ? ' mini' : ''}" style="height:${rowPx * nRows}px;max-width:${mini ? 260 : 520}px;">
 ${rl}
+    <div class="nface">
 ${cells}
+    </div>
   </div>`;
 }
 
@@ -412,7 +449,7 @@ function planSvg() {
   for (const wid of ['RAD', 'SER']) {
     const w = WALLS[wid], p = w.plan;
     const av = wallNiches(wid).filter((n) => n.st === 'available').length;
-    parts.push(`<g class="pbank pniche mt-${materialAt(p.x + p.w / 2, p.y + p.h / 2)} has-av" data-bank="${wid}" data-area="niches" tabindex="0" role="button" aria-label="${esc(w.name + ' niche wall, ' + av + ' available')}">`
+    parts.push(`<g class="pbank pniche mt-${materialAt(p.x + p.w / 2, p.y + p.h / 2)} has-av" data-bank="${wid}" data-area="${w.area}" tabindex="0" role="button" aria-label="${esc(w.name + ' niche wall, ' + av + ' available')}">`
       + `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="2"/>`
       + `<text class="pblab" x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + 4}"${p.w < p.h ? ` transform="rotate(-90 ${p.x + p.w / 2} ${p.y + p.h / 2})"` : ''}>${w.name} · ${av}</text>`
       + `</g>`);
@@ -491,15 +528,18 @@ ${cells.join('\n')}
 
 function wall3d(wid) {
   const w = WALLS[wid], p = w.plan;
-  const faceW = w.cols * NCOLW;
+  // The face is now as wide as the wall really is — 165" of Radiance against 88.5" of
+  // Serenity — instead of `columns x NCOLW`, which drew Serenity at 75% of Radiance
+  // because it has 6 columns to Radiance's 8 rather than because it is 54% as wide.
+  const faceW = wallWidthIn(wid) * NICHE_UPI;
   const rows = w.rows.length;
   const h = rows * (ROWH * 0.72);
   const cells = wallNiches(wid).map((nn) => {
-    const ri = w.rows.indexOf(nn.row) + 1;
+    const ri = w.rows.indexOf(nn.row);
     const span = nn.spanRows ? nn.spanRows.length : 1;
     const st = nn.st !== 'available' ? ` st-${nn.st}` : '';
     const chip = nn.p != null ? `<span class="n3p">${money(nn.p)}</span>` : '';
-    return `      <button type="button" class="c3 n3glass${st}" style="grid-row:${ri}/span ${span};grid-column:${nn.col}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="c3id">${nn.row}-${nn.col}</span>${chip}</button>`;
+    return `      <button type="button" class="c3 n3glass sz-${nn.sizeKey}${st}" style="${nicheBox(nn, ri, span, rows)}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="c3id">${nn.row}-${nn.col}</span>${chip}</button>`;
   }).join('\n');
   const [fx, fz] = faceCentre(p, w.face);
   // RECESSED, not free-standing (video 1:27 and 2:01-2:03): the surrounding marble
@@ -509,10 +549,10 @@ function wall3d(wid) {
   const rev = w.mount === 'recessed'
     ? `    <div class="nreveal mt-${mt}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW + NCOLW * 1.6)}px;height:${px(FACE_H)}px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,0,${px(fz)}px) rotateY(${ROT[w.face]}deg)"></div>\n`
     : '';
-  return rev + `    <div class="face nichewall mt-${mt} ar-niches" data-bankface="${wid}" data-area="niches" data-homearea="${w.homeArea}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(h)}px;grid-template-columns:repeat(${w.cols},1fr);grid-template-rows:repeat(${rows},1fr);transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px((FACE_H - h) / 2)}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)">
+  return rev + `    <div class="face nichewall mt-${mt} ar-${w.area}" data-bankface="${wid}" data-area="${w.area}" data-homearea="${w.homeArea}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW)}px;height:${px(h)}px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px((FACE_H - h) / 2)}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)">
 ${cells}
     </div>
-    <div class="fbase nplinth mt-${mt} ar-niches" data-area="niches"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW + NCOLW * 1.6)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
+    <div class="fbase nplinth mt-${mt} ar-${w.area}" data-area="${w.area}"${at(fx + PLAN_W / 2, fz + PLAN_H / 2)} style="width:${px(faceW + NCOLW * 1.6)}px;height:14px;transform:translate(-50%,-50%) translate3d(${px(fx)}px,${px(FACE_H / 2) + 7}px,${px(fz)}px) rotateY(${ROT[w.face]}deg)"><b>${w.name}</b></div>`;
 }
 
 // ── Entrances, furniture, chairs and walk-in hotspots ────────────────────────
@@ -589,9 +629,64 @@ ${STOPS.map(hotspot3d).join('\n')}
 }
 
 // ── views ─────────────────────────────────────────────────────────────────────
+/**
+ * The per-wall size legend, now a REAL key to what is drawn rather than a footnote.
+ * Each row carries the class, its printed dimensions, and how many of that class the
+ * wall actually holds — so a counselor can see at a glance that Radiance is 32 Smalls,
+ * 32 Larges, 8 X-Larges and 2 Family niches, and match the swatch to the wall.
+ */
+function sizeLegend(wid) {
+  const w = WALLS[wid];
+  const ns = wallNiches(wid);
+  const rows = w.sizes.map((s) => {
+    const n = ns.filter((x) => x.sizeKey === s.k).length;
+    return `<span class="szi"><i class="szs sz-${s.k}"></i><b>${esc(s.label)}</b> ${esc(s.dims)} <em>&times;${n}</em></span>`;
+  }).join('');
+  const fam = w.sizes.find((s) => s.k === 'family');
+  // The one thing the sheet contradicts itself about, said out loud rather than papered
+  // over: the legend gives every Radiance class the same 11 7/8" height, yet the sheet
+  // draws the Family niches two rows tall (their DEPTH is doubled, 25 1/2").
+  const note = fam
+    ? `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are drawn two rows tall on the sheet and are twice as deep as the rest; the sheet still prints their height as 11 7/8&quot;, and that is left exactly as printed.</em>`
+    : `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em>`;
+  return `      <div class="sizeleg"><b>Niche sizes on this wall — every row spans ${wallWidthIn(wid)}&quot;</b>${rows}${note}</div>`;
+}
+
+function wallBlock(wid) {
+  const w = WALLS[wid];
+  const av = wallNiches(wid).filter((n) => n.st === 'available');
+  return `    <div class="bwrap" data-blk="${wid}">
+      <div class="btitle">${esc(w.name)} Niche Wall</div>
+      <div class="bsub">${esc(w.prefix)}-ROW-SPACE · rows K (top) to A (bottom) · ${esc(w.note)}</div>
+      <div class="gwrap">
+${wallGrid(wid)}
+      </div>
+${sizeLegend(wid)}
+      <div class="bsub">${av.length} available · ${money(av.reduce((s, n) => s + n.p, 0))} listed · ${esc(NICHE_PRICES_EFFECTIVE)}</div>
+    </div>`;
+}
+
+/**
+ * SECTION ISOLATION (operator, 2026-08-02: "When clicking on a section on the floor plan
+ * just show that section, not the whole north wing (for example)").
+ *
+ * Every block in an area view is tagged with the bank or wall it draws, and the bar
+ * below is what the runtime shows once one of them has been isolated: the name of the
+ * section you are looking at, a way back up to the whole area, and a way back out to the
+ * floor plan. It is emitted on EVERY area, not just the niche ones, because the request
+ * was about the plan's behaviour and the plan's sections are all of them.
+ */
+function isoBar(a) {
+  return `    <div class="isobar no-print" hidden>
+      <button type="button" class="isob" data-iso="plan">&larr; Floor plan</button>
+      <span class="isotxt" id="isotxt-${a.id}"></span>
+      <button type="button" class="isob isoall" data-iso="all">Show all of ${esc(a.label)}</button>
+    </div>`;
+}
+
 function areaView(a) {
   const banks = BANKS.filter((b) => b.area === a.id);
-  const blocks = banks.map((b) => `    <div class="bwrap">
+  const blocks = banks.map((b) => `    <div class="bwrap" data-blk="${b.id}">
       <div class="btitle">${esc(bankLabel(b))}</div>
       <div class="bsub">${esc(bankSub(b))}</div>
       <div class="gwrap">
@@ -599,25 +694,11 @@ ${bankGrid(b)}
       </div>
       <div class="bsub bmoney">${bankRollup(b)}</div>
     </div>`);
-  if (a.id === 'niches') {
-    for (const wid of ['RAD', 'SER']) {
-      const w = WALLS[wid];
-      const av = wallNiches(wid).filter((n) => n.st === 'available');
-      blocks.push(`    <div class="bwrap">
-      <div class="btitle">${esc(w.name)} Niche Wall</div>
-      <div class="bsub">${esc(w.prefix)}-ROW-SPACE · rows K (top) to A (bottom) · ${esc(w.note)}</div>
-      <div class="gwrap">
-${wallGrid(wid)}
-      </div>
-      <div class="sizeleg"><b>Size classes (from the wall sheet)</b>${w.sizes.map((s) => `<span><i>${esc(s[0])}</i> ${esc(s[1])}</span>`).join('')}
-        <em>Only the two double-height cells (E/D · ${wid === 'RAD' ? 'spaces 2 and 5' : 'none on this wall'}) are unambiguously a size class on the sheet; the rest are legend-only.</em></div>
-      <div class="bsub">${av.length} available · ${money(av.reduce((s, n) => s + n.p, 0))} listed · ${esc(NICHE_PRICES_EFFECTIVE)}</div>
-    </div>`);
-    }
-  }
-  return `  <div class="wview" id="area-${a.id}">
+  for (const wid of ['RAD', 'SER']) if (WALLS[wid].area === a.id) blocks.push(wallBlock(wid));
+  return `  <div class="wview" id="area-${a.id}" data-area="${a.id}">
     <div class="wlabel">${esc(a.label)}</div>
     <div class="wsub">${esc(a.sub)}</div>
+${isoBar(a)}
 ${blocks.join('\n')}
   </div>`;
 }
@@ -714,6 +795,24 @@ const CSS = `
   .gwrap{background:linear-gradient(160deg,#0f1a30,#1a2744 60%,#0d1528);border:1px solid var(--gb);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 auto;}
   .cgrid{display:grid;gap:2px;margin:0 auto;width:100%;min-width:220px;}
   .cgrid.mini{gap:1px;}
+  /* ── Niche wall: true sizes, so absolute boxes rather than grid tracks ──
+     Column boundaries differ from row to row on both walls (see wallGrid), which no
+     set of shared grid tracks can express. The wall is a positioned box; every front
+     sits at its own measured left/width as a percentage of the wall's real width.
+     .c and .c3 both set position:relative, and both are declared after this block, so
+     the absolute placement has to out-specify them or every front stacks in document
+     flow and the wall cascades diagonally down the page (seen, 2026-08-02). Hence the
+     two-class selectors rather than a bare .flatn. */
+  .nwall{position:relative;margin:0 auto;width:100%;min-width:220px;}
+  .nwall .nrl{position:absolute;left:0;width:20px;}
+  .nface{position:absolute;left:20px;right:0;top:0;bottom:0;}
+  .nface .flatn{position:absolute;}
+  .face.nichewall .c3{position:absolute;}
+  /* The print-overview mini. It used to inherit .cgrid.mini's 6.5px label; a niche wall
+     mini is 8 columns in the same panel a 17-column crypt bank fills, so its fronts are
+     twice as wide and can carry a slightly larger label without crowding. */
+  .nwall.mini .rlbl{font-size:8px;}
+  .nwall.mini .cid{font-size:7.5px;opacity:.9;text-shadow:none;}
   .rlbl,.clbl{display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:12px;font-weight:700;color:var(--gold);}
   .clbl{font-size:9.5px;font-family:'Jost',sans-serif;opacity:.95;}
   .cgrid.mini .rlbl{font-size:8px;}
@@ -1067,11 +1166,42 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
   .fees input[type=checkbox]{width:15px;height:15px;accent-color:var(--gold);cursor:pointer;padding:0;}
   .fees input[type=number]{width:42px;}
   .fees input{width:42px;background:rgba(200,169,110,.12);border:1px solid var(--gold);border-radius:3px;color:var(--cream);padding:2px 4px;font-family:'Jost',sans-serif;font-size:12px;text-align:center;}
-  .sizeleg{max-width:640px;margin:8px auto 0;font-size:11.5px;color:var(--gold-light);text-align:center;line-height:1.7;}
-  .sizeleg b{display:block;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;font-size:10.5px;margin-bottom:2px;}
-  .sizeleg span{display:inline-block;margin:0 7px;}
-  .sizeleg i{color:var(--gold);font-style:normal;font-weight:600;}
-  .sizeleg em{display:block;opacity:.8;font-size:10.5px;margin-top:3px;}
+  .sizeleg{max-width:760px;margin:8px auto 0;font-size:11.5px;color:var(--gold-light);text-align:center;line-height:1.7;}
+  .sizeleg>b{display:block;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;font-size:10.5px;margin-bottom:3px;}
+  .szi{display:inline-flex;align-items:center;gap:5px;margin:0 8px;}
+  .szi b{color:var(--gold);font-weight:600;}
+  .szi em{font-style:normal;opacity:.72;}
+  /* The swatch is the SAME width ratio the wall draws, so the key and the wall agree:
+     a Family swatch really is wider than a Small one. Height is fixed — on both walls
+     every class is the same height, which is itself worth showing. */
+  .szs{display:inline-block;height:11px;border-radius:2px;border:1px solid rgba(0,0,0,.5);
+    background:linear-gradient(118deg,rgba(255,255,255,.4) 0%,rgba(255,255,255,.05) 40%),
+      linear-gradient(180deg,#f0dcb0 0%,#d8bd85 55%,#b99e68 100%);flex-shrink:0;}
+  .szs.sz-small{width:11px;} .szs.sz-large{width:15px;}
+  .szs.sz-xlarge{width:17px;} .szs.sz-family{width:20px;}
+  .szn{display:block;opacity:.8;font-size:10.5px;margin-top:4px;font-style:normal;}
+
+  /* ── Section isolation ──
+     Operator, 2026-08-02: "When clicking on a section on the floor plan just show that
+     section, not the whole north wing." A plan click opens the section's AREA and then
+     hides every block in it but the one clicked; the bar is the way back. */
+  /* The bar is ALWAYS on an area view: "back to the floor plan" is the way out
+     whether or not a single section is isolated, and hiding it once you widened back
+     to the whole wing left you standing in a room with the door painted over. Only
+     the isolation-specific half of it comes and goes. */
+  .isobar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+    max-width:900px;margin:0 auto 4px;padding:7px 12px;border:1px solid var(--gb);border-radius:7px;
+    background:rgba(200,169,110,.09);}
+  .isobar .isotxt,.isobar .isoall{display:none;}
+  .wview.isolated .isobar .isotxt{display:inline;}
+  .wview.isolated .isobar .isoall{display:inline-block;}
+  .isotxt{font-size:12px;color:var(--cream);letter-spacing:.05em;}
+  .isob{background:rgba(200,169,110,.16);border:1px solid var(--gold-light);color:var(--gold-light);
+    padding:5px 11px;border-radius:5px;font-size:11.5px;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:all .15s;}
+  .isob:hover{background:rgba(200,169,110,.32);color:var(--cream);}
+  .isob:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .wview.isolated .bwrap{display:none;}
+  .wview.isolated .bwrap.iso{display:block;}
   .warn{max-width:1000px;margin:12px auto 0;background:rgba(200,120,60,.14);border:1px solid rgba(232,170,110,.55);
     border-radius:7px;padding:10px 14px;font-size:11px;color:#ffe2be;line-height:1.6;}
   .warn b{color:#ffd08a;}
@@ -1136,6 +1266,9 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
     /* On an area tab, print ONLY that area. */
     body.pv-one .wview{display:none!important;}
     body.pv-one .wview.active{display:block!important;break-before:avoid!important;}
+    /* An isolated section prints as that section, matching what is on screen. */
+    .wview.isolated .bwrap{display:none!important;}
+    .wview.isolated .bwrap.iso{display:block!important;}
     /* A highlighted unit narrows it further: only ITS area prints. These rules sit
        later, so they outrank the tab scope. */
     body.pv-sel .wview{display:none!important;}
@@ -1165,7 +1298,7 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
 
 // ── Runtime ───────────────────────────────────────────────────────────────────
 const BANK_AREA = JSON.stringify(Object.fromEntries(
-  BANKS.map((b) => [b.id, b.area]).concat([['RAD', 'niches'], ['SER', 'niches']])));
+  BANKS.map((b) => [b.id, b.area]).concat([['RAD', WALLS.RAD.area], ['SER', WALLS.SER.area]])));
 const BANK_LABEL = JSON.stringify(Object.fromEntries(
   BANKS.map((b) => [b.id, bankLabel(b)]).concat([['RAD', 'Radiance Niche Wall'], ['SER', 'Serenity Niche Wall']])));
 const AREA_LABEL = JSON.stringify(Object.fromEntries(AREAS.map((a) => [a.id, a.label])));
@@ -1411,13 +1544,13 @@ function head(id, sub, mis) {
     '<div class="cardmis">' + mis + '</div>';
 }
 
-var MIS_PRINTED = '${MIS.printed}';
+var SNAP_PRINTED = '${MIS.printed}';
 var ST_NOTE = {
-  occupied: 'Occupied \\u2014 an interment is recorded at this crypt in the MIS lot inquiry list printed ' + MIS_PRINTED + '. Not sellable. No pricing shown.',
-  reserved: 'Reserved \\u2014 held for an owner in MIS as of ' + MIS_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
-  blocked: 'Marked NOT FOR SALE in MIS \\u2014 this crypt is withheld from sale. No pricing shown.',
-  unlisted: 'Unavailable \\u2014 confirm in MIS. The crypt sheet marked it NOT SELLING and the MIS lot inquiry list does not carry it at all, so there is no positive statement that it is for sale. No pricing shown.',
-  unpriced: 'Not offered \\u2014 MIS lists this crypt as AVAILABLE on ' + MIS_PRINTED + ' but carries NO PRICE for it (the price and E.C.F. fields are both zero). A crypt is only on the market here when a price greater than zero is attached to it, so nothing is quoted and no total is shown. Confirm in MIS before offering it.'
+  occupied: 'Occupied \\u2014 an interment is recorded at this crypt in the cemetery inventory records printed ' + SNAP_PRINTED + '. Not sellable. No pricing shown.',
+  reserved: 'Reserved \\u2014 held for an owner in the cemetery inventory records as of ' + SNAP_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
+  blocked: 'Not for sale \\u2014 this crypt is withheld from sale. No pricing shown.',
+  unlisted: 'Unavailable \\u2014 ask us for current availability. The crypt sheet marked it NOT SELLING and the cemetery inventory records do not carry it at all, so there is no positive statement that it is for sale. No pricing shown.',
+  unpriced: 'Not offered \\u2014 The cemetery inventory records list this crypt as AVAILABLE on ' + SNAP_PRINTED + ' but carries NO PRICE for it (the price and E.C.F. fields are both zero). A crypt is only on the market here when a price greater than zero is attached to it, so nothing is quoted and no total is shown. Ask us for the current price before offering it.'
 };
 
 function cryptCard(d) {
@@ -1441,11 +1574,11 @@ function cryptCard(d) {
   var recOn = feeOn('rec-on'), ocOn = feeOn('oc-on');
   var price = d.price ? +d.price : null;
   if (price === null) {
-    h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">Confirm in MIS</span></div>';
+    h += '<div class="cr"><span class="cl">Crypt price</span><span class="cv">Ask us</span></div>';
     h += '<div class="cr"><span class="cl">E.C.F.</span><span class="cv">10% of price</span></div>';
     if (recOn) h += '<div class="cr"><span class="cl">Recording Fee</span><span class="cv">' + fm(REC) + '</span></div>';
     if (ocOn) h += '<div class="cr"><span class="cl">Entombment O&amp;C</span><span class="cv">' + fm(OC) + '</span></div>';
-    h += '<div class="cnote">MIS lists this crypt as AVAILABLE on ' + MIS_PRINTED + ' but carries no usable price for it \\u2014 read the figure from MIS before quoting. No total is shown here rather than a guessed one.</div>';
+    h += '<div class="cnote">The cemetery inventory records list this crypt as AVAILABLE on ' + SNAP_PRINTED + ' but carries no usable price for it \\u2014 ask us for the current price before quoting. No total is shown here rather than a guessed one.</div>';
     return h;
   }
   // The E.C.F. is 10% of the CRYPT PRICE and nothing else, so a fee toggle cannot move it.
@@ -1472,16 +1605,25 @@ function cryptCard(d) {
       ' \\u2014 switch ' + (!recOn && !ocOn ? 'them' : 'it') + ' on in the fee box below to add '
       + (!recOn && !ocOn ? fm(REC + OC) : fm(!recOn ? REC : OC)) + '.</div>';
   }
-  h += '<div class="cnote">MIS listed this crypt as AVAILABLE and priced it on ' + MIS_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are the QUOTE TOOL\\u2019s figures (operator, ' + MIS_PRINTED + '), not the crypt sheet\\u2019s. Always confirm status and price in MIS before writing.</div>';
+  h += '<div class="cnote">The cemetery inventory records listed this crypt as AVAILABLE and priced it on ' + SNAP_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are the QUOTE TOOL\\u2019s figures (operator, ' + SNAP_PRINTED + '), not the crypt sheet\\u2019s. Always confirm current status and price with us before writing.</div>';
   return h;
 }
 
+// The size class and its printed dimensions, on every niche card. Before 2026-08-02
+// only the two Family cells carried a size at all; now every front is measured, so the
+// card is where "which of the four is this one?" gets answered.
+function sizeRows(d) {
+  var h = '';
+  if (d.size) h += '<div class="cr"><span class="cl">Size</span><span class="cv">' + d.size + '</span></div>';
+  if (d.dims) h += '<div class="cr"><span class="cl">Dimensions</span><span class="cv">' + d.dims + '</span></div>';
+  return h;
+}
 function nicheCard(d) {
   var h = head(d.id, WALL_NAME[d.wall] + ' Niche Wall', d.ref);
   if (d.st !== 'available') {
     h += '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>';
-    if (d.size) h += '<div class="cr"><span class="cl">Size</span><span class="cv">' + d.size + '</span></div>';
-    h += '<div class="cnote">Unavailable \\u2014 confirm in MIS. No pricing shown.</div>';
+    h += sizeRows(d);
+    h += '<div class="cnote">Not available on the wall sheet \\u2014 ask us for today\\u2019s availability. No pricing shown.</div>';
     return h;
   }
   var price = +d.price, e = ecf(price), tot = price + e;
@@ -1490,7 +1632,7 @@ function nicheCard(d) {
   var oc = qty('noc-qty'), rc = qty('nrec-qty');
   if (oc > 0) { h += '<div class="cr"><span class="cl">O&amp;C \\u00d7' + oc + '</span><span class="cv">' + fm(N_OC * oc) + '</span></div>'; tot += N_OC * oc; }
   if (rc > 0) { h += '<div class="cr"><span class="cl">Recording \\u00d7' + rc + '</span><span class="cv">' + fm(N_REC * rc) + '</span></div>'; tot += N_REC * rc; }
-  if (d.size) h += '<div class="cr"><span class="cl">Size</span><span class="cv">' + d.size + '</span></div>';
+  h += sizeRows(d);
   h += '<div class="ctot"><span class="ctl">Est. Total</span><span class="ctv">' + fm(Math.round(tot)) + '</span></div>';
   h += '<div class="cnote">Two inurnments per niche. ECF is not included in the listed price. ${esc(NICHE_PRICES_EFFECTIVE)}.</div>';
   return h;
@@ -1498,7 +1640,7 @@ function nicheCard(d) {
 
 function readEl(el) {
   var d = {};
-  ['kind', 'bank', 'wall', 'id', 'ref', 'tier', 'cols', 'type', 'st', 'row', 'col', 'price', 'size'].forEach(function (k) {
+  ['kind', 'bank', 'wall', 'id', 'ref', 'tier', 'cols', 'type', 'st', 'row', 'col', 'price', 'size', 'dims'].forEach(function (k) {
     var v = el.getAttribute('data-' + k); if (v !== null) d[k] = v;
   });
   return d;
@@ -1616,8 +1758,9 @@ function hideCard() {
 
 document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
+  // A plan section opens ITS OWN block, not the whole wing it happens to sit in.
   var pb = ev.target.closest('.pbank');
-  if (pb) { showView(pb.getAttribute('data-area')); return; }
+  if (pb) { showView(pb.getAttribute('data-area'), pb.getAttribute('data-bank')); return; }
   var n = ev.target.closest('.c, .c3');
   if (n && n.hasAttribute('data-ref') && !n.closest('.mini')) { showCard(n, true); return; }
   // The fee quantity inputs must NOT close a pinned card — changing a quantity is
@@ -1631,7 +1774,7 @@ document.addEventListener('click', function (ev) {
 document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Escape') { hideCard(); return; }
   if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.classList && ev.target.classList.contains('pbank')) {
-    ev.preventDefault(); showView(ev.target.getAttribute('data-area'));
+    ev.preventDefault(); showView(ev.target.getAttribute('data-area'), ev.target.getAttribute('data-bank'));
   }
 });
 document.addEventListener('mouseover', function (ev) {
@@ -1663,7 +1806,22 @@ document.addEventListener('focusin', function (ev) {
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 var AREA_IDS = ${JSON.stringify(AREAS.map((a) => a.id))};
-function showView(v) {
+/**
+ * SECTION ISOLATION. Operator, 2026-08-02: "When clicking on a section on the floor
+ * plan just show that section, not the whole north wing (for example)."
+ *
+ * A section still lives inside its area view — that is where its grid, its rollup and
+ * its print rules already are — so isolating is a matter of showing ONE block of that
+ * view rather than building 19 more views. \`isolate\` names the bank or wall id;
+ * passing nothing clears it, which is what the tabs and the breadcrumb do.
+ */
+function clearIso() {
+  var v = document.querySelectorAll('.wview.isolated');
+  for (var i = 0; i < v.length; i++) v[i].classList.remove('isolated');
+  var b = document.querySelectorAll('.bwrap.iso');
+  for (var k = 0; k < b.length; k++) b[k].classList.remove('iso');
+}
+function showView(v, isolate) {
   var views = document.querySelectorAll('.wview, .view3d');
   for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
   var el = document.getElementById(v === '3d' ? 'view-3d' : 'area-' + v);
@@ -1671,12 +1829,29 @@ function showView(v) {
   var tabs = document.querySelectorAll('.tabs .tab');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-view') === v);
   document.body.classList.toggle('pv-one', AREA_IDS.indexOf(v) > -1);
+  clearIso();
+  if (el && isolate) {
+    var blk = el.querySelector('.bwrap[data-blk="' + isolate + '"]');
+    if (blk) {
+      blk.classList.add('iso');
+      el.classList.add('isolated');
+      var t = el.querySelector('.isotxt');
+      if (t) t.textContent = 'Showing ' + (BANK_LABEL[isolate] || isolate) + ' only';
+    }
+  }
   if (v === '3d') { fitScene(); if (pinned) setCallout(readEl(pinned)); }
   else setCallout(null);
   window.scrollTo(0, 0);
 }
 document.querySelectorAll('.tabs .tab').forEach(function (t) {
   t.addEventListener('click', function () { showView(t.getAttribute('data-view')); });
+});
+document.addEventListener('click', function (ev) {
+  var b = ev.target.closest('.isob');
+  if (!b) return;
+  if (b.getAttribute('data-iso') === 'plan') { showView('plan'); return; }
+  var wv = b.closest('.wview');
+  showView(wv ? wv.getAttribute('data-area') : 'plan');
 });
 
 // ── 3D camera + WALKTHROUGH ───────────────────────────────────────────────────
@@ -2309,12 +2484,12 @@ const N_NAVAIL = niches.filter((n) => n.st === 'available').length;
 const NICHE_VALUE = niches.filter((n) => n.p).reduce((s, n) => s + n.p, 0);
 
 const LEGEND = `<div class="legend">
-      <div class="li"><div class="ls lg-a"></div><span>Available in MIS</span></div>
+      <div class="li"><div class="ls lg-a"></div><span>Available</span></div>
       <div class="li"><div class="ls lg-r"></div><span>Reserved — held, no interment</span></div>
       <div class="li"><div class="ls lg-o"></div><span>Occupied — interment recorded</span></div>
       <div class="li"><div class="ls lg-x"></div><span>Not Selling</span></div>
-      <div class="li"><div class="ls lg-u"></div><span>Unavailable — confirm in MIS</span></div>
-      <div class="li"><div class="ls lg-u"></div><span>Not offered — no price in MIS</span></div>
+      <div class="li"><div class="ls lg-u"></div><span>Unavailable — ask us</span></div>
+      <div class="li"><div class="ls lg-u"></div><span>Not offered — no listed price</span></div>
       <div class="li"><div class="ls lg-v"></div><span>Empty area — no crypts</span></div>
     </div>`;
 
@@ -2399,7 +2574,7 @@ ${AREAS.map((a) => `      <button class="tbtn" data-viewbtn="${a.id}" title="${e
 ${scene3d()}
     <div class="hint"><b>Click anywhere on the floor</b> to walk there &nbsp;·&nbsp; <b>double-click a wall</b> to swing face-on to it &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it<br>
       <b>W A S D</b> walks &nbsp;·&nbsp; arrow keys look &nbsp;·&nbsp; <b>+ /&minus;</b> zoom &nbsp;·&nbsp; <b>R</b> resets the view &nbsp;·&nbsp; or type a reference such as <b>D-116</b> into <b>Find a crypt or niche</b>, up in the header</div>
-    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the MIS CAD floor plan and bank DEPTHS follow the crypt type (a tandem holds two caskets end to end); both niche walls' positions, facings, mounting and the stone each part of the building is finished in come from the 2026-07-29 walk-through video. Heights and the chapel furniture layout are still ESTIMATED. No dimensions are implied.</div>
+    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the cemetery CAD floor plan and bank DEPTHS follow the crypt type (a tandem holds two caskets end to end); both niche walls' positions, facings, mounting and the stone each part of the building is finished in come from the 2026-07-29 walk-through video. Heights and the chapel furniture layout are still ESTIMATED. No dimensions are implied.</div>
     ${LEGEND}
   </div>
 
@@ -2435,10 +2610,10 @@ ${overviewView()}
     <b>Tier G is the top row, tier A the bottom. Space numbers run 101–231 around the building.</b><br>
     A tandem or companion is ONE purchasable unit at one price and is never split.<br>
     ${N_AVAIL} crypt units available, ${money(AVAIL_VALUE)} listed &nbsp;·&nbsp;
-    ${N_NOPRICE} not offered (MIS available, no price) &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
-    ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — confirm in MIS &nbsp;·&nbsp;
+    ${N_NOPRICE} not offered (listed available, no price) &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
+    ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — ask us &nbsp;·&nbsp;
     ${N_NAVAIL} niches available, ${money(NICHE_VALUE)} listed &nbsp;·&nbsp; ${esc(NICHE_PRICES_EFFECTIVE)}<br>
-    Crypt availability comes from the MIS Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces) and crypt PRICES from the MIS crypt-price export of ${PRICES.exported} (${PRICES.rows} priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — always confirm current status and price in MIS before writing.
+    Crypt availability comes from the cemetery Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces) and crypt PRICES from the cemetery crypt-price export of ${PRICES.exported} (${PRICES.rows} priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — ask us for today&rsquo;s status and price before writing.
   </div>
 </div><!-- /main -->
 

@@ -42,8 +42,12 @@
  *
  * GEOMETRY IS ESTIMATED from the CAD plan and the operator's photographs — display
  * values for the 3D scene, not fabrication data. The page renders NO dimensions for
- * crypts. The niche-wall sheets DO print dimensions, so those appear as a per-wall
- * size-class legend.
+ * crypts.
+ *
+ * THE NICHE WALLS ARE THE EXCEPTION, AND SINCE 2026-08-02 THEY ARE MEASURED. Their
+ * sheets print real dimensions, and every niche now carries the size class it is drawn
+ * at — see RAD_ROW_CLASSES / SER_ROW_CLASSES below and scripts/measure_niche_sheets.mjs,
+ * which derives them from the sheet pixels. Both walls render at true relative widths.
  *
  * PII: the photographs and the walkthrough video show real occupant names on crypt
  * and niche fronts. Nothing derived from a name, plate, date or inscription appears
@@ -445,7 +449,10 @@ export const AREAS = [
   { id: 'island', label: 'Centre Island', sub: 'Free-standing block — banks 194-200, 220-231, 201-212, 213-219', stop: 'island-west' },
   { id: 'south', label: 'South Wall', sub: 'Banks 192-193, 185-191, 179-184, 173-178, 168-172', stop: 'south-wall' },
   { id: 'east', label: 'East Corridor & Entrance', sub: 'Banks 141-148, 149-153, 154-158, 159-167', stop: 'entrance-main' },
-  { id: 'niches', label: 'Niche Walls', sub: "Radiance (daylit alcove, north-west of the chapel) and Serenity (north hall, at the island’s north-east corner)", stop: 'radiance' },
+  // ONE ENTRY PER NICHE WALL (operator, 2026-08-02) — these two used to be a single
+  // "Niche Walls" area, so choosing Radiance always brought Serenity with it.
+  { id: 'rad', label: 'Radiance Niche Wall', sub: 'Glass-front columbarium in the daylit alcove north-west of the chapel', stop: 'radiance' },
+  { id: 'ser', label: 'Serenity Niche Wall', sub: "Glass-front columbarium in the north hall, at the island’s north-east corner", stop: 'serenity' },
 ];
 
 /**
@@ -666,14 +673,14 @@ export const STOPS = [
   { id: 'chapel', area: 'west', label: 'Chapel — Worship Space', sub: 'Seating, looking toward the altar', x: 166, z: 292, yaw: 0, pitch: -8, zoom: 1.3 },
   { id: 'altar', area: 'north', label: 'Altar', sub: 'North end of the worship space', x: 166, z: 150, yaw: 0, pitch: -3 },
   { id: 'west-wall', area: 'west', label: 'West Wall — 101-110', sub: 'Deluxe Companion and tandem crypts', x: 150, z: 262, yaw: -90, pitch: -5 },
-  { id: 'radiance', area: 'niches', label: 'Radiance Niche Wall', sub: "Daylit alcove at the chapel’s north-west corner", x: 58, z: 120, yaw: 180, pitch: -3 },
+  { id: 'radiance', area: 'rad', label: 'Radiance Niche Wall', sub: "Daylit alcove at the chapel’s north-west corner", x: 58, z: 120, yaw: 180, pitch: -3 },
   { id: 'north-wing', area: 'north', label: 'North Wing — 124-140', sub: 'Tandem crypts along the north hall', x: 360, z: 150, yaw: 0, pitch: -5 },
   { id: 'north-hidden', area: 'north', label: 'North Wing — 116-123', sub: 'Hidden Companions and Deluxe Companions', x: 174, z: 96, yaw: 0, pitch: -4 },
   { id: 'island-west', area: 'island', label: 'Island — West Face 194-200', sub: 'Faces the chapel', x: 198, z: 240, yaw: 90, pitch: -5 },
   { id: 'island-north', area: 'island', label: 'Island — North Face 220-231', sub: 'Deluxe Companions', x: 404, z: 130, yaw: 180, pitch: -5 },
   { id: 'island-south', area: 'island', label: 'Island — South Face 201-212', sub: 'Deluxe Companions', x: 404, z: 350, yaw: 0, pitch: -5 },
   { id: 'island-east', area: 'island', label: 'Island — East Face 213-219', sub: 'Faces the east passage', x: 600, z: 240, yaw: -90, pitch: -5 },
-  { id: 'serenity', area: 'niches', label: 'Serenity Niche Wall', sub: "North hall, capping the island’s north-east corner", x: 533, z: 118, yaw: 180, pitch: -3 },
+  { id: 'serenity', area: 'ser', label: 'Serenity Niche Wall', sub: "North hall, capping the island’s north-east corner", x: 533, z: 118, yaw: 180, pitch: -3 },
   { id: 'south-wall', area: 'south', label: 'South Wall — 185-193', sub: 'Tandem and single crypts', x: 240, z: 340, yaw: 180, pitch: -5 },
   { id: 'south-hidden', area: 'south', label: 'South Wall — 179-184', sub: 'Hidden Companions', x: 362, z: 396, yaw: 180, pitch: -5 },
   { id: 'south-east', area: 'south', label: 'South Wall — 173-178', sub: 'Tandem crypts', x: 470, z: 344, yaw: 180, pitch: -5 },
@@ -1485,17 +1492,76 @@ export const UNITS = [
   ['220-231', 'A', [231], 'single', 'reserved', null],
 ];
 
+/**
+ * ── NICHE SIZE CLASSES, MEASURED 2026-08-02 (sprint-11 Track A) ──────────────
+ *
+ * OPERATOR: "On both the 3D version and the floor plan the niches are not sized
+ * correctly — there are a few different sizes of glass front niches on each wall."
+ * He was right, and the reason was structural: the cell rows below carried price and
+ * row-span but NO size, so both the flat grid and the 3D wall drew every niche in one
+ * uniform column. The sizes are now per cell.
+ *
+ * DERIVED BY PIXEL MEASUREMENT, NOT BY EYE. `scripts/measure_niche_sheets.mjs` decodes
+ * the operator's two wall sheets (D:\Cemetery Photos Misc\Radiance and Serenity
+ * Niches\{Radiance,Serenity}.png — his files, deliberately NOT committed to a public
+ * repo), finds each row's own cell borders, and solves the drawn widths against the
+ * sheet's printed legend under the one constraint that makes it checkable: every row of
+ * a wall spans the same physical wall, so every row's classes must sum to the same
+ * number of inches. Re-run it to re-derive; never hand-edit the patterns.
+ *
+ * SERENITY is drawn to scale — 416 px = 88.5" at 4.70 px/inch, and the two drawn widths
+ * read back as exactly Large 22 1/8" and Small 11 1/16". Rows K/J/B/A are
+ * [L,S,S,S,S,L] = 88.5" and rows H-C are [L,L,L,L] = 88.5". (Director's spot check,
+ * confirmed rather than assumed.)
+ *
+ * RADIANCE is NOT drawn to scale: four legend classes but only three drawn widths, a
+ * 2:3:4 ratio on a 43 px spreadsheet-column unit, so a cell's class cannot be read off
+ * its width. The constant-row-width solve has exactly ONE answer over the four legend
+ * widths (the measurement script prints the whole candidate search):
+ *
+ *     rows K H F C A   S L S L L S L S   4 x 18 1/4" + 4 x 23"        = 165"
+ *     rows J G B       L S L S L S L S   same multiset, permuted      = 165"
+ *     rows E D         X F X X F X       4 x 26" + 2 x 30 1/2"        = 165"
+ *
+ * All four classes are used and every row lands on 165" to the inch. The 129 px drawn
+ * width therefore means Large (23") on an eight-cell row and X-Large (26") on the E/D
+ * row-pair — the sheet's column grid simply cannot separate those two.
+ *
+ * THE FAMILY DISCREPANCY, RECORDED AND NOT RESOLVED. The legend gives Family as
+ * 11 7/8" x 30 1/2" x 25 1/2": the same HEIGHT as every other Radiance class, and twice
+ * the DEPTH. The sheet nevertheless draws its two Family cells TWO ROWS TALL. Both
+ * cannot be true. This file models what the sheet DRAWS (two rows tall, widest on the
+ * wall) because that is the drawing the operator and the family both look at, and
+ * carries the legend's height and depth figures beside it unaltered. Nobody has invented
+ * a reconciliation; if MIS settles it, change `spanRows` or `h`, not both silently.
+ *
+ * PRICES ARE UNTOUCHED BY THIS PASS. The sheets print prices; those are stale and were
+ * not read (DESIGN §8, 2026-07-26: never price from a sheet). Only geometry was taken.
+ */
+
 // ── Radiance niche wall (RAD-1-1-ROW-SPACE) ───────────────────────────────────
 // Rows K (top) to A (bottom). Cells labelled -1- .. -8- on the sheet.
-// Only the two double-height cells (E/D columns 2 and 5) are unambiguously a size
-// class — they are the Family niches. Every other cell is legend-only.
 export const RAD_ROWS = ['K', 'J', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A'];
 export const RAD_SIZES = [
-  ['Family (2)', '11 7/8" x 30 1/2" x 25 1/2"'],
-  ['X-Large (2)', '11 7/8" x 26" x 12 3/4"'],
-  ['Large (2)', '11 7/8" x 23" x 12 3/4"'],
-  ['Small (2)', '11 7/8" x 18 1/4" x 12 3/4"'],
+  { k: 'family', label: 'Family (2)', dims: '11 7/8" x 30 1/2" x 25 1/2"', h: 11.875, w: 30.5, d: 25.5 },
+  { k: 'xlarge', label: 'X-Large (2)', dims: '11 7/8" x 26" x 12 3/4"', h: 11.875, w: 26, d: 12.75 },
+  { k: 'large', label: 'Large (2)', dims: '11 7/8" x 23" x 12 3/4"', h: 11.875, w: 23, d: 12.75 },
+  { k: 'small', label: 'Small (2)', dims: '11 7/8" x 18 1/4" x 12 3/4"', h: 11.875, w: 18.25, d: 12.75 },
 ];
+/**
+ * Class per COLUMN, per row — the three measured row shapes. A row's array is indexed by
+ * (column - 1) and covers every column that OCCUPIES the row, including the two Family
+ * cells that start in E and span into D, which is what makes the per-row width sum come
+ * out constant on both rows of the pair.
+ */
+const RAD_P1 = ['small', 'large', 'small', 'large', 'large', 'small', 'large', 'small'];
+const RAD_P2 = ['large', 'small', 'large', 'small', 'large', 'small', 'large', 'small'];
+const RAD_PE = ['xlarge', 'family', 'xlarge', 'xlarge', 'family', 'xlarge'];
+export const RAD_ROW_CLASSES = {
+  K: RAD_P1, J: RAD_P2, H: RAD_P1, G: RAD_P2, F: RAD_P1,
+  E: RAD_PE, D: RAD_PE,
+  C: RAD_P1, B: RAD_P2, A: RAD_P1,
+};
 // [row, col, price|null, spanRows|null]
 export const RAD_CELLS = [
   ['K', 1, 5495], ['K', 2, 7695], ['K', 3, 5495], ['K', 4, 7695], ['K', 5, 7695], ['K', 6, null], ['K', 7, 7695], ['K', 8, null],
@@ -1513,9 +1579,18 @@ export const RAD_CELLS = [
 // ── Serenity niche wall (SER-1-1-ROW-SPACE) ───────────────────────────────────
 export const SER_ROWS = ['K', 'J', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A'];
 export const SER_SIZES = [
-  ['Large (2)', '10 1/2" x 22 1/8" x 12 3/4"'],
-  ['Small (2)', '10 1/2" x 11 1/16" x 12 3/4"'],
+  { k: 'large', label: 'Large (2)', dims: '10 1/2" x 22 1/8" x 12 3/4"', h: 10.5, w: 22.125, d: 12.75 },
+  { k: 'small', label: 'Small (2)', dims: '10 1/2" x 11 1/16" x 12 3/4"', h: 10.5, w: 11.0625, d: 12.75 },
 ];
+// Two measured row shapes. A Small is exactly half a Large, which is why this wall IS
+// drawn to scale and why both shapes land on 88.5" without any solving.
+const SER_P6 = ['large', 'small', 'small', 'small', 'small', 'large'];
+const SER_P4 = ['large', 'large', 'large', 'large'];
+export const SER_ROW_CLASSES = {
+  K: SER_P6, J: SER_P6,
+  H: SER_P4, G: SER_P4, F: SER_P4, E: SER_P4, D: SER_P4, C: SER_P4,
+  B: SER_P6, A: SER_P6,
+};
 export const SER_CELLS = [
   ['K', 1, 4395], ['K', 2, null], ['K', 3, null], ['K', 4, null], ['K', 5, 2195], ['K', 6, null],
   ['J', 1, null], ['J', 2, null], ['J', 3, null], ['J', 4, 3850], ['J', 5, 3850], ['J', 6, 6595],
@@ -1604,20 +1679,87 @@ export const SER_CELLS = [
  * come from oblique hand-held frames and are corroborating only -- they were NOT used
  * to change any sheet grid.
  */
+/**
+ * ONE SELECTABLE AREA PER WALL, 2026-08-02 (sprint-11 Track A).
+ *
+ * OPERATOR: "For the Chapel of Memory have one niche wall selection for Radiance and
+ * one for Serenity. Right now it is just one niche walls [selection]."
+ *
+ * So `area` is now the wall's OWN area id (`rad` / `ser`) instead of a shared `niches`,
+ * and AREAS carries an entry for each. Everything that keys off an area — the printable
+ * list tabs, the 3D fly-to buttons, the breadcrumb, the ghosting, the print scope and
+ * the search index — follows from that one field, so nothing had to learn about niches
+ * specially. `homeArea` is unchanged and still says which part of the building a
+ * counselor physically walks to in order to stand in front of the wall, which is what
+ * keeps the wall solid (not ghosted) while you are standing there.
+ */
 export const WALLS = {
   RAD: {
     id: 'RAD', name: 'Radiance', prefix: 'RAD-1-1', rows: RAD_ROWS, cells: RAD_CELLS,
-    sizes: RAD_SIZES, cols: 8, area: 'niches', homeArea: 'west', stop: 'radiance',
+    sizes: RAD_SIZES, rowClasses: RAD_ROW_CLASSES,
+    cols: 8, area: 'rad', homeArea: 'west', stop: 'radiance',
     plan: { x: 6, y: 152, w: 104, h: 20 }, face: 'N', mount: 'recessed', surround: 'rose',
     note: "Daylit alcove at the chapel’s north-west corner: it stands on the north end of bank 101-110 and looks NORTH across the alcove to the arched windows in the west exterior wall.",
   },
   SER: {
     id: 'SER', name: 'Serenity', prefix: 'SER-1-1', rows: SER_ROWS, cells: SER_CELLS,
-    sizes: SER_SIZES, cols: 6, area: 'niches', homeArea: 'island', stop: 'serenity',
+    sizes: SER_SIZES, rowClasses: SER_ROW_CLASSES,
+    cols: 6, area: 'ser', homeArea: 'island', stop: 'serenity',
     plan: { x: 494, y: 146, w: 78, h: 20 }, face: 'N', mount: 'recessed', surround: 'rose',
     note: "North hall, capping the island’s north-east corner: its back sits on the island’s north line and it looks NORTH across the hall at bank 124-140.",
   },
 };
+
+/**
+ * Plan units per INCH of niche wall. The two walls are now drawn at their real relative
+ * widths — Radiance spans 165", Serenity 88.5", so Serenity is a little over half as
+ * wide, where before both were drawn as `cols x NCOLW` and Serenity came out 75% of
+ * Radiance because it happened to have 6 columns to Radiance's 8.
+ *
+ * The value keeps Radiance's rendered face at exactly the width it already had
+ * (165 x 0.63 = 103.95, against 8 x NCOLW = 104), so nothing in the north-west alcove
+ * moved; only Serenity narrowed, and it narrowed toward the truth. The walls' PLAN
+ * FOOTPRINTS are untouched — those are measured off the CAD and are not this scale's
+ * business; a recessed panel narrower than the wall it is set into is what the building
+ * actually looks like.
+ */
+export const NICHE_UPI = 0.63;
+
+/** The size class of one niche, straight off the measured row pattern. */
+export function nicheSize(wid, row, col) {
+  const w = WALLS[wid];
+  const k = (w.rowClasses[row] || [])[col - 1];
+  return w.sizes.find((s) => s.k === k) || null;
+}
+
+/** Total physical width of a wall, in inches. Constant across its rows by construction. */
+export function wallWidthIn(wid) {
+  const w = WALLS[wid];
+  return (w.rowClasses[w.rows[0]] || []).reduce((t, k) => t + w.sizes.find((s) => s.k === k).w, 0);
+}
+
+/**
+ * Every row's width in inches, counting each cell that OCCUPIES the row — including a
+ * Family cell that starts one row above. This is the invariant the size classes were
+ * solved against, so the gate re-checks it here rather than trusting the patterns.
+ */
+export function wallRowWidths(wid) {
+  const w = WALLS[wid];
+  return w.rows.map((r) => ({
+    row: r,
+    cells: (w.rowClasses[r] || []).length,
+    inches: (w.rowClasses[r] || []).reduce((t, k) => t + w.sizes.find((s) => s.k === k).w, 0),
+  }));
+}
+
+/** Left edge of a column, in inches from the wall's left end. */
+export function nicheLeftIn(wid, row, col) {
+  const w = WALLS[wid];
+  const pat = w.rowClasses[row] || [];
+  let x = 0;
+  for (let i = 0; i < col - 1; i++) x += w.sizes.find((s) => s.k === pat[i]).w;
+  return x;
+}
 
 // ── Derived helpers ───────────────────────────────────────────────────────────
 export const bankById = (id) => BANKS.find((b) => b.id === id);
@@ -1634,13 +1776,25 @@ export function cryptUnits() {
 
 export function wallNiches(wid) {
   const w = WALLS[wid];
-  return w.cells.map((c) => ({
-    wall: wid, row: c[0], col: c[1], p: c[2] == null ? null : c[2],
-    spanRows: c[3] || null,
-    st: c[2] == null ? 'unavailable' : 'available',
-    size: c[3] ? 'Family (2)' : null,
-    ref: `${w.prefix}-${c[0]}-${c[1]}`,
-  }));
+  const total = wallWidthIn(wid);
+  return w.cells.map((c) => {
+    const sz = nicheSize(wid, c[0], c[1]);
+    const left = nicheLeftIn(wid, c[0], c[1]);
+    return {
+      wall: wid, row: c[0], col: c[1], p: c[2] == null ? null : c[2],
+      spanRows: c[3] || null,
+      st: c[2] == null ? 'unavailable' : 'available',
+      // Size is now MEASURED per cell, not "Family or nothing" — see RAD_ROW_CLASSES.
+      sizeKey: sz ? sz.k : null,
+      size: sz ? sz.label : null,
+      dims: sz ? sz.dims : null,
+      wIn: sz ? sz.w : null,
+      // fractions of the wall's width, for drawing the cell at its true size
+      leftPct: +((left / total) * 100).toFixed(4),
+      widthPct: sz ? +((sz.w / total) * 100).toFixed(4) : null,
+      ref: `${w.prefix}-${c[0]}-${c[1]}`,
+    };
+  });
 }
 
 export function allNiches() {
