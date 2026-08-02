@@ -1995,6 +1995,71 @@ Gates: `verify_guide_pages.mjs` all page-shape checks passed; `verify_photo_firs
 
 ---
 
+### 2026-08-02 — THE TYPICAL BAND: a wide price range may no longer lead alone (sprint-11 Track D2)
+Branch `s11/guides-photo-first`, committed locally — **not pushed**.
+
+**Operator ruling, 2026-08-02**, on the all-glass-front span of $2,195–$82,500: *"a very
+wide price range — also give a median price range on the glass front niches."*
+
+**The glass-front typical band is $8,000–$16,000** — the middle 50% of the 193 glass-front
+niches currently for sale (Eternal Light 21, the Mountain View island 145, Radiance 17,
+Serenity 10). Per location: ECL $17,595–$29,695, MVC $8,000–$16,000, Radiance
+$7,695–$10,995, Serenity $3,850–$9,895. Granite fronts are a different product and are
+out of the population.
+
+**The method lives once, in `scripts/_typical_band.mjs`,** so the two verifiers cannot
+compute the same band two different ways. **Nearest-rank, deliberately** — both endpoints
+are prices a real available niche carries. Linear interpolation is equally defensible and
+would have printed $3,986 and $7,145 for the Serenity and Radiance+Serenity populations,
+figures no niche in the park is priced at, on a page a family buys from.
+
+**On-page pattern.** The band leads with plain wording — "Most niches here" — and the full
+span becomes a quiet secondary line: "Full range currently available $10,995–$82,500".
+Applied to the four plan cards and the at-a-glance table of `glass-front-niches-guide.html`,
+the three glass-front photo-first cards of `urn-placement-guide.html`, and the columbarium
+card of `cemetery-property-guide.html`. **No percentile / quartile / median jargon reaches a
+page** — a gate asserts that on the rendered text.
+
+**Rules, all enforced and all computed rather than listed:**
+
+- Every `data-typical="<key>"` is recomputed from the live module and compared
+  string-for-string, exactly as `data-range` already was.
+- An unknown `data-typical` key **fails** — a band nobody can recompute looks authoritative
+  and is not.
+- A band must be **tighter** than the span it leads, and must appear **before** it in the
+  source. Which number a family reads first is the whole point of the ruling.
+- A range wider than **4x** must carry a band — **unless its own middle 50% would not narrow
+  it by half.** That exempts `tgmp` (nine path placements, $8,000–$52,000, middle 50%
+  $8,000–$42,000): same floor, 5.3x instead of 6.5x. Printing that under "Most of these"
+  would put a second near-identical range on the card and tell a family nothing. Both
+  conditions come off the modules, so there is no per-key allow-list to rot.
+
+**`data-typical` had to join `data-range` in `suppressChips`'s skip list.** The band sits on
+a `.plan-price` element, which is a chip class, so without the change all four bands were
+stripped from the **printed** guide and the leave-behind kept only the wide span — the exact
+complaint, printed. Measured: 4 chips suppressed before the fix, 0 after.
+
+**The glass guide went to 4 pages with a stranded 9-line sheet.** The closing note's recital
+of $875 / $235 / 10% — already in the fee tables directly above it — was cut and the
+section-6 lead tightened. Back to 3 pages. All nineteen guide PDFs were rebuilt, because
+`guide-print.css` is a shared source hash in `pdf-assets/.build-manifest.json` and a
+manifest recording the new CSS over seventeen PDFs built against the old one is a green
+staleness gate over stale files.
+
+**Sabotage, both directions.** Hand-typing a band on the page fails:
+`FAIL data-typical="ser": page prints "$3,900–$9,900", module says "$3,850–$9,895"`. And
+changing ONE price in the module — Serenity J-4, $3,850 → $15,000 — moves the band while
+leaving the full range untouched: `ok data-range="ser" $2,195–$16,495` beside
+`FAIL data-typical="ser": page prints "$3,850–$9,895", module says "$4,395–$9,895"`. That
+pair is the proof the band is independently recomputed and not derived from min/max.
+
+Gates: `npm run check` `index.html: 8 blocks, 0 errors`; `npm test` `1536 passed, 0 failed
+across 31 suites`; `verify_photo_first` 13 cards; `verify_guide_pages` all page-shape checks
+passed; `verify_guides_page` ALL OK; `verify_glass_niche_ranges` and
+`verify_granite_niche_ranges` reconcile. Renders under `scratch/s11d2-renders/`.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
