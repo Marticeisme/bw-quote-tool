@@ -21,6 +21,48 @@ catalog publishes like other catalogs; walkthrough constrain+keep; never render
 push is an explicit close-gate ask. Waves: A+D → B+E → C+F; merge order
 A→D→B→E→C→F. See `sprints/sprint-11/SPRINT.md`.
 
+**Track A MERGED (director-audited, `884471d`):** COM niche walls. Size classes
+PIXEL-MEASURED from the operator's two wall sheets by new
+`scripts/measure_niche_sheets.mjs` — Serenity is drawn to scale (rows K/J/B/A =
+[L,S,S,S,S,L], H–C = [L,L,L,L], every row 88.5"); Radiance is NOT to scale, solved
+uniquely by constant-row-width over the four legend widths (rows K/H/F/C/A =
+S L S L L S L S; J/G/B = the permutation; E/D = X F X X F X; every row 165").
+**Director PHOTO-CORROBORATED both walls at the operator's request** (Chapel of
+Memories 20260729_124445.jpg = Radiance: column-1 widths alternate exactly as
+assigned, E-2 Family is a real double-height compartment; the 20240404 photos =
+Serenity). FAMILY DISCREPANCY open: legend says same height/double depth, sheet
+draws two rows tall — modeled as drawn, needs an inventory-system answer. RAD/SER
+are separate selections; floor-plan section click isolates that section (all 19);
+COM "MIS" sweep done (8 tokens remain, all in comments). Positional size checksums
+RAD 592888 / SER 225852 guard the permutation blindspot; 13 sabotages proven both
+directions; director re-ran gate + his own K/J-swap sabotage (exit 1) + rebuild
+byte-identical. Anchors held: 122 niches / 27 avail / RAD $156,115 / SER $76,960 /
+781 crypt units. Suite 1536/31 in worktree (documented env number), 1538/31 on main
+post-merge. OPEN operator eyes: unpriced-niche chip now reads "CONFIRM" (ask-us
+wording on the card); Serenity 3D labels crowd at fly-to zoom (truthful — LOD floor
+raise available). Track A also filed a chip: tests/test-august-promo.mjs hardcodes
+port 3737 (only suite skipping _base.mjs; fails in any worktree on a foreign port).
+
+**Track D MERGED (director-audited, `e58ad6c`-ish; PDFs rebuilt on main's bytes in
+`688c51b`):** covers OFF all 19 guide PDFs (generator no longer emits them; cap
+re-based to 6 TOTAL pages; verify_guide_pages' cover gate INVERTED to
+no-full-bleed-page + stranded-sheet gate now measures page 1, closing an Infinity
+hole); MIS sweep — zero rendered "MIS" across 25 surfaces (19 guides + guides.html
++ 5 maps via data modules/builders, anchors unmoved, new `_no_mis_assert.mjs` wired
+into all five map gates, 3 sabotages); photo-first wave 1 on urn-placement +
+cemetery-property (+ photo/prose work on granite-niches + glass-front) with new
+`verify_photo_first.mjs` (recomputes every printed range from live modules; wired
+into the push hook additively). Every guide lost exactly one page. Template
+documented in BRAND_AND_BUILD_LOG before §5. Director re-ran all verifiers on
+merged main; the staleness gate fired cross-tree (worktree-built PDF hashes vs
+main's checkout bytes — same as s10 close) and the director rebuilt all 19 PDFs on
+main's bytes (`688c51b`), then ALL green: photo-first 13 cards, guide pages,
+guides page, catalogs, COM/GOMN/ECL gates PASS. OPEN operator eyes: the Cemetery
+Property Guide's all-columbariums range prints $2,195–$82,500 (honest, computed —
+split it?); photo gaps recorded (lawn crypts, scattering gardens folder EMPTY,
+ground-burial scene, veterans); masthead logo stays print-hidden (costs pages).
+Wave 2 SPAWNED: B (marker guides, s11b worktree) + E (PCM catalog, s11e).
+
 **Guide-PDF A+ system PUSHED LIVE 2026-08-01/02 (session close).** Track P3 audited all
 26 PDF-linked artifacts (verdict: prints of web pages — no covers, no folios, stranded
 blank sheets, 0.00–0.40" margins, THREE identities, and six guides shipping
