@@ -79,7 +79,7 @@ const PDF_PAGES = [
 // The 4-page cap, asserted on the built artifact. Product catalogs (caskets, urns,
 // keepsakes, cremation containers, the GPL, marker sizes) are deliberately NOT here:
 // a catalog is as long as its catalog.
-const GUIDE_MAX_PAGES = 4;
+const GUIDE_MAX_PAGES = 5; // operator 2026-08-01: six pages TOTAL per guide, cover included (was 4 interior/5 total)
 const CAPPED_GUIDES = [
   'Granite Marker Guide.pdf', 'Cremation Guide.pdf', 'Veterans Guide.pdf',
   'Who Decides.pdf', 'Burial Vault Guide.pdf', 'Terramation Guide.pdf',
