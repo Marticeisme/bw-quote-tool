@@ -63,6 +63,41 @@ split it?); photo gaps recorded (lawn crypts, scattering gardens folder EMPTY,
 ground-burial scene, veterans); masthead logo stays print-hidden (costs pages).
 Wave 2 SPAWNED: B (marker guides, s11b worktree) + E (PCM catalog, s11e).
 
+**Track B MERGED (director-audited, clean merge):** ONE markers-guide.html generates
+TWO PDFs via `?part=sizes|photos` (`data-print-part` + the guide's own print CSS —
+deliberately not two HTML files, so the eighteen prices exist once): "Granite Marker
+Sizes and Colors" 3pp (all-in totals INSIDE each to-scale marker at 4.6px/inch:
+`(stone_with_standard_engraving + setting) × 1.104`, exactly the tool's quote line,
+composition footnoted on the PDF) + "Marker Photos and Etching" 5pp (portraits,
+diamond/laser etch, true-size photo outlines restored to print after the s07 hide).
+Old Granite Marker Guide.pdf deleted, manifest 26 jobs, `?part=` stripped before
+manifest recording (else the staleness gate silently stops watching the guide).
+78-assert test-marker-guide-prices sabotage-proven to the cent. Suite 1594/31 in
+worktree, **1596/31 on main post-merge** (the new contract number). OPEN operator:
+Design Inspiration lives in the SIZES pdf (filled an empty page); both PDFs' running
+header still reads "Granite Marker Guide" (per-part header = print-system change);
+photos-p5 heart outline page is the weakest layout.
+
+**Track D2 MERGED (director-audited, `8c389c1`):** typical bands. Glass-front
+"most niches" band = middle 50% nearest-rank of AVAILABLE glass prices, computed by
+new shared `scripts/_typical_band.mjs` (both verifiers import the one method;
+endpoints are always real niche prices — interpolation rejected because it prints
+figures no niche carries): glass aggregate **$8,000–$16,000** over 193 (ECL 21 avail
+/ MVC 145 openings — the page's existing population definition / RAD 17 / SER 10);
+cemetery-property columbarium card leads with the ALL-niches band **$9,895–$14,000**
+(554) because that card spans granite too — glass band leads the glass guide §6.
+Full spans demoted to secondary lines; "percentile" never rendered; TGMP exempted by
+computed rule (its middle 50% is nearly its span). Sabotage proven both directions
+incl. a module-price change that moves the band but NOT the min/max. guide-price-rule
+suppressChips taught data-typical (without it print stripped all four bands — found
+by render). Merge conflicted across all 19 PDFs + manifest + build log (both sides
+rebuilt); director resolved by keeping both log entries, dropping the replaced marker
+PDF + its manifest job, REBUILDING all PDFs on merged bytes inside the merge commit;
+all guide verifiers re-run green. D2 notes: one unreproducible 17-suite Playwright
+launch failure (flagged, two clean runs after); build log's "14 cards" claim was
+already wrong at HEAD~ (13). OPEN operator eyes: the trimmed glass-guide closing
+footnote and "Most niches $9,895–$14,000" wording on the cemetery-property card.
+
 **Guide-PDF A+ system PUSHED LIVE 2026-08-01/02 (session close).** Track P3 audited all
 26 PDF-linked artifacts (verdict: prints of web pages — no covers, no folios, stranded
 blank sheets, 0.00–0.40" margins, THREE identities, and six guides shipping
