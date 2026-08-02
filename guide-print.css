@@ -123,6 +123,45 @@
   .cover-rule { background: #c8540a !important; }
   .cover-footer, .cover-stripe { display: none !important; }
 
+  /* ── 3b. PHOTO-FIRST PRODUCT CARDS (sprint-11 Track D) ─────────────────────────
+     One card = a PHOTO, a name, one or two plain sentences, and a price RANGE. The
+     screen half of this component is injected into each adopting guide inside a marked
+     BW:PHOTO-FIRST-CSS block; the print half lives here, once, so nineteen guides cannot
+     drift into nineteen slightly different printed cards the way their condense blocks
+     already did.
+
+     The photo is the point of the component, so it does NOT shrink to a thumbnail in
+     print — it goes to 16:9 (shorter than the screen's 4:3, because a printed page is
+     the scarce thing) and keeps its full column width. Everything around it condenses.
+
+     `print-color-adjust:exact` is on the card, not the image: without it the card's
+     border and the hairline above the price drop out on a colour-managed printer, and
+     the price ends up floating under the text with nothing tying it to the card. */
+  .pf-grid { display: block; margin-bottom: 6px; }
+  .pf-card {
+    break-inside: avoid; page-break-inside: avoid;
+    margin: 0 0 7px; border-radius: 6px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .pf-photo { aspect-ratio: 16 / 9; }
+  /* Block, not flex. On screen the body is a flex column so `margin-top:auto` pins the
+     price to the bottom and cards in a row line up; in a printed COLUMN there is no row
+     to line up with, and the same rule stretched the last card of a column and left an
+     inch of white between its text and its price. */
+  .pf-body { display: block; padding: 6px 8px 7px; }
+  .pf-card h3 { font-size: 10.5pt; margin-bottom: 0; }
+  .pf-kind { font-size: 6.5pt; margin-bottom: 3px; }
+  .pf-card p { font-size: 8pt; line-height: 1.34; margin: 0 0 5px; }
+  /* The price STACKS in print. Side by side it fits on screen at 480px of card, and it
+     does not fit in a 3.3in print column: the label wrapped onto three lines and the
+     range — the one figure the operator asked to be unmissable — was clipped mid-number
+     against the column edge. Four of the six cards printed "$7,000–$48,00". Found by
+     rasterising the PDF and reading it, not by any assertion. */
+  .pf-price { display: block; margin-top: 0; padding-top: 4px; }
+  .pf-price-label { display: block; font-size: 6pt; margin-bottom: 1px; }
+  .pf-range { display: block; font-size: 11.5pt; }
+  .pf-ask .pf-range { font-size: 8pt; font-style: italic; text-align: left; }
+
   /* ── 4. WIDOW / ORPHAN CONTROL ────────────────────────────────────────────────
      P3's audit found callouts split across the page break in eight guides. The guides'
      own print CSS covered some boxes and not others; this covers every box class that
@@ -132,7 +171,7 @@
   .location-card, .size-card, .plan-card, .uv-card, .charge-list, .timeline-step,
   .faq, .answer, .cta, .band, .figure, .tsg-section, .price-table, .footnote,
   .benefit-row, .plan-row, .section-header, figure, table, tr,
-  .print-invite {
+  .pf-card, .print-invite {
     break-inside: avoid; page-break-inside: avoid;
   }
   h2, h3, h4, .section-kicker, .section-sub, .section-rule {

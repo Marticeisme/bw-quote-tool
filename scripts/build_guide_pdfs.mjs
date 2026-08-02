@@ -68,8 +68,19 @@ function shrink(file) {
     '-sColorConversionStrategy=LeaveColorUnchanged',
     '-dNOPAUSE', '-dBATCH', `-sOutputFile=${tmp}`, file,
   ], { stdio: 'ignore' });
-  if (fs.existsSync(tmp) && fs.statSync(tmp).size > 1024) { fs.renameSync(tmp, file); return true; }
-  if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+  // Keep the rewrite only if it is actually SMALLER. Ghostscript re-encodes every image
+  // even when it is already under the target resolution, and on a photo-heavy page that
+  // costs size instead of saving it: Cemetery Property Guide went 1,937 KB in and came
+  // out 2,248 KB, and the old test — "the temp file exists and is over 1 KB" — accepted
+  // it. The point of this step is a smaller email attachment; a step that makes the file
+  // bigger has failed, however successfully it ran.
+  if (fs.existsSync(tmp)) {
+    if (fs.statSync(tmp).size > 1024 && fs.statSync(tmp).size < fs.statSync(file).size) {
+      fs.renameSync(tmp, file);
+      return true;
+    }
+    fs.unlinkSync(tmp);
+  }
   return false;
 }
 

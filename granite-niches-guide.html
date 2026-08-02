@@ -221,8 +221,23 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .price-table td{padding:3px 6px;font-size:7.5pt}
   .price-table .size-note{font-size:6.5pt}
 
-  /* The photography is the screen page's hero art, not the leave-behind's. */
-  .figure,.figure-pair{display:none!important}
+  /* THE PHOTOGRAPHY PRINTS.  This rule used to read
+       .figure,.figure-pair{display:none!important}
+     with the comment "the photography is the screen page's hero art, not the
+     leave-behind's" — so the emailed PDF, which is what a family actually reads, was
+     three walls of prose and a price with no picture of anything. Operator, 2026-08-02:
+     "When it comes to property they would be interested in purchasing, photos are key.
+     They want to SEE what they would be buying and then be given a price range of it.
+     They don't want to read how much it is and then not come away with an idea of what
+     it looks like."  So the figures print, capped in height so the guide holds its
+     two-page requirement (verify_guide_pages.mjs TIGHT_CAPS). */
+  .figure{display:block!important;margin:0 0 6px}
+  .figure img{max-height:1.25in;object-fit:cover;border-radius:4px}
+  .figure figcaption{font-size:6.6pt;line-height:1.3;margin-top:2px}
+  .figure-tall{float:none!important;max-width:none!important;margin:0 0 6px!important}
+  .figure-pair{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+  .figure-pair img{max-height:0.95in;object-fit:cover;border-radius:4px}
+  .figure-pair figcaption{font-size:6.4pt;line-height:1.28;margin-top:2px}
   .maplink{font-size:7.5pt;border-bottom:none;font-weight:700}
   /* `.prose .footnote` (0,2,0) out-ranks `.prose p` (0,1,1), so the screen's 13px
      survived into print and the footnotes set larger than the body copy. */
@@ -310,11 +325,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </figure>
 
     <div class="prose">
-      <p><strong>A niche is a compartment built to hold cremated remains</strong> inside a permanent memorial structure &mdash; a columbarium, or a garden wall. The urn is placed inside and the niche is closed with a front panel. That panel is what you and your family see and touch when you visit.</p>
-      <p><strong>&ldquo;Granite front&rdquo; describes the closure.</strong> At the three places in this guide the front is stone: the contents are not visible, and the name, dates and any inscription are engraved into the granite or carried on a bronze plate fixed to it. Families who choose a granite front usually do so for that reason &mdash; the wall reads as one uniform stone face rather than as a row of individual displays.</p>
-      <p><strong>Washington Memorial Park also has glass-front niches</strong>, where the urn itself is visible behind glass, at the Mountain View Columbarium and the Eternal Light Columbarium. Neither is covered here; each has its own live map (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>).</p>
-      <p><strong>What a niche gives a family.</strong> A permanent address to come back to, cared for by the cemetery. No ground burial and no grave to open. And, at two of the three locations here, room for a couple in one niche &mdash; see the next paragraph.</p>
-      <p><strong>Rights of interment.</strong> A right of interment is permission to place one person&rsquo;s cremated remains in that niche. <strong>Every Rock of Ages niche and every Terrace Garden niche includes two</strong>; Garden of Meditation niches are sold as companions and also carry two. Two rights means two people may be placed in the same niche &mdash; usually a husband and wife &mdash; on one contract.</p>
+      <p><strong>A niche is a compartment for cremated remains</strong> inside a permanent memorial structure. The urn goes in and the niche is closed with a stone front &mdash; that front is what you and your family see and touch when you visit.</p>
+      <p><strong>&ldquo;Granite front&rdquo; means the closure is stone.</strong> The contents are not visible; the name, dates and any inscription are engraved into the granite or carried on a bronze plate. The wall reads as one uniform stone face rather than a row of individual displays.</p>
+      <p><strong>Two rights of interment come with the niche</strong> at all three places here &mdash; two people, usually a husband and wife, on one contract. It is a permanent address, cared for by the cemetery, with no ground burial and no grave to open.</p>
+      <p><strong>If you want the urn to be visible</strong>, that is a glass front, at the Mountain View and Eternal Light columbariums. Neither is covered here &mdash; see the <a class="maplink" href="glass-front-niches-guide.html">Glass-Front Niche Guide</a>, or the live maps (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>).</p>
       <p class="footnote">Prices in this guide come from Bonney Watson&rsquo;s current price sheets for each location and are quoted as ranges, because within one wall the price depends on the row and the face. Your family service director will confirm the exact price and the current availability of any space before anything is written down. Prices are subject to change without notice.</p>
     </div>
   </div>

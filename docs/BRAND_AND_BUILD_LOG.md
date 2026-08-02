@@ -1891,6 +1891,110 @@ reconcile; `verify_guide_pages.mjs` + `verify_guides_page.mjs` green; `npm run c
 
 ---
 
+### 2026-08-02 — Covers off, MIS never named, and the PHOTO-FIRST CARD template (sprint-11 Track D)
+Branch `s11/guides-photo-first`, committed locally — **not pushed**.
+
+**Three operator rulings of 2026-08-02 drove all of it**, near-verbatim:
+
+- *"I don't like the idea of a cover page and I don't like any of the PDF versions right now."*
+- *"Families don't want to be reading paragraphs... they prefer stuff emailed to them to be explained concisely and plainly."*
+- *"When it comes to property they would be interested in purchasing, **photos are key**. They want to SEE what they would be buying and then be given a price range of it. They don't want to read how much it is and then not come away with an idea of what it looks like."*
+- *"**Never mention the word MIS** on any guide to a family or any live niche maps etc — that information does not need to be disclosed to families."*
+
+**1. The s10 cover is gone from all nineteen guides.** `scripts/build_guide_print_system.mjs`
+no longer emits cover markup, and because the block it writes is marked and rewritten in
+full on every run, re-running the generator is also what deleted the covers already in the
+files. `guide-print.css` lost `@page:first{margin:0}` and the whole `.print-cover` section,
+so page 1 is content and carries the same margins and running footer as every other page.
+Every guide lost exactly one page. The rest of the s10 system stands: running footer, real
+margins, range-only pricing rule. `verify_guide_pages.mjs` now asserts the INVERSE of its
+old gate — **no page of any guide PDF is full-bleed** — so a cover cannot come back
+unnoticed, and the page budget is counted in TOTAL pages again (cap 6, the only unit the
+operator ever stated it in).
+
+The masthead keeps s10's cream plate and its hidden logo. Restoring the logo was tried (a
+print-only `content:url("logo-navy.svg")` swap) and reverted: measured, it cost Glass-Front
+Niche a 4th page and Urn Gardens a 2nd, and the page already carries the mark in the
+kicker, the `@top-right` box and the footer.
+
+**2. MIS is never named on a family-facing surface.** Rendered occurrences before → after:
+granite-niches 8→0, glass-front-niches 3→0, GOMN 22→0, ROAC 8→0, MVC 6→0, TGMP 5→0, ECL
+4→0. The maps are generated, so every edit is in a data module or a builder. **Wording
+only — no inventory, status or price anchor moved.** New `scripts/_no_mis_assert.mjs` is
+wired into all five map gates: it strips comments and then looks for the word, so
+provenance notes in the source keep it (they are how the next person knows where a price
+came from) while nothing rendered can. ECL, ROAC and GOMN each gained a sabotage entry
+that puts a rendered "MIS" back; all three exit 1.
+
+**3. THE PHOTO-FIRST CARD — the template the next guides should follow.**
+
+One card is a **photograph**, a name, a one-line kind, **one or two plain sentences**, and
+a **price range**. Never a paragraph, never a bullet list of features nobody asked for.
+
+```html
+<div class="pf-card">
+  <div class="pf-photo"><img src="…" alt="…" loading="lazy"></div>
+  <div class="pf-body">
+    <h3>Garden of Meditation</h3>
+    <div class="pf-kind">Outdoor &middot; granite front</div>
+    <p>One or two plain sentences. Nothing a counselor would say in person anyway.</p>
+    <div class="pf-price">
+      <span class="pf-price-label">Niche price range</span>
+      <span class="pf-range" data-range="gomn">$5,995&ndash;$8,995</span>
+    </div>
+  </div>
+</div>
+```
+
+Rules, all of them enforced by `scripts/verify_photo_first.mjs`:
+
+- **The screen CSS is injected per guide** inside a `BW:PHOTO-FIRST-CSS` marked block, and
+  it must sit **BEFORE** the generated `<link href="guide-print.css">`. Its rules are
+  unconditional, so a copy after the print sheet overrides the print sheet's own
+  `@media print` rules at equal specificity — that shipped once and the printed price
+  ranges stayed clipped mid-number after the fix meant to unclip them.
+- **The print CSS lives once in `guide-print.css` §3b**, never per guide. In print the
+  price block STACKS (label over range): side by side it fits on screen and does not fit in
+  a 3.3in print column, and four of six cards printed `$7,000–$48,00`.
+- **The range is computed, never typed.** `data-range="<key>"` / `data-price="<key>"` is
+  recomputed from the live data module and compared string-for-string. It also exempts the
+  figure from the print pricing rule, which suppresses exact per-item chips but keeps ranges.
+- **Where no verified source exists, the card says so** — `pf-ask` renders "Ask us for
+  today's figures". Inventing a plausible range is the exact failure the range verifiers
+  exist to prevent.
+- **Budget: 2 sentences and 240 characters** per description, both asserted.
+- Every `<img>` must exist on disk and carry real alt text.
+
+Wave 1: `urn-placement-guide.html` and `cemetery-property-guide.html` rebuilt on the
+template (14 cards); `granite-niches-guide.html` had `.figure,.figure-pair{display:none}`
+in its print CSS with the comment *"the photography is the screen page's hero art, not the
+leave-behind's"* — so the emailed PDF was three walls of prose and a price with no picture
+of anything. The figures now print, height-capped, and section 1's prose was cut from six
+paragraphs to four so the guide holds its 2-page requirement.
+`glass-front-niches-guide.html` and `urn-gardens-guide.html` were audited against the
+template and already satisfied it.
+
+Two new photographs at `property-images/` (880x660, q72), cropped from
+`D:\Cemetery Photos Misc\`: ground-burial-space and mausoleum-crypt-fronts.
+**Lawn crypts get no photo** and are a text line instead: at the surface a lawn crypt looks
+like any other lawn space, and the crypt-plaza shot first used for it read as a mausoleum
+floor. A mislabelled photograph is worse than none on a page a family buys from.
+Legible memorial plate names are fine per the operator's relaxed
+photo rule; no living people are in frame. **`Traditional Cemetery Options\` is unusable** —
+it is photographs of a printed brochure, and one frame carries a real recipient's mailing
+address.
+
+**Ghostscript was making photo-heavy PDFs BIGGER** and `shrink()` kept the result anyway
+(its test was "the temp file exists and is over 1 KB"). Cemetery Property went 1,937 KB in
+and 2,248 KB out. It now keeps the rewrite only if it is actually smaller.
+
+Gates: `verify_guide_pages.mjs` all page-shape checks passed; `verify_photo_first.mjs`
+14 cards; the three range verifiers reconcile; all five map gates PASS 0 mismatches with
+`--sabotage` green; `verify_guides_page` ALL OK; `verify_print_header` 25 pages, 0 over cap;
+`verify_catalogs` ALL PAGES OK; `npm run check` `index.html: 8 blocks, 0 errors`.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
