@@ -28,6 +28,7 @@ import {
   BANK_FIELD_W, BANK_FIELD_H, BANK_W, BANK_H, INNER_Z, PLANTER, PLANTERS,
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
+import { movementRuntime } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'TGMP_Map.html');
@@ -69,8 +70,15 @@ function mass(cx, cz, w, d, h, cls, { btn = null, label = '', topCls = '' } = {}
 // rotateX(+90), not -90: a ground plate turned the other way shows the camera its BACK
 // face, and any text on it comes out mirrored — which is exactly how the old MEMORIAL
 // PATH label printed in the overhead view.
+// The ground plates are also the CLICK TARGETS for walk-to (see floorPoint in the page
+// runtime): data-fx / data-fz record where the plate's centre sits in stage pixels, and
+// offsetX/offsetY give the offset inside the element's OWN untransformed box even under
+// a 3D transform — which is the whole trick, no ray casting. Under rotateX(+90deg)
+// local +y maps to world +z; the COM floor is laid at -90 and needs the opposite sign,
+// so the Playwright check clicks a known quarter of the terrace and asserts which
+// quarter of the plan it lands on. That sign is the one thing here easy to get wrong.
 function slab(cx, cz, w, d, yStage, cls, body = '') {
-  return `      <div class="${cls}" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(yStage))}px,${px(cz)}px) rotateX(90deg)">${body}</div>`;
+  return `      <div class="${cls}" data-fx="${px(cx)}" data-fz="${px(cz)}" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(yStage))}px,${px(cz)}px) rotateX(90deg)">${body}</div>`;
 }
 
 /** The same, round: the flagstone-and-cobble turn-around at the end of the walk. */
@@ -241,6 +249,7 @@ ${kerb3d()}
 ${planters3d()}
 ${bank3d()}
 ${TGMP_ITEMS.map(item3d).join('\n')}
+      <div class="reticle" id="reticle" aria-hidden="true"></div>
     </div>
   </div>
 </div>`;
@@ -501,6 +510,18 @@ ${TIER_CSS}
   .n3:hover,.o3:hover{filter:brightness(1.14) saturate(1.08);z-index:30;}
   .n3:hover{transform:scale(1.2);}
   .scene.dragging .n3:hover,.scene.dragging .o3:hover{transform:none!important;filter:none!important;}
+  /* ── Walk-anywhere reticle, the COM page's pattern. The terrace has real ground, so
+     clicking a point on it brings that point to the middle of the frame. Street View
+     puts a marker on the ground under the pointer; this is the same idea drawn on the
+     paving itself, so it sits in the garden rather than floating over it. ── */
+  .reticle{position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;pointer-events:none;
+    border-radius:50%;border:2px solid rgba(255,255,255,.85);background:rgba(200,169,110,.22);
+    box-shadow:0 0 14px rgba(255,255,255,.35);opacity:0;transition:opacity .12s;}
+  .reticle::after{content:'';position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;
+    border-radius:50%;background:#fff;}
+  .reticle.on{opacity:.9;}
+  .scene.dragging .reticle{opacity:0;}
+  .ground,.bed,.paving,.walk,.headslab{cursor:pointer;}
   .n3id{font-size:7px;opacity:.8;letter-spacing:.02em;font-weight:500;}
   .n3p{font-size:7.5px;font-weight:600;padding:0 2px;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.02em;white-space:nowrap;}
 
@@ -804,7 +825,9 @@ document.addEventListener('click', function (ev) {
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
-  if (last) return; // mid-drag: sweeping across objects must not hover-pop them
+  // Mid-drag, or mid-glide: sweeping across them must not hover-pop them, and a
+  // coasting camera drags them under a stationary cursor, which fires mouseover too.
+  if (last || glideRaf) return;
   var n = ev.target.closest(SEL);
   if (n && n.hasAttribute('data-ref') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
@@ -868,8 +891,15 @@ function project(t, yaw, pitch) {
 
 var curPreset = null;
 var VIEWS = __VIEWS__;
+// A preset EASES to its target rather than cutting (see the MOVEMENT block below).
+// easeThrough runs setView unmodified — including refit(), which MEASURES the element
+// and therefore still measures at the final camera state — then plays the camera out to
+// whatever it computed. quiet = true (resize, first paint) still snaps.
 function viewTo(k, quiet) {
   if (!pinned && !quiet) card.classList.remove('show');
+  easeThrough(function () { setView(k); }, quiet);
+}
+function setView(k) {
   var v = VIEWS[k];
   curPreset = k;
   cam.yaw = v.yaw;
@@ -928,14 +958,57 @@ document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
   });
 });
 document.getElementById('btn-reset').addEventListener('click', function () { viewTo('path'); });
-document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
-document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
+document.getElementById('btn-in').addEventListener('click', function () { stopGlide(); cam.zoom *= 1.25; apply(); });
+document.getElementById('btn-out').addEventListener('click', function () { stopGlide(); cam.zoom /= 1.25; apply(); });
 
 // Drag to orbit / pinch to zoom. Capture is DEFERRED until a real drag (>8px) or a
 // second finger — capturing on pointerdown retargets the click to the scene and a tap
 // on an object never reaches the button (the MVC page's tap bug, MISTAKES #18).
 var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
 var downObj = null, downAt = 0;
+${movementRuntime({ keys: ['yaw', 'pitch', 'zoom', 'panx', 'pany'] })}
+
+/**
+ * WALK TO A POINT ON THE TERRACE — the COM walkthrough's floor click, adapted to an
+ * orbit camera. COM has an eye position and moves it; this camera has none, so "go
+ * there" means bringing that point to the middle of the frame at the current heading
+ * and zoom. Same reticle, same eased interruptible glide, and the same rule that a tap
+ * on open ground is a MOVE and not a dismissal: a pinned card survives it, so you can
+ * walk over to look at the property you just selected.
+ */
+function floorPoint(ev) {
+  var el = ev.target;
+  if (!el || !el.getAttribute || el.getAttribute('data-fx') === null) return null;
+  var w = el.offsetWidth, h = el.offsetHeight;
+  if (!w || !h) return null;
+  // rotateX(+90deg): local +y maps to world +z. Both sides already in stage pixels.
+  return [+el.getAttribute('data-fx') + (ev.offsetX - w / 2),
+    +el.getAttribute('data-fz') + (ev.offsetY - h / 2)];
+}
+var reticle = document.getElementById('reticle');
+function showReticle(pt) {
+  if (!pt) { reticle.classList.remove('on'); return; }
+  reticle.style.transform = 'translate(-50%,-50%) translate3d(' + pt[0].toFixed(1) + 'px,'
+    + ${px(Y(1.6)).toFixed(1)} + 'px,' + pt[1].toFixed(1) + 'px) rotateX(90deg)';
+  reticle.classList.add('on');
+}
+scene.addEventListener('pointermove', function (ev) {
+  if (captured || Object.keys(pts).length) return;
+  showReticle(floorPoint(ev));
+});
+scene.addEventListener('pointerleave', function () { showReticle(null); });
+function travelTo(gx, gz) {
+  easeThrough(function () {
+    curPreset = null;
+    var p = project([gx, 0, gz], cam.yaw, cam.pitch);
+    // Perspective scales the on-screen offset of an off-centre target, exactly as the
+    // preset solve above does — the same correction, reused rather than re-derived.
+    var k2 = PERSP / (PERSP - p.z * cam.zoom);
+    cam.panx = -p.x * cam.zoom * k2;
+    cam.pany = -p.y * cam.zoom * k2;
+    apply();
+  });
+}
 function capturePts() {
   if (captured) return;
   captured = true;
@@ -947,12 +1020,14 @@ function capturePts() {
   });
 }
 scene.addEventListener('pointerdown', function (ev) {
+  stopGlide();                       // any touch interrupts the glide, camera-controls style
   if (Object.keys(pts).length === 0) {
     var n = ev.target.closest('.n3, .o3');
     downObj = (n && n.hasAttribute('data-ref')) ? n : null;
+    downFloor = floorPoint(ev);
     downAt = performance.now();
   } else {
-    downObj = null; // a second finger means pinch, never a tap
+    downObj = null; downFloor = null; // a second finger means pinch, never a tap
   }
   pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
   var ids = Object.keys(pts);
@@ -977,24 +1052,30 @@ scene.addEventListener('pointermove', function (ev) {
   var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
   moved += Math.abs(dx) + Math.abs(dy);
   if (moved > 8) capturePts();
-  cam.yaw += dx * 0.35;
-  cam.pitch -= dy * 0.28;
+  orbitBy(dx, dy);
   last = { x: ev.clientX, y: ev.clientY };
-  apply();
 });
-var suppressUntil = 0;
+var suppressUntil = 0, downFloor = null;
 function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
     suppressUntil = performance.now() + 450;
+    // Settle the CAMERA first, then dispatch the tap — releaseGesture() reads pointer
+    // travel and nothing else, so a coasting camera can never turn a tap into a drag.
+    // The order also matters because travelTo starts a glide: settling afterwards would
+    // cancel the walk it had just started (the COM page hit exactly that, and says so).
+    releaseGesture(moved);
     if (ev.type === 'pointerup' && downObj && moved <= 8 && performance.now() - downAt < 700) {
       showCard(downObj, true);
+    } else if (ev.type === 'pointerup' && downFloor && moved <= 8) {
+      // A tap on open ground is a WALK, not a dismissal: it deliberately leaves a
+      // pinned card alone, so you can walk over to the property you just selected.
+      travelTo(downFloor[0], downFloor[1]);
     } else if (ev.type === 'pointerup' && !downObj && moved <= 8 && !ev.target.closest('#card')) {
       hideCard();
     }
-    downObj = null;
-    last = null; pinchStart = 0; moved = 0; captured = false;
-    scene.classList.remove('dragging');
+    downObj = null; downFloor = null;
+    last = null; pinchStart = 0; moved = 0;
   }
 }
 scene.addEventListener('pointerup', endPtr);
@@ -1004,23 +1085,22 @@ scene.addEventListener('click', function (ev) {
 }, true);
 
 scene.addEventListener('wheel', function (ev) {
-  ev.preventDefault();
+  ev.preventDefault(); stopGlide();
   cam.zoom *= Math.exp(-ev.deltaY * 0.0012);
   apply();
 }, { passive: false });
 
 scene.addEventListener('keydown', function (ev) {
-  var k = ev.key, step = ev.shiftKey ? 15 : 5;
-  if (k === 'ArrowLeft') cam.yaw -= step;
-  else if (k === 'ArrowRight') cam.yaw += step;
-  else if (k === 'ArrowUp') cam.pitch += step;
-  else if (k === 'ArrowDown') cam.pitch -= step;
-  else if (k === '+' || k === '=') cam.zoom *= 1.2;
-  else if (k === '-' || k === '_') cam.zoom /= 1.2;
+  var k = ev.key, step = (ev.shiftKey ? 15 : 5) * KICK_GAIN;
+  if (k === 'ArrowLeft') kick(-step, 0);
+  else if (k === 'ArrowRight') kick(step, 0);
+  else if (k === 'ArrowUp') kick(0, step);
+  else if (k === 'ArrowDown') kick(0, -step);
+  else if (k === '+' || k === '=') { stopGlide(); cam.zoom *= 1.2; apply(); }
+  else if (k === '-' || k === '_') { stopGlide(); cam.zoom /= 1.2; apply(); }
   else return;
   if (k.indexOf('Arrow') === 0) curPreset = null;
   ev.preventDefault();
-  apply();
 });
 
 // ── Fee quantities ────────────────────────────────────────────────────────────

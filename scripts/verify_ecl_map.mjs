@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import {
   WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
+import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ECL_NicheMap.html';
@@ -402,6 +403,35 @@ ck(/estimated from photographs/.test(src), 'the header says the geometry is esti
   ck(rounded.length === 0, `no rounded price labels${rounded.length ? ' — ' + rounded.join(', ') : ''}`);
 }
 ck(!/ELC-1/.test(src), 'the sheet\'s "ELC-1" typo does not reach the page');
+
+
+// ── Movement runtime (ported from the COM map, sprint-10) ────────────────────
+// The feel is generated from scripts/map-movement.mjs, so the only thing worth
+// asserting here is that the page still CARRIES it: a build script edited to drop the
+// interpolation would otherwise revert silently to cut transitions and no inertia, and
+// nothing else on this page would notice. The two behavioural invariants are asserted
+// too, because they are the ones a family sees go wrong: the tap detector's threshold
+// must still be pointer TRAVEL, and inertia must not have widened the click-suppression
+// window (a window that outlived the coast would swallow the next tap).
+console.log('\nMovement runtime');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  for (const [tok, what] of MOVEMENT_TOKENS) ck(js.indexOf(tok) > -1, what);
+  const keys = ["yaw","pitch","zoom","lift"];
+  const m = /var CAM_KEYS = (\[[^\]]*\])/.exec(js);
+  ck(!!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(keys),
+    `an eased transition carries the WHOLE camera: ${keys.join(', ')}` +
+    (m ? ` (page: ${m[1]})` : ' — CAM_KEYS not found'));
+  ck(/moved <= 8/.test(js), 'the tap detector still keys off POINTER TRAVEL (moved <= 8)');
+  ck(/suppressUntil = performance\.now\(\) \+ 450;/.test(js),
+    'the click-suppression window is still a flat 450 ms and is not tied to camera motion');
+  ck(!/suppressUntil[^;]*(vYaw|vPitch|glideRaf|camT)/.test(js),
+    'nothing about the glide can extend the suppression window');
+  ck(/releaseGesture\(moved\);/.test(js), 'the release reads pointer travel and nothing else');
+  ck(/stopGlide\(\);\s*\/\/ any touch interrupts/.test(js), 'a pointerdown stops the camera');
+  ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
+  ck(!/function floorPoint\(/.test(js), 'no floor-travel on an orbit-a-cabinet page (presets + inertia only)');
+}
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

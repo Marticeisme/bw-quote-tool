@@ -14,6 +14,7 @@ import {
   WALLS, WALL_ORDER, ISLAND, ROOM, ROW_LETTERS, ROW_HEIGHTS_IN, SUBCOL_IN,
   cellDims, TIERS, FEES, EFFECTIVE,
 } from './mvc-niche-data.mjs';
+import { movementRuntime } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'MVC_NewGlassFront_NicheMap_1.html');
@@ -716,7 +717,9 @@ document.addEventListener('click', function (ev) {
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
-  if (last) return; // mid-drag: sweeping the cursor across niches must not hover-pop them
+  // Mid-drag, or mid-glide: sweeping across them must not hover-pop them, and a
+  // coasting camera drags them under a stationary cursor, which fires mouseover too.
+  if (last || glideRaf) return;
   var n = ev.target.closest('.n:not(.pnl), .n3:not(.pnl3)');
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
@@ -804,7 +807,7 @@ function fitScene() {
   fitZoom = clamp(scene.offsetWidth / 900, 0.58, 1);
   if (Math.abs(cam.zoom - DEF.zoom) < 0.001 || cam.zoom === fitZoom) { cam.zoom = fitZoom; }
   DEF.zoom = fitZoom;
-  if (planOn) { planView(); return; }
+  if (planOn) { planView(true); return; }
   apply();
 }
 window.addEventListener('resize', fitScene);
@@ -812,11 +815,18 @@ window.addEventListener('resize', fitScene);
 // Square-on to one wall: zoom so the WHOLE wall fits the scene box (row G used to
 // clip off the top), and lift the stage so the wall sits centred rather than
 // hanging above the floor origin.
-function faceOn(k) {
+// Both presets EASE to their target rather than cutting (see the MOVEMENT block
+// below): the existing solve decides where the camera belongs, easeThrough plays it
+// out, and any input during the transition stops it where you grabbed it. quiet = true
+// (first paint, resize) still snaps — a resize must not animate.
+function faceOn(k, quiet) {
   setPlan(false);
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the niches. Drop it.
   if (!pinned) card.classList.remove('show');
+  easeThrough(function () { setFaceOn(k); }, quiet);
+}
+function setFaceOn(k) {
   cam.yaw = { west: 0, east: 180, north: 90, south: -90 }[k];
   cam.pitch = 0;
   var f = document.querySelector('.face-' + k);
@@ -841,9 +851,12 @@ function setPlan(on) {
   view3d.classList.toggle('planmode', on);
   document.getElementById('btn-plan').classList.toggle('on', on);
 }
-function planView() {
+function planView(quiet) {
   setPlan(true);
   if (!pinned) card.classList.remove('show');
+  easeThrough(function () { setPlanView(); }, quiet);
+}
+function setPlanView() {
   cam.yaw = 0; cam.pitch = -90;
   cam.zoom = clamp(Math.min(scene.clientWidth * 0.94 / ${PLAN_W},
                             scene.clientHeight * 0.92 / ${PLAN_D}), ZMIN, ZMAX);
@@ -857,12 +870,13 @@ document.getElementById('btn-plan').addEventListener('click', function () {
 // The FRONT (West) face-on view is the page's home view: it is what a counselor sees
 // walking in the entry doors. Reset returns to it.
 document.getElementById('btn-reset').addEventListener('click', function () { faceOn('west'); });
-document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
-document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
+document.getElementById('btn-in').addEventListener('click', function () { stopGlide(); cam.zoom *= 1.25; apply(); });
+document.getElementById('btn-out').addEventListener('click', function () { stopGlide(); cam.zoom /= 1.25; apply(); });
 
 // Drag to orbit / pinch to zoom. Zoom is CLAMPED at both ends.
 var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
 var downNiche = null, downAt = 0;
+${movementRuntime({ keys: ['yaw', 'pitch', 'zoom', 'lift'] })}
 // Capture is deferred until a drag is REAL (or a second finger lands). Capturing on
 // pointerdown retargeted the subsequent click event to the scene itself, so a tap on
 // a 3D niche never reached the niche button — the document click handler saw only
@@ -879,6 +893,7 @@ function capturePts() {
   });
 }
 scene.addEventListener('pointerdown', function (ev) {
+  stopGlide();                       // any touch interrupts the glide, camera-controls style
   // Selection inside the scene is decided by OUR tap detector in endPtr, never by the
   // native click that follows — a micro-drag that stayed under the threshold used to
   // count as a click and pin whatever niche it started on (the operator's "I highlight
@@ -913,10 +928,8 @@ scene.addEventListener('pointermove', function (ev) {
   var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
   moved += Math.abs(dx) + Math.abs(dy);
   if (moved > 8) capturePts();
-  cam.yaw += dx * 0.35;
-  cam.pitch -= dy * 0.28;
+  orbitBy(dx, dy);
   last = { x: ev.clientX, y: ev.clientY };
-  apply();
 });
 // EVERY native click that follows a pointer gesture in the scene is swallowed — the
 // tap detector below is the only way a gesture selects a niche. (Keyboard activation
@@ -927,6 +940,9 @@ function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
     suppressUntil = performance.now() + 450;
+    // Settle the CAMERA first, then dispatch the tap — releaseGesture() reads pointer
+    // travel and nothing else, so a coasting camera can never turn a tap into a drag.
+    releaseGesture(moved);
     // A clean tap: one finger, started on a niche, barely moved, briefly held.
     if (ev.type === 'pointerup' && downNiche && moved <= 8 && performance.now() - downAt < 700) {
       showCard(downNiche, true);
@@ -934,8 +950,7 @@ function endPtr(ev) {
       hideCard(); // a tap on empty scene still clears, as a native click used to
     }
     downNiche = null;
-    last = null; pinchStart = 0; moved = 0; captured = false;
-    scene.classList.remove('dragging');
+    last = null; pinchStart = 0; moved = 0;
   }
 }
 scene.addEventListener('pointerup', endPtr);
@@ -945,28 +960,27 @@ scene.addEventListener('click', function (ev) {
 }, true);
 
 scene.addEventListener('wheel', function (ev) {
-  ev.preventDefault();
+  ev.preventDefault(); stopGlide();
   cam.zoom *= Math.exp(-ev.deltaY * 0.0012);
   apply();
 }, { passive: false });
 
 scene.addEventListener('keydown', function (ev) {
-  var k = ev.key, step = ev.shiftKey ? 15 : 5;
-  if (k === 'ArrowLeft') cam.yaw -= step;
-  else if (k === 'ArrowRight') cam.yaw += step;
-  else if (k === 'ArrowUp') cam.pitch += step;
-  else if (k === 'ArrowDown') cam.pitch -= step;
-  else if (k === '+' || k === '=') cam.zoom *= 1.2;
-  else if (k === '-' || k === '_') cam.zoom /= 1.2;
+  var k = ev.key, step = (ev.shiftKey ? 15 : 5) * KICK_GAIN;
+  if (k === 'ArrowLeft') kick(-step, 0);
+  else if (k === 'ArrowRight') kick(step, 0);
+  else if (k === 'ArrowUp') kick(0, step);
+  else if (k === 'ArrowDown') kick(0, -step);
+  else if (k === '+' || k === '=') { stopGlide(); cam.zoom *= 1.2; apply(); }
+  else if (k === '-' || k === '_') { stopGlide(); cam.zoom /= 1.2; apply(); }
   else return;
   ev.preventDefault();
-  apply();
 });
 
 // Home view: Front (West), face on. Not a 3/4 orbit — the operator opens this page to
 // the wall he is standing in front of.
 fitScene();
-faceOn('west');
+faceOn('west', true);
 `;
 
 const FEES_MVC = `<div class="fees">

@@ -13,6 +13,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { FACE_ORDER, allNiches } from './roac-niche-data.mjs';
+import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ROAC_NicheMap.html';
@@ -150,6 +151,37 @@ console.log('\nPinned card vs the tab bar');
     'and parks in its default corner when no rendering of the pinned space is visible');
   (!/var r = el\.getBoundingClientRect\(\);\s*\r?\n\s*card\.style\.right = 'auto'/.test(js) ? pass : fail)(
     'placeCard no longer measures the pinned element directly (the zero-rect path)');
+}
+
+
+// ── Movement runtime (ported from the COM map, sprint-10) ────────────────────
+// The feel is generated from scripts/map-movement.mjs, so the only thing worth
+// asserting here is that the page still CARRIES it: a build script edited to drop the
+// interpolation would otherwise revert silently to cut transitions and no inertia, and
+// nothing else on this page would notice. The two behavioural invariants are asserted
+// too, because they are the ones a family sees go wrong: the tap detector's threshold
+// must still be pointer TRAVEL, and inertia must not have widened the click-suppression
+// window (a window that outlived the coast would swallow the next tap).
+console.log('\nMovement runtime');
+{
+  const js = newSrc.slice(newSrc.lastIndexOf('<script>'));
+  // This gate reports through pass/fail; ck is the same shape the other gates use.
+  const ck = (c, m) => (c ? pass : fail)(m);
+  for (const [tok, what] of MOVEMENT_TOKENS) ck(js.indexOf(tok) > -1, what);
+  const keys = ["yaw","pitch","zoom","lift"];
+  const m = /var CAM_KEYS = (\[[^\]]*\])/.exec(js);
+  ck(!!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(keys),
+    `an eased transition carries the WHOLE camera: ${keys.join(', ')}` +
+    (m ? ` (page: ${m[1]})` : ' — CAM_KEYS not found'));
+  ck(/moved <= 8/.test(js), 'the tap detector still keys off POINTER TRAVEL (moved <= 8)');
+  ck(/suppressUntil = performance\.now\(\) \+ 450;/.test(js),
+    'the click-suppression window is still a flat 450 ms and is not tied to camera motion');
+  ck(!/suppressUntil[^;]*(vYaw|vPitch|glideRaf|camT)/.test(js),
+    'nothing about the glide can extend the suppression window');
+  ck(/releaseGesture\(moved\);/.test(js), 'the release reads pointer travel and nothing else');
+  ck(/stopGlide\(\);\s*\/\/ any touch interrupts/.test(js), 'a pointerdown stops the camera');
+  ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
+  ck(!/function floorPoint\(/.test(js), 'no floor-travel on an orbit-a-cabinet page (presets + inertia only)');
 }
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');

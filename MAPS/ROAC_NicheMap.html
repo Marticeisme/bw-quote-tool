@@ -2037,7 +2037,9 @@ document.addEventListener('click', function (ev) {
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
-  if (last) return; // mid-drag: sweeping across niches must not hover-pop them
+  // Mid-drag, or mid-glide: sweeping across them must not hover-pop them, and a
+  // coasting camera drags them under a stationary cursor, which fires mouseover too.
+  if (last || glideRaf) return;
   var n = ev.target.closest('.n, .n3');
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
@@ -2118,10 +2120,19 @@ var VIEWS = {
   'd-out': { yaw: 90,  w: 211.95, dist: 501.53 },
   'd-in':  { yaw: -90, w: 211.95, dist: -431.33 },
 };
-function viewTo(k) {
+// A preset EASES to its target rather than cutting (see the MOVEMENT block below):
+// viewTo finds where the camera belongs with the same exact perspective solve it always
+// used, and easeThrough plays it out, interruptibly. quiet = true snaps.
+//
+// Fading the occluding bank is NOT camera state, so it happens at once — you want to
+// see through the near wall for the whole flight in, not only once you have arrived.
+function viewTo(k, quiet) {
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the niches. Drop it.
-  if (!pinned) card.classList.remove('show');
+  if (!pinned && !quiet) card.classList.remove('show');
+  easeThrough(function () { setView(k); }, quiet);
+}
+function setView(k) {
   var v = VIEWS[k];
   curPreset = k;
   stage.classList.toggle('hide-bkn', v.hide === 'bk-n');
@@ -2153,14 +2164,135 @@ document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
   });
 });
 document.getElementById('btn-reset').addEventListener('click', function () { viewTo('court'); });
-document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
-document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
+document.getElementById('btn-in').addEventListener('click', function () { stopGlide(); cam.zoom *= 1.25; apply(); });
+document.getElementById('btn-out').addEventListener('click', function () { stopGlide(); cam.zoom /= 1.25; apply(); });
 
 // Drag to orbit / pinch to zoom. Capture is DEFERRED until a real drag (>8px) or a
 // second finger — capturing on pointerdown retargets the click to the scene and a
 // tap on a niche never reaches the button (the MVC page's tap bug, MISTAKES #18).
 var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
 var downNiche = null, downAt = 0;
+
+// ── MOVEMENT ─────────────────────────────────────────────────────────────────
+// Generated from scripts/map-movement.mjs — camera-controls semantics ported from the
+// COM walkthrough. Damping is TIME-based, the glide settles instead of spinning, a
+// flick coasts, presets ease and are interruptible, rotate speed scales with zoom, and
+// prefers-reduced-motion turns all of it into instant assignment.
+//
+// DRAG NEVER SELECTS: the tap detector below keys off POINTER TRAVEL only. Nothing in
+// here touches `moved` or `suppressUntil`.
+var DAMP = 0.90, SETTLE = 0.045, CAM_EASE = 0.916;
+// One arrow press is an IMPULSE, not a jump. Scaling it by (1 - DAMP) makes the coast
+// it produces sum to the same travel the old instant step had, so the keyboard still
+// moves exactly as far per press as the page's hint text has always promised — it just
+// arrives smoothly now.
+var KICK_GAIN = 1 - DAMP;
+var CAM_KEYS = ["yaw","pitch","zoom","lift"], CAM_EPS = { yaw: 0.05, pitch: 0.05, zoom: 0.002, lift: 0.5 };
+var vYaw = 0, vPitch = 0, glideRaf = 0, lastGlideAt = 0, lastMoveAt = 0, camT = null;
+var REDUCED = false;
+try { REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { REDUCED = false; }
+/** Finer rotation the closer you are standing; coarser out on the wide view. */
+function rotScale() { return clamp(1.1 / (0.4 + cam.zoom), 0.35, 1.4); }
+function camState() { var s = {}, i; for (i = 0; i < CAM_KEYS.length; i++) s[CAM_KEYS[i]] = cam[CAM_KEYS[i]]; return s; }
+function setCam(s) { for (var i = 0; i < CAM_KEYS.length; i++) cam[CAM_KEYS[i]] = s[CAM_KEYS[i]]; }
+/** Shortest way round: yaw accumulates without bound, so -36 -> 180 must turn 144, not 216. */
+function wrap180(a) { a = a % 360; if (a > 180) a -= 360; if (a < -180) a += 360; return a; }
+
+function stopGlide() {
+  vYaw = vPitch = 0; camT = null;
+  if (glideRaf) { cancelAnimationFrame(glideRaf); glideRaf = 0; }
+  lastGlideAt = 0;
+  if (!captured) scene.classList.remove('dragging');
+}
+function startGlide() {
+  scene.classList.add('dragging');   // kills the CSS transition; the rAF loop drives
+  lastGlideAt = 0;
+  if (!glideRaf) glideRaf = requestAnimationFrame(glide);
+}
+function glide(ts) {
+  glideRaf = 0;
+  var live = false, i, k;
+  // TIME-BASED decay. A fixed per-frame factor is a different gesture on a 120 Hz phone
+  // than in a throttled tab; normalising to 60 Hz makes the glide last the same
+  // everywhere. dt is clamped so a backgrounded tab does not teleport the camera.
+  var now = typeof ts === 'number' ? ts : performance.now();
+  var dt = clamp(now - (lastGlideAt || now), 1, 100);
+  lastGlideAt = now;
+  var d = Math.pow(DAMP, dt / 16.67);
+  if (camT) {
+    var ce = 1 - Math.pow(CAM_EASE, dt / 16.67), done = true;
+    for (i = 0; i < CAM_KEYS.length; i++) {
+      k = CAM_KEYS[i];
+      if (Math.abs(camT[k] - cam[k]) >= CAM_EPS[k]) { done = false; break; }
+    }
+    if (done) { setCam(camT); camT = null; }
+    else {
+      for (i = 0; i < CAM_KEYS.length; i++) { k = CAM_KEYS[i]; cam[k] += (camT[k] - cam[k]) * ce; }
+      live = true;
+    }
+  }
+  vYaw *= d; vPitch *= d;
+  if (Math.abs(vYaw) >= SETTLE || Math.abs(vPitch) >= SETTLE) {
+    cam.yaw += vYaw; cam.pitch += vPitch;
+    live = true;
+  } else { vYaw = vPitch = 0; }
+  apply();
+  if (live) glideRaf = requestAnimationFrame(glide);
+  else if (!captured) scene.classList.remove('dragging');
+}
+
+/**
+ * Ease to wherever `fn` puts the camera. `fn` is the page's own preset solve and is
+ * run unmodified — including any solve that measures the DOM, which therefore still
+ * measures at the final state. Pass quiet = true to snap instead (resize, first paint):
+ * a window resize must not animate.
+ */
+function easeThrough(fn, quiet) {
+  var from = camState();
+  stopGlide();
+  fn();
+  if (quiet || REDUCED) return;
+  var to = camState();
+  to.yaw = from.yaw + wrap180(to.yaw - from.yaw);
+  setCam(from); apply();
+  camT = to;
+  startGlide();
+}
+
+/** An input impulse: pushes the camera and lets it coast to a stop. */
+function kick(dYaw, dPitch) {
+  if (REDUCED) { cam.yaw += dYaw / KICK_GAIN; cam.pitch += dPitch / KICK_GAIN; apply(); return; }
+  camT = null;
+  vYaw = clamp(vYaw + dYaw, -14, 14);
+  vPitch = clamp(vPitch + dPitch, -14, 14);
+  startGlide();
+}
+
+/** Drag deltas -> camera, at a rotate speed that scales with how close you are. */
+function orbitBy(dx, dy) {
+  var k = rotScale();
+  var dYaw = dx * 0.35 * k, dPitch = -dy * 0.28 * k;
+  cam.yaw += dYaw; cam.pitch += dPitch;   // apply() clamps pitch
+  // Remember the LAST frame's motion and when it happened, so a flick releases into a
+  // glide but a slow careful drag that had stopped before you lifted does not.
+  vYaw = dYaw; vPitch = dPitch; lastMoveAt = performance.now();
+  apply();
+}
+
+/**
+ * Called from endPtr the moment the last pointer lifts, BEFORE the tap is dispatched.
+ * Returns nothing and reads nothing but pointer travel, so it cannot change whether a
+ * gesture counted as a tap.
+ */
+function releaseGesture(movedPx) {
+  var flick = captured && movedPx > 8 && performance.now() - lastMoveAt < 90 && !REDUCED
+    && (Math.abs(vYaw) > 0.25 || Math.abs(vPitch) > 0.25);
+  captured = false;
+  if (flick) startGlide();
+  else { stopGlide(); scene.classList.remove('dragging'); }
+}
+// ── end MOVEMENT ─────────────────────────────────────────────────────────────
+
 function capturePts() {
   if (captured) return;
   captured = true;
@@ -2176,6 +2308,7 @@ function capturePts() {
   });
 }
 scene.addEventListener('pointerdown', function (ev) {
+  stopGlide();                       // any touch interrupts the glide, camera-controls style
   // Selection inside the scene is decided by OUR tap detector in endPtr, never by the
   // native click that follows — a micro-drag under the threshold used to count as a
   // click and pin whatever niche it started on.
@@ -2209,10 +2342,8 @@ scene.addEventListener('pointermove', function (ev) {
   var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
   moved += Math.abs(dx) + Math.abs(dy);
   if (moved > 8) capturePts();
-  cam.yaw += dx * 0.35;
-  cam.pitch -= dy * 0.28;
+  orbitBy(dx, dy);
   last = { x: ev.clientX, y: ev.clientY };
-  apply();
 });
 // Every native click after a pointer gesture is swallowed; the tap detector is the
 // only path from a gesture to a selection. Keyboard clicks still pass (no gesture).
@@ -2221,14 +2352,16 @@ function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
     suppressUntil = performance.now() + 450;
+    // Settle the CAMERA first, then dispatch the tap — releaseGesture() reads pointer
+    // travel and nothing else, so a coasting camera can never turn a tap into a drag.
+    releaseGesture(moved);
     if (ev.type === 'pointerup' && downNiche && moved <= 8 && performance.now() - downAt < 700) {
       showCard(downNiche, true);
     } else if (ev.type === 'pointerup' && !downNiche && moved <= 8 && !ev.target.closest('#card')) {
       hideCard();
     }
     downNiche = null;
-    last = null; pinchStart = 0; moved = 0; captured = false;
-    scene.classList.remove('dragging');
+    last = null; pinchStart = 0; moved = 0;
   }
 }
 scene.addEventListener('pointerup', endPtr);
@@ -2238,19 +2371,19 @@ scene.addEventListener('click', function (ev) {
 }, true);
 
 scene.addEventListener('wheel', function (ev) {
-  ev.preventDefault();
+  ev.preventDefault(); stopGlide();
   cam.zoom *= Math.exp(-ev.deltaY * 0.0012);
   apply();
 }, { passive: false });
 
 scene.addEventListener('keydown', function (ev) {
-  var k = ev.key, step = ev.shiftKey ? 15 : 5;
-  if (k === 'ArrowLeft') cam.yaw -= step;
-  else if (k === 'ArrowRight') cam.yaw += step;
-  else if (k === 'ArrowUp') cam.pitch += step;
-  else if (k === 'ArrowDown') cam.pitch -= step;
-  else if (k === '+' || k === '=') cam.zoom *= 1.2;
-  else if (k === '-' || k === '_') cam.zoom /= 1.2;
+  var k = ev.key, step = (ev.shiftKey ? 15 : 5) * KICK_GAIN;
+  if (k === 'ArrowLeft') kick(-step, 0);
+  else if (k === 'ArrowRight') kick(step, 0);
+  else if (k === 'ArrowUp') kick(0, step);
+  else if (k === 'ArrowDown') kick(0, -step);
+  else if (k === '+' || k === '=') { stopGlide(); cam.zoom *= 1.2; apply(); }
+  else if (k === '-' || k === '_') { stopGlide(); cam.zoom /= 1.2; apply(); }
   else return;
   if (k.indexOf('Arrow') === 0) {
     curPreset = null;
@@ -2258,7 +2391,6 @@ scene.addEventListener('keydown', function (ev) {
     stage.classList.remove('hide-bks');
   }
   ev.preventDefault();
-  apply();
 });
 
 // Home: a three-quarter view into the courtyard from the entry corner.
