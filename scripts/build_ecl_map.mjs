@@ -22,6 +22,7 @@ import {
   WALLS, FACE_ORDER, FACE_META, ROWS, GEO, FACE_H, BOX_W, BOX_D,
   TIERS, FEES, STATUS_LABEL, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
+import { movementRuntime } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'ECL_NicheMap.html');
@@ -629,7 +630,9 @@ document.addEventListener('click', function (ev) {
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
-  if (last) return; // mid-drag: sweeping across niches must not hover-pop them
+  // Mid-drag, or mid-glide: sweeping across niches must not hover-pop them, and a
+  // coasting camera drags niches under a stationary cursor, which fires mouseover too.
+  if (last || glideRaf) return;
   var n = ev.target.closest('.n, .n3');
   if (n && n.hasAttribute('data-id') && !n.closest('.mini')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
@@ -717,10 +720,16 @@ var VIEWS = {
   'f-e': { yaw: -90,      pitch: 0,          w: END_W,   h: FIT_H_PX, dist: ${px(BOX_W / 2)} },
   'f-w': { yaw: 90,       pitch: 0,          w: END_W,   h: FIT_H_PX, dist: ${px(BOX_W / 2)} },
 };
+// A preset EASES to its target rather than cutting (see the MOVEMENT block below):
+// viewTo finds where the camera belongs with the same exact perspective solve it always
+// used, and easeThrough plays it out. quiet = true (resize, first paint) still snaps.
 function viewTo(k, quiet) {
   // A camera jump moves the model under a stationary cursor; Chrome then fires a
   // synthetic hover that can park a stale card over the niches. Drop it.
   if (!pinned && !quiet) card.classList.remove('show');
+  easeThrough(function () { setView(k); }, quiet);
+}
+function setView(k) {
   var v = VIEWS[k];
   curPreset = k;
   cam.yaw = v.yaw;
@@ -743,14 +752,15 @@ document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
   });
 });
 document.getElementById('btn-reset').addEventListener('click', function () { viewTo('room'); });
-document.getElementById('btn-in').addEventListener('click', function () { cam.zoom *= 1.25; apply(); });
-document.getElementById('btn-out').addEventListener('click', function () { cam.zoom /= 1.25; apply(); });
+document.getElementById('btn-in').addEventListener('click', function () { stopGlide(); cam.zoom *= 1.25; apply(); });
+document.getElementById('btn-out').addEventListener('click', function () { stopGlide(); cam.zoom /= 1.25; apply(); });
 
 // Drag to orbit / pinch to zoom. Capture is DEFERRED until a real drag (>8px) or a
 // second finger — capturing on pointerdown retargets the click to the scene and a tap
 // on a niche never reaches the button (the MVC page's tap bug, MISTAKES #18).
 var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
 var downNiche = null, downAt = 0;
+${movementRuntime({ keys: ['yaw', 'pitch', 'zoom', 'lift'] })}
 function capturePts() {
   if (captured) return;
   captured = true;
@@ -763,6 +773,7 @@ function capturePts() {
   });
 }
 scene.addEventListener('pointerdown', function (ev) {
+  stopGlide();                       // any touch interrupts the glide, camera-controls style
   // Selection inside the scene is decided by OUR tap detector in endPtr, never by the
   // native click that follows — a micro-drag under the threshold used to count as a
   // click and pin whatever niche it started on.
@@ -796,10 +807,8 @@ scene.addEventListener('pointermove', function (ev) {
   var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
   moved += Math.abs(dx) + Math.abs(dy);
   if (moved > 8) capturePts();
-  cam.yaw += dx * 0.35;
-  cam.pitch -= dy * 0.28;
+  orbitBy(dx, dy);
   last = { x: ev.clientX, y: ev.clientY };
-  apply();
 });
 // Every native click after a pointer gesture is swallowed; the tap detector is the only
 // path from a gesture to a selection. Keyboard clicks still pass (no gesture).
@@ -808,14 +817,16 @@ function endPtr(ev) {
   delete pts[ev.pointerId];
   if (!Object.keys(pts).length) {
     suppressUntil = performance.now() + 450;
+    // Settle the CAMERA first, then dispatch the tap — releaseGesture() reads pointer
+    // travel and nothing else, so a coasting camera can never turn a tap into a drag.
+    releaseGesture(moved);
     if (ev.type === 'pointerup' && downNiche && moved <= 8 && performance.now() - downAt < 700) {
       showCard(downNiche, true);
     } else if (ev.type === 'pointerup' && !downNiche && moved <= 8 && !ev.target.closest('#card')) {
       hideCard();
     }
     downNiche = null;
-    last = null; pinchStart = 0; moved = 0; captured = false;
-    scene.classList.remove('dragging');
+    last = null; pinchStart = 0; moved = 0;
   }
 }
 scene.addEventListener('pointerup', endPtr);
@@ -825,23 +836,22 @@ scene.addEventListener('click', function (ev) {
 }, true);
 
 scene.addEventListener('wheel', function (ev) {
-  ev.preventDefault();
+  ev.preventDefault(); stopGlide();
   cam.zoom *= Math.exp(-ev.deltaY * 0.0012);
   apply();
 }, { passive: false });
 
 scene.addEventListener('keydown', function (ev) {
-  var k = ev.key, step = ev.shiftKey ? 15 : 5;
-  if (k === 'ArrowLeft') cam.yaw -= step;
-  else if (k === 'ArrowRight') cam.yaw += step;
-  else if (k === 'ArrowUp') cam.pitch += step;
-  else if (k === 'ArrowDown') cam.pitch -= step;
-  else if (k === '+' || k === '=') cam.zoom *= 1.2;
-  else if (k === '-' || k === '_') cam.zoom /= 1.2;
+  var k = ev.key, step = (ev.shiftKey ? 15 : 5) * KICK_GAIN;
+  if (k === 'ArrowLeft') kick(-step, 0);
+  else if (k === 'ArrowRight') kick(step, 0);
+  else if (k === 'ArrowUp') kick(0, step);
+  else if (k === 'ArrowDown') kick(0, -step);
+  else if (k === '+' || k === '=') { stopGlide(); cam.zoom *= 1.2; apply(); }
+  else if (k === '-' || k === '_') { stopGlide(); cam.zoom /= 1.2; apply(); }
   else return;
   if (k.indexOf('Arrow') === 0) curPreset = null;
   ev.preventDefault();
-  apply();
 });
 
 // Home: a three-quarter view showing the south elevation and one end.

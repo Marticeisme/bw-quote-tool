@@ -32,6 +32,7 @@ import {
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
+import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/TGMP_Map.html';
@@ -586,6 +587,43 @@ console.log('\nNo pool — the path replaced it');
   const KERB_FACES = 4 * 5, PLANTER_FACES = PLANTERS.length * 5;
   ck(ctxTags.length === KERB_FACES + PLANTER_FACES,
     `${KERB_FACES} kerb faces + ${PLANTER_FACES} planter faces = ${KERB_FACES + PLANTER_FACES} context faces (got ${ctxTags.length})`);
+}
+
+
+// ── Movement runtime (ported from the COM map, sprint-10) ────────────────────
+// The feel is generated from scripts/map-movement.mjs, so the only thing worth
+// asserting here is that the page still CARRIES it: a build script edited to drop the
+// interpolation would otherwise revert silently to cut transitions and no inertia, and
+// nothing else on this page would notice. The two behavioural invariants are asserted
+// too, because they are the ones a family sees go wrong: the tap detector's threshold
+// must still be pointer TRAVEL, and inertia must not have widened the click-suppression
+// window (a window that outlived the coast would swallow the next tap).
+console.log('\nMovement runtime');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  for (const [tok, what] of MOVEMENT_TOKENS) ck(js.indexOf(tok) > -1, what);
+  const keys = ["yaw","pitch","zoom","panx","pany"];
+  const m = /var CAM_KEYS = (\[[^\]]*\])/.exec(js);
+  ck(!!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(keys),
+    `an eased transition carries the WHOLE camera: ${keys.join(', ')}` +
+    (m ? ` (page: ${m[1]})` : ' — CAM_KEYS not found'));
+  ck(/moved <= 8/.test(js), 'the tap detector still keys off POINTER TRAVEL (moved <= 8)');
+  ck(/suppressUntil = performance\.now\(\) \+ 450;/.test(js),
+    'the click-suppression window is still a flat 450 ms and is not tied to camera motion');
+  ck(!/suppressUntil[^;]*(vYaw|vPitch|glideRaf|camT)/.test(js),
+    'nothing about the glide can extend the suppression window');
+  ck(/releaseGesture\(moved\);/.test(js), 'the release reads pointer travel and nothing else');
+  ck(/stopGlide\(\);\s*\/\/ any touch interrupts/.test(js), 'a pointerdown stops the camera');
+  ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
+  // The terrace has real ground, so a tap on it WALKS rather than dismissing.
+  ck(/function floorPoint\(ev\)/.test(js), 'the ground plates are click targets (floorPoint)');
+  ck((src.match(/data-fx="/g) || []).length === 5,
+    `all five ground plates carry data-fx/data-fz (${(src.match(/data-fx="/g) || []).length})`);
+  ck(/<div class="reticle" id="reticle"/.test(src), 'the walk-to reticle is rendered');
+  ck(/travelTo\(downFloor\[0\], downFloor\[1\]\);/.test(js),
+    'a tap on open ground walks there');
+  ck(!/downFloor[\s\S]{0,80}hideCard\(\)/.test(js),
+    'and does NOT dismiss a pinned card on the way');
 }
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');

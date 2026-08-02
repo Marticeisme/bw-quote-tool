@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import {
   WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
+import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ECL_NicheMap.html';
@@ -26,6 +27,18 @@ const ABS = path.join(ROOT, REL);
 // the price sheet, so a transcription that drops or duplicates a cell fails here.
 const SHEET_COUNT = { S: 31, N: 30, W: 12, E: 12 };
 const SHEET_TOTAL = 85;
+
+// ── AVAILABILITY ANCHORS — operator MIS list, 2026-08-01 ──────────────────────
+// Typed from the operator's list, NOT derived from the data module, so a niche that
+// silently flips status fails here. The list carried 21 niches; the 7 that had been
+// available on the July sheet and were absent from it have sold. Previous anchors
+// (July sheet): 28 available, $685,175 — S 14/$353,035 · N 8/$226,570 · W 5/$84,675 ·
+// E 1/$20,895. The seven that sold: S-D-2 $32,995, S-B-6 $15,395, N-D-1 $28,595,
+// N-C-5 $26,395, W-C-1 $18,695, W-B-2 $14,295, W-A-1 $12,095 — which is exactly the
+// $148,465 the whole-cabinet total drops by.
+const N_AVAIL = 21;
+const AVAIL_ANCHOR = 536710;
+const PER_FACE_ANCHOR = { S: [12, 304645], N: [6, 171580], W: [2, 39590], E: [1, 20895] };
 
 let failures = 0;
 const fail = (m) => { failures++; console.log('  FAIL  ' + m); };
@@ -158,14 +171,21 @@ for (const [name, list] of [['3D faces', from3d], ['flat grids', flatFull], ['ov
   const wanted = dataPrices.concat(dataPrices).sort((a, b) => a - b); // full grids + overview
   chips.sort((a, b) => a - b);
   ck(chips.length === wanted.length && chips.every((v, i) => v === wanted[i]),
-    `rendered flat price chips = ${chips.length} (28 per rendering × 2 renderings), all matching`);
+    `rendered flat price chips = ${chips.length} (${N_AVAIL} per rendering × 2 renderings), all matching`);
 }
-ck(dataPrices.length === 28, `28 niches are available and priced (${dataPrices.length})`);
+ck(dataPrices.length === N_AVAIL, `${N_AVAIL} niches are available and priced (${dataPrices.length})`);
 pass(`available inventory at list = ${money(AVAIL_TOTAL)}`);
-ck(AVAIL_TOTAL === 685175, `available total is ${money(685175)} (got ${money(AVAIL_TOTAL)})`);
+ck(AVAIL_TOTAL === AVAIL_ANCHOR, `available total is ${money(AVAIL_ANCHOR)} (got ${money(AVAIL_TOTAL)})`);
 {
-  const perFace = FACE_ORDER.map((f) => `${f} ${money(WALLS[f].niches.filter(sellable).reduce((a, n) => a + n.p, 0))}`);
-  pass('by elevation: ' + perFace.join('  ·  '));
+  // Per-elevation sums are ANCHORED, not merely printed. A whole-cabinet total can stay
+  // right while two elevations swap a niche between them; these four cannot.
+  for (const f of FACE_ORDER) {
+    const avail = WALLS[f].niches.filter(sellable);
+    const sum = avail.reduce((a, n) => a + n.p, 0);
+    const [wantN, wantSum] = PER_FACE_ANCHOR[f];
+    ck(avail.length === wantN && sum === wantSum,
+      `${FACE_META[f].label.padEnd(14)} ${wantN} available, ${money(wantSum)} (got ${avail.length}, ${money(sum)})`);
+  }
 }
 
 // ── 6. THE SAFETY GATE: no price anywhere on an unsellable niche ──────────────
@@ -174,7 +194,7 @@ console.log('\nNo price is rendered for a sold or unpriced niche');
   const unsell = new Set(data.filter((n) => !sellable(n)).map((n) => n.ref));
   const nSold = data.filter((n) => n.st === 'sold').length;
   const nUnpriced = data.filter((n) => n.st === 'unpriced').length;
-  ck(unsell.size === SHEET_TOTAL - 28, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
+  ck(unsell.size === SHEET_TOTAL - N_AVAIL, `${unsell.size} niches are not sellable (${nSold} sold + ${nUnpriced} unpriced)`);
   const offenders = [];
   for (const [name, list] of [['3D', from3d], ['flat', flatFull], ['overview', flatMini]]) {
     for (const c of list) {
@@ -383,6 +403,35 @@ ck(/estimated from photographs/.test(src), 'the header says the geometry is esti
   ck(rounded.length === 0, `no rounded price labels${rounded.length ? ' — ' + rounded.join(', ') : ''}`);
 }
 ck(!/ELC-1/.test(src), 'the sheet\'s "ELC-1" typo does not reach the page');
+
+
+// ── Movement runtime (ported from the COM map, sprint-10) ────────────────────
+// The feel is generated from scripts/map-movement.mjs, so the only thing worth
+// asserting here is that the page still CARRIES it: a build script edited to drop the
+// interpolation would otherwise revert silently to cut transitions and no inertia, and
+// nothing else on this page would notice. The two behavioural invariants are asserted
+// too, because they are the ones a family sees go wrong: the tap detector's threshold
+// must still be pointer TRAVEL, and inertia must not have widened the click-suppression
+// window (a window that outlived the coast would swallow the next tap).
+console.log('\nMovement runtime');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  for (const [tok, what] of MOVEMENT_TOKENS) ck(js.indexOf(tok) > -1, what);
+  const keys = ["yaw","pitch","zoom","lift"];
+  const m = /var CAM_KEYS = (\[[^\]]*\])/.exec(js);
+  ck(!!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(keys),
+    `an eased transition carries the WHOLE camera: ${keys.join(', ')}` +
+    (m ? ` (page: ${m[1]})` : ' — CAM_KEYS not found'));
+  ck(/moved <= 8/.test(js), 'the tap detector still keys off POINTER TRAVEL (moved <= 8)');
+  ck(/suppressUntil = performance\.now\(\) \+ 450;/.test(js),
+    'the click-suppression window is still a flat 450 ms and is not tied to camera motion');
+  ck(!/suppressUntil[^;]*(vYaw|vPitch|glideRaf|camT)/.test(js),
+    'nothing about the glide can extend the suppression window');
+  ck(/releaseGesture\(moved\);/.test(js), 'the release reads pointer travel and nothing else');
+  ck(/stopGlide\(\);\s*\/\/ any touch interrupts/.test(js), 'a pointerdown stops the camera');
+  ck(/ev\.preventDefault\(\); stopGlide\(\);/.test(js), 'the wheel stops the camera too');
+  ck(!/function floorPoint\(/.test(js), 'no floor-travel on an orbit-a-cabinet page (presets + inertia only)');
+}
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);
