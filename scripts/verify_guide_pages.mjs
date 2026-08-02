@@ -19,6 +19,7 @@ import { PDFDocument } from 'pdf-lib';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
+import { check as manifestCheck } from './_pdf_manifest.mjs';
 
 const PAGE_PX = 1056; // 11in at 96dpi, matching @page{size:letter;margin:0}
 
@@ -133,6 +134,55 @@ await onePage('direct-cremation.html', '#options', '.sidebar, .prose, .section-p
 }
 
 await browser.close();
+
+// ===================================================================================
+// NO file:// URI IN ANY BUILT PDF  (sprint-10 Track P4, commit 1)
+//
+// The builders used to print from `pathToFileURL(...)`, so every relative href became a
+// `/URI` annotation holding the BUILD MACHINE'S ABSOLUTE PATH. Ten guide PDFs shipped one;
+// `Glass-Front Niche Guide.pdf` shipped `file:///C:/Users/Martice/bw-quote-tool-mis3/...`,
+// naming a git worktree. These PDFs are emailed to families.
+//
+// The scan walks pdf-lib's parsed indirect objects rather than raw bytes, because the
+// annotations live inside Flate-compressed object streams — and it deliberately does NOT
+// use a "list the links" API: PyMuPDF's `get_links()` returns NOTHING for these, since the
+// anchors sit inside print-hidden chrome and their link rectangles are degenerate. The
+// leak was invisible to the obvious check for months. Look at the objects, not the links.
+// ===================================================================================
+console.log('\n=== NO file:// URI IN ANY BUILT PDF ===');
+{
+  const pdfs = fs.readdirSync('pdf-assets').filter(f => f.toLowerCase().endsWith('.pdf')).sort();
+  let clean = 0;
+  for (const name of pdfs) {
+    const doc = await PDFDocument.load(fs.readFileSync(path.join('pdf-assets', name)), { updateMetadata: false });
+    const hits = new Set();
+    for (const [, obj] of doc.context.enumerateIndirectObjects()) {
+      for (const m of String(obj).matchAll(/file:[^\s()<>]{0,90}/g)) hits.add(m[0]);
+    }
+    if (hits.size) fail(`${name}: ${hits.size} file:// URI(s) — e.g. ${[...hits][0]}`);
+    else clean++;
+  }
+  if (clean === pdfs.length) ok(`${pdfs.length} PDFs scanned, no file:// URI in any of them`);
+}
+
+// ===================================================================================
+// STALENESS  (sprint-10 Track P4, commit 1)
+// Every recorded build is re-checked against the CURRENT bytes of the pages it was
+// printed from. Content hashes, not mtimes — see scripts/_pdf_manifest.mjs for why mtime
+// is unusable across clones and worktrees.
+// ===================================================================================
+console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
+{
+  const r = manifestCheck();
+  // An empty manifest is a HOLLOW GATE, not a pass — it is what you get when someone
+  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 25 = 19 guides + 6
+  // catalogs; the General Price List is not generated and is deliberately absent.
+  if (r.jobs < 25) fail(`build manifest records only ${r.jobs} job(s); expected 25 — rerun both builders`);
+  for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
+  for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
+  if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);
+}
+
 console.log('');
 console.log(bad ? `${bad} check(s) failed` : 'all page-shape checks passed');
 if (bad) process.exit(1);

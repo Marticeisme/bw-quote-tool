@@ -9,7 +9,8 @@ import { chromium } from 'playwright';
 import path from 'path';
 import fs from 'fs';
 import { execFileSync } from 'child_process';
-import { pathToFileURL } from 'url';
+import { startPrintServer, pointLinksAtPages } from './_print-server.mjs';
+import { record } from './_pdf_manifest.mjs';
 
 const JOBS = [
   ['veterans-guide.html',          'pdf-assets/Veterans Guide.pdf'],
@@ -47,6 +48,10 @@ const JOBS = [
 
 // Optional filter: `node scripts/build_guide_pdfs.mjs who-decides` builds only matching
 // jobs (source filename contains one of the given substrings). No args = all.
+// Inputs shared by every guide, recorded in the staleness manifest alongside the page
+// itself so editing one of them marks all nineteen PDFs stale.
+const GUIDE_SHARED_SOURCES = ['guide-print.css'];
+
 const filters = process.argv.slice(2);
 const jobs = filters.length ? JOBS.filter(([src]) => filters.some(f => src.includes(f))) : JOBS;
 
@@ -97,11 +102,14 @@ async function loadAllImages(page) {
   });
 }
 
+// Printed over HTTP from this tree's own dev-server, never from file:// — see the header
+// of scripts/_print-server.mjs for the leak this closes. Gated by verify_guide_pages.mjs.
+const server = await startPrintServer();
 const browser = await chromium.launch();
 let failures = 0;
 for (const [src, out, opts = {}] of jobs) {
   const page = await browser.newPage();
-  await page.goto(pathToFileURL(path.resolve(src)).href, { waitUntil: 'networkidle' });
+  await page.goto(`${server.base}/${src}`, { waitUntil: 'networkidle' });
   // force <details> open so FAQ answers print (belt-and-suspenders with the CSS)
   await page.evaluate(() => document.querySelectorAll('details').forEach(d => d.open = true));
   const badImages = await loadAllImages(page);
@@ -111,17 +119,20 @@ for (const [src, out, opts = {}] of jobs) {
     badImages.forEach(s => console.error('     - ' + s));
   }
   await page.emulateMedia({ media: 'print' });
+  await pointLinksAtPages(page, server.base);
   await page.pdf({ path: out, printBackground: true, preferCSSPageSize: true,
                    margin: { top: '0', right: '0', bottom: '0', left: '0' } });
   await page.close();
   const raw = Math.round(fs.statSync(out).size / 1024);
   const did = opts.noShrink ? false : shrink(out);
   const kb = Math.round(fs.statSync(out).size / 1024);
+  record(out, [src, ...GUIDE_SHARED_SOURCES].filter(f => fs.existsSync(f)));
   const note = opts.noShrink ? '(no downsample - keeps ligature text intact)'
              : did ? `(${raw} KB before downsample)` : '';
   console.log(`${path.basename(out).padEnd(30)} ${String(kb).padStart(5)} KB  ${note}`);
 }
 await browser.close();
+server.stop();
 if (failures) {
   console.error(`done with ${failures} job(s) that had unloadable images`);
   process.exit(1);
