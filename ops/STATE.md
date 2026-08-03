@@ -1,5 +1,36 @@
 # STATE — Living Ledger
 
+**Post-close operator fix round, 2026-08-02 (in flight, awaiting operator push
+word).** After the s11 push the operator drove the live surfaces and filed a
+rapid round: (1) in-marker prices too small → 10.5px, verified by render;
+(2) boats count under fishing in PCM search; (3) the Radiance Family contradiction
+is ANSWERED BY THE LIVE PHOTOGRAPHS — standing ruling, recorded in the data
+module; (4) PCM lightbox never actually enlarged (max-* never upscales; 360px
+plates opened at card size) → width-forced to min(96vw,1100px); (5) examples
+gallery re-curated by a track that graded all 228 photos (11 out, 11 in) — the
+DIRECTOR'S material audit then caught THREE of the additions as BRONZE at full
+resolution (ELBERT, NELSEN, DILL: screw-mounted date scrolls, cast vase hub) in a
+granite-only catalog; replaced with verified granite (58 mahogany, 174 blue-pearl
+etch, 138 black laser portrait); CRISTOBAL proved to be genuine granite and stays
+(Track E's original bronze call was wrong); (6) THE BIG ONE — the operator caught
+"operator, 2026-08-01" and Lot-Inquiry/export/SNAPSHOT language rendered on the
+COM map: "never something a family sees." Track A2 swept the whole internal
+register off all 43 family-facing surfaces (full before→after table in its
+report), upgraded _no_mis_assert.mjs into a 20-term FAMILY-REGISTER GATE wired
+into every map gate + verify_guide_pages (new surfaces inherit automatically;
+155-assert suite; 4 sabotages both ways), fixed the stained-glass slab that
+occluded bank 116-123's crypt fronts (new gate: no decor on any purchasable
+front, 94 objects × 19 bands; also caught 2 pre-existing offenders on Radiance),
+and DELISTED THE WALKTHROUGH (operator, seeing mid-glide fog live: "This is not
+something I can show to families") — card + header link removed, page/builder/
+gates intact for the post-re-shoot return. Director scars this round: an
+incomplete `git add` left 18 rebuilt PDFs uncommitted while the manifest recorded
+their hashes (fresh clone would have failed the gate) — caught and completed; the
+lesson "check rendered REGISTER, not just banned words" is now a gate, not a
+practice. Suite 1998/35 on A2's tree; final merged-main run pending. Lean-mode
+policy adopted: operator fix rounds are director-direct with one combined verify
+pass; tracks reserved for feature-sized work.
+
 **Current sprint: sprint-11 — OPENED 2026-08-02** (director: Fable session; tracks:
 Opus). Source: operator session notes + the two MIS wall sheets (originals at
 `D:\Cemetery Photos Misc\Radiance and Serenity Niches\{Radiance,Serenity}.png`).
