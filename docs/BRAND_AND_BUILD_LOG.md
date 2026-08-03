@@ -2149,6 +2149,65 @@ across 31 suites`; `verify_photo_first` 13 cards; `verify_guide_pages` all page-
 passed; `verify_guides_page` ALL OK; `verify_glass_niche_ranges` and
 `verify_granite_niche_ranges` reconcile. Renders under `scratch/s11d2-renders/`.
 
+### 2026-08-02 — Price-band facet + "Print these N": the filtered print sheet
+
+Sprint-11 Track C, all six catalogs. Martice: *"I want to be able to put filters on the
+casket and urn catalogs and then print everything that is filtered. It should work similar
+to how the compare function works but limit the amount of caskets to 3 or 4 per page."*
+
+**Filters were already there** (faceted multi-select, 2026-07-24), so the filter half of
+the request is one new facet: **Price**, on every catalog, derived from `data-price`
+against a single shared ten-step ladder (`Under $100` … `$10,000 and up`). Empty bands
+never render because facet values come from the cards present, so a keepsake page shows the
+bottom three bands and a casket page the top six — one ladder, no per-catalog tuning.
+The facet engine gained an optional `f.order`: its default sort is count-descending, which
+is right for materials and colours and **wrong for prices**, where the largest band would
+otherwise head the list.
+
+**Per page: 3 caskets, 4 urns/keepsakes** (`metal`, `wood`, `all-caskets` and
+`cremation-containers-rental` = 3; `urns-guide`, `keepsake-urns-guide` = 4). Photo-first:
+at 3-up a casket photo is 3.1 in wide, which is the whole point of printing it.
+
+**The sheet paginates; the compare sheet does not — and that is the whole design.**
+`#compareSheet` is `position:fixed;height:100%`, so overflow is *clipped, not paginated*
+(s09 Track K had to prove `scrollHeight - clientHeight === 0` for exactly this reason).
+A filtered print is inherently multi-page, so `#filterSheet` is instead a static-flow stack
+of `.fs-page` blocks at a fixed `10.92in` with `break-after:page`. Item height is fixed at
+1/N of the item area rather than `flex:1` — with `flex:1` the last page, which usually holds
+fewer than N, stretched **one** casket over a full sheet (photographed before/after).
+
+Each page carries the masthead, the catalog eyebrow, **the filter it was printed from**
+("Price: $1,000 - $1,999"), and an advisor footer with `Page k of n`.
+
+**Two of the six are generated, and both builders needed the change.**
+`build_all_caskets.py` templates from `wood-caskets.html`, `build_cremation_rental.py` from
+`urns-guide.html` — the hazard recorded here on 2026-07-30. Both now patch the new config
+(`build_cremation_rental` flips `PER_PAGE` 4 → 3 and re-titles the sheet, with an
+anchor-uniqueness assert), and both were **run**: output byte-identical to the hand-patched
+page. **`build_all_caskets.py` was already broken before this track** — its facet anchor
+still expected `key:'wood'` to lead the FACETS array, which stopped being true when the
+Cremation facet landed on 2026-07-30, so it exited 1 on every run. It now anchors on the
+block, not on whichever facet happens to be first.
+
+**md5 across the six:** the four new sub-blocks are byte-identical on all six pages —
+CSS 5,541 B `ca331331…`, filter-bar button 403 B `92b3bf31…`, price ladder 1,097 B
+`1de7956e…`, sheet builder 5,687 B `08d11cd4…` — and a suite assertion holds that contract.
+
+**No `build_catalog_pdfs.mjs` rerun** — proven, not argued: page 1 under emulated print
+media, HEAD vs working tree, is byte-identical on all six, with `#filterSheet` computing
+`display:none` (the sheet only exists under `body.filter-printing`, and the new button
+lives in the already-print-hidden `.filter-bar`).
+
+**Sabotage.** Reverting `.fs-page` to the compare sheet's `position:fixed;inset:0`
+collapses a 4-page print to one page, and the new suite fails on exactly that:
+`FAIL metal-caskets.html: printed PDF really has 4 pages` and `FAIL … pages stack`.
+A CSS-presence check would have passed.
+
+Gates: `npm run check` `index.html: 8 blocks, 0 errors`; `npm test` `1688 passed, 0 failed
+across 32 suites`; `verify_catalogs` ALL PAGES OK; `verify_guides_page` ALL OK;
+`verify_print_header` 25 pages, 0 over cap; `verify_table_alignment` 21 tables / 292 cells,
+0 failed. Renders under `scratch/s11c-renders/`.
+
 ---
 
 ## 5. Working rules that keep biting us

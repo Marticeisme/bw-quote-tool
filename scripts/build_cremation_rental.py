@@ -244,6 +244,17 @@ def main():
                       '<div class="cmp-masthead-title">Cremation &amp; Rental Comparison</div>')
     out = out.replace('<div class="cmp-eyebrow">Urns</div>',
                       '<div class="cmp-eyebrow">Cremation &amp; Rental</div>')
+    # Filtered print sheet (s11 Track C). Same hazard as the compare labels above:
+    # the urn template prints 4 products per page and calls the sheet "Urn
+    # Selection"; a rebuild would otherwise silently revert this page to both.
+    for a, b in [('  var PER_PAGE      = 4;', '  var PER_PAGE      = 3;'),
+                 ('  var SHEET_TITLE   = "Urn Selection";',
+                  '  var SHEET_TITLE   = "Cremation & Rental Selection";'),
+                 ('  var SHEET_EYEBROW = "Urns";',
+                  '  var SHEET_EYEBROW = "Cremation & Rental";')]:
+        if out.count(a) != 1:
+            print(f'  !! filtered-print anchor not unique: {a!r} (found {out.count(a)})'); sys.exit(1)
+        out = out.replace(a, b, 1)
     out = re.sub(r'var ROW_LABELS = \[[^\]]*\];',
                  "var ROW_LABELS = ['Price', 'Construction', 'Interior', 'Suitable For', "
                  "'Dimensions', 'Weight', 'Item #'];", out, count=1)

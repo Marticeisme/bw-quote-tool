@@ -389,6 +389,68 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .cmp-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;text-align:right;}
 }
 
+/* ---------- FILTERED PRINT SHEET (paginated, N products per page) ----------
+   Unlike #compareSheet — which is position:fixed;height:100% and therefore CLIPS
+   whatever overflows one page — this sheet is a normal static-flow stack of
+   fixed-height .fs-page blocks with break-after:page, so a 40-product filter
+   genuinely paginates instead of silently losing 37 of them. */
+#filterSheet{display:none;}
+.filter-print{display:inline-flex;align-items:center;gap:7px;margin-left:auto;padding:8px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;white-space:nowrap;}
+.filter-print:hover{background:var(--navy-dark);}
+.filter-print:disabled{opacity:.4;cursor:not-allowed;}
+.filter-print svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.filter-print-pages{font-weight:400;opacity:.78;}
+@media print{
+  body.filter-printing *{display:none!important;}
+  body.filter-printing #filterSheet,
+  body.filter-printing #filterSheet *{display:block!important;}
+  body.filter-printing #filterSheet{background:#F6F2E9;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{size:letter;margin:0;}
+
+  /* Layout-critical rules carry the body.filter-printing #filterSheet prefix so they
+     out-rank the blanket display:block!important reset above — that selector carries
+     an ID, and a bare .fs-x class would silently lose to it. */
+  body.filter-printing #filterSheet .fs-page{display:flex!important;flex-direction:column;box-sizing:border-box;width:8.5in;height:10.92in;overflow:hidden;background:#F6F2E9;break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;}
+  body.filter-printing #filterSheet .fs-page:last-child{break-after:auto;page-break-after:auto;}
+
+  body.filter-printing #filterSheet .fs-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:14px 36px;border-bottom:3px solid #E5480F;flex-shrink:0;}
+  .fs-masthead img{height:34px;width:auto;}
+  .fs-masthead-right{margin-left:auto;text-align:right;}
+  .fs-masthead-title{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#fff;}
+  .fs-masthead-addr{font-size:9.5px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  body.filter-printing #filterSheet .fs-subhead{display:flex!important;align-items:baseline;justify-content:space-between;gap:18px;padding:11px 36px 0;flex-shrink:0;}
+  .fs-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;white-space:nowrap;}
+  .fs-filters{font-family:'Source Sans 3',sans-serif;font-size:9.5px;color:#8a9299;text-align:right;}
+
+  body.filter-printing #filterSheet .fs-items{display:flex!important;flex-direction:column;flex:1;min-height:0;padding:10px 36px 0;gap:10px;}
+  /* Item height is FIXED at 1/N of the item area rather than flex:1, so the last
+     page — which usually holds fewer than N — draws cards the same size as every
+     other page instead of stretching one product over a full sheet. */
+  body.filter-printing #filterSheet .fs-item{display:flex!important;align-items:center;gap:18px;min-height:0;border:1px solid #DBD3C4;border-radius:4px;background:#fff;padding:10px 16px;}
+  body.filter-printing #filterSheet.fs-per-3 .fs-item{flex:0 0 calc((100% - 20px) / 3);}
+  body.filter-printing #filterSheet.fs-per-4 .fs-item{flex:0 0 calc((100% - 30px) / 4);}
+  body.filter-printing #filterSheet .fs-photo{display:flex!important;align-items:center;justify-content:center;flex:0 0 3.1in;height:100%;min-height:0;background:#fff;}
+  .fs-photo img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply;}
+  body.filter-printing #filterSheet .fs-body{display:flex!important;flex-direction:column;justify-content:center;flex:1;min-width:0;}
+  .fs-name{font-family:'Source Serif 4','Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#3b4a52;line-height:1.15;}
+  /* Source Sans 3, not the serif: Source Serif's default figures are old-style, so
+     "$1,130.00" printed with descending 1s and 3s on a price a family reads at a
+     glance. Lining, tabular figures are the point here. */
+  .fs-price{font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:700;color:#4B6E81;font-variant-numeric:tabular-nums lining-nums;margin-top:3px;}
+  body.filter-printing #filterSheet .fs-specs{display:block!important;list-style:none;padding:0;margin:7px 0 0;}
+  .fs-specs li{font-family:'Source Sans 3',sans-serif;font-size:10.5px;color:#45525a;padding:2.5px 0;border-bottom:1px solid #EDE5D6;}
+  .fs-specs li:last-child{border-bottom:none;}
+  .fs-item-no{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;margin-top:5px;}
+
+  body.filter-printing #filterSheet .fs-footer{display:flex!important;align-items:baseline;justify-content:space-between;margin:0 36px;padding:9px 0 12px;border-top:1px solid #DBD3C4;flex-shrink:0;}
+  .fs-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
+  .fs-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .fs-footer-right{text-align:right;}
+  .fs-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .fs-pageno{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;margin-top:2px;}
+}
+
 /* PRINT HEADER — punch list item 20, 2026-07-27
    "the header for all of the files when printing or downloading to pdf should be a
    lot smaller. it is fine in html format but on print or pdf it takes too much of a
@@ -438,6 +500,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </select>
     <button type="button" class="facet-clear" id="facetClear" hidden onclick="clearFacets()">Clear filters</button>
     <span class="filter-count" id="filterCount">154 products</span>
+    <button type="button" class="filter-print" id="filterPrintBtn" onclick="printFiltered()">
+      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print these <span id="filterPrintCount">0</span><span class="filter-print-pages" id="filterPrintPages"></span>
+    </button>
   </div>
 
   <div class="contents">
@@ -2958,9 +3024,32 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 (function(){
   var NOUN = 'product';
   function firstDetail(card){ var d=card.querySelectorAll('.product-detail'); return d[0] ? d[0].textContent.trim() : ''; }
+  // Price bands. One ladder covers every catalog — a keepsake page lands in the
+  // bottom three bands and a casket page in the top five; empty bands never appear
+  // because facet values are derived from the cards actually present.
+  var PRICE_BANDS = [
+    { max: 100,      label: 'Under $100' },
+    { max: 250,      label: '$100 - $249' },
+    { max: 500,      label: '$250 - $499' },
+    { max: 1000,     label: '$500 - $999' },
+    { max: 2000,     label: '$1,000 - $1,999' },
+    { max: 3500,     label: '$2,000 - $3,499' },
+    { max: 5000,     label: '$3,500 - $4,999' },
+    { max: 7500,     label: '$5,000 - $7,499' },
+    { max: 10000,    label: '$7,500 - $9,999' },
+    { max: Infinity, label: '$10,000 and up' }
+  ];
+  var PRICE_ORDER = PRICE_BANDS.map(function(b){ return b.label; });
+  function priceBand(card){
+    var p = parseFloat(card.getAttribute('data-price'));
+    if (isNaN(p)) return '';
+    for (var i = 0; i < PRICE_BANDS.length; i++) if (p < PRICE_BANDS[i].max) return PRICE_BANDS[i].label;
+    return PRICE_ORDER[PRICE_ORDER.length - 1];
+  }
   var FACETS = [
     { key:'use', label:'Placement', value:function(card){ return card.getAttribute('data-use')||''; } },
-    { key:'material', label:'Material', value:firstDetail }
+    { key:'material', label:'Material', value:firstDetail },
+    { key:'price', label:'Price', value:priceBand, order:PRICE_ORDER }
   ];
 
   // Layout-agnostic: sectioned catalogs have several .section-wrap[id] grids; flat
@@ -2985,6 +3074,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     var counts = {};
     allCards.forEach(function(card){ var v=f.value(card); if(v){ counts[v]=(counts[v]||0)+1; } });
     var values = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || a.localeCompare(b); });
+    // Count-descending is right for materials and colours and wrong for price bands,
+    // which have to read cheapest-first; an explicit f.order wins when present.
+    if (f.order) values.sort(function(a,b){ return f.order.indexOf(a) - f.order.indexOf(b); });
     if(!values.length) return;
     var wrap = document.createElement('div'); wrap.className='facet'; wrap.setAttribute('data-key', f.key);
     var btn = document.createElement('button'); btn.type='button'; btn.className='facet-btn';
@@ -3053,6 +3145,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     FACETS.forEach(function(f){ if(!f._badge) return; var n=Object.keys(selected[f.key]).length; if(n){ f._badge.textContent=n; f._badge.hidden=false; f._btn.classList.add('has-active'); anyActive=true; } else { f._badge.hidden=true; f._btn.classList.remove('has-active'); } });
     clearBtn.hidden = !anyActive;
     document.getElementById('filterCount').textContent = visible + ' ' + NOUN + (visible===1?'':'s');
+    if (window.bwUpdateFilterPrintBtn) window.bwUpdateFilterPrintBtn(visible);
   }
 
   window.filterCards = applyFilters;
@@ -3169,6 +3262,154 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="cmp-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
   </div>
 </div>
+
+<!-- Filtered print sheet — pages are built on demand by printFiltered(). -->
+<div id="filterSheet"></div>
+
+<script>
+(function(){
+  // ---------- PRINT WHAT'S FILTERED ----------
+  // CONFIG is the only per-catalog part of this block; everything below it is
+  // identical on all six catalog pages.
+  var PER_PAGE      = 4;
+  var SHEET_TITLE   = "Urn Selection";
+  var SHEET_EYEBROW = "Urns";
+
+  var sheet = document.getElementById('filterSheet');
+  var btn   = document.getElementById('filterPrintBtn');
+  if (!sheet || !btn) return;
+
+  function visibleCards(){
+    return Array.prototype.slice.call(document.querySelectorAll('.product-card'))
+      .filter(function(c){ return c.style.display !== 'none'; });
+  }
+
+  // The sheet says what it is a sheet OF — a printed page with no filter line is a
+  // page a family cannot put back in context a week later.
+  function activeFilterText(){
+    var bits = [];
+    var q = document.getElementById('searchInput');
+    if (q && q.value.trim()) bits.push('Search: "' + q.value.trim() + '"');
+    var facets = document.querySelectorAll('#facets .facet');
+    for (var i = 0; i < facets.length; i++){
+      var lbl = facets[i].querySelector('.facet-btn span');
+      var on  = facets[i].querySelectorAll('.facet-opt input:checked');
+      if (!on.length) continue;
+      var vals = [];
+      for (var j = 0; j < on.length; j++) vals.push(on[j].value);
+      bits.push((lbl ? lbl.textContent : 'Filter') + ': ' + vals.join(', '));
+    }
+    return bits.length ? bits.join('  \u00b7  ') : 'All products';
+  }
+
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function itemNode(card){
+    var item = el('div', 'fs-item');
+    var wrap = el('div', 'fs-photo');
+    var src = card.querySelector('.product-img img');
+    if (src){
+      var img = document.createElement('img');
+      img.src = src.getAttribute('src');
+      img.alt = src.getAttribute('alt') || '';
+      wrap.appendChild(img);
+    }
+    item.appendChild(wrap);
+    var body = el('div', 'fs-body');
+    var nameEl = card.querySelector('.product-name');
+    var priceEl = card.querySelector('.product-price');
+    body.appendChild(el('div', 'fs-name', nameEl ? nameEl.textContent.trim() : ''));
+    body.appendChild(el('div', 'fs-price', priceEl ? priceEl.textContent.trim() : ''));
+    // The card's own detail lines print verbatim, in card order. They are
+    // self-describing ("Steel Non-Gasketed", "Ivory Crepe Interior", "169 lbs"), so
+    // this sheet cannot mislabel a row the way positional spec mapping did on the
+    // cards that omit a middle field.
+    var ul = el('ul', 'fs-specs');
+    var details = card.querySelectorAll('.product-detail');
+    for (var i = 0; i < details.length; i++) ul.appendChild(el('li', null, details[i].textContent.trim()));
+    body.appendChild(ul);
+    var meta = card.querySelector('.product-meta');
+    if (meta) body.appendChild(el('div', 'fs-item-no', meta.textContent.trim()));
+    item.appendChild(body);
+    return item;
+  }
+
+  function build(cards){
+    sheet.innerHTML = '';
+    sheet.className = 'fs-per-' + PER_PAGE;
+    var pages = Math.ceil(cards.length / PER_PAGE) || 1;
+    var filters = activeFilterText();
+    for (var p = 0; p < pages; p++){
+      var page = el('div', 'fs-page');
+
+      var mast = el('div', 'fs-masthead');
+      var logo = document.createElement('img');
+      logo.src = 'logo.svg'; logo.alt = 'Bonney Watson';
+      mast.appendChild(logo);
+      var mr = el('div', 'fs-masthead-right');
+      mr.appendChild(el('div', 'fs-masthead-title', SHEET_TITLE));
+      mr.appendChild(el('div', 'fs-masthead-addr', '16445 International Blvd, SeaTac WA 98188 \u00b7 206-445-9794'));
+      mast.appendChild(mr);
+      page.appendChild(mast);
+
+      var sub = el('div', 'fs-subhead');
+      sub.appendChild(el('div', 'fs-eyebrow', SHEET_EYEBROW));
+      sub.appendChild(el('div', 'fs-filters', filters));
+      page.appendChild(sub);
+
+      var items = el('div', 'fs-items');
+      var end = Math.min((p + 1) * PER_PAGE, cards.length);
+      for (var i = p * PER_PAGE; i < end; i++) items.appendChild(itemNode(cards[i]));
+      page.appendChild(items);
+
+      var foot = el('div', 'fs-footer');
+      var fl = document.createElement('div');
+      fl.appendChild(el('div', 'fs-advisor-name', 'Martice Morrison'));
+      fl.appendChild(el('div', 'fs-advisor-role', 'Family Service Advisor \u00b7 Bonney Watson'));
+      foot.appendChild(fl);
+      var fr = el('div', 'fs-footer-right');
+      fr.appendChild(el('div', 'fs-advisor-contact', 'mmorrison@bonneywatson.com \u00b7 206-445-9794'));
+      fr.appendChild(el('div', 'fs-pageno', 'Page ' + (p + 1) + ' of ' + pages));
+      foot.appendChild(fr);
+      page.appendChild(foot);
+
+      sheet.appendChild(page);
+    }
+    return pages;
+  }
+
+  // Exposed so the verifier and the Playwright suite can render the sheet without
+  // opening a print dialog (window.print() blocks headless Chromium).
+  window.bwBuildFilteredSheet = function(){ return build(visibleCards()); };
+  window.bwFilteredPerPage = PER_PAGE;
+
+  window.printFiltered = function(){
+    var cards = visibleCards();
+    if (!cards.length) return;
+    build(cards);
+    document.body.classList.add('filter-printing');
+    setTimeout(function(){ window.print(); }, 100);
+    window.addEventListener('afterprint', function handler(){
+      document.body.classList.remove('filter-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+  };
+
+  window.bwUpdateFilterPrintBtn = function(n){
+    var pages = Math.ceil(n / PER_PAGE);
+    btn.disabled = !n;
+    document.getElementById('filterPrintCount').textContent = n;
+    document.getElementById('filterPrintPages').textContent =
+      n ? (' \u00b7 ' + pages + (pages === 1 ? ' page' : ' pages')) : '';
+  };
+  window.bwUpdateFilterPrintBtn(visibleCards().length);
+})();
+</script>
 
 
 <script>
