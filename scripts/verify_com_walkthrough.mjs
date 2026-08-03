@@ -4,10 +4,18 @@
  *
  * It is deliberately not a DOM-only check. A splat page can have perfect markup and draw a
  * black rectangle, so this reads real framebuffer pixels: it forces `preserveDrawingBuffer`
- * on the WebGL2 context via an init script, then calls `gl.readPixels` and computes coverage
- * and colour spread. And because the viewer auto-orbits on load, "the pixels changed" proves
- * nothing about the controls — so the drag test asserts against the live camera matrix that
- * the page exposes as `window.bwWalkthrough.view`.
+ * on the WebGL2 context via an init script, then calls `gl.readPixels` and computes coverage,
+ * colour spread and fine detail. "The pixels changed" proves nothing about the controls, so
+ * every control assertion reads the live camera matrix the page exposes as
+ * `window.bwWalkthrough.view`.
+ *
+ * Since sprint-11 the camera is CONFINED to the filmed path (scripts/com-walkthrough-path.json
+ * — the reconstruction is only photographic near where the operator walked). Two consequences
+ * for this file: it parks the camera at every stop on that path and asserts each one still
+ * renders like a photograph rather than fog, which is what makes "it looks decent" a gate
+ * instead of an opinion; and it tries to escape the path with everything a viewer has —
+ * right-drag, modifier-scroll, pinch, jump, a matrix in the URL hash — and asserts the camera
+ * is still on the polyline afterwards.
  *
  * It also serves the asset the way PRODUCTION does. GitHub Pages gzips the .splat, so the
  * Content-Length header is the COMPRESSED byte count; the dev server sends it uncompressed,
@@ -17,7 +25,9 @@
  * vertexCount that is exactly assetBytes/32 — a number it can only get by counting whole
  * 32-byte rows off the wire. A short second pass re-checks the uncompressed path.
  *
- * Screenshots for a human to LOOK at are written to scratch/splat/shots/ (gitignored).
+ * Screenshots for a human to LOOK at are written to scratch/s11f-renders/ (gitignored) —
+ * one per stop on the filmed path, named for the stop. The numbers below are a floor, not a
+ * verdict: they catch a black or fogged frame, and a person looking at these catches the rest.
  *
  *   node scripts/verify_com_walkthrough.mjs
  */
@@ -29,9 +39,10 @@ import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { loadPath } from './walkthrough-path.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = path.join(ROOT, 'scratch', 'splat', 'shots');
+const SHOTS = path.join(ROOT, 'scratch', 's11f-renders');
 const PAGE = 'MAPS/COM_Walkthrough.html';
 const ASSET = path.join(ROOT, 'MAPS', 'COM_Walkthrough.splat');
 const MAX_ASSET_BYTES = 60 * 1024 * 1024;
@@ -87,9 +98,29 @@ const loadFacts = (page) => page.evaluate(() => {
   };
 });
 
-// Named viewpoints, as camera-to-world matrices. Filled in from the trained scene; each is
-// a place a counselor would actually stand.
-const VIEWPOINTS = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'com-walkthrough-views.json'), 'utf8'));
+// The filmed path: the ONLY viewpoints the page can occupy. Same file the builder reads, so
+// a stop that ships is a stop that gets screenshotted and measured here.
+const WALK = loadPath();
+const STOPS = WALK.stops;
+
+// What "this stop still looks like a photograph" means numerically. Derived from measuring
+// the real thing (scratch/s11f-renders/): every shipped stop clears these with margin, while
+// a position pushed off the path into the fog or the void does not.
+//
+// `lit` is the floor against a black or near-black frame — the failure a position outside the
+// reconstruction produces. `detail` is the mean absolute Laplacian: fog is smooth, a
+// photograph has edges, so it is the one number that separates "reconstructed" from "smeared"
+// rather than merely "not blank". Neither is a substitute for looking at the screenshots,
+// which is why every stop still writes one.
+//
+// Measured under SwiftShader, 2026-08-02: the shipped stops run lit 88.9–99.8% and detail
+// 7.71–11.67. `mid-room` is the floor on both — it looks down a dark aisle, so a fifth of the
+// frame is genuinely unlit, which is why LIT_MIN is 0.85 and not the 0.90 first tried. A
+// position outside the reconstruction is nowhere near either number.
+const LIT_MIN = 0.85;
+const STDEV_MIN = 12;
+const COLOURS_MIN = 60;
+const DETAIL_MIN = 6.0;
 
 async function pixelStats(page) {
   return page.evaluate(() => {
@@ -100,17 +131,37 @@ async function pixelStats(page) {
     gl.readPixels((c.width - w) >> 1, (c.height - h) >> 1, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
     let lit = 0, sum = 0, sum2 = 0, n = w * h;
     const hist = new Set();
+    const lum = new Float32Array(n);
     for (let i = 0; i < n; i++) {
       const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2];
       const v = (r + g + b) / 3;
+      lum[i] = v;
       if (v > 12) lit++;
       sum += v; sum2 += v * v;
       hist.add((r >> 4) << 8 | (g >> 4) << 4 | (b >> 4));
     }
+    // Mean absolute Laplacian — fine detail. Smeared fog is locally smooth; a reconstructed
+    // surface (a stained-glass came, a name plate, a chair leg) is not.
+    let dsum = 0, dn = 0;
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        dsum += Math.abs(4 * lum[i] - lum[i - 1] - lum[i + 1] - lum[i - w] - lum[i + w]);
+        dn++;
+      }
+    }
     const mean = sum / n;
-    return { litFraction: lit / n, mean, stdev: Math.sqrt(sum2 / n - mean * mean), colours: hist.size };
+    return {
+      litFraction: lit / n, mean, stdev: Math.sqrt(sum2 / n - mean * mean),
+      colours: hist.size, detail: dsum / dn,
+    };
   });
 }
+
+/** One line describing a rendered frame, used in every pass/fail message below. */
+const describe = (name, s) =>
+  `${name}: lit ${(s.litFraction * 100).toFixed(1)}%, mean ${s.mean.toFixed(1)}, ` +
+  `stdev ${s.stdev.toFixed(1)}, ${s.colours} distinct colours, detail ${s.detail.toFixed(2)}`;
 
 (async () => {
   head('Committed asset');
@@ -205,9 +256,17 @@ async function pixelStats(page) {
   await page.mouse.click(550, 400);
   await page.waitForTimeout(300);
 
-  head('Rendered pixels at each viewpoint');
-  for (const [name, view] of Object.entries(VIEWPOINTS)) {
-    await page.evaluate((v) => { window.bwWalkthrough.view = v; }, view);
+  head('Rendered pixels at every stop on the filmed path');
+  for (let si = 0; si < STOPS.length; si++) {
+    const { name, view, pos } = STOPS[si];
+    // Setting the view matrix alone is NOT enough any more: the page overwrites the camera
+    // position from the path on every frame, so a matrix pushed in from outside contributes
+    // only its rotation. Without the snap, all seven "stops" would render at the opening
+    // position wearing seven different headings — seven passing checks of one place.
+    await page.evaluate(([v, i]) => {
+      window.bwWalkthrough.view = v;
+      window.bwWalkthrough.snap(i);
+    }, [view, si]);
     // Headless runs on SwiftShader (software WebGL2), one to two orders of magnitude slower
     // than the GPU a family actually uses — a fixed sleep is not enough. Wait for real
     // rendered frames instead. A first pass used `waitForTimeout(6000)` and two different
@@ -218,12 +277,22 @@ async function pixelStats(page) {
       const tick = () => (++n >= 10 ? resolve(n) : requestAnimationFrame(tick));
       requestAnimationFrame(tick);
     }), { timeout: 180000 });
+    // Prove the frame just measured is of THIS stop, not of wherever the camera happened to
+    // be: read the position back out of the matrix the renderer drew from.
+    const where = await page.evaluate(() => invert4(window.bwWalkthrough.view).slice(12, 15));
+    const off = Math.hypot(where[0] - pos[0], where[1] - pos[1], where[2] - pos[2]);
+    if (off < 1e-4) ok(`camera is standing at "${name}" (${off.toExponential(1)} m off)`);
+    else fail(`camera is ${off.toFixed(3)} m from stop "${name}" — the frame below is of somewhere else`);
+
     const s = await pixelStats(page);
     await page.screenshot({ path: path.join(SHOTS, `walkthrough-${name}.png`), timeout: 180000 });
-    const desc = `${name}: lit ${(s.litFraction * 100).toFixed(1)}%, mean ${s.mean.toFixed(1)}, ` +
-                 `stdev ${s.stdev.toFixed(1)}, ${s.colours} distinct colours`;
-    if (s.litFraction > 0.25 && s.stdev > 12 && s.colours > 60) ok(desc);
-    else fail(`${desc} — this viewpoint is blank or near-flat`);
+    const desc = describe(name, s);
+    if (s.litFraction >= LIT_MIN && s.stdev > STDEV_MIN && s.colours > COLOURS_MIN && s.detail >= DETAIL_MIN) {
+      ok(desc);
+    } else {
+      fail(`${desc} — below the floor (lit ${(LIT_MIN * 100).toFixed(0)}%, stdev ${STDEV_MIN}, ` +
+           `${COLOURS_MIN} colours, detail ${DETAIL_MIN}): this stop is blank, flat or fogged`);
+    }
   }
 
   head('Controls');
@@ -255,6 +324,130 @@ async function pixelStats(page) {
   const deltaT = beforeT.reduce((a, v, i) => a + Math.abs(v - afterT[i]), 0);
   if (deltaT > 0.05) ok(`single-finger touch drag rotated the camera (matrix delta ${deltaT.toFixed(3)})`);
   else fail(`single-finger touch drag did not move the camera (matrix delta ${deltaT.toFixed(3)})`);
+
+  head('The camera is confined to the filmed path');
+  // The page's own invert4 turns the view matrix back into a world position — the same number
+  // the renderer draws from, not a variable the path code keeps for its own convenience.
+  const camPos = () => page.evaluate(() => invert4(window.bwWalkthrough.view).slice(12, 15));
+  // Frames are EXPENSIVE here: SwiftShader draws 750,000 splats at one to three frames a
+  // second, so a 90-frame wait is a minute of wall clock. Everything below therefore waits
+  // for the fewest frames that prove the point — the target moves on the input event itself,
+  // and the eased position only has to be seen following it. (That the easing converges
+  // exactly is proved without a browser in tests/test-walkthrough-path.mjs.)
+  // page.evaluate takes ONE argument — a third parameter is an error, not an options bag.
+  const settle = (frames = 12) => page.evaluate((f) => new Promise((res) => {
+    let n = 0;
+    const tick = () => (++n >= f ? res(n) : requestAnimationFrame(tick));
+    requestAnimationFrame(tick);
+  }), frames);
+  const walkState = () => page.evaluate(() => ({
+    t: window.bwWalkthrough.pathT, target: window.bwWalkthrough.pathTarget,
+  }));
+  const offPath = (p) => {
+    let best = Infinity;
+    for (let i = 0; i + 1 < STOPS.length; i++) {
+      const a = STOPS[i].pos, b = STOPS[i + 1].pos;
+      const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+      const ap = [p[0] - a[0], p[1] - a[1], p[2] - a[2]];
+      const len2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2;
+      const t = Math.max(0, Math.min(1, len2 ? (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2 : 0));
+      const d = Math.hypot(ap[0] - ab[0] * t, ap[1] - ab[1] * t, ap[2] - ab[2] * t);
+      if (d < best) best = d;
+    }
+    return best;
+  };
+
+  await page.evaluate(() => window.bwWalkthrough.snap(0));
+  await settle(3);
+  const start = await walkState();
+  await page.mouse.move(550, 400);
+  await page.mouse.wheel(0, -400);
+  await settle(12);
+  const wheeled = await walkState();
+  if (wheeled.target > start.target + 0.2 && wheeled.t > start.t + 0.05) {
+    ok(`scroll walked forward along the path (stop ${start.t.toFixed(2)} → ${wheeled.t.toFixed(2)}, ` +
+       `heading for ${wheeled.target.toFixed(2)})`);
+  } else {
+    fail(`scroll did not advance along the path (${JSON.stringify(start)} → ${JSON.stringify(wheeled)})`);
+  }
+
+  await page.keyboard.down('ArrowUp');
+  await settle(15);
+  await page.keyboard.up('ArrowUp');
+  await settle(6);
+  const walked = await walkState();
+  if (walked.target > wheeled.target + 0.05 && walked.t > wheeled.t) {
+    ok(`arrow key walked forward along the path (stop ${wheeled.t.toFixed(2)} → ${walked.t.toFixed(2)})`);
+  } else {
+    fail(`arrow key did not advance along the path (${JSON.stringify(wheeled)} → ${JSON.stringify(walked)})`);
+  }
+
+  await page.keyboard.down('ArrowDown');
+  await settle(20);
+  await page.keyboard.up('ArrowDown');
+  await settle(6);
+  const backed = await walkState();
+  if (backed.target < walked.target - 0.05 && backed.t < walked.t) {
+    ok(`arrow key walked back along the path (stop ${walked.t.toFixed(2)} → ${backed.t.toFixed(2)})`);
+  } else {
+    fail(`arrow key did not retreat along the path (${JSON.stringify(walked)} → ${JSON.stringify(backed)})`);
+  }
+
+  // The ends are ends. Walking on past the last stop for a solid minute of key-holding must
+  // leave the viewer standing at the last stop, not out in the car park.
+  await page.evaluate(() => { for (let i = 0; i < 4000; i++) window.bwWalkthrough.advance(0.014); });
+  const far = await walkState();
+  if (Math.abs(far.target - (STOPS.length - 1)) < 1e-9) ok(`walking forward forever stops at the last stop (${far.target})`);
+  else fail(`walking forward left the path: target ${far.target}`);
+  await page.evaluate(() => { for (let i = 0; i < 4000; i++) window.bwWalkthrough.advance(-0.014); });
+  const near = await walkState();
+  if (Math.abs(near.target) < 1e-9) ok(`walking back forever stops at the first stop (${near.target})`);
+  else fail(`walking back left the path: target ${near.target}`);
+
+  // The escape attempt. Everything a determined viewer can do at once: right-drag pan,
+  // shift/ctrl scroll (upstream's dolly and pan), two-finger pinch, jump, WASD, a view matrix
+  // shoved straight into the URL hash. The camera must still be on the polyline afterwards.
+  await page.evaluate(() => {
+    const c = document.getElementById('canvas');
+    const ev = (type, init) => c.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, ...init }));
+    for (let i = 0; i < 12; i++) {
+      ev('mousedown', { clientX: 500, clientY: 400, button: 2, ctrlKey: true });
+      ev('mousemove', { clientX: 500 + i * 40, clientY: 400 - i * 30, ctrlKey: true });
+      ev('mouseup', { clientX: 900, clientY: 100 });
+      window.dispatchEvent(new WheelEvent('wheel', { deltaY: -900, deltaX: 400, shiftKey: true, bubbles: true, cancelable: true }));
+      window.dispatchEvent(new WheelEvent('wheel', { deltaY: 900, ctrlKey: true, bubbles: true, cancelable: true }));
+    }
+    const two = (type, a, b) => {
+      const t = (x, y, id) => new Touch({ identifier: id, target: c, clientX: x, clientY: y });
+      const ts = type === 'touchend' ? [] : [t(a[0], a[1], 1), t(b[0], b[1], 2)];
+      c.dispatchEvent(new TouchEvent(type, { touches: ts, targetTouches: ts, changedTouches: ts.length ? ts : [t(a[0], a[1], 1)], bubbles: true, cancelable: true }));
+    };
+    two('touchstart', [400, 400], [600, 400]);
+    for (let i = 1; i <= 10; i++) two('touchmove', [400 - i * 20, 400 - i * 20], [600 + i * 20, 400 + i * 20]);
+    two('touchend', [200, 200], [800, 600]);
+    location.hash = JSON.stringify([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 40, -30, 90, 1]);
+  });
+  for (const k of ['Space', 'KeyW', 'KeyA', 'ShiftLeft']) await page.keyboard.down(k);
+  await settle(10);
+  for (const k of ['Space', 'KeyW', 'KeyA', 'ShiftLeft']) await page.keyboard.up(k);
+  await settle(6);
+  const escaped = await camPos();
+  const dist = offPath(escaped);
+  if (dist < 1e-6) ok(`after a full escape attempt the camera is still on the path (${dist.toExponential(1)} m off)`);
+  else fail(`the camera left the path: ${dist.toFixed(3)} m off, at [${escaped.map((n) => n.toFixed(2)).join(', ')}]`);
+
+  // Looking is free, so the frame after that mauling may well point at a ceiling. What must
+  // survive is the state: park at a stop again and it renders exactly as it did before.
+  await page.evaluate((v) => { window.bwWalkthrough.view = v; }, STOPS[WALK.openIndex].view);
+  await page.evaluate(() => window.bwWalkthrough.snap(window.bwWalkthrough.openIndex));
+  await settle(10);
+  const recovered = await pixelStats(page);
+  await page.screenshot({ path: path.join(SHOTS, 'walkthrough-after-escape-attempt.png'), timeout: 180000 });
+  if (recovered.litFraction >= LIT_MIN && recovered.detail >= DETAIL_MIN) {
+    ok(describe(`recovered to the opening stop after the escape attempt`, recovered));
+  } else {
+    fail(`${describe('recovered to the opening stop after the escape attempt', recovered)} — the page did not recover`);
+  }
 
   head('Links resolve both ways');
   for (const [label, sel, expect] of [
@@ -314,8 +507,9 @@ async function pixelStats(page) {
   // a fixed set of assertions, so a run that produced fewer than the floor bailed early
   // somewhere (SwiftShader crash, page closed, skipped loop) even if nothing threw.
   // Raised from 14 when the gzip transport pass added three sizing checks and the
-  // uncompressed pass added three more.
-  const CHECK_FLOOR = 20;
+  // uncompressed pass added three more; then made a function of the path, since the
+  // per-stop pass runs one check per stop and the confinement pass adds seven.
+  const CHECK_FLOOR = 23 + 2 * STOPS.length;
   if (checks < CHECK_FLOOR) fail(`only ${checks} checks ran (floor ${CHECK_FLOOR}) — the suite bailed early`);
 
   console.log(`\nScreenshots: ${path.relative(ROOT, SHOTS)}`);
