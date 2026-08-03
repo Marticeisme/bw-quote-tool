@@ -55,12 +55,20 @@ designs."
 Size budgets (post-work dir totals, gated): designs ≤ 20 MB · elements ≤ 28 MB ·
 photos ≤ 9 MB · references ≤ 1 MB. Sum ≤ 58 MB = current 28 MB + the 30 MB cap.
 
+- **TRACK-C — guide print design** (`s12/guide-print-design`, worktree; ADDED mid-sprint
+  2026-08-03 on the operator's complaint + screenshot). Restore BW logos to the guide
+  PDFs (reverses the print-hidden ruling), cream full-bleed to the page edge, remove
+  the "Bonney Watson" running header, seat the running footer ON the cream; all 19
+  PDFs rebuilt; page caps hold at 6; guide gates stay green. Owns
+  `scripts/guide-print-system/`, guide-print.css, `*-guide.html` print structure, the
+  19 PDFs + `.build-manifest`. Disjoint from A/B (no PCM files).
+
 ## Merge order
 
-B → A. (B is the headline complaint; A rebuilds `data/pcm-catalog.json` + the HTML last
-so the final page is generated on top of B's plates.) Parallel spawn is safe: file
-ownership is disjoint by design; the only shared surface is the built HTML, which A
-regenerates at the end anyway.
+B → A → C. (B is the headline complaint; A rebuilds `data/pcm-catalog.json` + the HTML
+on top of B's plates; C is file-disjoint from both and merges last.) Parallel spawn is
+safe: file ownership is disjoint by design; the only shared surface for A/B is the
+built HTML, which A regenerates at the end anyway.
 
 ## Close checklist
 

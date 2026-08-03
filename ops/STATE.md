@@ -21,6 +21,57 @@ references re-rendered ≤1 MB, companion/individual/ledger/flat format search w
 chips, verify_pcm_catalog extended). Merge order B → A (A rebuilds data+HTML last on
 top of B's plates). See `sprints/sprint-12/SPRINT.md`.
 
+**Track B ROUND 1 REPORTED; director sent it back with two rulings (2026-08-03):**
+B shipped 640px/q70/Hamming (19.85 MB ≤ its 20 MB sub-budget), x4plus over anime
+(anime smears granite grain — decisive render kept), GPU-verified 3090 run, lossless
+re-export first (each plate = granite RGB layer + grey art layer at the same rect;
+extract_image alone loses ALL lettering), byte-deterministic encode, sha256 manifest +
+26-assert gate sabotaged 5 ways. Two honest defects: sub-5px epitaph lines return as
+confident WRONG letterforms ("Balovad Wlfa"), and some granite re-imagined as crazing
+(2020/987). Director rulings: (1) designs budget raised to 24 MB — sprint-wide total
+has headroom under the operator's +30 MB cap — re-encode at 700px (23.06 MB measured,
+restores the ≥700px gate spec); (2) full-699 hallucination sweep by eye, swap affected
+plates to plain Hamming-from-lossless (manifest records per-file method, gate asserts
+the split; stop and report if >70 plates). B's x4 PNGs cached in scratch/ so re-encode
+is ~2 min, no GPU. B also flagged: DESIGN §5 suite numbers stale (independent of Track
+A's same finding); killed 3 stray dev-servers incl. possibly the main-tree 3737.
+
+**Mid-sprint operator additions (2026-08-03):** (1) "companion" search ruling arrived
+at boot and went into Track A. (2) Guides complaint with screenshot — "took a step
+back… missing all bonney watson logoes… margins are supposed to be stretched to the
+edge… do not need a header and the footer should just overlap with the cream… the
+guides do not look good at all" — **Track C** `s12/guide-print-design` spawned
+(../bw-quote-tool-s12c, Opus): logos restored (REVERSES the s10 print-hidden ruling),
+cream full-bleed, running header removed, footer seated on the cream, 19 PDFs rebuilt,
+caps hold. Merge order now B → A → C.
+
+**Track A CORRECTION (2026-08-03): the 144/10 audit failure was the DIRECTOR falling
+into the port-3737 served-tree trap** — verify_pcm_catalog's DOM half graded main's
+page (3737 serves main) while its disk half read the worktree; A's own runs had used a
+BW_BASE pin its report omitted. A's new `de5185f` makes assertServesThisTree the
+gate's FIRST statement — director re-proved both directions himself (bare run in the
+worktree now exits 1 loudly naming both trees; BW_BASE-pinned at a worktree-rooted
+3765 server → 154/0 on clean committed HEAD). A stands green: 154/0 gate, 165/0 suite,
+2050/35 npm test on committed bytes. LESSON, promote to guidelines: every verifier
+that reads disk AND fetches a served page must call served-tree-check before its first
+assert — the PCM gate was the last one missing it; and track reports must quote the
+EXACT env-pinned command they ran.
+
+**Track A REPORTED (awaiting B for merge-order):** elements re-extracted at the book's
+true native ceiling (270×270@150ppi; palette-8 PNG, 19.75 MB ≤ 28), photos 1400px/q46
+(NOT the brief's 1600 — 1600 cannot fit 9 MB at shippable quality; 8.75 MB), references
+130dpi webp 0.94 MB ≤ 1; format/category facet search with lit chips ("companion" 130
+incl. 6 companion-ledgers, gate asserts the 124 fmt=companion are a subset; "companions"
+plural now works, was 0); gate 113→154 checks reading raw bytes with floors derived from
+shipped history; suite 2050/35 in-tree. Honest flags: element lightbox is STILL ~3×
+soft at 890px — 300px is the source ceiling; AI-upscaling elements is the follow-up
+candidate if the operator wants more (Borders&Panels are vector, could re-render any
+dpi). DESIGN §5 / SPRINT_GUIDELINES rule-4 contract numbers are stale (say 1845/34;
+main is 2000/35) — director to fix at close. A killed+restarted the main-tree 3737 dev
+server mid-track (process names indistinguishable); A's worktree node_modules junction
+must be deleted non-recursively (`[System.IO.Directory]::Delete($p,$false)`) before
+worktree removal.
+
 **Post-close operator fix round, 2026-08-02 (in flight, awaiting operator push
 word).** After the s11 push the operator drove the live surfaces and filed a
 rapid round: (1) in-marker prices too small → 10.5px, verified by render;
