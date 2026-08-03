@@ -253,14 +253,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
-@media print{
-  @page{ @top-left{ content:"Bonney Watson · Burial Guide";
-           font-family:'Source Sans 3',sans-serif; font-size:7.5pt; color:#6a7686; letter-spacing:.05em; } }
-  /* Page 1 opens under the guide's own masthead, which states the title an inch
-     below in 16pt. Repeating it in the running header would be the only thing on
-     the page said twice. Every other page keeps it. */
-  @page :first{ @top-left{content:none} }
-}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
 </style>
 <!-- BW:PRINT-SYSTEM:END -->
 
