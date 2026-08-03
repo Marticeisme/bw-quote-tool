@@ -17,6 +17,13 @@ Elements are rendered on demand. Putting all 3,973 in the DOM at load costs abou
 thousand nodes for cards nobody has scrolled to; a category renders when it is opened,
 when it matches a search, or when a jump lands inside it.
 
+Search is by SUBJECT, not just by number. A family says "roses" or "something with
+mountains", never "PCM 1182", so every design carries curated subject tags
+(data/pcm-subject-tags.json, tagged by looking at the artwork) resolved into
+data/pcm-catalog-tags.json by scripts/pcm_tags.py, and the search box expands the word
+typed through a synonym layer before matching. "flowers" finds every flower; "fishing"
+finds the rods, the boats and the bass.
+
 NO PRICES ANYWHERE. This is a design-lookup surface; the quote is built in the tool.
 """
 import html, json, os, re, sys
@@ -24,6 +31,7 @@ import html, json, os, re, sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 DATA = 'data/pcm-catalog.json'
+TAGS = 'data/pcm-catalog-tags.json'
 PAGE = 'pcm-design-catalog.html'
 
 esc = lambda s: html.escape(str(s), quote=True)
@@ -116,6 +124,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .product-body{padding:9px 12px 11px;text-align:center;}
 .product-detail{font-size:11.5px;color:var(--text-muted);line-height:1.35;min-height:16px;}
 .pcm-number{font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:700;letter-spacing:.04em;color:var(--navy-deep);font-variant-numeric:tabular-nums;margin-top:2px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:6px;}
+.tag{font-size:10px;line-height:1.5;letter-spacing:.02em;color:var(--text-muted);background:var(--offwhite);border:1px solid var(--warm-border);border-radius:9px;padding:0 6px;white-space:nowrap;}
+.tag.hit{color:#fff;background:var(--orange);border-color:var(--orange-dark);font-weight:600;}
 .element-card .element-img{aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center;padding:9px;}
 .element-card .element-img img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto;}
 .element-card .pcm-number{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:0 5px 8px;word-break:break-word;line-height:1.25;}
@@ -175,26 +186,33 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .product-card{break-inside:avoid;page-break-inside:avoid;cursor:auto;}
   .product-card:hover{box-shadow:none;transform:none;}
   .el-body{display:block;border-top:none;}
+  .tag-row{display:none!important;}
   a{text-decoration:none;color:inherit;}
 }
 """
 
 
-def design_card(d):
+def design_card(d, tags):
     bits = [d['id'].replace('-', ' '), 'pcm ' + str(d['num']), d['cat'], d['sub'],
             FMT_LABEL.get(d['fmt'], d['fmt']), d.get('color') or '', d['book'] + ' book']
     detail = ' &middot; '.join(x for x in [esc(d['color']) if d['color'] else '',
                                            FMT_LABEL.get(d['fmt'], d['fmt'])] if x)
+    # The chips are the answer to "why did this card come back for 'flowers'?" - they sit
+    # on every card so the vocabulary is discoverable, and the matching one lights up.
+    chips = ''.join(f'<span class="tag" data-tag="{esc(t)}">{esc(t.replace("-", " "))}</span>'
+                    for t in tags)
     return (
         f'      <div class="product-card design-card" data-id="{esc(d["id"])}" '
         f'data-num="{d["num"]}" data-book="{esc(d["book"])}" data-cat="{esc(d["cat"])}" '
         f'data-sub="{esc(d["sub"])}" data-fmt="{esc(d["fmt"])}" '
-        f'data-color="{esc(d["color"])}" data-name="{esc(norm(" ".join(bits)))}">\n'
+        f'data-color="{esc(d["color"])}" data-name="{esc(norm(" ".join(bits)))}" '
+        f'data-tags="{esc(" ".join(tags))}">\n'
         f'        <div class="product-img"><img src="{esc(d["img"])}" '
         f'alt="Design PCM {d["num"]}" loading="lazy"></div>\n'
         f'        <div class="product-body">\n'
         f'          <div class="product-detail">{detail}</div>\n'
         f'          <div class="pcm-number">PCM {d["num"]}</div>\n'
+        f'          <div class="tag-row">{chips}</div>\n'
         f'        </div>\n'
         f'      </div>')
 
@@ -219,8 +237,18 @@ def reference_card(r):
 
 def build():
     data = json.load(open(DATA, encoding='utf-8'))
+    tagdata = json.load(open(TAGS, encoding='utf-8'))
+    design_tags = tagdata['designTags']
+    stem_tags = tagdata['elementStemTags']
+    synonyms = tagdata['synonyms']
+    stem_re = re.compile(tagdata['stemRule'])
     designs, elements = data['designs'], data['elements']
     photos, refs = data['photos'], data['reference']
+
+    untagged = [d['id'] for d in designs if not design_tags.get(d['id'])]
+    if untagged:
+        raise SystemExit('%d design(s) have no subject tags; run scripts/pcm_tags.py: %s'
+                         % (len(untagged), ', '.join(untagged[:10])))
 
     by_group = {}
     for d in designs:
@@ -235,7 +263,7 @@ def build():
             if not items:
                 continue
             gid = slug(cat + '-' + sub)
-            cards = '\n'.join(design_card(d) for d in items)
+            cards = '\n'.join(design_card(d, design_tags[d['id']]) for d in items)
             groups_html.append(
                 f'    <div class="group" id="group-{gid}" data-group-cat="{esc(cat)}" '
                 f'data-group-sub="{esc(sub)}">\n'
@@ -266,9 +294,21 @@ def build():
             f'<div class="product-grid elements"></div></div>\n'
             f'      </div>')
 
-    # Compact payload: [code, categoryIndex, imagePath]
+    # Compact payload: [code, categoryIndex, imagePath, stemIndex].
+    # Tags ride on the STEM, not the code - BASS 001..003 share one subject - so the page
+    # ships ~540 tag lists instead of 3,973 copies of the same three words.
     cat_index = {c: i for i, c in enumerate(el_cats)}
-    payload = [[e['code'], cat_index[e['cat']], e['img']] for e in elements]
+    stem_list = sorted(stem_tags)
+    stem_index = {s: i for i, s in enumerate(stem_list)}
+    el_stem_of = lambda code: (stem_re.sub('', str(code)).strip() or str(code).strip())
+    payload = []
+    for e in elements:
+        st = el_stem_of(e['code'])
+        if st not in stem_index:
+            raise SystemExit('element %r has stem %r with no tags; run scripts/pcm_tags.py'
+                             % (e['code'], st))
+        payload.append([e['code'], cat_index[e['cat']], e['img'], stem_index[st]])
+    stem_tag_payload = [' '.join(stem_tags[s]) for s in stem_list]
 
     books = sorted({d['book'] for d in designs}, reverse=True)
     cats = [c for c, _ in GROUP_ORDER]
@@ -319,8 +359,8 @@ def build():
              aria-label="Jump to a design or element number">
     </div>
     <span class="jump-note" id="jumpNote">e.g. 1183, PCM 728, BASS 001</span>
-    <input type="text" id="searchInput" placeholder="Search designs &amp; elements&hellip;"
-           autocomplete="off" aria-label="Search">
+    <input type="text" id="searchInput" placeholder="Search by subject &mdash; roses, mountains, fishing&hellip;"
+           autocomplete="off" aria-label="Search designs and elements by subject">
     <select id="bookFilter" aria-label="Design book">
 {opt([(b, ('2020 Design Book' if b == '2020' else '2011 Design Book')) for b in books], 'Both design books')}
     </select>
@@ -347,8 +387,10 @@ def build():
   <div class="section-wrap" id="sec-designs">
     <div class="section-head">Marker Designs</div>
     <div class="section-note">Granite flat markers and ledgers only &mdash; no uprights, no benches,
-      no bronze. Groups follow each design book&rsquo;s own sections. Pricing is not shown here;
-      build the quote in the tool.</div>
+      no bronze. Groups follow each design book&rsquo;s own sections. Search by what the family
+      asks for &mdash; <em>roses</em>, <em>flowers</em>, <em>mountains</em>, <em>fishing</em>,
+      <em>praying hands</em> &mdash; and the tags under each card show why it came back.
+      Pricing is not shown here; build the quote in the tool.</div>
   </div>
 {chr(10).join(groups_html)}
 
@@ -356,7 +398,8 @@ def build():
     <div class="section-head">Design Elements</div>
     <div class="section-note">{len(elements):,} ornaments, emblems, borders and panels that can be added
       to any of the designs above, in the {len(el_cats)} categories the element book publishes.
-      Open a category to browse it, or search by name or number.</div>
+      Open a category to browse it, or search by subject, name or number &mdash; searching
+      <em>fishing</em> reaches the rods, the boats and the bass.</div>
   </div>
   <div class="group" id="group-elements">
 {chr(10).join(el_html)}
@@ -407,13 +450,12 @@ def build():
 <script>
 var EL_CATS = {json.dumps(el_cats)};
 var ELEMENTS = {json.dumps(payload, separators=(',', ':'))};
+var STEM_TAGS = {json.dumps(stem_tag_payload, separators=(',', ':'))};
+var SYNONYMS = {json.dumps(synonyms, separators=(',', ':'))};
 
 var elByCat = [];
 EL_CATS.forEach(function () {{ elByCat.push([]); }});
 ELEMENTS.forEach(function (e) {{ elByCat[e[1]].push(e); }});
-var elNorm = ELEMENTS.map(function (e) {{
-  return (e[0] + ' ' + EL_CATS[e[1]]).toLowerCase();
-}});
 var catSlug = EL_CATS.map(function (c) {{
   return c.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }});
@@ -433,7 +475,7 @@ function renderCat(i) {{
   var html = [];
   elByCat[i].forEach(function (e) {{
     html.push('<div class="product-card element-card" data-id="' + esc(e[0]) +
-      '" data-name="' + esc((e[0] + ' ' + EL_CATS[i]).toLowerCase()) +
+      '" data-name="' + esc(elName(e)) + '" data-tags="' + esc(STEM_TAGS[e[3]]) +
       '"><div class="element-img"><img src="' + esc(e[2]) + '" alt="' + esc(e[0]) +
       '" loading="lazy"></div><div class="pcm-number">' + esc(e[0]) + '</div></div>');
   }});
@@ -465,8 +507,85 @@ function norm(s) {{
   return String(s).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\\s+/g, ' ').trim();
 }}
 
+function elName(e) {{
+  return (e[0] + ' ' + EL_CATS[e[1]] + ' ' + STEM_TAGS[e[3]].replace(/-/g, ' ')).toLowerCase();
+}}
+
+/* ---- subject search -----------------------------------------------------------------
+   A family says "roses", "something with mountains", "he was a fisherman". None of those
+   are on the marker, in the design number, or in the book's section heading, so a plain
+   substring search over the card text answers none of them. Every design carries curated
+   subject tags and every element inherits tags from its own name; a typed word is expanded
+   through the synonym table before it is compared.
+
+   Plural and misspelling tolerance is deliberately cheap: strip a trailing s/es/ies before
+   looking the word up. "rose"/"roses", "flower"/"flowers", "puppy"/"puppies" all land on
+   the same tag without a stemmer.
+
+   The old whole-query substring test is kept as the first branch, so every number, code,
+   category and colour that matched before still matches. Everything here only ADDS hits. */
+function singular(w) {{
+  if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + 'y';
+  if (w.length > 4 && /(ches|shes|sses|xes)$/.test(w)) return w.slice(0, -2);
+  if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+  return w;
+}}
+
+var expandCache = {{}};
+function expand(word) {{
+  if (expandCache[word]) return expandCache[word];
+  var out = {{}}, forms = [word, singular(word), word.replace(/ /g, '')];
+  forms.forEach(function (f) {{
+    if (!f) return;
+    out[f] = 1;
+    var syn = SYNONYMS[f];
+    if (syn) syn.forEach(function (t) {{ out[t] = 1; }});
+  }});
+  expandCache[word] = out;
+  return out;
+}}
+
+/* Which of a card's own tags answered the query - that is what lights up the chips. */
+function tagHits(tagStr, terms) {{
+  if (!tagStr || !terms.length) return null;
+  var have = tagStr.split(' '), hit = {{}}, any = false;
+  terms.forEach(function (term) {{
+    var want = expand(term);
+    have.forEach(function (t) {{
+      if (want[t]) {{ hit[t] = 1; any = true; }}
+    }});
+  }});
+  return any ? hit : null;
+}}
+
+/* Every term must land, by tag OR by the card's own text. AND across terms, so
+   "companion rose" narrows instead of widening. */
+function matches(name, tagStr, terms, rawQuery) {{
+  if (!terms.length) return true;
+  if (name.indexOf(rawQuery) !== -1) return true;
+  var have = tagStr ? tagStr.split(' ') : [];
+  for (var i = 0; i < terms.length; i++) {{
+    var term = terms[i];
+    if (name.indexOf(term) !== -1) continue;
+    var want = expand(term), ok = false;
+    for (var k = 0; k < have.length; k++) {{ if (want[have[k]]) {{ ok = true; break; }} }}
+    if (!ok) return false;
+  }}
+  return true;
+}}
+
+function markChips(card, terms) {{
+  var row = card.querySelector('.tag-row');
+  if (!row) return;
+  var hit = tagHits(card.dataset.tags, terms);
+  row.querySelectorAll('.tag').forEach(function (chip) {{
+    chip.classList.toggle('hit', !!(hit && hit[chip.dataset.tag]));
+  }});
+}}
+
 function applyFilters() {{
   var q = norm(document.getElementById('searchInput').value);
+  var terms = q ? q.split(' ') : [];
   var book = document.getElementById('bookFilter').value;
   var cat = document.getElementById('catFilter').value;
   var fmt = document.getElementById('fmtFilter').value;
@@ -480,13 +599,14 @@ function applyFilters() {{
              (!cat || c.dataset.cat === cat) &&
              (!fmt || c.dataset.fmt === fmt) &&
              (!col || c.dataset.color === col) &&
-             (!q || c.dataset.name.indexOf(q) !== -1);
+             matches(c.dataset.name, c.dataset.tags, terms, q);
     c.style.display = ok ? '' : 'none';
     if (ok) {{
       shownDesigns++;
       var g = c.closest('.group').id;
       perGroup[g] = (perGroup[g] || 0) + 1;
     }}
+    markChips(c, terms);
   }});
   document.querySelectorAll('.group[data-group-cat]').forEach(function (g) {{
     g.hidden = !perGroup[g.id];
@@ -502,7 +622,9 @@ function applyFilters() {{
     var n = elByCat[i].length;
     if (q) {{
       n = 0;
-      elByCat[i].forEach(function (e) {{ if (norm(e[0] + ' ' + name).indexOf(q) !== -1) n++; }});
+      elByCat[i].forEach(function (e) {{
+        if (matches(elName(e), STEM_TAGS[e[3]], terms, q)) n++;
+      }});
     }}
     shownEls += n;
     box.hidden = (n === 0) || (facetsOn && !q);
@@ -515,7 +637,7 @@ function applyFilters() {{
        a hidden panel, visible again the moment that panel reopened. */
     if (rendered[i]) {{
       box.querySelectorAll('.element-card').forEach(function (c) {{
-        c.style.display = (!q || c.dataset.name.indexOf(q) !== -1) ? '' : 'none';
+        c.style.display = matches(c.dataset.name, c.dataset.tags, terms, q) ? '' : 'none';
       }});
     }}
   }});
@@ -528,7 +650,7 @@ function applyFilters() {{
     var grp = document.getElementById('group-' + k);
     var n = 0;
     grp.querySelectorAll('.product-card').forEach(function (c) {{
-      var ok = !facetsOn && (!q || c.dataset.name.indexOf(q) !== -1);
+      var ok = !facetsOn && matches(c.dataset.name, '', terms, q);
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
     }});

@@ -22,6 +22,24 @@ import { assertNoMis } from './_no_mis_assert.mjs';
 
 export const PAGE = 'pcm-design-catalog.html';
 export const DATA = 'data/pcm-catalog.json';
+export const TAGS = 'data/pcm-catalog-tags.json';
+
+// Subject probes. Each is a word a family actually says, with what it must reach. The
+// counts are NOT constants this file owns — they are computed from the tag data, so the
+// assertion is "the page agrees with the tagging", and deleting a design's tags fails it.
+//
+// SPOT AUDIT: three designs named here are the eyeball sample. Open the image, look at
+// it, and the tag had better describe what is drawn. 2011-1182 is a single rose stem,
+// 2020-717 is a bugling elk in the pines, 2020-681 is a bagpiper with a celtic cross.
+export const SUBJECT_PROBES = [
+  { q: 'rose', tag: 'rose', mustInclude: ['2011-1182', '2011-1317', '2020-998'] },
+  { q: 'roses', tag: 'rose', note: 'plural lands on the same tag as the singular' },
+  { q: 'elk', tag: 'elk', mustInclude: ['2020-717'] },
+  { q: 'bagpipes', tag: 'bagpipes', mustInclude: ['2020-681'] },
+  { q: 'praying hands', tag: 'praying-hands', mustInclude: ['2011-1135', '2011-2159'] },
+  { q: 'mountains', tag: 'mountain', mustInclude: ['2011-1444', '2020-684'] },
+  { q: 'fishing', tag: 'fishing', mustInclude: ['2011-1123', '2020-706'] },
+];
 
 // The flat-granite-only ruling, as numbers. Neither design book has an upright, slant,
 // bench or bronze section — the only occurrences of those words are in the glossaries,
@@ -52,6 +70,7 @@ export const LOOKUPS = [
 
 export async function run(ck, base) {
   const data = JSON.parse(fs.readFileSync(path.resolve(DATA), 'utf8'));
+  const tags = JSON.parse(fs.readFileSync(path.resolve(TAGS), 'utf8'));
   const src = fs.readFileSync(path.resolve(PAGE), 'utf8');
 
   // ---- 1. the extraction census: flat granite only, from the pages we said ----
@@ -99,6 +118,40 @@ export async function run(ck, base) {
   const eDupes = data.elements.map((e) => e.code).filter((v, i, a) => a.indexOf(v) !== i);
   ck(eDupes.length === 0, `element codes are unique (${eDupes.slice(0, 4).join(', ') || 'none repeated'})`);
 
+  // ---- 1b. the subject tagging: complete, in-vocabulary, and reaching the elements ----
+  // Tagging 700 designs by eye is the kind of work that decays one forgotten design at a
+  // time, so completeness is asserted rather than assumed.
+  const untagged = data.designs.filter((d) => !(tags.designTags[d.id] || []).length);
+  ck(untagged.length === 0,
+    `every one of the ${data.designs.length} designs carries at least one subject tag` +
+    (untagged.length ? ` — ${untagged.length} untagged, e.g. ${untagged[0].id}` : ''));
+  const badTag = Object.entries(tags.designTags)
+    .flatMap(([id, ts]) => ts.filter((t) => !tags.vocabulary[t]).map((t) => `${id}:${t}`));
+  ck(badTag.length === 0,
+    `every design tag is in the controlled vocabulary (${Object.keys(tags.vocabulary).length} terms)` +
+    (badTag.length ? ` — stray ${badTag.slice(0, 3).join(', ')}` : ''));
+
+  const stemRe = new RegExp(tags.stemRule);
+  const stemOf = (code) => String(code).replace(stemRe, '').trim() || String(code).trim();
+  const noStem = data.elements.filter((e) => !tags.elementStemTags[stemOf(e.code)]);
+  ck(noStem.length === 0,
+    `every one of the ${data.elements.length} elements resolves to a tagged stem` +
+    (noStem.length ? ` — ${noStem.length} without, e.g. ${noStem[0].code}` : ''));
+
+  const emptySyn = Object.entries(tags.synonyms).filter(([, v]) => !v.length).map(([k]) => k);
+  ck(Object.keys(tags.synonyms).length >= 100 && emptySyn.length === 0,
+    `${Object.keys(tags.synonyms).length} family words are wired to real tags` +
+    (emptySyn.length ? ` — ${emptySyn.slice(0, 3).join(', ')} expand to nothing` : ''));
+
+  // "flowers" must be a strictly wider net than "rose", or the synonym layer is doing
+  // nothing and a family asking for flowers gets shown only roses.
+  const taggedWith = (t) =>
+    Object.entries(tags.designTags).filter(([, ts]) => ts.includes(t)).map(([id]) => id);
+  const roseIds = new Set(taggedWith('rose'));
+  const flowerIds = new Set(tags.synonyms.flowers.flatMap(taggedWith));
+  ck(flowerIds.size > roseIds.size && [...roseIds].every((id) => flowerIds.has(id)),
+    `"flowers" is a superset of "rose" in the data (${flowerIds.size} vs ${roseIds.size})`);
+
   // ---- 2. every referenced image is really on disk ----
   const all = [...data.designs, ...data.elements, ...data.photos, ...data.reference];
   const missing = all.map((x) => x.img).filter((p) => !fs.existsSync(path.resolve(p)));
@@ -138,6 +191,7 @@ export async function run(ck, base) {
         ]),
         elCats: [...document.querySelectorAll('.el-cat')].map((e) => [
           e.dataset.elCat, +e.querySelector('.el-count').textContent]),
+        cardTags: cards.map((c) => [c.dataset.id, c.dataset.tags || '']),
         count: document.getElementById('filterCount').textContent,
         photos: document.querySelectorAll('.photo-card').length,
         refs: document.querySelectorAll('.reference-card').length,
@@ -150,6 +204,17 @@ export async function run(ck, base) {
     ck(dom.noNum === 0, `every design card shows a "PCM ####" number (${dom.noNum} without)`);
     ck(dom.numMismatch === 0,
       `every printed number matches its card's data (${dom.numMismatch} disagree)`);
+    // The card's tags must be exactly the resolved tags — not merely non-empty. This is
+    // the check that fails when a design's tags are deleted from the curated file and the
+    // page is rebuilt: the card goes blank while the data still names the design.
+    const tagDrift = dom.cardTags.filter(([id, on]) =>
+      on !== (tags.designTags[id] || []).join(' '));
+    ck(tagDrift.length === 0,
+      `every card's tags match data/pcm-catalog-tags.json` +
+      (tagDrift.length ? ` — ${tagDrift.length} disagree, e.g. ${tagDrift[0][0]}` : ''));
+    ck(dom.cardTags.every(([, on]) => on.trim().length > 0),
+      `no design card ships with an empty tag list`);
+
     ck(dom.photos === data.photos.length,
       `${dom.photos} example photos rendered (${data.photos.length} in the data)`);
     ck(dom.refs === data.reference.length,
@@ -200,6 +265,79 @@ export async function run(ck, base) {
     ck(salmon.visible.length === expectSalmon && expectSalmon > 0,
       `searching "salmon" reveals ${salmon.visible.length} elements from a category that ` +
       `was never opened (${expectSalmon} exist)`);
+
+    // ---- 6b. SUBJECT search — "if i type in rose or flowers it should show me all the
+    // pcm designs and elements that have roses or flowers" ----
+    const shownFor = async (q) => {
+      await page.fill('#searchInput', q);
+      await page.waitForTimeout(340);
+      return page.evaluate(() => ({
+        designs: [...document.querySelectorAll('.design-card')]
+          .filter((c) => c.style.display !== 'none').map((c) => c.dataset.id),
+        elements: [...document.querySelectorAll('.el-cat:not([hidden]) .element-card')]
+          .filter((c) => c.style.display !== 'none').map((c) => c.dataset.id),
+        elementCount: (document.getElementById('filterCount').textContent
+          .match(/([\d,]+) elements/) || [, '0'])[1].replace(/,/g, ''),
+        chips: [...document.querySelectorAll('.design-card')]
+          .filter((c) => c.style.display !== 'none')
+          .map((c) => [...c.querySelectorAll('.tag.hit')].map((t) => t.dataset.tag)),
+      }));
+    };
+
+    const counts = {};
+    for (const probe of SUBJECT_PROBES) {
+      const got = await shownFor(probe.q);
+      counts[probe.q] = got.designs.length;
+      const expectDesigns = taggedWith(probe.tag);
+      const missingDesign = expectDesigns.filter((id) => !got.designs.includes(id));
+      ck(missingDesign.length === 0,
+        `"${probe.q}" returns all ${expectDesigns.length} designs tagged ${probe.tag}` +
+        (missingDesign.length ? ` — missing ${missingDesign.slice(0, 3).join(', ')}` : ''));
+
+      const expectEls = data.elements.filter((e) =>
+        (tags.elementStemTags[stemOf(e.code)] || []).includes(probe.tag)).length;
+      ck(expectEls === 0 || +got.elementCount >= expectEls,
+        `"${probe.q}" also reaches the ${expectEls} elements tagged ${probe.tag} ` +
+        `(${got.elementCount} elements shown)`);
+
+      for (const id of probe.mustInclude || []) {
+        ck(got.designs.includes(id), `"${probe.q}" finds ${id}`);
+      }
+      const chipped = got.chips.filter((c) => c.length).length;
+      ck(chipped > 0 && chipped >= Math.min(got.designs.length, expectDesigns.length),
+        `"${probe.q}" shows WHY it matched — ${chipped} of ${got.designs.length} cards ` +
+        `light a tag chip`);
+    }
+    ck(counts['roses'] === counts['rose'],
+      `"roses" and "rose" return the same ${counts['rose']} designs (plural tolerated)`);
+    ck(counts['mountains'] > 0, `"mountains" returns ${counts['mountains']} designs`);
+
+    const flowers = await shownFor('flowers');
+    ck(flowers.designs.length > counts['rose'],
+      `"flowers" is strictly wider than "rose" on the page ` +
+      `(${flowers.designs.length} vs ${counts['rose']} designs)`);
+    const roseAgain = new Set(taggedWith('rose'));
+    ck([...roseAgain].every((id) => flowers.designs.includes(id)),
+      `"flowers" still includes every rose design (${roseAgain.size})`);
+
+    // A synonym that crosses vocabularies: nobody tagged a design "army", but the
+    // element book names 15 of them, and "army" must reach the military ornaments.
+    const army = await shownFor('army');
+    const armyEls = data.elements.filter((e) =>
+      (tags.elementStemTags[stemOf(e.code)] || []).includes('military')).length;
+    ck(+army.elementCount >= armyEls && armyEls > 0,
+      `"army" reaches the ${armyEls} military elements (${army.elementCount} shown)`);
+
+    // Number lookup must survive the subject layer — it is the page's first job.
+    const byNumber = await shownFor('1183');
+    ck(byNumber.designs.length === 1 && byNumber.designs[0] === '2011-1183',
+      `typing a number still narrows to that one design (got ${byNumber.designs.join(', ')})`);
+    // …and so must a category word.
+    const byCat = await shownFor('religious');
+    const religiousInData = data.designs.filter((d) => d.sub === 'Religious').length;
+    ck(byCat.designs.length >= religiousInData,
+      `the category word "religious" still returns its ${religiousInData} designs ` +
+      `(${byCat.designs.length} shown)`);
 
     await page.fill('#searchInput', 'zzzznotathing');
     await page.waitForTimeout(320);
