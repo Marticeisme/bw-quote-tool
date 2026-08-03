@@ -1530,7 +1530,10 @@ export const UNITS = [
  * THE FAMILY DISCREPANCY, RECORDED AND NOT RESOLVED. The legend gives Family as
  * 11 7/8" x 30 1/2" x 25 1/2": the same HEIGHT as every other Radiance class, and twice
  * the DEPTH. The sheet nevertheless draws its two Family cells TWO ROWS TALL. Both
- * cannot be true. This file models what the sheet DRAWS (two rows tall, widest on the
+ * cannot be true. OPERATOR RULING 2026-08-02: the LIVE PHOTOGRAPHS answer this class of
+ * question — and the photos show a full double-height compartment (20260729_124445.jpg,
+ * E-2: two rows, no shelf through it). This file models what the photos confirm (two rows
+ * tall, widest on the
  * wall) because that is the drawing the operator and the family both look at, and
  * carries the legend's height and depth figures beside it unaltered. Nobody has invented
  * a reconciliation; if MIS settles it, change `spanRows` or `h`, not both silently.

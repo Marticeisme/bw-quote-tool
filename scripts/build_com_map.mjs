@@ -647,7 +647,7 @@ function sizeLegend(wid) {
   // over: the legend gives every Radiance class the same 11 7/8" height, yet the sheet
   // draws the Family niches two rows tall (their DEPTH is doubled, 25 1/2").
   const note = fam
-    ? `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are drawn two rows tall on the sheet and are twice as deep as the rest; the sheet still prints their height as 11 7/8&quot;, and that is left exactly as printed.</em>`
+    ? `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are full double-height compartments &mdash; confirmed from photographs of the wall &mdash; and are twice as deep as the rest.</em>`
     : `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em>`;
   return `      <div class="sizeleg"><b>Niche sizes on this wall — every row spans ${wallWidthIn(wid)}&quot;</b>${rows}${note}</div>`;
 }

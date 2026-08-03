@@ -1,1809 +1,3932 @@
 {
-  "_file": "data/pcm-subject-tags.json",
-  "_what": "Curated SUBJECT tags for the PCM design catalog: what each design actually depicts.",
-  "_provenance": [
-    "HAND-CURATED BY LOOKING AT THE IMAGES. This is the one file in the PCM catalog",
-    "pipeline that is NOT derived from the books' text. The design books print a design",
-    "number and a section heading and nothing else - no keywords, no captions - so there is",
-    "no text source that says design 1188 is a dogwood branch. Every entry in designTags was",
-    "recorded by rendering pcm-design-images/**.webp into 30 contact sheets (24 designs each,",
-    "at the images' native 357x205, built by scripts/pcm_contact_sheets.py) and reading them",
-    "one sheet at a time, writing down what is drawn on each marker.",
-    "Consequence: this file is SOURCE, not output. Re-running scripts/pcm_extract.py must",
-    "never overwrite it, and a design added to the books later will have no tags until",
-    "somebody looks at it - scripts/pcm_tags.py fails loudly when that happens.",
-    "elementRules is different in kind: the 2019 Design Elements book DOES name every",
-    "ornament (BASS 001, ROSE 014, ARMY 003), so element tags are derived from those names",
-    "plus the curated stem->extra-tag table below. Curation there is only the semantic lift -",
-    "knowing that a BASS is a fish you catch and that ARMY means military service.",
-    "Tagged 2026-08-02 for sprint-11 Track E2 (subject search)."
+ "_file": "data/pcm-subject-tags.json",
+ "_what": "Curated SUBJECT tags for the PCM design catalog: what each design actually depicts.",
+ "_provenance": [
+  "HAND-CURATED BY LOOKING AT THE IMAGES. This is the one file in the PCM catalog",
+  "pipeline that is NOT derived from the books' text. The design books print a design",
+  "number and a section heading and nothing else - no keywords, no captions - so there is",
+  "no text source that says design 1188 is a dogwood branch. Every entry in designTags was",
+  "recorded by rendering pcm-design-images/**.webp into 30 contact sheets (24 designs each,",
+  "at the images' native 357x205, built by scripts/pcm_contact_sheets.py) and reading them",
+  "one sheet at a time, writing down what is drawn on each marker.",
+  "Consequence: this file is SOURCE, not output. Re-running scripts/pcm_extract.py must",
+  "never overwrite it, and a design added to the books later will have no tags until",
+  "somebody looks at it - scripts/pcm_tags.py fails loudly when that happens.",
+  "elementRules is different in kind: the 2019 Design Elements book DOES name every",
+  "ornament (BASS 001, ROSE 014, ARMY 003), so element tags are derived from those names",
+  "plus the curated stem->extra-tag table below. Curation there is only the semantic lift -",
+  "knowing that a BASS is a fish you catch and that ARMY means military service.",
+  "Tagged 2026-08-02 for sprint-11 Track E2 (subject search)."
+ ],
+ "_how_to_extend": [
+  "1. Add the design id to designTags with a space-separated tag list.",
+  "2. Every tag must already exist in vocabulary, or add it there with a one-line gloss.",
+  "3. If families would say a different word for it, add that word to synonyms.",
+  "4. Re-run: python scripts/pcm_tags.py && python scripts/build_pcm_catalog.py",
+  "5. Gate: node scripts/verify_pcm_catalog.mjs && node tests/test-pcm-catalog.mjs"
+ ],
+ "vocabulary": {
+  "flower": "any flower or floral spray, species not called out",
+  "floral-spray": "a loose cut-flower arrangement rather than a border",
+  "rose": "rose",
+  "lily": "lily",
+  "calla-lily": "calla lily",
+  "water-lily": "water lily / lotus pond",
+  "lotus": "lotus",
+  "daffodil": "daffodil / narcissus",
+  "daisy": "daisy",
+  "tulip": "tulip",
+  "sunflower": "sunflower",
+  "dogwood": "dogwood blossom",
+  "cherry-blossom": "cherry / plum blossom",
+  "magnolia": "magnolia",
+  "hibiscus": "hibiscus",
+  "plumeria": "plumeria / frangipani",
+  "orchid": "orchid",
+  "hydrangea": "hydrangea",
+  "morning-glory": "morning glory",
+  "thistle": "thistle",
+  "wheat": "wheat sheaf or stalks",
+  "ivy": "ivy",
+  "vine": "climbing or trailing vine",
+  "leaves": "leaves as the motif",
+  "branch": "a bare or blossoming branch",
+  "wreath": "a closed ring of foliage or flowers",
+  "garland": "a swag or arch of flowers",
+  "tree": "tree, species not called out",
+  "pine": "pine / fir / evergreen",
+  "pine-cone": "pine cones",
+  "oak": "oak leaves or an oak",
+  "palm": "palm tree",
+  "bamboo": "bamboo",
+  "birch": "birch",
+  "cattail": "cattails / marsh reeds",
+  "grapes": "grapes or grapevine",
+  "apple": "apple",
+  "pumpkin": "pumpkin / jack-o-lantern",
+  "cactus": "cactus / saguaro",
+  "plant": "a potted or growing plant",
+  "laurel": "laurel wreath",
+  "tree-of-life": "the tree-of-life roundel",
+  "snowflake": "snowflake",
+  "bird": "bird, species not called out",
+  "dove": "dove",
+  "eagle": "eagle",
+  "hummingbird": "hummingbird",
+  "cardinal": "cardinal",
+  "owl": "owl",
+  "swan": "swan",
+  "duck": "duck / mallard",
+  "heron": "heron / crane",
+  "pheasant": "pheasant / grouse / upland bird",
+  "seagull": "seagull",
+  "raven": "raven / crow",
+  "parrot": "parrot / macaw",
+  "peacock": "peacock",
+  "butterfly": "butterfly",
+  "dragonfly": "dragonfly",
+  "snail": "snail",
+  "fish": "fish, species not called out",
+  "bass": "bass",
+  "salmon": "salmon / steelhead",
+  "koi": "koi",
+  "whale": "whale / orca",
+  "dolphin": "dolphin",
+  "seashell": "seashell",
+  "turtle": "turtle / sea turtle",
+  "frog": "frog",
+  "deer": "deer / buck / fawn",
+  "fawn": "fawn",
+  "elk": "elk",
+  "bear": "bear",
+  "wolf": "wolf / coyote",
+  "fox": "fox",
+  "lion": "lion",
+  "tiger": "tiger",
+  "bison": "bison / buffalo",
+  "sheep": "sheep / ram / lamb",
+  "lamb": "lamb",
+  "bighorn": "bighorn sheep",
+  "cattle": "cattle / cows / steers",
+  "horse": "horse",
+  "dog": "dog",
+  "puppy": "puppy",
+  "husky": "husky",
+  "sled-dog": "sled dog team",
+  "cat": "cat",
+  "kitten": "kitten",
+  "rabbit": "rabbit / bunny",
+  "raccoon": "raccoon",
+  "giraffe": "giraffe",
+  "elephant": "elephant",
+  "hippo": "hippo",
+  "dinosaur": "dinosaur",
+  "unicorn": "unicorn",
+  "dragon": "dragon",
+  "mermaid": "mermaid",
+  "fairy": "fairy",
+  "animal": "an animal, kind not called out",
+  "wildlife": "wild game / wildlife",
+  "army": "US Army",
+  "mountain": "mountains / a peak",
+  "lake": "lake",
+  "river": "river / stream / creek",
+  "waterfall": "waterfall",
+  "ocean": "ocean / surf",
+  "beach": "beach / shoreline",
+  "island": "island",
+  "forest": "woods / treeline",
+  "field": "open field or pasture",
+  "desert": "desert",
+  "farm": "farm scene",
+  "barn": "barn",
+  "ranch": "ranch",
+  "cabin": "cabin",
+  "house": "house",
+  "home": "home",
+  "lighthouse": "lighthouse",
+  "bridge": "bridge",
+  "city": "city / skyline",
+  "skyline": "skyline",
+  "seattle": "Seattle",
+  "portland": "Portland",
+  "landscape": "a scenic landscape",
+  "outdoors": "an outdoor-life theme",
+  "fern": "fern",
+  "sunset": "sunset",
+  "sunrise": "sunrise / rays",
+  "moon": "moon",
+  "stars": "stars",
+  "clouds": "clouds",
+  "snow": "snow",
+  "winter": "winter",
+  "water": "water as the setting",
+  "garden": "garden",
+  "gate": "a gate or archway",
+  "tropical": "tropical / island setting",
+  "space": "outer space",
+  "alaska": "Alaska",
+  "oregon": "Oregon",
+  "washington": "Washington state",
+  "map": "a map outline",
+  "globe": "globe",
+  "cross": "cross",
+  "celtic-cross": "celtic cross",
+  "crucifix": "crucifix",
+  "praying-hands": "praying hands",
+  "praying": "a figure at prayer",
+  "angel": "angel",
+  "cherub": "cherub / putto",
+  "rosary": "rosary",
+  "bible": "bible",
+  "book": "a book",
+  "books": "several books",
+  "church": "church / chapel",
+  "church-window": "gothic or arched church window",
+  "jesus": "Jesus",
+  "mary": "the Virgin Mary",
+  "statue": "a statue",
+  "temple": "LDS temple",
+  "lds": "Latter-day Saints",
+  "mormon": "Mormon",
+  "lutheran": "Lutheran (Luther rose)",
+  "star-of-david": "Star of David",
+  "jewish": "Jewish",
+  "islam": "Islamic",
+  "star-crescent": "star and crescent",
+  "buddhism": "Buddhist",
+  "yin-yang": "yin and yang",
+  "chalice": "chalice / communion cup",
+  "sacred-heart": "Sacred Heart",
+  "ichthys": "ichthys fish",
+  "communion": "communion / first communion",
+  "gates-of-heaven": "the gates of heaven",
+  "shepherd": "the Good Shepherd",
+  "religious": "religious subject not otherwise named",
+  "candle": "candle",
+  "lantern": "lantern",
+  "trumpet": "trumpet",
+  "heart": "heart",
+  "ribbon": "ribbon",
+  "banner": "a banner or scroll bearing text",
+  "scroll": "a scroll or scrollwork ornament",
+  "reading": "reading",
+  "piano": "piano",
+  "guitar": "guitar",
+  "harmonica": "harmonica",
+  "bagpipes": "bagpipes",
+  "music": "music",
+  "music-note": "musical notes / staff",
+  "record": "vinyl record",
+  "headphones": "headphones",
+  "truck": "truck",
+  "semi-truck": "semi / tractor-trailer",
+  "pickup": "pickup truck",
+  "car": "car",
+  "hot-rod": "hot rod / muscle car",
+  "race-car": "race car",
+  "tractor": "tractor",
+  "motorcycle": "motorcycle",
+  "snowmobile": "snowmobile",
+  "bicycle": "bicycle",
+  "boat": "boat",
+  "sailboat": "sailboat",
+  "canoe": "canoe",
+  "kayak": "kayak / raft",
+  "ship": "ship",
+  "tugboat": "tugboat",
+  "ferry": "ferry",
+  "riverboat": "paddle-wheel riverboat",
+  "ship-wheel": "ship's wheel",
+  "airplane": "airplane",
+  "helicopter": "helicopter",
+  "rocket": "rocket",
+  "ufo": "flying saucer",
+  "train": "train / locomotive",
+  "flag": "flag",
+  "american-flag": "the American flag",
+  "wagon": "wagon",
+  "wagon-wheel": "wagon wheel",
+  "tools": "hand or power tools",
+  "camera": "camera",
+  "microscope": "microscope",
+  "quill": "quill pen",
+  "rings": "wedding rings",
+  "teddy-bear": "teddy bear",
+  "toy": "toys",
+  "doll": "doll / figurine",
+  "blocks": "alphabet blocks",
+  "rocking-horse": "rocking horse",
+  "carousel": "carousel",
+  "baby": "baby",
+  "baby-shoes": "baby shoes",
+  "boots": "boots",
+  "cowboy-hat": "cowboy hat",
+  "footprints": "footprints",
+  "dreamcatcher": "dreamcatcher",
+  "feather": "feather",
+  "antlers": "antlers",
+  "arrow": "arrow",
+  "sword": "sword",
+  "shield": "shield / crest",
+  "oil-rig": "oil rig",
+  "stadium": "stadium",
+  "fossil": "fossil",
+  "scales": "scales of justice",
+  "gavel": "gavel",
+  "urn": "urn",
+  "vase": "vase",
+  "bench": "bench",
+  "snowshoes": "snowshoes",
+  "backpack": "backpack",
+  "rv": "RV / motorhome",
+  "wine": "wine",
+  "food": "food",
+  "military": "military service",
+  "veteran": "veteran",
+  "soldier": "a soldier",
+  "marines": "Marine Corps",
+  "navy": "Navy",
+  "aviation": "flying / aviation",
+  "firefighter": "firefighting",
+  "law-enforcement": "law enforcement",
+  "police": "police",
+  "judicial": "the law / courts",
+  "law": "law",
+  "medical": "medicine",
+  "science": "science",
+  "construction": "construction",
+  "mason": "masonry / bricklaying",
+  "carpentry": "carpentry",
+  "occupation": "a trade or profession",
+  "mining": "mining",
+  "miner": "a miner / prospector",
+  "trucking": "trucking",
+  "farming": "farming",
+  "ranching": "ranching",
+  "western": "western / cowboy theme",
+  "cowboy": "cowboy",
+  "rodeo": "rodeo",
+  "pioneer": "pioneer / covered wagon",
+  "nautical": "nautical",
+  "sailing": "sailing",
+  "surfing": "surfing",
+  "windsurfing": "windsurfing",
+  "fishing": "fishing",
+  "fishing-rod": "rod and reel",
+  "hunting": "hunting",
+  "shooting": "shooting / skeet",
+  "skiing": "skiing",
+  "hiking": "hiking",
+  "camping": "camping",
+  "running": "running",
+  "cycling": "cycling",
+  "golf": "golf",
+  "soccer": "soccer",
+  "baseball": "baseball",
+  "basketball": "basketball",
+  "football": "football",
+  "bowling": "bowling",
+  "billiards": "billiards",
+  "horse-racing": "horse racing",
+  "racing": "racing",
+  "motorsport": "motorsport",
+  "sports": "sport of some kind",
+  "games": "games",
+  "cards": "playing cards",
+  "poker": "poker",
+  "art": "art / painting",
+  "painting": "painting",
+  "writing": "writing",
+  "sewing": "sewing",
+  "needlework": "needlework",
+  "cooking": "cooking",
+  "gardening": "gardening",
+  "movie": "movies",
+  "film": "film reel",
+  "theater": "theater",
+  "drama": "drama",
+  "jester": "jester / clown",
+  "travel": "travel",
+  "halloween": "Halloween",
+  "fantasy": "fantasy / sci-fi",
+  "knight": "knight",
+  "patriotic": "patriotic",
+  "celtic": "Celtic",
+  "celtic-knot": "Celtic knotwork",
+  "scottish": "Scottish",
+  "irish": "Irish",
+  "asian": "East or Southeast Asian",
+  "native-american": "Native American",
+  "pacific-islander": "Pacific Islander / Polynesian",
+  "tribal": "tribal pattern",
+  "cultural": "a cultural / heritage motif",
+  "person": "a person in the scene",
+  "couple": "a couple",
+  "family": "family",
+  "child": "a child's marker or a child in the scene",
+  "boy": "a boy",
+  "silhouette": "figures rendered as silhouettes",
+  "portrait": "a photo portrait is part of the design",
+  "love": "love / devotion",
+  "wedding": "wedding",
+  "hands": "hands",
+  "classic": "plain lettering-first design, no picture",
+  "plain": "no ornament at all",
+  "border": "the ornament IS a border or frame",
+  "ornate": "heavily ornamented",
+  "oval": "an oval or elliptical panel",
+  "geometric": "geometric / corner ornaments",
+  "art-deco": "art deco / art nouveau styling",
+  "ornament": "a decorative ornament",
+  "heraldry": "heraldic crest",
+  "ledger": "a full-length ledger, not a flat marker",
+  "rope": "rope border",
+  "apparel": "clothing",
+  "clothing": "clothing",
+  "hobby": "a hobby or pastime",
+  "organization": "a lodge, club or fraternal emblem",
+  "scenery": "scenery",
+  "transportation": "a vehicle of some kind",
+  "vehicle": "a vehicle",
+  "work": "work / trade",
+  "hat": "a hat",
+  "hiking-boots": "boots for the trail",
+  "snowboarding": "snowboarding",
+  "sled": "sled",
+  "compass": "compass rose",
+  "dharma": "dharma wheel",
+  "pagoda": "pagoda / Asian gate",
+  "skyscraper": "tall buildings"
+ },
+ "synonyms": {
+  "flowers": [
+   "flower",
+   "floral-spray",
+   "rose",
+   "lily",
+   "calla-lily",
+   "water-lily",
+   "lotus",
+   "daffodil",
+   "daisy",
+   "tulip",
+   "sunflower",
+   "dogwood",
+   "cherry-blossom",
+   "magnolia",
+   "hibiscus",
+   "plumeria",
+   "orchid",
+   "hydrangea",
+   "morning-glory",
+   "thistle",
+   "garland",
+   "wreath"
   ],
-  "_how_to_extend": [
-    "1. Add the design id to designTags with a space-separated tag list.",
-    "2. Every tag must already exist in vocabulary, or add it there with a one-line gloss.",
-    "3. If families would say a different word for it, add that word to synonyms.",
-    "4. Re-run: python scripts/pcm_tags.py && python scripts/build_pcm_catalog.py",
-    "5. Gate: node scripts/verify_pcm_catalog.mjs && node tests/test-pcm-catalog.mjs"
+  "floral": [
+   "flower",
+   "floral-spray",
+   "rose",
+   "lily",
+   "daisy",
+   "tulip",
+   "sunflower",
+   "dogwood",
+   "orchid",
+   "garland",
+   "wreath"
   ],
-
-  "vocabulary": {
-    "flower": "any flower or floral spray, species not called out",
-    "floral-spray": "a loose cut-flower arrangement rather than a border",
-    "rose": "rose",
-    "lily": "lily",
-    "calla-lily": "calla lily",
-    "water-lily": "water lily / lotus pond",
-    "lotus": "lotus",
-    "daffodil": "daffodil / narcissus",
-    "daisy": "daisy",
-    "tulip": "tulip",
-    "sunflower": "sunflower",
-    "dogwood": "dogwood blossom",
-    "cherry-blossom": "cherry / plum blossom",
-    "magnolia": "magnolia",
-    "hibiscus": "hibiscus",
-    "plumeria": "plumeria / frangipani",
-    "orchid": "orchid",
-    "hydrangea": "hydrangea",
-    "morning-glory": "morning glory",
-    "thistle": "thistle",
-    "wheat": "wheat sheaf or stalks",
-    "ivy": "ivy",
-    "vine": "climbing or trailing vine",
-    "leaves": "leaves as the motif",
-    "branch": "a bare or blossoming branch",
-    "wreath": "a closed ring of foliage or flowers",
-    "garland": "a swag or arch of flowers",
-    "tree": "tree, species not called out",
-    "pine": "pine / fir / evergreen",
-    "pine-cone": "pine cones",
-    "oak": "oak leaves or an oak",
-    "palm": "palm tree",
-    "bamboo": "bamboo",
-    "birch": "birch",
-    "cattail": "cattails / marsh reeds",
-    "grapes": "grapes or grapevine",
-    "apple": "apple",
-    "pumpkin": "pumpkin / jack-o-lantern",
-    "cactus": "cactus / saguaro",
-    "plant": "a potted or growing plant",
-    "laurel": "laurel wreath",
-    "tree-of-life": "the tree-of-life roundel",
-    "snowflake": "snowflake",
-    "bird": "bird, species not called out",
-    "dove": "dove",
-    "eagle": "eagle",
-    "hummingbird": "hummingbird",
-    "cardinal": "cardinal",
-    "owl": "owl",
-    "swan": "swan",
-    "duck": "duck / mallard",
-    "heron": "heron / crane",
-    "pheasant": "pheasant / grouse / upland bird",
-    "seagull": "seagull",
-    "raven": "raven / crow",
-    "parrot": "parrot / macaw",
-    "peacock": "peacock",
-    "butterfly": "butterfly",
-    "dragonfly": "dragonfly",
-    "snail": "snail",
-    "fish": "fish, species not called out",
-    "bass": "bass",
-    "salmon": "salmon / steelhead",
-    "koi": "koi",
-    "whale": "whale / orca",
-    "dolphin": "dolphin",
-    "seashell": "seashell",
-    "turtle": "turtle / sea turtle",
-    "frog": "frog",
-    "deer": "deer / buck / fawn",
-    "fawn": "fawn",
-    "elk": "elk",
-    "bear": "bear",
-    "wolf": "wolf / coyote",
-    "fox": "fox",
-    "lion": "lion",
-    "tiger": "tiger",
-    "bison": "bison / buffalo",
-    "sheep": "sheep / ram / lamb",
-    "lamb": "lamb",
-    "bighorn": "bighorn sheep",
-    "cattle": "cattle / cows / steers",
-    "horse": "horse",
-    "dog": "dog",
-    "puppy": "puppy",
-    "husky": "husky",
-    "sled-dog": "sled dog team",
-    "cat": "cat",
-    "kitten": "kitten",
-    "rabbit": "rabbit / bunny",
-    "raccoon": "raccoon",
-    "giraffe": "giraffe",
-    "elephant": "elephant",
-    "hippo": "hippo",
-    "dinosaur": "dinosaur",
-    "unicorn": "unicorn",
-    "dragon": "dragon",
-    "mermaid": "mermaid",
-    "fairy": "fairy",
-    "animal": "an animal, kind not called out",
-    "wildlife": "wild game / wildlife",
-    "army": "US Army",
-    "mountain": "mountains / a peak",
-    "lake": "lake",
-    "river": "river / stream / creek",
-    "waterfall": "waterfall",
-    "ocean": "ocean / surf",
-    "beach": "beach / shoreline",
-    "island": "island",
-    "forest": "woods / treeline",
-    "field": "open field or pasture",
-    "desert": "desert",
-    "farm": "farm scene",
-    "barn": "barn",
-    "ranch": "ranch",
-    "cabin": "cabin",
-    "house": "house",
-    "home": "home",
-    "lighthouse": "lighthouse",
-    "bridge": "bridge",
-    "city": "city / skyline",
-    "skyline": "skyline",
-    "seattle": "Seattle",
-    "portland": "Portland",
-    "landscape": "a scenic landscape",
-    "outdoors": "an outdoor-life theme",
-    "fern": "fern",
-    "sunset": "sunset",
-    "sunrise": "sunrise / rays",
-    "moon": "moon",
-    "stars": "stars",
-    "clouds": "clouds",
-    "snow": "snow",
-    "winter": "winter",
-    "water": "water as the setting",
-    "garden": "garden",
-    "gate": "a gate or archway",
-    "tropical": "tropical / island setting",
-    "space": "outer space",
-    "alaska": "Alaska",
-    "oregon": "Oregon",
-    "washington": "Washington state",
-    "map": "a map outline",
-    "globe": "globe",
-    "cross": "cross",
-    "celtic-cross": "celtic cross",
-    "crucifix": "crucifix",
-    "praying-hands": "praying hands",
-    "praying": "a figure at prayer",
-    "angel": "angel",
-    "cherub": "cherub / putto",
-    "rosary": "rosary",
-    "bible": "bible",
-    "book": "a book",
-    "books": "several books",
-    "church": "church / chapel",
-    "church-window": "gothic or arched church window",
-    "jesus": "Jesus",
-    "mary": "the Virgin Mary",
-    "statue": "a statue",
-    "temple": "LDS temple",
-    "lds": "Latter-day Saints",
-    "mormon": "Mormon",
-    "lutheran": "Lutheran (Luther rose)",
-    "star-of-david": "Star of David",
-    "jewish": "Jewish",
-    "islam": "Islamic",
-    "star-crescent": "star and crescent",
-    "buddhism": "Buddhist",
-    "yin-yang": "yin and yang",
-    "chalice": "chalice / communion cup",
-    "sacred-heart": "Sacred Heart",
-    "ichthys": "ichthys fish",
-    "communion": "communion / first communion",
-    "gates-of-heaven": "the gates of heaven",
-    "shepherd": "the Good Shepherd",
-    "religious": "religious subject not otherwise named",
-    "candle": "candle",
-    "lantern": "lantern",
-    "trumpet": "trumpet",
-    "heart": "heart",
-    "ribbon": "ribbon",
-    "banner": "a banner or scroll bearing text",
-    "scroll": "a scroll or scrollwork ornament",
-    "reading": "reading",
-    "piano": "piano",
-    "guitar": "guitar",
-    "harmonica": "harmonica",
-    "bagpipes": "bagpipes",
-    "music": "music",
-    "music-note": "musical notes / staff",
-    "record": "vinyl record",
-    "headphones": "headphones",
-    "truck": "truck",
-    "semi-truck": "semi / tractor-trailer",
-    "pickup": "pickup truck",
-    "car": "car",
-    "hot-rod": "hot rod / muscle car",
-    "race-car": "race car",
-    "tractor": "tractor",
-    "motorcycle": "motorcycle",
-    "snowmobile": "snowmobile",
-    "bicycle": "bicycle",
-    "boat": "boat",
-    "sailboat": "sailboat",
-    "canoe": "canoe",
-    "kayak": "kayak / raft",
-    "ship": "ship",
-    "tugboat": "tugboat",
-    "ferry": "ferry",
-    "riverboat": "paddle-wheel riverboat",
-    "ship-wheel": "ship's wheel",
-    "airplane": "airplane",
-    "helicopter": "helicopter",
-    "rocket": "rocket",
-    "ufo": "flying saucer",
-    "train": "train / locomotive",
-    "flag": "flag",
-    "american-flag": "the American flag",
-    "wagon": "wagon",
-    "wagon-wheel": "wagon wheel",
-    "tools": "hand or power tools",
-    "camera": "camera",
-    "microscope": "microscope",
-    "quill": "quill pen",
-    "rings": "wedding rings",
-    "teddy-bear": "teddy bear",
-    "toy": "toys",
-    "doll": "doll / figurine",
-    "blocks": "alphabet blocks",
-    "rocking-horse": "rocking horse",
-    "carousel": "carousel",
-    "baby": "baby",
-    "baby-shoes": "baby shoes",
-    "boots": "boots",
-    "cowboy-hat": "cowboy hat",
-    "footprints": "footprints",
-    "dreamcatcher": "dreamcatcher",
-    "feather": "feather",
-    "antlers": "antlers",
-    "arrow": "arrow",
-    "sword": "sword",
-    "shield": "shield / crest",
-    "oil-rig": "oil rig",
-    "stadium": "stadium",
-    "fossil": "fossil",
-    "scales": "scales of justice",
-    "gavel": "gavel",
-    "urn": "urn",
-    "vase": "vase",
-    "bench": "bench",
-    "snowshoes": "snowshoes",
-    "backpack": "backpack",
-    "rv": "RV / motorhome",
-    "wine": "wine",
-    "food": "food",
-    "military": "military service",
-    "veteran": "veteran",
-    "soldier": "a soldier",
-    "marines": "Marine Corps",
-    "navy": "Navy",
-    "aviation": "flying / aviation",
-    "firefighter": "firefighting",
-    "law-enforcement": "law enforcement",
-    "police": "police",
-    "judicial": "the law / courts",
-    "law": "law",
-    "medical": "medicine",
-    "science": "science",
-    "construction": "construction",
-    "mason": "masonry / bricklaying",
-    "carpentry": "carpentry",
-    "occupation": "a trade or profession",
-    "mining": "mining",
-    "miner": "a miner / prospector",
-    "trucking": "trucking",
-    "farming": "farming",
-    "ranching": "ranching",
-    "western": "western / cowboy theme",
-    "cowboy": "cowboy",
-    "rodeo": "rodeo",
-    "pioneer": "pioneer / covered wagon",
-    "nautical": "nautical",
-    "sailing": "sailing",
-    "surfing": "surfing",
-    "windsurfing": "windsurfing",
-    "fishing": "fishing",
-    "fishing-rod": "rod and reel",
-    "hunting": "hunting",
-    "shooting": "shooting / skeet",
-    "skiing": "skiing",
-    "hiking": "hiking",
-    "camping": "camping",
-    "running": "running",
-    "cycling": "cycling",
-    "golf": "golf",
-    "soccer": "soccer",
-    "baseball": "baseball",
-    "basketball": "basketball",
-    "football": "football",
-    "bowling": "bowling",
-    "billiards": "billiards",
-    "horse-racing": "horse racing",
-    "racing": "racing",
-    "motorsport": "motorsport",
-    "sports": "sport of some kind",
-    "games": "games",
-    "cards": "playing cards",
-    "poker": "poker",
-    "art": "art / painting",
-    "painting": "painting",
-    "writing": "writing",
-    "sewing": "sewing",
-    "needlework": "needlework",
-    "cooking": "cooking",
-    "gardening": "gardening",
-    "movie": "movies",
-    "film": "film reel",
-    "theater": "theater",
-    "drama": "drama",
-    "jester": "jester / clown",
-    "travel": "travel",
-    "halloween": "Halloween",
-    "fantasy": "fantasy / sci-fi",
-    "knight": "knight",
-    "patriotic": "patriotic",
-    "celtic": "Celtic",
-    "celtic-knot": "Celtic knotwork",
-    "scottish": "Scottish",
-    "irish": "Irish",
-    "asian": "East or Southeast Asian",
-    "native-american": "Native American",
-    "pacific-islander": "Pacific Islander / Polynesian",
-    "tribal": "tribal pattern",
-    "cultural": "a cultural / heritage motif",
-    "person": "a person in the scene",
-    "couple": "a couple",
-    "family": "family",
-    "child": "a child's marker or a child in the scene",
-    "boy": "a boy",
-    "silhouette": "figures rendered as silhouettes",
-    "portrait": "a photo portrait is part of the design",
-    "love": "love / devotion",
-    "wedding": "wedding",
-    "hands": "hands",
-    "classic": "plain lettering-first design, no picture",
-    "plain": "no ornament at all",
-    "border": "the ornament IS a border or frame",
-    "ornate": "heavily ornamented",
-    "oval": "an oval or elliptical panel",
-    "geometric": "geometric / corner ornaments",
-    "art-deco": "art deco / art nouveau styling",
-    "ornament": "a decorative ornament",
-    "heraldry": "heraldic crest",
-    "ledger": "a full-length ledger, not a flat marker",
-    "rope": "rope border",
-    "apparel": "clothing",
-    "clothing": "clothing",
-    "hobby": "a hobby or pastime",
-    "organization": "a lodge, club or fraternal emblem",
-    "scenery": "scenery",
-    "transportation": "a vehicle of some kind",
-    "vehicle": "a vehicle",
-    "work": "work / trade",
-    "hat": "a hat",
-    "hiking-boots": "boots for the trail",
-    "snowboarding": "snowboarding",
-    "sled": "sled",
-    "compass": "compass rose",
-    "dharma": "dharma wheel",
-    "pagoda": "pagoda / Asian gate",
-    "skyscraper": "tall buildings"
+  "blooms": [
+   "flower",
+   "rose",
+   "lily",
+   "daisy",
+   "cherry-blossom",
+   "dogwood"
+  ],
+  "blossom": [
+   "flower",
+   "cherry-blossom",
+   "dogwood",
+   "apple"
+  ],
+  "bouquet": [
+   "flower",
+   "floral-spray",
+   "rose"
+  ],
+  "roses": [
+   "rose"
+  ],
+  "lilies": [
+   "lily",
+   "calla-lily",
+   "water-lily"
+  ],
+  "callalily": [
+   "calla-lily"
+  ],
+  "lillies": [
+   "lily",
+   "calla-lily"
+  ],
+  "lilly": [
+   "lily"
+  ],
+  "daisies": [
+   "daisy"
+  ],
+  "tulips": [
+   "tulip"
+  ],
+  "sunflowers": [
+   "sunflower"
+  ],
+  "orchids": [
+   "orchid"
+  ],
+  "plants": [
+   "plant",
+   "flower",
+   "tree",
+   "leaves",
+   "vine",
+   "fern"
+  ],
+  "greenery": [
+   "leaves",
+   "ivy",
+   "vine",
+   "fern"
+  ],
+  "trees": [
+   "tree",
+   "pine",
+   "oak",
+   "palm",
+   "birch",
+   "forest"
+  ],
+  "evergreen": [
+   "pine"
+  ],
+  "fir": [
+   "pine"
+  ],
+  "cedar": [
+   "pine"
+  ],
+  "pines": [
+   "pine",
+   "forest"
+  ],
+  "woods": [
+   "forest",
+   "tree",
+   "pine"
+  ],
+  "nature": [
+   "landscape",
+   "mountain",
+   "forest",
+   "tree",
+   "river",
+   "lake",
+   "flower",
+   "bird",
+   "deer"
+  ],
+  "outdoors": [
+   "landscape",
+   "mountain",
+   "forest",
+   "river",
+   "lake",
+   "camping",
+   "hiking",
+   "fishing",
+   "hunting"
+  ],
+  "outdoorsman": [
+   "fishing",
+   "hunting",
+   "camping",
+   "hiking"
+  ],
+  "wildlife": [
+   "deer",
+   "elk",
+   "bear",
+   "wolf",
+   "eagle",
+   "bison",
+   "fox",
+   "bighorn",
+   "animal"
+  ],
+  "animals": [
+   "animal",
+   "dog",
+   "cat",
+   "horse",
+   "deer",
+   "elk",
+   "bear",
+   "wolf",
+   "bird",
+   "fish",
+   "rabbit",
+   "lion",
+   "tiger"
+  ],
+  "pets": [
+   "dog",
+   "puppy",
+   "cat",
+   "kitten",
+   "bird",
+   "parrot"
+  ],
+  "birds": [
+   "bird",
+   "dove",
+   "eagle",
+   "hummingbird",
+   "cardinal",
+   "owl",
+   "swan",
+   "duck",
+   "heron",
+   "pheasant",
+   "seagull",
+   "raven",
+   "parrot",
+   "peacock"
+  ],
+  "songbird": [
+   "bird",
+   "cardinal"
+  ],
+  "buck": [
+   "deer"
+  ],
+  "doe": [
+   "deer"
+  ],
+  "stag": [
+   "deer",
+   "elk"
+  ],
+  "antler": [
+   "antlers",
+   "deer",
+   "elk"
+  ],
+  "fishes": [
+   "fish",
+   "bass",
+   "salmon",
+   "koi"
+  ],
+  "fishing": [
+   "fishing",
+   "fishing-rod",
+   "fish",
+   "bass",
+   "salmon",
+   "koi",
+   "boat",
+   "sailboat",
+   "canoe"
+  ],
+  "fisherman": [
+   "fishing",
+   "fish",
+   "person"
+  ],
+  "angler": [
+   "fishing",
+   "fishing-rod"
+  ],
+  "flyfishing": [
+   "fishing",
+   "river"
+  ],
+  "hunting": [
+   "hunting",
+   "shooting",
+   "deer",
+   "elk",
+   "duck",
+   "pheasant"
+  ],
+  "hunter": [
+   "hunting",
+   "shooting"
+  ],
+  "puppies": [
+   "puppy",
+   "dog"
+  ],
+  "doggy": [
+   "dog"
+  ],
+  "kitty": [
+   "cat",
+   "kitten"
+  ],
+  "kitties": [
+   "cat",
+   "kitten"
+  ],
+  "horses": [
+   "horse"
+  ],
+  "pony": [
+   "horse"
+  ],
+  "cows": [
+   "cattle"
+  ],
+  "cow": [
+   "cattle"
+  ],
+  "buffalo": [
+   "bison"
+  ],
+  "butterflies": [
+   "butterfly"
+  ],
+  "seashells": [
+   "seashell"
+  ],
+  "shells": [
+   "seashell"
+  ],
+  "mountains": [
+   "mountain"
+  ],
+  "rainier": [
+   "mountain"
+  ],
+  "peak": [
+   "mountain"
+  ],
+  "hills": [
+   "mountain",
+   "landscape"
+  ],
+  "scene": [
+   "landscape",
+   "scenery"
+  ],
+  "scenes": [
+   "landscape",
+   "scenery"
+  ],
+  "scenery": [
+   "landscape",
+   "scenery",
+   "mountain",
+   "lake",
+   "forest"
+  ],
+  "lakes": [
+   "lake"
+  ],
+  "sea": [
+   "ocean"
+  ],
+  "seaside": [
+   "ocean",
+   "beach"
+  ],
+  "shore": [
+   "beach",
+   "ocean",
+   "lake"
+  ],
+  "waves": [
+   "ocean"
+  ],
+  "sunsets": [
+   "sunset"
+  ],
+  "sunrise": [
+   "sunrise"
+  ],
+  "religion": [
+   "religious",
+   "cross",
+   "jesus",
+   "mary",
+   "angel",
+   "bible",
+   "praying-hands",
+   "church",
+   "rosary"
+  ],
+  "religious": [
+   "religious",
+   "cross",
+   "jesus",
+   "mary",
+   "angel",
+   "bible",
+   "praying-hands",
+   "church",
+   "rosary",
+   "crucifix",
+   "chalice"
+  ],
+  "faith": [
+   "religious",
+   "cross",
+   "praying-hands",
+   "bible"
+  ],
+  "christian": [
+   "cross",
+   "jesus",
+   "bible",
+   "church",
+   "crucifix",
+   "ichthys"
+  ],
+  "catholic": [
+   "crucifix",
+   "rosary",
+   "mary",
+   "chalice",
+   "sacred-heart",
+   "communion"
+  ],
+  "crosses": [
+   "cross",
+   "celtic-cross",
+   "crucifix"
+  ],
+  "cross": [
+   "cross",
+   "celtic-cross",
+   "crucifix"
+  ],
+  "prayer": [
+   "praying-hands",
+   "praying",
+   "rosary"
+  ],
+  "pray": [
+   "praying-hands",
+   "praying"
+  ],
+  "praying": [
+   "praying-hands",
+   "praying"
+  ],
+  "angels": [
+   "angel",
+   "cherub"
+  ],
+  "cherubs": [
+   "cherub",
+   "angel"
+  ],
+  "heaven": [
+   "angel",
+   "gates-of-heaven",
+   "clouds"
+  ],
+  "christ": [
+   "jesus"
+  ],
+  "savior": [
+   "jesus"
+  ],
+  "madonna": [
+   "mary"
+  ],
+  "guadalupe": [
+   "mary"
+  ],
+  "virgin": [
+   "mary"
+  ],
+  "scripture": [
+   "bible"
+  ],
+  "chapel": [
+   "church"
+  ],
+  "temples": [
+   "temple",
+   "lds",
+   "mormon"
+  ],
+  "ldstemple": [
+   "temple",
+   "lds"
+  ],
+  "jewish": [
+   "jewish",
+   "star-of-david"
+  ],
+  "judaism": [
+   "jewish",
+   "star-of-david"
+  ],
+  "starofdavid": [
+   "star-of-david"
+  ],
+  "muslim": [
+   "islam",
+   "star-crescent"
+  ],
+  "islamic": [
+   "islam",
+   "star-crescent"
+  ],
+  "buddhist": [
+   "buddhism",
+   "lotus",
+   "dharma"
+  ],
+  "military": [
+   "military",
+   "veteran",
+   "soldier",
+   "navy",
+   "marines",
+   "flag",
+   "patriotic"
+  ],
+  "veterans": [
+   "veteran",
+   "military"
+  ],
+  "vet": [
+   "veteran",
+   "military"
+  ],
+  "service": [
+   "military",
+   "veteran"
+  ],
+  "army": [
+   "military",
+   "veteran",
+   "soldier"
+  ],
+  "navy": [
+   "navy",
+   "military",
+   "ship"
+  ],
+  "marines": [
+   "marines",
+   "military"
+  ],
+  "marine": [
+   "marines",
+   "military"
+  ],
+  "usmc": [
+   "marines",
+   "military"
+  ],
+  "airforce": [
+   "military",
+   "aviation"
+  ],
+  "coastguard": [
+   "military",
+   "nautical"
+  ],
+  "soldiers": [
+   "soldier",
+   "military"
+  ],
+  "patriotic": [
+   "patriotic",
+   "american-flag",
+   "flag",
+   "military"
+  ],
+  "america": [
+   "american-flag",
+   "patriotic"
+  ],
+  "american": [
+   "american-flag",
+   "patriotic"
+  ],
+  "usa": [
+   "american-flag",
+   "patriotic"
+  ],
+  "flags": [
+   "flag",
+   "american-flag"
+  ],
+  "music": [
+   "music",
+   "music-note",
+   "piano",
+   "guitar",
+   "harmonica",
+   "bagpipes",
+   "record",
+   "headphones",
+   "trumpet"
+  ],
+  "musical": [
+   "music",
+   "music-note",
+   "piano",
+   "guitar"
+  ],
+  "musician": [
+   "music",
+   "guitar",
+   "piano"
+  ],
+  "notes": [
+   "music-note"
+  ],
+  "guitars": [
+   "guitar",
+   "music"
+  ],
+  "sports": [
+   "sports",
+   "baseball",
+   "basketball",
+   "football",
+   "golf",
+   "bowling",
+   "billiards",
+   "running",
+   "cycling",
+   "skiing",
+   "surfing",
+   "horse-racing"
+  ],
+  "sport": [
+   "sports"
+  ],
+  "athletics": [
+   "sports",
+   "running"
+  ],
+  "cars": [
+   "car",
+   "hot-rod",
+   "race-car",
+   "automobile"
+  ],
+  "automobile": [
+   "car",
+   "hot-rod"
+  ],
+  "automobiles": [
+   "car",
+   "hot-rod"
+  ],
+  "hotrod": [
+   "hot-rod",
+   "car"
+  ],
+  "musclecar": [
+   "hot-rod",
+   "car"
+  ],
+  "trucks": [
+   "truck",
+   "semi-truck",
+   "pickup"
+  ],
+  "semi": [
+   "semi-truck",
+   "truck"
+  ],
+  "trucker": [
+   "trucking",
+   "semi-truck"
+  ],
+  "bikes": [
+   "motorcycle",
+   "bicycle"
+  ],
+  "bike": [
+   "motorcycle",
+   "bicycle"
+  ],
+  "motorcycles": [
+   "motorcycle"
+  ],
+  "harley": [
+   "motorcycle"
+  ],
+  "boats": [
+   "boat",
+   "sailboat",
+   "canoe",
+   "ship",
+   "tugboat",
+   "ferry"
+  ],
+  "boating": [
+   "boat",
+   "sailing"
+  ],
+  "yacht": [
+   "sailboat",
+   "boat"
+  ],
+  "ships": [
+   "ship",
+   "boat"
+  ],
+  "planes": [
+   "airplane",
+   "aviation"
+  ],
+  "plane": [
+   "airplane",
+   "aviation"
+  ],
+  "aircraft": [
+   "airplane",
+   "helicopter",
+   "aviation"
+  ],
+  "pilot": [
+   "aviation",
+   "airplane"
+  ],
+  "flying": [
+   "aviation",
+   "airplane",
+   "bird"
+  ],
+  "trains": [
+   "train"
+  ],
+  "railroad": [
+   "train"
+  ],
+  "farming": [
+   "farming",
+   "tractor",
+   "farm",
+   "barn",
+   "field"
+  ],
+  "farmer": [
+   "farming",
+   "tractor",
+   "farm"
+  ],
+  "agriculture": [
+   "farming",
+   "tractor",
+   "wheat",
+   "field"
+  ],
+  "ranch": [
+   "ranch",
+   "ranching",
+   "cattle",
+   "horse",
+   "western"
+  ],
+  "cowboys": [
+   "cowboy",
+   "western",
+   "horse"
+  ],
+  "rodeo": [
+   "rodeo",
+   "cowboy",
+   "horse"
+  ],
+  "kids": [
+   "child",
+   "baby",
+   "toy",
+   "teddy-bear"
+  ],
+  "kid": [
+   "child",
+   "baby"
+  ],
+  "children": [
+   "child",
+   "baby",
+   "toy"
+  ],
+  "baby": [
+   "baby",
+   "child",
+   "footprints",
+   "baby-shoes"
+  ],
+  "infant": [
+   "baby",
+   "child"
+  ],
+  "toys": [
+   "toy",
+   "teddy-bear",
+   "doll",
+   "blocks",
+   "rocking-horse"
+  ],
+  "teddy": [
+   "teddy-bear"
+  ],
+  "bears": [
+   "bear",
+   "teddy-bear"
+  ],
+  "family": [
+   "family",
+   "couple",
+   "child",
+   "heart"
+  ],
+  "couples": [
+   "couple",
+   "wedding",
+   "rings",
+   "heart"
+  ],
+  "marriage": [
+   "wedding",
+   "rings",
+   "couple"
+  ],
+  "wedding": [
+   "wedding",
+   "rings",
+   "couple",
+   "heart"
+  ],
+  "anniversary": [
+   "rings",
+   "wedding",
+   "couple"
+  ],
+  "hearts": [
+   "heart",
+   "love"
+  ],
+  "love": [
+   "heart",
+   "love",
+   "couple"
+  ],
+  "photo": [
+   "portrait"
+  ],
+  "photos": [
+   "portrait"
+  ],
+  "picture": [
+   "portrait"
+  ],
+  "portraits": [
+   "portrait"
+  ],
+  "borders": [
+   "border",
+   "ornate",
+   "geometric"
+  ],
+  "frame": [
+   "border"
+  ],
+  "frames": [
+   "border"
+  ],
+  "simple": [
+   "plain",
+   "classic"
+  ],
+  "traditional": [
+   "classic",
+   "plain"
+  ],
+  "lettering": [
+   "classic",
+   "plain"
+  ],
+  "plainmarker": [
+   "plain",
+   "classic"
+  ],
+  "elegant": [
+   "ornate",
+   "classic",
+   "scroll"
+  ],
+  "scrollwork": [
+   "scroll",
+   "ornament"
+  ],
+  "banners": [
+   "banner",
+   "scroll",
+   "ribbon"
+  ],
+  "celtic": [
+   "celtic",
+   "celtic-cross",
+   "celtic-knot",
+   "irish",
+   "scottish"
+  ],
+  "irish": [
+   "irish",
+   "celtic",
+   "celtic-knot"
+  ],
+  "scottish": [
+   "scottish",
+   "thistle",
+   "bagpipes",
+   "celtic"
+  ],
+  "native": [
+   "native-american",
+   "dreamcatcher",
+   "feather"
+  ],
+  "nativeamerican": [
+   "native-american",
+   "dreamcatcher",
+   "feather"
+  ],
+  "tribal": [
+   "tribal",
+   "native-american",
+   "pacific-islander"
+  ],
+  "hawaiian": [
+   "tropical",
+   "plumeria",
+   "hibiscus",
+   "palm",
+   "pacific-islander"
+  ],
+  "samoan": [
+   "pacific-islander",
+   "tribal"
+  ],
+  "polynesian": [
+   "pacific-islander",
+   "tribal"
+  ],
+  "asian": [
+   "asian",
+   "cherry-blossom",
+   "bamboo",
+   "koi",
+   "lotus",
+   "yin-yang",
+   "pagoda"
+  ],
+  "chinese": [
+   "asian",
+   "cherry-blossom",
+   "bamboo"
+  ],
+  "japanese": [
+   "asian",
+   "cherry-blossom",
+   "bamboo",
+   "koi"
+  ],
+  "vietnamese": [
+   "asian",
+   "mary"
+  ],
+  "tropical": [
+   "tropical",
+   "palm",
+   "beach",
+   "hibiscus",
+   "plumeria"
+  ],
+  "beaches": [
+   "beach",
+   "ocean"
+  ],
+  "golfing": [
+   "golf",
+   "sports"
+  ],
+  "golfer": [
+   "golf"
+  ],
+  "quilting": [
+   "sewing",
+   "needlework"
+  ],
+  "knitting": [
+   "needlework",
+   "sewing"
+  ],
+  "cooking": [
+   "cooking",
+   "food"
+  ],
+  "baking": [
+   "cooking",
+   "food"
+  ],
+  "chef": [
+   "cooking",
+   "food"
+  ],
+  "gardener": [
+   "gardening",
+   "garden",
+   "flower"
+  ],
+  "gardening": [
+   "gardening",
+   "garden",
+   "flower",
+   "plant"
+  ],
+  "books": [
+   "books",
+   "book",
+   "reading"
+  ],
+  "reader": [
+   "reading",
+   "books"
+  ],
+  "teacher": [
+   "books",
+   "reading",
+   "apple"
+  ],
+  "nurse": [
+   "medical"
+  ],
+  "doctor": [
+   "medical"
+  ],
+  "firefighter": [
+   "firefighter"
+  ],
+  "fireman": [
+   "firefighter"
+  ],
+  "police": [
+   "police",
+   "law-enforcement"
+  ],
+  "policeman": [
+   "police",
+   "law-enforcement"
+  ],
+  "cop": [
+   "police",
+   "law-enforcement"
+  ],
+  "sheriff": [
+   "police",
+   "law-enforcement"
+  ],
+  "lawyer": [
+   "judicial",
+   "law",
+   "scales",
+   "gavel"
+  ],
+  "judge": [
+   "judicial",
+   "scales",
+   "gavel"
+  ],
+  "carpenter": [
+   "carpentry",
+   "tools"
+  ],
+  "builder": [
+   "construction",
+   "tools",
+   "carpentry"
+  ],
+  "mechanic": [
+   "tools",
+   "car"
+  ],
+  "logger": [
+   "truck",
+   "trucking",
+   "forest"
+  ],
+  "logging": [
+   "truck",
+   "trucking",
+   "forest",
+   "tree"
+  ],
+  "miner": [
+   "miner",
+   "mining"
+  ],
+  "camping": [
+   "camping",
+   "rv",
+   "tent",
+   "backpack"
+  ],
+  "camper": [
+   "camping",
+   "rv"
+  ],
+  "rving": [
+   "rv",
+   "camping",
+   "travel"
+  ],
+  "hiking": [
+   "hiking",
+   "mountain",
+   "backpack"
+  ],
+  "hiker": [
+   "hiking",
+   "backpack"
+  ],
+  "skiing": [
+   "skiing",
+   "snow",
+   "mountain"
+  ],
+  "skier": [
+   "skiing"
+  ],
+  "snow": [
+   "snow",
+   "winter",
+   "snowflake",
+   "skiing"
+  ],
+  "winter": [
+   "winter",
+   "snow",
+   "snowflake"
+  ],
+  "halloween": [
+   "halloween",
+   "pumpkin"
+  ],
+  "space": [
+   "space",
+   "rocket",
+   "stars",
+   "ufo",
+   "moon"
+  ],
+  "rocketship": [
+   "rocket",
+   "space"
+  ],
+  "dragons": [
+   "dragon",
+   "fantasy"
+  ],
+  "unicorns": [
+   "unicorn"
+  ],
+  "mermaids": [
+   "mermaid"
+  ],
+  "fairies": [
+   "fairy"
+  ],
+  "ledgers": [
+   "ledger"
+  ],
+  "ledger": [
+   "ledger"
+  ],
+  "map": [
+   "map",
+   "globe"
+  ],
+  "maps": [
+   "map",
+   "globe"
+  ],
+  "washington": [
+   "washington",
+   "map"
+  ],
+  "alaska": [
+   "alaska",
+   "map"
+  ],
+  "oregon": [
+   "oregon",
+   "map"
+  ],
+  "seattle": [
+   "seattle",
+   "city",
+   "skyline"
+  ],
+  "wine": [
+   "wine",
+   "grapes"
+  ],
+  "winery": [
+   "wine",
+   "grapes",
+   "vine"
+  ],
+  "grape": [
+   "grapes",
+   "vine"
+  ],
+  "tools": [
+   "tools",
+   "carpentry",
+   "construction"
+  ],
+  "art": [
+   "art",
+   "painting"
+  ],
+  "artist": [
+   "art",
+   "painting"
+  ],
+  "painter": [
+   "art",
+   "painting"
+  ],
+  "writer": [
+   "writing",
+   "quill",
+   "books"
+  ],
+  "movies": [
+   "movie",
+   "film",
+   "theater"
+  ],
+  "theatre": [
+   "theater",
+   "drama",
+   "jester"
+  ],
+  "cards": [
+   "cards",
+   "poker",
+   "games"
+  ],
+  "poker": [
+   "poker",
+   "cards"
+  ],
+  "lighthouses": [
+   "lighthouse",
+   "nautical"
+  ],
+  "nautical": [
+   "nautical",
+   "boat",
+   "ship",
+   "lighthouse",
+   "anchor",
+   "ship-wheel"
+  ],
+  "sailing": [
+   "sailing",
+   "sailboat",
+   "boat"
+  ],
+  "surf": [
+   "surfing",
+   "ocean",
+   "beach"
+  ],
+  "biking": [
+   "cycling",
+   "bicycle",
+   "motorcycle"
+  ],
+  "running": [
+   "running",
+   "sports"
+  ],
+  "runner": [
+   "running"
+  ],
+  "marathon": [
+   "running"
+  ],
+  "eagles": [
+   "eagle",
+   "bird"
+  ],
+  "doves": [
+   "dove",
+   "bird"
+  ],
+  "owls": [
+   "owl",
+   "bird"
+  ],
+  "wolves": [
+   "wolf"
+  ],
+  "dogs": [
+   "dog",
+   "puppy"
+  ],
+  "cats": [
+   "cat",
+   "kitten"
+  ],
+  "deers": [
+   "deer"
+  ],
+  "elks": [
+   "elk"
+  ],
+  "whales": [
+   "whale"
+  ],
+  "turtles": [
+   "turtle"
+  ],
+  "wheat": [
+   "wheat",
+   "field",
+   "farming"
+  ],
+  "harvest": [
+   "wheat",
+   "farming",
+   "field"
+  ],
+  "angel": [
+   "angel",
+   "cherub"
+  ],
+  "candles": [
+   "candle"
+  ],
+  "hands": [
+   "hands",
+   "praying-hands"
+  ]
+ },
+ "elementRules": {
+  "_note": "Element tags = slug(stem) + categoryTags[category] + stemExtras[stem]. The stem is the element code with its trailing number stripped: BASS 001 -> BASS.",
+  "categoryTags": {
+   "Animals": [
+    "animal"
+   ],
+   "Apparel": [
+    "apparel",
+    "clothing"
+   ],
+   "Cultural": [
+    "cultural"
+   ],
+   "Family": [
+    "family"
+   ],
+   "Food & Drink": [
+    "food"
+   ],
+   "Hobbies": [
+    "hobby"
+   ],
+   "Maps & Flags": [
+    "map",
+    "flag"
+   ],
+   "Military": [
+    "military",
+    "veteran"
+   ],
+   "Music": [
+    "music"
+   ],
+   "Occupation": [
+    "occupation",
+    "work"
+   ],
+   "Organization": [
+    "organization"
+   ],
+   "Ornaments": [
+    "ornament"
+   ],
+   "Plants": [
+    "plant"
+   ],
+   "Religion": [
+    "religious"
+   ],
+   "Scenery": [
+    "landscape",
+    "scenery"
+   ],
+   "Sports": [
+    "sports"
+   ],
+   "Transportation": [
+    "transportation",
+    "vehicle"
+   ],
+   "Borders & Panels": [
+    "border",
+    "ornament"
+   ]
   },
-
-  "synonyms": {
-    "flowers": ["flower", "floral-spray", "rose", "lily", "calla-lily", "water-lily", "lotus", "daffodil", "daisy", "tulip", "sunflower", "dogwood", "cherry-blossom", "magnolia", "hibiscus", "plumeria", "orchid", "hydrangea", "morning-glory", "thistle", "garland", "wreath"],
-    "floral": ["flower", "floral-spray", "rose", "lily", "daisy", "tulip", "sunflower", "dogwood", "orchid", "garland", "wreath"],
-    "blooms": ["flower", "rose", "lily", "daisy", "cherry-blossom", "dogwood"],
-    "blossom": ["flower", "cherry-blossom", "dogwood", "apple"],
-    "bouquet": ["flower", "floral-spray", "rose"],
-    "roses": ["rose"],
-    "lilies": ["lily", "calla-lily", "water-lily"],
-    "callalily": ["calla-lily"],
-    "lillies": ["lily", "calla-lily"],
-    "lilly": ["lily"],
-    "daisies": ["daisy"],
-    "tulips": ["tulip"],
-    "sunflowers": ["sunflower"],
-    "orchids": ["orchid"],
-    "plants": ["plant", "flower", "tree", "leaves", "vine", "fern"],
-    "greenery": ["leaves", "ivy", "vine", "fern"],
-    "trees": ["tree", "pine", "oak", "palm", "birch", "forest"],
-    "evergreen": ["pine"],
-    "fir": ["pine"],
-    "cedar": ["pine"],
-    "pines": ["pine", "forest"],
-    "woods": ["forest", "tree", "pine"],
-    "nature": ["landscape", "mountain", "forest", "tree", "river", "lake", "flower", "bird", "deer"],
-    "outdoors": ["landscape", "mountain", "forest", "river", "lake", "camping", "hiking", "fishing", "hunting"],
-    "outdoorsman": ["fishing", "hunting", "camping", "hiking"],
-    "wildlife": ["deer", "elk", "bear", "wolf", "eagle", "bison", "fox", "bighorn", "animal"],
-    "animals": ["animal", "dog", "cat", "horse", "deer", "elk", "bear", "wolf", "bird", "fish", "rabbit", "lion", "tiger"],
-    "pets": ["dog", "puppy", "cat", "kitten", "bird", "parrot"],
-    "birds": ["bird", "dove", "eagle", "hummingbird", "cardinal", "owl", "swan", "duck", "heron", "pheasant", "seagull", "raven", "parrot", "peacock"],
-    "songbird": ["bird", "cardinal"],
-    "buck": ["deer"],
-    "doe": ["deer"],
-    "stag": ["deer", "elk"],
-    "antler": ["antlers", "deer", "elk"],
-    "fishes": ["fish", "bass", "salmon", "koi"],
-    "fishing": ["fishing", "fishing-rod", "fish", "bass", "salmon", "koi"],
-    "fisherman": ["fishing", "fish", "person"],
-    "angler": ["fishing", "fishing-rod"],
-    "flyfishing": ["fishing", "river"],
-    "hunting": ["hunting", "shooting", "deer", "elk", "duck", "pheasant"],
-    "hunter": ["hunting", "shooting"],
-    "puppies": ["puppy", "dog"],
-    "doggy": ["dog"],
-    "kitty": ["cat", "kitten"],
-    "kitties": ["cat", "kitten"],
-    "horses": ["horse"],
-    "pony": ["horse"],
-    "cows": ["cattle"],
-    "cow": ["cattle"],
-    "buffalo": ["bison"],
-    "butterflies": ["butterfly"],
-    "seashells": ["seashell"],
-    "shells": ["seashell"],
-    "mountains": ["mountain"],
-    "rainier": ["mountain"],
-    "peak": ["mountain"],
-    "hills": ["mountain", "landscape"],
-    "scene": ["landscape", "scenery"],
-    "scenes": ["landscape", "scenery"],
-    "scenery": ["landscape", "scenery", "mountain", "lake", "forest"],
-    "lakes": ["lake"],
-    "sea": ["ocean"],
-    "seaside": ["ocean", "beach"],
-    "shore": ["beach", "ocean", "lake"],
-    "waves": ["ocean"],
-    "sunsets": ["sunset"],
-    "sunrise": ["sunrise"],
-    "religion": ["religious", "cross", "jesus", "mary", "angel", "bible", "praying-hands", "church", "rosary"],
-    "religious": ["religious", "cross", "jesus", "mary", "angel", "bible", "praying-hands", "church", "rosary", "crucifix", "chalice"],
-    "faith": ["religious", "cross", "praying-hands", "bible"],
-    "christian": ["cross", "jesus", "bible", "church", "crucifix", "ichthys"],
-    "catholic": ["crucifix", "rosary", "mary", "chalice", "sacred-heart", "communion"],
-    "crosses": ["cross", "celtic-cross", "crucifix"],
-    "cross": ["cross", "celtic-cross", "crucifix"],
-    "prayer": ["praying-hands", "praying", "rosary"],
-    "pray": ["praying-hands", "praying"],
-    "praying": ["praying-hands", "praying"],
-    "angels": ["angel", "cherub"],
-    "cherubs": ["cherub", "angel"],
-    "heaven": ["angel", "gates-of-heaven", "clouds"],
-    "christ": ["jesus"],
-    "savior": ["jesus"],
-    "madonna": ["mary"],
-    "guadalupe": ["mary"],
-    "virgin": ["mary"],
-    "scripture": ["bible"],
-    "chapel": ["church"],
-    "temples": ["temple", "lds", "mormon"],
-    "ldstemple": ["temple", "lds"],
-    "jewish": ["jewish", "star-of-david"],
-    "judaism": ["jewish", "star-of-david"],
-    "starofdavid": ["star-of-david"],
-    "muslim": ["islam", "star-crescent"],
-    "islamic": ["islam", "star-crescent"],
-    "buddhist": ["buddhism", "lotus", "dharma"],
-    "military": ["military", "veteran", "soldier", "navy", "marines", "flag", "patriotic"],
-    "veterans": ["veteran", "military"],
-    "vet": ["veteran", "military"],
-    "service": ["military", "veteran"],
-    "army": ["military", "veteran", "soldier"],
-    "navy": ["navy", "military", "ship"],
-    "marines": ["marines", "military"],
-    "marine": ["marines", "military"],
-    "usmc": ["marines", "military"],
-    "airforce": ["military", "aviation"],
-    "coastguard": ["military", "nautical"],
-    "soldiers": ["soldier", "military"],
-    "patriotic": ["patriotic", "american-flag", "flag", "military"],
-    "america": ["american-flag", "patriotic"],
-    "american": ["american-flag", "patriotic"],
-    "usa": ["american-flag", "patriotic"],
-    "flags": ["flag", "american-flag"],
-    "music": ["music", "music-note", "piano", "guitar", "harmonica", "bagpipes", "record", "headphones", "trumpet"],
-    "musical": ["music", "music-note", "piano", "guitar"],
-    "musician": ["music", "guitar", "piano"],
-    "notes": ["music-note"],
-    "guitars": ["guitar", "music"],
-    "sports": ["sports", "baseball", "basketball", "football", "golf", "bowling", "billiards", "running", "cycling", "skiing", "surfing", "horse-racing"],
-    "sport": ["sports"],
-    "athletics": ["sports", "running"],
-    "cars": ["car", "hot-rod", "race-car", "automobile"],
-    "automobile": ["car", "hot-rod"],
-    "automobiles": ["car", "hot-rod"],
-    "hotrod": ["hot-rod", "car"],
-    "musclecar": ["hot-rod", "car"],
-    "trucks": ["truck", "semi-truck", "pickup"],
-    "semi": ["semi-truck", "truck"],
-    "trucker": ["trucking", "semi-truck"],
-    "bikes": ["motorcycle", "bicycle"],
-    "bike": ["motorcycle", "bicycle"],
-    "motorcycles": ["motorcycle"],
-    "harley": ["motorcycle"],
-    "boats": ["boat", "sailboat", "canoe", "ship", "tugboat", "ferry"],
-    "boating": ["boat", "sailing"],
-    "yacht": ["sailboat", "boat"],
-    "ships": ["ship", "boat"],
-    "planes": ["airplane", "aviation"],
-    "plane": ["airplane", "aviation"],
-    "aircraft": ["airplane", "helicopter", "aviation"],
-    "pilot": ["aviation", "airplane"],
-    "flying": ["aviation", "airplane", "bird"],
-    "trains": ["train"],
-    "railroad": ["train"],
-    "farming": ["farming", "tractor", "farm", "barn", "field"],
-    "farmer": ["farming", "tractor", "farm"],
-    "agriculture": ["farming", "tractor", "wheat", "field"],
-    "ranch": ["ranch", "ranching", "cattle", "horse", "western"],
-    "cowboys": ["cowboy", "western", "horse"],
-    "rodeo": ["rodeo", "cowboy", "horse"],
-    "kids": ["child", "baby", "toy", "teddy-bear"],
-    "kid": ["child", "baby"],
-    "children": ["child", "baby", "toy"],
-    "baby": ["baby", "child", "footprints", "baby-shoes"],
-    "infant": ["baby", "child"],
-    "toys": ["toy", "teddy-bear", "doll", "blocks", "rocking-horse"],
-    "teddy": ["teddy-bear"],
-    "bears": ["bear", "teddy-bear"],
-    "family": ["family", "couple", "child", "heart"],
-    "couples": ["couple", "wedding", "rings", "heart"],
-    "marriage": ["wedding", "rings", "couple"],
-    "wedding": ["wedding", "rings", "couple", "heart"],
-    "anniversary": ["rings", "wedding", "couple"],
-    "hearts": ["heart", "love"],
-    "love": ["heart", "love", "couple"],
-    "photo": ["portrait"],
-    "photos": ["portrait"],
-    "picture": ["portrait"],
-    "portraits": ["portrait"],
-    "borders": ["border", "ornate", "geometric"],
-    "frame": ["border"],
-    "frames": ["border"],
-    "simple": ["plain", "classic"],
-    "traditional": ["classic", "plain"],
-    "lettering": ["classic", "plain"],
-    "plainmarker": ["plain", "classic"],
-    "elegant": ["ornate", "classic", "scroll"],
-    "scrollwork": ["scroll", "ornament"],
-    "banners": ["banner", "scroll", "ribbon"],
-    "celtic": ["celtic", "celtic-cross", "celtic-knot", "irish", "scottish"],
-    "irish": ["irish", "celtic", "celtic-knot"],
-    "scottish": ["scottish", "thistle", "bagpipes", "celtic"],
-    "native": ["native-american", "dreamcatcher", "feather"],
-    "nativeamerican": ["native-american", "dreamcatcher", "feather"],
-    "tribal": ["tribal", "native-american", "pacific-islander"],
-    "hawaiian": ["tropical", "plumeria", "hibiscus", "palm", "pacific-islander"],
-    "samoan": ["pacific-islander", "tribal"],
-    "polynesian": ["pacific-islander", "tribal"],
-    "asian": ["asian", "cherry-blossom", "bamboo", "koi", "lotus", "yin-yang", "pagoda"],
-    "chinese": ["asian", "cherry-blossom", "bamboo"],
-    "japanese": ["asian", "cherry-blossom", "bamboo", "koi"],
-    "vietnamese": ["asian", "mary"],
-    "tropical": ["tropical", "palm", "beach", "hibiscus", "plumeria"],
-    "beaches": ["beach", "ocean"],
-    "golfing": ["golf", "sports"],
-    "golfer": ["golf"],
-    "quilting": ["sewing", "needlework"],
-    "knitting": ["needlework", "sewing"],
-    "cooking": ["cooking", "food"],
-    "baking": ["cooking", "food"],
-    "chef": ["cooking", "food"],
-    "gardener": ["gardening", "garden", "flower"],
-    "gardening": ["gardening", "garden", "flower", "plant"],
-    "books": ["books", "book", "reading"],
-    "reader": ["reading", "books"],
-    "teacher": ["books", "reading", "apple"],
-    "nurse": ["medical"],
-    "doctor": ["medical"],
-    "firefighter": ["firefighter"],
-    "fireman": ["firefighter"],
-    "police": ["police", "law-enforcement"],
-    "policeman": ["police", "law-enforcement"],
-    "cop": ["police", "law-enforcement"],
-    "sheriff": ["police", "law-enforcement"],
-    "lawyer": ["judicial", "law", "scales", "gavel"],
-    "judge": ["judicial", "scales", "gavel"],
-    "carpenter": ["carpentry", "tools"],
-    "builder": ["construction", "tools", "carpentry"],
-    "mechanic": ["tools", "car"],
-    "logger": ["truck", "trucking", "forest"],
-    "logging": ["truck", "trucking", "forest", "tree"],
-    "miner": ["miner", "mining"],
-    "camping": ["camping", "rv", "tent", "backpack"],
-    "camper": ["camping", "rv"],
-    "rving": ["rv", "camping", "travel"],
-    "hiking": ["hiking", "mountain", "backpack"],
-    "hiker": ["hiking", "backpack"],
-    "skiing": ["skiing", "snow", "mountain"],
-    "skier": ["skiing"],
-    "snow": ["snow", "winter", "snowflake", "skiing"],
-    "winter": ["winter", "snow", "snowflake"],
-    "halloween": ["halloween", "pumpkin"],
-    "space": ["space", "rocket", "stars", "ufo", "moon"],
-    "rocketship": ["rocket", "space"],
-    "dragons": ["dragon", "fantasy"],
-    "unicorns": ["unicorn"],
-    "mermaids": ["mermaid"],
-    "fairies": ["fairy"],
-    "ledgers": ["ledger"],
-    "ledger": ["ledger"],
-    "map": ["map", "globe"],
-    "maps": ["map", "globe"],
-    "washington": ["washington", "map"],
-    "alaska": ["alaska", "map"],
-    "oregon": ["oregon", "map"],
-    "seattle": ["seattle", "city", "skyline"],
-    "wine": ["wine", "grapes"],
-    "winery": ["wine", "grapes", "vine"],
-    "grape": ["grapes", "vine"],
-    "tools": ["tools", "carpentry", "construction"],
-    "art": ["art", "painting"],
-    "artist": ["art", "painting"],
-    "painter": ["art", "painting"],
-    "writer": ["writing", "quill", "books"],
-    "movies": ["movie", "film", "theater"],
-    "theatre": ["theater", "drama", "jester"],
-    "cards": ["cards", "poker", "games"],
-    "poker": ["poker", "cards"],
-    "lighthouses": ["lighthouse", "nautical"],
-    "nautical": ["nautical", "boat", "ship", "lighthouse", "anchor", "ship-wheel"],
-    "sailing": ["sailing", "sailboat", "boat"],
-    "surf": ["surfing", "ocean", "beach"],
-    "biking": ["cycling", "bicycle", "motorcycle"],
-    "running": ["running", "sports"],
-    "runner": ["running"],
-    "marathon": ["running"],
-    "eagles": ["eagle", "bird"],
-    "doves": ["dove", "bird"],
-    "owls": ["owl", "bird"],
-    "wolves": ["wolf"],
-    "dogs": ["dog", "puppy"],
-    "cats": ["cat", "kitten"],
-    "deers": ["deer"],
-    "elks": ["elk"],
-    "whales": ["whale"],
-    "turtles": ["turtle"],
-    "wheat": ["wheat", "field", "farming"],
-    "harvest": ["wheat", "farming", "field"],
-    "angel": ["angel", "cherub"],
-    "candles": ["candle"],
-    "hands": ["hands", "praying-hands"]
-  },
-
-  "elementRules": {
-    "_note": "Element tags = slug(stem) + categoryTags[category] + stemExtras[stem]. The stem is the element code with its trailing number stripped: BASS 001 -> BASS.",
-    "categoryTags": {
-      "Animals": ["animal"],
-      "Apparel": ["apparel", "clothing"],
-      "Cultural": ["cultural"],
-      "Family": ["family"],
-      "Food & Drink": ["food"],
-      "Hobbies": ["hobby"],
-      "Maps & Flags": ["map", "flag"],
-      "Military": ["military", "veteran"],
-      "Music": ["music"],
-      "Occupation": ["occupation", "work"],
-      "Organization": ["organization"],
-      "Ornaments": ["ornament"],
-      "Plants": ["plant"],
-      "Religion": ["religious"],
-      "Scenery": ["landscape", "scenery"],
-      "Sports": ["sports"],
-      "Transportation": ["transportation", "vehicle"],
-      "Borders & Panels": ["border", "ornament"]
-    },
-    "flowerStems": [
-      "APPLE BLOSSOM", "BIRD OF PARADISE", "BITTERROOT", "BLEEDING HEART", "BLUE BONNET",
-      "CALA LILY", "CARNATION", "CHERRY BLOSSOM", "COLUMBINE", "DAFFODIL", "DAHLIA", "DAISY",
-      "DANDELION", "DOGWOOD", "EDELWEISS", "FIREWEED", "FORGETMENOT", "FOXGLOVE", "FUCHSIA",
-      "GARDENIA", "GERANIUM", "GLADIOLA", "GRAPE HYACINTH", "HEATHER", "HIBISCUS", "HONEYSUCKLE",
-      "HYDRANGEA", "IRIS", "LAVENDER", "LEI", "LILAC", "LILY", "LILY OF THE VALLEY", "LOTUS",
-      "MAGNOLIA", "MISC FLOWER", "MUM", "ORCHID", "PANSY", "PEONY", "PETUNIA", "PLUMERIA",
-      "POINSETTIA", "POPPY", "PUSSY WILLOW", "RHODODENDRON", "ROSE", "SNAPDRAGON", "SUNFLOWER",
-      "SWEET PEA", "THISTLE", "TULIP", "VIOLET", "WATER LILY", "WILD ROSE"
-    ],
-    "stemExtras": {
-      "BASS": ["fish", "fishing"],
-      "BLUE GILL": ["fish", "fishing"],
-      "CATFISH": ["fish", "fishing"],
-      "CLOWN FISH": ["fish"],
-      "CRAPPIE": ["fish", "fishing"],
-      "GOLDFISH": ["fish"],
-      "HALIBUT": ["fish", "fishing"],
-      "KOI": ["fish", "asian"],
-      "LING COD": ["fish", "fishing"],
-      "MISC FISH": ["fish", "fishing"],
-      "MUSKIE": ["fish", "fishing"],
-      "ROCKFISH": ["fish", "fishing"],
-      "SAILFISH": ["fish", "fishing"],
-      "SALMON": ["fish", "fishing"],
-      "SHARK": ["fish", "ocean"],
-      "STRIPER": ["fish", "fishing"],
-      "STURGEON": ["fish", "fishing"],
-      "SWORDFISH": ["fish", "fishing"],
-      "TROUT": ["fish", "fishing"],
-      "TUNA": ["fish", "fishing"],
-      "CRAB": ["ocean"],
-      "LOBSTER": ["ocean"],
-      "SHRIMP": ["ocean"],
-      "RAZOR CLAM": ["ocean", "seashell"],
-      "SEASHELL": ["ocean", "beach"],
-      "STARFISH": ["ocean", "beach"],
-      "JELLYFISH": ["ocean"],
-      "SEAHORSE": ["ocean"],
-      "ORCA WHALE": ["whale", "ocean"],
-      "WHALE": ["ocean"],
-      "DOLPHIN": ["ocean"],
-      "PELICAN": ["bird", "ocean"],
-      "PUFFIN": ["bird", "ocean"],
-      "SEAGULL": ["bird", "ocean", "beach"],
-      "BLUE BIRD": ["bird"],
-      "CARDINAL": ["bird"],
-      "CHICKADEE": ["bird"],
-      "CRANE": ["bird", "heron"],
-      "CROW": ["bird", "raven"],
-      "DOVE": ["bird", "religious"],
-      "DUCK": ["bird", "hunting"],
-      "EAGLE": ["bird"],
-      "FINCH": ["bird"],
-      "FLAMINGO": ["bird"],
-      "GOOSE": ["bird", "hunting"],
-      "HERON": ["bird"],
-      "HUMMINGBIRD": ["bird"],
-      "JAY": ["bird"],
-      "KINGFISHER": ["bird"],
-      "LARK": ["bird"],
-      "MISC BIRD": ["bird"],
-      "MOCKINGBIRD": ["bird"],
-      "OWL": ["bird"],
-      "PARAKEET": ["bird"],
-      "PARROT": ["bird"],
-      "PEACOCK": ["bird"],
-      "PENGUIN": ["bird"],
-      "PHEASANT": ["bird", "hunting"],
-      "PTARMIGAN": ["bird", "hunting"],
-      "QUAIL": ["bird", "hunting"],
-      "RAVEN": ["bird"],
-      "ROADRUNNER": ["bird"],
-      "ROBIN": ["bird"],
-      "SPARROW": ["bird"],
-      "SWALLOW": ["bird"],
-      "SWAN": ["bird"],
-      "TURKEY": ["bird", "hunting"],
-      "WOODPECKER": ["bird"],
-      "CHICKEN": ["bird", "farming"],
-      "FEATHER": ["bird", "native-american"],
-      "BASSETT HOUND": ["dog"],
-      "BEAGLE": ["dog"],
-      "BOSTON TERRIER": ["dog"],
-      "BOXER": ["dog"],
-      "BULL TERRIER": ["dog"],
-      "BULLDOG": ["dog"],
-      "CHIHUAHUA": ["dog"],
-      "CHOW": ["dog"],
-      "COCKER SPANIEL": ["dog"],
-      "COLLIE": ["dog"],
-      "CORGI": ["dog"],
-      "DACHSHUND": ["dog"],
-      "DOBERMAN PINSCHER": ["dog"],
-      "FOXHOUND": ["dog"],
-      "FRENCH BULLDOG": ["dog"],
-      "GERMAN SHEPHERD": ["dog"],
-      "GOLDEN RETRIEVER": ["dog"],
-      "GREAT DANE": ["dog"],
-      "GREYHOUND": ["dog"],
-      "HUSKIE": ["dog", "husky"],
-      "IRISH SETTER": ["dog"],
-      "LABRADOR": ["dog"],
-      "MASTIFF": ["dog"],
-      "PITBULL": ["dog"],
-      "POMERANIAN": ["dog"],
-      "POODLE": ["dog"],
-      "ROTTWEILER": ["dog"],
-      "SCHNAUZER": ["dog"],
-      "SCOTTISH TERRIER": ["dog", "scottish"],
-      "SHEEP DOG": ["dog"],
-      "SHELTIE": ["dog"],
-      "SHIH TZU": ["dog"],
-      "ST BERNARD": ["dog"],
-      "TERRIER": ["dog"],
-      "PANDA BEAR": ["bear"],
-      "POLAR BEAR": ["bear"],
-      "BEAR TRACKS": ["bear"],
-      "BIG HORN SHEEP": ["sheep", "bighorn"],
-      "CATTLE": ["farming", "ranching"],
-      "COUGAR": ["wildlife"],
-      "COYOTE": ["wolf"],
-      "DEER": ["hunting"],
-      "ELK": ["hunting"],
-      "MOOSE": ["wildlife"],
-      "MULE": ["horse"],
-      "DONKEY": ["horse"],
-      "PEGASUS": ["horse", "fantasy"],
-      "UNICORN": ["fantasy"],
-      "DRAGON": ["fantasy"],
-      "FAIRY": ["fantasy"],
-      "MERMAID": ["fantasy", "ocean"],
-      "BUTTERFLY": ["butterfly"],
-      "DRAGONFLY": ["dragonfly"],
-      "LADYBUG": ["animal"],
-      "BEE": ["animal"],
-      "ROSE": ["flower"],
-      "WILD ROSE": ["rose", "flower"],
-      "CALA LILY": ["lily", "calla-lily", "flower"],
-      "LILY OF THE VALLEY": ["lily", "flower"],
-      "WATER LILY": ["lily", "flower"],
-      "CHERRY BLOSSOM": ["cherry-blossom", "asian", "flower"],
-      "APPLE BLOSSOM": ["flower"],
-      "MISC FLOWER": ["flower"],
-      "PINE CONE": ["pine", "tree"],
-      "PALM TREE": ["palm", "tree", "tropical"],
-      "BONSAI TREE": ["tree", "asian"],
-      "TREE": ["tree"],
-      "BAMBOO": ["asian"],
-      "FERN": ["leaves"],
-      "IVY": ["vine", "leaves"],
-      "LEAVES": ["leaves"],
-      "CATTAIL": ["cattail", "water"],
-      "WHEAT": ["farming", "field"],
-      "GRAPE": ["grapes", "wine", "vine"],
-      "CORN": ["farming", "food"],
-      "COTTON": ["farming"],
-      "HOP": ["farming"],
-      "LEI": ["tropical", "flower"],
-      "PLUMERIA": ["tropical", "flower"],
-      "HIBISCUS": ["tropical", "flower"],
-      "LOTUS": ["asian", "flower"],
-      "THISTLE": ["scottish", "flower"],
-      "CLOVER": ["irish"],
-      "MUSHROOM": ["plant"],
-      "PUMPKIN": ["halloween", "food"],
-      "STRAWBERRY": ["food"],
-      "RASPBERRY": ["food"],
-      "BLUEBERRY": ["food"],
-      "APPLE": ["food"],
-      "CHERRY": ["food"],
-      "GRAPEFRUIT": ["food"],
-      "PINEAPPLE": ["food", "tropical"],
-      "POMEGRANATE": ["food"],
-      "TOMATO": ["food", "gardening"],
-      "POTATO": ["food", "gardening"],
-      "CARROT": ["food", "gardening"],
-      "LETTUCE": ["food", "gardening"],
-      "GARLIC": ["food", "gardening"],
-      "PEPPER": ["food", "gardening"],
-      "SAGE BRUSH": ["desert", "western"],
-      "CROSS": ["cross"],
-      "CELTIC CROSS": ["cross", "celtic-cross", "celtic"],
-      "CRUCIFIX": ["cross", "crucifix"],
-      "ANKH CROSS": ["cross"],
-      "CHI RHO CROSS": ["cross"],
-      "EASTERN CROSS": ["cross"],
-      "EPISCOPAL SHIELD CROSS": ["cross"],
-      "FLORAL CROSS": ["cross", "flower"],
-      "GREEK CROSS": ["cross"],
-      "LEAF CROSS": ["cross", "leaves"],
-      "LUTHERAN CROSS": ["cross", "lutheran"],
-      "METHODIST CROSS": ["cross"],
-      "PRESBYTERIAN CROSS": ["cross"],
-      "WOOD CROSS": ["cross"],
-      "PRAYING HANDS": ["praying-hands", "hands", "praying"],
-      "PRAYER": ["praying", "praying-hands"],
-      "ANGEL": ["angel"],
-      "ANGEL CHILD": ["angel", "cherub", "child"],
-      "ANGEL WINGS": ["angel"],
-      "BIBLE": ["bible", "book"],
-      "CHURCH": ["church"],
-      "CHALICE": ["chalice", "communion"],
-      "LAST SUPPER": ["jesus"],
-      "JESUS": ["jesus"],
-      "MARY": ["mary"],
-      "MAGDALENE": ["mary"],
-      "PIETA": ["mary", "jesus"],
-      "HOLY FAMILY": ["jesus", "mary", "family"],
-      "SACRED HEART": ["sacred-heart", "jesus", "heart"],
-      "ROSARY": ["rosary", "cross"],
-      "ICHTHYS": ["ichthys", "fish"],
-      "JEWISH": ["jewish", "star-of-david"],
-      "MESSIANIC JUDAISM": ["jewish"],
-      "ISLAM": ["islam", "star-crescent"],
-      "KURAN": ["islam"],
-      "BUDDHISM": ["buddhism", "asian"],
-      "TAO": ["asian", "yin-yang"],
-      "BAGUA": ["asian", "yin-yang"],
-      "YINYANG": ["yin-yang", "asian"],
-      "SIKH": ["cultural"],
-      "LDS TEMPLE": ["temple", "lds", "mormon"],
-      "MORMON": ["lds", "mormon", "temple"],
-      "CLADDAGH": ["irish", "celtic", "heart"],
-      "ST PATRICK": ["irish"],
-      "OUR LADY CARMEL": ["mary"],
-      "OUR LADY COBRE": ["mary"],
-      "OUR LADY FATIMA": ["mary"],
-      "OUR LADY GUADALUPE": ["mary"],
-      "OUR LADY LAVANG": ["mary", "asian"],
-      "OUR LADY PERPETUAL HELP": ["mary"],
-      "OUR LADY SAN JUAN": ["mary"],
-      "OUR LADY TALPA": ["mary"],
-      "ARMY": ["army", "soldier"],
-      "ARMY AIR CORPS": ["aviation", "soldier"],
-      "NAVY": ["navy", "ship"],
-      "MARINE CORPS": ["marines"],
-      "AIR FORCE": ["aviation"],
-      "COAST GUARD": ["nautical"],
-      "MERCHANT MARINES": ["nautical", "ship"],
-      "NATIONAL GUARD": ["soldier"],
-      "MILITARY AIRCRAFT": ["airplane", "aviation"],
-      "MILITARY EQUIPMENT": ["soldier"],
-      "MILITARY PERSONNEL": ["soldier"],
-      "MILITARY UNIT": ["soldier"],
-      "DECORATION": ["veteran"],
-      "US ARMY VET": ["army", "veteran"],
-      "VFW": ["veteran", "military"],
-      "AMERICAN LEGION": ["veteran", "military"],
-      "WE HONOR VETERANS": ["veteran", "military"],
-      "WAVES NATIONAL": ["navy", "veteran"],
-      "WAC": ["army", "veteran"],
-      "FLAG": ["flag", "patriotic"],
-      "MAP": ["map"],
-      "GLOBE": ["globe", "travel"],
-      "COMPASS ROSE": ["compass", "nautical"],
-      "FISHING": ["fishing", "fish"],
-      "HUNTING": ["hunting"],
-      "SHOOTING": ["shooting", "hunting"],
-      "ARCHERY": ["arrow"],
-      "GOLF": ["golf"],
-      "BASEBALL": ["baseball"],
-      "BASKETBALL": ["basketball"],
-      "FOOTBALL": ["football"],
-      "BOWLING": ["bowling"],
-      "BILLIARDS": ["billiards"],
-      "HORSE RACING": ["horse-racing", "horse"],
-      "CYCLING": ["cycling", "bicycle"],
-      "RUNNING": ["running"],
-      "SKIING": ["skiing", "snow"],
-      "SNOWBOARDING": ["snowboarding", "snow"],
-      "ICE SKATING": ["winter"],
-      "SURFING": ["surfing", "ocean"],
-      "WINDSURFING": ["windsurfing", "ocean"],
-      "WATERSKIING": ["water"],
-      "ROWING": ["boat"],
-      "DIVING": ["water"],
-      "SWIMMING": ["water"],
-      "DANCE": ["drama"],
-      "WHEELCHAIR BASKETBALL": ["basketball"],
-      "PIANO": ["piano"],
-      "KEYBOARD": ["piano"],
-      "ACOUSTIC GUITAR": ["guitar"],
-      "ELECTRIC GUITAR": ["guitar"],
-      "BASS GUITAR": ["guitar"],
-      "MUSIC NOTES": ["music-note"],
-      "MUSICIAN": ["person"],
-      "HARMONICA": ["harmonica"],
-      "TRUMPET": ["trumpet"],
-      "BUGLE": ["trumpet"],
-      "PASSENGER VEHICLE": ["car"],
-      "RACING VEHICLE": ["race-car", "racing", "motorsport"],
-      "WORK VEHICLE": ["truck", "work"],
-      "CONSTRUCTION VEHICLE": ["truck", "construction"],
-      "FARM VEHICLE": ["tractor", "farming"],
-      "RECREATIONAL VEHICLE": ["rv", "camping"],
-      "MOTORCYCLE": ["motorcycle"],
-      "TRAIN": ["train"],
-      "SPACE CRAFT": ["rocket", "space"],
-      "CIVILIAN AIRCRAFT": ["airplane", "aviation"],
-      "COMMERCIAL AIRCRAFT": ["airplane", "aviation"],
-      "SAILBOAT": ["sailboat", "boat", "sailing", "nautical"],
-      "SPEED BOAT": ["boat", "nautical"],
-      "SKI BOAT": ["boat", "water"],
-      "ROW BOAT": ["boat"],
-      "MISC BOAT": ["boat", "nautical"],
-      "FISHING BOAT": ["boat", "fishing", "nautical"],
-      "FERRY BOAT": ["ferry", "boat", "nautical"],
-      "TUG BOAT": ["tugboat", "boat", "nautical"],
-      "CARGO SHIP": ["ship", "nautical"],
-      "CRUISE SHIP": ["ship", "nautical", "travel"],
-      "NAVY SHIP": ["ship", "navy", "nautical"],
-      "SHIP": ["ship", "nautical"],
-      "YACHT": ["boat", "sailing", "nautical"],
-      "CANOE": ["canoe", "boat"],
-      "ANCHOR": ["nautical"],
-      "AIR BALLOON": ["aviation"],
-      "BEACH": ["beach", "ocean"],
-      "MOUNTAIN": ["mountain"],
-      "RIVER": ["river", "water"],
-      "SUNSCAPE": ["sunset", "sunrise"],
-      "SCENERY": ["landscape"],
-      "COOKING": ["cooking", "food"],
-      "GARDENING": ["gardening", "garden"],
-      "READING": ["reading", "books"],
-      "WRITING": ["writing", "quill"],
-      "PHOTOGRAPHY": ["camera"],
-      "ART": ["art", "painting"],
-      "DRAMA": ["drama", "theater"],
-      "GAMES": ["games", "cards"],
-      "TOOLS": ["tools"],
-      "NEEDLEWORK": ["needlework", "sewing"],
-      "EXERCISE": ["sports"],
-      "OUTDOOR ACTIVITY": ["camping", "hiking"],
-      "ELECTRONICS": ["hobby"],
-      "HOME": ["house", "home"],
-      "CARPENTRY": ["carpentry", "tools"],
-      "CONSTRUCTION": ["construction", "tools"],
-      "FIREFIGHTING": ["firefighter"],
-      "LAW ENFORCEMENT": ["law-enforcement", "police"],
-      "JUDICIAL": ["judicial", "law", "scales", "gavel"],
-      "MEDICAL": ["medical"],
-      "SCIENCE": ["science", "microscope"],
-      "EDUCATION": ["books", "reading"],
-      "LOGGING": ["forest", "tree"],
-      "IRON WORK": ["construction"],
-      "MACHINIST": ["tools"],
-      "PAINTING": ["painting", "art"],
-      "CHEF": ["cooking", "food"],
-      "BARBER SALON": ["occupation"],
-      "CIVIL SERVICE": ["occupation"],
-      "LONGSHOREMAN": ["nautical", "ship"],
-      "ELECTRICAL": ["occupation"],
-      "HEART": ["heart", "love"],
-      "RINGS": ["rings", "wedding"],
-      "COUPLE": ["couple", "love"],
-      "FAMILY": ["family"],
-      "TOY": ["toy", "child"],
-      "CELTIC": ["celtic", "celtic-knot", "irish"],
-      "SCOTTISH": ["scottish", "thistle", "bagpipes"],
-      "NATIVE AMERICAN": ["native-american", "tribal"],
-      "PACIFIC": ["pacific-islander", "tribal", "tropical"],
-      "ASIAN": ["asian"],
-      "MIDDLE EAST": ["cultural"],
-      "WESTERN": ["western", "cowboy"],
-      "HAND SIGN": ["hands"],
-      "MASONS": ["organization"],
-      "SHRINERS": ["organization"],
-      "ELKS LODGE": ["organization"],
-      "LIONS CLUB": ["organization"],
-      "ROTARY": ["organization"],
-      "KIWANIS": ["organization"],
-      "BOY SCOUTS": ["organization", "child"],
-      "FFA LOGO": ["organization", "farming"],
-      "FOUR H": ["organization", "farming"],
-      "GRANGE": ["organization", "farming"],
-      "NRA": ["organization", "shooting"],
-      "TEAMSTERS": ["organization", "trucking"],
-      "HUMANE SOCIETY": ["organization", "animal"],
-      "SALVATION ARMY": ["organization", "religious"],
-      "ALASKA STATE TROOPER": ["organization", "police", "alaska"],
-      "PIONEERS OF ALASKA": ["organization", "alaska", "pioneer"],
-      "BOEING": ["organization", "aviation"],
-      "BORDER": ["border"],
-      "PANEL": ["border", "ornament"],
-      "CUSTOM PANEL": ["border", "ornament"],
-      "ORNAMENT": ["ornament", "scroll"],
-      "APPAREL": ["clothing"],
-      "DRINK": ["food", "wine"],
-      "FOOD": ["food"],
-      "ASTROLOGY": ["stars"],
-      "ETERNAL REST": ["religious"],
-      "GOD": ["religious"],
-      "HOLY SPIRIT": ["dove", "religious"],
-      "SPIRIT OF PEACE": ["dove", "religious"],
-      "TRINITY THISTLE": ["scottish", "thistle"]
-    }
-  },
-
-  "designTags": {
-    "2011-1102": "flower floral-spray oval scroll",
-    "2011-1110": "flower border ornate",
-    "2011-1111": "daffodil flower",
-    "2011-1130": "rose ribbon banner family flower",
-    "2011-1179": "rose vine flower",
-    "2011-1180": "flower wreath border dogwood",
-    "2011-1181": "rose scroll flower",
-    "2011-1182": "rose flower",
-    "2011-1185": "flower ornament",
-    "2011-1186": "rose border flower",
-    "2011-1187": "heart flower floral-spray",
-    "2011-1188": "dogwood flower vine branch",
-    "2011-1189": "daisy flower banner",
-    "2011-1190": "rose banner scroll flower",
-    "2011-1191": "rose flower banner",
-    "2011-1192": "flower border family",
-    "2011-1193": "lily calla-lily flower",
-    "2011-1208": "flower scroll banner",
-    "2011-1265": "flower daisy",
-    "2011-1317": "rose flower",
-    "2011-1319": "rose leaves flower",
-    "2011-1321": "dogwood flower branch",
-    "2011-1364": "flower scroll border",
-    "2011-1365": "flower oval border",
-    "2011-1366": "flower border ornate",
-    "2011-1377": "mountain flower daffodil landscape",
-    "2011-1379": "rose oval flower",
-    "2011-1416": "flower border ornate",
-    "2011-1100": "bird pine branch landscape",
-    "2011-1103": "eagle bird mountain river sunset landscape",
-    "2011-1106": "palm tropical beach landscape",
-    "2011-1109": "lake mountain landscape",
-    "2011-1113": "eagle bird mountain",
-    "2011-1114": "lake tree bird landscape",
-    "2011-1123": "fishing person outdoors",
-    "2011-1124": "fishing boat lake person",
-    "2011-1131": "fish bass fishing boat",
-    "2011-1237": "mountain tree landscape",
-    "2011-1238": "lake mountain landscape",
-    "2011-1239": "tree birch mountain landscape",
-    "2011-1240": "mountain pine banner landscape",
-    "2011-1244": "mountain pine cabin landscape",
-    "2011-1245": "sunrise",
-    "2011-1248": "mountain pine forest",
-    "2011-1249": "river mountain pine landscape",
-    "2011-1264": "bird pheasant pine hunting",
-    "2011-1266": "pheasant bird branch",
-    "2011-1303": "fishing person cross",
-    "2011-1304": "deer forest pine",
-    "2011-1305": "fishing river tree person",
-    "2011-1310": "pine branch",
-    "2011-1323": "butterfly flower",
-    "2011-1324": "frog water",
-    "2011-1325": "tree forest landscape",
-    "2011-1330": "tree branch",
-    "2011-1360": "cattail bird duck water",
-    "2011-1371": "lighthouse ocean nautical",
-    "2011-1372": "palm beach ocean surfing tropical",
-    "2011-1373": "sailboat boat lake mountain sailing",
-    "2011-1378": "landscape person",
-    "2011-1388": "lighthouse bird nautical",
-    "2011-1390": "hiking person mountain pine backpack",
-    "2011-1393": "tree birch flower",
-    "2011-1396": "mountain deer banner landscape",
-    "2011-1408": "pine tree",
-    "2011-1409": "waterfall forest river",
-    "2011-1413": "sailboat boat mountain sailing",
-    "2011-1424": "cowboy horse cattle western ranching",
-    "2011-1436": "palm ocean sunset tropical beach",
-    "2011-1438": "lighthouse cattail nautical",
-    "2011-1444": "mountain landscape",
-    "2011-1449": "mountain pine forest",
-    "2011-1118": "cross lily flower",
-    "2011-1125": "cross flower oval ornate",
-    "2011-1133": "praying-hands cross rose oval",
-    "2011-1135": "praying-hands rosary",
-    "2011-1137": "rosary crucifix cross",
-    "2011-1138": "sacred-heart religious",
-    "2011-1143": "celtic-cross cross oval flower celtic",
-    "2011-1145": "angel statue",
-    "2011-1149": "cross church-window flower",
-    "2011-1156": "mary religious",
-    "2011-1157": "chalice cross grapes wheat communion",
-    "2011-1159": "praying-hands oval",
-    "2011-1163": "angel cherub rose flower",
-    "2011-1184": "cross flower",
-    "2011-1222": "cross flower",
-    "2011-1223": "bible rosary rose flower",
-    "2011-1224": "cross flower border",
-    "2011-1225": "cross ivy rose vine",
-    "2011-1226": "cross lily flower",
-    "2011-1227": "cross",
-    "2011-1228": "cross flower oval",
-    "2011-1229": "cross flower dogwood",
-    "2011-1230": "church-window ribbon",
-    "2011-1231": "cross flower",
-    "2011-1232": "cross flower border",
-    "2011-1233": "cross flower garland",
-    "2011-1234": "heart cross flower",
-    "2011-1235": "cross flower",
-    "2011-1272": "jesus sheep lamb shepherd",
-    "2011-1302": "rosary rose crucifix flower",
-    "2011-1308": "mary jesus baby",
-    "2011-1315": "cross flower dogwood",
-    "2011-1361": "bible candle rose flower",
-    "2011-1375": "jesus statue",
-    "2011-1391": "angel",
-    "2011-1406": "church mountain landscape",
-    "2011-1415": "celtic-cross cross celtic",
-    "2011-1421": "jesus angel trumpet",
-    "2011-1423": "temple lds mormon church",
-    "2011-1428": "temple lds mormon church",
-    "2011-1431": "jesus",
-    "2011-1432": "cross branch banner",
-    "2011-1452": "temple lds mormon church",
-    "2011-1453": "temple lds mormon angel forest",
-    "2011-1104": "child boy soccer sports",
-    "2011-1127": "turtle ocean child",
-    "2011-1128": "child baby portrait snowflake",
-    "2011-1129": "baby child",
-    "2011-1160": "baby child footprints cross",
-    "2011-1161": "angel baby child",
-    "2011-1162": "cross lamb sheep child",
-    "2011-1165": "teddy-bear bear butterfly child",
-    "2011-1166": "teddy-bear bear child",
-    "2011-1167": "fairy angel toy blocks child",
-    "2011-1168": "baby footprints cross child teddy-bear",
-    "2011-1169": "bird branch child",
-    "2011-1171": "heart border child",
-    "2011-1172": "child doll banner toy",
-    "2011-1173": "dog puppy child",
-    "2011-1174": "lamb sheep cross child",
-    "2011-1175": "angel cherub child",
-    "2011-1176": "child doll toy",
-    "2011-1177": "teddy-bear bear clouds child",
-    "2011-1178": "hummingbird bird child",
-    "2011-1311": "cat kitten child toy",
-    "2011-1322": "cherub angel baby child",
-    "2011-1359": "angel child flower",
-    "2011-1376": "fairy angel flower child",
-    "2011-1407": "carousel horse child",
-    "2011-1414": "lamb sheep flower stars child",
-    "2011-1420": "teddy-bear bear heart flower child",
-    "2011-1422": "rocking-horse toy child",
-    "2011-1426": "child boy toy airplane car",
-    "2011-1427": "child dog puppy",
-    "2011-1433": "angel cherub clouds child",
-    "2011-1434": "angel praying child statue",
-    "2011-1445": "baby-shoes flower child",
-    "2011-1446": "truck child",
-    "2011-1447": "rabbit butterfly child",
-    "2011-1448": "deer fawn child",
-    "2011-1183": "border rose ornate classic",
-    "2011-1336": "border classic geometric",
-    "2011-1337": "classic plain border",
-    "2011-1338": "classic plain",
-    "2011-1339": "classic plain",
-    "2011-1340": "classic scroll ornament",
-    "2011-1341": "classic plain",
-    "2011-1342": "classic plain",
-    "2011-1343": "classic plain",
-    "2011-1344": "classic plain",
-    "2011-1345": "classic plain",
-    "2011-1347": "banner ribbon scroll classic",
-    "2011-1349": "classic plain",
-    "2011-1350": "classic plain",
-    "2011-1351": "classic plain",
-    "2011-1352": "classic border geometric",
-    "2011-1353": "classic border geometric",
-    "2011-1354": "classic border ornate",
-    "2011-1355": "classic border celtic",
-    "2011-1356": "classic border",
-    "2011-1101": "sailboat boat rope nautical sailing",
-    "2011-1107": "movie film camera hobby",
-    "2011-1117": "cowboy horse western",
-    "2011-1121": "tree",
-    "2011-1306": "airplane aviation mountain",
-    "2011-1309": "ship sailing nautical cross",
-    "2011-1312": "billiards sports hobby",
-    "2011-1313": "hummingbird bird oval",
-    "2011-1314": "cowboy horse western ranching",
-    "2011-1316": "cowboy-hat boots rope western",
-    "2011-1318": "cooking food",
-    "2011-1327": "wheat border",
-    "2011-1328": "wheat border ornate art-deco",
-    "2011-1332": "music music-note",
-    "2011-1335": "music music-note",
-    "2011-1367": "guitar music",
-    "2011-1368": "golf sports person",
-    "2011-1380": "parrot bird",
-    "2011-1381": "hummingbird bird flower",
-    "2011-1382": "motorcycle oval",
-    "2011-1383": "hat rose flower",
-    "2011-1384": "car hot-rod",
-    "2011-1385": "windsurfing sailing sports water",
-    "2011-1386": "books reading apple",
-    "2011-1387": "navy ship military",
-    "2011-1392": "native-american dreamcatcher feather",
-    "2011-1394": "truck semi-truck trucking",
-    "2011-1397": "race-car racing motorsport flag",
-    "2011-1398": "skiing sports snow person",
-    "2011-1399": "motorcycle",
-    "2011-1400": "bowling sports",
-    "2011-1401": "horse horse-racing sports",
-    "2011-1402": "horse horse-racing sports",
-    "2011-1403": "truck semi-truck trucking mountain",
-    "2011-1410": "golf sports",
-    "2011-1411": "american-flag flag patriotic",
-    "2011-1412": "butterfly",
-    "2011-1417": "football sports",
-    "2011-1418": "dolphin whale ocean",
-    "2011-1419": "horse",
-    "2011-1435": "airplane aviation banner",
-    "2011-1437": "cards games poker hobby",
-    "2011-1439": "fishing fishing-rod",
-    "2011-1441": "jester drama theater",
-    "2011-2108": "flower scroll rings wedding",
-    "2011-2110": "flower border ornate",
-    "2011-2111": "daffodil flower",
-    "2011-2122": "heart flower",
-    "2011-2194": "flower banner border",
-    "2011-2195": "flower vine bird border",
-    "2011-2196": "rose ribbon banner flower",
-    "2011-2197": "rose flower",
-    "2011-2198": "rose flower",
-    "2011-2199": "rose flower",
-    "2011-2200": "rose oval flower",
-    "2011-2201": "flower garland",
-    "2011-2205": "rose scroll flower",
-    "2011-2207": "flower wreath oval",
-    "2011-2208": "rose border flower",
-    "2011-2209": "rose border flower",
-    "2011-2301": "rose flower vase",
-    "2011-2364": "flower dogwood border",
-    "2011-2440": "rose flower",
-    "2011-2460": "flower daisy oval border",
-    "2011-2100": "bird branch",
-    "2011-2101": "sailboat boat sailing",
-    "2011-2109": "mountain lake landscape tree",
-    "2011-2115": "eagle bird",
-    "2011-2251": "mountain eagle bird rings",
-    "2011-2252": "mountain eagle bird",
-    "2011-2253": "mountain deer rings landscape",
-    "2011-2254": "mountain pine lake landscape",
-    "2011-2255": "mountain pine",
-    "2011-2257": "mountain lake landscape",
-    "2011-2258": "mountain river oval landscape",
-    "2011-2259": "pine mountain forest",
-    "2011-2260": "sunrise mountain pine",
-    "2011-2261": "tree landscape clouds",
-    "2011-2262": "farm barn field landscape",
-    "2011-2263": "mountain river tree",
-    "2011-2271": "mountain lake cross landscape",
-    "2011-2307": "mountain pine deer forest",
-    "2011-2329": "tree oak",
-    "2011-2331": "pine tree",
-    "2011-2333": "deer moon",
-    "2011-2334": "tractor farm farming mountain",
-    "2011-2369": "fishing mountain lake person",
-    "2011-2373": "sailboat boat lake sailing",
-    "2011-2374": "boat lake fishing person",
-    "2011-2389": "lighthouse nautical ocean",
-    "2011-2443": "dogwood bird dove branch flower",
-    "2011-2451": "couple person border love silhouette",
-    "2011-2120": "gates-of-heaven gate garden landscape",
-    "2011-2132": "bible cross book",
-    "2011-2134": "praying-hands lily flower banner",
-    "2011-2135": "praying-hands rosary",
-    "2011-2136": "cross lily angel flower",
-    "2011-2139": "mary jesus baby",
-    "2011-2140": "jesus",
-    "2011-2141": "crucifix cross",
-    "2011-2142": "jesus sacred-heart",
-    "2011-2144": "celtic-cross cross celtic",
-    "2011-2146": "jesus sheep lamb oval shepherd",
-    "2011-2147": "mary statue",
-    "2011-2148": "cross flower",
-    "2011-2150": "praying-hands flower oval",
-    "2011-2154": "cross celtic-cross",
-    "2011-2158": "praying-hands rose flower",
-    "2011-2159": "praying-hands oval",
-    "2011-2163": "angel landscape",
-    "2011-2204": "cross flower garland scroll",
-    "2011-2206": "cross rose flower",
-    "2011-2210": "cross flower scroll",
-    "2011-2211": "cross",
-    "2011-2212": "cross",
-    "2011-2213": "cross ornate",
-    "2011-2214": "cross lily flower",
-    "2011-2215": "cross rose flower",
-    "2011-2216": "cross celtic border",
-    "2011-2218": "cross lily banner flower",
-    "2011-2219": "cross heart grapes vine",
-    "2011-2220": "church-window flower",
-    "2011-2221": "bible cross book",
-    "2011-2268": "cross banner scroll",
-    "2011-2269": "cross flower shield",
-    "2011-2270": "cross flower banner",
-    "2011-2273": "cross rings wedding",
-    "2011-2320": "cross flower banner",
-    "2011-2361": "bible candle rose flower",
-    "2011-2362": "praying-hands bible rose",
-    "2011-2363": "flower banner border",
-    "2011-2370": "cross bible rose flower",
-    "2011-2404": "angel",
-    "2011-2429": "temple lds mormon church",
-    "2011-2430": "temple lds mormon church",
-    "2011-2432": "cross branch",
-    "2011-2442": "temple lds mormon angel",
-    "2011-2450": "mary cross scroll",
-    "2011-2453": "temple lds mormon mountain angel",
-    "2011-2336": "classic border",
-    "2011-2337": "classic plain",
-    "2011-2338": "classic plain",
-    "2011-2339": "classic plain",
-    "2011-2340": "classic scroll ornament",
-    "2011-2341": "classic plain",
-    "2011-2343": "classic plain",
-    "2011-2345": "classic plain",
-    "2011-2346": "classic plain family",
-    "2011-2347": "banner ribbon scroll classic",
-    "2011-2348": "banner scroll classic",
-    "2011-2349": "classic plain",
-    "2011-2351": "classic border",
-    "2011-2352": "classic border geometric",
-    "2011-2355": "classic border celtic",
-    "2011-2357": "classic plain",
-    "2011-2121": "tree",
-    "2011-2274": "tree child music silhouette family",
-    "2011-2300": "wagon-wheel western wagon",
-    "2011-2313": "hummingbird bird oval",
-    "2011-2326": "ivy leaves border ornate",
-    "2011-2327": "wheat border",
-    "2011-2328": "wheat flower border ornate art-deco",
-    "2011-2395": "wolf dog",
-    "2011-2401": "horse horse-racing sports",
-    "2011-2403": "truck semi-truck trucking mountain",
-    "2011-2405": "fishing lake person oval silhouette",
-    "2011-2425": "boat tugboat ferry nautical",
-    "2011-2454": "fishing boat ledger lake",
-    "2011-2455": "scroll ornate ledger",
-    "2011-2456": "rose flower garden ledger",
-    "2011-2457": "cross rose sunrise ledger",
-    "2011-2458": "farm tractor farming ledger",
-    "2011-2459": "mountain pine ledger",
-    "2020-668": "fishing boat lake portrait",
-    "2020-669": "dog mountain book",
-    "2020-670": "angel flower",
-    "2020-671": "lamb sheep cross",
-    "2020-672": "boat mountain fishing nautical",
-    "2020-673": "horse barn ranch western cowboy",
-    "2020-674": "motorcycle eagle bird",
-    "2020-675": "mountain tree forest",
-    "2020-676": "piano music",
-    "2020-677": "eagle bird mountain",
-    "2020-678": "car hot-rod",
-    "2020-679": "boat fishing nautical",
-    "2020-680": "military helicopter marines soldier portrait",
-    "2020-681": "bagpipes scottish celtic-cross thistle music",
-    "2020-682": "cat book portrait oval",
-    "2020-683": "church bird landscape",
-    "2020-684": "mountain pine river landscape",
-    "2020-685": "cactus desert landscape",
-    "2020-686": "hibiscus flower tropical portrait",
-    "2020-687": "snowmobile mountain winter snow",
-    "2020-688": "fishing river person",
-    "2020-689": "native-american wolf fox",
-    "2020-690": "raccoon tulip teddy-bear child flower",
-    "2020-691": "angel portrait statue",
-    "2020-692": "ocean bird seagull seashell",
-    "2020-693": "book ocean beach",
-    "2020-694": "cross dove bird portrait",
-    "2020-695": "classic plain",
-    "2020-696": "snowshoes cabin winter",
-    "2020-697": "dog sled-dog husky winter snow",
-    "2020-698": "bird pheasant flower oval",
-    "2020-699": "map alaska stars",
-    "2020-700": "tiger",
-    "2020-701": "farm house mountain portrait",
-    "2020-702": "city seattle skyline cherry-blossom",
-    "2020-703": "city portland bridge mountain",
-    "2020-704": "miner mining western person",
-    "2020-705": "car hot-rod",
-    "2020-706": "fishing fish person",
-    "2020-707": "books reading",
-    "2020-708": "island lake tree landscape",
-    "2020-709": "mountain lake pine landscape",
-    "2020-710": "rv camping travel cat",
-    "2020-711": "family child person silhouette",
-    "2020-712": "microscope science medical portrait",
-    "2020-713": "rose flower bird",
-    "2020-714": "snowflake ornament",
-    "2020-715": "hunting antlers deer arrow",
-    "2020-716": "mountain bear elk",
-    "2020-717": "elk deer pine",
-    "2020-718": "kayak mountain river outdoors person",
-    "2020-719": "mountain pine portrait",
-    "2020-720": "sailboat boat sailing compass",
-    "2020-721": "flower border dove bird ornate",
-    "2020-722": "flower magnolia rose",
-    "2020-723": "fishing river mountain person",
-    "2020-724": "canoe boat lake mountain person",
-    "2020-725": "wagon western pioneer cattle",
-    "2020-726": "cowboy horse rodeo western",
-    "2020-727": "motorcycle mountain",
-    "2020-728": "airplane aviation clouds",
-    "2020-729": "baseball sports portrait",
-    "2020-730": "lion cross",
-    "2020-731": "candle flower lily",
-    "2020-732": "skiing snow sports mountain",
-    "2020-733": "running sports person",
-    "2020-734": "ocean beach fishing person",
-    "2020-735": "oval fishing border rope",
-    "2020-736": "truck trucking portrait",
-    "2020-737": "map washington flower bird",
-    "2020-738": "truck semi-truck trucking lake",
-    "2020-739": "mountain pine sheep camping",
-    "2020-740": "house home tree",
-    "2020-741": "mountain tree landscape",
-    "2020-742": "pumpkin halloween",
-    "2020-743": "mountain eagle bird lantern",
-    "2020-744": "bridge city portrait",
-    "2020-745": "swan bird water",
-    "2020-746": "eagle bird pine portrait",
-    "2020-747": "lake bird landscape",
-    "2020-748": "cardinal bird mountain portrait",
-    "2020-749": "bear cabin",
-    "2020-750": "couple tree love silhouette",
-    "2020-751": "bible book",
-    "2020-752": "car tools person",
-    "2020-753": "fishing person",
-    "2020-754": "firefighter portrait occupation",
-    "2020-755": "books reading",
-    "2020-756": "surfing beach palm ocean sports",
-    "2020-757": "beach palm plumeria flower tropical",
-    "2020-758": "cross church-window portrait",
-    "2020-759": "classic plain",
-    "2020-760": "cross church-window flower",
-    "2020-761": "angel bird",
-    "2020-762": "jesus child cross",
-    "2020-763": "celtic-cross cross flower portrait",
-    "2020-764": "angel flower vine",
-    "2020-765": "jesus religious",
-    "2020-766": "tree eagle bird",
-    "2020-767": "peacock bird portrait",
-    "2020-768": "classic border",
-    "2020-769": "mountain oval landscape",
-    "2020-770": "art painting person",
-    "2020-771": "football sports",
-    "2020-772": "flower wreath oval",
-    "2020-773": "butterfly flower portrait",
-    "2020-774": "flower lily bird",
-    "2020-775": "heart flower border",
-    "2020-776": "star-of-david jewish",
-    "2020-777": "cross",
-    "2020-778": "dragon palm fantasy",
-    "2020-779": "fantasy knight unicorn dragon",
-    "2020-780": "mountain lake landscape",
-    "2020-781": "mountain rose flower banner",
-    "2020-782": "hummingbird bird flower",
-    "2020-783": "cross sunrise",
-    "2020-784": "cactus desert",
-    "2020-785": "mountain landscape",
-    "2020-786": "butterfly flower ribbon",
-    "2020-787": "mary church statue portrait",
-    "2020-788": "angel dove bird butterfly",
-    "2020-789": "angel child praying",
-    "2020-790": "cross angel cherub child",
-    "2020-791": "cat",
-    "2020-792": "lily flower banner",
-    "2020-793": "angel cross portrait",
-    "2020-794": "race-car racing motorsport portrait",
-    "2020-795": "boat riverboat",
-    "2020-796": "bridge river landscape banner",
-    "2020-797": "airplane aviation stadium",
-    "2020-798": "lake mountain landscape",
-    "2020-799": "owl bird pine",
-    "2020-800": "cross rose flower",
-    "2020-801": "cross portrait",
-    "2020-802": "mountain landscape",
-    "2020-803": "cat bird child",
-    "2020-804": "cowboy horse sunflower western portrait",
-    "2020-805": "truck pickup mountain eagle",
-    "2020-806": "lake mountain landscape",
-    "2020-807": "car hot-rod hibiscus flower",
-    "2020-808": "hummingbird bird flower portrait",
-    "2020-809": "dinosaur child",
-    "2020-810": "hippo child animal",
-    "2020-811": "wolf",
-    "2020-812": "fishing river mountain person",
-    "2020-813": "pine-cone pine oval",
-    "2020-814": "map oregon fish salmon tree portrait",
-    "2020-815": "beach palm tropical ocean portrait",
-    "2020-816": "angel statue",
-    "2020-817": "flower banner portrait butterfly",
-    "2020-818": "cross church-window",
-    "2020-819": "celtic celtic-knot oval irish",
-    "2020-820": "duck bird cattail hunting",
-    "2020-821": "couple bench lake love silhouette",
-    "2020-822": "heron bird water cattail",
-    "2020-823": "lake canoe boat mountain portrait",
-    "2020-824": "music record headphones",
-    "2020-825": "deer elk forest",
-    "2020-826": "music music-note harmonica",
-    "2020-827": "elk deer portrait",
-    "2020-828": "mountain banner",
-    "2020-829": "rose flower",
-    "2020-830": "giraffe child animal",
-    "2020-831": "movie film hobby border",
-    "2020-832": "heart couple wedding love",
-    "2020-833": "heart hands love",
-    "2020-834": "heart rings wedding love portrait",
-    "2020-835": "banner scroll",
-    "2020-836": "sewing needlework person",
-    "2020-837": "fishing boat fish",
-    "2020-838": "hiking mountain backpack outdoors",
-    "2020-839": "basketball sports bird parrot",
-    "2020-840": "star-of-david jewish",
-    "2020-841": "construction mason occupation person",
-    "2020-842": "yin-yang asian",
-    "2020-843": "buddhism asian portrait dharma",
-    "2020-844": "asian gate pagoda plant",
-    "2020-845": "asian cherry-blossom statue portrait",
-    "2020-846": "asian urn cherry-blossom bird",
-    "2020-847": "butterfly",
-    "2020-848": "mary cross rose religious",
-    "2020-849": "islam star-crescent",
-    "2020-850": "border ornate cultural",
-    "2020-851": "mary jesus religious asian",
-    "2020-852": "tools carpentry occupation",
-    "2020-853": "bison western",
-    "2020-854": "baseball sports portrait",
-    "2020-855": "fossil science",
-    "2020-856": "border classic church-window",
-    "2020-857": "classic plain",
-    "2020-858": "lily calla-lily flower portrait art-deco",
-    "2020-859": "cowboy western truck bird",
-    "2020-860": "fishing river person",
-    "2020-861": "car hot-rod",
-    "2020-862": "dog",
-    "2020-863": "globe map travel",
-    "2020-864": "truck trucking hiking person",
-    "2020-865": "fish bass fishing lake",
-    "2020-866": "car",
-    "2020-867": "truck pickup tools person",
-    "2020-868": "koi fish asian portrait oval",
-    "2020-869": "elk deer forest mountain portrait",
-    "2020-870": "wine grapes vine",
-    "2020-871": "truck semi-truck trucking mountain eagle",
-    "2020-872": "flower daisy sunflower border",
-    "2020-873": "flower border stars",
-    "2020-874": "truck semi-truck trucking pine",
-    "2020-875": "cards poker games portrait",
-    "2020-876": "horse lake mountain ranching",
-    "2020-877": "fishing bear person portrait",
-    "2020-878": "motorcycle eagle bird",
-    "2020-879": "train portrait",
-    "2020-880": "cactus desert",
-    "2020-881": "military soldier dog veteran",
-    "2020-882": "military veteran flag patriotic portrait",
-    "2020-883": "military soldier mountain hunting fishing",
-    "2020-884": "lily calla-lily flower portrait",
-    "2020-885": "tree tree-of-life",
-    "2020-886": "classic border",
-    "2020-887": "cross flower",
-    "2020-888": "dogwood flower vine portrait",
-    "2020-889": "cherry-blossom flower branch asian",
-    "2020-890": "dog",
-    "2020-891": "flower border portrait",
-    "2020-892": "plain portrait classic",
-    "2020-893": "rose flower border",
-    "2020-894": "oak leaves cross wreath",
-    "2020-895": "scroll ornament classic",
-    "2020-896": "fishing fish lake sunset person",
-    "2020-897": "mountain pine rings",
-    "2020-898": "border ornate portrait",
-    "2020-899": "mary religious portrait",
-    "2020-900": "hunting dog bird duck person",
-    "2020-901": "hunting dog lake person portrait",
-    "2020-902": "helicopter military aviation",
-    "2020-903": "shooting hunting sports person",
-    "2020-904": "horse western cowboy",
-    "2020-905": "flower dove bird butterfly",
-    "2020-906": "camping rv outdoors person",
-    "2020-907": "fishing fish pine person",
-    "2020-908": "writing quill books feather",
-    "2020-909": "judicial law scales gavel",
-    "2020-910": "tractor farm farming barn portrait",
-    "2020-911": "tractor farm farming tree",
-    "2020-912": "forest pine landscape",
-    "2020-913": "ship boat oil-rig nautical portrait",
-    "2020-914": "cross rose oval flower",
-    "2020-915": "cross rose flower",
-    "2020-916": "couple love ocean silhouette",
-    "2020-917": "mountain pine forest",
-    "2020-918": "lily flower border",
-    "2020-919": "mountain lake fishing person",
-    "2020-920": "temple lds mormon book",
-    "2020-921": "chalice wheat grapes religious",
-    "2020-922": "ivy flower border portrait",
-    "2020-923": "flower border portrait garden",
-    "2020-924": "cat",
-    "2020-925": "cat",
-    "2020-926": "hydrangea flower",
-    "2020-927": "lily calla-lily flower portrait art-deco",
-    "2020-928": "flower hydrangea border",
-    "2020-929": "butterfly rose flower oval portrait",
-    "2020-930": "deer lake pine",
-    "2020-931": "rose flower border",
-    "2020-932": "cross flower portrait",
-    "2020-933": "cross wreath laurel",
-    "2020-934": "sunrise angel child",
-    "2020-935": "mary angel",
-    "2020-936": "jesus sacred-heart",
-    "2020-937": "cross",
-    "2020-938": "ufo space stars",
-    "2020-939": "butterfly",
-    "2020-940": "whale ocean portrait oval",
-    "2020-941": "lighthouse nautical portrait",
-    "2020-942": "bamboo asian",
-    "2020-943": "beach seashell ocean footprints",
-    "2020-944": "rose flower pine",
-    "2020-945": "cattail water",
-    "2020-946": "plant garden",
-    "2020-947": "plain portrait classic",
-    "2020-948": "flower vine morning-glory",
-    "2020-949": "cross",
-    "2020-950": "heart rose flower portrait",
-    "2020-951": "art painting cross",
-    "2020-952": "church landscape",
-    "2020-953": "flower plumeria tropical",
-    "2020-954": "pacific-islander cultural tribal",
-    "2020-955": "pacific-islander cultural hibiscus flower tribal",
-    "2020-956": "cowboy horse western landscape",
-    "2020-957": "truck pickup mountain rings",
-    "2020-958": "law-enforcement police car occupation",
-    "2020-959": "book mountain",
-    "2020-960": "star-of-david jewish scroll",
-    "2020-961": "books family",
-    "2020-962": "classic border",
-    "2020-963": "theater books drama",
-    "2020-964": "unicorn baby child footprints",
-    "2020-965": "unicorn child",
-    "2020-966": "rocket space stars child",
-    "2020-967": "whale ocean child clouds",
-    "2020-968": "fishing child silhouette cross",
-    "2020-969": "ship-wheel nautical boat",
-    "2020-970": "shield sword military heraldry",
-    "2020-971": "fantasy dragon mountain portrait horse",
-    "2020-972": "cowboy horse dog western",
-    "2020-973": "horse farm ranch portrait",
-    "2020-974": "truck pickup",
-    "2020-975": "whale ocean",
-    "2020-976": "sheep bighorn oval",
-    "2020-977": "fishing fish person",
-    "2020-978": "motorcycle",
-    "2020-979": "cooking food garden",
-    "2020-980": "native-american feather portrait",
-    "2020-981": "bird feather",
-    "2020-982": "native-american dreamcatcher wolf eagle bird person",
-    "2020-983": "boots",
-    "2020-984": "angel cross hands",
-    "2020-985": "angel praying portrait",
-    "2020-986": "cross flower dogwood",
-    "2020-987": "ichthys fish religious",
-    "2020-988": "celtic celtic-knot border",
-    "2020-989": "mountain tree cross",
-    "2020-990": "mountain lake pine landscape",
-    "2020-991": "banner flower orchid tropical",
-    "2020-992": "celtic celtic-knot border cross",
-    "2020-993": "mermaid book ocean",
-    "2020-994": "bicycle cycling flower portrait person",
-    "2020-995": "mermaid music ocean",
-    "2020-996": "cross heart flower lutheran",
-    "2020-997": "flower dogwood",
-    "2020-998": "rose flower",
-    "2020-999": "toy blocks child giraffe elephant",
-    "2020-1000": "flower snail child",
-    "2020-1001": "rose flower portrait",
-    "2020-1002": "angel child bird",
-    "2020-1003": "water-lily lotus flower asian",
-    "2020-1004": "truck semi-truck trucking ledger",
-    "2020-1005": "city seattle skyline sports ledger portrait",
-    "2020-1006": "car hot-rod ledger portrait",
-    "2020-1007": "angel art-deco ledger",
-    "2020-1008": "fishing boat dragonfly ledger",
-    "2020-1009": "beach ocean palm tropical ledger",
-    "2020-1010": "tree grapes vine ledger portrait",
-    "2020-1011": "book angel banner ledger portrait",
-    "2020-1012": "church ledger",
-    "2020-1013": "classic plain ledger",
-    "2020-1014": "wolf bird ledger",
-    "2020-1015": "mountain lake landscape ledger portrait",
-    "2020-1016": "flower wreath portrait ledger",
-    "2020-1017": "angel ledger",
-    "2020-1018": "horse western cowboy portrait ledger",
-    "2020-1019": "native-american bird raven ledger",
-    "2020-1020": "native-american wolf bird ledger",
-    "2020-1021": "native-american portrait ledger"
+  "flowerStems": [
+   "APPLE BLOSSOM",
+   "BIRD OF PARADISE",
+   "BITTERROOT",
+   "BLEEDING HEART",
+   "BLUE BONNET",
+   "CALA LILY",
+   "CARNATION",
+   "CHERRY BLOSSOM",
+   "COLUMBINE",
+   "DAFFODIL",
+   "DAHLIA",
+   "DAISY",
+   "DANDELION",
+   "DOGWOOD",
+   "EDELWEISS",
+   "FIREWEED",
+   "FORGETMENOT",
+   "FOXGLOVE",
+   "FUCHSIA",
+   "GARDENIA",
+   "GERANIUM",
+   "GLADIOLA",
+   "GRAPE HYACINTH",
+   "HEATHER",
+   "HIBISCUS",
+   "HONEYSUCKLE",
+   "HYDRANGEA",
+   "IRIS",
+   "LAVENDER",
+   "LEI",
+   "LILAC",
+   "LILY",
+   "LILY OF THE VALLEY",
+   "LOTUS",
+   "MAGNOLIA",
+   "MISC FLOWER",
+   "MUM",
+   "ORCHID",
+   "PANSY",
+   "PEONY",
+   "PETUNIA",
+   "PLUMERIA",
+   "POINSETTIA",
+   "POPPY",
+   "PUSSY WILLOW",
+   "RHODODENDRON",
+   "ROSE",
+   "SNAPDRAGON",
+   "SUNFLOWER",
+   "SWEET PEA",
+   "THISTLE",
+   "TULIP",
+   "VIOLET",
+   "WATER LILY",
+   "WILD ROSE"
+  ],
+  "stemExtras": {
+   "BASS": [
+    "fish",
+    "fishing"
+   ],
+   "BLUE GILL": [
+    "fish",
+    "fishing"
+   ],
+   "CATFISH": [
+    "fish",
+    "fishing"
+   ],
+   "CLOWN FISH": [
+    "fish"
+   ],
+   "CRAPPIE": [
+    "fish",
+    "fishing"
+   ],
+   "GOLDFISH": [
+    "fish"
+   ],
+   "HALIBUT": [
+    "fish",
+    "fishing"
+   ],
+   "KOI": [
+    "fish",
+    "asian"
+   ],
+   "LING COD": [
+    "fish",
+    "fishing"
+   ],
+   "MISC FISH": [
+    "fish",
+    "fishing"
+   ],
+   "MUSKIE": [
+    "fish",
+    "fishing"
+   ],
+   "ROCKFISH": [
+    "fish",
+    "fishing"
+   ],
+   "SAILFISH": [
+    "fish",
+    "fishing"
+   ],
+   "SALMON": [
+    "fish",
+    "fishing"
+   ],
+   "SHARK": [
+    "fish",
+    "ocean"
+   ],
+   "STRIPER": [
+    "fish",
+    "fishing"
+   ],
+   "STURGEON": [
+    "fish",
+    "fishing"
+   ],
+   "SWORDFISH": [
+    "fish",
+    "fishing"
+   ],
+   "TROUT": [
+    "fish",
+    "fishing"
+   ],
+   "TUNA": [
+    "fish",
+    "fishing"
+   ],
+   "CRAB": [
+    "ocean"
+   ],
+   "LOBSTER": [
+    "ocean"
+   ],
+   "SHRIMP": [
+    "ocean"
+   ],
+   "RAZOR CLAM": [
+    "ocean",
+    "seashell"
+   ],
+   "SEASHELL": [
+    "ocean",
+    "beach"
+   ],
+   "STARFISH": [
+    "ocean",
+    "beach"
+   ],
+   "JELLYFISH": [
+    "ocean"
+   ],
+   "SEAHORSE": [
+    "ocean"
+   ],
+   "ORCA WHALE": [
+    "whale",
+    "ocean"
+   ],
+   "WHALE": [
+    "ocean"
+   ],
+   "DOLPHIN": [
+    "ocean"
+   ],
+   "PELICAN": [
+    "bird",
+    "ocean"
+   ],
+   "PUFFIN": [
+    "bird",
+    "ocean"
+   ],
+   "SEAGULL": [
+    "bird",
+    "ocean",
+    "beach"
+   ],
+   "BLUE BIRD": [
+    "bird"
+   ],
+   "CARDINAL": [
+    "bird"
+   ],
+   "CHICKADEE": [
+    "bird"
+   ],
+   "CRANE": [
+    "bird",
+    "heron"
+   ],
+   "CROW": [
+    "bird",
+    "raven"
+   ],
+   "DOVE": [
+    "bird",
+    "religious"
+   ],
+   "DUCK": [
+    "bird",
+    "hunting"
+   ],
+   "EAGLE": [
+    "bird"
+   ],
+   "FINCH": [
+    "bird"
+   ],
+   "FLAMINGO": [
+    "bird"
+   ],
+   "GOOSE": [
+    "bird",
+    "hunting"
+   ],
+   "HERON": [
+    "bird"
+   ],
+   "HUMMINGBIRD": [
+    "bird"
+   ],
+   "JAY": [
+    "bird"
+   ],
+   "KINGFISHER": [
+    "bird"
+   ],
+   "LARK": [
+    "bird"
+   ],
+   "MISC BIRD": [
+    "bird"
+   ],
+   "MOCKINGBIRD": [
+    "bird"
+   ],
+   "OWL": [
+    "bird"
+   ],
+   "PARAKEET": [
+    "bird"
+   ],
+   "PARROT": [
+    "bird"
+   ],
+   "PEACOCK": [
+    "bird"
+   ],
+   "PENGUIN": [
+    "bird"
+   ],
+   "PHEASANT": [
+    "bird",
+    "hunting"
+   ],
+   "PTARMIGAN": [
+    "bird",
+    "hunting"
+   ],
+   "QUAIL": [
+    "bird",
+    "hunting"
+   ],
+   "RAVEN": [
+    "bird"
+   ],
+   "ROADRUNNER": [
+    "bird"
+   ],
+   "ROBIN": [
+    "bird"
+   ],
+   "SPARROW": [
+    "bird"
+   ],
+   "SWALLOW": [
+    "bird"
+   ],
+   "SWAN": [
+    "bird"
+   ],
+   "TURKEY": [
+    "bird",
+    "hunting"
+   ],
+   "WOODPECKER": [
+    "bird"
+   ],
+   "CHICKEN": [
+    "bird",
+    "farming"
+   ],
+   "FEATHER": [
+    "bird",
+    "native-american"
+   ],
+   "BASSETT HOUND": [
+    "dog"
+   ],
+   "BEAGLE": [
+    "dog"
+   ],
+   "BOSTON TERRIER": [
+    "dog"
+   ],
+   "BOXER": [
+    "dog"
+   ],
+   "BULL TERRIER": [
+    "dog"
+   ],
+   "BULLDOG": [
+    "dog"
+   ],
+   "CHIHUAHUA": [
+    "dog"
+   ],
+   "CHOW": [
+    "dog"
+   ],
+   "COCKER SPANIEL": [
+    "dog"
+   ],
+   "COLLIE": [
+    "dog"
+   ],
+   "CORGI": [
+    "dog"
+   ],
+   "DACHSHUND": [
+    "dog"
+   ],
+   "DOBERMAN PINSCHER": [
+    "dog"
+   ],
+   "FOXHOUND": [
+    "dog"
+   ],
+   "FRENCH BULLDOG": [
+    "dog"
+   ],
+   "GERMAN SHEPHERD": [
+    "dog"
+   ],
+   "GOLDEN RETRIEVER": [
+    "dog"
+   ],
+   "GREAT DANE": [
+    "dog"
+   ],
+   "GREYHOUND": [
+    "dog"
+   ],
+   "HUSKIE": [
+    "dog",
+    "husky"
+   ],
+   "IRISH SETTER": [
+    "dog"
+   ],
+   "LABRADOR": [
+    "dog"
+   ],
+   "MASTIFF": [
+    "dog"
+   ],
+   "PITBULL": [
+    "dog"
+   ],
+   "POMERANIAN": [
+    "dog"
+   ],
+   "POODLE": [
+    "dog"
+   ],
+   "ROTTWEILER": [
+    "dog"
+   ],
+   "SCHNAUZER": [
+    "dog"
+   ],
+   "SCOTTISH TERRIER": [
+    "dog",
+    "scottish"
+   ],
+   "SHEEP DOG": [
+    "dog"
+   ],
+   "SHELTIE": [
+    "dog"
+   ],
+   "SHIH TZU": [
+    "dog"
+   ],
+   "ST BERNARD": [
+    "dog"
+   ],
+   "TERRIER": [
+    "dog"
+   ],
+   "PANDA BEAR": [
+    "bear"
+   ],
+   "POLAR BEAR": [
+    "bear"
+   ],
+   "BEAR TRACKS": [
+    "bear"
+   ],
+   "BIG HORN SHEEP": [
+    "sheep",
+    "bighorn"
+   ],
+   "CATTLE": [
+    "farming",
+    "ranching"
+   ],
+   "COUGAR": [
+    "wildlife"
+   ],
+   "COYOTE": [
+    "wolf"
+   ],
+   "DEER": [
+    "hunting"
+   ],
+   "ELK": [
+    "hunting"
+   ],
+   "MOOSE": [
+    "wildlife"
+   ],
+   "MULE": [
+    "horse"
+   ],
+   "DONKEY": [
+    "horse"
+   ],
+   "PEGASUS": [
+    "horse",
+    "fantasy"
+   ],
+   "UNICORN": [
+    "fantasy"
+   ],
+   "DRAGON": [
+    "fantasy"
+   ],
+   "FAIRY": [
+    "fantasy"
+   ],
+   "MERMAID": [
+    "fantasy",
+    "ocean"
+   ],
+   "BUTTERFLY": [
+    "butterfly"
+   ],
+   "DRAGONFLY": [
+    "dragonfly"
+   ],
+   "LADYBUG": [
+    "animal"
+   ],
+   "BEE": [
+    "animal"
+   ],
+   "ROSE": [
+    "flower"
+   ],
+   "WILD ROSE": [
+    "rose",
+    "flower"
+   ],
+   "CALA LILY": [
+    "lily",
+    "calla-lily",
+    "flower"
+   ],
+   "LILY OF THE VALLEY": [
+    "lily",
+    "flower"
+   ],
+   "WATER LILY": [
+    "lily",
+    "flower"
+   ],
+   "CHERRY BLOSSOM": [
+    "cherry-blossom",
+    "asian",
+    "flower"
+   ],
+   "APPLE BLOSSOM": [
+    "flower"
+   ],
+   "MISC FLOWER": [
+    "flower"
+   ],
+   "PINE CONE": [
+    "pine",
+    "tree"
+   ],
+   "PALM TREE": [
+    "palm",
+    "tree",
+    "tropical"
+   ],
+   "BONSAI TREE": [
+    "tree",
+    "asian"
+   ],
+   "TREE": [
+    "tree"
+   ],
+   "BAMBOO": [
+    "asian"
+   ],
+   "FERN": [
+    "leaves"
+   ],
+   "IVY": [
+    "vine",
+    "leaves"
+   ],
+   "LEAVES": [
+    "leaves"
+   ],
+   "CATTAIL": [
+    "cattail",
+    "water"
+   ],
+   "WHEAT": [
+    "farming",
+    "field"
+   ],
+   "GRAPE": [
+    "grapes",
+    "wine",
+    "vine"
+   ],
+   "CORN": [
+    "farming",
+    "food"
+   ],
+   "COTTON": [
+    "farming"
+   ],
+   "HOP": [
+    "farming"
+   ],
+   "LEI": [
+    "tropical",
+    "flower"
+   ],
+   "PLUMERIA": [
+    "tropical",
+    "flower"
+   ],
+   "HIBISCUS": [
+    "tropical",
+    "flower"
+   ],
+   "LOTUS": [
+    "asian",
+    "flower"
+   ],
+   "THISTLE": [
+    "scottish",
+    "flower"
+   ],
+   "CLOVER": [
+    "irish"
+   ],
+   "MUSHROOM": [
+    "plant"
+   ],
+   "PUMPKIN": [
+    "halloween",
+    "food"
+   ],
+   "STRAWBERRY": [
+    "food"
+   ],
+   "RASPBERRY": [
+    "food"
+   ],
+   "BLUEBERRY": [
+    "food"
+   ],
+   "APPLE": [
+    "food"
+   ],
+   "CHERRY": [
+    "food"
+   ],
+   "GRAPEFRUIT": [
+    "food"
+   ],
+   "PINEAPPLE": [
+    "food",
+    "tropical"
+   ],
+   "POMEGRANATE": [
+    "food"
+   ],
+   "TOMATO": [
+    "food",
+    "gardening"
+   ],
+   "POTATO": [
+    "food",
+    "gardening"
+   ],
+   "CARROT": [
+    "food",
+    "gardening"
+   ],
+   "LETTUCE": [
+    "food",
+    "gardening"
+   ],
+   "GARLIC": [
+    "food",
+    "gardening"
+   ],
+   "PEPPER": [
+    "food",
+    "gardening"
+   ],
+   "SAGE BRUSH": [
+    "desert",
+    "western"
+   ],
+   "CROSS": [
+    "cross"
+   ],
+   "CELTIC CROSS": [
+    "cross",
+    "celtic-cross",
+    "celtic"
+   ],
+   "CRUCIFIX": [
+    "cross",
+    "crucifix"
+   ],
+   "ANKH CROSS": [
+    "cross"
+   ],
+   "CHI RHO CROSS": [
+    "cross"
+   ],
+   "EASTERN CROSS": [
+    "cross"
+   ],
+   "EPISCOPAL SHIELD CROSS": [
+    "cross"
+   ],
+   "FLORAL CROSS": [
+    "cross",
+    "flower"
+   ],
+   "GREEK CROSS": [
+    "cross"
+   ],
+   "LEAF CROSS": [
+    "cross",
+    "leaves"
+   ],
+   "LUTHERAN CROSS": [
+    "cross",
+    "lutheran"
+   ],
+   "METHODIST CROSS": [
+    "cross"
+   ],
+   "PRESBYTERIAN CROSS": [
+    "cross"
+   ],
+   "WOOD CROSS": [
+    "cross"
+   ],
+   "PRAYING HANDS": [
+    "praying-hands",
+    "hands",
+    "praying"
+   ],
+   "PRAYER": [
+    "praying",
+    "praying-hands"
+   ],
+   "ANGEL": [
+    "angel"
+   ],
+   "ANGEL CHILD": [
+    "angel",
+    "cherub",
+    "child"
+   ],
+   "ANGEL WINGS": [
+    "angel"
+   ],
+   "BIBLE": [
+    "bible",
+    "book"
+   ],
+   "CHURCH": [
+    "church"
+   ],
+   "CHALICE": [
+    "chalice",
+    "communion"
+   ],
+   "LAST SUPPER": [
+    "jesus"
+   ],
+   "JESUS": [
+    "jesus"
+   ],
+   "MARY": [
+    "mary"
+   ],
+   "MAGDALENE": [
+    "mary"
+   ],
+   "PIETA": [
+    "mary",
+    "jesus"
+   ],
+   "HOLY FAMILY": [
+    "jesus",
+    "mary",
+    "family"
+   ],
+   "SACRED HEART": [
+    "sacred-heart",
+    "jesus",
+    "heart"
+   ],
+   "ROSARY": [
+    "rosary",
+    "cross"
+   ],
+   "ICHTHYS": [
+    "ichthys",
+    "fish"
+   ],
+   "JEWISH": [
+    "jewish",
+    "star-of-david"
+   ],
+   "MESSIANIC JUDAISM": [
+    "jewish"
+   ],
+   "ISLAM": [
+    "islam",
+    "star-crescent"
+   ],
+   "KURAN": [
+    "islam"
+   ],
+   "BUDDHISM": [
+    "buddhism",
+    "asian"
+   ],
+   "TAO": [
+    "asian",
+    "yin-yang"
+   ],
+   "BAGUA": [
+    "asian",
+    "yin-yang"
+   ],
+   "YINYANG": [
+    "yin-yang",
+    "asian"
+   ],
+   "SIKH": [
+    "cultural"
+   ],
+   "LDS TEMPLE": [
+    "temple",
+    "lds",
+    "mormon"
+   ],
+   "MORMON": [
+    "lds",
+    "mormon",
+    "temple"
+   ],
+   "CLADDAGH": [
+    "irish",
+    "celtic",
+    "heart"
+   ],
+   "ST PATRICK": [
+    "irish"
+   ],
+   "OUR LADY CARMEL": [
+    "mary"
+   ],
+   "OUR LADY COBRE": [
+    "mary"
+   ],
+   "OUR LADY FATIMA": [
+    "mary"
+   ],
+   "OUR LADY GUADALUPE": [
+    "mary"
+   ],
+   "OUR LADY LAVANG": [
+    "mary",
+    "asian"
+   ],
+   "OUR LADY PERPETUAL HELP": [
+    "mary"
+   ],
+   "OUR LADY SAN JUAN": [
+    "mary"
+   ],
+   "OUR LADY TALPA": [
+    "mary"
+   ],
+   "ARMY": [
+    "army",
+    "soldier"
+   ],
+   "ARMY AIR CORPS": [
+    "aviation",
+    "soldier"
+   ],
+   "NAVY": [
+    "navy",
+    "ship"
+   ],
+   "MARINE CORPS": [
+    "marines"
+   ],
+   "AIR FORCE": [
+    "aviation"
+   ],
+   "COAST GUARD": [
+    "nautical"
+   ],
+   "MERCHANT MARINES": [
+    "nautical",
+    "ship"
+   ],
+   "NATIONAL GUARD": [
+    "soldier"
+   ],
+   "MILITARY AIRCRAFT": [
+    "airplane",
+    "aviation"
+   ],
+   "MILITARY EQUIPMENT": [
+    "soldier"
+   ],
+   "MILITARY PERSONNEL": [
+    "soldier"
+   ],
+   "MILITARY UNIT": [
+    "soldier"
+   ],
+   "DECORATION": [
+    "veteran"
+   ],
+   "US ARMY VET": [
+    "army",
+    "veteran"
+   ],
+   "VFW": [
+    "veteran",
+    "military"
+   ],
+   "AMERICAN LEGION": [
+    "veteran",
+    "military"
+   ],
+   "WE HONOR VETERANS": [
+    "veteran",
+    "military"
+   ],
+   "WAVES NATIONAL": [
+    "navy",
+    "veteran"
+   ],
+   "WAC": [
+    "army",
+    "veteran"
+   ],
+   "FLAG": [
+    "flag",
+    "patriotic"
+   ],
+   "MAP": [
+    "map"
+   ],
+   "GLOBE": [
+    "globe",
+    "travel"
+   ],
+   "COMPASS ROSE": [
+    "compass",
+    "nautical"
+   ],
+   "FISHING": [
+    "fishing",
+    "fish"
+   ],
+   "HUNTING": [
+    "hunting"
+   ],
+   "SHOOTING": [
+    "shooting",
+    "hunting"
+   ],
+   "ARCHERY": [
+    "arrow"
+   ],
+   "GOLF": [
+    "golf"
+   ],
+   "BASEBALL": [
+    "baseball"
+   ],
+   "BASKETBALL": [
+    "basketball"
+   ],
+   "FOOTBALL": [
+    "football"
+   ],
+   "BOWLING": [
+    "bowling"
+   ],
+   "BILLIARDS": [
+    "billiards"
+   ],
+   "HORSE RACING": [
+    "horse-racing",
+    "horse"
+   ],
+   "CYCLING": [
+    "cycling",
+    "bicycle"
+   ],
+   "RUNNING": [
+    "running"
+   ],
+   "SKIING": [
+    "skiing",
+    "snow"
+   ],
+   "SNOWBOARDING": [
+    "snowboarding",
+    "snow"
+   ],
+   "ICE SKATING": [
+    "winter"
+   ],
+   "SURFING": [
+    "surfing",
+    "ocean"
+   ],
+   "WINDSURFING": [
+    "windsurfing",
+    "ocean"
+   ],
+   "WATERSKIING": [
+    "water"
+   ],
+   "ROWING": [
+    "boat"
+   ],
+   "DIVING": [
+    "water"
+   ],
+   "SWIMMING": [
+    "water"
+   ],
+   "DANCE": [
+    "drama"
+   ],
+   "WHEELCHAIR BASKETBALL": [
+    "basketball"
+   ],
+   "PIANO": [
+    "piano"
+   ],
+   "KEYBOARD": [
+    "piano"
+   ],
+   "ACOUSTIC GUITAR": [
+    "guitar"
+   ],
+   "ELECTRIC GUITAR": [
+    "guitar"
+   ],
+   "BASS GUITAR": [
+    "guitar"
+   ],
+   "MUSIC NOTES": [
+    "music-note"
+   ],
+   "MUSICIAN": [
+    "person"
+   ],
+   "HARMONICA": [
+    "harmonica"
+   ],
+   "TRUMPET": [
+    "trumpet"
+   ],
+   "BUGLE": [
+    "trumpet"
+   ],
+   "PASSENGER VEHICLE": [
+    "car"
+   ],
+   "RACING VEHICLE": [
+    "race-car",
+    "racing",
+    "motorsport"
+   ],
+   "WORK VEHICLE": [
+    "truck",
+    "work"
+   ],
+   "CONSTRUCTION VEHICLE": [
+    "truck",
+    "construction"
+   ],
+   "FARM VEHICLE": [
+    "tractor",
+    "farming"
+   ],
+   "RECREATIONAL VEHICLE": [
+    "rv",
+    "camping"
+   ],
+   "MOTORCYCLE": [
+    "motorcycle"
+   ],
+   "TRAIN": [
+    "train"
+   ],
+   "SPACE CRAFT": [
+    "rocket",
+    "space"
+   ],
+   "CIVILIAN AIRCRAFT": [
+    "airplane",
+    "aviation"
+   ],
+   "COMMERCIAL AIRCRAFT": [
+    "airplane",
+    "aviation"
+   ],
+   "SAILBOAT": [
+    "sailboat",
+    "boat",
+    "sailing",
+    "nautical"
+   ],
+   "SPEED BOAT": [
+    "boat",
+    "nautical"
+   ],
+   "SKI BOAT": [
+    "boat",
+    "water"
+   ],
+   "ROW BOAT": [
+    "boat"
+   ],
+   "MISC BOAT": [
+    "boat",
+    "nautical"
+   ],
+   "FISHING BOAT": [
+    "boat",
+    "fishing",
+    "nautical"
+   ],
+   "FERRY BOAT": [
+    "ferry",
+    "boat",
+    "nautical"
+   ],
+   "TUG BOAT": [
+    "tugboat",
+    "boat",
+    "nautical"
+   ],
+   "CARGO SHIP": [
+    "ship",
+    "nautical"
+   ],
+   "CRUISE SHIP": [
+    "ship",
+    "nautical",
+    "travel"
+   ],
+   "NAVY SHIP": [
+    "ship",
+    "navy",
+    "nautical"
+   ],
+   "SHIP": [
+    "ship",
+    "nautical"
+   ],
+   "YACHT": [
+    "boat",
+    "sailing",
+    "nautical"
+   ],
+   "CANOE": [
+    "canoe",
+    "boat"
+   ],
+   "ANCHOR": [
+    "nautical"
+   ],
+   "AIR BALLOON": [
+    "aviation"
+   ],
+   "BEACH": [
+    "beach",
+    "ocean"
+   ],
+   "MOUNTAIN": [
+    "mountain"
+   ],
+   "RIVER": [
+    "river",
+    "water"
+   ],
+   "SUNSCAPE": [
+    "sunset",
+    "sunrise"
+   ],
+   "SCENERY": [
+    "landscape"
+   ],
+   "COOKING": [
+    "cooking",
+    "food"
+   ],
+   "GARDENING": [
+    "gardening",
+    "garden"
+   ],
+   "READING": [
+    "reading",
+    "books"
+   ],
+   "WRITING": [
+    "writing",
+    "quill"
+   ],
+   "PHOTOGRAPHY": [
+    "camera"
+   ],
+   "ART": [
+    "art",
+    "painting"
+   ],
+   "DRAMA": [
+    "drama",
+    "theater"
+   ],
+   "GAMES": [
+    "games",
+    "cards"
+   ],
+   "TOOLS": [
+    "tools"
+   ],
+   "NEEDLEWORK": [
+    "needlework",
+    "sewing"
+   ],
+   "EXERCISE": [
+    "sports"
+   ],
+   "OUTDOOR ACTIVITY": [
+    "camping",
+    "hiking"
+   ],
+   "ELECTRONICS": [
+    "hobby"
+   ],
+   "HOME": [
+    "house",
+    "home"
+   ],
+   "CARPENTRY": [
+    "carpentry",
+    "tools"
+   ],
+   "CONSTRUCTION": [
+    "construction",
+    "tools"
+   ],
+   "FIREFIGHTING": [
+    "firefighter"
+   ],
+   "LAW ENFORCEMENT": [
+    "law-enforcement",
+    "police"
+   ],
+   "JUDICIAL": [
+    "judicial",
+    "law",
+    "scales",
+    "gavel"
+   ],
+   "MEDICAL": [
+    "medical"
+   ],
+   "SCIENCE": [
+    "science",
+    "microscope"
+   ],
+   "EDUCATION": [
+    "books",
+    "reading"
+   ],
+   "LOGGING": [
+    "forest",
+    "tree"
+   ],
+   "IRON WORK": [
+    "construction"
+   ],
+   "MACHINIST": [
+    "tools"
+   ],
+   "PAINTING": [
+    "painting",
+    "art"
+   ],
+   "CHEF": [
+    "cooking",
+    "food"
+   ],
+   "BARBER SALON": [
+    "occupation"
+   ],
+   "CIVIL SERVICE": [
+    "occupation"
+   ],
+   "LONGSHOREMAN": [
+    "nautical",
+    "ship"
+   ],
+   "ELECTRICAL": [
+    "occupation"
+   ],
+   "HEART": [
+    "heart",
+    "love"
+   ],
+   "RINGS": [
+    "rings",
+    "wedding"
+   ],
+   "COUPLE": [
+    "couple",
+    "love"
+   ],
+   "FAMILY": [
+    "family"
+   ],
+   "TOY": [
+    "toy",
+    "child"
+   ],
+   "CELTIC": [
+    "celtic",
+    "celtic-knot",
+    "irish"
+   ],
+   "SCOTTISH": [
+    "scottish",
+    "thistle",
+    "bagpipes"
+   ],
+   "NATIVE AMERICAN": [
+    "native-american",
+    "tribal"
+   ],
+   "PACIFIC": [
+    "pacific-islander",
+    "tribal",
+    "tropical"
+   ],
+   "ASIAN": [
+    "asian"
+   ],
+   "MIDDLE EAST": [
+    "cultural"
+   ],
+   "WESTERN": [
+    "western",
+    "cowboy"
+   ],
+   "HAND SIGN": [
+    "hands"
+   ],
+   "MASONS": [
+    "organization"
+   ],
+   "SHRINERS": [
+    "organization"
+   ],
+   "ELKS LODGE": [
+    "organization"
+   ],
+   "LIONS CLUB": [
+    "organization"
+   ],
+   "ROTARY": [
+    "organization"
+   ],
+   "KIWANIS": [
+    "organization"
+   ],
+   "BOY SCOUTS": [
+    "organization",
+    "child"
+   ],
+   "FFA LOGO": [
+    "organization",
+    "farming"
+   ],
+   "FOUR H": [
+    "organization",
+    "farming"
+   ],
+   "GRANGE": [
+    "organization",
+    "farming"
+   ],
+   "NRA": [
+    "organization",
+    "shooting"
+   ],
+   "TEAMSTERS": [
+    "organization",
+    "trucking"
+   ],
+   "HUMANE SOCIETY": [
+    "organization",
+    "animal"
+   ],
+   "SALVATION ARMY": [
+    "organization",
+    "religious"
+   ],
+   "ALASKA STATE TROOPER": [
+    "organization",
+    "police",
+    "alaska"
+   ],
+   "PIONEERS OF ALASKA": [
+    "organization",
+    "alaska",
+    "pioneer"
+   ],
+   "BOEING": [
+    "organization",
+    "aviation"
+   ],
+   "BORDER": [
+    "border"
+   ],
+   "PANEL": [
+    "border",
+    "ornament"
+   ],
+   "CUSTOM PANEL": [
+    "border",
+    "ornament"
+   ],
+   "ORNAMENT": [
+    "ornament",
+    "scroll"
+   ],
+   "APPAREL": [
+    "clothing"
+   ],
+   "DRINK": [
+    "food",
+    "wine"
+   ],
+   "FOOD": [
+    "food"
+   ],
+   "ASTROLOGY": [
+    "stars"
+   ],
+   "ETERNAL REST": [
+    "religious"
+   ],
+   "GOD": [
+    "religious"
+   ],
+   "HOLY SPIRIT": [
+    "dove",
+    "religious"
+   ],
+   "SPIRIT OF PEACE": [
+    "dove",
+    "religious"
+   ],
+   "TRINITY THISTLE": [
+    "scottish",
+    "thistle"
+   ]
   }
+ },
+ "designTags": {
+  "2011-1102": "flower floral-spray oval scroll",
+  "2011-1110": "flower border ornate",
+  "2011-1111": "daffodil flower",
+  "2011-1130": "rose ribbon banner family flower",
+  "2011-1179": "rose vine flower",
+  "2011-1180": "flower wreath border dogwood",
+  "2011-1181": "rose scroll flower",
+  "2011-1182": "rose flower",
+  "2011-1185": "flower ornament",
+  "2011-1186": "rose border flower",
+  "2011-1187": "heart flower floral-spray",
+  "2011-1188": "dogwood flower vine branch",
+  "2011-1189": "daisy flower banner",
+  "2011-1190": "rose banner scroll flower",
+  "2011-1191": "rose flower banner",
+  "2011-1192": "flower border family",
+  "2011-1193": "lily calla-lily flower",
+  "2011-1208": "flower scroll banner",
+  "2011-1265": "flower daisy",
+  "2011-1317": "rose flower",
+  "2011-1319": "rose leaves flower",
+  "2011-1321": "dogwood flower branch",
+  "2011-1364": "flower scroll border",
+  "2011-1365": "flower oval border",
+  "2011-1366": "flower border ornate",
+  "2011-1377": "mountain flower daffodil landscape",
+  "2011-1379": "rose oval flower",
+  "2011-1416": "flower border ornate",
+  "2011-1100": "bird pine branch landscape",
+  "2011-1103": "eagle bird mountain river sunset landscape",
+  "2011-1106": "palm tropical beach landscape",
+  "2011-1109": "lake mountain landscape",
+  "2011-1113": "eagle bird mountain",
+  "2011-1114": "lake tree bird landscape",
+  "2011-1123": "fishing person outdoors",
+  "2011-1124": "fishing boat lake person",
+  "2011-1131": "fish bass fishing boat",
+  "2011-1237": "mountain tree landscape",
+  "2011-1238": "lake mountain landscape",
+  "2011-1239": "tree birch mountain landscape",
+  "2011-1240": "mountain pine banner landscape",
+  "2011-1244": "mountain pine cabin landscape",
+  "2011-1245": "sunrise",
+  "2011-1248": "mountain pine forest",
+  "2011-1249": "river mountain pine landscape",
+  "2011-1264": "bird pheasant pine hunting",
+  "2011-1266": "pheasant bird branch",
+  "2011-1303": "fishing person cross",
+  "2011-1304": "deer forest pine",
+  "2011-1305": "fishing river tree person",
+  "2011-1310": "pine branch",
+  "2011-1323": "butterfly flower",
+  "2011-1324": "frog water",
+  "2011-1325": "tree forest landscape",
+  "2011-1330": "tree branch",
+  "2011-1360": "cattail bird duck water",
+  "2011-1371": "lighthouse ocean nautical",
+  "2011-1372": "palm beach ocean surfing tropical",
+  "2011-1373": "sailboat boat lake mountain sailing",
+  "2011-1378": "landscape person",
+  "2011-1388": "lighthouse bird nautical",
+  "2011-1390": "hiking person mountain pine backpack",
+  "2011-1393": "tree birch flower",
+  "2011-1396": "mountain deer banner landscape",
+  "2011-1408": "pine tree",
+  "2011-1409": "waterfall forest river",
+  "2011-1413": "sailboat boat mountain sailing",
+  "2011-1424": "cowboy horse cattle western ranching",
+  "2011-1436": "palm ocean sunset tropical beach",
+  "2011-1438": "lighthouse cattail nautical",
+  "2011-1444": "mountain landscape",
+  "2011-1449": "mountain pine forest",
+  "2011-1118": "cross lily flower",
+  "2011-1125": "cross flower oval ornate",
+  "2011-1133": "praying-hands cross rose oval",
+  "2011-1135": "praying-hands rosary",
+  "2011-1137": "rosary crucifix cross",
+  "2011-1138": "sacred-heart religious",
+  "2011-1143": "celtic-cross cross oval flower celtic",
+  "2011-1145": "angel statue",
+  "2011-1149": "cross church-window flower",
+  "2011-1156": "mary religious",
+  "2011-1157": "chalice cross grapes wheat communion",
+  "2011-1159": "praying-hands oval",
+  "2011-1163": "angel cherub rose flower",
+  "2011-1184": "cross flower",
+  "2011-1222": "cross flower",
+  "2011-1223": "bible rosary rose flower",
+  "2011-1224": "cross flower border",
+  "2011-1225": "cross ivy rose vine",
+  "2011-1226": "cross lily flower",
+  "2011-1227": "cross",
+  "2011-1228": "cross flower oval",
+  "2011-1229": "cross flower dogwood",
+  "2011-1230": "church-window ribbon",
+  "2011-1231": "cross flower",
+  "2011-1232": "cross flower border",
+  "2011-1233": "cross flower garland",
+  "2011-1234": "heart cross flower",
+  "2011-1235": "cross flower",
+  "2011-1272": "jesus sheep lamb shepherd",
+  "2011-1302": "rosary rose crucifix flower",
+  "2011-1308": "mary jesus baby",
+  "2011-1315": "cross flower dogwood",
+  "2011-1361": "bible candle rose flower",
+  "2011-1375": "jesus statue",
+  "2011-1391": "angel",
+  "2011-1406": "church mountain landscape",
+  "2011-1415": "celtic-cross cross celtic",
+  "2011-1421": "jesus angel trumpet",
+  "2011-1423": "temple lds mormon church",
+  "2011-1428": "temple lds mormon church",
+  "2011-1431": "jesus",
+  "2011-1432": "cross branch banner",
+  "2011-1452": "temple lds mormon church",
+  "2011-1453": "temple lds mormon angel forest",
+  "2011-1104": "child boy soccer sports",
+  "2011-1127": "turtle ocean child",
+  "2011-1128": "child baby portrait snowflake",
+  "2011-1129": "baby child",
+  "2011-1160": "baby child footprints cross",
+  "2011-1161": "angel baby child",
+  "2011-1162": "cross lamb sheep child",
+  "2011-1165": "teddy-bear bear butterfly child",
+  "2011-1166": "teddy-bear bear child",
+  "2011-1167": "fairy angel toy blocks child",
+  "2011-1168": "baby footprints cross child teddy-bear",
+  "2011-1169": "bird branch child",
+  "2011-1171": "heart border child",
+  "2011-1172": "child doll banner toy",
+  "2011-1173": "dog puppy child",
+  "2011-1174": "lamb sheep cross child",
+  "2011-1175": "angel cherub child",
+  "2011-1176": "child doll toy",
+  "2011-1177": "teddy-bear bear clouds child",
+  "2011-1178": "hummingbird bird child",
+  "2011-1311": "cat kitten child toy",
+  "2011-1322": "cherub angel baby child",
+  "2011-1359": "angel child flower",
+  "2011-1376": "fairy angel flower child",
+  "2011-1407": "carousel horse child",
+  "2011-1414": "lamb sheep flower stars child",
+  "2011-1420": "teddy-bear bear heart flower child",
+  "2011-1422": "rocking-horse toy child",
+  "2011-1426": "child boy toy airplane car",
+  "2011-1427": "child dog puppy",
+  "2011-1433": "angel cherub clouds child",
+  "2011-1434": "angel praying child statue",
+  "2011-1445": "baby-shoes flower child",
+  "2011-1446": "truck child",
+  "2011-1447": "rabbit butterfly child",
+  "2011-1448": "deer fawn child",
+  "2011-1183": "border rose ornate classic",
+  "2011-1336": "border classic geometric",
+  "2011-1337": "classic plain border",
+  "2011-1338": "classic plain",
+  "2011-1339": "classic plain",
+  "2011-1340": "classic scroll ornament",
+  "2011-1341": "classic plain",
+  "2011-1342": "classic plain",
+  "2011-1343": "classic plain",
+  "2011-1344": "classic plain",
+  "2011-1345": "classic plain",
+  "2011-1347": "banner ribbon scroll classic",
+  "2011-1349": "classic plain",
+  "2011-1350": "classic plain",
+  "2011-1351": "classic plain",
+  "2011-1352": "classic border geometric",
+  "2011-1353": "classic border geometric",
+  "2011-1354": "classic border ornate",
+  "2011-1355": "classic border celtic",
+  "2011-1356": "classic border",
+  "2011-1101": "sailboat boat rope nautical sailing",
+  "2011-1107": "movie film camera hobby",
+  "2011-1117": "cowboy horse western",
+  "2011-1121": "tree",
+  "2011-1306": "airplane aviation mountain",
+  "2011-1309": "ship sailing nautical cross",
+  "2011-1312": "billiards sports hobby",
+  "2011-1313": "hummingbird bird oval",
+  "2011-1314": "cowboy horse western ranching",
+  "2011-1316": "cowboy-hat boots rope western",
+  "2011-1318": "cooking food",
+  "2011-1327": "wheat border",
+  "2011-1328": "wheat border ornate art-deco",
+  "2011-1332": "music music-note",
+  "2011-1335": "music music-note",
+  "2011-1367": "guitar music",
+  "2011-1368": "golf sports person",
+  "2011-1380": "parrot bird",
+  "2011-1381": "hummingbird bird flower",
+  "2011-1382": "motorcycle oval",
+  "2011-1383": "hat rose flower",
+  "2011-1384": "car hot-rod",
+  "2011-1385": "windsurfing sailing sports water",
+  "2011-1386": "books reading apple",
+  "2011-1387": "navy ship military",
+  "2011-1392": "native-american dreamcatcher feather",
+  "2011-1394": "truck semi-truck trucking",
+  "2011-1397": "race-car racing motorsport flag",
+  "2011-1398": "skiing sports snow person",
+  "2011-1399": "motorcycle",
+  "2011-1400": "bowling sports",
+  "2011-1401": "horse horse-racing sports",
+  "2011-1402": "horse horse-racing sports",
+  "2011-1403": "truck semi-truck trucking mountain",
+  "2011-1410": "golf sports",
+  "2011-1411": "american-flag flag patriotic",
+  "2011-1412": "butterfly",
+  "2011-1417": "football sports",
+  "2011-1418": "dolphin whale ocean",
+  "2011-1419": "horse",
+  "2011-1435": "airplane aviation banner",
+  "2011-1437": "cards games poker hobby",
+  "2011-1439": "fishing fishing-rod",
+  "2011-1441": "jester drama theater",
+  "2011-2108": "flower scroll rings wedding",
+  "2011-2110": "flower border ornate",
+  "2011-2111": "daffodil flower",
+  "2011-2122": "heart flower",
+  "2011-2194": "flower banner border",
+  "2011-2195": "flower vine bird border",
+  "2011-2196": "rose ribbon banner flower",
+  "2011-2197": "rose flower",
+  "2011-2198": "rose flower",
+  "2011-2199": "rose flower",
+  "2011-2200": "rose oval flower",
+  "2011-2201": "flower garland",
+  "2011-2205": "rose scroll flower",
+  "2011-2207": "flower wreath oval",
+  "2011-2208": "rose border flower",
+  "2011-2209": "rose border flower",
+  "2011-2301": "rose flower vase",
+  "2011-2364": "flower dogwood border",
+  "2011-2440": "rose flower",
+  "2011-2460": "flower daisy oval border",
+  "2011-2100": "bird branch",
+  "2011-2101": "sailboat boat sailing",
+  "2011-2109": "mountain lake landscape tree",
+  "2011-2115": "eagle bird",
+  "2011-2251": "mountain eagle bird rings",
+  "2011-2252": "mountain eagle bird",
+  "2011-2253": "mountain deer rings landscape",
+  "2011-2254": "mountain pine lake landscape",
+  "2011-2255": "mountain pine",
+  "2011-2257": "mountain lake landscape",
+  "2011-2258": "mountain river oval landscape",
+  "2011-2259": "pine mountain forest",
+  "2011-2260": "sunrise mountain pine",
+  "2011-2261": "tree landscape clouds",
+  "2011-2262": "farm barn field landscape",
+  "2011-2263": "mountain river tree",
+  "2011-2271": "mountain lake cross landscape",
+  "2011-2307": "mountain pine deer forest",
+  "2011-2329": "tree oak",
+  "2011-2331": "pine tree",
+  "2011-2333": "deer moon",
+  "2011-2334": "tractor farm farming mountain",
+  "2011-2369": "fishing mountain lake person",
+  "2011-2373": "sailboat boat lake sailing",
+  "2011-2374": "boat lake fishing person",
+  "2011-2389": "lighthouse nautical ocean",
+  "2011-2443": "dogwood bird dove branch flower",
+  "2011-2451": "couple person border love silhouette",
+  "2011-2120": "gates-of-heaven gate garden landscape",
+  "2011-2132": "bible cross book",
+  "2011-2134": "praying-hands lily flower banner",
+  "2011-2135": "praying-hands rosary",
+  "2011-2136": "cross lily angel flower",
+  "2011-2139": "mary jesus baby",
+  "2011-2140": "jesus",
+  "2011-2141": "crucifix cross",
+  "2011-2142": "jesus sacred-heart",
+  "2011-2144": "celtic-cross cross celtic",
+  "2011-2146": "jesus sheep lamb oval shepherd",
+  "2011-2147": "mary statue",
+  "2011-2148": "cross flower",
+  "2011-2150": "praying-hands flower oval",
+  "2011-2154": "cross celtic-cross",
+  "2011-2158": "praying-hands rose flower",
+  "2011-2159": "praying-hands oval",
+  "2011-2163": "angel landscape",
+  "2011-2204": "cross flower garland scroll",
+  "2011-2206": "cross rose flower",
+  "2011-2210": "cross flower scroll",
+  "2011-2211": "cross",
+  "2011-2212": "cross",
+  "2011-2213": "cross ornate",
+  "2011-2214": "cross lily flower",
+  "2011-2215": "cross rose flower",
+  "2011-2216": "cross celtic border",
+  "2011-2218": "cross lily banner flower",
+  "2011-2219": "cross heart grapes vine",
+  "2011-2220": "church-window flower",
+  "2011-2221": "bible cross book",
+  "2011-2268": "cross banner scroll",
+  "2011-2269": "cross flower shield",
+  "2011-2270": "cross flower banner",
+  "2011-2273": "cross rings wedding",
+  "2011-2320": "cross flower banner",
+  "2011-2361": "bible candle rose flower",
+  "2011-2362": "praying-hands bible rose",
+  "2011-2363": "flower banner border",
+  "2011-2370": "cross bible rose flower",
+  "2011-2404": "angel",
+  "2011-2429": "temple lds mormon church",
+  "2011-2430": "temple lds mormon church",
+  "2011-2432": "cross branch",
+  "2011-2442": "temple lds mormon angel",
+  "2011-2450": "mary cross scroll",
+  "2011-2453": "temple lds mormon mountain angel",
+  "2011-2336": "classic border",
+  "2011-2337": "classic plain",
+  "2011-2338": "classic plain",
+  "2011-2339": "classic plain",
+  "2011-2340": "classic scroll ornament",
+  "2011-2341": "classic plain",
+  "2011-2343": "classic plain",
+  "2011-2345": "classic plain",
+  "2011-2346": "classic plain family",
+  "2011-2347": "banner ribbon scroll classic",
+  "2011-2348": "banner scroll classic",
+  "2011-2349": "classic plain",
+  "2011-2351": "classic border",
+  "2011-2352": "classic border geometric",
+  "2011-2355": "classic border celtic",
+  "2011-2357": "classic plain",
+  "2011-2121": "tree",
+  "2011-2274": "tree child music silhouette family",
+  "2011-2300": "wagon-wheel western wagon",
+  "2011-2313": "hummingbird bird oval",
+  "2011-2326": "ivy leaves border ornate",
+  "2011-2327": "wheat border",
+  "2011-2328": "wheat flower border ornate art-deco",
+  "2011-2395": "wolf dog",
+  "2011-2401": "horse horse-racing sports",
+  "2011-2403": "truck semi-truck trucking mountain",
+  "2011-2405": "fishing lake person oval silhouette",
+  "2011-2425": "boat tugboat ferry nautical",
+  "2011-2454": "fishing boat ledger lake",
+  "2011-2455": "scroll ornate ledger",
+  "2011-2456": "rose flower garden ledger",
+  "2011-2457": "cross rose sunrise ledger",
+  "2011-2458": "farm tractor farming ledger",
+  "2011-2459": "mountain pine ledger",
+  "2020-668": "fishing boat lake portrait",
+  "2020-669": "dog mountain book",
+  "2020-670": "angel flower",
+  "2020-671": "lamb sheep cross",
+  "2020-672": "boat mountain fishing nautical",
+  "2020-673": "horse barn ranch western cowboy",
+  "2020-674": "motorcycle eagle bird",
+  "2020-675": "mountain tree forest",
+  "2020-676": "piano music",
+  "2020-677": "eagle bird mountain",
+  "2020-678": "car hot-rod",
+  "2020-679": "boat fishing nautical",
+  "2020-680": "military helicopter marines soldier portrait",
+  "2020-681": "bagpipes scottish celtic-cross thistle music",
+  "2020-682": "cat book portrait oval",
+  "2020-683": "church bird landscape",
+  "2020-684": "mountain pine river landscape",
+  "2020-685": "cactus desert landscape",
+  "2020-686": "hibiscus flower tropical portrait",
+  "2020-687": "snowmobile mountain winter snow",
+  "2020-688": "fishing river person",
+  "2020-689": "native-american wolf fox",
+  "2020-690": "raccoon tulip teddy-bear child flower",
+  "2020-691": "angel portrait statue",
+  "2020-692": "ocean bird seagull seashell",
+  "2020-693": "book ocean beach",
+  "2020-694": "cross dove bird portrait",
+  "2020-695": "classic plain",
+  "2020-696": "snowshoes cabin winter",
+  "2020-697": "dog sled-dog husky winter snow",
+  "2020-698": "bird pheasant flower oval",
+  "2020-699": "map alaska stars",
+  "2020-700": "tiger",
+  "2020-701": "farm house mountain portrait",
+  "2020-702": "city seattle skyline cherry-blossom",
+  "2020-703": "city portland bridge mountain",
+  "2020-704": "miner mining western person",
+  "2020-705": "car hot-rod",
+  "2020-706": "fishing fish person",
+  "2020-707": "books reading",
+  "2020-708": "island lake tree landscape",
+  "2020-709": "mountain lake pine landscape",
+  "2020-710": "rv camping travel cat",
+  "2020-711": "family child person silhouette",
+  "2020-712": "microscope science medical portrait",
+  "2020-713": "rose flower bird",
+  "2020-714": "snowflake ornament",
+  "2020-715": "hunting antlers deer arrow",
+  "2020-716": "mountain bear elk",
+  "2020-717": "elk deer pine",
+  "2020-718": "kayak mountain river outdoors person",
+  "2020-719": "mountain pine portrait",
+  "2020-720": "sailboat boat sailing compass",
+  "2020-721": "flower border dove bird ornate",
+  "2020-722": "flower magnolia rose",
+  "2020-723": "fishing river mountain person",
+  "2020-724": "canoe boat lake mountain person",
+  "2020-725": "wagon western pioneer cattle",
+  "2020-726": "cowboy horse rodeo western",
+  "2020-727": "motorcycle mountain",
+  "2020-728": "airplane aviation clouds",
+  "2020-729": "baseball sports portrait",
+  "2020-730": "lion cross",
+  "2020-731": "candle flower lily",
+  "2020-732": "skiing snow sports mountain",
+  "2020-733": "running sports person",
+  "2020-734": "ocean beach fishing person",
+  "2020-735": "oval fishing border rope",
+  "2020-736": "truck trucking portrait",
+  "2020-737": "map washington flower bird",
+  "2020-738": "truck semi-truck trucking lake",
+  "2020-739": "mountain pine sheep camping",
+  "2020-740": "house home tree",
+  "2020-741": "mountain tree landscape",
+  "2020-742": "pumpkin halloween",
+  "2020-743": "mountain eagle bird lantern",
+  "2020-744": "bridge city portrait",
+  "2020-745": "swan bird water",
+  "2020-746": "eagle bird pine portrait",
+  "2020-747": "lake bird landscape",
+  "2020-748": "cardinal bird mountain portrait",
+  "2020-749": "bear cabin",
+  "2020-750": "couple tree love silhouette",
+  "2020-751": "bible book",
+  "2020-752": "car tools person",
+  "2020-753": "fishing person",
+  "2020-754": "firefighter portrait occupation",
+  "2020-755": "books reading",
+  "2020-756": "surfing beach palm ocean sports",
+  "2020-757": "beach palm plumeria flower tropical",
+  "2020-758": "cross church-window portrait",
+  "2020-759": "classic plain",
+  "2020-760": "cross church-window flower",
+  "2020-761": "angel bird",
+  "2020-762": "jesus child cross",
+  "2020-763": "celtic-cross cross flower portrait",
+  "2020-764": "angel flower vine",
+  "2020-765": "jesus religious",
+  "2020-766": "tree eagle bird",
+  "2020-767": "peacock bird portrait",
+  "2020-768": "classic border",
+  "2020-769": "mountain oval landscape",
+  "2020-770": "art painting person",
+  "2020-771": "football sports",
+  "2020-772": "flower wreath oval",
+  "2020-773": "butterfly flower portrait",
+  "2020-774": "flower lily bird",
+  "2020-775": "heart flower border",
+  "2020-776": "star-of-david jewish",
+  "2020-777": "cross",
+  "2020-778": "dragon palm fantasy",
+  "2020-779": "fantasy knight unicorn dragon",
+  "2020-780": "mountain lake landscape",
+  "2020-781": "mountain rose flower banner",
+  "2020-782": "hummingbird bird flower",
+  "2020-783": "cross sunrise",
+  "2020-784": "cactus desert",
+  "2020-785": "mountain landscape",
+  "2020-786": "butterfly flower ribbon",
+  "2020-787": "mary church statue portrait",
+  "2020-788": "angel dove bird butterfly",
+  "2020-789": "angel child praying",
+  "2020-790": "cross angel cherub child",
+  "2020-791": "cat",
+  "2020-792": "lily flower banner",
+  "2020-793": "angel cross portrait",
+  "2020-794": "race-car racing motorsport portrait",
+  "2020-795": "boat riverboat",
+  "2020-796": "bridge river landscape banner",
+  "2020-797": "airplane aviation stadium",
+  "2020-798": "lake mountain landscape",
+  "2020-799": "owl bird pine",
+  "2020-800": "cross rose flower",
+  "2020-801": "cross portrait",
+  "2020-802": "mountain landscape",
+  "2020-803": "cat bird child",
+  "2020-804": "cowboy horse sunflower western portrait",
+  "2020-805": "truck pickup mountain eagle",
+  "2020-806": "lake mountain landscape",
+  "2020-807": "car hot-rod hibiscus flower",
+  "2020-808": "hummingbird bird flower portrait",
+  "2020-809": "dinosaur child",
+  "2020-810": "hippo child animal",
+  "2020-811": "wolf",
+  "2020-812": "fishing river mountain person",
+  "2020-813": "pine-cone pine oval",
+  "2020-814": "map oregon fish salmon tree portrait",
+  "2020-815": "beach palm tropical ocean portrait",
+  "2020-816": "angel statue",
+  "2020-817": "flower banner portrait butterfly",
+  "2020-818": "cross church-window",
+  "2020-819": "celtic celtic-knot oval irish",
+  "2020-820": "duck bird cattail hunting",
+  "2020-821": "couple bench lake love silhouette",
+  "2020-822": "heron bird water cattail",
+  "2020-823": "lake canoe boat mountain portrait",
+  "2020-824": "music record headphones",
+  "2020-825": "deer elk forest",
+  "2020-826": "music music-note harmonica",
+  "2020-827": "elk deer portrait",
+  "2020-828": "mountain banner",
+  "2020-829": "rose flower",
+  "2020-830": "giraffe child animal",
+  "2020-831": "movie film hobby border",
+  "2020-832": "heart couple wedding love",
+  "2020-833": "heart hands love",
+  "2020-834": "heart rings wedding love portrait",
+  "2020-835": "banner scroll",
+  "2020-836": "sewing needlework person",
+  "2020-837": "fishing boat fish",
+  "2020-838": "hiking mountain backpack outdoors",
+  "2020-839": "basketball sports bird parrot",
+  "2020-840": "star-of-david jewish",
+  "2020-841": "construction mason occupation person",
+  "2020-842": "yin-yang asian",
+  "2020-843": "buddhism asian portrait dharma",
+  "2020-844": "asian gate pagoda plant",
+  "2020-845": "asian cherry-blossom statue portrait",
+  "2020-846": "asian urn cherry-blossom bird",
+  "2020-847": "butterfly",
+  "2020-848": "mary cross rose religious",
+  "2020-849": "islam star-crescent",
+  "2020-850": "border ornate cultural",
+  "2020-851": "mary jesus religious asian",
+  "2020-852": "tools carpentry occupation",
+  "2020-853": "bison western",
+  "2020-854": "baseball sports portrait",
+  "2020-855": "fossil science",
+  "2020-856": "border classic church-window",
+  "2020-857": "classic plain",
+  "2020-858": "lily calla-lily flower portrait art-deco",
+  "2020-859": "cowboy western truck bird",
+  "2020-860": "fishing river person",
+  "2020-861": "car hot-rod",
+  "2020-862": "dog",
+  "2020-863": "globe map travel",
+  "2020-864": "truck trucking hiking person",
+  "2020-865": "fish bass fishing lake",
+  "2020-866": "car",
+  "2020-867": "truck pickup tools person",
+  "2020-868": "koi fish asian portrait oval",
+  "2020-869": "elk deer forest mountain portrait",
+  "2020-870": "wine grapes vine",
+  "2020-871": "truck semi-truck trucking mountain eagle",
+  "2020-872": "flower daisy sunflower border",
+  "2020-873": "flower border stars",
+  "2020-874": "truck semi-truck trucking pine",
+  "2020-875": "cards poker games portrait",
+  "2020-876": "horse lake mountain ranching",
+  "2020-877": "fishing bear person portrait",
+  "2020-878": "motorcycle eagle bird",
+  "2020-879": "train portrait",
+  "2020-880": "cactus desert",
+  "2020-881": "military soldier dog veteran",
+  "2020-882": "military veteran flag patriotic portrait",
+  "2020-883": "military soldier mountain hunting fishing",
+  "2020-884": "lily calla-lily flower portrait",
+  "2020-885": "tree tree-of-life",
+  "2020-886": "classic border",
+  "2020-887": "cross flower",
+  "2020-888": "dogwood flower vine portrait",
+  "2020-889": "cherry-blossom flower branch asian",
+  "2020-890": "dog",
+  "2020-891": "flower border portrait",
+  "2020-892": "plain portrait classic",
+  "2020-893": "rose flower border",
+  "2020-894": "oak leaves cross wreath",
+  "2020-895": "scroll ornament classic",
+  "2020-896": "fishing fish lake sunset person",
+  "2020-897": "mountain pine rings",
+  "2020-898": "border ornate portrait",
+  "2020-899": "mary religious portrait",
+  "2020-900": "hunting dog bird duck person",
+  "2020-901": "hunting dog lake person portrait",
+  "2020-902": "helicopter military aviation",
+  "2020-903": "shooting hunting sports person",
+  "2020-904": "horse western cowboy",
+  "2020-905": "flower dove bird butterfly",
+  "2020-906": "camping rv outdoors person",
+  "2020-907": "fishing fish pine person",
+  "2020-908": "writing quill books feather",
+  "2020-909": "judicial law scales gavel",
+  "2020-910": "tractor farm farming barn portrait",
+  "2020-911": "tractor farm farming tree",
+  "2020-912": "forest pine landscape",
+  "2020-913": "ship boat oil-rig nautical portrait",
+  "2020-914": "cross rose oval flower",
+  "2020-915": "cross rose flower",
+  "2020-916": "couple love ocean silhouette",
+  "2020-917": "mountain pine forest",
+  "2020-918": "lily flower border",
+  "2020-919": "mountain lake fishing person",
+  "2020-920": "temple lds mormon book",
+  "2020-921": "chalice wheat grapes religious",
+  "2020-922": "ivy flower border portrait",
+  "2020-923": "flower border portrait garden",
+  "2020-924": "cat",
+  "2020-925": "cat",
+  "2020-926": "hydrangea flower",
+  "2020-927": "lily calla-lily flower portrait art-deco",
+  "2020-928": "flower hydrangea border",
+  "2020-929": "butterfly rose flower oval portrait",
+  "2020-930": "deer lake pine",
+  "2020-931": "rose flower border",
+  "2020-932": "cross flower portrait",
+  "2020-933": "cross wreath laurel",
+  "2020-934": "sunrise angel child",
+  "2020-935": "mary angel",
+  "2020-936": "jesus sacred-heart",
+  "2020-937": "cross",
+  "2020-938": "ufo space stars",
+  "2020-939": "butterfly",
+  "2020-940": "whale ocean portrait oval",
+  "2020-941": "lighthouse nautical portrait",
+  "2020-942": "bamboo asian",
+  "2020-943": "beach seashell ocean footprints",
+  "2020-944": "rose flower pine",
+  "2020-945": "cattail water",
+  "2020-946": "plant garden",
+  "2020-947": "plain portrait classic",
+  "2020-948": "flower vine morning-glory",
+  "2020-949": "cross",
+  "2020-950": "heart rose flower portrait",
+  "2020-951": "art painting cross",
+  "2020-952": "church landscape",
+  "2020-953": "flower plumeria tropical",
+  "2020-954": "pacific-islander cultural tribal",
+  "2020-955": "pacific-islander cultural hibiscus flower tribal",
+  "2020-956": "cowboy horse western landscape",
+  "2020-957": "truck pickup mountain rings",
+  "2020-958": "law-enforcement police car occupation",
+  "2020-959": "book mountain",
+  "2020-960": "star-of-david jewish scroll",
+  "2020-961": "books family",
+  "2020-962": "classic border",
+  "2020-963": "theater books drama",
+  "2020-964": "unicorn baby child footprints",
+  "2020-965": "unicorn child",
+  "2020-966": "rocket space stars child",
+  "2020-967": "whale ocean child clouds",
+  "2020-968": "fishing child silhouette cross",
+  "2020-969": "ship-wheel nautical boat",
+  "2020-970": "shield sword military heraldry",
+  "2020-971": "fantasy dragon mountain portrait horse",
+  "2020-972": "cowboy horse dog western",
+  "2020-973": "horse farm ranch portrait",
+  "2020-974": "truck pickup",
+  "2020-975": "whale ocean",
+  "2020-976": "sheep bighorn oval",
+  "2020-977": "fishing fish person",
+  "2020-978": "motorcycle",
+  "2020-979": "cooking food garden",
+  "2020-980": "native-american feather portrait",
+  "2020-981": "bird feather",
+  "2020-982": "native-american dreamcatcher wolf eagle bird person",
+  "2020-983": "boots",
+  "2020-984": "angel cross hands",
+  "2020-985": "angel praying portrait",
+  "2020-986": "cross flower dogwood",
+  "2020-987": "ichthys fish religious",
+  "2020-988": "celtic celtic-knot border",
+  "2020-989": "mountain tree cross",
+  "2020-990": "mountain lake pine landscape",
+  "2020-991": "banner flower orchid tropical",
+  "2020-992": "celtic celtic-knot border cross",
+  "2020-993": "mermaid book ocean",
+  "2020-994": "bicycle cycling flower portrait person",
+  "2020-995": "mermaid music ocean",
+  "2020-996": "cross heart flower lutheran",
+  "2020-997": "flower dogwood",
+  "2020-998": "rose flower",
+  "2020-999": "toy blocks child giraffe elephant",
+  "2020-1000": "flower snail child",
+  "2020-1001": "rose flower portrait",
+  "2020-1002": "angel child bird",
+  "2020-1003": "water-lily lotus flower asian",
+  "2020-1004": "truck semi-truck trucking ledger",
+  "2020-1005": "city seattle skyline sports ledger portrait",
+  "2020-1006": "car hot-rod ledger portrait",
+  "2020-1007": "angel art-deco ledger",
+  "2020-1008": "fishing boat dragonfly ledger",
+  "2020-1009": "beach ocean palm tropical ledger",
+  "2020-1010": "tree grapes vine ledger portrait",
+  "2020-1011": "book angel banner ledger portrait",
+  "2020-1012": "church ledger",
+  "2020-1013": "classic plain ledger",
+  "2020-1014": "wolf bird ledger",
+  "2020-1015": "mountain lake landscape ledger portrait",
+  "2020-1016": "flower wreath portrait ledger",
+  "2020-1017": "angel ledger",
+  "2020-1018": "horse western cowboy portrait ledger",
+  "2020-1019": "native-american bird raven ledger",
+  "2020-1020": "native-american wolf bird ledger",
+  "2020-1021": "native-american portrait ledger"
+ }
 }
