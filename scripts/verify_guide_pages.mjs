@@ -122,7 +122,34 @@ const CAPPED_GUIDES = [
   'Urn Gardens at Washington Memorial Park.pdf',
   'Outside Marker Rules and Pricing.pdf', 'Pre-Planning Guide.pdf',
   'Direct Cremation Plan Example.pdf',
+  // The five per-area photo guides (sprint-13, area-guides). They carry their own,
+  // LOOSER cap — see PER_GUIDE_CAPS below — but they are in this list because everything
+  // else it drives (the cream page ground, the no-cover rule, the stranded-sheet check,
+  // the freshness manifest) applies to them exactly as to every other guide.
+  'Rock of Ages Columbarium.pdf', 'Mountain View New Glass-Front Niches.pdf',
+  'Eternal Light Columbarium.pdf', 'Garden of Meditation Niches.pdf',
+  'Terrace Garden Memorial Path.pdf',
 ];
+
+// ── PER-GUIDE PAGE CAPS ─────────────────────────────────────────────────────────────
+// The family-guide cap is SIX pages total and stays six for every guide that does not
+// appear here. A guide in this map is a deliberate, operator-approved exception and the
+// number is asserted like any other cap — an exception is a DIFFERENT limit, never the
+// absence of one.
+//
+// Sprint-13, operator 2026-08-03: "larger more visual guides for each section that we
+// still have a lot of inventory for ... all cleaned up and with the best photos from each
+// folder included." A photograph a family can actually judge a niche wall from is about a
+// third of a page; five or six of those plus the prices do not fit in six pages, and
+// shrinking them back down is the exact complaint that opened this sprint. Eight pages
+// each, gated here.
+const PER_GUIDE_CAPS = {
+  'Rock of Ages Columbarium.pdf': 8,
+  'Mountain View New Glass-Front Niches.pdf': 8,
+  'Eternal Light Columbarium.pdf': 8,
+  'Garden of Meditation Niches.pdf': 8,
+  'Terrace Garden Memorial Path.pdf': 8,
+};
 
 // Guides whose own requirement is tighter than the family-guide cap. The granite-niche
 // guide is a one-page screen guide the operator asked to print to NO MORE THAN TWO pages
@@ -146,13 +173,22 @@ for (const [file, want] of PDF_PAGES) {
   else fail(`${path.basename(file)}: expected ${want} pages, built PDF has ${n}`);
 }
 
-console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages, total) ===`);
+console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages, total; named exceptions in PER_GUIDE_CAPS) ===`);
 for (const name of CAPPED_GUIDES) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
-  if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} page(s)`);
-  else fail(`${name}: ${n} pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
+  const cap = PER_GUIDE_CAPS[name] ?? GUIDE_MAX_PAGES;
+  const note = cap === GUIDE_MAX_PAGES ? '' : `  (own cap ${cap})`;
+  if (n <= cap) ok(`${name.padEnd(44)} ${n} page(s)${note}`);
+  else fail(`${name}: ${n} pages, over its ${cap}-page cap`);
+}
+// A cap for a PDF nobody builds is a cap that proves nothing. Every exception must name a
+// guide that is actually in the capped set, or the map has rotted and the guide it was
+// meant to cover is running uncapped under some other name.
+for (const name of Object.keys(PER_GUIDE_CAPS)) {
+  if (CAPPED_GUIDES.includes(name)) ok(`PER_GUIDE_CAPS["${name}"] names a capped guide`);
+  else fail(`PER_GUIDE_CAPS names "${name}", which is not in CAPPED_GUIDES — that cap is enforced on nothing`);
 }
 
 console.log('\n=== TIGHTER PER-GUIDE CAPS ===');
@@ -530,11 +566,11 @@ console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
 {
   const r = manifestCheck();
   // An empty manifest is a HOLLOW GATE, not a pass — it is what you get when someone
-  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 26 = 19 guides + 6
+  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 31 = 24 guides + 6
   // catalogs + the marker guide's SECOND PDF (sprint-11 Track B prints markers-guide.html
   // twice, once per `?part=`); the General Price List is not generated and is deliberately
-  // absent.
-  if (r.jobs < 26) fail(`build manifest records only ${r.jobs} job(s); expected 26 — rerun both builders`);
+  // absent. It was 26 until sprint-13 added the five per-area photo guides.
+  if (r.jobs < 31) fail(`build manifest records only ${r.jobs} job(s); expected 31 — rerun both builders`);
   for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
   for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
   if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);

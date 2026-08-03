@@ -36,7 +36,18 @@ import * as ECL from './ecl-niche-data.mjs';
 import * as COM from './com-crypt-data.mjs';
 import { typicalStr } from './_typical_band.mjs';
 
-const PAGES = ['urn-placement-guide.html', 'cemetery-property-guide.html'];
+// Wave 1 (sprint-11) plus the five per-area photo guides added in sprint-13. The area
+// guides adopt the template's MARKUP and its budgets — one photograph, a name, a kind, at
+// most two plain sentences, a verified price — but deliberately override the component's
+// aspect-ratio boxes in their own BW:PHOTO-FIRST-CSS block, because the operator's
+// complaint on 2026-08-03 was precisely that the boxed frames "cut off a lot of the
+// photos". The structural assertions below do not care about the box, which is the right
+// place for the line: the template is about what a card SAYS, not how tall it is.
+const PAGES = [
+  'urn-placement-guide.html', 'cemetery-property-guide.html',
+  'roac-guide.html', 'mvc-niches-guide.html', 'ecl-guide.html', 'gomn-guide.html',
+  'terrace-garden-guide.html',
+];
 
 // The description budget. Two sentences, and a hard character ceiling so that "two
 // sentences" cannot be satisfied by two very long ones — which is how a paragraph budget
