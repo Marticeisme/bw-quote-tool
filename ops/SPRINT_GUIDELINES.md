@@ -44,7 +44,7 @@ Rules of work for every sprint, track, and director. Director runbook:
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
    - `npm run check` → must print `index.html: 8 blocks, 0 errors`
-   - `npm test` → must print `1799 passed, 0 failed across 34 suites (1797 without wmp-cemetery-map/)`
+   - `npm test` → must print `1845 passed, 0 failed across 34 suites (1843 without wmp-cemetery-map/)`
      (the count rises as suites are added; it must never fall silently — updated s09
      close: +57 atneed-commission, +70 followup, +13 fee pins, +59 august-promo,
      +8 served-tree)

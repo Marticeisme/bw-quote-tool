@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `1799 passed, 0 failed across 34 suites (1797 without wmp-cemetery-map/)` — updated s11: +58 marker-guide-prices, +67 pcm-catalog, +42 walkthrough-path, +94 catalog-filter-print |
+| Assertion suites | `npm test` | `1845 passed, 0 failed across 34 suites (1843 without wmp-cemetery-map/)` — updated s11: +58 marker-guide-prices, +67 pcm-catalog, +42 walkthrough-path, +94 catalog-filter-print, +46 pcm-subject-search |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |

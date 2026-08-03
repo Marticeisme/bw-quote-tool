@@ -118,10 +118,9 @@ corrupted). OPEN operator: price-ladder break points/labels are the track's;
 no confirm on huge prints (button states "Print these N · k pages"); dead
 Placement facet on cremation/rental page pre-existing, untouched.
 
-**Track E2 IN FLIGHT (operator request 2026-08-02; PUSH PRE-AUTHORIZED on its verified completion):** "if I type rose or flowers
+**Track E2 MERGED (director-audited; the sprint-11 close):** "if I type rose or flowers
 it should show me all the PCM designs and elements that have roses or flowers" —
-subject-tagging all 700 designs BY LOOKING at them, controlled vocabulary +
-synonym layer, search wired across designs AND elements, gated.
+all 700 designs subject-tagged by eye via 30 contact sheets (357-term vocabulary, 3.19 tags per design, zero untagged; elements rule-derived by stem), 280 family-word synonyms (plural-tolerant), search matches designs AND elements with lit tag chips explaining each hit; PCM gate now 113 checks; sabotage proven both directions (curated + derived files). Director spot-audited 4 sample designs against their images (all accurate) and eyeballed the roses search render (51 designs + 116 elements, all genuinely roses). FINAL MAIN: 8 blocks 0 errors; 1845 passed, 0 failed across 34 suites (1799+46, reconciles); PCM 113/0; guides page ALL OK. Contract docs updated to 1845/34. PUSH EXECUTED per pre-authorization.
 
 **Track B MERGED (director-audited, clean merge):** ONE markers-guide.html generates
 TWO PDFs via `?part=sizes|photos` (`data-print-part` + the guide's own print CSS —
