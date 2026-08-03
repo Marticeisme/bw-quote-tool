@@ -93,12 +93,12 @@ const PDF_PAGES = [
   // cap — and the pricing rule shrank it to 3 pages by removing the per-item
   // vault prices. Asserted by the shared cap below instead of pinning a number that only
   // ever meant 'no more than'.
-  // Sprint-08 Track Q: the operator asked for an infographic that is EXACTLY four printed
-  // pages. s10's cover made it three interior + cover; s11 removed the cover, so it is
-  // three pages total and the same amount of document. Held at three deliberately: this
-  // is one of the five guides the photo-first template was applied to, and a photo-led
-  // page that grows the document back to four would be a regression, not a redesign.
-  ['pdf-assets/Glass-Front Niche Guide.pdf', 3],
+  // Glass-Front Niche used to be pinned here at an EQUALITY of 3 pages (sprint-08 Track Q's
+  // "exactly four printed pages", minus the cover s11 removed), with a note that growing it
+  // back would be "a regression, not a redesign". The operator overruled that on 2026-08-03
+  // — "same with glass front niches as well", meaning the granite guide's page-per-location
+  // photo treatment — so it is a CAP of 8 in PER_GUIDE_CAPS now, not an equality here. The
+  // equality is deleted rather than raised: what he asked for is room, not a fixed length.
   // Sprint-08 Track U: a ONE-page infographic covering the Lake and Rose urn gardens.
   // With the cover gone it is one page, full stop — which is what the requirement said.
   ['pdf-assets/Urn Gardens at Washington Memorial Park.pdf', 1],
@@ -124,12 +124,28 @@ const CAPPED_GUIDES = [
   'Direct Cremation Plan Example.pdf',
 ];
 
-// Guides whose own requirement is tighter than the family-guide cap. The granite-niche
-// guide is a one-page screen guide the operator asked to print to NO MORE THAN TWO pages
-// (sprint-08 Track P) — two pages, and with the cover gone that is two pages total.
-const TIGHT_CAPS = [
-  ['Granite Niches Guide.pdf', 2],
-];
+// ── PER-GUIDE CAPS ──────────────────────────────────────────────────────────────────
+// A guide whose own requirement differs from the shared family-guide cap. This started as
+// TIGHT_CAPS, holding only guides that had to be SHORTER; sprint-13 made it a two-way map,
+// because the operator raised two of them.
+//
+// Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the photos.
+// This guide can be longer if we can have better quality photos for each section. maybe a
+// page per columbarium or nich section each." And, mid-sprint: "same with glass front
+// niches as well."
+//
+// So Granite Niches went from a TWO-page cap (sprint-08 Track P, when it was prose and a
+// price) to EIGHT, and Glass-Front Niche from a three-page EQUALITY to eight, each printing
+// one page per location. Both are exceptions BY NAME. `GUIDE_MAX_PAGES` is untouched at six
+// and still governs every other guide — asserted below, so a future edit that "simplifies"
+// this by bumping the shared cap fails instead of quietly giving nineteen guides two extra
+// pages nobody asked for.
+//
+// A cap here REPLACES the shared cap for that guide; it may be lower or higher.
+const PER_GUIDE_CAPS = new Map([
+  ['Granite Niches Guide.pdf', 8],
+  ['Glass-Front Niche Guide.pdf', 8],
+]);
 
 // Every guide the print system covers, for the no-cover / blank-page / pricing-rule gates.
 const ALL_GUIDE_PDFS = [...new Set([...CAPPED_GUIDES, 'Medicaid Professional Reference.pdf'])];
@@ -146,22 +162,30 @@ for (const [file, want] of PDF_PAGES) {
   else fail(`${path.basename(file)}: expected ${want} pages, built PDF has ${n}`);
 }
 
-console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages, total) ===`);
+// The shared cap must stay six. If someone raises GUIDE_MAX_PAGES instead of adding a named
+// entry to PER_GUIDE_CAPS, every guide silently gets longer and the two named exceptions
+// stop being exceptions. The operator's ruling was about two guides, so it is asserted as
+// being about two guides.
+console.log('\n=== THE SHARED CAP IS STILL SIX ===');
+if (GUIDE_MAX_PAGES === 6) ok(`GUIDE_MAX_PAGES = 6, with ${PER_GUIDE_CAPS.size} named exception(s): ${[...PER_GUIDE_CAPS].map(([n, c]) => `${n} ${c}`).join(', ')}`);
+else fail(`GUIDE_MAX_PAGES is ${GUIDE_MAX_PAGES}, not 6 — the operator's per-guide rulings must be named exceptions in PER_GUIDE_CAPS, not a bump to the shared cap`);
+
+console.log(`\n=== FAMILY GUIDE PAGE CAP (<= ${GUIDE_MAX_PAGES} pages, total; named exceptions apply their own) ===`);
 for (const name of CAPPED_GUIDES) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
-  if (n <= GUIDE_MAX_PAGES) ok(`${name.padEnd(36)} ${n} page(s)`);
-  else fail(`${name}: ${n} pages, over the ${GUIDE_MAX_PAGES}-page leave-behind cap`);
+  const cap = PER_GUIDE_CAPS.has(name) ? PER_GUIDE_CAPS.get(name) : GUIDE_MAX_PAGES;
+  const how = PER_GUIDE_CAPS.has(name) ? `own cap ${cap}` : `shared cap ${cap}`;
+  if (n <= cap) ok(`${name.padEnd(36)} ${n} page(s) (${how})`);
+  else fail(`${name}: ${n} pages, over its ${how}`);
 }
 
-console.log('\n=== TIGHTER PER-GUIDE CAPS ===');
-for (const [name, cap] of TIGHT_CAPS) {
-  const file = `pdf-assets/${name}`;
-  if (!fs.existsSync(file)) { fail(`${file} does not exist — run scripts/build_guide_pdfs.mjs`); continue; }
-  const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
-  if (n <= cap) ok(`${name.padEnd(36)} ${n} page(s) (cap ${cap})`);
-  else fail(`${name}: ${n} pages, over its own ${cap}-page cap`);
+// A cap for a PDF that is not in CAPPED_GUIDES asserts nothing at all. That is how an
+// exception rots: the guide gets renamed, the entry stays, and the cap silently stops
+// applying to anything.
+for (const name of PER_GUIDE_CAPS.keys()) {
+  if (!CAPPED_GUIDES.includes(name)) fail(`PER_GUIDE_CAPS names "${name}", which is not in CAPPED_GUIDES — that cap is checked against nothing`);
 }
 
 console.log('\n=== "ALL ON ONE PAGE" (print layout) ===');

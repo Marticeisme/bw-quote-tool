@@ -170,13 +170,33 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .cover-rule{height:2px;margin:7px 0 0;}
   .cover-footer{display:none;}
 }
-/* === PRINT CONDENSE (sprint-07 Track G conventions) === */
-/* This guide is emailed and printed for families as a leave-behind and is capped at TWO
-   pages by scripts/verify_guide_pages.mjs. Every rule below is PRINT MEDIA ONLY — screen
-   rendering is untouched. Prices, rights counts and the sheet's verbatim rules are all
-   preserved; only spacing, type scale and photography are compressed. */
+/* === PRINT LAYOUT: A PAGE PER LOCATION (sprint-13 Track A) === */
+/* Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the
+   photos. This guide can be longer if we can have better quality photos for each section.
+   maybe a page per columbarium or nich section each."
+
+   THIS BLOCK USED TO BE A CONDENSE BLOCK. It squeezed the whole guide into a
+   `column-count:2` flow at 8pt and capped every photograph at 1.25in of height with
+   `object-fit:cover` — which is not a small photograph, it is a HORIZONTAL SLICE out of
+   the middle of one. That is the cropping he was looking at. Both levers are gone:
+
+     - ONE COLUMN. A two-column flow exists to fit more document into fewer sheets. The
+       page budget for this guide is now EIGHT total pages (verify_guide_pages.mjs
+       PER_GUIDE_CAPS), so there is nothing left to buy with it, and a 3.3in column is
+       exactly what made the photographs unusable in the first place.
+     - NO `object-fit` ANYWHERE. Every printed photograph is bounded by max-width and
+       max-height with `width:auto;height:auto`, so the browser scales it whole. A frame
+       can only ever be too small now, never cut.
+
+   Each location starts a new sheet (`break-before:page` below), so the reader gets Rock
+   of Ages, the Garden of Meditation, the Terrace Garden niches and the Terrace Garden
+   path as four separate pages, each led by its own photography.
+
+   Type sizes live in guide-print.css under `body[data-guide="granite-niches"]`, not here:
+   the shared sheet is linked AFTER this <style> block and its §7 geometry compensation
+   would otherwise win every size declared in this file. */
 @media print{
-  body{font-size:8pt;line-height:1.3}
+  body{font-size:9pt;line-height:1.38}
   .doc-sheet{padding:0 .4in}
   .cover{margin:0 -.4in;padding:9px .4in 8px}
   .cover h1{font-size:14pt;margin-bottom:3px}
@@ -185,10 +205,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .cover-kicker{font-size:6.5px;margin-bottom:2px}
   .cover-rule{margin:5px 0 0}
 
-  /* One document-wide two-column flow — the big lever. Only the masthead, the wide
-     at-a-glance table and the footer span both columns. */
-  .doc-sheet{column-count:2;column-gap:15px}
-  .cover,.doc-footer,.span-all{column-span:all}
+  /* A PAGE PER LOCATION. Section 1 opens under the masthead on page 1; every section
+     after it starts its own sheet. `.doc-footer` is display:none in guide-print.css, so
+     the last section is genuinely the last thing on the last page. */
+  .section-wrap{break-before:page;page-break-before:always}
+  .section-wrap#what{break-before:auto;page-break-before:auto}
+  /* The closing pair is NOT a location. "The Three at a Glance" is one short table and
+     "Talking It Over" is one short list; given their own sheets each they printed about
+     20% ink and a lot of nothing. They share the last page. */
+  .section-wrap#next{break-before:auto;page-break-before:auto}
   .section-wrap{padding:5px 0 3px;border-top:none}
   .section-wrap + .section-wrap{border-top:none}
   .section-wrap h2{font-size:12pt;margin-bottom:1px;break-after:avoid;page-break-after:avoid}
@@ -221,23 +246,38 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .price-table td{padding:3px 6px;font-size:7.5pt}
   .price-table .size-note{font-size:6.5pt}
 
-  /* THE PHOTOGRAPHY PRINTS.  This rule used to read
-       .figure,.figure-pair{display:none!important}
-     with the comment "the photography is the screen page's hero art, not the
-     leave-behind's" — so the emailed PDF, which is what a family actually reads, was
-     three walls of prose and a price with no picture of anything. Operator, 2026-08-02:
-     "When it comes to property they would be interested in purchasing, photos are key.
-     They want to SEE what they would be buying and then be given a price range of it.
-     They don't want to read how much it is and then not come away with an idea of what
-     it looks like."  So the figures print, capped in height so the guide holds its
-     two-page requirement (verify_guide_pages.mjs TIGHT_CAPS). */
-  .figure{display:block!important;margin:0 0 6px}
-  .figure img{max-height:1.25in;object-fit:cover;border-radius:4px}
-  .figure figcaption{font-size:6.6pt;line-height:1.3;margin-top:2px}
-  .figure-tall{float:none!important;max-width:none!important;margin:0 0 6px!important}
-  .figure-pair{display:grid!important;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
-  .figure-pair img{max-height:0.95in;object-fit:cover;border-radius:4px}
-  .figure-pair figcaption{font-size:6.4pt;line-height:1.28;margin-top:2px}
+  /* THE PHOTOGRAPHY PRINTS, WHOLE.  Two rulings stack here.
+
+     Operator, 2026-08-02: "When it comes to property they would be interested in
+     purchasing, photos are key. They want to SEE what they would be buying and then be
+     given a price range of it." That is why these rules are not `display:none` any more —
+     the emailed PDF used to be three walls of prose and a price with no picture.
+
+     Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the
+     photos." That is why there is no `object-fit:cover` here any more. The old pair
+     `max-height:1.25in; object-fit:cover` on a 4:3 photograph in a 3.3in column threw
+     away about two thirds of the frame and kept a band across its middle.
+
+     The replacement is a BOX, not a crop: max-width and max-height with `width:auto` and
+     `height:auto`, so the image is scaled down whole and letterboxed by nothing. The
+     source files are cut at their native aspect ratios too — see
+     scripts/cut_granite_niche_photos.py. */
+  .figure{display:block!important;margin:0 0 9px}
+  .figure img{max-width:100%;max-height:2.55in;width:auto;height:auto;
+              object-fit:contain;margin:0 auto;border-radius:5px}
+  .figure figcaption{font-size:7.4pt;line-height:1.35;margin-top:3px}
+  /* `.figure-tall` floats right on screen. In a one-column printed page a float leaves the
+     text wrapping round a photograph that is now most of the column width, so it is
+     unwound into the flow. */
+  .figure-tall{float:none!important;max-width:none!important;margin:0 auto 9px!important}
+  .figure-pair{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
+  .figure-pair img{max-width:100%;max-height:2.55in;width:auto;height:auto;
+                   object-fit:contain;margin:0 auto;border-radius:5px}
+  .figure-pair figcaption{font-size:7.2pt;line-height:1.32;margin-top:3px}
+  /* The Garden of Meditation runs two full-width photographs — the wall itself and the
+     wall in its garden. Both at 2.8in put the section 100px past a sheet, so the second,
+     supporting frame takes the smaller box. It is still scaled WHOLE; nothing is cut. */
+  .figure.gomn-setting img{max-height:1.05in}
   .maplink{font-size:7.5pt;border-bottom:none;font-weight:700}
   /* `.prose .footnote` (0,2,0) out-ranks `.prose p` (0,1,1), so the screen's 13px
      survived into print and the footnotes set larger than the body copy. */
@@ -254,7 +294,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 <link rel="stylesheet" media="print" href="guide-print.css">
 <!-- BW:PRINT-CSS:END -->
 </head>
-<body>
+<body data-guide="granite-niches">
+<!-- `data-guide` is read by the PER-GUIDE OVERRIDES at the foot of guide-print.css. The
+     shared sheet is linked after this page's own <style>, so its §7 geometry compensation
+     (tuned for six-page guides at 7.7pt) wins any size this page declares for itself.
+     This guide's budget is eight pages, one per location, so it sets its type back up
+     there rather than fighting the cascade from the wrong side of it. -->
 <!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
 <style>
 /* Per-guide print constants. Screen is untouched: the only screen rule here hides
@@ -282,6 +327,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <a href="#roac">Rock of Ages</a>
       <a href="#gomn">Garden of Meditation</a>
       <a href="#terrace">Terrace Garden</a>
+      <a href="#terrace-path">Memorial Path</a>
       <a href="#glance">At a Glance</a>
     </div>
     <a class="nav-back" href="guides.html">&larr; All Guides</a>
@@ -305,9 +351,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="contents-item"><span class="contents-num">1</span><a href="#what">What a Granite Niche Is</a></div>
       <div class="contents-item"><span class="contents-num">2</span><a href="#roac">Rock of Ages Columbarium</a></div>
       <div class="contents-item"><span class="contents-num">3</span><a href="#gomn">Garden of Meditation Niches</a></div>
-      <div class="contents-item"><span class="contents-num">4</span><a href="#terrace">Terrace Garden Memorial Path</a></div>
-      <div class="contents-item"><span class="contents-num">5</span><a href="#glance">The Three at a Glance</a></div>
-      <div class="contents-item"><span class="contents-num">6</span><a href="#next">Talking It Over</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#terrace">Terrace Garden Niches</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#terrace-path">Along the Memorial Path</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#glance">The Three at a Glance</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#next">Talking It Over</a></div>
     </div>
   </div>
 
@@ -327,6 +374,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <p><strong>&ldquo;Granite front&rdquo; means the closure is stone.</strong> The contents are not visible; the name, dates and any inscription are engraved into the granite or carried on a bronze plate. The wall reads as one uniform stone face rather than a row of individual displays.</p>
       <p><strong>Two rights of interment come with the niche</strong> at all three places here &mdash; two people, usually a husband and wife, on one contract. It is a permanent address, cared for by the cemetery, with no ground burial and no grave to open.</p>
       <p><strong>If you want the urn to be visible</strong>, that is a glass front, at the Mountain View and Eternal Light columbariums. Neither is covered here &mdash; see the <a class="maplink" href="glass-front-niches-guide.html">Glass-Front Niche Guide</a>, or the live maps (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>).</p>
+    </div>
+
+    <figure class="figure">
+      <img src="granite-niche-images/roac-niche-closeup.jpg" alt="Close view of an engraved granite niche front: three names and their years of birth and death cut into the polished stone in raised white lettering, framed by lighter granite" loading="lazy">
+      <figcaption>The engraving, close up. Names, dates and a short line are cut into the granite itself &mdash; there is no separate plaque to fade or come loose.</figcaption>
+    </figure>
+
+    <div class="prose">
       <p class="footnote">Prices in this guide are Bonney Watson&rsquo;s current prices for each location and are quoted as ranges, because within one wall the price depends on the row and the face. Your family service director will confirm the exact price and the current availability of any space before anything is written down. Prices are subject to change without notice.</p>
     </div>
   </div>
@@ -336,6 +391,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <h2>Rock of Ages Columbarium</h2>
     <div class="section-sub">A granite courtyard, seven double-sided walls, two rights in every niche</div>
     <div class="section-rule"></div>
+
+    <figure class="figure">
+      <img src="granite-niche-images/roac-structure.jpg" alt="The Rock of Ages Columbarium from the lawn: a long granite niche wall of five tiers standing under an open timber pavilion with a dark metal roof, against a clear blue sky" loading="lazy">
+      <figcaption>Rock of Ages from the lawn &mdash; the whole columbarium stands under one open timber pavilion.</figcaption>
+    </figure>
 
     <div class="prose">
       <p><strong>Rock of Ages is a granite columbarium built around an open courtyard</strong>, sheltered by a timber pavilion. Seven double-sided sections carry five tiers of five niches on each face &mdash; walls A, B and C on the south bank, E, F and G on the north, and Wall D standing across the west head. Faces that look into the courtyard are the interior faces; the rest look out over the lawn. Two granite memorial benches sit in the courtyard.</p>
@@ -358,8 +418,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
 
       <div class="figure-pair">
-        <figure><img src="granite-niche-images/roac-structure.jpg" alt="The Rock of Ages Columbarium seen from the lawn: a granite niche wall standing under an open timber pavilion with a dark metal roof" loading="lazy"><figcaption>The columbarium from the lawn, under its pavilion.</figcaption></figure>
-        <figure><img src="granite-niche-images/roac-courtyard.jpg" alt="Inside the Rock of Ages courtyard: a long granite niche wall with a polished granite bench in front of it" loading="lazy"><figcaption>An interior courtyard face, with one of the two memorial benches.</figcaption></figure>
+        <figure><img src="granite-niche-images/roac-courtyard.jpg" alt="Inside the Rock of Ages courtyard: a long granite niche wall of five tiers under the pavilion roof, with a polished black granite bench in front of it" loading="lazy"><figcaption>An interior courtyard face, with one of the two memorial benches.</figcaption></figure>
+        <figure><img src="granite-niche-images/roac-niche-fronts.jpg" alt="A Rock of Ages niche wall square on: a five-by-five grid of dark granite fronts in a light granite frame, three of them engraved with names and dates, one holding a bronze vase with a sunflower" loading="lazy"><figcaption>Inscribed fronts alongside blank ones &mdash; the wall reads as one stone face either way.</figcaption></figure>
       </div>
 
       <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="granite-niches-1"><span class="pi-label">Additional charges</span><p>Opening and closing, recording, endowment care and any inscription are charged in addition to the price of the space. They are straightforward, and they differ by location and by what you choose &mdash; call or email me and I will put the exact figures in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table class="price-table" data-print-suppress="fee">
@@ -389,10 +449,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="prose">
       <p><strong>The Garden of Meditation niches are a stepped wall of polished black granite</strong> set into a planted garden, with bronze plates and bronze vase holders on the faces. The wall steps up from low wings at either end to a taller centre section. Its official property address is <strong>GOM-1-1-ROW-SPACE</strong>, so a specific niche reads as, for example, GOM-1-1-C-7.</p>
 
-      <figure class="figure">
-        <img src="granite-niche-images/gomn-wall.jpg" alt="The Garden of Meditation columbarium seen straight on: a long wall of polished black granite stepping up from low wings at either end to a taller centre section, with bronze name plates and bronze vase holders across its face" loading="lazy">
-        <figcaption>The Garden of Meditation wall, seen straight on &mdash; low wings at either end, a taller centre section, bronze plates and vase holders throughout.</figcaption>
-      </figure>
+      <div class="figure-pair gomn-pair">
+        <figure><img src="granite-niche-images/gomn-wall.jpg" alt="The Garden of Meditation columbarium seen straight on: a long wall of polished black granite stepping up from low wings at either end to a taller centre section, with bronze name plates and bronze vase holders across its face" loading="lazy"><figcaption>The wall square on &mdash; low wings at either end, a taller centre section, bronze plates and vase holders throughout.</figcaption></figure>
+        <figure><img src="granite-niche-images/gomn-setting.jpg" alt="The Garden of Meditation wall in summer, seen across a planted bed of black-eyed Susans and ornamental grasses, with cedar and fir behind it" loading="lazy"><figcaption>The same wall in summer, from the garden it sits in. The planting is kept by the cemetery.</figcaption></figure>
+      </div>
 
       <div class="plan-card">
         <div class="plan-header">
@@ -423,7 +483,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
 
       <div class="prose">
-        <p class="footnote"><strong>About these charges.</strong> The amounts above are Bonney Watson&rsquo;s current charges for the Garden of Meditation, and the Endowment Care Fund rate is 10%. Your family service director will confirm the current charges before quoting. <strong>Two inscriptions may be added to the front of a companion niche</strong> &mdash; one for each person.</p>
+        <p class="footnote"><strong>About these charges.</strong> The amounts above follow the <strong>Mountain View Columbarium, June 2026</strong> schedule, confirmed 2026-07-31, and they are used here <em>instead</em> of the older amounts this location used to carry. The Endowment Care Fund rate is 10%. Your family service director will confirm the current charges before quoting. <strong>Two inscriptions may be added to the front of a companion niche</strong> &mdash; one for each person.</p>
       </div>
 
       <div class="sidebar">
@@ -440,9 +500,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
   <div class="section-wrap" id="terrace">
     <div class="section-kicker">SECTION 4</div>
-    <h2>Terrace Garden Memorial Path</h2>
-    <div class="section-sub">Brand new: a granite niche bank, and other ways to place an urn along the path</div>
+    <h2>Terrace Garden Niches</h2>
+    <div class="section-sub">Brand new: a freestanding granite niche bank on the terrace</div>
     <div class="section-rule"></div>
+
+    <figure class="figure">
+      <img src="granite-niche-images/tgmp-terrace.jpg" alt="The Terrace Garden Memorial Path: a paved terrace running between two low mausoleum buildings, with a planted memorial bed along one side, upright granite memorials, and a black granite niche bank standing at the far end" loading="lazy">
+      <figcaption>The Terrace Garden Memorial Path. The niche bank stands at the far end of the terrace; the planted bed on the right holds the individual memorials.</figcaption>
+    </figure>
 
     <div class="prose">
       <p><strong>The Terrace Garden Memorial Path is the newest cremation property at Washington Memorial Park.</strong> A paved terrace runs past a reflection pool, with a freestanding black granite niche bank at one end and a planted bed of individual memorials along the path. Everything here is new inventory.</p>
@@ -463,15 +528,33 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         </div>
       </div>
 
-      <div class="figure-pair">
-        <figure><img src="granite-niche-images/tgn-niche-bank.jpg" alt="The Terrace Garden niche bank: a freestanding polished black granite wall with a grid of blank niche fronts, each held by two bronze rosettes, standing above a bluestone and river-rock path" loading="lazy"><figcaption>The Terrace Garden niche bank, newly set and not yet inscribed.</figcaption></figure>
-        <figure><img src="granite-niche-images/tgmp-cremation-post.jpg" alt="A single granite cremation post in a mulch bed with a blank polished black shutter held by two bronze rosettes" loading="lazy"><figcaption>A Paradiso cremation post &mdash; one right of interment behind the shutter.</figcaption></figure>
-      </div>
+      <figure class="figure">
+        <img src="granite-niche-images/tgn-niche-bank.jpg" alt="The Terrace Garden niche bank: a freestanding polished black granite wall carrying a grid of blank niche fronts, each held by two bronze rosettes, standing above a bluestone and river-rock reflection pool" loading="lazy">
+        <figcaption>The niche bank, newly set and not yet inscribed. Eight niches across, five rows deep, above the reflection pool.</figcaption>
+      </figure>
 
+      <div class="prose">
+        <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see the niche bank with the price and availability of every niche in it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="terrace-path">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>Along the Memorial Path</h2>
+    <div class="section-sub">Benches, cremation posts, a companion columbarium and the birdbath</div>
+    <div class="section-rule"></div>
+
+    <div class="figure-pair">
+      <figure><img src="granite-niche-images/tgmp-path-placements.jpg" alt="The planted memorial bed along the Terrace Garden path: a row of granite cremation posts and pedestals with polished black shutters, set either side of a bluestone and river-rock path" loading="lazy"><figcaption>The memorial bed along the path &mdash; each piece here holds cremated remains.</figcaption></figure>
+      <figure><img src="granite-niche-images/tgmp-cremation-post.jpg" alt="A single granite cremation post in a mulch bed, with a blank polished black shutter held by two bronze rosettes" loading="lazy"><figcaption>A Paradiso cremation post &mdash; one right of interment behind the shutter.</figcaption></figure>
+    </div>
+
+    <div class="prose">
       <div class="plan-card">
         <div class="plan-header">
           <div>
-            <h3>Other placements along the path</h3>
+            <h3>Placements along the path</h3>
             <div class="plan-desc">Paradiso pedestal benches, cremation posts (single, double and carved), the companion columbarium with alcove, and the birdbath</div>
           </div>
           <div class="plan-price-block">
@@ -483,11 +566,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <p>Nine individual memorials stand in one bed along the path, each holding cremated remains, and they carry <strong data-rights="tgmp">1&ndash;4 rights of interment</strong> depending on the piece. The single cremation posts are the smallest and least expensive; the benches, the companion columbarium with alcove and the birdbath are the largest. Ask us for the item-by-item sheet if you want to compare them side by side.</p>
         </div>
       </div>
-
-      <figure class="figure">
-        <img src="granite-niche-images/tgmp-path-placements.jpg" alt="A row of granite cremation posts with blank black shutters either side of a granite birdbath pedestal, set in a mulch bed along the path" loading="lazy">
-        <figcaption>Cremation posts and the birdbath pedestal in the memorial bed along the path.</figcaption>
-      </figure>
 
       <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="granite-niches-3"><span class="pi-label">Additional charges</span><p>Opening and closing, recording, endowment care and any inscription are charged in addition to the price of the space. They are straightforward, and they differ by location and by what you choose &mdash; call or email me and I will put the exact figures in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table class="price-table" data-print-suppress="fee">
         <caption>Charges in addition to the price &mdash; Terrace Garden Memorial Path</caption>
@@ -501,14 +579,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
 
       <div class="prose">
-        <p class="footnote"><strong>About these charges.</strong> The charges above are Bonney Watson&rsquo;s current charges, applied across the whole Terrace Garden Memorial Path. Your family service director will confirm the current charges before quoting.</p>
-        <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see the niche bank and every placement along the path with its price and rights count.</p>
+        <p class="footnote"><strong>About these charges.</strong> They are <strong>not printed on this location&rsquo;s own schedule</strong> &mdash; no fees appear on it at all. The amounts above follow the <strong>Mountain View Columbarium, June 2026</strong> schedule, confirmed 2026-07-29 as applying across the whole Terrace Garden Memorial Path. Your family service director will confirm the current charges before quoting.</p>
+        <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see every placement along the path with its price and rights count.</p>
       </div>
     </div>
   </div>
 
   <div class="section-wrap span-all" id="glance">
-    <div class="section-kicker">SECTION 5</div>
+    <div class="section-kicker">SECTION 6</div>
     <h2>The Three at a Glance</h2>
     <div class="section-sub">Side by side, at Washington Memorial Park</div>
     <div class="section-rule"></div>
@@ -544,7 +622,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <div class="section-wrap" id="next">
-    <div class="section-kicker">SECTION 6</div>
+    <div class="section-kicker">SECTION 7</div>
     <h2>Talking It Over</h2>
     <div class="section-sub">What to decide, and what we will confirm for you</div>
     <div class="section-rule"></div>
