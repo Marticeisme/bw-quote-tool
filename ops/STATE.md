@@ -1,5 +1,19 @@
 # STATE — Living Ledger
 
+**Sprint-13 — CLOSED 2026-08-03, BOTH TRACKS MERGED, NOTHING PUSHED (no
+pre-authorization; push is the operator's explicit ask).** Final main (director's own
+runs): `8 blocks, 0 errors`; **2090 passed, 0 failed across 36 suites** (new contract
+number, docs updated; reconciles 2085 + 5 family-register asserts for the new guides);
+all seven guide/range verifiers green on merged bytes (page-shape incl. 31-PDF
+staleness + register, area ranges 125, granite ranges, glass ranges, photo-first 23
+cards / 7 pages, guides-page 43 cards, print header); all PDFs rebuilt on merged bytes
+inside the B merge. SEVEN guides now photo-first: the 2 combined (redesigned) + 5 new
+per-area. Guide family: 24 pages / 31 built PDFs. Repo delta this sprint ≈ +8.6 MB.
+Close checklist → operator: eyeball the 7 PDFs (esp. ROAC/GOMN trailing whitespace,
+gomn-setting lens flare, ecl-open-niches faint reflection, rad/ser-wall which-is-which
+ruling), rule on the +8 MB, then push word. Sprint-14 candidates live in
+sprints/sprint-13/SPRINT.md §candidates + the build_guides_page.py chip.
+
 **Current sprint: sprint-13 — OPENED 2026-08-03** (same director session as s12;
 tracks: Opus). Operator: granite-niches guide crops cut off the photos; guide may run
 longer — a page per columbarium/niche section. Ruling: THIS guide's print cap is 8
