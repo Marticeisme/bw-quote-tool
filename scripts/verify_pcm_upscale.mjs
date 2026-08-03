@@ -32,15 +32,23 @@ export const MANIFEST = 'data/pcm-upscale-manifest.json';
 // A change here is exactly the kind of thing that must fail loudly rather than pass.
 export const EXPECT_COUNT = 699;
 export const EXPECT_PER_BOOK = { 2020: 354, 2011: 345 };
-// The floor exists to catch a plate that silently reverted to the pre-upscale 358x204 or
-// was skipped by the run — NOT to pin the shipped size. It is 600 and not the 700 the
-// sprint file first named, because 700 and the 20 MB budget cannot both hold: measured
-// over all 699 plates at the q70 quality floor, a 700px long edge costs 23.06 MB. The
-// budget is the operator's hard requirement and wins; 640px fits. 600 leaves a little room
-// under the shipped 640 without ever letting the old 358px files back in.
-export const MIN_LONG_EDGE = 600;
+// Catches a plate that silently reverted to the pre-upscale 358x204 or was skipped by the
+// run. Briefly relaxed to 600 while the budget was 20 MB, which 700px could not fit; the
+// operator raised the designs budget to 24 MB on the strength of that measurement, so the
+// original 700 is back and is what ships.
+export const MIN_LONG_EDGE = 700;
 export const QUALITY_FLOOR = 70;
-export const BUDGET = 20 * 1000 * 1000;
+export const BUDGET = 24 * 1000 * 1000;
+// The plates where Real-ESRGAN was rejected and plain Lanczos-from-lossless ships instead.
+// Derived from scripts/pcm_upscale_fallback.py, and asserted here EXACTLY in both
+// directions: a plate silently promoted back onto the AI path is the regression this
+// catches, and a plate silently demoted off it is a sharpness loss nobody asked for.
+export const EXPECT_RESAMPLE = new Set([
+  '2011/2108', '2011/2142', '2011/2194', '2011/2209', '2011/2251', '2011/2268',
+  '2011/2274', '2011/2362', '2011/2456', '2011/2457',
+  '2020/1004', '2020/1006', '2020/1008', '2020/1011', '2020/1017', '2020/1018',
+  '2020/838', '2020/841', '2020/918', '2020/958', '2020/987', '2020/992',
+]);
 
 /** Width/height from a WebP RIFF container: lossy (VP8), lossless (VP8L), extended (VP8X). */
 export function webpSize(buf) {
@@ -91,11 +99,11 @@ export async function run(ck) {
   // ------------------------------------------------------------ settings block
   const s = man.settings;
   ck(!!s && typeof s === 'object', 'manifest carries a settings block');
-  const need = ['model', 'scale', 'binary', 'source', 'downsample', 'finalPx',
+  const need = ['model', 'scale', 'binary', 'source', 'downsample', 'upscale', 'finalPx',
                 'format', 'quality'];
   const absent = need.filter((k) => !s || s[k] === undefined || s[k] === null || s[k] === '');
   ck(absent.length === 0,
-    `settings records model/scale/binary/source/downsample/finalPx/format/quality` +
+    `settings records model/scale/binary/source/downsample/upscale/finalPx/format/quality` +
     (absent.length ? ` — missing ${absent.join(', ')}` : ''));
   ck(s?.format === 'webp', `settings.format is webp (got ${s?.format})`);
   ck(s?.finalPx >= MIN_LONG_EDGE,
@@ -124,10 +132,35 @@ export async function run(ck) {
     `every manifest path is under ${DIR}/${outside.length ? ' — ' + some(outside) : ''}`);
 
   const incomplete = files.filter((e) =>
-    ['w', 'h', 'bytes', 'sha256'].some((k) => e[k] === undefined));
+    ['w', 'h', 'bytes', 'sha256', 'method'].some((k) => e[k] === undefined));
   ck(incomplete.length === 0,
-    `every entry records w/h/bytes/sha256` +
+    `every entry records w/h/bytes/sha256/method` +
     (incomplete.length ? ` — ${incomplete.length} incomplete` : ''));
+
+  // ------------------------------------------------------------ the AI/fallback split
+  const badMethod = files.filter((e) => !['esrgan', 'resample'].includes(e.method));
+  ck(badMethod.length === 0,
+    `every method is esrgan or resample${badMethod.length ? ' — ' + some(badMethod.map((e) => `${e.path}=${e.method}`)) : ''}`);
+
+  const key = (e) => `${e.book}/${e.num}`;
+  const gotResample = new Set(files.filter((e) => e.method === 'resample').map(key));
+  const promoted = [...EXPECT_RESAMPLE].filter((k) => !gotResample.has(k));
+  const demoted = [...gotResample].filter((k) => !EXPECT_RESAMPLE.has(k));
+  ck(promoted.length === 0,
+    `every plate the sweep rejected is still on the fallback path` +
+    (promoted.length ? ` — back on AI: ${some(promoted)}` : ''));
+  ck(demoted.length === 0,
+    `no plate was moved onto the fallback path without being listed` +
+    (demoted.length ? ` — ${some(demoted)}` : ''));
+  ck(gotResample.size === EXPECT_RESAMPLE.size,
+    `${EXPECT_RESAMPLE.size} plates ship the no-AI fallback (manifest says ${gotResample.size})`);
+  ck(files.filter((e) => e.method === 'esrgan').length === EXPECT_COUNT - EXPECT_RESAMPLE.size,
+    `${EXPECT_COUNT - EXPECT_RESAMPLE.size} plates ship the Real-ESRGAN render`);
+  ck(files.filter((e) => e.method === 'resample').every((e) => typeof e.reason === 'string' && e.reason.length > 8),
+    'every fallback plate records why the AI was rejected');
+  const mc = man.methodCounts;
+  ck(!!mc && mc.resample === gotResample.size && mc.esrgan === EXPECT_COUNT - gotResample.size,
+    `manifest.methodCounts agrees with files[] (${JSON.stringify(mc)})`);
 
   for (const [book, n] of Object.entries(EXPECT_PER_BOOK)) {
     const got = paths.filter((p) => String(p).startsWith(`${DIR}/${book}/`)).length;
