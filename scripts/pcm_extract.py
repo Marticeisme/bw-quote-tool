@@ -311,42 +311,72 @@ def extract_elements(write_images):
 
 # ---------------------------------------------------------------- photos & reference
 
-# Curated 2026-08-02 by contact-sheeting all 228 marker photos in the source folder and
-# looking at every one. Chosen for: granite (bronze plates excluded), sharp, evenly lit,
-# the marker filling the frame, and NO living person in shot — several otherwise-good
-# frames were dropped only because the photographer's shoe or shadow was in them.
+# Curated 2026-08-02, then RE-curated the same day after an agent opened all 228 source
+# frames full-size instead of judging them off a thumbnail sheet. Eleven of the original
+# thirty were replaced: the thumbnail pass could not see leaf litter and grass clippings
+# lying ON a stone, low-contrast weathered lettering, or a photographer's shadow, and one
+# frame of each fault shipped. Scored on focus, exposure, composition, condition, and
+# whether the frame SELLS — a legible, fresh-looking engraving on clean stone.
+#
+# Rules held to: granite only (bronze plates excluded), no living person and no shoe in
+# frame, nothing resting on the stone, and no marker whose lettering has weathered past
+# reading. Quality beat variety where they collided — see the tan-granite note below.
+#
+# Third element is an options dict, all keys optional:
+#   crop (l, t, r, b) as fractions of the frame — tightens dead lawn margin, and is how
+#         several otherwise-excellent frames lose the photographer's shoes at the bottom
+#         edge. It only ever removes pixels; the marker itself is never altered.
+#   rot   'ccw' — the frame was shot with the marker on its side.
 PHOTOS = [
-    (17, 'Hand-carved floral border, light grey granite'),
-    (151, 'Grey granite companion with a floral cross'),
-    (53, 'Dark grey granite, etched flight scene'),
-    (62, 'Black granite with etched books, cross and ceramic portrait'),
-    (71, 'Full-color ceramic portrait and etched keepsakes'),
-    (77, 'Blue-grey granite with a color ceramic emblem'),
-    (83, 'Blue granite with a raised cross'),
-    (89, 'Grey granite companion with an etched lake scene'),
-    (93, 'Warm grey granite, italic script lettering'),
-    (95, 'Etched Seattle skyline with a ceramic portrait'),
-    (103, 'Weathered grey granite with an etched landscape'),
-    (105, 'Grey granite with an etched angel'),
-    (136, 'Rose granite with an etched mountain'),
-    (139, 'Grey granite companion, mountain and temple etching'),
-    (142, 'Light granite with an etched scroll and hands'),
-    (147, 'Black granite, praying hands and a color portrait'),
-    (164, 'Full-color laser etching on dark granite'),
-    (176, 'Red granite with a raised cross'),
-    (177, 'Red granite with an etched portrait medallion'),
-    (178, 'Rose granite companion with etched cherubs'),
-    (187, 'Red granite with an etched forest scene'),
-    (189, 'Grey granite, plain sans lettering'),
-    (190, 'Light granite companion with a mountain vignette'),
-    (195, 'Red granite with an etched treeline'),
-    (199, 'Rose granite with an etched mountain'),
-    (206, 'Grey granite with a raised cross and scripture'),
-    (207, 'Tan granite, simple etched border'),
-    (216, 'Grey granite with rosary, roses and a color portrait'),
-    (218, 'Grey granite with an etched rose and cross'),
-    (219, 'Rose granite with a Chinese surname panel'),
+    (36,  'Blue-grey granite, carved fisherman and musical staff', dict(rot='ccw')),
+    (53,  'Dark grey granite, etched ribbon and mountain scene', {}),
+    (62,  'Black granite with etched books, cross and ceramic portrait', {}),
+    (68,  'Black granite, laser-etched double portrait and garden scene',
+          dict(crop=(0.08, 0.10, 1.00, 0.92))),
+    (77,  'Rose granite with a color ceramic heart portrait', {}),
+    (85,  'Dark brown granite companion, gilded lettering and rope border', {}),
+    (88,  'Blue pearl granite with a gilded pine border',
+          dict(crop=(0.06, 0.06, 1.00, 0.94))),
+    (95,  'Etched Seattle skyline with a ceramic portrait', {}),
+    (105, 'Grey granite with an etched angel',
+          dict(crop=(0.00, 0.00, 0.88, 0.86))),
+    (111, 'Light grey granite, plain panel lettering',
+          dict(crop=(0.02, 0.08, 1.00, 0.95))),
+    (132, 'Rose granite companion with a carved figure and roses',
+          dict(crop=(0.00, 0.00, 1.00, 0.80))),
+    (136, 'Rose granite with an etched mountain', {}),
+    (139, 'Grey granite companion, mountain and temple etching', {}),
+    (147, 'Black granite, praying hands and a color portrait', {}),
+    (149, 'Black granite companion, laser-etched family portrait',
+          dict(crop=(0.00, 0.00, 1.00, 0.82))),
+    (153, 'Red granite companion with an etched mountain treeline',
+          dict(crop=(0.00, 0.00, 1.00, 0.80))),
+    (170, 'Light grey granite, script lettering and a carved corner panel', {}),
+    (176, 'Red granite with a raised cross', {}),
+    (177, 'Red granite with an etched portrait medallion', {}),
+    (178, 'Red granite companion, praying hands and crosses', {}),
+    (180, 'Mahogany granite companion, etched deer and mountain scene',
+          dict(crop=(0.00, 0.00, 1.00, 0.78))),
+    (187, 'Red granite with an etched forest scene', {}),
+    (189, 'Grey granite, plain sans lettering', {}),
+    (190, 'Blue-grey granite companion with a mountain-lake vignette',
+          dict(crop=(0.02, 0.18, 1.00, 1.00))),
+    (195, 'Red granite with an etched wilderness scene', {}),
+    (196, 'Terracotta granite companion, carved laurel border and cross', {}),
+    (206, 'Grey granite with a raised cross and scripture',
+          dict(crop=(0.00, 0.06, 1.00, 0.94))),
+    (216, 'Grey granite with rosary, roses and a color portrait', {}),
+    (218, 'Grey granite with an etched rose and cross', {}),
+    (219, 'Red granite with a Chinese surname panel',
+          dict(crop=(0.06, 0.22, 0.98, 0.92))),
 ]
+
+# COVERAGE GAP, recorded rather than papered over: there is no shippable TAN granite frame
+# in this folder. The only tan flat markers photographed (source indexes 207 and 60) have
+# weathered to the point that the lettering is barely readable and both are under leaf
+# litter — putting either on the page would sell the family a stone that looks worn out.
+# The tan swatch is covered instead by the granite-color reference plates in the same
+# catalog. Mahogany, terracotta and brown are covered by 180, 196 and 85.
 
 # Photos already shipping on the granite marker guide — reused in place, no new bytes.
 GUIDE_PHOTOS = [
@@ -377,11 +407,18 @@ REFERENCE = [
 def extract_photos(write_images):
     files = sorted(f for f in os.listdir(SRC) if f.lower().endswith('.jpg'))
     out, bytes_ = [], 0
-    for idx, desc in PHOTOS:
+    for idx, desc, opt in PHOTOS:
         src = os.path.join(SRC, files[idx])
         rel = f'{PHOTO_DIR}/marker-{idx:03d}.jpg'
         if write_images:
             im = Image.open(src).convert('RGB')
+            if opt.get('rot') == 'ccw':
+                im = im.transpose(Image.ROTATE_90)
+            box = opt.get('crop')
+            if box:
+                w, h = im.size
+                im = im.crop((int(box[0] * w), int(box[1] * h),
+                              int(box[2] * w), int(box[3] * h)))
             im.thumbnail((PHOTO_PX, PHOTO_PX), Image.LANCZOS)
             os.makedirs(PHOTO_DIR, exist_ok=True)
             im.save(rel, 'JPEG', quality=70, optimize=True, progressive=True)
