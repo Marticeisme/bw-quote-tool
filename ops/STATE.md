@@ -1,7 +1,17 @@
 # STATE — Living Ledger
 
-**Sprint-12 — CLOSED 2026-08-03, ALL THREE TRACKS MERGED, NOTHING PUSHED (no
-pre-authorization this sprint; push is the operator's explicit close-gate ask).**
+**Sprint-12 — PUSHED AND LIVE-VERIFIED 2026-08-03** (operator: "push it all live";
+origin/main reached `50a103c` — the push landed via the shared repo moments before the
+director's own push command, which found everything up-to-date; deploy verified ON THE
+WIRE: live 2020/793.webp byte-exact vs the upscale manifest (49,932 B, esrgan), 700
+data-facets cards in the served catalog page, rebuilt Pre-Planning PDF serving 200).
+Post-push cleanup done: lossless plate masters + B's audit renders preserved in main
+`scratch/` (pcm-plates-raw 63 MB, s12b-renders 35 MB; the 1 GB x4 cache was NOT kept —
+a re-encode at a new size now needs the ~8-min GPU pass again); all three worktrees
+removed (junctions deleted non-recursively first); `s12/*` branches kept until pruned.
+
+**Sprint-12 — CLOSED 2026-08-03, ALL THREE TRACKS MERGED (close record below; push
+gate satisfied above).**
 Final main (director's own runs): `8 blocks, 0 errors`; **2085 passed, 0 failed across
 36 suites** (the NEW contract number — DESIGN §5, SPRINT_GUIDELINES rule 4 and
 DIRECTOR_GUIDELINES corrected from the drifted 1845/34; main was already 2000/35 at
