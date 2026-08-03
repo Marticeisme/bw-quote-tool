@@ -351,10 +351,19 @@ export const CRYPT_FEES = {
   ECF_RATE: 0.1,
 };
 /**
- * Where each crypt fee came from, rendered on the page so a counselor reading a total
- * can see which book it was priced out of without opening this file.
+ * The fee-source line rendered in the fee bar.
+ *
+ * REWORDED 2026-08-02 (s11/family-register). It used to read "Recording, opening &
+ * closing and monobar come from the quote tool (operator, 2026-08-01); the crypt sheet's
+ * fee box is superseded. The vase is the sheet's." — three internal facts a family has
+ * no use for and one, "superseded", that reads as though our own numbers disagree.
+ *
+ * THE PROVENANCE ITSELF IS NOT LOST, it moves here where the next maintainer will look:
+ * recording ($235), entombment opening & closing ($1,205) and the monobar are the QUOTE
+ * TOOL's figures per the operator's ruling of 2026-08-01, which supersedes the crypt
+ * sheet's own fee box ($225 recording); the $415 vase charge is still the crypt sheet's.
  */
-export const CRYPT_FEE_SOURCE = 'Recording, opening & closing and monobar come from the quote tool (operator, 2026-08-01); the crypt sheet’s fee box is superseded. The vase is the sheet’s.';
+export const CRYPT_FEE_SOURCE = 'Recording, opening & closing, the monobar and the vase are Bonney Watson’s current charges for this building. Ask us to confirm today’s charges before writing.';
 // Radiance / Serenity fee box — both walls are GLASS-FRONT, so they carry the uniform
 // glass-front schedule, not the figures printed on their own wall sheets ($835 / $225).
 // OPERATOR RULING, Map Issues 07.31.26: "All glass front niches should have the same
@@ -569,7 +578,28 @@ export const CHAIR_ROWS = { z0: 140, rows: 7, dz: 20, w: 8, d: 8 };
 
 export const FURNITURE = [
   { id: 'altar', kind: 'altar', label: 'Altar', x: 148, y: 83, w: 35, h: 16, tall: 22 },
-  { id: 'window-sg', kind: 'window', label: '', x: 104, y: 51, w: 24, h: 5, tall: 40 },
+  // ── The chapel's stained-glass window ───────────────────────────────────────
+  // MOVED 2026-08-02 (s11/family-register). Operator screenshot: a teal-to-orange slab
+  // standing IN FRONT of the crypt fronts near the $61,990 chip, over RES/OCC cells and
+  // the chapel chairs. It was at x104 y51 w24 h5 — a 24-wide pane lying flat against the
+  // SOUTH FACE of bank 116-123 (x 98..250, y 3..50, face 'S'), one unit proud of it, and
+  // 40 tall. That face is 8 columns of purchasable crypt fronts; anything standing on it
+  // hides sellable inventory, which is the one thing this page exists to show.
+  //
+  // The video note above says the window is "set into the wall the seating faces,
+  // immediately west of the recess". The recess is the notch x 98..250, y 50..98, between
+  // banks 111-115 and 124-140, with the ALTAR box in it. The wall bounding that recess on
+  // the WEST is the east return of bank 111-115 at x = 98 — a blank end wall carrying no
+  // crypt fronts (111-115 faces SOUTH, its fronts are the y = 98 line). That return is the
+  // only surface matching the description that is not itself inventory, and it is what a
+  // seated visitor facing north sees on their left. The pane now stands flush against it,
+  // 3 units thick, running y 60..94: clear of bank 116-123's front band (y 50..56) at the
+  // top and of bank 111-115's own front band (y 98..104) at the bottom.
+  //
+  // verify_com_map.mjs now asserts, for EVERY decor object and every bank and niche wall,
+  // that no decor rect overlaps a purchasable-front band in plan space. Putting a window
+  // back on a crypt face fails the gate rather than reaching a family's screen.
+  { id: 'window-sg', kind: 'window', label: '', x: 98, y: 60, w: 3, h: 34, tall: 40 },
   { id: 'piano', kind: 'piano', label: 'Piano', x: 182, y: 100, w: 42, h: 22, tall: 14 },
   { id: 'urn', kind: 'urn', label: '', x: 166, y: 101, w: 12, h: 12, tall: 26 },
   { id: 'armchair-a', kind: 'seat', label: '', x: 160, y: 126, w: 11, h: 11, tall: 13 },
@@ -598,11 +628,21 @@ export const FURNITURE = [
   // side by side, full height, with a semicircular head), and the two armchairs and
   // the small round table that stand under them (2:00). This is the brightest room in
   // the building and the model rendered it as bare floor.
-  { id: 'archwin-rad-n', kind: 'archwin', label: '', x: 3, y: 104, w: 5, h: 28, tall: 46 },
-  { id: 'archwin-rad-s', kind: 'archwin', label: '', x: 3, y: 138, w: 5, h: 28, tall: 46 },
-  { id: 'alcove-chair-a', kind: 'seat', label: '', x: 14, y: 108, w: 11, h: 11, tall: 13 },
-  { id: 'alcove-chair-b', kind: 'seat', label: '', x: 14, y: 142, w: 11, h: 11, tall: 13 },
-  { id: 'alcove-table', kind: 'bench', label: '', x: 15, y: 126, w: 9, h: 9, tall: 8 },
+  // PULLED NORTH 2026-08-02 (s11/family-register), same audit that moved `window-sg`.
+  // The Radiance niche wall stands along the alcove's SOUTH edge (plan y 152..172,
+  // face 'N'), so its glass fronts are read from the y = 152 line northwards. The south
+  // arched window ran y 138..166 and the second armchair y 142..153 — both reaching into
+  // that reading line, and the chair one unit into the wall's own footprint. They are all
+  // still where the video puts them (west exterior wall, seating beneath the two arches,
+  // small round table between the chairs, 2:00-2:04); they are now spaced to leave the
+  // niche wall's front clear, with the two arches narrowed from 28 to 18 plan units so
+  // both still fit side by side above the seating. Plan extent only — `tall` is unchanged
+  // and no dimension is rendered. verify_com_map.mjs asserts the clearance.
+  { id: 'archwin-rad-n', kind: 'archwin', label: '', x: 3, y: 104, w: 5, h: 18, tall: 46 },
+  { id: 'archwin-rad-s', kind: 'archwin', label: '', x: 3, y: 124, w: 5, h: 18, tall: 46 },
+  { id: 'alcove-chair-a', kind: 'seat', label: '', x: 14, y: 106, w: 11, h: 11, tall: 13 },
+  { id: 'alcove-chair-b', kind: 'seat', label: '', x: 14, y: 130, w: 11, h: 11, tall: 13 },
+  { id: 'alcove-table', kind: 'bench', label: '', x: 15, y: 119, w: 9, h: 9, tall: 8 },
 ];
 
 /** Every chapel chair, generated from CHAIR_BLOCKS x CHAIR_ROWS. All face the altar. */

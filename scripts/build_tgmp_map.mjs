@@ -691,7 +691,8 @@ const JS = `
 var META = ${JSON.stringify(CARD_META)};
 var STATUS_LABEL = ${JSON.stringify(STATUS_LABEL)};
 var OC = ${FEES.OC}, REC = ${FEES.REC}, INSCR = ${FEES.INSCR}, TAX = ${FEES.TAX}, ECF_RATE = ${FEES.ECF_RATE};
-var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are the ${FEE_SOURCE.schedule} schedule, applied to the Terrace Garden Memorial Path by ${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn} \\u2014 they are NOT printed on this area\\'s price sheet. Confirm current fees with the cemetery office before writing.';
+// Reworded 2026-08-02 (s11/family-register) — same change as the fee-bar block below.
+var FEE_NOTE = 'E.C.F. is not included in the listed price. Fees are Bonney Watson\\'s current charges for the Terrace Garden Memorial Path. Ask us to confirm today\\'s charges before writing.';
 var fm = function (n) { return '$' + n.toLocaleString('en-US'); };
 var ecf = function (p) { return Math.ceil(p * ECF_RATE); };
 var qty = function (id) { var e = document.getElementById(id); return e ? (parseInt(e.value, 10) || 0) : 0; };
@@ -1232,9 +1233,12 @@ ${overviewView()}
       <span class="fv">${FEES.ECF_RATE * 100}% of the sales price — not included in the listed prices</span></div>
     <div class="fi"><span class="fl">Sales Tax</span>
       <span class="fv">${(FEES.TAX * 100).toFixed(1)}% — applies to the inscription only (taxable merchandise)</span></div>
-    <div class="fsrc">These fees are <b>not printed on the Terrace Garden Memorial Path price sheet</b>, which states a sales price and a rights-of-interment count and nothing else.
-      They are the <b>${FEE_SOURCE.schedule}</b> schedule, applied to this whole area — the niche bank and the nine additional properties alike — by <b>${FEE_SOURCE.confirmedBy} of ${FEE_SOURCE.confirmedOn}</b>.
-      Confirm current fees with the cemetery office before writing.</div>
+    <!-- REWORDED 2026-08-02 (s11/family-register). This block used to say which sheet the
+         fees are NOT printed on, what that sheet does contain, and who ruled the schedule
+         across on which date. FEE_SOURCE in scripts/tgmp-data.mjs keeps schedule,
+         confirmedBy and confirmedOn, and the gate still checks the figures against it. -->
+    <div class="fsrc">These are Bonney Watson&rsquo;s current charges, applied across this whole area &mdash; the niche bank and the nine additional properties alike.
+      Ask us to confirm today&rsquo;s charges before writing.</div>
   </div>
   <div class="pfoot">
     <b>Niche bank: row A is the bottom row, row E the top; niches are numbered 1–${TGN.cols} left to right. References read TGN-&lt;row&gt;-&lt;n&gt;.</b><br>

@@ -433,7 +433,10 @@ function cardHtml(d) {
       d.st === 'hold' ? 'This space is ON HOLD and is not offered. No price is attached to it anywhere, and none may be quoted. Ask before promising it to anyone.'
       : d.st === 'occupied' ? 'This space is occupied \\u2014 an interment has been made. It is not for sale and no price is shown.'
       : d.st === 'reserved' ? 'This space is reserved \\u2014 sold, with no interment yet. It is not for sale and no price is shown.'
-      : 'No price is printed for this niche on the current price sheet, so it is not quotable here. Confirm its status with the cemetery office before saying anything to a family.';
+      // Reworded 2026-08-02 (s11/family-register): the old text named the price sheet and
+      // told the reader what to say "to a family" — a counselor instruction, on a page the
+      // family is reading over your shoulder. Same fact, addressed to the right person.
+      : 'No price is currently listed for this niche, so it is not quotable here. Ask us to confirm its status and price.';
     return cardHead(d) +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +
       '<div class="cnote">' + note + '</div>';
@@ -701,35 +704,51 @@ ${BLOCK_ORDER.map(view).join('\n')}
   </div>
 
   <div class="rules">
-    <h3>From the price sheet — read these to the family</h3>
+    <!-- REWORDED 2026-08-02 (s11/family-register). The heading read "From the price sheet
+         — read these to the family", which is an instruction to a counselor printed where
+         the family can read it, and each bullet was prefixed "Sheet, verbatim:". The
+         RULES are unchanged and still quoted word for word; only the framing moved. The
+         quoted strings still come from SHEET_TEXT in scripts/gomn-niche-data.mjs, and
+         that module's comments still record which sheet they were transcribed from. -->
+    <h3>Rules for this wall</h3>
     <ul>
       <!-- This lead used to read "why only ONE urn fits", which contradicted the sentence
            right after it (two fit — that is the companion capacity). Corrected s09/D. -->
       <li><b>Companion niche, and why only the Interlude Urn fits.</b> ${esc(COMPANION_NOTE)}</li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.companion)}&rdquo;</span></li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span> The urn price list figure is <b>${esc(URN.name)} (${esc(URN.maker)}) $${URN.price}.00</b> each &mdash; merchandise, not a fee, and up to ${URN.maxQty} per niche. It carries <b>10.4% sales tax</b>, like the inscription (operator ruling ${esc(FEE_SOURCE.confirmedOn)}).</li>
-      <li>Sheet, verbatim: <span class="quote">&ldquo;${esc(SHEET_TEXT.ecf)}&rdquo;</span></li>
+      <li><span class="quote">&ldquo;${esc(SHEET_TEXT.companion)}&rdquo;</span></li>
+      <li><span class="quote">&ldquo;${esc(SHEET_TEXT.urn)}&rdquo;</span> That urn is the <b>${esc(URN.name)} (${esc(URN.maker)}) $${URN.price}.00</b> each &mdash; merchandise, not a fee, and up to ${URN.maxQty} per niche. It carries <b>10.4% sales tax</b>, like the inscription.</li>
+      <li><span class="quote">&ldquo;${esc(SHEET_TEXT.ecf)}&rdquo;</span></li>
       <li><span class="shout">${esc(SHEET_TEXT.photos)}</span></li>
     </ul>
   </div>
 
   <div class="rules">
-    <h3>Fee schedule &mdash; where these numbers come from</h3>
+    <!-- REWORDED 2026-08-02 (s11/family-register). The second bullet used to trace the
+         schedule's paperwork: which sheet it is not printed on, which amounts it replaces,
+         and who ruled it on which date. FEE_SOURCE in scripts/gomn-niche-data.mjs still
+         carries every one of those fields and its comments still explain them; the page
+         now states the charges and who stands behind them. The FIGURES are untouched. -->
+    <h3>Fee schedule</h3>
     <ul>
       <li><b>Open &amp; Closing $${FEES.OC}.00ea &nbsp;·&nbsp; Recording Fee $${FEES.REC}.00ea &nbsp;·&nbsp; Inscription $${FEES.INSCR}.00ea &nbsp;·&nbsp; 10.4% sales tax on merchandise (inscription and urn) &nbsp;·&nbsp; E.C.F. 10%</b></li>
-      <li><b>These are the ${esc(FEE_SOURCE.schedule)} schedule</b>, applied to the Garden of Meditation by ${esc(FEE_SOURCE.confirmedBy)} on ${esc(FEE_SOURCE.confirmedOn)}. <b>They are not printed on this area&rsquo;s own sheet</b> &mdash; that sheet prints ${esc(FEE_SOURCE.replaces)}, which these amounts replace. Confirm the current charges with the cemetery office before quoting.</li>
-      <li>The E.C.F. rate is the one fee figure still taken from this sheet, and it is unchanged at 10%.</li>
+      <li>These are Bonney Watson&rsquo;s current charges for the Garden of Meditation. Ask us to confirm today&rsquo;s charges before writing.</li>
       <li><b>Two inscriptions may be added to the front</b> of a companion niche &mdash; the quantity box above goes to ${INSCR_MAX}.</li>
     </ul>
   </div>
 
   <div class="rules">
-    <h3>Availability &mdash; where this reading comes from</h3>
+    <!-- REWORDED 2026-08-02 (s11/family-register). Four bullets of our own audit trail —
+         whose list, which export, which report it supersedes, and how a contradiction
+         between a summary and its detail was settled — rendered for a family who cannot
+         see any of those documents. AVAILABILITY in scripts/gomn-niche-data.mjs keeps
+         source, supersedes, statusSource, summaryCounts and the whole resolved
+         record, and the gate still proves the counts against them. The page now states
+         only what a family can act on. -->
+    <h3>Availability</h3>
     <ul>
-      <li><b>Availability is the operator&rsquo;s list of ${esc(AVAILABILITY.asOf)}</b> &mdash; ${esc(AVAILABILITY.source)}. It supersedes ${esc(AVAILABILITY.supersedes)}: every figure on this wall is still the price sheet&rsquo;s own, unchanged. A level the list does not carry has sold out, so <b>levels B and F are now sold out entirely</b>.</li>
-      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} listed as available <b>with no price attached</b>, so ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>not offered here</b>. The operator confirmed on ${esc(AVAILABILITY.asOf)} that ${LISTED_NO_PRICE.length === 1 ? 'it is' : 'they are'} <b>on hold</b>, and ${LISTED_NO_PRICE.length === 1 ? 'it shows' : 'they show'} that way on the wall. A niche is for sale when a price greater than zero is attached to it. Ask the operator for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
-      <li><b>Statuses</b> &mdash; occupied, reserved and on hold &mdash; come from the ${esc(AVAILABILITY.statusSource)}. A space shown as occupied or reserved is not for sale whatever a price sheet says.</li>
-      <li><b>Resolved, ${esc(AVAILABILITY.resolved.on)}</b> (${esc(AVAILABILITY.resolved.source)}): ${esc(AVAILABILITY.resolved.finding)}</li>
+      <li>Availability and pricing are kept current against cemetery records &mdash; ask us to confirm today&rsquo;s status before writing. <b>Levels B and F are sold out entirely.</b></li>
+      <li><b>${esc(NO_PRICE_REFS)}</b> ${LISTED_NO_PRICE.length === 1 ? 'is' : 'are'} <b>on hold and not offered here</b>: no price is attached, and a niche is for sale only when a price is attached to it. Ask us for a figure before quoting ${LISTED_NO_PRICE.length === 1 ? 'it' : 'either'}.</li>
+      <li><b>Statuses.</b> A space shown as occupied or reserved is not for sale, whatever price may be listed against it.</li>
     </ul>
   </div>
 

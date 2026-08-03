@@ -41,7 +41,7 @@ import {
   SHEET_TEXT, COMPANION_NOTE, allNiches, refOf, sellable, ecf, estTotal,
   PRICES, AVAILABILITY, LISTED_NO_PRICE, ON_HOLD, OCCUPIED, RESERVED, SOLD_SINCE_SHEET,
 } from './gomn-niche-data.mjs';
-import { assertNoMis } from './_no_mis_assert.mjs';
+import { assertFamilyRegister, stripUnrendered } from './_no_mis_assert.mjs';
 
 const DATA = path.join(path.dirname(fileURLToPath(import.meta.url)), 'gomn-niche-data.mjs');
 const BUILD = path.join(path.dirname(fileURLToPath(import.meta.url)), 'build_gomn_map.mjs');
@@ -420,8 +420,13 @@ console.log('\nThe operator MIS availability export (2026-08-01), space by space
       `the finding still names the level and BOTH counts (${row}: ${summary} vs ${detail}) — a reader needs the number that was wrong`);
     ck(/wall view/i.test(r.source), `the finding cites its source (${r.source})`);
     ck(r.on === AVAILABILITY.asOf, `resolved on the same day as the export (${r.on})`);
-    ck(src.includes(r.finding),
-      'and the page carries the same sentence, so a counselor who saw the old caveat sees it settled');
+    // MOVED OFF THE PAGE 2026-08-02 (s11/family-register). The finding is a reconciliation
+    // between an internal summary and its own detail — real, and worth keeping, and of no
+    // use whatever to a family, who cannot see either document. It stays in the data
+    // module and is asserted there; requiring it on the page is what put it in front of a
+    // family in the first place.
+    ck(!src.includes(r.finding),
+      'the reconciliation finding is NOT rendered — it lives in the data module, where it is asserted above');
     ck(!/Unreconciled/i.test(src), 'the page no longer calls row C unreconciled');
     // The resolved set itself, space by space — this is what fails if a twelfth appears.
     const shippedCols = LIST_OFFERED[row].slice().sort((a, b) => a - b);
@@ -442,19 +447,37 @@ console.log('\nThe operator MIS availability export (2026-08-01), space by space
   // Scoped to the availability block, not to the whole page: every niche button carries a
   // data-ref, so `src.includes('GOM-1-1-B-10')` is true whatever the prose says. A check
   // that cannot fail is not a check.
-  const AV_H3 = '<h3>Availability &mdash; where this reading comes from</h3>';
+  // REPOINTED 2026-08-02 (s11/family-register). This block used to require the page to
+  // print WHOSE list the availability was, which export it came from, which report it
+  // superseded and on what date — our audit trail, in front of a family. The provenance is
+  // unchanged and still REQUIRED, in the data module, which is asserted just below. What
+  // the page must carry is the family-facing half: the permitted sentence, the two spaces
+  // that are on hold, and the rule that decides whether anything is for sale at all.
+  const AV_H3 = '<h3>Availability</h3>';
   const avStart = src.indexOf(AV_H3);
   const avBlock = avStart < 0 ? '' : src.slice(avStart, src.indexOf('</div>', avStart));
-  ck(avBlock !== '', 'the page carries an availability-provenance block');
-  ck(avBlock.includes(AVAILABILITY.asOf), `it dates the availability reading (${AVAILABILITY.asOf})`);
-  ck(avBlock.includes(AVAILABILITY.source), 'it names the MIS export as the source of availability');
-  ck(avBlock.includes(AVAILABILITY.supersedes), "and says it supersedes the sheet's status reading");
+  ck(avBlock !== '', 'the page carries an availability block');
+  ck(/kept current against cemetery records/.test(avBlock) && /ask us to confirm today/i.test(avBlock),
+    'it carries the permitted provenance sentence and points the reader at us');
+  ck(!avBlock.includes(AVAILABILITY.source) && !avBlock.includes(AVAILABILITY.supersedes)
+    && !avBlock.includes(AVAILABILITY.asOf),
+    'and does NOT name the export, the report it supersedes, or the date it was pulled');
+  // …while the module still carries every one of those, so nothing was lost, only moved.
+  // Compared with non-ASCII folded out: the module writes its curly apostrophes as
+  // ’ escapes, so a literal includes() on the imported string never matches the file.
+  const fold = (s) => s.replace(/[^\x20-\x7E]/g, '').replace(/\\u[0-9a-fA-F]{4}/g, '');
+  const dataSrc = fold(fs.readFileSync(DATA, 'utf8'));
+  for (const [k, v] of [['source', AVAILABILITY.source], ['supersedes', AVAILABILITY.supersedes],
+    ['statusSource', AVAILABILITY.statusSource], ['asOf', AVAILABILITY.asOf]]) {
+    ck(typeof v === 'string' && v.length > 0 && dataSrc.includes(fold(v)),
+      `the data module still records AVAILABILITY.${k} (${v})`);
+  }
   for (const id of LIST_ZERO_PRICED) {
     const ref = refOf(id.split('-')[0], +id.split('-')[1]);
-    ck(avBlock.includes(ref), `it names ${ref} as listed-without-a-price, so it is findable when a figure arrives`);
+    ck(avBlock.includes(ref), `it names ${ref} as on hold and not offered, so it is findable when a figure arrives`);
   }
-  ck(/no price attached/i.test(avBlock) && /price greater than zero/i.test(avBlock),
-    'it states the rule: a niche is for sale when a price greater than zero is attached');
+  ck(/no price is attached/i.test(avBlock) && /only when a price is attached/i.test(avBlock),
+    'it states the rule: a niche is for sale only when a price is attached to it');
 }
 
 // ── 6. THE SAFETY GATE: no price anywhere on an unavailable niche ─────────────
@@ -558,8 +581,13 @@ console.log('\nMIS statuses (Lot Inquiry List, 2026-08-01)');
     ck(rendered.length > 0 && rendered.every((c) => /st-hold/.test(c.html) && !/\$\s*[\d,]/.test(c.html) && c.price === ''),
       `${n.ref} renders as on-hold with no dollar figure in all ${rendered.length} renderings`);
   }
-  ck(src.includes(AVAILABILITY.statusSource),
-    `the page names where the statuses came from (${AVAILABILITY.statusSource})`);
+  // s11/family-register: the page used to name the Lot Inquiry List here. It is asserted
+  // in the data module above instead; what the PAGE has to say is that an occupied or
+  // reserved space is not for sale, which is the only part a family can act on.
+  ck(!src.includes(AVAILABILITY.statusSource),
+    `the page does NOT name the internal status report (${AVAILABILITY.statusSource})`);
+  ck(/not for sale, whatever price may be listed against it/i.test(src),
+    'it states the safety rule instead: occupied or reserved is not for sale');
   ck(/On Hold/.test(src), 'the page carries the On Hold badge');
   ck(/is <b>on hold<\/b>/.test(src) || /on hold/i.test(src), 'the page states the operator\'s on-hold ruling in prose');
   ck(/ON HOLD and is not offered/.test(src), 'the card wording says the space is on hold, not "confirm in MIS"');
@@ -622,15 +650,25 @@ console.log('\nThe ruled fee schedule (MVC June-2026), and where the page says i
       ck(!hit, `and $${v} appears NOWHERE else on the page — it is not a live charge`);
     }
   }
-  ck(src.includes(FEE_SOURCE.schedule), `provenance names the schedule ("${FEE_SOURCE.schedule}")`);
-  ck(src.includes(FEE_SOURCE.confirmedOn), `provenance names the confirmation date (${FEE_SOURCE.confirmedOn})`);
-  ck(src.includes(FEE_SOURCE.replaces.replace(/&/g, '&amp;')), 'provenance names the three sheet amounts it replaces');
-  ck(FEE_SOURCE.printedOnThisSheet === false && /not printed on this area/i.test(src),
-    'the page says in as many words that these fees are NOT printed on this area\'s sheet');
-  ck(/Confirm the current charges with the cemetery office/i.test(src),
-    'and tells the reader to confirm the current charges with us — without naming MIS (s11 Track D)');
-  ck(new RegExp(`E\\.C\\.F\\. rate is the one fee figure still taken from this sheet`).test(src),
-    'the page distinguishes the E.C.F. (still the sheet\'s) from the three replaced amounts');
+  // REPOINTED 2026-08-02 (s11/family-register). The page used to trace the schedule's
+  // paperwork: which sheet it is not printed on, which three amounts it replaces, and who
+  // ruled it across on what date. FEE_SOURCE still carries all of it and is asserted here;
+  // the superseded amounts are still proven to appear NOWHERE as a live charge, which is
+  // the check that actually protects a family from being quoted the wrong figure.
+  const feeData = fs.readFileSync(DATA, 'utf8');
+  ck(feeData.includes(FEE_SOURCE.schedule), `the data module records the schedule ("${FEE_SOURCE.schedule}")`);
+  ck(feeData.includes(FEE_SOURCE.confirmedOn), `and the confirmation date (${FEE_SOURCE.confirmedOn})`);
+  ck(feeData.includes(FEE_SOURCE.replaces), 'and the three sheet amounts it replaces');
+  ck(FEE_SOURCE.printedOnThisSheet === false && !/not printed on this area/i.test(src),
+    'the page no longer explains which sheet the fees are not printed on');
+  // Rendered text only — these dates are still all over the source comments, which is
+  // exactly where they belong. stripUnrendered() is the same pass the register gate uses.
+  const rendered = stripUnrendered(src);
+  ck(!rendered.includes(FEE_SOURCE.schedule) && !rendered.includes(FEE_SOURCE.confirmedOn),
+    'nor renders the schedule name or the ruling date anywhere a family can read them');
+  ck(/Bonney Watson&rsquo;s current charges for the Garden of Meditation/.test(src)
+    && /Ask us to confirm today&rsquo;s charges before writing/.test(src),
+    'it states whose charges these are and tells the reader to ask us');
 }
 
 // ── 8. Inscription ×2, the urn add-on, and the card arithmetic ───────────────
@@ -979,7 +1017,7 @@ if (process.argv.includes('--sabotage')) {
 // and note that this file's own anchors and console output still say MIS freely. They are
 // read by whoever maintains the wall, never by a family.
 console.log('\nFamily-facing wording');
-assertNoMis(ck, 'GOMN_NicheMap.html', src);
+assertFamilyRegister(ck, 'GOMN_NicheMap.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

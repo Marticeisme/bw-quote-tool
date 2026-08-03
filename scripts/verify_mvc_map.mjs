@@ -19,7 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { WALLS, WALL_ORDER, allNiches, cellDims, FEES } from './mvc-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
-import { assertNoMis } from './_no_mis_assert.mjs';
+import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/MVC_NewGlassFront_NicheMap_1.html';
@@ -358,7 +358,7 @@ console.log('\nMovement runtime');
 // exactly the kind of change that gets undone by the next person copying a sentence from
 // a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
 console.log('\nFamily-facing wording');
-assertNoMis((c, m) => (c ? pass : fail)(m), 'MVC_NewGlassFront_NicheMap_1.html', newSrc);
+assertFamilyRegister((c, m) => (c ? pass : fail)(m), 'MVC_NewGlassFront_NicheMap_1.html', newSrc);
 
 console.log('\n' + (failures ? `RESULT: ${failures} FAILURE(S)` : 'RESULT: PASS — 0 mismatches') + '\n');
 process.exit(failures ? 1 : 0);

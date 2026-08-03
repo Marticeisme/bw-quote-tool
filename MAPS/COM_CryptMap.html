@@ -208,7 +208,8 @@
   .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
   .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
   .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
-  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#2f8f79;stroke:#8d6a3a;}
+  /* The stained-glass pane in plan: amber, matching its 3D treatment, not the old teal. */
+  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#c8a96e;stroke:#5b4526;}
   .pf-archwin rect{fill:#bcdcf2;stroke:#6f8fa6;}
   .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
   .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
@@ -333,9 +334,21 @@
   /* Pedestal flower urn and the chapel's stained-glass window — both taken from the
      2026-07-29 walkthrough video; the window is the interior's one orientation landmark. */
   .fk-urn{background:linear-gradient(180deg,#3a3330,#141110);} .fk-urn.btop{background:radial-gradient(circle at 40% 35%,#c46a52,#6d3a2c 60%,#2a1a14);}
-  .fk-window{background:linear-gradient(200deg,#59c2a0 0%,#2f86ad 40%,#c9843a 72%,#7c4f2a 100%);
-    box-shadow:0 0 10px rgba(120,220,190,.35);border-color:#6d4f2a;}
-  .fk-window.btop{background:linear-gradient(135deg,#6d4f2a,#3c2a16);}
+  /* STAINED GLASS, not a gradient. The old .fk-window was a raw teal-to-orange linear
+     gradient with a mint glow — nothing else on this page is lit that way, so even once
+     it was off the crypt fronts it read as a rendering artefact rather than a window.
+     It is now leaded glass: two hairline repeating gradients lay the cames over a warm
+     amber-to-navy field drawn from the page's own tokens (--gold #c8a96e, the navy of
+     the plan chrome), inside the same arched border-radius as .fk-archwin so the two
+     window families read as one building. The glow is gold at low alpha, matching the
+     hotspot rings, and the pane sits flush in the wall rather than floating. */
+  .fk-window{background:
+      repeating-linear-gradient(0deg,rgba(26,21,14,.62) 0 1px,rgba(0,0,0,0) 1px 8px),
+      repeating-linear-gradient(90deg,rgba(26,21,14,.62) 0 1px,rgba(0,0,0,0) 1px 6px),
+      linear-gradient(178deg,#e8d5a8 0%,#c8a96e 26%,#9a6b46 52%,#5b6f86 78%,#2c3a55 100%);
+    border-color:#241d13;border-radius:50% 50% 2px 2px / 20% 20% 2px 2px;
+    box-shadow:0 0 14px rgba(200,169,110,.42);}
+  .fk-window.btop{background:linear-gradient(135deg,#5d4a3a,#33291f);border-radius:0;}
   /* The Radiance alcove's two arched clear-glazed windows (video 2:00 and 2:04) --
      daylight is the thing that tells this room apart from every other bay. */
   .fk-archwin{background:linear-gradient(180deg,#dff1ff 0%,#a8d6f2 46%,#7fae7a 74%,#4d7a52 100%);
@@ -606,7 +619,15 @@
     <ul class="qlist" id="qlist" role="listbox" aria-label="Matching crypts and niches" hidden></ul>
     <div class="qsr" id="qsr" role="status" aria-live="polite"></div>
   </div>
-  <a class="walk-btn no-print" href="COM_Walkthrough.html">Photoreal walkthrough</a>
+  <!-- WALKTHROUGH DELISTED 2026-08-02 (s11/family-register). Operator, of the photoreal
+       gaussian-splat walkthrough: "This is not something I can show to families." The
+       PAGE, its builder (scripts/build_com_walkthrough.mjs), its splat asset and its two
+       gates are all intact and still run — it comes back when the building is re-shot.
+       What is removed is every family-facing LINK to it: this header button and the card
+       on guides.html. Direct URL access is deliberately still fine; a link is a
+       recommendation and this one is withdrawn until the footage is worth showing.
+       To relist: restore this anchor, restore the guides.html card, bump the Maps &
+       Locations pill by one, and flip the two assertions in verify_com_walkthrough.mjs. -->
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
@@ -1655,11 +1676,11 @@
     <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-374px,90px,-318px) rotateY(90deg)"><span>Altar</span></div>
     <div class="furn fk-altar" data-px="166" data-pz="91" style="width:32px;height:44px;transform:translate(-50%,-50%) translate3d(-444px,90px,-318px) rotateY(-90deg)"><span>Altar</span></div>
     <div class="furn fk-altar btop" data-px="166" data-pz="91" style="width:70px;height:32px;transform:translate(-50%,-50%) translate3d(-409px,68px,-318px) rotateX(90deg)"></div>
-    <div class="furn fk-window" data-px="116" data-pz="54" style="width:48px;height:80px;transform:translate(-50%,-50%) translate3d(-508px,72px,-388px) rotateY(0deg)"></div>
-    <div class="furn fk-window" data-px="116" data-pz="54" style="width:48px;height:80px;transform:translate(-50%,-50%) translate3d(-508px,72px,-398px) rotateY(180deg)"></div>
-    <div class="furn fk-window" data-px="116" data-pz="54" style="width:10px;height:80px;transform:translate(-50%,-50%) translate3d(-484px,72px,-393px) rotateY(90deg)"></div>
-    <div class="furn fk-window" data-px="116" data-pz="54" style="width:10px;height:80px;transform:translate(-50%,-50%) translate3d(-532px,72px,-393px) rotateY(-90deg)"></div>
-    <div class="furn fk-window btop" data-px="116" data-pz="54" style="width:48px;height:10px;transform:translate(-50%,-50%) translate3d(-508px,32px,-393px) rotateX(90deg)"></div>
+    <div class="furn fk-window" data-px="100" data-pz="77" style="width:6px;height:80px;transform:translate(-50%,-50%) translate3d(-541px,72px,-312px) rotateY(0deg)"></div>
+    <div class="furn fk-window" data-px="100" data-pz="77" style="width:6px;height:80px;transform:translate(-50%,-50%) translate3d(-541px,72px,-380px) rotateY(180deg)"></div>
+    <div class="furn fk-window" data-px="100" data-pz="77" style="width:68px;height:80px;transform:translate(-50%,-50%) translate3d(-538px,72px,-346px) rotateY(90deg)"></div>
+    <div class="furn fk-window" data-px="100" data-pz="77" style="width:68px;height:80px;transform:translate(-50%,-50%) translate3d(-544px,72px,-346px) rotateY(-90deg)"></div>
+    <div class="furn fk-window btop" data-px="100" data-pz="77" style="width:6px;height:68px;transform:translate(-50%,-50%) translate3d(-541px,32px,-346px) rotateX(90deg)"></div>
     <div class="furn fk-piano" data-px="203" data-pz="111" style="width:84px;height:28px;transform:translate(-50%,-50%) translate3d(-334px,98px,-256px) rotateY(0deg)"><span>Piano</span></div>
     <div class="furn fk-piano" data-px="203" data-pz="111" style="width:84px;height:28px;transform:translate(-50%,-50%) translate3d(-334px,98px,-300px) rotateY(180deg)"><span>Piano</span></div>
     <div class="furn fk-piano" data-px="203" data-pz="111" style="width:44px;height:28px;transform:translate(-50%,-50%) translate3d(-292px,98px,-278px) rotateY(90deg)"><span>Piano</span></div>
@@ -1745,31 +1766,31 @@
     <div class="furn fk-bench" data-px="482" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(256px,103px,190px) rotateY(90deg)"></div>
     <div class="furn fk-bench" data-px="482" data-pz="345" style="width:20px;height:18px;transform:translate(-50%,-50%) translate3d(192px,103px,190px) rotateY(-90deg)"></div>
     <div class="furn fk-bench btop" data-px="482" data-pz="345" style="width:64px;height:20px;transform:translate(-50%,-50%) translate3d(224px,94px,190px) rotateX(90deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="118" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-236px) rotateY(0deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="118" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-292px) rotateY(180deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="118" style="width:56px;height:92px;transform:translate(-50%,-50%) translate3d(-724px,66px,-264px) rotateY(90deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="118" style="width:56px;height:92px;transform:translate(-50%,-50%) translate3d(-734px,66px,-264px) rotateY(-90deg)"></div>
-    <div class="furn fk-archwin btop" data-px="6" data-pz="118" style="width:10px;height:56px;transform:translate(-50%,-50%) translate3d(-729px,20px,-264px) rotateX(90deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="152" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-168px) rotateY(0deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="152" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-224px) rotateY(180deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="152" style="width:56px;height:92px;transform:translate(-50%,-50%) translate3d(-724px,66px,-196px) rotateY(90deg)"></div>
-    <div class="furn fk-archwin" data-px="6" data-pz="152" style="width:56px;height:92px;transform:translate(-50%,-50%) translate3d(-734px,66px,-196px) rotateY(-90deg)"></div>
-    <div class="furn fk-archwin btop" data-px="6" data-pz="152" style="width:10px;height:56px;transform:translate(-50%,-50%) translate3d(-729px,20px,-196px) rotateX(90deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-262px) rotateY(0deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-284px) rotateY(180deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-690px,99px,-273px) rotateY(90deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="114" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-712px,99px,-273px) rotateY(-90deg)"></div>
-    <div class="furn fk-seat btop" data-px="20" data-pz="114" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-701px,86px,-273px) rotateX(90deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="148" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-194px) rotateY(0deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="148" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-216px) rotateY(180deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="148" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-690px,99px,-205px) rotateY(90deg)"></div>
-    <div class="furn fk-seat" data-px="20" data-pz="148" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-712px,99px,-205px) rotateY(-90deg)"></div>
-    <div class="furn fk-seat btop" data-px="20" data-pz="148" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-701px,86px,-205px) rotateX(90deg)"></div>
-    <div class="furn fk-bench" data-px="20" data-pz="131" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-701px,104px,-230px) rotateY(0deg)"></div>
-    <div class="furn fk-bench" data-px="20" data-pz="131" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-701px,104px,-248px) rotateY(180deg)"></div>
-    <div class="furn fk-bench" data-px="20" data-pz="131" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-692px,104px,-239px) rotateY(90deg)"></div>
-    <div class="furn fk-bench" data-px="20" data-pz="131" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-710px,104px,-239px) rotateY(-90deg)"></div>
-    <div class="furn fk-bench btop" data-px="20" data-pz="131" style="width:18px;height:18px;transform:translate(-50%,-50%) translate3d(-701px,96px,-239px) rotateX(90deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="113" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-256px) rotateY(0deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="113" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-292px) rotateY(180deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="113" style="width:36px;height:92px;transform:translate(-50%,-50%) translate3d(-724px,66px,-274px) rotateY(90deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="113" style="width:36px;height:92px;transform:translate(-50%,-50%) translate3d(-734px,66px,-274px) rotateY(-90deg)"></div>
+    <div class="furn fk-archwin btop" data-px="6" data-pz="113" style="width:10px;height:36px;transform:translate(-50%,-50%) translate3d(-729px,20px,-274px) rotateX(90deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="133" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-216px) rotateY(0deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="133" style="width:10px;height:92px;transform:translate(-50%,-50%) translate3d(-729px,66px,-252px) rotateY(180deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="133" style="width:36px;height:92px;transform:translate(-50%,-50%) translate3d(-724px,66px,-234px) rotateY(90deg)"></div>
+    <div class="furn fk-archwin" data-px="6" data-pz="133" style="width:36px;height:92px;transform:translate(-50%,-50%) translate3d(-734px,66px,-234px) rotateY(-90deg)"></div>
+    <div class="furn fk-archwin btop" data-px="6" data-pz="133" style="width:10px;height:36px;transform:translate(-50%,-50%) translate3d(-729px,20px,-234px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="112" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-266px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="112" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-288px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="112" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-690px,99px,-277px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="112" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-712px,99px,-277px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="20" data-pz="112" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-701px,86px,-277px) rotateX(90deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="136" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-218px) rotateY(0deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="136" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-701px,99px,-240px) rotateY(180deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="136" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-690px,99px,-229px) rotateY(90deg)"></div>
+    <div class="furn fk-seat" data-px="20" data-pz="136" style="width:22px;height:26px;transform:translate(-50%,-50%) translate3d(-712px,99px,-229px) rotateY(-90deg)"></div>
+    <div class="furn fk-seat btop" data-px="20" data-pz="136" style="width:22px;height:22px;transform:translate(-50%,-50%) translate3d(-701px,86px,-229px) rotateX(90deg)"></div>
+    <div class="furn fk-bench" data-px="20" data-pz="124" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-701px,104px,-244px) rotateY(0deg)"></div>
+    <div class="furn fk-bench" data-px="20" data-pz="124" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-701px,104px,-262px) rotateY(180deg)"></div>
+    <div class="furn fk-bench" data-px="20" data-pz="124" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-692px,104px,-253px) rotateY(90deg)"></div>
+    <div class="furn fk-bench" data-px="20" data-pz="124" style="width:18px;height:16px;transform:translate(-50%,-50%) translate3d(-710px,104px,-253px) rotateY(-90deg)"></div>
+    <div class="furn fk-bench btop" data-px="20" data-pz="124" style="width:18px;height:18px;transform:translate(-50%,-50%) translate3d(-701px,96px,-253px) rotateX(90deg)"></div>
     <div class="chair cseat" data-chair="chair-left-0-0" data-px="116" data-pz="144" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-212px) rotateX(90deg)"></div>
     <div class="chair cback" data-px="116" data-pz="144" style="width:16px;height:14.88px;transform:translate(-50%,-50%) translate3d(-508px,93.28px,-204px)"></div>
     <div class="chair cseat" data-chair="chair-left-0-1" data-px="116" data-pz="164" style="width:16px;height:16px;transform:translate(-50%,-50%) translate3d(-508px,101.2px,-172px) rotateX(90deg)"></div>
@@ -1936,7 +1957,7 @@
 <div class="callout no-print" id="callout" aria-hidden="true"></div>
     <div class="hint"><b>Click anywhere on the floor</b> to walk there &nbsp;·&nbsp; <b>double-click a wall</b> to swing face-on to it &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it<br>
       <b>W A S D</b> walks &nbsp;·&nbsp; arrow keys look &nbsp;·&nbsp; <b>+ /&minus;</b> zoom &nbsp;·&nbsp; <b>R</b> resets the view &nbsp;·&nbsp; or type a reference such as <b>D-116</b> into <b>Find a crypt or niche</b>, up in the header</div>
-    <div class="modelnote">2 entrances &nbsp;·&nbsp; 19 walk-to positions &nbsp;·&nbsp; 17 crypt banks (781 purchasable units over 893 crypt spaces) plus the Radiance and Serenity niche walls (122 niches) &nbsp;·&nbsp; wall POSITIONS are measured off the cemetery CAD floor plan and bank DEPTHS follow the crypt type (a tandem holds two caskets end to end); both niche walls' positions, facings, mounting and the stone each part of the building is finished in come from the 2026-07-29 walk-through video. Heights and the chapel furniture layout are still ESTIMATED. No dimensions are implied.</div>
+    <div class="modelnote">2 entrances &nbsp;·&nbsp; 19 walk-to positions &nbsp;·&nbsp; 17 crypt banks (781 purchasable units over 893 crypt spaces) plus the Radiance and Serenity niche walls (122 niches) &nbsp;·&nbsp; this is an illustration of the building drawn to scale in plan, so that a crypt or niche can be found before you walk in. Wall positions follow the cemetery&rsquo;s own floor plan and bank depths follow the crypt type &mdash; a tandem holds two caskets end to end. Heights and the chapel furnishings are approximate, and no dimensions are implied.</div>
     <div class="legend">
       <div class="li"><div class="ls lg-a"></div><span>Available</span></div>
       <div class="li"><div class="ls lg-r"></div><span>Reserved — held, no interment</span></div>
@@ -2034,7 +2055,7 @@
     <rect class="pchair" x="220" y="240" width="8" height="8" rx="1.5"/>
     <rect class="pchair" x="220" y="260" width="8" height="8" rx="1.5"/>
     <g class="pfurn pf-altar"><rect x="148" y="83" width="35" height="16" rx="2"/><text x="165.5" y="94.5">Altar</text></g>
-    <g class="pfurn pf-window"><rect x="104" y="51" width="24" height="5" rx="2"/></g>
+    <g class="pfurn pf-window"><rect x="98" y="60" width="3" height="34" rx="2"/></g>
     <g class="pfurn pf-piano"><rect x="182" y="100" width="42" height="22" rx="2"/><text x="203" y="114.5">Piano</text></g>
     <g class="pfurn pf-urn"><rect x="166" y="101" width="12" height="12" rx="2"/></g>
     <g class="pfurn pf-seat"><rect x="160" y="126" width="11" height="11" rx="2"/></g>
@@ -2052,11 +2073,11 @@
     <g class="pfurn pf-bench"><rect x="278" y="340" width="32" height="10" rx="2"/></g>
     <g class="pfurn pf-bench"><rect x="372" y="340" width="32" height="10" rx="2"/></g>
     <g class="pfurn pf-bench"><rect x="466" y="340" width="32" height="10" rx="2"/></g>
-    <g class="pfurn pf-archwin"><rect x="3" y="104" width="5" height="28" rx="2"/></g>
-    <g class="pfurn pf-archwin"><rect x="3" y="138" width="5" height="28" rx="2"/></g>
-    <g class="pfurn pf-seat"><rect x="14" y="108" width="11" height="11" rx="2"/></g>
-    <g class="pfurn pf-seat"><rect x="14" y="142" width="11" height="11" rx="2"/></g>
-    <g class="pfurn pf-bench"><rect x="15" y="126" width="9" height="9" rx="2"/></g>
+    <g class="pfurn pf-archwin"><rect x="3" y="104" width="5" height="18" rx="2"/></g>
+    <g class="pfurn pf-archwin"><rect x="3" y="124" width="5" height="18" rx="2"/></g>
+    <g class="pfurn pf-seat"><rect x="14" y="106" width="11" height="11" rx="2"/></g>
+    <g class="pfurn pf-seat"><rect x="14" y="130" width="11" height="11" rx="2"/></g>
+    <g class="pfurn pf-bench"><rect x="15" y="119" width="9" height="9" rx="2"/></g>
     <g class="pentr" data-stop="entrance-main" tabindex="0" role="button" aria-label="Main Entrance — East corridor, shared with the Eternal Light Mausoleum. Walk in from here."><rect x="638" y="232" width="95" height="36" rx="3"/><text x="685.5" y="254">Main Entrance</text></g>
     <g class="pentr" data-stop="entrance-chapel" tabindex="0" role="button" aria-label="Chapel Entrance — South-west doors, straight into the worship space. Walk in from here."><rect x="69" y="379" width="44" height="42" rx="3"/><text x="91" y="404">Chapel Entrance</text></g>
     <g class="pbank mt-cream has-av" data-bank="111-115" data-area="north" tabindex="0" role="button" aria-label="Bank 111-115, facing south · True Companion (Tandem), 20 available"><rect x="3" y="3" width="95" height="95" rx="2"/><text class="pblab" x="50.5" y="54.5">111-115 · 20</text></g>
@@ -3414,7 +3435,7 @@
     </div>
   </div>
       </div>
-      <div class="sizeleg"><b>Niche sizes on this wall — every row spans 165&quot;</b><span class="szi"><i class="szs sz-family"></i><b>Family (2)</b> 11 7/8&quot; x 30 1/2&quot; x 25 1/2&quot; <em>&times;2</em></span><span class="szi"><i class="szs sz-xlarge"></i><b>X-Large (2)</b> 11 7/8&quot; x 26&quot; x 12 3/4&quot; <em>&times;8</em></span><span class="szi"><i class="szs sz-large"></i><b>Large (2)</b> 11 7/8&quot; x 23&quot; x 12 3/4&quot; <em>&times;32</em></span><span class="szi"><i class="szs sz-small"></i><b>Small (2)</b> 11 7/8&quot; x 18 1/4&quot; x 12 3/4&quot; <em>&times;32</em></span><em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are full double-height compartments &mdash; confirmed from photographs of the wall &mdash; and are twice as deep as the rest.</em></div>
+      <div class="sizeleg"><b>Niche sizes on this wall — every row spans 165&quot;</b><span class="szi"><i class="szs sz-family"></i><b>Family (2)</b> 11 7/8&quot; x 30 1/2&quot; x 25 1/2&quot; <em>&times;2</em></span><span class="szi"><i class="szs sz-xlarge"></i><b>X-Large (2)</b> 11 7/8&quot; x 26&quot; x 12 3/4&quot; <em>&times;8</em></span><span class="szi"><i class="szs sz-large"></i><b>Large (2)</b> 11 7/8&quot; x 23&quot; x 12 3/4&quot; <em>&times;32</em></span><span class="szi"><i class="szs sz-small"></i><b>Small (2)</b> 11 7/8&quot; x 18 1/4&quot; x 12 3/4&quot; <em>&times;32</em></span><em class="szn">Height &times; width &times; depth, as measured on this wall. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are full double-height compartments &mdash; confirmed from photographs of the wall &mdash; and are twice as deep as the rest.</em></div>
       <div class="bsub">17 available · $156,115 listed · Prices effective January 13, 2025</div>
     </div>
   </div>
@@ -3493,7 +3514,7 @@
     </div>
   </div>
       </div>
-      <div class="sizeleg"><b>Niche sizes on this wall — every row spans 88.5&quot;</b><span class="szi"><i class="szs sz-large"></i><b>Large (2)</b> 10 1/2&quot; x 22 1/8&quot; x 12 3/4&quot; <em>&times;32</em></span><span class="szi"><i class="szs sz-small"></i><b>Small (2)</b> 10 1/2&quot; x 11 1/16&quot; x 12 3/4&quot; <em>&times;16</em></span><em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em></div>
+      <div class="sizeleg"><b>Niche sizes on this wall — every row spans 88.5&quot;</b><span class="szi"><i class="szs sz-large"></i><b>Large (2)</b> 10 1/2&quot; x 22 1/8&quot; x 12 3/4&quot; <em>&times;32</em></span><span class="szi"><i class="szs sz-small"></i><b>Small (2)</b> 10 1/2&quot; x 11 1/16&quot; x 12 3/4&quot; <em>&times;16</em></span><em class="szn">Height &times; width &times; depth, as measured on this wall. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em></div>
       <div class="bsub">10 available · $76,960 listed · Prices effective January 13, 2025</div>
     </div>
   </div>
@@ -4809,7 +4830,7 @@
     <div class="fi"><span class="fl">Niche Sales Tax</span>
       <span class="fv">none — glass-front niches are not taxed</span></div>
     <div class="fi"><span class="fl">Crypt fee source</span>
-      <span class="fv">Recording, opening &amp; closing and monobar come from the quote tool (operator, 2026-08-01); the crypt sheet’s fee box is superseded. The vase is the sheet’s.</span></div>
+      <span class="fv">Recording, opening &amp; closing, the monobar and the vase are Bonney Watson’s current charges for this building. Ask us to confirm today’s charges before writing.</span></div>
   </div>
   <div class="pfoot">
     <b>Tier G is the top row, tier A the bottom. Space numbers run 101–231 around the building.</b><br>
@@ -4818,7 +4839,16 @@
     1 not offered (listed available, no price) &nbsp;·&nbsp; 156 reserved &nbsp;·&nbsp; 229 occupied &nbsp;·&nbsp;
     3 not selling &nbsp;·&nbsp; 18 unavailable — ask us &nbsp;·&nbsp;
     27 niches available, $233,075 listed &nbsp;·&nbsp; Prices effective January 13, 2025<br>
-    Crypt availability comes from the cemetery Lot Inquiry List printed 2026-08-01 (1,355 rows over 875 crypt spaces) and crypt PRICES from the cemetery crypt-price export of 2026-08-01 (695 priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — ask us for today&rsquo;s status and price before writing.
+    <!-- THE FAMILY REGISTER, 2026-08-02 (s11/family-register). This line used to read:
+         "Crypt availability comes from the cemetery Lot Inquiry List printed <date>
+          (1,355 rows over 875 crypt spaces) and crypt PRICES from the cemetery
+          crypt-price export of <date> (695 priced positions); the niche walls are from
+          the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically"
+         — a paragraph about our filing, in front of a family. The provenance is real and
+         is kept in scripts/com-crypt-data.mjs (MIS.printed / MIS.resultRows / MIS.spaces
+         / PRICES.exported / PRICES.rows) and in the comments there. The page now says
+         only what a family can act on: that we keep it current, and to ask us. -->
+    Availability and pricing are kept current against cemetery records &mdash; ask us to confirm today&rsquo;s status before writing. Crypt prices effective August 1, 2026.
   </div>
 </div><!-- /main -->
 
@@ -4859,13 +4889,21 @@ function head(id, sub, mis) {
     '<div class="cardmis">' + mis + '</div>';
 }
 
-var SNAP_PRINTED = '2026-08-01';
+// STATUS NOTES, REWORDED 2026-08-02 (s11/family-register). Each of these used to name
+// the report and the date it was printed — "the cemetery inventory records printed
+// 2026-08-01", "the crypt sheet marked it NOT SELLING". A family reading that learns the
+// name of a document they cannot see and a date that makes the page look stale. The
+// FACTS are unchanged (which crypts are sellable, and that nothing unsellable shows a
+// price); only the voice is. Provenance for the next maintainer: statuses come from the
+// cemetery Lot Inquiry List printed ${MIS.printed}, prices from the crypt-price export
+// of ${PRICES.exported}, and `unlisted` is the crypt sheet's NOT SELLING mark with no
+// corresponding row in the inventory list at all.
 var ST_NOTE = {
-  occupied: 'Occupied \u2014 an interment is recorded at this crypt in the cemetery inventory records printed ' + SNAP_PRINTED + '. Not sellable. No pricing shown.',
-  reserved: 'Reserved \u2014 held for an owner in the cemetery inventory records as of ' + SNAP_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
+  occupied: 'Occupied \u2014 an interment is recorded at this crypt. Not sellable. No pricing shown.',
+  reserved: 'Reserved \u2014 held for an owner, with no interment recorded. Not sellable. No pricing shown.',
   blocked: 'Not for sale \u2014 this crypt is withheld from sale. No pricing shown.',
-  unlisted: 'Unavailable \u2014 ask us for current availability. The crypt sheet marked it NOT SELLING and the cemetery inventory records do not carry it at all, so there is no positive statement that it is for sale. No pricing shown.',
-  unpriced: 'Not offered \u2014 The cemetery inventory records list this crypt as AVAILABLE on ' + SNAP_PRINTED + ' but carries NO PRICE for it (the price and E.C.F. fields are both zero). A crypt is only on the market here when a price greater than zero is attached to it, so nothing is quoted and no total is shown. Ask us for the current price before offering it.'
+  unlisted: 'Unavailable \u2014 this crypt is not being offered for sale, so no pricing is shown. Ask us for current availability.',
+  unpriced: 'Not offered \u2014 this crypt is listed as available but carries no price, so nothing is quoted and no total is shown. A crypt is only on the market here when a price is attached to it. Ask us for the current price before offering it.'
 };
 
 function cryptCard(d) {
@@ -4920,7 +4958,7 @@ function cryptCard(d) {
       ' \u2014 switch ' + (!recOn && !ocOn ? 'them' : 'it') + ' on in the fee box below to add '
       + (!recOn && !ocOn ? fm(REC + OC) : fm(!recOn ? REC : OC)) + '.</div>';
   }
-  h += '<div class="cnote">The cemetery inventory records listed this crypt as AVAILABLE and priced it on ' + SNAP_PRINTED + '. One unit, one price \u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are the QUOTE TOOL\u2019s figures (operator, ' + SNAP_PRINTED + '), not the crypt sheet\u2019s. Always confirm current status and price with us before writing.</div>';
+  h += '<div class="cnote">This crypt is offered at the price shown. One unit, one price \u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are Bonney Watson\u2019s current charges. Availability and pricing are kept current against cemetery records \u2014 ask us to confirm today\u2019s status before writing.</div>';
   return h;
 }
 
@@ -4938,7 +4976,7 @@ function nicheCard(d) {
   if (d.st !== 'available') {
     h += '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>';
     h += sizeRows(d);
-    h += '<div class="cnote">Not available on the wall sheet \u2014 ask us for today\u2019s availability. No pricing shown.</div>';
+    h += '<div class="cnote">Not currently offered \u2014 ask us for today\u2019s availability. No pricing shown.</div>';
     return h;
   }
   var price = +d.price, e = ecf(price), tot = price + e;

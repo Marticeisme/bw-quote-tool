@@ -847,7 +847,10 @@ function cardHtml(d) {
   // Sold or not priced: the card names the niche and its status, and shows NO pricing.
   if (d.st !== 'available' || !d.price) {
     var note = d.st === 'unpriced'
-      ? 'This niche carries no price on the price sheet and is not marked sold. Confirm today’s availability with the cemetery office before quoting.'
+      // Reworded 2026-08-02 (s11/family-register): "carries no price on the price sheet"
+      // named an internal document. The fact is the same — no current price is listed for
+      // this niche and it is not marked sold, so nothing is quotable here.
+      ? 'No price is currently listed for this niche and it is not marked sold. Ask us to confirm today’s availability and price before quoting.'
       : 'Not available \u2014 no pricing shown. Ask us to confirm today\u2019s availability.';
     return cardHead(d) +
       '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>' +

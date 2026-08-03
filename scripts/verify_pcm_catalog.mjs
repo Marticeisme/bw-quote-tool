@@ -18,7 +18,7 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
-import { assertNoMis } from './_no_mis_assert.mjs';
+import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 export const PAGE = 'pcm-design-catalog.html';
 export const DATA = 'data/pcm-catalog.json';
@@ -160,7 +160,7 @@ export async function run(ck, base) {
     (missing.length ? ` — missing ${missing.length}, e.g. ${missing[0]}` : ''));
 
   // ---- 3. no prices, and no rendered "MIS" ----
-  assertNoMis(ck, PAGE, src);
+  assertFamilyRegister(ck, PAGE, src);
   const body = src.replace(/<!--[\s\S]*?-->/g, '');
   const money = body.match(/\$\s?[\d,]+(\.\d\d)?/g) || [];
   ck(money.length === 0,
