@@ -68,6 +68,102 @@ export const LOOKUPS = [
   { q: 'praying hands 017', id: 'PRAYING HANDS 017' },
 ];
 
+// Format / group / category probes. Sprint-12 operator ruling: typing "companion" must
+// show all companion designs. The expected set is COMPUTED OFF data/pcm-catalog.json's own
+// fmt/cat/sub fields — deliberately not off the facet tokens build_pcm_catalog.py writes,
+// so the gate cannot agree with the builder about a shared mistake.
+//
+// Note what "all companion designs" means, because the two readings differ by six cards:
+// 124 designs carry fmt `companion`, and the 2011 book files another SIX under Companion
+// Designs / Ledgers, whose fmt is `ledger` because they are ledgers. They are companion
+// designs — the book says so on the page — so the ruling covers all 130, and `subset` below
+// asserts separately that every one of the 124 is in the 130.
+export const FORMAT_PROBES = [
+  { q: 'companion', match: (d) => /companion/i.test(d.fmt + ' ' + d.cat + ' ' + d.sub),
+    subset: (d) => d.fmt === 'companion' },
+  { q: 'companions', sameAs: 'companion' },
+  { q: 'individual', match: (d) => /individual/i.test(d.fmt + ' ' + d.cat + ' ' + d.sub) },
+  { q: 'ledger', match: (d) => /ledger/i.test(d.fmt + ' ' + d.cat + ' ' + d.sub) },
+  { q: 'ledgers', sameAs: 'ledger' },
+  { q: 'flat', match: (d) => /flat/i.test(d.fmt + ' ' + d.sub) },
+  { q: 'flat marker', sameAs: 'flat' },
+];
+
+// ---- image headers, read from the bytes ----------------------------------------------
+// Dimensions are asserted against the FILE, not against what the catalog claims and not
+// against what a decoder library would hand back after it had already normalised things.
+// A PNG's IHDR also carries the bit depth and colour type, which is how "the 1-bit output
+// came back" is caught rather than merely "the file is still 300 px".
+export function pngInfo(buf) {
+  if (buf.length < 33 || buf.readUInt32BE(0) !== 0x89504e47) return null;
+  if (buf.toString('ascii', 12, 16) !== 'IHDR') return null;
+  const out = { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20),
+                depth: buf[24], colorType: buf[25], palette: 0 };
+  let o = 8;
+  while (o + 8 <= buf.length) {
+    const len = buf.readUInt32BE(o), id = buf.toString('ascii', o + 4, o + 8);
+    if (id === 'PLTE') { out.palette = len / 3; break; }
+    if (id === 'IDAT') break;
+    o += 12 + len;
+  }
+  return out;
+}
+
+export function webpInfo(buf) {
+  if (buf.toString('ascii', 0, 4) !== 'RIFF' || buf.toString('ascii', 8, 12) !== 'WEBP') return null;
+  let o = 12;
+  while (o + 8 <= buf.length) {
+    const id = buf.toString('ascii', o, o + 4), len = buf.readUInt32LE(o + 4), d = o + 8;
+    // VP8 (lossy) puts the size after a 3-byte frame tag AND a 3-byte sync code, and the
+    // top two bits of each 16-bit field are a scale, not size — read either wrong and you
+    // get five-digit garbage out of a 990 px image.
+    if (id === 'VP8X') return { w: 1 + buf.readUIntLE(d + 4, 3), h: 1 + buf.readUIntLE(d + 7, 3) };
+    if (id === 'VP8 ') return { w: buf.readUInt16LE(d + 6) & 0x3fff, h: buf.readUInt16LE(d + 8) & 0x3fff };
+    if (id === 'VP8L') {
+      const v = buf.readUInt32LE(d + 1);
+      return { w: (v & 0x3fff) + 1, h: ((v >> 14) & 0x3fff) + 1 };
+    }
+    o = d + len + (len & 1);
+  }
+  return null;
+}
+
+export function jpegInfo(buf) {
+  if (buf.readUInt16BE(0) !== 0xffd8) return null;
+  let o = 2;
+  while (o + 9 < buf.length) {
+    if (buf[o] !== 0xff) { o++; continue; }
+    const m = buf[o + 1];
+    if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+      return { h: buf.readUInt16BE(o + 5), w: buf.readUInt16BE(o + 7) };
+    }
+    if (m === 0xd8 || (m >= 0xd0 && m <= 0xd9)) { o += 2; continue; }
+    o += 2 + buf.readUInt16BE(o + 2);
+  }
+  return null;
+}
+
+export function imageInfo(rel) {
+  const buf = fs.readFileSync(path.resolve(rel));
+  if (/\.png$/i.test(rel)) return pngInfo(buf);
+  if (/\.webp$/i.test(rel)) return webpInfo(buf);
+  if (/\.jpe?g$/i.test(rel)) return jpegInfo(buf);
+  return null;
+}
+
+export function dirBytes(dir) {
+  let bytes = 0, files = 0;
+  const walk = (p) => {
+    for (const e of fs.readdirSync(p, { withFileTypes: true })) {
+      const q = path.join(p, e.name);
+      if (e.isDirectory()) walk(q);
+      else { files++; bytes += fs.statSync(q).size; }
+    }
+  };
+  walk(path.resolve(dir));
+  return { bytes, files };
+}
+
 export async function run(ck, base) {
   const data = JSON.parse(fs.readFileSync(path.resolve(DATA), 'utf8'));
   const tags = JSON.parse(fs.readFileSync(path.resolve(TAGS), 'utf8'));
@@ -158,6 +254,91 @@ export async function run(ck, base) {
   ck(missing.length === 0,
     `all ${all.length} referenced images exist on disk` +
     (missing.length ? ` — missing ${missing.length}, e.g. ${missing[0]}` : ''));
+
+  // ---- 2b. resolution, encoding and the operator's size budgets ----
+  // The catalog used to ship images far below what the books carry: 150 px 1-bit element
+  // tiles off 270 px native art, 760 px photos off 4000 px frames. These checks assert the
+  // *source's* resolution reached disk, that nothing was upscaled past it, and that the
+  // three directories stay inside the budgets the operator set.
+  const spec = data.imageSpec || {};
+  ck(!!spec.elementDpi && !!spec.budgets,
+    'the catalog records how its images were rendered (imageSpec)');
+  ck(spec.elementDpi === spec.elementNativePpi,
+    `elements are rendered at the book's own ${spec.elementNativePpi} ppi, not above it ` +
+    `(elementDpi ${spec.elementDpi}) — anything higher would be invented detail`);
+
+  const elInfo = data.elements.map((e) => ({ e, i: imageInfo(e.img) }));
+  const badHeader = elInfo.filter(({ i }) => !i);
+  ck(badHeader.length === 0,
+    `every element image has a readable PNG header (${badHeader.length} unreadable)`);
+  const drift = elInfo.filter(({ e, i }) => i && (i.w !== e.px[0] || i.h !== e.px[1]));
+  ck(drift.length === 0,
+    `every element file's real size matches the size the catalog records` +
+    (drift.length ? ` — ${drift.length} disagree, e.g. ${drift[0].e.code}` : ''));
+  const elLong = elInfo.filter(({ i }) => i).map(({ i }) => Math.max(i.w, i.h));
+  const elMin = Math.min(...elLong), elMax = Math.max(...elLong);
+  const elMed = elLong.slice().sort((a, b) => a - b)[elLong.length >> 1];
+  // The floor is derived from what previously SHIPPED (elementPrevCapPx, 150) rather than
+  // from a round number: the claim being gated is "no tile is worse than before", and a
+  // flat ">= 280" would be a lie — the trimmed native tiles are 270-300 px, and 3,415 of
+  // the 3,973 sit below 280 because the book's own art does.
+  ck(elMin > spec.elementPrevCapPx,
+    `every element tile beats the old ${spec.elementPrevCapPx} px ceiling ` +
+    `(smallest long edge ${elMin})`);
+  ck(elMed >= spec.elementPrevCapPx * 1.8,
+    `the median element tile is ${elMed} px, ≥1.8x the old ${spec.elementPrevCapPx}`);
+  ck(elMax <= spec.elementCapPx,
+    `no element tile exceeds the ${spec.elementCapPx} px cap (largest ${elMax})`);
+  const notPal = elInfo.filter(({ i }) => i && (i.colorType !== 3 || i.depth === 1));
+  ck(notPal.length === 0,
+    `every element tile is antialiased palette art, not 1-bit line art` +
+    (notPal.length ? ` — ${notPal.length} are not, e.g. ${notPal[0].e.code}` : ''));
+  const tooMany = elInfo.filter(({ i }) => i && i.palette > spec.elementGreyLevels);
+  ck(tooMany.length === 0,
+    `every element palette is within the ${spec.elementGreyLevels} grey levels the ` +
+    `budget was measured on (${tooMany.length} over)`);
+
+  const shot = data.photos.filter((p) => p.img.startsWith('pcm-example-images/'));
+  const phInfo = shot.map((p) => ({ p, i: imageInfo(p.img) }));
+  const phDrift = phInfo.filter(({ p, i }) => !i || i.w !== p.px[0] || i.h !== p.px[1]);
+  ck(phDrift.length === 0,
+    `every example photo's real size matches the catalog (${phDrift.length} disagree)`);
+  const phLong = phInfo.map(({ i }) => Math.max(i.w, i.h));
+  ck(Math.min(...phLong) > spec.photoPrevPx,
+    `every one of the ${shot.length} example photos beats the old ${spec.photoPrevPx} px ` +
+    `(smallest ${Math.min(...phLong)})`);
+  ck(Math.max(...phLong) <= spec.photoPx,
+    `no photo exceeds the ${spec.photoPx} px budget ceiling (largest ${Math.max(...phLong)})`);
+  // Exactly one frame is source-limited: index 58's crop leaves 1060 px of original pixels,
+  // and upscaling it to the cap would be inventing them. Asserted as "at most one" so a
+  // second one appearing is a real finding.
+  const belowCap = phLong.filter((v) => v < spec.photoPx).length;
+  ck(belowCap <= 1,
+    `${shot.length - belowCap} of ${shot.length} photos reach the ${spec.photoPx} px cap; ` +
+    `${belowCap} is source-limited`);
+
+  const refInfo = data.reference.map((r) => ({ r, i: imageInfo(r.img) }));
+  const refDrift = refInfo.filter(({ r, i }) => !i || i.w !== r.px[0] || i.h !== r.px[1]);
+  ck(refDrift.length === 0,
+    `every reference plate's real size matches the catalog (${refDrift.length} disagree)`);
+  // Sanity, not just equality: a WebP header read at the wrong offset yields five-digit
+  // garbage, and a plate that "claims" 35124x42846 is a broken reader or a broken file.
+  const insane = refInfo.filter(({ i }) =>
+    !i || i.w < 200 || i.h < 200 || i.w > 8000 || i.h > 8000 || i.w < i.h);
+  ck(insane.length === 0,
+    `every reference plate reports a sane landscape page size ` +
+    (insane.length ? `— ${insane[0].r.img} says ${insane[0].i.w}x${insane[0].i.h}` :
+      `(all ${refInfo[0].i.w}x${refInfo[0].i.h})`));
+  ck(Math.min(...refInfo.map(({ i }) => i.w)) >= spec.referencePrevPx * 1.4,
+    `reference plates are at least 1.4x the old ${spec.referencePrevPx} px wide ` +
+    `(${Math.min(...refInfo.map(({ i }) => i.w))} px, 2.1x the pixels)`);
+
+  for (const [dir, cap] of Object.entries(spec.budgets || {})) {
+    const { bytes, files } = dirBytes(dir);
+    ck(bytes <= cap,
+      `${dir}: ${files} files, ${(bytes / 1e6).toFixed(2)} MB ` +
+      `within the ${(cap / 1e6).toFixed(0)} MB budget`);
+  }
 
   // ---- 3. no prices, and no rendered "MIS" ----
   assertFamilyRegister(ck, PAGE, src);
@@ -338,6 +519,70 @@ export async function run(ck, base) {
     ck(byCat.designs.length >= religiousInData,
       `the category word "religious" still returns its ${religiousInData} designs ` +
       `(${byCat.designs.length} shown)`);
+
+    // ---- 6c. FORMAT / CATEGORY search — "typing companion must show all companion
+    // designs". Both sides are computed: the expected set from the catalog's own
+    // fmt/cat/sub, the actual from the rendered page. ----
+    const fmtCounts = {};
+    for (const probe of FORMAT_PROBES) {
+      const got = await shownFor(probe.q);
+      const ref = probe.sameAs
+        ? FORMAT_PROBES.find((p) => p.q === probe.sameAs)
+        : probe;
+      const expect = data.designs.filter(ref.match).map((d) => d.id);
+      const expectSet = new Set(expect);
+      const gotSet = new Set(got.designs);
+      fmtCounts[probe.q] = got.designs.length;
+      const missingIds = [...expectSet].filter((id) => !gotSet.has(id));
+      const extraIds = [...gotSet].filter((id) => !expectSet.has(id));
+      ck(missingIds.length === 0 && extraIds.length === 0,
+        // Sets, not row counts: 2011-2271 is cross-listed, so 130 companion ROWS in the
+        // data are 129 distinct designs and 130 cards on the page.
+        `"${probe.q}" returns exactly the ${expectSet.size} distinct designs the data ` +
+        `files as ${ref.q} — ${expect.length} rows, ${got.designs.length} cards (got ${gotSet.size}` +
+        (missingIds.length ? `, missing ${missingIds.slice(0, 3).join(', ')}` : '') +
+        (extraIds.length ? `, extra ${extraIds.slice(0, 3).join(', ')}` : '') + ')');
+      if (ref.subset) {
+        const sub = data.designs.filter(ref.subset).map((d) => d.id);
+        ck(sub.every((id) => gotSet.has(id)),
+          `"${probe.q}" includes every one of the ${new Set(sub).size} distinct designs ` +
+          `(${sub.length} rows) whose format is literally ${ref.q}`);
+      }
+      // Every hit must say WHY: a lit chip on each returned card.
+      const lit = got.chips.filter((c) => c.length).length;
+      ck(lit === got.designs.length && lit > 0,
+        `"${probe.q}" lights an explanatory chip on all ${got.designs.length} cards ` +
+        `(${lit} lit)`);
+    }
+    ck(fmtCounts['companions'] === fmtCounts['companion'] && fmtCounts['companion'] > 0,
+      `"companions" and "companion" return the same ${fmtCounts['companion']} designs`);
+    ck(fmtCounts['ledgers'] === fmtCounts['ledger'] && fmtCounts['ledger'] > 0,
+      `"ledgers" and "ledger" return the same ${fmtCounts['ledger']} designs`);
+
+    // The facet chip is a NAMED chip, not merely "something lit" — a "companion" hit reads
+    // "format: companion" (or "group: companion designs" for the six companion ledgers).
+    await page.fill('#searchInput', 'companion');
+    await page.waitForTimeout(340);
+    const namedChips = await page.evaluate(() =>
+      [...document.querySelectorAll('.design-card')].filter((c) => c.style.display !== 'none')
+        .map((c) => [...c.querySelectorAll('.tag.hit')].map((t) => t.textContent.trim())));
+    const everyCardExplains = namedChips.every((cs) => cs.some((t) => /companion/.test(t)));
+    ck(everyCardExplains && namedChips.length > 0,
+      `every "companion" card carries a chip naming companion ` +
+      `(e.g. "${(namedChips[0] || [])[0]}")`);
+    const formatChip = namedChips.filter((cs) => cs.includes('format: companion')).length;
+    ck(formatChip > 0, `${formatChip} of them read exactly "format: companion"`);
+
+    // The subject layer must not have moved. Both sides computed from the tag data.
+    const rosesNow = await shownFor('roses');
+    const roseExpect = taggedWith('rose');
+    const roseEls = data.elements.filter((e) =>
+      (tags.elementStemTags[stemOf(e.code)] || []).includes('rose')).length;
+    ck(rosesNow.designs.length === roseExpect.length,
+      `the subject baseline holds: "roses" still returns ${rosesNow.designs.length} designs ` +
+      `(${roseExpect.length} tagged rose)`);
+    ck(+rosesNow.elementCount === roseEls && roseEls > 0,
+      `"roses" still reaches ${rosesNow.elementCount} elements (${roseEls} tagged rose)`);
 
     await page.fill('#searchInput', 'zzzznotathing');
     await page.waitForTimeout(320);

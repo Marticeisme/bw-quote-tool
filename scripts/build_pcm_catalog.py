@@ -45,6 +45,55 @@ def slug(s):
 FMT_LABEL = {'flat': 'Flat marker', 'ledger': 'Ledger',
              'individual': 'Individual', 'companion': 'Companion'}
 
+# ---- format / category search -------------------------------------------------------
+# Operator ruling, sprint-12: typing "companion" must show all companion designs, and by
+# extension the format and category words the books themselves use. Most of those words
+# already matched by accident, because a card's data-name is built out of its cat/sub/fmt
+# labels and the search does a substring test on it. Accident is not a feature:
+#
+#   * "companions" returned ZERO. The plural/singular tolerance lived only on the tag
+#     path, so the one word a counselor is most likely to type in the plural missed.
+#   * a "companion" hit lit no chip, so the page never said WHY the card came back —
+#     which is precisely the explanation the subject search was built to give.
+#
+# So the format/category words become real, first-class facets on the card, matched with
+# the same singular() rule the tags use, and explained with their own chips.
+#
+# These two are dropped: they are noise words shared by every group, they already match
+# through data-name, and as facets they would put a meaningless chip on 700 cards.
+FACET_STOP = {'collection', 'design', 'designs'}
+
+
+def facet_tokens(*labels):
+    """The searchable words in a group/format label, in order, deduped, minus the stops."""
+    out = []
+    for lab in labels:
+        for w in norm(lab).split():
+            if w not in FACET_STOP and w not in out:
+                out.append(w)
+    return out
+
+
+def design_facets(d):
+    """(all facet tokens, [(prefix, label, tokens) ...] for the chips).
+
+    A chip is emitted only when its label CONTRIBUTES a word the earlier chips did not
+    already carry. Otherwise a 2020 flat marker would wear "format: flat marker" beside
+    "category: flat markers", and the 124 true companions would wear "format: companion"
+    beside "group: companion designs". The six companion LEDGERS are why the group chip
+    exists at all: their fmt is `ledger`, so without it "companion" would return them —
+    the book files them under Companion Designs — with nothing lit to say why."""
+    seen, chips = [], []
+    for prefix, lab in (('format', FMT_LABEL.get(d['fmt'], d['fmt'])),
+                        ('group', d['cat']), ('category', d['sub'])):
+        toks = facet_tokens(lab)
+        new = [t for t in toks if t not in seen]
+        if not new:
+            continue
+        seen.extend(new)
+        chips.append((prefix, lab, toks))
+    return seen, chips
+
 # Order the design groups the way a counselor walks a family through them: the current
 # book first, then the 2011 book's individual designs, then companions.
 GROUP_ORDER = [
@@ -127,6 +176,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .tag-row{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:6px;}
 .tag{font-size:10px;line-height:1.5;letter-spacing:.02em;color:var(--text-muted);background:var(--offwhite);border:1px solid var(--warm-border);border-radius:9px;padding:0 6px;white-space:nowrap;}
 .tag.hit{color:#fff;background:var(--orange);border-color:var(--orange-dark);font-weight:600;}
+/* format/group/category chips read as the book's own filing, not as a subject somebody
+   tagged by looking at the artwork — same shape, italic, so the two never get confused. */
+.tag-facet{font-style:italic;}
 .element-card .element-img{aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center;padding:9px;}
 .element-card .element-img img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto;}
 .element-card .pcm-number{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:0 5px 8px;word-break:break-word;line-height:1.25;}
@@ -205,14 +257,19 @@ def design_card(d, tags):
                                            FMT_LABEL.get(d['fmt'], d['fmt'])] if x)
     # The chips are the answer to "why did this card come back for 'flowers'?" - they sit
     # on every card so the vocabulary is discoverable, and the matching one lights up.
-    chips = ''.join(f'<span class="tag" data-tag="{esc(t)}">{esc(t.replace("-", " "))}</span>'
-                    for t in tags)
+    facets, facet_chips = design_facets(d)
+    chips = ''.join(
+        f'<span class="tag tag-facet" data-facet="{esc(" ".join(toks))}">'
+        f'{prefix}: {esc(lab.lower())}</span>'
+        for prefix, lab, toks in facet_chips)
+    chips += ''.join(f'<span class="tag" data-tag="{esc(t)}">{esc(t.replace("-", " "))}</span>'
+                     for t in tags)
     return (
         f'      <div class="product-card design-card" data-id="{esc(d["id"])}" '
         f'data-num="{d["num"]}" data-book="{esc(d["book"])}" data-cat="{esc(d["cat"])}" '
         f'data-sub="{esc(d["sub"])}" data-fmt="{esc(d["fmt"])}" '
         f'data-color="{esc(d["color"])}" data-name="{esc(norm(" ".join(bits)))}" '
-        f'data-tags="{esc(" ".join(tags))}">\n'
+        f'data-tags="{esc(" ".join(tags))}" data-facets="{esc(" ".join(facets))}">\n'
         f'        <div class="product-img"><img src="{esc(d["img"])}" '
         f'alt="Design PCM {d["num"]}" loading="lazy"></div>\n'
         f'        <div class="product-body">\n'
@@ -551,6 +608,23 @@ function expand(word) {{
   return out;
 }}
 
+/* ---- format / category facets -------------------------------------------------------
+   A design's format and its book group are searchable words in their own right:
+   "companion", "companions", "individual", "ledger", "ledgers", "flat", "flat marker",
+   plus the book's own section words. They used to match only as a substring of the
+   card's data-name, which meant no plural tolerance ("companions" found nothing) and no
+   chip to explain the hit. Both sides are singularised before comparing, so the query
+   and the label meet in the middle whichever one carries the s. */
+function facetMatch(facetStr, term) {{
+  if (!facetStr) return null;
+  var have = facetStr.split(' '), t = singular(term);
+  for (var i = 0; i < have.length; i++) {{
+    var f = have[i];
+    if (f === term || f === t || singular(f) === t || singular(f) === term) return f;
+  }}
+  return null;
+}}
+
 /* Which of a card's own tags answered the query - that is what lights up the chips. */
 function tagHits(tagStr, terms) {{
   if (!tagStr || !terms.length) return null;
@@ -566,13 +640,14 @@ function tagHits(tagStr, terms) {{
 
 /* Every term must land, by tag OR by the card's own text. AND across terms, so
    "companion rose" narrows instead of widening. */
-function matches(name, tagStr, terms, rawQuery) {{
+function matches(name, tagStr, terms, rawQuery, facetStr) {{
   if (!terms.length) return true;
   if (name.indexOf(rawQuery) !== -1) return true;
   var have = tagStr ? tagStr.split(' ') : [];
   for (var i = 0; i < terms.length; i++) {{
     var term = terms[i];
     if (name.indexOf(term) !== -1) continue;
+    if (facetMatch(facetStr, term)) continue;
     var want = expand(term), ok = false;
     for (var k = 0; k < have.length; k++) {{ if (want[have[k]]) {{ ok = true; break; }} }}
     if (!ok) return false;
@@ -585,7 +660,13 @@ function markChips(card, terms) {{
   if (!row) return;
   var hit = tagHits(card.dataset.tags, terms);
   row.querySelectorAll('.tag').forEach(function (chip) {{
-    chip.classList.toggle('hit', !!(hit && hit[chip.dataset.tag]));
+    if (chip.dataset.facet !== undefined) {{
+      var on = false;
+      terms.forEach(function (t) {{ if (facetMatch(chip.dataset.facet, t)) on = true; }});
+      chip.classList.toggle('hit', on);
+    }} else {{
+      chip.classList.toggle('hit', !!(hit && hit[chip.dataset.tag]));
+    }}
   }});
 }}
 
@@ -605,7 +686,7 @@ function applyFilters() {{
              (!cat || c.dataset.cat === cat) &&
              (!fmt || c.dataset.fmt === fmt) &&
              (!col || c.dataset.color === col) &&
-             matches(c.dataset.name, c.dataset.tags, terms, q);
+             matches(c.dataset.name, c.dataset.tags, terms, q, c.dataset.facets);
     c.style.display = ok ? '' : 'none';
     if (ok) {{
       shownDesigns++;
