@@ -1891,6 +1891,95 @@ reconcile; `verify_guide_pages.mjs` + `verify_guides_page.mjs` green; `npm run c
 
 ---
 
+### 2026-08-03 — A PAGE PER LOCATION, and the end of object-fit in the niche guides (sprint-13 Track A)
+Branch `s13/granite-niches-photos`, committed locally — **not pushed**. Files:
+`granite-niches-guide.html`, `glass-front-niches-guide.html`, `guide-print.css`,
+`scripts/verify_guide_pages.mjs`, `scripts/cut_granite_niche_photos.py`,
+`scripts/cut_glass_niche_photos.py`, `granite-niche-images/`, `glass-niche-images/`,
+all 20 guide PDFs rebuilt.
+
+**Operator, 2026-08-03:** *"the crops on the granite niches guide cut off a lot of the
+photos. This guide can be longer if we can have better quality photos for each section.
+maybe a page per columbarium or nich section each."* And, mid-sprint: *"same with glass
+front niches as well."*
+
+**1. THE CROPPING WAS THE PRINT CSS, NOT THE IMAGE FILES.** Both guides printed in a
+`column-count:2` flow, and both bounded photographs with a FIXED height plus
+`object-fit:cover` — granite at `max-height:1.25in`, glass at `height:2.7in`. That pair is
+a crop by construction: the box is chosen first and the picture is cut to fit it. On a 4:3
+frame in a 3.3in column it keeps a band across the middle and throws the rest away. The
+files were only half the story, and re-cutting them alone would have fixed nothing.
+
+**The rule to copy into the next guide:** bound a printed photograph with `max-width` and
+`max-height` and leave `width:auto;height:auto`. The picture is then chosen first and the
+box follows it. **There is no `object-fit` left in either niche guide.** A frame can be
+too small now; it cannot be cut.
+
+**2. One column, one page per location.** Granite prints Rock of Ages, the Garden of
+Meditation, the Terrace Garden niches and the Memorial Path as four separate sheets (the
+Terrace Garden section SPLIT in two — the niche bank and the path placements are different
+products at different prices). Glass prints Eternal Light, the Mountain View island and
+the Radiance/Serenity walls as three. In both, the two closing sections ("at a glance" +
+"talking it over") share the last sheet rather than taking two nearly-empty ones. Six
+printed pages each, against a raised cap of eight.
+
+**3. `TIGHT_CAPS` became `PER_GUIDE_CAPS`, a two-way map.** It only ever held guides that
+had to be SHORTER; it now holds any guide whose own requirement differs. Granite Niches
+2 -> 8, Glass-Front Niche 3 (an equality, deleted) -> 8. **`GUIDE_MAX_PAGES` is still six
+and is now ASSERTED to be six**, so raising the shared cap instead of naming an exception
+fails the gate — and a cap naming a PDF that is not in `CAPPED_GUIDES` fails too, because
+an exception that is checked against nothing is how an exception rots.
+
+**4. Type size for these two lives in `guide-print.css`, not in the guides.** §7's geometry
+compensation flattens the estate to 7.7pt for a six-page budget, the shared sheet is linked
+AFTER each guide's own `<style>`, and `.prose p` there has exactly the same specificity as
+`.prose p` in a guide — so the guide loses every time. The eight-page pair set their type
+from the shared sheet's PER-GUIDE OVERRIDES block, keyed on `<body data-guide="...">`.
+That attribute is the mechanism to reuse; nothing else about these guides is special-cased.
+
+**5. Photographs re-cut at native aspect from the operator's own originals.**
+`scripts/cut_granite_niche_photos.py` and `scripts/cut_glass_niche_photos.py` record the
+source frame, the crop fractions and the reason each frame was chosen **or rejected** —
+the rejections are the part that otherwise gets lost. Two shipped files were letterboxes:
+`gomn-wall.jpg` was 1400x546 out of a 4:3 photograph (both wings of the wall gone) and
+`tgmp-path-placements.jpg` was 1400x420, which cut the bowl off the birdbath it existed to
+show. granite-niche-images 2,108 KB / 9 files -> 2,499 KB / 11; glass-niche-images
+2,078 KB / 8 -> 1,684 KB / 8.
+
+**Curation rules applied, beyond the standing PII one** (legible memorial names and dates
+on our own property photos are fine, operator 2026-07-29):
+- **A living person in the frame is a rejection, including in reflection.** The glass-front
+  locations are indoor rooms, so half that folder carries a visitor walking through or the
+  photographer reflected full-length in the glass. Seven frames went for this.
+- **Staff markings are a rejection**: a blue work X taped across a niche front, a blue tape
+  label reading "1003-9", a "WATCH YOUR STEP" floor sign.
+- **Wrong product is a rejection even when the folder name suggests otherwise.**
+  `Cremation Posts\` is a pond-side cremation garden, not the Terrace Garden path's
+  blank-shutter posts; `Garden Court and Terrace Garden Maus\` and `Chapel of Memories\`
+  are mausoleum CRYPT fronts. A picture of something a family cannot buy, next to the price
+  of something else, is worse than no picture.
+- **`rad-wall.jpg` / `ser-wall.jpg` were deliberately NOT regenerated.** They are already
+  full-frame 3:4 so the complaint does not touch them, and the source folder holds three
+  near-identical frames of two walls that look alike — re-cutting means guessing which is
+  Radiance. Showing a family the wrong wall beside the right price is the worse error.
+
+**6. Six checks that had been RED on main since 2026-08-02 are fixed.**
+`verify_granite_niche_ranges.mjs` requires the GOMN and Terrace Garden sections to carry
+their fee schedule's provenance verbatim; the s11 family-register sweep (`a93301f`) removed
+the sentences and left the assertions. The gate is standalone, not in `npm test`, so nobody
+saw it. The schedule name and confirmation date are back, in family register — neither was
+ever internal jargon.
+
+Gates: `verify_guide_pages` ALL page-shape checks passed (both new caps sabotage-proven in
+both directions, plus the shared-cap and orphan-cap guards); `verify_photo_first` 13 cards;
+`verify_guides_page` ALL OK; `verify_granite_niche_ranges` and `verify_glass_niche_ranges`
+reconcile; `verify_urn_garden_ranges` reconciles; `verify_print_header` 25 pages 0 over cap;
+`npm run check` `index.html: 8 blocks, 0 errors`; `npm test` 2083/0 across 36 suites in the
+worktree (2085 on main — the 2-assertion delta is `test-contact-csv.mjs`'s documented
+map-repo cross-check, which cannot run where `wmp-cemetery-map/` is absent).
+
+---
+
 ### 2026-08-02 — Covers off, MIS never named, and the PHOTO-FIRST CARD template (sprint-11 Track D)
 Branch `s11/guides-photo-first`, committed locally — **not pushed**.
 
