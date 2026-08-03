@@ -1,5 +1,14 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-13 — OPENED 2026-08-03** (same director session as s12;
+tracks: Opus). Operator: granite-niches guide crops cut off the photos; guide may run
+longer — a page per columbarium/niche section. Ruling: THIS guide's print cap is 8
+total pages (per-guide exception, gated; all others stay 6); frames follow photos.
+Track A `s13/granite-niches-photos` spawned (../bw-quote-tool-s13a) — curates from the
+operator's D:\ property-photo folders (photo-PII relaxed ruling applies; NO operational
+paperwork in frame), photo-first template from BRAND_AND_BUILD_LOG, prices/ranges
+untouched and re-verified. See `sprints/sprint-13/SPRINT.md`.
+
 **Sprint-12 — PUSHED AND LIVE-VERIFIED 2026-08-03** (operator: "push it all live";
 origin/main reached `50a103c` — the push landed via the shared repo moments before the
 director's own push command, which found everything up-to-date; deploy verified ON THE
