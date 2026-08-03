@@ -63,6 +63,66 @@ split it?); photo gaps recorded (lawn crypts, scattering gardens folder EMPTY,
 ground-burial scene, veterans); masthead logo stays print-hidden (costs pages).
 Wave 2 SPAWNED: B (marker guides, s11b worktree) + E (PCM catalog, s11e).
 
+**Tracks E, C, F ALL MERGED; origin port fix integrated; final main GREEN at
+1799/34** (director's own run; arithmetic reconciles 1538+58+67+42+94; suites
+31+3). E2 (PCM subject search) IN FLIGHT — see below.
+
+**Track E MERGED (`74a537d`):** pcm-design-catalog.html — 700 designs (2020 book
+354, 2011 book 346) by the books' own categories, PCM number dominant + jump box,
+3,973 elements in 18 on-demand categories, 30 curated real photos + the 5
+markers-guide photos by reference, 13 reference plates; data→build→gate (pcm_extract.py
+/ build_pcm_catalog.py / verify_pcm_catalog.mjs 67 checks + suite, 7 sabotages);
+flat-granite-only proven by looking (ledger plates measured, "Silver Bronze" is a
+granite colour); real bug caught: PCM 2271 printed twice in the 2011 book, now a
+gated crossListed record. 16.75 MB / 4,717 files added (operator size note at push
+gate). Websites scoped: designmemorials.com ideas adopted (number-first, jump box,
+reference tools); pacificcoastmemorials.com had nothing structural. Director
+re-ran gate on main (67/0) after killing a STALE s11d-rooted server on 3737 that
+the /__served-tree identity route exposed (the cranky fix earning its keep).
+guides.html pill collision (B+E both bumped Markers & Memorials) resolved to 4 by
+the director (`53be9d1`).
+
+**DEVIATION (director-owned, logged):** Track F was spawned INTO THE MAIN TREE
+while merges remained, so the E merge + pill fix landed on F's branch while the
+main REF stayed behind; repaired by `git branch -f main` onto the (linear-descendant)
+merge commit — content verified intact, F simply continued from the newer base.
+Lesson re-learned (s09 Track S had the same shape): never spawn a main-tree track
+before the merge queue is empty. Also mid-sprint: the operator's chip session
+pushed `6bef055` (test-august-promo reads BASE from _base.mjs — closes Track A's
+port-3737 chip) to origin; the chip's "pull --rebase" advice was REFUSED (would
+flatten seven --no-ff merges) and the commit was integrated by `git merge
+origin/main` instead. Main is now strictly ahead of origin; NOTHING PUSHED.
+
+**Track F/F2 MERGED:** walkthrough constrained to a 7-stop polyline through the
+well-reconstructed region (chapel→stained-glass, 9.93m); look free, scroll/arrows
+ease along the path, every escape vector removed at one choke point (view-matrix
+injection attempt stays on-path to 1.4e-16 m); "photographic preview / more still
+to come" label; verifier now pixel-gates EVERY stop (lit ≥85%, stdev/colour/detail
+floors + camera-position readback from the actual draw matrix) — sabotage into fog
+= named FAIL. First F agent died on a 401 mid-work; F2 inherited, audited, kept the
+work, fixed 3 things (SHOTS path, doubled word, whitespace-brittle test). NOTE the
+walkthrough gate is ~45 min under SwiftShader and NOT in npm test — run it
+deliberately when that surface changes. Path JSON is tracked; never hand-place
+stops without re-running the gate.
+
+**Track C MERGED:** filters + print-what's-filtered on all six catalog pages. The
+faceted engine existed; C added the shared 10-step price ladder (empty bands never
+render) + `f.order`, and the paginated `#filterSheet` (static-flow pages,
+break-after, fixed item heights — compare's position:fixed sheet CLIPS and was left
+untouched). 3/page caskets (3.1in photos), 4/page urns/keepsakes. Sabotage asserts
+a real Chromium PDF page count (reverting to compare's CSS → 4 pages collapse to
+1, named FAIL). Print-media page-1 byte-identical ×6 → no catalog-PDF rebuild
+needed, proven Track-K-style. Found+fixed pre-existing: build_all_caskets.py facet
+regex dead since the 2026-07-30 Cremation facet (exited 1 before writing, nothing
+corrupted). OPEN operator: price-ladder break points/labels are the track's;
+no confirm on huge prints (button states "Print these N · k pages"); dead
+Placement facet on cremation/rental page pre-existing, untouched.
+
+**Track E2 IN FLIGHT (operator request 2026-08-02):** "if I type rose or flowers
+it should show me all the PCM designs and elements that have roses or flowers" —
+subject-tagging all 700 designs BY LOOKING at them, controlled vocabulary +
+synonym layer, search wired across designs AND elements, gated.
+
 **Track B MERGED (director-audited, clean merge):** ONE markers-guide.html generates
 TWO PDFs via `?part=sizes|photos` (`data-print-part` + the guide's own print CSS —
 deliberately not two HTML files, so the eighteen prices exist once): "Granite Marker
