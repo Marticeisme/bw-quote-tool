@@ -416,6 +416,64 @@
      names the DOCUMENT and is not a duplicate of the logo. */
   body:not(.modal-printing) .hero-kicker { display: none !important; }
 
+  /* ── THE EIGHT-PAGE PHOTO-FIRST GUIDES (sprint-13 Track A) ────────────────────────
+     Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the
+     photos. This guide can be longer if we can have better quality photos for each
+     section. maybe a page per columbarium or nich section each." And, mid-sprint: "same
+     with glass front niches as well."
+
+     Two guides now print ONE PAGE PER LOCATION on an eight-page budget
+     (verify_guide_pages.mjs PER_GUIDE_CAPS; every other guide is still six). The page
+     breaks and the photo boxes live in each guide's own print block, because they are
+     structural and belong next to the markup they act on. What CANNOT live there is TYPE
+     SIZE: §7 above compensates the whole estate down to 7.7pt for a six-page budget, this
+     sheet is linked AFTER every guide's own <style>, and `.prose p` in §7 has exactly the
+     same specificity as `.prose p` in a guide. The guide loses every time. It lost
+     silently the first time this was tried — the page-per-location layout came out at
+     7.7pt with an inch and a half of white under each section, which is the worst of both
+     designs.
+
+     So the sizes are set HERE, keyed on `<body data-guide="...">`, where they are later in
+     the cascade and more specific. Nothing else about these guides is special-cased.
+
+     9pt with 1.4 leading, not 11pt: the photographs are the thing that got bigger, and a
+     family reading a printed leave-behind should not have to hold it at arm's length
+     either way. Measured page counts are in the s13 Track A report. */
+  body[data-guide="granite-niches"],
+  body[data-guide="glass-front-niches"] { font-size: 9pt; }
+  body[data-guide="granite-niches"] :is(.prose p, .prose li, .sidebar p, .sidebar li, .plan-items p, p),
+  body[data-guide="glass-front-niches"] :is(.prose p, .prose li, .sidebar p, .sidebar li, .plan-items p, p) {
+    font-size: 9pt; line-height: 1.4;
+  }
+  body[data-guide="granite-niches"] :is(.footnote, .prose .footnote),
+  body[data-guide="glass-front-niches"] :is(.footnote, .prose .footnote) {
+    font-size: 8pt; line-height: 1.35; margin-top: 7px;
+  }
+  body[data-guide="granite-niches"] .section-wrap h2,
+  body[data-guide="glass-front-niches"] .section-wrap h2 { font-size: 17pt; margin-bottom: 2px; }
+  body[data-guide="granite-niches"] .section-sub,
+  body[data-guide="glass-front-niches"] .section-sub { font-size: 10pt; margin-bottom: 7px; }
+  body[data-guide="granite-niches"] .section-kicker,
+  body[data-guide="glass-front-niches"] .section-kicker { font-size: 7.5pt; }
+  body[data-guide="granite-niches"] .section-wrap,
+  body[data-guide="glass-front-niches"] .section-wrap { padding-top: 4px; padding-bottom: 4px; }
+  body[data-guide="granite-niches"] .plan-header h3,
+  body[data-guide="glass-front-niches"] .plan-header h3 { font-size: 13pt; }
+  body[data-guide="granite-niches"] .plan-price,
+  body[data-guide="glass-front-niches"] .plan-price { font-size: 15pt; }
+  body[data-guide="granite-niches"] .plan-header,
+  body[data-guide="glass-front-niches"] .plan-header { padding: 9px 12px 7px; }
+  body[data-guide="granite-niches"] .plan-items,
+  body[data-guide="glass-front-niches"] .plan-items { padding: 0 12px 9px; }
+  body[data-guide="granite-niches"] .price-table td,
+  body[data-guide="glass-front-niches"] .price-table td { font-size: 8.5pt; padding: 4px 8px; }
+  body[data-guide="granite-niches"] .price-table th,
+  body[data-guide="glass-front-niches"] .price-table th { font-size: 8pt; padding: 5px 8px; }
+  body[data-guide="granite-niches"] .price-table caption,
+  body[data-guide="glass-front-niches"] .price-table caption { font-size: 7.5pt; }
+  body[data-guide="granite-niches"] .sidebar,
+  body[data-guide="glass-front-niches"] .sidebar { padding: 9px 12px; }
+
   /* vault-guide.html — `#all-pricing` carries page-break-before:always because it used to
      be two large price tables that deserved their own sheet. The pricing rule replaced
      them with two short invitations, so the forced break now buys a page that is 2.7% ink.
