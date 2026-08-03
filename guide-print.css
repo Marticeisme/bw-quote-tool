@@ -10,17 +10,15 @@
 
    What this file owns
    -------------------
-   1. Page geometry — real margins, which the guides never had. They
-      printed at `@page{margin:0}` with the sheet faking gutters via padding, so nothing
-      could live in the page margins.
-   2. A running footer in the @page margin boxes: Martice's contact block, "Page X of Y",
-      and the guide's own title. Chromium 148 supports @top- and @bottom- margin boxes with
-      `counter(page)` and `counter(pages)` — Track P3's probe proved that directly.
-      It does NOT support `string-set`/`content()`, so the title cannot be pulled from a
-      running heading; it is emitted per guide as a constant by
-      scripts/build_guide_print_system.mjs. That is a Chromium limitation, not a shortcut.
-   3. Widow/orphan control: break-inside:avoid on every callout and prose box.
-   4. The masthead contrast fix.
+   1. Page geometry — real margins, plus the full-bleed cream page ground that makes those
+      margins read as an inset on the text rather than a white frame round the sheet (§1,
+      §2, operator 2026-08-03).
+   2. A running FOOTER in the @page margin boxes: Martice's contact block and "Page X of Y".
+      Chromium 148 supports @top- and @bottom- margin boxes with `counter(page)` and
+      `counter(pages)` — Track P3's probe proved that directly. There is no running HEADER
+      any more; s12 Track C removed both top boxes on the operator's ruling.
+   3. The masthead: cream plate, contrast fix, and the restored Bonney Watson mark (§3).
+   4. Widow/orphan control: break-inside:avoid on every callout and prose box.
    5. The print-suppression class for the operator's pricing rule.
 
    THERE IS NO COVER PAGE.  Sprint-11 Track D, on the operator's direction of 2026-08-02:
@@ -28,26 +26,65 @@
    now." The s10 generated full-bleed cover is REVERSED — page 1 of every guide PDF is now
    content, opening under the guide's own masthead. What survives from s10 is the part he
    did not object to: the running footer, the real page margins, and the range-only pricing
-   rule. Do not reintroduce a cover without a fresh operator ruling; `verify_guide_pages.mjs`
-   asserts that NO page of any guide PDF is full-bleed, so a returning cover fails the gate.
+   rule. Do not reintroduce a cover without a fresh operator ruling.
 
-   Per-guide constants (the running-header title string) are injected by the build script
-   into a marked block in each guide. Nothing in this file is guide-specific.
+   `verify_guide_pages.mjs` still gates that, but the assertion is no longer "no page is
+   full-bleed" — since s12 EVERY page is, because the cream ground is required to reach the
+   paper edge. It is now two assertions: every page must carry a full-bleed CREAM ground,
+   and nothing else on any page may be painted full-bleed. A navy plate or a photograph
+   across the whole sheet still fails; so, now, does a page that quietly loses its bleed.
+
+   The build script still injects a marked per-guide block, but since s12 it holds only the
+   screen-side `.print-invite{display:none}` rule — the running-header title string it used
+   to carry died with the header. Nothing in THIS file is guide-specific except the named
+   overrides at the end.
    ===================================================================================== */
 
 /* ── 1. PAGE GEOMETRY + RUNNING FOOTER ─────────────────────────────────────────────
-   The @top-left content string is supplied per guide by the injected partial; declaring
-   the box here with no content would blank it, so only the boxes with constant content
-   are set here. */
+   sprint-12 Track C, on the operator's ruling of 2026-08-03:
+
+     "the margins are supposed to be stretched to the edge. we also do not need a header
+      and the footer should just overlap with the cream not sit outside separately."
+
+   THERE IS NO RUNNING HEADER. Both margin boxes at the top of the page are gone — the
+   constant @top-right "Bonney Watson" that used to live here, and the per-guide @top-left
+   title string that scripts/build_guide_print_system.mjs used to emit. The brand mark is
+   back on the masthead instead (§3), which is where he asked for it.
+
+   THE MARGINS ARE STILL REAL, AND THE CREAM STILL BLEEDS TO THE EDGE — because
+   `background` ON THE @page RULE paints the whole SHEET, margins included, and Chromium
+   implements it. That is the one mechanism that satisfies both of his sentences at once,
+   and it took measuring four candidates to find (all four probed with real page.pdf output
+   and rasterised corner pixels, s12 Track C):
+
+     - `@page{margin:0}` + a background on <html>  — bleeds, but there are then no @page
+       margin boxes at all, so the running footer he asked to KEEP has nowhere to render.
+       This is the failure already documented in build_guide_pdfs.mjs.
+     - `@page{margin:0}` + a `position:fixed` footer element — the element does repeat on
+       every printed page (verified), but `counter(page)`/`counter(pages)` resolve to 0
+       outside a margin box, so it prints a literal "Page 0 of 0".
+     - real margins + a background on <html> — the ROOT background is clipped to the page
+       CONTENT box in print, so the white frame survives. This is what shipped and what he
+       complained about.
+     - real margins + `@page{background}` — sheet painted corner to corner, margin boxes
+       intact, counters correct. Chosen.
+
+   The root background is kept as well, one layer under it: `@page{background}` is paged-
+   media surface area that not every engine implements, and if a family hits Ctrl+P in
+   something other than Chromium the content box should still come out cream rather than
+   white. Our own PDFs are Chromium-only, so the belt is what ships and the braces are
+   insurance.
+
+   Top margin trimmed 0.50in -> 0.42in because nothing lives up there any more, and bottom
+   0.55in -> 0.46in: the footer is 7.5pt, it needs about a quarter inch, and the rest was
+   room reserved for a header box that no longer exists. That is where the vertical space
+   for the restored masthead logo comes from, and it is why Outside Marker Rules came down
+   from four printed pages to three. */
 @page {
   size: letter;
-  margin: 0.5in 0.5in 0.55in 0.5in;
+  margin: 0.42in 0.5in 0.46in 0.5in;
+  background: #f8f6f2;
 
-  @top-right {
-    content: "Bonney Watson";
-    font-family: 'Source Sans 3', sans-serif; font-size: 7.5pt;
-    color: #6a7686; letter-spacing: .06em;
-  }
   @bottom-left {
     content: "Martice Morrison \00b7  (206) 445-9794 \00b7  mmorrison@bonneywatson.com";
     font-family: 'Source Sans 3', sans-serif; font-size: 7.5pt; color: #6a7686;
@@ -58,15 +95,46 @@
   }
 }
 
-/* There is no @page:first override any more. With the cover gone, page 1 is content and
-   carries the same margins and the same running furniture as every other page — which is
-   the whole point of a running footer: Martice's name, phone and email are on the FIRST
-   sheet a family reads, not only from page 2 onward.
-   The one exception is emitted per guide by scripts/build_guide_print_system.mjs:
-   `@page :first{@top-left{content:none}}`, because the @top-left box repeats the guide's
-   title and on page 1 the masthead states it an inch below in 16pt. */
+/* There is no @page:first override any more, and since s12 there is no per-guide @page
+   partial at all. With the cover gone, page 1 is content and carries the same margins and
+   the same running furniture as every other page — which is the whole point of a running
+   footer: Martice's name, phone and email are on the FIRST sheet a family reads, not only
+   from page 2 onward. */
 
 @media print {
+
+  /* ── 2. FULL-BLEED CREAM ───────────────────────────────────────────────────────
+     Operator, 2026-08-03: "the margins are supposed to be stretched to the edge ... the
+     footer should just overlap with the cream not sit outside separately." What shipped
+     before this was a cream content block floating inside a white frame, with the running
+     footer stranded in the white below it.
+
+     The sheet-wide fill is `@page{background}` in §1 above; this is the second layer,
+     covering the page CONTENT box, plus the cleanup that makes both of them visible.
+
+     Every background BELOW the root must be transparent, or it repaints the content box in
+     its own colour and the white frame comes back as a cream-on-offwhite frame instead.
+     The eighteen `.doc-sheet` guides paint `--offwhite #f4f6f8` on body and cream on the
+     sheet; vault-guide.html has no `.doc-sheet` and paints cream on body directly. Both
+     are handled by zeroing body and .doc-sheet here and letting the root carry it.
+
+     `.doc-sheet` also loses its 960px max-width, its rounded corners and its drop shadow:
+     they are screen furniture for a page floating on a grey field, and on a full-bleed
+     printed sheet a rounded corner and a shadow are exactly the "sitting outside
+     separately" look he objected to.
+
+     `print-color-adjust:exact` is required: without it a colour-managed printer drops the
+     fill and the whole point of the change disappears on paper. */
+  html {
+    background: #f8f6f2 !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  body { background: transparent !important; }
+  .doc-sheet {
+    background: transparent !important;
+    box-shadow: none !important; border-radius: 0 !important;
+    max-width: none !important;
+  }
 
   /* The guides' own print CSS fakes gutters, because it had no page margins to work
      with. Now that @page carries real margins those hacks would double up, so they are
@@ -98,30 +166,79 @@
      and it is kept now that the cover is gone: it is the lighter, less ink-heavy opening
      for a document a family prints at home, and it is the treatment that was reviewed.
 
-     THE LOGO STAYS HIDDEN, and the s10 note beside it ("the logo is on the cover now") is
-     no longer the reason. It was tried both ways when the cover came out. `logo.svg` is
-     white artwork for navy backgrounds and is invisible on this cream plate, so restoring
-     it means a print-only swap to the navy cut — `.cover-logo{content:url("logo-navy.svg")}`,
-     which Chromium honours. MEASURED, that costs 15-16px of logo plus a 4-5px margin at
-     the top of the FIRST page of every guide, and two guides paid a whole extra sheet for
-     it: Glass-Front Niche went 3 pages to 4 and Urn Gardens 1 to 2, both of which are
-     documents whose exact page count is an operator requirement.
-     A fifth of an inch is not worth a sheet of paper for a mark the page already carries
-     three other ways — the masthead kicker reads BONNEY WATSON FAMILY GUIDE in orange
-     directly beneath it, "Bonney Watson" runs in the @top-right box of every page, and the
-     running footer carries Martice's name and @bonneywatson.com address. Hidden. */
+     THE LOGO IS BACK — operator, 2026-08-03: "It's missing all bonney watson logoes." The
+     s11 decision to keep it hidden is REVERSED. `logo.svg` is white artwork for navy
+     backgrounds and is invisible on this cream plate, so it is swapped print-only to the
+     navy cut with `content:url("logo-navy.svg")`, which Chromium honours (and which
+     build_guide_pdfs.mjs already waits on — see the `.cover-logo, .pc-photo` loop there).
+     That mark IS the fleur: navy BONNEY WATSON wordmark either side of the orange
+     fleur-de-lis in its ring, #466e86/#e84610 family, per GPL-April-2026.pdf.
+
+     WHAT COST A SHEET OF PAPER IN S11 WAS THE STACK, NOT THE LOGO. It was restored as a
+     block above the kicker, so its 15-16px plus margin pushed the whole document down and
+     Glass-Front Niche went 3 pages to 4, Urn Gardens 1 to 2 — both operator-fixed counts.
+     Here it is taken OUT of flow: absolutely positioned against the top-right of the
+     masthead, opposite the title, in the space the running header used to occupy. Vertical
+     cost is zero by construction, and the measured page counts are unchanged from before
+     the restore (per-guide table in the s12 Track C report).
+     `.cover` is already `position:relative` in all eighteen guides' own CSS; it is
+     re-asserted here so the rule cannot be broken by a future condense-block edit. The
+     kicker and h1 get right padding so a long title cannot run under the mark. */
   .cover {
     background: #f8f6f2 !important;
     border-bottom: 3px solid #2c445e;
     padding: 0 0 9px !important;
+    position: relative !important;
   }
   .cover::before { display: none !important; }
-  .cover-logo { display: none !important; }
+  .cover-logo {
+    display: block !important;
+    content: url("logo-navy.svg");
+    /* `right:3px`, not `right:0`. Flush against the content-box edge the mark's terminal
+       "N" was clipped off in the PDF on some guides and survived on others, from
+       sub-pixel rounding at the print clip — terramation-guide.html printed
+       "BONNEY (fleur) WATSO" while cemetery-property-guide.html, with a measurably
+       IDENTICAL layout box, printed cleanly. Found by rasterising at 300 dpi and looking,
+       not by measuring the layout, which said both were fine. Three pixels of inset also
+       reads better optically against the text column below. */
+    position: absolute !important; right: 3px; top: 1px;
+    height: 17px !important; width: auto !important;
+    margin: 0 !important;
+  }
+  /* 17px of a 308.34 x 56.42 mark is 92.9px wide; 104px clears it with a gutter. */
+  .cover-kicker, .cover h1 { padding-right: 104px; }
   .cover-kicker { color: #a5450a !important; }
   .cover h1 { color: #1e3a55 !important; }
   .cover-sub { color: #4a5765 !important; }   /* was rgba(255,255,255,.7) on navy */
   .cover-rule { background: #c8540a !important; }
   .cover-footer, .cover-stripe { display: none !important; }
+
+  /* vault-guide.html is the one guide whose masthead is `.hero`, not `.cover`, and it was
+     left out of the s10 cream treatment — it still printed a navy slab, now sitting inside
+     a full-bleed cream page and looking like a mistake. Same treatment, same reasons: the
+     contrast defect P3 flagged is here too (`.hero-sub` is rgba(255,255,255,.75) on navy,
+     under 4.5:1), and it is the only way one logo rule can serve all nineteen guides.
+     The selector matches the page's own `body:not(.modal-printing) .hero` specificity on
+     purpose — that is how its existing print rules are written and `!important` alone does
+     not beat them. The mark is centred here because this masthead is centred; it goes
+     ABOVE the kicker rather than out of flow, and the 12px it costs is paid back by the
+     padding trim, with the guide's page count unchanged (3). */
+  body:not(.modal-printing) .hero {
+    background: #f8f6f2 !important;
+    border-bottom: 3px solid #2c445e;
+    padding: 0 0 9px !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  body:not(.modal-printing) .hero::before {
+    content: url("logo-navy.svg") !important;
+    position: static !important; display: block !important;
+    width: 93px; height: 17px; margin: 0 auto 4px !important;
+    background: none !important;
+  }
+  body:not(.modal-printing) .hero-kicker { color: #a5450a !important; }
+  body:not(.modal-printing) .hero h1 { color: #1e3a55 !important; }
+  body:not(.modal-printing) .hero-sub { color: #4a5765 !important; }
+  body:not(.modal-printing) .hero-divider { background: #c8540a !important; }
 
   /* ── 3b. PHOTO-FIRST PRODUCT CARDS (sprint-11 Track D) ─────────────────────────
      One card = a PHOTO, a name, one or two plain sentences, and a price RANGE. The
@@ -257,6 +374,22 @@
   .doc-sheet { column-gap: 13px; }
   body { font-size: 7.7pt; }
   .prose p, .prose li, .sidebar p, .sidebar li, .policy-box p, p { font-size: 7.7pt; line-height: 1.27; }
+  /* A body paragraph written as a direct child of `.section-wrap` with its size HARD-CODED
+     IN THE MARKUP — `<p style="font-size:14px">` — was missed by every rule above and by
+     every guide's own condense block, because an inline style beats a stylesheet outright.
+     Those paragraphs printed at their SCREEN size: 14px and 13.5px against the 7.7pt
+     (10.3px) of the column beside them, so a third larger, and cremation-guide.html put two
+     of them at the head of a section. The page reads as though the type changed size
+     halfway down. Found by rasterising page 2 and looking at it; no assertion could have
+     seen it, and the layout measurements said every box was fine.
+
+     Scoped to `[style*="font-size"]` on purpose. `!important` is the only thing that beats
+     an inline style, and a blanket `.section-wrap > p{...!important}` would also flatten a
+     paragraph some future guide deliberately sizes another way. This targets exactly the
+     defect — a screen pixel size leaking into print — and nothing else. Audited across all
+     nineteen guides: six paragraphs match (four in cremation-guide.html, two in
+     markers-guide.html), every one of them 13-14px, none smaller than the body size. */
+  .section-wrap > p[style*="font-size"] { font-size: 7.7pt !important; line-height: 1.27 !important; }
   .section-wrap { padding-top: 2px; padding-bottom: 1px; }
   .section-wrap h2 { font-size: 11.5pt; }
   .section-sub { font-size: 7.6pt; margin-bottom: 3px; }
@@ -276,6 +409,13 @@
    the same idea in the first place.
    ===================================================================================== */
 @media print {
+  /* vault-guide.html — its `.hero-kicker` is the literal string "Bonney Watson", which was
+     the guide's stand-in for a brand mark it never had. Now that the mark itself sits
+     directly above it, the two say the same thing twice in a stack an inch tall. The other
+     eighteen guides keep their kicker: theirs reads "BONNEY WATSON FAMILY GUIDE", which
+     names the DOCUMENT and is not a duplicate of the logo. */
+  body:not(.modal-printing) .hero-kicker { display: none !important; }
+
   /* vault-guide.html — `#all-pricing` carries page-break-before:always because it used to
      be two large price tables that deserved their own sheet. The pricing rule replaced
      them with two short invitations, so the forced break now buys a page that is 2.7% ink.

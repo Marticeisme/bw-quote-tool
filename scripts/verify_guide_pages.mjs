@@ -27,18 +27,43 @@ import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 // Decompressed content stream of every page, as latin-1 strings. pdf-lib hands back the
 // RAW (Flate) bytes; inflating is what makes the operators readable.
+//
+// A page's /Contents may legally be an ARRAY of streams rather than one stream, and the
+// reader here used to handle only the single-stream case: `c.contents` is undefined on a
+// PDFArray, so such a page measured as ZERO BYTES. Every check built on this function —
+// the stranded-sheet gate, the full-bleed gates — would then have reported a fabricated
+// result about a page it had not read. Found in s12 while sabotage-testing the amended
+// full-bleed gate: the sabotaged artifact came back through pdf-lib with an array, and the
+// wrong assertion fired. Chromium happens to emit one stream per page, so nothing in
+// pdf-assets/ has ever tripped it; that is luck, not a guarantee. Arrays are concatenated
+// here, which is exactly how a PDF consumer is required to treat them.
 const _streams = new Map();
 async function pageStreams(file) {
   if (_streams.has(file)) return _streams.get(file);
   const doc = await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false });
+  const inflate = (s) => {
+    const raw = Buffer.from(s && s.contents ? s.contents : []);
+    try { return zlib.inflateSync(raw); } catch { return raw; }
+  };
   const out = doc.getPages().map((pg) => {
     const c = pg.node.Contents();
-    const raw = Buffer.from(c && c.contents ? c.contents : []);
-    let inflated;
-    try { inflated = zlib.inflateSync(raw); } catch { inflated = raw; }
-    return inflated.toString('latin1');
+    const parts = c && typeof c.asArray === 'function'
+      ? c.asArray().map((ref) => inflate(doc.context.lookup(ref)))
+      : [inflate(c)];
+    return Buffer.concat(parts).toString('latin1');
   });
   _streams.set(file, out);
+  return out;
+}
+
+// Page boxes in PDF points, parallel to pageStreams(). The full-bleed checks measure
+// against the real sheet rather than a hardcoded Letter constant.
+const _boxes = new Map();
+async function pageBoxes(file) {
+  if (_boxes.has(file)) return _boxes.get(file);
+  const doc = await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false });
+  const out = doc.getPages().map((pg) => pg.getSize());
+  _boxes.set(file, out);
   return out;
 }
 
@@ -219,23 +244,128 @@ await onePage('direct-cremation.html', '#options', '.sidebar, .prose, .section-p
 // all nineteen guides: #1e3a55 is also the masthead heading colour, so every content page
 // paints it as text. Colour is not evidence of a cover.
 //
-// Geometry is. Only an `@page{margin:0}` rule can produce a painted box the size of the
-// whole sheet; a normal content page is clipped to the 0.5in-margined content box.
-// Measured on the s10 artifacts: covers carried a 6120 x 7920 rect (612 x 792pt at
-// Chromium's 10x content scale) while content pages topped out at 5400 x 7170. So this
-// asserts both "no cover came back" and "the page margins are still applying" — the
-// second of which silently broke once already.
-const fullBleed = (stream) => [...stream.matchAll(/(-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+) re/g)]
-  .some((m) => Math.abs(parseFloat(m[3])) > 6000 && Math.abs(parseFloat(m[4])) > 7800);
+// Geometry is. Measured on the s10 artifacts: covers carried a 6120 x 7920 rect (612 x
+// 792pt at Chromium's 10x content scale) while content pages were clipped to the margined
+// content box and topped out at 5400 x 7170.
+//
+// ── AMENDED, sprint-12 Track C ──────────────────────────────────────────────────────
+// "No page is full-bleed" is no longer true and must not be, because the operator ruled on
+// 2026-08-03 that the cream MUST reach the paper edge: "the margins are supposed to be
+// stretched to the edge ... the footer should just overlap with the cream not sit outside
+// separately." guide-print.css delivers that with `@page{background:#f8f6f2}`, which paints
+// the whole sheet, margins included — so from s12 every page of every guide carries exactly
+// the full-bleed rect this gate used to forbid.
+//
+// The check is NOT deleted, and it is not weakened to a colour heuristic either. It is
+// SPLIT, and the split is what keeps its teeth:
+//
+//   1. PAGE GROUND (new, positive) — every page must carry a full-bleed rect and it must be
+//      filled with the cream. This is a stronger assertion than the old one: it fails if the
+//      bleed silently stops working, which is precisely the regression the operator reported
+//      and which no gate would have caught. The old rule's second job — "the page margins are
+//      still applying" — is replaced by an equally load-bearing "the page ground is still
+//      applying", asserted rather than inferred.
+//   2. NO COVER (kept, narrowed) — nothing ELSE may be painted full-bleed. Any full-bleed
+//      rect in a colour other than the cream ground, and any full-bleed IMAGE, still fails.
+//      A returning cover is a navy plate or a photograph across the whole sheet; both are
+//      caught. The allowance is exactly one colour on exactly one shape, and it is the shape
+//      the stylesheet is required to emit.
+//
+// Colour is read from the stream, not assumed: the fill in force at each `re` is tracked by
+// walking `rg` and `re` operators in order. Chromium writes the cream as
+// `0.972656 0.964844 0.949219 rg` (8-bit 248/246/242 = #f8f6f2); the tolerance is one 8-bit
+// step so a re-encode cannot fail it and a different colour cannot pass.
+const CREAM = [0.972656, 0.964844, 0.949219];
+const isCream = (c) => c && c.every((v, i) => Math.abs(v - CREAM[i]) < 1 / 255);
 
-console.log('\n=== NO COVER PAGE (no page is full-bleed) ===');
+// Chromium writes page content under a `q 0.1 0 0 0.1 0 0 cm` CTM, so a full sheet is
+// 6120 x 7920 rather than 612 x 792. The old gate hardcoded 6000/7800 and therefore could
+// only ever see a cover drawn in THAT convention — a full-bleed rectangle written in plain
+// PDF units sailed straight through, which is exactly what happened the first time this
+// amendment was sabotage-tested. Both conventions are accepted now: a paint counts as
+// full-bleed if it covers >=98% of the sheet at 1x or at 10x.
+// The window is two-sided on purpose. A one-sided ">= 0.98 x sheet" test looks right and is
+// not: at 1x it also swallows every 10x-convention rect, so the margined content box
+// (5400 x 7290 against a 612 x 792 sheet) reads as full-bleed and the gate fails everything.
+const near = (v, t) => v >= 0.98 * t && v <= 1.05 * t;
+const isBleed = (w, h, W, H) =>
+  (near(Math.abs(w), W) && near(Math.abs(h), H)) ||
+  (near(Math.abs(w), 10 * W) && near(Math.abs(h), 10 * H));
+
+// Full-bleed paints on one page: how many are the cream ground, and what else is there.
+//
+// Two shapes of filled rectangle are recognised, because a cover can arrive in either.
+// Chromium always writes `x y w h re` + `f`; other producers (pdf-lib among them, which is
+// what stamped the sabotage fixtures) write the same rectangle as an explicit `m`/`l`/`h`
+// subpath. The first sabotage run passed a navy full-sheet cover straight through a gate
+// that only knew `re` — a gate that can be defeated by re-emitting the same geometry with
+// different operators is not measuring geometry, it is measuring spelling.
+function fullBleedPaints(stream, { width: W, height: H }) {
+  let fill = null;
+  let xs = [], ys = [];
+  const ground = [], other = [];
+  const flush = (painted) => {
+    if (painted && xs.length >= 3
+        && isBleed(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), W, H)) {
+      (isCream(fill) ? ground : other).push(fill);
+    }
+    xs = []; ys = [];
+  };
+  const TOK = /(-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+)\s+rg|(-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+) (-?[0-9.]+)\s+re|(-?[0-9.]+) (-?[0-9.]+)\s+([ml])\b|\b(f\*|f|B\*|B|b\*|b)\s|\b([Sns])\s/g;
+  for (const m of stream.matchAll(TOK)) {
+    if (m[1] !== undefined) { fill = [+m[1], +m[2], +m[3]]; continue; }
+    if (m[4] !== undefined) {                       // `re` — its own complete rectangle
+      if (isBleed(+m[6], +m[7], W, H)) (isCream(fill) ? ground : other).push(fill);
+      continue;
+    }
+    if (m[8] !== undefined) { xs.push(+m[8]); ys.push(+m[9]); continue; }  // m / l
+    if (m[11] !== undefined) { flush(true); continue; }                    // a FILL op
+    if (m[12] !== undefined) { flush(false); continue; }                   // stroke / no-op
+  }
+  // A full-sheet XObject draw — the shape a photographic cover takes. The scaling `cm` and
+  // the `Do` are not necessarily adjacent: producers emit identity `cm`s and `gs` states in
+  // between (pdf-lib emits two), and requiring adjacency let a stamped full-sheet photograph
+  // through the first time this was sabotage-tested. Only whitespace, further `cm`s and `gs`
+  // states may intervene, so this cannot drift into matching any `Do` that happens to follow
+  // a scaled transform somewhere later on the page.
+  // Every `cm` in that run is COMPOSED, not just the first one matched: producers emit
+  // identity transforms around the real one, and a regex anchored on the first `cm` before
+  // the `Do` reads the identity and measures the image as 1 x 1.
+  const images = [...stream.matchAll(/((?:(?:-?[0-9.]+ ){6}cm\s*|\/[^\s]+ gs\s*)+)\/[^\s]+ Do/g)]
+    .map((m) => {
+      let sx = 1, sy = 1;
+      for (const c of m[1].matchAll(/(-?[0-9.]+) -?[0-9.]+ -?[0-9.]+ (-?[0-9.]+) -?[0-9.]+ -?[0-9.]+ cm/g)) {
+        sx *= +c[1]; sy *= +c[2];
+      }
+      return [sx, sy];
+    })
+    .filter(([sx, sy]) => isBleed(sx, sy, W, H)).length;
+  return { ground: ground.length, other, images };
+}
+
+console.log('\n=== FULL-BLEED CREAM PAGE GROUND (operator 2026-08-03) ===');
 for (const name of ALL_GUIDE_PDFS) {
   const file = `pdf-assets/${name}`;
   if (!fs.existsSync(file)) { fail(`${file} does not exist`); continue; }
   const streams = await pageStreams(file);
-  const bleeders = streams.map((x, i) => (fullBleed(x) ? i + 1 : 0)).filter(Boolean);
-  if (bleeders.length) fail(`${name}: page(s) ${bleeders.join(', ')} are full-bleed — a cover page is back, or the page margins stopped applying`);
-  else ok(`${name.padEnd(44)} no cover, ${streams.length} content page(s)`);
+  const boxes = await pageBoxes(file);
+  const naked = streams.map((x, i) => (fullBleedPaints(x, boxes[i]).ground ? 0 : i + 1)).filter(Boolean);
+  if (naked.length) fail(`${name}: page(s) ${naked.join(', ')} have no full-bleed cream ground — the cream stopped reaching the paper edge`);
+  else ok(`${name.padEnd(44)} cream to the edge on all ${streams.length} page(s)`);
+}
+
+console.log('\n=== NO COVER PAGE (nothing but the ground is full-bleed) ===');
+for (const name of ALL_GUIDE_PDFS) {
+  const file = `pdf-assets/${name}`;
+  if (!fs.existsSync(file)) { fail(`${file} does not exist`); continue; }
+  const streams = await pageStreams(file);
+  const boxes = await pageBoxes(file);
+  const bleeders = streams
+    .map((x, i) => ({ i: i + 1, p: fullBleedPaints(x, boxes[i]) }))
+    .filter((r) => r.p.other.length || r.p.images);
+  if (bleeders.length) {
+    fail(`${name}: page(s) ${bleeders.map((r) => `${r.i} (${r.p.other.length} non-cream fill(s), ${r.p.images} image(s))`).join(', ')} paint full-bleed — a cover page is back`);
+  } else ok(`${name.padEnd(44)} no cover, ${streams.length} content page(s)`);
 }
 
 // ===================================================================================
@@ -330,6 +460,46 @@ for (const g of GUIDES) {
 
   if (problems.length) fail(`${g}: ${problems.join('; ')}`);
   else ok(`${g.padEnd(38)} ${screen.supTotal} suppressed / ${screen.invTotal} invitation(s) / ${invites.length} computed range(s)`);
+}
+
+// ===================================================================================
+// THE BRAND MARK IS ON THE PRINTED MASTHEAD  (sprint-12 Track C)
+//
+// Operator, 2026-08-03, first sentence of the complaint: "It's missing all bonney watson
+// logoes." It had been print-hidden since s11 for page-budget reasons and nothing asserted
+// either way, so its disappearance was invisible until he opened a PDF.
+//
+// Measured in PRINT layout, per guide: the mark must have real size, and it must be the
+// NAVY cut. That second half matters — `logo.svg` is white artwork for a navy background
+// and the printed masthead is a cream plate, so a guide that "has a logo" pointing at
+// logo.svg has an invisible one. Exactly the trap s11 recorded and the reason it stayed
+// hidden. Eighteen guides carry an <img class="cover-logo">; vault-guide.html's masthead is
+// `.hero` and has no <img>, so its mark is a ::before and is read from computed style.
+// ===================================================================================
+console.log('\n=== BRAND MARK ON THE PRINTED MASTHEAD ===');
+for (const g of GUIDES) {
+  const page = await browser.newPage({ viewport: { width: 720, height: PAGE_PX } });
+  await page.goto(pathToFileURL(path.resolve(g)).href, { waitUntil: 'networkidle' });
+  await page.emulateMedia({ media: 'print' });
+  const r = await page.evaluate(() => {
+    const img = document.querySelector('.cover-logo');
+    if (img) {
+      const b = img.getBoundingClientRect();
+      return { how: 'img.cover-logo', src: getComputedStyle(img).content, w: +b.width.toFixed(1), h: +b.height.toFixed(1) };
+    }
+    const hero = document.querySelector('.hero');
+    if (!hero) return { how: 'none' };
+    const cs = getComputedStyle(hero, '::before');
+    return { how: '.hero::before', src: cs.content, w: parseFloat(cs.width) || 0, h: parseFloat(cs.height) || 0 };
+  });
+  await page.close();
+  if (r.how === 'none') { fail(`${g}: no masthead element to carry the brand mark`); continue; }
+  if (!/logo-navy\.svg/.test(r.src || '')) {
+    fail(`${g}: the printed mark is not the navy cut (${r.how} resolves to ${r.src || 'nothing'}) — a white logo on the cream masthead prints invisible`);
+    continue;
+  }
+  if (!(r.w >= 40 && r.h >= 8)) { fail(`${g}: brand mark measures ${r.w}x${r.h}px in print — too small to be a mark`); continue; }
+  ok(`${g.padEnd(38)} ${r.how} ${r.w}x${r.h}px, navy cut`);
 }
 
 await browser.close();
