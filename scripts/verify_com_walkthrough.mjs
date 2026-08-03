@@ -465,12 +465,20 @@ const describe = (name, s) =>
   // inverted, not deleted: the page and this whole gate stay green and keep proving the
   // walkthrough works, while the gate now proves nothing LINKS a family to it. Direct URL
   // access is intentionally unaffected. Flip these two back when the building is re-shot.
+  // What is banned is a LINK, not the filename. Both files carry a comment naming
+  // MAPS/COM_Walkthrough.html to explain why the card and the button are gone and how to
+  // put them back — and a bare-string test flagged exactly that comment on the first run,
+  // which is the same mistake the register assert exists to avoid. So: parse hrefs.
+  const linksToWalk = (html) => [...html.matchAll(/<a\b[^>]*\bhref="([^"]*)"/gi)]
+    .map((m) => m[1]).filter((h) => /COM_Walkthrough\.html/.test(h));
   const cryptHtml = fs.readFileSync(path.join(ROOT, 'MAPS', 'COM_CryptMap.html'), 'utf8');
-  if (!/href="COM_Walkthrough\.html"/.test(cryptHtml)) ok('COM_CryptMap.html carries no link to the walkthrough (delisted)');
-  else fail('COM_CryptMap.html still links a family to the delisted walkthrough');
+  const cryptLinks = linksToWalk(cryptHtml);
+  if (!cryptLinks.length) ok('COM_CryptMap.html carries no link to the walkthrough (delisted)');
+  else fail(`COM_CryptMap.html still links a family to the delisted walkthrough: ${cryptLinks.join(', ')}`);
   const guides = fs.readFileSync(path.join(ROOT, 'guides.html'), 'utf8');
-  if (!/COM_Walkthrough\.html/.test(guides)) ok('guides.html carries no walkthrough card (delisted)');
-  else fail('guides.html still carries a walkthrough card for the delisted page');
+  const guideLinks = linksToWalk(guides);
+  if (!guideLinks.length) ok('guides.html carries no walkthrough card (delisted)');
+  else fail(`guides.html still carries a walkthrough link: ${guideLinks.join(', ')}`);
 
   // The gzip path is the one production uses, but the uncompressed path is what anyone
   // opening the file locally gets, and it must not regress either.
