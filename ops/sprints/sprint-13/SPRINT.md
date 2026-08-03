@@ -28,11 +28,20 @@ columbarium or niche section each."
   collide in the print system).
 - Photos must not be cropped to fragments — frames follow the photos.
 
-## Track
+## Tracks
 
-- **TRACK-A — granite-niches photo-first expansion** (`s13/granite-niches-photos`,
-  worktree, Opus). Owns `granite-niches-guide.html`, `granite-niche-images/`,
-  its PDF + manifest entry, per-guide cap plumbing in the print system + gates.
+- **TRACK-A — combined niche guides photo-first** (`s13/granite-niches-photos`,
+  worktree, Opus). granite-niches + glass-front guides redesigned page-per-section,
+  cap 8 each. Owns those two guides, their image dirs, the cap-map creation.
+- **TRACK-B — five per-area guides** (`s13/area-guides`, worktree, Opus; ADDED
+  mid-sprint on the operator's request: "larger more visual guides for each section
+  that we still have a lot of inventory for"). NEW roac-guide / mvc-niches-guide /
+  ecl-guide / gomn-guide / terrace-garden-guide, photo-led, ≤8pp each, figures
+  computed from the live data modules and verifier-pinned, best photos curated from
+  the matching D:\ folders. Known merge collisions (director resolves): guides.html
+  cards, cap map, .build-manifest.
+
+Merge order A → B.
 
 ## Close checklist
 
