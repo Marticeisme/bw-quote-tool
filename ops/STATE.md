@@ -1,5 +1,26 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-12 — OPENED 2026-08-03** (director: Fable session; tracks:
+Opus per operator). Operator request: PCM catalog image quality "not very good at all"
+when enlarged — improve with AI — plus mid-boot: typing "companion" must show all
+companion designs. Boot audit: tree clean, main==origin/main `1887e92`, `8 blocks, 0
+errors`, **2000 passed, 0 failed across 35 suites** (the merged-main run the fix-round
+entry was awaiting — this is the new contract number). Director probes established the
+quality ceilings: design plates embedded at 347×199 in both books (AI is the only route
+up), Elements book embeds 270–360px tiles vs our 150px cut (native re-extraction wins),
+photos cut at 760px from ~4000px originals, lightbox stretches to min(96vw,1100px).
+**Operator rulings at boot:** all four image classes in scope; repo growth cap +30 MB
+hard (per-dir budgets in SPRINT.md); Real-ESRGAN ncnn-vulkan on the 3090 authorized
+(binary in scratch/, extends the 2026-08-01 install ruling); format/category search
+layered on the E2 subject search; NO push pre-authorization. Two tracks in worktrees,
+disjoint file ownership, spawned in parallel 2026-08-03: **B** `s12/pcm-ai-upscale`
+(../bw-quote-tool-s12b — lossless plate export → Real-ESRGAN → ~720px webp ≤20 MB,
+manifest + standalone gate that never re-runs AI) and **A** `s12/pcm-native-res`
+(../bw-quote-tool-s12a — elements native-res anti-aliased ≤28 MB, photos 1600px ≤9 MB,
+references re-rendered ≤1 MB, companion/individual/ledger/flat format search with lit
+chips, verify_pcm_catalog extended). Merge order B → A (A rebuilds data+HTML last on
+top of B's plates). See `sprints/sprint-12/SPRINT.md`.
+
 **Post-close operator fix round, 2026-08-02 (in flight, awaiting operator push
 word).** After the s11 push the operator drove the live surfaces and filed a
 rapid round: (1) in-marker prices too small → 10.5px, verified by render;
