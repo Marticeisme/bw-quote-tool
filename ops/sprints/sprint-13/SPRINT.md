@@ -1,6 +1,40 @@
-# Sprint-13 — DRAFT (seeded at sprint-12 close, 2026-08-03)
+# Sprint-13 — Granite Niches guide: photo-first, page-per-section
 
-Not yet opened. Amend at boot from reality + the operator's next notes.
+**OPENED 2026-08-03** (director: same Fable session as s12; tracks: Opus). Operator:
+"the crops on the granite niches guide cut off a lot of the photos. This guide can be
+longer if we can have better quality photos for each section. maybe a page per
+columbarium or niche section each."
+
+## Reality at boot
+
+- Tree clean, main==origin/main (`67e5b78`). Contract 2085/36 green as of the s12
+  close (~today).
+- `granite-niches-guide.html`: 6 sections (What a Niche Is / ROAC / GOMN / Terrace
+  Garden Memorial Path / Three at a Glance / Talking It Over), 7 content photos,
+  PDF is 2 pages — photos are decent resolution (900–1400px) but the layout's fixed
+  frames crop them hard.
+- Source photos on `D:\Cemetery Photos Misc\`: `ROAC Photos`, `GOMN Niches`,
+  `Terrace Garden Memorial Path`, `Cremation Posts`, `Garden Court and Terrace
+  Garden Maus` — the operator's own property photos (photo-PII relaxed ruling
+  2026-07-29 applies).
+
+## Operator ruling
+
+- This guide MAY exceed the 6-page cap: a page per columbarium/niche section. Cap for
+  THIS guide set to **8 total pages** (per-guide exception, gated); every other guide
+  keeps 6.
+- Photos must not be cropped to fragments — frames follow the photos.
+
+## Track
+
+- **TRACK-A — granite-niches photo-first expansion** (`s13/granite-niches-photos`,
+  worktree, Opus). Owns `granite-niches-guide.html`, `granite-niche-images/`,
+  its PDF + manifest entry, per-guide cap plumbing in the print system + gates.
+
+## Close checklist
+
+Merge --no-ff; director re-runs contract + guide gates, eyeballs every new page at
+print size; repo delta reported; push only on operator word.
 
 ## Candidates from sprint-12
 
