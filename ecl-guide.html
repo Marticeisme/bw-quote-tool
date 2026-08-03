@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eternal Light Columbarium &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;scroll-padding-top:70px;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+
+.prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+.prose p strong{color:var(--navy-dark);font-weight:700;}
+.prose ul{padding-left:20px;margin-bottom:14px;}
+.prose li{font-size:14.5px;line-height:1.6;padding:4px 0;}
+.prose li::marker{color:var(--orange);}
+.prose .footnote{font-size:13px;color:var(--text-muted);margin-top:20px;}
+.inline-range{font-family:'Cormorant Garamond',serif;font-size:1.15em;color:var(--navy-deep);white-space:nowrap;}
+
+/* PHOTOGRAPHS — THE FRAME FOLLOWS THE PHOTO.
+   Sprint-13: the operator's complaint about the combined granite guide was that the
+   crops "cut off a lot of the photos". So nothing in these five guides crops: no
+   aspect-ratio box, no object-fit:cover, anywhere, on screen or in print. An image is
+   sized by its container's WIDTH on screen and by a MAX-HEIGHT in print, and its other
+   dimension follows from its own proportions. A portrait photograph prints tall and a
+   landscape one prints wide, which is the point. */
+.figure{margin:0 0 28px;}
+.figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--warm-border);background:var(--sidebar-bg);}
+.figure figcaption{font-size:12.5px;color:var(--text-muted);margin-top:9px;line-height:1.5;}
+.figure-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;align-items:start;}
+.figure-pair figure{margin:0;}
+.figure-pair img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--warm-border);}
+.figure-pair figcaption{font-size:12.5px;color:var(--text-muted);margin-top:8px;line-height:1.45;}
+
+.sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;margin-bottom:24px;}
+.sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.sidebar p{font-size:13.5px;line-height:1.6;}
+.sidebar p + p{margin-top:10px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar li{font-size:13.5px;color:var(--text);padding:8px 0 8px 16px;border-bottom:1px solid var(--rule);position:relative;line-height:1.5;}
+.sidebar li:last-child{border-bottom:none;}
+.sidebar li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+/* No `overflow:hidden`: a <caption> lives outside the table's box and hiding overflow
+   clips the first character of every caption in print. */
+.price-table{width:100%;border-collapse:collapse;margin-bottom:24px;background:var(--card-white);
+             border:1px solid var(--warm-border);border-radius:10px;}
+.price-table thead th:first-child{border-top-left-radius:9px;}
+.price-table thead th:last-child{border-top-right-radius:9px;}
+.price-table caption{caption-side:top;text-align:left;font-size:11px;font-weight:700;letter-spacing:.12em;
+             text-transform:uppercase;color:var(--orange);padding-bottom:10px;}
+.price-table th{background:var(--navy);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.05em;
+             text-transform:uppercase;text-align:left;padding:9px 12px;}
+.price-table td{padding:8px 12px;font-size:13.5px;border-top:1px solid var(--rule);vertical-align:top;}
+.price-table td.num{font-variant-numeric:tabular-nums;white-space:nowrap;}
+.price-table tbody tr:nth-child(even){background:#fbfaf7;}
+.price-table .size-note{font-size:12px;color:var(--text-muted);}
+
+.maplink{display:inline-block;font-size:13.5px;font-weight:700;color:var(--orange);text-decoration:none;
+         border-bottom:1.5px solid rgba(200,84,10,.35);padding-bottom:1px;}
+.maplink:hover{color:var(--orange-dark);}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .contents-grid{grid-template-columns:1fr;}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule);}
+  .contents-item:last-child{border-bottom:none;}
+  .nav-links{display:none;}
+  .figure-pair{grid-template-columns:1fr;}
+  .price-table{display:block;overflow-x:auto;}
+}
+
+/* ===================================================================================
+   PRINT — A PHOTO-LED GUIDE, ONE COLUMN, EIGHT PAGES.
+   These five guides are the "larger, more visual" ones, so this block is deliberately
+   NOT the two-column condense the combined guides use. One column, generous photographs,
+   and the page budget spent on pictures rather than on packing text.
+
+   Specificity note: guide-print.css loads AFTER this block and sets a 7.7pt body for the
+   dense guides. Every size below that must beat it is written with an extra class
+   (`.doc-sheet .prose p`) rather than with !important, so the shared sheet still owns
+   everything these guides do not deliberately override.
+   =================================================================================== */
+@media print {
+  @page{size:letter;}
+  /* Ghostscript's downsample mangles the ToUnicode map for fi/fl/ft ligatures, which
+     makes words like "dignified" unsearchable. No ligature glyph, nothing to corrupt. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
+  html{height:100%;background:#f8f6f2;}
+  body{background:#f8f6f2;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
+  .cover{padding:12px 0 10px;border-radius:0;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:19pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:10pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+
+  .section-wrap{padding:9px 0 5px;border-top:none;}
+  .section-wrap + .section-wrap{border-top:none;}
+  .doc-sheet .section-wrap h2{font-size:15pt;margin-bottom:1px;break-after:avoid;page-break-after:avoid;}
+  .section-kicker{font-size:7pt;letter-spacing:.12em;margin-bottom:1px;break-after:avoid;page-break-after:avoid;}
+  .doc-sheet .section-sub{font-size:9.5pt;margin-bottom:6px;break-after:avoid;page-break-after:avoid;}
+  .section-rule{height:2px;margin-bottom:8px;break-after:avoid;page-break-after:avoid;}
+
+  .doc-sheet .prose p{font-size:9.2pt;line-height:1.4;margin-bottom:7px;}
+  .doc-sheet .prose li{font-size:9pt;line-height:1.38;padding:2px 0;}
+  .doc-sheet .prose ul{margin-bottom:7px;padding-left:14px;}
+  .doc-sheet .prose .footnote,.doc-sheet .footnote{font-size:7.6pt;line-height:1.35;margin-top:7px;margin-bottom:5px;}
+
+  .sidebar{padding:9px 12px;margin-bottom:9px;border-radius:6px;break-inside:avoid;}
+  .sidebar-label{font-size:7pt;margin-bottom:4px;}
+  .doc-sheet .sidebar p{font-size:8.8pt;line-height:1.38;}
+  .doc-sheet .sidebar p + p{margin-top:5px;}
+  .doc-sheet .sidebar li{font-size:8.8pt;padding:3px 0 3px 12px;line-height:1.36;}
+
+  .price-table{margin-bottom:10px;break-inside:avoid;}
+  .price-table caption{font-size:7pt;padding-bottom:4px;}
+  .price-table th{font-size:7.6pt;padding:4px 7px;}
+  .price-table td{padding:4px 7px;font-size:8.4pt;}
+  .price-table .size-note{font-size:7pt;}
+
+  /* THE PHOTOGRAPHS ARE THE DOCUMENT. Height-capped so the page budget holds; width
+     follows from the photo's own proportions, so nothing is ever cropped. */
+  .figure{margin:0 0 10px;break-inside:avoid;}
+  .figure img{max-height:4.6in;width:auto;max-width:100%;height:auto;margin:0 auto;border-radius:5px;}
+  .figure figcaption{font-size:7.4pt;line-height:1.35;margin-top:3px;text-align:center;}
+  .figure-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .figure-pair img{max-height:3.3in;width:auto;max-width:100%;height:auto;margin:0 auto;border-radius:5px;}
+  .figure-pair figcaption{font-size:7.2pt;line-height:1.32;margin-top:3px;text-align:center;}
+
+  .maplink{font-size:8.6pt;border-bottom:none;font-weight:700;}
+  .inline-range{font-size:1.1em;}
+}
+</style>
+<!-- BW:PHOTO-FIRST-CSS:START (shared template — see docs/BRAND_AND_BUILD_LOG.md) -->
+<style>
+/* ── PHOTO-FIRST PRODUCT CARD (template: sprint-11 Track D, docs/BRAND_AND_BUILD_LOG.md)
+   One card = one PHOTOGRAPH, a name, a one-line kind, one or two plain sentences, and a
+   price range. The range carries data-range / data-typical so it is computed and checked
+   against the live figures rather than typed, and so the print pricing rule keeps it.
+
+   THIS VARIANT DOES NOT CROP. The shared component boxes the photo — 4:3 on screen,
+   16:9 in print — which is exactly the "the crops cut off a lot of the photos" the
+   operator objected to on 2026-08-03. Here the frame follows the photo instead: no
+   aspect-ratio box and no object-fit anywhere, so a portrait photograph is a tall card
+   and a landscape one is a short card, and the two cards in a row simply have different
+   heights.
+
+   The three !important declarations below are the whole mechanism. guide-print.css is a
+   media="print" sheet loaded AFTER this block, and its `.pf-photo{aspect-ratio:16/9}` and
+   `.pf-grid{display:block}` would otherwise win on order. An unconditional !important
+   here beats both, in print and on screen, which is the intent: one rule, both media,
+   no ordering game. */
+.pf-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px;align-items:start;}
+.pf-card{background:var(--card-white,#fff);border:1px solid var(--warm-border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s;}
+.pf-card:hover{box-shadow:0 4px 16px rgba(61,90,122,.12);}
+.pf-card.pf-wide{grid-column:1/-1;flex-direction:row;align-items:stretch;}
+/* A card that is alone in its row would otherwise be a half-width card beside half a
+   page of nothing. Full width, photo on the left and the words on the right — the photo
+   still fills its half and still keeps its own proportions. */
+.pf-card.pf-wide .pf-photo{flex:0 0 46%;display:flex;align-items:center;}
+.pf-card.pf-wide .pf-body{flex:1;}
+@media(max-width:760px){.pf-card.pf-wide{flex-direction:column;}.pf-card.pf-wide .pf-photo{flex:none;}}
+.pf-photo{aspect-ratio:auto!important;background:var(--sidebar-bg,#f4f6f8);overflow:hidden;}
+.pf-photo img{display:block;width:100%;height:auto!important;max-width:100%;}
+.pf-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;}
+.pf-card h3{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--navy);margin-bottom:3px;}
+.pf-kind{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:9px;}
+.pf-card p{font-size:13.5px;color:var(--text);line-height:1.55;margin:0 0 12px;}
+.pf-price{margin-top:auto;border-top:1px solid var(--rule);padding-top:9px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.pf-price-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);}
+.pf-range{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--navy-deep,#1e3a55);white-space:nowrap;}
+.pf-full{flex:0 0 100%;margin-top:4px;font-size:11.5px;line-height:1.4;color:var(--text-muted);text-align:right;}
+.pf-full b{font-weight:600;color:var(--text);white-space:nowrap;}
+.pf-price .pf-range:not([data-range]):not([data-typical]){font-size:13.5px;font-style:italic;color:var(--text-muted);white-space:normal;text-align:right;}
+@media(max-width:760px){.pf-grid{grid-template-columns:1fr;}}
+@media print{
+  /* Sized for a 3.6in print column. The photo is height-capped, never boxed. */
+  .pf-grid{gap:11px!important;margin-bottom:9px;}
+  .pf-card{break-inside:avoid;page-break-inside:avoid;border-radius:6px;
+           -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* The card photo fills its column and its height follows from the photo. A
+     max-height here would letterbox the card instead, which is the same defect
+     as a crop wearing different clothes. */
+  .pf-photo img{width:100%;max-height:none;height:auto;}
+  .pf-card.pf-wide{display:flex;flex-direction:row;align-items:stretch;}
+  .pf-card.pf-wide .pf-photo{flex:0 0 46%;}
+  /* Flex, not block, on a wide card only: it pins the price to the bottom of the
+     body so a tall photograph beside a short paragraph does not leave the price
+     floating in the middle of the card. */
+  .pf-card.pf-wide .pf-body{flex:1;display:flex;flex-direction:column;}
+  .pf-card.pf-wide .pf-price{margin-top:auto;}
+  .pf-body{display:block;padding:8px 10px 9px;}
+  .pf-card h3{font-size:12pt;margin-bottom:0;}
+  .pf-kind{font-size:7pt;margin-bottom:3px;}
+  .pf-card p{font-size:8.6pt;line-height:1.38;margin:0 0 6px;}
+  .pf-price{display:block;margin-top:0;padding-top:5px;}
+  .pf-price-label{display:block;font-size:6.6pt;margin-bottom:1px;}
+  .pf-range{display:block;font-size:13pt;}
+  .pf-price .pf-range:not([data-range]):not([data-typical]){font-size:8.4pt;text-align:left;}
+  .pf-full{display:block;font-size:7pt;line-height:1.3;margin-top:2px;text-align:left;}
+}
+</style>
+<!-- BW:PHOTO-FIRST-CSS:END -->
+<!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
+<link rel="stylesheet" media="print" href="guide-print.css">
+<!-- BW:PRINT-CSS:END -->
+</head>
+<body>
+<!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
+<style>
+/* Per-guide print constants. Screen is untouched: the only screen rule here hides
+   the generated pricing invitation, which exists solely for the PDF. It must never
+   show on screen — the shared sheet is media=print and so cannot say anything about
+   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
+   WEBSITE. */
+.print-invite{display:none}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
+</style>
+<!-- BW:PRINT-SYSTEM:END -->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#what">The Columbarium</a>
+      <a href="#faces">Four Faces</a>
+      <a href="#choose">Choosing</a>
+      <a href="#costs">What It Costs</a>
+      <a href="#today">Available Now</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Eternal Light Columbarium</h1>
+    <div class="cover-sub">A four-sided glass-front columbarium standing indoors at Washington Memorial Park &mdash; what a niche there is, what it costs, and what is still available.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Eternal Light Columbarium &middot; Washington Memorial Park</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#what">The Columbarium</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#faces">Four Faces, Clear Corners</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#choose">Choosing a Niche</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#costs">What It Costs</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#today">What Is Available Now</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#next">Coming to See It</a></div>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="what">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>The Columbarium</h2>
+    <div class="section-sub">Glass on four sides, indoors, under a wooden crown</div>
+    <div class="section-rule"></div>
+    <figure class="figure">
+      <img src="ecl-images/ecl-in-place.jpg" alt="The Eternal Light Columbarium seen at an angle from the corridor: a freestanding four-sided case of glass-front niches with a dark wooden cornice and base, standing on carpet with a chandelier above and daylight from the entrance beyond" loading="lazy">
+      <figcaption>The Eternal Light Columbarium stands free in the corridor, so you can walk right around it.</figcaption>
+    </figure>
+    <div class="prose">
+      <p><strong>Eternal Light is a freestanding glass-front columbarium, indoors.</strong> It is a four-sided case with a dark wooden cornice and plinth, standing on carpet in a lit corridor, and you can walk all the way round it. Every niche is closed with glass, so the urn and the things a family places beside it stay visible.</p>
+      <p><strong>Every niche carries <span data-rights="ecl">2 rights of interment</span>.</strong> That includes the larger multi-row units &mdash; the bigger openings give a family more room to arrange, not more people.</p>
+      <p><strong>It is the most varied of our glass-front locations.</strong> The niches are not a uniform grid: they run from single small openings up to tall units two rows high, and the prices run accordingly.</p>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="faces">
+    <div class="section-kicker">SECTION 2</div>
+    <h2>Four Faces, Clear Corners</h2>
+    <div class="section-sub">Two broad elevations, two ends, and no niche wrapping a corner</div>
+    <div class="section-rule"></div>
+    <figure class="figure">
+      <img src="ecl-images/ecl-face.jpg" alt="A broad face of the Eternal Light Columbarium seen straight on: rows of glass-front niches in bronze frames, many of them empty, with a chandelier above and further niche walls behind" loading="lazy">
+      <figcaption>A broad face, straight on. The empty niches are the ones still for sale.</figcaption>
+    </figure>
+    <div class="prose">
+      <p><strong>The columbarium has four faces</strong> &mdash; two broad elevations (south, and the front, which faces north) and two narrower ends (east, at the front door, and west). The corners are solid, so no niche is visible from two sides at once; a niche belongs to exactly one face.</p>
+      <table class="price-table">
+        <caption>The four faces</caption>
+        <thead><tr><th>Face</th><th>Niches</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td><strong>South</strong></td><td class="num"><b data-count="ecl.S">31</b></td><td>A broad elevation, and the largest face.</td></tr>
+          <tr><td><strong>Front (north)</strong></td><td class="num"><b data-count="ecl.N">30</b></td><td>The other broad elevation.</td></tr>
+          <tr><td><strong>West</strong></td><td class="num"><b data-count="ecl.W">12</b></td><td>A narrow end.</td></tr>
+          <tr><td><strong>East (front door)</strong></td><td class="num"><b data-count="ecl.E">12</b></td><td>The narrow end nearest the entrance.</td></tr>
+        </tbody>
+      </table>
+      <p><a class="maplink" href="MAPS/ECL_NicheMap.html">Open the Eternal Light niche map</a> to turn the columbarium face by face and see the exact price and today&rsquo;s status of any niche.</p>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="choose">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>Choosing a Niche</h2>
+    <div class="section-sub">What is actually on offer</div>
+    <div class="section-rule"></div>
+    <div class="pf-grid">
+      <div class="pf-card">
+        <div class="pf-photo"><img src="ecl-images/ecl-open-niches.jpg" alt="A face of the Eternal Light Columbarium with many empty glass-front niches of several sizes, a few of them holding urns, photographs and keepsakes" loading="lazy"></div>
+        <div class="pf-body">
+          <h3>An Eternal Light niche</h3>
+          <div class="pf-kind">Glass front &middot; two rights of interment</div>
+          <p>A niche here is closed with glass and lit, so the urn and a photograph or keepsake beside it are part of the memorial. Size and height set the price.</p>
+          <div class="pf-price">
+            <span class="pf-price-label">Most niches here</span>
+            <span class="pf-range" data-typical="ecl">$17,595&ndash;$29,695</span>
+            <span class="pf-full">Full range <b data-range="ecl">$10,995&ndash;$82,500</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="pf-card">
+        <div class="pf-photo"><img src="ecl-images/ecl-in-place.jpg" alt="The Eternal Light Columbarium from the corridor, showing the full height of one face and the wooden cornice above it" loading="lazy"></div>
+        <div class="pf-body">
+          <h3>The larger units</h3>
+          <div class="pf-kind">Glass front &middot; two rights &middot; more room to arrange</div>
+          <p>The tall two-row openings give a family a display rather than a shelf. They still carry two rights of interment, like every other niche here.</p>
+          <div class="pf-price pf-ask">
+            <span class="pf-price-label">Ask us</span>
+            <span class="pf-range">Ask us for today&rsquo;s figures on the larger units</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Full range across every niche currently for sale at Eternal Light: <span class="inline-range" data-range="ecl">$10,995&ndash;$82,500</span>.</p>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="costs">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>What It Costs</h2>
+    <div class="section-sub">The niche, the charges alongside it, and two optional bronzes</div>
+    <div class="section-rule"></div>
+    <div class="prose">
+      <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="ecl-1"><span class="pi-label">Additional charges</span><p>Opening and closing, recording, endowment care and any inscription are charged in addition to the price of the space. They are straightforward, and they differ by location and by what you choose &mdash; call or email me and I will put the exact figures in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table class="price-table" data-print-suppress="fee">
+        <caption>Charges in addition to the niche price &mdash; Eternal Light</caption>
+        <tbody>
+          <tr><td>Opening &amp; closing, each inurnment</td><td class="num" data-fee="ecl.OC">$875</td></tr>
+          <tr><td>Recording fee, each</td><td class="num" data-fee="ecl.REC">$235</td></tr>
+          <tr><td>Endowment Care Fund</td><td class="num" data-fee="ecl.ECF_RATE">10%</td></tr>
+          <tr><td>Inscription</td><td class="num">none</td></tr>
+          <tr><td>Bronze scroll &mdash; optional</td><td class="num" data-fee="ecl.SCROLL">$785</td></tr>
+          <tr><td>Vase with ring &mdash; optional</td><td class="num" data-fee="ecl.VASE">$370</td></tr>
+          <tr><td>Sales tax, on the two optional bronzes only</td><td class="num" data-fee="ecl.TAX">10.4%</td></tr>
+        </tbody>
+      </table>
+      <div class="sidebar">
+        <div class="sidebar-label">WHERE THE TAX APPLIES</div>
+        <p><strong>The niche itself is not taxed</strong>, and neither are the Endowment Care Fund contribution, the opening and closing or the recording fee. The bronze scroll and the vase are merchandise, and those two are taxed at 10.4%. Both are optional.</p>
+      </div>
+      <p class="footnote"><strong>About these charges.</strong> These are Bonney Watson&rsquo;s current charges for Eternal Light. Your family service director will confirm the current charges before quoting.</p>
+    </div>
+  </div>
+
+  <div class="section-wrap span-all" id="today">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>What Is Available Now</h2>
+    <div class="section-sub">A small, genuinely limited number</div>
+    <div class="section-rule"></div>
+    <div class="prose">
+      <p><strong><b data-count="ecl.available">21</b> of the <b data-count="ecl.total">85</b> niches at Eternal Light are for sale today.</strong> This is a finished columbarium in an established building rather than new inventory, so what is left is what is left &mdash; and the sizes and heights still on offer are not evenly spread across the four faces. If a particular face or height matters to you, it is worth asking early.</p>
+      <p><a class="maplink" href="MAPS/ECL_NicheMap.html">Open the Eternal Light niche map</a> to see exactly which niches are still available.</p>
+    </div>
+  </div>
+
+  <div class="section-wrap" id="next">
+    <div class="section-kicker">SECTION 6</div>
+    <h2>Coming to See It</h2>
+    <div class="section-sub">What to decide, and what we will confirm for you</div>
+    <div class="section-rule"></div>
+    <div class="prose">
+      <div class="sidebar">
+        <ul>
+          <li>Decide whether the urn should be visible. Everything else about a glass front follows from that one answer.</li>
+          <li>Choose the urn with the niche, not after it. In a glass front the urn is the thing people see.</li>
+          <li>Decide whether you want one of the two optional bronzes &mdash; the scroll or the vase with ring.</li>
+          <li>Ask early. There are <b data-count="ecl.available">21</b> niches left here, and a specific face or height may not stay available.</li>
+        </ul>
+      </div>
+      <p><a class="maplink" href="MAPS/ECL_NicheMap.html">Open the Eternal Light niche map</a> &middot; <a class="maplink" href="glass-front-niches-guide.html">Compare all the glass-front locations</a></p>
+      <p class="footnote">Ranges in this guide are computed from the price and availability data behind our live niche maps and are re-checked against them automatically whenever this page changes. They describe what is currently offered for sale, and a range moves as spaces sell. The exact price of a specific niche, and today&rsquo;s availability, are always the ones your family service director confirms for you.</p>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park, SeaTac</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url" style="text-decoration:none;">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Prices are Bonney Watson&rsquo;s current prices for each location and are subject to change without notice.</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>
