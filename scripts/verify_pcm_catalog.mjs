@@ -19,6 +19,7 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 import { assertFamilyRegister } from './_no_mis_assert.mjs';
+import { assertServesThisTree } from './served-tree-check.mjs';
 
 export const PAGE = 'pcm-design-catalog.html';
 export const DATA = 'data/pcm-catalog.json';
@@ -165,6 +166,19 @@ export function dirBytes(dir) {
 }
 
 export async function run(ck, base) {
+  // REFUSE TO GRADE A PAGE WE ARE NOT READING FROM DISK. This gate reads the catalog, the
+  // tags and the page source from cwd, but drives the RENDERED page over HTTP from `base`
+  // — and dev-server.mjs serves the directory of the script that started it, so whichever
+  // worktree got to port 3737 first answers for everybody. On 2026-08-03 that produced a
+  // textbook false failure: this file at s12 HEAD, driven against a 3737 owned by main,
+  // reported "144 passed, 10 failed" with every failure inside the new facet layer — the
+  // data-driven half read the worktree and passed, the DOM-driven half read main's older
+  // page and failed. Same commit on a correctly-served tree: 154/0.
+  //
+  // First statement in the function, before any ck(), so a wrong-tree run dies loudly
+  // instead of emitting a hundred green checks and a plausible-looking cluster of reds.
+  await assertServesThisTree(base, process.cwd(), 'the PCM catalog gate', [PAGE, DATA, TAGS]);
+
   const data = JSON.parse(fs.readFileSync(path.resolve(DATA), 'utf8'));
   const tags = JSON.parse(fs.readFileSync(path.resolve(TAGS), 'utf8'));
   const src = fs.readFileSync(path.resolve(PAGE), 'utf8');
