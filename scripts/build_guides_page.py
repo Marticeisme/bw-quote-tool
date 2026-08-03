@@ -17,6 +17,12 @@ Design is taken as a reference, not a literal spec. Deliberate departures:
   * The warm paper background, gradient section rules, count pills, card
     treatment and prominent search ARE taken from the mock.
 
+The script round-trips its own output: CARD_RE/CAT_RE match exactly the markup
+build() emits, so run-after-run is byte-identical (CRLF preserved). Standalone
+HTML comments between cards (operator notes) are carried through verbatim. If
+the page markup ever drifts from the regexes, the parse-count guard in __main__
+aborts without writing — it never overwrites guides.html with an empty shell.
+
 Run from the repo root:  python scripts/build_guides_page.py
 """
 import html as _html
@@ -29,16 +35,20 @@ SRC = OUT = 'guides.html'
 
 CARD_RE = re.compile(
     r'<div class="guide-card"\s+data-name="(?P<kw>[^"]*)">\s*'
-    r'<div class="guide-card-top"><div class="guide-title">(?P<title>.*?)</div></div>\s*'
+    r'<div class="guide-title">(?P<title>.*?)</div>\s*'
     r'<div class="guide-desc">(?P<desc>.*?)</div>\s*'
-    r'<div class="guide-meta"><span class="guide-meta-info">(?P<meta>.*?)</span>'
-    r'<div class="guide-actions">(?P<actions>.*?)</div></div>\s*</div>',
+    r'<span class="guide-meta-info">(?P<meta>.*?)</span>\s*'
+    r'<div class="guide-actions">(?P<actions>.*?)</div>\s*</div>',
     re.S)
-CAT_RE = re.compile(r'<div class="category" data-cat>\s*<div class="category-header">'
-                    r'<h2>(?P<name>.*?)</h2></div>(?P<body>.*?)(?=<div class="category"|</div>\s*</div>\s*<div class="no-results")',
+CAT_RE = re.compile(r'<div class="category" data-cat>\s*<div class="category-header">\s*'
+                    r'<h2>(?P<name>.*?)</h2>(?P<body>.*?)(?=<div class="category" data-cat|</div>\s*</div>\s*<div class="no-results")',
                     re.S)
 CTA_RE = re.compile(r'<a class="guide-cta" href="(?P<href>[^"]*)"(?P<rest>[^>]*)>(?P<label>.*?)</a>')
 PDF_RE = re.compile(r'<a class="guide-pdf" href="(?P<href>[^"]*)"[^>]*>')
+# Cards OR standalone HTML comments, in document order. Comments between cards are
+# deliberate operator notes (e.g. why the COM Walkthrough card was withdrawn) and
+# must survive a rebuild verbatim.
+ITEM_RE = re.compile(CARD_RE.pattern + r'|(?P<comment><!--.*?-->)', re.S)
 
 
 def parse(src):
@@ -46,7 +56,10 @@ def parse(src):
     cats = []
     for cm in CAT_RE.finditer(s):
         cards = []
-        for m in CARD_RE.finditer(cm.group('body')):
+        for m in ITEM_RE.finditer(cm.group('body')):
+            if m.group('comment'):
+                cards.append(dict(comment=m.group('comment')))
+                continue
             cta = CTA_RE.search(m.group('actions'))
             pdf = PDF_RE.search(m.group('actions'))
             cards.append(dict(
@@ -173,8 +186,12 @@ JS = """(function(){
 })();"""
 
 
+def ncards(cards):
+    return sum(1 for c in cards if 'comment' not in c)
+
+
 def build(cats):
-    total = sum(len(c) for _, c in cats)
+    total = sum(ncards(c) for _, c in cats)
     out = [
         '<!DOCTYPE html>', '<html lang="en">', '<head>', '<meta charset="UTF-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
@@ -191,7 +208,7 @@ def build(cats):
         '<div class="page-wrap">',
         '  <div class="hero">',
         '    <h1>Family Guides &amp; Resources</h1>',
-        '    <p>Reference guides, price sheets, and catalogs for families planning with Bonney Watson '
+        '    <p>Reference guides, pricing, and catalogs for families planning with Bonney Watson '
         'at Washington Memorial Park. Every guide opens in a built-in viewer where you can browse, '
         'print, or download.</p>',
         '  </div>', '',
@@ -208,11 +225,15 @@ def build(cats):
                 '      <div class="category-header">',
                 f'        <h2>{name}</h2>',
                 '        <div class="cat-rule"></div>',
-                f'        <span class="cat-count">{len(cards)}</span>',
+                f'        <span class="cat-count">{ncards(cards)}</span>',
                 '      </div>',
                 '      <div class="card-grid">']
         for c in cards:
-            acts = f'<a class="guide-cta" href="{c["href"]}" {c["target"]}>{c["label"]}</a>'.replace('  ', ' ')
+            if 'comment' in c:
+                out += ['        ' + c['comment']]
+                continue
+            tgt = ' ' + c['target'] if c['target'] else ''
+            acts = f'<a class="guide-cta" href="{c["href"]}"{tgt}>{c["label"]}</a>'
             if c['pdf']:
                 acts += f'<a class="guide-pdf" href="{c["pdf"]}" download>PDF &darr;</a>'
             out += [f'        <div class="guide-card" data-name="{c["kw"]}">',
@@ -236,9 +257,21 @@ def build(cats):
 
 
 if __name__ == '__main__':
+    # HARD GUARD (build-prices.py pattern): if the page's markup has drifted away
+    # from CARD_RE/CAT_RE, parsing silently finds nothing — and writing an empty
+    # page destroys guides.html. Refuse to write unless every card in the source
+    # was actually parsed.
+    raw_cards = open(SRC, encoding='utf-8').read().count('<div class="guide-card"')
     cats = parse(SRC)
+    total_parsed = sum(ncards(c) for _, c in cats)
+    if total_parsed == 0:
+        sys.exit(f'ABORT: parsed 0 cards from {SRC} (page has {raw_cards} "guide-card" divs). '
+                 'CARD_RE/CAT_RE no longer match the page markup — nothing was written.')
+    if total_parsed != raw_cards:
+        sys.exit(f'ABORT: parsed {total_parsed} cards but {SRC} contains {raw_cards} '
+                 '"guide-card" divs — the regexes are missing cards. Nothing was written.')
     page, total = build(cats)
-    open(OUT, 'w', encoding='utf-8', newline='').write(page)
+    open(OUT, 'w', encoding='utf-8', newline='\r\n').write(page)
     print(f'{OUT}: {len(cats)} categories, {total} cards')
     for n, c in cats:
-        print(f'    {n:26} {len(c)}')
+        print(f'    {n:26} {ncards(c)}')
