@@ -131,6 +131,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .element-card .element-img img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto;}
 .element-card .pcm-number{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:0 5px 8px;word-break:break-word;line-height:1.25;}
 .photo-card .product-img{aspect-ratio:4/3;}
+/* contain, not cover: several example frames are cropped down to remove the
+   photographer's shoes at the bottom edge, which leaves them wider than 4:3. Under
+   `cover` the card silently sliced the ends off the widest companion markers, cutting
+   the second inscribed panel out of frame — the one thing a marker photo may not do.
+   A thin letterbox is the cheaper price. */
+.photo-card .product-img img{object-fit:contain;}
 .photo-card .product-body{text-align:left;}
 .reference-card .product-img{aspect-ratio:4/3;background:#fff;}
 .reference-card .product-img img{object-fit:contain;}
