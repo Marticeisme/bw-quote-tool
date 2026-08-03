@@ -23,10 +23,17 @@ import path from 'path';
 import { ROOT } from './_print-server.mjs';
 import { pluckClass, pluckTag } from './_html-pluck.mjs';
 
-// The nineteen family guides the print system applies to. Lives HERE rather than in the
-// build script so verifiers can import the list without executing a generator — importing
-// build_guide_print_system.mjs for its list would rewrite all nineteen guides as a side
-// effect of asking a question.
+// The family guides the print system applies to. Lives HERE rather than in the build
+// script so verifiers can import the list without executing a generator — importing
+// build_guide_print_system.mjs for its list would rewrite every guide as a side effect
+// of asking a question.
+//
+// The last five are the per-area photo guides added in sprint-13 (area-guides). They are
+// the "larger, more visual" documents the operator asked for on 2026-08-03 — one per area
+// that still carries real inventory — and they sit alongside the two combined overview
+// guides rather than replacing them. They carry a per-guide page cap of 8 in
+// verify_guide_pages.mjs, and every figure on them reconciles through
+// scripts/verify_area_guide_ranges.mjs.
 export const GUIDES = [
   'veterans-guide.html', 'cemetery-property-guide.html', 'cremation-or-burial-guide.html',
   'markers-guide.html', 'medicaid-family-guide.html', 'medicaid-professional-reference.html',
@@ -35,6 +42,8 @@ export const GUIDES = [
   'direct-cremation.html', 'vault-guide.html', 'outside-marker-rules.html',
   'terramation-guide.html', 'granite-niches-guide.html', 'glass-front-niches-guide.html',
   'urn-gardens-guide.html',
+  'roac-guide.html', 'mvc-niches-guide.html', 'ecl-guide.html', 'gomn-guide.html',
+  'terrace-garden-guide.html',
 ];
 
 // Only genuine scene photography. Verified by eye at cover size, not picked by filename.

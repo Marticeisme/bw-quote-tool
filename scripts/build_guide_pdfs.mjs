@@ -40,6 +40,16 @@ const JOBS = [
   ['granite-niches-guide.html',     'pdf-assets/Granite Niches Guide.pdf'],
   ['glass-front-niches-guide.html', 'pdf-assets/Glass-Front Niche Guide.pdf'],
   ['urn-gardens-guide.html',        'pdf-assets/Urn Gardens at Washington Memorial Park.pdf'],
+  // THE FIVE PER-AREA PHOTO GUIDES — sprint-13, area-guides. Operator, 2026-08-03:
+  // "larger more visual guides for each section that we still have a lot of inventory
+  // for." One document per area, photo-led, capped at 8 printed pages each in
+  // verify_guide_pages.mjs (PER_GUIDE_CAPS) rather than the standard 6 — the photographs
+  // are the point of these and six pages cannot hold them at a size worth looking at.
+  ['roac-guide.html',               'pdf-assets/Rock of Ages Columbarium.pdf'],
+  ['mvc-niches-guide.html',         'pdf-assets/Mountain View New Glass-Front Niches.pdf'],
+  ['ecl-guide.html',                'pdf-assets/Eternal Light Columbarium.pdf'],
+  ['gomn-guide.html',               'pdf-assets/Garden of Meditation Niches.pdf'],
+  ['terrace-garden-guide.html',     'pdf-assets/Terrace Garden Memorial Path.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added

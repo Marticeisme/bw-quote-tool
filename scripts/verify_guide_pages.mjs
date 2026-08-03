@@ -122,29 +122,43 @@ const CAPPED_GUIDES = [
   'Urn Gardens at Washington Memorial Park.pdf',
   'Outside Marker Rules and Pricing.pdf', 'Pre-Planning Guide.pdf',
   'Direct Cremation Plan Example.pdf',
+  // The five per-area photo guides (sprint-13, area-guides). They carry their own,
+  // LOOSER cap — see PER_GUIDE_CAPS below — but they are in this list because everything
+  // else it drives (the cream page ground, the no-cover rule, the stranded-sheet check,
+  // the freshness manifest) applies to them exactly as to every other guide.
+  'Rock of Ages Columbarium.pdf', 'Mountain View New Glass-Front Niches.pdf',
+  'Eternal Light Columbarium.pdf', 'Garden of Meditation Niches.pdf',
+  'Terrace Garden Memorial Path.pdf',
 ];
 
 // ── PER-GUIDE CAPS ──────────────────────────────────────────────────────────────────
 // A guide whose own requirement differs from the shared family-guide cap. This started as
 // TIGHT_CAPS, holding only guides that had to be SHORTER; sprint-13 made it a two-way map,
-// because the operator raised two of them.
+// because the operator raised them.
 //
 // Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the photos.
 // This guide can be longer if we can have better quality photos for each section. maybe a
-// page per columbarium or nich section each." And, mid-sprint: "same with glass front
-// niches as well."
+// page per columbarium or nich section each." Then: "same with glass front niches as well."
+// Then: "larger more visual guides for each section that we still have a lot of inventory
+// for ... all cleaned up and with the best photos from each folder included" — the five
+// per-area guides.
 //
-// So Granite Niches went from a TWO-page cap (sprint-08 Track P, when it was prose and a
-// price) to EIGHT, and Glass-Front Niche from a three-page EQUALITY to eight, each printing
-// one page per location. Both are exceptions BY NAME. `GUIDE_MAX_PAGES` is untouched at six
-// and still governs every other guide — asserted below, so a future edit that "simplifies"
-// this by bumping the shared cap fails instead of quietly giving nineteen guides two extra
-// pages nobody asked for.
+// A photograph a family can actually judge a niche wall from is about a third of a page;
+// a page per location plus the prices does not fit in six pages, and shrinking the photos
+// back down is the exact complaint that opened this sprint. Eight pages each, BY NAME.
+// `GUIDE_MAX_PAGES` is untouched at six and still governs every other guide — asserted
+// below, so a future edit that "simplifies" this by bumping the shared cap fails instead
+// of quietly giving every guide two extra pages nobody asked for.
 //
 // A cap here REPLACES the shared cap for that guide; it may be lower or higher.
 const PER_GUIDE_CAPS = new Map([
   ['Granite Niches Guide.pdf', 8],
   ['Glass-Front Niche Guide.pdf', 8],
+  ['Rock of Ages Columbarium.pdf', 8],
+  ['Mountain View New Glass-Front Niches.pdf', 8],
+  ['Eternal Light Columbarium.pdf', 8],
+  ['Garden of Meditation Niches.pdf', 8],
+  ['Terrace Garden Memorial Path.pdf', 8],
 ]);
 
 // Every guide the print system covers, for the no-cover / blank-page / pricing-rule gates.
@@ -163,9 +177,8 @@ for (const [file, want] of PDF_PAGES) {
 }
 
 // The shared cap must stay six. If someone raises GUIDE_MAX_PAGES instead of adding a named
-// entry to PER_GUIDE_CAPS, every guide silently gets longer and the two named exceptions
-// stop being exceptions. The operator's ruling was about two guides, so it is asserted as
-// being about two guides.
+// entry to PER_GUIDE_CAPS, every guide silently gets longer and the named exceptions
+// stop being exceptions.
 console.log('\n=== THE SHARED CAP IS STILL SIX ===');
 if (GUIDE_MAX_PAGES === 6) ok(`GUIDE_MAX_PAGES = 6, with ${PER_GUIDE_CAPS.size} named exception(s): ${[...PER_GUIDE_CAPS].map(([n, c]) => `${n} ${c}`).join(', ')}`);
 else fail(`GUIDE_MAX_PAGES is ${GUIDE_MAX_PAGES}, not 6 — the operator's per-guide rulings must be named exceptions in PER_GUIDE_CAPS, not a bump to the shared cap`);
@@ -177,7 +190,7 @@ for (const name of CAPPED_GUIDES) {
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
   const cap = PER_GUIDE_CAPS.has(name) ? PER_GUIDE_CAPS.get(name) : GUIDE_MAX_PAGES;
   const how = PER_GUIDE_CAPS.has(name) ? `own cap ${cap}` : `shared cap ${cap}`;
-  if (n <= cap) ok(`${name.padEnd(36)} ${n} page(s) (${how})`);
+  if (n <= cap) ok(`${name.padEnd(44)} ${n} page(s) (${how})`);
   else fail(`${name}: ${n} pages, over its ${how}`);
 }
 
@@ -554,11 +567,11 @@ console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
 {
   const r = manifestCheck();
   // An empty manifest is a HOLLOW GATE, not a pass — it is what you get when someone
-  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 26 = 19 guides + 6
+  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 31 = 24 guides + 6
   // catalogs + the marker guide's SECOND PDF (sprint-11 Track B prints markers-guide.html
   // twice, once per `?part=`); the General Price List is not generated and is deliberately
-  // absent.
-  if (r.jobs < 26) fail(`build manifest records only ${r.jobs} job(s); expected 26 — rerun both builders`);
+  // absent. It was 26 until sprint-13 added the five per-area photo guides.
+  if (r.jobs < 31) fail(`build manifest records only ${r.jobs} job(s); expected 31 — rerun both builders`);
   for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
   for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
   if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);
