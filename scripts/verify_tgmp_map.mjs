@@ -33,7 +33,7 @@ import {
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
-import { assertNoMis } from './_no_mis_assert.mjs';
+import { assertFamilyRegister, stripUnrendered } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/TGMP_Map.html';
@@ -391,18 +391,30 @@ console.log('\nFee schedule — the MVC June-2026 amounts, applied by operator r
   ck(/closest\('#card, \.tab, \.tbtn, \.fees'\)/.test(src),
     'clicking into a quantity box does not unpin the card it is meant to update');
 
-  // 8d. PROVENANCE — the one sentence that keeps this honest.
-  ck(src.includes('not printed on the Terrace Garden Memorial Path price sheet'),
-    "the footer says plainly that these fees are NOT printed on this area's sheet");
-  ck(src.includes(SCHEDULE_SOURCE), `and names the schedule they came from (${SCHEDULE_SOURCE})`);
-  ck(src.includes(`${FEE_SOURCE.confirmedBy} of ${SCHEDULE_RULED_ON}`),
-    `and names the ${FEE_SOURCE.confirmedBy} of ${SCHEDULE_RULED_ON} as the authority`);
+  // 8d. PROVENANCE — REPOINTED 2026-08-02 (s11/family-register).
+  //
+  // This block used to require the page to print which sheet the fees are NOT on, what
+  // that sheet does contain, which schedule they are, and who ruled them across on which
+  // date. That is our paperwork, and the operator caught the same voice on the COM map:
+  // "Why does it say operator here?" The provenance is unchanged and still required — in
+  // the data module, asserted here — and the page carries the family-facing half. The
+  // FIGURES and the fee arithmetic below are untouched.
+  const rendered = stripUnrendered(src);
+  // NB `DATA` in this file is the imported MODULE namespace, not a path.
+  const dataSrc = fs.readFileSync(path.join(ROOT, 'scripts', 'tgmp-data.mjs'), 'utf8');
+  ck(dataSrc.includes(SCHEDULE_SOURCE), `the data module records the schedule (${SCHEDULE_SOURCE})`);
+  ck(dataSrc.includes(SCHEDULE_RULED_ON), `and the date it was ruled across (${SCHEDULE_RULED_ON})`);
+  ck(!rendered.includes(SCHEDULE_SOURCE) && !rendered.includes(SCHEDULE_RULED_ON)
+    && !/price sheet/i.test(rendered),
+    'and none of it renders: no schedule name, no ruling date, no "price sheet"');
+  ck(/These are Bonney Watson&rsquo;s current charges/.test(src),
+    'the footer states whose charges these are');
   ck(/the niche bank and the nine additional properties alike/.test(src),
-    'and says the schedule covers the niche bank and the nine properties alike');
-  ck(/Confirm current fees with the cemetery office/.test(src),
-    'and still tells the reader to confirm the current amounts with us — without naming MIS (s11 Track D)');
-  ck(/E\.C\.F\. is not included in the listed price\. Fees are the Mountain View Columbarium, June 2026 schedule/.test(src),
-    'every detail card repeats the provenance in its own note');
+    'and says they cover the niche bank and the nine properties alike');
+  ck(/Ask us to confirm today&rsquo;s charges before writing/.test(src),
+    'and tells the reader to ask us before writing');
+  ck(/E\.C\.F\. is not included in the listed price\. Fees are Bonney Watson\\'s current charges/.test(src),
+    'every detail card repeats the same statement in its own note');
 
   // 8e. THE ANCHOR. Extract the page's OWN emitted fee arithmetic and run it. This is
   // not a re-implementation of the math — it is the page's code, executed, with a
@@ -638,7 +650,7 @@ console.log('\nMovement runtime');
 // exactly the kind of change that gets undone by the next person copying a sentence from
 // a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
 console.log('\nFamily-facing wording');
-assertNoMis((c, m) => (c ? pass : fail)(m), 'TGMP_Map.html', src);
+assertFamilyRegister((c, m) => (c ? pass : fail)(m), 'TGMP_Map.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

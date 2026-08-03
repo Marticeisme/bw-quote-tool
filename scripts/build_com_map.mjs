@@ -49,6 +49,12 @@ const PPI = 2.0;                    // plan units -> screen px in the 3D scene
 const px = (v) => +(v * PPI).toFixed(2);
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const money = (n) => '$' + n.toLocaleString('en-US');
+// "2026-08-01" -> "August 1, 2026". A prices-effective date is the one date the family
+// register permits on the page, and it should read like a date, not like a file stamp.
+// Noon avoids the UTC-midnight rollback that would print the previous day west of GMT;
+// the input is a fixed literal, so this is deterministic and the build stays byte-stable.
+const longDate = (iso) => new Date(iso + 'T12:00:00Z')
+  .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 /**
  * BAND_SKIN — the price-band PALETTE, 2026-08-01.
@@ -647,8 +653,8 @@ function sizeLegend(wid) {
   // over: the legend gives every Radiance class the same 11 7/8" height, yet the sheet
   // draws the Family niches two rows tall (their DEPTH is doubled, 25 1/2").
   const note = fam
-    ? `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are full double-height compartments &mdash; confirmed from photographs of the wall &mdash; and are twice as deep as the rest.</em>`
-    : `<em class="szn">Height &times; width &times; depth, as printed on the wall sheet. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em>`;
+    ? `<em class="szn">Height &times; width &times; depth, as measured on this wall. Every niche holds two inurnments. The two Family niches (E/D, spaces 2 and 5) are full double-height compartments &mdash; confirmed from photographs of the wall &mdash; and are twice as deep as the rest.</em>`
+    : `<em class="szn">Height &times; width &times; depth, as measured on this wall. Every niche holds two inurnments. A Small is exactly half a Large, so the four narrow spaces in rows K, J, B and A fill the same wall as two wide ones.</em>`;
   return `      <div class="sizeleg"><b>Niche sizes on this wall — every row spans ${wallWidthIn(wid)}&quot;</b>${rows}${note}</div>`;
 }
 
@@ -929,7 +935,8 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
   .pchair{fill:#8a6640;stroke:#3a2a1a;stroke-width:.6;}
   .pfurn rect{fill:#6d4f31;stroke:#2a1d11;stroke-width:.8;}
   .pf-altar rect{fill:#b9a06a;} .pf-piano rect{fill:#2a1d13;}
-  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#2f8f79;stroke:#8d6a3a;}
+  /* The stained-glass pane in plan: amber, matching its 3D treatment, not the old teal. */
+  .pf-urn rect{fill:#191919;} .pf-window rect{fill:#c8a96e;stroke:#5b4526;}
   .pf-archwin rect{fill:#bcdcf2;stroke:#6f8fa6;}
   .pfurn text{fill:#f7f4ef;font-size:7px;font-family:'Jost',sans-serif;text-anchor:middle;}
   .pentr rect{fill:rgba(200,169,110,.4);stroke:var(--gold);stroke-width:1.5;}
@@ -1054,9 +1061,21 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
   /* Pedestal flower urn and the chapel's stained-glass window — both taken from the
      2026-07-29 walkthrough video; the window is the interior's one orientation landmark. */
   .fk-urn{background:linear-gradient(180deg,#3a3330,#141110);} .fk-urn.btop{background:radial-gradient(circle at 40% 35%,#c46a52,#6d3a2c 60%,#2a1a14);}
-  .fk-window{background:linear-gradient(200deg,#59c2a0 0%,#2f86ad 40%,#c9843a 72%,#7c4f2a 100%);
-    box-shadow:0 0 10px rgba(120,220,190,.35);border-color:#6d4f2a;}
-  .fk-window.btop{background:linear-gradient(135deg,#6d4f2a,#3c2a16);}
+  /* STAINED GLASS, not a gradient. The old .fk-window was a raw teal-to-orange linear
+     gradient with a mint glow — nothing else on this page is lit that way, so even once
+     it was off the crypt fronts it read as a rendering artefact rather than a window.
+     It is now leaded glass: two hairline repeating gradients lay the cames over a warm
+     amber-to-navy field drawn from the page's own tokens (--gold #c8a96e, the navy of
+     the plan chrome), inside the same arched border-radius as .fk-archwin so the two
+     window families read as one building. The glow is gold at low alpha, matching the
+     hotspot rings, and the pane sits flush in the wall rather than floating. */
+  .fk-window{background:
+      repeating-linear-gradient(0deg,rgba(26,21,14,.62) 0 1px,rgba(0,0,0,0) 1px 8px),
+      repeating-linear-gradient(90deg,rgba(26,21,14,.62) 0 1px,rgba(0,0,0,0) 1px 6px),
+      linear-gradient(178deg,#e8d5a8 0%,#c8a96e 26%,#9a6b46 52%,#5b6f86 78%,#2c3a55 100%);
+    border-color:#241d13;border-radius:50% 50% 2px 2px / 20% 20% 2px 2px;
+    box-shadow:0 0 14px rgba(200,169,110,.42);}
+  .fk-window.btop{background:linear-gradient(135deg,#5d4a3a,#33291f);border-radius:0;}
   /* The Radiance alcove's two arched clear-glazed windows (video 2:00 and 2:04) --
      daylight is the thing that tells this room apart from every other bay. */
   .fk-archwin{background:linear-gradient(180deg,#dff1ff 0%,#a8d6f2 46%,#7fae7a 74%,#4d7a52 100%);
@@ -1544,13 +1563,21 @@ function head(id, sub, mis) {
     '<div class="cardmis">' + mis + '</div>';
 }
 
-var SNAP_PRINTED = '${MIS.printed}';
+// STATUS NOTES, REWORDED 2026-08-02 (s11/family-register). Each of these used to name
+// the report and the date it was printed — "the cemetery inventory records printed
+// 2026-08-01", "the crypt sheet marked it NOT SELLING". A family reading that learns the
+// name of a document they cannot see and a date that makes the page look stale. The
+// FACTS are unchanged (which crypts are sellable, and that nothing unsellable shows a
+// price); only the voice is. Provenance for the next maintainer: statuses come from the
+// cemetery Lot Inquiry List printed \${MIS.printed}, prices from the crypt-price export
+// of \${PRICES.exported}, and \`unlisted\` is the crypt sheet's NOT SELLING mark with no
+// corresponding row in the inventory list at all.
 var ST_NOTE = {
-  occupied: 'Occupied \\u2014 an interment is recorded at this crypt in the cemetery inventory records printed ' + SNAP_PRINTED + '. Not sellable. No pricing shown.',
-  reserved: 'Reserved \\u2014 held for an owner in the cemetery inventory records as of ' + SNAP_PRINTED + ', with no interment recorded. Not sellable. No pricing shown.',
+  occupied: 'Occupied \\u2014 an interment is recorded at this crypt. Not sellable. No pricing shown.',
+  reserved: 'Reserved \\u2014 held for an owner, with no interment recorded. Not sellable. No pricing shown.',
   blocked: 'Not for sale \\u2014 this crypt is withheld from sale. No pricing shown.',
-  unlisted: 'Unavailable \\u2014 ask us for current availability. The crypt sheet marked it NOT SELLING and the cemetery inventory records do not carry it at all, so there is no positive statement that it is for sale. No pricing shown.',
-  unpriced: 'Not offered \\u2014 The cemetery inventory records list this crypt as AVAILABLE on ' + SNAP_PRINTED + ' but carries NO PRICE for it (the price and E.C.F. fields are both zero). A crypt is only on the market here when a price greater than zero is attached to it, so nothing is quoted and no total is shown. Ask us for the current price before offering it.'
+  unlisted: 'Unavailable \\u2014 this crypt is not being offered for sale, so no pricing is shown. Ask us for current availability.',
+  unpriced: 'Not offered \\u2014 this crypt is listed as available but carries no price, so nothing is quoted and no total is shown. A crypt is only on the market here when a price is attached to it. Ask us for the current price before offering it.'
 };
 
 function cryptCard(d) {
@@ -1605,7 +1632,7 @@ function cryptCard(d) {
       ' \\u2014 switch ' + (!recOn && !ocOn ? 'them' : 'it') + ' on in the fee box below to add '
       + (!recOn && !ocOn ? fm(REC + OC) : fm(!recOn ? REC : OC)) + '.</div>';
   }
-  h += '<div class="cnote">The cemetery inventory records listed this crypt as AVAILABLE and priced it on ' + SNAP_PRINTED + '. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are the QUOTE TOOL\\u2019s figures (operator, ' + SNAP_PRINTED + '), not the crypt sheet\\u2019s. Always confirm current status and price with us before writing.</div>';
+  h += '<div class="cnote">This crypt is offered at the price shown. One unit, one price \\u2014 a tandem or companion crypt is never split. The E.C.F. is not included in the listed price. Recording, opening &amp; closing and the monobar are Bonney Watson\\u2019s current charges. Availability and pricing are kept current against cemetery records \\u2014 ask us to confirm today\\u2019s status before writing.</div>';
   return h;
 }
 
@@ -1623,7 +1650,7 @@ function nicheCard(d) {
   if (d.st !== 'available') {
     h += '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>';
     h += sizeRows(d);
-    h += '<div class="cnote">Not available on the wall sheet \\u2014 ask us for today\\u2019s availability. No pricing shown.</div>';
+    h += '<div class="cnote">Not currently offered \\u2014 ask us for today\\u2019s availability. No pricing shown.</div>';
     return h;
   }
   var price = +d.price, e = ecf(price), tot = price + e;
@@ -2543,7 +2570,15 @@ const HTML = `<!DOCTYPE html>
     <ul class="qlist" id="qlist" role="listbox" aria-label="Matching crypts and niches" hidden></ul>
     <div class="qsr" id="qsr" role="status" aria-live="polite"></div>
   </div>
-  <a class="walk-btn no-print" href="COM_Walkthrough.html">Photoreal walkthrough</a>
+  <!-- WALKTHROUGH DELISTED 2026-08-02 (s11/family-register). Operator, of the photoreal
+       gaussian-splat walkthrough: "This is not something I can show to families." The
+       PAGE, its builder (scripts/build_com_walkthrough.mjs), its splat asset and its two
+       gates are all intact and still run — it comes back when the building is re-shot.
+       What is removed is every family-facing LINK to it: this header button and the card
+       on guides.html. Direct URL access is deliberately still fine; a link is a
+       recommendation and this one is withdrawn until the footage is worth showing.
+       To relist: restore this anchor, restore the guides.html card, bump the Maps &
+       Locations pill by one, and flip the two assertions in verify_com_walkthrough.mjs. -->
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
@@ -2574,7 +2609,7 @@ ${AREAS.map((a) => `      <button class="tbtn" data-viewbtn="${a.id}" title="${e
 ${scene3d()}
     <div class="hint"><b>Click anywhere on the floor</b> to walk there &nbsp;·&nbsp; <b>double-click a wall</b> to swing face-on to it &nbsp;·&nbsp; drag to look around &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a crypt to select it<br>
       <b>W A S D</b> walks &nbsp;·&nbsp; arrow keys look &nbsp;·&nbsp; <b>+ /&minus;</b> zoom &nbsp;·&nbsp; <b>R</b> resets the view &nbsp;·&nbsp; or type a reference such as <b>D-116</b> into <b>Find a crypt or niche</b>, up in the header</div>
-    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; wall POSITIONS are measured off the cemetery CAD floor plan and bank DEPTHS follow the crypt type (a tandem holds two caskets end to end); both niche walls' positions, facings, mounting and the stone each part of the building is finished in come from the 2026-07-29 walk-through video. Heights and the chapel furniture layout are still ESTIMATED. No dimensions are implied.</div>
+    <div class="modelnote">${ENTRANCES.length} entrances &nbsp;·&nbsp; ${STOPS.length} walk-to positions &nbsp;·&nbsp; ${BANKS.length} crypt banks (${N_UNITS} purchasable units over ${N_SPACES} crypt spaces) plus the Radiance and Serenity niche walls (${N_NICHE} niches) &nbsp;·&nbsp; this is an illustration of the building drawn to scale in plan, so that a crypt or niche can be found before you walk in. Wall positions follow the cemetery&rsquo;s own floor plan and bank depths follow the crypt type &mdash; a tandem holds two caskets end to end. Heights and the chapel furnishings are approximate, and no dimensions are implied.</div>
     ${LEGEND}
   </div>
 
@@ -2613,7 +2648,16 @@ ${overviewView()}
     ${N_NOPRICE} not offered (listed available, no price) &nbsp;·&nbsp; ${N_RES} reserved &nbsp;·&nbsp; ${N_OCC} occupied &nbsp;·&nbsp;
     ${N_BLOCK} not selling &nbsp;·&nbsp; ${N_UNL} unavailable — ask us &nbsp;·&nbsp;
     ${N_NAVAIL} niches available, ${money(NICHE_VALUE)} listed &nbsp;·&nbsp; ${esc(NICHE_PRICES_EFFECTIVE)}<br>
-    Crypt availability comes from the cemetery Lot Inquiry List printed ${MIS.printed} (${MIS.resultRows.toLocaleString('en-US')} rows over ${MIS.spaces} crypt spaces) and crypt PRICES from the cemetery crypt-price export of ${PRICES.exported} (${PRICES.rows} priced positions); the niche walls are from the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically — ask us for today&rsquo;s status and price before writing.
+    <!-- THE FAMILY REGISTER, 2026-08-02 (s11/family-register). This line used to read:
+         "Crypt availability comes from the cemetery Lot Inquiry List printed <date>
+          (1,355 rows over 875 crypt spaces) and crypt PRICES from the cemetery
+          crypt-price export of <date> (695 priced positions); the niche walls are from
+          the 2026-07-29 wall sheets. It is a SNAPSHOT and is not updated automatically"
+         — a paragraph about our filing, in front of a family. The provenance is real and
+         is kept in scripts/com-crypt-data.mjs (MIS.printed / MIS.resultRows / MIS.spaces
+         / PRICES.exported / PRICES.rows) and in the comments there. The page now says
+         only what a family can act on: that we keep it current, and to ask us. -->
+    Availability and pricing are kept current against cemetery records &mdash; ask us to confirm today&rsquo;s status before writing. Crypt prices effective ${longDate(PRICES.exported)}.
   </div>
 </div><!-- /main -->
 

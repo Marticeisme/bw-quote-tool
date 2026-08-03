@@ -23,6 +23,7 @@ import zlib from 'zlib';
 import { check as manifestCheck } from './_pdf_manifest.mjs';
 import { tables, classify, money } from './guide-price-rule.mjs';
 import { GUIDES } from './guide-print-meta.mjs';
+import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 // Decompressed content stream of every page, as latin-1 strings. pdf-lib hands back the
 // RAW (Flate) bytes; inflating is what makes the operators readable.
@@ -367,6 +368,21 @@ console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
   for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
   for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
   if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);
+}
+
+// ===================================================================================
+// FAMILY REGISTER — no internal record-keeping language on any guide page.
+//
+// Added 2026-08-02 (s11/family-register). The map gates already carried this check; the
+// guides did not, and two of them were citing "the price sheet" as the source of a
+// figure. Every guide in GUIDES is scanned against the SHARED ban list in
+// scripts/_no_mis_assert.mjs, so a guide added tomorrow inherits it with no edit here,
+// and a term added to that list arms on all of them at once. Comments are stripped
+// first: provenance belongs in the source, never on the page.
+// ===================================================================================
+console.log('\n=== FAMILY REGISTER (no internal jargon on a guide) ===');
+for (const g of [...GUIDES, 'guides.html', 'pcm-design-catalog.html'].filter((f) => fs.existsSync(f))) {
+  assertFamilyRegister((c, m) => (c ? ok : fail)(m), g, fs.readFileSync(g, 'utf8'));
 }
 
 console.log('');

@@ -27,12 +27,14 @@ import {
   NICHE_FEES, CRYPT_FEES, CRYPT_FEE_SOURCE, MIS, STATUS_LABEL, PRICES, PRICE_BANDS, priceBand,
   PRICE_EXCEPTIONS, TIER_G_116_123,
 } from './com-crypt-data.mjs';
+import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/COM_CryptMap.html';
 const ABS = path.join(ROOT, REL);
 const DATA = path.join(ROOT, 'scripts', 'com-crypt-data.mjs');
 const BUILD = path.join(ROOT, 'scripts', 'build_com_map.mjs');
+const SELF = fileURLToPath(import.meta.url);
 
 // ── Anchors. These are the numbers the sabotage run must break. ───────────────
 const A = {
@@ -660,12 +662,20 @@ console.log('\nCrypt card math');
   chk(/Recording Fee — \$235/.test(src), 'the fee bar prints Recording Fee $235, the tool figure');
   chk(!/Recording Fee — \$225/.test(src) && !/Recording Fee<\/span><span class="cv">' \+ fm\(225\)/.test(src),
     'the superseded $225 sheet recording fee appears nowhere on the page');
-  chk(/Crypt fee source/.test(src) && /the crypt sheet’s fee box is superseded/.test(src),
-    'the fee bar states the provenance: quote tool, sheet fee box superseded');
+  // REWORDED 2026-08-02 (s11/family-register). These used to assert that the page NAMED
+  // the quote tool and called the crypt sheet's fee box "superseded" — our bookkeeping,
+  // in front of a family. The invariant that matters is unchanged and still checked: the
+  // fee bar states where the charges stand, as one string from the data module, and every
+  // priced card repeats it. Only the words moved. The FIGURES are asserted above and are
+  // untouched: recording $235, entombment O&C $1,205, and no $225 anywhere.
+  chk(/Crypt fee source/.test(src) && /Bonney Watson’s current charges for this building/.test(src),
+    'the fee bar names the charges as ours and current, without naming an internal source');
   chk(src.includes(CRYPT_FEE_SOURCE.replace(/&/g, '&amp;')),
-    'the provenance string is rendered verbatim from the data module');
-  chk(/Recording, opening &amp; closing and the monobar are the QUOTE TOOL/.test(src),
-    'every priced card names the quote tool as the fee source');
+    'the fee-source string is rendered verbatim from the data module');
+  // ’ not ’ — the card is built in a JS string literal inside the page, so the
+  // apostrophe reaches the HTML as its escape and only becomes a character at runtime.
+  chk(/Recording, opening &amp; closing and the monobar are Bonney Watson\\u2019s current charges/.test(src),
+    'every priced card carries the same statement of the fee source');
   // OMITTED_FEES is retired: both illegible rows are resolved, not hidden.
   chk(!/Omitted \(illegible on the sheet\)/.test(src), 'the "omitted (illegible)" fee row is gone');
 }
@@ -941,6 +951,81 @@ console.log('\nEntrances, chapel layout and walkthrough (operator brief 2026-07-
   chk(/data-px="/.test(src), 'every solid carries its plan position for the culling pass');
 }
 
+// ── 6d-ii. NO DECOR OBJECT MAY STAND ON SELLABLE INVENTORY ───────────────────
+// Operator, 2026-08-02, from a screenshot of the live page: a teal-and-orange slab
+// floating in front of the crypt fronts near the $61,990 chip, over RES/OCC cells and
+// the chapel chairs. It was `window-sg`, the chapel's stained-glass window, laid flat
+// against the SOUTH FACE of bank 116-123 — eight columns of purchasable crypt fronts —
+// and 40 units tall, so from every chapel camera it hid the inventory the page exists
+// to show. It had been there since the window was added, and nothing checked.
+//
+// The rule this installs is the general one, not a fix for the one object: a bank or
+// niche wall's PURCHASABLE FRONT is a band of FRONT_DEPTH plan units standing off the
+// face it is drawn on, and no decor rect — furniture, window, urn, bench, chair — may
+// overlap any of those bands in plan space. Overlap is strict: touching the band's edge
+// is allowed (the right-hand chapel chair block ends exactly on bank 194-200's band and
+// is correct there), zero-area contact is not an occlusion.
+//
+// Plan-space overlap is not literally camera occlusion — an object could in principle
+// hide a face from an oblique angle without standing on the band. It is the invariant
+// that is checkable, deterministic, and that catches every case of the shape that
+// actually occurred: something PLACED ON a face rather than in the room.
+const FRONT_DEPTH = 6;
+console.log('\nDecor never stands on a purchasable front');
+{
+  // The outward band for a rect drawn on `face`. 'S' means the fronts look SOUTH, so
+  // the band lies at increasing y beyond the rect's bottom edge; and so on round.
+  const band = (p, face) => ({
+    N: { x0: p.x, x1: p.x + p.w, y0: p.y - FRONT_DEPTH, y1: p.y },
+    S: { x0: p.x, x1: p.x + p.w, y0: p.y + p.h, y1: p.y + p.h + FRONT_DEPTH },
+    W: { x0: p.x - FRONT_DEPTH, x1: p.x, y0: p.y, y1: p.y + p.h },
+    E: { x0: p.x + p.w, x1: p.x + p.w + FRONT_DEPTH, y0: p.y, y1: p.y + p.h },
+  }[face]);
+
+  const fronts = [
+    ...BANKS.map((b) => ({ id: `bank ${b.id}`, r: band(b.plan, b.face) })),
+    ...['RAD', 'SER'].map((w) => ({ id: `${WALLS[w].name} wall`, r: band(WALLS[w].plan, WALLS[w].face) })),
+  ];
+  chk(fronts.length === BANKS.length + 2,
+    `${fronts.length} purchasable-front bands checked — every crypt bank and both niche walls`);
+
+  const decor = [
+    ...FURNITURE.map((f) => ({ id: f.id, x0: f.x, x1: f.x + f.w, y0: f.y, y1: f.y + f.h })),
+    ...chapelChairs().map((c) => ({ id: c.id, x0: c.x, x1: c.x + c.w, y0: c.y, y1: c.y + c.h })),
+  ];
+  const overlaps = [];
+  for (const d of decor) {
+    for (const f of fronts) {
+      const ox = Math.min(d.x1, f.r.x1) - Math.max(d.x0, f.r.x0);
+      const oy = Math.min(d.y1, f.r.y1) - Math.max(d.y0, f.r.y0);
+      if (ox > 0 && oy > 0) overlaps.push(`${d.id} covers ${f.id} (${ox}x${oy} units)`);
+    }
+  }
+  chk(overlaps.length === 0,
+    overlaps.length === 0
+      ? `no decor object stands on a purchasable front (${decor.length} objects x ${fronts.length} bands)`
+      : `${overlaps.length} decor object(s) occlude sellable inventory: ${overlaps.slice(0, 4).join('; ')}`);
+
+  // …and the specific object the operator caught, pinned where the video puts it: flush
+  // against the WEST return of the recess, which is bank 111-115's blank east end wall.
+  const sg = FURNITURE.find((f) => f.id === 'window-sg');
+  const b111 = BANKS.find((b) => b.id === '111-115').plan;
+  chk(!!sg && sg.x === b111.x + b111.w,
+    `the stained-glass window stands flush on the recess's west wall at x=${sg && sg.x} (bank 111-115's east return, x=${b111.x + b111.w})`);
+  chk(sg.w <= 4 && sg.h >= 20,
+    `it is a tall narrow pane set into that wall (${sg.w} x ${sg.h}), not a slab lying across a crypt face`);
+  const b116 = BANKS.find((b) => b.id === '116-123').plan;
+  chk(sg.y > b116.y + b116.h,
+    `and it is clear of bank 116-123's front line (window y${sg.y} vs face y${b116.y + b116.h})`);
+  // The 3D treatment: stained glass, not a raw gradient. The old rule was one
+  // linear-gradient in teal-to-orange with a mint glow, which read as an artefact.
+  chk(/\.fk-window\{background:\s*[\r\n]?\s*repeating-linear-gradient/.test(src),
+    'the window renders as leaded stained glass (repeating cames over the field), not a raw gradient');
+  chk(!/#59c2a0/.test(src), 'the teal gradient stop that produced the floating slab is gone');
+  chk(/\.fk-window\{[\s\S]{0,400}?border-radius:50% 50%/.test(src),
+    'and it carries the same arched head as the alcove windows, so the two read as one building');
+}
+
 // ── 6e. Niche SIZES: measured per cell, drawn at true width ──────────────────
 // Operator, 2026-08-02: "On both the 3D version and the floor plan the niches are not
 // sized correctly — there are a few different sizes of glass front niches on each wall."
@@ -1142,26 +1227,26 @@ console.log('\nFloor-plan section isolation');
     'the bar names the section you are looking at');
 }
 
-// ── 6h. "MIS" appears nowhere a family can read it ───────────────────────────
-// Sprint-11 ruling: the string "MIS" must not appear on any family-facing surface.
-// Code comments and never-rendered data may keep it; nothing rendered may.
-console.log('\nNo internal system name on a family-facing surface');
+// ── 6h. No internal register anywhere a family can read it ───────────────────
+// Sprint-11 ruling, widened 2026-08-02: it is not one word, it is a VOICE. The MIS sweep
+// deleted "MIS" from this page and left "operator", "Lot Inquiry List", "crypt-price
+// export", "wall sheet", "rows over" and "SNAPSHOT" standing in the same footer, which
+// is what the operator saw and objected to. The ban list is now shared across every map
+// gate and guide verifier — scripts/_no_mis_assert.mjs — so a surface added tomorrow
+// inherits it. Code comments and never-rendered data may keep every one of these words.
+console.log('\nNo internal register on a family-facing surface');
 {
-  // Strip what a family can never see: HTML comments, CSS/JS block comments and
-  // whole-line JS comments. Everything left is markup, text, attributes or live code.
-  const visible = src
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/^\s*\/\/.*$/gm, ' ');
-  const hits = [...visible.matchAll(/\bMIS\b/g)];
-  const where = hits.slice(0, 5).map((m) => JSON.stringify(visible.slice(Math.max(0, m.index - 60), m.index + 40)));
-  chk(hits.length === 0, `the built page renders "MIS" ${hits.length} times${hits.length ? ': ' + where.join(' | ') : ' (0)'}`);
-  // The replacements have to say something useful, not just delete the word.
+  assertFamilyRegister(chk, 'COM crypt map', src);
+  // The replacements have to say something useful, not just delete the words.
   chk(/ask us for/i.test(src), 'the unavailable/no-price wording points a family at us instead');
-  chk(!/confirm in MIS/i.test(visible), 'no "confirm in MIS" survives on any surface a family sees');
-  // The word is still allowed — and still used — in the SOURCE, where it belongs.
-  chk(/MIS/.test(fs.readFileSync(DATA, 'utf8')),
-    'the data module keeps the word (it is a source citation, and it is never rendered)');
+  chk(/kept current against cemetery records/.test(src),
+    'the permitted provenance sentence is what the footer and the priced cards now say');
+  chk(/Crypt prices effective /.test(src),
+    'and it carries a prices-effective date, which is the one date the register allows');
+  // The words are still allowed — and still used — in the SOURCE, where they belong.
+  const dataSrc = fs.readFileSync(DATA, 'utf8');
+  chk(/\bMIS\b/.test(dataSrc) && /Lot Inquiry/i.test(fs.readFileSync(SELF, 'utf8') + dataSrc),
+    'the data module keeps the provenance (it is a source citation, and it is never rendered)');
 }
 
 // ── 7. Print path ─────────────────────────────────────────────────────────────

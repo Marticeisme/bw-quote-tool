@@ -18,7 +18,7 @@ import {
   WALLS, FACE_ORDER, FACE_META, ROWS, TIERS, FEES, RIGHTS, allNiches, refOf, sellable,
 } from './ecl-niche-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
-import { assertNoMis } from './_no_mis_assert.mjs';
+import { assertFamilyRegister } from './_no_mis_assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ECL_NicheMap.html';
@@ -622,7 +622,7 @@ if (process.argv.includes('--sabotage')) {
 // exactly the kind of change that gets undone by the next person copying a sentence from
 // a sibling generator. Comments keep the word on purpose — see scripts/_no_mis_assert.mjs.
 console.log('\nFamily-facing wording');
-assertNoMis((c, m) => (c ? pass : fail)(m), 'ECL_NicheMap.html', src);
+assertFamilyRegister((c, m) => (c ? pass : fail)(m), 'ECL_NicheMap.html', src);
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);
