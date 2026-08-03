@@ -44,13 +44,19 @@ Rules of work for every sprint, track, and director. Director runbook:
 4. **The verification contract (DESIGN §5) is the gate.** Concretely, every track runs and
    quotes verbatim:
    - `npm run check` → must print `index.html: 8 blocks, 0 errors`
-   - `npm test` → must print `1845 passed, 0 failed across 34 suites (1843 without wmp-cemetery-map/)`
+   - `npm test` → must print `2085 passed, 0 failed across 36 suites`
      (the count rises as suites are added; it must never fall silently — updated s09
      close: +57 atneed-commission, +70 followup, +13 fee pins, +59 august-promo,
      +8 served-tree)
    - any generator-signature diff its sprint file specifies
 5. **Never trust, always verify.** "Done"/"pushed"/"loaded" are claims; the report quotes
    command output, not assertions. Directors re-verify at audit.
+   - **Quote the EXACT command you ran, env pins included** (`BW_BASE=...` etc.). The s12
+     Track A false-alarm was a green run reported without its own pin — the director's
+     bare re-run graded the wrong tree and manufactured a believable regression.
+   - **Any verifier that reads files from disk AND fetches a served page must call
+     `served-tree-check.mjs` BEFORE its first assertion** (s12 lesson: the director was
+     the one port-3737 caught this time; the PCM gate was the last one missing it).
 6. **No production Firebase writes, ever.** Tests use `tests/fake-firebase.js` and block
    `gstatic.com/firebasejs`. Reads are permitted; writes are not. This has destroyed real
    data twice (2026-07-11, 2026-07-16).

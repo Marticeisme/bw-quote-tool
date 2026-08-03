@@ -1,5 +1,37 @@
 # STATE — Living Ledger
 
+**Sprint-12 — CLOSED 2026-08-03, ALL THREE TRACKS MERGED, NOTHING PUSHED (no
+pre-authorization this sprint; push is the operator's explicit close-gate ask).**
+Final main (director's own runs): `8 blocks, 0 errors`; **2085 passed, 0 failed across
+36 suites** (the NEW contract number — DESIGN §5, SPRINT_GUIDELINES rule 4 and
+DIRECTOR_GUIDELINES corrected from the drifted 1845/34; main was already 2000/35 at
+boot); verify_pcm_catalog 154/0 served-tree-verified; verify_pcm_upscale 33/0;
+verify_guide_pages (incl. 26-PDF staleness + family-register + new cream-ground/
+brand-mark checks) / photo-first 13 cards / guides-page ALL green on merged main;
+build_pcm_catalog byte-identical on merged bytes. Merges: B `a18f469` → A `e1e4be7` →
+C (guide print). Repo delta from the image work ≈ +24 MB against the operator's
++30 MB cap (designs 22.48 MB / elements 19.75 / photos 8.75 / refs 0.94).
+**Track C shipped (director-audited, eyeballed Pre-Planning p1 against the operator's
+complaint screenshot):** logo restored as out-of-flow print-only navy fleur top-right
+(zero page cost; vault-guide got it as ::before — it never had the img), cream
+full-bleed via `@page{background}` (the only mechanism where full-bleed and margin-box
+page counters coexist — @page margin:0 kills the footer, root background clips to the
+content box), running header deleted generator-wide, footer on the cream by
+construction, 20 PDFs rebuilt, every page count held (Outside Marker Rules 4→3), 5/5
+screen screenshots byte-identical, cover gate SPLIT into cream-ground + no-cover with
+3 latent gate bugs fixed (zero-byte /Contents reads, 10x-only full-bleed detection,
+re-only rect detection — each found by a sabotage that wrongly passed), brand-mark
+gate asserts the NAVY cut specifically (white logo.svg prints invisible on cream).
+Known limitation documented in guide-print.css: @page background is Chromium-only —
+Ctrl+P from other browsers shows white margins. OPEN operator eyes: 22 fallback
+plates ship softer-but-honest (list in scripts/pcm_upscale_fallback.py); guide logo
+size/placement; "flat" search matches only the 2020 book's 336 (2011's are physically
+flat but the data doesn't say so — ruling needed to widen). Close checklist in the
+director's final report; sprint-13 draft seeded at `sprints/sprint-13/SPRINT.md`.
+Cleanup NOT yet done: s12 worktrees + branches kept until the operator's push word
+(node_modules junctions in s12a/s12b/s12c must be deleted NON-recursively:
+`[System.IO.Directory]::Delete($p,$false)`).
+
 **Current sprint: sprint-12 — OPENED 2026-08-03** (director: Fable session; tracks:
 Opus per operator). Operator request: PCM catalog image quality "not very good at all"
 when enlarged — improve with AI — plus mid-boot: typing "companion" must show all
@@ -20,6 +52,21 @@ manifest + standalone gate that never re-runs AI) and **A** `s12/pcm-native-res`
 references re-rendered ≤1 MB, companion/individual/ledger/flat format search with lit
 chips, verify_pcm_catalog extended). Merge order B → A (A rebuilds data+HTML last on
 top of B's plates). See `sprints/sprint-12/SPRINT.md`.
+
+**Tracks B and A MERGED (director-audited, `a18f469` + `e1e4be7`); merged main GREEN:
+2085 passed, 0 failed across 36 suites** (director's own run; reconciles 2000 + 33
+upscale suite + 52 new catalog asserts), 8 blocks 0 errors, verify_pcm_catalog 154/0
+(served-tree-verified), verify_pcm_upscale 33/0, build_pcm_catalog byte-identical on
+merged bytes. B round 2: 700px on the raised 24 MB budget (22.48 MB exact-bytes on a
+fresh checkout), full-699 eyeball sweep → 22 plates (3.1%) swapped to no-AI Lanczos
+(20 garbled-text incl. two CHANGED DATE DIGITS — 2011/2251 2008→2009, 2011/2268
+28→26 — and 2 granite-crazing), per-plate reasons in scripts/pcm_upscale_fallback.py,
+manifest method split gate-asserted both ways; B deviated from the director's Hamming
+instruction for the fallback (Hamming degenerates ~bilinear when ENLARGING; Lanczos is
+the enlarging kernel) — correct call, accepted. Director eyeballs on the live merged
+page: PCM 793 lightbox crisp (names/dates/faces correct), companion search 130 cards
+all chipped, element lightbox smooth. Renders: scratch/s12-director-renders/ +
+s12b's swap three-ups. Track C (guides) still in flight.
 
 **Track B ROUND 1 REPORTED; director sent it back with two rulings (2026-08-03):**
 B shipped 640px/q70/Hamming (19.85 MB ≤ its 20 MB sub-budget), x4plus over anime
