@@ -152,7 +152,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
 .photo-lightbox{position:fixed;inset:0;background:rgba(12,18,26,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:28px;}
 .photo-lightbox.active{display:flex;}
-.photo-lightbox img{max-width:96vw;max-height:82vh;object-fit:contain;background:#fff;border-radius:6px;}
+.photo-lightbox img{width:min(96vw,1100px);max-height:82vh;object-fit:contain;background:#fff;border-radius:6px;}
 .lightbox-cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;}
 
 .doc-footer{background:var(--cream);padding:44px 48px 36px;border-top:1px solid var(--rule);text-align:center;}
