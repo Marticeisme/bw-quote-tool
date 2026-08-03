@@ -4,6 +4,26 @@
 tracks: Opus). Operator: granite-niches guide crops cut off the photos; guide may run
 longer — a page per columbarium/niche section. Ruling: THIS guide's print cap is 8
 total pages (per-guide exception, gated; all others stay 6); frames follow photos.
+**s13 Track B MERGED (director-audited; conflict in verify_guide_pages resolved by
+keeping A's Map cap system + folding B's five entries — 7 named exceptions at 8, shared
+cap asserted 6; all PDFs rebuilt on merged bytes):** five NEW area guides — Rock of
+Ages 5pp / MVC New Glass-Front 5pp / Eternal Light 4pp / Garden of Meditation 3pp /
+Terrace Garden Memorial Path 4pp — 21 photos curated from ~73 candidates with
+per-photo verdicts, every printed figure pinned by NEW verify_area_guide_ranges.mjs
+(125 checks, 11 ranges/2 typical bands/23 counts/5 rights/fees both directions,
+8-way sabotage self-test), 5 cards on guides.html (pill 10→15, added BY HAND — see
+finding), director re-ran all seven guide/range verifiers green on merged main and
+eyeballed ROAC p1 / TGMP p2 / MVC p3 from the MERGED PDFs. B's load-bearing photo
+findings: Crystal Niche folder is NOT ECL (older brass room, = Old MVC's room);
+Cremation Posts folder is NOT TGMP's posts (matches A's independent finding); Garden
+Court folder is crypts. **B FINDING, chipped: scripts/build_guides_page.py DESTROYS
+guides.html if run** (stale CARD_RE parses 0 cards, writes empty categories div) —
+do not run until fixed; chip task filed. OPEN operator eyes: ecl-open-niches.jpg
+carries a faint photographer reflection (inseparable from photographing glass);
+ROAC p5 + GOMN p3 run ~60% empty (the page-per-section trade); GOMN folder has only
+2 usable photos (re-shoot if he wants it fuller); repo delta +8.07 MB (separate ask
+from the s12 +30 MB image cap — flag at push gate).
+
 **s13 Track A MERGED (director-audited):** both combined niche guides page-per-section
 at 6pp (cap 8), CROP ROOT CAUSE was print CSS (fixed-height + object-fit:cover = crop
 by construction; both guides now single-column, width/height:auto, zero object-fit
