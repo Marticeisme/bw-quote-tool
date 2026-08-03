@@ -1,4 +1,4 @@
-# Sprint-13 — Granite Niches guide: photo-first, page-per-section
+# Sprint-13 — Granite + Glass-Front Niches guides: photo-first, page-per-section
 
 **OPENED 2026-08-03** (director: same Fable session as s12; tracks: Opus). Operator:
 "the crops on the granite niches guide cut off a lot of the photos. This guide can be
@@ -20,9 +20,12 @@ columbarium or niche section each."
 
 ## Operator ruling
 
-- This guide MAY exceed the 6-page cap: a page per columbarium/niche section. Cap for
-  THIS guide set to **8 total pages** (per-guide exception, gated); every other guide
-  keeps 6.
+- These guides MAY exceed the 6-page cap: a page per columbarium/niche section. Cap
+  for the granite-niches AND glass-front guides set to **8 total pages each**
+  (per-guide exceptions, gated); every other guide keeps 6.
+- Mid-boot extension (operator): "same with glass front niches as well" — folded into
+  Track A (shared cap map / template / manifest; a second parallel track would
+  collide in the print system).
 - Photos must not be cropped to fragments — frames follow the photos.
 
 ## Track
