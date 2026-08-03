@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadPath, pathRuntimeSource } from './walkthrough-path.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'scripts', 'vendor', 'antimatter15-splat.js');
@@ -42,18 +43,20 @@ const ASSET_SPLATS = ASSET_BYTES / ROW_LENGTH;
 const VIEW_W = 1080, VIEW_H = 1920;
 const FOCAL = (VIEW_W / 2) / Math.tan((68 * Math.PI / 180) / 2);
 
-// Opening pose. Rather than invent a matrix and tune it, the page opens standing where the
-// operator actually stood: `chapel` in scripts/com-walkthrough-views.json is one of the
-// reconstruction's own camera poses, so the first thing a family sees is a real vantage
-// point looking at the chapel and its stained glass. That same file drives the verifier's
-// named viewpoints, so the page and its screenshots can never drift apart.
-const VIEWS = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'com-walkthrough-views.json'), 'utf8'));
-const DEFAULT_VIEW = VIEWS.chapel;
-if (!Array.isArray(DEFAULT_VIEW) || DEFAULT_VIEW.length !== 16) {
-  throw new Error('com-walkthrough-views.json must define a 16-element "chapel" matrix');
-}
+// The filmed path. Every viewpoint the page can ever occupy lives in
+// scripts/com-walkthrough-path.json — derived from the reconstruction's own camera poses,
+// i.e. places the operator actually stood. The page opens at `openIndex` and can move only
+// along the polyline through those stops (see scripts/walkthrough-path.mjs for why).
+// scripts/verify_com_walkthrough.mjs reads the same file and screenshots every stop, so the
+// page and the pictures that gate it cannot drift apart.
+const WALK = loadPath();
+const DEFAULT_VIEW = WALK.stops[WALK.openIndex].view;
 
-let js = fs.readFileSync(SRC, 'utf8');
+// Normalised to LF before anything looks at it. Git hands this file out with CRLF line
+// endings on this machine, and every multi-line patch anchor below is written with \n — so
+// without this the build fails on the second patch (or, worse, a future single-line patch
+// silently matches while a multi-line one does not). The page is written back out as CRLF.
+let js = fs.readFileSync(SRC, 'utf8').replace(/\r\n/g, '\n');
 
 /** Replace `find` with `repl`, asserting it occurs exactly once. */
 function patch(label, find, repl) {
@@ -216,11 +219,237 @@ patch(
   'test hook',
   `let viewMatrix = defaultViewMatrix;`,
   `let viewMatrix = defaultViewMatrix;\n` +
+  pathRuntimeSource(WALK) +
   `// bytesRead/vertexCount are filled in when the stream ends. They exist so the gate can\n` +
   `// assert the page counted whole 32-byte rows off the wire and not a header value.\n` +
+  `// pathT/pathTarget are exposed for the same reason: "the pixels changed" cannot tell a\n` +
+  `// step along the path from a slide off it, but the path parameter can.\n` +
   `window.bwWalkthrough = { bytesRead: null, vertexCount: null, expectedSplats: ${ASSET_SPLATS},\n` +
-  `  get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; } };`,
+  `  stops: BW_PATH_NAMES.slice(), openIndex: BW_PATH_OPEN,\n` +
+  `  get view() { return viewMatrix.slice(); }, set view(m) { viewMatrix = m; },\n` +
+  `  get pathT() { return bwPathT; }, get pathTarget() { return bwPathTarget; },\n` +
+  `  get pathPos() { return bwPathPos(bwPathT); },\n` +
+  `  go(i) { bwPathGo(i); }, snap(i) { bwPathSnap(i); }, advance(d) { bwPathAdvance(d); } };`,
 );
+
+// 7. THE CONSTRAINT ITSELF. Whatever the input handlers did to the camera's translation —
+//    a two-finger pan, a right-drag, a gamepad stick, a view matrix pasted into the URL hash
+//    — the position is overwritten with a point on the filmed path before anything is drawn.
+//    One choke point, evaluated every frame, is why nothing can escape: there is no second
+//    place a position can enter the pipeline. Rotation is untouched, so looking stays free.
+//
+//    This also removes the jump/crouch offset upstream applied here. Space bar moved the eye
+//    a metre off the height the building was filmed at, which is exactly the kind of vertical
+//    excursion that turns the reconstruction to fog.
+patch(
+  'path clamp before draw',
+  `        let inv2 = invert4(viewMatrix);
+        inv2 = translate4(inv2, 0, -jumpDelta, 0);
+        inv2 = rotate4(inv2, -0.1 * jumpDelta, 1, 0, 0);
+        let actualViewMatrix = invert4(inv2);`,
+  `        // The camera is not free: put it back on the filmed path, every frame, before draw.
+        {
+            const bwP = bwPathStep();
+            const bwInv = invert4(viewMatrix);
+            bwInv[12] = bwP[0];
+            bwInv[13] = bwP[1];
+            bwInv[14] = bwP[2];
+            viewMatrix = invert4(bwInv);
+            bwSyncStopLabel();
+        }
+        // No jump or crouch — the eye stays at the height the building was filmed at.
+        let actualViewMatrix = viewMatrix;`,
+);
+
+// 8. Arrow keys walk ALONG the path instead of translating freely in three axes.
+patch(
+  'arrow keys advance along the path',
+  `        if (activeKeys.includes("ArrowUp")) {
+            if (shiftKey) {
+                inv = translate4(inv, 0, -0.03, 0);
+            } else {
+                inv = translate4(inv, 0, 0, 0.1);
+            }
+        }
+        if (activeKeys.includes("ArrowDown")) {
+            if (shiftKey) {
+                inv = translate4(inv, 0, 0.03, 0);
+            } else {
+                inv = translate4(inv, 0, 0, -0.1);
+            }
+        }
+        if (activeKeys.includes("ArrowLeft"))
+            inv = translate4(inv, -0.03, 0, 0);
+        //
+        if (activeKeys.includes("ArrowRight"))
+            inv = translate4(inv, 0.03, 0, 0);`,
+  `        // Arrows walk the path. Held down, ~0.014 of a stop per frame is a comfortable
+        // stroll: roughly a second and a half between neighbouring stops at 60 fps.
+        if (activeKeys.includes("ArrowUp") || activeKeys.includes("ArrowRight"))
+            bwPathAdvance(0.014);
+        if (activeKeys.includes("ArrowDown") || activeKeys.includes("ArrowLeft"))
+            bwPathAdvance(-0.014);`,
+);
+
+// 9. The wheel moves along the path. Upstream dollied and orbited on scroll, which is the
+//    single easiest way to end up inside a wall.
+patch(
+  'wheel advances along the path',
+  `    window.addEventListener(
+        "wheel",
+        (e) => {
+            carousel = false;
+            e.preventDefault();
+            const lineHeight = 10;
+            const scale =
+                e.deltaMode == 1
+                    ? lineHeight
+                    : e.deltaMode == 2
+                      ? innerHeight
+                      : 1;
+            let inv = invert4(viewMatrix);
+            if (e.shiftKey) {
+                inv = translate4(
+                    inv,
+                    (e.deltaX * scale) / innerWidth,
+                    (e.deltaY * scale) / innerHeight,
+                    0,
+                );
+            } else if (e.ctrlKey || e.metaKey) {
+                // inv = rotate4(inv,  (e.deltaX * scale) / innerWidth,  0, 0, 1);
+                // inv = translate4(inv,  0, (e.deltaY * scale) / innerHeight, 0);
+                // let preY = inv[13];
+                inv = translate4(
+                    inv,
+                    0,
+                    0,
+                    (-10 * (e.deltaY * scale)) / innerHeight,
+                );
+                // inv[13] = preY;
+            } else {
+                let d = 4;
+                inv = translate4(inv, 0, 0, d);
+                inv = rotate4(inv, -(e.deltaX * scale) / innerWidth, 0, 1, 0);
+                inv = rotate4(inv, (e.deltaY * scale) / innerHeight, 1, 0, 0);
+                inv = translate4(inv, 0, 0, -d);
+            }
+
+            viewMatrix = invert4(inv);
+        },
+        { passive: false },
+    );`,
+  `    // Scroll away from you (or up) walks forward along the path; scroll toward you backs up.
+    // One notch is about a third of the way to the next stop, so a stop is three notches.
+    window.addEventListener(
+        "wheel",
+        (e) => {
+            carousel = false;
+            e.preventDefault();
+            const scale =
+                e.deltaMode == 1 ? 10 : e.deltaMode == 2 ? innerHeight : 1;
+            const dy = e.deltaY * scale;
+            if (!dy) return;
+            const notch = Math.max(-1, Math.min(1, dy / 120));
+            bwPathAdvance(-notch * 0.34);
+        },
+        { passive: false },
+    );`,
+);
+
+// 10. Two fingers used to pan, pinch-zoom and roll the camera — three ways off the path on a
+//     phone, which is the device a family is most likely holding. Now they move along it.
+patch(
+  'two-finger drag advances along the path',
+  `            } else if (e.touches.length === 2) {
+                // alert('beep')
+                const dtheta =
+                    Math.atan2(startY - altY, startX - altX) -
+                    Math.atan2(
+                        e.touches[0].clientY - e.touches[1].clientY,
+                        e.touches[0].clientX - e.touches[1].clientX,
+                    );
+                const dscale =
+                    Math.hypot(startX - altX, startY - altY) /
+                    Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY,
+                    );
+                const dx =
+                    (e.touches[0].clientX +
+                        e.touches[1].clientX -
+                        (startX + altX)) /
+                    2;
+                const dy =
+                    (e.touches[0].clientY +
+                        e.touches[1].clientY -
+                        (startY + altY)) /
+                    2;
+                let inv = invert4(viewMatrix);
+                // inv = translate4(inv,  0, 0, d);
+                inv = rotate4(inv, dtheta, 0, 0, 1);
+
+                inv = translate4(inv, -dx / innerWidth, -dy / innerHeight, 0);
+
+                // let preY = inv[13];
+                inv = translate4(inv, 0, 0, 3 * (1 - dscale));
+                // inv[13] = preY;
+
+                viewMatrix = invert4(inv);
+
+                startX = e.touches[0].clientX;
+                altX = e.touches[1].clientX;
+                startY = e.touches[0].clientY;
+                altY = e.touches[1].clientY;
+            }`,
+  `            } else if (e.touches.length === 2) {
+                // Two fingers slid up the screen walk forward; slid down, backward.
+                const dy =
+                    (e.touches[0].clientY +
+                        e.touches[1].clientY -
+                        (startY + altY)) /
+                    2;
+                bwPathAdvance(-dy / 260);
+
+                startX = e.touches[0].clientX;
+                altX = e.touches[1].clientX;
+                startY = e.touches[0].clientY;
+                altY = e.touches[1].clientY;
+            }`,
+);
+
+// 11. Number keys jump to a stop; -/+ step between stops. Upstream indexed a demo camera
+//     list that this build replaced with a single entry, so pressing "2" evaluated
+//     getViewMatrix(undefined) and threw a TypeError into the console.
+patch(
+  'number keys select a stop',
+  `        if (/\\d/.test(e.key)) {
+            currentCameraIndex = parseInt(e.key);
+            camera = cameras[currentCameraIndex];
+            viewMatrix = getViewMatrix(camera);
+        }
+        if (["-", "_"].includes(e.key)) {
+            currentCameraIndex =
+                (currentCameraIndex + cameras.length - 1) % cameras.length;
+            viewMatrix = getViewMatrix(cameras[currentCameraIndex]);
+        }
+        if (["+", "="].includes(e.key)) {
+            currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+            viewMatrix = getViewMatrix(cameras[currentCameraIndex]);
+        }
+        camid.innerText = "cam  " + currentCameraIndex;`,
+  `        if (/^[0-9]$/.test(e.key)) {
+            const bwStop = parseInt(e.key, 10) - 1;
+            if (bwStop >= 0 && bwStop < BW_PATH.length) bwPathGo(bwStop);
+        }
+        if (["-", "_"].includes(e.key)) bwPathGo(Math.round(bwPathTarget) - 1);
+        if (["+", "="].includes(e.key)) bwPathGo(Math.round(bwPathTarget) + 1);
+        bwSyncStopLabel();`,
+);
+
+// 12. No auto-orbit. It swung the camera in an arc away from the opening viewpoint — the
+//     constraint would drag the position back anyway, leaving a drift nobody asked for, and
+//     a page that opens moving reads as a game rather than as a photograph.
+patch('no auto-orbit', `    let carousel = true;`, `    let carousel = false;`);
 
 const CSS = `
 *{box-sizing:border-box;}
@@ -275,7 +504,7 @@ const HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Bonney Watson — Chapel of Memory Mausoleum: Photoreal Walkthrough</title>
+<title>Bonney Watson — Chapel of Memory Mausoleum: Photographic Preview</title>
 <!-- Generated by scripts/build_com_walkthrough.mjs. Do not hand-edit. -->
 <!-- Renderer: antimatter15/splat, MIT (c) 2023 Kevin Kwok — vendored unmodified at
      scripts/vendor/antimatter15-splat.js, licence at scripts/vendor/antimatter15-splat.LICENSE.
@@ -291,17 +520,18 @@ const HTML = `<!DOCTYPE html>
 <div class="header">
   <div class="htxt">
     <h1>Chapel of Memory Mausoleum</h1>
-    <p>Photoreal walkthrough &middot; Washington Memorial Park</p>
+    <p>Photographic preview &middot; Washington Memorial Park</p>
   </div>
   <a class="hbtn" href="COM_CryptMap.html">Crypt &amp; Niche Map</a>
   <a class="hbtn" href="../">&larr; Quote Tool</a>
 </div>
 
 <div class="note">
-  <b>This is a photographic reconstruction</b> of the inside of the building, not a survey drawing.
+  <b>A photographic preview</b> &mdash; a reconstruction of the inside of the building, not a survey
+  drawing. It follows the path we walked with the camera, and more of the building is still to come.
   For crypt and niche availability, locations and pricing, please use the
   <a href="COM_CryptMap.html" style="color:#e8dcc4">Crypt &amp; Niche Map</a>.
-  <span class="hint">Drag or swipe to look &middot; two fingers or scroll to move &middot; arrow keys to walk</span>
+  <span class="hint">Drag or swipe to look around &middot; scroll, two fingers or arrow keys to walk along</span>
 </div>
 
 <div id="quality"><span id="fps"></span></div>
