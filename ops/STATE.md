@@ -118,7 +118,7 @@ corrupted). OPEN operator: price-ladder break points/labels are the track's;
 no confirm on huge prints (button states "Print these N · k pages"); dead
 Placement facet on cremation/rental page pre-existing, untouched.
 
-**Track E2 IN FLIGHT (operator request 2026-08-02):** "if I type rose or flowers
+**Track E2 IN FLIGHT (operator request 2026-08-02; PUSH PRE-AUTHORIZED on its verified completion):** "if I type rose or flowers
 it should show me all the PCM designs and elements that have roses or flowers" —
 subject-tagging all 700 designs BY LOOKING at them, controlled vocabulary +
 synonym layer, search wired across designs AND elements, gated.
