@@ -1,7 +1,15 @@
 # STATE — Living Ledger
 
-**Sprint-13 — CLOSED 2026-08-03, BOTH TRACKS MERGED, NOTHING PUSHED (no
-pre-authorization; push is the operator's explicit ask).** Final main (director's own
+**Sprint-13 — PUSHED AND LIVE-VERIFIED 2026-08-03** (operator: "push it all live";
+`67e5b78..9879c94`; wire checks: all five new guide pages 200, guides.html carries all
+5 new cards, live Terrace Garden PDF BYTE-IDENTICAL to the local build, 4pp). Post-push
+cleanup: s13 worktrees removed (junctions deleted non-recursively first); photo
+provenance manifest + both tracks' page renders preserved in main `scratch/`
+(s13a-renders, s13b-renders, s13b-photo-manifest.json); `s13/*` branches kept until
+pruned.
+
+**Sprint-13 — CLOSED 2026-08-03, BOTH TRACKS MERGED (close record below; push gate
+satisfied above).** Final main (director's own
 runs): `8 blocks, 0 errors`; **2090 passed, 0 failed across 36 suites** (new contract
 number, docs updated; reconciles 2085 + 5 family-register asserts for the new guides);
 all seven guide/range verifiers green on merged bytes (page-shape incl. 31-PDF
