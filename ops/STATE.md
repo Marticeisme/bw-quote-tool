@@ -4,6 +4,23 @@
 tracks: Opus). Operator: granite-niches guide crops cut off the photos; guide may run
 longer — a page per columbarium/niche section. Ruling: THIS guide's print cap is 8
 total pages (per-guide exception, gated; all others stay 6); frames follow photos.
+**s13 Track A MERGED (director-audited):** both combined niche guides page-per-section
+at 6pp (cap 8), CROP ROOT CAUSE was print CSS (fixed-height + object-fit:cover = crop
+by construction; both guides now single-column, width/height:auto, zero object-fit
+left), 11 granite + 8 glass photos curated with per-photo verdicts (Cremation Posts
+folder is the WRONG PROPERTY — pond-side garden, not TGMP's Paradiso posts; Garden
+Court folder is mausoleum crypts; both wholly rejected), cap map PER_GUIDE_CAPS with
+5-way sabotage incl. the bump-the-shared-cap case, per-guide print type sizes via
+body[data-guide] in guide-print.css (reusable mechanism). **Track A also found and
+fixed 6 checks RED ON MAIN since the s11 register sweep** (sweep deleted GOMN/Terrace
+fee-provenance sentences verify_granite_niche_ranges asserts; standalone gate not in
+npm test — sat red ~36h; director reproduced red on pre-merge main, green post-merge).
+Suite 2083/36 in worktree = documented wmp-map-absent effect (main 2085/36). OPEN
+operator eyes: gomn-setting.jpg ships with a lens-flare band (only garden-context
+frame that exists); rad-wall/ser-wall NOT re-cut (three near-identical frames, can't
+tell which wall is which — ruling wanted); small white temporary name cards visible on
+two ROAC photos (judged family-facing signage, on the record).
+
 Track A `s13/granite-niches-photos` spawned (../bw-quote-tool-s13a) — curates from the
 operator's D:\ property-photo folders (photo-PII relaxed ruling applies; NO operational
 paperwork in frame), photo-first template from BRAND_AND_BUILD_LOG, prices/ranges
