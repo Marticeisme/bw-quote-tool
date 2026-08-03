@@ -20,9 +20,41 @@ occurrences of those words are in the glossaries (2020 pp. 113-115, 2011 pp. 114
 which are not extracted.  "Silver Bronze" in the 2020 captions is a GRANITE COLOR, not
 a bronze marker — matching on the word alone would have thrown out 18 granite designs.
 
-IMAGE SIZING. The books' embedded design images are 347x199 px natively, so rendering
-above ~360 px buys nothing but bytes; elements are line art and go out as 1-bit PNG,
-which is ~4x smaller than lossy WebP at this size and visibly cleaner.
+IMAGE SIZING — all three families are cut at the SOURCE's own resolution, measured, not
+guessed. Nothing here is upscaled; a number above native would be invented detail.
+
+  designs    the books' embedded design images are 347x199 px natively, so rendering
+             above ~360 px buys nothing but bytes.
+  elements   the Elements book places its ornament tiles as 270x270 px rasters inside a
+             129.6 pt box = exactly 150 ppi (measured on pp. 13/61/141/201/251). A grid
+             cell is ~151 pt wide, so a cell rendered at the source's own 150 dpi comes
+             out ~315 px and the trimmed tile lands 272-300 px. ELEM_DPI is therefore
+             pinned at 150 and ELEM_PX (300) is a CAP, not a target: the only tiles it
+             binds are the Borders & Panels ones, which are vector and have no native
+             ceiling at all. Sprint-12 raised this from a 150 px 1-bit render, which was
+             throwing away half the resolution the book actually carries and then
+             throwing away every grey level on top of it.
+  photos     the source frames are 4000x3000; 1400 px is a budget ceiling, not a source
+             one (see PHOTO_PX).
+  reference  the plates are full-page art at 150 dpi (the page background raster is
+             1688x1313 for an 837x657 pt page). 130 dpi is a budget ceiling below native.
+
+ELEMENT ENCODING, chosen by measuring 805 sampled tiles rather than by reasoning about
+formats. Target was the operator's hard 28 MB budget over 3,973 files (~7.0 KB each):
+
+    300 px  1-bit PNG (the old look, at 2x)          1.7 KB   6.7 MB   aliased, rejected
+    300 px  8-bit grey PNG                          12.1 KB  48.1 MB   over budget
+    300 px  lossless WebP                           11.3 KB  44.8 MB   over budget
+    300 px  lossy WebP q80/q85                    4.8/5.5 KB  19/22 MB fits, needs a rename
+    300 px  PNG, 4-level palette                     3.4 KB  13.4 MB   visible banding
+    300 px  PNG, 8-level palette   <-- SHIPPED       5.4 KB  21.3 MB   24% headroom
+    300 px  PNG, 12-level palette                    6.4 KB  25.6 MB   4 lvls no eye sees
+    300 px  PNG, 16-level palette                    7.1 KB  28.3 MB   OVER
+
+An 8-level grey palette is enough for this artwork because the tiles are black ink on
+white: the grey levels exist only on antialiased edges, and 8 of them are indistinguishable
+from 16 at tile size (compared by eye, scratch/s12a-renders). Keeping PNG keeps the
+filenames, so no data file, page or gate needed a rename.
 """
 import io, json, os, re, sys
 
@@ -43,8 +75,21 @@ REF_DIR = 'pcm-reference-images'
 DATA = 'data/pcm-catalog.json'
 
 DESIGN_PX = 360      # longest edge; the source is 347 px, so this is native-ish
-ELEM_PX = 150
-PHOTO_PX = 760
+
+ELEM_DPI = 150       # the Elements book's OWN placement ppi — measured, do not raise
+ELEM_PX = 300        # cap on the trimmed tile; only Borders & Panels (vector) reach it
+ELEM_LEVELS = 8      # grey levels in the palette (see the encoding table above)
+
+# 1400, not the 1600 the sprint file asked for. Measured, at the same crops and the same
+# curated set: 30 frames at 1600 px cost 11.4 MB at q46 and 11.9 MB at q50 — the 9 MB
+# budget cannot hold 1600 px JPEG at ANY quality worth shipping, so the budget won and the
+# long edge came down. 1400 px still covers the lightbox (max 1100 CSS px) with margin and
+# is 3.4x the pixels of the old 760.
+PHOTO_PX = 1400
+PHOTO_Q = 46         # 30 frames = 8.75 MB, measured. q50 is 9.17 MB and busts the budget.
+
+REF_DPI = 130        # below the plates' native 150 dpi; 150 dpi costs 1.23 MB over 1 MB
+REF_Q = 45           # 13 plates = 0.92 MB, measured
 
 PCM_RE = re.compile(r'^PCM\s*(\d+)$')
 ELEM_RE = re.compile(r"^[A-Z][A-Z0-9 &.'/()-]*\s\d{3}$")
@@ -88,12 +133,31 @@ def render(page, rect, px):
     return Image.frombytes('RGB', (pm.width, pm.height), pm.samples)
 
 
-def save_webp(im, path, px, q=64):
+def render_dpi(page, rect, dpi):
+    """Render at a FIXED dpi instead of to a target pixel width. The elements and the
+    reference plates both have a known source ppi, and asking for a pixel count lets the
+    renderer land just above or just below it depending on how wide the crop happened to
+    be — which is how the element tiles ended up resampled off their own grid."""
+    pm = page.get_pixmap(dpi=dpi, clip=rect)
+    return Image.frombytes('RGB', (pm.width, pm.height), pm.samples)
+
+
+def save_webp(im, path, px, q=64, method=5):
     im = im.copy()
     im.thumbnail((px, px), Image.LANCZOS)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    im.save(path, 'WEBP', quality=q, method=5)
+    im.save(path, 'WEBP', quality=q, method=method)
     return os.path.getsize(path)
+
+
+def dims(rel):
+    """(w, h) of an image already on disk, or None. Recorded into the catalog so the gate
+    can assert a real file against a real number instead of trusting either alone."""
+    try:
+        with Image.open(rel) as im:
+            return [im.width, im.height]
+    except Exception:
+        return None
 
 
 def trim(im, pad=3):
@@ -111,13 +175,36 @@ def trim(im, pad=3):
                     min(im.width, x1 + pad), min(im.height, y1 + pad)))
 
 
-def save_lineart(im, path, px, thresh=165):
+def whiten(g):
+    """Lift the page field to pure white without flattening the ink.
+
+    The Elements pages are printed on a light grey field, and Borders & Panels in
+    particular sits on a noticeably darker one. The old 1-bit output hid that for free —
+    everything above the threshold became white. Antialiased output does not, so a panel
+    tile shipped with a grey backdrop the moment the threshold came out. This is a linear
+    level stretch anchored just under the measured background, so the field goes to 255,
+    the black ink stays at ~0, and the edge greys in between are preserved."""
+    edge = sorted(g.crop((0, 0, g.width, 1)).tobytes() +
+                  g.crop((0, g.height - 1, g.width, g.height)).tobytes() +
+                  g.crop((0, 0, 1, g.height)).tobytes() +
+                  g.crop((g.width - 1, 0, g.width, g.height)).tobytes())
+    bg = edge[len(edge) // 2]
+    if bg >= 250 or bg < 120:
+        return g                                   # already white, or genuinely dark art
+    scale = 255.0 / max(1, bg - 6)
+    return g.point(lambda v: min(255, int(v * scale)))
+
+
+def save_lineart(im, path, px, levels=ELEM_LEVELS):
+    """Antialiased ink-on-white line art as a small-palette grey PNG. See the encoding
+    table at the top of this file for why 8 levels and why PNG."""
     im = trim(im)
-    g = im.convert('L')
-    g.thumbnail((px, px), Image.LANCZOS)
-    one = g.point(lambda v: 255 if v > thresh else 0).convert('1')
+    g = whiten(im.convert('L'))
+    if max(g.size) > px:
+        g.thumbnail((px, px), Image.LANCZOS)       # a cap; never an upscale
+    q = g.quantize(colors=levels, method=Image.MEDIANCUT, dither=Image.NONE)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    one.save(path, 'PNG', optimize=True)
+    q.save(path, 'PNG', optimize=True)
     return os.path.getsize(path)
 
 
@@ -303,8 +390,8 @@ def extract_elements(write_images):
             used.add(key)
             rel = f'{ELEM_DIR}/{slug(cat)}/{key}.png'
             if write_images:
-                bytes_ += save_lineart(render(page, rect, ELEM_PX * 2), rel, ELEM_PX)
-            out.append(dict(code=code, cat=cat, page=printed, img=rel))
+                bytes_ += save_lineart(render_dpi(page, rect, ELEM_DPI), rel, ELEM_PX)
+            out.append(dict(code=code, cat=cat, page=printed, img=rel, px=dims(rel)))
     doc.close()
     return out, bytes_
 
@@ -420,11 +507,11 @@ def extract_photos(write_images):
                               int(box[2] * w), int(box[3] * h)))
             im.thumbnail((PHOTO_PX, PHOTO_PX), Image.LANCZOS)
             os.makedirs(PHOTO_DIR, exist_ok=True)
-            im.save(rel, 'JPEG', quality=70, optimize=True, progressive=True)
+            im.save(rel, 'JPEG', quality=PHOTO_Q, optimize=True, progressive=True)
             bytes_ += os.path.getsize(rel)
-        out.append(dict(img=rel, desc=desc, src='Washington Memorial Park'))
+        out.append(dict(img=rel, desc=desc, src='Washington Memorial Park', px=dims(rel)))
     for rel, desc in GUIDE_PHOTOS:
-        out.append(dict(img=rel, desc=desc, src='Granite Marker Guide'))
+        out.append(dict(img=rel, desc=desc, src='Granite Marker Guide', px=dims(rel)))
     return out, bytes_
 
 
@@ -435,9 +522,12 @@ def extract_reference(write_images):
         if write_images:
             doc = fitz.open(os.path.join(SRC, book))
             page = doc[printed - 1]
-            bytes_ += save_webp(render(page, page.rect, 1000), rel, 1000, q=70)
+            # Fixed dpi, and the full page: 1430x1105 against the old 990x765 — 2.09x the
+            # pixels, still under the plates' native 150 dpi.
+            im = render_dpi(page, page.rect, REF_DPI)
+            bytes_ += save_webp(im, rel, max(im.size), q=REF_Q, method=6)
             doc.close()
-        out.append(dict(img=rel, title=title, desc=desc))
+        out.append(dict(img=rel, title=title, desc=desc, px=dims(rel)))
     return out, bytes_
 
 
@@ -485,10 +575,18 @@ def main():
     cross = {k: v for k, v in where.items() if len(v) > 1}
 
     os.makedirs('data', exist_ok=True)
+    # The render settings ride in the data so the gate asserts against what was actually
+    # asked for, not against a constant the gate itself owns. Budgets are the operator's,
+    # in bytes.
+    spec = dict(elementDpi=ELEM_DPI, elementCapPx=ELEM_PX, elementGreyLevels=ELEM_LEVELS,
+                elementNativePpi=150, elementPrevCapPx=150,
+                photoPx=PHOTO_PX, photoQuality=PHOTO_Q, photoPrevPx=760,
+                referenceDpi=REF_DPI, referenceQuality=REF_Q, referencePrevPx=990,
+                budgets={ELEM_DIR: 28_000_000, PHOTO_DIR: 9_000_000, REF_DIR: 1_000_000})
     with open(DATA, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(dict(designs=designs, elements=elems, photos=photos,
                        reference=refs, designCats=cats, elementCats=ecats,
-                       crossListed=cross),
+                       crossListed=cross, imageSpec=spec),
                   f, indent=0, ensure_ascii=False)
     print(f'\ntotal new image bytes: {total/1e6:.2f} MB')
     print(f'{DATA}: {len(designs)} designs, {len(elems)} elements, '
@@ -498,6 +596,16 @@ def main():
     print('  elements: ' + ', '.join(f'{k} {v}' for k, v in ecats.items()))
     for k, v in cross.items():
         print(f'  cross-listed: {k} in {" + ".join(v)}')
+
+    print('\nper-directory totals against the operator budgets:')
+    for d, cap in spec['budgets'].items():
+        n = sz = 0
+        for root, _, files in os.walk(d):
+            for fn in files:
+                n += 1
+                sz += os.path.getsize(os.path.join(root, fn))
+        print('  %-22s %5d files %8.2f MB / %5.2f MB  %s'
+              % (d, n, sz / 1e6, cap / 1e6, 'OK' if sz <= cap else 'OVER BUDGET'))
 
 
 if __name__ == '__main__':
