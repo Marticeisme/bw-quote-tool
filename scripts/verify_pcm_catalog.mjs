@@ -626,6 +626,387 @@ export async function run(ck, base) {
       [...document.querySelectorAll('.design-card')].filter((c) => c.style.display !== 'none').length);
     ck(cleared === data.designs.length, `Clear restores all ${cleared} designs`);
 
+    // ---- 9. Installed Examples is a panel you can fold away ------------------------
+    // Operator, mid-sprint-14: "the real examples needs to have its own toggle option
+    // just like the design books and elements do." The thirty-five photographs used to
+    // be a fixed block at the bottom with no control over them at all.
+    //
+    // It is checked by LAYOUT, not by a class name: `.open` is what the CSS keys off,
+    // but a rule deleted from the stylesheet would leave the class toggling merrily on
+    // a panel that never actually folds. getClientRects().length is what a reader sees.
+    const exOpen = await page.evaluate(() => ({
+      exists: !!document.getElementById('elcat-examples'),
+      bar: !!document.querySelector('#elcat-examples .el-toggle'),
+      aria: (document.querySelector('#elcat-examples .el-toggle') || {}).ariaExpanded ||
+        (document.querySelector('#elcat-examples .el-toggle') || document.createElement('i'))
+          .getAttribute('aria-expanded'),
+      count: (document.getElementById('examplesCount') || {}).textContent,
+      laidOut: [...document.querySelectorAll('.photo-card')]
+        .filter((c) => c.getClientRects().length > 0).length,
+      elCats: document.querySelectorAll('.el-cat').length,
+    }));
+    ck(exOpen.exists && exOpen.bar,
+      'Installed Examples has its own toggle bar, the same shape as an element category');
+    ck(exOpen.aria === 'true' && exOpen.laidOut === data.photos.length,
+      `it starts open — all ${data.photos.length} photographs laid out ` +
+      `(${exOpen.laidOut}), aria-expanded ${exOpen.aria}`);
+    ck(exOpen.count === String(data.photos.length),
+      `the bar states the count the data has (${exOpen.count} vs ${data.photos.length})`);
+    // The panel must NOT be an .el-cat: everything above reads every .el-cat as an
+    // element category with a count that has to match the element data, and a photo
+    // panel wearing that class reported itself as a category with no data behind it.
+    ck(exOpen.elCats === CENSUS.elements.cats,
+      `the photo panel is not counted as an element category ` +
+      `(${exOpen.elCats} .el-cat, ${CENSUS.elements.cats} expected)`);
+
+    await page.click('#elcat-examples .el-toggle');
+    await page.waitForTimeout(200);
+    const exShut = await page.evaluate(() => ({
+      aria: document.querySelector('#elcat-examples .el-toggle').getAttribute('aria-expanded'),
+      laidOut: [...document.querySelectorAll('.photo-card')]
+        .filter((c) => c.getClientRects().length > 0).length,
+      barStillThere: document.querySelector('#elcat-examples .el-toggle')
+        .getClientRects().length > 0,
+    }));
+    ck(exShut.aria === 'false' && exShut.laidOut === 0,
+      `one click folds all ${data.photos.length} photographs away ` +
+      `(${exShut.laidOut} laid out, aria-expanded ${exShut.aria})`);
+    ck(exShut.barStillThere,
+      'the bar itself stays on the page when folded, so it can be opened again');
+
+    await page.click('#elcat-examples .el-toggle');
+    await page.waitForTimeout(200);
+    const exBack = await page.evaluate(() => ({
+      aria: document.querySelector('#elcat-examples .el-toggle').getAttribute('aria-expanded'),
+      laidOut: [...document.querySelectorAll('.photo-card')]
+        .filter((c) => c.getClientRects().length > 0).length,
+    }));
+    ck(exBack.aria === 'true' && exBack.laidOut === data.photos.length,
+      `a second click brings all ${data.photos.length} back (${exBack.laidOut})`);
+
+    // The count follows a search the way an element category's does ("6 of 35"), which is
+    // the whole point of "the same kind of toggle" — one convention, not two.
+    const exProbe = data.photos[0].desc.split(/[ ,]/).filter((w) => w.length > 5)[0];
+    await page.fill('#searchInput', exProbe);
+    await page.waitForTimeout(340);
+    const exSearch = await page.evaluate(() => ({
+      count: document.getElementById('examplesCount').textContent,
+      shown: [...document.querySelectorAll('.photo-card')]
+        .filter((c) => c.style.display !== 'none').length,
+    }));
+    ck(/^\d+ of \d+$/.test(exSearch.count) &&
+       exSearch.count === `${exSearch.shown} of ${data.photos.length}`,
+      `searching "${exProbe}" restates the count as "${exSearch.count}"`);
+    await page.fill('#searchInput', '');
+    await page.waitForTimeout(340);
+
+    // ---- 10. compare, across designs AND elements ----------------------------------
+    // Scope decision (Track D): a 2020 design, a 2011 design and an ornament are three
+    // things that could end up on one marker, and all three carry a number. Installed
+    // photographs and the reference plates are not alternatives you pick between and
+    // carry no number, so they have no checkbox.
+    await page.fill('#pcmJump', 'BASS 001');
+    await page.waitForTimeout(320);
+    await page.fill('#pcmJump', '');
+    await page.waitForTimeout(200);
+
+    const cbCensus = await page.evaluate(() => ({
+      designs: document.querySelectorAll('.design-card .compare-cb').length,
+      designCards: document.querySelectorAll('.design-card').length,
+      elements: document.querySelectorAll('.element-card .compare-cb').length,
+      elementCards: document.querySelectorAll('.element-card').length,
+      photos: document.querySelectorAll('.photo-card .compare-cb').length,
+      refs: document.querySelectorAll('.reference-card .compare-cb').length,
+      max: window.bwCompareMax,
+    }));
+    ck(cbCensus.designs === cbCensus.designCards && cbCensus.designs === data.designs.length,
+      `every one of the ${cbCensus.designs} design cards carries a compare checkbox`);
+    ck(cbCensus.elements === cbCensus.elementCards && cbCensus.elements > 0,
+      `a lazily-built element category gets its checkboxes too ` +
+      `(${cbCensus.elements} of ${cbCensus.elementCards} rendered element cards)`);
+    ck(cbCensus.photos === 0 && cbCensus.refs === 0,
+      'photographs and reference plates carry none — they are not alternatives you pick');
+
+    const MIXED = ['2020-717', '2011-1182', 'BASS 001'];
+    const mixed = await page.evaluate((keys) => {
+      window.bwCompareSelect(keys);
+      document.getElementById('compareOpenBtn').click();
+      const vals = [...document.querySelectorAll('#compareTable .compare-table-row')]
+        .map((r) => [...r.children].map((c) => c.textContent.trim()));
+      return {
+        open: document.getElementById('compareOverlay').classList.contains('active'),
+        chips: document.querySelectorAll('#compareTrayItems .compare-chip').length,
+        count: document.getElementById('compareCount').textContent,
+        headers: [...document.querySelectorAll('#compareTable .compare-col-name')]
+          .map((n) => n.textContent.trim()),
+        rows: vals.slice(1).map((r) => r[0]),
+        bookRow: (vals.slice(1).find((r) => r[0] === 'Book') || []).slice(1),
+        marked: [...document.querySelectorAll('.product-card.comparing')].length,
+      };
+    }, MIXED);
+    ck(mixed.open && mixed.chips === 3 && mixed.count === '3',
+      `three items across two books and the element library compare together ` +
+      `(${mixed.chips} in the tray)`);
+    ck(mixed.headers.join('|') === 'PCM 717|PCM 1182|BASS 001',
+      `the columns are headed by number (${mixed.headers.join(', ')})`);
+    ck(mixed.bookRow.join('|') === '2020 Design Book|2011 Design Book|Design Elements',
+      `the Book row tells the three apart (${mixed.bookRow.join(' / ')})`);
+    ck(mixed.rows.length >= 6 && mixed.rows.includes('Format') && mixed.rows.includes('Subjects'),
+      `the table carries ${mixed.rows.length} comparison rows (${mixed.rows.join(', ')})`);
+    // 2011-2271 is cross-listed, so one key can own two cards; both must light up.
+    ck(mixed.marked >= 3, `every selected card is marked on the page (${mixed.marked})`);
+
+    // The cap, exercised through .click() rather than by assigning .checked — a disabled
+    // checkbox ignores a click and happily accepts an assignment, so assigning would
+    // test the assertion instead of the cap.
+    const capped = await page.evaluate(() => {
+      window.bwCompareSelect([]);
+      document.getElementById('compareClose').click();
+      const cbs = [...document.querySelectorAll('.design-card .compare-cb')].slice(0, 6);
+      cbs.forEach((cb) => { if (!cb.checked) cb.click(); });
+      const all = [...document.querySelectorAll('.compare-cb')];
+      return { count: document.getElementById('compareCount').textContent,
+               checked: all.filter((c) => c.checked).length,
+               lockedOut: all.filter((c) => !c.checked && c.disabled).length,
+               msg: document.getElementById('compareTrayMsg').textContent.trim() };
+    });
+    ck(capped.count === String(cbCensus.max) && capped.checked === cbCensus.max &&
+       capped.lockedOut > 0 && capped.msg.length > 0,
+      `compare caps at ${cbCensus.max} and locks the rest out ` +
+      `(${capped.checked} ticked, ${capped.lockedOut} disabled)`);
+
+    // ---- 10b. the compare SHEET fits one page -- it is position:fixed and CLIPS -------
+    // s09 Track K found a footer at y=636 of a 1056px page precisely because overflow
+    // there means vanished rows. The plates make this sharper than it was for caskets:
+    // a ledger is 10:13, so at the 2-item width cap it is 434px tall.
+    //
+    // "Nothing overflows the sheet" is NOT enough on its own here, and this is the trap
+    // that cost the first version of these checks: `.cmp-table` carries overflow:hidden
+    // for its rounded corner, so a table whose rows no longer fit CLIPS THEM AND REPORTS
+    // NO OVERFLOW. Padding the label cells to 80px was proven to lose four of the seven
+    // comparison rows while `scrollHeight - clientHeight` stayed 0. So the assertion that
+    // does the work is geometric: the last row's bottom edge is inside the table, and the
+    // footer's bottom edge is inside the page.
+    await page.setViewportSize({ width: 816, height: 1056 });
+    // The LEDGER leads the list on purpose — 10:13 is the tallest thing this sheet can be
+    // asked to lay out, so it is in the 2-item case where each plate is widest.
+    const ledgerId = data.designs.find((d) => d.fmt === 'ledger').id;
+    const PLATE_H = { 2: 300, 3: 240, 4: 200 };
+    const plateWidth = {};
+    for (const n of [2, 3, 4]) {
+      const keys = [ledgerId, '2020-717', '2011-1182', 'BASS 001'].slice(0, n);
+      for (const mode of ['specs', 'photos']) {
+        const geo = await page.evaluate(([keys, mode]) => {
+          window.bwCompareSelect(keys);
+          window.bwBuildCompareSheet(mode);
+          document.body.classList.add('compare-printing');
+          const s = document.getElementById('compareSheet');
+          return { klass: s.className, title: document.getElementById('cmpTitle').textContent };
+        }, [keys, mode]);
+        await page.emulateMedia({ media: 'print' });
+        await page.waitForTimeout(120);
+        const m = await page.evaluate(() => {
+          const s = document.getElementById('compareSheet');
+          // Scoped to the mode being printed. Both halves of the sheet stay built
+          // between runs — the CSS hides the other one — so an unscoped count would
+          // add the previous mode's plates to this one's.
+          const photos = s.classList.contains('cmp-mode-photos');
+          const live = photos ? '.cmp-photo-row .cmp-photo-imgwrap img'
+                              : '.cmp-table .cmp-col-img';
+          const nodes = [...s.querySelectorAll(live)];
+          const box = s.querySelector(photos ? '.cmp-photo-row' : '.cmp-table');
+          const last = [...s.querySelectorAll(photos ? '.cmp-photo-col' : '.cmp-value-cell')]
+            .pop();
+          return {
+            over: s.scrollHeight - s.clientHeight, h: s.clientHeight,
+            cols: (s.querySelector('.cmp-table') || {}).className || '',
+            imgs: nodes.length,
+            widest: nodes.length
+              ? Math.max(...nodes.map((i) => Math.round(i.getBoundingClientRect().width))) : 0,
+            tallest: nodes.length
+              ? Math.max(...nodes.map((i) => Math.round(i.getBoundingClientRect().height))) : 0,
+            spill: last && box
+              ? Math.round(last.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom)
+              : 999,
+            footSpill: Math.round(
+              s.querySelector('.cmp-footer').getBoundingClientRect().bottom - s.clientHeight),
+          };
+        });
+        const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+        const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+        await page.emulateMedia({ media: 'screen' });
+        await page.evaluate(() => document.body.classList.remove('compare-printing'));
+
+        ck(m.over === 0 && pages === 1 && m.spill <= 1 && m.footSpill <= 1,
+          `compare sheet, ${n} items, ${mode}: the last row ends ${-m.spill}px inside the ` +
+          `table, the footer ${-m.footSpill}px inside the page, and the real PDF is ` +
+          `${pages} page`);
+        ck(m.imgs === n, `…all ${n} plates reach the sheet (${m.imgs})`);
+        if (mode === 'specs') {
+          plateWidth[n] = m.widest;
+          ck(m.cols.includes('cmp-cols-' + n),
+            `…the table declares ${n} columns so the plate size can follow (${m.cols.trim()})`);
+          ck(m.tallest > 0 && m.tallest <= PLATE_H[n],
+            `…the tallest plate — the ledger — is held to ${m.tallest}px, within ` +
+            `${PLATE_H[n]}px, so the rows below it still fit`);
+        }
+        ck(geo.title === (mode === 'photos' ? 'Design Plates' : 'Side-by-Side Comparison'),
+          `…the sheet is headed "${geo.title}"`);
+      }
+    }
+    // Fewer items compared = bigger plate. This is what the per-count column sizing BUYS,
+    // and it is checked as a strict ordering rather than against three constants: the
+    // widths come from the grid column, so a constant would just restate the arithmetic
+    // this file would then be free to get wrong in the same direction as the page.
+    ck(plateWidth[2] > plateWidth[3] && plateWidth[3] > plateWidth[4] && plateWidth[4] > 0,
+      `the plate grows as fewer are compared — ${plateWidth[4]}px at 4, ` +
+      `${plateWidth[3]}px at 3, ${plateWidth[2]}px at 2`);
+    await page.evaluate(() => { window.bwCompareSelect([]); });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
+    // ---- 11. print what is on screen -------------------------------------------------
+    // Unlike the compare sheet, this one is a static-flow stack of fixed-height pages, so
+    // the assertion is that it genuinely PAGINATES: the DOM says k pages of PER_PAGE, and
+    // a real Chromium PDF has k pages. A CSS-presence check would pass on a sheet that
+    // renders 12 of 167.
+    // The jump to BASS 001 above left its category open, and an open category's cards
+    // are genuinely on screen — so close it, or the "nothing filtered" baseline below is
+    // 700 designs plus a few thousand ornaments and says nothing about either.
+    await page.evaluate(() => {
+      document.querySelectorAll('.el-cat.open').forEach((box) => {
+        box.querySelector('.el-toggle').click();
+      });
+    });
+    await page.click('#clearFilters');
+    await page.waitForTimeout(320);
+    const perPage = await page.evaluate(() => window.bwFilteredPerPage);
+    ck(perPage === 12,
+      `${perPage} designs per printed page — a plate is 16:10 and carries no spec list, ` +
+      `so a 3x4 grid fills the sheet where the casket sheets' 3 would not`);
+
+    const allBtn = await page.evaluate(() => ({
+      n: window.bwShownCardCount(),
+      text: document.getElementById('filterPrintBtn').textContent.replace(/\s+/g, ' ').trim(),
+      disabled: document.getElementById('filterPrintBtn').disabled,
+    }));
+    ck(allBtn.n === data.designs.length,
+      `with nothing filtered the button offers the ${allBtn.n} designs — and not the ` +
+      `${data.elements.length} elements, none of whose categories is open`);
+    ck(allBtn.text === `Print these ${allBtn.n.toLocaleString()} · ` +
+                       `${Math.ceil(allBtn.n / perPage)} pages` && !allBtn.disabled,
+      `the button states what it will print ("${allBtn.text}")`);
+
+    await page.fill('#searchInput', 'elk');
+    await page.waitForTimeout(340);
+    const sheet = await page.evaluate(() => {
+      const n = window.bwShownCardCount();
+      const pages = window.bwBuildFilteredSheet();
+      const pageEls = [...document.querySelectorAll('#filterSheet .fs-page')];
+      const onPage = [...document.querySelectorAll('#filterSheet .fs-name')]
+        .map((x) => x.textContent.trim());
+      const onScreen = [];
+      document.querySelectorAll('.design-card, .element-card').forEach((c) => {
+        if (c.style.display === 'none') return;
+        const g = c.closest('.group'); if (g && g.hidden) return;
+        const b = c.closest('.el-cat');
+        if (b && (b.hidden || !b.classList.contains('open'))) return;
+        onScreen.push((c.querySelector('.pcm-number') || {}).textContent.trim());
+      });
+      return {
+        n, pages, pageEls: pageEls.length,
+        perPageCounts: pageEls.map((p) => p.querySelectorAll('.fs-item').length),
+        items: document.querySelectorAll('#filterSheet .fs-item').length,
+        onPage, onScreen,
+        photos: document.querySelectorAll('#filterSheet .fs-photo img').length,
+        mastheads: pageEls.filter((p) => p.querySelector('.fs-masthead')).length,
+        footers: pageEls.map((p) => (p.querySelector('.fs-pageno') || {}).textContent || ''),
+        filterLine: (document.querySelector('#filterSheet .fs-filters') || {}).textContent || '',
+        btn: document.getElementById('filterPrintBtn').textContent.replace(/\s+/g, ' ').trim(),
+      };
+    });
+    const wantPages = Math.ceil(sheet.n / perPage);
+    ck(sheet.n > perPage,
+      `"elk" leaves ${sheet.n} cards on screen — more than one page, so pagination is ` +
+      `actually exercised`);
+    ck(sheet.pages === wantPages && sheet.pageEls === wantPages,
+      `the sheet paginates ${sheet.n} cards into ${wantPages} pages of ${perPage} ` +
+      `(built ${sheet.pageEls})`);
+    ck(sheet.items === sheet.n && sheet.onPage.join('|') === sheet.onScreen.join('|'),
+      `every card on screen reaches the sheet, in order, none dropped ` +
+      `(${sheet.items} vs ${sheet.n})`);
+    ck(sheet.perPageCounts.slice(0, -1).every((k) => k === perPage) &&
+       sheet.perPageCounts[sheet.perPageCounts.length - 1] === (sheet.n % perPage || perPage),
+      `full pages hold exactly ${perPage}, the last holds the remainder ` +
+      `(${sheet.perPageCounts.join(', ')})`);
+    ck(sheet.photos === sheet.n, `every printed card carries its plate (${sheet.photos})`);
+    ck(sheet.mastheads === wantPages &&
+       sheet.footers.every((f, i) => f === `Page ${i + 1} of ${wantPages}`),
+      `a running masthead and a "Page k of n" footer on every page`);
+    ck(/elk/i.test(sheet.filterLine),
+      `the sheet names the filter it was printed from ("${sheet.filterLine}")`);
+    ck(sheet.btn === `Print these ${sheet.n} · ${wantPages} page` +
+                     (wantPages === 1 ? '' : 's'),
+      `the button follows the filter ("${sheet.btn}")`);
+
+    await page.setViewportSize({ width: 816, height: 1056 });
+    await page.evaluate(() => document.body.classList.add('filter-printing'));
+    await page.emulateMedia({ media: 'print' });
+    await page.waitForTimeout(150);
+    const fpdf = await page.pdf({ format: 'Letter', printBackground: true });
+    const fpages = (fpdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+    const fgeo = await page.evaluate(() => {
+      const s = document.getElementById('filterSheet');
+      const ps = [...s.querySelectorAll('.fs-page')];
+      return { over: s.scrollHeight - s.clientHeight,
+               heights: ps.map((p) => Math.round(p.getBoundingClientRect().height)),
+               tops: ps.map((p) => Math.round(p.getBoundingClientRect().top)) };
+    });
+    await page.emulateMedia({ media: 'screen' });
+    await page.evaluate(() => document.body.classList.remove('filter-printing'));
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    ck(fpages === wantPages,
+      `the printed PDF really has ${wantPages} pages (${fpages}) — the check the ` +
+      `clipping compare sheet could not pass`);
+    ck(new Set(fgeo.heights).size === 1 && fgeo.over === 0 &&
+       fgeo.tops.every((t, i) => i === 0 || t > fgeo.tops[i - 1]),
+      `pages stack below one another, all one sheet tall (${fgeo.heights[0]}px)`);
+
+    // Nothing to print prints nothing — and does not leave the page in printing state.
+    const empty = await page.evaluate(() => {
+      document.getElementById('searchInput').value = 'zzzznotathing';
+      applyFilters();
+      window.printFiltered();
+      return { n: window.bwShownCardCount(),
+               disabled: document.getElementById('filterPrintBtn').disabled,
+               printing: document.body.classList.contains('filter-printing'),
+               pages: document.querySelectorAll('#filterSheet .fs-page').length };
+    });
+    ck(empty.n === 0 && empty.disabled && !empty.printing,
+      'an empty result disables the button and prints nothing');
+
+    // ---- 11b. neither sheet may leak into an ordinary print ---------------------------
+    // This is what keeps the page's DEFAULT print output byte-for-byte what it was before
+    // compare and print-what-is-filtered existed: both sheets and every checkbox are
+    // display:none in print media until a body class asks for them.
+    await page.click('#clearFilters');
+    await page.waitForTimeout(320);
+    await page.emulateMedia({ media: 'print' });
+    const leak = await page.evaluate(() => {
+      const g = (id) => getComputedStyle(document.getElementById(id)).display;
+      const cb = document.querySelector('.compare-toggle');
+      return { compareSheet: g('compareSheet'), filterSheet: g('filterSheet'),
+               tray: g('compareTray'), overlay: g('compareOverlay'),
+               toggle: cb ? getComputedStyle(cb).display : 'missing',
+               btn: getComputedStyle(document.getElementById('filterPrintBtn')).display,
+               classes: document.body.className };
+    });
+    await page.emulateMedia({ media: 'screen' });
+    ck(leak.compareSheet === 'none' && leak.filterSheet === 'none' &&
+       leak.tray === 'none' && leak.overlay === 'none' &&
+       leak.toggle === 'none' && leak.btn === 'none' && leak.classes === '',
+      `plain print media renders none of it — sheets, tray, overlay, checkbox and ` +
+      `button all display:none (${JSON.stringify(leak)})`);
+
     // ---- 8. page health ----
     // The lightbox <img> carries no src until something is clicked; an image with no src
     // is not a broken image, and counting it would have made this check permanently red.
