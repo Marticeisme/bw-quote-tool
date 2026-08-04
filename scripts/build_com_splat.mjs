@@ -39,6 +39,22 @@ const flag = (name, def, parse = parseFloat) => {
 const maxSplats = flag('--max-splats', Infinity, (v) => parseInt(v, 10));
 const maxScale = flag('--max-scale', Infinity);
 const minAlpha = flag('--min-alpha', 0);
+// Needle-ness: longest axis / MIDDLE axis. THE NEEDLE FILTER.
+//
+// Outdoor scenes reconstruct grass, bark and gravel as gaussians stretched into spikes --
+// long on one axis, near-zero on the others. They sit ON the surface, so neither a position
+// based statistical-outlier filter nor `--max-scale` removes them: their longest axis is not
+// unusually long, it is the SHAPE that is wrong. On the Terrace Garden model those spikes are
+// what turned ground-level memorial markers into a field of needles that cleared every pixel
+// floor (high contrast reads as high "detail") while being unshowable to a family.
+//
+// It must be max/MIDDLE, not max/min. A gaussian rendering a flat surface is a DISC -- two
+// large axes and one near-zero -- so its max/min ratio is just as extreme as a needle's, and a
+// max/min filter deletes precisely the splats that were filling the ground in. Tried at
+// --max-aniso 15 on Terrace Garden it removed 485,245 splats and made the spike field WORSE,
+// because what it actually removed was the surface. A needle has one large axis and two small
+// ones, so max/mid is large; a disc has two large axes, so max/mid is near 1.
+const maxAniso = flag('--max-aniso', Infinity);
 if (!inPath || !outPath) {
   console.error('usage: node scripts/build_com_splat.mjs <input.ply> <output.splat> [--max-splats N]');
   process.exit(2);
@@ -89,12 +105,14 @@ const at = (name, row) => read[name](dv, row * stride + off[name]);
 // importance = gaussian volume x opacity, over the gaussians that survive the cleanup filters
 const importance = new Float32Array(count);
 const kept = [];
-let cutScale = 0, cutAlpha = 0;
+let cutScale = 0, cutAlpha = 0, cutAniso = 0;
 for (let r = 0; r < count; r++) {
   const s0 = Math.exp(at('scale_0', r)), s1 = Math.exp(at('scale_1', r)), s2 = Math.exp(at('scale_2', r));
   const alpha = 1 / (1 + Math.exp(-at('opacity', r)));
   if (Math.max(s0, s1, s2) > maxScale) { cutScale++; continue; }
   if (alpha < minAlpha) { cutAlpha++; continue; }
+  const srt = [s0, s1, s2].sort((x, y) => y - x);
+  if (srt[0] / Math.max(1e-9, srt[1]) > maxAniso) { cutAniso++; continue; }
   importance[r] = s0 * s1 * s2 * alpha;
   kept.push(r);
 }
@@ -132,6 +150,7 @@ fs.writeFileSync(outPath, out);
 const parts = [];
 if (cutScale) parts.push(`${cutScale} over --max-scale ${maxScale}`);
 if (cutAlpha) parts.push(`${cutAlpha} under --min-alpha ${minAlpha}`);
+if (cutAniso) parts.push(`${cutAniso} needles over --max-aniso ${maxAniso}`);
 if (order.length > keep) parts.push(`${order.length - keep} least-important`);
 console.log(
   `${inPath}: ${count} splats, ${stride} B/row -> ${outPath}: ${keep} splats, ` +

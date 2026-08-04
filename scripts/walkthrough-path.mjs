@@ -1,19 +1,17 @@
 /**
- * The camera path for MAPS/COM_Walkthrough.html, and the runtime code that enforces it.
+ * The camera paths for the photographic walkthroughs, and the runtime code that enforces them.
  *
- * WHY THIS EXISTS. The gaussian-splat reconstruction of the Chapel of Memory is only
- * photographic near the line the operator actually walked while filming. A few metres off
- * that line it dissolves into fog, and the glass-front walls never reconstructed at all
- * (a re-shoot is queued). So the page does not offer free movement it cannot honour:
- * translation is not a free variable. Every frame, immediately before anything is drawn,
- * the camera position is snapped back onto a polyline through curated stops. Looking around
- * — drag, swipe, A/D/W/S — stays completely free.
+ * WHY THIS EXISTS. A gaussian-splat reconstruction is only photographic near the line the
+ * operator actually walked while filming. A few metres off that line it dissolves into fog. So
+ * the pages do not offer free movement they cannot honour: translation is not a free variable.
+ * Every frame, immediately before anything is drawn, the camera position is snapped back onto a
+ * polyline through curated stops. Looking around — drag, swipe, A/D/W/S — stays completely free.
  *
- * The stops themselves live in scripts/com-walkthrough-path.json, derived from the
- * reconstruction's own camera poses. Both the builder and the verifier read that one file,
- * so the page and the screenshots that gate it cannot drift apart.
+ * The stops live in scripts/<scene>-walkthrough-path.json, derived from each reconstruction's
+ * own camera poses by scripts/build_walkthrough_path.mjs. The builder and the verifier read
+ * that one file per scene, so a page and the screenshots that gate it cannot drift apart.
  *
- * `pathRuntimeSource()` returns the browser source injected by build_com_walkthrough.mjs.
+ * `pathRuntimeSource()` returns the browser source injected by scripts/build_walkthrough.mjs.
  * It is a string rather than a file so that tests/test-walkthrough-path.mjs can evaluate the
  * SAME text the page ships and assert the clamping arithmetic directly — a presence check on
  * the built HTML would prove only that the code is there, not that it clamps.
@@ -21,16 +19,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { scene } from './walkthrough-scenes.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+/** The COM scene's stop file, and the default for callers that predate multiple scenes. */
 export const PATH_FILE = path.join(ROOT, 'scripts', 'com-walkthrough-path.json');
 
-/** Reads and validates scripts/com-walkthrough-path.json. */
+/** Absolute path to a scene's stop file. */
+export function pathFileFor(key) {
+  return path.join(ROOT, 'scripts', scene(key).pathFile);
+}
+
+/** Reads and validates a <scene>-walkthrough-path.json. */
 export function loadPath(file = PATH_FILE) {
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
   const stops = data.stops;
   if (!Array.isArray(stops) || stops.length < 2) {
-    throw new Error('com-walkthrough-path.json: "stops" must be an array of at least 2 stops');
+    throw new Error(`${path.basename(file)}: "stops" must be an array of at least 2 stops`);
   }
   stops.forEach((s, i) => {
     if (!s || typeof s.name !== 'string' || !s.name) throw new Error(`stop ${i} has no name`);

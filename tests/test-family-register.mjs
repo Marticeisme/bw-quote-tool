@@ -28,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import {
   BANNED, ALLOW, registerHits, stripUnrendered, stripAllowed, assertFamilyRegister,
 } from '../scripts/_no_mis_assert.mjs';
+import { SCENES, SCENE_KEYS } from '../scripts/walkthrough-scenes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
@@ -175,34 +176,50 @@ for (const f of SURFACES) {
 // building is re-shot — so what has to hold is narrower and needs its own guarantee: no
 // family-facing surface may LINK to it. Direct URL access is deliberately still fine.
 //
-// This lives here rather than only in verify_com_walkthrough.mjs because that gate takes
-// roughly forty minutes (it screenshots a 24 MB gaussian splat at several camera stops),
+// Widened in sprint-14: there are now THREE walkthroughs (Chapel of Memory, Terrace Garden,
+// Eternal Light), all shipped delisted for the same reason — the operator looks at a reel
+// before it is offered to a family, and linking is a separate deliberate act.
+//
+// This lives here rather than only in verify_walkthrough.mjs because that gate takes tens of
+// minutes PER SCENE (it screenshots a multi-megabyte gaussian splat at every camera stop),
 // which is too slow to be the only thing standing between an edit and a relisted page.
 // The same fact is asserted in both places on purpose.
-const WALK = /COM_Walkthrough\.html/;
+const WALK_PAGES = SCENE_KEYS.map((k) => path.basename(SCENES[k].page));
+const WALK = new RegExp(WALK_PAGES.map((p) => p.replace('.', '\\.')).join('|'));
 const linkTo = (html) => [...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>/gi)]
   .map((m) => m[1]).filter((h) => WALK.test(h));
 {
+  ok(WALK_PAGES.length === 3, `three walkthrough reels are declared (${WALK_PAGES.join(', ')})`);
   const linked = [];
   for (const f of SURFACES) {
-    if (f === 'MAPS/COM_Walkthrough.html') continue; // the page's own back button is not a link TO it
+    // a page's own back button is not a link TO it
+    if (WALK_PAGES.includes(path.basename(f))) continue;
     const hrefs = linkTo(fs.readFileSync(path.join(ROOT, f), 'utf8'));
     if (hrefs.length) linked.push(`${f} -> ${hrefs.join(', ')}`);
   }
   ok(linked.length === 0,
-    `no family-facing surface links to the delisted walkthrough${linked.length ? ': ' + linked.join('; ') : ` (${SURFACES.length} checked)`}`);
-  // The page itself is NOT deleted — delisting is not removal, and asserting its absence
+    `no family-facing surface links to any delisted walkthrough${linked.length ? ': ' + linked.join('; ') : ` (${SURFACES.length} checked)`}`);
+  // The pages are NOT deleted — delisting is not removal, and asserting their absence
   // would quietly turn "hide the link" into "throw away the work".
-  ok(fs.existsSync(path.join(ROOT, 'MAPS', 'COM_Walkthrough.html')),
-    'the walkthrough page itself still exists and is reachable by direct URL');
-  ok(fs.existsSync(path.join(ROOT, 'scripts', 'build_com_walkthrough.mjs'))
-    && fs.existsSync(path.join(ROOT, 'scripts', 'verify_com_walkthrough.mjs')),
-    'its builder and its gate are both still in the tree');
+  for (const k of SCENE_KEYS) {
+    ok(fs.existsSync(path.join(ROOT, SCENES[k].page)),
+      `${SCENES[k].page} still exists and is reachable by direct URL`);
+    ok(fs.existsSync(path.join(ROOT, 'scripts', SCENES[k].pathFile)),
+      `scripts/${SCENES[k].pathFile} — its stop polyline is tracked`);
+  }
+  ok(fs.existsSync(path.join(ROOT, 'scripts', 'build_walkthrough.mjs'))
+    && fs.existsSync(path.join(ROOT, 'scripts', 'verify_walkthrough.mjs'))
+    && fs.existsSync(path.join(ROOT, 'scripts', 'build_walkthrough_path.mjs')),
+    'the shared builder, path builder and gate are all still in the tree');
   // …and the scanner has to actually catch a link, or the check above is decorative.
   ok(linkTo('<a class="guide-cta" href="MAPS/COM_Walkthrough.html">Open Walkthrough →</a>').length === 1,
     'sabotage: an injected guides.html card link IS caught');
   ok(linkTo('<a class="walk-btn no-print" href="COM_Walkthrough.html">Photoreal walkthrough</a>').length === 1,
     'sabotage: an injected COM map header link IS caught');
+  ok(linkTo('<a class="walk-btn" href="TG_Walkthrough.html">Walkthrough</a>').length === 1,
+    'sabotage: an injected Terrace Garden link IS caught');
+  ok(linkTo('<a class="guide-cta" href="MAPS/ELM_Walkthrough.html">Eternal Light →</a>').length === 1,
+    'sabotage: an injected Eternal Light link IS caught');
   ok(linkTo('<a href="COM_CryptMap.html">Crypt map</a>').length === 0,
     'and an unrelated map link is not');
   // The COM map's own header, specifically — that is where the button was.

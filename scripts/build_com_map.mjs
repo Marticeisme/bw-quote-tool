@@ -2572,13 +2572,13 @@ const HTML = `<!DOCTYPE html>
   </div>
   <!-- WALKTHROUGH DELISTED 2026-08-02 (s11/family-register). Operator, of the photoreal
        gaussian-splat walkthrough: "This is not something I can show to families." The
-       PAGE, its builder (scripts/build_com_walkthrough.mjs), its splat asset and its two
+       PAGE, its builder (scripts/build_walkthrough.mjs), its splat asset and its two
        gates are all intact and still run — it comes back when the building is re-shot.
        What is removed is every family-facing LINK to it: this header button and the card
        on guides.html. Direct URL access is deliberately still fine; a link is a
        recommendation and this one is withdrawn until the footage is worth showing.
        To relist: restore this anchor, restore the guides.html card, bump the Maps &
-       Locations pill by one, and flip the two assertions in verify_com_walkthrough.mjs. -->
+       Locations pill by one, and flip the delisting assertions in verify_walkthrough.mjs. -->
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
