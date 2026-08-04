@@ -470,7 +470,12 @@ ${listView()}
 `;
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, HTML);
+// CRLF, like every other generated page here. core.autocrlf is true on this machine, so
+// git stores LF and checks CRLF back out; a builder emitting LF would produce a file that
+// stops matching its own committed bytes after the next checkout, and the byte-for-byte
+// determinism check would fail for the next person on a clean clone rather than for the
+// person who introduced it.
+fs.writeFileSync(OUT, HTML.replace(/\r?\n/g, '\r\n'), 'utf8');
 const positions = allPositions();
 console.log(`wrote ${path.relative(ROOT, OUT)} — ${WINGS[0].banks.length} west banks, ` +
   `${WINGS[1].banks.length} east banks, 1 tandem bank, ${STRUCTURES.length} inert structures, ` +
