@@ -1,6 +1,6 @@
 /**
- * Verifies MAPS/COM_Walkthrough.html — the gaussian-splat walkthrough of the Chapel of
- * Memory Mausoleum — actually renders, actually responds to input, and actually links back.
+ * Verifies one gaussian-splat walkthrough page — MAPS/<SCENE>_Walkthrough.html — actually
+ * renders, actually responds to input, and is actually still delisted.
  *
  * It is deliberately not a DOM-only check. A splat page can have perfect markup and draw a
  * black rectangle, so this reads real framebuffer pixels: it forces `preserveDrawingBuffer`
@@ -9,7 +9,7 @@
  * every control assertion reads the live camera matrix the page exposes as
  * `window.bwWalkthrough.view`.
  *
- * Since sprint-11 the camera is CONFINED to the filmed path (scripts/com-walkthrough-path.json
+ * Since sprint-11 the camera is CONFINED to the filmed path (scripts/<scene>-walkthrough-path.json
  * — the reconstruction is only photographic near where the operator walked). Two consequences
  * for this file: it parks the camera at every stop on that path and asserts each one still
  * renders like a photograph rather than fog, which is what makes "it looks decent" a gate
@@ -25,11 +25,18 @@
  * vertexCount that is exactly assetBytes/32 — a number it can only get by counting whole
  * 32-byte rows off the wire. A short second pass re-checks the uncompressed path.
  *
- * Screenshots for a human to LOOK at are written to scratch/s11f-renders/ (gitignored) —
- * one per stop on the filmed path, named for the stop. The numbers below are a floor, not a
- * verdict: they catch a black or fogged frame, and a person looking at these catches the rest.
+ * Screenshots for a human to LOOK at are written to scratch/s14a-renders/ (gitignored) —
+ * one per stop on the filmed path, named for the scene and the stop. The numbers below are a
+ * floor, not a verdict: they catch a black or fogged frame, and a person looking at these
+ * catches the rest.
  *
- *   node scripts/verify_com_walkthrough.mjs
+ * RUNTIME: roughly 25–45 minutes per scene under SwiftShader (software WebGL2 drawing ~750k
+ * splats at one to three frames a second). That is why this is NOT wired into `npm test` —
+ * run it deliberately when a walkthrough surface changes. The parts that CAN run in
+ * milliseconds live in tests/test-walkthrough-path.mjs and tests/test-family-register.mjs,
+ * and the delisting is asserted in both places on purpose.
+ *
+ *   node scripts/verify_walkthrough.mjs COM|TG|ELM
  */
 import fs from 'node:fs';
 import net from 'node:net';
@@ -39,12 +46,23 @@ import zlib from 'node:zlib';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { loadPath } from './walkthrough-path.mjs';
+import { loadPath, pathFileFor } from './walkthrough-path.mjs';
+import { scene, SCENES, SCENE_KEYS } from './walkthrough-scenes.mjs';
+
+const KEY = process.argv[2];
+if (!KEY) {
+  console.error(`usage: node scripts/verify_walkthrough.mjs <${SCENE_KEYS.join('|')}>`);
+  process.exit(2);
+}
+const S = scene(KEY);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = path.join(ROOT, 'scratch', 's11f-renders');
-const PAGE = 'MAPS/COM_Walkthrough.html';
-const ASSET = path.join(ROOT, 'MAPS', 'COM_Walkthrough.splat');
+const SHOTS = path.join(ROOT, 'scratch', 's14a-renders');
+const PAGE = S.page;
+const ASSET = path.join(ROOT, 'MAPS', S.asset);
+// 30 MB is the sprint-14 budget per scene; 60 MB is the hard ceiling the loader was measured
+// against. Both are asserted so a scene that creeps over budget is visible before it is huge.
+const BUDGET_BYTES = 30 * 1024 * 1024;
 const MAX_ASSET_BYTES = 60 * 1024 * 1024;
 
 let fails = 0;
@@ -100,11 +118,11 @@ const loadFacts = (page) => page.evaluate(() => {
 
 // The filmed path: the ONLY viewpoints the page can occupy. Same file the builder reads, so
 // a stop that ships is a stop that gets screenshotted and measured here.
-const WALK = loadPath();
+const WALK = loadPath(pathFileFor(S.key));
 const STOPS = WALK.stops;
 
 // What "this stop still looks like a photograph" means numerically. Derived from measuring
-// the real thing (scratch/s11f-renders/): every shipped stop clears these with margin, while
+// the real thing (sprint-11 scratch/s11f-renders/): every shipped stop clears these with margin, while
 // a position pushed off the path into the fog or the void does not.
 //
 // `lit` is the floor against a black or near-black frame — the failure a position outside the
@@ -168,8 +186,9 @@ const describe = (name, s) =>
   if (!fs.existsSync(ASSET)) { fail(`${path.relative(ROOT, ASSET)} does not exist`); process.exit(1); }
   const bytes = fs.statSync(ASSET).size;
   const mb = (bytes / 1048576).toFixed(2);
-  if (bytes <= MAX_ASSET_BYTES) ok(`MAPS/COM_Walkthrough.splat is ${mb} MB (cap 60.00 MB)`);
-  else fail(`MAPS/COM_Walkthrough.splat is ${mb} MB — over the 60 MB cap`);
+  if (bytes <= BUDGET_BYTES) ok(`MAPS/${S.asset} is ${mb} MB (sprint-14 budget 30.00 MB)`);
+  else if (bytes <= MAX_ASSET_BYTES) fail(`MAPS/${S.asset} is ${mb} MB — over the 30 MB budget`);
+  else fail(`MAPS/${S.asset} is ${mb} MB — over the 60 MB hard cap`);
   if (bytes % 32 === 0) ok(`asset is a whole number of 32-byte splats (${bytes / 32})`);
   else fail(`asset size ${bytes} is not a multiple of the 32-byte splat row`);
 
@@ -285,7 +304,7 @@ const describe = (name, s) =>
     else fail(`camera is ${off.toFixed(3)} m from stop "${name}" — the frame below is of somewhere else`);
 
     const s = await pixelStats(page);
-    await page.screenshot({ path: path.join(SHOTS, `walkthrough-${name}.png`), timeout: 180000 });
+    await page.screenshot({ path: path.join(SHOTS, `${S.key}-${name}.png`), timeout: 180000 });
     const desc = describe(name, s);
     if (s.litFraction >= LIT_MIN && s.stdev > STDEV_MIN && s.colours > COLOURS_MIN && s.detail >= DETAIL_MIN) {
       ok(desc);
@@ -442,16 +461,16 @@ const describe = (name, s) =>
   await page.evaluate(() => window.bwWalkthrough.snap(window.bwWalkthrough.openIndex));
   await settle(10);
   const recovered = await pixelStats(page);
-  await page.screenshot({ path: path.join(SHOTS, 'walkthrough-after-escape-attempt.png'), timeout: 180000 });
+  await page.screenshot({ path: path.join(SHOTS, `${S.key}-after-escape-attempt.png`), timeout: 180000 });
   if (recovered.litFraction >= LIT_MIN && recovered.detail >= DETAIL_MIN) {
     ok(describe(`recovered to the opening stop after the escape attempt`, recovered));
   } else {
     fail(`${describe('recovered to the opening stop after the escape attempt', recovered)} — the page did not recover`);
   }
 
-  head('Links resolve both ways');
+  head('Links out of the page resolve');
   for (const [label, sel, expect] of [
-    ['Crypt & Niche Map', '.header a[href="COM_CryptMap.html"]', 'MAPS/COM_CryptMap.html'],
+    [S.sibling.href, `.header a[href="${S.sibling.href}"]`, `MAPS/${S.sibling.href}`],
     ['← Quote Tool', '.header a[href="../"]', ''],
   ]) {
     const n = await page.locator(sel).count();
@@ -459,26 +478,40 @@ const describe = (name, s) =>
     else fail(`walkthrough header has ${n} "${label}" links, expected 1`);
     if (expect && !fs.existsSync(path.join(ROOT, expect))) fail(`${expect} does not exist`);
   }
-  // DELISTED 2026-08-02 (s11/family-register). These two assertions used to require a
-  // link FROM the crypt map and FROM guides.html. The operator withdrew the page from
-  // family view — "This is not something I can show to families" — so the requirement is
-  // inverted, not deleted: the page and this whole gate stay green and keep proving the
-  // walkthrough works, while the gate now proves nothing LINKS a family to it. Direct URL
-  // access is intentionally unaffected. Flip these two back when the building is re-shot.
-  // What is banned is a LINK, not the filename. Both files carry a comment naming
-  // MAPS/COM_Walkthrough.html to explain why the card and the button are gone and how to
-  // put them back — and a bare-string test flagged exactly that comment on the first run,
+
+  // DELISTED BY DESIGN. Sprint-11 withdrew the Chapel of Memory walkthrough from family view
+  // — "This is not something I can show to families" — and sprint-14 ships all three reels the
+  // same way: the operator eyeballs a reel before it is offered to anyone. So the requirement
+  // is inverted, not absent: the page and this gate stay green and keep proving the
+  // walkthrough works, while the gate proves nothing LINKS a family to it. Direct URL access
+  // is intentionally unaffected.
+  //
+  // What is banned is a LINK, not the filename. Several files carry a COMMENT naming a
+  // walkthrough page to explain why the card and the button are gone and how to put them
+  // back — and a bare-string test flagged exactly one of those comments on its first run,
   // which is the same mistake the register assert exists to avoid. So: parse hrefs.
+  head('Nothing links a family to any walkthrough');
+  const WALK_PAGES = SCENE_KEYS.map((k) => path.basename(SCENES[k].page));
   const linksToWalk = (html) => [...html.matchAll(/<a\b[^>]*\bhref="([^"]*)"/gi)]
-    .map((m) => m[1]).filter((h) => /COM_Walkthrough\.html/.test(h));
-  const cryptHtml = fs.readFileSync(path.join(ROOT, 'MAPS', 'COM_CryptMap.html'), 'utf8');
-  const cryptLinks = linksToWalk(cryptHtml);
-  if (!cryptLinks.length) ok('COM_CryptMap.html carries no link to the walkthrough (delisted)');
-  else fail(`COM_CryptMap.html still links a family to the delisted walkthrough: ${cryptLinks.join(', ')}`);
-  const guides = fs.readFileSync(path.join(ROOT, 'guides.html'), 'utf8');
-  const guideLinks = linksToWalk(guides);
-  if (!guideLinks.length) ok('guides.html carries no walkthrough card (delisted)');
-  else fail(`guides.html still carries a walkthrough link: ${guideLinks.join(', ')}`);
+    .map((m) => m[1]).filter((h) => WALK_PAGES.some((p) => h.includes(p)));
+  const surfaces = [
+    ...fs.readdirSync(path.join(ROOT, 'MAPS')).filter((f) => f.endsWith('.html')).map((f) => 'MAPS/' + f),
+    ...fs.readdirSync(ROOT).filter((f) => /-guide\.html$/.test(f)),
+    'guides.html', 'index.html', 'dashboard.html',
+  ].filter((f) => fs.existsSync(path.join(ROOT, f)) && !WALK_PAGES.includes(path.basename(f)));
+  const linked = [];
+  for (const f of surfaces) {
+    const hrefs = linksToWalk(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+    if (hrefs.length) linked.push(`${f} -> ${hrefs.join(', ')}`);
+  }
+  if (!linked.length) ok(`no walkthrough link on any of ${surfaces.length} surfaces (all three reels delisted)`);
+  else fail(`a family-facing surface links to a delisted walkthrough: ${linked.join('; ')}`);
+  // …and the scanner has to actually catch a link, or the check above is decorative.
+  if (linksToWalk(`<a class="guide-cta" href="MAPS/${path.basename(S.page)}">Open →</a>`).length === 1) {
+    ok('sabotage: an injected card link to this reel IS caught');
+  } else {
+    fail('sabotage: an injected card link to this reel was NOT caught — the scanner is broken');
+  }
 
   // The gzip path is the one production uses, but the uncompressed path is what anyone
   // opening the file locally gets, and it must not regress either.
@@ -503,7 +536,7 @@ const describe = (name, s) =>
     fail(`uncompressed: ${JSON.stringify(plain)}, expected vertexCount ${expectVerts} and an uncompressed transfer`);
   }
   const ps = await pixelStats(page2);
-  await page2.screenshot({ path: path.join(SHOTS, 'walkthrough-uncompressed.png'), timeout: 180000 });
+  await page2.screenshot({ path: path.join(SHOTS, `${S.key}-uncompressed.png`), timeout: 180000 });
   const pdesc = `uncompressed: lit ${(ps.litFraction * 100).toFixed(1)}%, stdev ${ps.stdev.toFixed(1)}, ${ps.colours} distinct colours`;
   if (ps.litFraction > 0.25 && ps.stdev > 12 && ps.colours > 60) ok(pdesc);
   else fail(`${pdesc} — blank or near-flat over the uncompressed transport`);

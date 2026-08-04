@@ -1,6 +1,6 @@
 /**
- * Generates MAPS/COM_Walkthrough.html — the photoreal gaussian-splat walkthrough of the
- * Chapel of Memory Mausoleum, sitting beside the clickable crypt map MAPS/COM_CryptMap.html.
+ * Generates one photoreal gaussian-splat walkthrough page — MAPS/<SCENE>_Walkthrough.html —
+ * from the scene table in scripts/walkthrough-scenes.mjs.
  *
  * The renderer is antimatter15/splat (MIT, Kevin Kwok), vendored UNMODIFIED at
  * scripts/vendor/antimatter15-splat.js with its licence beside it. This script inlines it
@@ -8,21 +8,32 @@
  * asserts its anchor text is present and unique, so refreshing the vendored file can never
  * silently no-op a patch — it fails the build instead.
  *
- * The splat asset itself is built separately by scripts/build_com_splat.mjs from the
- * Postshot .ply. It is fetched at runtime from the same directory; nothing on this page
- * loads from another origin (no CDN fonts, no CDN scripts) — house rule.
+ * The splat asset itself is built separately by scripts/build_com_splat.mjs from the trainer's
+ * .ply. It is fetched at runtime from the same directory; nothing on this page loads from
+ * another origin (no CDN fonts, no CDN scripts) — house rule.
  *
- *   node scripts/build_com_walkthrough.mjs
+ * NOT LINKED. Every walkthrough ships delisted: no card on guides.html, no button on any map.
+ * See scripts/walkthrough-scenes.mjs.
+ *
+ *   node scripts/build_walkthrough.mjs COM|TG|ELM
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadPath, pathRuntimeSource } from './walkthrough-path.mjs';
+import { loadPath, pathRuntimeSource, pathFileFor } from './walkthrough-path.mjs';
+import { scene, SCENE_KEYS } from './walkthrough-scenes.mjs';
+
+const KEY = process.argv[2];
+if (!KEY) {
+  console.error(`usage: node scripts/build_walkthrough.mjs <${SCENE_KEYS.join('|')}>`);
+  process.exit(2);
+}
+const S = scene(KEY);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'scripts', 'vendor', 'antimatter15-splat.js');
-const OUT = path.join(ROOT, 'MAPS', 'COM_Walkthrough.html');
-const ASSET = 'COM_Walkthrough.splat';
+const OUT = path.join(ROOT, S.page);
+const ASSET = S.asset;
 
 // A .splat file is a flat array of 32-byte rows. The committed asset's real splat count is
 // known here, on disk, so the page never has to infer it from a response header.
@@ -44,12 +55,12 @@ const VIEW_W = 1080, VIEW_H = 1920;
 const FOCAL = (VIEW_W / 2) / Math.tan((68 * Math.PI / 180) / 2);
 
 // The filmed path. Every viewpoint the page can ever occupy lives in
-// scripts/com-walkthrough-path.json — derived from the reconstruction's own camera poses,
+// scripts/<scene>-walkthrough-path.json — derived from the reconstruction's own camera poses,
 // i.e. places the operator actually stood. The page opens at `openIndex` and can move only
 // along the polyline through those stops (see scripts/walkthrough-path.mjs for why).
-// scripts/verify_com_walkthrough.mjs reads the same file and screenshots every stop, so the
+// scripts/verify_walkthrough.mjs reads the same file and screenshots every stop, so the
 // page and the pictures that gate it cannot drift apart.
-const WALK = loadPath();
+const WALK = loadPath(pathFileFor(S.key));
 const DEFAULT_VIEW = WALK.stops[WALK.openIndex].view;
 
 // Normalised to LF before anything looks at it. Git hands this file out with CRLF line
@@ -159,7 +170,7 @@ patch(
     // known at build time, so use that and leave the header out of it entirely.
     const ASSET_SPLATS = ${ASSET_SPLATS};
     const downsample = ASSET_SPLATS > 500000 ? 1 : 1 / devicePixelRatio;
-    console.log("COM walkthrough: " + ASSET_SPLATS + " splats expected, downsample " + downsample);`,
+    console.log("${S.key} walkthrough: " + ASSET_SPLATS + " splats expected, downsample " + downsample);`,
 );
 patch(
   'grow before write',
@@ -211,7 +222,7 @@ patch(
   `        const progress = (100 * vertexCount) / ${ASSET_SPLATS};`,
 );
 
-// 6. Expose the live camera to the page so scripts/verify_com_walkthrough.mjs can park the
+// 6. Expose the live camera to the page so scripts/verify_walkthrough.mjs can park the
 //    view at named viewpoints and assert that dragging actually moved it. Without this the
 //    only observable is pixels, and the auto-orbit makes pixels change whether or not the
 //    drag was handled — i.e. a broken control would still "pass".
@@ -494,7 +505,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0d1520;color:#f4efe6;
   .hbtn{padding:7px 10px;font-size:10px;}
   .note{font-size:10.5px;}
 }
-@media print{ body::after{content:"This page is an interactive 3D walkthrough and cannot be printed. Use the Crypt & Niche Map for printable sheets.";} }
+@media print{ body::after{content:"This page is an interactive 3D walkthrough and cannot be printed. Use the map page for printable sheets.";} }
 `.trim();
 
 const HTML = `<!DOCTYPE html>
@@ -504,8 +515,10 @@ const HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Bonney Watson — Chapel of Memory Mausoleum: Photographic Preview</title>
-<!-- Generated by scripts/build_com_walkthrough.mjs. Do not hand-edit. -->
+<title>${S.docTitle}</title>
+<!-- Generated by scripts/build_walkthrough.mjs ${S.key}. Do not hand-edit. -->
+<!-- Source footage: ${S.source}. NOT LINKED from any family-facing surface — the operator
+     reviews a reel before it is offered to a family. See scripts/walkthrough-scenes.mjs. -->
 <!-- Renderer: antimatter15/splat, MIT (c) 2023 Kevin Kwok — vendored unmodified at
      scripts/vendor/antimatter15-splat.js, licence at scripts/vendor/antimatter15-splat.LICENSE.
      Patched at build time only to load a same-origin asset and set the opening pose. -->
@@ -519,18 +532,18 @@ const HTML = `<!DOCTYPE html>
 
 <div class="header">
   <div class="htxt">
-    <h1>Chapel of Memory Mausoleum</h1>
-    <p>Photographic preview &middot; Washington Memorial Park</p>
+    <h1>${S.title}</h1>
+    <p>${S.subtitle}</p>
   </div>
-  <a class="hbtn" href="COM_CryptMap.html">Crypt &amp; Niche Map</a>
+  <a class="hbtn" href="${S.sibling.href}">${S.sibling.label}</a>
   <a class="hbtn" href="../">&larr; Quote Tool</a>
 </div>
 
 <div class="note">
-  <b>A photographic preview</b> &mdash; a reconstruction of the inside of the building, not a survey
-  drawing. It follows the path we walked with the camera, and more of the building is still to come.
-  For crypt and niche availability, locations and pricing, please use the
-  <a href="COM_CryptMap.html" style="color:#e8dcc4">Crypt &amp; Niche Map</a>.
+  <b>A photographic preview</b> &mdash; a reconstruction of ${S.what}, not a survey
+  drawing. It follows the path we walked with the camera, and more is still to come.
+  For ${S.siblingProse}, please use the
+  <a href="${S.sibling.href}" style="color:#e8dcc4">${S.sibling.text}</a>.
   <span class="hint">Drag or swipe to look around &middot; scroll, two fingers or arrow keys to walk along</span>
 </div>
 
