@@ -75,10 +75,16 @@ const A = {
   // as units — a retyping must not change how much crypt exists.
   spaceHist: { available: 429, occupied: 261, reserved: 181, blocked: 3, unlisted: 18, unpriced: 1 },
   niches: 122,
-  nichesAvail: 27,
-  nicheValue: 233075,   // Radiance $156,115 + Serenity $76,960
-  radValue: 156115,
-  serValue: 76960,
+  // RE-ANCHORED 2026-08-04: niche statuses went MIS-backed (the RAD/SER Lot Inquiry
+  // Lists, NICHE_MIS in the data module), superseding the sheet's price-printed-means-
+  // available rule. Four sheet-priced niches turned out reserved/occupied in MIS —
+  // RAD H-1 ($10,995), RAD H-8 ($9,895), SER K-5 ($2,195), SER A-2 ($9,895) — so their
+  // prices are withheld (NICHE_MIS.withheldPrices) and every $ anchor drops by exactly
+  // those figures. Old: nichesAvail 27, nicheValue 233075 (rad 156115 + ser 76960).
+  nichesAvail: 23,
+  nicheValue: 200095,   // Radiance $135,225 + Serenity $64,870
+  radValue: 135225,
+  serValue: 64870,
   // ── CRYPT PRICE ANCHORS, new 2026-08-01 ────────────────────────────────────
   // Old: `cryptPriceStrings: 0` — no crypt rendered a dollar amount anywhere, because
   // the only price source was the 4px sheet. New: crypt prices come from the MIS
@@ -110,10 +116,13 @@ const A = {
   // POSITIONAL anchors. A plain total is blind to a price that MOVES to another
   // valid row, so each available-$ figure is also pinned per row and by a
   // position-weighted checksum.
-  radPerRow: { K: 41770, J: 47275, H: 67070 },
-  serPerRow: { K: 6590, J: 14295, H: 29685, G: 16495, A: 9895 },
-  radChecksum: 2596925,
-  serChecksum: 2400750,
+  // Re-anchored 2026-08-04 with the four withheld prices off (see nichesAvail note):
+  // RAD H drops H-1 + H-8 (67070 -> 46180); SER loses K-5 (6590 -> 4395) and all of
+  // row A (A-2 was its only priced cell). Old checksums: rad 2596925, ser 2400750.
+  radPerRow: { K: 41770, J: 47275, H: 46180 },
+  serPerRow: { K: 4395, J: 14295, H: 29685, G: 16495 },
+  radChecksum: 2068080,
+  serChecksum: 1467345,
   cryptChecksum: 2422293,   // was 2439477 — unit count and one status both changed
 };
 // Position weights for the crypt status checksum. Five distinct values so that ANY

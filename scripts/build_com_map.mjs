@@ -382,7 +382,9 @@ function wallGrid(wid, { mini = false } = {}) {
     const span = nn.spanRows ? nn.spanRows.length : 1;
     const st = nn.st !== 'available' ? ` st-${nn.st}` : '';
     const body = nn.p != null && !mini ? `<span class="nprice">${money(nn.p)}</span>` : '';
-    const badge = mini ? '' : (nn.st === 'available' ? '' : '<span class="cstat cs-u">Confirm</span>');
+    // MIS-backed since 8/4/2026 (NICHE_MIS): a niche is Reserved or Occupied, never
+    // the old "Confirm in MIS" — same badge vocabulary as the crypts.
+    const badge = mini ? '' : (nn.st === 'available' ? '' : (CRYPT_BADGE[nn.st] || '<span class="cstat cs-u">Confirm</span>'));
     return `    <button type="button" class="c flatn sz-${nn.sizeKey}${st}" style="${nicheBox(nn, ri, span, nRows)}" ${nicheAttrs(nn)} aria-label="${esc(nicheAria(nn))}"><span class="cid">${nn.row}-${nn.col}</span>${body}${badge}</button>`;
   }).join('\n');
   const rl = w.rows.map((r, i) => `    <div class="rlbl nrl" style="top:${((i / nRows) * 100).toFixed(4)}%;height:${(100 / nRows).toFixed(4)}%">${r}</div>`).join('\n');
@@ -884,8 +886,9 @@ ${PRICE_BANDS.map((b) => `  .${b.c}{background:${skin(b).bg};color:${skin(b).fg}
        unlisted  = the ORIGINAL "Unavailable — confirm in MIS" cell, unchanged: the
                    same stripe geometry over the warmer brown-grey. Kept identical on
                    purpose — for those 18 crypts nothing about what we know changed.
-       unavailable = niches only. The MIS list covers Section = COM, so the RAD/SER
-                   walls are still sheet-derived and keep the old class.
+       unavailable = RETIRED 2026-08-04: the RAD/SER lists (NICHE_MIS) gave every
+                   niche a real status, so no cell renders this class any more. The
+                   CSS stays as a fail-safe for any future status gap.
      reserved and unlisted share a stripe angle, so their BADGES carry the
      distinction at cell scale ("Reserved" vs "Confirm") and their cards differ.
 
@@ -1650,7 +1653,9 @@ function nicheCard(d) {
   if (d.st !== 'available') {
     h += '<div class="cardst">' + (STATUS_LABEL[d.st] || d.st) + '</div>';
     h += sizeRows(d);
-    h += '<div class="cnote">Not currently offered \\u2014 ask us for today\\u2019s availability. No pricing shown.</div>';
+    // Niche statuses are MIS-backed since 8/4/2026 (NICHE_MIS), so the card can say
+    // WHY it is off the market, in the crypts' own words.
+    h += '<div class="cnote">' + (ST_NOTE[d.st] ? ST_NOTE[d.st].replace(/crypt/g, 'niche') : 'Not currently offered \\u2014 ask us for today\\u2019s availability. No pricing shown.') + '</div>';
     return h;
   }
   var price = +d.price, e = ecf(price), tot = price + e;

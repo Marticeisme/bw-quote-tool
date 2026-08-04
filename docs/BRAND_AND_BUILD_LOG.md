@@ -2339,6 +2339,40 @@ ok. Live PDF byte-identical to the local build after deploy.
 
 ---
 
+### 2026-08-04 — COM niche walls go MIS-backed (Radiance + Serenity statuses)
+
+Martice ran the MIS Lot Inquiry List for sections RAD (88 rows) and SER (62 rows) —
+the two sections the 8/1 COM-only list couldn't cover. Every niche in
+`scripts/com-crypt-data.mjs` now carries an explicit status (`NICHE_MIS` block),
+retiring the sheet's printed-price-means-available rule, same supersession the crypts
+got on 8/1.
+
+- **Availability: RAD 15/74 (was 17), SER 8/48 (was 10).** Four sheet-priced niches are
+  reserved/occupied in MIS; prices withheld and recorded in `NICHE_MIS.withheldPrices`
+  (RAD H-1 $10,995, RAD H-8 $9,895, SER K-5 $2,195, SER A-2 $9,895).
+- **The RAD E/D numbering mapping**, decided and documented in the module: MIS prints
+  Lvl-E Sp-1..4 / Lvl-D Sp-1..6 against the sheet grid's E-1..6 over D-1/3/4/6. Row
+  counts pin it — MIS files the two double-height Family cells under **D** (MIS D-2/D-5
+  = sheet E-2/E-5), in column order.
+- Map rebuilt: reserved/occupied niches get real Reserved/Occupied badges and
+  crypt-style card notes instead of "Confirm in MIS"; footer now 23 niches available,
+  $200,095 listed.
+- **Price-floor ripple:** SER K-5 was the $2,195 minimum, so the floor is now $3,850 —
+  updated `data-range`/`data-count` figures on `glass-front-niches-guide.html`,
+  `urn-placement-guide.html`, `cemetery-property-guide.html`, and rebuilt their three
+  download PDFs (`build_guide_pdfs.mjs`).
+- `verify_com_map.mjs` re-anchored (hand-checked against the CSVs before copying
+  computed values): nichesAvail 23, nicheValue $200,095, per-row maps + positional
+  checksums; old values kept in comments.
+
+Gates: syntax `8 blocks, 0 errors`; verify_com_map PASS 0 mismatches;
+verify_glass_niche_ranges / verify_photo_first / verify_area_guide_ranges /
+verify_urn_garden_ranges / verify_guide_pages / verify_table_alignment /
+verify_print_header all green. Renders spot-checked by eye (flat grids under print
+media, both walls) against the CSVs.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.

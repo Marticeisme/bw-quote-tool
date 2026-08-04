@@ -13,12 +13,17 @@
  * cell is BLOCKED; EVERYTHING ELSE IS UNAVAILABLE — "confirm in MIS", with no claim of
  * sold vs reserved. Cell colours and dotted marks carry NO meaning.
  *
- * SUPERSEDED FOR CRYPT STATUSES ONLY, 2026-08-01: every crypt status now comes from the
+ * SUPERSEDED FOR CRYPT STATUSES, 2026-08-01: every crypt status now comes from the
  * MIS Lot Inquiry List printed 8/1/2026 (see `MIS` below), which states sold / reserved /
  * available per position instead of leaving it at "confirm in MIS". The reading rule
  * still governs everything else the sheet supplied — the geometry, the segment types and
- * the withheld prices. Niche-wall statuses are still sheet-derived; the list does not
- * cover sections RAD and SER.
+ * the withheld prices.
+ *
+ * SUPERSEDED FOR NICHE STATUSES TOO, 2026-08-04: the operator ran the Lot Inquiry List
+ * for sections RAD and SER (see `NICHE_MIS` below), so every niche cell now carries an
+ * explicit MIS-backed status instead of the old price-printed-means-available rule.
+ * Four niches the sheets priced turned out not to be available in MIS; their prices are
+ * WITHHELD, not kept — see NICHE_MIS.withheldPrices.
  *
  * ── CRYPT PRICES, LOADED FROM MIS 2026-08-01 ─────────────────────────────────
  * Crypts now carry REAL prices. They come from the operator-supplied MIS export
@@ -103,10 +108,9 @@ export const STATUS_LABEL = {
  * directly above the two EMPTY-AREA voids — the sheet and MIS agree by two independent
  * routes that nothing there is sellable.
  *
- * WHAT THE MIS LIST DOES NOT COVER: the two glass-front niche walls. Their refs are
- * sections RAD and SER, and the list was run for Section = COM only, so RAD_CELLS /
- * SER_CELLS statuses are UNCHANGED and remain sheet-derived. Absence there is a
- * query-scope artifact, not evidence.
+ * WHAT THIS LIST DOES NOT COVER: the two glass-front niche walls — their refs are
+ * sections RAD and SER and this list was run for Section = COM only. Since 2026-08-04
+ * the niche walls have their OWN lists; see `NICHE_MIS` below.
  *
  * NO PERSONAL DATA CROSSED. The list carries owner names, owner ids, interment numbers
  * and ages; the parser read the ST column and the Lot Location column and nothing else.
@@ -127,6 +131,56 @@ export const MIS = {
   // occupied space and one reserved space; those 17 reserved spaces render as occupied.
   // Nothing else in the rendering differs from the parse.
   mergedSpaces: 17,
+};
+
+/**
+ * NICHE STATUS SOURCE — MIS Lot Inquiry Lists, printed 8/4/2026, one run per section:
+ * Location = WMP, Section = RAD (88 rows) and Section = SER (62 rows). Every niche
+ * status in RAD_CELLS / SER_CELLS is MIS-backed as of that date, replacing the old
+ * price-printed-means-available sheet rule. Like the crypts, statuses are
+ * HAND-MAINTAINED going forward: a sale made after 8/4/2026 is not reflected until
+ * someone re-runs the lists and updates this file.
+ *
+ * Collapsing rule is the crypts': the list is per POSITION ((2nd), (3rd), -4th…), a
+ * space takes the status of its most-committed position. 88 + 62 rows collapse to
+ * 74 + 48 spaces — exactly the sheet grids.
+ *
+ * RADIANCE E/D NUMBERING — THE ONE MAPPING DECISION. The sheet draws the E/D row-pair
+ * as E-1..E-6 (four X-Large plus the two double-height Family cells at E-2/E-5,
+ * spanning down into D) over D-1/D-3/D-4/D-6. MIS instead prints Lvl-E Sp-1..4 and
+ * Lvl-D Sp-1..6: four E spaces, six D spaces. The row counts identify the mapping —
+ * MIS files each Family compartment under D (so D has six spaces, E four), in column
+ * order. Therefore: MIS E-1..4 = sheet E-1/E-3/E-4/E-6, and MIS D-1..6 = sheet
+ * D-1 / E-2(Family) / D-3 / D-4 / E-5(Family) / D-6. Every other row on both walls
+ * matches the sheet grid space-for-space, no mapping needed.
+ *
+ * FOUR SHEET PRICES WITHHELD. The sheets printed prices on four niches MIS now says
+ * are not available; DESIGN §8 (no price on anything unsellable) applies, so the
+ * prices come OFF the cells and are recorded here instead of silently deleted:
+ *   RAD H-1 $10,995 (reserved)   RAD H-8 $9,895 (occupied)
+ *   SER K-5 $2,195  (reserved)   SER A-2 $9,895 (reserved)
+ * If MIS releases one of these, restore the price from this record only after
+ * confirming it in MIS — the sheet figures were printed before 8/4/2026.
+ *
+ * NO PERSONAL DATA CROSSED. The lists carry owner and deceased names, ids, interment
+ * numbers and ages; only the ST column and the Lot Location column were read.
+ */
+export const NICHE_MIS = {
+  printed: '2026-08-04',
+  criteria: 'Location = WMP, Section = RAD / Section = SER',
+  resultRows: { RAD: 88, SER: 62 },
+  spaces: { RAD: 74, SER: 48 },
+  // per-SPACE status counts, straight off the parse. Each sums to `spaces`.
+  spaceStatus: {
+    RAD: { available: 15, reserved: 31, occupied: 28 },
+    SER: { available: 8, reserved: 14, occupied: 26 },
+  },
+  withheldPrices: [
+    { ref: 'RAD-1-1-H-1', sheetPrice: 10995, status: 'reserved' },
+    { ref: 'RAD-1-1-H-8', sheetPrice: 9895, status: 'occupied' },
+    { ref: 'SER-1-1-K-5', sheetPrice: 2195, status: 'reserved' },
+    { ref: 'SER-1-1-A-2', sheetPrice: 9895, status: 'reserved' },
+  ],
 };
 
 /**
@@ -1614,18 +1668,19 @@ export const RAD_ROW_CLASSES = {
   E: RAD_PE, D: RAD_PE,
   C: RAD_P1, B: RAD_P2, A: RAD_P1,
 };
-// [row, col, price|null, spanRows|null]
+// [row, col, status, price|null, spanRows|null] — status MIS-backed 8/4/2026 (NICHE_MIS);
+// prices from the wall sheet, present only on `available` cells (DESIGN §8).
 export const RAD_CELLS = [
-  ['K', 1, 5495], ['K', 2, 7695], ['K', 3, 5495], ['K', 4, 7695], ['K', 5, 7695], ['K', 6, null], ['K', 7, 7695], ['K', 8, null],
-  ['J', 1, 9895], ['J', 2, null], ['J', 3, 9895], ['J', 4, null], ['J', 5, 9895], ['J', 6, 7695], ['J', 7, 9895], ['J', 8, null],
-  ['H', 1, 10995], ['H', 2, 12095], ['H', 3, 10995], ['H', 4, 12095], ['H', 5, null], ['H', 6, 10995], ['H', 7, null], ['H', 8, 9895],
-  ['G', 1, null], ['G', 2, null], ['G', 3, null], ['G', 4, null], ['G', 5, null], ['G', 6, null], ['G', 7, null], ['G', 8, null],
-  ['F', 1, null], ['F', 2, null], ['F', 3, null], ['F', 4, null], ['F', 5, null], ['F', 6, null], ['F', 7, null], ['F', 8, null],
-  ['E', 1, null], ['E', 2, null, ['E', 'D']], ['E', 3, null], ['E', 4, null], ['E', 5, null, ['E', 'D']], ['E', 6, null],
-  ['D', 1, null], ['D', 3, null], ['D', 4, null], ['D', 6, null],
-  ['C', 1, null], ['C', 2, null], ['C', 3, null], ['C', 4, null], ['C', 5, null], ['C', 6, null], ['C', 7, null], ['C', 8, null],
-  ['B', 1, null], ['B', 2, null], ['B', 3, null], ['B', 4, null], ['B', 5, null], ['B', 6, null], ['B', 7, null], ['B', 8, null],
-  ['A', 1, null], ['A', 2, null], ['A', 3, null], ['A', 4, null], ['A', 5, null], ['A', 6, null], ['A', 7, null], ['A', 8, null],
+  ['K', 1, 'available', 5495], ['K', 2, 'available', 7695], ['K', 3, 'available', 5495], ['K', 4, 'available', 7695], ['K', 5, 'available', 7695], ['K', 6, 'reserved'], ['K', 7, 'available', 7695], ['K', 8, 'reserved'],
+  ['J', 1, 'available', 9895], ['J', 2, 'reserved'], ['J', 3, 'available', 9895], ['J', 4, 'reserved'], ['J', 5, 'available', 9895], ['J', 6, 'available', 7695], ['J', 7, 'available', 9895], ['J', 8, 'reserved'],
+  ['H', 1, 'reserved'], ['H', 2, 'available', 12095], ['H', 3, 'available', 10995], ['H', 4, 'available', 12095], ['H', 5, 'reserved'], ['H', 6, 'available', 10995], ['H', 7, 'occupied'], ['H', 8, 'occupied'],
+  ['G', 1, 'occupied'], ['G', 2, 'reserved'], ['G', 3, 'occupied'], ['G', 4, 'occupied'], ['G', 5, 'reserved'], ['G', 6, 'occupied'], ['G', 7, 'reserved'], ['G', 8, 'occupied'],
+  ['F', 1, 'occupied'], ['F', 2, 'reserved'], ['F', 3, 'occupied'], ['F', 4, 'reserved'], ['F', 5, 'occupied'], ['F', 6, 'reserved'], ['F', 7, 'occupied'], ['F', 8, 'reserved'],
+  ['E', 1, 'reserved'], ['E', 2, 'occupied', null, ['E', 'D']], ['E', 3, 'reserved'], ['E', 4, 'reserved'], ['E', 5, 'reserved', null, ['E', 'D']], ['E', 6, 'occupied'],
+  ['D', 1, 'occupied'], ['D', 3, 'reserved'], ['D', 4, 'reserved'], ['D', 6, 'reserved'],
+  ['C', 1, 'occupied'], ['C', 2, 'occupied'], ['C', 3, 'occupied'], ['C', 4, 'occupied'], ['C', 5, 'reserved'], ['C', 6, 'occupied'], ['C', 7, 'reserved'], ['C', 8, 'reserved'],
+  ['B', 1, 'occupied'], ['B', 2, 'occupied'], ['B', 3, 'reserved'], ['B', 4, 'occupied'], ['B', 5, 'occupied'], ['B', 6, 'reserved'], ['B', 7, 'reserved'], ['B', 8, 'occupied'],
+  ['A', 1, 'occupied'], ['A', 2, 'occupied'], ['A', 3, 'reserved'], ['A', 4, 'reserved'], ['A', 5, 'reserved'], ['A', 6, 'reserved'], ['A', 7, 'occupied'], ['A', 8, 'occupied'],
 ];
 
 // ── Serenity niche wall (SER-1-1-ROW-SPACE) ───────────────────────────────────
@@ -1643,17 +1698,19 @@ export const SER_ROW_CLASSES = {
   H: SER_P4, G: SER_P4, F: SER_P4, E: SER_P4, D: SER_P4, C: SER_P4,
   B: SER_P6, A: SER_P6,
 };
+// [row, col, status, price|null] — status MIS-backed 8/4/2026 (NICHE_MIS); SER's grid
+// matches MIS space-for-space, no numbering mapping needed.
 export const SER_CELLS = [
-  ['K', 1, 4395], ['K', 2, null], ['K', 3, null], ['K', 4, null], ['K', 5, 2195], ['K', 6, null],
-  ['J', 1, null], ['J', 2, null], ['J', 3, null], ['J', 4, 3850], ['J', 5, 3850], ['J', 6, 6595],
-  ['H', 1, 9895], ['H', 2, 9895], ['H', 3, 9895], ['H', 4, null],
-  ['G', 1, null], ['G', 2, 16495], ['G', 3, null], ['G', 4, null],
-  ['F', 1, null], ['F', 2, null], ['F', 3, null], ['F', 4, null],
-  ['E', 1, null], ['E', 2, null], ['E', 3, null], ['E', 4, null],
-  ['D', 1, null], ['D', 2, null], ['D', 3, null], ['D', 4, null],
-  ['C', 1, null], ['C', 2, null], ['C', 3, null], ['C', 4, null],
-  ['B', 1, null], ['B', 2, null], ['B', 3, null], ['B', 4, null], ['B', 5, null], ['B', 6, null],
-  ['A', 1, null], ['A', 2, 9895], ['A', 3, null], ['A', 4, null], ['A', 5, null], ['A', 6, null],
+  ['K', 1, 'available', 4395], ['K', 2, 'occupied'], ['K', 3, 'occupied'], ['K', 4, 'occupied'], ['K', 5, 'reserved'], ['K', 6, 'reserved'],
+  ['J', 1, 'reserved'], ['J', 2, 'reserved'], ['J', 3, 'occupied'], ['J', 4, 'available', 3850], ['J', 5, 'available', 3850], ['J', 6, 'available', 6595],
+  ['H', 1, 'available', 9895], ['H', 2, 'available', 9895], ['H', 3, 'available', 9895], ['H', 4, 'reserved'],
+  ['G', 1, 'occupied'], ['G', 2, 'available', 16495], ['G', 3, 'reserved'], ['G', 4, 'occupied'],
+  ['F', 1, 'occupied'], ['F', 2, 'occupied'], ['F', 3, 'occupied'], ['F', 4, 'occupied'],
+  ['E', 1, 'reserved'], ['E', 2, 'occupied'], ['E', 3, 'occupied'], ['E', 4, 'reserved'],
+  ['D', 1, 'occupied'], ['D', 2, 'reserved'], ['D', 3, 'occupied'], ['D', 4, 'reserved'],
+  ['C', 1, 'reserved'], ['C', 2, 'reserved'], ['C', 3, 'occupied'], ['C', 4, 'occupied'],
+  ['B', 1, 'occupied'], ['B', 2, 'occupied'], ['B', 3, 'occupied'], ['B', 4, 'occupied'], ['B', 5, 'occupied'], ['B', 6, 'occupied'],
+  ['A', 1, 'occupied'], ['A', 2, 'reserved'], ['A', 3, 'occupied'], ['A', 4, 'reserved'], ['A', 5, 'occupied'], ['A', 6, 'occupied'],
 ];
 
 /**
@@ -1833,9 +1890,9 @@ export function wallNiches(wid) {
     const sz = nicheSize(wid, c[0], c[1]);
     const left = nicheLeftIn(wid, c[0], c[1]);
     return {
-      wall: wid, row: c[0], col: c[1], p: c[2] == null ? null : c[2],
-      spanRows: c[3] || null,
-      st: c[2] == null ? 'unavailable' : 'available',
+      wall: wid, row: c[0], col: c[1], p: c[3] == null ? null : c[3],
+      spanRows: c[4] || null,
+      st: c[2],
       // Size is now MEASURED per cell, not "Family or nothing" — see RAD_ROW_CLASSES.
       sizeKey: sz ? sz.k : null,
       size: sz ? sz.label : null,
