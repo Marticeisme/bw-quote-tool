@@ -19,6 +19,34 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 Track D MERGED (director-audited, `c3b8649`); merged main GREEN: 2149 passed,
+0 failed across 36 suites** (director's own run; reconciles 2092 + 57 new
+test-pcm-catalog asserts, 165→222). PCM catalog now has casket-catalog parity:
+per-card Compare (designs AND elements; photos/reference plates excluded — not
+alternatives, no number to key on), 4-item tray, Side-by-Side/Plates overlay,
+one-page clipping #compareSheet, paginating #filterSheet printing what's genuinely
+on screen ("Print these N · k pages"; 12/page 3×4 — plates are wide/short, casket's
+3/page left cells mostly empty; 700 designs = 59 pages, no cap, flagged as operator
+call), and Real Examples as a fold toggle (starts OPEN — the 35 photos were already
+visible; closing by default would hide content, not grant control; it's an .ex-cat
+NOT .el-cat because the gate audits every .el-cat against element data). Gate
+154→211; director re-ran it BW_BASE-pinned against the s14d tree AND merged main
+(served-tree JSON quoted both times), re-proved the label-cell-padding sabotage
+himself (first needle was a DUD — hit a lower-specificity rule that the
+#compareSheet ID rule out-ranks; the real needle produced the exact 3 named clip
+FAILs, exit 1, green on restore. Lesson: a sabotage needle must hit the rule that
+APPLIES — check specificity, not just the class name), rebuild byte-identical on
+merged main, renders eyeballed. **D's FINDING, real and out-of-scope: the s09
+Track K compare-sheet check (`scrollHeight-clientHeight===0`) is BLIND on any
+.cmp-table carrying overflow:hidden — rows clip silently while the check stays
+green. ALL SIX casket catalogs carry that exact CSS.** D's PCM check asserts
+last-row-inside-table + footer-inside-page instead; porting that to the six casket
+gates is a sprint-15 candidate (chipped). Default print output proven unchanged
+(sha256-identical page-1 with dates/ID blanked, captured twice pre-change to prove
+determinism); PCM participates in ZERO built-PDF manifest jobs (staleness trap
+checked, n/a). Facet quirk left deliberately: any book/format/colour filter hides
+Installed Examples + reference plates — arguably wrong, separate ruling.
+
 **s14 OPERATOR FIX ROUND (director-direct per lean-mode, `ca0a057`):** two operator
 corrections during the sprint, both applied to the ELM map and verified (gate + 24
 sabotages + ECL gate + 2092/36 + card renders eyeballed): (1) **crystal niches were
