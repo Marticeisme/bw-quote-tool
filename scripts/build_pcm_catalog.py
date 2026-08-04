@@ -195,20 +195,24 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .reference-card .product-body{text-align:left;}
 .reference-card .ref-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy-dark);}
 
-.el-cat{border:1px solid var(--warm-border);background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;}
-.el-cat[hidden]{display:none;}
+/* `.ex-cat` is the Installed Examples panel. It is a SEPARATE class carrying the same
+   look, not a second `.el-cat`: the page's checks read every `.el-cat` and expect it to
+   name an element category with a count that matches the element data, and a photo panel
+   wearing that class reported itself as an element category with no data behind it. */
+.el-cat,.ex-cat{border:1px solid var(--warm-border);background:#fff;border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.el-cat[hidden],.ex-cat[hidden]{display:none;}
 .el-toggle{width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:none;border:none;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-size:15px;font-weight:600;color:var(--navy-dark);text-align:left;}
 .el-toggle:hover{background:var(--sidebar-bg);}
 .el-toggle .el-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--text-muted);font-variant-numeric:tabular-nums;}
 .el-toggle .el-caret{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s;}
-.el-cat.open .el-caret{transform:rotate(180deg);}
+.el-cat.open .el-caret,.ex-cat.open .el-caret{transform:rotate(180deg);}
 .el-body{display:none;padding:4px 16px 18px;border-top:1px solid var(--rule);}
-.el-cat.open .el-body{display:block;}
+.el-cat.open .el-body,.ex-cat.open .el-body{display:block;}
 
 .empty-note{padding:26px 48px 40px;font-size:14px;color:var(--text-muted);}
 .empty-note[hidden]{display:none;}
 
-.photo-lightbox{position:fixed;inset:0;background:rgba(12,18,26,.92);display:none;align-items:center;justify-content:center;z-index:200;padding:28px;}
+.photo-lightbox{position:fixed;inset:0;background:rgba(12,18,26,.92);display:none;align-items:center;justify-content:center;z-index:9999;padding:28px;}
 .photo-lightbox.active{display:flex;}
 .photo-lightbox img{width:min(96vw,1100px);max-height:82vh;object-fit:contain;background:#fff;border-radius:6px;}
 .lightbox-cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;}
@@ -236,7 +240,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   @page{size:letter;margin:0;}
   *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
   body{background:#fff;font-size:9.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .site-nav,.site-footer,.toolbar,.contents,.photo-lightbox,.el-toggle,.doc-footer{display:none!important;}
+  .site-nav,.site-footer,.toolbar,.contents,.photo-lightbox,.el-toggle,.doc-footer,
+  .compare-tray,.compare-overlay,.compare-toggle{display:none!important;}
   .doc-sheet{max-width:none;box-shadow:none;}
   .cover{padding:20px 12px 16px;background:var(--navy)!important;}
   .cover h1{font-size:24pt;}
@@ -245,8 +250,744 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .product-card:hover{box-shadow:none;transform:none;}
   .el-body{display:block;border-top:none;}
   .tag-row{display:none!important;}
+  .compare-toggle{display:none!important;}
   a{text-decoration:none;color:inherit;}
 }
+
+/* ================= COMPARE + PRINT ==================================================
+   Ported from the six casket catalogs (s09 Track K compare sheet, s11 Track C
+   print-what's-filtered) and RE-DERIVED for design plates rather than casket photos.
+   What carried over unchanged, because it is page geometry and not product shape:
+   the fixed-position compare sheet that CLIPS (so its content must fit one page),
+   the static-flow .fs-page stack for the filtered sheet, the masthead/footer bands,
+   and the per-count photo caps 334 / 220 / 163 px — those come from
+   816px letter - 32px margin - 88px label column, divided N ways, less cell padding,
+   and this page prints on the same letter sheet.
+   What did NOT carry over: casket photos are square, so their sheets use a 2-column
+   photo grid at every count. A design plate is 16:10 and a ledger plate is 10:13, so
+   width is even more strongly the binding dimension here — a single full-width column
+   beats two half-width ones for 2 and 3 items, and only 4 items are better off in a
+   2x2. And the per-count max-HEIGHT caps below exist only because of the ledgers: at
+   334px wide a 10:13 ledger is 434px tall, which is the one thing that could push the
+   clipping compare sheet past a page. */
+
+.compare-toggle{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--text-muted);cursor:pointer;user-select:none;}
+.compare-toggle input{width:14px;height:14px;accent-color:var(--navy);cursor:pointer;}
+.compare-toggle input:disabled{cursor:not-allowed;opacity:.4;}
+.compare-toggle input:disabled ~ span{opacity:.4;}
+.element-card .compare-toggle{margin:0 4px;padding:0 0 7px;border-top:none;font-size:10px;gap:4px;}
+.element-card .compare-toggle input{width:12px;height:12px;}
+.product-card.comparing{border-color:var(--navy);box-shadow:0 0 0 2px rgba(61,90,122,.18);}
+
+.compare-tray{position:fixed;left:0;right:0;bottom:-120px;background:var(--navy-dark);box-shadow:0 -6px 24px rgba(0,0,0,.2);z-index:500;transition:bottom .25s ease;padding:14px 24px;}
+.compare-tray.visible{bottom:0;}
+.compare-tray-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.compare-tray-items{display:flex;gap:10px;flex:1;flex-wrap:wrap;min-width:0;}
+/* Opaque light pill: the chip thumbnail is a plate on white, and a translucent chip over
+   navy turned every plate into a muddy silhouette. */
+.compare-chip{display:flex;align-items:center;gap:8px;background:#fff;border-radius:8px;padding:6px 10px 6px 6px;}
+.compare-chip img{width:44px;height:30px;object-fit:contain;background:#fff;border-radius:4px;display:block;}
+.compare-chip-name{font-size:12.5px;font-weight:600;color:var(--navy-dark);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.compare-chip-remove{background:none;border:none;color:var(--text-muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px;}
+.compare-chip-remove:hover{color:var(--orange-dark);}
+.compare-tray-actions{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.compare-tray-msg{font-size:12px;color:#f3c9a8;}
+.compare-tray-clear{background:none;border:none;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;text-decoration:underline;}
+.compare-tray-clear:hover{color:#fff;}
+.compare-tray-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.compare-tray-btn:hover{background:var(--orange-dark);}
+.compare-tray-btn:disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);cursor:not-allowed;}
+
+.compare-overlay{display:none;position:fixed;inset:0;background:#fff;z-index:9997;}
+.compare-overlay.active{display:block;}
+.compare-modal{width:100%;height:100%;display:flex;flex-direction:column;}
+.compare-header{display:flex;align-items:center;gap:16px;padding:14px 32px;background:var(--navy);border-bottom:3px solid var(--orange);flex-wrap:wrap;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.compare-logo{height:26px;width:auto;flex-shrink:0;}
+.compare-title{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:#fff;margin-right:auto;}
+.compare-tabs{display:flex;gap:4px;background:rgba(255,255,255,.14);border-radius:8px;padding:4px;}
+.compare-tab{background:none;border:none;padding:8px 16px;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.75);cursor:pointer;white-space:nowrap;}
+.compare-tab.active{background:#fff;color:var(--navy-dark);box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.compare-tab:hover:not(.active){color:#fff;}
+.compare-print-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.compare-print-btn:hover{background:var(--orange-dark);}
+.compare-close{width:36px;height:36px;flex-shrink:0;border:none;background:rgba(255,255,255,.16);border-radius:50%;cursor:pointer;font-size:20px;line-height:36px;text-align:center;color:#fff;}
+.compare-close:hover{background:rgba(255,255,255,.3);}
+.compare-body{flex:1;overflow-y:auto;padding:32px;}
+.compare-panel{display:none;}
+.compare-panel.active{display:block;}
+#comparePhotoPanel.active{display:flex;flex-direction:column;height:100%;}
+.compare-table{display:grid;border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;max-width:1500px;margin:0 auto;}
+.compare-table-row{display:contents;}
+.compare-corner{background:transparent;}
+.compare-label-cell{padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);background:var(--sidebar-bg);display:flex;align-items:center;border-top:1px solid var(--warm-border);}
+.compare-value-cell{padding:9px 14px;font-size:13.5px;color:var(--text);border-top:1px solid var(--warm-border);border-left:1px solid var(--warm-border);display:flex;align-items:center;}
+.compare-table-row.diff .compare-label-cell{background:#F6E4D1;color:var(--orange-dark);}
+.compare-table-row.diff .compare-value-cell{background:#FBF1E7;font-weight:700;color:var(--navy-dark);}
+.compare-col-header{padding:12px 14px;border-left:1px solid var(--warm-border);text-align:center;display:flex;flex-direction:column;align-items:center;}
+.compare-col-img{width:100%;max-width:320px;max-height:40vh;object-fit:contain;background:var(--sidebar-bg);border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;}
+.compare-table.cmp-cols-2 .compare-col-img{max-width:460px;}
+.compare-table.cmp-cols-3 .compare-col-img{max-width:400px;}
+.compare-col-name{font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:700;letter-spacing:.03em;color:var(--navy-deep);line-height:1.2;margin-bottom:6px;}
+.compare-col-remove{background:none;border:none;color:var(--text-muted);font-size:11.5px;cursor:pointer;text-decoration:underline;}
+.compare-col-remove:hover{color:var(--orange-dark);}
+.compare-photo-grid{display:grid;gap:24px;max-width:1800px;width:100%;margin:0 auto;flex:1;min-height:0;}
+.compare-photo-col{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
+.compare-photo-img-wrap{background:var(--sidebar-bg);border-radius:12px;overflow:hidden;flex:1;width:100%;min-height:140px;display:flex;align-items:center;justify-content:center;cursor:zoom-in;margin-bottom:16px;}
+.compare-photo-img-wrap img{max-width:100%;max-height:100%;object-fit:contain;}
+.compare-photo-name{font-family:'Source Sans 3',sans-serif;font-size:20px;font-weight:700;letter-spacing:.03em;color:var(--navy-deep);margin-bottom:4px;}
+.compare-photo-detail{font-size:13px;color:var(--text-muted);margin-bottom:10px;text-align:center;}
+.compare-photo-remove{background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+.compare-photo-remove:hover{color:var(--orange-dark);}
+
+@media(max-width:768px){
+  .compare-tray-inner{flex-direction:column;align-items:stretch;}
+  .compare-tray-actions{justify-content:space-between;}
+  .compare-header{padding:14px 18px;gap:12px;}
+  .compare-title{width:100%;margin-right:0;}
+  .compare-body{padding:20px;}
+}
+
+/* ---------- COMPARE PRINT SHEET (side-by-side, ONE page — it clips) ---------- */
+#compareSheet{display:none;}
+@media print{
+  body.compare-printing *{display:none!important;}
+  body.compare-printing #compareSheet,
+  body.compare-printing #compareSheet *{display:block!important;}
+  body.compare-printing #compareSheet{display:flex!important;flex-direction:column;position:fixed;inset:0;width:100%;height:100%;background:#F6F2E9;z-index:99999;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* Layout-critical rules carry the body.compare-printing #compareSheet prefix so they
+     out-rank the blanket display:block!important above — that selector carries an ID and
+     a bare .cmp-x class would lose to it. */
+  body.compare-printing #compareSheet .cmp-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:14px 36px;border-bottom:3px solid #E5480F;}
+  .cmp-masthead img{height:36px;width:auto;}
+  .cmp-masthead-right{margin-left:auto;text-align:right;}
+  .cmp-masthead-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#fff;}
+  .cmp-masthead-addr{font-size:9px;color:rgba(255,255,255,.6);margin-top:2px;}
+  .cmp-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;padding:12px 36px 0;}
+  .cmp-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:#3b4a52;padding:2px 36px 12px;}
+
+  body.compare-printing #compareSheet.cmp-mode-photos .cmp-table{display:none!important;}
+  body.compare-printing #compareSheet.cmp-mode-specs .cmp-table{flex:1;min-height:0;align-content:stretch;}
+  body.compare-printing #compareSheet .cmp-table{display:grid!important;margin:0 16px;border:1px solid #DBD3C4;border-radius:4px;overflow:hidden;}
+  body.compare-printing #compareSheet .cmp-row{display:contents!important;}
+  .cmp-corner{background:transparent;}
+  body.compare-printing #compareSheet .cmp-label-cell{display:flex!important;align-items:center;padding:7px 8px;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a9299;background:#F1ECE0;border-top:1px solid #DBD3C4;}
+  .cmp-table.cmp-cols-2 .cmp-label-cell,.cmp-table.cmp-cols-3 .cmp-label-cell{font-size:9.5px;}
+  body.compare-printing #compareSheet .cmp-value-cell{display:flex!important;align-items:center;padding:7px 10px;font-size:10.5px;color:#3b4a52;border-top:1px solid #DBD3C4;border-left:1px solid #DBD3C4;}
+  .cmp-table.cmp-cols-2 .cmp-value-cell,.cmp-table.cmp-cols-3 .cmp-value-cell{font-size:12px;}
+  .cmp-row.cmp-diff .cmp-label-cell{background:#F6E4D1;color:#B5560E;}
+  .cmp-row.cmp-diff .cmp-value-cell{background:#FBF1E7;font-weight:700;color:#2c445e;}
+  body.compare-printing #compareSheet .cmp-col-header{display:flex!important;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;border-left:1px solid #DBD3C4;text-align:center;}
+  /* NO per-count max-WIDTH here, unlike the casket sheet. Measured: the grid column
+     itself is 334 / 218 / 161 px at 2 / 3 / 4 items, which is at or under every one of
+     the casket caps (334 / 220 / 163), so `width:100%` alone already produces exactly
+     the sizes those caps were written to produce and the caps could never bind. Carrying
+     them across would have been three inert lines that a reader would reasonably believe
+     were doing the work.
+     The max-HEIGHT caps are NOT inert and are the real adaptation: a casket photo is
+     square, but a ledger plate is 10:13, so at the 2-item column width it is 434px tall
+     and would push the last comparison rows off a sheet that clips. */
+  .cmp-col-img{width:100%;height:auto;max-height:150px;object-fit:contain;background:transparent;margin-bottom:8px;}
+  .cmp-table.cmp-cols-2 .cmp-col-img{max-height:300px;}
+  .cmp-table.cmp-cols-3 .cmp-col-img{max-height:240px;}
+  .cmp-table.cmp-cols-4 .cmp-col-img{max-height:200px;}
+  .cmp-col-name{font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:700;letter-spacing:.03em;color:#3b4a52;line-height:1.15;}
+  .cmp-table.cmp-cols-2 .cmp-col-name{font-size:17px;}
+  .cmp-table.cmp-cols-3 .cmp-col-name{font-size:15px;}
+
+  body.compare-printing #compareSheet.cmp-mode-specs .cmp-photo-row{display:none!important;}
+  body.compare-printing #compareSheet .cmp-photo-row{display:grid!important;flex:1;min-height:0;gap:18px;padding:14px 30px 6px;}
+  body.compare-printing #compareSheet .cmp-photo-col{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;}
+  body.compare-printing #compareSheet .cmp-photo-imgwrap{display:flex!important;align-items:center;justify-content:center;flex:1;width:100%;min-height:0;}
+  .cmp-photo-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;}
+  .cmp-photo-name{font-family:'Source Sans 3',sans-serif;font-size:16px;font-weight:700;letter-spacing:.03em;color:#3b4a52;margin-top:8px;line-height:1.2;text-align:center;}
+  .cmp-photo-detail{font-family:'Source Sans 3',sans-serif;font-size:10px;color:#8a9299;margin-top:3px;text-align:center;}
+
+  body.compare-printing #compareSheet .cmp-footer{margin-top:auto;padding:10px 22px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;}
+  .cmp-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
+  .cmp-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .cmp-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;text-align:right;}
+}
+
+/* ---------- FILTERED PRINT SHEET (paginated, N designs per page) ----------
+   Unlike #compareSheet — position:fixed;height:100%, therefore CLIPPING whatever
+   overflows one page — this is a normal static-flow stack of fixed-height .fs-page
+   blocks with break-after:page, so a 300-design filter genuinely paginates. */
+#filterSheet{display:none;}
+.filter-print{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.filter-print:hover{background:var(--navy-dark);}
+.filter-print:disabled{opacity:.4;cursor:not-allowed;}
+.filter-print svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.filter-print-pages{font-weight:400;opacity:.78;}
+@media print{
+  .filter-print{display:none!important;}
+  body.filter-printing *{display:none!important;}
+  body.filter-printing #filterSheet,
+  body.filter-printing #filterSheet *{display:block!important;}
+  body.filter-printing #filterSheet{background:#F6F2E9;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  body.filter-printing #filterSheet .fs-page{display:flex!important;flex-direction:column;box-sizing:border-box;width:8.5in;height:10.92in;overflow:hidden;background:#F6F2E9;break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid;}
+  body.filter-printing #filterSheet .fs-page:last-child{break-after:auto;page-break-after:auto;}
+
+  body.filter-printing #filterSheet .fs-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:13px 32px;border-bottom:3px solid #E5480F;flex-shrink:0;}
+  .fs-masthead img{height:32px;width:auto;}
+  .fs-masthead-right{margin-left:auto;text-align:right;}
+  .fs-masthead-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#fff;}
+  .fs-masthead-addr{font-size:9.5px;color:rgba(255,255,255,.6);margin-top:2px;}
+
+  body.filter-printing #filterSheet .fs-subhead{display:flex!important;align-items:baseline;justify-content:space-between;gap:18px;padding:10px 32px 0;flex-shrink:0;}
+  .fs-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;white-space:nowrap;}
+  .fs-filters{font-family:'Source Sans 3',sans-serif;font-size:9.5px;color:#8a9299;text-align:right;}
+
+  /* A FIXED 3x4 grid, not auto rows: the last page usually holds fewer than 12, and
+     auto rows would stretch two designs over a whole sheet at a size no other page
+     uses. Fixed rows keep every plate on every page the same size. */
+  body.filter-printing #filterSheet .fs-items{display:grid!important;flex:1;min-height:0;padding:9px 32px 0;gap:10px;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);}
+  body.filter-printing #filterSheet.fs-per-6 .fs-items{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);}
+  body.filter-printing #filterSheet .fs-item{display:flex!important;flex-direction:column;min-height:0;min-width:0;border:1px solid #DBD3C4;border-radius:4px;background:#fff;padding:7px 8px 6px;}
+  body.filter-printing #filterSheet .fs-photo{display:flex!important;align-items:center;justify-content:center;flex:1;min-height:0;width:100%;}
+  .fs-photo img{max-width:100%;max-height:100%;object-fit:contain;}
+  body.filter-printing #filterSheet .fs-body{display:block!important;flex-shrink:0;text-align:center;padding-top:5px;}
+  .fs-name{font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;color:#3b4a52;font-variant-numeric:tabular-nums lining-nums;}
+  .fs-detail{font-family:'Source Sans 3',sans-serif;font-size:8.5px;color:#8a9299;margin-top:2px;line-height:1.25;overflow:hidden;}
+
+  body.filter-printing #filterSheet .fs-footer{display:flex!important;align-items:baseline;justify-content:space-between;margin:0 32px;padding:8px 0 11px;border-top:1px solid #DBD3C4;flex-shrink:0;}
+  .fs-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
+  .fs-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .fs-footer-right{text-align:right;}
+  .fs-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .fs-pageno{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;margin-top:2px;}
+}
+"""
+
+
+# The compare checkbox. Identical markup on a design card (emitted here) and on an
+# element card (emitted by renderCat in the page's own JS), so one selection model
+# serves both and a 2020 design can be put beside a 2011 design or an ornament.
+COMPARE_TOGGLE = ('          <label class="compare-toggle">'
+                  '<input type="checkbox" class="compare-cb"><span>Compare</span></label>\n')
+
+
+# ---- compare + print, the page's own JS ----------------------------------------------
+# Kept OUT of the page f-string on purpose: that template doubles every brace, and this
+# is 300 lines of JavaScript. One un-doubled brace in there is a Python error at build
+# time, but one MIS-doubled brace is a JS error that only shows up in a browser.
+COMPARE_JS = """
+/* ---- compare + print -----------------------------------------------------------------
+   The casket catalogs already answer "put these side by side" and "print exactly what I
+   filtered to", and a counselor moves between those pages and this one in the same
+   sitting. Same tray, same 4-item cap, same two tabs, same "Print these N \\u00b7 k pages"
+   wording, same clipping-compare-sheet / paginating-filtered-sheet split.
+
+   COMPARE SCOPE: designs AND elements, deliberately. A family choosing between a 2020
+   design, a 2011 design and an ornament is choosing between three things that could end
+   up on the same marker, and all three carry the one key this page is built around — a
+   number. Installed-example photographs and the size/colour reference plates are NOT
+   comparable: a photograph of somebody else's finished marker is not an alternative you
+   pick, it is what the answer looks like afterwards, and neither carries a number to key
+   on. They are excluded from compare and from the printed sheet.
+
+   NO PRICES, here as everywhere on this page. The comparison a family makes here is
+   between designs; the quote is built in the tool. */
+(function () {
+  var DASH = '\\u2014';
+  /* The number is NOT a row: it already heads every column, and the casket sheets do
+     not repeat their product name as a row either. It would also be unique by
+     construction, so it would "differ" on every comparison ever made — a highlight
+     that is always on teaches the reader to ignore highlights. */
+  var ROW_LABELS = ['Type', 'Book', 'Group', 'Category', 'Format',
+                    'Granite color', 'Subjects'];
+  var DIFF_ELIGIBLE = [true, true, true, true, true, true, true];
+  var MAX_COMPARE = 4;
+
+  /* Twelve per printed page, in a fixed 3x4 grid. The casket sheets print THREE, because
+     a casket card is a photo beside six lines of construction/interior/finish/weight and
+     the family is deciding on one object. A design plate carries no spec list at all —
+     a number and one detail line — and it is 16:10, so a 3-wide column at 2.35in still
+     renders the plate 1.45in tall, larger than the thumbnail these cards show on screen.
+     Twelve also matters because of scale: 700 designs at 3/page is 234 sheets of paper
+     and at 12/page it is 59. Measured against 6 (2x3) and 9 (3x3) by rendering all three
+     and looking at them; 6 and 9 left most of each cell as white space around a wide,
+     short plate. */
+  var PER_PAGE = 12;
+  var SHEET_TITLE = 'Marker Design Selection';
+  var SHEET_EYEBROW = 'Granite Flat Markers';
+
+  var selected = [];               // card keys, in the order they were picked
+  var currentView = 'specs';       // 'specs' | 'photos'
+
+  var tray = document.getElementById('compareTray');
+  var trayItems = document.getElementById('compareTrayItems');
+  var trayMsg = document.getElementById('compareTrayMsg');
+  var countEl = document.getElementById('compareCount');
+  var openBtn = document.getElementById('compareOpenBtn');
+  var overlay = document.getElementById('compareOverlay');
+  var specsTableEl = document.getElementById('compareTable');
+  var photoGridEl = document.getElementById('comparePhotoGrid');
+  var specsTab = document.getElementById('compareTabSpecs');
+  var photosTab = document.getElementById('compareTabPhotos');
+  var specsPanel = document.getElementById('compareSpecsPanel');
+  var photosPanel = document.getElementById('comparePhotoPanel');
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function byKey(key) {
+    var all = document.querySelectorAll('.product-card[data-id]');
+    for (var i = 0; i < all.length; i++) if (all[i].dataset.id === key) return all[i];
+    return null;
+  }
+
+  /* Everything the two views and both printed sheets need, read off the card itself.
+     Nothing is looked up in a parallel table, so a card that renders is a card that can
+     be compared — which is what lets a lazily-built element card join in. */
+  function cardData(card) {
+    if (!card) return null;
+    var img = card.querySelector('img');
+    var numEl = card.querySelector('.pcm-number');
+    var subj = (card.dataset.tags || '').split(' ').filter(Boolean)
+      .map(function (t) { return t.replace(/-/g, ' '); });
+    var d = {
+      key: card.dataset.id || '',
+      img: img ? img.getAttribute('src') : '',
+      number: numEl ? numEl.textContent.trim() : (card.dataset.id || ''),
+      subjects: subj.length ? subj.join(', ') : DASH
+    };
+    if (card.classList.contains('element-card')) {
+      var box = card.closest('.el-cat');
+      d.type = 'Design element';
+      d.book = 'Design Elements';
+      d.group = (box && box.dataset.elCat) || DASH;
+      d.category = DASH;
+      d.format = DASH;
+      d.color = DASH;
+    } else {
+      d.type = 'Marker design';
+      d.book = BOOK_LABELS[card.dataset.book] || card.dataset.book || DASH;
+      d.group = card.dataset.cat || DASH;
+      d.category = card.dataset.sub || DASH;
+      d.format = FMT_LABELS[card.dataset.fmt] || card.dataset.fmt || DASH;
+      d.color = card.dataset.color || DASH;
+    }
+    return d;
+  }
+
+  /* The same one-line caption the card shows on screen, so a printed sheet and the page
+     it came from say the same thing about the same design. */
+  function detailLine(d) {
+    if (d.type === 'Design element') return d.group;
+    return [d.color !== DASH ? d.color : null, d.format !== DASH ? d.format : null]
+      .filter(Boolean).join(' \\u00b7 ');
+  }
+
+  function rowValues(d) {
+    return [d.type, d.book, d.group, d.category, d.format, d.color, d.subjects];
+  }
+
+  function computeDiffRows(datas) {
+    return ROW_LABELS.map(function (_, i) {
+      if (!DIFF_ELIGIBLE[i]) return false;
+      var vals = datas.map(function (d) { return rowValues(d)[i]; });
+      return vals.some(function (v) { return v !== vals[0]; });
+    });
+  }
+
+  function zoom(src, cap) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightboxCap').textContent = cap || '';
+    document.getElementById('photoLightbox').classList.add('active');
+  }
+
+  function updateCheckboxStates() {
+    var cbs = document.querySelectorAll('.compare-cb');
+    for (var i = 0; i < cbs.length; i++) {
+      var cb = cbs[i];
+      var card = cb.closest('.product-card');
+      var key = card ? card.dataset.id : null;
+      var on = !!key && selected.indexOf(key) > -1;
+      cb.checked = on;
+      cb.disabled = !on && selected.length >= MAX_COMPARE;
+      if (card) card.classList.toggle('comparing', on);
+    }
+  }
+
+  function renderTray() {
+    trayItems.innerHTML = '';
+    selected.forEach(function (key) {
+      var d = cardData(byKey(key));
+      if (!d) return;
+      var chip = el('div', 'compare-chip');
+      var img = document.createElement('img');
+      img.src = d.img; img.alt = d.number;
+      var rm = el('button', 'compare-chip-remove');
+      rm.type = 'button';
+      rm.innerHTML = '&times;';
+      rm.setAttribute('aria-label', 'Remove ' + d.number + ' from the comparison');
+      rm.addEventListener('click', function () { removeKey(key); });
+      chip.appendChild(img);
+      chip.appendChild(el('span', 'compare-chip-name', d.number));
+      chip.appendChild(rm);
+      trayItems.appendChild(chip);
+    });
+    countEl.textContent = selected.length;
+    openBtn.disabled = selected.length < 2;
+    tray.classList.toggle('visible', selected.length > 0);
+    trayMsg.textContent = selected.length >= MAX_COMPARE
+      ? 'Maximum of ' + MAX_COMPARE + ' reached \\u2014 remove one to add another.' : '';
+  }
+
+  function addKey(key) {
+    if (selected.indexOf(key) > -1) return true;
+    if (selected.length >= MAX_COMPARE) return false;
+    selected.push(key);
+    updateCheckboxStates();
+    renderTray();
+    return true;
+  }
+
+  function removeKey(key) {
+    var i = selected.indexOf(key);
+    if (i === -1) return;
+    selected.splice(i, 1);
+    updateCheckboxStates();
+    renderTray();
+    if (overlay.classList.contains('active')) {
+      if (selected.length < 2) closeCompare();
+      else renderActivePanel();
+    }
+  }
+
+  /* Bind whatever cards exist in `root`. Called once for the designs, then again by
+     renderCat every time a category materialises its cards. */
+  window.bwBindCompare = function (root) {
+    var cbs = (root || document).querySelectorAll('.compare-cb');
+    for (var i = 0; i < cbs.length; i++) {
+      var cb = cbs[i];
+      if (cb.dataset.bound) continue;
+      cb.dataset.bound = '1';
+      var label = cb.closest('.compare-toggle');
+      /* The whole card is a click target for the lightbox, so the checkbox has to stop
+         its own click from reaching that handler \\u2014 otherwise ticking Compare also
+         throws a full-screen image over the page. */
+      if (label) label.addEventListener('click', function (e) { e.stopPropagation(); });
+      cb.addEventListener('change', function () {
+        var card = this.closest('.product-card');
+        if (!card) return;
+        if (this.checked) addKey(card.dataset.id);
+        else removeKey(card.dataset.id);
+      });
+    }
+    updateCheckboxStates();
+  };
+
+  function renderSpecsTable(container, isPrint) {
+    container.innerHTML = '';
+    var n = selected.length;
+    container.style.gridTemplateColumns = (isPrint ? '88px' : '150px') + ' repeat(' + n + ', 1fr)';
+    /* CSS cannot count siblings across a display:contents grid, so how many columns
+       there are rides on the table as a class and the plate size follows from it. */
+    container.classList.remove('cmp-cols-2', 'cmp-cols-3', 'cmp-cols-4');
+    container.classList.add('cmp-cols-' + Math.min(Math.max(n, 2), 4));
+    var datas = selected.map(function (k) { return cardData(byKey(k)); });
+    var diffRows = computeDiffRows(datas);
+    var rowClass = isPrint ? 'cmp-row' : 'compare-table-row';
+    var diffClass = isPrint ? 'cmp-diff' : 'diff';
+
+    var head = el('div', rowClass);
+    head.appendChild(el('div', isPrint ? 'cmp-corner' : 'compare-corner'));
+    datas.forEach(function (d) {
+      var h = el('div', isPrint ? 'cmp-col-header' : 'compare-col-header');
+      var img = document.createElement('img');
+      img.className = isPrint ? 'cmp-col-img' : 'compare-col-img';
+      img.src = d.img; img.alt = d.number;
+      if (!isPrint) img.addEventListener('click', function () { zoom(d.img, d.number); });
+      h.appendChild(img);
+      h.appendChild(el('div', isPrint ? 'cmp-col-name' : 'compare-col-name', d.number));
+      if (!isPrint) {
+        var rm = el('button', 'compare-col-remove', 'Remove');
+        rm.type = 'button';
+        rm.addEventListener('click', function () { removeKey(d.key); });
+        h.appendChild(rm);
+      }
+      head.appendChild(h);
+    });
+    container.appendChild(head);
+
+    ROW_LABELS.forEach(function (label, i) {
+      var row = el('div', rowClass + (diffRows[i] ? ' ' + diffClass : ''));
+      row.appendChild(el('div', isPrint ? 'cmp-label-cell' : 'compare-label-cell', label));
+      datas.forEach(function (d) {
+        row.appendChild(el('div', isPrint ? 'cmp-value-cell' : 'compare-value-cell',
+                           rowValues(d)[i]));
+      });
+      container.appendChild(row);
+    });
+  }
+
+  function renderPhotoPanel(container, isPrint) {
+    container.innerHTML = '';
+    var n = selected.length;
+    if (!isPrint) {
+      if (n <= 3) {
+        container.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+        container.style.gridTemplateRows = '1fr';
+      } else {
+        container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        container.style.gridTemplateRows = 'repeat(2, 1fr)';
+      }
+    } else {
+      /* The casket sheet uses two columns at every count because its photos are square.
+         A design plate is 16:10, so on a portrait page a single full-width column is
+         strictly bigger for two or three plates (7.5in wide, height-capped at ~4.2in,
+         against 3.6in in two columns). Only four plates come out ahead in a 2x2. */
+      if (n <= 3) {
+        container.style.gridTemplateColumns = '1fr';
+        container.style.gridTemplateRows = 'repeat(' + n + ', 1fr)';
+      } else {
+        container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        container.style.gridTemplateRows = 'repeat(2, 1fr)';
+      }
+    }
+    selected.map(function (k) { return cardData(byKey(k)); }).forEach(function (d) {
+      var col = el('div', isPrint ? 'cmp-photo-col' : 'compare-photo-col');
+      var wrap = el('div', isPrint ? 'cmp-photo-imgwrap' : 'compare-photo-img-wrap');
+      var img = document.createElement('img');
+      img.src = d.img; img.alt = d.number;
+      wrap.appendChild(img);
+      if (!isPrint) wrap.addEventListener('click', function () { zoom(d.img, d.number); });
+      col.appendChild(wrap);
+      col.appendChild(el('div', isPrint ? 'cmp-photo-name' : 'compare-photo-name', d.number));
+      col.appendChild(el('div', isPrint ? 'cmp-photo-detail' : 'compare-photo-detail',
+                         detailLine(d)));
+      if (!isPrint) {
+        var rm = el('button', 'compare-photo-remove', 'Remove');
+        rm.type = 'button';
+        rm.addEventListener('click', function () { removeKey(d.key); });
+        col.appendChild(rm);
+      }
+      container.appendChild(col);
+    });
+  }
+
+  function renderActivePanel() {
+    if (currentView === 'specs') renderSpecsTable(specsTableEl, false);
+    else renderPhotoPanel(photoGridEl, false);
+  }
+
+  function switchView(view) {
+    currentView = view;
+    specsTab.classList.toggle('active', view === 'specs');
+    photosTab.classList.toggle('active', view === 'photos');
+    specsPanel.classList.toggle('active', view === 'specs');
+    photosPanel.classList.toggle('active', view === 'photos');
+    renderActivePanel();
+  }
+  specsTab.addEventListener('click', function () { switchView('specs'); });
+  photosTab.addEventListener('click', function () { switchView('photos'); });
+
+  function closeCompare() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  openBtn.addEventListener('click', function () {
+    if (selected.length < 2) return;
+    renderActivePanel();
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+  document.getElementById('compareClose').addEventListener('click', closeCompare);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeCompare(); });
+  document.getElementById('compareClearBtn').addEventListener('click', function () {
+    selected = [];
+    updateCheckboxStates();
+    renderTray();
+    if (overlay.classList.contains('active')) closeCompare();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!document.getElementById('photoLightbox').classList.contains('active')) closeCompare();
+  });
+
+  document.getElementById('comparePrintBtn').addEventListener('click', function () {
+    var sheet = document.getElementById('compareSheet');
+    var title = document.getElementById('cmpTitle');
+    if (currentView === 'photos') {
+      renderPhotoPanel(document.getElementById('cmpPhotoRow'), true);
+      title.textContent = 'Design Plates';
+      sheet.classList.add('cmp-mode-photos');
+      sheet.classList.remove('cmp-mode-specs');
+    } else {
+      renderSpecsTable(document.getElementById('cmpTable'), true);
+      title.textContent = 'Side-by-Side Comparison';
+      sheet.classList.add('cmp-mode-specs');
+      sheet.classList.remove('cmp-mode-photos');
+    }
+    document.body.classList.add('compare-printing');
+    setTimeout(function () { window.print(); }, 100);
+    window.addEventListener('afterprint', function handler() {
+      document.body.classList.remove('compare-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+  });
+
+  /* Exposed so a headless run can build the sheet without window.print(), which blocks. */
+  window.bwCompareSelect = function (keys) {
+    selected = [];
+    (keys || []).slice(0, MAX_COMPARE).forEach(function (k) { selected.push(k); });
+    updateCheckboxStates();
+    renderTray();
+    return selected.slice();
+  };
+  window.bwCompareView = switchView;
+  window.bwCompareMax = MAX_COMPARE;
+  window.bwBuildCompareSheet = function (mode) {
+    var sheet = document.getElementById('compareSheet');
+    var title = document.getElementById('cmpTitle');
+    if (mode === 'photos') {
+      renderPhotoPanel(document.getElementById('cmpPhotoRow'), true);
+      title.textContent = 'Design Plates';
+      sheet.className = 'cmp-mode-photos';
+    } else {
+      renderSpecsTable(document.getElementById('cmpTable'), true);
+      title.textContent = 'Side-by-Side Comparison';
+      sheet.className = 'cmp-mode-specs';
+    }
+    return selected.length;
+  };
+
+  // ---------- print what is on screen ----------
+  var sheet = document.getElementById('filterSheet');
+  var btn = document.getElementById('filterPrintBtn');
+
+  /* What a reader would see if they scrolled: not merely `style.display`, because a
+     rendered element category that was CLOSED again still holds its cards with an empty
+     inline display, and a facet that hides the whole elements block leaves them the
+     same way. Both have to be walked, or the button promises pages of invisible cards. */
+  function shownCards() {
+    var out = [];
+    var take = function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (c.style.display === 'none') continue;
+        var g = c.closest('.group');
+        if (g && g.hidden) continue;
+        var box = c.closest('.el-cat');
+        if (box && (box.hidden || !box.classList.contains('open'))) continue;
+        out.push(c);
+      }
+    };
+    take(document.querySelectorAll('.design-card'));
+    take(document.querySelectorAll('.element-card'));
+    return out;
+  }
+
+  /* A printed page with no line saying what it is a page OF is a page a family cannot
+     put back in context a week later. */
+  function activeFilterText() {
+    var bits = [];
+    var q = document.getElementById('searchInput').value.trim();
+    if (q) bits.push('Search: "' + q + '"');
+    [['bookFilter', 'Book'], ['catFilter', 'Group'],
+     ['fmtFilter', 'Format'], ['colorFilter', 'Granite color']].forEach(function (p) {
+      var s = document.getElementById(p[0]);
+      if (s && s.value) bits.push(p[1] + ': ' + s.options[s.selectedIndex].textContent.trim());
+    });
+    return bits.length ? bits.join('  \\u00b7  ') : 'All designs and elements';
+  }
+
+  function itemNode(card) {
+    var d = cardData(card);
+    var item = el('div', 'fs-item');
+    var wrap = el('div', 'fs-photo');
+    var img = document.createElement('img');
+    img.src = d.img; img.alt = d.number;
+    wrap.appendChild(img);
+    item.appendChild(wrap);
+    var body = el('div', 'fs-body');
+    body.appendChild(el('div', 'fs-name', d.number));
+    body.appendChild(el('div', 'fs-detail', detailLine(d)));
+    item.appendChild(body);
+    return item;
+  }
+
+  function build(cards) {
+    sheet.innerHTML = '';
+    sheet.className = 'fs-per-' + PER_PAGE;
+    var pages = Math.ceil(cards.length / PER_PAGE) || 1;
+    var filters = activeFilterText();
+    for (var p = 0; p < pages; p++) {
+      var page = el('div', 'fs-page');
+
+      var mast = el('div', 'fs-masthead');
+      var logo = document.createElement('img');
+      logo.src = 'logo.svg'; logo.alt = 'Bonney Watson';
+      mast.appendChild(logo);
+      var mr = el('div', 'fs-masthead-right');
+      mr.appendChild(el('div', 'fs-masthead-title', SHEET_TITLE));
+      mr.appendChild(el('div', 'fs-masthead-addr',
+        '16445 International Blvd, SeaTac WA 98188 \\u00b7 206-445-9794'));
+      mast.appendChild(mr);
+      page.appendChild(mast);
+
+      var sub = el('div', 'fs-subhead');
+      sub.appendChild(el('div', 'fs-eyebrow', SHEET_EYEBROW));
+      sub.appendChild(el('div', 'fs-filters', filters));
+      page.appendChild(sub);
+
+      var items = el('div', 'fs-items');
+      var end = Math.min((p + 1) * PER_PAGE, cards.length);
+      for (var i = p * PER_PAGE; i < end; i++) items.appendChild(itemNode(cards[i]));
+      page.appendChild(items);
+
+      var foot = el('div', 'fs-footer');
+      var fl = document.createElement('div');
+      fl.appendChild(el('div', 'fs-advisor-name', 'Martice Morrison'));
+      fl.appendChild(el('div', 'fs-advisor-role',
+        'Family Service Advisor \\u00b7 Bonney Watson'));
+      foot.appendChild(fl);
+      var fr = el('div', 'fs-footer-right');
+      fr.appendChild(el('div', 'fs-advisor-contact',
+        'mmorrison@bonneywatson.com \\u00b7 206-445-9794'));
+      fr.appendChild(el('div', 'fs-pageno', 'Page ' + (p + 1) + ' of ' + pages));
+      foot.appendChild(fr);
+      page.appendChild(foot);
+
+      sheet.appendChild(page);
+    }
+    return pages;
+  }
+
+  window.bwBuildFilteredSheet = function () { return build(shownCards()); };
+  window.bwFilteredPerPage = PER_PAGE;
+  window.bwShownCardCount = function () { return shownCards().length; };
+
+  window.printFiltered = function () {
+    var cards = shownCards();
+    if (!cards.length) return;
+    build(cards);
+    document.body.classList.add('filter-printing');
+    setTimeout(function () { window.print(); }, 100);
+    window.addEventListener('afterprint', function handler() {
+      document.body.classList.remove('filter-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+  };
+
+  window.bwUpdateFilterPrintBtn = function (n) {
+    if (n === undefined) n = shownCards().length;
+    var pages = Math.ceil(n / PER_PAGE);
+    btn.disabled = !n;
+    document.getElementById('filterPrintCount').textContent = n.toLocaleString();
+    document.getElementById('filterPrintPages').textContent =
+      n ? (' \\u00b7 ' + pages + (pages === 1 ? ' page' : ' pages')) : '';
+  };
+
+  window.bwBindCompare(document);
+})();
 """
 
 
@@ -276,6 +1017,7 @@ def design_card(d, tags):
         f'          <div class="product-detail">{detail}</div>\n'
         f'          <div class="pcm-number">PCM {d["num"]}</div>\n'
         f'          <div class="tag-row">{chips}</div>\n'
+        f'{COMPARE_TOGGLE}'
         f'        </div>\n'
         f'      </div>')
 
@@ -438,6 +1180,10 @@ def build():
     </select>
     <button class="btn-clear" type="button" id="clearFilters" onclick="clearAll()">Clear</button>
     <span class="filter-count" id="filterCount"></span>
+    <button class="filter-print" type="button" id="filterPrintBtn" onclick="printFiltered()">
+      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Print these <span id="filterPrintCount">0</span><span class="filter-print-pages" id="filterPrintPages"></span>
+    </button>
   </div>
 
   <div class="contents">
@@ -474,8 +1220,17 @@ def build():
       above look like once they are cut, set and weathered in.</div>
   </div>
   <div class="group" id="group-examples">
-    <div class="product-grid photos">
+    <div class="ex-cat open" id="elcat-examples">
+      <button class="el-toggle" type="button" onclick="toggleExamples()"
+              aria-expanded="true" aria-controls="elbody-examples">
+        <svg class="el-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <span>Installed Examples</span><span class="el-count" id="examplesCount">{len(photos)}</span>
+      </button>
+      <div class="el-body" id="elbody-examples">
+        <div class="product-grid photos">
 {chr(10).join(photo_card(p) for p in photos)}
+        </div>
+      </div>
     </div>
   </div>
 
@@ -506,6 +1261,64 @@ def build():
   <div class="lightbox-cap" id="lightboxCap"></div>
 </div>
 
+<div class="compare-tray" id="compareTray">
+  <div class="compare-tray-inner">
+    <div class="compare-tray-items" id="compareTrayItems"></div>
+    <div class="compare-tray-actions">
+      <span class="compare-tray-msg" id="compareTrayMsg"></span>
+      <button class="compare-tray-clear" id="compareClearBtn" type="button">Clear all</button>
+      <button class="compare-tray-btn" id="compareOpenBtn" type="button">Compare (<span id="compareCount">0</span>)</button>
+    </div>
+  </div>
+</div>
+
+<div class="compare-overlay" id="compareOverlay">
+  <div class="compare-modal">
+    <div class="compare-header">
+      <img src="logo.svg" alt="Bonney Watson" class="compare-logo">
+      <div class="compare-title">Compare Designs</div>
+      <div class="compare-tabs">
+        <button class="compare-tab active" id="compareTabSpecs" type="button">Side by Side</button>
+        <button class="compare-tab" id="compareTabPhotos" type="button">Plates</button>
+      </div>
+      <button class="compare-print-btn" id="comparePrintBtn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Print Comparison
+      </button>
+      <button class="compare-close" id="compareClose" type="button">&times;</button>
+    </div>
+    <div class="compare-body">
+      <div class="compare-panel active" id="compareSpecsPanel">
+        <div class="compare-table" id="compareTable"></div>
+      </div>
+      <div class="compare-panel" id="comparePhotoPanel">
+        <div class="compare-photo-grid" id="comparePhotoGrid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="compareSheet">
+  <div class="cmp-masthead">
+    <img src="logo.svg" alt="Bonney Watson">
+    <div class="cmp-masthead-right">
+      <div class="cmp-masthead-title">Marker Design Comparison</div>
+      <div class="cmp-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
+    </div>
+  </div>
+  <div class="cmp-eyebrow">Granite Flat Markers</div>
+  <div class="cmp-title" id="cmpTitle">Side-by-Side Comparison</div>
+  <div class="cmp-table" id="cmpTable"></div>
+  <div class="cmp-photo-row" id="cmpPhotoRow"></div>
+  <div class="cmp-footer">
+    <div><div class="cmp-advisor-name">Martice Morrison</div><div class="cmp-advisor-role">Family Service Advisor &middot; Bonney Watson</div></div>
+    <div class="cmp-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
+  </div>
+</div>
+
+<!-- Pages are built on demand by printFiltered(). -->
+<div id="filterSheet"></div>
+
 <footer class="site-footer">
   <a href="guides.html">&larr; Back to all guides</a>
 </footer>
@@ -515,6 +1328,9 @@ var EL_CATS = {json.dumps(el_cats)};
 var ELEMENTS = {json.dumps(payload, separators=(',', ':'))};
 var STEM_TAGS = {json.dumps(stem_tag_payload, separators=(',', ':'))};
 var SYNONYMS = {json.dumps(synonyms, separators=(',', ':'))};
+var FMT_LABELS = {json.dumps(FMT_LABEL, separators=(',', ':'))};
+var BOOK_LABELS = {{'2020': '2020 Design Book', '2011': '2011 Design Book'}};
+var COMPARE_TOGGLE_HTML = {json.dumps(COMPARE_TOGGLE.strip())};
 
 var elByCat = [];
 EL_CATS.forEach(function () {{ elByCat.push([]); }});
@@ -540,9 +1356,13 @@ function renderCat(i) {{
     html.push('<div class="product-card element-card" data-id="' + esc(e[0]) +
       '" data-name="' + esc(elName(e)) + '" data-tags="' + esc(STEM_TAGS[e[3]]) +
       '"><div class="element-img"><img src="' + esc(e[2]) + '" alt="' + esc(e[0]) +
-      '" loading="lazy"></div><div class="pcm-number">' + esc(e[0]) + '</div></div>');
+      '" loading="lazy"></div><div class="pcm-number">' + esc(e[0]) + '</div>' +
+      COMPARE_TOGGLE_HTML + '</div>');
   }});
   grid.innerHTML = html.join('');
+  /* A category can render at any time — opened, searched into, or jumped to — so the
+     compare layer re-binds whatever just appeared rather than binding once at load. */
+  if (window.bwBindCompare) window.bwBindCompare(grid);
 }}
 
 function setOpen(i, open) {{
@@ -557,6 +1377,21 @@ function toggleCat(slug) {{
   var i = catSlug.indexOf(slug);
   var el = document.getElementById('elcat-' + slug);
   setOpen(i, !el.classList.contains('open'));
+}}
+
+/* Installed Examples is the same kind of panel as an element category — one bar with a
+   caret and a count, one click to fold it away — because a counselor showing a family
+   the 2020 book does not always want thirty photographs of somebody else's marker under
+   it. It differs from an element category in exactly one way: it opens OPEN. An element
+   category starts closed because 3,973 cards cannot all be in the DOM at once; these
+   thirty-five are already there and were visible before this panel existed, so starting
+   closed would have HIDDEN content rather than given control over it. */
+function toggleExamples(open) {{
+  var el = document.getElementById('elcat-examples');
+  if (!el) return;
+  var on = (open === undefined) ? !el.classList.contains('open') : !!open;
+  el.classList.toggle('open', on);
+  el.querySelector('.el-toggle').setAttribute('aria-expanded', on ? 'true' : 'false');
 }}
 
 var designCards = null;
@@ -735,19 +1570,27 @@ function applyFilters() {{
 
   ['examples', 'reference'].forEach(function (k) {{
     var grp = document.getElementById('group-' + k);
+    var all = grp.querySelectorAll('.product-card');
     var n = 0;
-    grp.querySelectorAll('.product-card').forEach(function (c) {{
+    all.forEach(function (c) {{
       var ok = !facetsOn && matches(c.dataset.name, '', terms, q);
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
     }});
     grp.hidden = n === 0;
     document.getElementById('sec-' + k).hidden = n === 0;
+    /* The panel's count follows the search exactly the way an element category's does
+       ("6 of 35"), so the two read as one control and not as two conventions. */
+    if (k === 'examples') {{
+      document.getElementById('examplesCount').textContent =
+        q ? n + ' of ' + all.length : String(all.length);
+    }}
   }});
 
   document.getElementById('filterCount').textContent =
     shownDesigns.toLocaleString() + ' designs \\u00b7 ' + shownEls.toLocaleString() + ' elements';
   document.getElementById('emptyNote').hidden = !(shownDesigns === 0 && shownEls === 0);
+  if (window.bwUpdateFilterPrintBtn) window.bwUpdateFilterPrintBtn();
 }}
 
 var flashed = null;
@@ -832,7 +1675,7 @@ document.getElementById('pcmJump').addEventListener('input', function () {{ jump
 document.getElementById('pcmJump').addEventListener('keydown', function (e) {{
   if (e.key === 'Enter') jump(this.value);
 }});
-
+{COMPARE_JS}
 applyFilters();
 </script>
 </body>
