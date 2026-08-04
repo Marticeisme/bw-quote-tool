@@ -1,5 +1,26 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-15 — OPENED 2026-08-04** (director: Fable session; operator
+round on the PCM catalog, rulings arrived mid-conversation). Scope, in the operator's
+order: (1) remove ALL photographs from the design plates (AI upscale mangles the ceramic
+portrait faces) and replace with the BW logo / director's-taste placeholder — Track A
+`s15/pcm-photo-mask` (Opus, isolated worktree, brief at
+sprints/sprint-15/TRACK-A-pcm-photo-mask.md; census-by-eye over all 699 plates, checked-in
+region file + deterministic mask script, manifest re-pin, EXPECT_PHOTO_MASKED gate both
+directions; >120-plate census = stop-and-report); (2) Side-by-Side compare mode REMOVED
+entirely, Plates is the only compare view (director-direct, DONE pre-suite: generator
+tabs/specs-panel/spec-table/print-mode + all its CSS out, gate rewritten with
+positive-absence asserts, sabotage-proven red/green — inject spec table → named FAIL
+201/1, rebuild → 202/0 served-tree-pinned; overlay + 1-page 2×2 print PDF + renders
+eyeballed); (3) Real Examples pruned 35→28 (operator picked marker-058 + marker-138, then
+"these shouldn't be under the examples" at the guide-sourced class → all five
+marker-images/ entries dropped from the catalog, files kept for the marker guide; the two
+pcm-example-images files git-rm'd; data regenerated via pcm_extract.py --data with D:
+sources verified — designs/elements/reference byte-identical, only photos changed; fold
+render eyeballed, 28 cards 0 guide-sourced). Casket/urn catalogs KEEP their Side-by-Side
+(operator's ask was PCM-scoped; flagged as an open question). Full npm suite running at
+this writing; contract number will move (was 2297/36). NO PUSH — not pre-authorized.
+
 **Current sprint: sprint-14 — OPENED 2026-08-03** (director: Fable session; tracks:
 Opus per operator). Operator brief: three new walkthrough videos shot this morning
 (TGMP 12:06 → ELM 12:17 → COM 12:27; 1080p30 HEVC, 8–14 min each, one continuous
