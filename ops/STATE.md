@@ -19,6 +19,34 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 Track A MERGED (director-audited, `b0c69d3`); merged main GREEN: 2255 passed,
+0 failed across 36 suites** (director's own run; reconciles exactly: 2149 + 10
+family-register reel guards (162→172) + 96 walkthrough-path rewrite (42→138)).
+Three reels shipped ALL DELISTED (zero family-facing anchors — track proved it over
+50 HTML files, director re-grepped; the one guides.html hit is the s11 delisting
+comment): COM_Walkthrough rebuilt from the re-shoot (5 stops, marble/vases crisp —
+the s11 fog delisting is answered), NEW ELM_Walkthrough (4 stops, best quality),
+NEW TG_Walkthrough (3 stops, honest verdict NOT family-showable — turf renders as
+spike-field; 3dgsconverter 0.9.1 cleanup attempted and recorded in
+docs/SPLAT_CLEANUP_ATTEMPT_s14.md: the spikes ARE the model's turf representation,
+not removable outliers; --sor_intensity alone is a no-op, --density_sensitivity is
+the active flag; TG waits for the re-shoot protocol in RESEARCH-outdoor-photoreels).
+Pipeline now scene-generic (walkthrough-scenes.mjs registry; build/verify_walkthrough
+take a SCENE arg; paths DERIVED from registered camera poses). Director re-ran the
+full COM pixel gate on merged main (PASS 0 mismatches, exit 0) + syntax + suite;
+TG/ELM gates accepted on the track's serial runs (gate class ~20 min/scene, run
+deliberately). A's scars worth keeping: phone clips carry a ROTATION MATRIX —
+ffmpeg scale filters that look like no-ops downscale 45% (SIFT features 2805→5612
+at native res); a confinement that works CANNOT be sabotaged from outside it (the
+teleport sabotage measured the clamp, not the breach — sabotage must rebuild the
+path with an outside stop); needle filter must use max/MID axis ratio (max/min
+deletes surface discs); page.screenshot never settles on a splat viewer — canvas
+toDataURL (50→20 min/gate); walkthrough gates NEVER overlap (interleaved logs
+fabricate defects). Two operator rulings at push gate (2026-08-04): ELM's legible
+names/dates SHIP AS-IS (s10 names-on-crypts + photo-PII precedent; page unlinked);
+TG's 24 MB PUSHES TOO (drive it live, re-shoot replaces the asset). Also on the
+record: COM's covered stretch shows a service door + orange traffic cone.
+
 **s14 PUSH PRE-AUTHORIZED (operator, 2026-08-04): "push everything live once its
 done."** Fires after Track A is audited+merged and the full contract is green on
 final main. Push protocol: syntax check → fetch and check behind-count (the
@@ -31,6 +59,36 @@ precedent); linking is a separate later word. Also queued into A mid-flight
 (operator-approved): 3dgsconverter SOR/density cleanup pass on the TG model with
 before/after captures, reproducible command manifest; blanket-apply to other scenes
 only if their eyeballs show the same noise class.
+
+**s14 CHIP CLOSED (zen-napier worktree, branch claude/gifted-bhabha-42ea91): the
+casket compare-sheet blind spot is fixed on all six catalogs.** Track D's finding —
+`scrollHeight-clientHeight===0` is BLIND under `.cmp-table overflow:hidden` — is now
+closed: `scripts/verify_catalogs.mjs` and `tests/test-catalog-filter-print.mjs`
+(new section 5, 94→124 asserts) drive the REAL `comparePrintBtn` (window.print
+stubbed; afterprint never fires, tests strip `compare-printing` themselves — the
+casket pages expose no `bwBuildCompareSheet`) with 4 items, both modes, on a true
+816x1056 viewport, and assert last-row-inside-table + footer-inside-page + 4/4
+items + real Chromium PDF = 1 page. Today's headroom: specs last row ends exactly
+1px inside the table on ALL SIX pages (photos 6px) — fits, but any row growth
+would have clipped silently. Sabotage proven both directions on the rule that
+APPLIES (`body.compare-printing #compareSheet .cmp-label-cell`, the ID-carrying
+rule, padding 8px→80px): gate exit 1 + suite 123/1 with the named clip FAIL (last
+row −772px inside table), green on restore — and under the sabotage `over` stayed
+0 AND the PDF stayed 1 page, so BOTH old-style signals were blind; only the
+geometric assert catches it. **RECONCILED NUMBERS: merged main (post-Track-A +
+this chip) is GREEN at 2285 passed / 0 failed across 36 suites** — exactly Track
+A's 2255 + this chip's 30 (test-catalog-filter-print 94→124), per-suite output
+recorded this time. That per-suite record also RESOLVED the worktree variance
+(2147 in the zen-napier worktree vs the recorded 2149 on unchanged bytes): it is
+test-contact-csv, 134 in a worktree vs 136 in the main tree — its
+wmp-cemetery-map/ PII cross-check (2 asserts) only runs where that gitignored,
+local-only directory exists, and the suite prints its own NOTE when skipping. Not
+a regression; a tree-presence difference. Standing lesson stands: record
+per-suite numbers alongside contract totals — it turned an unlocatable −2 into a
+one-line explanation. Committed `842ca45`, merged to main post-Track-A (a true
+merge — main had moved; STATE.md conflict resolved keeping the Track A and
+push-preauth entries). Not pushed by this session; push per the pre-auth
+protocol above.
 
 **s14 Track D MERGED (director-audited, `c3b8649`); merged main GREEN: 2149 passed,
 0 failed across 36 suites** (director's own run; reconciles 2092 + 57 new
