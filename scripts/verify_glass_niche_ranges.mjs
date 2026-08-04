@@ -187,10 +187,14 @@ console.log('\n=== MVC RIGHTS BAND ===');
 
 // ── the ECL rights figure (operator ruling 2026-08-01) ───────────────────────
 // "ecl niches are two rights each." Before that ruling this guide deliberately said
-// NOTHING about ECL capacity, because the ECL sheet is silent. It may say it now — and
-// only for ECL. Radiance and Serenity sheets carry an unexplained "(2)" the operator has
-// NOT ruled on, so the guide must stay silent about them; that silence is asserted here
-// so a later edit cannot quietly generalise ECL's ruling across the Chapel walls.
+// NOTHING about ECL capacity, because the ECL sheet is silent.
+//
+// RAD/SER RULED 2026-08-04. Until today this block asserted the guide stayed SILENT on
+// Radiance/Serenity capacity, because their sheets' "(2)" was unexplained. The operator
+// has now ruled: "The radiance and serenity niche walls both come with the rights for
+// two urns placed inside. every niche in our cemetery for that matter comes with the
+// rights for two urns." So the footnote must STATE two rights, tagged
+// data-rights="radser", and the old silence assertion inverts.
 console.log('\n=== ECL RIGHTS (operator ruling 2026-08-01) ===');
 {
   const want = `${ECL.RIGHTS} rights of interment`;
@@ -200,13 +204,14 @@ console.log('\n=== ECL RIGHTS (operator ruling 2026-08-01) ===');
     if (got === want) ok(`data-rights="ecl"`.padEnd(26) + got);
     else fail(`data-rights="ecl": page prints "${got}", module says "${want}"`);
   }
-  for (const loc of ['rad', 'ser']) {
-    const f = tagged('data-rights', loc);
-    if (f.length) fail(`data-rights="${loc}" present — no ruling exists for the Chapel walls' "(2)"`);
-    else ok(`data-rights="${loc}"`.padEnd(26) + 'absent (no operator ruling — guide stays silent)');
+  const rs = tagged('data-rights', 'radser');
+  if (!rs.length) fail('no element carries data-rights="radser" (operator ruling 2026-08-04: two rights per niche)');
+  else for (const got of rs) {
+    if (got === '2 rights of interment') ok(`data-rights="radser"`.padEnd(26) + got);
+    else fail(`data-rights="radser": page prints "${got}", the 2026-08-04 ruling says "2 rights of interment"`);
   }
-  const silent = /Neither niche sheet states how many people may be placed in one niche, so this guide does not\./.test(html);
-  (silent ? ok : fail)('the Radiance/Serenity footnote still declines to state a capacity');
+  const silent = /Neither niche sheet states how many people may be placed in one niche/.test(html);
+  (silent ? fail : ok)('the old capacity-silence sentence is gone (superseded by the 2026-08-04 ruling)');
 }
 
 // ── fees ─────────────────────────────────────────────────────────────────────

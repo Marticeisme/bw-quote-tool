@@ -2373,6 +2373,31 @@ media, both walls) against the CSVs.
 
 ---
 
+### 2026-08-04 — Three operator rulings on the niche guides (rights, buildings, inside/outside)
+
+Follow-up to the MIS-status push, all three from Martice the same afternoon:
+
+1. **RAD/SER capacity ruled.** "The radiance and serenity niche walls both come with the
+   rights for two urns placed inside. every niche in our cemetery for that matter comes
+   with the rights for two urns." The glass guide's footnote hedge ("Neither niche sheet
+   states how many people…") is replaced with a stated `data-rights="radser"` figure of
+   2 rights of interment, Family niches included. `verify_glass_niche_ranges` had
+   asserted that silence so no one could generalise ECL's ruling; the assertion now
+   INVERTS — it requires the tag and fails if the old hedge sentence returns.
+2. **Which building is which.** ECL is inside the Eternal Light Mausoleum, attached to
+   the Chapel of Memories; MVC is a separate building entirely. Fixed the glass guide's
+   "Where they are" paragraph and named the ELM in `ecl-guide.html`.
+3. **Inside/outside leads both comparisons.** Glass column now opens "Always inside a
+   building", granite column "Always outside"; `granite-niches-guide.html` Section 1
+   opens with the same fact.
+
+The longer footnote stranded the Chapel-map link on a near-empty page 6 of the PDF
+(`verify_guide_pages` caught it, 799 bytes); tightened the footnote wording rather than
+fighting the balancer — back to 6 pages. Rebuilt Glass-Front, Granite, ECL PDFs; pages
+2/5 of glass and page 1 of granite rendered and eyeballed. All guide gates green.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
