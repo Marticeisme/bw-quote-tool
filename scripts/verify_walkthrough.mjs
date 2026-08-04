@@ -131,14 +131,17 @@ const STOPS = WALK.stops;
 // rather than merely "not blank". Neither is a substitute for looking at the screenshots,
 // which is why every stop still writes one.
 //
-// Measured under SwiftShader, 2026-08-02: the shipped stops run lit 88.9–99.8% and detail
-// 7.71–11.67. `mid-room` is the floor on both — it looks down a dark aisle, so a fifth of the
-// frame is genuinely unlit, which is why LIT_MIN is 0.85 and not the 0.90 first tried. A
-// position outside the reconstruction is nowhere near either number.
-const LIT_MIN = 0.85;
-const STDEV_MIN = 12;
-const COLOURS_MIN = 60;
-const DETAIL_MIN = 6.0;
+// Measured under SwiftShader, 2026-08-02: sprint-11's shipped stops ran lit 88.9–99.8% and
+// detail 7.71–11.67. `mid-room` was the floor on both — it looks down a dark aisle, so a fifth
+// of the frame is genuinely unlit, which is why the lit floor is 0.85 and not the 0.90 first
+// tried.
+//
+// The numbers now come from the scene table, because content differs and one number cannot be
+// right for stained glass and for polished marble at arm's length. THE FLOORS ARE NOT TAKEN ON
+// TRUST: the sabotage pass below teleports the camera outside the reconstruction and requires
+// that frame to FAIL these same floors. That is what stops "recalibrate until it passes" from
+// being available as a way out of a bad reel.
+const { lit: LIT_MIN, stdev: STDEV_MIN, colours: COLOURS_MIN, detail: DETAIL_MIN } = S.floors;
 
 async function pixelStats(page) {
   return page.evaluate(() => {
@@ -313,6 +316,68 @@ const describe = (name, s) =>
            `${COLOURS_MIN} colours, detail ${DETAIL_MIN}): this stop is blank, flat or fogged`);
     }
   }
+
+  // ── THE FLOORS HAVE TO MEAN SOMETHING ────────────────────────────────────────────────
+  // Every stop above cleared this scene's floors. That is only evidence the reel is good if
+  // the floors would REJECT a bad frame — otherwise a floor quietly lowered until the reel
+  // passed would read exactly the same. So: put the camera far outside the reconstruction,
+  // where there is provably nothing to draw, and require the frame to fail. This runs against
+  // the scene's OWN floors, so loosening them to rescue a fogged stop breaks this check by
+  // name rather than silently widening what counts as a photograph.
+  //
+  // The path clamp cannot be bypassed from outside — that is the whole point of it — so the
+  // sabotage is done by drawing one frame from a deliberately corrupted view matrix rather
+  // than by moving the camera. Same renderer, same pixels, same measurement.
+  head('Sabotage: a viewpoint outside the reconstruction must FAIL these floors');
+  const span = STOPS.reduce((m, s) => Math.max(m, Math.hypot(...s.pos)), 0) || 1;
+  const away = span * 25;
+  const saboStats = await page.evaluate(async ([v, d]) => {
+    const c = document.getElementById('canvas');
+    const gl = c.getContext('webgl2');
+    // Draw straight from a matrix that places the eye far outside the scene. gl.clear first,
+    // so what is measured is what THIS matrix drew and not a leftover good frame.
+    const inv = invert4(v);
+    inv[12] = d; inv[13] = d; inv[14] = d;
+    const m = invert4(inv);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    window.bwWalkthrough.view = m;
+    await new Promise((res) => { let n = 0; const t = () => (++n >= 10 ? res() : requestAnimationFrame(t)); requestAnimationFrame(t); });
+    const w = Math.min(c.width, 480), h = Math.min(c.height, 480);
+    const px = new Uint8Array(w * h * 4);
+    gl.readPixels((c.width - w) >> 1, (c.height - h) >> 1, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    let lit = 0, sum = 0, sum2 = 0; const n = w * h; const hist = new Set();
+    const lum = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2];
+      const val = (r + g + b) / 3; lum[i] = val;
+      if (val > 12) lit++;
+      sum += val; sum2 += val * val;
+      hist.add((r >> 4) << 8 | (g >> 4) << 4 | (b >> 4));
+    }
+    let dsum = 0, dn = 0;
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        dsum += Math.abs(4 * lum[i] - lum[i - 1] - lum[i + 1] - lum[i - w] - lum[i + w]);
+        dn++;
+      }
+    }
+    const mean = sum / n;
+    return { litFraction: lit / n, mean, stdev: Math.sqrt(sum2 / n - mean * mean), colours: hist.size, detail: dsum / dn };
+  }, [STOPS[WALK.openIndex].view, away]);
+  await page.screenshot({ path: path.join(SHOTS, `${S.key}-SABOTAGE.png`), timeout: 180000 });
+  const saboPasses = saboStats.litFraction >= LIT_MIN && saboStats.stdev > STDEV_MIN
+    && saboStats.colours > COLOURS_MIN && saboStats.detail >= DETAIL_MIN;
+  if (!saboPasses) {
+    ok(`${describe(`a viewpoint ${away.toFixed(1)} units outside the scene`, saboStats)} — correctly REJECTED`);
+  } else {
+    fail(`${describe(`a viewpoint ${away.toFixed(1)} units outside the scene`, saboStats)} — it CLEARED the ` +
+         `floors (lit ${LIT_MIN}, stdev ${STDEV_MIN}, ${COLOURS_MIN} colours, detail ${DETAIL_MIN}). ` +
+         `These floors cannot tell this scene from empty space, so every per-stop pass above is meaningless.`);
+  }
+  // Put the camera back before anything else measures pixels.
+  await page.evaluate((v) => { window.bwWalkthrough.view = v; }, STOPS[WALK.openIndex].view);
+  await page.evaluate(() => window.bwWalkthrough.snap(window.bwWalkthrough.openIndex));
 
   head('Controls');
   const before = await page.evaluate(() => window.bwWalkthrough.view);
@@ -556,7 +621,7 @@ const describe = (name, s) =>
   // Raised from 14 when the gzip transport pass added three sizing checks and the
   // uncompressed pass added three more; then made a function of the path, since the
   // per-stop pass runs one check per stop and the confinement pass adds seven.
-  const CHECK_FLOOR = 23 + 2 * STOPS.length;
+  const CHECK_FLOOR = 24 + 2 * STOPS.length;  // +1 for the sabotage assert
   if (checks < CHECK_FLOOR) fail(`only ${checks} checks ran (floor ${CHECK_FLOOR}) — the suite bailed early`);
 
   console.log(`\nScreenshots: ${path.relative(ROOT, SHOTS)}`);
