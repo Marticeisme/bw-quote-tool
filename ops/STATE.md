@@ -19,7 +19,27 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
-**s14 POST-CLOSE OPERATOR ROUND (2026-08-04, in flight):** operator word: reels look
+**s14 POST-CLOSE ROUND — PUSHED AND LIVE-VERIFIED 2026-08-04** (`f1e1d0a..6020dc4`,
+15 commits; operator: "push everything live once its done and then update our notes
+and we can call it a session"). Final main: 8/0; **2297 passed, 0 failed across 36
+suites**; COM slow pixel gate re-run PASS on merged bytes before push. Live verify
+(scratch/s14-live-verify.mjs, extended): ALL OK — guides.html carries EXACTLY ONE
+card each for COM+ELM walkthroughs and ZERO TG links on the wire; walk buttons live
+on both maps; TGMP's HONOR/CELEBRATE/REMEMBER geometry serving; TG_Maus view3d
+serving; vault guide's brochure copy gone from the wire ("mowers and backhoes"
+present, "pinnacle" absent); pixel readback COM 99.4 / TG 100 / ELM 100 %lit, zero
+page errors. **COM and ELM reels are now FAMILY-FACING; TG stays delisted awaiting
+the re-shoot** (RESEARCH-outdoor-photoreels.md is the playbook). All four round-2
+worktrees removed (junctions non-recursive), renders preserved in
+scratch/s14-renders/, s14/* branches kept until pruned. OPEN with the operator
+(carried): TG re-shoot (360-camera option); ossuary ruling (E: NO sighting
+4:16–7:40, recorded); TG wings orientation one-look (G flag; director reads it as
+north-wings-vs-south-tandem, consistent); ELN-W-1; crystal-room contents; MIS
+exports for the two geometry-first maps; urn-placement §4 print column (chip
+task_f1bfb521); casket compare 1px row headroom; "more of the building is still to
+come" card wording is the director-approved track wording — reword on request.
+
+**s14 POST-CLOSE OPERATOR ROUND (2026-08-04, superseded by the entry above):** operator word: reels look
 good → LINK COM+ELM (TG stays delisted); TGMP map must match the video; TG Maus map
 goes 3D; voice debrief (docs/GUIDES_VOICE_DEBRIEF_2026-08.md, now pinned atop
 BRAND_AND_BUILD_LOG + in agent memory) must be IMPLEMENTED across guides; "push
