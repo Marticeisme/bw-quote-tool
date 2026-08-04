@@ -49,8 +49,23 @@ turned. Anchors intact ($544k+$218k=$762k/100 rights/fee math to the cent). E co
 NOT settle absolute dimensions (kept s09 footprint rather than swap in a
 differently-wrong one), bed drop, exact post census, handrails. Main after both
 merges: 8/0; **2285/36** (twice, director's own runs — E/G asserts live in their
-standalone gates, suite count unchanged). F and H still in flight; push fires when
-all four are in and green.
+standalone gates, suite count unchanged). **H MERGED (director-audited: his own
+sweep run — 23 in-scope files, 0 hits across all six banned classes, 2 documented
+exemptions = the verbatim-quoted GOMN sheet text a gate asserts char-for-char;
+verify_guide_pages + granite ranges + guides-page re-run; vault-p1 render
+eyeballed — the rewrite IS the voice):** em dashes 308→0 in prose (first sweep pass
+read 4 and was WRONG — guides encode &mdash;, the needle must match all four
+encodings; en-dash ranges left alone, gate-asserted), inventory 9→0, counselor 3→0;
+4 Tier-1 rewrites (vault/urn-placement/scattering/outside-marker-rules, every
+fee/rule kept incl. the WHY of the inspection fee); guide-price-rule invite()
+reworded = 17 dashes across 12 generated guides in one move; 22 PDFs rebuilt,
+staleness green, caps hold. H also FIXED verify_guide_pages stricter: truncated
+Ghostscript flate streams silently measured as gzip noise (inflateSync throw →
+return raw) — now Z_SYNC_FLUSH fallback + exit 2 if undecodable; no assertion
+relaxed. H flagged pre-existing: urn-placement §4 print table drops its 4th column
+(chip task_f1bfb521 pending). Post-H main: 8/0, **2285/36**, per-suite lines
+byte-identical to pre-sweep (H's diff moves no suite). Track F (relist) is the last
+one in flight; push fires when it's in and green.
 
 **Sprint-14 — PUSHED AND LIVE-VERIFIED 2026-08-04** (pre-authorized "push everything
 live once its done"; `2251927..85ba8ff`, 22 commits incl. the chip session's casket
