@@ -167,8 +167,65 @@ for (const file of pages) {
     await page.waitForTimeout(150);
   }
 
+  // ---- compare PRINT sheet fits one page, nothing clipped (s14, ported from PCM) ----
+  // #compareSheet is position:fixed;height:100% and .cmp-table carries overflow:hidden
+  // for its rounded corner, so `scrollHeight - clientHeight === 0` — the s09 Track K
+  // proof — is BLIND here: rows that no longer fit are clipped away and the sheet still
+  // reports no overflow. The assertions that do the work are geometric, on a true
+  // 816x1056 letter viewport: the last row's bottom edge sits inside the table, the
+  // footer's bottom edge inside the page, and a real Chromium PDF has exactly 1 page.
+  let printBad = false;
+  const printInfo = [];
+  if (!compare.skipped) {
+    await page.setViewportSize({ width: 816, height: 1056 });
+    await page.evaluate(() => {
+      window.print = () => {};        // the real button calls window.print()
+      [...document.querySelectorAll('.compare-cb')].slice(0, 4)
+        .forEach(cb => { if (!cb.checked) cb.click(); });
+      document.getElementById('compareOpenBtn').click();
+    });
+    for (const mode of ['specs', 'photos']) {
+      await page.evaluate((mode) => {
+        document.getElementById(mode === 'photos' ? 'compareTabPhotos' : 'compareTabSpecs').click();
+        document.getElementById('comparePrintBtn').click();
+      }, mode);
+      await page.waitForTimeout(250);
+      await page.emulateMedia({ media: 'print' });
+      await page.waitForTimeout(120);
+      const g = await page.evaluate(() => {
+        const s = document.getElementById('compareSheet');
+        const photos = s.classList.contains('cmp-mode-photos');
+        const box = s.querySelector(photos ? '.cmp-photo-row' : '.cmp-table');
+        const cells = [...s.querySelectorAll(photos ? '.cmp-photo-col' : '.cmp-value-cell')];
+        const last = cells[cells.length - 1];
+        const foot = s.querySelector('.cmp-footer');
+        const imgs = s.querySelectorAll(photos
+          ? '.cmp-photo-row .cmp-photo-imgwrap img' : '.cmp-table .cmp-col-img').length;
+        return {
+          mode: photos ? 'photos' : 'specs',
+          printing: document.body.classList.contains('compare-printing'),
+          over: s.scrollHeight - s.clientHeight,
+          imgs,
+          spill: last && box
+            ? Math.round(last.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom)
+            : 999,
+          footSpill: foot ? Math.round(foot.getBoundingClientRect().bottom - s.clientHeight) : 999,
+        };
+      });
+      const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+      const pdfPages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+      await page.emulateMedia({ media: 'screen' });
+      await page.evaluate(() => document.body.classList.remove('compare-printing'));
+      const bad = !g.printing || g.over !== 0 || g.spill > 1 || g.footSpill > 1
+        || g.imgs !== 4 || pdfPages !== 1;
+      if (bad) printBad = true;
+      printInfo.push(`${g.mode}: last row ${-g.spill}px inside table, footer ${-g.footSpill}px inside page, `
+        + `${g.imgs}/4 items, pdf=${pdfPages}p${bad ? ' <-- CLIPPED/BAD' : ''}`);
+    }
+  }
+
   const bad = errors.length || broken.length || dup.length || missingMeta || noPrice || noneVisible !== 0 || allBack !== cards
-    || facetBad || zoomBad || compareBad;
+    || facetBad || zoomBad || compareBad || printBad;
   if (bad) failures++;
 
   console.log(`\n=== ${file} ${bad ? 'FAIL' : 'OK'}`);
@@ -178,6 +235,7 @@ for (const file of pages) {
   console.log(`  search no-match -> ${noneVisible} visible | cleared -> ${allBack}/${cards} | sort asc first ${firstAsc}`);
   console.log(`  facets ${facet.facets} | first opt ${facet.one || '-'} | OR ${facet.or || 'n/a'} | AND ${facet.and || 'n/a'} | cleared ${facet.cleared}/${cards}`);
   console.log(`  enlarge: src match ${zoom.srcMatch}, above modal ${zoom.above}, esc closes lightbox then modal ${escStep.lightboxClosed && escStep.modalStillOpen && modalClosed} | compare: ${compareInfo}`);
+  for (const line of printInfo) console.log(`  compare print sheet, 4 items, ${line}`);
   if (facet.notes.length) console.log('   facet issues:', facet.notes);
   if (broken.length) console.log('   broken:', broken.slice(0, 4));
   if (dup.length) console.log('   dups:', dup.slice(0, 6));

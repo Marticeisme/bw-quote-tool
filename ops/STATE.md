@@ -19,6 +19,29 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 CHIP CLOSED (zen-napier worktree, branch claude/gifted-bhabha-42ea91): the
+casket compare-sheet blind spot is fixed on all six catalogs.** Track D's finding —
+`scrollHeight-clientHeight===0` is BLIND under `.cmp-table overflow:hidden` — is now
+closed: `scripts/verify_catalogs.mjs` and `tests/test-catalog-filter-print.mjs`
+(new section 5, 94→124 asserts) drive the REAL `comparePrintBtn` (window.print
+stubbed; afterprint never fires, tests strip `compare-printing` themselves — the
+casket pages expose no `bwBuildCompareSheet`) with 4 items, both modes, on a true
+816x1056 viewport, and assert last-row-inside-table + footer-inside-page + 4/4
+items + real Chromium PDF = 1 page. Today's headroom: specs last row ends exactly
+1px inside the table on ALL SIX pages (photos 6px) — fits, but any row growth
+would have clipped silently. Sabotage proven both directions on the rule that
+APPLIES (`body.compare-printing #compareSheet .cmp-label-cell`, the ID-carrying
+rule, padding 8px→80px): gate exit 1 + suite 123/1 with the named clip FAIL (last
+row −772px inside table), green on restore — and under the sabotage `over` stayed
+0 AND the PDF stayed 1 page, so BOTH old-style signals were blind; only the
+geometric assert catches it. **RECONCILED NUMBERS: changed tree 2177 passed / 0
+failed across 36 suites; the UNCHANGED tree in the same environment runs 2147, not
+the recorded 2149** — the −2 predates this change, lives in some other suite, and
+cannot be located because no per-suite breakdown of the 2149 run was recorded
+(pcm-catalog 222 and family-register 162 both match the recorded figures). The
+delta from this change is exactly the +30 new asserts. Standing lesson: record
+per-suite numbers alongside contract totals. Not pushed.
+
 **s14 Track D MERGED (director-audited, `c3b8649`); merged main GREEN: 2149 passed,
 0 failed across 36 suites** (director's own run; reconciles 2092 + 57 new
 test-pcm-catalog asserts, 165→222). PCM catalog now has casket-catalog parity:

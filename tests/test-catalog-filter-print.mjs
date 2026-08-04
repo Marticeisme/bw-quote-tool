@@ -24,6 +24,16 @@
 // 4. COMPARE STILL WORKS. Track C's brief says compare is unchanged in behavior; this
 //    re-checks selection, the tray and the 4-item cap on the two lead catalogs.
 //
+// 5. THE COMPARE SHEET FITS ITS ONE PAGE — GEOMETRICALLY (s14, ported from the PCM
+//    catalog's gate). The s09 proof was scrollHeight-clientHeight===0 on #compareSheet,
+//    and s14 Track D showed that check is BLIND on every one of these six pages:
+//    .cmp-table carries overflow:hidden for its rounded corner, so rows that no longer
+//    fit are clipped away while the sheet still reports zero overflow (padding the
+//    label cells to 80px provably loses rows and over stays 0). The assertions that do
+//    the work are geometric, on a true 816x1056 letter viewport: the LAST ROW's bottom
+//    edge sits inside the table, the FOOTER's bottom edge inside the page, every
+//    selected item is on the sheet, and a real Chromium PDF has exactly 1 page.
+//
 // No Firebase of any kind is involved — these are standalone static pages.
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -287,6 +297,57 @@ for (const file of ['metal-caskets.html', 'urns-guide.html']) {
   });
   ok(`${file}: compare view still opens with spec rows`, opened.open && opened.rows > 0, opened);
   ok(`${file}: no page errors during compare`, errs.length === 0, errs);
+  await page.close();
+}
+
+// ----------------------------- 5. compare sheet: one page, nothing clipped, all six
+for (const file of FILES) {
+  const { page, errs } = await open(file);
+  await page.setViewportSize({ width: 816, height: 1056 });
+  await page.evaluate(() => {
+    window.print = () => {};        // the real button calls window.print()
+    [...document.querySelectorAll('.compare-cb')].slice(0, 4)
+      .forEach(cb => { if (!cb.checked) cb.click(); });
+    document.getElementById('compareOpenBtn').click();
+  });
+  for (const mode of ['specs', 'photos']) {
+    await page.evaluate((mode) => {
+      document.getElementById(mode === 'photos' ? 'compareTabPhotos' : 'compareTabSpecs').click();
+      document.getElementById('comparePrintBtn').click();
+    }, mode);
+    await page.waitForTimeout(250);
+    await page.emulateMedia({ media: 'print' });
+    await page.waitForTimeout(120);
+    const g = await page.evaluate(() => {
+      const s = document.getElementById('compareSheet');
+      const photos = s.classList.contains('cmp-mode-photos');
+      const box = s.querySelector(photos ? '.cmp-photo-row' : '.cmp-table');
+      const cells = [...s.querySelectorAll(photos ? '.cmp-photo-col' : '.cmp-value-cell')];
+      const last = cells[cells.length - 1];
+      const foot = s.querySelector('.cmp-footer');
+      return {
+        modeOn: photos ? 'photos' : 'specs',
+        printing: document.body.classList.contains('compare-printing'),
+        over: s.scrollHeight - s.clientHeight,
+        imgs: s.querySelectorAll(photos
+          ? '.cmp-photo-row .cmp-photo-imgwrap img' : '.cmp-table .cmp-col-img').length,
+        spill: last && box
+          ? Math.round(last.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom)
+          : 999,
+        footSpill: foot ? Math.round(foot.getBoundingClientRect().bottom - s.clientHeight) : 999,
+      };
+    });
+    const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+    const pdfPages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+    await page.emulateMedia({ media: 'screen' });
+    await page.evaluate(() => document.body.classList.remove('compare-printing'));
+    ok(`${file}: compare sheet (${mode}, 4 items) — last row ends ${-g.spill}px inside the ` +
+       `table, footer ${-g.footSpill}px inside the page, real PDF is ${pdfPages} page`,
+       g.modeOn === mode && g.printing && g.over === 0 && g.spill <= 1 && g.footSpill <= 1 &&
+       pdfPages === 1, g);
+    ok(`${file}: …all 4 selected items reach the ${mode} sheet`, g.imgs === 4, g.imgs);
+  }
+  ok(`${file}: no page errors during compare print`, errs.length === 0, errs);
   await page.close();
 }
 
