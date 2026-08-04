@@ -4,6 +4,17 @@ Running record of what's built, what it's built from, and the conventions to fol
 **Read this first when picking up catalog or guide work.** Add an entry every time
 something is pushed.
 
+> **VOICE RULES — binding for ALL family-facing guide prose:** see
+> [`GUIDES_VOICE_DEBRIEF_2026-08.md`](GUIDES_VOICE_DEBRIEF_2026-08.md) (Martice's
+> 2026-08 voice review). The short of it: write like Martice talking across a table —
+> contractions, short plain sentences, first person ("I", never "your counselor";
+> title is "Family Service & Advanced Planning Director"), explain WHY not just what.
+> NEVER: em dashes, the word "inventory", "Dear", stacked adjectives, marketing/
+> brochure copy, corporate jargon. Gold-standard tone models: the Medicaid Family,
+> Who Decides, Cremation-or-Burial, Cemetery Property and Veterans guides. GPL and
+> the product catalogs are exempt. The debrief also carries a per-guide punch list
+> (4 full rewrites + global fixes) that is still OPEN WORK as of 2026-08-04.
+
 ---
 
 ## 1. Brand tokens
