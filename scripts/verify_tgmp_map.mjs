@@ -29,6 +29,7 @@ import * as DATA from './tgmp-data.mjs';
 import {
   TGN, TGMP_ITEMS, TIERS, FEES, FEE_SOURCE, ecf, estTotal,
   GEO, PLACEMENT, PLANTER, PLANTERS, INNER_X, INNER_Z, BANK_W,
+  BANK_H, FAR_PLANTER, SCULPTURES, SCULPT, CTX_POST, CTX_POSTS,
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
 import { extractedTgn, MVC_REL } from './extract_tgn_from_mvc.mjs';
@@ -130,18 +131,24 @@ console.log('Data module');
 if (failures) { console.log(`\nRESULT: ${failures} FAILURE(S) — the page cannot be built from this data`); process.exit(1); }
 
 // ── 0b. THE LAYOUT ───────────────────────────────────────────────────────────
-// Rewritten 2026-07-31 (Track T). The objects used to stand in ONE straight line, so a
-// 1-D "does this one start after the last one ends" check was enough. They are now set
-// in the two beds and on the apron, the way the PHASE 2 render arranges them, so the
-// check is a real 2-D footprint test — strictly stronger than the one it replaces, and
-// it must also keep everything inside the kerb and off the walking surface.
-console.log('\nLayout — footprints in plan');
+// Rewritten 2026-07-31 (Track T) from a 1-D check to a 2-D footprint test.
+//
+// REWRITTEN AGAIN 2026-08-04 (sprint-14 Track E) against the walkthrough video
+// `20260803_120633.mp4`, which did not exist when Track T built this scene from the
+// marketing render. The footprint test is kept and extended; what changes is WHAT it
+// asserts, because the video contradicts the render on the shape of the place. Each
+// assertion below names the timestamp that justifies it. The video is in
+// `D:\Cemetery Photos Misc\Terrace Garden Memorial Path\` and is not in this repo — it
+// shows inscribed niche plates with real names.
+console.log('\nLayout — footprints in plan, against the 2026-08-03 walkthrough');
 {
   const rect = (cx, cz, w, d) => ({ x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2 });
   const hits = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1;
   const objs = [
     ...TGMP_ITEMS.map((it) => ({ id: it.id, r: rect(it.x, it.z, it.w, it.d) })),
     ...PLANTERS.map((p, i) => ({ id: `planter-${i + 1}`, r: rect(p.x, p.z, PLANTER.w, PLANTER.d) })),
+    ...CTX_POSTS.map((p, i) => ({ id: `ctx-post-${i + 1}`, r: rect(p.x, p.z, CTX_POST.w, CTX_POST.d) })),
+    { id: 'far planter', r: rect(FAR_PLANTER.x, 0, FAR_PLANTER.w, FAR_PLANTER.d) },
     // The bank is turned a quarter turn, so its 110" face runs along z and its 10"
     // thickness along x.
     { id: 'TGN bank', r: rect(GEO.bankX, GEO.bankZ, GEO.bankT, BANK_W) },
@@ -154,14 +161,14 @@ console.log('\nLayout — footprints in plan');
   for (let i = 0; i < objs.length; i++) {
     for (let j = i + 1; j < objs.length; j++) if (hits(objs[i].r, objs[j].r)) clash.push(`${objs[i].id}/${objs[j].id}`);
   }
-  ck(clash.length === 0, `no two of the ${objs.length} standing objects overlap in plan${clash.length ? ' — ' + clash.join(', ') : ''}`);
+  ck(clash.length === 0, `no two of the ${objs.length} standing objects overlap in plan${clash.length ? ' — ' + clash.slice(0, 6).join(', ') : ''}`);
 
   const out = objs.filter((o) => o.r.x0 < -INNER_X || o.r.x1 > INNER_X || o.r.z0 < -INNER_Z || o.r.z1 > INNER_Z);
-  ck(out.length === 0, `everything stands inside the kerb (${-INNER_X}..${INNER_X} by ${-INNER_Z}..${INNER_Z} in)` +
+  ck(out.length === 0, `everything stands inside the retaining kerb (${-INNER_X}..${INNER_X} by ${-INNER_Z}..${INNER_Z} in)` +
     (out.length ? ' — outside: ' + out.map((o) => o.id).join(', ') : ''));
 
-  // Nothing may stand in the walking surface. The apron at the far end is open paving
-  // and objects DO stand on it, so the test is the walk and the turn-around only.
+  // Nothing may stand in the walking surface. The landing at the bank end is open
+  // paving and objects do stand beside it, so the test is the walk and the turn-around.
   const walk = { x0: GEO.apronX1, x1: GEO.headX, z0: -GEO.pathW / 2, z1: GEO.pathW / 2 };
   const inWalk = objs.filter((o) => hits(o.r, walk));
   ck(inWalk.length === 0, `nothing stands in the ${GEO.pathW}" walk${inWalk.length ? ' — ' + inWalk.map((o) => o.id).join(', ') : ''}`);
@@ -172,11 +179,68 @@ console.log('\nLayout — footprints in plan');
   });
   ck(nearHead.length === 0, `nothing stands on the ${GEO.headR * 2}" turn-around${nearHead.length ? ' — ' + nearHead.map((o) => o.id).join(', ') : ''}`);
 
-  // Each property is in a bed or on the apron — the two places the render puts them.
-  const stray = TGMP_ITEMS.filter((it) => !(it.x <= GEO.apronX1 || Math.abs(it.z) > GEO.pathW / 2));
-  ck(stray.length === 0, `every property is in a bed or on the far apron${stray.length ? ' — ' + stray.map((i) => i.id).join(', ') : ''}`);
-  ck(PLANTERS.length === 8 && PLANTERS.filter((p) => p.z > 0).length === 4,
-    `${PLANTERS.length} planters, four to a kerb, as the render draws them`);
+  // 07:32 / 07:36 — the turn-around is a lobed flagstone panel set INTO the walk about
+  // three quarters along, roughly the walk's own width, with a bench and the far
+  // planter beyond it. The render had it as a 136" circle closing the near end.
+  ck(GEO.headR * 2 > GEO.pathW && GEO.headR * 2 < GEO.pathW * 1.5,
+    `the turn-around is walk-sized: ${GEO.headR * 2}" across a ${GEO.pathW}" walk (07:32)`);
+  ck(GEO.headX < INNER_X - 100 && GEO.headX > 0,
+    `and sits MID-path at x=${GEO.headX}, not against the far kerb at ${INNER_X} (07:32, 07:36)`);
+  ck(FAR_PLANTER.x - FAR_PLANTER.w / 2 > GEO.headX + GEO.headR,
+    'the far sculpture planter stands beyond the turn-around (07:32)');
+
+  // 07:32 / 07:36 — the properties LINE the walk in two rows, one down each bed's inner
+  // edge, and exactly one of them stands on the centre line: the 48" bench facing back
+  // down the path from in front of the far planter.
+  const onAxis = TGMP_ITEMS.filter((it) => Math.abs(it.z) < GEO.pathW / 2);
+  ck(onAxis.length === 1 && onAxis[0].id === 'TGMP-2',
+    `exactly one property stands on the centre line, the 48" bench facing the bank (07:32) — got ${onAxis.map((i) => i.id).join(', ') || 'none'}`);
+  const inRows = TGMP_ITEMS.filter((it) => it.id !== 'TGMP-2');
+  ck(inRows.every((it) => Math.abs(it.z) === GEO.bedZ),
+    `the other ${inRows.length} stand in the two bed rows at z = ±${GEO.bedZ}" (07:32, 07:36)` +
+    (inRows.every((it) => Math.abs(it.z) === GEO.bedZ) ? '' : ' — off-row: ' + inRows.filter((it) => Math.abs(it.z) !== GEO.bedZ).map((i) => i.id).join(', ')));
+  ck(inRows.filter((it) => it.z < 0).length === 4 && inRows.filter((it) => it.z > 0).length === 4,
+    'four to a row, as the walkthrough shows them alternating across the walk');
+  // 07:32 and 07:36 both frame the columbarium and the dove birdbath square on, facing
+  // each other across the walk just short of the turn-around.
+  const col = TGMP_ITEMS.find((i) => i.id === 'TGMP-3'), bath = TGMP_ITEMS.find((i) => i.id === 'TGMP-4');
+  ck(col.x === bath.x && col.z === -bath.z,
+    `TGMP-3 and TGMP-4 stand opposite each other across the walk at x=${col.x} (07:32, 07:36)`);
+  ck(col.x < GEO.headX && col.x > GEO.headX - 120,
+    'and just short of the turn-around, the way the walkthrough frames them');
+  ck(bath.dove === true, 'the birdbath carries the carved dove the video shows on its rim (06:12)');
+
+  // 06:56 / 07:00 — four large urn planters mark the two ends of the axis: two flanking
+  // the bank steps, two at the front corners of the far planter. The render's eight
+  // small planters strung along the kerbs are not there.
+  ck(PLANTERS.length === 4, `${PLANTERS.length} urn planters (06:56, 07:32) — the render's eight kerb planters are gone`);
+  ck(PLANTERS.filter((p) => p.x < 0).length === 2 && PLANTERS.filter((p) => p.x > 0).length === 2 &&
+     PLANTERS.filter((p) => p.z > 0).length === 2,
+  'two flanking the bank steps and two at the far planter, one either side of the axis');
+  ck(PLANTERS.filter((p) => p.x < 0).every((p) => p.x > GEO.apronX0 && p.x < GEO.apronX1),
+    'the bank-end pair stands on the paved landing at the foot of the steps (07:00)');
+
+  // 04:36 / 06:56 / 07:00 — the bank stands on a plinth three risers above the walk.
+  ck(GEO.podiumH > 0 && GEO.steps * GEO.stepRise === GEO.podiumH,
+    `the bank podium is ${GEO.podiumH}" = ${GEO.steps} risers x ${GEO.stepRise}" (04:36, 07:00)`);
+  ck(GEO.podiumW >= BANK_W && GEO.podiumD >= BANK_W,
+    'and is wider and deeper than the wall it carries');
+
+  // 05:20 / 05:36 / 07:32 — the court is ENCLOSED by the two mausoleum wings.
+  ck(GEO.wallH > BANK_H, `the crypt walls enclosing the court stand ${GEO.wallH}" — over the ${BANK_H}" bank (05:20, 07:32)`);
+  ck(GEO.apronSideD > 0, `and a ${GEO.apronSideD}" raised apron runs between each kerb and its wall (05:20, 07:32)`);
+
+  // 07:32 — three wave sculptures, HONOR / CELEBRATE / REMEMBER, in the far planter.
+  ck(SCULPTURES.length === 3 && SCULPTURES.map((s) => s.label).join('|') === 'HONOR|CELEBRATE|REMEMBER',
+    `the far planter carries ${SCULPTURES.length} sculptures labelled ${SCULPTURES.map((s) => s.label).join(' / ')} (07:32)`);
+  ck(SCULPTURES.every((s) => Math.abs(s.z) + SCULPT.w / 2 <= FAR_PLANTER.d / 2),
+    'and all three stand inside the planter they are set in');
+
+  // The installed memorials lining the beds are context and must never be inventory.
+  ck(CTX_POSTS.length > TGMP_ITEMS.length,
+    `${CTX_POSTS.length} already-set memorials line the beds — more than the sheet's ${TGMP_ITEMS.length} items, as the video shows (05:20, 06:16, 07:32)`);
+  ck(CTX_POSTS.every((p) => Math.abs(p.z) === GEO.bedZ),
+    'and every one of them stands in a bed row, never on the walk');
 }
 if (failures) { console.log(`\nRESULT: ${failures} FAILURE(S) — the page cannot be built from this data`); process.exit(1); }
 
@@ -464,7 +528,7 @@ console.log('\nFee schedule — the MVC June-2026 amounts, applied by operator r
 // ── 9. Sourcing honesty ──────────────────────────────────────────────────────
 console.log('Sourcing honesty');
 {
-  ck(/layout estimated from photographs/i.test(src), 'the header says the layout is estimated from photographs');
+  ck(/layout from a walkthrough, proportions estimated from photographs/i.test(src), "the header says the layout comes from a walkthrough and the proportions are estimated");
   ck(/placement along the path is approximate/i.test(src), 'the page says object placement is approximate');
   ck(/not priced here/.test(src) && /Terrace Garden Ossuary/.test(src),
     'the ossuary is named and explicitly not priced here');
@@ -472,8 +536,16 @@ console.log('Sourcing honesty');
     'the page separates what is sourced (the layout) from what is estimated (every number)');
   ck(/the built garden is bark mulch/.test(src),
     'and says the beds are bark, not the turf the marketing render draws');
-  ck(/niche bank&rsquo;s position across the far end is estimated/.test(src),
-    "and flags the niche bank's position as estimated rather than shown in place");
+  // Repointed 2026-08-04. The bank's position WAS the weakest estimate on this page —
+  // the render floated it over the garden as a callout. The walkthrough shows it in
+  // place at the head of the court, and its 8x5 grid is countable off the corner
+  // rosettes on the face (05:40, 06:56, 07:00), so the page must no longer call it an
+  // estimate. Keeping the old sentence would now be the dishonest option.
+  ck(/niche bank&rsquo;s position and its eight-by-five grid are confirmed by the walkthrough/.test(src),
+    "and states the niche bank's position and grid are footage-confirmed, not estimated");
+  ck(!/bank&rsquo;s position across the far end is estimated/.test(src),
+    'and no longer carries the superseded "position is estimated" sentence');
+  ck(/filmed on 3 August 2026/.test(src), 'the page dates the walkthrough its layout comes from');
   const ossPriced = [...from3d, ...fromObjs, ...rowFull].some((c) => /ossuary/i.test(c.html));
   ck(!ossPriced, 'the ossuary is not rendered as a sellable property');
   const noDims = TGMP_ITEMS.filter((it) => !it.dims);
@@ -597,10 +669,29 @@ console.log('\nNo pool — the path replaced it');
   const ctxTags = [...src.matchAll(/<(?:div|button)[^>]*class="ctx[^"]*"[^>]*>/g)].map((m) => m[0]);
   const armed = ctxTags.filter((t) => /data-ref=|data-price=|<button/.test(t));
   ck(ctxTags.length > 0 && armed.length === 0,
-    `all ${ctxTags.length} context faces (kerb + planters) are inert divs with no reference and no price${armed.length ? ' — armed: ' + armed.length : ''}`);
-  const KERB_FACES = 4 * 5, PLANTER_FACES = PLANTERS.length * 5;
-  ck(ctxTags.length === KERB_FACES + PLANTER_FACES,
-    `${KERB_FACES} kerb faces + ${PLANTER_FACES} planter faces = ${KERB_FACES + PLANTER_FACES} context faces (got ${ctxTags.length})`);
+    `all ${ctxTags.length} context faces are inert divs with no reference and no price${armed.length ? ' — armed: ' + armed.length : ''}`);
+  // Widened 2026-08-04: the video added the enclosing crypt walls, the bank podium and
+  // its risers, the far sculpture planter and the memorials already set in the beds.
+  // Every one of them is scenery. If any ever gained a data-ref it would become
+  // inventory the pricing sheet never priced — which is what the assert above catches
+  // and what this exact count keeps honest.
+  const KERB_FACES = 4 * 5;
+  const PLANTER_FACES = PLANTERS.length * 5;
+  // Two long walls of WALL_BAYS bays each, plus the back wall and the far low wall.
+  // The bays are not decoration: one un-segmented 892" face crosses the eye plane at
+  // both walk stops and CSS 3D, having no near clipping, then draws nothing at all.
+  const WALL_BAYS = 8;
+  const WALL_FACES = (2 * WALL_BAYS + 2) * 5;
+  // The plinth plus its intermediate treads. Three risers from the walk to the plinth
+  // means TWO masses between them — the third "step" is the walk itself, height 0, and
+  // the builder drops it rather than emitting a flat plate at ground level.
+  const PODIUM_FACES = (1 + (GEO.steps - 1)) * 5;
+  const FAR_FACES = 5 + SCULPTURES.length * 5;          // planter kerb + three sculptures
+  const PLAQUE_FACES = SCULPTURES.length;               // one flat plaque each
+  const CPOST_FACES = CTX_POSTS.length * 5;
+  const WANT = KERB_FACES + PLANTER_FACES + WALL_FACES + PODIUM_FACES + FAR_FACES + PLAQUE_FACES + CPOST_FACES;
+  ck(ctxTags.length === WANT,
+    `${KERB_FACES} kerb + ${PLANTER_FACES} planter + ${WALL_FACES} crypt-wall + ${PODIUM_FACES} podium/step + ${FAR_FACES} far-planter + ${PLAQUE_FACES} plaque + ${CPOST_FACES} set-memorial = ${WANT} context faces (got ${ctxTags.length})`);
 }
 
 

@@ -26,6 +26,7 @@ import { fileURLToPath } from 'node:url';
 import {
   TGN, TGMP_ITEMS, GEO, TIERS, STATUS_LABEL, FEES, FEE_SOURCE,
   BANK_FIELD_W, BANK_FIELD_H, BANK_W, BANK_H, INNER_Z, PLANTER, PLANTERS,
+  FAR_PLANTER, SCULPTURES, SCULPT, CTX_POST, CTX_POSTS,
   tgnNiches, tgnRef, sellable, allProperties,
 } from './tgmp-data.mjs';
 import { movementRuntime } from './map-movement.mjs';
@@ -49,20 +50,24 @@ const tier = (p) => {
 // Stage y = 0 is the GROUND plane and up is negative, matching the CSS-3D convention
 // used by the other map pages. `.yard` is lifted by SCENE_H/2, so a child's local y is
 // its stage y plus that offset.
-const SCENE_H = BANK_H;                 // tallest structure on the terrace
+const SCENE_H = Math.max(GEO.wallH, GEO.podiumH + BANK_H);   // tallest thing in the court
 const Y = (yStage) => yStage + SCENE_H / 2;
 
-/** Four sides + a top for a rectangular mass standing on the ground. */
-function mass(cx, cz, w, d, h, cls, { btn = null, label = '', topCls = '' } = {}) {
+/**
+ * Four sides + a top for a rectangular mass standing on the ground. `y0` lifts the mass
+ * off the ground plane (a mass standing on the bank podium, or on a raised side apron);
+ * it is a stage-y OFFSET in inches, negative being up, and defaults to standing on 0.
+ */
+function mass(cx, cz, w, d, h, cls, { btn = null, label = '', topCls = '', y0 = 0 } = {}) {
   const p = [];
   const tag = btn ? 'button' : 'div';
   const attrs = btn ? ` type="button" ${btn}` : '';
   const face = (wIn, hIn, x, y, z, ry, extra, body) => `      <${tag} class="${cls}${extra}"${attrs} style="width:${px(wIn)}px;height:${px(hIn)}px;transform:translate(-50%,-50%) translate3d(${px(x)}px,${px(y)}px,${px(z)}px) rotateY(${ry}deg)">${body}</${tag}>`;
-  p.push(face(w, h, cx, Y(-h / 2), cz + d / 2, 0, ' m-front', label));
-  p.push(face(w, h, cx, Y(-h / 2), cz - d / 2, 180, ' m-back', ''));
-  p.push(face(d, h, cx + w / 2, Y(-h / 2), cz, 90, ' m-side', ''));
-  p.push(face(d, h, cx - w / 2, Y(-h / 2), cz, -90, ' m-side', ''));
-  p.push(`      <${tag} class="${cls} m-top ${topCls}"${attrs} style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(-h))}px,${px(cz)}px) rotateX(90deg)"></${tag}>`);
+  p.push(face(w, h, cx, Y(y0 - h / 2), cz + d / 2, 0, ' m-front', label));
+  p.push(face(w, h, cx, Y(y0 - h / 2), cz - d / 2, 180, ' m-back', ''));
+  p.push(face(d, h, cx + w / 2, Y(y0 - h / 2), cz, 90, ' m-side', ''));
+  p.push(face(d, h, cx - w / 2, Y(y0 - h / 2), cz, -90, ' m-side', ''));
+  p.push(`      <${tag} class="${cls} m-top ${topCls}"${attrs} style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(y0 - h))}px,${px(cz)}px) rotateX(90deg)"></${tag}>`);
   return p.join('\n');
 }
 
@@ -79,6 +84,16 @@ function mass(cx, cz, w, d, h, cls, { btn = null, label = '', topCls = '' } = {}
 // quarter of the plan it lands on. That sign is the one thing here easy to get wrong.
 function slab(cx, cz, w, d, yStage, cls, body = '') {
   return `      <div class="${cls}" data-fx="${px(cx)}" data-fz="${px(cz)}" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(yStage))}px,${px(cz)}px) rotateX(90deg)">${body}</div>`;
+}
+
+/**
+ * A ground plate that is NOT a walk-to target: the raised side aprons sit a kerb height
+ * above the walk, and floorPoint solves for a point on the y = 0 plane, so a click on a
+ * lifted plate would resolve to the wrong place. They are scenery; the five plates on
+ * the ground plane stay the click targets.
+ */
+function riser(cx, cz, w, d, yStage, cls) {
+  return `      <div class="${cls}" style="width:${px(w)}px;height:${px(d)}px;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(yStage))}px,${px(cz)}px) rotateX(90deg)"></div>`;
 }
 
 /** The same, round: the flagstone-and-cobble turn-around at the end of the walk. */
@@ -105,7 +120,9 @@ function nicheAria(n) {
  * rotation on.
  */
 function bankGroup(inner) {
-  return `      <div class="bankgrp" style="transform:translate3d(${px(GEO.bankX)}px,0px,${px(GEO.bankZ)}px) rotateY(${GEO.bankRotY}deg)">
+  // Lifted onto the podium: the video shows the wall standing on a plinth three risers
+  // above the walk, not at walk level (4:36, 6:56, 7:00).
+  return `      <div class="bankgrp" style="transform:translate3d(${px(GEO.bankX)}px,${px(-GEO.podiumH)}px,${px(GEO.bankZ)}px) rotateY(${GEO.bankRotY}deg)">
 ${inner}
       </div>`;
 }
@@ -129,6 +146,7 @@ function bank3d() {
   }).join('\n');
 
   p.push(`      <div class="bankface" style="width:${px(BANK_W)}px;height:${px(BANK_H)}px;padding:${px(GEO.bankFrame)}px;grid-template-columns:repeat(${TGN.cols},1fr);grid-template-rows:repeat(${TGN.rows.length},${GEO.nicheH}fr) ${GEO.bankBase}fr;transform:translate(-50%,-50%) translate3d(${px(cx)}px,${px(Y(-BANK_H / 2))}px,${px(cz + t / 2)}px)">
+        <div class="bankfield"></div>
 ${cells}
         <div class="bankband" style="grid-row:${TGN.rows.length + 1};grid-column:1/-1"><b>TERRACE GARDEN NICHES</b></div>
       </div>`);
@@ -189,6 +207,10 @@ function bowl(it, z, attrs, label) {
     p.push(`      <button type="button" class="o3 obj bowl" ${attrs} style="width:${px(it.d)}px;height:${px(6)}px;transform:translate(-50%,-50%) translate3d(${px(it.x + sx * it.w / 2)}px,${px(Y(y0 - 3))}px,${px(z)}px) rotateY(${sx * 90}deg)"></button>`);
   }
   p.push(`      <button type="button" class="o3 obj bowltop" ${attrs} style="width:${px(it.w)}px;height:${px(it.d)}px;transform:translate(-50%,-50%) translate3d(${px(it.x)}px,${px(Y(y0 - 6))}px,${px(z)}px) rotateX(90deg)"></button>`);
+  // The carved dove on the bowl's rim — clear at 6:12 and again at 7:32 / 7:36.
+  if (it.dove) {
+    p.push(mass(it.x + it.w * 0.28, z, 7, 5, 7, 'o3 obj dove', { btn: attrs, y0: y0 - 6 }));
+  }
   return p.join('\n');
 }
 
@@ -222,21 +244,93 @@ function planters3d() {
     .join('\n');
 }
 
+/**
+ * The mausoleum walls that ENCLOSE the court. Added 2026-08-04 from the walkthrough
+ * video: the path is not an open strip, it runs down a sunken court between two
+ * mausoleum wings whose garden-crypt walls face into it on both long sides (5:20, 5:36,
+ * 5:40, 7:32, 7:36), with a stucco back wall closing the head behind the niche bank
+ * (6:56, 7:00). Nothing here is inventory — these are OTHER people's crypts, and this
+ * page prices neither them nor the niches in them.
+ */
+const WALL_BAYS = 8;   // bays per long wall; see the near-clipping note inside
+function walls3d() {
+  const { terraceD: td, terraceW: tw, wallH: h, wallT: t, apronSideD: ad } = GEO;
+  const zc = td / 2 + ad + t / 2;
+  const len = tw + 2 * ad;
+  // The long walls are SEGMENTED. A single 892" face is longer than the court, so a
+  // camera standing on the walk sits in the middle of it — and CSS 3D has no near
+  // clipping, so the face crosses the eye plane and the browser renders the crossing
+  // quad as nothing at all. That is the same scar the bank preset hit in sprint-09; one
+  // whole side wall vanished from both walk stops until the wall was cut into bays.
+  const p = [];
+  for (const sz of [1, -1]) {
+    for (let i = 0; i < WALL_BAYS; i++) {
+      const bw = len / WALL_BAYS;
+      p.push(mass(-len / 2 + bw * (i + 0.5), sz * zc, bw, t, h, 'ctx wall crypt'));
+    }
+  }
+  // The back wall behind the bank, and the low wall closing the far end under the fence.
+  p.push(mass(-(tw / 2 + ad + t / 2), 0, t, td + 2 * ad + 2 * t, h, 'ctx wall'));
+  p.push(mass(tw / 2 + ad + t / 2, 0, t, td + 2 * ad + 2 * t, GEO.kerbH * 3, 'ctx wall'));
+  return p.join('\n');
+}
+
+/**
+ * The bank's podium and its three risers (4:36, 6:56, 7:00). The wall stands on the
+ * plinth; the steps land on the paved apron at the foot.
+ */
+function podium3d() {
+  const { bankX, podiumH, podiumW, podiumD, stepRise, stepRun, stepW, steps } = GEO;
+  const p = [mass(bankX + podiumW / 2 - BANK_W / 2 - GEO.bankT, 0, podiumW, podiumD, podiumH, 'ctx podium')];
+  // Risers, tallest first, marching out from the podium face toward the apron.
+  const face = bankX + podiumW - BANK_W / 2 - GEO.bankT;
+  for (let i = 0; i < steps; i++) {
+    const h = podiumH - (i + 1) * stepRise;
+    if (h <= 0) continue;
+    p.push(mass(face + stepRun / 2 + i * stepRun, 0, stepRun, stepW, h, 'ctx podium'));
+  }
+  return p.join('\n');
+}
+
+/**
+ * The far end: a raised planting bed carrying three granite wave sculptures with HONOR,
+ * CELEBRATE and REMEMBER plaques (7:32; also 4:20 and 5:28 from the side). Context —
+ * the garden's own wording, priced nowhere.
+ */
+function farPlanter3d() {
+  const p = [mass(FAR_PLANTER.x, 0, FAR_PLANTER.w, FAR_PLANTER.d, FAR_PLANTER.kerbH, 'ctx kerb')];
+  for (const s of SCULPTURES) {
+    p.push(mass(FAR_PLANTER.x, s.z, SCULPT.d, SCULPT.w, SCULPT.h, 'ctx sculpt', { y0: -FAR_PLANTER.kerbH }));
+    p.push(`      <div class="ctx plaque" style="width:${px(SCULPT.plaqueW)}px;height:${px(SCULPT.plaqueH)}px;transform:translate(-50%,-50%) translate3d(${px(FAR_PLANTER.x - FAR_PLANTER.w / 2 - 0.5)}px,${px(Y(-FAR_PLANTER.kerbH - SCULPT.plaqueH / 2))}px,${px(s.z)}px) rotateY(-90deg)"><span class="ctxname">${s.label}</span></div>`);
+  }
+  return p.join('\n');
+}
+
+/** The installed family memorials lining both beds — context, never inventory. */
+function ctxPosts3d() {
+  return CTX_POSTS
+    .map((p) => mass(p.x, p.z, CTX_POST.w, CTX_POST.d, CTX_POST.h, 'ctx cpost'))
+    .join('\n');
+}
+
 function ground3d() {
-  const { terraceW: tw, terraceD: td, apronX0: a0, apronX1: a1, pathW: pw, headX, headR } = GEO;
+  const { terraceW: tw, terraceD: td, apronX0: a0, apronX1: a1, pathW: pw, headX, headR, apronSideD: ad } = GEO;
   return [
-    // The mausoleum's own concrete, all around the strip.
+    // The mausoleum's own concrete, all around the court.
     slab(0, 0, tw + 340, td + 320, 1.5, 'ground'),
-    // The strip itself: bark mulch, wall to wall, with the paving laid on top of it.
+    // The court itself: bark mulch, wall to wall, with the paving laid on top of it.
     slab(0, 0, tw, td, 0.9, 'bed'),
-    // The open paved apron at the far end, where the bank, the 36" bench, the
-    // columbarium and the birdbath stand.
+    // The paved landing at the foot of the bank steps (6:56, 7:00).
     slab((a0 + a1) / 2, 0, a1 - a0, INNER_Z * 2, 0.5, 'paving'),
-    // The walk, from the apron to the middle of the turn-around.
-    slab((a1 + headX) / 2, GEO.pathZ, headX - a1, pw, 0.4, 'walk',
+    // The walk, from the landing through the turn-around to the far planter.
+    slab((a1 + FAR_PLANTER.x) / 2, GEO.pathZ, FAR_PLANTER.x - a1, pw, 0.4, 'walk',
       '<span class="ctxlab tl-path">MEMORIAL PATH</span>'),
-    // The turn-around: flagstone with cobble between, per the 2026-06-01 photograph.
+    // The turn-around: a lobed flagstone-and-river-cobble panel set INTO the walk about
+    // three quarters along, roughly the walk's own width (7:32, 7:36).
     disc(headX, GEO.pathZ, headR * 2, 0.3, 'headslab'),
+    // The raised side aprons beyond each kerb, at kerb height (5:20, 7:32).
+    riser(0, td / 2 + ad / 2, tw + 2 * ad, ad, -GEO.kerbH, 'paving'),
+    riser(0, -(td / 2 + ad / 2), tw + 2 * ad, ad, -GEO.kerbH, 'paving'),
   ].join('\n');
 }
 
@@ -245,7 +339,11 @@ function scene3d() {
   <div class="stage" id="stage">
     <div class="yard" style="transform:translateY(${px(-SCENE_H / 2)}px)">
 ${ground3d()}
+${walls3d()}
 ${kerb3d()}
+${podium3d()}
+${farPlanter3d()}
+${ctxPosts3d()}
 ${planters3d()}
 ${bank3d()}
 ${TGMP_ITEMS.map(item3d).join('\n')}
@@ -483,20 +581,47 @@ ${TIER_CSS}
   /* The cream stucco kerb wall around the strip. */
   .ctx.kerb{background:linear-gradient(180deg,#ddd6c6,#b6afa0);border-color:#9b9486;}
   .ctx.kerb.m-top{background:linear-gradient(135deg,#e8e1d1,#c2bbac);}
-  /* Cast planters along both kerbs — dark, matte, and round-mouthed. */
+  /* Four large cast urn planters marking the two ends of the axis (6:56, 7:32). */
   .ctx.planter{background:linear-gradient(180deg,#5c5b57,#3b3a37);border-color:#2e2d2b;}
   .ctx.planter.m-top{background:radial-gradient(circle at 50% 50%,#14140f 0 34%,#4c4b46 34% 100%);}
+  /* The mausoleum wings enclosing the court. The long walls are garden CRYPT fronts —
+     other people's, priced nowhere on this page — so they are drawn as a coursed grid
+     rather than blank stucco, and stay matte context like everything else in .ctx. */
+  .ctx.wall{background:linear-gradient(180deg,#cfc8b8,#a9a294);border-color:#8f887b;}
+  .ctx.wall.m-top{background:linear-gradient(135deg,#ded7c6,#b4ad9e);}
+  .ctx.wall.crypt.m-front,.ctx.wall.crypt.m-back{background:
+      repeating-linear-gradient(90deg,rgba(120,112,98,.5) 0 1px,rgba(0,0,0,0) 1px 150px),
+      repeating-linear-gradient(0deg,rgba(120,112,98,.5) 0 1px,rgba(0,0,0,0) 1px 120px),
+      linear-gradient(180deg,#cfc8b8,#a9a294);}
+  /* The bank's plinth and its three risers (4:36, 7:00) — the same concrete as the walk. */
+  .ctx.podium{background:linear-gradient(180deg,#d3ccbc,#aaa395);border-color:#928b7e;}
+  .ctx.podium.m-top{background:linear-gradient(135deg,#e0d9c8,#b8b1a2);}
+  /* The three granite wave sculptures in the far planter, and their plaques (7:32). */
+  .ctx.sculpt{background:linear-gradient(180deg,#a99fa8,#736b76);border-color:#5b545f;}
+  .ctx.sculpt.m-top{background:linear-gradient(135deg,#b5abb4,#7d7580);}
+  .ctx.plaque{position:absolute;left:0;top:0;background:linear-gradient(160deg,#26242a,#111014);
+    border:1px solid #43404a;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;}
+  /* Installed family memorials lining both beds — context, never inventory. */
+  .ctx.cpost{background:linear-gradient(180deg,#6b6570,#454049);border-color:#332f37;}
+  .ctx.cpost.m-top{background:linear-gradient(135deg,#191820,#3a3742);}
   .olabel{position:absolute;left:0;top:0;color:rgba(240,232,212,.9);font-size:10px;letter-spacing:.1em;white-space:nowrap;
     transform-style:preserve-3d;text-shadow:0 1px 3px rgba(0,0,0,.85);}
   .ctxname{color:rgba(226,220,205,.78);font-size:9.5px;letter-spacing:.16em;}
 
   /* Granite: the Paradiso family — a mauve/grey marbled stone with black shutters. */
   .bankgrp{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;}
+  /* CORRECTED 2026-08-04 from the video. The wall is BLACK polished granite — at 7:00
+     through 7:20 it mirrors the court and the person filming — set in a light mottled
+     granite surround with a cap band over it (5:40, 6:56). It used to be drawn in the
+     same mauve Paradiso as the properties, which is the surround's colour, not the
+     wall's. */
   .bankbody{position:absolute;left:0;top:0;background:linear-gradient(180deg,#8e8290,#5f5763);border:1px solid #4a4450;backface-visibility:hidden;}
   .bankcap{position:absolute;left:0;top:0;background:linear-gradient(135deg,#9c8f9e,#6a6270);border:1px solid #4a4450;}
   .bankface{position:absolute;left:0;top:0;display:grid;gap:2.5px;
     background:linear-gradient(160deg,#9b8d9d 0%,#7a7180 45%,#5d5666 100%);
     border:1px solid #4a4450;backface-visibility:hidden;box-shadow:0 0 26px rgba(0,0,0,.5);}
+  /* The black field the niches sit in, inside the light surround. */
+  .bankfield{grid-area:1/1/-1/-1;background:linear-gradient(160deg,#2b2832 0%,#17151e 45%,#0b0a10 100%);}
   .bankband{background:linear-gradient(180deg,#4a4350,#2b2731);display:flex;align-items:center;justify-content:center;
     color:var(--gold-light);font-size:7.5px;letter-spacing:.14em;white-space:nowrap;overflow:hidden;font-weight:600;}
   .bankband b{color:var(--gold);font-weight:600;}
@@ -1143,9 +1268,14 @@ const VIEWS = {
     GEO.terraceW * Math.cos(30 * Math.PI / 180) + GEO.terraceD * Math.sin(30 * Math.PI / 180),
     GEO.terraceD * Math.sin(22 * Math.PI / 180) + BANK_H * Math.cos(22 * Math.PI / 180) + 60),
   // The niche bank, face on. Its face now points down +x, so the camera turns with it.
-  bank: V(-90, -3, [GEO.bankX + GEO.bankT / 2, -BANK_H / 2, GEO.bankZ], BANK_W + 20, BANK_H + 20, { fit: '.bankface' }),
-  // Along the row of additional properties.
-  props: V(0, -10, [PROPS_CX, -PROPS_H / 2, GEO.pathZ], PROPS_W, PROPS_H + 40),
+  // The wall now stands a podium height above the walk, so the target rises with it —
+  // aiming at the old y framed the plinth and cut the top row off.
+  bank: V(-90, -3, [GEO.bankX + GEO.bankT / 2, -(GEO.podiumH + BANK_H / 2), GEO.bankZ], BANK_W + 20, BANK_H + 20, { fit: '.bankface' }),
+  // Along the rows of additional properties. Turned and lifted 2026-08-04: at yaw 0 and
+  // pitch -10 the eye now sits BEHIND the crypt wall that encloses the court, and the
+  // wall filled the frame. Looking down the long axis from above the low far-end wall
+  // shows both rows at once, which is also how the walkthrough frames them (07:32).
+  props: V(-75, -26, [PROPS_CX, -PROPS_H / 2, GEO.pathZ], PROPS_W, PROPS_H + 40),
   // Down on the terrace. -80 rather than -88: at 2 degrees off vertical the seven-foot
   // niche bank leans right out over the kerb and reads as if it stood outside the
   // garden, which is a projection artefact and not where it is.
@@ -1186,7 +1316,7 @@ const HTML = `<!DOCTYPE html>
   ${LOGO}
   <div class="htxt">
     <h1>Terrace Garden Memorial Path — Property Map</h1>
-    <p>Washington Memorial Park &nbsp;·&nbsp; niche bank &amp; cremation properties &nbsp;·&nbsp; layout estimated from photographs</p>
+    <p>Washington Memorial Park &nbsp;·&nbsp; niche bank &amp; cremation properties &nbsp;·&nbsp; layout from a walkthrough, proportions estimated from photographs</p>
   </div>
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <a class="path-btn no-print" href="TG_Mausoleum_Map.html">Mausoleum map &rarr;</a>
@@ -1218,7 +1348,7 @@ const HTML = `<!DOCTYPE html>
     </div>
 ${scene3d()}
     <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap the niche bank or any property to select it &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
-    <div class="modelnote">${TGN.cols * TGN.rows.length} niches in the bank plus ${TGMP_ITEMS.length} additional cremation properties, ${N_AVAIL} of ${N_TOTAL} available &nbsp;·&nbsp; the kerb wall and the planters are context and are not priced here &nbsp;·&nbsp; <b>object placement along the path is approximate</b> and the terrace proportions are estimated from photographs</div>
+    <div class="modelnote">${TGN.cols * TGN.rows.length} niches in the bank plus ${TGMP_ITEMS.length} additional cremation properties, ${N_AVAIL} of ${N_TOTAL} available &nbsp;·&nbsp; the surrounding crypt walls, the kerb, the steps, the planters, the far sculptures and the memorials already set in the beds are context and are not priced here &nbsp;·&nbsp; <b>object placement along the path is approximate</b> and the court&rsquo;s proportions are estimated from photographs</div>
     <div class="legend">${legendHtml(TIERS.map((t) => t.p))}</div>
     ${STATUS_LEG}
   </div>
@@ -1250,7 +1380,7 @@ ${overviewView()}
     Additional properties are numbered TGMP-1 … TGMP-${TGMP_ITEMS.length} in the order the pricing sheet prints them; their dimensions are the sheet's own catalog dimensions.<br>
     ${money(AVAIL_TOTAL)} available at list across ${N_AVAIL} properties, ${RIGHTS_TOTAL} rights of interment — sales prices only, E.C.F. and fees are additional. Availability shown is maintained by hand — always confirm today’s availability with the cemetery office before writing.<br>
     <b>There is no reflection pool.</b> The path replaced it, and the ossuary block beside it, in full; both were drawn on the older &ldquo;what was replaced&rdquo; layout sketch and appear in neither the PHASE 2 render nor any 2026 site photograph. Terrace Garden Ossuary scattering is priced on the separate Scattering Garden sheet and is not priced here.<br>
-    Layout — the walk, its round turn-around, the paved apron, the beds either side and which object stands where — is read off the official PHASE 2 overhead render and the June/July 2026 photographs. Every <i>number</i> is an estimate: there is no site plan. The render draws the beds as turf; the built garden is bark mulch, and the model follows the photographs. <b>The niche bank&rsquo;s position across the far end is estimated</b> — the render floats it over the garden as a callout rather than showing it in place.
+    Layout — the walk, its flagstone turn-around, the paved landing, the beds either side, the crypt walls that enclose the court and which object stands where — is read off a walkthrough filmed on 3 August 2026, which supersedes the marketing render used before it. Every <i>number</i> is an estimate: there is no site plan. The render draws the beds as turf; the built garden is bark mulch, and the model follows the walkthrough. <b>The niche bank&rsquo;s position and its eight-by-five grid are confirmed by the walkthrough</b>, not estimated — the render had floated it over the garden as a callout rather than showing it in place.
   </div>
 </div><!-- /main -->
 
