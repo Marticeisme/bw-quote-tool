@@ -2310,6 +2310,35 @@ across 32 suites`; `verify_catalogs` ALL PAGES OK; `verify_guides_page` ALL OK;
 
 ---
 
+### 2026-08-04 — Urn-placement Section 4 table was clipped in the printed PDF; WIDTH gate added
+
+Pushed live as `35f5ffc`. The Section 4 comparison table (Consideration / Columbarium
+Niche / Ground Burial / Scattering) rendered fine on screen but the printed PDF lost the
+whole Scattering column and cut Ground Burial at the print-column boundary — the screen
+rules force `min-width:500px` and nowrap headers, and the sprint-07 print-condense flow
+puts it in a ~400px column. Pre-existing (identical clip at `73825fa`); sprint-14 Track H
+was prose-only and left it alone.
+
+**Fix is print-media-only** in the guide's own condense block: `min-width:0`,
+`table-layout:fixed`, wrapped 6.5/7pt cells, so the table fits whatever column it lands
+in. Screen untouched. **`column-span:all` (the price-table treatment) was tried first and
+rejected**: pre-spanner column balancing across the page break stranded a near-empty
+page 4, which `verify_guide_pages` caught as a stranded sheet. PDF rebuilt, still 3 pages
+(cap 6). Verified by rendering page 3 at 300dpi and looking.
+
+**New gate:** `verify_table_alignment.mjs` check C (WIDTH) — every table's rendered box
+must fit its parent's box under print emulation; a wider table is clipped on paper (the
+screen wrapper scrolls, paper doesn't). Checks A/B passed on the broken table because the
+grid was internally consistent — just cut off. Proven by sabotage: the pre-fix page fails
+`WIDTH table renders 500px wide in a 401.5px box`; full 20-page sweep has no false
+positives.
+
+Gates: syntax `8 blocks, 0 errors`; `verify_guide_pages` 184 ok / 0 failed;
+`verify_table_alignment` 21 tables / 292 cells, 0 failed; `verify_photo_first` 23 cards
+ok. Live PDF byte-identical to the local build after deploy.
+
+---
+
 ## 5. Working rules that keep biting us
 
 - **Never** `git add -A` / `git add .` — stage explicit paths.
