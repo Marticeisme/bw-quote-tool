@@ -125,6 +125,77 @@ export const GEO = {
   joinX: -118, joinY: 6, joinW: 12, joinD: 44,
 };
 
+// ── ELEVATION (feet, schematic) — added for the 3D view ──────────────────────
+/**
+ * The plan above is the cemetery's own overview. THESE numbers are not on any drawing:
+ * they come from the 2026-08-03 walk-through, and they exist only so the 3D view stands
+ * a block at a plausible height instead of an invented one.
+ *
+ * WHAT THE FOOTAGE ACTUALLY SETTLED, with timestamps into the 8:16 clip:
+ *
+ *   wingH   7:36 and 6:56 — the wing walls facing the courtyard read FIVE courses of
+ *           crypt fronts from the paving to the soffit, with a sixth partly shaded by
+ *           the overhang at the far end. The COUNT is what the footage gives. The
+ *           2.6 ft per course that turns five courses into thirteen feet is a nominal
+ *           crypt-front height and is NOT measured — which is why every wing bank is
+ *           marked 'medium' below and why the page prints no dimension anywhere.
+ *   roofH   7:36, 6:56, 7:20 (in the reflection) — each wing carries a LOW-PITCHED roof
+ *           that slopes down toward the courtyard and overhangs the walkway by a long
+ *           way, dark edge over a pale soffit, with downlights set into the soffit. It
+ *           is the building's own eave, not a free-standing colonnade. Modelled as a
+ *           thin slab floating over the walkway strip.
+ *   plinth  7:36 and 6:56 — the courtyard is TERRACED: a low pale wall and two or three
+ *           steps separate the walkway in front of the banks from the courtyard floor.
+ *           One step is modelled; the full terracing is not.
+ *   material 5:04 — the crypt fronts are a polished pink-and-grey speckled stone in
+ *           butt-jointed panels with small round bronze rosettes at the corners and
+ *           bronze cone vases. Walls above and around them are pale cream stucco.
+ *
+ * WHAT THE FOOTAGE DID NOT SETTLE, and is therefore marked 'low':
+ *   - the tandem bank along the south edge is never walked end to end in the clip;
+ *   - the family rooms are shut behind locked ironwork and were not entered, so their
+ *     height is inferred from the wall plane they sit in;
+ *   - the water feature and the ossuary are never identified on site at all.
+ *
+ * NO DIMENSION IS EVER RENDERED. These feed a transform and nothing else.
+ */
+export const ELEV = {
+  plinth: 1.5,     // walkway terrace above the courtyard floor
+  wingH: 13,       // five counted courses at a nominal course height
+  roofH: 15.5,     // underside of the overhanging eave
+  roofT: 0.9,      // how thick the eave slab reads
+  roomH: 13,       // family rooms sit in the same wall plane as the banks
+  waterH: 5,
+  ossH: 6,
+  entH: 10,
+  joinH: 13,
+  tandemH: 8,
+};
+
+/**
+ * PLACEMENT-AND-HEIGHT CONFIDENCE. Carried per block and rendered as a HATCH PATTERN,
+ * never as a hue — hue is spent on what a block IS, and two codings sharing one channel
+ * is how a reader learns to trust neither. Same rule the status vocabulary above follows.
+ */
+export const CONF_LABEL = {
+  high: 'Seen clearly in our walk-through',
+  medium: 'Height estimated from our walk-through',
+  low: 'Approximate — please confirm with us',
+};
+
+/** Family-facing one-liners about what a block is made of. Only what the footage saw. */
+export const MATERIAL = {
+  bank: 'Polished speckled stone fronts with bronze vases, under pale stucco.',
+  tandem: 'Companion crypts set head to head. Not filmed end to end — ask us.',
+  roof: 'A low-pitched roof sloping to the courtyard, overhanging the walkway.',
+  room: 'A private room off the north face, closed behind locked ironwork.',
+  water: 'A small feature the cemetery’s overview draws between the two rooms.',
+  ossuary: 'Drawn where the cemetery’s overview places it. Not priced here.',
+  entrance: 'The east approach into the courtyard.',
+  join: 'Where this building meets the mausoleum next door.',
+  court: 'Flagstone, river rock, planting beds and cremation properties.',
+};
+
 // ── The numbered crypt banks ─────────────────────────────────────────────────
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
@@ -146,6 +217,10 @@ function wing(id, label, [n0, n1], x0, x1) {
       y: GEO.wingY,
       w: step - 0.5,
       d: GEO.wingD,
+      // Elevation, for the 3D view only. `h` never reaches the page as a number.
+      h: ELEV.wingH,
+      conf: 'medium',
+      material: MATERIAL.bank,
       // ── THE EMPTY SLOTS. Filled by a later, additive load; nothing reads them yet. ──
       price: null,
       status: null,
@@ -173,6 +248,11 @@ export const TANDEM = {
   y: GEO.tandemY,
   w: GEO.tandemX1 - GEO.tandemX0,
   d: GEO.tandemD,
+  h: ELEV.tandemH,
+  // LOW: the south run is never walked end to end in the footage, so both its height and
+  // its length are the drawing's, not ours.
+  conf: 'low',
+  material: MATERIAL.tandem,
   price: null,
   status: null,
   positions: null,
@@ -186,6 +266,7 @@ export const STRUCTURES = [
     label: MIS_FAMILY_ROOMS[0],
     x: -(GEO.roomGap / 2 + GEO.roomW / 2), y: GEO.roomY, w: GEO.roomW, d: GEO.roomD,
     kind: 'room',
+    h: ELEV.roomH, conf: 'medium', material: MATERIAL.room,
   },
   {
     id: 'water',
@@ -197,12 +278,14 @@ export const STRUCTURES = [
     // unconfirmed on site). Naming it precisely would be inventing a fact.
     x: 0, y: GEO.roomY, w: GEO.roomGap - 1, d: 10,
     kind: 'water',
+    h: ELEV.waterH, conf: 'low', material: MATERIAL.water,
   },
   {
     id: 'room-2',
     label: MIS_FAMILY_ROOMS[1],
     x: GEO.roomGap / 2 + GEO.roomW / 2, y: GEO.roomY, w: GEO.roomW, d: GEO.roomD,
     kind: 'room',
+    h: ELEV.roomH, conf: 'medium', material: MATERIAL.room,
   },
   {
     id: 'ossuary',
@@ -210,6 +293,9 @@ export const STRUCTURES = [
     x: GEO.ossX, y: GEO.ossY, w: GEO.ossW, d: GEO.ossD,
     kind: 'ossuary',
     // See the file header. Drawn because MIS draws it; inert because nobody has ruled.
+    // LOW on both counts: nothing in the 2026-08-03 footage identifies it on site, so its
+    // height is a placeholder for a structure whose EXISTENCE is itself unresolved.
+    h: ELEV.ossH, conf: 'low', material: MATERIAL.ossuary,
     note: 'not priced here',
   },
   {
@@ -217,12 +303,14 @@ export const STRUCTURES = [
     label: 'Entrance',
     x: GEO.entX, y: GEO.entY, w: GEO.entW, d: GEO.entD,
     kind: 'entrance',
+    h: ELEV.entH, conf: 'medium', material: MATERIAL.entrance,
   },
   {
     id: 'join',
     label: SITE.westNeighbour,
     x: GEO.joinX, y: GEO.joinY, w: GEO.joinW, d: GEO.joinD,
     kind: 'join',
+    h: ELEV.joinH, conf: 'low', material: MATERIAL.join,
   },
 ];
 
@@ -238,6 +326,13 @@ export const ROOFS = WINGS.map((w) => {
     y: GEO.wingY + GEO.wingD / 2 + GEO.roofD / 2,
     w: x1 - x0,
     d: GEO.roofD,
+    // The eave slab floats at roofH; it is not a block standing on the ground. HIGH:
+    // the overhang, its slope toward the courtyard and its soffit downlights are the
+    // clearest thing in the footage.
+    h: ELEV.roofT,
+    top: ELEV.roofH,
+    conf: 'high',
+    material: MATERIAL.roof,
   };
 });
 
@@ -247,6 +342,12 @@ export const COURTYARD = {
   label: 'Terrace Garden Memorial Path',
   href: 'TGMP_Map.html',
   x: GEO.courtX, y: GEO.courtY, w: GEO.courtW, d: GEO.courtD,
+  // The courtyard is a FLOOR, not a block: it sits one step below the walkway in front of
+  // the banks (7:36, 6:56). HIGH — the whole clip is shot standing in it.
+  h: 0,
+  drop: ELEV.plinth,
+  conf: 'high',
+  material: MATERIAL.court,
 };
 
 /** Every selectable position on the page: the numbered banks plus the tandem bank. */
@@ -256,3 +357,33 @@ export function allPositions() {
 
 /** Spelling of a bank reference, so the page and the gate cannot disagree. */
 export const bankRef = (wingId, n) => `TGM-${wingId}-${n}`;
+
+/**
+ * EVERY solid the 3D view extrudes, in one list, so the builder and the gate count the
+ * same things. `sel` marks the ones a family can select — exactly the plan's selectable
+ * positions and nothing else. The courtyard is NOT here: it is a floor plate and a link
+ * zone, not a solid.
+ */
+export function blocks3d() {
+  const banks = WINGS.flatMap((w) => w.banks).map((b) => ({
+    id: b.ref, ref: b.ref, label: `${b.wingLabel} · bank ${b.n}`, kind: 'bank',
+    x: b.x, y: b.y, w: b.w, d: b.d, h: b.h, top: b.h, conf: b.conf, material: b.material,
+    wing: b.wing, n: b.n, sel: true,
+  }));
+  const tandem = {
+    id: TANDEM.ref, ref: TANDEM.ref, label: `${TANDEM.label} · ${TANDEM.sub}`, kind: 'tandem',
+    x: TANDEM.x, y: TANDEM.y, w: TANDEM.w, d: TANDEM.d, h: TANDEM.h, top: TANDEM.h,
+    conf: TANDEM.conf, material: TANDEM.material, wing: null, n: null, sel: true,
+  };
+  const struct = STRUCTURES.map((s) => ({
+    id: s.id, ref: null, label: s.label, kind: s.kind,
+    x: s.x, y: s.y, w: s.w, d: s.d, h: s.h, top: s.h, conf: s.conf, material: s.material,
+    wing: null, n: null, sel: false,
+  }));
+  const roofs = ROOFS.map((r) => ({
+    id: r.id, ref: null, label: 'Covered walkway', kind: 'roof',
+    x: r.x, y: r.y, w: r.w, d: r.d, h: r.h, top: r.top, conf: r.conf, material: r.material,
+    wing: r.wing, n: null, sel: false,
+  }));
+  return [...banks, tandem, ...struct, ...roofs];
+}
