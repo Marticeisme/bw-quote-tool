@@ -170,35 +170,85 @@ for (const f of SURFACES) {
     `${f}: clean${hits.length ? ' — ' + hits.slice(0, 3).map((h) => `line ${h.line} [${h.term}] ${h.match}`).join('; ') : ''}`);
 }
 
-// ── THE WALKTHROUGH IS DELISTED ─────────────────────────────────────────────
+// ── LISTING IS PER SCENE, AND BOTH DIRECTIONS ARE ASSERTED ──────────────────
 // Operator, 2026-08-02, of MAPS/COM_Walkthrough.html: "This is not something I can show
-// to families." The page, its builder and its two gates all stay — it returns when the
-// building is re-shot — so what has to hold is narrower and needs its own guarantee: no
-// family-facing surface may LINK to it. Direct URL access is deliberately still fine.
+// to families." The page, its builder and its two gates all stayed — only the family-facing
+// links were withdrawn. Operator, 2026-08-04, having watched the sprint-14 re-shoots: "the
+// reels look good link the com and elm ones". Terrace Garden stays delisted; its outdoor
+// stretches are not showable and a re-shoot is pending.
 //
-// Widened in sprint-14: there are now THREE walkthroughs (Chapel of Memory, Terrace Garden,
-// Eternal Light), all shipped delisted for the same reason — the operator looks at a reel
-// before it is offered to a family, and linking is a separate deliberate act.
+// So "delisted" is no longer a property of the feature, it is a property of each SCENE, and
+// scripts/walkthrough-scenes.mjs carries the only copy of that decision as `listed`. This
+// block derives from the flag and asserts BOTH failure modes, because only asserting one of
+// them makes the other silent:
+//
+//   listed: false   ZERO inbound links from any family-facing surface. Direct URL access is
+//                   deliberately still fine — a link is a recommendation, not access.
+//   listed: true    POSITIVE: exactly one guides.html card link, and exactly one header
+//                   link on the scene's sibling map. A reel the operator relisted and that
+//                   then quietly loses its card in a rebuild goes red here, exactly as a
+//                   delisted reel that gains a link does.
 //
 // This lives here rather than only in verify_walkthrough.mjs because that gate takes tens of
 // minutes PER SCENE (it screenshots a multi-megabyte gaussian splat at every camera stop),
-// which is too slow to be the only thing standing between an edit and a relisted page.
-// The same fact is asserted in both places on purpose.
+// which is too slow to be the only thing standing between an edit and a mis-listed page.
+// The same facts are asserted in both places on purpose.
 const WALK_PAGES = SCENE_KEYS.map((k) => path.basename(SCENES[k].page));
 const WALK = new RegExp(WALK_PAGES.map((p) => p.replace('.', '\\.')).join('|'));
 const linkTo = (html) => [...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>/gi)]
   .map((m) => m[1]).filter((h) => WALK.test(h));
+// Links to ONE named reel, so "the COM card is present" cannot be satisfied by the ELM one.
+const linkToPage = (html, page) => [...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>/gi)]
+  .map((m) => m[1]).filter((h) => path.basename(h.split('#')[0].split('?')[0]) === page);
 {
   ok(WALK_PAGES.length === 3, `three walkthrough reels are declared (${WALK_PAGES.join(', ')})`);
-  const linked = [];
-  for (const f of SURFACES) {
-    // a page's own back button is not a link TO it
-    if (WALK_PAGES.includes(path.basename(f))) continue;
-    const hrefs = linkTo(fs.readFileSync(path.join(ROOT, f), 'utf8'));
-    if (hrefs.length) linked.push(`${f} -> ${hrefs.join(', ')}`);
+  const LISTED = SCENE_KEYS.filter((k) => SCENES[k].listed === true);
+  const DELISTED = SCENE_KEYS.filter((k) => SCENES[k].listed === false);
+  ok(LISTED.length + DELISTED.length === SCENE_KEYS.length,
+    `every scene declares listed true or false (listed: ${LISTED.join(', ') || 'none'}; delisted: ${DELISTED.join(', ') || 'none'})`);
+
+  const guides = fs.readFileSync(path.join(ROOT, 'guides.html'), 'utf8');
+
+  // ── the delisted half: not one inbound link, anywhere ──
+  for (const k of DELISTED) {
+    const page = path.basename(SCENES[k].page);
+    const linked = [];
+    for (const f of SURFACES) {
+      // a page's own back button is not a link TO it
+      if (WALK_PAGES.includes(path.basename(f))) continue;
+      const hrefs = linkToPage(fs.readFileSync(path.join(ROOT, f), 'utf8'), page);
+      if (hrefs.length) linked.push(`${f} -> ${hrefs.join(', ')}`);
+    }
+    ok(linked.length === 0,
+      `${k} is delisted: no family-facing surface links to ${page}${linked.length ? ': ' + linked.join('; ') : ` (${SURFACES.length} checked)`}`);
+    // …and specifically not from its own map's header, which is where the button would go
+    // if someone relisted it by copying the COM/ELM pattern without the operator.
+    const mapRel = SCENES[k].mapPage;
+    if (fs.existsSync(path.join(ROOT, mapRel))) {
+      ok(linkToPage(fs.readFileSync(path.join(ROOT, mapRel), 'utf8'), page).length === 0,
+        `${k} is delisted: ${mapRel} carries no header button to it`);
+    }
   }
-  ok(linked.length === 0,
-    `no family-facing surface links to any delisted walkthrough${linked.length ? ': ' + linked.join('; ') : ` (${SURFACES.length} checked)`}`);
+
+  // ── the listed half: the links the operator asked for are PRESENT, exactly once ──
+  for (const k of LISTED) {
+    const page = path.basename(SCENES[k].page);
+    const cardLinks = linkToPage(guides, page);
+    ok(cardLinks.length === 1,
+      `${k} is listed: guides.html carries exactly one card link to ${page} (found ${cardLinks.length})`);
+    // The map of the place in the reel is the other half — a family looking at availability
+    // must be able to reach the reel from there, which is the point of the header button.
+    // NOT sibling.href: for ELM the sibling is the columbarium's niche map, a different
+    // level of the building from the corridors the camera actually walked.
+    const mapRel = SCENES[k].mapPage;
+    ok(fs.existsSync(path.join(ROOT, mapRel)), `${k}: its map page ${mapRel} exists`);
+    const sib = fs.readFileSync(path.join(ROOT, mapRel), 'utf8');
+    const hdr = linkToPage(sib, page);
+    ok(hdr.length === 1,
+      `${k} is listed: ${mapRel} carries exactly one header link to ${page} (found ${hdr.length})`);
+    ok(/class="walk-btn/.test(sib), `${k}: that link is the header walkthrough button (.walk-btn) on ${mapRel}`);
+  }
+
   // The pages are NOT deleted — delisting is not removal, and asserting their absence
   // would quietly turn "hide the link" into "throw away the work".
   for (const k of SCENE_KEYS) {
@@ -211,7 +261,7 @@ const linkTo = (html) => [...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>/gi)]
     && fs.existsSync(path.join(ROOT, 'scripts', 'verify_walkthrough.mjs'))
     && fs.existsSync(path.join(ROOT, 'scripts', 'build_walkthrough_path.mjs')),
     'the shared builder, path builder and gate are all still in the tree');
-  // …and the scanner has to actually catch a link, or the check above is decorative.
+  // …and the scanners have to actually catch a link, or the checks above are decorative.
   ok(linkTo('<a class="guide-cta" href="MAPS/COM_Walkthrough.html">Open Walkthrough →</a>').length === 1,
     'sabotage: an injected guides.html card link IS caught');
   ok(linkTo('<a class="walk-btn no-print" href="COM_Walkthrough.html">Photoreal walkthrough</a>').length === 1,
@@ -222,17 +272,23 @@ const linkTo = (html) => [...html.matchAll(/<a\b[^>]*href="([^"]*)"[^>]*>/gi)]
     'sabotage: an injected Eternal Light link IS caught');
   ok(linkTo('<a href="COM_CryptMap.html">Crypt map</a>').length === 0,
     'and an unrelated map link is not');
-  // The COM map's own header, specifically — that is where the button was.
-  const com = fs.readFileSync(path.join(ROOT, 'MAPS', 'COM_CryptMap.html'), 'utf8');
-  ok(!/class="walk-btn"/.test(com), 'the COM map header carries no walkthrough button');
-  const guides = fs.readFileSync(path.join(ROOT, 'guides.html'), 'utf8');
-  ok(!/Photoreal Walkthrough<\/div>/.test(guides), 'guides.html carries no walkthrough card');
+  // The per-page scanner has to be per-page, or "exactly one COM link" would count ELM's.
+  ok(linkToPage('<a href="MAPS/ELM_Walkthrough.html">x</a>', 'COM_Walkthrough.html').length === 0
+    && linkToPage('<a href="MAPS/ELM_Walkthrough.html">x</a>', 'ELM_Walkthrough.html').length === 1,
+    'sabotage: the per-page scanner does not confuse one reel for another');
+  ok(linkToPage('<a href="COM_Walkthrough.html#stop-03">x</a>', 'COM_Walkthrough.html').length === 1,
+    'sabotage: a hash or query on the href does not hide the link');
   // The Maps pill has to agree with the cards under it, or the hub lies about itself.
   const maps = /<h2>Maps<\/h2>[\s\S]*?<span class="cat-count">(\d+)<\/span>([\s\S]*?)<\/div>\s*<\/div>\s*<div class="category"/.exec(guides);
   ok(!!maps, 'the Maps category is parseable out of guides.html');
   if (maps) {
     const cards = (maps[2].match(/class="guide-card"/g) || []).length;
     ok(Number(maps[1]) === cards, `the Maps pill says ${maps[1]} and there are ${cards} map cards`);
+    // …and both relisted cards live in THAT category, not somewhere the pill does not count.
+    for (const k of LISTED) {
+      ok(linkToPage(maps[2], path.basename(SCENES[k].page)).length === 1,
+        `${k}'s card sits inside the Maps category the pill counts`);
+    }
   }
 }
 
