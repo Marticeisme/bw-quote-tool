@@ -727,32 +727,44 @@ export async function run(ck, base) {
     ck(cbCensus.photos === 0 && cbCensus.refs === 0,
       'photographs and reference plates carry none — they are not alternatives you pick');
 
+    // The overlay's ONLY view is the plates — the operator removed the Side-by-Side
+    // spec table entirely (2026-08-04): the book/group/granite rows were noise next to
+    // the designs themselves. So what is asserted here is the plates grid, plus the
+    // POSITIVE ABSENCE of the spec table and its tabs: a well-meaning restore of either
+    // is exactly the regression this now catches.
     const MIXED = ['2020-717', '2011-1182', 'BASS 001'];
     const mixed = await page.evaluate((keys) => {
       window.bwCompareSelect(keys);
       document.getElementById('compareOpenBtn').click();
-      const vals = [...document.querySelectorAll('#compareTable .compare-table-row')]
-        .map((r) => [...r.children].map((c) => c.textContent.trim()));
+      const cols = [...document.querySelectorAll('#comparePhotoGrid .compare-photo-col')];
       return {
         open: document.getElementById('compareOverlay').classList.contains('active'),
         chips: document.querySelectorAll('#compareTrayItems .compare-chip').length,
         count: document.getElementById('compareCount').textContent,
-        headers: [...document.querySelectorAll('#compareTable .compare-col-name')]
-          .map((n) => n.textContent.trim()),
-        rows: vals.slice(1).map((r) => r[0]),
-        bookRow: (vals.slice(1).find((r) => r[0] === 'Book') || []).slice(1),
+        names: cols.map((c) => c.querySelector('.compare-photo-name').textContent.trim()),
+        details: cols.map((c) =>
+          (c.querySelector('.compare-photo-detail') || {}).textContent || ''),
+        plates: cols.filter((c) => {
+          const i = c.querySelector('.compare-photo-img-wrap img');
+          return i && i.getAttribute('src');
+        }).length,
+        specTable: !!(document.getElementById('compareTable') ||
+                      document.querySelector('.compare-table')),
+        tabs: !!(document.getElementById('compareTabSpecs') ||
+                 document.getElementById('compareTabPhotos') ||
+                 document.querySelector('.compare-tab')),
         marked: [...document.querySelectorAll('.product-card.comparing')].length,
       };
     }, MIXED);
     ck(mixed.open && mixed.chips === 3 && mixed.count === '3',
       `three items across two books and the element library compare together ` +
       `(${mixed.chips} in the tray)`);
-    ck(mixed.headers.join('|') === 'PCM 717|PCM 1182|BASS 001',
-      `the columns are headed by number (${mixed.headers.join(', ')})`);
-    ck(mixed.bookRow.join('|') === '2020 Design Book|2011 Design Book|Design Elements',
-      `the Book row tells the three apart (${mixed.bookRow.join(' / ')})`);
-    ck(mixed.rows.length >= 6 && mixed.rows.includes('Format') && mixed.rows.includes('Subjects'),
-      `the table carries ${mixed.rows.length} comparison rows (${mixed.rows.join(', ')})`);
+    ck(mixed.names.join('|') === 'PCM 717|PCM 1182|BASS 001',
+      `the plates are headed by number (${mixed.names.join(', ')})`);
+    ck(mixed.plates === 3 && mixed.details.every((d) => d.trim().length > 0),
+      `every column shows its plate with a one-line detail under it (${mixed.plates})`);
+    ck(!mixed.specTable && !mixed.tabs,
+      'the Side-by-Side spec table and its view tabs are genuinely gone from the DOM');
     // 2011-2271 is cross-listed, so one key can own two cards; both must light up.
     ck(mixed.marked >= 3, `every selected card is marked on the page (${mixed.marked})`);
 
@@ -789,78 +801,62 @@ export async function run(ck, base) {
     // footer's bottom edge is inside the page.
     await page.setViewportSize({ width: 816, height: 1056 });
     // The LEDGER leads the list on purpose — 10:13 is the tallest thing this sheet can be
-    // asked to lay out, so it is in the 2-item case where each plate is widest.
+    // asked to lay out. Only ONE print mode exists now: the plates (the spec-table mode
+    // went with the Side-by-Side view, operator 2026-08-04).
     const ledgerId = data.designs.find((d) => d.fmt === 'ledger').id;
-    const PLATE_H = { 2: 300, 3: 240, 4: 200 };
     const plateWidth = {};
     for (const n of [2, 3, 4]) {
       const keys = [ledgerId, '2020-717', '2011-1182', 'BASS 001'].slice(0, n);
-      for (const mode of ['specs', 'photos']) {
-        const geo = await page.evaluate(([keys, mode]) => {
-          window.bwCompareSelect(keys);
-          window.bwBuildCompareSheet(mode);
-          document.body.classList.add('compare-printing');
-          const s = document.getElementById('compareSheet');
-          return { klass: s.className, title: document.getElementById('cmpTitle').textContent };
-        }, [keys, mode]);
-        await page.emulateMedia({ media: 'print' });
-        await page.waitForTimeout(120);
-        const m = await page.evaluate(() => {
-          const s = document.getElementById('compareSheet');
-          // Scoped to the mode being printed. Both halves of the sheet stay built
-          // between runs — the CSS hides the other one — so an unscoped count would
-          // add the previous mode's plates to this one's.
-          const photos = s.classList.contains('cmp-mode-photos');
-          const live = photos ? '.cmp-photo-row .cmp-photo-imgwrap img'
-                              : '.cmp-table .cmp-col-img';
-          const nodes = [...s.querySelectorAll(live)];
-          const box = s.querySelector(photos ? '.cmp-photo-row' : '.cmp-table');
-          const last = [...s.querySelectorAll(photos ? '.cmp-photo-col' : '.cmp-value-cell')]
-            .pop();
-          return {
-            over: s.scrollHeight - s.clientHeight, h: s.clientHeight,
-            cols: (s.querySelector('.cmp-table') || {}).className || '',
-            imgs: nodes.length,
-            widest: nodes.length
-              ? Math.max(...nodes.map((i) => Math.round(i.getBoundingClientRect().width))) : 0,
-            tallest: nodes.length
-              ? Math.max(...nodes.map((i) => Math.round(i.getBoundingClientRect().height))) : 0,
-            spill: last && box
-              ? Math.round(last.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom)
-              : 999,
-            footSpill: Math.round(
-              s.querySelector('.cmp-footer').getBoundingClientRect().bottom - s.clientHeight),
-          };
-        });
-        const pdf = await page.pdf({ format: 'Letter', printBackground: true });
-        const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
-        await page.emulateMedia({ media: 'screen' });
-        await page.evaluate(() => document.body.classList.remove('compare-printing'));
+      const geo = await page.evaluate((keys) => {
+        window.bwCompareSelect(keys);
+        window.bwBuildCompareSheet();
+        document.body.classList.add('compare-printing');
+        return { title: document.getElementById('cmpTitle').textContent };
+      }, keys);
+      await page.emulateMedia({ media: 'print' });
+      await page.waitForTimeout(120);
+      const m = await page.evaluate(() => {
+        const s = document.getElementById('compareSheet');
+        const nodes = [...s.querySelectorAll('.cmp-photo-row .cmp-photo-imgwrap img')];
+        const box = s.querySelector('.cmp-photo-row');
+        const last = [...s.querySelectorAll('.cmp-photo-col')].pop();
+        return {
+          over: s.scrollHeight - s.clientHeight, h: s.clientHeight,
+          imgs: nodes.length,
+          gridCols: box ? getComputedStyle(box).gridTemplateColumns.split(' ').length : 0,
+          specTable: !!s.querySelector('.cmp-table'),
+          widest: nodes.length
+            ? Math.max(...nodes.map((i) => Math.round(i.getBoundingClientRect().width))) : 0,
+          spill: last && box
+            ? Math.round(last.getBoundingClientRect().bottom - box.getBoundingClientRect().bottom)
+            : 999,
+          footSpill: Math.round(
+            s.querySelector('.cmp-footer').getBoundingClientRect().bottom - s.clientHeight),
+        };
+      });
+      const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+      const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+      await page.emulateMedia({ media: 'screen' });
+      await page.evaluate(() => document.body.classList.remove('compare-printing'));
 
-        ck(m.over === 0 && pages === 1 && m.spill <= 1 && m.footSpill <= 1,
-          `compare sheet, ${n} items, ${mode}: the last row ends ${-m.spill}px inside the ` +
-          `table, the footer ${-m.footSpill}px inside the page, and the real PDF is ` +
-          `${pages} page`);
-        ck(m.imgs === n, `…all ${n} plates reach the sheet (${m.imgs})`);
-        if (mode === 'specs') {
-          plateWidth[n] = m.widest;
-          ck(m.cols.includes('cmp-cols-' + n),
-            `…the table declares ${n} columns so the plate size can follow (${m.cols.trim()})`);
-          ck(m.tallest > 0 && m.tallest <= PLATE_H[n],
-            `…the tallest plate — the ledger — is held to ${m.tallest}px, within ` +
-            `${PLATE_H[n]}px, so the rows below it still fit`);
-        }
-        ck(geo.title === (mode === 'photos' ? 'Design Plates' : 'Side-by-Side Comparison'),
-          `…the sheet is headed "${geo.title}"`);
-      }
+      plateWidth[n] = m.widest;
+      ck(m.over === 0 && pages === 1 && m.spill <= 1 && m.footSpill <= 1,
+        `compare sheet, ${n} plates: the last column ends ${-m.spill}px inside the row, ` +
+        `the footer ${-m.footSpill}px inside the page, and the real PDF is ${pages} page`);
+      ck(m.imgs === n, `…all ${n} plates reach the sheet (${m.imgs})`);
+      // One full-width column up to three plates, a 2x2 at four — the layout the
+      // operator asked for ("one top left one top right one bottom left one bottom
+      // right") and the one that renders each 16:10 plate biggest on a portrait page.
+      ck(m.gridCols === (n <= 3 ? 1 : 2),
+        `…${n} plates lay out in ${m.gridCols} column${m.gridCols === 1 ? '' : 's'}`);
+      ck(!m.specTable, '…and no spec table rides along on the sheet');
+      ck(geo.title === 'Design Plates', `…the sheet is headed "${geo.title}"`);
     }
-    // Fewer items compared = bigger plate. This is what the per-count column sizing BUYS,
-    // and it is checked as a strict ordering rather than against three constants: the
-    // widths come from the grid column, so a constant would just restate the arithmetic
-    // this file would then be free to get wrong in the same direction as the page.
-    ck(plateWidth[2] > plateWidth[3] && plateWidth[3] > plateWidth[4] && plateWidth[4] > 0,
+    // Fewer plates = bigger plate: at 2 the single column gives each plate the full
+    // page width; at 4 the 2x2 halves it. Checked as an ordering, not constants.
+    ck(plateWidth[2] > plateWidth[4] && plateWidth[4] > 0,
       `the plate grows as fewer are compared — ${plateWidth[4]}px at 4, ` +
-      `${plateWidth[3]}px at 3, ${plateWidth[2]}px at 2`);
+      `${plateWidth[2]}px at 2`);
     await page.evaluate(() => { window.bwCompareSelect([]); });
     await page.setViewportSize({ width: 1440, height: 1000 });
 

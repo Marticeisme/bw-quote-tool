@@ -421,7 +421,8 @@ PHOTOS = [
     (68,  'Black granite, laser-etched double portrait and garden scene',
           dict(crop=(0.08, 0.10, 1.00, 0.92))),
     (77,  'Rose granite with a color ceramic heart portrait', {}),
-    (58,  'Mahogany granite, crisp sandblasted lettering', dict(crop=(0.00, 0.05, 0.80, 0.77))),
+    # 58 (Mahogany sandblasted) removed by the operator, 2026-08-04 — picked off the
+    # live Real Examples fold by card.
     (174, 'Blue pearl granite, laser-etched temple scene with a ceramic double portrait', dict(crop=(0.10, 0.18, 0.72, 0.84))),
     (95,  'Etched Seattle skyline with a ceramic portrait', {}),
     (105, 'Grey granite with an etched angel',
@@ -448,7 +449,7 @@ PHOTOS = [
     (190, 'Blue-grey granite companion with a mountain-lake vignette',
           dict(crop=(0.02, 0.18, 1.00, 1.00))),
     (195, 'Red granite with an etched wilderness scene', {}),
-    (138, 'Black granite laser portrait with Samoan motifs', dict(crop=(0.22, 0.03, 0.92, 0.56))),
+    # 138 (Samoan laser portrait) removed by the operator, 2026-08-04 — same round as 58.
     (206, 'Grey granite with a raised cross and scripture',
           dict(crop=(0.00, 0.06, 1.00, 0.94))),
     (216, 'Grey granite with rosary, roses and a color portrait', {}),
@@ -464,14 +465,12 @@ PHOTOS = [
 # The tan swatch is covered instead by the granite-color reference plates in the same
 # catalog. Mahogany, terracotta and brown are covered by 180, 196 and 85.
 
-# Photos already shipping on the granite marker guide — reused in place, no new bytes.
-GUIDE_PHOTOS = [
-    ('marker-images/Black-granite-marker-flat-marker-F1066.jpg', 'Black granite flat marker'),
-    ('marker-images/companion-marker.jpg', 'Companion flat marker'),
-    ('marker-images/diamond-etching.jpg', 'Diamond etching'),
-    ('marker-images/ceramic-steel-portrait.jpg', 'Ceramic steel portrait'),
-    ('marker-images/classic-gray.jpg', 'Classic Gray granite'),
-]
+# The five granite-marker-guide images (F1066 product shot, sideways companion,
+# diamond-etching detail, ceramic-steel-portrait product shot, classic-gray swatch)
+# were dropped from Real Examples by the operator, 2026-08-04: "these shouldn't be
+# under the examples" — they are guide assets, not installed markers. The files stay
+# under marker-images/ because the Granite Marker Guide still ships them; only the
+# catalog references went. Real Examples is now WMP installed-marker photography only.
 
 REFERENCE = [
     (BOOK_2020, 4, 'Common Flat Marker Sizes', 'Individual, companion and ledger sizes drawn to scale.'),
@@ -510,8 +509,6 @@ def extract_photos(write_images):
             im.save(rel, 'JPEG', quality=PHOTO_Q, optimize=True, progressive=True)
             bytes_ += os.path.getsize(rel)
         out.append(dict(img=rel, desc=desc, src='Washington Memorial Park', px=dims(rel)))
-    for rel, desc in GUIDE_PHOTOS:
-        out.append(dict(img=rel, desc=desc, src='Granite Marker Guide', px=dims(rel)))
     return out, bytes_
 
 
