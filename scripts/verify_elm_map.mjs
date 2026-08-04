@@ -372,8 +372,13 @@ if (process.argv.includes('--sabotage')) {
         "x: -35, z: 40, w: 62, d: 5, h: SITE.wallH, positions: [1, 40], conf: 'high',")],
     ['the crystal-niche range widened past what the drawing prints',
       (s) => s.replace('positions: [1, 24], conf: \'high\',', 'positions: [1, 48], conf: \'high\',')],
+    // EVERY multi-line needle below matches with \r?\n. This repo is CRLF, a literal '\n'
+    // matches nothing in a checked-out file, and six of these mutations silently stopped
+    // applying the moment these sources were normalised to CRLF — proving nothing while
+    // still looking like a list of tests. runSet reports a no-op mutation as a FAIL, which
+    // is the only reason it was caught.
     ['the columbarium’s guessed placement upgraded to a confirmed one',
-      (s) => s.replace("    positions: null, conf: 'low',\n    href: 'ECL_NicheMap.html',", "    positions: null, conf: 'high',\n    href: 'ECL_NicheMap.html',")],
+      (s) => s.replace(/positions: null, conf: 'low',(\r?\n    href: 'ECL_NicheMap\.html',)/, "positions: null, conf: 'high',$1")],
     ['the link zone pointed away from the columbarium map',
       (s) => s.replace("href: 'ECL_NicheMap.html',", "href: 'ECL_NicheMap.htm',")],
     ['a whole bank deleted from the building',
@@ -390,17 +395,21 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace("const ask = isSelectable(s) ? `<span class=\"ask\">${esc(ASK_LABEL)}</span>` : '';",
         "const ask = isSelectable(s) ? '<span class=\"ask\">$4,995</span>' : '';")],
     ['a rest room rendered as a selectable button',
-      (s) => s.replace('  if (!isSelectable(s)) return \'\';\n', '')],
+      (s) => s.replace(/ {2}if \(!isSelectable\(s\)\) return '';\r?\n/, '')],
     ['the persistent columbarium button dropped from the header',
-      (s) => s.replace('  <a class="ecl-btn no-print spacer" href="${ECL_HREF}">Columbarium niche map &rarr;</a>\n', '')],
+      (s) => s.replace(/ {2}<a class="ecl-btn no-print spacer" href="\$\{ECL_HREF\}">Columbarium niche map &rarr;<\/a>\r?\n/, '')],
+    // The first `if (s.kind === 'link') {` in the file is the one inside hit(); a string
+    // needle replaces only that occurrence, leaving the flat plan's link cell alone. That
+    // is deliberate — it isolates the 3D link zone, which is the assertion under test.
     ['the 3D link zone downgraded to a plain button that cannot navigate',
-      (s) => s.replace("  if (s.kind === 'link') {\n    return `      <a href=\"${esc(s.href)}\" ${common}", "  if (false) {\n    return `      <a href=\"${esc(s.href)}\" ${common}")],
+      (s) => s.replace("if (s.kind === 'link') {", 'if (false) {')],
     ['the confidence hatch reverted to background-image, wiping the kind hue',
-      (s) => s.replace('  .c-medium::after,.c-low::after{content:\'\';position:absolute;inset:0;pointer-events:none;border-radius:inherit;}\n  .c-medium::after{background:', '  .c-medium{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.34) 0 2px,rgba(255,255,255,0) 2px 6px)!important;}\n  .c-low::after{content:\'\';position:absolute;inset:0;}\n  .c-mediumX::after{background:')],
+      (s) => s.replace(/ {2}\.c-medium::after,\.c-low::after\{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;\}(\r?\n) {2}\.c-medium::after\{background:/,
+        '  .c-medium{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.34) 0 2px,rgba(255,255,255,0) 2px 6px)!important;}$1  .c-mediumX::after{background:')],
     ['a dimension rendered on the page',
       (s) => s.replace('layout schematic, not to scale', 'each bank is 22 ft x 7 ft')],
     ['the printable section list dropped, so a printout omits every bank',
-      (s) => s.replace('${planView()}\n${listView()}', '${planView()}')],
+      (s) => s.replace(/\$\{planView\(\)\}\r?\n\$\{listView\(\)\}/, '${planView()}')],
     ['an internal register word put back into the page copy',
       (s) => s.replace('kept current against cemetery records', 'kept current against the MIS export')],
   ]);
