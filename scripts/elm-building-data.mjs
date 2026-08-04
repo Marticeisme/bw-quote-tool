@@ -27,8 +27,8 @@
  *    where. No on-disk image covers this building, so the transcription is the record.
  * 2. Walkthrough footage, D:\Cemetery Photos Misc\Eteernal Light Maus\20260803_121735.mp4
  *    (9:29, 2026-08-03), walked corridor by corridor. Used to confirm the BUILDING TYPE of
- *    each element — long marble crypt corridors, the glass-front keepsake niches, the
- *    free-standing glass-front columbarium island — and nothing else.
+ *    each element — long marble crypt corridors, the free-standing glass-front columbarium
+ *    island — and nothing else. The crystal-niches room itself was NOT entered (see below).
  *    The five 2024 stills in the same folder were NOT used: the two dated 2024-04-04 had
  *    already been identified in sprint-13 as the Chapel of Memories' Serenity wall, and
  *    the rest could not be placed in this building with confidence.
@@ -51,16 +51,18 @@
  * ── THE CRYSTAL NICHES ARE NOT THE COLUMBARIUM ─────────────────────────────────
  * The drawing marks "CRYSTAL NICHES" at the heart of the building, with an elevation
  * showing a numbered row 1-24 and clusters arranged in a plus/cross around the centre.
- * The footage shows what those are: dark-wood, bronze-mullioned, glass-fronted keepsake
- * niches, built as long banks flanking the central corridors and as free-standing units,
- * holding urns, photographs and mementos behind glass (mp4 4:52-5:52). They are a
- * DIFFERENT FEATURE from ECL-1, which is the painted free-standing island cabinet with
- * brass mullions and six shelf rows seen near the entry (mp4 0:28).
- * Sprint-13 flagged that a photo folder named "Crystal Niche" in the archives is the old
- * brass room and NOT the ECL room; that caution holds, and this file follows the
- * DRAWING's "CRYSTAL NICHES" label, which is its own feature inside ELM.
- * Confidence: the identification is footage-backed; the exact niche COUNT is not, so the
- * cluster arms carry `positions: null` and only the elevation row carries 1-24.
+ * OPERATOR CORRECTION 2026-08-03: the crystal-niches room sits BEHIND A GLASS DOOR, it
+ * is dark inside, and the operator did not go in — so the footage shows NOTHING of the
+ * room's interior. The dark-wood, bronze-mullioned keepsake banks seen along the central
+ * corridors (mp4 4:52-5:52) were an earlier, WRONG identification and must not be
+ * described as the crystal niches; what those corridor banks are is itself unconfirmed.
+ * The crystal niches remain a DIFFERENT FEATURE from ECL-1 (the painted free-standing
+ * island cabinet with brass mullions seen near the entry, mp4 0:28) — that distinction
+ * stands on the drawing alone. Sprint-13's caution also holds: the archive photo folder
+ * named "Crystal Niche" is the old brass room, not this room and not the ECL.
+ * Confidence: PLACEMENT is the drawing's (unchanged); the interior is UNSEEN, so every
+ * note below says only what the drawing prints. Arms carry `positions: null` and only
+ * the elevation row carries 1-24.
  *
  * ── "ELN-W-1" ──────────────────────────────────────────────────────────────────
  * The drawing labels the highlighted central segment of the north wall
@@ -151,10 +153,13 @@ export const SECTIONS = [
     note: 'Wall crypts along the north wall, positions 1 to 14.',
   },
   {
-    id: 'eln-w-1', ref: 'ELN-W-1', label: 'Pickel Wall · ELN-W-1', kind: 'wall',
+    id: 'eln-w-1', ref: 'ELN-W-1', label: 'Pickel Wall · ELN-W-1', kind: 'glass',
     x: 0, z: 6, w: 44, d: 5, h: SITE.wallH,
     positions: null, conf: 'high', labelUnverified: true,
-    note: 'The Pickel Wall, at the centre of the north wall.',
+    // Operator, 2026-08-03: "the pickel wall is the glass wall that has what looks like
+    // crystals inside" — it appears briefly in the walkthrough footage. That is the whole
+    // footage-backed claim; what the pieces are and what the wall holds is unconfirmed.
+    note: 'The Pickel Wall — a glass wall with what look like crystals displayed inside, at the centre of the north wall. Ask us what it holds.',
   },
   {
     id: 'elm-w-1-right', ref: 'ELM-W-1', label: 'ELM-W-1 · East Segment', kind: 'wall',
@@ -213,27 +218,27 @@ export const SECTIONS = [
     id: 'crystal-core', ref: 'CRYSTAL NICHES', label: 'Crystal Niches', kind: 'crystal',
     x: 0, z: 78, w: 30, d: 12, h: SITE.wallH,
     positions: [1, 24], conf: 'high',
-    note: 'Glass-front keepsake niches at the centre of the building, positions 1 to 24.',
+    note: 'Niche room at the centre of the building, positions 1 to 24. It sits behind a glass door and our walkthrough did not go inside — ask us to walk it with you.',
   },
   {
     id: 'crystal-n', ref: 'CRYSTAL NICHES', label: 'Crystal Niches · North Arm', kind: 'crystal',
     x: 0, z: 58, w: 12, d: 14, h: SITE.wallH, positions: null, conf: 'medium',
-    note: 'Glass-front keepsake niches, north of the centre.',
+    note: 'Niches north of the centre, as the cemetery’s drawing places them. Not filmed inside — ask us to walk it with you.',
   },
   {
     id: 'crystal-s', ref: 'CRYSTAL NICHES', label: 'Crystal Niches · South Arm', kind: 'crystal',
     x: 0, z: 98, w: 12, d: 14, h: SITE.wallH, positions: null, conf: 'medium',
-    note: 'Glass-front keepsake niches, south of the centre.',
+    note: 'Niches south of the centre, as the cemetery’s drawing places them. Not filmed inside — ask us to walk it with you.',
   },
   {
     id: 'crystal-w', ref: 'CRYSTAL NICHES', label: 'Crystal Niches · West Arm', kind: 'crystal',
     x: -26, z: 78, w: 14, d: 12, h: SITE.wallH, positions: null, conf: 'medium',
-    note: 'Glass-front keepsake niches, west of the centre.',
+    note: 'Niches west of the centre, as the cemetery’s drawing places them. Not filmed inside — ask us to walk it with you.',
   },
   {
     id: 'crystal-e', ref: 'CRYSTAL NICHES', label: 'Crystal Niches · East Arm', kind: 'crystal',
     x: 26, z: 78, w: 14, d: 12, h: SITE.wallH, positions: null, conf: 'medium',
-    note: 'Glass-front keepsake niches, east of the centre.',
+    note: 'Niches east of the centre, as the cemetery’s drawing places them. Not filmed inside — ask us to walk it with you.',
   },
 
   // ── The two bottom-corner banks, each beside a rest room ─────────────────────
@@ -276,13 +281,14 @@ export const SECTIONS = [
 ];
 
 /** Everything a visitor can select and ask about. Rest rooms are not inventory. */
-export const SELECTABLE_KINDS = ['tandem', 'wall', 'crypt', 'crystal'];
+export const SELECTABLE_KINDS = ['tandem', 'wall', 'crypt', 'crystal', 'glass'];
 
 export const KIND_LABEL = {
   tandem: 'Tandem crypts',
   wall: 'Wall crypts',
   crypt: 'Crypts',
   crystal: 'Crystal niches',
+  glass: 'Glass wall',
   link: 'Columbarium',
   amenity: 'Facility',
 };
@@ -290,7 +296,7 @@ export const KIND_LABEL = {
 /** Sections grouped the way the page's list tab reads them out. */
 export const GROUPS = [
   { id: 'garden', label: 'Garden Mausoleum — Tandem Crypts', match: (s) => s.kind === 'tandem' },
-  { id: 'northwall', label: 'North Wall', match: (s) => s.kind === 'wall' },
+  { id: 'northwall', label: 'North Wall', match: (s) => s.kind === 'wall' || s.kind === 'glass' },
   { id: 'central', label: 'Central Block', match: (s) => s.kind === 'crypt' && s.id.startsWith('elm-') && !s.id.startsWith('elm-p-') },
   { id: 'crystal', label: 'Crystal Niches', match: (s) => s.kind === 'crystal' },
   { id: 'corners', label: 'South Corners', match: (s) => s.id.startsWith('elm-p-') },

@@ -182,14 +182,17 @@ const LEGEND = `<div class="legend">
       <div class="li"><div class="ls k-wall"></div><span>${KIND_LABEL.wall}</span></div>
       <div class="li"><div class="ls k-crypt"></div><span>${KIND_LABEL.crypt}</span></div>
       <div class="li"><div class="ls k-crystal"></div><span>${KIND_LABEL.crystal}</span></div>
+      <div class="li"><div class="ls k-glass"></div><span>${KIND_LABEL.glass}</span></div>
       <div class="li"><div class="ls k-link"></div><span>${KIND_LABEL.link}</span></div>
       <div class="li"><div class="ls k-amenity"></div><span>${KIND_LABEL.amenity}</span></div>
       <div class="li"><div class="ls c-swatch-low"></div><span>Hatched = approximate placement</span></div>
     </div>`;
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
-// Materials follow the walkthrough footage: warm rose-and-cream marble crypt fronts, a
-// dark-wood/bronze frame on the glass-front keepsake niches, olive carpet underfoot.
+// Materials follow the walkthrough footage where it actually saw them: warm
+// rose-and-cream marble crypt fronts, olive carpet underfoot. The crystal-niches hue is
+// a palette choice only — that room sits behind a glass door and was not filmed inside
+// (operator, 2026-08-03), so no material claim is made for it.
 // Section KIND is carried by hue; placement CONFIDENCE is carried by a hatch PATTERN, so
 // the two codings never compete — the same rule the niche pages use for status.
 const CSS = `
@@ -239,6 +242,7 @@ const CSS = `
   .k-wall{background:linear-gradient(180deg,#e3c3b0,#bf9781);}
   .k-crypt{background:linear-gradient(180deg,#ddd0c0,#b4a08c);}
   .k-crystal{background:linear-gradient(180deg,#cbd8c4,#9db195);}
+  .k-glass{background:linear-gradient(180deg,#c9d6e2,#93a8bd);}
   .k-link{background:linear-gradient(180deg,#bcd0e6,#8aa7c6);}
   .k-amenity{background:linear-gradient(180deg,#b9b6ae,#8d8b84);}
   /* ── Confidence: PATTERN, never hue. An approximate placement is hatched; a confirmed
