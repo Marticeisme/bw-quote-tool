@@ -205,6 +205,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .photo-prices th{font-size:7pt;padding:3px 6px}
   .photo-prices td{padding:3px 6px;font-size:8pt}
 
+  /* The Section 4 comparison table is four columns wide; inside a 3.6in print
+     column it clipped at the column boundary (Scattering column lost entirely) —
+     the screen rules force min-width:500px and nowrap headers. Undo both for
+     print and let every cell wrap, so the table fits the column it lands in.
+     (column-span:all was tried first; the pre-spanner balancing across the
+     page break stranded a near-empty page 4.) */
+  .compare-table{overflow:visible;margin-bottom:6px;break-inside:avoid}
+  .compare-table table{min-width:0;table-layout:fixed}
+  .compare-table th{font-size:6.5pt;padding:3px 4px;white-space:normal}
+  .compare-table td{padding:2.5px 4px;font-size:7pt;line-height:1.25}
+
   /* -- footer -------------------------------------------------------------- */
   .doc-footer{padding:9px 0 7px}
   .doc-footer .footer-logo{height:14px;margin-bottom:5px}

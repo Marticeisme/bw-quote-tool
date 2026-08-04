@@ -18,6 +18,14 @@
 //               edge: left edges align, or right edges align, or centres align.
 //               Catches the left-header/right-number mismatch above.
 //
+// Plus one assertion per TABLE (2026-08-04, urn-placement Section 4 defect):
+//   C. WIDTH  — the table's rendered box must fit inside its parent's box.
+//               A table wider than its container is clipped at the print-column
+//               boundary (the screen wrapper scrolls; paper doesn't). The
+//               urn-placement comparison table lost its whole Scattering column
+//               this way while A and B still passed, because the grid itself
+//               was internally consistent — just cut off.
+//
 // Measured at Letter print width in print media, because that is the artifact
 // families are handed. Run from repo root:
 //     node scripts/verify_table_alignment.mjs            (all pages)
@@ -71,6 +79,15 @@ const AUDIT = (tol) => {
     if (!rows.length) return;
     const spans = rows.some(r => Array.from(r.cells).some(c => c.colSpan > 1 || c.rowSpan > 1));
     const caption = (table.caption && table.caption.textContent.trim()) || '';
+
+    // C. WIDTH — runs for every table, including ones the grid checks skip.
+    const parent = table.parentElement;
+    if (parent) {
+      const tw = table.getBoundingClientRect().width;
+      const pw = parent.getBoundingClientRect().width;
+      if (tw > pw + tol) out.push({ ti, caption, width: { table: +tw.toFixed(1), box: +pw.toFixed(1) } });
+    }
+
     if (spans) { out.push({ ti, caption, span: true }); return; }
 
     // The header row is the first row that is all <th>. A table whose <th> live in
@@ -137,7 +154,7 @@ for (const p of pages) {
 
   tables += nTables;
   cellsChecked += nCells;
-  const bad = rows.filter(r => r.fail || r.span || r.ragged);
+  const bad = rows.filter(r => r.fail || r.span || r.ragged || r.width);
   const noHdr = rows.filter(r => r.noHeader).length;
   skipped += noHdr;
   failures += bad.length;
@@ -145,6 +162,7 @@ for (const p of pages) {
   console.log(`  ${tag}  ${p.padEnd(38)} ${String(nTables).padStart(2)} tables, ${String(nCells).padStart(4)} cells` +
               (noHdr ? `, ${noHdr} without a column-header row (skipped)` : ''));
   for (const b of bad) {
+    if (b.width) { console.log(`        WIDTH  table ${b.ti} "${b.caption}" renders ${b.width.table}px wide in a ${b.width.box}px box — clipped in print`); report.push(b); continue; }
     if (b.span) { console.log(`        SPAN   table ${b.ti} "${b.caption}" uses colspan/rowspan — grid check not applicable`); continue; }
     if (b.ragged) { console.log(`        RAGGED table ${b.ti} "${b.caption}" row ${b.row}: ${b.ragged} cells`); continue; }
     console.log(`        ${b.fail}  table ${b.ti} "${b.caption}" row ${b.row} col ${b.col}` +
