@@ -19,6 +19,19 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 PUSH PRE-AUTHORIZED (operator, 2026-08-04): "push everything live once its
+done."** Fires after Track A is audited+merged and the full contract is green on
+final main. Push protocol: syntax check → fetch and check behind-count (the
+casket-compare chip session is running against this same repo out-of-band —
+integrate any out-of-band push by MERGE, never rebase) → push → live verification
+(reel pages get PIXEL readback on the live URLs behind real gzip, maps get
+served-byte checks). The reels ship LIVE BUT UNLINKED — the operator's
+eyeball-before-linking gate on family-facing surfaces still stands (COM delisted-card
+precedent); linking is a separate later word. Also queued into A mid-flight
+(operator-approved): 3dgsconverter SOR/density cleanup pass on the TG model with
+before/after captures, reproducible command manifest; blanket-apply to other scenes
+only if their eyeballs show the same noise class.
+
 **s14 Track D MERGED (director-audited, `c3b8649`); merged main GREEN: 2149 passed,
 0 failed across 36 suites** (director's own run; reconciles 2092 + 57 new
 test-pcm-catalog asserts, 165→222). PCM catalog now has casket-catalog parity:
