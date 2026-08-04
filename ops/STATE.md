@@ -1,5 +1,79 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-14 — OPENED 2026-08-03** (director: Fable session; tracks:
+Opus per operator). Operator brief: three new walkthrough videos shot this morning
+(TGMP 12:06 → ELM 12:17 → COM 12:27; 1080p30 HEVC, 8–14 min each, one continuous
+shoot) → three photoreal splat reels (COLMAP+Brush on the 3090, s10 pipeline) + TWO NEW
+MAPS: Terrace Garden Mausoleum (links TGMP_Map) and Eternal Light Mausoleum (links
+ECL_NicheMap — the columbarium is INSIDE the ELM building; the memorial path is inside
+the TG area; MIS overview's "Pool" is GONE, replaced by TGMP). **Operator rulings at
+boot:** one reel per video (3 total); maps geometry-first, NO invented prices/statuses
+("ask us" pattern), MIS exports later; reels committed but NOT LINKED family-facing
+until the operator eyeballs each (COM's delisted card stays delisted); NO push
+pre-authorization. Boot audit: tree clean, main==origin/main, 8 blocks 0 errors, full
+suite run in progress at spawn-decision time. Three tracks in worktrees, disjoint
+ownership, GPU serial inside Track A: A `s14/photoreels` (../bw-quote-tool-s14a),
+B `s14/tg-maus-map` (../bw-quote-tool-s14b), C `s14/elm-map` (../bw-quote-tool-s14c).
+Merge order B → C → A. Repo-growth flag: ~90 MB of splats expected — biggest delta
+ever; explicit item at the push gate. The three-building MIS overview exists only as
+the operator's chat screenshot — director transcribed it into the B/C track briefs.
+See `sprints/sprint-14/SPRINT.md`.
+
+**s14 Track C MERGED (director-audited, `d08896e`); merged main GREEN: 2092 passed,
+0 failed across 36 suites** (director's own run; reconciles 2090 + 1 TG page + 1 ELM
+page — test-family-register auto-discovers new family-facing pages, 160→162; post-B
+main had run 2091/36). All three map gates + verify_ecl_map re-run green on merged
+bytes by the director. C shipped `MAPS/ELM_CryptMap.html` (3D room view + plan +
+sections; 28 named sections, 25 selectable, all "Ask us"; kind coded by hue, placement
+CONFIDENCE coded by hatch, statuses reserved for the later data load) from
+`elm-building-data.mjs` → `build_elm_map.mjs` → `verify_elm_map.mjs` (24 CRLF-tolerant
+sabotages; director re-proved his own: inventing bank 1E → 6 named FAILs incl.
+"invented: 1E", green on restore). Load-bearing C findings: **CRYSTAL NICHES ARE A
+SEPARATE FEATURE, NOT THE ECL ROOM** (footage-established: ECL = the free-standing
+painted island cabinet near the entry, matches ecl-niche-data exactly; crystal niches =
+dark-wood bronze-mullioned keepsake banks along the central corridors); **ELN-W-1
+transcribed verbatim and flagged unverified** (no signage in the footage; normalising
+it to ELM would invent a reference the office can't find — sabotage prevents silent
+normalization); **NO 1E in the Garden Mausoleum run** (1A-1D,1F-1I as drawn — the gap
+is gate-anchored against well-meaning tidying); columbarium link-zone placement is
+LOW confidence (drawing doesn't mark it; card says so). ECL anchor added (5-line
+generator diff), ECL anchors unmoved (21 avail/$536,710). C's gate-quality scar worth
+promoting: its sabotage needles used literal \n against CRLF sources — 6 of 24
+sabotages would have silently no-opped in a fresh clone; caught ONLY because runSet
+treats a no-op mutation as FAIL. That rule — **a sabotage that changes nothing must
+itself fail** — belongs in the guidelines. DIRECTOR DEVIATION (own artifact, logged):
+a zero-byte `scripts/elm-building-data.mjs` briefly existed untracked in the MAIN tree
+— the director's first sabotage attempt used relative paths with .NET file APIs, which
+resolve against the process cwd, not the shell cd; it blocked the C merge until
+inspected (hash e69de29 = empty blob, no work lost) and deleted. Lesson: absolute
+paths ALWAYS with [System.IO.File] calls. OPEN operator eyes from C: columbarium
+placement south-end guess; ELN-W-1 reading; verify_elm_map (like every map gate) is
+deliberately NOT in the pre-git-guard hook — wiring all seven is a separate ruling.
+
+**s14 Track B MERGED (director-audited, `023642c`):** `MAPS/TG_Mausoleum_Map.html`
+generated from `scripts/tg-maus-data.mjs` → `build_tg_maus_map.mjs` → gate
+`verify_tg_maus_map.mjs` (84 asserts; director re-ran it, verify_tgmp_map and his OWN
+price-a-bank sabotage — red exit 1, green after restore; the sabotage's red fired on
+the byte-determinism assert, which is correct when data changes without a rebuild).
+Geometry-first held rigorously: 29 selectable positions all `price:null/status:null`,
+tandem bank's "~48" count NOT modeled (explicit positionsNote instead — inventing it
+would be inventing inventory), east wing's 28 upper bound recorded as approximate
+(`EAST_BOUND_APPROX`), water feature drawn but deliberately unnamed (MIS label
+unreadable). Cross-links: 3 links out to TGMP_Map (header/courtyard-zone/footer) + one
+5-line reciprocal anchor on TGMP's generator, its gate re-run green. Track B scars
+worth keeping: CRLF emission caught from git's normalization warning (LF page would
+have broken determinism on the NEXT clean checkout); Playwright's bundled ffmpeg can't
+demux these HEVC phone clips — frames came out of Edge via Playwright, CPU-only.
+Footage PII stayed OUT of the repo (frames/contact sheets in the session scratchpad;
+gate asserts the page embeds no image). Director render-eyeballed overview + card.
+Suite 2089/36 in worktree = documented wmp-map-absent variance (B proved the cause by
+running the suite member solo and reading its NOTE line). OPEN operator rulings from
+B: (1) the OSSUARY — MIS draws it, s09 deleted it from the TGMP map on inference, the
+quote tool sells Terrace Ossuary scattering; B ships it as an inert labeled structure,
+"not priced here"; (2) east wing true bank count (~28 unconfirmed) + tandem crypt
+count (unsourced); (3) boarded plywood panel ≈6:40 in the footage suggests
+construction on the NE face — not modeled.
+
 **Sprint-13 — PUSHED AND LIVE-VERIFIED 2026-08-03** (operator: "push it all live";
 `67e5b78..9879c94`; wire checks: all five new guide pages 200, guides.html carries all
 5 new cards, live Terrace Garden PDF BYTE-IDENTICAL to the local build, 4pp). Post-push
