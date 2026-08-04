@@ -905,6 +905,11 @@ const HTML = `<!DOCTYPE html>
     <h1>Eternal Light Columbarium — Glass-Front Niche Map</h1>
     <p>Washington Memorial Park &nbsp;·&nbsp; ECL-1 &nbsp;·&nbsp; proportions estimated from photographs</p>
   </div>
+  <!-- The reciprocal half of the ELM link pair. This cabinet stands inside the Eternal
+       Light Mausoleum, whose building map (MAPS/ELM_CryptMap.html) links here; without
+       this anchor the pair is one-way and a counselor who arrives from a deep link has no
+       way back to the building. scripts/verify_elm_map.mjs asserts BOTH directions. -->
+  <a class="back-btn no-print" href="ELM_CryptMap.html">&larr; Eternal Light Mausoleum</a>
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
