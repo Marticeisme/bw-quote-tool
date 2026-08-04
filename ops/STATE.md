@@ -64,8 +64,23 @@ Ghostscript flate streams silently measured as gzip noise (inflateSync throw →
 return raw) — now Z_SYNC_FLUSH fallback + exit 2 if undecodable; no assertion
 relaxed. H flagged pre-existing: urn-placement §4 print table drops its 4th column
 (chip task_f1bfb521 pending). Post-H main: 8/0, **2285/36**, per-suite lines
-byte-identical to pre-sweep (H's diff moves no suite). Track F (relist) is the last
-one in flight; push fires when it's in and green.
+byte-identical to pre-sweep (H's diff moves no suite). **F MERGED (director-audited: his own
+triple-red sabotage — swapping COM's card href to TG tripped "TG is delisted" +
+"COM found 0" + category placement in ONE mutation, exit 1, 184/0 restored; guides
+render eyeballed, pill 10 / both cards honest):** COM+ELM reels are FAMILY-FACING
+(guides.html cards restored/added with descriptions rewritten against the ACTUAL
+culled paths — no chapel/stained-glass promise, "the columbarium has its own niche
+map"; COM/ELM map header .walk-btn buttons; Maps pill 8→10, cards 43→45); TG stays
+delisted and BYTE-IDENTICAL (md5-proven by F). Listing is per-scene `listed` +
+`mapPage` in walkthrough-scenes.mjs — mapPage deliberately ≠ sibling.href (ELM's
+pricing sibling is the ECL map but its button home is ELM_CryptMap; the inferred
+rule failed honest-red on ELM). Register suite 172→184 with positive
+exactly-one-link asserts for listed scenes; F ran all THREE slow gates twice
+(comment fixes in between) + fast suites + 7 sabotages; F also corrected the ELM
+walkthrough page's own note (columbarium room is NOT on the path). verify_elm_map
+sabotage set corrected 24→22 pre-existing, now 25 with F's three. Post-F main: 8/0,
+**2297/36** (director's own run; 2285 + 12). All four post-close tracks are in;
+push protocol executing (COM slow gate re-running on merged main first).
 
 **Sprint-14 — PUSHED AND LIVE-VERIFIED 2026-08-04** (pre-authorized "push everything
 live once its done"; `2251927..85ba8ff`, 22 commits incl. the chip session's casket
