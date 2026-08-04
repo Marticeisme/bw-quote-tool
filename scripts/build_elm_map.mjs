@@ -24,10 +24,14 @@ import {
   HAS_INVENTORY, ASK_LABEL, isSelectable, positionsText,
 } from './elm-building-data.mjs';
 import { movementRuntime } from './map-movement.mjs';
+import { scene } from './walkthrough-scenes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'ELM_CryptMap.html');
 const ECL_HREF = 'ECL_NicheMap.html';
+// The reel's filename comes from the scene table, not from a second copy of the string —
+// both pages sit in MAPS/, so the sibling link is the bare basename.
+const WALK_HREF = path.basename(scene('ELM').page);
 
 // Pixels per schematic foot. 4 gives the 224 ft envelope an 896 px model, wide enough for
 // a bank label to sit inside its own footprint on the plan tab; the camera's fit-zoom
@@ -219,6 +223,14 @@ const CSS = `
   .ecl-btn{flex-shrink:0;background:rgba(200,169,110,.2);border:1px solid var(--gold);color:var(--gold);padding:9px 15px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
   .ecl-btn:hover{background:rgba(200,169,110,.36);color:var(--cream);}
   .ecl-btn:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+
+  /* ── The photoreal walkthrough link, added 2026-08-04 with the relisting. Same shape as
+     .ecl-btn (the columbarium button is the model) but a quieter fill, so the header reads
+     as one primary destination — the niche map, which is where pricing lives — plus a
+     secondary "look at the building" offer, rather than two competing calls to action. ── */
+  .walk-btn{flex-shrink:0;background:rgba(200,169,110,.12);border:1px solid var(--gb);color:var(--gold-light);padding:9px 15px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;text-decoration:none;}
+  .walk-btn:hover{background:rgba(200,169,110,.28);color:var(--cream);}
+  .walk-btn:focus-visible{outline:2px solid #fff;outline-offset:2px;}
   .eclbar{max-width:1060px;margin:10px auto 0;background:rgba(200,169,110,.09);border:1px solid var(--gb);border-radius:6px;padding:9px 13px;font-size:11.5px;color:var(--gold-light);text-align:center;}
   .eclbar a{color:var(--gold);font-weight:700;text-decoration:underline;}
 
@@ -361,7 +373,7 @@ const CSS = `
     .hlogo-svg{height:26px;}
     .htxt h1{font-size:14px;}
     .htxt p{font-size:9px;}
-    .print-btn,.back-btn,.ecl-btn{padding:6px 11px;font-size:11px;}
+    .print-btn,.back-btn,.ecl-btn,.walk-btn{padding:6px 11px;font-size:11px;}
     .spacer{margin-left:0;}
     .main{padding:8px;}
     .tab{padding:9px 11px;font-size:10px;}
@@ -741,6 +753,12 @@ const HTML = `<!DOCTYPE html>
     <p>Washington Memorial Park &nbsp;·&nbsp; layout schematic, not to scale</p>
   </div>
   <a class="ecl-btn no-print spacer" href="${ECL_HREF}">Columbarium niche map &rarr;</a>
+  <!-- WALKTHROUGH LISTED 2026-08-04. Operator, having watched the sprint-14 reels: "the
+       reels look good link the com and elm ones". The decision is NOT recorded here — it
+       lives once, as the "listed" flag in scripts/walkthrough-scenes.mjs, and this
+       anchor's presence is asserted from that flag by tests/test-family-register.mjs, by
+       scripts/verify_walkthrough.mjs and by this map's own gate. -->
+  <a class="walk-btn no-print" href="${WALK_HREF}">Photoreal walkthrough</a>
   <a class="back-btn no-print" href="../">&larr; Quote Tool</a>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>

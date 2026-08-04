@@ -1,6 +1,14 @@
 /**
  * Verifies one gaussian-splat walkthrough page — MAPS/<SCENE>_Walkthrough.html — actually
- * renders, actually responds to input, and is actually still delisted.
+ * renders, actually responds to input, and is linked exactly as the operator decided.
+ *
+ * That last part is PER SCENE since 2026-08-04, and derives from `listed` in
+ * scripts/walkthrough-scenes.mjs, which is the only copy of the decision. A delisted reel
+ * (Terrace Garden) must have ZERO inbound links from any family-facing surface; a listed
+ * one (Chapel of Memory, Eternal Light) must have exactly one guides.html card link AND
+ * exactly one .walk-btn header link on its sibling map. Both directions fail loudly: a
+ * relisted reel that quietly loses its card in a rebuild is as much a regression as a
+ * delisted reel that gains a link. Direct URL access is unaffected either way.
  *
  * It is deliberately not a DOM-only check. A splat page can have perfect markup and draw a
  * black rectangle, so this reads real framebuffer pixels: it forces `preserveDrawingBuffer`
@@ -529,27 +537,62 @@ const describe = (name, s) =>
   // walkthrough page to explain why the card and the button are gone and how to put them
   // back — and a bare-string test flagged exactly one of those comments on its first run,
   // which is the same mistake the register assert exists to avoid. So: parse hrefs.
-  head('Nothing links a family to any walkthrough');
+  head(S.listed
+    ? 'A family can reach this walkthrough, from both places'
+    : 'Nothing links a family to this walkthrough');
   const WALK_PAGES = SCENE_KEYS.map((k) => path.basename(SCENES[k].page));
   const linksToWalk = (html) => [...html.matchAll(/<a\b[^>]*\bhref="([^"]*)"/gi)]
     .map((m) => m[1]).filter((h) => WALK_PAGES.some((p) => h.includes(p)));
+  // Links to ONE named reel. `listed` is per scene, so a whole-feature scan cannot answer
+  // "is THIS one linked" — and "exactly one COM card" must not be satisfied by ELM's.
+  const linksToPage = (html, page) => [...html.matchAll(/<a\b[^>]*\bhref="([^"]*)"/gi)]
+    .map((m) => m[1]).filter((h) => path.basename(h.split('#')[0].split('?')[0]) === page);
   const surfaces = [
     ...fs.readdirSync(path.join(ROOT, 'MAPS')).filter((f) => f.endsWith('.html')).map((f) => 'MAPS/' + f),
     ...fs.readdirSync(ROOT).filter((f) => /-guide\.html$/.test(f)),
     'guides.html', 'index.html', 'dashboard.html',
   ].filter((f) => fs.existsSync(path.join(ROOT, f)) && !WALK_PAGES.includes(path.basename(f)));
+  const PAGE_BASE = path.basename(S.page);
   const linked = [];
   for (const f of surfaces) {
-    const hrefs = linksToWalk(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+    const hrefs = linksToPage(fs.readFileSync(path.join(ROOT, f), 'utf8'), PAGE_BASE);
     if (hrefs.length) linked.push(`${f} -> ${hrefs.join(', ')}`);
   }
-  if (!linked.length) ok(`no walkthrough link on any of ${surfaces.length} surfaces (all three reels delisted)`);
-  else fail(`a family-facing surface links to a delisted walkthrough: ${linked.join('; ')}`);
-  // …and the scanner has to actually catch a link, or the check above is decorative.
-  if (linksToWalk(`<a class="guide-cta" href="MAPS/${path.basename(S.page)}">Open →</a>`).length === 1) {
+  if (S.listed) {
+    // POSITIVE: the operator relisted this reel, so its two links must be there. A reel
+    // that loses its card in a rebuild fails here exactly as a delisted one that gains a
+    // link does — the flag in scripts/walkthrough-scenes.mjs decides which way it reads.
+    const cards = linksToPage(fs.readFileSync(path.join(ROOT, 'guides.html'), 'utf8'), PAGE_BASE);
+    if (cards.length === 1) ok(`guides.html carries exactly one card link to ${PAGE_BASE}`);
+    else fail(`guides.html carries ${cards.length} card links to ${PAGE_BASE} — expected exactly 1 (this reel is listed)`);
+    // S.mapPage, NOT S.sibling.href — for ELM the sibling is the columbarium's niche map,
+    // a different level of the building from the corridors the camera walked.
+    const mapRel = S.mapPage;
+    const sib = fs.existsSync(path.join(ROOT, mapRel)) ? fs.readFileSync(path.join(ROOT, mapRel), 'utf8') : '';
+    const hdr = linksToPage(sib, PAGE_BASE);
+    if (hdr.length === 1 && /class="walk-btn/.test(sib)) ok(`${mapRel} carries exactly one .walk-btn header link to ${PAGE_BASE}`);
+    else fail(`${mapRel} carries ${hdr.length} header links to ${PAGE_BASE} (walk-btn present: ${/class="walk-btn/.test(sib)}) — expected exactly 1 (this reel is listed)`);
+    ok(`${linked.length} surface(s) of ${surfaces.length} link to ${PAGE_BASE}: ${linked.join('; ')}`);
+  } else {
+    if (!linked.length) ok(`no link to ${PAGE_BASE} on any of ${surfaces.length} surfaces (this reel is delisted)`);
+    else fail(`a family-facing surface links to a DELISTED walkthrough: ${linked.join('; ')}`);
+  }
+  // …and the scanner has to actually catch a link, or the checks above are decorative.
+  if (linksToWalk(`<a class="guide-cta" href="MAPS/${PAGE_BASE}">Open →</a>`).length === 1
+    && linksToPage(`<a class="guide-cta" href="MAPS/${PAGE_BASE}">Open →</a>`, PAGE_BASE).length === 1) {
     ok('sabotage: an injected card link to this reel IS caught');
   } else {
     fail('sabotage: an injected card link to this reel was NOT caught — the scanner is broken');
+  }
+  // …and the per-page scanner must not answer for a DIFFERENT reel, or a listed scene's
+  // "exactly one" could be satisfied by its neighbour's card.
+  {
+    const other = WALK_PAGES.find((p) => p !== PAGE_BASE);
+    if (other && linksToPage(`<a href="MAPS/${other}">Open →</a>`, PAGE_BASE).length === 0) {
+      ok(`sabotage: a link to ${other} is not counted as a link to ${PAGE_BASE}`);
+    } else {
+      fail('sabotage: the per-page scanner confuses one reel for another');
+    }
   }
 
   // The gzip path is the one production uses, but the uncompressed path is what anyone

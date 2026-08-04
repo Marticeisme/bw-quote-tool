@@ -7,10 +7,34 @@
  * scripts/build_walkthrough_path.mjs and tests/test-walkthrough-path.mjs. A scene that ships
  * is a scene all four of those see.
  *
- * DELISTED BY DESIGN. None of these pages is linked from any family-facing surface. The
- * operator looks at a reel before it is offered to a family; linking is a separate, later,
- * deliberate act. tests/test-family-register.mjs asserts the absence of every inbound link,
- * and each gate re-asserts it. Direct URL access is intentionally unaffected.
+ * LISTING IS PER SCENE, AND THIS FLAG IS THE ONLY COPY OF THE DECISION.
+ *
+ * Every reel ships delisted: the operator looks at it before it is offered to a family, and
+ * linking is a separate, later, deliberate act. `listed` records whether that act has
+ * happened for a given scene. Operator, 2026-08-04, having watched all three: "the reels
+ * look good link the com and elm ones" — so COM and ELM are `listed: true` and Terrace
+ * Garden stays `listed: false`, because its outdoor stretches are not showable and a
+ * re-shoot is pending.
+ *
+ * The flag is load-bearing in BOTH directions, and every consumer derives from it rather
+ * than keeping a second copy:
+ *
+ *   listed: false  ZERO inbound links from any family-facing surface. Direct URL access is
+ *                  deliberately still fine — a link is a recommendation, not access.
+ *   listed: true   POSITIVE links, asserted present: exactly one guides.html card and
+ *                  exactly one header button on `mapPage`. A listed reel that silently
+ *                  loses its links is as much a failure as a delisted reel that gains one,
+ *                  and goes red the same way.
+ *
+ * `mapPage` is NOT `sibling.href`. The sibling is where the reel sends a family for pricing,
+ * and for Eternal Light that is the COLUMBARIUM's niche map — a different building level
+ * from the one the camera walked. `mapPage` is the map OF THE PLACE IN THE REEL, which is
+ * where a header button back to the reel belongs. They coincide for the Chapel of Memory
+ * and would have made an inferred rule look correct on the one scene that tested it.
+ *
+ * Asserted in tests/test-family-register.mjs (milliseconds) and re-asserted in
+ * scripts/verify_walkthrough.mjs (tens of minutes) on purpose — the fast one is what stands
+ * between an edit and a wrongly-listed page.
  */
 export const SCENES = {
   COM: {
@@ -21,8 +45,12 @@ export const SCENES = {
     title: 'Chapel of Memory Mausoleum',
     subtitle: 'Photographic preview &middot; Washington Memorial Park',
     docTitle: 'Bonney Watson — Chapel of Memory Mausoleum: Photographic Preview',
+    // Relisted 2026-08-04 on the operator's word (see the header note).
+    listed: true,
     // What the note calls the place, in a sentence.
     what: 'the inside of the building',
+    // The map of the place the camera walked; carries the header button while listed.
+    mapPage: 'MAPS/COM_CryptMap.html',
     sibling: { href: 'COM_CryptMap.html', label: 'Crypt &amp; Niche Map', text: 'Crypt &amp; Niche Map' },
     // What the sibling map is called in prose, and what it is good for.
     siblingProse: 'crypt and niche availability, locations and pricing',
@@ -41,7 +69,12 @@ export const SCENES = {
     title: 'Terrace Garden Mausoleum &amp; Memorial Path',
     subtitle: 'Photographic preview &middot; Washington Memorial Park',
     docTitle: 'Bonney Watson — Terrace Garden Mausoleum & Memorial Path: Photographic Preview',
+    // STILL DELISTED, 2026-08-04. The operator relisted COM and ELM and deliberately did
+    // not relist this one: the outdoor stretches are not showable and a re-shoot is
+    // pending. Flip this to true only on his word, never to make a gate green.
+    listed: false,
     what: 'the mausoleum and the memorial path beside it',
+    mapPage: 'MAPS/TGMP_Map.html',
     sibling: { href: 'TGMP_Map.html', label: 'Terrace Garden Map', text: 'Terrace Garden Map' },
     siblingProse: 'niche and memorial availability, locations and pricing',
     source: 'Terrace Garden Memorial Path walkthrough, 2026-08-03 12:06',
@@ -57,7 +90,18 @@ export const SCENES = {
     title: 'Eternal Light Mausoleum &amp; Columbarium',
     subtitle: 'Photographic preview &middot; Washington Memorial Park',
     docTitle: 'Bonney Watson — Eternal Light Mausoleum & Columbarium: Photographic Preview',
-    what: 'the mausoleum and the columbarium room inside it',
+    // Relisted 2026-08-04 on the operator's word (see the header note).
+    listed: true,
+    // CORRECTED 2026-08-04 with the relisting. This said "the mausoleum and the columbarium
+    // room inside it", which the reel does not show: after culling, the filmed path is four
+    // stops (06-09), all of them marble crypt-front corridor inside the mausoleum. The
+    // columbarium is a promise this page cannot keep, so it is described only as the place
+    // the sibling niche map covers, below.
+    what: 'the crypt corridors inside the building',
+    // NOT the sibling: the reel walks the MAUSOLEUM's crypt corridors, so the button back
+    // to it belongs on the mausoleum's own map. The sibling below is the columbarium's
+    // niche map, which is where the pricing for the room next door lives.
+    mapPage: 'MAPS/ELM_CryptMap.html',
     sibling: { href: 'ECL_NicheMap.html', label: 'Columbarium Niche Map', text: 'Columbarium Niche Map' },
     siblingProse: 'niche availability, locations and pricing',
     source: 'Eternal Light Mausoleum walkthrough, 2026-08-03 12:17',

@@ -18,6 +18,8 @@
  *      prints the numbers — three of them do; the other twenty-two say so.
  *   4. No dimensions. The coordinates are schematic, not surveyed.
  *   5. BOTH link directions between this map and the columbarium's own map.
+ *   6. The photoreal walkthrough button matches `listed` in scripts/walkthrough-scenes.mjs
+ *      — present exactly once while the reel is listed, absent entirely while it is not.
  *
  * Exit 1 on any failure.
  */
@@ -31,6 +33,7 @@ import {
 } from './elm-building-data.mjs';
 import { MOVEMENT_TOKENS } from './map-movement.mjs';
 import { assertFamilyRegister } from './_no_mis_assert.mjs';
+import { scene } from './walkthrough-scenes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/ELM_CryptMap.html';
@@ -287,6 +290,30 @@ console.log('\nThe columbarium link, in both directions');
   ck(fs.existsSync(ABS), `${REL} exists, so neither link is a 404`);
 }
 
+// ── 8b. The photoreal walkthrough button ──────────────────────────────────────
+// Added 2026-08-04 with the relisting. Operator, having watched the sprint-14 reels: "the
+// reels look good link the com and elm ones". The listing decision is NOT duplicated here:
+// it lives once as `listed` in scripts/walkthrough-scenes.mjs and this section reads it, so
+// a future de-listing flips this gate with no edit and cannot leave a stale button behind.
+console.log('\nThe photoreal walkthrough link');
+{
+  const S = scene('ELM');
+  const page = path.basename(S.page);
+  const hrefs = [...src.matchAll(/<a\b[^>]*\bhref="([^"]*)"/gi)]
+    .map((m) => m[1]).filter((h) => path.basename(h.split('#')[0].split('?')[0]) === page);
+  if (S.listed) {
+    ck(hrefs.length === 1, `exactly one header link to ${page} (found ${hrefs.length})`);
+    ck(new RegExp(`<a class="walk-btn no-print" href="${page.replace('.', '\\.')}">`).test(src),
+      'and it is a .walk-btn in the header, matching the columbarium button’s shape');
+    ck(/\.walk-btn\{[^}]*text-decoration:none;\}/.test(src), '.walk-btn is actually styled, not an unstyled blue link');
+    ck(/\.print-btn,\.back-btn,\.ecl-btn,\.walk-btn\{padding:6px 11px/.test(src),
+      'and it shrinks with the rest of the header under 640px, instead of wrapping the bar');
+    ck(fs.existsSync(path.join(ROOT, S.page)), `${S.page} exists, so the button is not a 404`);
+  } else {
+    ck(hrefs.length === 0, `the ELM reel is delisted: no link to ${page} on this page (found ${hrefs.length})`);
+  }
+}
+
 // ── 9. House rules ────────────────────────────────────────────────────────────
 console.log('\nHouse rules');
 {
@@ -398,6 +425,15 @@ if (process.argv.includes('--sabotage')) {
       (s) => s.replace(/ {2}if \(!isSelectable\(s\)\) return '';\r?\n/, '')],
     ['the persistent columbarium button dropped from the header',
       (s) => s.replace(/ {2}<a class="ecl-btn no-print spacer" href="\$\{ECL_HREF\}">Columbarium niche map &rarr;<\/a>\r?\n/, '')],
+    // The relisted reel's button, in both failure directions: gone, and doubled. CRLF-safe
+    // like every needle here — a literal '\n' would match nothing and prove nothing.
+    ['the photoreal walkthrough button dropped from the header while the reel is still listed',
+      (s) => s.replace(/ {2}<a class="walk-btn no-print" href="\$\{WALK_HREF\}">Photoreal walkthrough<\/a>\r?\n/, '')],
+    ['a second walkthrough button added, so the header offers the same reel twice',
+      (s) => s.replace(/( {2}<a class="walk-btn no-print" href="\$\{WALK_HREF\}">Photoreal walkthrough<\/a>)(\r?\n)/,
+        '$1$2  <a class="walk-btn no-print" href="${WALK_HREF}">Walkthrough</a>$2')],
+    ['the walkthrough button left unstyled, so it renders as a bare browser link',
+      (s) => s.replace(/ {2}\.walk-btn\{flex-shrink:0;[^\n]*text-decoration:none;\}\r?\n/, '')],
     // The first `if (s.kind === 'link') {` in the file is the one inside hit(); a string
     // needle replaces only that occurrence, leaving the flat plan's link cell alone. That
     // is deliberate — it isolates the 3D link zone, which is the assertion under test.
