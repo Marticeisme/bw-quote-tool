@@ -41,9 +41,32 @@ const _streams = new Map();
 async function pageStreams(file) {
   if (_streams.has(file)) return _streams.get(file);
   const doc = await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false });
+  // A page stream that will not decode must ABORT, never fall through as its own
+  // compressed bytes. This used to be `catch { return raw; }`, and s14 Track H walked
+  // straight into what that hides: Ghostscript emits some page streams with the final
+  // flate block truncated, `zlib.inflateSync` throws "unexpected end of file", and the
+  // page was then measured as 11,873 bytes of gzip noise. Every check built on
+  // pageStreams — the full-bleed cream ground, the no-cover rule, the stranded-sheet
+  // gate — then reported a fabricated result about a page it had not read. It surfaced
+  // as `Veterans Guide.pdf: page 3 has no full-bleed cream ground` while the rasterised
+  // page was cream to all four corners (248,246,242 = #f8f6f2 at every edge pixel).
+  // This is the same failure the PDFArray note below records, one layer down.
+  //
+  // Z_SYNC_FLUSH decodes everything up to the truncation instead of rejecting the whole
+  // stream, which is what every real PDF consumer does. If even that yields nothing, the
+  // run stops: an unreadable page is an unverified page, and an unverified page must
+  // never be scored as a pass.
   const inflate = (s) => {
     const raw = Buffer.from(s && s.contents ? s.contents : []);
-    try { return zlib.inflateSync(raw); } catch { return raw; }
+    if (!raw.length) return raw;
+    try { return zlib.inflateSync(raw); } catch { /* fall through */ }
+    try {
+      const out = zlib.inflateSync(raw, { finishFlush: zlib.constants.Z_SYNC_FLUSH });
+      if (out.length) return out;
+    } catch { /* fall through */ }
+    console.error(`FATAL ${file}: a page content stream (${raw.length} bytes) could not be `
+      + 'decompressed. Refusing to measure it — every assertion below would be fiction.');
+    process.exit(2);
   };
   const out = doc.getPages().map((pg) => {
     const c = pg.node.Contents();

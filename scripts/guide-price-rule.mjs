@@ -34,6 +34,11 @@
 //     FOR REFERENCE" and it is one worked itemised example; suppressing the itemisation
 //     would leave a guide about a quote with no quote in it. This is a judgement call and
 //     is flagged in the track report rather than made silently.
+// VOICE (s14 Track H, docs/GUIDES_VOICE_DEBRIEF_2026-08.md): the invitation text below is
+// family-facing prose and obeys the operator's voice rules — no em dashes, no "inventory",
+// no "counselor". The two `&mdash;` that used to sit in `invite()` were the single largest
+// source of em dashes in the guides, because this generator writes them into nineteen
+// pages. Reword here, never in the generated block.
 import { pluckTag } from './_html-pluck.mjs';
 
 export const EXEMPT = new Set([
@@ -138,10 +143,10 @@ export function invite(cls, id, c) {
     : '';
   const label = withRange ? 'Generally' : c.kind === 'price' ? 'Pricing' : 'Additional charges';
   const body = withRange
-    ? 'Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess &mdash; call or email me and I will put an exact quote in writing for you, with no obligation.'
+    ? 'Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.'
     : c.kind === 'price'
     ? 'The prices here vary a good deal by size, location and the options you choose, so a single figure would be misleading. Call or email me and I will put an exact quote in writing for you, with no obligation.'
-    : 'Opening and closing, recording, endowment care and any inscription are charged in addition to the price of the space. They are straightforward, and they differ by location and by what you choose &mdash; call or email me and I will put the exact figures in writing for you, with no obligation.';
+    : 'Opening and closing, recording, endowment care and any inscription are charged in addition to the price of the space. They are straightforward, and they differ by location and by what you choose. Call or email me and I will put the exact figures in writing for you, with no obligation.';
   // The compact variant is for the case where the rule removed only the fee ROWS of a
   // table that had to survive. There the full paragraph costs more room than the rows it
   // replaced, which on urn-gardens-guide.html turned a deliberately ONE-page infographic
