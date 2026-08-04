@@ -24,8 +24,10 @@ import {
   SITE, GEO, WINGS, TANDEM, STRUCTURES, ROOFS, COURTYARD, CRYPT_KINDS,
   MIS_WEST_BANKS, MIS_EAST_BANKS, MIS_FAMILY_ROOMS, EAST_BOUND_APPROX,
   STATUS_STYLE, ASK, ASK_CHIP, allPositions, bankRef, sellable,
+  ELEV, CONF_LABEL, MATERIAL, blocks3d,
 } from './tg-maus-data.mjs';
 import { assertFamilyRegister, stripUnrendered } from './_no_mis_assert.mjs';
+import { MOVEMENT_TOKENS } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REL = 'MAPS/TG_Mausoleum_Map.html';
@@ -178,11 +180,12 @@ function parseButtons(cls) {
 }
 const planBtns = parseButtons('bk');
 const listBtns = parseButtons('lrow');
+const hitBtns = parseButtons('hit');
 
 console.log('\nThe page renders the dataset');
 {
   const want = allPositions().map((p) => p.ref).sort();
-  for (const [name, list] of [['site plan', planBtns], ['bank list', listBtns]]) {
+  for (const [name, list] of [['site plan', planBtns], ['bank list', listBtns], ['3D view', hitBtns]]) {
     const got = [...new Set(list.map((c) => c.ref))].sort();
     ck(got.length === want.length && got.every((r, i) => r === want[i]),
       `${name.padEnd(9)} renders all ${want.length} selectable positions (${got.length})`);
@@ -219,9 +222,9 @@ console.log('\nNo price, no status, no count is rendered');
   // Every selectable position's data-price and data-status are present AND empty. Present,
   // because a dropped attribute and an empty one must not look the same; empty, because
   // nothing is sourced.
-  const armed = [...planBtns, ...listBtns].filter((c) => c.price !== '' || c.status !== '');
-  ck(armed.length === 0, `all ${planBtns.length + listBtns.length} rendered positions carry empty price and status slots${armed.length ? ' — armed: ' + armed.slice(0, 5).map((c) => c.ref).join(', ') : ''}`);
-  const missing = [...planBtns, ...listBtns].filter((c) => c.price === null || c.status === null);
+  const armed = [...planBtns, ...listBtns, ...hitBtns].filter((c) => c.price !== '' || c.status !== '');
+  ck(armed.length === 0, `all ${planBtns.length + listBtns.length + hitBtns.length} rendered positions carry empty price and status slots${armed.length ? ' — armed: ' + armed.slice(0, 5).map((c) => c.ref).join(', ') : ''}`);
+  const missing = [...planBtns, ...listBtns, ...hitBtns].filter((c) => c.price === null || c.status === null);
   ck(missing.length === 0, `and none of them is MISSING those slots${missing.length ? ' — ' + missing.slice(0, 5).map((c) => c.ref).join(', ') : ''}`);
   // No status word may render, in any casing, anywhere a reader could see it. "not
   // priced" is deliberately NOT on this list: the ossuary line says "not priced here",
@@ -333,9 +336,280 @@ ck(/class="back-btn no-print" href="\.\.\/"/.test(src), '"← Quote Tool" back b
   ck(/'use strict'/.test(js), 'the page runtime is strict mode');
 }
 
+// ── 12. THE 3D VIEW ──────────────────────────────────────────────────────────
+// The 3D view must be a rendering of the SAME dataset the plan renders — not a second,
+// hand-tuned model that agrees with it today and drifts tomorrow. So the check is 1:1
+// and it is on the exact transform strings: a block whose height, position or footprint
+// was nudged in the page rather than in the dataset fails here.
+const PPF = 3.4;
+const gpx = (v) => +(v * PPF).toFixed(2);
+const BLOCKS = blocks3d();
+
+console.log('\nThe 3D view renders the same dataset, 1:1');
+{
+  const slabTops = [...src.matchAll(/<div class="face top ([^"]*)" data-blk="([^"]*)"/g)].map((m) => ({ cls: m[1], id: m[2] }));
+  const wantIds = BLOCKS.map((b) => b.id).sort();
+  const gotIds = slabTops.map((s) => s.id).sort();
+  ck(gotIds.length === wantIds.length && gotIds.every((v, i) => v === wantIds[i]),
+    `every one of the ${wantIds.length} blocks has exactly one 3D slab, and there are no extras (${gotIds.length})`);
+  const sides = (src.match(/<div class="face side /g) || []).length;
+  ck(sides === BLOCKS.length * 4, `every slab is closed on four sides (${sides} side faces, need ${BLOCKS.length * 4})`);
+
+  // THE 1:1 CHECK. Recompute each block's top-face transform here, from the dataset,
+  // and require the page to contain that exact string.
+  const wrong = BLOCKS.filter((b) => !src.includes(
+    `translate(-50%,-50%) translate3d(${gpx(b.x)}px,${gpx(-b.top)}px,${gpx(b.y)}px) rotateX(90deg)`));
+  ck(wrong.length === 0,
+    `every block stands at the dataset's own x, y and height${wrong.length ? ' — off: ' + wrong.slice(0, 5).map((b) => b.id).join(', ') : ` (${BLOCKS.length} transforms recomputed and matched)`}`);
+
+  // Selectable is selectable, inert is inert — in the 3D view too. A family room or the
+  // ossuary rendered as a button would look purchasable in the one view that looks real.
+  const wantSel = BLOCKS.filter((b) => b.sel).map((b) => b.ref).sort();
+  const gotSel = hitBtns.map((c) => c.ref).sort();
+  ck(gotSel.length === wantSel.length && gotSel.every((v, i) => v === wantSel[i]),
+    `exactly the ${wantSel.length} selectable positions are buttons in the 3D scene (${gotSel.length})`);
+  const inertIds = BLOCKS.filter((b) => !b.sel).map((b) => b.id);
+  const inertArmed = inertIds.filter((id) => new RegExp(`<(?:button|a)[^>]*data-blk="${id}"`).test(src));
+  ck(inertArmed.length === 0,
+    `the ${inertIds.length} inert blocks (family rooms, ossuary, entrance, walkways, the joining wall) are not selectable${inertArmed.length ? ' — armed: ' + inertArmed.join(', ') : ''}`);
+
+  // The number drawn on a bank's top face is the DATASET's number, not a re-derived one.
+  const drawn = [...src.matchAll(/data-blk="(TGM-[WE]-\d+)"[^>]*><span class="slabl slabn">(\d+)<\/span>/g)]
+    .map((m) => ({ ref: m[1], n: +m[2] }));
+  const banks = WINGS.flatMap((w) => w.banks);
+  ck(drawn.length === banks.length && drawn.every((d) => banks.find((b) => b.ref === d.ref)?.n === d.n),
+    `all ${banks.length} banks print their own number on the 3D slab (${drawn.length} matched)`);
+
+  // Tap targets: a hit must have a real footprint, or the block is unclickable however
+  // good it looks. Recomputed the same way as the slab.
+  const noTarget = BLOCKS.filter((b) => b.sel).filter((b) => !src.includes(
+    `translate(-50%,-50%) translate3d(${gpx(b.x)}px,${gpx(-b.top - 0.25)}px,${gpx(b.y)}px) rotateX(90deg)`));
+  ck(noTarget.length === 0,
+    `every selectable block carries a tap target floating just above its own top face${noTarget.length ? ' — ' + noTarget.map((b) => b.ref).join(', ') : ''}`);
+}
+
+console.log('\nThe courtyard is a link zone in the 3D view too');
+{
+  ck(/<a class="hit h-court" href="TGMP_Map\.html"/.test(src),
+    'the courtyard floor carries a click-through link zone inside the 3D scene');
+  ck((src.match(/<a class="hit h-court"/g) || []).length === 1, 'exactly one of them');
+  ck(/<span class="hitl"><b>Terrace Garden Memorial Path<\/b>/.test(src),
+    'and it is named, so a reader knows what the courtyard is before tapping it');
+  ck((src.match(/href="TGMP_Map\.html"/g) || []).length >= 4,
+    `the page now links to the path map from the header, the courtyard IN BOTH VIEWS and the footer (${(src.match(/href="TGMP_Map\.html"/g) || []).length} links)`);
+  const js = src.slice(src.lastIndexOf('<script>'));
+  ck(/if \(ev\.target\.closest\('a\[href\]'\)\) return;/.test(js),
+    'the card click handler never intercepts a link');
+  ck(/if \(tap && downHref\)/.test(js),
+    'and a TAP on it navigates despite the scene swallowing the click that follows a gesture');
+  // The courtyard floor plate itself must stay inert: it is scenery, the anchor on top of
+  // it is the affordance.
+  ck(/<div class="face court c-high" aria-hidden="true"/.test(src),
+    'the courtyard floor plate itself is scenery and is not announced as selectable');
+}
+
+console.log('\nHeights are sourced, marked, and never printed');
+{
+  ck(ELEV.plinth > 0 && COURTYARD.drop === ELEV.plinth,
+    `the courtyard floor sits one step below the walkway, as the footage shows (drop ${COURTYARD.drop})`);
+  const bad = BLOCKS.filter((b) => !(typeof b.h === 'number' && b.h > 0) || !(typeof b.top === 'number' && b.top >= b.h));
+  ck(bad.length === 0, `every block has a positive height and a top at or above it${bad.length ? ' — ' + bad.map((b) => b.id).join(', ') : ` (${BLOCKS.length} blocks)`}`);
+  ck(ROOFS.every((r) => r.top > ELEV.wingH),
+    'the covered walkway floats ABOVE the crypt banks — it is the building’s own overhanging eave, not a block on the ground');
+  const conf = BLOCKS.filter((b) => !['high', 'medium', 'low'].includes(b.conf));
+  ck(conf.length === 0, `every block records how sure we are of its height${conf.length ? ' — ' + conf.map((b) => b.id).join(', ') : ''}`);
+  // The three things the walk-through could not settle must SAY they could not.
+  ck(TANDEM.conf === 'low', 'the tandem bank is marked low — the footage never walks it end to end');
+  ck(STRUCTURES.find((s) => s.id === 'ossuary').conf === 'low',
+    'the ossuary is marked low — nothing on site identifies it, and its very existence is unresolved');
+  ck(STRUCTURES.find((s) => s.id === 'water').conf === 'low', 'and so is the water feature, which was never seen');
+  ck(ROOFS.every((r) => r.conf === 'high'), 'the overhanging walkway roof is marked high — it is the clearest thing in the footage');
+  // NOT ONE of these numbers may reach the reader. They feed a transform; a rendered
+  // figure would be a measurement nobody took.
+  const rendered = stripUnrendered(src);
+  // Word units are scanned over EVERYTHING a browser could show, attribute values
+  // included. The inch mark is scanned only over tag-stripped text: every attribute in
+  // this page ends in a double quote right after a number of pixels, so scanning `"`
+  // across the raw source flags `width:56.42px"` and reports four dimensions on a page
+  // that prints none — a gate that cries wolf gets waved off, which is worse than no gate.
+  const dims = [...rendered.matchAll(/\d+(?:\.\d+)?\s*(?:ft\b|feet\b|foot\b|inch(?:es)?\b|yards?\b)/gi)].map((m) => m[0]);
+  const textOnly = rendered.replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]*>/g, ' ');
+  const marks = [...textOnly.matchAll(/\d+(?:\.\d+)?\s*(?:&quot;|″|&#8243;)/g)].map((m) => m[0]);
+  ck(dims.length === 0 && marks.length === 0,
+    `no height or dimension is printed anywhere${dims.length || marks.length ? ' — ' + [...dims, ...marks].slice(0, 4).join(', ') : ''}`);
+  ck(/Heights are estimated from our own walk-through/.test(src),
+    'and the page says on its face that the heights are estimated, not measured');
+  ck(/nothing here is to scale/i.test(src), 'and that nothing in the 3D view is to scale');
+  for (const k of ['bank', 'roof']) {
+    ck(src.includes(MATERIAL[k]), `the page states what a ${k} is made of, in the words the footage supports`);
+  }
+  ck(Object.keys(CONF_LABEL).length === 3, 'the confidence vocabulary is defined in one place');
+}
+
+console.log('\nConfidence is a PATTERN, never a hue');
+{
+  // Hue is spent on what a block IS. A second code sharing that channel is how a reader
+  // learns to trust neither — the same rule the plan applies to status.
+  ck(/\.c-medium::after,\.c-low::after\{content:'';position:absolute/.test(src),
+    'the hatch is an overlay pseudo-element, so it cannot replace the kind hue');
+  ck(!/\.c-(?:medium|low)\{background-image:/.test(src),
+    'confidence never sets background-image directly (that would wipe the kind hue)');
+  ck(!/\.c-medium,\.c-low\{position:/.test(src),
+    'and never sets position on the block (that would drop the scene out of absolute layout)');
+  for (const c of ['high', 'medium', 'low']) {
+    const n = BLOCKS.filter((b) => b.conf === c).length;
+    if (n) ck(src.includes(` c-${c}`), `the ${c}-confidence class reaches the page (${n} blocks)`);
+  }
+  ck(/Hatched = height estimated/.test(src), 'the legend explains what the hatch means');
+  // Kind hue: one class per kind, and no kind may borrow a status class name.
+  for (const k of [...new Set(BLOCKS.map((b) => b.kind))]) {
+    ck(new RegExp(`\\.k-${k}\\{background`).test(src), `the ${k} hue is defined`);
+  }
+  ck(!/\bclass="[^"]*\b(?:st|k)-(?:available|occupied|reserved|sold|unpriced)\b/.test(src),
+    'no block carries a status class — nothing on this page has a status');
+}
+
+console.log('\nMovement runtime and the interaction scars');
+{
+  const js = src.slice(src.lastIndexOf('<script>'));
+  for (const [tok, what] of MOVEMENT_TOKENS) ck(js.indexOf(tok) > -1, what);
+  const keys = ['yaw', 'pitch', 'zoom', 'lift'];
+  const m = /var CAM_KEYS = (\[[^\]]*\])/.exec(js);
+  ck(!!m && JSON.stringify(JSON.parse(m[1])) === JSON.stringify(keys),
+    `an eased transition carries the WHOLE camera: ${keys.join(', ')}` + (m ? ` (page: ${m[1]})` : ' — CAM_KEYS not found'));
+  ck(/moved <= 8/.test(js), 'the tap detector keys off POINTER TRAVEL (moved <= 8)');
+  ck(/performance\.now\(\) - downAt < 700/.test(js), 'and off how long the finger was down (< 700 ms)');
+  ck(/suppressUntil = performance\.now\(\) \+ 450;/.test(js),
+    'the click-suppression window is a flat 450 ms and is not tied to camera motion');
+  ck(!/suppressUntil[^;]*(vYaw|vPitch|glideRaf|camT)/.test(js), 'nothing about the glide can extend it');
+  ck(/releaseGesture\(moved\);/.test(js), 'the release reads pointer travel and nothing else');
+  // DEFERRED CAPTURE. Capturing on pointerdown retargets the click to the scene and a tap
+  // on a bank never reaches its button — the bug the sibling niche pages shipped once.
+  ck(/if \(moved > 8\) capturePts\(\);/.test(js), 'pointer capture is DEFERRED until a real drag');
+  ck(!/pointerdown[\s\S]{0,400}setPointerCapture/.test(js), 'and is never taken on pointerdown itself');
+  // SYNTHETIC HOVER. A drag or a coasting camera slides blocks under a stationary pointer
+  // and the browser fires mouseover for each one.
+  ck(/if \(last \|\| glideRaf\) return;/.test(js), 'the hover card is frozen while dragging or coasting');
+  ck(/\.scene\.dragging \.hit:hover\{background:transparent!important/.test(src),
+    'and the hover highlight is frozen mid-drag in CSS too');
+}
+
+console.log('\nThe plan and the list are untouched by the 3D view');
+{
+  ck(/<div class="wview" id="view-plan">/.test(src) && /<div class="wview" id="view-banks">/.test(src),
+    'both flat views are still static HTML in the page');
+  ck(/<div class="view3d active" id="view-3d">/.test(src), 'and the 3D view is the tab that opens first');
+  ck(/\.no-print,\.tabs,\.card,\.toolbar,\.view3d,\.hint,\.modelnote,\.legend3d\{display:none!important/.test(src),
+    'the 3D view, its toolbar and its notes are all hidden in print — the plan and the list are the print path');
+  ck(/showView\('3d'\);/.test(src), 'the runtime opens on the 3D view');
+  const tabs = (src.match(/<button class="tab[^"]*" data-view="/g) || []).length;
+  ck(tabs === 3, `three tabs: 3D View, Site Plan, Crypt Banks (${tabs})`);
+}
+
 // ── ZERO INTERNAL REGISTER ───────────────────────────────────────────────────
 console.log('\nFamily-facing wording');
 assertFamilyRegister((c, m) => (c ? pass : fail)(m), 'TG_Mausoleum_Map.html', src);
+
+// ── Sabotage: every mutation below must make this gate exit 1 ────────────────
+// A gate that has never been made to fail is a gate nobody has tested. Each mutation is
+// applied to a source, the page is rebuilt, this gate is re-run as a child, and the
+// source is restored — including on a throw. The final line proves the tree is green
+// again, so a sabotage run cannot leave the repo dirty.
+//
+// EVERY multi-line needle matches with \r?\n. These sources are CRLF; a literal '\n'
+// silently matches nothing, and a mutation that does not apply proves nothing while
+// still looking like a test. runSet reports a no-op mutation as a FAIL.
+if (process.argv.includes('--sabotage')) {
+  const DATA = path.join(ROOT, 'scripts', 'tg-maus-data.mjs');
+  const BUILD = path.join(ROOT, 'scripts', 'build_tg_maus_map.mjs');
+  const child = (args) => execFileSync(process.execPath, args, { cwd: ROOT, stdio: 'pipe' });
+  const self = fileURLToPath(import.meta.url);
+  let sabFail = 0;
+
+  const runSet = (file, origSrc, list) => {
+    try {
+      for (const [label, mut] of list) {
+        const mutated = mut(origSrc);
+        if (mutated === origSrc) { console.log('  FAIL  mutation did not apply: ' + label); sabFail++; continue; }
+        fs.writeFileSync(file, mutated, 'utf8');
+        let code = 0;
+        try { child([BUILD]); child([self]); } catch (e) { code = e.status ?? 1; }
+        if (code === 1) pass(`${label} -> exit ${code}`);
+        else { sabFail++; console.log(`  FAIL  ${label} -> exit ${code} (expected 1)`); }
+        fs.writeFileSync(file, origSrc, 'utf8');
+      }
+    } finally {
+      fs.writeFileSync(file, origSrc, 'utf8');
+      child([BUILD]);
+    }
+  };
+
+  console.log('\nMutations of the dataset (each must make this gate exit 1)');
+  const origData = fs.readFileSync(DATA, 'utf8');
+  runSet(DATA, origData, [
+    ['a price introduced on a bank that has no price source',
+      (s) => s.replace(/ {6}price: null,\r?\n {6}status: null,/, '      price: 8995,\n      status: null,')],
+    ['a status invented for a bank',
+      (s) => s.replace(/ {6}price: null,\r?\n {6}status: null,/, '      price: null,\n      status: \'available\',')],
+    ['an inventory count guessed for a bank the drawing does not number',
+      (s) => s.replace(/ {6}positions: null, {3}\/\/ how many crypts/, '      positions: 24,   // how many crypts')],
+    ['the east wing widened past what the source drawing prints',
+      (s) => s.replace('export const MIS_EAST_BANKS = [14, 28];', 'export const MIS_EAST_BANKS = [14, 30];')],
+    ['a bank height zeroed, so the 3D view draws a flat plate and calls it a wall',
+      (s) => s.replace('  wingH: 13,', '  wingH: 0,')],
+    ['the walkway roof dropped BELOW the banks, contradicting the overhang in the footage',
+      (s) => s.replace('  roofH: 15.5,', '  roofH: 6,')],
+    ['the courtyard step removed, so the terraced court reads as flat ground',
+      (s) => s.replace('  plinth: 1.5,', '  plinth: 0,')],
+    ['the ossuary’s unresolved placement upgraded to a confirmed one',
+      (s) => s.replace("h: ELEV.ossH, conf: 'low', material: MATERIAL.ossuary,", "h: ELEV.ossH, conf: 'high', material: MATERIAL.ossuary,")],
+    ['the tandem bank’s unseen height upgraded to a confirmed one',
+      (s) => s.replace(/ {2}conf: 'low',\r?\n {2}material: MATERIAL\.tandem,/, "  conf: 'high',\n  material: MATERIAL.tandem,")],
+    ['the courtyard link pointed away from the Memorial Path map',
+      (s) => s.replace("href: 'TGMP_Map.html',", "href: 'TGMP_Map.htm',")],
+    ['the status vocabulary deleted as unused, so the next load re-invents it',
+      (s) => s.replace(/export const STATUS_STYLE = \{[\s\S]*?\n\};/, 'export const STATUS_STYLE = {};')],
+    ['a whole bank deleted from a wing',
+      (s) => s.replace('export const MIS_WEST_BANKS = [1, 13];', 'export const MIS_WEST_BANKS = [1, 12];')],
+  ]);
+
+  console.log('\nMutations of the generator (the 3D assertions must have teeth)');
+  const origBuild = fs.readFileSync(BUILD, 'utf8');
+  runSet(BUILD, origBuild, [
+    ['a family room rendered as a selectable block in the 3D view',
+      (s) => s.replace('  if (!b.sel) return \'\';', '  if (false) return \'\';')],
+    ['the 3D courtyard link zone downgraded to a plain block that cannot navigate',
+      (s) => s.replace('<a class="hit h-court" href="${esc(COURTYARD.href)}"', '<div class="hit h-court" data-was="${esc(COURTYARD.href)}"')],
+    ['a dollar figure put on the detail card',
+      (s) => s.replace("'<div class=\"cardkinds\">' + KINDS.join(' &middot; ') + ' crypts</div>' +",
+        "'<div class=\"cardkinds\">$8,995</div>' +")],
+    ['the empty price and status slots dropped from the 3D tap targets',
+      (s) => s.replace(/ data-price="" data-status=""` \+(\r?\n) {4}` style="width:\$\{px\(b\.w\)\}px/, '` +$1    ` style="width:${px(b.w)}px')],
+    ['the shared movement runtime dropped, reverting to cut transitions and no inertia',
+      (s) => s.replace("${movementRuntime({ keys: ['yaw', 'pitch', 'zoom', 'lift'] })}", 'function stopGlide(){} function easeThrough(f){f();} function kick(){} function orbitBy(){} function releaseGesture(){} var KICK_GAIN=1, glideRaf=0;')],
+    ['pointer capture taken on pointerdown, so a tap on a bank never reaches its button',
+      (s) => s.replace('  if (moved > 8) capturePts();', '  capturePts();')],
+    ['the synthetic-hover guard removed, so the card flickers across the building mid-drag',
+      (s) => s.replace(/ {2}if \(last \|\| glideRaf\) return;\r?\n/, '')],
+    ['the confidence hatch reverted to background-image, wiping the kind hue',
+      (s) => s.replace(/ {2}\.c-medium::after,\.c-low::after\{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;\}(\r?\n) {2}\.c-medium::after\{background:/,
+        '  .c-medium{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.32) 0 2px,rgba(255,255,255,0) 2px 6px);}$1  .c-mediumX::after{background:')],
+    ['a height printed on the page as if it had been measured',
+      (s) => s.replace('the shapes are simplified', 'each bank stands 13 ft tall')],
+    ['the 3D view left visible in print, where it renders as a pile of flat rectangles',
+      (s) => s.replace('.no-print,.tabs,.card,.toolbar,.view3d,.hint,.modelnote,.legend3d{display:none!important;}',
+        '.no-print,.tabs,.card{display:none!important;}')],
+    ['the printable plan dropped, so a printout omits every bank',
+      (s) => s.replace(/\$\{plan\(\)\}\r?\n/, '')],
+    ['an internal register word put back into the page copy',
+      (s) => s.replace('kept current against cemetery records', 'kept current against the MIS export')],
+  ]);
+
+  let restored = 0;
+  try { child([self]); } catch (e) { restored = e.status ?? 1; }
+  (restored === 0 ? pass : fail)(`sources restored, gate green again -> exit ${restored}`);
+  failures += sabFail;
+}
 
 console.log(failures ? `\nRESULT: ${failures} FAILURE(S)` : '\nRESULT: PASS — 0 mismatches');
 process.exit(failures ? 1 : 0);

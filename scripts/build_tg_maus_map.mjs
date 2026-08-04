@@ -6,16 +6,24 @@
  *
  *   node scripts/build_tg_maus_map.mjs
  *
- * ── WHY THIS ONE IS A PLAN AND NOT A 3D SCENE ────────────────────────────────
- * The niche pages model ONE cabinet or ONE wall, where a CSS-3D orbit earns its keep: a
- * counselor is choosing between niches on faces they cannot all see at once. This page
- * models a WHOLE BUILDING — two wings, a family-room block, a courtyard and a long
- * tandem bank — and the question it answers is "where in the building is this, and what
- * is next to it". That is a plan-view question. An orbit would add
- * scripts/map-movement.mjs's inertia, gesture and hover machinery to a page with nothing
- * to orbit, and would make the one thing that matters — the relationship between the
- * courtyard and the path map it links to — harder to read, not easier. Revisit if a
- * later ship gives individual crypts their own faces.
+ * ── THE 3D VIEW (added 2026-08-04) ───────────────────────────────────────────
+ * This page originally shipped plan-only, and the note here argued that a whole building
+ * is a plan-view question. That argument was made without having watched the building.
+ * The 2026-08-03 walk-through settles what a plan cannot say: this is an OUTDOOR COURT,
+ * the two wings face each other across it under long overhanging eaves, and the walkway
+ * in front of the banks stands a step ABOVE the courtyard floor. A family standing in
+ * that court sees walls and a sky-lit gap, not a floor plan. So the page now carries a
+ * 3D view built the same way MAPS/ELM_CryptMap.html builds its — CSS-3D extruded blocks
+ * from the one dataset, kind by hue, confidence by hatch, camera feel from
+ * scripts/map-movement.mjs.
+ *
+ * The plan and the bank list are UNCHANGED and are still the print path. The 3D view is
+ * an addition; nothing renders that the plan did not already render.
+ *
+ * WHAT THE 3D VIEW IS NOT ALLOWED TO INVENT: the footprints are still the cemetery's own
+ * overview, untouched. The only NEW numbers are heights, they all live in ELEV in the
+ * dataset with the footage timestamps that produced them, and not one of them is ever
+ * printed on the page — they feed a CSS transform and nothing else.
  *
  * ── NO NUMBERS ───────────────────────────────────────────────────────────────
  * This ship renders no price, no status and no inventory count. That is not an oversight
@@ -29,7 +37,9 @@ import { fileURLToPath } from 'node:url';
 import {
   SITE, GEO, WINGS, TANDEM, STRUCTURES, ROOFS, COURTYARD,
   CRYPT_KINDS, ASK, ASK_CHIP, STATUS_STYLE, allPositions,
+  ELEV, CONF_LABEL, MATERIAL, blocks3d,
 } from './tg-maus-data.mjs';
+import { movementRuntime } from './map-movement.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'MAPS', 'TG_Mausoleum_Map.html');
@@ -98,6 +108,96 @@ ${tandemBtn()}
 </div>`;
 }
 
+// ── 3D scene ─────────────────────────────────────────────────────────────────
+// Same idiom as build_elm_map.mjs: one extruded slab per block, a hit target floating a
+// hair above each selectable one, and the courtyard as a click-through link zone on the
+// ground. Plan `y` (south) becomes scene `z`; the ground plane is the WALKWAY level, and
+// the courtyard floor sits one step below it, which is what the footage shows.
+const BLOCKS = blocks3d();
+const SITE_W_PX = px(PLAN_W), SITE_D_PX = px(PLAN_D);
+const MAX_TOP = Math.max(...BLOCKS.map((b) => b.top));
+
+/** Four sides and a top. `top` is the block's upper surface; `h` is how deep it extrudes. */
+function slab(b) {
+  const cls = `k-${b.kind} c-${b.conf}`;
+  const mid = b.top - b.h / 2;
+  const parts = [];
+  // The top face carries the label a reader needs from directly above. For a numbered
+  // bank that is the NUMBER, exactly as the plan draws it — the full TGM-W-13 reference
+  // does not fit a bank that narrow and truncates to "GM-W", which reads as a different
+  // reference rather than as a clipped one.
+  const lbl = b.kind === 'bank' ? String(b.n) : b.ref || b.label;
+  parts.push(`      <div class="face top ${cls}" data-blk="${b.id}" style="width:${px(b.w)}px;height:${px(b.d)}px;` +
+    `transform:translate(-50%,-50%) translate3d(${px(b.x)}px,${px(-b.top)}px,${px(b.y)}px) rotateX(90deg)">` +
+    `<span class="slabl${b.kind === 'bank' ? ' slabn' : ''}">${esc(lbl)}</span></div>`);
+  for (const [sz, ry] of [[1, 0], [-1, 180]]) {
+    parts.push(`      <div class="face side ${cls}" data-blk="${b.id}" style="width:${px(b.w)}px;height:${px(b.h)}px;` +
+      `transform:translate(-50%,-50%) translate3d(${px(b.x)}px,${px(-mid)}px,${px(b.y + (sz * b.d) / 2)}px) rotateY(${ry}deg)"></div>`);
+  }
+  for (const [sx, ry] of [[1, 90], [-1, -90]]) {
+    parts.push(`      <div class="face side ${cls}" data-blk="${b.id}" style="width:${px(b.d)}px;height:${px(b.h)}px;` +
+      `transform:translate(-50%,-50%) translate3d(${px(b.x + (sx * b.w) / 2)}px,${px(-mid)}px,${px(b.y)}px) rotateY(${ry}deg)"></div>`);
+  }
+  return parts.join('\n');
+}
+
+/**
+ * The hit target. Only a bank or the tandem run gets one — a family room, the ossuary,
+ * the walkway roof and the joint to the building next door are context and must not look
+ * purchasable. The empty price and status slots ride along exactly as they do on the
+ * plan, so a later load fills all three renderings at once and the check that they are
+ * empty covers all three too.
+ */
+function hit3d(b) {
+  if (!b.sel) return '';
+  const aria = b.kind === 'tandem'
+    ? `${TANDEM.label}, ${TANDEM.sub}, ${ASK_CHIP}`
+    : `${b.ref}, ${b.label}, ${ASK_CHIP}`;
+  const wing = b.wing ? ` data-wing="${b.wing}"` : '';
+  const n = b.n ? ` data-n="${b.n}"` : '';
+  return `      <button type="button" class="hit h-${b.kind}" data-ref="${b.ref}"${wing}${n}` +
+    ` data-kind="${b.kind === 'tandem' ? 'tandem' : 'bank'}" data-price="" data-status=""` +
+    ` style="width:${px(b.w)}px;height:${px(b.d)}px;` +
+    `transform:translate(-50%,-50%) translate3d(${px(b.x)}px,${px(-b.top - 0.25)}px,${px(b.y)}px) rotateX(90deg)"` +
+    ` aria-label="${esc(aria)}"><span class="hitl">${esc(b.ref)}</span></button>`;
+}
+
+/** The courtyard: a floor plate one step down, and the click-through link zone on it. */
+function court3d() {
+  const y = COURTYARD.drop;
+  return `      <div class="face court c-${COURTYARD.conf}" aria-hidden="true" style="width:${px(COURTYARD.w)}px;height:${px(COURTYARD.d)}px;` +
+    `transform:translate(-50%,-50%) translate3d(${px(COURTYARD.x)}px,${px(y)}px,${px(COURTYARD.y)}px) rotateX(-90deg)"></div>
+      <a class="hit h-court" href="${esc(COURTYARD.href)}" style="width:${px(COURTYARD.w)}px;height:${px(COURTYARD.d)}px;` +
+    `transform:translate(-50%,-50%) translate3d(${px(COURTYARD.x)}px,${px(y - 0.25)}px,${px(COURTYARD.y)}px) rotateX(90deg)"` +
+    ` aria-label="Open the ${esc(COURTYARD.label)} map"><span class="hitl"><b>${esc(COURTYARD.label)}</b>Open this map &rarr;</span></a>`;
+}
+
+function scene3d() {
+  return `<div class="scene" id="scene" tabindex="0" role="application" aria-label="Three-dimensional view of the Terrace Garden Mausoleum. Use the view buttons below, or the arrow keys, to change the view.">
+  <div class="stage" id="stage">
+    <div class="yard">
+      <div class="ground" style="width:${SITE_W_PX}px;height:${SITE_D_PX}px;transform:translate(-50%,-50%) translate3d(0,${px(ELEV.plinth)}px,0) rotateX(90deg)">
+        <span class="fcomp fc-n">NORTH</span>
+        <span class="fcomp fc-s">SOUTH</span>
+      </div>
+${court3d()}
+${BLOCKS.map(slab).join('\n')}
+${BLOCKS.map(hit3d).filter(Boolean).join('\n')}
+    </div>
+  </div>
+</div>`;
+}
+
+const LEGEND3D = `<div class="legend3d">
+      <div class="li"><div class="ls k-bank"></div><span>Crypt banks</span></div>
+      <div class="li"><div class="ls k-tandem"></div><span>Tandem crypts</span></div>
+      <div class="li"><div class="ls k-room"></div><span>Family rooms</span></div>
+      <div class="li"><div class="ls k-roof"></div><span>Covered walkway</span></div>
+      <div class="li"><div class="ls k-ossuary"></div><span>Ossuary &mdash; not priced here</span></div>
+      <div class="li"><div class="ls k-entrance"></div><span>Entrance &amp; joining wall</span></div>
+      <div class="li"><div class="ls ls-hatch"></div><span>Hatched = height estimated, please confirm with us</span></div>
+    </div>`;
+
 // ── Flat list (the print path, and the whole page without JS) ────────────────
 function listRow(b) {
   return `    <button type="button" class="lrow" data-ref="${b.ref}" data-wing="${b.wing}" data-n="${b.n}"` +
@@ -150,7 +250,7 @@ const CSS = `
   .tab:hover{color:var(--cream);background:rgba(200,169,110,.08);}
   .tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(200,169,110,.12);}
   .main{padding:14px;}
-  .wview{display:none;}.wview.active{display:block;}
+  .wview,.view3d{display:none;}.wview.active,.view3d.active{display:block;}
   .wlabel{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);margin-bottom:2px;margin-top:10px;text-align:center;}
   .wsub{font-size:10px;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;text-align:center;}
 
@@ -220,6 +320,106 @@ const CSS = `
   .ask{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
     background:rgba(247,244,239,.9);color:#17181b;border-radius:3px;padding:1px 6px;white-space:nowrap;}
 
+  /* ── 3D scene ──────────────────────────────────────────────────────────────
+     Materials follow the 2026-08-03 walk-through where it actually saw them: polished
+     pink-and-grey speckled stone crypt fronts under pale cream stucco, a dark-edged
+     eave over a pale soffit, stamped concrete and bark underfoot in the court.
+     BLOCK KIND is carried by HUE; HEIGHT CONFIDENCE is carried by a hatch PATTERN, so
+     the two codings never compete — the same rule the plan's status vocabulary states
+     and the same one the sibling building map applies to placement. */
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;max-width:900px;margin:10px auto 8px;}
+  .tbtn{background:rgba(200,169,110,.12);border:1px solid var(--gb);color:var(--gold-light);padding:7px 13px;border-radius:5px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+  .tbtn:hover{background:rgba(200,169,110,.26);color:var(--cream);}
+  .tbtn.on{background:rgba(200,169,110,.3);border-color:var(--gold);color:var(--gold);}
+  .tbtn:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+  .tbsep{width:1px;height:22px;background:var(--gb);margin:0 4px;}
+  .scene{position:relative;height:min(66vh,620px);min-height:340px;margin:0 auto;max-width:1100px;
+    background:linear-gradient(180deg,#8fa4c4 0%,#5d7093 24%,#33415f 52%,#141c31 100%);
+    border:1px solid var(--gb);border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;
+    perspective:1700px;perspective-origin:50% 42%;}
+  .scene:active{cursor:grabbing;}
+  .scene:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  .stage{position:absolute;left:50%;top:58%;width:0;height:0;transform-style:preserve-3d;
+    transform:translateY(var(--lift,0px)) scale(var(--zoom,1)) rotateX(var(--pitch,0deg)) rotateY(var(--yaw,0deg));}
+  .yard{position:absolute;transform-style:preserve-3d;}
+  /* The ground plate uses rotateX(90deg) — the SAME sense as a slab's top face, which is
+     the only orientation that lays text out un-mirrored when you look straight down. The
+     first version used rotateX(-90deg) and printed "HTRON" along the SOUTH edge: mirrored
+     AND on the wrong side, so a reader checking which wing faced which way was told the
+     opposite of the truth by a label they could not read anyway. Caught by looking at a
+     render; no count would have found it. */
+  .ground{position:absolute;left:0;top:0;background:
+      radial-gradient(ellipse at 50% 50%,rgba(150,140,116,.30),rgba(34,32,26,.86) 80%),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 3px,rgba(0,0,0,0) 3px 7px);
+    border:1px solid rgba(180,168,140,.16);}
+  .fcomp{position:absolute;left:50%;transform:translateX(-50%);color:rgba(232,213,168,.78);font-size:12px;letter-spacing:.14em;white-space:nowrap;}
+  .fc-n{top:2%;}
+  .fc-s{bottom:2%;}
+  .face{position:absolute;left:0;top:0;backface-visibility:hidden;border:1px solid rgba(38,28,12,.5);}
+  .face.side{filter:brightness(.8);}
+  .face.top{display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .slabl{font-size:7.5px;font-weight:700;color:#2f2413;letter-spacing:.02em;line-height:1.1;
+    text-align:center;padding:0 1px;position:relative;z-index:1;}
+  .slabn{font-size:10px;white-space:nowrap;}
+  /* A crypt bank's SIDE faces are the crypt fronts a family actually stands in front of.
+     The walk-through reads five courses from the paving to the soffit, so the face is
+     ruled into five bands — the only thing in this scene that encodes a count, and it
+     encodes the one count the footage genuinely gives. It is a texture, not a label: no
+     number is printed and no individual crypt is selectable. */
+  .face.side.k-bank,.face.side.k-tandem{background-image:
+      repeating-linear-gradient(0deg,rgba(60,44,20,.34) 0 1px,rgba(0,0,0,0) 1px 20%),
+      linear-gradient(180deg,#e9dcc2 0%,#cfbc95 55%,#b7a179 100%);}
+  /* The courtyard floor: stamped concrete, river rock and bark, one step below the
+     walkway. It is a FLOOR, so it gets no side faces and no label of its own — the link
+     zone sitting on it carries the name. */
+  .face.court{background:
+      radial-gradient(ellipse at 50% 45%,rgba(214,203,180,.55),rgba(120,108,86,.5) 72%),
+      repeating-linear-gradient(52deg,rgba(70,52,30,.22) 0 6px,rgba(0,0,0,0) 6px 15px);
+    border:1px solid rgba(232,213,168,.3);border-radius:3px;}
+
+  /* Kind hues — what a block IS. */
+  .k-bank{background:linear-gradient(180deg,#e9dcc2 0%,#cfbc95 55%,#b7a179 100%);}
+  .k-tandem{background:linear-gradient(180deg,#e2d4b8 0%,#c6b189 55%,#ab9670 100%);}
+  .k-room{background:linear-gradient(180deg,#cdd3e0,#98a2bb);}
+  .k-water{background:linear-gradient(180deg,#a8cbd8,#5f8ea3);}
+  .k-ossuary{background:linear-gradient(180deg,#cfc9ae,#8e8a70);}
+  .k-entrance{background:linear-gradient(180deg,#c3c8d6,#8d95ab);}
+  .k-join{background:linear-gradient(180deg,#b6b3ab,#8a887f);}
+  .k-roof{background:linear-gradient(180deg,#efe9dd,#b9b2a2);}
+  /* ── Confidence: PATTERN, never hue. The hatch is an OVERLAY pseudo-element, not a
+     background-image: setting background-image on a cell whose fill is a gradient
+     REPLACES the gradient instead of layering over it, which wipes the kind hue off
+     every estimated block. And the overlay must NOT set position — every carrier
+     (.face) is already absolutely positioned, and a later position:relative at equal
+     specificity drops the whole scene out of absolute layout. Both were real bugs on
+     the sibling building map, both caught by looking at a render rather than by any
+     count, and both are cheaper to inherit than to rediscover. ── */
+  .c-medium::after,.c-low::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;}
+  .c-medium::after{background:repeating-linear-gradient(135deg,rgba(255,255,255,.32) 0 2px,rgba(255,255,255,0) 2px 6px);}
+  .c-low::after{background:repeating-linear-gradient(135deg,rgba(255,255,255,.46) 0 3px,rgba(255,255,255,0) 3px 6px);}
+  .ls-hatch{background:
+      repeating-linear-gradient(135deg,rgba(255,255,255,.46) 0 3px,rgba(255,255,255,0) 3px 6px),
+      linear-gradient(180deg,#e9dcc2,#b7a179);}
+
+  /* The hit target floats a hair above its slab so it never z-fights the top face. */
+  .hit{position:absolute;left:0;top:0;background:transparent;border:none;padding:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit;}
+  .hit:hover{background:rgba(255,255,255,.18);box-shadow:0 0 0 1px var(--gold);}
+  .hit:focus-visible{outline:2px solid #fff;outline-offset:1px;z-index:40;}
+  .hit.sel{background:rgba(255,255,255,.22);box-shadow:0 0 0 2px var(--gold),0 0 20px 4px rgba(255,255,255,.35);}
+  /* Mid-drag the pointer sweeps over blocks it never meant to touch. Freeze the hover
+     highlight while the scene is being dragged, or the whole building flashes. */
+  .scene.dragging .hit:hover{background:transparent!important;box-shadow:none!important;}
+  .hitl{font-size:0;}
+  .h-court{background:rgba(200,169,110,.2);box-shadow:inset 0 0 0 2px rgba(200,169,110,.9);border-radius:5px;}
+  .h-court .hitl{font-size:10px;font-weight:700;color:#20180a;text-align:center;line-height:1.3;}
+  .h-court .hitl b{display:block;font-family:'Cormorant Garamond',serif;font-size:15px;color:#17233c;}
+  .hint{text-align:center;font-size:10px;color:var(--gold-light);opacity:.75;margin-top:7px;letter-spacing:.05em;}
+  .modelnote{text-align:center;font-size:9.5px;color:var(--gold-light);opacity:.65;margin-top:3px;line-height:1.6;}
+  .legend3d{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px;justify-content:center;}
+  .li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gold-light);}
+  .ls{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.22);flex-shrink:0;}
+
   /* ── Detail card ── */
   .card{position:fixed;right:16px;bottom:16px;width:286px;background:rgba(16,24,44,.97);border:1px solid var(--gold);
     border-radius:9px;padding:13px 15px;z-index:900;box-shadow:0 10px 40px rgba(0,0,0,.65);font-size:11px;display:none;pointer-events:none;}
@@ -253,7 +453,7 @@ const CSS = `
   }
 
   @media print{
-    .no-print,.tabs,.card{display:none!important;}
+    .no-print,.tabs,.card,.toolbar,.view3d,.hint,.modelnote,.legend3d{display:none!important;}
     *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
     body{background:#fff!important;color:#1a1a1a!important;}
     .header{background:#fff!important;border-bottom:2px solid #c8540a!important;padding:10px 0;}
@@ -293,6 +493,7 @@ var KINDS = ${KINDS_JSON};
 var WING_LABEL = ${WING_LABEL_JSON};
 var TANDEM = ${JSON.stringify({ ref: TANDEM.ref, label: TANDEM.label, sub: TANDEM.sub })};
 var ASK = ${JSON.stringify(ASK)};
+var MAT = ${JSON.stringify({ bank: MATERIAL.bank, tandem: MATERIAL.tandem })};
 var card = document.getElementById('card');
 var pinned = null;
 
@@ -310,11 +511,13 @@ function cardHtml(d) {
     return head +
       '<div class="cardsub">' + TANDEM.label + ' \\u00b7 ' + TANDEM.sub + '</div>' +
       '<div class="cardkinds">Companion crypts set head to head, in one long bank along the south edge.</div>' +
+      '<div class="cnote">' + MAT.tandem + '</div>' +
       '<div class="cnote">' + ASK + ' The number of crypts still open in this bank is confirmed with us, not read off this map.</div>';
   }
   return head +
     '<div class="cardsub">' + (WING_LABEL[d.wing] || '') + ' \\u00b7 bank ' + d.n + '</div>' +
     '<div class="cardkinds">' + KINDS.join(' &middot; ') + ' crypts</div>' +
+    '<div class="cnote">' + MAT.bank + '</div>' +
     '<div class="cnote">' + ASK + ' This map shows where a bank is, not what is open in it.</div>';
 }
 // <<< CARD MATH <<<
@@ -381,20 +584,27 @@ function hideCard() {
 }
 document.addEventListener('click', function (ev) {
   if (ev.target.closest('.cclose')) { hideCard(); return; }
+  // A link zone NAVIGATES. Never intercept one: the courtyard link is the whole point of
+  // this page's cross-link, and it exists in BOTH the plan and the 3D view.
+  if (ev.target.closest('a[href]')) return;
   // The courtyard link is a real navigation: never swallow it.
   if (ev.target.closest('.court')) return;
-  var n = ev.target.closest('.bk, .lrow');
+  var n = ev.target.closest('.bk, .lrow, .hit');
   if (n && n.hasAttribute('data-ref')) { showCard(n, true); return; }
-  if (!ev.target.closest('#card, .tab')) hideCard();
+  if (!ev.target.closest('#card, .tab, .tbtn')) hideCard();
 });
 document.addEventListener('mouseover', function (ev) {
   if (window.matchMedia('(hover: none)').matches) return;
-  var n = ev.target.closest('.bk, .lrow');
+  // A drag or a coasting camera slides blocks UNDER a stationary pointer, and the browser
+  // fires mouseover for each one. Freeze the hover card while either is happening, or the
+  // card flickers through half the building on one gesture.
+  if (last || glideRaf) return;
+  var n = ev.target.closest('.bk, .lrow, .hit');
   if (n && n.hasAttribute('data-ref')) showCard(n, false);
   else if (pinned) showCard(pinned, false);
 });
 document.addEventListener('focusin', function (ev) {
-  var n = ev.target.closest('.bk, .lrow');
+  var n = ev.target.closest('.bk, .lrow, .hit');
   if (!n || !n.hasAttribute('data-ref')) return;
   var kb = true;
   try { kb = n.matches(':focus-visible'); } catch (e) { kb = true; }
@@ -404,19 +614,188 @@ document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hi
 
 var VIEWS = ['plan', 'banks'];
 function showView(v) {
-  var views = document.querySelectorAll('.wview');
+  var views = document.querySelectorAll('.wview, .view3d');
   for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
-  var el = document.getElementById('view-' + v);
+  var el = document.getElementById(v === '3d' ? 'view-3d' : 'view-' + v);
   if (el) el.classList.add('active');
   var tabs = document.querySelectorAll('.tabs .tab');
   for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-view') === v);
   document.body.classList.toggle('pv-one', VIEWS.indexOf(v) > -1);
+  if (v === '3d') fitScene();
   if (pinned) placeCard(pinned);
 }
 document.querySelectorAll('.tabs .tab').forEach(function (t) {
   t.addEventListener('click', function () { showView(t.getAttribute('data-view')); });
 });
-showView('plan');
+
+// ── 3D camera ─────────────────────────────────────────────────────────────────
+var scene = document.getElementById('scene'), stage = document.getElementById('stage');
+var cam = { yaw: -30, pitch: -42, zoom: 1, lift: 0 };
+var ZMIN = 0.12, ZMAX = 3, PMIN = -90, PMAX = 0;
+var HALF_PX = ${px(MAX_TOP / 2)};
+var STAGE_TOP = 0.58;
+var RAD = Math.PI / 180;
+var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
+var curPreset = null;
+
+function apply() {
+  cam.pitch = clamp(cam.pitch, PMIN, PMAX);
+  cam.zoom = clamp(cam.zoom, ZMIN, ZMAX);
+  stage.style.setProperty('--yaw', cam.yaw.toFixed(2) + 'deg');
+  stage.style.setProperty('--pitch', cam.pitch.toFixed(2) + 'deg');
+  stage.style.setProperty('--zoom', cam.zoom.toFixed(3));
+  stage.style.setProperty('--lift', cam.lift.toFixed(1) + 'px');
+  document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
+    b.classList.toggle('on', b.getAttribute('data-viewbtn') === curPreset);
+  });
+}
+function fitScene() {
+  if (!scene.offsetWidth) return;
+  viewTo(curPreset || 'room', true);
+}
+window.addEventListener('resize', fitScene);
+
+var SW = ${SITE_W_PX}, SD = ${SITE_D_PX}, FIT_H_PX = ${px(MAX_TOP)};
+// Every preset is fitted against the ROTATED FOOTPRINT plus whatever the tallest block
+// projects at that pitch, so nothing is ever cropped by the scene box at any angle.
+function fp(yaw, pitch) {
+  var cy = Math.abs(Math.cos(yaw * RAD)), sy = Math.abs(Math.sin(yaw * RAD));
+  var w = SW * cy + SD * sy;
+  var h = FIT_H_PX * Math.abs(Math.cos(pitch * RAD)) + (SW * sy + SD * cy) * Math.abs(Math.sin(pitch * RAD));
+  return { yaw: yaw, pitch: pitch, w: w, h: h, dist: 0 };
+}
+var VIEWS3D = {
+  room: fp(-30, -42),
+  plan: fp(0, -88),
+  // Face-on presets sit shallow but not flat: a few degrees of tilt keeps the covered
+  // walkway and the courtyard floor in frame, which is what tells a reader the banks
+  // stand a step above the path rather than on it.
+  wings: fp(0, -16),
+  tandem: fp(180, -16),
+  east: fp(-90, -18),
+};
+function viewTo(k, quiet) {
+  if (!pinned && !quiet) card.classList.remove('show');
+  easeThrough(function () { setView(k); }, quiet);
+}
+function setView(k) {
+  var v = VIEWS3D[k];
+  curPreset = k;
+  cam.yaw = v.yaw;
+  cam.pitch = v.pitch;
+  var Tw = scene.clientWidth * 0.95, Th = scene.clientHeight * 0.88, P = 1700;
+  var zw = (Tw * P) / (v.w * P + Tw * v.dist);
+  var zh = (Th * P) / (v.h * P + Th * v.dist);
+  cam.zoom = clamp(Math.min(zw, zh), ZMIN, ZMAX);
+  cam.lift = HALF_PX * Math.cos(v.pitch * RAD) * cam.zoom - (STAGE_TOP - 0.5) * scene.clientHeight;
+  apply();
+}
+document.querySelectorAll('[data-viewbtn]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var k = b.getAttribute('data-viewbtn');
+    viewTo(curPreset === k && k !== 'room' ? 'room' : k);
+  });
+});
+document.getElementById('btn-reset').addEventListener('click', function () { viewTo('room'); });
+document.getElementById('btn-in').addEventListener('click', function () { stopGlide(); cam.zoom *= 1.25; apply(); });
+document.getElementById('btn-out').addEventListener('click', function () { stopGlide(); cam.zoom /= 1.25; apply(); });
+
+// Drag to orbit, pinch to zoom. Capture is DEFERRED until a real drag (>8px) or a second
+// finger: capturing on pointerdown retargets the click to the scene, and a tap on a bank
+// then never reaches its button — the bug the sibling niche pages shipped once already.
+var pts = {}, last = null, pinchStart = 0, zoomStart = 1, moved = 0, captured = false;
+var downRef = null, downAt = 0, downHref = null;
+${movementRuntime({ keys: ['yaw', 'pitch', 'zoom', 'lift'] })}
+function capturePts() {
+  if (captured) return;
+  captured = true;
+  scene.classList.add('dragging');
+  curPreset = null;
+  if (!pinned) card.classList.remove('show');
+  Object.keys(pts).forEach(function (id) {
+    try { scene.setPointerCapture(+id); } catch (e) { /* pointer already gone */ }
+  });
+}
+scene.addEventListener('pointerdown', function (ev) {
+  stopGlide();
+  if (Object.keys(pts).length === 0) {
+    var n = ev.target.closest('.hit[data-ref]');
+    downRef = (n && n.tagName === 'BUTTON') ? n : null;
+    var a = ev.target.closest('a[href]');
+    downHref = a ? a : null;
+    downAt = performance.now();
+  } else {
+    downRef = null; downHref = null;
+  }
+  pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+  var ids = Object.keys(pts);
+  if (ids.length === 1) { last = { x: ev.clientX, y: ev.clientY }; moved = 0; }
+  else if (ids.length === 2) { pinchStart = dist(); zoomStart = cam.zoom; capturePts(); }
+});
+function dist() {
+  var k = Object.keys(pts); if (k.length < 2) return 0;
+  return Math.hypot(pts[k[0]].x - pts[k[1]].x, pts[k[0]].y - pts[k[1]].y);
+}
+scene.addEventListener('pointermove', function (ev) {
+  if (!pts[ev.pointerId]) return;
+  pts[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+  var ids = Object.keys(pts);
+  if (ids.length >= 2) {
+    var d = dist();
+    if (pinchStart > 8) { cam.zoom = zoomStart * (d / pinchStart); apply(); }
+    moved = 99;
+    return;
+  }
+  if (!last) return;
+  var dx = ev.clientX - last.x, dy = ev.clientY - last.y;
+  moved += Math.abs(dx) + Math.abs(dy);
+  if (moved > 8) capturePts();
+  orbitBy(dx, dy);
+  last = { x: ev.clientX, y: ev.clientY };
+});
+var suppressUntil = 0;
+function endPtr(ev) {
+  delete pts[ev.pointerId];
+  if (!Object.keys(pts).length) {
+    suppressUntil = performance.now() + 450;
+    releaseGesture(moved);
+    var tap = ev.type === 'pointerup' && moved <= 8 && performance.now() - downAt < 700;
+    // A tap on the courtyard must still NAVIGATE even though the scene swallows the
+    // native click that follows a pointer gesture. Travel decides it is a tap; the
+    // navigation is then performed explicitly.
+    if (tap && downHref) { var h = downHref.getAttribute('href'); downRef = null; downHref = null; last = null; pinchStart = 0; moved = 0; window.location.href = h; return; }
+    if (tap && downRef) showCard(downRef, true);
+    else if (tap && !downRef && !ev.target.closest('#card')) hideCard();
+    downRef = null; downHref = null;
+    last = null; pinchStart = 0; moved = 0;
+  }
+}
+scene.addEventListener('pointerup', endPtr);
+scene.addEventListener('pointercancel', endPtr);
+scene.addEventListener('click', function (ev) {
+  if (performance.now() < suppressUntil) { ev.stopPropagation(); ev.preventDefault(); }
+}, true);
+scene.addEventListener('wheel', function (ev) {
+  ev.preventDefault(); stopGlide();
+  cam.zoom *= Math.exp(-ev.deltaY * 0.0012);
+  apply();
+}, { passive: false });
+scene.addEventListener('keydown', function (ev) {
+  var k = ev.key, step = (ev.shiftKey ? 15 : 5) * KICK_GAIN;
+  if (k === 'ArrowLeft') kick(-step, 0);
+  else if (k === 'ArrowRight') kick(step, 0);
+  else if (k === 'ArrowUp') kick(0, step);
+  else if (k === 'ArrowDown') kick(0, -step);
+  else if (k === '+' || k === '=') { stopGlide(); cam.zoom *= 1.2; apply(); }
+  else if (k === '-' || k === '_') { stopGlide(); cam.zoom /= 1.2; apply(); }
+  else return;
+  if (k.indexOf('Arrow') === 0) curPreset = null;
+  ev.preventDefault();
+});
+
+showView('3d');
+fitScene();
+apply();
 `;
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -445,11 +824,35 @@ const HTML = `<!DOCTYPE html>
   <button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
 </div>
 <div class="tabs">
-  <button class="tab active" data-view="plan">Site Plan</button>
+  <button class="tab active" data-view="3d">3D View</button>
+  <button class="tab" data-view="plan">Site Plan</button>
   <button class="tab" data-view="banks">Crypt Banks</button>
 </div>
 <div class="main">
-  <div class="wview active" id="view-plan">
+  <div class="view3d active" id="view-3d">
+    <div class="wlabel">Terrace Garden Mausoleum</div>
+    <div class="wsub">Two crypt wings facing each other across the Memorial Path &nbsp;·&nbsp; ${ASK_CHIP} for availability and price</div>
+    <div class="toolbar no-print">
+      <button class="tbtn" data-viewbtn="room" title="Three-quarter view of the whole building">Room view</button>
+      <button class="tbtn" data-viewbtn="wings" title="Face on to the numbered crypt banks">Wing faces</button>
+      <button class="tbtn" data-viewbtn="tandem" title="Face on to the tandem bank along the south edge">Tandem face</button>
+      <button class="tbtn" data-viewbtn="east" title="Looking across from the entrance side">From the entrance</button>
+      <button class="tbtn" data-viewbtn="plan" title="Straight down">Straight down</button>
+      <div class="tbsep"></div>
+      <button class="tbtn" id="btn-reset">Reset view</button>
+      <div class="tbsep"></div>
+      <button class="tbtn" id="btn-out" aria-label="Zoom out">&minus;</button>
+      <button class="tbtn" id="btn-in" aria-label="Zoom in">+</button>
+    </div>
+${scene3d()}
+    <div class="hint">Drag to orbit &nbsp;·&nbsp; scroll or pinch to zoom &nbsp;·&nbsp; tap a bank to see what it holds &nbsp;·&nbsp; arrow keys orbit, +/&minus; zoom</div>
+    <div class="modelnote">${WINGS[0].banks.length + WINGS[1].banks.length} numbered crypt banks and the tandem bank are selectable &nbsp;·&nbsp; the outlined floor in the middle is the Memorial Path &mdash; tap it for its own map.<br>
+      Heights are estimated from our own walk-through and the shapes are simplified; no dimension on this page is a measurement, and nothing here is to scale.</div>
+    ${LEGEND3D}
+    <div class="pfoot"><p><b>What you are looking at.</b> ${MATERIAL.bank} ${MATERIAL.roof} The walkway in front of the banks stands one step above the courtyard floor.</p></div>
+  </div>
+
+  <div class="wview" id="view-plan">
     <div class="wlabel">Terrace Garden Mausoleum</div>
     <div class="wsub">North is up &nbsp;·&nbsp; the Memorial Path fills the courtyard &nbsp;·&nbsp; ${ASK_CHIP} for availability and price</div>
 ${plan()}
