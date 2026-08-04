@@ -64,9 +64,18 @@ generators, contract code, guides, or existing map pages except: B may add the o
 cross-link on TGMP_Map.html back to the TG Maus map, C the same on ECL_NicheMap.html —
 each a minimal, gate-asserted anchor.
 
+## Mid-sprint addition (operator, 2026-08-03)
+
+**Track D** `s14/pcm-catalog-ux` (`../bw-quote-tool-s14d`): PCM design catalog gets
+compare + print parity with the casket catalogs (s09 Track K compare sheet, s11
+Track C print-what's-filtered), and Real Examples becomes a toggle like the design
+books/elements. See `TRACK-D-PCM-CATALOG-UX.md`. File-disjoint from A (walkthroughs
+only); B and C already merged.
+
 ## Merge order
 
-B → C → A (`--no-ff`, suites green on main after each).
+B → C → A (`--no-ff`, suites green on main after each). D merges when ready relative
+to A — the two are file-disjoint, first-finished-first-audited.
 
 ## Verification contract
 
