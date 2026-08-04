@@ -58,6 +58,28 @@ const SPEED_FACTOR = flag('--speed-factor', 4);
 const MAX_BRIDGE = flag('--max-bridge', 6, (v) => parseInt(v, 10));
 const MAX_HOP_ABS = flag('--max-hop', null, (v) => (v == null ? null : Number(v)));
 const DROP = new Set(flag('--drop', '', String).split(',').filter(Boolean));
+// Re-aiming. `--aim "stop-03=0,25;stop-07=-20,15"` yaws/pitches a stop's opening look
+// direction, in degrees, WITHOUT moving the camera.
+//
+// WHY THIS IS NEEDED. A stop inherits the orientation of the frame it came from, which is
+// wherever the operator's phone happened to point — and while walking a memorial path that is
+// mostly DOWNWARD, at flat ground markers. Ground reconstructs as a field of spikes: high
+// contrast, high Laplacian, and so it clears every statistical floor while being the single
+// most obviously-wrong thing a family could be shown. Position is what the reconstruction
+// constrains; look direction is free, so aim it at the architecture.
+// `--aim-all yaw,pitch` applies to every stop, for the common case: a whole walk filmed with
+// the phone angled down at the ground. Per-stop `--aim` overrides it.
+const AIM_ALL = (() => {
+  const v = flag('--aim-all', '', String);
+  if (!v) return null;
+  const [yaw, pitch] = v.split(',').map(Number);
+  return { yaw: yaw || 0, pitch: pitch || 0 };
+})();
+const AIM = new Map(flag('--aim', '', String).split(';').filter(Boolean).map((s) => {
+  const [name, deg] = s.split('=');
+  const [yaw, pitch] = String(deg).split(',').map(Number);
+  return [name.trim(), { yaw: yaw || 0, pitch: pitch || 0 }];
+}));
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'scripts', S.pathFile);
@@ -291,15 +313,78 @@ picks.push(...spaced);
 // viewer, but it means the shipped polyline is not the polyline the tests reason about, and
 // tests/test-walkthrough-path.mjs checks that agreement to 1e-9. Round once, at the source.
 const r6 = (n) => +n.toFixed(6);
-const stops = picks.map((i, k) => ({
-  name: `stop-${String(k + 1).padStart(2, '0')}`,
-  frame: run[i].name,
-  view: run[i].view.map(r6),
-  pos: run[i].c.map(r6),
-})).filter((s) => !DROP.has(s.name) && !DROP.has(s.frame));
+
+/**
+ * Rotate a stop's look direction without moving it.
+ *
+ * The view matrix is world-to-camera, [R | t] with camera centre C = -R^T t. Applying a
+ * rotation Q in CAMERA space gives R' = Q R and t' = Q t, and then
+ *   C' = -(QR)^T (Qt) = -R^T Q^T Q t = -R^T t = C
+ * so the camera turns on the spot and the position the path clamp enforces is untouched.
+ * That matters: the position is the part the reconstruction constrains, and re-aiming must
+ * not quietly move a stop off the filmed line to get a better picture.
+ */
+const aimView = (view, { yaw, pitch }) => {
+  const cy = Math.cos(yaw * Math.PI / 180), sy = Math.sin(yaw * Math.PI / 180);
+  const cp = Math.cos(pitch * Math.PI / 180), sp = Math.sin(pitch * Math.PI / 180);
+  const Ry = [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]];   // about the camera's up axis
+  const Rx = [[1, 0, 0], [0, cp, -sp], [0, sp, cp]];   // about the camera's right axis
+  const Q = Rx.map((r) => [0, 1, 2].map((j) => r[0] * Ry[0][j] + r[1] * Ry[1][j] + r[2] * Ry[2][j]));
+  // view is column-major: columns 0,1,2 hold R's columns; column 3 holds t.
+  const R = [0, 1, 2].map((r) => [view[r], view[4 + r], view[8 + r]]);
+  const t = [view[12], view[13], view[14]];
+  const QR = Q.map((qr) => [0, 1, 2].map((j) => qr[0] * R[0][j] + qr[1] * R[1][j] + qr[2] * R[2][j]));
+  const Qt = Q.map((qr) => qr[0] * t[0] + qr[1] * t[1] + qr[2] * t[2]);
+  return [
+    QR[0][0], QR[1][0], QR[2][0], 0,
+    QR[0][1], QR[1][1], QR[2][1], 0,
+    QR[0][2], QR[1][2], QR[2][2], 0,
+    Qt[0], Qt[1], Qt[2], 1,
+  ];
+};
+
+const stops = picks.map((i, k) => {
+  const name = `stop-${String(k + 1).padStart(2, '0')}`;
+  const aim = AIM.get(name) || AIM_ALL;
+  const view = aim ? aimView(run[i].view, aim) : run[i].view;
+  return {
+    name,
+    frame: run[i].name,
+    ...(aim ? { aim } : {}),
+    view: view.map(r6),
+    pos: run[i].c.map(r6),
+  };
+}).filter((s) => !DROP.has(s.name) && !DROP.has(s.frame));
 
 // Renaming after a --drop would renumber every later stop and silently invalidate a report
 // that named one; keep the original numbers and let the sequence have gaps.
+//
+// BUT A GAP IS NOT A DELETION. Dropping a stop the gate measured as fog does not remove the
+// fog — it removes the place the viewer would have STOPPED in it, and leaves a longer, straighter
+// segment running right through it. Culling the Chapel of Memory's stops 08 and 09 turned two
+// short hops into one 3.95-unit glide across the exact stretch that failed. That is the sprint-11
+// delisting rebuilt by hand.
+//
+// So a cull SPLITS the path. Consecutive survivors that were not adjacent before the drop are no
+// longer one walk, and only the longest surviving stretch ships. The reel gets shorter, which is
+// the honest outcome: the footage did not cover that ground well enough to walk a family through.
+if (DROP.size) {
+  const groups = [[stops[0]]];
+  for (let i = 1; i < stops.length; i++) {
+    const prev = Number(/(\d+)/.exec(stops[i - 1].name)[1]);
+    const here = Number(/(\d+)/.exec(stops[i].name)[1]);
+    if (here !== prev + 1) groups.push([]);
+    groups[groups.length - 1].push(stops[i]);
+  }
+  groups.sort((a, b) => b.length - a.length);
+  if (groups.length > 1) {
+    console.log(`--drop split the path into ${groups.length} stretches ` +
+      `(${groups.map((g) => g.length).join(', ')} stops); keeping the longest — a culled stop is a ` +
+      `region the path must not cross, not merely one it must not stand in`);
+  }
+  stops.length = 0;
+  stops.push(...groups[0]);
+}
 if (stops.length < 2) throw new Error(`only ${stops.length} stops left after --drop`);
 
 let minHop = Infinity, maxHop = 0;
