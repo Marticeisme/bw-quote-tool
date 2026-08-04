@@ -19,6 +19,32 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**Sprint-14 — PUSHED AND LIVE-VERIFIED 2026-08-04** (pre-authorized "push everything
+live once its done"; `2251927..85ba8ff`, 22 commits incl. the chip session's casket
+merge — the chip session started its merge IN THE SHARED MAIN TREE mid-close and the
+director stood down until its MERGE_HEAD cleared rather than racing it, then re-ran
+the contract on the true final bytes himself: **2285 passed, 0 failed across 36
+suites** (reconciles 2255 + 30 chip asserts). Live verification (scratch/
+s14-live-verify.mjs): all 3 splat assets byte-identical on the wire (24,000,000 B
+each, sha256 vs local, gzip-decoded), TG/ELM maps + PCM catalog serving with
+load-bearing content ("Glass wall" / "what look like crystals" / compareSheet /
+"Print these"), and PIXEL readback on all three LIVE reels: COM 99.4% / TG 100% /
+ELM 100% lit, zero page errors. VERIFIER SCAR (director's, caught before reporting):
+first live readback read 0.0% on all three — drawImage/toDataURL on a GL context
+created without preserveDrawingBuffer reads cleared black OUTSIDE the render loop;
+proven a measurement bug by reproducing 0% against local, fixed by the gate's own
+mechanism (addInitScript forcing preserveDrawingBuffer + gl.readPixels). The reels
+are LIVE BUT UNLINKED (family-register gate enforces zero anchors) — operator
+eyeball-then-link is the standing next step, per-reel. OPEN operator items carried:
+drive COM/ELM/TG reels and rule on linking COM+ELM (TG honestly not showable —
+re-shoot per RESEARCH-outdoor-photoreels.md, ideally with the capture protocol and
+possibly a 360 camera); ossuary ruling; east-wing/tandem counts; ELN-W-1 reading;
+crystal-niches room contents (walk it with a light); corridor keepsake banks
+identity; MIS exports to price the two new maps; COM service door + cone on the
+covered stretch. Sprint-15 candidates: TG re-shoot + retrain, MIS-export load into
+TG/ELM maps, reel linking round, casket compare row-growth headroom (chip found
+specs rows end 1px inside the table on all six pages).
+
 **s14 Track A MERGED (director-audited, `b0c69d3`); merged main GREEN: 2255 passed,
 0 failed across 36 suites** (director's own run; reconciles exactly: 2149 + 10
 family-register reel guards (162→172) + 96 walkthrough-path rewrite (42→138)).
