@@ -19,6 +19,39 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 POST-CLOSE OPERATOR ROUND (2026-08-04, in flight):** operator word: reels look
+good → LINK COM+ELM (TG stays delisted); TGMP map must match the video; TG Maus map
+goes 3D; voice debrief (docs/GUIDES_VOICE_DEBRIEF_2026-08.md, now pinned atop
+BRAND_AND_BUILD_LOG + in agent memory) must be IMPLEMENTED across guides; "push
+everything live once its done and then update our notes and we can call it a
+session." Four tracks: E tgmp-video-accuracy, F relist-reels, G tg-maus-3d,
+H voice-sweep. **G MERGED (director-audited; gate 157 asserts + 24-mutation sabotage
+suite re-run by director; his own ELEV-break sabotage red/green):** TG_Mausoleum_Map
+gains a default 3D view (ELM idiom; 37 blocks; courtyard = click-through zone to
+TGMP; wing roofs/5-course fronts/pink-speckled stone from video timestamps; heights
+never printed, gate scans). G's open flag for operator: video reads two crypt walls
+facing across the court; dataset has both wings on the north face per MIS — the
+DIRECTOR's read is the video pair = north wings vs SOUTH TANDEM bank (consistent, no
+change made); worth one look on site. G re-hit the CRLF sabotage-needle trap (\r?\n)
+and found two by-looking bugs (rotateX ground-label mirror again; clipped bank labels
+reading as wrong refs). **E MERGED (director-audited; both gates re-run + composition
+eyeballed against the video via E's side-by-side):** TGMP re-derived from 4:16–7:40 —
+enclosed sunken court (walls both sides, raised aprons), bank on 21" plinth up 3
+risers with flanking urns, black polished bank field, walk-sized flagstone panel
+mid-path (not a 100" circle), bench square on axis + HONOR/CELEBRATE/REMEMBER wave
+sculptures, beds in two rows with 22 unpriced context memorials (regular fill,
+stated), 4 large end planters; 8×5 grid now VIDEO-CONFIRMED (the s09 "position is
+estimated" honesty sentence retired, gate asserts it's gone); NO ossuary sighting
+4:16–7:40 (ruling stays open, recorded in module); plywood panel is at 3:04/3:44
+INSIDE a corridor (boarded crypt front), not TGMP; camera scars re-hit: 892" wall
+face crossed the eye plane (CSS3D drew nothing — walls now 8 bays), props preset
+turned. Anchors intact ($544k+$218k=$762k/100 rights/fee math to the cent). E could
+NOT settle absolute dimensions (kept s09 footprint rather than swap in a
+differently-wrong one), bed drop, exact post census, handrails. Main after both
+merges: 8/0; **2285/36** (twice, director's own runs — E/G asserts live in their
+standalone gates, suite count unchanged). F and H still in flight; push fires when
+all four are in and green.
+
 **Sprint-14 — PUSHED AND LIVE-VERIFIED 2026-08-04** (pre-authorized "push everything
 live once its done"; `2251927..85ba8ff`, 22 commits incl. the chip session's casket
 merge — the chip session started its merge IN THE SHARED MAIN TREE mid-close and the
