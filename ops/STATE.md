@@ -19,6 +19,20 @@ ever; explicit item at the push gate. The three-building MIS overview exists onl
 the operator's chat screenshot — director transcribed it into the B/C track briefs.
 See `sprints/sprint-14/SPRINT.md`.
 
+**s14 OPERATOR FIX ROUND (director-direct per lean-mode, `ca0a057`):** two operator
+corrections during the sprint, both applied to the ELM map and verified (gate + 24
+sabotages + ECL gate + 2092/36 + card renders eyeballed): (1) **crystal niches were
+NEVER FILMED** — the room sits behind a glass door, dark, operator did not enter;
+Track C's corridor keepsake-bank identification was WRONG (the confidence system
+worked: it was flagged medium-high, not certain). All footage-derived interior claims
+stripped; placement stays per drawing; cards say "not filmed inside — ask us to walk
+it with you". What the corridor keepsake banks actually are is now itself an OPEN
+question. (2) **the Pickel Wall (ELN-W-1) is the glass wall with what look like
+crystals displayed inside** (operator saw it briefly in footage) — re-kinded from
+'wall' (which rendered a false "Wall crypts" claim) to new kind 'glass' ("Glass
+wall"), own hue + legend entry; ELN-prefix + labelUnverified guards intact. Track C's
+agent transcript was gone (could not resume) — fix was director-direct.
+
 **s14 Track C MERGED (director-audited, `d08896e`); merged main GREEN: 2092 passed,
 0 failed across 36 suites** (director's own run; reconciles 2090 + 1 TG page + 1 ELM
 page — test-family-register auto-discovers new family-facing pages, 160→162; post-B
