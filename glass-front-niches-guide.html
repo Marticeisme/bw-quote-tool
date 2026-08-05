@@ -133,6 +133,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
          border-bottom:1.5px solid rgba(200,84,10,.35);padding-bottom:1px;}
 .maplink:hover{color:var(--orange-dark);}
 
+/* THE MAP LINES, ON SCREEN AND ON PAPER (sprint-17 Track B).
+   Operator, 2026-08-05: a family reading a printed or emailed copy of this guide cannot
+   click a link, so "Open the ... map" was a dead sentence on paper. Each map line now
+   carries both halves: `.map-screen` is the clickable sentence, `.map-print` is the
+   paper sentence, and exactly one of them is ever visible.
+
+   NOT `data-print-suppress` for the screen half, even though that is the guide's other
+   print-hiding attribute: scripts/build_guide_print_system.mjs strips EVERY
+   `data-print-suppress="..."` on the page and re-applies its own, so a hand-authored one
+   would silently vanish on the next generator run. And verify_guide_pages.mjs counts
+   those elements, so a prose span would be measured against a table rule. Plain classes
+   the generator does not know about are the safe mechanism here. */
+.map-print{display:none;}
+
 .doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
 .doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
 .doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
@@ -292,6 +306,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
                    margin:0 auto;border-radius:5px}
 
   .maplink{font-size:8.5pt;border-bottom:none;font-weight:700}
+  /* The paper half of every map line takes over here. `!important` on both because
+     guide-print.css is linked AFTER this block and the screen `.map-print{display:none}`
+     above is in the same stylesheet — order alone is too fragile to rely on for a rule
+     whose failure mode is a family holding a sheet with a sentence missing from it. */
+  .map-screen{display:none!important}
+  .map-print{display:inline!important}
   /* `.prose .footnote` (0,2,0) out-ranks `.prose p` (0,1,1), so the screen's 13px
      survived into print and the footnotes set larger than the body copy. */
   .footnote,.prose .footnote{font-size:7.5pt;line-height:1.32;margin-top:5px;margin-bottom:5px}
@@ -488,7 +508,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
       <div class="prose">
         <p><strong>Every niche carries <span data-rights="ecl">2 rights of interment</span></strong>: two people may be placed in the same niche, usually a husband and wife, on one contract. That holds for every opening here, the large two-row family units included.</p>
-        <p><a class="maplink" href="MAPS/ECL_NicheMap.html">Open the Eternal Light niche map</a> to see live availability and the exact price of any niche.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light niche map</a> shows you all four faces niche by niche, with what each one costs and whether it&rsquo;s still open.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Eternal Light niche map, all four faces, with prices and what&rsquo;s still open.</span></p>
       </div>
     </div>
   </div>
@@ -544,7 +564,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
 
       <div class="prose">
-        <p><a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Open the Mountain View glass-front niche map</a> to walk all four faces and see every price.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View glass-front niche map</a> shows you all four faces of the island opening by opening, with what each one costs and whether it&rsquo;s still open.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Mountain View glass-front niche map, all four faces of the island, with prices and what&rsquo;s still open.</span></p>
       </div>
     </div>
   </div>
@@ -580,7 +600,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <span class="avail-chip">Rows A&ndash;K</span>
         </div>
         <div class="plan-items">
-          <p>The sheet groups the wall into four size classes: Small, Large, X-Large and Family. The Family niches are the two double-height openings at the centre. Only the priced spaces are for sale; anything the sheet leaves blank is confirmed with us before it is quoted.</p>
+          <p>The sheet groups the wall into four size classes: Small, Large, X-Large and Family. The Family niches are the two double-height openings at the centre. Only the priced spaces are for sale. If the sheet leaves a space blank, ask me and I&rsquo;ll confirm what it is before I quote it.</p>
         </div>
       </div>
 
@@ -617,8 +637,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
 
       <div class="prose">
-        <p class="footnote">Both walls carry the same fee box: the glass-front niche schedule, the same opening &amp; closing, recording fee and Endowment Care Fund as at the Eternal Light and Mountain View columbaria. The Chapel of Memories <em>crypts</em> have their own, different schedule, and we do not carry one over to the other. Every niche on both walls carries <span data-rights="radser">2 rights of interment</span>: two urns in the same niche, usually a husband and wife, on one contract, the double-height Family niches included.</p>
-        <p><a class="maplink" href="MAPS/COM_CryptMap.html">Open the Chapel of Memories map</a> for both walls, space by space, with prices.</p>
+        <p class="footnote">Both walls are charged the same way, on the glass-front niche schedule. That&rsquo;s the same opening and closing, the same recording fee and the same Endowment Care Fund rate as a glass-front niche at the Eternal Light or Mountain View. The <em>crypts</em> in the Chapel of Memories are on a different schedule, and it doesn&rsquo;t apply here. Every niche on both walls comes with <span data-rights="radser">2 rights of interment</span>. That means two urns in the same niche, usually a husband and wife, on one contract, and the double-height Family niches work the same way. <span class="map-print">Ask me and I&rsquo;ll walk you through our Chapel of Memories niche map, both walls space by space, with prices and what&rsquo;s still open.</span></p>
+        <p class="map-screen">Our <a class="maplink" href="MAPS/COM_CryptMap.html">Chapel of Memories niche map</a> shows both walls space by space, with what each one costs and whether it&rsquo;s still open.</p>
       </div>
     </div>
   </div>
@@ -682,7 +702,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <ul>
           <li>Settle the first question first: should the urn and the family&rsquo;s mementos be visible? That is what separates these four from the granite-front locations.</li>
           <li>Choose the urn with the niche, not after it. Behind glass the urn is part of the memorial, and the opening&rsquo;s size decides what fits.</li>
-          <li>Decide whether you are placing one person or two. At the Eternal Light and Mountain View two rights come with the niche; at Radiance and Serenity, ask us to confirm what the space allows.</li>
+          <li>Decide whether you&rsquo;re placing one person or two. Every niche in this guide comes with at least two rights, so a couple is one niche and one contract. Ask me and I&rsquo;ll confirm what the space you&rsquo;re looking at allows.</li>
           <li>Walk them. All four are indoors and take twenty minutes to see together.</li>
           <li>Ask us to confirm the exact space, its price and today&rsquo;s availability before anything is signed.</li>
         </ul>
