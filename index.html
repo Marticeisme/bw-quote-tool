@@ -8911,17 +8911,22 @@ function _fqTaxOf(lines){
   });
   return Math.round(Math.max(0,taxable-taxDisc)*TAX*100)/100;
 }
-// Payment tiers for page 2 — 10/20/25% down × 36/48/60 mo at 0% (ACH). Matches the mockup exactly.
-function _fqPayTiers(total){
-  if(!(total>0)) return [];
-  return [0.10,0.20,0.25].map(function(pct){
-    var down=Math.round(total*pct), financed=total-down;
-    return {
-      label:(pct*100).toFixed(0)+'% down', down:_fqRound(down), financed:_fqRound(financed),
-      terms:[36,48,60].map(function(mo){ return {term:mo+' months', monthly:_fqRound(financed/mo)}; })
-    };
+// Pre-tax net for a set of lines — the sum of exactly the rows the quote prints (every non-tax,
+// non-discount item, less every discount). This is the SUBTOTAL. The surface `total` handed in by
+// the callers (_cemTotal/_fhTotal/_combCemTotal/_combFhTotal) is the tax-INCLUSIVE grand total, so
+// using it as the subtotal made the line "Cemetery subtotal $X" repeat the grand total and the
+// printed rows never added up to it. net + _fqTaxOf(lines) === total.
+function _fqNetOf(lines){
+  var net=0;
+  (lines||[]).forEach(function(l){
+    if(l.isTax) return;
+    if(l.isDiscount){ net-=Math.abs(l.amount); return; }
+    net+=(l.amount||0);
   });
+  return Math.round(net*100)/100;
 }
+// (The old _fqPayTiers() lived here — a 10/20/25% x 36/48/60 grid hard-coded to 0%. Both renderers
+// now read the real FIN_TIERS rate table, so it no longer has a caller.)
 // WA Maxima insurance plans for the FH family-quote page 2 (Martice: "keep maxima, restyle to
 // match"). Mirrors the old FH-print calc: net = total − initial payment; each applicable plan's
 // monthly = net × rate (Single Pay = net, one-time). Returns null when no age or no plans apply.
@@ -8955,7 +8960,10 @@ function _fqBuildModel(opts){
     if(!s.lines || !s.lines.length) return;
     var g=_fqSurfaceGroups(s.lines, s.kind);
     if(!g.groups.length && !g.discount) return;
-    surfaces.push({kind:s.kind, name:s.name, tagline:s.tagline, groups:g.groups, discount:g.discount, subtotal:s.total});
+    // subtotal = PRE-tax net (what the printed rows add up to); total = tax-inclusive grand total
+    // for this surface (what the payment math has always been based on). Keep them distinct.
+    surfaces.push({kind:s.kind, name:s.name, tagline:s.tagline, groups:g.groups, discount:g.discount,
+                   subtotal:_fqNetOf(s.lines), total:s.total});
     grand+=s.total; taxAmt+=_fqTaxOf(s.lines);
   });
   // Payment-options descriptor for page 2. Cemetery arrangements are financed (FIN_TIERS grid);
@@ -8964,8 +8972,10 @@ function _fqBuildModel(opts){
   // switches to the combined budget grid (cemetery term x FH plan -> total/mo).
   var showPay=opts.showPayment!==false, cemBase=0, fhBase=0, hasCem=false, hasFh=false;
   surfaces.forEach(function(sf){
-    if(sf.kind==='cem'){ cemBase+=sf.subtotal; if(sf.subtotal>0) hasCem=true; }
-    else if(sf.kind==='fh'){ fhBase+=sf.subtotal; if(sf.subtotal>0) hasFh=true; }
+    // Financing/insurance bases are the TAX-INCLUSIVE surface totals — unchanged by the subtotal
+    // fix above (sf.total is the value sf.subtotal used to hold), so no payment figure moves.
+    if(sf.kind==='cem'){ cemBase+=sf.total; if(sf.total>0) hasCem=true; }
+    else if(sf.kind==='fh'){ fhBase+=sf.total; if(sf.total>0) hasFh=true; }
   });
   var mx=showPay?(opts.maxima||null):null;
   var pay={
@@ -8987,8 +8997,7 @@ function _fqBuildModel(opts){
     grandTotal:grand,
     maxima:mx,
     pay:pay,
-    hasPage2:hasPage2,
-    payTiers:opts.showPayment===false?[]:_fqPayTiers(grand)   // retained for the dead HTML fallback renderer
+    hasPage2:hasPage2
   };
 }
 function _fqPickTier(model){
@@ -9006,10 +9015,120 @@ function _fqHeaderHTML(rightTitle, rightSub){
     +'<div style="font-size:13px;color:'+_FQ.m1+';margin-top:3px;">'+rightSub+'</div></div></div>'
     +'<div style="height:2px;background:'+_FQ.orange+';margin:0 56px;"></div>';
 }
-function _fqFooterHTML(pageNo){
+// No page counter: the payment sheet can run past one printed page (the PDF paginates it to 2-3),
+// so "Page 2 of 2" would be a false claim. The pdf-lib footer carries no page number either.
+function _fqFooterHTML(){
   return '<div style="margin-top:36px;padding:24px 56px 40px;border-top:1px solid '+_FQ.footRule+';display:flex;align-items:center;justify-content:space-between;gap:24px;">'
-    +'<div style="font-size:12.5px;color:'+_FQ.m2+';line-height:1.6;">Bonney Watson &nbsp;·&nbsp; 16445 International Blvd, SeaTac, WA 98188<br>'+bwAdvisorContactPair(' &nbsp;·&nbsp; ')+' &nbsp;·&nbsp; Available 24 hours</div>'
-    +'<div style="font-size:12px;color:'+_FQ.m3+';">Page '+pageNo+' of 2</div></div>';
+    +'<div style="font-size:12.5px;color:'+_FQ.m2+';line-height:1.6;">Bonney Watson &nbsp;·&nbsp; 16445 International Blvd, SeaTac, WA 98188<br>'+bwAdvisorContactPair(' &nbsp;·&nbsp; ')+' &nbsp;·&nbsp; Available 24 hours</div></div>';
+}
+// ── HTML payment-options page (page 2) ──────────────────────────────────────────────────────────
+// These mirror the pdf-lib page 2 exactly: the real FIN_TIERS rate table (24-72 mo, 0-10% APR) for
+// cemetery financing, the WA Maxima insurance plans for funeral-home quotes, and the combined
+// monthly-budget grid. The print page used to render _fqPayTiers() — a simplified flat-0%
+// 36/48/60 grid — so a printed quote and its PDF disagreed the moment a term carried an APR.
+function _fqPillHTML(txt){
+  return '<span style="display:inline-block;background:'+_FQ2.pillbg+';color:'+_FQ.orange+';font-weight:700;font-size:11px;padding:2px 8px;white-space:nowrap;">'+_fqEsc(txt)+'</span>';
+}
+function _fqSectLabelHTML(kick, title){
+  return '<div class="seclab" style="margin:18px 0 10px;"><div style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">'+_fqEsc(kick)+'</div>'
+    +(title?'<div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navyDark+';margin-top:5px;">'+_fqEsc(title)+'</div>':'')+'</div>';
+}
+function _fqDiscHTML(txt){
+  return '<div style="background:'+_FQ2.warm+';border-left:3px solid '+_FQ.navy+';padding:14px 18px;margin-bottom:14px;break-inside:avoid;">'
+    +'<p style="margin:0;font-size:11.5px;line-height:1.6;color:'+_FQ.m1+';">'+_fqEsc(txt)+'</p></div>';
+}
+// Shared card chrome: warm header strip with an orange keyline, right-aligned figure block, then a
+// four-column table. Cell contents are pre-built HTML (already escaped by the callers).
+function _fqPayCardHTML(title, figs, cols, rows){
+  var h='<div class="payopt" style="border:1px solid '+_FQ2.tierbrd+';background:'+_FQ.sheet+';margin-bottom:14px;">'
+    +'<div style="background:'+_FQ2.warm+';border-left:3px solid '+_FQ.orange+';border-bottom:1px solid '+_FQ2.tierbrd+';padding:12px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;">'
+    +'<div style="font-family:\'Public Sans\',serif;font-size:20px;color:'+_FQ.navy+';">'+_fqEsc(title)+'</div>'
+    +'<div style="display:flex;gap:28px;">';
+  figs.forEach(function(f){
+    h+='<div style="text-align:right;white-space:nowrap;"><div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:'+_FQ.m2+';">'+_fqEsc(f.label)+'</div>'
+      +'<div style="font-size:16px;font-weight:600;color:'+(f.accent||_FQ.bodyDark)+';font-variant-numeric:tabular-nums;margin-top:2px;">'+_fqEsc(f.value)+'</div></div>';
+  });
+  h+='</div></div><table style="width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;"><thead><tr>';
+  cols.forEach(function(c){
+    h+='<th style="text-align:'+(c.align||'left')+';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+_FQ.m2+';font-weight:700;padding:11px 18px 7px;border-bottom:1px solid '+_FQ.hair+';">'+_fqEsc(c.label)+'</th>';
+  });
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    h+='<tr>';
+    r.forEach(function(cell,ci){
+      h+='<td style="text-align:'+((cols[ci]||{}).align||'left')+';padding:6px 18px;font-size:13.5px;'
+        +(i<rows.length-1?'border-bottom:1px solid '+_FQ2.rowline+';':'')+'">'+cell+'</td>';
+    });
+    h+='</tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+// Cemetery financing: one card per down-payment tier, every FIN_TIERS term with its real rate.
+function _fqFinCardsHTML(base){
+  var out='';
+  [['10% down',0.10],['20% down',0.20],['25% or more down',0.25]].forEach(function(d){
+    var tiers=(typeof FIN_TIERS!=='undefined')?FIN_TIERS[d[1]]:null; if(!tiers) return;
+    var down=Math.ceil(base*d[1]), bal=base-down; if(bal<=0) return;
+    var rows=tiers.map(function(t){
+      var mo=t[0], rate=t[1], monthly=finMonthly(bal,mo,rate), tot=down+monthly*mo;
+      return [
+        '<span style="font-weight:600;color:'+_FQ.bodyDark+';">'+mo+' months</span>',
+        rate===0 ? _fqPillHTML('0% · ACH')
+                 : '<span style="color:'+_FQ.m2+';">'+(rate*100).toFixed(0)+'%</span> <span style="font-size:11px;color:'+_FQ.m3+';">APR</span>',
+        '<span style="font-weight:700;color:'+_FQ.navy+';">'+_fqMoney(monthly)+'/mo</span>',
+        '<span style="color:'+_FQ.m1+';">'+_fqMoney(tot)+'</span>'
+      ];
+    });
+    out+=_fqPayCardHTML(d[0],
+      [{label:'Down payment', value:_fqMoney(down)},{label:'Remaining balance', value:_fqMoney(bal), accent:_FQ.navy}],
+      [{label:'Term'},{label:'Rate'},{label:'Monthly',align:'right'},{label:'Total cost',align:'right'}],
+      rows);
+  });
+  return out;
+}
+// Funeral home: WA Maxima insurance plans (age-based), same card language.
+function _fqMaximaCardHTML(mx){
+  var rows=mx.plans.map(function(p){
+    return [
+      '<span style="font-weight:600;color:'+_FQ.bodyDark+';">'+_fqEsc(p.name)+'</span>',
+      p.oneTime?'<span style="color:'+_FQ.m2+';">—</span>':'<span style="font-weight:700;color:'+_FQ.navy+';">'+_fqMoney(p.monthly)+'/mo</span>',
+      p.oneTime?'<span style="color:'+_FQ.m1+';">paid once</span>':'<span style="color:'+_FQ.m1+';">'+p.months+' mo</span>',
+      '<span style="color:'+_FQ.m1+';">'+_fqMoney(p.totalPaid)+'</span>'
+    ];
+  });
+  return _fqPayCardHTML('Payment Plans', [{label:'Age', value:String(mx.age)}],
+    [{label:'Plan'},{label:'Monthly',align:'right'},{label:'Term',align:'right'},{label:'Total',align:'right'}], rows);
+}
+// Combined budget grid: cemetery term x FH plan, the five closest to the target monthly.
+function _fqBudgetHTML(base, mx, budget){
+  var rows=[];
+  [[0.10,'10% down'],[0.20,'20% down'],[0.25,'25%+ down']].forEach(function(td){
+    var tiers=(typeof FIN_TIERS!=='undefined')?FIN_TIERS[td[0]]:null; if(!tiers) return;
+    var down=Math.ceil(base*td[0]), bal=base-down; if(bal<=0) return;
+    tiers.forEach(function(t){
+      var cemMo=finMonthly(bal,t[0],t[1]);
+      mx.plans.forEach(function(p){
+        if(p.oneTime) return;
+        rows.push({label:td[1]+' · '+t[0]+' mo '+(t[1]===0?'(0% ACH)':'('+(t[1]*100).toFixed(0)+'%)')+'  +  '+p.name,
+                   cemMo:cemMo, fhMo:p.monthly, total:cemMo+p.monthly, diff:Math.abs(cemMo+p.monthly-budget)});
+      });
+    });
+  });
+  if(!rows.length) return '';
+  rows.sort(function(a,b){return a.diff-b.diff;});
+  var bestVal=rows[0].total, top5=rows.slice(0,5).sort(function(a,b){return a.total-b.total;});
+  var h='<div class="payopt" style="border:1px solid '+_FQ2.tierbrd+';background:'+_FQ.sheet+';margin-bottom:14px;">';
+  top5.forEach(function(r,i){
+    var best=(r.total===bestVal);
+    h+='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:11px 16px;'
+      +(best?'background:'+_FQ2.warm+';border-left:3px solid '+_FQ.orange+';':'border-left:3px solid transparent;')
+      +(i<top5.length-1?'border-bottom:1px solid '+_FQ2.rowline+';':'')+'">'
+      +'<div><div style="font-size:13.5px;font-weight:600;color:'+_FQ.navyDark+';">'+_fqEsc(r.label)+'</div>'
+      +'<div style="font-size:11.5px;color:'+_FQ.m1+';margin-top:3px;">cemetery '+_fqMoney(r.cemMo)+'/mo &nbsp;+&nbsp; funeral plan '+_fqMoney(r.fhMo)+'/mo'
+      +(best?' &nbsp;·&nbsp; closest to your target':'')+'</div></div>'
+      +'<div style="font-size:17px;font-weight:700;color:'+(best?_FQ.orange:_FQ.navy)+';font-variant-numeric:tabular-nums;white-space:nowrap;">'+_fqMoney(r.total)+'/mo</div></div>';
+  });
+  return h+'</div>';
 }
 function _fqRowHTML(r, t){
   return '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:'+t.rowPad+'px 0;border-bottom:1px solid '+_FQ.hair+';">'
@@ -9068,46 +9187,115 @@ function _fqRenderHTML(model){
   // Note
   p1+='<div style="margin:24px 56px 0;"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">A note</div>'
     +'<p style="font-size:'+t.note+'px;line-height:1.65;color:'+_FQ.body+';margin:9px 0 0;max-width:640px;">This is an estimate prepared for your planning — not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we’re here to answer any question, whenever you’re ready.'
-    +(model.payTiers.length?' A summary of payment options follows on the next page.':'')+'</p></div>';
-  p1+=_fqFooterHTML(model.payTiers.length?1:'1');
+    +(model.hasPage2?' A summary of payment options follows on the next page.':'')+'</p></div>';
+  p1+=_fqFooterHTML();
   p1+='</div>';
   // PAGE 2 (payment options)
   var p2='';
-  if(model.payTiers.length){
+  if(model.hasPage2){
+    var pay=model.pay;
     p2='<div class="sheet page2" style="'+sheet+'margin-top:28px;">'+_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; Estimated total '+_fqMoney(model.grandTotal));
     p2+='<div style="padding:30px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Ways to plan for this</div>'
-      +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">There’s no obligation, and no wrong choice.</h2>'
-      +'<p style="font-size:15px;line-height:1.65;color:'+_FQ.body+';margin:12px 0 0;max-width:640px;">Many families choose to spread the cost over time. The estimates below show a few common down-payment amounts and terms at 0% interest with automatic payments. Your Family Service Advisor can tailor any of these to what feels right for you.</p></div>';
-    p2+='<div style="padding:22px 56px 0;display:flex;flex-direction:column;gap:16px;">';
-    model.payTiers.forEach(function(o){
-      p2+='<div class="payopt" style="background:'+_FQ.cream+';border:1px solid '+_FQ.footRule+';border-radius:2px;padding:22px 26px;">'
-        +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;border-bottom:1px solid '+_FQ.payHdrDiv+';padding-bottom:12px;">'
-        +'<div style="font-family:\'Public Sans\',serif;font-size:20px;color:'+_FQ.navyDark+';">'+_fqEsc(o.label)+'</div>'
-        +'<div style="font-size:13px;color:'+_FQ.m1+';">Down payment <strong style="color:'+_FQ.bodyDark+';font-variant-numeric:tabular-nums;">'+o.down+'</strong> &nbsp;·&nbsp; Financed <strong style="color:'+_FQ.bodyDark+';font-variant-numeric:tabular-nums;">'+o.financed+'</strong></div></div>'
-        +'<div style="display:flex;gap:0;margin-top:6px;">';
-      o.terms.forEach(function(tm){
-        p2+='<div style="flex:1;text-align:center;padding:14px 8px;border-right:1px solid '+_FQ.payDiv+';"><div style="font-size:12.5px;color:'+_FQ.m2+';">'+_fqEsc(tm.term)+'</div>'
-          +'<div style="font-weight:700;font-size:22px;color:'+_FQ.navy+';font-variant-numeric:tabular-nums;margin-top:4px;">'+tm.monthly+'</div><div style="font-size:11.5px;color:'+_FQ.m3+';">per month</div></div>';
-      });
-      p2+='</div></div>';
-    });
+      +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">'+_fqEsc(_fqPayHeadline(pay))+'</h2>'
+      +'<p style="font-size:15px;line-height:1.65;color:'+_FQ.body+';margin:12px 0 0;max-width:640px;">'+_fqEsc(_fqPayIntro(pay,model))+'</p></div>';
+    p2+='<div style="padding:18px 56px 0;">';
+    if(pay.scope!=='fh'){   // ACH legend — only where financing tiers appear
+      p2+='<div style="display:flex;align-items:baseline;gap:9px;margin-bottom:16px;">'+_fqPillHTML('0% · ACH')
+        +'<span style="font-size:12.5px;color:'+_FQ.body+';">= no interest, paid by automatic bank withdrawal. Other terms include the finance charge shown.</span></div>';
+    }
+    if(pay.scope==='fh'){
+      p2+=_fqMaximaCardHTML(pay.maxima);
+      p2+=_fqDiscHTML('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
+    } else if(pay.scope==='cem'){
+      p2+=_fqFinCardsHTML(pay.cemBase);
+      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.');
+    } else {
+      var hasMx = pay.maxima && pay.maxima.plans.length;
+      p2+=_fqSectLabelHTML('Cemetery','Financing options · '+_fqMoney(pay.cemBase));
+      p2+=_fqFinCardsHTML(pay.cemBase);
+      if(hasMx){
+        p2+=_fqSectLabelHTML('Funeral home','Payment plans · age '+pay.maxima.age);
+        p2+=_fqMaximaCardHTML(pay.maxima);
+      } else {
+        p2+=_fqSectLabelHTML('Funeral home','');
+        p2+='<p style="font-size:12.5px;line-height:1.6;color:'+_FQ.m1+';margin:0 0 14px;max-width:640px;">Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member’s age in the Funeral Home quote to include those monthly figures here.</p>';
+      }
+      if(hasMx && pay.combBudget>0){
+        p2+=_fqSectLabelHTML('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month');
+        p2+=_fqBudgetHTML(pay.cemBase, pay.maxima, pay.combBudget);
+      }
+      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms.');
+    }
     p2+='</div>';
-    p2+='<div style="margin:26px 56px 0;background:'+_FQ.offwhite+';border:1px solid '+_FQ.cardBorder+';padding:18px 22px;"><p style="font-size:13px;line-height:1.6;color:'+_FQ.m1+';margin:0;">All figures are estimates for illustration only and do not constitute a financing offer or contract. Monthly amounts assume 0% interest with automatic (ACH) payments; other rates and terms may apply. Your Family Service Advisor will provide exact figures and terms when you’re ready.</p></div>';
-    p2+=_fqFooterHTML(2);
+    p2+=_fqFooterHTML();
     p2+='</div>';
   }
+  // @page pins the paper geometry so the fit script below can trust it (the sheets are drawn at a
+  // fixed 850px design width — letting print scale them to 100% of an unknown page box is what
+  // pushed the "A note" block and the footer onto a second sheet).
   var css='*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Public Sans\',system-ui,sans-serif;color:'+_FQ.bodyDark+';padding:32px 0 64px;}'
-    +'@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;width:100% !important;}.page2{break-before:page;margin-top:0 !important;}.payopt,.totals{break-inside:avoid;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
+    +'@page{size:letter;margin:0.45in;}'
+    +'@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;}'
+    +'.page2{break-before:page;margin-top:0 !important;}.payopt,.totals,.surface>div{break-inside:avoid;}'
+    +'.seclab{break-after:avoid;break-inside:avoid;}'
+    +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+_fqEsc(model.typeLabel)+' – Bonney Watson</title>'
     +'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
     +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">'
     +'<style>'+css+'</style></head><body>'+p1+p2+'</body></html>';
 }
-// "Print" opens the SAME pdf-lib artifact as "Download" (Martice's hard rule: HTML print and PDF
-// download must be identical). The browser's built-in PDF viewer handles printing. (_fqRenderHTML
-// and the _fq*HTML helpers below are retained as an on-screen fallback but are no longer the print
-// path.)
-function _fqPrint(model){ return _fqOpenForPrint(model); }
+// Fit-to-page. Each sheet is drawn at a fixed 850px design width and a natural height that runs
+// taller than a Letter page box — printing 1:1 pushed the "A note" block and the footer onto a
+// sheet of their own. So we measure each sheet and add a PRINT-ONLY zoom rule: shrink just enough
+// to land on one page. The quote sheet gets a low floor (the one-page rule wins there, as it does
+// in the PDF); the payment sheet gets a higher one and is allowed to run onto a second page rather
+// than shrink to an unreadable size. An @media print rule, not an inline style, so the on-screen
+// view is untouched. This runs from the OPENER against the child document — a <script> written
+// into the print window via document.write never executes.
+function _fqFitForPrint(doc){
+  try {
+    var PW=725, PH=952;   // Letter at the 0.45in @page margin above, less a little headroom:
+                          // landing a sheet on exactly the page height still spilled its footer.
+    var sh=doc.querySelectorAll('.sheet'), css='';
+    for(var i=0;i<sh.length;i++){
+      var r=sh[i].getBoundingClientRect();
+      if(!r.width || !r.height) continue;
+      var MIN=sh[i].classList.contains('page2')?0.68:0.55;
+      var k=Math.min(PW/r.width, PH/r.height, 1); if(k<MIN) k=MIN;
+      sh[i].setAttribute('data-fq', i);
+      if(k<1) css+='[data-fq="'+i+'"]{zoom:'+k.toFixed(4)+';}';
+    }
+    var old=doc.getElementById('fqFitStyle'); if(old && old.parentNode) old.parentNode.removeChild(old);
+    if(css){ var st=doc.createElement('style'); st.id='fqFitStyle'; st.textContent='@media print{'+css+'}'; doc.head.appendChild(st); }
+    return css;
+  } catch(e){ console.warn('fit-to-page skipped:', e); return ''; }
+}
+// "Print" opens a real printable browser page (_fqRenderHTML) and hands it to the browser's print
+// dialog. It used to alias _fqOpenForPrint(), which builds the pdf-lib artifact, wraps it in a
+// blob: URL and window.open()s it — every browser DOWNLOADS that instead of showing it, so Print
+// silently behaved like Download. The 📥 PDF button still produces the pdf-lib artifact; the two
+// renderers read the same model and now show identical figures on both pages.
+function _fqPrint(model){
+  try {
+    var win = window.open('', '_blank');
+    if(!win){ alert('Please allow pop-ups to print the quote.'); return; }
+    win.document.open();
+    win.document.write(_fqRenderHTML(model));
+    win.document.close();
+    // Wait for the webfonts to land before measuring — the fit pass needs final metrics — then
+    // raise the print dialog. If any part of the handoff fails, the page is still sitting there
+    // for a manual Ctrl+P, which is the whole point of printing from a real browser page.
+    var fired = false;
+    var fire = function(){
+      if(fired) return; fired = true;
+      try { _fqFitForPrint(win.document); win.focus(); win.print(); }
+      catch(e){ console.warn('print handoff:', e); }
+    };
+    var f = win.document.fonts;
+    if(f && f.ready) f.ready.then(function(){ setTimeout(fire, 150); }, function(){ setTimeout(fire, 150); });
+    setTimeout(fire, 2500);   // safety net if fonts never resolve
+  } catch(e){ console.error('Family quote print error:', e); alert('Could not open the print view: '+e.message); }
+}
 
 // ── PDF render (pdf-lib) — the AUTHORITATIVE artifact ────────────────────────────────────────────
 // Both "Download PDF" and "Print" build THIS, so the emailed file and the printed page are the same
@@ -10383,7 +10571,11 @@ function combUpdate() {
     if (typeof combInsCalc === 'function') combInsCalc();
     return;
   }
-  var html = '', grandTotal = 0;
+  // Subtotals here are PRE-tax nets (same figures the printed/PDF quote shows), with the sales tax
+  // disclosed on its own line before the combined total. The old panel printed the tax-inclusive
+  // surface total under the label "Subtotal" and footnoted "Tax included…", so the item rows above
+  // it never added up to the number and the family saw tax twice over.
+  var html = '', grandTotal = 0, taxTotal = 0;
   if (hasCem) {
     html += '<div class="s-section-label">\ud83c\udfdb\ufe0f Cemetery Services</div>';
     _combCemLines.forEach(function(l) {
@@ -10391,7 +10583,8 @@ function combUpdate() {
       else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
       else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
     });
-    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Cemetery Subtotal</span><span class="s-amt">' + fmt(_combCemTotal) + '</span></div>';
+    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Cemetery Subtotal</span><span class="s-amt">' + fmt(_fqNetOf(_combCemLines)) + '</span></div>';
+    taxTotal += _fqTaxOf(_combCemLines);
     grandTotal += _combCemTotal;
   }
   if (hasFh) {
@@ -10401,7 +10594,8 @@ function combUpdate() {
       else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
       else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
     });
-    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Funeral Home Subtotal</span><span class="s-amt">' + fmt(_combFhTotal) + '</span></div>';
+    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Funeral Home Subtotal</span><span class="s-amt">' + fmt(_fqNetOf(_combFhLines)) + '</span></div>';
+    taxTotal += _fqTaxOf(_combFhLines);
     grandTotal += _combFhTotal;
   }
   var customLines = [];
@@ -10414,11 +10608,15 @@ function combUpdate() {
   if (customLines.length > 0) {
     html += '<div class="s-section-label" style="margin-top:10px;">\u2795 Additional Items</div>';
     customLines.forEach(function(l) {
-      var taxAmt = l.taxable ? l.amount * TAX : 0;
+      var taxAmt = l.taxable ? Math.round(l.amount * TAX * 100) / 100 : 0;
       html += '<div class="s-line"><span class="s-lbl">' + l.label + (l.taxable?' (taxable)':'') + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-      if (taxAmt > 0) { html += '<div class="s-line tax-line"><span class="s-lbl">  Tax (10.4%)</span><span class="s-amt">' + fmt(taxAmt) + '</span></div>'; grandTotal += taxAmt; }
+      // Tax rolls into the single disclosure line below instead of a row per item.
+      if (taxAmt > 0) { taxTotal += taxAmt; grandTotal += taxAmt; }
       grandTotal += l.amount;
     });
+  }
+  if (taxTotal > 0) {
+    html += '<div class="s-line tax-line" style="border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Sales tax (10.4% · merchandise only)</span><span class="s-amt">' + fmt(taxTotal) + '</span></div>';
   }
   var discAmt = 0, discLabel = '';
   if (discMode) {
@@ -10428,7 +10626,8 @@ function combUpdate() {
     discLabel = dn + (discMode === 'percent' ? ' (' + dv + '%)' : '');
     if (discAmt > 0) { html += '<div class="s-line discount-line"><span class="s-lbl">' + discLabel + '</span><span class="s-amt">-' + fmt(discAmt) + '</span></div>'; grandTotal -= discAmt; }
   }
-  html += '<hr class="s-divider"><div class="s-total-row"><span class="s-total-lbl">Combined Total</span><span class="s-total-amt">' + fmt(grandTotal) + '</span></div><div class="s-tax-note">Tax included in each subtotal where applicable.</div>';
+  html += '<hr class="s-divider"><div class="s-total-row"><span class="s-total-lbl">Combined Total</span><span class="s-total-amt">' + fmt(grandTotal) + '</span></div>'
+    + (taxTotal > 0 ? '<div class="s-tax-note">' + _taxNoteText(false) + '</div>' : '');
   body.innerHTML = html;
   if (typeof combInsCalc === 'function') combInsCalc();
 }
