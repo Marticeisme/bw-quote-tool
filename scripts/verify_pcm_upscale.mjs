@@ -50,6 +50,30 @@ export const EXPECT_RESAMPLE = new Set([
   '2020/838', '2020/841', '2020/918', '2020/958', '2020/987', '2020/992',
 ]);
 
+// The plates whose ceramic PHOTOGRAPH was removed and replaced with the Bonney Watson
+// roundel (scripts/pcm_photo_mask.py, regions in data/pcm-photo-masks.json). Asserted
+// EXACTLY in both directions, for the same reason as EXPECT_RESAMPLE: a plate that quietly
+// loses its mask puts a stranger's AI-rebuilt face back in front of a family, and a plate
+// that quietly gains one has had product art painted over without anyone deciding to.
+// The census was done by eye over all 699 plates; 2011 carries none, which is itself a
+// finding worth pinning — that book is line art throughout.
+export const EXPECT_PHOTO_MASKED = new Set([
+  '2020/668', '2020/676', '2020/680', '2020/682', '2020/686', '2020/691', '2020/694',
+  '2020/701', '2020/710', '2020/712', '2020/719', '2020/729', '2020/736', '2020/744',
+  '2020/746', '2020/748', '2020/754', '2020/758', '2020/763', '2020/767', '2020/773',
+  '2020/787', '2020/793', '2020/794', '2020/801', '2020/804', '2020/805', '2020/808',
+  '2020/814', '2020/815', '2020/817', '2020/823', '2020/827', '2020/830', '2020/834',
+  '2020/843', '2020/845', '2020/854', '2020/858', '2020/866', '2020/867', '2020/868',
+  '2020/869', '2020/875', '2020/877', '2020/879', '2020/882', '2020/884', '2020/888',
+  '2020/891', '2020/892', '2020/896', '2020/898', '2020/899', '2020/901', '2020/908',
+  '2020/910', '2020/913', '2020/922', '2020/923', '2020/927', '2020/929', '2020/932',
+  '2020/940', '2020/941', '2020/947', '2020/950', '2020/952', '2020/963', '2020/971',
+  '2020/972', '2020/973', '2020/980', '2020/985', '2020/994', '2020/1005', '2020/1006',
+  '2020/1010', '2020/1011', '2020/1012', '2020/1015', '2020/1016', '2020/1018',
+  '2020/1021',
+]);
+export const MASKS = 'data/pcm-photo-masks.json';
+
 /** Width/height from a WebP RIFF container: lossy (VP8), lossless (VP8L), extended (VP8X). */
 export function webpSize(buf) {
   if (buf.length < 30 || buf.toString('ascii', 0, 4) !== 'RIFF' ||
@@ -161,6 +185,56 @@ export async function run(ck) {
   const mc = man.methodCounts;
   ck(!!mc && mc.resample === gotResample.size && mc.esrgan === EXPECT_COUNT - gotResample.size,
     `manifest.methodCounts agrees with files[] (${JSON.stringify(mc)})`);
+
+  // ------------------------------------------------------------ the photo-mask set
+  const gotMasked = new Set(files.filter((e) => e.photoMasked === true).map(key));
+  const unmasked = [...EXPECT_PHOTO_MASKED].filter((k) => !gotMasked.has(k));
+  const extraMasked = [...gotMasked].filter((k) => !EXPECT_PHOTO_MASKED.has(k));
+  ck(unmasked.length === 0,
+    `every plate the census found a photograph on is still masked` +
+    (unmasked.length ? ` — photograph back: ${some(unmasked)}` : ''));
+  ck(extraMasked.length === 0,
+    `no plate was masked without being listed` +
+    (extraMasked.length ? ` — ${some(extraMasked)}` : ''));
+  ck(gotMasked.size === EXPECT_PHOTO_MASKED.size,
+    `${EXPECT_PHOTO_MASKED.size} plates carry a removed photograph ` +
+    `(manifest says ${gotMasked.size})`);
+  ck(files.filter((e) => e.photoMasked === true)
+        .every((e) => typeof e.maskReason === 'string' && e.maskReason.length >= 8),
+    'every masked plate records why the photograph was removed');
+  ck(!!s?.photoMask && typeof s.photoMask === 'object' &&
+     typeof s.photoMask.source === 'string' && s.photoMask.source.length >= 8,
+    'settings.photoMask records how the masking was done');
+
+  // the checked-in region file is the census; it must name the same plates, no more, no less
+  const mPath = path.join(ROOT, MASKS);
+  if (!existsSync(mPath)) {
+    ck(false, `${MASKS} exists`);
+  } else {
+    ck(true, `${MASKS} exists`);
+    let masks = null;
+    try { masks = JSON.parse(readFileSync(mPath, 'utf8')); } catch (e) {
+      ck(false, `${MASKS} parses as JSON — ${e.message}`);
+    }
+    const plates = Array.isArray(masks?.plates) ? masks.plates : [];
+    const listed = new Set(plates.map((p) => `${p.book}/${p.num}`));
+    const onlyFile = [...listed].filter((k) => !EXPECT_PHOTO_MASKED.has(k));
+    const onlyGate = [...EXPECT_PHOTO_MASKED].filter((k) => !listed.has(k));
+    ck(onlyFile.length === 0 && onlyGate.length === 0,
+      `${MASKS} names exactly the ${EXPECT_PHOTO_MASKED.size} masked plates` +
+      (onlyFile.length ? ` — only in the file: ${some(onlyFile)}` : '') +
+      (onlyGate.length ? ` — only in the gate: ${some(onlyGate)}` : ''));
+    const badRegion = plates.filter((p) => !Array.isArray(p.regions) || !p.regions.length ||
+      p.regions.some((r) => !Array.isArray(r.bbox) || r.bbox.length !== 4 ||
+        r.bbox[2] <= r.bbox[0] || r.bbox[3] <= r.bbox[1] ||
+        !['oval', 'rect'].includes(r.shape)));
+    ck(badRegion.length === 0,
+      `every masked plate declares at least one oval/rect region with a real bbox` +
+      (badRegion.length ? ` — ${badRegion.length} bad, e.g. ${badRegion[0].book}/${badRegion[0].num}` : ''));
+    const noNote = plates.filter((p) => typeof p.note !== 'string' || p.note.length < 8);
+    ck(noNote.length === 0,
+      `every masked plate records the verdict that put it on the list (${noNote.length} without)`);
+  }
 
   for (const [book, n] of Object.entries(EXPECT_PER_BOOK)) {
     const got = paths.filter((p) => String(p).startsWith(`${DIR}/${book}/`)).length;
