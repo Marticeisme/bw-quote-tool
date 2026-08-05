@@ -400,6 +400,20 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -407,6 +421,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -433,7 +460,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Who Decides</h1>
-    <div class="cover-sub">Someone has to sign for a cremation, and Washington law is specific about who that someone is. This explains the order, what happens when a family disagrees, and how to make sure the decision is yours rather than theirs.</div>
+    <div class="cover-sub" data-pdf="summary"><span>Someone has to sign for a cremation, and Washington law is specific about who that someone is. This explains the order, what happens when a family disagrees, and how to make sure the decision is yours rather than theirs.</span><span class="pdf-summary">The order Washington law sets for who may authorize a cremation, and the three ways to settle it yourself.</span></div>
     <div class="cover-rule"></div>
     <div class="cover-footer">Right of disposition &middot; naming an agent &middot; what signing means &middot; printable</div>
   </div>
@@ -453,23 +480,34 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   </div>
 
 <!-- 1 -->
-<div class="section" id="order">
-  <p class="section-label">Section 1</p>
-  <h2>Who Has the Right to Decide</h2>
-  <p class="sub">Washington sets a specific order, and it is not always who families expect</p>
-  <hr class="rule">
-  <p>A cremation cannot happen until someone with the legal right to decide has signed for it. Washington law lists who that is, in order. If the person at the top is unavailable, the right moves to the next.</p>
-  <div class="note">
+<div class="section" id="order" data-pdf="keep">
+  <!-- FAMILY PDF: the answer, up front. This guide is emailed to answer exactly one
+       question, and the ladder below is the answer, so the answer block says what the
+       ladder is FOR and the list itself is left to speak. -->
+  <div class="pdf-summary fam-answer">
+    <h2>Someone<br>has to sign</h2>
+    <p>A cremation cannot happen until a person with the legal right to decide has signed for it. Washington law sets out who that is, in order, and it is not always who families expect. If the person at the top is unavailable, the right moves to the next one down.</p>
+  </div>
+  <p class="section-label" data-pdf="summary"><span>Section 1</span><span class="pdf-summary">The order Washington sets</span></p>
+  <h2 data-pdf="drop">Who Has the Right to Decide</h2>
+  <p class="sub" data-pdf="drop">Washington sets a specific order, and it is not always who families expect</p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">A cremation cannot happen until someone with the legal right to decide has signed for it. Washington law lists who that is, in order. If the person at the top is unavailable, the right moves to the next.</p>
+  <!-- STATUTE TEXT IS VERBATIM in every mode. The condensed cut drops the explanation of
+       what "RCW" means and keeps the citation, its title and the link exactly as written —
+       audit, Tier 1: "Keep the WA statute reference verbatim." -->
+  <div class="note" data-pdf="summary">
     <h3>Where all of this comes from</h3>
     <p>Everything in this guide rests on a single Washington law: <strong>RCW 68.50.160</strong>, titled "Right to control disposition of remains."</p>
     <p>RCW stands for Revised Code of Washington, which is simply the state's collection of laws. The number is its address: title 68, chapter 50, section 160. Title 68 is the part of state law dealing with cemeteries and human remains.</p>
     <p>It is short, written in reasonably plain English, and you are welcome to read it yourself and check anything we say here against it. <a class="inline" href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">Read RCW 68.50.160 &rarr;</a></p>
+    <p class="pdf-summary">All of this rests on one Washington law: <strong>RCW 68.50.160</strong>, titled "Right to control disposition of remains." It is short and written in plain English, and you are welcome to read it and check anything here against it.</p>
   </div>
 
-  <p>This is the list the law sets out, from the top down:</p>
+  <p data-pdf="drop">This is the list the law sets out, from the top down:</p>
 
   <ol class="ladder">
-    <li><strong>The person you named in writing yourself</strong><span>Your own signed and witnessed instructions come first. Section 2 covers this</span></li>
+    <li><strong>The person you named in writing yourself</strong><span data-pdf="drop">Your own signed and witnessed instructions come first. Section 2 covers this</span><span class="pdf-summary">Your own signed and witnessed instructions come first</span></li>
     <li><strong>Your designated agent</strong><span>Someone you named in a written document, signed and dated in front of a witness. Note that this ranks above a spouse</span></li>
     <li><strong>Your spouse or state registered domestic partner</strong></li>
     <li><strong>A majority of your adult children</strong><span>A majority, not any one of them. This is where most disputes happen</span></li>
@@ -482,14 +520,26 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
   <p>There is one step above all of these. If a person dies while serving in the military, whoever they named on their DD Form 93 comes first.</p>
 
-  <div class="note">
+  <div class="note" data-pdf="drop">
     <h3>One provision worth knowing about</h3>
     <p>If a person who would otherwise hold the right of control is arrested or charged with murder or first degree manslaughter in connection with the death, that right is given up and passes to the next person on the list.</p><p class="lawcite"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(4)</a></p>
   </div>
 </div>
 
 <!-- 2 -->
-<div class="section" id="yourself">
+<div class="section" id="yourself" data-pdf="summary">
+  <!-- FAMILY PDF: three cards and a long band reduced to the three ways to outrank the
+       list, with both statute citations kept exactly as they appear on the website. -->
+  <div class="pdf-summary">
+    <p class="section-label">You can settle it yourself</p>
+    <p>You do not have to leave this to the list. Washington gives you three ways to decide for yourself, and every one of them outranks the family.</p>
+    <ul class="charge-list">
+      <li><strong>Put your wishes in writing</strong><span>Signed by you in front of a witness, this is legal authorization on its own. No family member has to agree to it. <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(1)</a></span></li>
+      <li><strong>Sign your own authorization</strong><span>Sign the cremation authorization in advance for your own cremation, and we need only one signature from your next of kin afterward rather than the whole family.</span></li>
+      <li><strong>Make an arrangement and file it with us</strong><span>The strongest of the three, and almost nobody knows it. A prearrangement that is prepaid, or simply filed with us, <strong>cannot be cancelled or substantially changed by your survivors</strong>. It is not a request. It holds. <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160(2)</a></span></li>
+    </ul>
+    <p>So if there is any chance your family will disagree, the surest thing you can do is make the arrangement and leave it on file. Not a note in a drawer, and not a line in your will, which is usually read after the funeral has already happened. There is no cost to file your wishes with us, and no obligation to prepay.</p>
+  </div>
   <p class="section-label">Section 2</p>
   <h2>Deciding for Yourself</h2>
   <p class="sub">Two ways to settle it so nobody else has to</p>
@@ -526,7 +576,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 3 -->
-<div class="section" id="agent">
+<div class="section" id="agent" data-pdf="drop">
   <p class="section-label">Section 3</p>
   <h2>Naming Someone Other Than Next of Kin</h2>
   <p class="sub">The designated agent, and why it exists</p>
@@ -566,7 +616,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 4 -->
-<div class="section" id="family">
+<div class="section" id="family" data-pdf="drop">
   <p class="section-label">Section 4</p>
   <h2>When the Family Has to Decide</h2>
   <p class="sub">Majorities, deadlocks, and people who cannot be found</p>
@@ -591,7 +641,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 5 -->
-<div class="section" id="timing">
+<div class="section" id="timing" data-pdf="drop">
   <p class="section-label">Section 5</p>
   <h2>Why It May Take Longer Than You Expect</h2>
   <p class="sub">Signing is one step. Several others have to fall into place first</p>
@@ -622,7 +672,14 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 6 -->
-<div class="section" id="signing">
+<div class="section" id="signing" data-pdf="summary">
+  <!-- FAMILY PDF: the one thing an authorizing agent should know before signing, which is
+       the practical consequence of everything on page 1. -->
+  <div class="pdf-summary">
+    <p class="section-label">What signing actually means</p>
+    <p>Signing a cremation authorization is not a formality. The authorizing agent agrees to defend and hold the crematory harmless against claims brought by anyone else who says they had the right to decide. In plain terms: if a relative comes forward angry, the person who signed is the one who answers for it.</p>
+    <p>None of that is meant to frighten anyone out of signing. Families sign these every day and it is almost always straightforward. But it is a real legal responsibility, taken on by a person in the worst week of their life, usually without anyone explaining what it is. <strong>If you sign your own authorization in advance, the weight of it never lands on them.</strong></p>
+  </div>
   <p class="section-label">Section 6</p>
   <h2>What Signing Actually Means</h2>
   <p class="sub">What every authorizing agent should understand</p>
@@ -649,7 +706,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 7 -->
-<div class="section" id="before">
+<div class="section" id="before" data-pdf="drop">
   <p class="section-label">Section 7</p>
   <h2>Before You Sign, Know This</h2>
   <p class="sub">What the authorization commits to, in plain terms</p>
@@ -674,14 +731,14 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 8 -->
-<div class="section" id="faq">
-  <p class="section-label">Section 8</p>
-  <h2>Common Questions</h2>
-  <p class="sub">What families ask us most</p>
-  <hr class="rule">
+<div class="section" id="faq" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 8</span><span class="pdf-summary">Three things families ask</span></p>
+  <h2 data-pdf="drop">Common Questions</h2>
+  <p class="sub" data-pdf="drop">What families ask us most</p>
+  <hr class="rule" data-pdf="drop">
 
   <div class="faq">
-    <details>
+    <details data-pdf="drop">
       <summary>Can my family overrule what I wanted?</summary>
       <div class="answer"><p>Not if you have put it in writing properly. Your own signed and witnessed instructions are legal authorization on their own, and a prearrangement filed with us cannot be cancelled or substantially changed by survivors. A verbal wish, on the other hand, is only as strong as the family's agreement about what you said.</p></div>
     </details>
@@ -689,31 +746,31 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <summary>Is it enough to put it in my will?</summary>
       <div class="answer"><p>No, and this is a common and costly mistake. Wills are usually read days or weeks after the funeral has already taken place. Whatever it says about your wishes will be read too late to matter. Keep it separate, and give us a copy.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>My siblings and I cannot agree. What happens now?</summary>
       <div class="answer"><p>Nothing can proceed until a majority of you authorize it. Your loved one remains in our care in the meantime. If you cannot reach agreement, the remaining option is for someone to ask a court to decide, which is slow and expensive and hard on everyone.</p><p>Sometimes it helps to sit down with us and separate what is actually a disagreement about the cremation from what is a disagreement about something else. Often it is the second one.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can I name my partner if we are not married?</summary>
       <div class="answer"><p>Yes, by naming them as your designated agent in a signed, witnessed document. Without that, an unmarried partner who is not a registered domestic partner has no standing at all, no matter how long you have been together. This is one of the most important reasons the designated agent exists.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>What if a family member cannot be found?</summary>
       <div class="answer"><p>We can proceed after a documented good faith effort to locate them. That person is listed by name on the authorization, and the person signing accepts responsibility for the decision. Tell us early if you think someone will be hard to reach, because it takes time to do properly.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Does a power of attorney let me decide?</summary>
       <div class="answer"><p>Usually not, and this trips up a lot of people. Most powers of attorney end at the moment of death, which is exactly when you would want to use one.</p><p>There is an important exception. <strong>Some powers of attorney are written to specifically grant the right to control disposition</strong>, or include wording to that effect. Those can work.</p><p>So the answer depends entirely on what your document actually says. If you are counting on a power of attorney for this, bring it in and let us read it well before it is needed rather than finding out at the worst possible moment.</p></div>
     </details>
     <details>
       <summary>Does being the executor of the estate let me decide?</summary>
-      <div class="answer"><p>Not by itself, and it is one of the most common mix-ups. The executor's job is to settle the estate (the property, the accounts, the debts), and that authority usually does not begin until the will has been filed with the court, which is often weeks after the funeral. <strong>Being named executor does not place you on the list in Section 1.</strong></p><p>Often the executor is also the spouse or one of the adult children, in which case they do have the right, but through that relationship, not through the title. If the person you want deciding is not near the top of that list, the way to give them the authority is to name them your designated agent, the separate document described in Section 3.</p></div>
+      <div class="answer"><p>Not by itself, and it is one of the most common mix-ups. The executor's job is to settle the estate (the property, the accounts, the debts), and that authority usually does not begin until the will has been filed with the court, which is often weeks after the funeral. <strong>Being named executor does not place you on the list<span data-pdf="drop"> in Section 1</span>.</strong></p><p>Often the executor is also the spouse or one of the adult children, in which case they do have the right, but through that relationship, not through the title. If the person you want deciding is not near the top of that list, the way to give them the authority is to name them your designated agent, a separate signed and witnessed document<span data-pdf="drop"> described in Section 3</span>.</p></div>
     </details>
     <details>
       <summary>Can I sign my own cremation authorization ahead of time?</summary>
       <div class="answer"><p>Yes, and it is one of the most useful things you can do. Normally we try to gather signatures from all of your next of kin. If you have already signed your own authorization, we only need one signature from them.</p><p>For a family spread across the country, or one that does not agree easily, that difference is enormous.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>How do I set this up?</summary>
       <div class="answer"><p>Come and see us. Recording your wishes and filing them costs nothing and commits you to nothing, and it takes about as long as a cup of coffee. If you want to go further and pre-arrange, we can do that in the same conversation.</p></div>
     </details>
@@ -733,6 +790,15 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 <div class="disclaimer">
   <p>This guide explains general rules and is not legal advice. The order of priority and the rights described here come from <a href="https://app.leg.wa.gov/rcw/default.aspx?cite=68.50.160" target="_blank" rel="noopener">RCW 68.50.160</a>. Laws change and every family's situation is different. For a contested situation, or to be certain a document you have drafted will do what you intend, please speak with an attorney.</p>
 </div>
+
+  <!-- FAMILY PDF ONLY. `.cta` above is a screen component and is display:none in print,
+       so the printed document needs its own close. Hidden on screen and in the
+       full-length Ctrl+P print by `.pdf-summary`; shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Settle it while it is easy</h2>
+    <p>Putting your wishes on file takes one short conversation, costs nothing, commits you to nothing, and takes the decision off your family entirely. Call or email me and I will walk you through the paperwork.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
 
   <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">

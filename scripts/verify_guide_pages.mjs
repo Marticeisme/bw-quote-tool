@@ -182,6 +182,26 @@ const PER_GUIDE_CAPS = new Map([
   // future edit that quietly re-lengthens it fails instead of drifting back toward the
   // shared six.
   ['Cemetery Property Guide.pdf', 2],
+  // THE REMAINING SEVEN TIER-1 GUIDES (sprint-16 Track B), all now built from
+  // `?print=family`. Same reasoning as Cemetery Property above, and the numbers are the
+  // Tier-1 targets in docs/PDF_AUDIT.md rather than whatever each happened to build to:
+  // Pre-Planning 4->2, Cremation or Burial 3->2, Cremation 4->2, Burial 2->2,
+  // Direct Cremation 2->2, Who Decides 4->2, Urn Gardens 1->1.
+  //
+  // Direct Cremation and Urn Gardens were already at their targets before this sprint, but
+  // they are named here anyway: both went up from 7.7pt to 10.5pt in the same change, and a
+  // cap that is only asserted for the guides that moved would not catch the one that
+  // matters most — a future edit re-lengthening a document that is currently just inside
+  // its page. Urn Gardens at 1 is the tightest of the lot; it measured 967px against a
+  // 972px page and only holds because content was cut for it (see the note in §8i of
+  // guide-print.css).
+  ['Pre-Planning Guide.pdf', 2],
+  ['Cremation or Burial.pdf', 2],
+  ['Cremation Guide.pdf', 2],
+  ['Burial Guide.pdf', 2],
+  ['Direct Cremation Plan Example.pdf', 2],
+  ['Who Decides.pdf', 2],
+  ['Urn Gardens at Washington Memorial Park.pdf', 1],
   ['Granite Niches Guide.pdf', 8],
   ['Glass-Front Niche Guide.pdf', 8],
   ['Rock of Ages Columbarium.pdf', 8],

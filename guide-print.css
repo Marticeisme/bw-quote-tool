@@ -297,7 +297,14 @@
   .location-card, .size-card, .plan-card, .uv-card, .charge-list, .timeline-step,
   .faq, .answer, .cta, .band, .figure, .tsg-section, .price-table, .footnote,
   .benefit-row, .plan-row, .section-header, figure, table, tr,
-  .pf-card, .print-invite {
+  .pf-card, .print-invite,
+  /* `.direct-panel` and its `.direct-option` cells — cremation-guide.html. The panel split
+     across the page 1/2 break in the condensed cut and put "$3,535" and "$3,935" alone at
+     the top of page 2 with their container labels left behind on page 1: two prices, in a
+     document about prices, attached to nothing. Same class of defect as the clipped
+     "$7,000–$48,00" noted above, and found the same way — by rasterising the PDF and
+     looking at it. */
+  .direct-panel, .direct-option {
     break-inside: avoid; page-break-inside: avoid;
   }
   h2, h3, h4, .section-kicker, .section-sub, .section-rule {
@@ -541,12 +548,36 @@
   [data-print-mode="family"] .note p,
   [data-print-mode="family"] .faq .answer p,
   [data-print-mode="family"] p { font-size: 10.5pt; line-height: 1.5; max-width: none; }
+  /* LIST ITEMS TOO. §8b originally raised paragraphs only, and §7 sets `.prose li,
+     .sidebar li{font-size:7.7pt}` for every other mode — so a guide whose content is a
+     list (burial-guide's "who needs a certified copy", cremation-guide's "key things to
+     know", every `.option-card`) printed its lists at 7.7pt inside a 10.5pt document.
+     Measured at 10.27px on cremation-guide.html before this rule, which is 7.7pt exactly.
+     The floor is a floor for prose, whatever element it is written in. */
+  [data-print-mode="family"] .prose li,
+  [data-print-mode="family"] .sidebar li,
+  [data-print-mode="family"] .sidebar p,
+  [data-print-mode="family"] .policy-box p,
+  [data-print-mode="family"] li { font-size: 10pt; line-height: 1.4; }
 
   /* ONE COLUMN. The guides' condense blocks flow the whole sheet through
      `column-count:2`; the debrief's finding is that a two-column 8pt broadsheet is the
      visual language of a classified-ads page, not of a document about where someone will
      be buried, and that it scrambles the extracted reading order as well. */
   [data-print-mode="family"] .doc-sheet { column-count: 1 !important; column-gap: normal !important; }
+  /* Turning the multicol OFF is not enough on its own. The guides mark their wide blocks
+     `column-span:all` so that a table or a masthead spans both columns, and a spanner is
+     still a spanner in a one-column multicol container: it splits the flow around itself
+     and each fragment is a separate block the pager may break at. urn-gardens-guide.html
+     measured 918px of content against a 972px page and still printed TWO, with the whole
+     charges table pushed onto the second sheet, because `#rights` carries `span-all`. With
+     one column there is nothing left to span, so the property is cancelled outright.
+     (Same family of defect as the print-table spanner noted in the build log: a
+     `column-span:all` after a break strands the page it leaves behind.) */
+  [data-print-mode="family"] .doc-sheet > *,
+  [data-print-mode="family"] .span-all,
+  [data-print-mode="family"] .cover,
+  [data-print-mode="family"] .doc-footer { column-span: none !important; }
 
   /* Masthead: the same cream plate and navy mark as every other guide (§3), with the type
      back at a size a family reads rather than the condense block's 14pt/8pt. */
@@ -638,6 +669,16 @@
      the guide zeroes the hairline above it, because otherwise the rule sits under nothing.
      Here that item IS visible, so the hairline is the divider it was drawn as. */
   [data-print-mode="family"] .charge-list li:has(+ li.pdf-summary) { border-bottom: 1px solid #ddd6c8; }
+  /* The guides set `.charge-list strong{display:block;font-family:display;font-size:19px}`
+     to make the item NAME a line of its own. A `<strong>` used for emphasis inside the
+     half-sentence matches that same selector, so on who-decides-guide.html the words
+     "cannot be cancelled or substantially changed by your survivors" broke onto their own
+     line in 19px Cormorant, mid-sentence. Found by rasterising the PDF and reading it.
+     Emphasis inside the description stays inline and stays in the body face. */
+  [data-print-mode="family"] .charge-list span strong {
+    display: inline; font-family: inherit; font-size: inherit; line-height: inherit;
+    margin: 0; font-weight: 700;
+  }
 
   /* ── 8f. CALLOUTS AND QUESTIONS ────────────────────────────────────────────────── */
   [data-print-mode="family"] .band { padding: 6px 14px; margin: 2px 0 3px; }
@@ -663,4 +704,201 @@
   }
   [data-print-mode="family"] .fam-next p { margin: 0 0 4px; max-width: none; }
   [data-print-mode="family"] .fam-next .fam-sign { margin: 0; }
+
+  /* ── 8h. THE SECOND SECTION VOCABULARY  —  `.section-wrap` ───────────────────────
+     §8b above is written against `.section` / `.section-label` / `.sub` / `.rule`, which
+     is the vocabulary cemetery-property-guide.html and who-decides-guide.html use. Five of
+     the other Tier-1 guides were drafted earlier and against a DIFFERENT set of class
+     names for the identical components: `.section-wrap` / `.section-kicker` /
+     `.section-sub` / `.section-rule`. Nothing about them differs but the spelling.
+
+     This is not per-guide CSS and it is not a new design. It is §8b's own type and
+     geometry restated for the second spelling, so that a guide adopting `?print=family`
+     gets the same 10.5pt one-column document whichever vocabulary it happens to be
+     written in. Without it those five guides keep the 8pt headings their own
+     `/* PRINT CONDENSE */` blocks set, and the body type is the only thing that rises —
+     which reads worse than either state on its own.
+
+     The right long-term fix is one vocabulary across all nineteen guides. That is a rename
+     touching every guide's screen CSS, so it is not done here; when it happens, this block
+     is what gets deleted. */
+  [data-print-mode="family"] .section-wrap { padding: 2px 0 1px; }
+  [data-print-mode="family"] .section-wrap + .section-wrap { border-top: 0; }
+  [data-print-mode="family"] .section-wrap h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 25px; font-weight: 600; color: #1e3a55; line-height: 1.15; margin: 0 0 2px;
+  }
+  [data-print-mode="family"] .section-sub { font-size: 10.5pt; font-style: italic; margin: 0 0 4px; }
+  [data-print-mode="family"] .section-kicker { font-size: 8pt; letter-spacing: .14em; margin: 0 0 5px; }
+  [data-print-mode="family"] .section-rule { display: none !important; }
+  /* `.prose` is the paragraph wrapper in that vocabulary; the guides cap it at 70ch and
+     in one printed column that leaves a ragged right margin an inch short of the page. */
+  [data-print-mode="family"] .prose p { font-size: 10.5pt; line-height: 1.5; max-width: none; margin: 0 0 6px; }
+
+  /* ── 8i. NAMED OVERRIDES ──────────────────────────────────────────────────────────
+     Components that exist in only one or two guides and could not be expressed by §8b-h.
+     Each one states which guide asked for it and why. Keep this list short: the rule is
+     that a guide adopts `?print=family` with markup annotations and NO print CSS of its
+     own, and every entry here is a small dent in that. */
+
+  /* `.fam-photos` — a PDF-only row of photographs with captions. The debrief's structure
+     item 3 is "the choices, as photographs", and cemetery-property could satisfy it with
+     the `.pf-card` component it already had on screen. The guides that do not carry that
+     component would need it copied into their screen CSS to borrow it, which is dead CSS
+     on the website and a screen-diff risk for no gain. This is the component for that
+     case: it lives inside a `.pdf-summary`, so it is print-only by construction and needs
+     no screen styling at all.
+     Used by: cremation-or-burial-guide.html (where cremated remains can go),
+              pre-planning-guide.html (the single photograph the audit asked for). */
+  [data-print-mode="family"] .fam-photos {
+    display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 7px;
+    margin: 2px 0 8px; break-inside: avoid;
+  }
+  [data-print-mode="family"] .fam-photos figure { margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .fam-photos img {
+    display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+    border-radius: 6px; border: 1px solid #e6e1d7;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  [data-print-mode="family"] .fam-photos figcaption {
+    font-family: 'Source Sans 3', sans-serif; font-size: 8pt; font-weight: 600;
+    letter-spacing: .04em; color: #1e3a55; margin-top: 3px; line-height: 1.25;
+  }
+  /* One photograph on its own runs wide rather than sitting in a quarter-width column. */
+  [data-print-mode="family"] .fam-photos.fam-photos-one { grid-template-columns: 1fr; }
+  [data-print-mode="family"] .fam-photos.fam-photos-one img { aspect-ratio: 21 / 9; }
+  [data-print-mode="family"] .fam-photos.fam-photos-three { grid-template-columns: repeat(3, 1fr); }
+
+  /* `.compare` — cremation-or-burial-guide.html. Its comparison table IS the document
+     (audit, Tier 1) and it is the one component on that guide's first page, so it cannot
+     stay at the 8pt its condense block sets while everything around it goes to 10.5pt.
+     The row header column is the widest thing in the table and wraps badly if left to
+     auto; fixing it at 26% keeps the two answer columns even. */
+  [data-print-mode="family"] .compare { font-size: 10.5pt; margin: 2px 0 6px; }
+  [data-print-mode="family"] .compare th,
+  [data-print-mode="family"] .compare td { padding: 6px 9px; }
+  [data-print-mode="family"] .compare thead th { font-size: 13pt; }
+  [data-print-mode="family"] .compare thead th:first-child { font-size: 8pt; width: 26%; }
+  [data-print-mode="family"] .compare tbody th { font-size: 10.5pt; }
+
+  /* `.plan-card` — cremation-guide.html and direct-cremation.html. The priced plan is the
+     answer those two documents exist to give, so the figure and the plan name come up to
+     the family scale with them. */
+  [data-print-mode="family"] .plan-card { margin: 0 0 7px; break-inside: avoid; }
+  [data-print-mode="family"] .plan-header h3 { font-size: 13.5pt; line-height: 1.15; }
+  [data-print-mode="family"] .plan-desc { font-size: 10pt; line-height: 1.35; }
+  [data-print-mode="family"] .plan-price { font-size: 17pt; }
+  [data-print-mode="family"] .plan-price-label { font-size: 7.5pt; }
+  [data-print-mode="family"] .plan-row { font-size: 10pt; padding: 3px 0; }
+  [data-print-mode="family"] .plan-items { padding: 6px 14px; }
+  [data-print-mode="family"] .plan-footer { font-size: 9.5pt; padding: 6px 14px; }
+  /* `.direct-panel` — cremation-guide.html. It is now `break-inside:avoid` (§3b), which is
+     right — it was severing container labels from their prices — but an unbreakable 380px
+     block will jump a whole page rather than straddle, and it took the guide to three. The
+     panel is screen furniture at print scale: a 48px display figure, 32px of padding and
+     four option cells with room for two lines each. At family scale it is a quarter the
+     height and still the loudest thing on the page, which is what it is for. */
+  /* `.section-photo` — direct-cremation.html. A single product photograph, capped at
+     420px on screen, printed 480px tall in the one-column family cut and took half of
+     page 2 for a picture of a cardboard tray. Capped by HEIGHT here, because the width cap
+     it carries inline says nothing about how tall a portrait image gets. */
+  [data-print-mode="family"] .section-photo { max-width: 2.6in !important; margin: 2px auto 5px !important; }
+  [data-print-mode="family"] .section-photo img { max-height: 1.7in; object-fit: contain; }
+  [data-print-mode="family"] .direct-panel { padding: 10px 16px 12px; margin: 4px 0 6px; }
+  [data-print-mode="family"] .direct-panel h3 { font-size: 16pt; margin: 0 0 2px; }
+  [data-print-mode="family"] .direct-panel .desc { font-size: 10pt; line-height: 1.35; margin: 0 0 4px; }
+  [data-print-mode="family"] .direct-starting { font-size: 7.5pt; margin: 0; }
+  [data-print-mode="family"] .direct-price { font-size: 24pt; line-height: 1.05; margin: 0 0 5px; }
+  [data-print-mode="family"] .direct-grid { gap: 6px; }
+  [data-print-mode="family"] .direct-option { padding: 5px 9px; }
+  [data-print-mode="family"] .direct-option .opt-label { font-size: 9.5pt; line-height: 1.3; }
+  [data-print-mode="family"] .direct-option .opt-price { font-size: 12pt; margin-top: 1px; }
+
+  /* `.decision-card` / `.step-card` / `.benefit-row` — pre-planning-guide.html. Its three
+     grids are the guide, and §3b's widow control is all the shared sheet says about them. */
+  [data-print-mode="family"] .decision-grid {
+    display: grid !important; grid-template-columns: 1fr 1fr; gap: 7px; margin: 2px 0 7px;
+  }
+  [data-print-mode="family"] .decision-card { padding: 7px 11px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .decision-card h4 { font-size: 12.5pt; margin: 0 0 1px; }
+  [data-print-mode="family"] .decision-card p { font-size: 10pt; line-height: 1.35; margin: 0; }
+  [data-print-mode="family"] .step-grid {
+    display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 2px 0 7px;
+  }
+  [data-print-mode="family"] .step-card { padding: 8px 11px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .step-card h3 { font-size: 12.5pt; margin: 2px 0 2px; }
+  [data-print-mode="family"] .step-card p { font-size: 10pt; line-height: 1.35; margin: 0; }
+  [data-print-mode="family"] .step-num { font-size: 13pt; }
+  [data-print-mode="family"] .benefit-list { margin: 0; }
+  [data-print-mode="family"] .benefit-row { padding: 3px 0; break-inside: avoid; }
+  [data-print-mode="family"] .benefit-row h4 { font-size: 12pt; margin: 0 0 1px; }
+  [data-print-mode="family"] .benefit-row p { font-size: 10pt; line-height: 1.35; margin: 0; }
+  [data-print-mode="family"] .highlight-box { padding: 8px 13px; margin: 3px 0 6px; break-inside: avoid; }
+  [data-print-mode="family"] .highlight-box h3 { font-size: 13pt; margin: 0 0 3px; }
+  [data-print-mode="family"] .highlight-box p { font-size: 10pt; line-height: 1.4; margin: 0 0 4px; }
+
+  /* `.option-card` / `.timeline-step` / `.checklist` — burial-guide.html. Same shape of
+     need: the components that carry "what to do when a death occurs" and "burial vs.
+     entombment", which are the two things that guide is kept for. */
+  [data-print-mode="family"] .option-grid {
+    display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; margin: 2px 0 7px;
+  }
+  [data-print-mode="family"] .option-card { padding: 8px 12px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .option-card h3 { font-size: 13.5pt; margin: 0 0 2px; }
+  [data-print-mode="family"] .option-card p,
+  [data-print-mode="family"] .option-card li { font-size: 10pt; line-height: 1.35; }
+  [data-print-mode="family"] .timeline-step { padding: 3px 0 3px 26px; margin: 0 0 4px; break-inside: avoid; }
+  [data-print-mode="family"] .timeline-step h4 { font-size: 12pt; margin: 0 0 1px; }
+  [data-print-mode="family"] .timeline-step p { font-size: 10pt; line-height: 1.35; margin: 0; }
+  [data-print-mode="family"] .check-card { padding: 6px 10px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .check-card h4 { font-size: 11.5pt; margin: 0 0 1px; }
+  [data-print-mode="family"] .check-card p { font-size: 10pt; line-height: 1.3; margin: 0; }
+
+  /* urn-gardens-guide.html is the one guide whose requirement is ONE page (audit, Tier 1;
+     asserted at ==1 in verify_guide_pages.mjs since sprint-08). It held that page at 7.7pt
+     in a two-column flow; at 10.5pt in one column the same content runs to 1.16 pages.
+     Content was cut first and did most of the work — the four individual bronze-memorial
+     rows, which sit under a group row that already states their full range. These are the
+     last 74px, and they come out of padding and leading only. Nothing here touches a type
+     size that carries prose: the floor is still 10.5pt body and 10pt for anything smaller. */
+  [data-print-mode="family"] .plan-header { padding: 7px 14px 4px; }
+  /* The plan cards' body copy sits at the 10pt floor rather than the 10.5pt body size.
+     These are card sentences, which §8d already puts at 10pt for `.pf-card`; this is the
+     same decision for the same kind of component in the other vocabulary. */
+  [data-print-mode="family"] .plan-items p { font-size: 10pt; line-height: 1.4; margin: 0; }
+  [data-print-mode="family"] .factband { padding: 6px 14px; margin: 0 0 5px; }
+  [data-print-mode="family"] .factband .fact-key { font-size: 12pt; }
+  [data-print-mode="family"] .factband .fact-body { font-size: 10pt; line-height: 1.35; }
+  [data-print-mode="family"] .ways { gap: 7px; margin: 0 0 5px; }
+  /* The three placement options as a list rather than three cards - see the note in
+     urn-gardens-guide.html. Structure item 4: name, half a sentence, and the fee. */
+  [data-print-mode="family"] .fam-ways p { font-size: 10pt; line-height: 1.35; margin: 0 0 3px; }
+  [data-print-mode="family"] .fam-ways b { color: #1e3a55; font-weight: 700; }
+  [data-print-mode="family"] .way { break-inside: avoid; }
+  [data-print-mode="family"] .way h3 { font-size: 11.5pt; padding: 2px 10px; }
+  [data-print-mode="family"] .way-body { padding: 5px 10px; }
+  [data-print-mode="family"] .way-body p { font-size: 10pt; line-height: 1.35; margin: 0 0 3px; }
+  [data-print-mode="family"] .way-fee { font-size: 9pt; }
+  [data-print-mode="family"] .banner img { max-height: 0.72in; object-fit: cover; }
+  [data-print-mode="family"] .banner figcaption,
+  [data-print-mode="family"] .figure figcaption { font-size: 8.5pt; margin-top: 2px; }
+  [data-print-mode="family"] .price-table caption { font-size: 8pt; padding: 0 0 2px; }
+  [data-print-mode="family"] .price-table th,
+  [data-print-mode="family"] .price-table td { padding: 2px 8px; font-size: 10pt; }
+  [data-print-mode="family"] .price-table .size-note { font-size: 9pt; }
+  [data-print-mode="family"] .footnote { font-size: 9pt; line-height: 1.35; margin: 3px 0 0; }
+  /* The generated pricing invitation (scripts/guide-price-rule.mjs) carries the range for
+     any card whose own chip is suppressed, so on this sheet it IS the price. It keeps its
+     figure at full size and gives back its generous screen padding. */
+  [data-print-mode="family"] .print-invite { padding: 4px 0 3px 12px; margin: 2px 0 4px; }
+  [data-print-mode="family"] .print-invite p { font-size: 10pt; line-height: 1.35; margin: 2px 0 0; }
+
+  /* `.ladder` — who-decides-guide.html. The legal authority order is ONE list (audit,
+     Tier 1) and it is the reason that guide is emailed, so it is the one component on its
+     first page and gets the room. */
+  [data-print-mode="family"] .ladder { margin: 2px 0 7px; }
+  [data-print-mode="family"] .ladder li { padding: 4px 0 4px 34px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .ladder li strong { font-size: 12pt; }
+  [data-print-mode="family"] .ladder li span,
+  [data-print-mode="family"] .ladder li p { font-size: 10pt; line-height: 1.35; }
 }

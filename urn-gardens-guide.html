@@ -283,6 +283,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -290,6 +304,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -313,22 +340,26 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Urn Gardens</h1>
-    <div class="cover-sub">The Lake Urn Garden and the Rose Urn Garden at Washington Memorial Park: two gardens set aside for cremated remains, and the ways a family can be placed in them.</div>
+    <div class="cover-sub" data-pdf="summary"><span>The Lake Urn Garden and the Rose Urn Garden at Washington Memorial Park: two gardens set aside for cremated remains, and the ways a family can be placed in them.</span><span class="pdf-summary">Two gardens set aside for cremated remains, the three ways to be placed, and every charge.</span></div>
     <div class="cover-rule"></div>
   </div>
 
-  <div class="section-wrap" id="what">
-    <div class="section-kicker">SECTION 1</div>
-    <h2>What an Urn Garden Is</h2>
-    <div class="section-sub">A garden designed for urns, not for graves</div>
-    <div class="section-rule"></div>
+  <div class="section-wrap" id="what" data-pdf="keep">
+    <div class="pdf-summary fam-answer">
+      <h2>A garden<br>for urns</h2>
+      <p>An urn garden is a garden built for urns instead of caskets. The urn is buried in the ground and marked the same way any other grave would be, but everything is scaled to an urn, so it feels more like a garden than a lawn section. There are two here: the <strong>Lake Urn Garden</strong> on the lake shore, and the <strong>Rose Urn Garden</strong> in the Garden of Flowers.</p>
+    </div>
+    <div class="section-kicker" data-pdf="drop">SECTION 1</div>
+    <h2 data-pdf="drop">What an Urn Garden Is</h2>
+    <div class="section-sub" data-pdf="drop">A garden designed for urns, not for graves</div>
+    <div class="section-rule" data-pdf="drop"></div>
 
-    <div class="prose">
+    <div class="prose" data-pdf="summary">
       <p><strong>An urn garden is a garden built for urns instead of caskets.</strong> The urn is buried in the ground and marked the same way any other grave would be. Everything is scaled to an urn rather than a casket, so the spaces, the planting and the memorials are smaller, and it feels more like a garden than a lawn section.</p>
       <p>Washington Memorial Park has two: the <strong>Lake Urn Garden</strong>, on the shore of the lake at the south end of the park, and the <strong>Rose Urn Garden</strong>, in the Garden of Flowers.</p>
     </div>
 
-    <figure class="figure">
+    <figure class="figure" data-pdf="drop">
       <img src="urn-garden-images/lug-marker-row.jpg" alt="A row of bronze memorials set into a granite border along a walkway in an urn garden, with flowers in a vase, evergreens and open lawn behind" loading="lazy">
       <figcaption>Bronze memorials along the walkway. Each one marks an urn placed in the ground beneath it.</figcaption>
     </figure>
@@ -337,15 +368,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <div class="section-wrap span-all" id="rights">
     <div class="factband">
       <div class="fact-key" data-rights="urn-garden">1 or 2 rights, by space</div>
-      <div class="fact-body">A <strong>right of interment</strong> is permission to place one person. <strong>Rose Urn Garden spaces carry two rights</strong>, so one space can hold a couple on one contract. <strong>Lake Urn Garden burial spaces carry one right</strong> each, and <strong>some of the cremation posts carry two</strong>. We confirm the number of rights on the specific space before anything is written down.</div>
+      <div class="fact-body" data-pdf="summary"><span class="pdf-summary">A <strong>right of interment</strong> is permission to place one person. <strong>Rose Urn Garden spaces carry two</strong>, so one space can hold a couple on one contract. <strong>Lake Urn Garden burial spaces carry one</strong>, and some cremation posts carry two.</span><span>A <strong>right of interment</strong> is permission to place one person. <strong>Rose Urn Garden spaces carry two rights</strong>, so one space can hold a couple on one contract. <strong>Lake Urn Garden burial spaces carry one right</strong> each, and <strong>some of the cremation posts carry two</strong>. We confirm the number of rights on the specific space before anything is written down.</span></div>
     </div>
   </div>
 
   <div class="section-wrap" id="gardens">
-    <div class="section-kicker">SECTION 2</div>
-    <h2>The Two Gardens</h2>
-    <div class="section-sub">The same kind of property in two very different settings</div>
-    <div class="section-rule"></div>
+    <div class="section-kicker" data-pdf="summary"><span>SECTION 2</span><span class="pdf-summary">The two gardens</span></div>
+    <h2 data-pdf="drop">The Two Gardens</h2>
+    <div class="section-sub" data-pdf="drop">The same kind of property in two very different settings</div>
+    <div class="section-rule" data-pdf="drop"></div>
 
     <div class="plan-card">
       <div class="plan-header">
@@ -358,8 +389,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <div class="plan-price" data-price="lug.space" data-print-suppress="chip">$5,495</div>
         </div>
       </div>
-      <div class="plan-items">
+      <div class="plan-items" data-pdf="summary">
         <p>The lake, its two fountains and the magnolias above it are the setting. Alongside the ground spaces this is the only garden in the park offering <strong>urns placed in boulders near the water</strong> and <strong>cremation posts</strong>. Endowment care of <span data-fee="lug.ECF">$825</span> is added to the space price.</p>
+        <p class="pdf-summary">The lake, its fountains and the magnolias above it. The only garden here offering <strong>urns in boulders near the water</strong> and <strong>cremation posts</strong>. Endowment care <span data-fee="lug.ECF">$825</span>.</p>
       </div>
     </div>
 
@@ -374,8 +406,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <div class="plan-price" data-price="rug.space" data-print-suppress="chip">$4,395</div>
         </div>
       </div>
-      <div class="plan-items">
+      <div class="plan-items" data-pdf="summary">
         <p>A planted garden rather than a waterside one, laid out in rings with benches around it. It is the quieter of the two and the one families choose when they want the garden itself, not the view. The price is the same <strong>inside or outside the rose perimeter</strong>. Endowment care of <span data-fee="rug.ECF">$660</span> is added to the space price.</p>
+        <p class="pdf-summary">A planted garden laid out in rings with benches, quieter than the lake. Same price <strong>inside or outside the rose perimeter</strong>. Endowment care <span data-fee="rug.ECF">$660</span>.</p>
       </div>
     </div>
 
@@ -386,12 +419,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
          on a heading is not honoured inside a Chrome multicol flow, so the heading stranded
          itself at the foot of column one with its cards at the head of column two. -->
     <div class="keep">
-    <div class="section-kicker">SECTION 3</div>
-    <h2>Three Ways to Be Placed</h2>
-    <div class="section-sub">Options for urns to be placed in boulders near the lake as well as cremation posts</div>
-    <div class="section-rule"></div>
+    <div class="section-kicker" data-pdf="summary"><span>SECTION 3</span><span class="pdf-summary">Three ways to be placed</span></div>
+    <h2 data-pdf="drop">Three Ways to Be Placed</h2>
+    <div class="section-sub" data-pdf="drop">Options for urns to be placed in boulders near the lake as well as cremation posts</div>
+    <div class="section-rule" data-pdf="drop"></div>
 
-    <div class="ways">
+    <div class="fam-ways pdf-summary">
+      <p><strong>In the ground.</strong> The urn is placed in a garden space and marked with a bronze memorial set flush with the lawn, exactly as a grave would be. Available in both gardens. Opening and closing <b>$875</b>.</p>
+      <p><strong>In a boulder.</strong> The urn goes inside a natural boulder set near the water at the Lake Urn Garden, closed with a bronze cap carrying the inscription. Opening and closing <b>$1,425</b>.</p>
+      <p><strong>In a cremation post.</strong> A low granite post standing in the garden bed, holding the urn above ground with the bronze memorial on its face. Memorial from <b>$5,670</b>.</p>
+    </div>
+    <div class="ways" data-pdf="drop">
       <div class="way">
         <h3>In the ground</h3>
         <div class="way-body">
@@ -416,14 +454,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
     </div>
 
-    <figure class="figure">
+    <figure class="figure" data-pdf="drop">
       <img src="urn-garden-images/lug-posts-fountain.jpg" alt="Granite cremation posts standing in a planted garden bed beside a lake fountain, with flush bronze memorials set into the grass along a flagstone path" loading="lazy">
       <figcaption><strong>Cremation posts</strong> in the garden bed beside the fountain, with flush bronze memorials in the grass alongside them.</figcaption>
     </figure>
   </div>
 
-  <div class="section-wrap span-all" id="lake">
-    <figure class="banner">
+  <div class="section-wrap span-all" id="lake" data-pdf="drop">
+    <figure class="banner" data-pdf="keep">
       <img src="urn-garden-images/lug-lake-fountains.jpg" alt="The lake at Washington Memorial Park under a flowering magnolia: twin fountains playing on the water, a stone-edged shore, and lawn with flush memorials in the foreground" loading="lazy">
       <figcaption>The Lake Urn Garden. The two fountains run through the season, and the magnolias along the shore flower each spring.</figcaption>
     </figure>
@@ -433,10 +471,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
        tables sit side by side. Spanning it made them stack and pushed the sheet to a
        second page, which the ==1 assertion in verify_guide_pages.mjs catches. -->
   <div class="section-wrap" id="charges">
-    <div class="section-kicker">SECTION 4</div>
-    <h2>What Else Is Charged</h2>
-    <div class="section-sub">Everything beyond the price of the space itself</div>
-    <div class="section-rule"></div>
+    <div class="section-kicker" data-pdf="summary"><span>SECTION 4</span><span class="pdf-summary">What else is charged</span></div>
+    <h2 data-pdf="drop">What Else Is Charged</h2>
+    <div class="section-sub" data-pdf="drop">Everything beyond the price of the space itself</div>
+    <div class="section-rule" data-pdf="drop"></div>
 
     <!-- ONE table, not two. The fees and the bronze memorials were separate tables until
          the sheet ran to a second page: a second caption, header row and border cost more
@@ -456,15 +494,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <tr data-print-suppress="cell"><td>Urn vault setting</td><td class="num" data-fee="vault.setting">$575</td><td class="size-note">Each urn vault set in the ground. The vault itself is priced separately.</td></tr>
         <tr><td colspan="3" class="rowgroup">Bronze memorial, <span data-range="memorials">$2,015&ndash;$5,670</span> depending on which one &middot; ground and cremorial memorials include the <span data-fee="mem.setting">$495</span> setting fee</td></tr>
         <tr><td>Cremorial unit</td><td class="num" data-price="mem.cremorial">$5,670</td><td class="size-note">Cremation posts in the Rose, Lake and Veterans urn gardens</td></tr>
-        <tr><td>Lake Urn Garden memorial</td><td class="num" data-price="mem.lug">$2,910</td><td class="size-note">Ground spaces, Lake Urn Garden</td></tr>
-        <tr><td>Bronze single, Gasser Olds</td><td class="num" data-price="mem.gasser">$2,715</td><td class="size-note">Ground spaces, Lake Urn Garden</td></tr>
-        <tr><td>Second right memorial</td><td class="num" data-price="mem.second">$2,145</td><td class="size-note">The second person placed in a space that carries two rights</td></tr>
-        <tr><td>Bronze boulder cap, inscription included</td><td class="num" data-price="mem.bouldercap">$2,015</td><td class="size-note">Boulders at the Lake Urn Garden</td></tr>
+        <tr data-pdf="drop"><td>Lake Urn Garden memorial</td><td class="num" data-price="mem.lug">$2,910</td><td class="size-note">Ground spaces, Lake Urn Garden</td></tr>
+        <tr data-pdf="drop"><td>Bronze single, Gasser Olds</td><td class="num" data-price="mem.gasser">$2,715</td><td class="size-note">Ground spaces, Lake Urn Garden</td></tr>
+        <tr data-pdf="drop"><td>Second right memorial</td><td class="num" data-price="mem.second">$2,145</td><td class="size-note">The second person placed in a space that carries two rights</td></tr>
+        <tr data-pdf="drop"><td>Bronze boulder cap, inscription included</td><td class="num" data-price="mem.bouldercap">$2,015</td><td class="size-note">Boulders at the Lake Urn Garden</td></tr>
       </tbody>
     </table>
 
     <div class="prose">
-      <p class="footnote">Every figure here comes from our own current price list and is re-checked against it automatically whenever this page changes. Prices are per space and subject to change without notice; your family service director confirms the exact space, its rights and its price before anything is signed.</p>
+      <p class="footnote" data-pdf="summary"><span>Every figure here comes from our own current price list and is re-checked against it automatically whenever this page changes. Prices are per space and subject to change without notice; your family service director confirms the exact space, its rights and its price before anything is signed.</span><span class="pdf-summary">Prices are per space and subject to change. I confirm the space, its rights and its price before anything is signed.</span></p>
     </div>
   </div>
 
