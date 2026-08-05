@@ -202,13 +202,39 @@ const PER_GUIDE_CAPS = new Map([
   ['Direct Cremation Plan Example.pdf', 2],
   ['Who Decides.pdf', 2],
   ['Urn Gardens at Washington Memorial Park.pdf', 1],
+  // Granite and Glass-Front HOLD at eight. docs/PDF_AUDIT.md, Tier 2, marks both "8 hold —
+  // already re-cut in s13 at 9pt for the photos. Do not shrink." Sprint-16 Track D
+  // rasterised every page of both and confirmed the s13 crops are intact; neither guide
+  // was converted and neither cap moved. They build to six today, which is the room the
+  // operator asked for rather than a target to hit.
   ['Granite Niches Guide.pdf', 8],
   ['Glass-Front Niche Guide.pdf', 8],
-  ['Rock of Ages Columbarium.pdf', 8],
-  ['Mountain View New Glass-Front Niches.pdf', 8],
-  ['Eternal Light Columbarium.pdf', 8],
-  ['Garden of Meditation Niches.pdf', 8],
-  ['Terrace Garden Memorial Path.pdf', 8],
+  // ── THE TIER-2 PROPERTY GUIDES, CONDENSED (sprint-16 Track D) ─────────────────────
+  // All seven now build from `?print=family`, and these are the audit's Tier-2 targets
+  // rather than what each happened to build to. They came DOWN from the eight-page
+  // area-guide allowance and from the shared six:
+  //   Rock of Ages 5->3, Mountain View 5->3, Eternal Light 4->3, Terrace Garden 4->3,
+  //   Garden of Meditation 3->2, Urn Placement 3->2, Scattering 1->1.
+  //
+  // Garden of Meditation builds to TWO against a cap of three, and the cap is deliberately
+  // the target and not the build: the audit asked for the same three-page shape as the
+  // other four area guides, and that guide simply has two photographs where the others
+  // have four or five. Holding it at 2 would fail the moment a third photograph is added,
+  // which is a change worth making, not a regression.
+  //
+  // Scattering at 1 is the tightest of the lot. It is a price sheet (audit: "Three plans.
+  // It is a price sheet. One page.") and it holds one page only because the three
+  // packages' line-item lists are dropped from the family cut — the pricing rule
+  // suppresses every amount in them, so they printed as three identical columns of labels
+  // beside blank space. The package totals still print, in the card footers, where they
+  // were never chips.
+  ['Rock of Ages Columbarium.pdf', 3],
+  ['Mountain View New Glass-Front Niches.pdf', 3],
+  ['Eternal Light Columbarium.pdf', 3],
+  ['Garden of Meditation Niches.pdf', 3],
+  ['Terrace Garden Memorial Path.pdf', 3],
+  ['Urn Placement Options.pdf', 2],
+  ['Scattering Garden Pricing.pdf', 1],
 ]);
 
 // Every guide the print system covers, for the no-cover / blank-page / pricing-rule gates.

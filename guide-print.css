@@ -893,6 +893,74 @@
   [data-print-mode="family"] .print-invite { padding: 4px 0 3px 12px; margin: 2px 0 4px; }
   [data-print-mode="family"] .print-invite p { font-size: 10pt; line-height: 1.35; margin: 2px 0 0; }
 
+  /* `#columbariums` — urn-placement-guide.html. This is the one guide whose job is to put
+     SIX settings beside each other on one page (docs/PDF_AUDIT.md, Tier 2: "One page of
+     photo cards with ranges, one page of the comparison"), and §8d's two-up grid cannot
+     do it: six 16:9 cards two abreast is three rows of about 3.4in, which with the
+     masthead and the answer block is a page and a third, and `.pf-card` is
+     break-inside:avoid so the overflow jumps a whole sheet. Measured: 3 pages, two of
+     them ending halfway.
+     Three abreast is 2.35in of photograph — a third of the page width, still a photograph
+     a family can judge a place from and nowhere near the thumbnail §8d rules out. Scoped
+     to the section by ID rather than applied to `.pf-grid`, because the ground-burial
+     grid below it holds exactly two cards and looks like a gap-toothed row at three. */
+  [data-print-mode="family"] #columbariums .pf-grid { grid-template-columns: repeat(3, 1fr); }
+  /* `.compare-table` — urn-placement-guide.html, and the other half of that Tier-2 row:
+     "one page of the comparison". The guide's own condense block sets its cells to 7pt
+     and its headers to 6.5pt for the six-page budget; that table IS the second page of
+     the condensed document, so it comes up to the floor with everything else. It stays
+     `table-layout:fixed` and `min-width:0` — check C of verify_table_alignment.mjs, added
+     2026-08-04 after this exact table lost its whole Scattering column off the print
+     column edge, and that check must stay green. */
+  [data-print-mode="family"] .compare-table td { font-size: 10pt; line-height: 1.3; padding: 4px 5px; }
+  [data-print-mode="family"] .compare-table th { font-size: 9pt; padding: 4px 5px; }
+  [data-print-mode="family"] #columbariums .pf-card h3 { font-size: 12pt; }
+  [data-print-mode="family"] #columbariums .pf-range { font-size: 13pt; }
+
+  /* `.figure` / `.figure-pair` / `.pf-photo` — the five per-area photo guides
+     (sprint-16 Track D: roac, mvc-niches, ecl, gomn, terrace-garden).
+
+     Those five cap a printed photograph by HEIGHT and let the width follow from the
+     photograph's own proportions — `max-height` + `width:auto` + `max-width:100%`, and no
+     `object-fit` anywhere. That is s13's "a BOX, not a crop", written after the operator
+     said "the crops on the granite niches guide cut off a lot of the photos", and it is
+     why nothing on these pages loses an edge. NONE OF THAT CHANGES HERE. The only thing
+     this block does is make the box smaller: same formula, same width:auto, still no
+     object-fit, so a portrait photograph is still tall, a landscape one still wide, and
+     both are still whole.
+
+     Their own caps — 4.6in for a lone figure, 3.3in for a pair — were chosen for an
+     EIGHT-page document. A 4.6in photograph plus its caption is half a Letter page, and
+     `.figure` and `.pf-card` are both break-inside:avoid, so a block that does not fit in
+     what is left of a page jumps the whole sheet rather than straddling. Measured on the
+     first condensed ROAC build at the eight-page caps: five pages, three of them ending
+     40% down. Content was not the problem and cutting more of it would not have helped.
+
+     1.9in against a 3.4in card column is 16:9 — which is exactly the photograph the
+     debrief specified for a family PDF (§8d, "16:9, full column width, never a
+     thumbnail"), reached by the no-crop formula instead of by an aspect-ratio box.
+
+     KEYED ON `<body data-guide="area-photo">`, and it has to be. The `.pf-photo` rules
+     here are the OPPOSITE of §8d's: §8d boxes the photograph 16:9 and every other guide's
+     `.pf-photo img` is `width:100%;height:100%;object-fit:cover`, which needs that box.
+     Applied unscoped, `width:auto` here would take the box away from a cover-cropped
+     image and collapse the card photo on urn-placement-guide.html and every other guide
+     using the standard component. The five area guides are the ones that declare
+     `.pf-photo{aspect-ratio:auto!important}` and crop nothing, and they are the only ones
+     this block is written for. Same keying convention as §7b above. */
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure img { max-height: 2.9in; }
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure-pair img { max-height: 1.9in; }
+  html[data-print-mode="family"] body[data-guide="area-photo"] .pf-photo img {
+    max-height: 1.9in; width: auto; max-width: 100%; margin: 0 auto;
+  }
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure { margin: 0 0 7px; }
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure-pair { margin-bottom: 7px; }
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure-pair figcaption,
+  html[data-print-mode="family"] body[data-guide="area-photo"] .figure figcaption { font-size: 8.5pt; }
+  /* The area guides' inline-range span is a Cormorant figure inside body copy; at 10.5pt
+     body it keeps the emphasis it has on screen rather than inheriting down. */
+  html[data-print-mode="family"] body[data-guide="area-photo"] .inline-range { font-size: 1.08em; }
+
   /* `.ladder` — who-decides-guide.html. The legal authority order is ONE list (audit,
      Tier 1) and it is the reason that guide is emailed, so it is the one component on its
      first page and gets the room. */
