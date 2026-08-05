@@ -72,7 +72,88 @@ const tgn = TGMP.tgnNiches().filter(TGMP.sellable).map((n) => n.price);
 const radser = [...COM.wallNiches('RAD'), ...COM.wallNiches('SER')].filter((n) => n.st === 'available').map((n) => n.p);
 const tgmp = TGMP.TGMP_ITEMS.filter(TGMP.sellable).map((i) => i.price);
 
+// ── GROUND BURIAL: the quote tool's own garden price list ────────────────────
+// Operator, 2026-08-04: "you can keep the price ranges that's fine, maybe include a median
+// price range as well for each." That closed the two cards on the Cemetery Property Guide
+// that still said "Ask us for today's figures" — ground burial and mausoleum crypts — but
+// only if a machine-readable source exists for each. For ground burial it does:
+// index.html's `<select id="qGarden">`, the tool's live cemetery price list, which
+// verify_urn_garden_ranges.mjs already treats as the authority for the Lake Urn Garden.
+//
+// POPULATION: the NUMBERED GARDENS, which is exactly what the card says a ground burial
+// space is ("a lawn space in one of the numbered gardens"). Mechanically that is every
+// option whose key starts with a digit — Garden 6 through Garden 23, including the graded
+// options (Good / Better / Best / Reserved) and Gethsemane uprights, because each of those
+// is a separately priced ground offering a family can actually buy.
+//
+// Deliberately OUT: the urn gardens and the Court of Honor cremorial (cremation, and the
+// Lake Urn Garden has its own card), the Garden of Verses, the scattering optgroup, the
+// Garden 21 lawn crypt (a different product, described separately on the card page), and
+// the two veterans gardens (the space is given at no charge to a qualifying veteran, so
+// printing its list price inside a ground-burial range would misdescribe both).
+//
+// ONE CAVEAT, STATED HONESTLY: this population is one entry per PRICE-LIST OFFERING, not
+// one entry per available space — the tool carries no per-space garden availability. So
+// the band is "most gardens", not "most spaces", and the page says exactly that. The niche
+// and crypt bands below are per available unit and say "most niches" / "most crypts".
+const app = fs.readFileSync('index.html', 'utf8');
+const gardenOpts = (selId) => {
+  const i = app.indexOf(`id="${selId}"`);
+  if (i < 0) return null;
+  const block = app.slice(i, app.indexOf('</select>', i));
+  return new Map([...block.matchAll(/<option value="([^"|]+)\|(\d+)\|(\d+)"/g)]
+    .filter((m) => /^\d/.test(m[1]))
+    .map((m) => [m[1], Number(m[2])]));
+};
+const gardens = (() => {
+  const q = gardenOpts('qGarden');
+  if (!q) { fail('index.html has no <select id="qGarden"> — the ground-burial price list moved'); return []; }
+  // A floor, not a count: the exact number of graded options changes when a garden opens
+  // or closes, but a parse that suddenly returns three of them has broken, not sold out.
+  if (q.size < 15) fail(`only ${q.size} numbered-garden option(s) parsed out of index.html — the price list changed shape`);
+
+  // THE SECOND COPY. index.html carries the garden list TWICE: the quote builder's
+  // `qGarden`, and an abridged copy in the A/B comparison panel (`cmpA_garden` /
+  // `cmpB_garden`) that appears EARLIER in the file. Whichever one this gate happened to
+  // read, believing it alone would mean printing a range off a list the tool might already
+  // disagree with — the same trap verify_urn_garden_ranges.mjs closes for `lake_urn` by
+  // requiring its two option copies to agree before either is trusted. So the copies are
+  // reconciled here on the keys they share; the comparison panel is allowed to be shorter,
+  // never to price a garden differently. (Side A of that panel is the SAVED quote, so it
+  // has no select of its own — `cmpB_garden` is the only second copy in the file.)
+  for (const sel of ['cmpB_garden']) {
+    const c = gardenOpts(sel);
+    if (!c) { fail(`index.html has no <select id="${sel}"> — the comparison panel's garden list moved, so the price list can no longer be cross-checked`); continue; }
+    const off = [...c].filter(([k, p]) => q.has(k) && q.get(k) !== p);
+    if (off.length) fail(`index.html prices ${off.length} garden(s) differently in ${sel} than in qGarden: ` +
+      off.map(([k, p]) => `${k} ${money(p)} vs ${money(q.get(k))}`).join(', '));
+    else ok(`index.html ${sel} agrees with qGarden on all ${[...c].filter(([k]) => q.has(k)).length} shared garden(s)`);
+  }
+  return [...q.values()];
+})();
+
+// ── MAUSOLEUM CRYPTS: Chapel of Memories, MIS-backed ─────────────────────────
+// The crypt card is the one place a source had to be FOUND rather than assumed. index.html
+// does not price crypts at all: the quote builder's crypt block is `Mausoleum Crypt
+// (manual price)` — a free-text `<input id="qMausPrice">` the counsellor types into — and
+// data/prices.json's `inventory` carries only ROAC niches. So there is no park-wide crypt
+// price list anywhere in this repo.
+//
+// What there IS, is scripts/com-crypt-data.mjs: 374 available Chapel of Memories crypt
+// units priced from the MIS available-crypts export of 2026-08-01, under the operator's
+// own availability rule ("yes all 379 are available as long as a price is attached to it
+// that is greater than 0"). Same population verify_com_map.mjs draws the public map from.
+//
+// The other three mausolea are NOT priced here and are not guessed at: elm-building-data
+// and tg-maus-data both carry an ASK label and no figures. So the card names the building
+// its range comes from and invites the family to ask about the rest. A range labelled
+// "mausoleum crypts" that silently meant one of four buildings would be the invented
+// number this gate exists to prevent.
+const comCrypts = COM.cryptUnits().filter((u) => u.st === 'available' && u.p > 0).map((u) => u.p);
+
 const EXPECT = {
+  gardens: gardens.length ? rangeStr(gardens) : null,
+  'com-crypts': rangeStr(comCrypts),
   gomn: rangeStr(gomn),
   roac: rangeStr(roac),
   mvc: rangeStr(mvc),
@@ -96,9 +177,19 @@ const EXPECT = {
 // `glass` is the aggregate the ruling was about: every currently-available GLASS-front
 // niche the repo has data for (ECL + the MVC island + Radiance + Serenity). Granite fronts
 // — ROAC, GOMN, TGN — are a different product and are deliberately out of it.
+//
+// AMENDED 2026-08-04 (s16 Track P). The operator extended the ruling from the glass-front
+// niches to every property card on the Cemetery Property Guide: "you can keep the price
+// ranges that's fine, maybe include a median price range as well for each." So the band is
+// no longer reserved for spans the WIDE test below judges worth narrowing — a card may
+// carry one either way, and two cards that previously printed no figure at all now print
+// both. The WIDE test is unchanged in what it FORBIDS (a wide span with no band where a
+// band would help); it simply no longer implies that a narrower span must go bare.
 const GLASS = [...ecl, ...mvc, ...radser];
 const EXPECT_TYPICAL = {
   glass: typicalStr(GLASS),
+  gardens: gardens.length ? typicalStr(gardens) : null,
+  'com-crypts': typicalStr(comCrypts),
   ecl: typicalStr(ecl),
   mvc: typicalStr(mvc),
   radser: typicalStr(radser),
@@ -122,6 +213,10 @@ console.log(`   GOMN ${gomn.length} sellable · ROAC ${roac.length} available ·
 console.log(`   ECL ${ecl.length} available · TGN ${tgn.length} available · RAD+SER ${radser.length} available`);
 console.log(`   all-niches aggregate over ${gomn.length + roac.length + mvc.length + ecl.length + tgn.length + radser.length} niches`);
 console.log(`   glass-front population ${GLASS.length} (ECL ${ecl.length} + MVC ${mvc.length} + RAD/SER ${radser.length}) · typical band ${EXPECT_TYPICAL.glass.replace('&ndash;', '-')}`);
+console.log(`   gardens ${gardens.length} numbered-garden offerings from index.html <select id="qGarden">` +
+            (gardens.length ? ` · range ${EXPECT.gardens.replace('&ndash;', '-')} · band ${EXPECT_TYPICAL.gardens.replace('&ndash;', '-')}` : ' — UNAVAILABLE'));
+console.log(`   com-crypts ${comCrypts.length} available Chapel of Memories units (MIS export ${COM.PRICES.exported})` +
+            ` · range ${EXPECT['com-crypts'].replace('&ndash;', '-')} · band ${EXPECT_TYPICAL['com-crypts'].replace('&ndash;', '-')}`);
 
 // ── card parsing ─────────────────────────────────────────────────────────────
 function cards(html) {
@@ -209,6 +304,12 @@ for (const page of PAGES) {
         if (attr === 'data-typical') fail(`data-typical="${key}": no population is defined for that key, so the band is unverifiable`);
         continue;
       }
+      if (table[key] === null) {
+        // The key is known but its SOURCE did not yield a population this run. That is not
+        // a pass with a warning: the page is printing a figure nothing can confirm.
+        fail(`${attr}="${key}" prints ${printed}, but its source produced no population this run — the figure is unverifiable`);
+        continue;
+      }
       if (printed === table[key]) ok(`${attr}="${key}" prints ${printed}, recomputed from the module`);
       else fail(`${attr}="${key}" prints ${printed}, the module says ${table[key]}`);
     }
@@ -232,14 +333,37 @@ for (const page of PAGES) {
   const span = (s) => { const [lo, hi] = s.split('&ndash;').map((x) => +x.replace(/[$,]/g, '')); return hi / lo; };
   const typicalKeys = new Set([...html.matchAll(/\bdata-typical="([^"]+)"/g)].map((m) => m[1]));
   for (const key of new Set([...html.matchAll(/\bdata-range="([^"]+)"/g)].map((m) => m[1]))) {
-    if (!(key in EXPECT)) continue;
+    // `EXPECT[key] == null` is a key whose source yielded no population this run. The
+    // string comparison above has already failed it by name; measuring a span off null
+    // would crash the gate here and turn a clean named failure into a stack trace.
+    if (!EXPECT[key]) continue;
     const full = span(EXPECT[key]);
     if (full <= WIDE) continue;
-    const band = key in EXPECT_TYPICAL ? span(EXPECT_TYPICAL[key]) : Infinity;
+    const band = EXPECT_TYPICAL[key] ? span(EXPECT_TYPICAL[key]) : Infinity;
     const useful = band <= full / 2;
-    if (!useful) ok(`data-range="${key}" spans ${full.toFixed(1)}x; its middle 50% spans ${band.toFixed(1)}x and would not narrow it — no band required`);
-    else if (typicalKeys.has(key)) ok(`data-range="${key}" spans ${full.toFixed(1)}x and is led by a typical band spanning ${band.toFixed(1)}x`);
-    else fail(`data-range="${key}" spans ${full.toFixed(1)}x with no data-typical band beside it — the operator's 2026-08-02 ruling`);
+    if (typicalKeys.has(key)) {
+      ok(`data-range="${key}" spans ${full.toFixed(1)}x and is led by a typical band spanning ${band.toFixed(1)}x` +
+         (useful ? '' : ' — which barely narrows it, kept under the 2026-08-04 "a median range as well for each" ruling'));
+    } else if (!useful) {
+      ok(`data-range="${key}" spans ${full.toFixed(1)}x; its middle 50% spans ${band.toFixed(1)}x and would not narrow it — no band required`);
+    } else {
+      fail(`data-range="${key}" spans ${full.toFixed(1)}x with no data-typical band beside it — the operator's 2026-08-02 ruling`);
+    }
+  }
+
+  // ── a band must sit INSIDE its own range ──────────────────────────────────
+  // The two figures on a banded card come from the same population, so the band is
+  // arithmetically bound to fall within the span. That makes this cheap to check and
+  // worth checking: it is what catches a band and a range wired to DIFFERENT keys, which
+  // is the realistic way this markup gets copied wrong — the numbers would each verify
+  // against their own population and the card would still be nonsense.
+  for (const key of typicalKeys) {
+    if (!EXPECT_TYPICAL[key] || !EXPECT[key]) continue;
+    const num = (s) => s.split('&ndash;').map((x) => +x.replace(/[$,]/g, ''));
+    const [blo, bhi] = num(EXPECT_TYPICAL[key]);
+    const [rlo, rhi] = num(EXPECT[key]);
+    if (blo >= rlo && bhi <= rhi) ok(`the "${key}" band sits inside its own full range`);
+    else fail(`the "${key}" band ${EXPECT_TYPICAL[key]} is not contained in its range ${EXPECT[key]} — the two figures are not from the same population`);
   }
 }
 
