@@ -35,7 +35,12 @@ main or pre-create by hand; P was ported, C's regions adopted+repainted. OPERATO
 FLAGS on the record: Pre-Planning's "Not for you" hook heading; urn-gardens lost its
 lake banner photo to hold 1pp (ruling available: 2pp cap instead); ECL larger-units
 ask-card is the named exemption; casket/urn catalogs still carry Side-by-Side.
-PUSHED per the operator's standing word — see the push entry below this one.
+PUSHED AND LIVE-VERIFIED 2026-08-05 (operator's standing word "push everything live
+and call it a session"; e10ca73..816050c, 16 commits — includes s15's blank-oval
+PCM commit): scratch/s16-live-verify.mjs 7/7 OK after 4 deploy-lag retries — the
+live cemetery guide carries the gardens+crypt bands and the family annotations,
+three condensed PDFs and two precision-fit PCM plates byte-identical sha256 on the
+wire. s16 worktrees removed; worktree-agent-* and s16/* branches kept until pruned.
 
 **Current sprint: sprint-16 — Track A MERGED 2026-08-04, AWAITING THE OPERATOR'S
 STEP-3 GATE** (superseded by the close entry above) (condensed family PDFs; brief at sprints/sprint-16/SPRINT.md; sources
