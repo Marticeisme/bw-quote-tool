@@ -18,8 +18,36 @@ marker-images/ entries dropped from the catalog, files kept for the marker guide
 pcm-example-images files git-rm'd; data regenerated via pcm_extract.py --data with D:
 sources verified — designs/elements/reference byte-identical, only photos changed; fold
 render eyeballed, 28 cards 0 guide-sourced). Casket/urn catalogs KEEP their Side-by-Side
-(operator's ask was PCM-scoped; flagged as an open question). Full npm suite running at
-this writing; contract number will move (was 2297/36). NO PUSH — not pre-authorized.
+(operator's ask was PCM-scoped; flagged as an open question). NO PUSH — not pre-authorized.
+
+**s15 CLOSED ON MAIN 2026-08-04 — ALL THREE ITEMS IN. Final main GREEN: 8 blocks 0
+errors; 2303 passed, 0 failed across 36 suites** (reconciles: 2288 post-direct-work +
+15 pcm-upscale asserts 33→48; direct-work 2288 = 2297 − 9 net compare-rewrite);
+verify_pcm_catalog 202/0 BW_BASE-pinned on merged main; verify_pcm_upscale 42/0; mask
+script idempotent (84/84/0). Governing docs' contract number was STALE AT 2090 (drifted
+through s13/s14 closes) — DESIGN §, SPRINT_GUIDELINES, DIRECTOR_GUIDELINES all pinned
+to 2303/36 with a drift note. **Track A merged `bb8f1a7`** (track `36ca4dd` + director
+refit `a7418f9`): 84 plates / 91 regions, every photographic inset replaced with the
+ivory-oval navy-roundel placeholder; census by eye over all 699 (2011 book = line art
+throughout, gate-pinned); EXPECT_PHOTO_MASKED both directions + region-file cross-check;
+track's 8-case sabotage set incl. the no-op control. **DIRECTOR AUDIT FOUND THE TRACK'S
+BOXES SYSTEMATICALLY SMALL** — the 91-region 4x rim sweep (original vs shipped) showed
+surviving photo crescents on ~a third (932-left the tip-off; 744 half a face, 763 most
+of the photo). Track agent's transcript was gone (second time — s14 C precedent), so the
+refit was director-direct in its worktree: detector re-derive (chroma + smoothness) →
+per-class re-anchor (the smoothness detector ATE POLISHED PANEL and stomped engraved
+text on 682/834/858/985 — walked back to track-box +10%) → directional extends (14) →
+hand-read grid boxes (668, 845). Five repaint iterations, EVERY one from the c670f42
+originals so shipped plates stay single-generation; all 91 regions eyeballed clean in
+final state. SCAR, promote: **a masking pass needs a rim sweep — diff the shipped plate
+against the ORIGINAL around every region edge; the mask itself looking right at 3x is
+not evidence the photo is gone.** Audit trail: scratch/s15-direct-renders/rim-sweep*/
++ scratch/s15a-mask-renders/ (final three-ups in before-after-final/). OPEN operator
+items: 2011/1128 (full-plate laser etching of an infant — the etching IS the product;
+NOT masked; drop the plate if he wants it gone); casket/urn catalogs still carry their
+own Side-by-Side; guide-photo restores if "these shouldn't be under the examples" was
+narrower than the five; PCM ships in zero built-PDF manifest jobs (s14 D finding —
+no staleness rebuild needed). Worktree + s15 branches kept until push word.
 
 **Current sprint: sprint-14 — OPENED 2026-08-03** (director: Fable session; tracks:
 Opus per operator). Operator brief: three new walkthrough videos shot this morning

@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `2090 passed, 0 failed across 36 suites` — updated s12 close: the 1845 figure had drifted (main was already 2000/35 at s12 boot); s12 adds +33 pcm-upscale (new suite), +52 pcm-catalog (113→165) |
+| Assertion suites | `npm test` | `2303 passed, 0 failed across 36 suites` — updated s15 close (the 2090 figure had drifted again: s13/s14 closes moved main to 2297/36 without touching this line). s15: PCM compare goes plates-only (catalog suite −9 net) + photo-mask registry (+15, pcm-upscale suite 33→48) |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |
