@@ -602,9 +602,11 @@
   [data-print-mode="family"] .pf-body { padding: 6px 10px 7px; }
   [data-print-mode="family"] .pf-card h3 { font-size: 13.5pt; margin-bottom: 1px; }
   [data-print-mode="family"] .pf-kind { font-size: 7pt; letter-spacing: .1em; margin-bottom: 4px; }
-  /* 12px, the one prose size in this mode below the 10.5pt body: a card sentence is a
-     caption under a photograph, and the geometry table in the debrief sets it there. */
-  [data-print-mode="family"] .pf-card p { font-size: 12px; line-height: 1.45; margin: 0 0 6px; }
+  /* 10pt. The debrief's geometry table said 12px (=9pt), which contradicts its own
+     "never below 10pt" rule; the operator ruled for the rule (2026-08-04), so card
+     sentences sit at the floor and the coming lock-in assertion can be written clean:
+     no prose below 10pt, labels and kickers exempt as component convention. */
+  [data-print-mode="family"] .pf-card p { font-size: 10pt; line-height: 1.4; margin: 0 0 6px; }
   [data-print-mode="family"] .pf-price { padding-top: 5px; }
   [data-print-mode="family"] .pf-price-label { font-size: 7pt; margin-bottom: 2px; }
   [data-print-mode="family"] .pf-range { font-size: 15pt; }
@@ -614,7 +616,7 @@
      it — the band that carries the fifth property type without spending a second row on a
      card that would sit alone. `order` is used rather than moving the markup, because the
      SCREEN order of the cards is reviewed and must not change. */
-  [data-print-mode="family"] .pf-fam-wide {
+  [data-print-mode="family"] .pf-fam-wide { max-height: 128px;
     grid-column: 1 / -1; order: 9;
     display: grid; grid-template-columns: 0.85fr 1.6fr;
   }
@@ -629,7 +631,7 @@
      Structure item 4: the charges as a two-column name-and-half-sentence list. */
   [data-print-mode="family"] .costs { padding: 1px 16px; margin: 2px 0 7px; }
   [data-print-mode="family"] .charge-list { column-count: 2; column-gap: 26px; }
-  [data-print-mode="family"] .charge-list li { padding: 2px 0; break-inside: avoid; }
+  [data-print-mode="family"] .charge-list li { padding: 1px 0; break-inside: avoid; }
   [data-print-mode="family"] .charge-list strong { font-size: 11pt; margin-bottom: 0; }
   [data-print-mode="family"] .charge-list span { font-size: 10pt; line-height: 1.25; }
   /* A guide may carry a family-only item at the end of the list; on screen it is hidden and
@@ -638,13 +640,13 @@
   [data-print-mode="family"] .charge-list li:has(+ li.pdf-summary) { border-bottom: 1px solid #ddd6c8; }
 
   /* ── 8f. CALLOUTS AND QUESTIONS ────────────────────────────────────────────────── */
-  [data-print-mode="family"] .band { padding: 8px 14px; margin: 4px 0 6px; }
-  [data-print-mode="family"] .band h3 { font-size: 14pt; margin: 0 0 4px; }
+  [data-print-mode="family"] .band { padding: 6px 14px; margin: 2px 0 3px; }
+  [data-print-mode="family"] .band h3 { font-size: 13pt; margin: 0 0 3px; }
   [data-print-mode="family"] .note { padding: 12px 16px; margin: 8px 0 10px; }
   [data-print-mode="family"] .note h3 { font-size: 15pt; margin: 0 0 5px; }
   [data-print-mode="family"] .faq { border-top: 0; margin-top: 0; }
-  [data-print-mode="family"] .faq summary { font-size: 14pt; padding: 5px 0 2px; }
-  [data-print-mode="family"] .faq .answer { padding: 0 0 5px; }
+  [data-print-mode="family"] .faq summary { font-size: 12.5pt; padding: 2px 0 1px; }
+  [data-print-mode="family"] .faq .answer { padding: 0 0 3px; }
 
   /* ── 8g. THE NEXT STEP ───────────────────────────────────────────────────────────
      Structure item 6, and rule 4: every family PDF ends with Martice's name, phone and
@@ -653,12 +655,12 @@
      block. It carries `.pdf-summary`, which is what keeps it off the website and out of
      the full-length print. */
   [data-print-mode="family"] .fam-next {
-    border-top: 3px solid #2c445e; margin-top: 5px; padding-top: 6px; break-inside: avoid;
+    border-top: 3px solid #2c445e; margin-top: 4px; padding-top: 5px; break-inside: avoid;
   }
   [data-print-mode="family"] .fam-next h2 {
     font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 22px; font-weight: 600; color: #1e3a55; margin: 0 0 5px;
+    font-size: 20px; font-weight: 600; color: #1e3a55; margin: 0 0 4px;
   }
-  [data-print-mode="family"] .fam-next p { margin: 0 0 6px; max-width: none; }
+  [data-print-mode="family"] .fam-next p { margin: 0 0 4px; max-width: none; }
   [data-print-mode="family"] .fam-next .fam-sign { margin: 0; }
 }
