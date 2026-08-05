@@ -2409,3 +2409,32 @@ fighting the balancer — back to 6 pages. Rebuilt Glass-Front, Granite, ECL PDF
 - Verify generated PDFs by actually rendering them (PyMuPDF → PNG → look at it) before
   claiming a fix works.
 - The repo is public and served from GitHub Pages. Anything pushed is live immediately.
+
+### 2026-08-05 — THE CONDENSED FAMILY PDFs: every guide's download is now the emailed cut (sprint-16)
+
+The design review's finding, one line: nothing in the print pipeline ever condensed,
+it only shrank — 7.7pt type, two-column flow, nothing dropped. Sprint-16 built the
+selection half and rolled it across all 25 guide PDFs. The rules live in
+docs/PDF_DEBRIEF.md and the per-guide targets in docs/PDF_AUDIT.md; the reference
+build is reference-docs/cemetery-property-condensed.pdf.
+
+- **Mechanism**: `?print=family` sets `data-print-mode` on `<html>` (same generated
+  script as `?part=`, they compose); `data-pdf="keep|drop|summary"` annotations +
+  `.pdf-summary` blocks select IN THE MARKUP, next to the long version, so the short
+  cut cannot drift. guide-print.css §8 holds the family type/geometry ONCE: 10.5pt/1.5
+  body, ONE column, big 16:9 photographs, the .fam-next close.
+- **Every card carries a number**: gardens $4,995–$18,995 (most $6,995–$9,995), COM
+  crypts $9,895–$61,990 (most $15,995–$28,995), computed from the tool's own price
+  data and gate-pinned (verify_photo_first two-copy reconciliation). The one ask-card
+  left (ECL larger units) is a named exemption, not a default.
+- **The lock-in**: scripts/verify_family_type.mjs (suite #37, 111 asserts) — ≥10pt
+  prose, no sheet column flow, no column-span, mode live, ask-cards exactly per the
+  exemption table. Sabotage-proven all three classes.
+- **Scars for the next reader**: `.pdf-summary` needs `!important` on screen
+  (`.charge-list span{display:block}` outranks a bare class); a `display:none` family
+  element still breaks `:last-child` and `p + p` on screen — summaries go LAST among
+  siblings, and the 0-pixel screen diff is the only thing that catches it;
+  `column-span:all` fragments a one-column flow into whole-page jumps; §7's 7.7pt
+  `li` leaks into any family guide whose vocabulary §8b doesn't reach; and a sabotage
+  needle must hit the rule that APPLIES (the family `p` rule, not `body`).
+- Full contract after the rollout: **2425 passed, 0 failed across 37 suites**.

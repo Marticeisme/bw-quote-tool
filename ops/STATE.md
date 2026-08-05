@@ -1,7 +1,44 @@
 # STATE — Living Ledger
 
+**s16 CLOSED ON MAIN 2026-08-05 — THE FULL CONDENSED-PDF ROLLOUT IS IN. Final main
+GREEN: 8 blocks 0 errors; 2425 passed, 0 failed across 37 SUITES** (new contract
+number, all three governing docs re-pinned; reconciles 2303 + 11 marker asserts +
+the new 111-assert verify_family_type suite). All 25 family-guide PDFs now build
+condensed: operator approved the Cemetery Property reference cut on his phone, then
+ruled ranges+medians on every card, replace-the-download, and "reduced but not to 2"
+for the five area guides. Merged in order: **P pricing (director-PORTED — stale
+worktree base)** gardens $4,995–$18,995 band $6,995–$9,995 / COM crypts
+$9,895–$61,990 band $15,995–$28,995 (374 MIS-available; index.html prices crypts by
+manual field, so COM is named); **B Tier 1** (7 guides to target; found
+column-span-fragments-single-column + §7's 7.7pt li leak + .direct-panel widow +
+charge-list strong break — all fixed shared); **D Tier 2** (5 area guides →3pp/2pp,
+granite+glass HOLDS crop-verified untouched, scattering 1pp; area-photo box-not-crop
+recut for 3pp); **E Tier 3** (all to target; medicaid-pro honest 3→5pp type-fix-only;
+CSS-counter section numbering scoped to data-print-part — display:none generates no
+box so numbering follows any selection; marker-prices suite 78→89, all 18 all-in
+totals to the cent; true-size outlines dropped from the family cut, argued).
+**LOCK-IN (director-direct, `1b41ae6`): scripts/verify_family_type.mjs + twin** — per
+family guide on served bytes under print emulation: ≥10pt prose (named furniture
+allowlist), no sheet column flow, no column-span, mode attribute live, pf-ask exactly
+at the exemption table (ECL larger units = the one genuine ask left; urn-placement's
+grave-space card got the gardens band instead). Sabotage-proven 22/21/1 named FAILs;
+the first type needle was a DUD (body rule doesn't apply — p carries its own; the
+hit-the-rule-that-APPLIES scar again). ALSO CLOSED THIS SPRINT: PCM roundel→blank
+ceramic ovals (operator disliked the logo), and **Track C oval precision-fit — all 91
+regions hand-read to inset bounds** after the operator saw ovals overlapping
+lettering (director adopted C's region file onto main, repainted blank-style from
+originals, re-read all 16 sweep sheets: 91/91 clean both classes; 4 _touchesArt
+recorded). INFRA SCAR, promote: **agent-isolation worktrees sometimes branch from
+origin/main, not local main** — P, C, D(first), E(first) all got stale bases; the
+stale-base check in every brief caught D/E instantly; fix = reset the worktree to
+main or pre-create by hand; P was ported, C's regions adopted+repainted. OPERATOR
+FLAGS on the record: Pre-Planning's "Not for you" hook heading; urn-gardens lost its
+lake banner photo to hold 1pp (ruling available: 2pp cap instead); ECL larger-units
+ask-card is the named exemption; casket/urn catalogs still carry Side-by-Side.
+PUSHED per the operator's standing word — see the push entry below this one.
+
 **Current sprint: sprint-16 — Track A MERGED 2026-08-04, AWAITING THE OPERATOR'S
-STEP-3 GATE** (condensed family PDFs; brief at sprints/sprint-16/SPRINT.md; sources
+STEP-3 GATE** (superseded by the close entry above) (condensed family PDFs; brief at sprints/sprint-16/SPRINT.md; sources
 docs/PDF_DEBRIEF.md + docs/PDF_AUDIT.md + reference-docs/cemetery-property-condensed.pdf
 — which turned out to BE the "PDF guide structural review.pdf" in his Downloads).
 Track A `b04f917` merged --no-ff; merged main GREEN: guide page-shape gate all-pass,
