@@ -101,6 +101,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .size-card li:last-child{border-bottom:none;}
 .size-card li .dim{font-weight:600;color:var(--navy);white-space:nowrap;min-width:60px;}
 .size-card li .desc{color:var(--text-muted);}
+/* The "Not Sure Which Size?" card. This was written as a style attribute on the element,
+   including `font-size:13.5px` on its paragraph, which is a SCREEN pixel size no print rule
+   can reach: an inline declaration beats every stylesheet short of !important. Same defect
+   guide-print.css §7 records for two paragraphs in cremation-guide.html. Every value below
+   is the inline one exactly, so the screen rendering is byte-identical and pixel-diffed;
+   being a class is what lets print reach it. */
+.size-card-ask{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:12px;padding:22px 24px;margin-top:20px;}
+.size-card-ask h3{margin-bottom:8px;}
+.size-card-ask p{font-size:13.5px;color:var(--text-muted);line-height:1.5;max-width:360px;margin:0;}
 
 /* CTA BAND */
 .cta-band{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:12px;padding:28px 30px;text-align:center;margin-bottom:8px;}
@@ -187,6 +196,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -194,6 +217,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -288,10 +324,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <h2>How It Works</h2>
     <div class="section-rule"></div>
     <div class="prose">
-      <p>Four steps. I&rsquo;ll take you through each one.</p>
+      <p data-pdf="summary"><span>Four steps. I&rsquo;ll take you through each one.</span><span class="pdf-summary">Four steps, and I&rsquo;ll take you through each one. <strong>Send me the proof</strong> from your vendor before anything is made. <strong>We review it</strong> against what the park allows for size and design, and sometimes it has to be changed. <strong>You sign</strong> the Hold Harmless Agreement and the cemetery contract and pay the fees in full. <strong>We coordinate delivery and installation</strong>, and I let you know once the marker is set.</span></p>
     </div>
 
-    <div class="process-steps">
+    <div class="process-steps" data-pdf="drop">
       <div class="step">
         <div class="step-num">1</div>
         <h4>Submit Proof</h4>
@@ -351,7 +387,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <h2>Allowed Marker Sizes</h2>
     <div class="section-rule"></div>
     <div class="prose">
-      <p>The following marker sizes and types are permitted at Washington Memorial Park. Your memorial proof must conform to one of these sizes. All dimensions are in inches (width &times; depth).</p>
+      <p data-pdf="summary"><span>The following marker sizes and types are permitted at Washington Memorial Park. Your memorial proof must conform to one of these sizes. All dimensions are in inches (width &times; depth).</span><span class="pdf-summary">Your proof must match one of these. Dimensions are inches, width &times; depth.</span></p>
     </div>
 
 
@@ -399,13 +435,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
     </div>
 
-    <div class="size-card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:12px;padding:22px 24px;margin-top:20px;">
-      <h3 style="margin-bottom:8px;">Not Sure Which Size?</h3>
-      <p style="font-size:13.5px;color:var(--text-muted);line-height:1.5;max-width:360px;margin:0;">Ask me before you order from your vendor. I&rsquo;ll confirm the exact size allowed on your plot, in your section.</p>
+    <div class="size-card size-card-ask" data-pdf="drop">
+      <h3>Not Sure Which Size?</h3>
+      <p>Ask me before you order from your vendor. I&rsquo;ll confirm the exact size allowed on your plot, in your section.</p>
     </div>
 
     <!-- CTA -->
-    <div class="cta-band">
+    <div class="cta-band" data-pdf="drop">
       <h3>Questions? We&rsquo;re Here to Help.</h3>
       <p>If you&rsquo;re thinking about an outside vendor, call me before you order. I&rsquo;ll confirm the allowed sizes for your plot and walk you through the rest of it.</p>
       <div class="contact-row">
@@ -413,6 +449,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <span>&#x2709;&#xfe0f; <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></span>
       </div>
     </div>
+  </div>
+
+  <!-- FAMILY PDF ONLY. The screen CTA band above is dropped in the condensed cut, so the
+       printed document needs its own close. Shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Call me before you order</h2>
+    <p>If you are thinking about an outside vendor, ring me first. I will confirm the exact size allowed on your plot in your section, tell you what the fees come to for your marker, and walk you through the approval so nothing gets cut wrong.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
   </div>
 
   <div class="doc-footer">

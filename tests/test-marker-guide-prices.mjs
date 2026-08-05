@@ -263,9 +263,110 @@ for (const part of ['sizes', 'photos']) {
 
 await b2.close();
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// SPRINT-16 TRACK E — THE CONDENSED CUT IS WHAT ACTUALLY GETS BUILT
+//
+// The two PDFs are now printed from `?part=X&print=family`, not `?part=X`. Everything
+// above still drives `?part=X` alone and still passes, because the family annotations are
+// inert without the second query — but everything above therefore no longer describes the
+// artifact. These are the assertions about the document that is actually emailed.
+//
+// The one that matters most: THE EIGHTEEN ALL-IN TOTALS MUST SURVIVE THE CONVERSION
+// EXACTLY. They are the operator-ordered exception to the range-only pricing rule, they
+// are recomputed cell by cell from index.html above, and a condensing pass is exactly the
+// kind of change that could drop them without any page-count gate noticing.
+// ═══════════════════════════════════════════════════════════════════════════════════
+const b3 = await chromium.launch();
+async function familyLayout(part) {
+  const p = await b3.newPage({ viewport: { width: 720, height: 955 } });
+  await p.goto(BASE + `markers-guide.html?part=${part}&print=family`, { waitUntil: 'networkidle' });
+  await p.emulateMedia({ media: 'print' });
+  const r = await p.evaluate((sel) => {
+    const h = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().height : -1; };
+    const vis = {};
+    for (const s of sel) vis[s] = h(s);
+    return {
+      vis,
+      allIn: [...document.querySelectorAll('[data-allin]')]
+        .filter((e) => e.getBoundingClientRect().height > 0).map((e) => e.textContent.trim()),
+      contents: h('.contents'),
+      famNext: h('.fam-next'),
+    };
+  }, ALL_SECTIONS);
+  await p.close();
+  return r;
+}
+
+for (const part of ['sizes', 'photos']) {
+  const r = await familyLayout(part);
+  // The audit's cross-cutting item 2: the TOC has no place in a selected document.
+  ok(`?part=${part}&print=family: the contents list does not print`, r.contents === 0, `height ${r.contents}`);
+  // Debrief rule 4: every condensed PDF ends with Martice's contact block.
+  ok(`?part=${part}&print=family: the printed close is present`, r.famNext > 0, `height ${r.famNext}`);
+  if (part === 'sizes') {
+    // THE LOAD-BEARING ONE. Every all-in total survives the condense, unchanged.
+    ok('?part=sizes&print=family: all 18 all-in totals survive the condensed cut',
+       r.allIn.length === 18, `${r.allIn.length} printed`);
+    // Design Inspiration is a link, not a page (audit, Tier 3) — dropped from this cut
+    // and ONLY from this cut.
+    ok('?part=sizes&print=family: Design Inspiration is dropped',
+       r.vis['#pcm-designs'] === 0, `height ${r.vis['#pcm-designs']}`);
+  } else {
+    ok('?part=photos&print=family: no all-in marker total prints', r.allIn.length === 0, `${r.allIn.length} printed`);
+  }
+}
+
+// GENERATED SECTION NUMBERS — the audit's defect was a printed run of "1, 2, 3, 4, 8".
+//
+// What is asserted, and why it is equivalent to reading the paper: for every section that
+// PRINTS, (a) its kicker's own hard-coded text is zeroed, so the markup number cannot be
+// what appears, and (b) its `::before` resolves to the counter expression, so the number
+// that appears is the counter's. The counter is reset once on `.doc-sheet` and incremented
+// once per section, and a `display:none` section generates no box and does not increment —
+// therefore the painted numbers over the visible sections are 1..N with no gap.
+//
+// That last step is a CSS-spec claim, so it was not taken on trust: it was verified by
+// printing a probe page with sections 3 and 4 hidden and reading the PAINTED text back out
+// of the PDF with PyMuPDF, which returned "SECTION 1 / SECTION 2 / SECTION 3". The built
+// marker PDFs were then rasterised and read the same way. getComputedStyle alone would
+// only ever have confirmed that a rule matched, never what it produced.
+for (const part of ['sizes', 'photos']) {
+  const p = await b3.newPage({ viewport: { width: 720, height: 955 } });
+  await p.goto(BASE + `markers-guide.html?part=${part}&print=family`, { waitUntil: 'networkidle' });
+  await p.emulateMedia({ media: 'print' });
+  const r = await p.evaluate(() => {
+    const out = [];
+    for (const sec of document.querySelectorAll('.section-wrap, .section')) {
+      if (sec.getBoundingClientRect().height <= 0) continue;      // dropped by the selection
+      const k = sec.querySelector('.section-kicker, .section-label');
+      if (!k) continue;
+      const cs = getComputedStyle(k);
+      out.push({
+        id: sec.id,
+        own: cs.fontSize,                                          // must be 0px
+        gen: getComputedStyle(k, '::before').content,              // must be the counter
+      });
+    }
+    return out;
+  });
+  await p.close();
+  ok(`?part=${part}&print=family: every printed section carries a generated number`,
+     r.length > 0 && r.every((x) => x.gen.includes('counter(bw-section)')),
+     JSON.stringify(r));
+  ok(`?part=${part}&print=family: no hard-coded "SECTION n" survives in print`,
+     r.every((x) => parseFloat(x.own) === 0),
+     r.map((x) => `${x.id}:${x.own}`).join(', '));
+}
+
+await b3.close();
+
 // ── 3. the two built PDFs ─────────────────────────────────────────────────────────
-for (const [file, cap] of [['pdf-assets/Granite Marker Sizes and Colors.pdf', 6],
-                           ['pdf-assets/Marker Photos and Etching.pdf', 6]]) {
+// Cap was 6, the shared family-guide budget. Sprint-16 Track E: the Tier-3 target in
+// docs/PDF_AUDIT.md is TWO pages for each of these, and PER_GUIDE_CAPS in
+// verify_guide_pages.mjs holds the same number. Asserted here as well because this is the
+// suite that owns the marker guide.
+for (const [file, cap] of [['pdf-assets/Granite Marker Sizes and Colors.pdf', 2],
+                           ['pdf-assets/Marker Photos and Etching.pdf', 2]]) {
   if (!fs.existsSync(file)) { ok(`${file} exists`, false, 'run scripts/build_guide_pdfs.mjs'); continue; }
   const n = (await PDFDocument.load(fs.readFileSync(file), { updateMetadata: false })).getPageCount();
   ok(`${path.basename(file)} is ${n} page(s), within the ${cap}-page leave-behind cap`, n <= cap);

@@ -13,7 +13,12 @@ import { startPrintServer, pointLinksAtPages } from './_print-server.mjs';
 import { record } from './_pdf_manifest.mjs';
 
 const JOBS = [
-  ['veterans-guide.html',          'pdf-assets/Veterans Guide.pdf'],
+  // ── THE TIER-3 GUIDES, CONDENSED (sprint-16 Track E) ──────────────────────────────
+  // Same arrangement as Tier 1 and 2: the condensed cut REPLACES the full-length download
+  // at the guide's existing output path, and the full-length document stays reachable by
+  // Ctrl+P on the web page. Targets are the Tier-3 rows of docs/PDF_AUDIT.md and are held
+  // by PER_GUIDE_CAPS in verify_guide_pages.mjs.
+  ['veterans-guide.html?print=family', 'pdf-assets/Veterans Guide.pdf'],
   // THE CONDENSED CUT IS THE PDF — sprint-16 Track A, from docs/PDF_DEBRIEF.md: "the pdf
   // versions are supposed to be condensed and easier to read so I can quickly email them
   // to families." `?print=family` selects the sections the guide annotates with
@@ -36,9 +41,15 @@ const JOBS = [
   // data-print-part on <html>) and the guide's own print CSS drops the other half. One
   // source page, so the two PDFs cannot drift from each other or from the website; the
   // staleness manifest keys both on the same file, so editing the guide marks both stale.
-  ['markers-guide.html?part=sizes',  'pdf-assets/Granite Marker Sizes and Colors.pdf'],
-  ['markers-guide.html?part=photos', 'pdf-assets/Marker Photos and Etching.pdf'],
-  ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
+  // sprint-16 Track E: both now carry `&print=family` as well. The two queries COMPOSE —
+  // `?part=` picks which half of the guide prints, `?print=family` condenses whichever half
+  // that is and puts the type back to 10.5pt. Section numbers are generated from a CSS
+  // counter in that mode (guide-print.css §8k), which is what closes the audit's
+  // "1, 2, 3, 4, 8" gap: the counter skips the display:none half instead of being told
+  // about it.
+  ['markers-guide.html?part=sizes&print=family',  'pdf-assets/Granite Marker Sizes and Colors.pdf'],
+  ['markers-guide.html?part=photos&print=family', 'pdf-assets/Marker Photos and Etching.pdf'],
+  ['medicaid-family-guide.html?print=family', 'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
   ['who-decides-guide.html?print=family', 'pdf-assets/Who Decides.pdf'],
   ['urn-placement-guide.html?print=family', 'pdf-assets/Urn Placement Options.pdf'],
@@ -47,9 +58,9 @@ const JOBS = [
   ['cremation-guide.html?print=family', 'pdf-assets/Cremation Guide.pdf'],
   ['scattering-guide.html?print=family', 'pdf-assets/Scattering Garden Pricing.pdf'],
   ['direct-cremation.html?print=family', 'pdf-assets/Direct Cremation Plan Example.pdf'],
-  ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
-  ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
-  ['terramation-guide.html',        'pdf-assets/Terramation Guide.pdf'],
+  ['vault-guide.html?print=family', 'pdf-assets/Burial Vault Guide.pdf'],
+  ['outside-marker-rules.html?print=family', 'pdf-assets/Outside Marker Rules and Pricing.pdf'],
+  ['terramation-guide.html?print=family', 'pdf-assets/Terramation Guide.pdf'],
   ['granite-niches-guide.html',     'pdf-assets/Granite Niches Guide.pdf'],
   ['glass-front-niches-guide.html', 'pdf-assets/Glass-Front Niche Guide.pdf'],
   ['urn-gardens-guide.html?print=family', 'pdf-assets/Urn Gardens at Washington Memorial Park.pdf'],

@@ -292,6 +292,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -299,6 +313,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -344,8 +371,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
   </div>
 
-  <div class="section-wrap" id="what">
-    <div class="section-kicker">SECTION 1</div>
+  <div class="section-wrap" id="what" data-pdf="summary">
+    <div class="pdf-summary">
+      <div class="fam-answer">
+        <h2>What comes<br>back is soil</h2>
+        <p><strong>Terramation gently transforms a person into soil</strong>, not ashes. Washington calls it natural organic reduction; the news calls it human composting. Only straw, alfalfa and sawdust go into the vessel, with the oxygen that flows through it. No chemicals, nothing added to change the body. What comes back is clean, fertile soil, ready to be planted in, scattered, or placed at the cemetery.</p>
+      </div>
+      <div class="prose">
+        <p><strong>We provide terramation through Return Home</strong>, a licensed funeral home and terramation facility in Auburn and a preferred partner of Bonney Watson. You make the arrangements with us; the transformation takes place at their facility. Their staff and ours have done this together many times.</p>
+      </div>
+    </div>
+    <div class="section-kicker" data-pdf="drop">SECTION 1</div>
     <h2>What Terramation Is</h2>
     <div class="section-sub">A third choice, alongside burial and cremation</div>
     <div class="section-rule"></div>
@@ -358,8 +394,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
   </div>
 
-  <div class="section-wrap" id="process">
-    <div class="section-kicker">SECTION 2</div>
+  <div class="section-wrap" id="process" data-pdf="summary">
+    <div class="pdf-summary">
+      <div class="section-kicker" data-pdf="drop">SECTION 2</div>
+      <h2>How the Process Works</h2>
+      <div class="section-sub">About two months, in two halves</div>
+      <div class="fam-photos fam-photos-three">
+        <figure><img src="terramation-images/laying-in-vessel.jpg" alt="A terramation vessel from above: a person in a compostable garment on a bed of straw and greenery, dressed with flowers by the family"><figcaption>The vessel, laid with straw, greenery and flowers. This is the same vessel the person stays in.</figcaption></figure>
+      </div>
+      <div class="prose">
+        <p>We bring your loved one into our care and bathe and dress them here in a compostable garment, then take them to Return Home. They are laid in a sealed, environmentally controlled vessel on a bed of straw, alfalfa and sawdust, and that is when a laying-in ceremony happens. Oxygen flows through the vessel for <strong>about 30 days</strong> while the body&rsquo;s own microbes do the work. The material is then screened to take out anything not organic, and the screened soil rests and cools for <strong>about another 30 days</strong>. Expect about two months; we keep you posted rather than promising a date, because the process is allowed to finish rather than run on a clock.</p>
+        <p><strong>Is the soil safe to handle and to plant in?</strong> Washington regulates this rather than leaving it to the provider. Before soil can be released it must pass pathogen testing and contain less than 0.01 mg per kilogram dry weight of physical contaminants, a category that includes intact bone, dental fillings and medical implants. It comes back as clean, fertile soil, and families plant in it.</p>
+      </div>
+    </div>
+    <div class="section-kicker" data-pdf="drop">SECTION 2</div>
     <h2>How the Process Works</h2>
     <div class="section-sub">About two months, in two halves</div>
     <div class="section-rule"></div>
@@ -393,8 +441,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
   </div>
 
-  <div class="section-wrap" id="ceremony">
-    <div class="section-kicker">SECTION 3</div>
+  <div class="section-wrap" id="ceremony" data-pdf="summary">
+    <div class="pdf-summary">
+      <div class="section-kicker" data-pdf="drop">SECTION 3</div>
+      <h2>The Laying-In Ceremony</h2>
+      <div class="section-sub">The goodbye, at the vessel</div>
+      <div class="prose">
+        <p>A laying-in ceremony is the terramation equivalent of a viewing. Your loved one lies in their vessel, on the bed of organics, and the family gathers around to say goodbye, <strong>in person, virtually, or both</strong>, with a live webcast and a video tribute. <strong>You decide what goes in and on the vessel</strong>: anything organic, so flowers, food, letters. Children often take an active part, and placing a flower gives a child something to do at a moment when there is otherwise nothing. Anyone may lead it, clergy of any faith or a family member. <strong>The vessel is the real one</strong>, not a facade, and it is where your loved one stays. You can visit during the first 30 days.</p>
+        <p class="footnote">The ceremony is priced separately and is optional. Families who do not hold one still say goodbye with us in the ways they would for any other arrangement.</p>
+      </div>
+    </div>
+    <div class="section-kicker" data-pdf="drop">SECTION 3</div>
     <h2>The Laying-In Ceremony</h2>
     <div class="section-sub">The goodbye, at the vessel</div>
     <div class="section-rule"></div>
@@ -414,8 +471,18 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
   </div>
 
-  <div class="section-wrap" id="soil">
-    <div class="section-kicker">SECTION 4</div>
+  <!-- FAMILY PDF: dropped. The volume, which is the fact families are unprepared for, moves
+       into Section 5 below, where they are deciding where it goes. -->
+  <div class="section-wrap" id="soil" data-pdf="drop">
+    <div class="pdf-summary">
+      <div class="section-kicker" data-pdf="drop">SECTION 4</div>
+      <h2>Receiving the Soil</h2>
+      <div class="prose">
+        <p><strong>There is more of it than most families expect.</strong> A full return is roughly <strong>one cubic yard</strong>, about <strong>250 pounds</strong>, in 10 to 15 breathable burlap bags, each tied with a hand-drawn tag carrying your loved one&rsquo;s name and dates. Bags come in sizes down to a mini holding a large handful, which is what families usually want for a keepsake or to give to several relatives. You may take all of it, some of it, or none. It can be collected, shipped or delivered anywhere in the US or Canada.</p>
+        <p>Any soil you do not take is scattered at <strong>the Woodland</strong>, an eight-acre protected greenbelt Return Home maintains near Auburn, at no additional charge. <strong>The Woodland is not open for visits.</strong> If having somewhere to go back to matters to your family, say so early, and see below.</p>
+      </div>
+    </div>
+    <div class="section-kicker" data-pdf="drop">SECTION 4</div>
     <h2>Receiving the Soil</h2>
     <div class="section-sub">How much there is, how it comes back, and what you may do with it</div>
     <div class="section-rule"></div>
@@ -440,26 +507,26 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   </div>
 
   <div class="section-wrap" id="placement">
-    <div class="section-kicker">SECTION 5</div>
+    <div class="section-kicker" data-pdf="drop">SECTION 5</div>
     <h2>Where the Soil May Go</h2>
     <div class="section-sub">What the law allows, and what we can offer at the cemetery</div>
     <div class="section-rule"></div>
     <div class="prose">
-      <p><strong>Washington treats terramated soil much as it treats cremated remains.</strong> State law (RCW 68.50.130) allows the disposition of remains following natural organic reduction in cemeteries, in family burial grounds and in dedicated religious buildings; <strong>on private property with the consent of the property owner</strong>; and on public or government land or water with the approval of the agency responsible for it.</p>
-      <p>In practice that means permission is the rule. Your own garden is yours to plant. Anywhere else, whether it is a friend's land, a park or a stretch of forest, ask first.</p>
-      <p><strong>Families do lovely things with it.</strong> A memorial bed. A tree planted where everyone can see it. A portion carried somewhere that mattered to the person, and the rest kept close to home.</p>
+      <p data-pdf="drop"><strong>Washington treats terramated soil much as it treats cremated remains.</strong> State law (RCW 68.50.130) allows the disposition of remains following natural organic reduction in cemeteries, in family burial grounds and in dedicated religious buildings; <strong>on private property with the consent of the property owner</strong>; and on public or government land or water with the approval of the agency responsible for it.</p>
+      <p data-pdf="summary"><span>In practice that means permission is the rule. Your own garden is yours to plant. Anywhere else, whether it is a friend's land, a park or a stretch of forest, ask first.</span><span class="pdf-summary"><strong>There is more of it than most families expect:</strong> a full return is roughly a cubic yard, about 250 pounds, in 10 to 15 burlap bags. You may take all of it, some, or none, and anything you do not take is scattered at Return Home's protected greenbelt near Auburn, which is not open for visits. Permission is the rule for the rest: your own garden is yours to plant, and anywhere else, ask first.</span></p>
+      <p data-pdf="drop"><strong>Families do lovely things with it.</strong> A memorial bed. A tree planted where everyone can see it. A portion carried somewhere that mattered to the person, and the rest kept close to home.</p>
 
-      <figure class="figure">
+      <figure class="figure" data-pdf="drop">
         <img src="terramation-images/washington-memorial-park.jpg" alt="The pond and fountains at Washington Memorial Park, with lawns and evergreens on the hillside behind" loading="lazy">
         <figcaption>Washington Memorial Park, SeaTac: seventy landscaped acres, and an endowment care cemetery.</figcaption>
       </figure>
 
-      <p><strong>Terramated remains can be placed at Washington Memorial Park, in a standard-size plot.</strong> That gives your family a permanent, cared-for place with a name on it, somewhere friends and family can visit any time, which is the one thing scattering on private land cannot give you back later. Your family service director will walk you through what is available, what it costs, and how much of the soil you would place; ask us and we will set aside the time.</p>
+      <p data-pdf="summary"><span><strong>Terramated remains can be placed at Washington Memorial Park, in a standard-size plot.</strong> That gives your family a permanent, cared-for place with a name on it, somewhere friends and family can visit any time, which is the one thing scattering on private land cannot give you back later. Your family service director will walk you through what is available, what it costs, and how much of the soil you would place; ask us and we will set aside the time.</span><span class="pdf-summary"><strong>Terramated remains can be placed at Washington Memorial Park, in a standard-size plot.</strong> That gives your family a permanent, cared-for place with a name on it that anyone can visit, which is the one thing scattering on private land cannot give back later. Ask me and I will set aside the time to walk you through it.</span></p>
     </div>
   </div>
 
   <div class="section-wrap" id="cost">
-    <div class="section-kicker">SECTION 6</div>
+    <div class="section-kicker" data-pdf="drop">SECTION 6</div>
     <h2>What It Costs</h2>
     <div class="section-sub">Two charges, from our General Price List</div>
     <div class="section-rule"></div>
@@ -471,12 +538,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <div class="plan-desc">Natural Organic Reduction, from the General Price List, Alternative Methods of Disposition</div>
         </div>
         <div class="plan-price-block">
-          <div class="plan-price-label">CHARGE</div>
+          <div class="plan-price-label" data-pdf="drop">CHARGE</div>
           <div class="plan-price" data-print-suppress="chip">$7,795.00</div>
         </div>
       </div>
       <div class="plan-items">
-        <p>This charge includes the Basic Services of Funeral Director and Staff, Transfer of the deceased to the funeral home, bathing of the deceased, Natural Organic Reduction through a third-party, and Use of a utility vehicle. This charge does not include the use of staff and facilities for any public or private visitation or ceremony.</p>
+        <p data-pdf="summary"><span>This charge includes the Basic Services of Funeral Director and Staff, Transfer of the deceased to the funeral home, bathing of the deceased, Natural Organic Reduction through a third-party, and Use of a utility vehicle. This charge does not include the use of staff and facilities for any public or private visitation or ceremony.</span><span class="pdf-summary">Includes our basic services and staff, transfer into our care, bathing, the terramation itself, and use of a utility vehicle. It does not include staff or facilities for a visitation or ceremony.</span></p>
       </div>
     </div>
 
@@ -484,26 +551,28 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <div class="plan-header">
         <div>
           <h3>Laying in Ceremony</h3>
-          <div class="plan-desc">Additional option, see Section 3</div>
+          <div class="plan-desc" data-pdf="summary"><span>Additional option, see Section 3</span><span class="pdf-summary">Additional option, described above</span></div>
         </div>
         <div class="plan-price-block">
-          <div class="plan-price-label">CHARGE</div>
+          <div class="plan-price-label" data-pdf="drop">CHARGE</div>
           <div class="plan-price" data-print-suppress="chip">$895.00</div>
         </div>
       </div>
       <div class="plan-items">
-        <p>This charge includes a Video Tribute, Live Webcast of Ceremony, and two hours' Use of Return Home Facility and Staff for ceremony and in-person goodbye.</p>
+        <p data-pdf="summary"><span>This charge includes a Video Tribute, Live Webcast of Ceremony, and two hours' Use of Return Home Facility and Staff for ceremony and in-person goodbye.</span><span class="pdf-summary">A video tribute, a live webcast, and two hours of Return Home's facility and staff for the ceremony and in-person goodbye.</span></p>
       </div>
     </div>
 
     <div class="prose">
-      <p><strong>What these two charges do not cover.</strong> They cover the terramation and, if you choose it, the ceremony. Cemetery property, placement at Washington Memorial Park, a memorial marker, certified death certificates and shipping of the soil are all priced separately. Ask us for a written quote covering everything you are actually considering, rather than working from these two lines alone.</p>
-      <p class="footnote">Both figures are taken verbatim from the Bonney Watson General Price List effective April 2026, where terramation appears under Alternative Methods of Disposition. Prices are subject to change without notice. The complete price list is available from us and on the guides page.</p>
+      <p data-pdf="summary"><span><strong>What these two charges do not cover.</strong> They cover the terramation and, if you choose it, the ceremony. Cemetery property, placement at Washington Memorial Park, a memorial marker, certified death certificates and shipping of the soil are all priced separately. Ask us for a written quote covering everything you are actually considering, rather than working from these two lines alone.</span><span class="pdf-summary"><strong>What these two do not cover.</strong> Cemetery property, placement at the park, a marker, certified death certificates and shipping of the soil are all priced separately. Ask me for a written quote covering everything you are actually considering.</span></p>
+      <p class="footnote" data-pdf="summary"><span>Both figures are taken verbatim from the Bonney Watson General Price List effective April 2026, where terramation appears under Alternative Methods of Disposition. Prices are subject to change without notice. The complete price list is available from us and on the guides page.</span><span class="pdf-summary">Both figures are taken verbatim from the Bonney Watson General Price List effective April 2026. Prices are subject to change without notice. Ask me for the complete price list.</span></p>
     </div>
   <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="terramation-chips"><span class="pi-label">Generally</span><span class="pi-range" data-print-range="terramation-chips">$895&ndash;$7,795</span><p>Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --></div>
 
-  <div class="section-wrap" id="practical">
-    <div class="section-kicker">SECTION 7</div>
+  <!-- FAMILY PDF: dropped. Practical matters are the questions that come up once a family
+       has decided, and they are a conversation rather than a leave-behind. -->
+  <div class="section-wrap" id="practical" data-pdf="drop">
+    <div class="section-kicker" data-pdf="drop">SECTION 7</div>
     <h2>Practical Matters</h2>
     <div class="section-sub">Eligibility, planning ahead, and how terramation became legal here</div>
     <div class="section-rule"></div>
@@ -524,34 +593,37 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     </div>
   </div>
 
-  <div class="section-wrap" id="faq">
-    <div class="section-kicker">SECTION 8</div>
+  <!-- FAMILY PDF: dropped. Seven of its nine questions are answered in the body of this
+       cut, one is a conversation, and the ninth (is the soil safe to handle) was worth
+       keeping, so it moved up into Section 2 where the process is described. -->
+  <div class="section-wrap" id="faq" data-pdf="drop">
+    <div class="section-kicker" data-pdf="drop">SECTION 8</div>
     <h2>Common Questions</h2>
     <div class="section-sub">What families ask us most</div>
     <div class="section-rule"></div>
 
     <div class="faq">
-      <details>
+      <details data-pdf="drop">
         <summary>What is terramation, in one sentence?</summary>
         <div class="answer"><p>Terramation is the act of gently and naturally transforming human remains into soil.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>Is this the same thing as human composting?</summary>
         <div class="answer"><p>Yes. Terramation, natural organic reduction and human composting all describe the same process. &ldquo;Natural organic reduction&rdquo; is the legal term you will see on the paperwork and on our price list; &ldquo;human composting&rdquo; is what most news coverage calls it; terramation is the word we and Return Home use. If you have read about one, you have read about all three.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>How long does it take?</summary>
         <div class="answer"><p>About two months: roughly 30 days in the vessel, then about another 30 days of resting and cooling. We would rather give you that as an approximation than a date, because the process is allowed to finish properly.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>How much soil is there, and do we have to take all of it?</summary>
         <div class="answer"><p>About one cubic yard, roughly 250 pounds, in 10 to 15 burlap bags. You may take all of it, some of it, or none of it. Anything you do not take is scattered at Return Home's Woodland at no additional charge, though the Woodland is not open for visits, so if you want somewhere to go back to, ask us about the cemetery instead.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>Can family and friends be there?</summary>
         <div class="answer"><p>Yes, in two ways. There is the laying-in ceremony, which can be attended in person or watched live from anywhere. And for the first 30 days, while your loved one is resting in the vessel, families are welcome to visit during business hours and sit with them.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>Can the soil be placed at the cemetery?</summary>
         <div class="answer"><p>Yes. Terramated remains can be placed at Washington Memorial Park in a standard-size plot. Your family service director will go through the specifics with you: what is available, what it costs, and how much of the soil you would place.</p></div>
       </details>
@@ -559,15 +631,22 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <summary>Is the soil safe to handle and to plant in?</summary>
         <div class="answer"><p>Washington regulates this rather than leaving it to the provider. Before soil can be released it must pass pathogen testing and must contain less than 0.01 mg per kilogram dry weight of physical contaminants, which includes intact bone, dental fillings and medical implants (WAC 246-500-055). It comes back as clean, fertile soil, and families plant in it.</p></div>
       </details>
-      <details>
-        <summary>Is there anyone who cannot be terramated?</summary>
+      <details data-pdf="drop">
+<summary>Is there anyone who cannot be terramated?</summary>
         <div class="answer"><p>A few situations rule it out: certain rare illnesses, and prior embalming. It is a short list and it does not apply to most people. We confirm eligibility with Return Home before anything is arranged, so no family is left to find out late.</p></div>
       </details>
-      <details>
+      <details data-pdf="drop">
         <summary>Where does this actually happen?</summary>
         <div class="answer"><p>At Return Home's facility in Auburn, Washington, a licensed funeral home and terramation center and a preferred partner of Bonney Watson. You make all of your arrangements with us.</p></div>
       </details>
     </div>
+  </div>
+
+  <!-- FAMILY PDF ONLY. Shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Come and talk it through</h2>
+    <p>Terramation is still new to most families, and there is no wrong question about it. I can walk you through what happens, what it costs alongside everything else, and whether placing the soil at Washington Memorial Park is right for you. There is no cost to ask and no obligation.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
   </div>
 
   <div class="doc-footer">
