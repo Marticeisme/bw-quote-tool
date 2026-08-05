@@ -72,6 +72,8 @@ DESIGN_DIR = 'pcm-design-images'
 ELEM_DIR = 'pcm-element-images'
 PHOTO_DIR = 'pcm-example-images'
 REF_DIR = 'pcm-reference-images'
+PROOF_DIR = 'pcm-companion-images'
+PROOF_MANIFEST = 'data/pcm-companion-proofs.json'
 DATA = 'data/pcm-catalog.json'
 
 DESIGN_PX = 360      # longest edge; the source is 347 px, so this is native-ish
@@ -512,6 +514,25 @@ def extract_photos(write_images):
     return out, bytes_
 
 
+def load_proofs():
+    """The companion design-proof class, from its own committed manifest.
+
+    These do not come out of a PDF, so they are not extracted here: scripts/
+    pcm_companion_import.py reads the operator's D:\\ folder, encodes to
+    pcm-companion-images/ and writes data/pcm-companion-proofs.json. This function only
+    FOLDS that manifest into the catalog, so a `--data` re-derive on a machine without
+    the D:\\ drive keeps the class instead of silently dropping it -- which is exactly
+    how a generated data file loses a whole section without anyone noticing.
+
+    Sorted by number, and unlike the book designs a proof number appears at most once.
+    """
+    if not os.path.exists(PROOF_MANIFEST):
+        return []
+    man = json.load(open(PROOF_MANIFEST, encoding='utf-8'))
+    return [dict(num=e['num'], img=e['img'], px=[e['w'], e['h']])
+            for e in sorted(man['files'], key=lambda e: e['num'])]
+
+
 def extract_reference(write_images):
     out, bytes_ = [], 0
     for book, printed, title, desc in REFERENCE:
@@ -551,6 +572,8 @@ def main():
     print(f'photos    : {len(photos):4d} images   ({b/1e6:.2f} MB)')
     refs, b = extract_reference(wr('reference')); total += b
     print(f'reference : {len(refs):4d} pages    ({b/1e6:.2f} MB)')
+    proofs = load_proofs()
+    print(f'proofs    : {len(proofs):4d} images   (from {PROOF_MANIFEST})')
 
     designs = sorted(d2020 + d2011, key=lambda d: (d['book'], d['num']))
     cats = {}
@@ -579,15 +602,17 @@ def main():
                 elementNativePpi=150, elementPrevCapPx=150,
                 photoPx=PHOTO_PX, photoQuality=PHOTO_Q, photoPrevPx=760,
                 referenceDpi=REF_DPI, referenceQuality=REF_Q, referencePrevPx=990,
-                budgets={ELEM_DIR: 28_000_000, PHOTO_DIR: 9_000_000, REF_DIR: 1_000_000})
+                proofPx=700, proofQuality=70,
+                budgets={ELEM_DIR: 28_000_000, PHOTO_DIR: 9_000_000, REF_DIR: 1_000_000,
+                         PROOF_DIR: 17_000_000})
     with open(DATA, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(dict(designs=designs, elements=elems, photos=photos,
-                       reference=refs, designCats=cats, elementCats=ecats,
+                       reference=refs, proofs=proofs, designCats=cats, elementCats=ecats,
                        crossListed=cross, imageSpec=spec),
                   f, indent=0, ensure_ascii=False)
     print(f'\ntotal new image bytes: {total/1e6:.2f} MB')
     print(f'{DATA}: {len(designs)} designs, {len(elems)} elements, '
-          f'{len(photos)} photos, {len(refs)} reference pages')
+          f'{len(photos)} photos, {len(refs)} reference pages, {len(proofs)} proofs')
     for c, subs in cats.items():
         print('  ' + c + ': ' + ', '.join(f'{k} {v}' for k, v in subs.items()))
     print('  elements: ' + ', '.join(f'{k} {v}' for k, v in ecats.items()))
