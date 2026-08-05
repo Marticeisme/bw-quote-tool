@@ -202,6 +202,26 @@ const PER_GUIDE_CAPS = new Map([
   ['Direct Cremation Plan Example.pdf', 2],
   ['Who Decides.pdf', 2],
   ['Urn Gardens at Washington Memorial Park.pdf', 1],
+  // ── TIER 3 (sprint-16 Track E) ────────────────────────────────────────────────────
+  // The Tier-3 rows of docs/PDF_AUDIT.md, all now built from `?print=family` (the two
+  // marker PDFs from `?part=X&print=family`). Same reasoning as Tiers 1 and 2: the number
+  // is the requirement, not what the layout happened to produce, so a future edit that
+  // re-lengthens one of them fails here instead of drifting.
+  ['Veterans Guide.pdf', 2],
+  ['Medicaid and Planning Ahead.pdf', 2],
+  ['Granite Marker Sizes and Colors.pdf', 2],
+  ['Marker Photos and Etching.pdf', 2],
+  ['Outside Marker Rules and Pricing.pdf', 2],
+  ['Burial Vault Guide.pdf', 2],
+  ['Terramation Guide.pdf', 2],
+  // Medicaid Professional Reference is the audit's one "do not condense" row: its audience
+  // is case workers and attorneys and the WAC/RCW citations are the product. It got the
+  // two legibility fixes only (type to the 10.5pt floor, two-column flow off — see
+  // guide-print.css §8j) and NO content selection, so it GREW: 3 pages to 5. That is the
+  // honest measured count and it is recorded rather than engineered. It sits inside the
+  // shared six-page cap, so no named exception is needed and none is added — writing one
+  // would only pin a number that means nothing here. If a future edit takes it past six,
+  // the right answer is to raise ITS cap, never to shrink the type back.
   ['Granite Niches Guide.pdf', 8],
   ['Glass-Front Niche Guide.pdf', 8],
   ['Rock of Ages Columbarium.pdf', 8],
@@ -560,8 +580,15 @@ for (const g of GUIDES) {
 // NAVY cut. That second half matters — `logo.svg` is white artwork for a navy background
 // and the printed masthead is a cream plate, so a guide that "has a logo" pointing at
 // logo.svg has an invisible one. Exactly the trap s11 recorded and the reason it stayed
-// hidden. Eighteen guides carry an <img class="cover-logo">; vault-guide.html's masthead is
-// `.hero` and has no <img>, so its mark is a ::before and is read from computed style.
+// hidden.
+//
+// ALL NINETEEN guides now carry an <img class="cover-logo">. Until sprint-16 Track E,
+// vault-guide.html's masthead was `.hero`, had no <img>, and drew its mark as a `::before`
+// — so this gate carried a second code path reading computed style off a pseudo-element,
+// and guide-print.css carried a whole parallel `.hero` treatment to put a mark there at
+// all. That guide was brought onto the shared `.cover` vocabulary (docs/PDF_AUDIT.md,
+// Tier 3), so both the fallback and the parallel treatment are gone. A guide that loses
+// its `.cover-logo` now FAILS here instead of quietly falling through to a `.hero` branch.
 // ===================================================================================
 console.log('\n=== BRAND MARK ON THE PRINTED MASTHEAD ===');
 for (const g of GUIDES) {
@@ -570,14 +597,9 @@ for (const g of GUIDES) {
   await page.emulateMedia({ media: 'print' });
   const r = await page.evaluate(() => {
     const img = document.querySelector('.cover-logo');
-    if (img) {
-      const b = img.getBoundingClientRect();
-      return { how: 'img.cover-logo', src: getComputedStyle(img).content, w: +b.width.toFixed(1), h: +b.height.toFixed(1) };
-    }
-    const hero = document.querySelector('.hero');
-    if (!hero) return { how: 'none' };
-    const cs = getComputedStyle(hero, '::before');
-    return { how: '.hero::before', src: cs.content, w: parseFloat(cs.width) || 0, h: parseFloat(cs.height) || 0 };
+    if (!img) return { how: 'none' };
+    const b = img.getBoundingClientRect();
+    return { how: 'img.cover-logo', src: getComputedStyle(img).content, w: +b.width.toFixed(1), h: +b.height.toFixed(1) };
   });
   await page.close();
   if (r.how === 'none') { fail(`${g}: no masthead element to carry the brand mark`); continue; }

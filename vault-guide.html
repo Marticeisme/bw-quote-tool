@@ -26,13 +26,21 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 .header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;transition:background .15s;}
 .header-back:hover{background:rgba(255,255,255,.12);}
 
-/* ── HERO ── */
-.hero{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);padding:60px 24px 50px;text-align:center;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15Z' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");pointer-events:none;}
-.hero-kicker{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px;}
-.hero h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.2;}
-.hero-sub{font-size:16px;color:rgba(255,255,255,.75);max-width:640px;margin:0 auto;line-height:1.55;}
-.hero-divider{width:60px;height:3px;background:var(--orange);margin:22px auto 0;border-radius:2px;}
+/* ── MASTHEAD ──
+   Renamed from `.hero` to the shared `.cover` vocabulary the other eighteen guides use
+   (docs/PDF_AUDIT.md, Tier 3). Every declaration below is the one `.hero` carried, so the
+   plate looks the same: navy gradient, centred, 38px Cormorant title, orange divider. What
+   is NEW is `.cover-logo` — the Bonney Watson mark, which this masthead never had, and
+   which is why guide-print.css needed a parallel `.hero` treatment to put one there in
+   print. `logo.svg` is the white cut, correct on this navy plate; guide-print.css §3 swaps
+   it to `logo-navy.svg` for the cream printed masthead, exactly as on every other guide. */
+.cover{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);padding:60px 24px 50px;text-align:center;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15Z' fill='rgba(255,255,255,0.015)'/%3E%3C/svg%3E");pointer-events:none;}
+.cover-logo{height:26px;width:auto;display:block;margin:0 auto 18px;position:relative;}
+.cover-kicker{font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:#fff;margin-bottom:14px;line-height:1.2;position:relative;}
+.cover-sub{font-size:16px;color:rgba(255,255,255,.75);max-width:640px;margin:0 auto;line-height:1.55;position:relative;}
+.cover-rule{width:60px;height:3px;background:var(--orange);margin:22px auto 0;border-radius:2px;position:relative;}
 
 /* ── INTRO / WHAT IS A BURIAL VAULT ── */
 .vault-intro{max-width:1100px;margin:0 auto;padding:48px 24px 56px;}
@@ -140,7 +148,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .hero h1{font-size:28px;}
+  .cover h1{font-size:28px;}
   .vault-intro-grid{grid-template-columns:1fr;}
   .vault-intro-text h2{font-size:26px;}
   .vault-intro-labels{grid-template-columns:1fr 1fr 1fr;gap:8px;}
@@ -187,8 +195,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   body:not(.modal-printing) .site-header,
   body:not(.modal-printing) .quick-nav,
   body:not(.modal-printing) .site-footer{display:none;}
-  body:not(.modal-printing) .hero{padding:20px 12px;background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  body:not(.modal-printing) .hero h1{font-size:26pt;}
+  /* The navy printed masthead was removed in sprint-16 Track E. guide-print.css §3 paints
+     the shared cream plate with navy type, which is the reviewed treatment and the only one
+     the navy brand mark is legible on; this private copy outranked it and undid it. */
   body:not(.modal-printing) .product-card,
   body:not(.modal-printing) .product-card.reverse{break-inside:avoid;page-break-inside:avoid;margin-bottom:20px;box-shadow:none;border:1px solid #ccc;}
   body:not(.modal-printing) .tier-card{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
@@ -267,14 +276,18 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
   a{text-decoration:none;color:inherit;}
 }
 
-/* PRINT HEADER — punch list item 20, 2026-07-27 — .hero is this page's printed masthead. The selector matches the
-   existing print rules' specificity (body:not(.modal-printing) .hero) on purpose. */
+/* PRINT HEADER — punch list item 20, 2026-07-27 — the masthead is this page's printed
+   header. The selector matches the existing print rules' specificity
+   (body:not(.modal-printing) .cover) on purpose.
+   Renamed .hero -> .cover in sprint-16 Track E: this was the one guide off the shared
+   masthead vocabulary, so guide-print.css §3 now styles this plate with the same rules it
+   applies to the other eighteen. */
 @media print{
-  body:not(.modal-printing) .hero{padding:12px 12px 10px;}
-  body:not(.modal-printing) .hero-kicker{font-size:8px;margin-bottom:3px;}
-  body:not(.modal-printing) .hero h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
-  body:not(.modal-printing) .hero-sub{font-size:9pt;line-height:1.35;max-width:none;}
-  body:not(.modal-printing) .hero-divider{height:2px;margin:7px auto 0;}
+  body:not(.modal-printing) .cover{padding:12px 12px 10px;}
+  body:not(.modal-printing) .cover-kicker{font-size:8px;margin-bottom:3px;}
+  body:not(.modal-printing) .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  body:not(.modal-printing) .cover-sub{font-size:9pt;line-height:1.35;max-width:none;}
+  body:not(.modal-printing) .cover-rule{height:2px;margin:7px auto 0;}
 }
 /* === PRINT CONDENSE (sprint-07 Track G) === */
 /* Operator decision 2026-07-29: these guides are printed and emailed to families as
@@ -347,6 +360,20 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -354,6 +381,19 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <!-- ═══ HEADER ═══ -->
@@ -367,12 +407,27 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
   </div>
 </header>
 
-<!-- ═══ HERO ═══ -->
-<section class="hero">
-  <div class="hero-kicker">Bonney Watson</div>
+<!-- ═══ MASTHEAD ═══
+     `.cover`, not `.hero`. This was the ONE guide off the shared masthead vocabulary
+     (docs/PDF_AUDIT.md, Tier 3: "Uses .hero, not .cover — the one guide off the shared
+     masthead pattern. Bring it in line while you are here."), and the cost of that showed
+     up as per-guide CSS: guide-print.css §3 carries a whole parallel `.hero` treatment
+     that exists for this file alone, plus a named override hiding its kicker, and
+     verify_guide_pages.mjs's brand-mark gate carries a second code path to read a
+     `::before` because this masthead had no <img> to measure.
+
+     THIS CHANGES THE SCREEN, deliberately and unlike every other edit in this sprint: the
+     masthead now carries the Bonney Watson mark and the same kicker as the other eighteen
+     guides, and reads "BONNEY WATSON FAMILY GUIDE" rather than the bare "Bonney Watson"
+     that duplicated the mark once the mark was there. Everything else about the plate —
+     the navy gradient, the centring, the type sizes, the orange divider — is preserved
+     exactly by the `.cover` rules added to this guide's own stylesheet. -->
+<section class="cover">
+  <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+  <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
   <h1>Burial Vault Selection Guide</h1>
-  <p class="hero-sub">What a burial vault is, what each one is made of, and what it costs.</p>
-  <div class="hero-divider"></div>
+  <p class="cover-sub">What a burial vault is, what each one is made of, and what it costs.</p>
+  <div class="cover-rule"></div>
 </section>
 
 <!-- ═══ QUICK NAV ═══ -->
@@ -394,8 +449,8 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
       <div class="kicker">Understanding Burial Vaults</div>
       <h2>What Is a Burial Vault?</h2>
       <p>A burial vault is a lined, sealed container that the casket goes into. It carries the weight of the earth above it and of the mowers and backhoes that pass over the grave, and it keeps water out. It is also what stops the ground settling into a dip over the grave, which is why the cemetery asks for one.</p>
-      <p>The vault is one of several charges beyond the cemetery space itself. The <a href="cemetery-property-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">Cemetery Property Guide</a> explains how it fits with the space, opening and closing, endowment care, and the rest.</p>
-      <p>They are made of high-strength concrete with a metal or plastic liner inside. That is as much as you can do to protect a casket in the ground.</p>
+      <p data-pdf="drop">The vault is one of several charges beyond the cemetery space itself. The <a href="cemetery-property-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">Cemetery Property Guide</a> explains how it fits with the space, opening and closing, endowment care, and the rest.</p>
+      <p data-pdf="drop">They are made of high-strength concrete with a metal or plastic liner inside. That is as much as you can do to protect a casket in the ground.</p>
       <div class="vault-intro-callout">
         <h3>If it isn't lined and sealed, it isn't a burial vault.</h3>
         <p>The other thing you'll hear about is an outer burial container, sometimes called a gravebox. That's a plain concrete box with drainage holes in it, so ground water runs straight through. It holds the ground up, but it doesn't keep water out, and it isn't lined or sealed. That's the whole difference between the two.</p>
@@ -456,7 +511,24 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- PREMIUM TIER                                -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="premium">
+<!-- FAMILY PDF: the three product line-ups condense to one block. See the note in
+     scripts/build_guide_pdfs.mjs and docs/PDF_AUDIT.md Tier 3. -->
+<div id="premium" data-pdf="summary">
+  <div class="pdf-summary">
+    <div class="section-header">
+      <div class="kicker">What we carry</div>
+      <h2>The Vaults Themselves</h2>
+      <p>Fourteen vaults across the three levels. These are the families; I will price the exact one you want.</p>
+      <div class="rule"></div>
+    </div>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>Wilbert Bronze</strong><span>Premium. Cast bronze outside, reinforced concrete underneath, bronze lining inside. A personalization panel is included. The most expensive vault we carry</span></li>
+        <li><strong>Triune series</strong><span>Bronze, Copper, Stainless Steel, Cameo Rose, and the Veteran Triune in navy with patriotic accents. Reinforced concrete with a metal liner</span></li>
+        <li><strong>Standard series</strong><span>Tribute, Venetian, Continental, Monticello, and the Veteran Salute. Reinforced concrete with a decorative outer shell, no metal liner</span></li>
+      </ul>
+    </div>
+  </div>
   <div class="section-header">
     <div class="kicker">Premium Protection</div>
     <h2>The Wilbert Bronze</h2>
@@ -488,7 +560,7 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- TRIUNE SERIES                               -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="triune">
+<div id="triune" data-pdf="drop">
   <div class="section-header">
     <div class="kicker">Metal-Lined Protection</div>
     <h2>The Triune Series</h2>
@@ -599,7 +671,7 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- STANDARD                                    -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="std">
+<div id="std" data-pdf="drop">
   <div class="section-header">
     <div class="kicker">Reinforced Concrete</div>
     <h2>Standard Protection</h2>
@@ -851,7 +923,10 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- ALL PRICING SUMMARY                         -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="all-pricing" class="summary-section">
+<!-- FAMILY PDF: dropped. After the pricing rule this section is a heading and an
+     invitation to ask, and both the urn-vault range above and the printed close below
+     already say it. -->
+<div id="all-pricing" class="summary-section" data-pdf="drop">
   <div class="summary-inner">
     <h2>Complete Pricing at a Glance</h2>
 
@@ -908,6 +983,15 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 </footer>
 
 <!-- Product Detail Modal -->
+<!-- FAMILY PDF ONLY. This guide has no `.cta` block at all, so without this the
+     condensed cut would end on a price table with no way to act on it. Shown only by
+     guide-print.css §8g. -->
+<div class="fam-next pdf-summary">
+  <h2>I will price the exact one</h2>
+  <p>The vault is one line on a cemetery quote, and which one you choose moves it more than anything else on the sheet. Tell me the level you have in mind and I will put the exact figure in writing, alongside the rest of the arrangement, with no obligation.</p>
+  <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+</div>
+
 <div class="product-modal-overlay" id="productModal">
   <div class="product-modal">
     <button class="product-modal-close" id="modalClose">&times;</button>

@@ -223,22 +223,21 @@
      not beat them. The mark is centred here because this masthead is centred; it goes
      ABOVE the kicker rather than out of flow, and the 12px it costs is paid back by the
      padding trim, with the guide's page count unchanged (3). */
-  body:not(.modal-printing) .hero {
-    background: #f8f6f2 !important;
-    border-bottom: 3px solid #2c445e;
-    padding: 0 0 9px !important;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  body:not(.modal-printing) .hero::before {
-    content: url("logo-navy.svg") !important;
-    position: static !important; display: block !important;
-    width: 93px; height: 17px; margin: 0 auto 4px !important;
-    background: none !important;
-  }
-  body:not(.modal-printing) .hero-kicker { color: #a5450a !important; }
-  body:not(.modal-printing) .hero h1 { color: #1e3a55 !important; }
-  body:not(.modal-printing) .hero-sub { color: #4a5765 !important; }
-  body:not(.modal-printing) .hero-divider { background: #c8540a !important; }
+  /* THE `.hero` TREATMENT IS GONE — sprint-16 Track E, on the audit's Tier-3 instruction
+     ("Uses .hero, not .cover ... Bring it in line"). Everything that used to stand here was
+     a second, parallel copy of the `.cover` rules above, existing for exactly one guide:
+     vault-guide.html painted its masthead cream, drew the brand mark as a `::before`
+     because it had no <img> to swap, and recoloured four differently-spelled children.
+     vault-guide.html now uses `.cover`, `.cover-logo`, `.cover-kicker`, `.cover-sub` and
+     `.cover-rule` like the other eighteen, so the rules above serve it and this block has
+     nothing left to do. The named override that hid `.hero-kicker` (its literal text was
+     "Bonney Watson", which duplicated the mark once the mark existed) went with it: the
+     guide's kicker now reads "BONNEY WATSON FAMILY GUIDE", which names the DOCUMENT, which
+     is what the other eighteen kickers do and why they were never hidden.
+
+     `verify_guide_pages.mjs`'s brand-mark gate kept a second code path to read that
+     `::before` from computed style. It now measures a real <img class="cover-logo"> on all
+     nineteen guides, by the same route, which is a stronger check than the one it replaces. */
 
   /* ── 3b. PHOTO-FIRST PRODUCT CARDS (sprint-11 Track D) ─────────────────────────
      One card = a PHOTO, a name, one or two plain sentences, and a price RANGE. The
@@ -416,12 +415,10 @@
    the same idea in the first place.
    ===================================================================================== */
 @media print {
-  /* vault-guide.html — its `.hero-kicker` is the literal string "Bonney Watson", which was
-     the guide's stand-in for a brand mark it never had. Now that the mark itself sits
-     directly above it, the two say the same thing twice in a stack an inch tall. The other
-     eighteen guides keep their kicker: theirs reads "BONNEY WATSON FAMILY GUIDE", which
-     names the DOCUMENT and is not a duplicate of the logo. */
-  body:not(.modal-printing) .hero-kicker { display: none !important; }
+  /* (The named override that hid vault-guide.html's `.hero-kicker` was deleted in sprint-16
+     Track E along with the rest of the `.hero` treatment — see §3. Its kicker was the
+     literal string "Bonney Watson" and duplicated the brand mark; it now reads
+     "BONNEY WATSON FAMILY GUIDE" like the other eighteen and needs no override.) */
 
   /* ── THE EIGHT-PAGE PHOTO-FIRST GUIDES (sprint-13 Track A) ────────────────────────
      Operator, 2026-08-03: "the crops on the granite niches guide cut off a lot of the
@@ -574,10 +571,18 @@
      one column there is nothing left to span, so the property is cancelled outright.
      (Same family of defect as the print-table spanner noted in the build log: a
      `column-span:all` after a break strands the page it leaves behind.) */
-  [data-print-mode="family"] .doc-sheet > *,
-  [data-print-mode="family"] .span-all,
-  [data-print-mode="family"] .cover,
-  [data-print-mode="family"] .doc-footer { column-span: none !important; }
+  /* Named four elements originally, which held for the guides converted in Tracks A and B
+     and did NOT hold for markers-guide.html: it marks `.scale-guide`, `.tsg-print`,
+     `.compare` and `.section table` `column-span:all` as well, none of which were on the
+     list. The symptom on `?part=photos&print=family` was the documented one — a spanner
+     fragments the flow around itself even in a ONE-column multicol, and the sheet came out
+     three pages with the bottom two thirds of page 2 empty. Found by rasterising, not by
+     any assertion.
+     So it is cancelled universally rather than by name. That is not a blunt instrument
+     here, it is the accurate statement: `column-count:1` is set two rules above, and in a
+     single-column container there is by definition nothing for anything to span. A named
+     list can only ever be as complete as the last guide someone checked. */
+  [data-print-mode="family"] * { column-span: none !important; }
 
   /* Masthead: the same cream plate and navy mark as every other guide (§3), with the type
      back at a size a family reads rather than the condense block's 14pt/8pt. */
@@ -662,6 +667,17 @@
      Structure item 4: the charges as a two-column name-and-half-sentence list. */
   [data-print-mode="family"] .costs { padding: 1px 16px; margin: 2px 0 7px; }
   [data-print-mode="family"] .charge-list { column-count: 2; column-gap: 26px; }
+  /* The component has to stand up in a guide that has never used it. `.charge-list` came
+     from the guides that carry it on SCREEN, and those guides' own stylesheets are what
+     supply `list-style:none` and `strong{display:block}`. vault-guide.html borrowed it
+     inside a `.pdf-summary` — print-only markup, so there is no screen CSS for it — and
+     printed a bulleted list reading "Wilbert BronzePremium. Cast bronze outside...", with
+     the item name run into its own description. Found by rasterising page 1 and reading it.
+     Stated here so the component is self-sufficient wherever it is used; it is a no-op on
+     the guides whose own CSS already says the same thing. */
+  [data-print-mode="family"] .charge-list { list-style: none; padding-left: 0; margin-left: 0; }
+  [data-print-mode="family"] .charge-list > li { list-style: none; }
+  [data-print-mode="family"] .charge-list > li > strong { display: block; }
   [data-print-mode="family"] .charge-list li { padding: 1px 0; break-inside: avoid; }
   [data-print-mode="family"] .charge-list strong { font-size: 11pt; margin-bottom: 0; }
   [data-print-mode="family"] .charge-list span { font-size: 10pt; line-height: 1.25; }
@@ -892,6 +908,194 @@
      figure at full size and gives back its generous screen padding. */
   [data-print-mode="family"] .print-invite { padding: 4px 0 3px 12px; margin: 2px 0 4px; }
   [data-print-mode="family"] .print-invite p { font-size: 10pt; line-height: 1.35; margin: 2px 0 0; }
+
+  /* `.size-card` / `.rule-list` / `.note-box` / `.fee-table-wrap` — outside-marker-rules.html.
+     The audit's instruction for this one is unlike every other Tier-3 row: "Rules document,
+     keep it complete, just legible." So nothing here selects content away. These are the
+     four components that carry the fees, the five rules and the permitted sizes, restated
+     at family scale so all of it fits at 10.5pt instead of 7.7pt in two columns.
+     The size cards go two up: four of them down a single column is most of two pages, and
+     the cards are short lists rather than prose. */
+  [data-print-mode="family"] .size-grid {
+    display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; margin: 2px 0 6px;
+  }
+  [data-print-mode="family"] .size-card { padding: 7px 11px; margin: 0; break-inside: avoid; }
+  [data-print-mode="family"] .size-card h3 { font-size: 12.5pt; margin-bottom: 1px; }
+  [data-print-mode="family"] .size-card .card-tag { font-size: 7pt; margin-bottom: 4px; }
+  [data-print-mode="family"] .size-card li { padding: 2px 0; font-size: 10pt; }
+  [data-print-mode="family"] .rule-list { margin: 2px 0 6px; }
+  [data-print-mode="family"] .rule-list li { padding: 3px 0; break-inside: avoid; }
+  [data-print-mode="family"] .rule-list li > div { font-size: 10pt; line-height: 1.35; }
+  [data-print-mode="family"] .rule-icon { width: 17px; height: 17px; font-size: 8pt; }
+  [data-print-mode="family"] .note-box { padding: 8px 12px; margin: 4px 0 6px; font-size: 10pt; line-height: 1.45; }
+  [data-print-mode="family"] .fee-table-wrap { margin: 2px 0 5px; }
+  [data-print-mode="family"] .policy-box { padding: 9px 13px; margin: 3px 0 6px; }
+  [data-print-mode="family"] .policy-box h3 { font-size: 13pt; margin: 0 0 3px; }
+  /* `.tier-card` — vault-guide.html. The three protection levels are the decision that guide
+     exists to help with, and their descriptions printed at 7.5pt inside a 10.5pt document:
+     the guide sets them with `body:not(.modal-printing) .tier-card p`, which is (0,3,1) and
+     outranks anything §8 says at (0,2,0). Matched here at (1,4,2) so the floor holds.
+     That selector spelling is deliberate and is the same trick §3 used to use for this
+     guide's masthead — it has to out-specify the page's own print block, not merely come
+     later in the cascade. The full-length Ctrl+P print keeps the guide's 7.5pt, because
+     none of this applies without the query. */
+  html[data-print-mode="family"] body:not(.modal-printing) .tier-card p {
+    font-size: 10pt; line-height: 1.35;
+  }
+  html[data-print-mode="family"] body:not(.modal-printing) .tier-card h3 {
+    font-size: 12pt; margin-bottom: 2px;
+  }
+  /* `.vault-intro-text` / `.vault-intro-callout` — vault-guide.html. "What Is a Burial
+     Vault?" is the first thing on the page and the paragraph that explains the whole
+     product, and it printed at 8pt inside a 10.5pt document: the guide sets it with
+     `body:not(.modal-printing) .vault-intro-text p`, (0,3,2), which outranks §8. Matched at
+     (1,4,3) for the same reason as `.tier-card` above. */
+  html[data-print-mode="family"] body:not(.modal-printing) .vault-intro-text p,
+  html[data-print-mode="family"] body:not(.modal-printing) .vault-intro-callout p,
+  html[data-print-mode="family"] body:not(.modal-printing) .section-header p {
+    font-size: 10.5pt; line-height: 1.45; margin-bottom: 5px;
+  }
+  /* Its masthead subtitle too: §8b puts `.cover-sub` at 10.5pt for every guide, and this
+     one's own print block pins it to 9pt at a specificity §8b cannot reach. Now that the
+     masthead is the shared `.cover`, it should read like the shared one. */
+  html[data-print-mode="family"] body:not(.modal-printing) .cover-sub {
+    font-size: 10.5pt; line-height: 1.35;
+  }
+  /* `.note-plain` — markers-guide.html, the price-effective-date footnote. Third of the
+     three inline font-sizes moved to classes on that guide. */
+  [data-print-mode="family"] .note-plain { font-size: 10pt; line-height: 1.35; }
+
+  /* `.note-inline` — markers-guide.html. The two small italic notes under its etching price
+     tables, moved out of style attributes and into a class in the same change (see the note
+     in that guide). They are whole sentences of prose, so they sit at the floor. */
+  [data-print-mode="family"] .note-inline { font-size: 10pt; line-height: 1.35; }
+
+  /* outside-marker-rules.html keeps 24px of HORIZONTAL padding on `.section-wrap` that §8h
+     does not clear, so its body copy printed a quarter inch inside its own masthead and
+     running footer — measured at padding-left/right 24px here against 0px on the Track-B
+     guides. Written as longhands and scoped through `.doc-sheet` so it cannot be partially
+     overridden by a shorthand the way §8h evidently is on this one guide. The masthead and
+     the text below it line up on the same left edge, which is the whole of the intent. */
+  [data-print-mode="family"] .doc-sheet .section-wrap {
+    padding-left: 0; padding-right: 0;
+  }
+
+  /* ── 8k. GENERATED SECTION NUMBERS  —  the cross-cutting defect ──────────────────
+     docs/PDF_AUDIT.md, first item of "cross-cutting defects to fix once": "Section numbers
+     are hard-coded markup — generate them or remove them, or every selection leaves a gap."
+     And the debrief, finding 5: with `?part=sizes` dropping sections 5-7, the printed PDF
+     ran **1, 2, 3, 4, 8**.
+
+     They are generated here, from a CSS counter, and the reason that works is the one
+     property the markup could never have: an element with `display:none` generates no box
+     and DOES NOT INCREMENT A COUNTER. So the numbering follows whatever the selection
+     actually left on the page, without this rule — or any future rule — needing to know
+     which half was dropped. Verified by printing a probe page and reading the numbers out
+     of the PDF with PyMuPDF rather than off getComputedStyle, which only ever hands back
+     the unresolved `counter()` expression and would have "confirmed" a rule that painted
+     nothing.
+
+     SCOPED TO `[data-print-part]`, deliberately. That attribute is set only when a `?part=`
+     query selects a half of a two-PDF guide, which today is markers-guide.html alone and is
+     the only place the gap can appear. It is NOT extended to `?print=family`: the family
+     cut replaces "Section 4" with a descriptive label ("What else is on the quote") in the
+     guides Tracks A and B converted, and generating a number over the top of that would
+     undo their work.
+
+     The original text is zeroed rather than deleted because it is real markup on the
+     website — this sheet is media=print and the screen must keep reading "SECTION 5". */
+  html[data-print-part] .doc-sheet { counter-reset: bw-section; }
+  html[data-print-part] :is(.section-wrap, .section) { counter-increment: bw-section; }
+  html[data-print-part] :is(.section-kicker, .section-label) {
+    font-size: 0 !important; letter-spacing: 0 !important;
+  }
+  html[data-print-part] :is(.section-kicker, .section-label)::before {
+    content: "SECTION " counter(bw-section);
+    font-size: 8pt; letter-spacing: .14em;
+  }
+
+  /* ── 8l. NO TABLE OF CONTENTS IN A SELECTED DOCUMENT ─────────────────────────────
+     Audit, cross-cutting item 2: "`.contents` (In This Guide) still prints in `?part=` mode
+     on markers-guide.html. Confirm it is hidden in every mode."
+
+     Seventeen of the nineteen guides already hide `.contents` in their own print block. The
+     marker guide deliberately does not, and that was the right call for the FULL-LENGTH
+     print at the time: Martice, 2026-07-27, hiding it left page 1 as a thin cover band over
+     ~88% white space. That reasoning does not survive selection. In a `?part=` build the
+     contents list eight sections of which the document contains three or four, so it is not
+     merely dead weight — it advertises pages that are not in the file.
+
+     Hidden for BOTH selection modes and left alone for the plain Ctrl+P print, which is the
+     one the operator ruled on. */
+  html[data-print-part] .contents,
+  [data-print-mode="family"] .contents { display: none !important; }
+
+  /* ── 8j. THE PROFESSIONAL REFERENCE  —  LEGIBILITY WITHOUT A FAMILY CUT ──────────
+     medicaid-professional-reference.html is the one guide in the audit marked "do not
+     condense" (Tier 3): its audience is case workers and elder law attorneys, and the
+     WAC/RCW citations ARE the product. So it gets NO `?print=family` cut, no `data-pdf`
+     annotations, and no `.pdf-summary` anywhere. It gets exactly the two things the audit
+     asked for and nothing else: the type up to the 10.5pt floor, and the document-wide
+     two-column flow off.
+
+     Keyed on `body[data-guide=...]` rather than on the mode attribute, because there is no
+     mode here — this guide has one printed form and this is it. That is also the only
+     spelling that WINS: §7 above compensates the whole estate to 7.7pt, this sheet is
+     linked AFTER the guide's own <style>, and the guide's own condense block sets
+     `.section p{font-size:8pt}` with the same specificity as §7's `p`. An attribute
+     selector on <body> beats all three without an !important, which is the same mechanism
+     §7's own note records for the two eight-page photo guides.
+
+     THE PAGE COUNT GOES UP, AND THAT IS THE POINT. 8pt in two columns is what bought the
+     old three pages. The honest measured count at 10.5pt in one column is recorded in
+     PER_GUIDE_CAPS in verify_guide_pages.mjs; it was NOT shrunk back to fit a number.
+     Rule 1 of the debrief cuts CONTENT to hold a page budget, and this is the one document
+     whose content may not be cut, so the budget is what moves. */
+  body[data-guide="medicaid-professional-reference"] { font-size: 10.5pt; line-height: 1.5; }
+  body[data-guide="medicaid-professional-reference"] .doc-sheet {
+    column-count: 1 !important; column-gap: normal !important;
+  }
+  /* As §8b: cancelling the multicol is not enough on its own. This guide marks its wide
+     tables, the masthead, the contact block and the disclaimer `column-span:all`, and a
+     spanner in a one-column multicol still fragments the flow around itself and gives the
+     pager extra places to break. With one column there is nothing to span. */
+  body[data-guide="medicaid-professional-reference"] :is(.doc-sheet > *, .cover, .contents,
+    .doc-footer, .cta, .compare, .section table, .contact, .disclaimer) {
+    column-span: none !important;
+  }
+  body[data-guide="medicaid-professional-reference"] :is(.section p, .card p, .band p,
+    .note p, .callout p, .faq .answer p, .contact-in p, p) {
+    font-size: 10.5pt; line-height: 1.5; max-width: none;
+  }
+  /* Lists, table cells and the citation chips sit at the 10pt floor, as §8b sets for every
+     other guide: the floor is a floor for prose whatever element it is written in. The
+     citations are the reason this document exists, so `.cite` and `code` come up with the
+     rest rather than staying at 7.5pt beside 10.5pt body copy. */
+  body[data-guide="medicaid-professional-reference"] :is(.charge-list span, .itemlist span,
+    .sources li, li) { font-size: 10pt; line-height: 1.4; }
+  body[data-guide="medicaid-professional-reference"] :is(.charge-list strong,
+    .itemlist strong) { font-size: 11pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.compare, .section table) { font-size: 10pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.compare th, .compare td,
+    .section th, .section td) { padding: 5px 8px; font-size: 10pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.compare thead th,
+    .section thead th) { font-size: 11.5pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.compare thead th:first-child,
+    .section thead th:first-child) { font-size: 8pt; }
+  body[data-guide="medicaid-professional-reference"] .cite { font-size: 9.5pt; }
+  body[data-guide="medicaid-professional-reference"] .sources .url { font-size: 8.5pt; }
+  body[data-guide="medicaid-professional-reference"] .disclaimer p { font-size: 9pt; line-height: 1.45; }
+  body[data-guide="medicaid-professional-reference"] .audience { font-size: 8.5pt; }
+  /* Headings scale with the body rather than staying at the condense block's 12.5pt, which
+     would leave a section title barely larger than its own paragraphs. */
+  body[data-guide="medicaid-professional-reference"] .section h2 { font-size: 19pt; margin: 0 0 3px; }
+  body[data-guide="medicaid-professional-reference"] .section .sub { font-size: 10.5pt; margin: 0 0 6px; }
+  body[data-guide="medicaid-professional-reference"] .section-label { font-size: 8pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.section .subhead, .subhead) { font-size: 13pt; }
+  body[data-guide="medicaid-professional-reference"] :is(.card h3, .note h3,
+    .callout h3, .band h3) { font-size: 13pt; }
+  body[data-guide="medicaid-professional-reference"] .faq summary { font-size: 12pt; }
+  body[data-guide="medicaid-professional-reference"] .section { padding: 6px 0 4px; }
 
   /* `.ladder` — who-decides-guide.html. The legal authority order is ONE list (audit,
      Tier 1) and it is the reason that guide is emailed, so it is the one component on its

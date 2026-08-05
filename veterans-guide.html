@@ -67,6 +67,13 @@ strong{color:var(--navy-dark);font-weight:700}
 .section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
 .section p.wide{max-width:none}
 .subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+/* The larger in-section subheading. This was written as an inline style attribute on the
+   one h3 that uses it, which is a screen pixel size that no stylesheet can reach: an
+   inline declaration beats every print rule short of !important, so it printed at its
+   28.8px SCREEN size inside a 10.5pt column. Same defect guide-print.css §7 documents for
+   the two paragraphs in cremation-guide.html. The values here are the inline ones exactly,
+   so the screen rendering is unchanged; being a class is what lets print restyle it. */
+.subhead-lg{font-family:var(--display);font-size:1.8rem;color:var(--navy);margin:38px 0 10px;font-weight:600}
 a.inline{color:var(--orange);font-weight:700;text-decoration:none}
 a.inline:hover{text-decoration:underline}
 
@@ -307,6 +314,20 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -314,6 +335,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -340,7 +374,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Veterans Guide</h1>
-    <div class="cover-sub">Washington Memorial Park has two dedicated veterans sections, and the burial space in them is our gift to those who served. This guide explains what the VA provides, what we provide on both the cemetery and the funeral home side, and what a family should still expect to pay.</div>
+    <div class="cover-sub" data-pdf="summary"><span>Washington Memorial Park has two dedicated veterans sections, and the burial space in them is our gift to those who served. This guide explains what the VA provides, what we provide on both the cemetery and the funeral home side, and what a family should still expect to pay.</span><span class="pdf-summary">What the VA provides, what the veterans sections give you, and what a family still pays.</span></div>
     <div class="cover-rule"></div>
     <div class="cover-footer">VA benefits &middot; veterans sections &middot; marker options &middot; printable</div>
     <div class="cover-stripe"></div>
@@ -361,7 +395,31 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   </div>
 
 <!-- 1 -->
-<div class="section" id="benefits">
+<div class="section" id="benefits" data-pdf="summary">
+  <!-- FAMILY PDF: the answer first, then the five VA benefits as a name-and-half-sentence
+       list rather than five cards. The list is the `.charge-list` component this guide
+       already uses in Section 5, so it needs no CSS of its own and §8e sets it two-up. -->
+  <div class="pdf-summary">
+    <div class="fam-answer">
+      <h2>The space<br>is our gift</h2>
+      <p>Both veterans sections give the <strong>burial space at no charge</strong> to a qualifying veteran, and the gift follows you: if your family is resting elsewhere in the park, we apply the same credit toward a space beside them. What remains are the charges tied to the interment itself.</p>
+    </div>
+    <h2>What the VA provides</h2>
+    <p>Choosing a private cemetery forfeits none of it. <strong>None of it is automatic</strong> either: every one has to be applied for with proof of service, and we prepare and submit those for you.</p>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>Headstone or marker</strong><span>Furnished at no charge for an unmarked grave, in any cemetery. In a private cemetery the base and the setting are the family's expense.</span></li>
+        <li><strong>Burial flag</strong><span>To drape the casket or accompany the urn, presented to the next of kin. We request it for you.</span></li>
+        <li><strong>Military funeral honors</strong><span>The folding and presentation of the flag and the sounding of Taps. Rendered here, and the family does not pay for them.</span></li>
+        <li><strong>Presidential Memorial Certificate</strong><span>Signed by the President. You may request more than one, so each child can have their own.</span></li>
+        <li data-pdf="drop"><strong>National cemetery burial</strong><span>Tahoma National Cemetery in Kent, at no cost. It is an excellent option and we will help you get there.</span></li>
+      </ul>
+    </div>
+    <div class="band">
+      <h3>Start with the DD-214</h3>
+      <p>The discharge certificate is what the VA relies on to confirm eligibility. Without it a marker cannot be ordered and honors cannot be scheduled. Hand me a copy now and I will keep it on file with your arrangement.</p>
+    </div>
+  </div>
   <p class="section-label">Section 1</p>
   <h2>What the VA Provides</h2>
   <p class="sub">Benefits earned through service, wherever you choose to be laid to rest</p>
@@ -399,7 +457,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 2 -->
-<div class="section" id="dd214">
+<!-- FAMILY PDF: dropped. The DD-214 is the one thing this section exists to say and it is
+     said in Section 1's summary above, in the band, where a family reading two pages will
+     actually meet it. -->
+<div class="section" id="dd214" data-pdf="drop">
   <p class="section-label">Section 2</p>
   <h2>Start With the DD-214</h2>
   <p class="sub">One document unlocks everything else</p>
@@ -416,7 +477,15 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 3 -->
-<div class="section" id="where">
+<!-- FAMILY PDF: the seven-row comparison table is the right length for the website and
+     costs most of a printed page. What decides it for a family is three of those rows, so
+     those three are stated and the rest stays online. Tahoma is not buried: it is named in
+     the VA list above and given its own honest paragraph here. -->
+<div class="section" id="where" data-pdf="summary">
+  <div class="pdf-summary">
+    <h2>Tahoma, or here</h2>
+    <p>Tahoma National Cemetery in Kent costs nothing, and for some families it is the right answer. Three things separate it from our veterans sections. <strong>You cannot choose or reserve a grave there</strong>; it is assigned at the time of need. <strong>Tahoma takes a spouse and dependent children</strong>, where the veterans sections take three generations and first responders. <strong>Tahoma schedules around its own calendar</strong>, which often means a wait. Whichever you choose, the funeral home half is the same, the VA covers none of it, and we arrange both halves at one table.</p>
+  </div>
   <p class="section-label">Section 3</p>
   <h2>Where to Be Laid to Rest</h2>
   <p class="sub">An honest comparison of the two options in this area</p>
@@ -475,7 +544,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 4 -->
-<div class="section" id="funeral">
+<!-- FAMILY PDF: dropped. Its point, that the VA covers none of the funeral home half and
+     that both halves are arranged here, is carried by the second paragraph of Section 3's
+     summary above. Printing both would say it twice on a two-page document. -->
+<div class="section" id="funeral" data-pdf="drop">
   <p class="section-label">Section 4</p>
   <h2>The Funeral Home Side</h2>
   <p class="sub">The half of the arrangement no cemetery covers</p>
@@ -506,24 +578,31 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 5 -->
-<div class="section" id="garden">
-  <p class="section-label">Section 5</p>
+<div class="section" id="garden" data-pdf="keep">
+  <!-- The label is dropped rather than re-worded: the h2 immediately under it already reads
+       "The Veterans Sections", and in the condensed cut the two sat an eighth of an inch
+       apart saying the same words twice. -->
+  <p class="section-label" data-pdf="drop">Section 5</p>
   <h2>The Veterans Sections</h2>
-  <p class="sub">What we give, what remains, and who may be laid to rest here</p>
-  <hr class="rule">
+  <p class="sub" data-pdf="drop">What we give, what remains, and who may be laid to rest here</p>
+  <hr class="rule" data-pdf="drop">
   <p>Washington Memorial Park has two sections set aside for those who served in the armed forces and in public safety: <strong>the Veterans Garden</strong> and <strong>Veterans North</strong>. The burial space in either one is given at no charge to a qualifying veteran.</p>
   <div class="band">
     <h3>The gift follows the veteran, not the section</h3>
     <p>If your family is already resting in another part of Washington Memorial Park, you do not have to choose between the veterans sections and being with them. We apply the same veteran’s property gift toward a space in that section instead, so a veteran can be laid to rest beside a spouse, a parent, or a child rather than apart from them.</p>
-    <p>The gift is a flat credit toward the space you choose. It applies to ground burial and mausoleum spaces, and if the section you choose is priced higher than the veterans sections, you simply pay the difference. Columbarium niches are handled a little differently, so ask us and we will walk you through it.</p>
-    <p>Tell us where your family is and we will look at what is available near them.</p>
+    <p data-pdf="summary"><span>The gift is a flat credit toward the space you choose. It applies to ground burial and mausoleum spaces, and if the section you choose is priced higher than the veterans sections, you simply pay the difference. Columbarium niches are handled a little differently, so ask us and we will walk you through it.</span><span class="pdf-summary">The gift is a flat credit toward the space you choose. If that section is priced higher than the veterans sections, you pay the difference. Niches work a little differently, so ask me.</span></p>
+    <p data-pdf="drop">Tell us where your family is and we will look at what is available near them.</p>
   </div>
 
-  <p>The costs that remain are the ones tied to the interment itself rather than to the land. We would rather you know what they are now than meet them for the first time on a contract.</p>
+  <!-- FAMILY PDF: dropped. The answer block at the head of page 1 already ends "What remains
+       are the charges tied to the interment itself", and printed here the sentence said it a
+       second time AND was stranded at the foot of page 1, an inch above the list it
+       introduces. Found by rasterising and reading the two pages in order. -->
+  <p data-pdf="drop">The costs that remain are the ones tied to the interment itself rather than to the land. We would rather you know what they are now than meet them for the first time on a contract.</p>
 
   <div class="costs">
     <ul class="charge-list">
-      <li><strong>Endowment care fund</strong><span>Washington state requires a portion of every cemetery property sale to be set aside permanently. Only its earnings are used, and they maintain the grounds</span></li>
+      <li><strong>Endowment care fund</strong><span data-pdf="summary"><span>Washington state requires a portion of every cemetery property sale to be set aside permanently. Only its earnings are used, and they maintain the grounds</span><span class="pdf-summary">A permanent fund whose earnings maintain the grounds, required by the state. It is figured on what the property is worth, so it is owed in full even on a space we give at no charge</span></span></li>
       <li><strong>Opening and closing</strong><span>Preparing the grave before the service and closing it afterward</span></li>
       <li><strong>Recording fee</strong><span>Entering the interment in the permanent cemetery record</span></li>
       <li><strong>Burial vault</strong><span>The outer container that surrounds and protects the casket</span></li>
@@ -532,14 +611,18 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     </ul>
   </div>
 
-  <div class="note">
+  <!-- FAMILY PDF: dropped, and the one thing it says that the charge list did not — that the
+       fund is figured on what the property is WORTH, so it is owed in full on a space given
+       at no charge — was moved into the endowment-care item above. The rule survives; the
+       second telling of it does not. -->
+  <div class="note" data-pdf="drop">
     <h3>Why there is a care fund charge on a space we gave you</h3>
-    <p>This is the question we are asked most, and it is a fair one. Washington state requires a portion of every cemetery property sale to be deposited into an endowment care fund, and our contribution meets or exceeds that minimum. Only the earnings from that fund are ever used, and they pay to maintain these grounds for as long as the cemetery exists. Because it is calculated on the value of the property, it is still owed in full on a space we give at no charge, and it is not ours to waive for anyone. We would rather tell you now than have you find it on a contract.</p>
+    <p data-pdf="summary"><span>This is the question we are asked most, and it is a fair one. Washington state requires a portion of every cemetery property sale to be deposited into an endowment care fund, and our contribution meets or exceeds that minimum. Only the earnings from that fund are ever used, and they pay to maintain these grounds for as long as the cemetery exists. Because it is calculated on the value of the property, it is still owed in full on a space we give at no charge, and it is not ours to waive for anyone. We would rather tell you now than have you find it on a contract.</span><span class="pdf-summary">It is figured on what the property is worth, not on what you paid, so it is still owed in full on a space we give at no charge. It is not ours to waive for anyone, and we would rather tell you now than have you find it on a contract.</span></p>
   </div>
 
-  <h3 style="font-family:var(--display);font-size:1.8rem;color:var(--navy);margin:38px 0 10px;font-weight:600">Who may be laid to rest here</h3>
-  <p>Eligibility extends further than a national cemetery, which is the reason many families choose this section.</p>
-  <div class="grid">
+  <h3 class="subhead-lg" data-pdf="drop">Who may be laid to rest here</h3>
+  <p data-pdf="summary"><span>Eligibility extends further than a national cemetery, which is the reason many families choose this section.</span><span class="pdf-summary"><strong>Who may be laid to rest here.</strong> Veterans discharged under any condition other than dishonorable. Three generations of family: a spouse even if they remarry, children and grandchildren and their spouses. And first responders, whom a national cemetery does not take: law enforcement, career and volunteer firefighters, EMTs and paramedics, 911 dispatchers, and correctional officers.</span></p>
+  <div class="grid" data-pdf="drop">
     <div class="card">
       <h3>Those who served</h3>
       <p>Veterans discharged under any condition other than dishonorable, and service members who die on active duty, active duty for training, or inactive duty for training.</p>
@@ -557,22 +640,35 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 
   <div class="band">
     <h3>Three things to plan around</h3>
-    <p><strong>Two caskets cannot share a space, but a casket and an urn can.</strong> If one of a couple chooses cremation, the two of you can rest together in a single space. The gift of the land covers the veteran. A spouse or family member who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that second right as well.</p>
-    <p><strong>The order matters.</strong> Arranging the space together ahead of time protects the half-cost pricing, whoever is laid to rest first. Without that arrangement in place, a spouse laid to rest before the veteran can be charged the full cost of the plot rather than half. None of us choose that order, which is precisely why it is worth settling while everyone is still here to decide.</p>
-    <p><strong>Adjacent spaces are not guaranteed later.</strong> We will always try to keep a family together, but availability depends on what is left in the section. Families who want to be side by side should choose their spaces at the same time.</p>
+    <p data-pdf="summary"><span><strong>Two caskets cannot share a space, but a casket and an urn can.</strong> If one of a couple chooses cremation, the two of you can rest together in a single space. The gift of the land covers the veteran. A spouse or family member who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that second right as well.</span><span class="pdf-summary"><strong>Two caskets cannot share a space, but a casket and an urn can.</strong> The gift covers the veteran; a spouse or family member who did not serve is charged half the cost of the plot as a second right of interment, with endowment care on that right as well.</span></p>
+    <p data-pdf="summary"><span><strong>The order matters.</strong> Arranging the space together ahead of time protects the half-cost pricing, whoever is laid to rest first. Without that arrangement in place, a spouse laid to rest before the veteran can be charged the full cost of the plot rather than half. None of us choose that order, which is precisely why it is worth settling while everyone is still here to decide.</span><span class="pdf-summary"><strong>The order matters.</strong> Arranging the space together ahead of time protects that half-cost pricing whoever is laid to rest first. Without it, a spouse laid to rest before the veteran can be charged the full cost. None of us choose that order, which is why it is worth settling now.</span></p>
+    <p data-pdf="summary"><span><strong>Adjacent spaces are not guaranteed later.</strong> We will always try to keep a family together, but availability depends on what is left in the section. Families who want to be side by side should choose their spaces at the same time.</span><span class="pdf-summary"><strong>Adjacent spaces are not guaranteed later.</strong> Families who want to be side by side should choose their spaces at the same time.</span></p>
   </div>
 
-  <div class="note">
+  <!-- FAMILY PDF: dropped. Both of its paragraphs are the printed close, and `.fam-next` at
+       the foot of the document says the same two things in four lines. -->
+  <div class="note" data-pdf="drop">
     <h3>What this actually costs you</h3>
     <p>Every arrangement is different, and a number pulled from a page is rarely the number a family ends up with. We prepare a written, itemized estimate so you can see your own figures rather than somebody else’s, and there is no cost or obligation to ask for one.</p>
     <p>None of it has to be paid at once, either. Anything here can be arranged in advance and paid for over time, on a monthly plan, at today&rsquo;s prices. Families who plan ahead this way are not choosing and paying in the same week, and if the cost of doing it all up front is what has been holding you back, say so. That is a solvable problem.</p>
   </div>
 
-  <p>Placement in either veterans section requires proof of service on the cemetery contract, most often the DD-214, a military ID, or other service records. First responder eligibility is confirmed with department identification, employment verification, or a certification or license. Bring what you have and we will tell you what else is needed.</p>
+  <!-- FAMILY PDF: dropped. "Bring us the DD-214" is the whole of it for a family reading two
+       pages, and the band on page 1 leads with exactly that. -->
+  <p data-pdf="drop">Placement in either veterans section requires proof of service on the cemetery contract, most often the DD-214, a military ID, or other service records. First responder eligibility is confirmed with department identification, employment verification, or a certification or license. Bring what you have and we will tell you what else is needed.</p>
 </div>
 
 <!-- 6 -->
-<div class="section" id="markers">
+<!-- FAMILY PDF: the audit's instruction for this guide is "marker options link out". The
+     comparison needs photographs and twenty stone colours to be worth anything, and the
+     Granite Marker Guide is a document of its own that I hand over with this one. What
+     survives is the fact that catches families out: the government marker is free and
+     setting it is not. -->
+<div class="section" id="markers" data-pdf="summary">
+  <div class="pdf-summary">
+    <h2>Choosing a marker</h2>
+    <p><strong>The government marker is free. Placing it is not.</strong> In a private cemetery the granite base it sits on, and the setting, are the family's expense, so the real choice is between two prices and they are closer together than most families expect. Granite is priced all-inclusive of the stone, engraving, setting and tax, and it is the only material that offers stone colours, custom scenes, photo portraits and diamond etching. At Tahoma the headstone is furnished <em>and</em> set at no cost. Ask me for the Granite Marker Guide and I will price the two side by side.</p>
+  </div>
   <p class="section-label">Section 6</p>
   <h2>Choosing a Marker</h2>
   <p class="sub">The government marker is free. Placing it is not.</p>
@@ -604,7 +700,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 7 -->
-<div class="section" id="honors">
+<!-- FAMILY PDF: dropped to a single line in the VA list on page 1. Honors are free and are
+     rendered here; the rest of this section is about scheduling, which is a conversation
+     rather than a leave-behind. -->
+<div class="section" id="honors" data-pdf="drop">
   <p class="section-label">Section 7</p>
   <h2>Military Funeral Honors</h2>
   <p class="sub">What we arrange, and what the family should know</p>
@@ -627,34 +726,34 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 8 -->
-<div class="section" id="faq">
-  <p class="section-label">Section 8</p>
-  <h2>Common Questions</h2>
-  <p class="sub">What veterans and their families ask us most</p>
-  <hr class="rule">
+<div class="section" id="faq" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 8</span><span class="pdf-summary">Two things families ask</span></p>
+  <h2 data-pdf="drop">Common Questions</h2>
+  <p class="sub" data-pdf="drop">What veterans and their families ask us most</p>
+  <hr class="rule" data-pdf="drop">
 
   <div class="faq">
-    <details>
+    <details data-pdf="drop">
       <summary>Do I have to have served in combat?</summary>
       <div class="answer"><p>No. Eligibility for the veterans sections turns on service and the character of discharge, not on where or when you served. Peacetime service qualifies. A dishonorable discharge does not.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>What about the National Guard or Reserve?</summary>
       <div class="answer"><p>Members who die while on active duty, active duty for training, or inactive duty for training are eligible. For others, it depends on the nature and length of federal service, and the discharge paperwork will tell us. Bring what you have and we will confirm it.</p></div>
     </details>
     <details>
       <summary>Can my spouse be buried beside me?</summary>
-      <div class="answer"><p>Yes, and so can your children, their spouses, your grandchildren, and their spouses.</p><p>If one of you chooses cremation, the two of you can share a single space, a casket and an urn together. Two casket burials cannot share a space, so a couple who both choose burial will need two.</p><p>The gift of the land covers the veteran. A spouse who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that right as well. Arranging the space together ahead of time protects that half-cost pricing whoever is laid to rest first; without it, a spouse laid to rest before the veteran can be charged the full cost. Since none of us choose that order, it is worth deciding together while you both can.</p></div>
+      <div class="answer"><p>Yes, and so can your children, their spouses, your grandchildren, and their spouses.</p><p data-pdf="drop">If one of you chooses cremation, the two of you can share a single space, a casket and an urn together. Two casket burials cannot share a space, so a couple who both choose burial will need two.</p><p data-pdf="drop">The gift of the land covers the veteran. A spouse who did not serve is charged half the cost of the plot as a second right of interment, and the endowment care fund applies to that right as well. Arranging the space together ahead of time protects that half-cost pricing whoever is laid to rest first; without it, a spouse laid to rest before the veteran can be charged the full cost. Since none of us choose that order, it is worth deciding together while you both can.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can I be cremated and still receive honors?</summary>
       <div class="answer"><p>Yes. Cremation does not affect eligibility for military funeral honors, the burial flag, a government marker, or the Presidential Memorial Certificate.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>My family is already buried in another section. Do I lose the veteran's space?</summary>
       <div class="answer"><p>No. The property gift follows you rather than the section, so we apply it toward a space near your family instead. You should not have to choose between the recognition you earned and resting beside the people you love.</p><p>If you already own property here, bring your deed and we will look at what makes sense for you.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Do first responders really qualify?</summary>
       <div class="answer"><p>Yes, and it is one of the things that sets this section apart. Law enforcement officers, career and volunteer firefighters, EMTs and paramedics, 911 dispatchers, and correctional officers are all eligible, with documentation of service in an official public agency or recognized emergency response role.</p></div>
     </details>
@@ -662,7 +761,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <summary>What if we cannot find the DD-214?</summary>
       <div class="answer"><p>A replacement can be requested from the National Archives at no cost, and more recent records are often available through milConnect. It takes time, so it is far better to do it now than at need. We are glad to walk you through the request.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Is there a cost to talk to someone about this?</summary>
       <div class="answer"><p>No. A pre-planning conversation is free, carries no obligation, and can happen at the cemetery, in your home, or by phone. Many families meet once, take months to think, and come back when they are ready.</p></div>
     </details>
@@ -678,6 +777,16 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
   </div>
 </div>
+
+  <!-- FAMILY PDF ONLY. `.cta` above is a screen component (buttons, a scheduling link) and
+       is display:none in print, so the printed document needs its own close: what to do
+       now, and how to reach me. Hidden on screen and in the full-length Ctrl+P print by
+       `.pdf-summary`; shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Bring your DD-214 and your questions</h2>
+    <p>There is no cost to talk it through and no obligation. We will walk both veterans sections, go through the cemetery and the funeral home side together, and I will put real numbers in writing for you. Take as long as you need afterward.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
 
   <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
