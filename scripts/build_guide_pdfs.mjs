@@ -14,7 +14,14 @@ import { record } from './_pdf_manifest.mjs';
 
 const JOBS = [
   ['veterans-guide.html',          'pdf-assets/Veterans Guide.pdf'],
-  ['cemetery-property-guide.html', 'pdf-assets/Cemetery Property Guide.pdf'],
+  // THE CONDENSED CUT IS THE PDF — sprint-16 Track A, from docs/PDF_DEBRIEF.md: "the pdf
+  // versions are supposed to be condensed and easier to read so I can quickly email them
+  // to families." `?print=family` selects the sections the guide annotates with
+  // data-pdf="keep|drop|summary" and puts the type back up to 10.5pt; the full-length
+  // document stays reachable by hitting Ctrl+P on the web page, which is what that path is
+  // for. Same output path on purpose: this REPLACES the full-length download rather than
+  // sitting beside it. If the operator later wants both, add a second job here.
+  ['cemetery-property-guide.html?print=family', 'pdf-assets/Cemetery Property Guide.pdf'],
   ['cremation-or-burial-guide.html', 'pdf-assets/Cremation or Burial.pdf'],
   // TWO PDFs FROM ONE PAGE — sprint-11 Track B. Operator, 2026-08-02: "separate the PDF
   // version entirely. One of the marker guides will focus on the marker sizes and colors

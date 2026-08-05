@@ -108,6 +108,12 @@ a.inline:hover{text-decoration:underline}
 .charge-list{list-style:none;margin:0;padding:0}
 .charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
 .charge-list li:last-child{border-bottom:0}
+/* The last item in this list is now the family-PDF-only "Timing surcharges" entry, which is
+   display:none everywhere except the ?print=family build. Without this, `:last-child` stops
+   matching the last item a visitor can SEE and a hairline appears under it — a 1px change to
+   the live page, caught by the screen pixel diff and by nothing else. The border comes back
+   in family mode, where that item is visible; see guide-print.css §8e. */
+.charge-list li:has(+ li.pdf-summary){border-bottom:0}
 .charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
 .charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
 
@@ -341,6 +347,20 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -348,6 +368,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -373,7 +406,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Cemetery Property Guide</h1>
-    <div class="cover-sub">What you are actually purchasing, the kinds of property at Washington Memorial Park, every charge that goes into an interment and what each one is for, and what it means to own a space over the years that follow.</div>
+    <div class="cover-sub" data-pdf="summary"><span>What you are actually purchasing, the kinds of property at Washington Memorial Park, every charge that goes into an interment and what each one is for, and what it means to own a space over the years that follow.</span><span class="pdf-summary">What you are buying at Washington Memorial Park, what it costs, and what else is on the quote.</span></div>
     <div class="cover-rule"></div>
     <div class="cover-footer">Interment rights &middot; property types &middot; every charge explained &middot; printable</div>
   </div>
@@ -393,7 +426,13 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   </div>
 
 <!-- 1 -->
-<div class="section" id="rights">
+<div class="section" id="rights" data-pdf="summary">
+  <!-- FAMILY PDF: the answer, up front. Everything else in this section is the website's
+       long form and stays there. -->
+  <div class="pdf-summary fam-answer">
+    <h2>What you<br>own here</h2>
+    <p>Cemetery property is sold as the <strong>exclusive right to use a particular space as a resting place</strong>. The document you receive is a Certificate of Interment Rights, and the cemetery continues to own and care for the grounds. Your right does not expire, and it passes to your family if you never use it.</p>
+  </div>
   <p class="section-label">Section 1</p>
   <h2>What You Are Actually Buying</h2>
   <p class="sub">Interment rights, not real estate</p>
@@ -410,12 +449,12 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 2 -->
-<div class="section" id="types">
-  <p class="section-label">Section 2</p>
-  <h2>The Kinds of Property Here</h2>
-  <p class="sub">See what you would be buying, then what it costs</p>
-  <hr class="rule">
-  <p>More than eighty acres, and more choices than most families expect. Which type suits you depends first on burial or cremation, and after that on setting, on cost, and on where your family already is.</p>
+<div class="section" id="types" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 2</span><span class="pdf-summary">The kinds of property here</span></p>
+  <h2 data-pdf="drop">The Kinds of Property Here</h2>
+  <p class="sub" data-pdf="drop">See what you would be buying, then what it costs</p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">More than eighty acres, and more choices than most families expect. Which type suits you depends first on burial or cremation, and after that on setting, on cost, and on where your family already is.</p>
 
   <div class="pf-grid">
       <div class="pf-card">
@@ -423,7 +462,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
         <div class="pf-body">
           <h3>Ground burial spaces</h3>
           <div class="pf-kind">Traditional burial &middot; the largest part of the park</div>
-          <p>A lawn space in one of the numbered gardens, each with its own outlook. The traditional choice, and most of what you see when you drive in.</p>
+          <p data-pdf="summary"><span>A lawn space in one of the numbered gardens, each with its own outlook. The traditional choice, and most of what you see when you drive in.</span><span class="pdf-summary">A lawn space in one of the numbered gardens, each with its own outlook.</span></p>
           <div class="pf-price pf-ask"><span class="pf-price-label">Price depends on the garden</span><span class="pf-range">Ask us for today&rsquo;s figures</span></div>
         </div>
       </div>
@@ -432,7 +471,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
         <div class="pf-body">
           <h3>Mausoleum crypts</h3>
           <div class="pf-kind">Above-ground entombment &middot; indoors or outdoors</div>
-          <p>Entombment above ground rather than in the earth, in a building or a garden court. Chosen by families who would rather not be placed in the ground.</p>
+          <p data-pdf="summary"><span>Entombment above ground rather than in the earth, in a building or a garden court. Chosen by families who would rather not be placed in the ground.</span><span class="pdf-summary">Entombment above ground, indoors or in a garden court.</span></p>
           <div class="pf-price pf-ask"><span class="pf-price-label">Price depends on the building and the level</span><span class="pf-range">Ask us for today&rsquo;s figures</span></div>
         </div>
       </div>
@@ -441,12 +480,15 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
         <div class="pf-body">
           <h3>Columbarium niches</h3>
           <div class="pf-kind">For cremated remains &middot; granite or glass front</div>
-          <p>A compartment for urns in a wall or a room, closed by a granite faceplate or a glass front that keeps the urn in view. Six settings across the park, and every niche here holds two urns.</p>
-          <p style="margin-top:-4px"><a class="inline" href="urn-placement-guide.html">See all six, with photographs &rarr;</a></p>
+          <p data-pdf="summary"><span>A compartment for urns in a wall or a room, closed by a granite faceplate or a glass front that keeps the urn in view. Six settings across the park, and every niche here holds two urns.</span><span class="pdf-summary">A compartment for urns behind a granite faceplate or a glass front. Every niche here holds two.</span></p>
+          <p style="margin-top:-4px" data-pdf="drop"><a class="inline" href="urn-placement-guide.html">See all six, with photographs &rarr;</a></p>
           <div class="pf-price pf-banded"><span class="pf-price-label">Most niches</span><span class="pf-range" data-typical="all-niches">$9,895&ndash;$14,000</span><span class="pf-full">Across all six columbariums the full range is <b data-range="all-niches">$3,850&ndash;$82,500</b></span></div>
         </div>
       </div>
-      <div class="pf-card">
+      <!-- pf-fam-wide: in the ?print=family PDF this card runs the full width with its
+           photograph beside the text, and `order` moves it after the four square cards.
+           Screen is unaffected — the class is styled only in guide-print.css §8d. -->
+      <div class="pf-card pf-fam-wide">
         <div class="pf-photo"><img src="urn-garden-images/lug-lake-fountains.jpg" alt="The Lake Urn Garden with its lake and fountains" loading="lazy"></div>
         <div class="pf-body">
           <h3>Urn gardens</h3>
@@ -460,13 +502,13 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
         <div class="pf-body">
           <h3>Cremation posts and benches</h3>
           <div class="pf-kind">Terrace Garden Memorial Path &middot; newest part of the park</div>
-          <p>Granite posts, boulders and memorial benches along the new path, each holding cremated remains behind a bronze or granite cover.</p>
+          <p data-pdf="summary"><span>Granite posts, boulders and memorial benches along the new path, each holding cremated remains behind a bronze or granite cover.</span><span class="pdf-summary">Granite posts, boulders and benches along the new path.</span></p>
           <div class="pf-price"><span class="pf-price-label">Path placements</span><span class="pf-range" data-range="tgmp">$8,000&ndash;$52,000</span></div>
         </div>
       </div>
   </div>
 
-  <div class="card">
+  <div class="card" data-pdf="drop">
     <h3>Two more things worth knowing</h3>
     <p><strong>Lawn crypts.</strong> A pre-installed underground chamber in a designated section, so the ground does not have to be opened later. Available in limited areas. <em>There is no photograph of one here yet. At the surface a lawn crypt looks like any other lawn space, so a picture of one would tell you nothing a picture of the garden does not.</em></p>
     <p><strong>Veterans sections.</strong> Two sections are set aside for those who served in the armed forces and in public safety, and the space itself is given at no charge to a qualifying veteran. <a class="inline" href="veterans-guide.html">See the Veterans Guide &rarr;</a></p>
@@ -474,10 +516,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <p><strong>Where your family already is.</strong> If relatives are resting here, that is often the deciding factor. Tell us where they are and we will show you what is available nearby before you look anywhere else.</p>
   </div>
 
-  <p>Ranges above describe what is offered for sale today and move as spaces sell. Location, outlook and how much of a section remains all affect what a space costs, so the most useful thing you can do is walk the park with us and see them.</p>
+  <p data-pdf="drop">Ranges above describe what is offered for sale today and move as spaces sell. Location, outlook and how much of a section remains all affect what a space costs, so the most useful thing you can do is walk the park with us and see them.</p>
 </div>
 
-<div class="section" id="capacity">
+<div class="section" id="capacity" data-pdf="drop">
   <p class="section-label">Section 3</p>
   <h2>What a Space Can Hold</h2>
   <p class="sub">How many people, and in what form</p>
@@ -506,28 +548,32 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 4 -->
-<div class="section" id="charges">
-  <p class="section-label">Section 4</p>
-  <h2>The Charges Beyond the Space</h2>
-  <p class="sub">What each one is, and what it pays for</p>
-  <hr class="rule">
-  <p>The space is one line on a quote. These are the others. None of them are hidden, but families are rarely told about them until the moment they are being asked to sign, which is the wrong time to learn something new.</p>
+<div class="section" id="charges" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 4</span><span class="pdf-summary">What else is on the quote</span></p>
+  <h2 data-pdf="summary"><span>The Charges Beyond the Space</span><span class="pdf-summary">The space is one line. These are the others.</span></h2>
+  <p class="sub" data-pdf="summary"><span>What each one is, and what it pays for</span><span class="pdf-summary">None are hidden, but families are rarely told about them until they are being asked to sign.</span></p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">The space is one line on a quote. These are the others. None of them are hidden, but families are rarely told about them until the moment they are being asked to sign, which is the wrong time to learn something new.</p>
 
   <div class="costs">
     <ul class="charge-list">
-      <li><strong>Endowment care fund</strong><span>A permanent fund whose earnings maintain the grounds. Required by Washington state on every sale of cemetery property. See Section 5</span></li>
-      <li><strong>Opening and closing</strong><span>Preparing the space before the service and closing it afterward. The charge differs by type of interment, since a ground burial, an urn burial, a niche, and a mausoleum crypt each involve different work</span></li>
-      <li><strong>Recording fee</strong><span>Entering the interment permanently in the cemetery record, so that who is where remains known for as long as the park exists. Charged once per interment</span></li>
-      <li><strong>Outer burial container or vault</strong><span>The container that surrounds the casket or urn and supports the ground above it. Required for ground interment. Options range widely</span></li>
-      <li><strong>Vault setting</strong><span>Placing the container in the space. Separate from the container itself, and different for a burial vault than for an urn vault</span></li>
-      <li><strong>Memorial and its installation</strong><span>The marker or inscription, and the work of setting it. Granite markers here are priced all-inclusive. Bronze markers, including government markers for veterans, need a separate granite base</span></li>
-      <li><strong>Washington sales tax</strong><span>Applies to merchandise and its installation. The space, endowment care, opening and closing, and recording are exempt</span></li>
+      <li><strong>Endowment care fund</strong><span data-pdf="drop">A permanent fund whose earnings maintain the grounds. Required by Washington state on every sale of cemetery property. See Section 5</span><span class="pdf-summary">A permanent fund whose earnings maintain the grounds. Required by Washington state on every sale.</span></li>
+      <li><strong>Opening and closing</strong><span data-pdf="drop">Preparing the space before the service and closing it afterward. The charge differs by type of interment, since a ground burial, an urn burial, a niche, and a mausoleum crypt each involve different work</span><span class="pdf-summary">Preparing the space before the service and closing it afterward. Differs by type of interment.</span></li>
+      <li><strong>Recording fee</strong><span data-pdf="drop">Entering the interment permanently in the cemetery record, so that who is where remains known for as long as the park exists. Charged once per interment</span><span class="pdf-summary">Entering the interment permanently in the cemetery record. Charged once per interment.</span></li>
+      <li><strong>Outer burial container or vault</strong><span data-pdf="drop">The container that surrounds the casket or urn and supports the ground above it. Required for ground interment. Options range widely</span><span class="pdf-summary">Surrounds the casket or urn and supports the ground above it. Required for ground interment.</span></li>
+      <li><strong>Vault setting</strong><span data-pdf="drop">Placing the container in the space. Separate from the container itself, and different for a burial vault than for an urn vault</span><span class="pdf-summary">Placing the container in the space. Separate from the container itself.</span></li>
+      <li><strong>Memorial and its installation</strong><span data-pdf="drop">The marker or inscription, and the work of setting it. Granite markers here are priced all-inclusive. Bronze markers, including government markers for veterans, need a separate granite base</span><span class="pdf-summary">The marker or inscription, and the work of setting it. Granite markers here are priced all-inclusive.</span></li>
+      <li><strong>Washington sales tax</strong><span data-pdf="drop">Applies to merchandise and its installation. The space, endowment care, opening and closing, and recording are exempt</span><span class="pdf-summary">Applies to merchandise and installation. The space, endowment care, opening and closing, and recording are exempt.</span></li>
+      <!-- FAMILY PDF ONLY. The website carries this as the "Timing changes the cost" callout
+           below, which is dropped from the two-page cut; as a charge it belongs in the list
+           the family is reading, not in a box they will not receive. -->
+      <li class="pdf-summary"><strong>Timing surcharges</strong><span>Friday through Sunday, holidays, and interments after three in the afternoon each carry a surcharge.</span></li>
     </ul>
   </div>
 
-  <p>Three of these have guides of their own, because the choices within them are substantial: <a class="inline" href="vault-guide.html">burial vaults</a>, <a class="inline" href="markers-guide.html">granite markers</a>, and <a class="inline" href="urn-placement-guide.html">urn placement</a>.</p>
+  <p data-pdf="drop">Three of these have guides of their own, because the choices within them are substantial: <a class="inline" href="vault-guide.html">burial vaults</a>, <a class="inline" href="markers-guide.html">granite markers</a>, and <a class="inline" href="urn-placement-guide.html">urn placement</a>.</p>
 
-  <div class="band">
+  <div class="band" data-pdf="drop">
     <h3>Timing changes the cost</h3>
     <p>This one catches almost everybody. A service held on a Friday, Saturday, Sunday, or a holiday carries a surcharge, as does an interment scheduled after three in the afternoon. If the family wishes to witness the lowering or placement, that carries a charge as well, and the weekend rate is higher than the weekday one.</p>
     <p><strong>None of this makes a weekend service the wrong choice.</strong> Many families need one so that relatives can travel. But it should be a decision you make knowingly, not something you discover on an invoice, and if the day is flexible there is money in it.</p>
@@ -535,25 +581,26 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 5 -->
-<div class="section" id="ecf">
-  <p class="section-label">Section 5</p>
-  <h2>The Endowment Care Fund</h2>
-  <p class="sub">The charge that pays for the next hundred years</p>
-  <hr class="rule">
-  <p>Of every charge on a cemetery quote, this is the one families question most, and it deserves a proper answer rather than a line item.</p>
-  <p>The endowment care fund is a permanent fund established for the upkeep of the cemetery. Washington state requires a cemetery to deposit a minimum percentage of every property sale into it, and Bonney Watson&rsquo;s contribution meets or exceeds that minimum: 15% of the price for ground property, and 10% for niches and crypts.</p>
+<div class="section" id="ecf" data-pdf="keep">
+  <p class="section-label" data-pdf="drop">Section 5</p>
+  <h2 data-pdf="drop">The Endowment Care Fund</h2>
+  <p class="sub" data-pdf="drop">The charge that pays for the next hundred years</p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">Of every charge on a cemetery quote, this is the one families question most, and it deserves a proper answer rather than a line item.</p>
+  <p data-pdf="drop">The endowment care fund is a permanent fund established for the upkeep of the cemetery. Washington state requires a cemetery to deposit a minimum percentage of every property sale into it, and Bonney Watson&rsquo;s contribution meets or exceeds that minimum: 15% of the price for ground property, and 10% for niches and crypts.</p>
 
   <div class="band">
-    <h3>The principal is never spent</h3>
-    <p>Both state law and your Certificate of Interment Rights say the same thing: only the income from the fund may be used, and the principal remains permanently intact.</p>
-    <p>It is not an annual fee, a maintenance contract, or a charge that returns later. It is paid once, and its earnings pay to mow, water, prune, and repair these grounds for as long as this cemetery exists, long after everyone who signed for it is gone. That is the promise it makes, and it is why it cannot be waived.</p>
+    <h3 data-pdf="summary"><span>The principal is never spent</span><span class="pdf-summary">Endowment care: the principal is never spent</span></h3>
+    <p data-pdf="drop">Both state law and your Certificate of Interment Rights say the same thing: only the income from the fund may be used, and the principal remains permanently intact.</p>
+    <p data-pdf="drop">It is not an annual fee, a maintenance contract, or a charge that returns later. It is paid once, and its earnings pay to mow, water, prune, and repair these grounds for as long as this cemetery exists, long after everyone who signed for it is gone. That is the promise it makes, and it is why it cannot be waived.</p>
+    <p class="pdf-summary">This is the charge families question most. Washington state requires a portion of every property sale to be set aside in a permanent fund, and only the income may be used. Bonney Watson deposits <strong>15% for ground property and 10% for niches and crypts</strong>. It is paid once, it is not an annual fee, and its earnings tend these grounds for as long as the park exists.</p>
   </div>
 
-  <p>One consequence surprises people. Washington&rsquo;s endowment care law ties the required deposit to the value of the property rather than to the price actually paid for it, so the contribution is still owed in full even when the property itself is discounted or given at no charge. A veteran receiving a space at no cost still contributes to the endowment care on it, figured on what the space is worth. It is not something we could waive even if we wished to, and we would rather explain that now than have you meet it on a contract.</p>
+  <p data-pdf="drop">One consequence surprises people. Washington&rsquo;s endowment care law ties the required deposit to the value of the property rather than to the price actually paid for it, so the contribution is still owed in full even when the property itself is discounted or given at no charge. A veteran receiving a space at no cost still contributes to the endowment care on it, figured on what the space is worth. It is not something we could waive even if we wished to, and we would rather explain that now than have you meet it on a contract.</p>
 </div>
 
 <!-- 6 -->
-<div class="section" id="owning">
+<div class="section" id="owning" data-pdf="drop">
   <p class="section-label">Section 6</p>
   <h2>Owning It Over Time</h2>
   <p class="sub">Moving, transferring, selling, and giving it away</p>
@@ -577,7 +624,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 7 -->
-<div class="section" id="rising">
+<div class="section" id="rising" data-pdf="drop">
   <p class="section-label">Section 7</p>
   <h2>Why Prices Keep Rising</h2>
   <p class="sub">And why that argues for deciding sooner</p>
@@ -595,22 +642,22 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 8 -->
-<div class="section" id="faq">
-  <p class="section-label">Section 8</p>
-  <h2>Common Questions</h2>
-  <p class="sub">What families ask us most about cemetery property</p>
-  <hr class="rule">
+<div class="section" id="faq" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 8</span><span class="pdf-summary">Two things families ask</span></p>
+  <h2 data-pdf="drop">Common Questions</h2>
+  <p class="sub" data-pdf="drop">What families ask us most about cemetery property</p>
+  <hr class="rule" data-pdf="drop">
 
   <div class="faq">
-    <details>
+    <details data-pdf="drop">
       <summary>Do I own the land?</summary>
       <div class="answer"><p>No. You own the exclusive right to use that space for human interment, and for no other purpose. The cemetery owns and maintains the land itself. That arrangement is what keeps the grounds cared for consistently over generations.</p></div>
     </details>
     <details>
       <summary>Can two people be buried in one space?</summary>
-      <div class="answer"><p>A space is sold for one casket interment. A casket and an urn can share a space, so a couple where one chooses cremation can rest together in a single space. Cremated remains can also be added to a space later as a second or third right of interment.</p><p>Two casket burials in one space is not something we offer as a matter of course.</p></div>
+      <div class="answer"><p data-pdf="summary"><span>A space is sold for one casket interment. A casket and an urn can share a space, so a couple where one chooses cremation can rest together in a single space. Cremated remains can also be added to a space later as a second or third right of interment.</span><span class="pdf-summary">A space is sold for one casket interment. A casket and an urn can share a space, so a couple where one chooses cremation can rest together. Cremated remains can also be added later as a second or third right of interment.</span></p><p data-pdf="drop">Two casket burials in one space is not something we offer as a matter of course.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Does my property expire if I never use it?</summary>
       <div class="answer"><p>No. Interment rights do not expire and there is nothing further to pay to keep them. If you never use the space, it passes to your family.</p></div>
     </details>
@@ -618,19 +665,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <summary>What happens if I move out of state?</summary>
       <div class="answer"><p>Your rights stay yours no matter where you live. Many families who moved decades ago still return here. If you would rather be closer to where you are now, you can transfer or sell the property, and we will handle the paperwork either way.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can I sell my cemetery property?</summary>
       <div class="answer"><p>Yes, though finding the buyer is yours to do. We do not repurchase property or locate buyers, but we will show your space and prepare the transfer once you agree on a price. Every transfer requires our written consent and recording, so it does come through us. Sellers commonly ask around half of current value.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Why is there an endowment care charge if I am buying the space outright?</summary>
       <div class="answer"><p>Because the space still has to be cared for, permanently. Washington state requires a portion of every property sale to be set aside in a fund whose earnings maintain the grounds. The principal is never spent. It is a one-time charge, and it is what ensures this park is still being mowed and tended a century from now.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can I choose any kind of marker I want?</summary>
       <div class="answer"><p>Nearly every section here requires a flush marker set level with the lawn, which is what gives the park its open character. Upright monuments are permitted in only a few designated areas. Within those rules there is a great deal of choice in stone, colour, design, and lettering.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>I already own property here. Can I change my mind about where I want to be?</summary>
       <div class="answer"><p>Often, yes. Existing property can usually be applied toward a different section. Bring your deed and we will look at what makes sense.</p></div>
     </details>
@@ -646,6 +693,16 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
   </div>
 </div>
+
+  <!-- FAMILY PDF ONLY. `.cta` above is a screen component (buttons, a scheduling link) and
+       is display:none in print, so the printed document needs its own close: what to do
+       now, and how to reach me. Hidden on screen and in the full-length Ctrl+P print by
+       `.pdf-summary`; shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Come and walk it with us</h2>
+    <p>Reading about sections is not the same as standing in one. There is no cost to look and no obligation. I would rather give you a real number than a guess, so call or email and I will put an exact quote in writing.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
 
   <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">

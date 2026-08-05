@@ -63,6 +63,20 @@ function styleHtml() {
     '   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE',
     '   WEBSITE. */',
     '.print-invite{display:none}',
+    '/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT',
+    '   version of the section it sits in, written next to the long version so the two',
+    '   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in',
+    '   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.',
+    '   It is hidden here rather than in the shared sheet for the same reason',
+    '   `.print-invite` is: that sheet is media=print and cannot say anything about',
+    '   screen. */',
+    '/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a',
+    '   <span> inside a list item or a paragraph, and the guides style those — `.charge-list',
+    '   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary',
+    '   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and',
+    '   only the screen pixel diff caught them. The family rules in guide-print.css §8a still',
+    '   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */',
+    '.pdf-summary{display:none!important}',
     '/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide',
     '   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide',
     '   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not',
@@ -70,6 +84,40 @@ function styleHtml() {
     '   guide-print.css §3). Everything else the shared sheet can express, so this block',
     '   is now one screen-only line and nothing more. */',
     '</style>',
+  ].join('\r\n');
+}
+
+// The print-selection marker, shared by every guide (sprint-16 Track A).
+//
+// `?part=` has marked the document since sprint-11 — but it did it from a five-line script
+// hand-written into the foot of markers-guide.html, which is why exactly one guide could
+// use it. It is emitted here now, so a guide adopting either mechanism needs no script of
+// its own, and `?print=` rides along on the same three lines:
+//
+//     cemetery-property-guide.html?print=family     the condensed, emailable PDF
+//     markers-guide.html?part=sizes&print=family    both at once
+//
+// With no query — which is every visit to the website, and every Ctrl+P a family does on
+// one — nothing is set and the whole guide renders and prints. That full-length print is
+// the deliberate fallback, not an accident: see docs/PDF_DEBRIEF.md.
+//
+// The value is whitelisted to lowercase words. It goes into an attribute selector, so a
+// query string is not allowed to carry anything else into the DOM.
+function modeScript() {
+  return [
+    '<script>',
+    '/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for',
+    '   the condensed family cut. Both mark <html> so the print stylesheets can select on',
+    '   them; neither does anything without the query, so the website and an ordinary',
+    '   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */',
+    '(function () {',
+    '  var q = new URLSearchParams(location.search);',
+    '  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {',
+    '    var v = q.get(pair[0]);',
+    '    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);',
+    '  });',
+    '})();',
+    '<\/script>',
   ].join('\r\n');
 }
 
@@ -93,7 +141,7 @@ for (const g of guides) {
   }
 
   // ── 2. the per-guide partial (no cover — see the header) ─────────────────────
-  const block = [BLOCK_START, styleHtml(), BLOCK_END].join('\r\n');
+  const block = [BLOCK_START, styleHtml(), modeScript(), BLOCK_END].join('\r\n');
   if (html.includes(BLOCK_START)) {
     html = html.replace(new RegExp(BLOCK_START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s\\S]*?' + BLOCK_END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), block);
   } else {
