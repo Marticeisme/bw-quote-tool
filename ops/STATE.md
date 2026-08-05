@@ -20,6 +20,14 @@ sources verified — designs/elements/reference byte-identical, only photos chan
 render eyeballed, 28 cards 0 guide-sourced). Casket/urn catalogs KEEP their Side-by-Side
 (operator's ask was PCM-scoped; flagged as an open question). NO PUSH — not pre-authorized.
 
+**s15 PUSHED AND LIVE-VERIFIED 2026-08-04** (operator: "push it all live";
+`c670f42..6d99e32`, 6 commits). Live wire checks (scratch/s15-live-verify.mjs, after
+2 deploy-lag retries): 10/10 OK — no Side-by-Side tab/table/renderer in the served
+page, 28 photo cards, zero references to the removed examples, FIVE masked plates
+byte-identical sha256 vs local (668/682/845/932/1021), deleted marker-058.jpg 404s.
+Track worktree removed (junction already gone, non-recursive-safe); `worktree-agent-*`
+branch kept until pruned.
+
 **s15 CLOSED ON MAIN 2026-08-04 — ALL THREE ITEMS IN. Final main GREEN: 8 blocks 0
 errors; 2303 passed, 0 failed across 36 suites** (reconciles: 2288 post-direct-work +
 15 pcm-upscale asserts 33→48; direct-work 2288 = 2297 − 9 net compare-rewrite);
