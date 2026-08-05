@@ -2438,3 +2438,58 @@ build is reference-docs/cemetery-property-condensed.pdf.
   `li` leaks into any family guide whose vocabulary §8b doesn't reach; and a sabotage
   needle must hit the rule that APPLIES (the family `p` rule, not `body`).
 - Full contract after the rollout: **2425 passed, 0 failed across 37 suites**.
+
+### 2026-08-05 — FAMILY QUOTE: pre-tax subtotals, and Print prints again
+
+Two bugs in the family-quote path (`index.html`), both customer-facing, fixed together.
+
+**Bug A — every "subtotal" was the tax-inclusive grand total.** `_fqBuildModel()` set each
+surface's `subtotal` to the `total` handed in by its caller — and that value
+(`_cemTotal` / `_fhTotal` / `_combCemTotal` / `_combFhTotal`, all straight out of
+`renderSummary()`) is the POST-tax grand total. So the printed line "Cemetery subtotal
+$9,856.00" repeated the grand total, the item rows above it added up to $9,700 and never
+reconciled, and the totals block then disclosed the same $156 of tax a second time. It fed
+the cemetery, funeral-home and combined quotes, on both the PDF and the print path.
+
+- New `_fqNetOf(lines)` returns the pre-tax net — exactly the rows the quote prints: every
+  non-tax, non-discount item, less every discount. `subtotal` is now that; the tax-inclusive
+  figure moved to a new `total` field on the surface.
+- `pay.cemBase` / `pay.fhBase` were reading `subtotal`, so they now read `total` — the value
+  they were getting before. **No financing or insurance figure moves.** A tracked assertion
+  pins that (`…financing base is still the POST-tax total`).
+- The on-screen Combined panel (`combUpdate()`) had the same fault plus the footnote "Tax
+  included in each subtotal where applicable." It now shows pre-tax subtotals, one
+  `Sales tax (10.4% · merchandise only)` line, then the Combined Total — matching the
+  printed quote — and custom-line tax rolls into that one line instead of a row per item.
+
+**Bug B — the Print button downloaded a PDF.** `_fqPrint()` aliased `_fqOpenForPrint()`,
+which builds the pdf-lib artifact, wraps it in a `blob:` URL and `window.open()`s it. Browsers
+DOWNLOAD a `blob:` application/pdf; they don't display it. So Print behaved like Download and
+the real HTML print page sat dormant. `_fqPrint()` now writes `_fqRenderHTML(model)` into a
+new window and calls `print()` on it. The 📥 PDF button is untouched.
+
+- **Full payment parity first.** The dormant page rendered `_fqPayTiers()` — a simplified
+  10/20/25% × 36/48/60 grid hard-coded to 0% — which disagreed with the PDF the moment a term
+  carried an APR. Page 2 was rebuilt on the same data the PDF uses: the real `FIN_TIERS` table
+  (24–72 mo, 0–10%), the WA Maxima insurance plans, the combined monthly-budget grid, the same
+  headline/intro/disclaimer strings. `_fqPayTiers()` and the model's `payTiers` field are gone.
+  Verified by extracting every money token from the real pdf-lib bytes (PyMuPDF) and diffing it
+  against the real rendered page: **35/35, 11/11, 61/61 figures identical** across
+  cemetery-only, FH-only and combined.
+- **Fit-to-page.** The sheets are drawn at a fixed 850px design width and run taller than a
+  Letter page box, so printing 1:1 pushed the "A note" block and the footer onto a sheet of
+  their own. `_fqFitForPrint(doc)` measures each sheet and injects an `@media print` zoom rule
+  — quote sheet floor 0.55 (the one-page rule wins, as in the PDF), payment sheet floor 0.68
+  (allowed to run onto a second page rather than shrink). Printed sheet counts now match the
+  pdf-lib page counts exactly: 2/2, 2/2, 3/3.
+- **The scar:** a `<script>` written into a `document.write()`'d print window **never
+  executes** — the tag lands in the DOM and that is all. The fit has to run from the opener
+  against the child document. A `beforeprint` handler is no good either: Chromium's
+  `printToPDF` doesn't fire it, so it can't be tested headless.
+- The HTML footer's "Page N of 2" was dropped: the payment sheet can run past one page, and
+  the pdf-lib footer carries no page number either.
+
+New tracked suite `tests/test-family-quote-subtotal.mjs` (31 asserts) covers both bugs:
+subtotal ≠ total, subtotal + tax = total, rows − discount = subtotal, payment bases unchanged,
+the panel's own arithmetic, Print yielding text/html with no download and a raised dialog, and
+every page-2 payment figure. Contract after the fix: **2492 passed, 0 failed across 38 suites**.
