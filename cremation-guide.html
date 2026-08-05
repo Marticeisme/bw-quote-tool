@@ -63,6 +63,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 /* ── PROSE + SIDEBAR LAYOUT ── */
 .prose-sidebar{display:grid;grid-template-columns:1.55fr 1fr;gap:36px;align-items:start;}
 .prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+/* Section-level standfirst paragraphs. These four carried their size INLINE
+   (style="font-size:14px" / "13.5px") until sprint-16 Track B. An inline style beats a
+   stylesheet outright, so they printed at their SCREEN pixel size next to 7.7pt columns and
+   guide-print.css §7 had to add an !important rule aimed at [style*="font-size"] to catch
+   them. That !important also beat the condensed family cut, which would have printed these
+   at 7.7pt inside a 10.5pt document. Same declarations, moved to a class: screen is
+   byte-identical and print can now size them from the cascade like everything else. */
+.plan-note{font-size:13.5px;color:var(--text-muted);margin-bottom:28px;}
+.sec-note{font-size:14px;color:var(--text);margin-bottom:24px;}
 .prose p strong{color:var(--navy-dark);font-weight:700;}
 .sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;}
 .sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
@@ -338,6 +347,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -345,6 +368,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <!-- ═══ STICKY NAV ═══ -->
@@ -371,7 +407,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
   <div class="cover-kicker">A Family Guide</div>
   <h1>Cremation Guide</h1>
-  <p class="cover-sub">Plans, pricing, containers, caskets, and urns: everything you need in one place.</p>
+  <p class="cover-sub" data-pdf="summary"><span>Plans, pricing, containers, caskets, and urns: everything you need in one place.</span><span class="pdf-summary">The four cremation plans, what each one costs, and what is included in the price.</span></p>
   <div class="cover-rule"></div>
   <div class="cover-footer">bonneywatson.com &middot; Available 24 Hours</div>
 </div>
@@ -393,11 +429,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §1 — UNDERSTANDING YOUR OPTIONS ═══ -->
-<div class="section-wrap" id="options">
-  <div class="section-kicker">Section 1</div>
-  <h2>Understanding Your Cremation Options</h2>
-  <div class="section-sub">Plans, pricing, and what&rsquo;s included, explained clearly.</div>
-  <div class="section-rule"></div>
+<div class="section-wrap" id="options" data-pdf="summary">
+  <div class="pdf-summary fam-answer">
+    <h2>Four<br>plans</h2>
+    <p>Every one of them includes our professional services, bringing your loved one into our care, and the cremation itself. <strong>The only thing that changes between them is how much ceremony you want.</strong> Direct cremation starts at <strong>$3,055</strong>; a full viewing and funeral before the cremation is <strong>$6,725</strong>.</p>
+  </div>
+  <div class="section-kicker" data-pdf="drop">Section 1</div>
+  <h2 data-pdf="drop">Understanding Your Cremation Options</h2>
+  <div class="section-sub" data-pdf="drop">Plans, pricing, and what&rsquo;s included, explained clearly.</div>
+  <div class="section-rule" data-pdf="drop"></div>
 
   <div class="prose-sidebar">
     <div class="prose">
@@ -418,12 +458,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §2 — PRICE PLANS ═══ -->
-<div class="section-wrap" id="plans">
-  <div class="section-kicker">Section 2 &middot; Price Plans</div>
-  <h2>Traditional Cremation Price Plans</h2>
-  <div class="section-sub">Each plan bundles services at a courtesy discount.</div>
-  <div class="section-rule"></div>
-  <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:28px;">To be eligible, the cremation container must be purchased from Bonney Watson. Sales tax is added to merchandise; Friday/Saturday/Sunday, holiday, and evening ceremonies may carry additional fees.</p>
+<div class="section-wrap" id="plans" data-pdf="keep">
+  <div class="section-kicker" data-pdf="summary"><span>Section 2 &middot; Price Plans</span><span class="pdf-summary">The four plans</span></div>
+  <h2 data-pdf="drop">Traditional Cremation Price Plans</h2>
+  <div class="section-sub" data-pdf="drop">Each plan bundles services at a courtesy discount.</div>
+  <div class="section-rule" data-pdf="drop"></div>
+  <p class="plan-note">To be eligible, the cremation container must be purchased from Bonney Watson. Sales tax is added to merchandise; Friday/Saturday/Sunday, holiday, and evening ceremonies may carry additional fees.</p>
 
   <!-- Viewing & Funeral Plan -->
   <div class="plan-card">
@@ -437,7 +477,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <div class="plan-price">$6,725</div>
       </div>
     </div>
-    <div class="plan-items">
+    <div class="plan-items" data-pdf="drop">
       <div class="plan-row"><span>Basic services of funeral director &amp; staff</span><span class="amount">$2,425</span></div>
       <div class="plan-row"><span>Embalming</span><span class="amount">$945</span></div>
       <div class="plan-row"><span>Other preparation of the deceased</span><span class="amount">$375</span></div>
@@ -467,7 +507,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <div class="plan-price">$4,995</div>
       </div>
     </div>
-    <div class="plan-items">
+    <div class="plan-items" data-pdf="drop">
       <div class="plan-row"><span>Basic services of funeral director &amp; staff</span><span class="amount">$2,425</span></div>
       <div class="plan-row"><span>Equipment, staff &amp; facilities for a ceremony</span><span class="amount">$965</span></div>
       <div class="plan-row"><span>Cremation &amp; processing</span><span class="amount">$385</span></div>
@@ -494,7 +534,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
         <div class="plan-price">$4,040</div>
       </div>
     </div>
-    <div class="plan-items">
+    <div class="plan-items" data-pdf="drop">
       <div class="plan-row"><span>Basic services of funeral director &amp; staff</span><span class="amount">$2,425</span></div>
       <div class="plan-row"><span>Limited preparation for un-embalmed remains</span><span class="amount">$535</span></div>
       <div class="plan-row"><span>Cremation &amp; processing</span><span class="amount">$385</span></div>
@@ -539,11 +579,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §3 — DEATH CERTIFICATES ═══ -->
-<div class="section-wrap" id="certificates">
-  <div class="section-kicker">Section 3</div>
-  <h2>Information About Death Certificates</h2>
-  <div class="section-sub">How many to order, how to get them, and what they cost.</div>
-  <div class="section-rule"></div>
+<div class="section-wrap" id="certificates" data-pdf="keep">
+  <div class="section-kicker" data-pdf="summary"><span>Section 3</span><span class="pdf-summary">Death certificates</span></div>
+  <h2 data-pdf="drop">Information About Death Certificates</h2>
+  <div class="section-sub" data-pdf="drop">How many to order, how to get them, and what they cost.</div>
+  <div class="section-rule" data-pdf="drop"></div>
 
   <div class="prose-sidebar">
     <div class="prose">
@@ -564,12 +604,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §4 — CONTAINERS ═══ -->
-<div class="section-wrap" id="containers">
+<div class="section-wrap" id="containers" data-pdf="drop">
   <div class="section-kicker">Section 4</div>
   <h2>Cremation Containers</h2>
   <div class="section-sub">The enclosure used before and during cremation, available in several styles and prices.</div>
   <div class="section-rule"></div>
-  <p style="font-size:14px;color:var(--text);margin-bottom:24px;">By federal law, every funeral home offering cremation must make an alternative container available. No law requires a traditional casket. The container is used before and during cremation; an urn is what you select afterward. Containers range from $480 to $1,570, and the material has no effect on the quality of the cremation.</p>
+  <p class="sec-note">By federal law, every funeral home offering cremation must make an alternative container available. No law requires a traditional casket. The container is used before and during cremation; an urn is what you select afterward. Containers range from $480 to $1,570, and the material has no effect on the quality of the cremation.</p>
 
   <div class="product-grid">
     <div class="product-card">
@@ -649,12 +689,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §5 — CASKETS ═══ -->
-<div class="section-wrap" id="caskets">
+<div class="section-wrap" id="caskets" data-pdf="drop">
   <div class="section-kicker">Section 5</div>
   <h2>Caskets Suitable for Cremation</h2>
   <div class="section-sub">For families who want a service or viewing before cremation.</div>
   <div class="section-rule"></div>
-  <p style="font-size:14px;color:var(--text);margin-bottom:24px;">A full casket gives your loved one a traditional presentation during the service, and afterward accompanies them into the cremation chamber. Many models offer personalization panels. Prices range from approximately $1,540 to $5,020.</p>
+  <p class="sec-note">A full casket gives your loved one a traditional presentation during the service, and afterward accompanies them into the cremation chamber. Many models offer personalization panels. Prices range from approximately $1,540 to $5,020.</p>
 
   <div class="product-grid">
     <div class="product-card">
@@ -805,12 +845,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §6 — RENTAL CASKETS ═══ -->
-<div class="section-wrap" id="rentals">
+<div class="section-wrap" id="rentals" data-pdf="drop">
   <div class="section-kicker">Section 6</div>
   <h2>Rental Caskets</h2>
   <div class="section-sub">A full casket for the service, without the full purchase price.</div>
   <div class="section-rule"></div>
-  <p style="font-size:14px;color:var(--text);margin-bottom:24px;">From the outside a rental casket looks identical to a purchased one; inside, a removable insert holds your loved one and later serves as the cremation container, so no separate container is needed. Rental prices range from $1,930 to $3,150.</p>
+  <p class="sec-note">From the outside a rental casket looks identical to a purchased one; inside, a removable insert holds your loved one and later serves as the cremation container, so no separate container is needed. Rental prices range from $1,930 to $3,150.</p>
 
   <div class="product-grid">
     <div class="product-card">
@@ -841,7 +881,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </div>
 
 <!-- ═══ §7–9 — URNS ═══ -->
-<div class="section-wrap" id="urns">
+<div class="section-wrap" id="urns" data-pdf="drop">
   <div class="section-kicker">Sections 7&ndash;9</div>
   <h2>Selecting an Urn</h2>
   <div class="section-sub">For ground burial, niche placement, or scattering, chosen after the cremation.</div>
@@ -1110,6 +1150,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
     </div>
   </div>
+</div>
+
+<!-- FAMILY PDF ONLY. Also carries the pointer to the catalogs, since the condensed cut
+     drops the containers, caskets, rental caskets and urn sections (audit, Tier 1:
+     "link, don't reprint"), and the note that the bundled prices itemize on request, since
+     the condensed cut drops the per-plan line items. Hidden on screen and in the
+     full-length Ctrl+P print by `.pdf-summary`; shown only by guide-print.css §8g. -->
+<div class="fam-next pdf-summary">
+  <h2>The rest of it, whenever you want it</h2>
+  <p>Every plan price above is a bundle, and I am glad to show you how any one of them is built up line by line. There are separate catalogs with photographs and prices for cremation containers, caskets suitable for cremation, rental caskets and urns, and I will send whichever ones are useful to you.</p>
+  <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
 </div>
 
 <!-- ═══ CLOSING ═══ -->

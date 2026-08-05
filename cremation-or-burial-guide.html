@@ -307,6 +307,20 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -314,6 +328,19 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
@@ -339,7 +366,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
     <h1>Cremation or Burial</h1>
-    <div class="cover-sub">Most families arrive at this fork with more assumptions than facts. This guide sets the two side by side, honestly, and does not push you toward either one. It is your decision and there is no wrong answer.</div>
+    <div class="cover-sub" data-pdf="summary"><span>Most families arrive at this fork with more assumptions than facts. This guide sets the two side by side, honestly, and does not push you toward either one. It is your decision and there is no wrong answer.</span><span class="pdf-summary">The two set side by side, honestly, and where cremated remains can go afterward.</span></div>
     <div class="cover-rule"></div>
     <div class="cover-footer">Side by side &middot; what each opens and closes &middot; printable</div>
   </div>
@@ -358,7 +385,14 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
   </div>
 
 <!-- 1 -->
-<div class="section" id="same">
+<div class="section" id="same" data-pdf="summary">
+  <!-- FAMILY PDF: the answer, up front. The whole guide exists to correct one assumption,
+       so that correction leads the document. Everything else in this section is the
+       website's long form and stays there. -->
+  <div class="pdf-summary fam-answer">
+    <h2>Almost<br>everything</h2>
+    <p>That is how much of a funeral stays the same either way. Cremation is a method of preparation, not a smaller service. <strong>A viewing, a full service, military honors, a place at the cemetery, a marker with a name on it, resting beside your spouse</strong>: every one of those is still yours if you choose cremation.</p>
+  </div>
   <p class="section-label">Section 1</p>
   <h2>What Is the Same</h2>
   <p class="sub">Almost everything, and this is where most assumptions go wrong</p>
@@ -400,11 +434,11 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 2 -->
-<div class="section" id="differs">
-  <p class="section-label">Section 2</p>
-  <h2>What Actually Differs</h2>
-  <p class="sub">Set side by side</p>
-  <hr class="rule">
+<div class="section" id="differs" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 2</span><span class="pdf-summary">What actually differs</span></p>
+  <h2 data-pdf="drop">What Actually Differs</h2>
+  <p class="sub" data-pdf="drop">Set side by side</p>
+  <hr class="rule" data-pdf="drop">
 
   <table class="compare">
     <thead>
@@ -438,7 +472,10 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <tr>
         <th scope="row">Where they can rest</th>
         <td data-label="Burial">A grave, a lawn crypt, or a mausoleum</td>
-        <td data-label="Cremation">Six options. See Section 4</td>
+        <!-- "See Section 4" is a cross-reference to a numbered section, and the condensed
+             PDF drops the numbering with the section labels. Same fact, no dangling
+             pointer. -->
+        <td data-label="Cremation" data-pdf="summary"><span>Six options. See Section 4</span><span class="pdf-summary">Six options, shown below</span></td>
       </tr>
       <tr>
         <th scope="row">Can it be divided</th>
@@ -453,52 +490,69 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     </tbody>
   </table>
 
-  <p>For the detail behind either column, we have a full <a class="inline" href="burial-guide.html">Burial Guide</a> and a full <a class="inline" href="cremation-guide.html">Cremation Guide</a>. This page is only for choosing between them.</p>
+  <p data-pdf="drop">For the detail behind either column, we have a full <a class="inline" href="burial-guide.html">Burial Guide</a> and a full <a class="inline" href="cremation-guide.html">Cremation Guide</a>. This page is only for choosing between them.</p>
 </div>
 
 <!-- 3 -->
-<div class="section" id="cost">
-  <p class="section-label">Section 3</p>
-  <h2>The Cost Difference, Honestly</h2>
-  <p class="sub">Why cremation is usually less, and when it is not</p>
-  <hr class="rule">
-  <p>Cremation is generally the less expensive path. It is worth understanding exactly why, because the reason is not what most people assume.</p>
-  <p>It is not that cremation is a lesser service, or that families who choose it are given less care. <strong>It is that placement is not required.</strong> A burial needs a space, an outer burial container, an opening and closing, and a marker. A cremation needs none of those unless you want them. Remove that whole column and the difference is large.</p>
+<div class="section" id="cost" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 3</span><span class="pdf-summary">The cost difference, honestly</span></p>
+  <h2 data-pdf="drop">The Cost Difference, Honestly</h2>
+  <p class="sub" data-pdf="drop">Why cremation is usually less, and when it is not</p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">Cremation is generally the less expensive path. It is worth understanding exactly why, because the reason is not what most people assume.</p>
+  <p data-pdf="summary"><span>It is not that cremation is a lesser service, or that families who choose it are given less care. <strong>It is that placement is not required.</strong> A burial needs a space, an outer burial container, an opening and closing, and a marker. A cremation needs none of those unless you want them. Remove that whole column and the difference is large.</span><span class="pdf-summary">Cremation usually costs less for one reason: <strong>placement is not required</strong>. A burial needs a space, a container, an opening and closing, and a marker. A cremation needs none of those unless you want them. Choose them anyway and the two land close together, which surprises most families. I will price both on paper so you are comparing real numbers.</span></p>
 
-  <div class="note">
+  <div class="note" data-pdf="drop">
     <h3>Which also means the gap narrows</h3>
     <p>A cremation with a service, a niche or an urn space, a quality urn, and an inscribed marker is not far off a simple burial. Families are often surprised by this, and it is worth knowing before you assume one path solves a budget problem.</p>
     <p>The honest summary: cremation costs less when you choose less. Choose the same things, and the two are closer than you would think.</p>
   </div>
 
-  <p>Whichever way you lean, we will price both for you on paper so you are comparing real numbers rather than impressions. There is no cost to ask and no obligation attached to it.</p>
+  <p data-pdf="drop">Whichever way you lean, we will price both for you on paper so you are comparing real numbers rather than impressions. There is no cost to ask and no obligation attached to it.</p>
 </div>
 
 <!-- 4 -->
-<div class="section" id="where">
-  <p class="section-label">Section 4</p>
-  <h2>Where Cremated Remains Can Go</h2>
-  <p class="sub">Six options, where most families believe there is one</p>
-  <hr class="rule">
-  <p>This is the most common gap we see. Families choose cremation, receive the urn, and take it home because nobody told them there was anything else. One survey found that <strong>three in ten people were unaware of the memorial options available to them.</strong> Here they are.</p>
+<div class="section" id="where" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 4</span><span class="pdf-summary">Where cremated remains can go</span></p>
+  <h2 data-pdf="summary"><span>Where Cremated Remains Can Go</span><span class="pdf-summary">Six places they can go, not one.</span></h2>
+  <p class="sub" data-pdf="summary"><span>Six options, where most families believe there is one</span><span class="pdf-summary">Families take the urn home because nobody told them there was anything else.</span></p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="drop">This is the most common gap we see. Families choose cremation, receive the urn, and take it home because nobody told them there was anything else. One survey found that <strong>three in ten people were unaware of the memorial options available to them.</strong> Here they are.</p>
+
+  <!-- FAMILY PDF ONLY: four of the six settings, photographed. `.fam-photos` is a shared
+       family-mode component (guide-print.css §8i) and carries `.pdf-summary`, so it is
+       invisible on screen and in the full-length Ctrl+P print. -->
+  <div class="fam-photos pdf-summary">
+    <figure><img src="ecl-images/ecl-open-niches.jpg" alt="A face of the Eternal Light Columbarium with glass-front niches of several sizes" loading="lazy"><figcaption>A columbarium niche</figcaption></figure>
+    <figure><img src="urn-garden-images/lug-marker-row.jpg" alt="A row of bronze memorials set into a granite border along a walkway in the Lake Urn Garden" loading="lazy"><figcaption>Buried in an urn garden</figcaption></figure>
+    <figure><img src="property-images/com-chapel-family.jpg" alt="The chapel inside the Chapel of Memories mausoleum: a marble crypt wall around a stained glass window" loading="lazy"><figcaption>A mausoleum crypt</figcaption></figure>
+    <figure><img src="granite-niche-images/tgmp-path-family.jpg" alt="The Terrace Garden Memorial Path: granite posts and benches along the flagstone path below the niche wall" loading="lazy"><figcaption>A post or bench on the path</figcaption></figure>
+  </div>
 
   <div class="costs">
     <ul class="charge-list">
-      <li><strong>A columbarium niche</strong><span>A compartment in a wall or structure, with a granite front or a glass front that lets the urn be seen. Several settings across the park</span></li>
-      <li><strong>Buried in an urn garden</strong><span>Ground burial of the urn in a garden set aside for cremated remains, marked in the same way any grave would be</span></li>
-      <li><strong>Added to a family space</strong><span>Placed with a spouse or parent who is already here. An urn can share a ground space with a casket, or a crypt with one</span></li>
-      <li><strong>A mausoleum crypt</strong><span>Above-ground entombment, for families who prefer not to be in the ground. A crypt can hold an urn on its own, or an urn alongside a casket</span></li>
-      <li><strong>A scattering garden</strong><span>Scattered in a dedicated setting, with a memorial so there is still a name and a place to come back to</span></li>
-      <li><strong>Kept at home</strong><span>A legitimate choice, and a common one. Section 6 covers what to think about first</span></li>
+      <li><strong>A columbarium niche</strong><span data-pdf="drop">A compartment in a wall or structure, with a granite front or a glass front that lets the urn be seen. Several settings across the park</span><span class="pdf-summary">A compartment in a wall, granite front or glass front. Six settings across the park.</span></li>
+      <li><strong>Buried in an urn garden</strong><span data-pdf="drop">Ground burial of the urn in a garden set aside for cremated remains, marked in the same way any grave would be</span><span class="pdf-summary">Ground burial of the urn, marked the same way any grave would be.</span></li>
+      <li><strong>Added to a family space</strong><span data-pdf="drop">Placed with a spouse or parent who is already here. An urn can share a ground space with a casket, or a crypt with one</span><span class="pdf-summary">Placed with a spouse or parent already here. An urn can share a space with a casket.</span></li>
+      <li><strong>A mausoleum crypt</strong><span data-pdf="drop">Above-ground entombment, for families who prefer not to be in the ground. A crypt can hold an urn on its own, or an urn alongside a casket</span><span class="pdf-summary">Above-ground entombment, for families who would rather not be in the ground.</span></li>
+      <li><strong>A scattering garden</strong><span data-pdf="drop">Scattered in a dedicated setting, with a memorial so there is still a name and a place to come back to</span><span class="pdf-summary">Scattered here, with a memorial so there is still a name and a place to come back to.</span></li>
+      <li><strong>Kept at home</strong><span data-pdf="drop">A legitimate choice, and a common one. Section 6 covers what to think about first</span><span class="pdf-summary">A real choice, and a common one. Say out loud who takes the urn next, and tell them.</span></li>
     </ul>
   </div>
 
-  <p>Cremated remains can also be divided, so one portion can rest here while another is scattered somewhere that mattered to them, or kept in keepsakes by several members of the family. You are not choosing only one of these.</p>
-  <p>Our <a class="inline" href="urn-placement-guide.html">Urn Placement Guide</a> and <a class="inline" href="scattering-guide.html">Scattering Garden Guide</a> cover the settings in detail, with photographs.</p>
+  <p data-pdf="summary"><span>Cremated remains can also be divided, so one portion can rest here while another is scattered somewhere that mattered to them, or kept in keepsakes by several members of the family. You are not choosing only one of these.</span><span class="pdf-summary">Remains can also be divided, so a portion rests here and a portion is scattered somewhere that mattered. You are not choosing only one of these.</span></p>
+  <p data-pdf="drop">Our <a class="inline" href="urn-placement-guide.html">Urn Placement Guide</a> and <a class="inline" href="scattering-guide.html">Scattering Garden Guide</a> cover the settings in detail, with photographs.</p>
 </div>
 
 <!-- 5 -->
-<div class="section" id="resting">
+<div class="section" id="resting" data-pdf="summary">
+  <!-- FAMILY PDF: page 2 lists the six settings, and this is the question that list
+       raises. Three web cards and four paragraphs reduced to the three things a permanent
+       place does. -->
+  <div class="pdf-summary">
+    <p class="section-label">Why a place matters</p>
+    <p>A resting place is not for the person who has died. <strong>It is findable</strong>, so a grandchild not yet born can stand in front of it one day. <strong>It belongs to everyone</strong>, where an urn in one person's home belongs to that household. <strong>It outlasts all of us</strong>, because the endowment care fund maintains it in perpetuity. None of that makes keeping an urn at home wrong. It is worth knowing what a permanent place adds, so that keeping the urn is something you chose rather than something that happened.</p>
+  </div>
   <p class="section-label">Section 5</p>
   <h2>Why a Resting Place Matters</h2>
   <p class="sub">What a permanent place actually does, and for whom</p>
@@ -524,7 +578,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 6 -->
-<div class="section" id="question">
+<div class="section" id="question" data-pdf="drop">
   <p class="section-label">Section 6</p>
   <h2>The Question Nobody Asks</h2>
   <p class="sub">What happens to the urn after you</p>
@@ -544,14 +598,14 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
 </div>
 
 <!-- 7 -->
-<div class="section" id="faq">
-  <p class="section-label">Section 7</p>
-  <h2>Common Questions</h2>
-  <p class="sub">What families ask us most about this choice</p>
-  <hr class="rule">
+<div class="section" id="faq" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 7</span><span class="pdf-summary">Three things families ask</span></p>
+  <h2 data-pdf="drop">Common Questions</h2>
+  <p class="sub" data-pdf="drop">What families ask us most about this choice</p>
+  <hr class="rule" data-pdf="drop">
 
   <div class="faq">
-    <details>
+    <details data-pdf="drop">
       <summary>If we choose cremation, can we still have a viewing?</summary>
       <div class="answer"><p>Yes. The preparation is the same as for a burial, and a casket can be rented for the viewing rather than purchased. The cremation takes place afterward. Many families do exactly this.</p></div>
     </details>
@@ -561,21 +615,21 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     </details>
     <details>
       <summary>Do we have to buy cemetery property if we choose cremation?</summary>
-      <div class="answer"><p>No. That is the main reason cremation usually costs less. But not being required is different from not being worth it, and Sections 4 and 5 are there so the choice is an informed one rather than a default.</p></div>
+      <div class="answer"><p data-pdf="summary"><span>No. That is the main reason cremation usually costs less. But not being required is different from not being worth it, and Sections 4 and 5 are there so the choice is an informed one rather than a default.</span><span class="pdf-summary">No. That is the main reason cremation usually costs less. But not being required is different from not being worth it, which is what the six settings above are there for.</span></p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can my spouse and I be together if one of us is cremated?</summary>
       <div class="answer"><p>Yes. An urn can share a ground space with a casket, or be placed in a crypt alongside one, so a couple who choose differently can still rest in the same place. It is a common arrangement and considerably less expensive than two separate spaces.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can the ashes be divided among the family?</summary>
       <div class="answer"><p>Yes, and many families do. A portion can rest here while another is scattered somewhere meaningful, with keepsake urns or jewelry for those who want to hold something. Choosing a resting place does not mean choosing only one thing.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>If we scatter, is there still somewhere to visit?</summary>
       <div class="answer"><p>There can be. Scattering in a dedicated garden here comes with a memorial carrying the name, so there is a permanent place to return to. Scattering privately somewhere meaningful leaves no marker and no record, which some families are at peace with and others come to regret.</p><p>You do not have to choose between them. Many families scatter a portion in the place that mattered and keep a portion here, so there is somewhere for everyone else to visit.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Can we scatter somewhere that mattered to them?</summary>
       <div class="answer"><p>Very often, yes, and it is one of the most common things families do. Washington does not restrict where cremated remains may be kept or scattered, and a family member with the legal right to control the disposition does not need a permit.</p><p>What is needed is permission from whoever controls the place. Private land needs the owner&rsquo;s consent. National parks go through the chief park ranger, and state trust uplands through the Department of Natural Resources. Public navigable waters, including Puget Sound, rivers, streams, and lakes, are open to it. Beyond the mean lower low water mark, federal burial-at-sea rules apply. City and county parks set their own rules, so ask first.</p><p>One instruction the state is firm about: scatter the contents only, never the urn itself.</p></div>
     </details>
@@ -583,7 +637,7 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
       <summary>We have had an urn at home for years. Is it too late?</summary>
       <div class="answer"><p>Not at all, and you would be in good company. Families come to us with urns they have kept for ten or twenty years, often after a move or a death in the family made the question urgent. There is no time limit and nothing to explain.</p></div>
     </details>
-    <details>
+    <details data-pdf="drop">
       <summary>Which do you think we should choose?</summary>
       <div class="answer"><p>That is genuinely not ours to say. We serve as many families choosing one as the other, and we do not think either is better. What we do care about is that it is a decision rather than an assumption, and that whichever you choose, there is a plan for where they will rest.</p></div>
     </details>
@@ -599,6 +653,16 @@ a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var
     <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
   </div>
 </div>
+
+  <!-- FAMILY PDF ONLY. `.cta` above is a screen component (buttons, a scheduling link) and
+       is display:none in print, so the printed document needs its own close: what to do
+       now, and how to reach me. Hidden on screen and in the full-length Ctrl+P print by
+       `.pdf-summary`; shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>No decision is needed in the room</h2>
+    <p>I will lay both out and price them side by side, so you are comparing real numbers rather than impressions. There is no cost to ask and nothing attached to it. Take as long as you need afterward.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
 
   <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">

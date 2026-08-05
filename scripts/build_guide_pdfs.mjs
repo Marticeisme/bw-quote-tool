@@ -22,7 +22,13 @@ const JOBS = [
   // for. Same output path on purpose: this REPLACES the full-length download rather than
   // sitting beside it. If the operator later wants both, add a second job here.
   ['cemetery-property-guide.html?print=family', 'pdf-assets/Cemetery Property Guide.pdf'],
-  ['cremation-or-burial-guide.html', 'pdf-assets/Cremation or Burial.pdf'],
+  // ── THE REMAINING TIER-1 GUIDES, CONDENSED (sprint-16 Track B) ────────────────────
+  // Same arrangement as Cemetery Property above and for the same reason: the condensed cut
+  // REPLACES the full-length download at the guide's existing output path, and the
+  // full-length document stays reachable by Ctrl+P on the web page. Targets come from the
+  // Tier-1 table in docs/PDF_AUDIT.md and are held by PER_GUIDE_CAPS in
+  // verify_guide_pages.mjs, so a future edit that re-lengthens one of them fails.
+  ['cremation-or-burial-guide.html?print=family', 'pdf-assets/Cremation or Burial.pdf'],
   // TWO PDFs FROM ONE PAGE — sprint-11 Track B. Operator, 2026-08-02: "separate the PDF
   // version entirely. One of the marker guides will focus on the marker sizes and colors
   // while the other focuses just on the photos, diamond etching, and the sizes of photos."
@@ -34,19 +40,19 @@ const JOBS = [
   ['markers-guide.html?part=photos', 'pdf-assets/Marker Photos and Etching.pdf'],
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
-  ['who-decides-guide.html',        'pdf-assets/Who Decides.pdf'],
+  ['who-decides-guide.html?print=family', 'pdf-assets/Who Decides.pdf'],
   ['urn-placement-guide.html',      'pdf-assets/Urn Placement Options.pdf'],
-  ['pre-planning-guide.html',       'pdf-assets/Pre-Planning Guide.pdf'],
-  ['burial-guide.html',             'pdf-assets/Burial Guide.pdf'],
-  ['cremation-guide.html',          'pdf-assets/Cremation Guide.pdf'],
+  ['pre-planning-guide.html?print=family', 'pdf-assets/Pre-Planning Guide.pdf'],
+  ['burial-guide.html?print=family', 'pdf-assets/Burial Guide.pdf'],
+  ['cremation-guide.html?print=family', 'pdf-assets/Cremation Guide.pdf'],
   ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
-  ['direct-cremation.html',         'pdf-assets/Direct Cremation Plan Example.pdf'],
+  ['direct-cremation.html?print=family', 'pdf-assets/Direct Cremation Plan Example.pdf'],
   ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
   ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
   ['terramation-guide.html',        'pdf-assets/Terramation Guide.pdf'],
   ['granite-niches-guide.html',     'pdf-assets/Granite Niches Guide.pdf'],
   ['glass-front-niches-guide.html', 'pdf-assets/Glass-Front Niche Guide.pdf'],
-  ['urn-gardens-guide.html',        'pdf-assets/Urn Gardens at Washington Memorial Park.pdf'],
+  ['urn-gardens-guide.html?print=family', 'pdf-assets/Urn Gardens at Washington Memorial Park.pdf'],
   // THE FIVE PER-AREA PHOTO GUIDES — sprint-13, area-guides. Operator, 2026-08-03:
   // "larger more visual guides for each section that we still have a lot of inventory
   // for." One document per area, photo-led, capped at 8 printed pages each in
