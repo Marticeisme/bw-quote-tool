@@ -366,7 +366,13 @@ const SABOTAGE = [
   ['a charge was edited by hand', (s) => ({ ...s, [PAGES.gomn]: s[PAGES.gomn].replace(/(data-fee="gomn\.OC">)\$875/, '$1$895') })],
   ['a rights count was overstated', (s) => ({ ...s, [PAGES.tgmp]: s[PAGES.tgmp].replace(/(data-rights="tgn">)[^<]*/, '$14 rights of interment') })],
   ['a wide span lost its typical band', (s) => ({ ...s, [PAGES.mvc]: s[PAGES.mvc].replace(/ data-typical="mvc"/g, '') })],
-  ['the borrowed schedule lost its provenance', (s) => ({ ...s, [PAGES.tgmp]: s[PAGES.tgmp].replace(TGMP.FEE_SOURCE.schedule, 'our schedule') })],
+  // replaceALL, not replace. Sprint-16 Track D gave the Terrace Garden footnote a short
+  // `.pdf-summary` twin for the condensed PDF, so the schedule name is now on the page
+  // TWICE — and a sabotage that renamed only the first occurrence left the second one
+  // standing, the gate correctly said the page still names its source, and the self-test
+  // scored that as MISSED. The sabotage was the thing that was weak: "lost its
+  // provenance" means gone, not "gone from one of the two places it is written".
+  ['the borrowed schedule lost its provenance', (s) => ({ ...s, [PAGES.tgmp]: s[PAGES.tgmp].replaceAll(TGMP.FEE_SOURCE.schedule, 'our schedule') })],
   ['a superseded charge came back', (s) => ({ ...s, [PAGES.gomn]: s[PAGES.gomn].replace('confirmed 2026-07-31', 'confirmed 2026-07-31 (was $835)') })],
   ['a photograph was renamed but not moved', (s) => ({ ...s, [PAGES.roac]: s[PAGES.roac].replace('roac-images/roac-wall-d.jpg', 'roac-images/roac-wall-dd.jpg') })],
 ];

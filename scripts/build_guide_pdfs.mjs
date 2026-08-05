@@ -41,11 +41,11 @@ const JOBS = [
   ['medicaid-family-guide.html',   'pdf-assets/Medicaid and Planning Ahead.pdf'],
   ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
   ['who-decides-guide.html?print=family', 'pdf-assets/Who Decides.pdf'],
-  ['urn-placement-guide.html',      'pdf-assets/Urn Placement Options.pdf'],
+  ['urn-placement-guide.html?print=family', 'pdf-assets/Urn Placement Options.pdf'],
   ['pre-planning-guide.html?print=family', 'pdf-assets/Pre-Planning Guide.pdf'],
   ['burial-guide.html?print=family', 'pdf-assets/Burial Guide.pdf'],
   ['cremation-guide.html?print=family', 'pdf-assets/Cremation Guide.pdf'],
-  ['scattering-guide.html',         'pdf-assets/Scattering Garden Pricing.pdf'],
+  ['scattering-guide.html?print=family', 'pdf-assets/Scattering Garden Pricing.pdf'],
   ['direct-cremation.html?print=family', 'pdf-assets/Direct Cremation Plan Example.pdf'],
   ['vault-guide.html',              'pdf-assets/Burial Vault Guide.pdf'],
   ['outside-marker-rules.html',     'pdf-assets/Outside Marker Rules and Pricing.pdf'],
@@ -58,11 +58,22 @@ const JOBS = [
   // for." One document per area, photo-led, capped at 8 printed pages each in
   // verify_guide_pages.mjs (PER_GUIDE_CAPS) rather than the standard 6 — the photographs
   // are the point of these and six pages cannot hold them at a size worth looking at.
-  ['roac-guide.html',               'pdf-assets/Rock of Ages Columbarium.pdf'],
-  ['mvc-niches-guide.html',         'pdf-assets/Mountain View New Glass-Front Niches.pdf'],
-  ['ecl-guide.html',                'pdf-assets/Eternal Light Columbarium.pdf'],
-  ['gomn-guide.html',               'pdf-assets/Garden of Meditation Niches.pdf'],
-  ['terrace-garden-guide.html',     'pdf-assets/Terrace Garden Memorial Path.pdf'],
+  //
+  // ── CONDENSED, sprint-16 Track D ────────────────────────────────────────────────
+  // The five area guides now build from `?print=family` too. docs/PDF_AUDIT.md, Tier 2:
+  // "A family looking at one columbarium does not need eight pages. Page per: the
+  // courtyard, the faces, what it costs." The photographs are still the point of these
+  // documents and are still full-column and uncropped — what came out is the second and
+  // third paragraph of every section, the availability tables that repeat a range the
+  // cards above already print, and the six-item "coming to see it" checklists. Same
+  // output paths, so the condensed cut REPLACES the download; the full-length document
+  // is still what a family gets from Ctrl+P on the web page. Targets held at 3 in
+  // PER_GUIDE_CAPS (verify_guide_pages.mjs).
+  ['roac-guide.html?print=family',           'pdf-assets/Rock of Ages Columbarium.pdf'],
+  ['mvc-niches-guide.html?print=family',     'pdf-assets/Mountain View New Glass-Front Niches.pdf'],
+  ['ecl-guide.html?print=family',            'pdf-assets/Eternal Light Columbarium.pdf'],
+  ['gomn-guide.html?print=family',           'pdf-assets/Garden of Meditation Niches.pdf'],
+  ['terrace-garden-guide.html?print=family', 'pdf-assets/Terrace Garden Memorial Path.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added
