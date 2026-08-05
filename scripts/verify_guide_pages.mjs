@@ -175,6 +175,13 @@ const CAPPED_GUIDES = [
 //
 // A cap here REPLACES the shared cap for that guide; it may be lower or higher.
 const PER_GUIDE_CAPS = new Map([
+  // Cemetery Property is the first guide built from the condensed `?print=family` cut
+  // (sprint-16 Track A). It came down from four pages to two, and two is the requirement
+  // rather than a happy accident — docs/PDF_DEBRIEF.md, rule 1: "A family PDF is two
+  // pages ... If it does not fit, cut content, never type size." Held here at 2 so a
+  // future edit that quietly re-lengthens it fails instead of drifting back toward the
+  // shared six.
+  ['Cemetery Property Guide.pdf', 2],
   ['Granite Niches Guide.pdf', 8],
   ['Glass-Front Niche Guide.pdf', 8],
   ['Rock of Ages Columbarium.pdf', 8],

@@ -171,7 +171,16 @@ for (const page of PAGES) {
     const kind = textOf(pluck(c, /<div class="pf-kind">([\s\S]*?)<\/div>/) || '');
     if (!kind) fail(`${label}: no pf-kind line`);
 
-    const blurb = textOf(pluck(c, /<p>([\s\S]*?)<\/p>/) || '');
+    // The card sentence, as the WEBSITE shows it. Two things had to change here in
+    // sprint-16, both from the condensed-PDF convention (docs/PDF_DEBRIEF.md):
+    //   - a card paragraph may now carry `data-pdf="summary"`, so the opening tag is no
+    //     longer literally `<p>`. Matching only `<p>` reported "no description" on four
+    //     cards that plainly have one;
+    //   - where it does, the paragraph holds BOTH versions, and the short one is
+    //     `.pdf-summary`, hidden everywhere except the `?print=family` build. It is
+    //     stripped before measuring, or every such card reads as double the length it is.
+    const cScreen = c.replace(/<span class="pdf-summary">[\s\S]*?<\/span>/g, '');
+    const blurb = textOf(pluck(cScreen, /<p\b[^>]*>([\s\S]*?)<\/p>/) || '');
     if (!blurb) fail(`${label}: no description`);
     else {
       const sentences = blurb.split(/[.!?](?:\s|$)/).filter((s) => s.trim().length > 1).length;

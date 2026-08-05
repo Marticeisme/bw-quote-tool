@@ -481,3 +481,184 @@
      verify_guide_pages.mjs asserts they stay together.) */
   #all-pricing { break-before: auto !important; page-break-before: auto !important; }
 }
+
+/* =====================================================================================
+   8. THE CONDENSED FAMILY PDF  —  `?print=family`   (sprint-16 Track A)
+
+   Operator's brief, quoted in docs/PDF_DEBRIEF.md: "the pdf versions are supposed to be
+   condensed and easier to read so I can quickly email them to families." Nothing in the
+   pipeline used to condense anything; it only shrank, and by s15 the type had been
+   squeezed to 7.7pt (§7) with a two-column flow on top. This section is the other half of
+   the answer: SELECT the content in markup, then put the type back up.
+
+   HOW A GUIDE ADOPTS IT — three annotations and nothing else. No per-guide print CSS.
+
+     <div class="section" data-pdf="keep">…</div>       stays, whole
+     <div class="section" data-pdf="drop">…</div>       gone from the family PDF
+     <div class="section" data-pdf="summary">           long version stays on the website,
+       …full web content…                               short version is what prints
+       <div class="pdf-summary">…40 words…</div>
+     </div>
+
+   The short version lives INSIDE the guide, next to the long one, so it cannot drift —
+   the same anti-drift rule the repo applies everywhere else. `data-pdf` is inert in every
+   other medium: on screen, in an ordinary Ctrl+P, and in the `?part=` PDFs.
+
+   THE FULL-LENGTH PRINT STILL WORKS. A family who hits Ctrl+P on the web page gets the
+   whole document, because nothing here applies without the query. That is the stated
+   fallback, not an accident.
+
+   `.pdf-summary{display:none}` for SCREEN is in the per-guide block that
+   scripts/build_guide_print_system.mjs writes — this sheet is media=print and cannot say
+   anything about screen. Same arrangement as `.print-invite`, for the same reason.
+   ===================================================================================== */
+
+/* ── 8a. SELECTION ─────────────────────────────────────────────────────────────────
+   Exactly three rules. Everything else in §8 is type and geometry. */
+[data-print-mode="family"] [data-pdf="drop"] { display: none !important; }
+[data-print-mode="family"] [data-pdf="summary"] > *:not(.pdf-summary) { display: none !important; }
+[data-print-mode="family"] .pdf-summary { display: block !important; }
+
+@media print {
+
+  /* ── 8b. TYPE AND GEOMETRY, ONCE, FOR EVERY GUIDE ────────────────────────────────
+     | Body            | 10.5pt / 1.5                                 |
+     | Columns         | ONE — the document-wide multicol off         |
+     | Section heading | 25px Cormorant, navy #1e3a55                 |
+     | Card sentence   | 12px                                         |
+     | Photo           | 16:9, full column width                      |
+     | Page            | letter, 0.42in 0.5in 0.46in — UNCHANGED (§1) |
+     | Running footer  | unchanged — it works                         |
+
+     Every selector here is prefixed with the mode attribute, so §7's estate-wide 7.7pt
+     compensation is untouched for the guides that have not adopted yet. The prefix is
+     also what wins the cascade: §7 sets `p{font-size:7.7pt}` and the guides' own condense
+     blocks set `.section p{font-size:8pt}`, and an attribute selector on the root beats
+     both without a single !important. */
+  html[data-print-mode="family"] body { font-size: 10.5pt; line-height: 1.5; }
+  [data-print-mode="family"] .section p,
+  [data-print-mode="family"] .band p,
+  [data-print-mode="family"] .note p,
+  [data-print-mode="family"] .faq .answer p,
+  [data-print-mode="family"] p { font-size: 10.5pt; line-height: 1.5; max-width: none; }
+
+  /* ONE COLUMN. The guides' condense blocks flow the whole sheet through
+     `column-count:2`; the debrief's finding is that a two-column 8pt broadsheet is the
+     visual language of a classified-ads page, not of a document about where someone will
+     be buried, and that it scrambles the extracted reading order as well. */
+  [data-print-mode="family"] .doc-sheet { column-count: 1 !important; column-gap: normal !important; }
+
+  /* Masthead: the same cream plate and navy mark as every other guide (§3), with the type
+     back at a size a family reads rather than the condense block's 14pt/8pt. */
+  [data-print-mode="family"] .cover h1 { font-size: 20pt; line-height: 1.1; margin-bottom: 4px; }
+  [data-print-mode="family"] .cover-sub { font-size: 10.5pt; line-height: 1.35; font-style: italic; }
+  [data-print-mode="family"] .cover-kicker { font-size: 8px; letter-spacing: .16em; margin-bottom: 4px; }
+  [data-print-mode="family"] .cover-logo { height: 20px !important; }
+  /* The orange rule under the subtitle duplicates the navy border §3 already draws under
+     the whole plate, and in a two-page document that is a quarter inch of nothing. */
+  [data-print-mode="family"] .cover-rule { display: none !important; }
+
+  [data-print-mode="family"] .section { padding: 4px 0 2px; }
+  [data-print-mode="family"] .section + .section { border-top: 0; }
+  [data-print-mode="family"] .section h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 25px; font-weight: 600; color: #1e3a55; line-height: 1.15; margin: 0 0 2px;
+  }
+  [data-print-mode="family"] .section .sub { font-size: 10.5pt; margin: 0 0 4px; }
+  [data-print-mode="family"] .section-label { font-size: 8pt; letter-spacing: .14em; margin: 0 0 5px; }
+  [data-print-mode="family"] .rule { display: none !important; }
+
+  /* ── 8c. THE ANSWER, UP FRONT ────────────────────────────────────────────────────
+     Structure item 2: 40-60 words, the single fact the guide exists to convey, set beside
+     a heading rather than under a "Section 1" label. */
+  [data-print-mode="family"] .fam-answer {
+    display: grid !important; grid-template-columns: 1.3in 1fr; gap: 0;
+    margin: 7px 0 11px; break-inside: avoid;
+  }
+  [data-print-mode="family"] .fam-answer h2 {
+    /* set beside the paragraph, not above it */
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 20pt; font-weight: 600; color: #a5450a; line-height: 1.05; margin: 0;
+    padding-right: 14px;
+  }
+  [data-print-mode="family"] .fam-answer p {
+    margin: 0; padding-left: 16px; border-left: 1px solid #ddd6c8;
+  }
+
+  /* ── 8d. THE CHOICES, AS PHOTOGRAPHS ─────────────────────────────────────────────
+     §3b turns the card grid into a single printed column, which is right for a guide that
+     runs six pages and wrong for one that runs two: five cards down one column is most of
+     three pages. Two up, photo 16:9, full column width, never a thumbnail. */
+  [data-print-mode="family"] .pf-grid {
+    display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 8px;
+  }
+  [data-print-mode="family"] .pf-card { margin: 0; }
+  /* 16:9 and full column width, as §3b — the photograph is the point of the component and
+     does not become a thumbnail here either. Everything else on the card was measured
+     against the page-1 fold rather than chosen: two rows of 16:9 photographs under the
+     masthead and the answer block come to 911px of a 955px live area, and the room for
+     that came out of padding and leading, never out of the photograph or the body type. */
+  [data-print-mode="family"] .pf-photo { aspect-ratio: 16 / 9; }
+  [data-print-mode="family"] .pf-body { padding: 6px 10px 7px; }
+  [data-print-mode="family"] .pf-card h3 { font-size: 13.5pt; margin-bottom: 1px; }
+  [data-print-mode="family"] .pf-kind { font-size: 7pt; letter-spacing: .1em; margin-bottom: 4px; }
+  /* 12px, the one prose size in this mode below the 10.5pt body: a card sentence is a
+     caption under a photograph, and the geometry table in the debrief sets it there. */
+  [data-print-mode="family"] .pf-card p { font-size: 12px; line-height: 1.45; margin: 0 0 6px; }
+  [data-print-mode="family"] .pf-price { padding-top: 5px; }
+  [data-print-mode="family"] .pf-price-label { font-size: 7pt; margin-bottom: 2px; }
+  [data-print-mode="family"] .pf-range { font-size: 15pt; }
+  [data-print-mode="family"] .pf-ask .pf-range { font-size: 11pt; }
+  [data-print-mode="family"] .pf-full { font-size: 7.5pt; margin-top: 3px; }
+  /* One card may run the full width with its photograph beside the text instead of above
+     it — the band that carries the fifth property type without spending a second row on a
+     card that would sit alone. `order` is used rather than moving the markup, because the
+     SCREEN order of the cards is reviewed and must not change. */
+  [data-print-mode="family"] .pf-fam-wide {
+    grid-column: 1 / -1; order: 9;
+    display: grid; grid-template-columns: 0.85fr 1.6fr;
+  }
+  [data-print-mode="family"] .pf-fam-wide .pf-photo { aspect-ratio: auto; height: 100%; }
+  [data-print-mode="family"] .pf-fam-wide .pf-price {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  }
+  [data-print-mode="family"] .pf-fam-wide .pf-price-label { margin-bottom: 0; }
+  [data-print-mode="family"] .pf-fam-wide .pf-body { padding: 6px 12px 7px; }
+
+  /* ── 8e. WHAT ELSE YOU PAY FOR ───────────────────────────────────────────────────
+     Structure item 4: the charges as a two-column name-and-half-sentence list. */
+  [data-print-mode="family"] .costs { padding: 1px 16px; margin: 2px 0 7px; }
+  [data-print-mode="family"] .charge-list { column-count: 2; column-gap: 26px; }
+  [data-print-mode="family"] .charge-list li { padding: 2px 0; break-inside: avoid; }
+  [data-print-mode="family"] .charge-list strong { font-size: 11pt; margin-bottom: 0; }
+  [data-print-mode="family"] .charge-list span { font-size: 10pt; line-height: 1.25; }
+  /* A guide may carry a family-only item at the end of the list; on screen it is hidden and
+     the guide zeroes the hairline above it, because otherwise the rule sits under nothing.
+     Here that item IS visible, so the hairline is the divider it was drawn as. */
+  [data-print-mode="family"] .charge-list li:has(+ li.pdf-summary) { border-bottom: 1px solid #ddd6c8; }
+
+  /* ── 8f. CALLOUTS AND QUESTIONS ────────────────────────────────────────────────── */
+  [data-print-mode="family"] .band { padding: 8px 14px; margin: 4px 0 6px; }
+  [data-print-mode="family"] .band h3 { font-size: 14pt; margin: 0 0 4px; }
+  [data-print-mode="family"] .note { padding: 12px 16px; margin: 8px 0 10px; }
+  [data-print-mode="family"] .note h3 { font-size: 15pt; margin: 0 0 5px; }
+  [data-print-mode="family"] .faq { border-top: 0; margin-top: 0; }
+  [data-print-mode="family"] .faq summary { font-size: 14pt; padding: 5px 0 2px; }
+  [data-print-mode="family"] .faq .answer { padding: 0 0 5px; }
+
+  /* ── 8g. THE NEXT STEP ───────────────────────────────────────────────────────────
+     Structure item 6, and rule 4: every family PDF ends with Martice's name, phone and
+     email and an invitation to ask for a real quote. The guides' `.cta` is a screen
+     component with buttons and is display:none in print, so the printed close is its own
+     block. It carries `.pdf-summary`, which is what keeps it off the website and out of
+     the full-length print. */
+  [data-print-mode="family"] .fam-next {
+    border-top: 3px solid #2c445e; margin-top: 5px; padding-top: 6px; break-inside: avoid;
+  }
+  [data-print-mode="family"] .fam-next h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px; font-weight: 600; color: #1e3a55; margin: 0 0 5px;
+  }
+  [data-print-mode="family"] .fam-next p { margin: 0 0 6px; max-width: none; }
+  [data-print-mode="family"] .fam-next .fam-sign { margin: 0; }
+}
