@@ -126,6 +126,14 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
          border-bottom:1.5px solid rgba(200,84,10,.35);padding-bottom:1px;}
 .maplink:hover{color:var(--orange-dark);}
 
+/* THE MAP LINES, ON SCREEN AND ON PAPER (sprint-17, same mechanism as the glass-front
+   guide). Operator, 2026-08-05: a family reading a printed or emailed copy cannot click
+   a link, so "Open the ... map" was a dead sentence on paper. Each map line carries both
+   halves: `.map-screen` is the clickable sentence, `.map-print` is the paper sentence,
+   and exactly one is ever visible. Plain classes, NOT `data-print-suppress` — the print
+   generator strips and re-applies that attribute, so a hand-authored one would vanish. */
+.map-print{display:none;}
+
 .doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
 .doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
 .doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
@@ -327,6 +335,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
      what the operator overruled, and reviving it would shrink one photograph for a page
      budget that has since been raised. Verified dead by grep before removal. */
   .maplink{font-size:7.5pt;border-bottom:none;font-weight:700}
+  /* The paper half of every map line takes over here. `!important` on both because
+     guide-print.css is linked after this block and the screen `.map-print{display:none}`
+     lives in the same stylesheet — order alone is too fragile for a rule whose failure
+     mode is a family holding a sheet with a sentence missing from it. */
+  .map-screen{display:none!important}
+  .map-print{display:inline!important}
   /* `.prose .footnote` (0,2,0) out-ranks `.prose p` (0,1,1), so the screen's 13px
      survived into print and the footnotes set larger than the body copy. */
   .footnote,.prose .footnote{font-size:6.5pt;line-height:1.3;margin-top:4px;margin-bottom:4px}
@@ -438,7 +452,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <p><strong>A niche is a compartment for cremated remains</strong> inside a permanent memorial structure. The urn goes in and the niche is closed with a stone front. That front is what you and your family see and touch when you visit.</p>
       <p><strong>&ldquo;Granite front&rdquo; means the closure is stone.</strong> The contents are not visible; the name, dates and any inscription are engraved into the granite or carried on a bronze plate. The wall reads as one uniform stone face rather than a row of individual displays.</p>
       <p><strong>Two rights of interment come with the niche</strong> at all three places here, which is two people, usually a husband and wife, on one contract. It is a permanent address, cared for by the cemetery, with no ground burial and no grave to open.</p>
-      <p><strong>If you want the urn to be visible</strong>, that is a glass front, at the Mountain View and Eternal Light columbariums. Neither is covered here. See the <a class="maplink" href="glass-front-niches-guide.html">Glass-Front Niche Guide</a>, or the live maps (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>).</p>
+      <p><strong>If you want the urn to be visible</strong>, that is a glass front, at the Mountain View and Eternal Light columbariums. Neither is covered here. See the <a class="maplink" href="glass-front-niches-guide.html">Glass-Front Niche Guide</a><span class="map-screen">, or the live maps (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>)</span>.</p>
     </div>
 
     <div class="prose">
@@ -495,7 +509,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </table>
 
       <div class="prose">
-        <p><a class="maplink" href="MAPS/ROAC_NicheMap.html">Open the Rock of Ages niche map</a> to see live availability and the exact price of any niche.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/ROAC_NicheMap.html">Rock of Ages niche map</a> shows the columbarium wall by wall, with what each niche costs and whether it&rsquo;s still open.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Rock of Ages niche map, wall by wall, with prices and what&rsquo;s still open.</span></p>
       </div>
     </div>
   </div>
@@ -553,7 +567,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
 
       <div class="prose">
-        <p><a class="maplink" href="MAPS/GOMN_NicheMap.html">Open the Garden of Meditation niche map</a> to see which niches are available and their exact prices.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/GOMN_NicheMap.html">Garden of Meditation niche map</a> shows the wall row by row, with what each niche costs and whether it&rsquo;s still open.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Garden of Meditation niche map, row by row, with prices and what&rsquo;s still open.</span></p>
       </div>
     </div>
   </div>
@@ -598,7 +612,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       </div>
 
       <div class="prose">
-        <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see the niche bank with the price and availability of every niche in it.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/TGMP_Map.html">Terrace Garden Memorial Path map</a> shows the niche bank with what every niche in it costs and whether it&rsquo;s still open.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Terrace Garden Memorial Path map, with the price and availability of every niche in the bank.</span></p>
       </div>
     </div>
   </div>
@@ -644,7 +658,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
       <div class="prose">
         <p class="footnote"><strong>About these charges.</strong> They are <strong>not printed on this location&rsquo;s own schedule</strong>. No fees appear on it at all. The amounts above follow the <strong>Mountain View Columbarium, June 2026</strong> schedule, confirmed 2026-07-29 as applying across the whole Terrace Garden Memorial Path. Your family service director will confirm the current charges before quoting.</p>
-        <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see every placement along the path with its price and rights count.</p>
+        <p><span class="map-screen">Our <a class="maplink" href="MAPS/TGMP_Map.html">Terrace Garden Memorial Path map</a> shows every placement along the path with its price and how many rights it carries.</span><span class="map-print">Ask me and I&rsquo;ll walk you through our Terrace Garden Memorial Path map, every placement along the path, with prices and rights.</span></p>
       </div>
     </div>
   </div>
