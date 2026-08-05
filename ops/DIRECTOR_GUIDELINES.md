@@ -14,7 +14,7 @@ trivial audit fixes; tracks build.
      — someone else works on `docs/` and `*-guide.html` in this same tree.
    - Verify claimed prior state against actual artifacts:
      - `npm run check` → `index.html: 8 blocks, 0 errors`
-     - `npm test` → `2425 passed, 0 failed across 37 suites`
+     - `npm test` → `2461 passed, 0 failed across 37 suites`
      - if a sprint depends on a captured baseline, confirm the artifacts and
        `signatures.json` still exist where `STATE.md` says
      - if a sprint depends on extracted templates, re-verify their SHA-256s against

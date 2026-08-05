@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `2425 passed, 0 failed across 37 suites` — updated s16 close: s15 took it 2297→2303 (plates-only compare −9, photo-mask registry +15); s16 adds +11 marker-guide asserts and the 111-assert verify_family_type suite (the 37th) |
+| Assertion suites | `npm test` | `2461 passed, 0 failed across 37 suites` — updated s17 close: 2425 + 36 verify_pcm_catalog asserts for the companion-proof class (gate 202→238) |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |

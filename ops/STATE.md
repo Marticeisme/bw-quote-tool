@@ -1,5 +1,52 @@
 # STATE — Living Ledger
 
+**s17 CLOSED ON MAIN 2026-08-05 — operator fix round (three Opus tracks) + PCM
+companion-proof class. Final main GREEN: 8 blocks 0 errors; 2461 passed, 0 failed
+across 37 suites** (new contract number, governing docs re-pinned; reconciles exactly
+2425 + 36 verify_pcm_catalog asserts, gate 202→238). AWAITING THE PUSH WORD — nothing
+pushed. Merged in order: **A `48687c9`** granite-niches photos (operator: "too small";
+root cause = the 2.55in print photo box binding all NINE portrait shots — raised to
+4.8in/5.0in-pair, no object-fit anywhere, sections 1+4 print-only `.figure-duo` 2-up so
+the PDF lands at 7pp inside the s13 8-page cap; screen `.figure-tall` 330→560px
+centered; dead `.gomn-setting` selector deleted — it matched a FILENAME, the pair rule
+had sized that photo all along); **B `c7242c1`** glass-front prose (the §5 "fee box"
+footnote rewritten in the voice, all four facts + the gate-pinned
+`data-rights="radser"` span intact; §7 checklist rights contradiction FIXED — flagged,
+touches a claim; ALL THREE map lines got screen/paper halves: `.map-screen` clickable
+sentence / `.map-print` "Ask me and I'll walk you through…" — NOT data-print-suppress,
+the print generator strips hand-authored ones; B's first draft went 7pp with a stranded
+sheet, fixed structurally back to 6pp); **director-direct `e66e3fcd`** ported B's
+map-line mechanism to the granite guide (post-merge PDF sweep found its 4 dead "Open
+the … map" links — now 0 across ALL built PDFs, proven both media directions by
+Playwright probe); **C `e08def33`** PCM companion proofs — the brief's premise was
+WRONG: `D:\...\PCM COMPANION` is 244 PCM full-colour DESIGN PROOFS (line art on real
+granite colour, stock sample names), not installed-marker photos. 232 ship as their own
+honestly-labeled class ("Companion Design Proofs", `source: full-colour proof` chip,
+own `pcm-companion-images/` dir) with photos INTACT per the operator's 2026-08-05
+ruling (~30 carry stock portrait insets); **12 HELD for real-identity PII** (2500-2516
+odd set: Vietnamese families w/ dates+towns+portraits; 2529 Klotzner) — asserted absent
+from data+manifest+disk, release = move out of HELD in
+scripts/pcm_companion_import.py and re-run; 119 of 232 overlap 2011-book plates (both
+ship, jump box prefers the plate); jpg/webp "twins" don't exist (webp keeps the jpg
+name as prefix), one true byte-dup (2643). C found "companion" search matched through a
+data-name SUBSTRING (the shadowed-rule scar as a search bug) — fixed the product.
+Director re-ran on merged main: verify_pcm_catalog 238/0 BW_BASE-pinned at a fresh
+4173 server, verify_pcm_upscale 42/0 (84 masked plates undisturbed), all guide gates,
+2461/37 twice-built. SCARS: (1) all three worktrees stale-based AGAIN — every brief's
+check caught it; (2) NEW, both guide tracks hit independently: `core.autocrlf=true`
+checks `guide-print.css` out CRLF in fresh worktrees while the manifest records the
+generator's LF hash → 24-25 staleness checks fail on PRISTINE code; both tracks
+LF-normalized before rebuilding so the committed manifest stays correct for the main
+tree — permanent fix (eol-insensitive hash or .gitattributes eol=lf) is a sprint-18
+candidate; (3) DIRECTOR'S OWN: started the final npm test while the prior run was
+still going — the first run stopped the shared dev server at its close and 26 suites
+of the second died; suites NEVER overlap, same as walkthrough gates. PUSH-GATE items
+for the operator: +16.07 MB companion proofs (q60 would be 14.2 MB); the 12 held
+proofs (release any?); B's §7 rights-claim edit; granite p3 ~45% white (cost of
+full-size photos on one-sheet-per-location); reading order in granite §1/§4 (second
+photo now beside the first). Worktrees not yet removed; `worktree-agent-*` branches
+kept until pruned.
+
 **s16 CLOSED ON MAIN 2026-08-05 — THE FULL CONDENSED-PDF ROLLOUT IS IN. Final main
 GREEN: 8 blocks 0 errors; 2425 passed, 0 failed across 37 SUITES** (new contract
 number, all three governing docs re-pinned; reconciles 2303 + 11 marker asserts +
