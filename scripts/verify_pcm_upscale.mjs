@@ -51,7 +51,7 @@ export const EXPECT_RESAMPLE = new Set([
 ]);
 
 // The plates whose ceramic PHOTOGRAPH was removed and replaced with the Bonney Watson
-// roundel (scripts/pcm_photo_mask.py, regions in data/pcm-photo-masks.json). Asserted
+// blank ceramic oval (scripts/pcm_photo_mask.py, regions in data/pcm-photo-masks.json). Asserted
 // EXACTLY in both directions, for the same reason as EXPECT_RESAMPLE: a plate that quietly
 // loses its mask puts a stranger's AI-rebuilt face back in front of a family, and a plate
 // that quietly gains one has had product art painted over without anyone deciding to.
