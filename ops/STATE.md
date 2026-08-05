@@ -1,5 +1,34 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-16 — Track A MERGED 2026-08-04, AWAITING THE OPERATOR'S
+STEP-3 GATE** (condensed family PDFs; brief at sprints/sprint-16/SPRINT.md; sources
+docs/PDF_DEBRIEF.md + docs/PDF_AUDIT.md + reference-docs/cemetery-property-condensed.pdf
+— which turned out to BE the "PDF guide structural review.pdf" in his Downloads).
+Track A `b04f917` merged --no-ff; merged main GREEN: guide page-shape gate all-pass,
+**2303/36** (track's 2301 + the wmp tree variance), cemetery-property syntax 1/0.
+Shipped: build_guide_print_system.mjs now emits a shared `?part=`/`?print=` selection
+script (whitelisted, sets data-print-part/data-print-mode on <html>; regenerated for
+cemetery-property ONLY); guide-print.css §8 = the debrief's three selection rules +
+family type/geometry (10.5pt/1.5, one column); cemetery-property-guide.html annotated
+data-pdf keep|drop|summary per the audit row, pdf-summary blocks in Martice's voice;
+build job now maps `?print=family` → the guide's existing pdf-assets path (4pp→2pp;
+Ctrl+P fallback still 4pp/8 sections, verified); PER_GUIDE_CAPS 4→2 for this one file.
+Track scars: the debrief's bare `.pdf-summary{display:none}` LOSES to
+`.charge-list span{display:block}` — needs !important (7 summary spans rendered LIVE,
+caught only by the screen pixel-diff, which ended 0-differing-px at 2 widths);
+a family-only <li> broke `:last-child` on screen (fixed with :has()); ALL 25 PDFs
+freshness-rebuilt because guide-print.css is a shared source (director spot-rasterized
+Pre-Planning + Granite Niches + Vault — content unchanged); verify_photo_first card-blurb
+regex fixed minimally. HONEST SPEC CONFLICT, unresolved: debrief geometry table says
+card sentences 12px (=9pt) vs its own "never below 10pt" rule — track followed the
+table, matching the reference; settle before the lock-in assertions. OPERATOR GATE
+(handoff step 3): PDF sent to him to read on his phone; his three decisions (ground/
+crypt ranges; replace-vs-beside on guides.html — currently REPLACED per the debrief's
+example, one line to flip; the five 8-page area guides) + the columbarium card photo
+(indoor cabinet vs the reference's glass wall — director flag). Tiers 1-3 + lock-in
+assertions ONLY after his word. NOT PUSHED (s15's blank-oval commit fe663ab also
+awaits the push word).
+
 **Current sprint: sprint-15 — OPENED 2026-08-04** (director: Fable session; operator
 round on the PCM catalog, rulings arrived mid-conversation). Scope, in the operator's
 order: (1) remove ALL photographs from the design plates (AI upscale mangles the ceramic
