@@ -67,11 +67,23 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .figure{margin:0 0 24px;}
 .figure img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--warm-border);background:var(--sidebar-bg);}
 .figure figcaption{font-size:12.5px;color:var(--text-muted);margin-top:8px;line-height:1.5;}
-.figure-tall{max-width:330px;float:right;margin:0 0 20px 26px;}
+/* `.figure-tall` used to be a 330px photograph floated right of the prose. Operator,
+   2026-08-05: the granite guide's photographs are too small. 330px is 38% of the 864px
+   text column, and this is a PORTRAIT frame, so it was the smallest photograph on the
+   page while everything around it ran full width. The float is dropped rather than just
+   widened: a wider float leaves a ~380px ribbon of text beside it, which is narrower than
+   the guide sets anywhere else, and print already unwinds this float for the same reason
+   (see the print block below). Centred block, no crop — max-width with height:auto. */
+.figure-tall{max-width:560px;margin:0 auto 24px;}
 .figure-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
 .figure-pair figure{margin:0;}
 .figure-pair img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--warm-border);}
 .figure-pair figcaption{font-size:12.5px;color:var(--text-muted);margin-top:8px;line-height:1.45;}
+/* `.figure-duo` is a PRINT-ONLY pairing (see the print block below). On screen it is a
+   plain block and its children keep whatever `.figure` / `.figure-tall` gives them, so
+   pairing two photographs for the printed sheet does not shrink either one on the website.
+   It is deliberately NOT `.figure-pair`, which is a two-up on both surfaces. */
+.figure-duo{margin-bottom:0;}
 
 .plan-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;overflow:hidden;margin-bottom:24px;}
 .plan-header{padding:24px 28px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
@@ -261,9 +273,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
      The replacement is a BOX, not a crop: max-width and max-height with `width:auto` and
      `height:auto`, so the image is scaled down whole and letterboxed by nothing. The
      source files are cut at their native aspect ratios too — see
-     scripts/cut_granite_niche_photos.py. */
+     scripts/cut_granite_niche_photos.py.
+
+     Operator, 2026-08-05: the photographs are still too small. The box was the reason and
+     the crop was not: nine of this guide's twelve photographs are PORTRAIT (0.77-0.88
+     w/h), so `max-height` bound every one of them and `max-width:100%` never did. At
+     2.55in of height a 0.85 portrait printed 2.2in wide inside a 7.7in column — a fifth
+     of the page — and the reader's eye read the white margin, not the wall.
+
+     The box is now 4.8in for a full-width single and 5.0in for a pair. THE CROP IS STILL
+     GONE; only the box moved. 5.0in for the pair is chosen so that the pair COLUMN WIDTH
+     (~3.80in) binds for every pair photograph including the tallest here (0.765 w/h, which
+     wants 4.97in of height at full column width) — in a two-up the width is the real
+     constraint and the height cap should get out of its way.
+
+     THE PAGE COUNT MOVED from 6 sheets to 7. NO CAP MOVED: PER_GUIDE_CAPS in
+     verify_guide_pages.mjs already allows this guide 8, which is the room the operator
+     granted it in s13, and 7 is inside that. Enlarging the box alone took it to NINE and
+     stranded two near-empty sheets; the `.figure-duo` pairing below is what brought it
+     back to 7 with the photographs still large. Bigger boxes, fewer sheets, no crop. */
   .figure{display:block!important;margin:0 0 9px}
-  .figure img{max-width:100%;max-height:2.55in;width:auto;height:auto;
+  .figure img{max-width:100%;max-height:4.8in;width:auto;height:auto;
               object-fit:contain;margin:0 auto;border-radius:5px}
   .figure figcaption{font-size:7.4pt;line-height:1.35;margin-top:3px}
   /* `.figure-tall` floats right on screen. In a one-column printed page a float leaves the
@@ -271,13 +301,31 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
      unwound into the flow. */
   .figure-tall{float:none!important;max-width:none!important;margin:0 auto 9px!important}
   .figure-pair{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:9px}
-  .figure-pair img{max-width:100%;max-height:2.75in;width:auto;height:auto;
+  .figure-pair img{max-width:100%;max-height:5.0in;width:auto;height:auto;
                    object-fit:contain;margin:0 auto;border-radius:5px}
   .figure-pair figcaption{font-size:7.2pt;line-height:1.32;margin-top:3px}
-  /* The Garden of Meditation runs two full-width photographs — the wall itself and the
-     wall in its garden. Both at 2.8in put the section 100px past a sheet, so the second,
-     supporting frame takes the smaller box. It is still scaled WHOLE; nothing is cut. */
-  .figure.gomn-setting img{max-height:1.05in}
+  /* THE PRINT-ONLY PAIRING. Sections 1 and 4 each carry two portrait photographs. Stacked
+     at the enlarged 4.8in box neither section fits its own sheet any more, and this guide's
+     print layout is one sheet per location — the tail spilled onto a sheet holding one
+     photograph and two lines, which verify_guide_pages.mjs correctly calls a stranded
+     sheet. Side by side they cost one photograph's height instead of two and each still
+     prints ~3.8in wide by ~4.4in tall, well above the 2.2in-wide portrait that opened this
+     track. Column width binds here, so 5.0in of height simply gets out of the way; the
+     children are `.figure`, so the `object-fit`-free box above still governs them. */
+  .figure-duo{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;
+              align-items:start;margin:0 0 9px}
+  .figure-duo .figure{margin:0!important;max-width:none!important;float:none!important;
+                      break-inside:avoid;page-break-inside:avoid}
+  .figure-duo .figure img{max-height:5.0in}
+  /* A `.figure.gomn-setting img{max-height:1.05in}` rule used to sit here, meant to hold
+     the Garden of Meditation's second, supporting photograph down so the section fit one
+     sheet. IT NEVER MATCHED ANYTHING: `gomn-setting` is the image FILENAME, and the
+     markup is `<div class="figure-pair gomn-pair">` with plain `<figure>` children — no
+     element on the page has ever carried a `gomn-setting` class, and the pair rule above
+     was what actually sized that photograph the whole time. Deleted in s17 rather than
+     repaired: the reason it was written (squeeze the section onto one sheet) is exactly
+     what the operator overruled, and reviving it would shrink one photograph for a page
+     budget that has since been raised. Verified dead by grep before removal. */
   .maplink{font-size:7.5pt;border-bottom:none;font-weight:700}
   /* `.prose .footnote` (0,2,0) out-ranks `.prose p` (0,1,1), so the screen's 13px
      survived into print and the footnotes set larger than the body copy. */
@@ -364,10 +412,26 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-sub">A permanent, above-ground place for cremated remains</div>
     <div class="section-rule"></div>
 
-    <figure class="figure figure-tall">
-      <img src="granite-niche-images/roac-wall-d.jpg" alt="A granite niche wall at the Rock of Ages Columbarium under its timber pavilion: a five-by-five grid of dark granite niche fronts in a light granite frame, three of them engraved with names and dates, with a bronze vase holding a sunflower" loading="lazy">
-      <figcaption>A niche wall at the Rock of Ages Columbarium, under the pavilion. Each dark panel closes one niche; the name and dates are engraved into the stone, and a bronze vase holder takes flowers.</figcaption>
-    </figure>
+    <!-- FIGURE-DUO — sprint-17 Track A. These two photographs used to sit at opposite ends
+         of the section with the prose between them. Enlarging the print box (2.55in to
+         4.8in) meant section 1 could no longer hold both on one sheet, and a location per
+         sheet is this guide's whole print layout, so the tail spilled onto a sheet that
+         carried one photograph and two lines — a stranded sheet by verify_guide_pages.mjs
+         and an obviously thin page to look at. Paired, they cost ONE photograph's height
+         instead of two and each still prints 3.8in wide by ~4.4in tall, which is bigger
+         than the 2.2in-wide portrait the operator complained about, not smaller.
+         `.figure-duo` is a print-only pairing: on screen the two figures still stack at
+         their own full sizes (see the screen rule beside `.figure-pair`). -->
+    <div class="figure-duo">
+      <figure class="figure figure-tall">
+        <img src="granite-niche-images/roac-wall-d.jpg" alt="A granite niche wall at the Rock of Ages Columbarium under its timber pavilion: a five-by-five grid of dark granite niche fronts in a light granite frame, three of them engraved with names and dates, with a bronze vase holding a sunflower" loading="lazy">
+        <figcaption>A niche wall at the Rock of Ages Columbarium, under the pavilion. Each dark panel closes one niche; the name and dates are engraved into the stone, and a bronze vase holder takes flowers.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="granite-niche-images/roac-niche-closeup.jpg" alt="Close view of an engraved granite niche front: three names and their years of birth and death cut into the polished stone in raised white lettering, framed by lighter granite" loading="lazy">
+        <figcaption>The engraving, close up. Names, dates and a short line are cut into the granite itself. There is no separate plaque to fade or come loose.</figcaption>
+      </figure>
+    </div>
 
     <div class="prose">
       <p><strong>Granite fronts are outside.</strong> All three places in this guide stand in the open air: a pavilioned courtyard, a garden wall, a terrace path. A glass-front niche, by contrast, is always inside a building.</p>
@@ -376,11 +440,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       <p><strong>Two rights of interment come with the niche</strong> at all three places here, which is two people, usually a husband and wife, on one contract. It is a permanent address, cared for by the cemetery, with no ground burial and no grave to open.</p>
       <p><strong>If you want the urn to be visible</strong>, that is a glass front, at the Mountain View and Eternal Light columbariums. Neither is covered here. See the <a class="maplink" href="glass-front-niches-guide.html">Glass-Front Niche Guide</a>, or the live maps (<a class="maplink" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Mountain View</a> &middot; <a class="maplink" href="MAPS/ECL_NicheMap.html">Eternal Light</a>).</p>
     </div>
-
-    <figure class="figure">
-      <img src="granite-niche-images/roac-niche-closeup.jpg" alt="Close view of an engraved granite niche front: three names and their years of birth and death cut into the polished stone in raised white lettering, framed by lighter granite" loading="lazy">
-      <figcaption>The engraving, close up. Names, dates and a short line are cut into the granite itself. There is no separate plaque to fade or come loose.</figcaption>
-    </figure>
 
     <div class="prose">
       <p class="footnote">Prices in this guide are Bonney Watson&rsquo;s current prices for each location and are quoted as ranges, because within one wall the price depends on the row and the face. Your family service director will confirm the exact price and the current availability of any space before anything is written down. Prices are subject to change without notice.</p>
@@ -505,10 +564,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     <div class="section-sub">Brand new: a freestanding granite niche bank on the terrace</div>
     <div class="section-rule"></div>
 
-    <figure class="figure">
-      <img src="granite-niche-images/tgmp-terrace.jpg" alt="The Terrace Garden Memorial Path: a paved terrace running between two low mausoleum buildings, with a planted memorial bed along one side, upright granite memorials, and a black granite niche bank standing at the far end" loading="lazy">
-      <figcaption>The Terrace Garden Memorial Path. The niche bank stands at the far end of the terrace; the planted bed on the right holds the individual memorials.</figcaption>
-    </figure>
+    <!-- FIGURE-DUO — sprint-17 Track A, same reason as section 1 above: two portrait
+         photographs at the enlarged print box will not share a sheet stacked, and this
+         section's sheet is the Terrace Garden's. -->
+    <div class="figure-duo">
+      <figure class="figure">
+        <img src="granite-niche-images/tgmp-terrace.jpg" alt="The Terrace Garden Memorial Path: a paved terrace running between two low mausoleum buildings, with a planted memorial bed along one side, upright granite memorials, and a black granite niche bank standing at the far end" loading="lazy">
+        <figcaption>The Terrace Garden Memorial Path. The niche bank stands at the far end of the terrace; the planted bed on the right holds the individual memorials.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="granite-niche-images/tgn-niche-bank.jpg" alt="The Terrace Garden niche bank: a freestanding polished black granite wall carrying a grid of blank niche fronts, each held by two bronze rosettes, standing above a bluestone and river-rock reflection pool" loading="lazy">
+        <figcaption>The niche bank, newly set and not yet inscribed. Eight niches across, five rows deep, above the reflection pool.</figcaption>
+      </figure>
+    </div>
 
     <div class="prose">
       <p><strong>The Terrace Garden Memorial Path is the newest cremation property at Washington Memorial Park.</strong> A paved terrace runs past a reflection pool, with a freestanding black granite niche bank at one end and a planted bed of individual memorials along the path. Everything here is brand new.</p>
@@ -528,11 +596,6 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
           <p>The bank is priced by row: the middle row is the highest, the top and bottom rows the lowest. <strong>Every niche carries two rights of interment.</strong> Niches are addressed TGN-&lt;row&gt;-&lt;number&gt;, for example TGN-C-4.</p>
         </div>
       </div>
-
-      <figure class="figure">
-        <img src="granite-niche-images/tgn-niche-bank.jpg" alt="The Terrace Garden niche bank: a freestanding polished black granite wall carrying a grid of blank niche fronts, each held by two bronze rosettes, standing above a bluestone and river-rock reflection pool" loading="lazy">
-        <figcaption>The niche bank, newly set and not yet inscribed. Eight niches across, five rows deep, above the reflection pool.</figcaption>
-      </figure>
 
       <div class="prose">
         <p><a class="maplink" href="MAPS/TGMP_Map.html">Open the Terrace Garden Memorial Path map</a> to see the niche bank with the price and availability of every niche in it.</p>
