@@ -83,6 +83,11 @@ body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhi
 /* Secondary top-bar action (Funeral Home) — keeps a single orange primary in the bar. */
 .tb-action2{height:38px;padding:0 16px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease;}
 .tb-action2:hover{background:var(--navy-50);border-color:var(--navy-400);}
+/* s19: one filled orange button per view. On the three quote builders the orange belongs
+   to Download PDF in the summary panel, so the topbar action demotes to the secondary
+   rank there and only there. .summary-fixed.visible is show()'s builder-view flag. */
+body:has(.summary-fixed.visible) .tb-action{background:#fff;color:var(--ink);border-color:var(--navy-200);}
+body:has(.summary-fixed.visible) .tb-action:hover{background:var(--navy-50);border-color:var(--navy-400);}
 
 /* SIDEBAR — deep navy, full-height, logo top + user card bottom, white-pill active nav */
 .sidebar{background:var(--navy-900);width:264px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding:0;}
@@ -144,14 +149,28 @@ tr:hover td{background:var(--navy-100);}
 .lc{display:inline-block;vertical-align:middle;flex-shrink:0;}
 .nav-item{display:flex;align-items:center;gap:11px;}
 .ni-ic .lc,.ph-ic .lc{width:17px;height:17px;}
-.ph-ic{width:30px;height:30px;border-radius:var(--r-md);background:var(--navy-100);color:var(--navy-500);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* s19: the panel-header icon loses its chip. The tinted 30px square is what read as
+   emoji-era; the inline Lucide glyph itself was never the problem. 16px, --navy-400. */
+.ph-ic{width:16px;height:16px;background:none;border:0;border-radius:0;color:var(--navy-400);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ph-ic .lc{width:16px;height:16px;}
 /* ═══ QUOTE BUILDER STYLES ═══ */
 .q-layout{display:block;}
 .q-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);margin-bottom:var(--s3);box-shadow:var(--sh-1);}
-.q-panel-header{background:#fff;color:var(--ink);padding:15px 20px;font-family:'Public Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:0;border-bottom:1px solid var(--navy-150);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:11px;}
-.q-panel{border-radius:var(--r-md) !important;border-color:var(--border) !important;}
-.ph-ic{background:var(--navy-100);border:1px solid var(--navy-150);}
-.q-panel-body{padding:18px 20px;}
+/* s19 panel header — a fixed 44px row: 16px icon, 14px/600 title, .q-tag pills, then a
+   right-side value summary that persists open or collapsed, then the chevron. The header
+   fill marks OPEN (the handoff's `.q-panel[open]`); collapsed stays white. */
+.q-panel-header{height:44px;display:flex;align-items:center;gap:10px;padding:0 var(--s4);font:600 var(--t-base)/1 'Public Sans',sans-serif;color:var(--ink);letter-spacing:0;background:#fff;border-radius:var(--r-md) var(--r-md) 0 0;}
+.q-panel:not(.collapsed) > .q-panel-header{background:var(--navy-100);border-bottom:1px solid var(--navy-150);}
+.q-panel-sum{margin-left:auto;font:400 var(--t-sm)/1 'Source Sans 3',sans-serif;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48%;text-align:right;flex-shrink:1;}
+.q-panel-sum.q-sum-empty{color:var(--navy-300);}
+.q-tag{font:600 10.5px/1 'Public Sans',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--navy-100);border-radius:var(--r-pill);padding:4px 8px;flex-shrink:0;}
+/* the open header is itself --navy-100, so the pill needs to lift off it */
+.q-panel:not(.collapsed) > .q-panel-header .q-tag{background:#fff;}
+.q-panel-body{padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3);}
+/* the body owns the rhythm now — child margins would stack on top of the gap */
+.q-panel-body > .q-group{margin-bottom:0;}
+.q-panel-body > .q-row,.q-panel-body > .q-check-row{margin-bottom:0;}
+.q-panel-body > .callout{margin-bottom:0;}
 .bw-stepper{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 18px;background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);}
 .bw-step{display:flex;align-items:center;gap:9px;}
 .bw-step-n{width:22px;height:22px;border-radius:var(--r-pill);background:var(--navy-100);color:var(--navy-400);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
@@ -161,10 +180,11 @@ tr:hover td{background:var(--navy-100);}
 .bw-step-arrow{color:var(--navy-300);}
 .bw-step-arrow .lc{width:16px;height:16px;}
 .q-panel-header{cursor:pointer;user-select:none;}
-.q-chev{margin-left:auto;color:var(--navy-400);flex-shrink:0;display:inline-flex;transition:transform .12s ease;}
+.q-panel-header > .lc{width:16px;height:16px;stroke:var(--navy-400);flex-shrink:0;}
+.q-chev{color:var(--navy-400);flex-shrink:0;display:inline-flex;margin-left:2px;}
 .q-panel.collapsed .q-chev{transform:rotate(-90deg);}
 .q-panel.collapsed .q-panel-body{display:none;}
-.q-panel.collapsed .q-panel-header{border-bottom:none;border-radius:var(--r-md);}
+.q-panel.collapsed > .q-panel-header{background:#fff;border-bottom:none;border-radius:var(--r-md);}
 .q-group{margin-bottom:14px;}
 .q-group:last-child{margin-bottom:0;}
 .q-group-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:8px;}
@@ -256,10 +276,39 @@ tr:hover td{background:var(--navy-100);}
 .btn-reset{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;text-align:center;}
 .btn-reset:hover{background:var(--gray-light);}
 /* Tax status pills + panel-header polish */
-.tax-pill{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:20px;flex-shrink:0;}
-.tax-pill.tax-exempt{color:var(--blue);background:var(--blue-light);}
-.tax-pill.tax-taxable{color:var(--orange-dark);background:var(--orange-tint);}
-.tax-pill + .q-chev{margin-left:12px;}
+/* s19: Tax-Exempt / Taxable are .q-tag pills in the header now — one neutral treatment,
+   not two colours competing with the money. Both classes resolve to the same chip. */
+.tax-pill{font:600 10.5px/1 'Public Sans',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--navy-100);border-radius:var(--r-pill);padding:4px 8px;flex-shrink:0;}
+.q-panel:not(.collapsed) > .q-panel-header .tax-pill{background:#fff;}
+
+/* ── s19 builder controls (DESIGN_HANDOFF §2) ─────────────────────────────────────
+   36px inputs, --ring focus, readonly treatment, 11px uppercase field labels. Scoped to
+   the three quote builders on purpose — the contract sections are field-mapped against
+   real templates and are not this track's to move. Checkbox labels keep sentence case:
+   they are the price-list item names ("Embalming — $945"), not field labels. */
+#section-cem-quote .q-panel-body input:not([type=checkbox]):not([type=radio]),
+#section-fh-quote .q-panel-body input:not([type=checkbox]):not([type=radio]),
+#section-combined-quote .q-panel-body input:not([type=checkbox]):not([type=radio]),
+#section-cem-quote .q-panel-body select,
+#section-fh-quote .q-panel-body select,
+#section-combined-quote .q-panel-body select{height:36px;border:1px solid var(--navy-200);border-radius:var(--r-sm);background:#fff;padding:0 var(--s3);font:400 var(--t-base)/1 'Public Sans',sans-serif;color:var(--ink);}
+#section-cem-quote .q-panel-body input:focus,#section-fh-quote .q-panel-body input:focus,#section-combined-quote .q-panel-body input:focus,
+#section-cem-quote .q-panel-body select:focus,#section-fh-quote .q-panel-body select:focus,#section-combined-quote .q-panel-body select:focus{outline:0;border-color:var(--navy-500);box-shadow:var(--ring);}
+#section-cem-quote .q-panel-body input[readonly],#section-fh-quote .q-panel-body input[readonly],#section-combined-quote .q-panel-body input[readonly]{background:var(--navy-50);border-color:var(--navy-150);color:var(--body);}
+#section-cem-quote .q-panel-body input::placeholder,#section-fh-quote .q-panel-body input::placeholder,#section-combined-quote .q-panel-body input::placeholder{color:var(--navy-300);}
+/* field labels: the handoff typography, but these sit INLINE beside their control in a
+   .q-row, so display:block/margin-bottom would break the row. Typography only. */
+#section-cem-quote .q-row > label,#section-fh-quote .q-row > label,#section-combined-quote .q-row > label,
+#section-cem-quote .q-group-label,#section-fh-quote .q-group-label,#section-combined-quote .q-group-label
+{font:600 var(--t-xs)/1.3 'Public Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+#section-cem-quote .q-check-row,#section-fh-quote .q-check-row,#section-combined-quote .q-check-row{font-size:13px;color:var(--body);}
+#section-cem-quote .q-check-row input[type=checkbox],#section-fh-quote .q-check-row input[type=checkbox],#section-combined-quote .q-check-row input[type=checkbox]{accent-color:var(--navy-500);}
+#section-cem-quote .q-check-row .qty-input,#section-fh-quote .q-check-row .qty-input,#section-combined-quote .q-check-row .qty-input{height:30px;width:56px;text-align:center;padding:0 6px;}
+#section-cem-quote .q-row input[type=number],#section-fh-quote .q-row input[type=number],#section-combined-quote .q-row input[type=number]{text-align:center;}
+/* the discount/custom-line micro-rows keep their compact controls */
+#section-cem-quote .disc-row input,#section-fh-quote .disc-row input,#section-combined-quote .disc-row input,
+#section-cem-quote .disc-row select,#section-fh-quote .disc-row select,#section-combined-quote .disc-row select{height:30px;font-size:12px;padding:0 var(--s2);}
+#section-cem-quote .plan-item-row input,#section-fh-quote .plan-item-row input{height:30px;font-size:12px;}
 
 /* PLAN ITEMS */
 .plan-items-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-mid);display:none;}
@@ -1157,7 +1206,7 @@ tr:hover td{background:var(--navy-100);}
   </div>
   <div class="q-layout">
     <div>
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:client">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Client Information</div>
         <div class="q-panel-body">
           <div class="q-row" style="margin-bottom:10px;">
@@ -1193,7 +1242,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
       <!-- Burial Space -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:space">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="trees" data-lc-sz="17"></span></span>Burial Space</div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1440,7 +1489,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- O&C -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:oc">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="shovel" data-lc-sz="17"></span></span>Opening &amp; Closing<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
             <div class="q-check-row">
@@ -1495,7 +1544,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Recording & Scheduling -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:recording">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-list" data-lc-sz="17"></span></span>Recording &amp; Scheduling<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1534,7 +1583,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:vault">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Burial Vault<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-row" style="flex-wrap:wrap;gap:8px;align-items:center;">
@@ -1571,7 +1620,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:setting">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Vault / Container Setting<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-check-row">
@@ -1590,7 +1639,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
             <!-- Urn/Burial Vault merchandise -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:marker">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>PCM Granite Marker<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1672,7 +1721,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Vase Block -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:bronze">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>Bronze Memorial<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1744,8 +1793,7 @@ tr:hover td{background:var(--navy-100);}
             <div id="bronzeList" style="margin-top:6px;"></div>
           </div>
 
-              <span id="disp_bronze" class="q-price-disp">—</span>
-            </div>
+          <div class="q-group">
 
             <div class="q-row" id="bronzeMemRow" style="display:none;">
               <label style="color:var(--text-light);font-size:11px;">Memorial Price</label>
@@ -1778,7 +1826,7 @@ tr:hover td{background:var(--navy-100);}
             <div style="font-size:11px;color:var(--text-light);margin-top:4px;">$40 per extra word</div>
           </div>
         </div>
-      </div>      <div class="q-panel">
+      </div>      <div class="q-panel" data-qs="cem:vaseblock">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower-2" data-lc-sz="17"></span></span>Vase Block<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">PCM granite vase block · polished top, sawn sides · includes drill base core. Install fee $175.</div>
@@ -1819,7 +1867,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- BRONZE MEMORIAL -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:vases">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower-2" data-lc-sz="17"></span></span>Vases — Bronze &amp; Zinc<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">*** Requires vase core drilled in granite — see Vase Block in Marker panel above.</div>
@@ -1850,7 +1898,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:inscriptions">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="pen-line" data-lc-sz="17"></span></span>Inscriptions<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1902,7 +1950,7 @@ tr:hover td{background:var(--navy-100);}
 
       <!-- Vase Blocks -->
       <!-- PCM Ceramic Steel Portrait -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:portrait">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="image" data-lc-sz="17"></span></span>Ceramic Steel Portrait<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -1945,7 +1993,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Crypt-Front Photo Frames -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:cryptframes">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="image" data-lc-sz="17"></span></span>Crypt-Front Photo Frames<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -2018,7 +2066,7 @@ tr:hover td{background:var(--navy-100);}
 
       <!-- Bronze & Zinc Vases -->
       <!-- 3rd Party Memorialization -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:thirdparty">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>3rd Party Memorialization<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-gold" style="font-size:11.5px;margin-bottom:10px;line-height:1.6;">
@@ -2090,7 +2138,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:pcmmisc">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>PCM Misc &amp; Marker Services<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
 
@@ -2217,7 +2265,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel" id="cemDiscountPanel">
+      <div class="q-panel" id="cemDiscountPanel" data-qs="cem:discounts">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="aprilPromoNote" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(127,29,29,.07);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.7;">
@@ -2238,7 +2286,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Financing -->
-      <div class="q-panel" id="cemFinancingPanel">
+      <div class="q-panel" id="cemFinancingPanel" data-qs="cem:payment">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Payment Options</div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:11.5px;margin-bottom:10px;line-height:1.6;">
@@ -2270,13 +2318,15 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Custom Lines -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cem:custom">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="plus" data-lc-sz="17"></span></span>Custom Line Items</div>
         <div class="q-panel-body">
           <div id="cemCustomLines"></div>
           <div class="btn-add-line" onclick="addCemLine()">+ Add Custom Line</div>
         </div>
       </div>
+    </div>
+  </div>
 
 
 </div>
@@ -2456,7 +2506,7 @@ tr:hover td{background:var(--navy-100);}
   <div class="q-layout">
     <div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:client">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Client Information</div>
         <div class="q-panel-body">
           <div class="q-row" style="margin-bottom:10px;">
@@ -2490,7 +2540,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Price Plans -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:plans">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-list" data-lc-sz="17"></span></span>Price Plans (replaces individual services)</div>
         <div class="q-panel-body">
           <div class="callout callout-gold" style="font-size:12px;margin-bottom:12px;">Select a plan <em>instead of</em> individual services. Plan price = package discount applied automatically.</div>
@@ -2552,7 +2602,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Professional Services -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:prof">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Professional Services<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-check-row"><input type="checkbox" id="fhBasicSvc" onchange="fhUpdateD()"><label for="fhBasicSvc">Basic Services of Funeral Director &amp; Staff — $2,425</label></div>
@@ -2567,7 +2617,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Facilities -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:facilities">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="landmark" data-lc-sz="17"></span></span>Facilities &amp; Staff<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-group">
@@ -2623,7 +2673,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Transportation -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:transport">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="truck" data-lc-sz="17"></span></span>Transportation<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-check-row"><input type="checkbox" id="fhTransfer" onchange="fhUpdateD()"><label for="fhTransfer">Transfer of Deceased to Funeral Home — $715</label></div>
@@ -2636,7 +2686,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Cremation -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:cremation">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="flame" data-lc-sz="17"></span></span>Cremation Services<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
 
@@ -2652,7 +2702,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Death Certs -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:deathcerts">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Death Certificates &amp; County Fees<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
         <div class="q-panel-body">
           <div class="q-row">
@@ -2675,7 +2725,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Casket -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:casket">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Casket<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple caskets. Each casket can have its own quantity.</div>
@@ -2700,7 +2750,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Rental Casket -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:rental">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Rental Casket<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">Effective January 1, 2026. Subject to change without notice.</div>
@@ -2722,7 +2772,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Cremation Containers -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:container">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="box" data-lc-sz="17"></span></span>Cremation Container<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:8px;">Effective January 1, 2026. Subject to change without notice.</div>
@@ -2757,7 +2807,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Memorial Merchandise -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:merch">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="gem" data-lc-sz="17"></span></span>Memorial Merchandise<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple items — packages, boxsets, stationery, and other memorial merchandise.</div>
@@ -2869,7 +2919,7 @@ tr:hover td{background:var(--navy-100);}
       </div>
 
       <!-- Discount -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:urns">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="gem" data-lc-sz="17"></span></span>Urns<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Select and add multiple urns. Each urn can have its own quantity.</div>
@@ -2899,7 +2949,7 @@ tr:hover td{background:var(--navy-100);}
           </div>
         </div>
       </div>
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:flowers">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="flower" data-lc-sz="17"></span></span>Flowers · Loves Buds &amp; Blooms<span class="tax-pill tax-taxable">Taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-blue" style="font-size:12px;margin-bottom:10px;">Loves Buds &amp; Blooms. Select and add multiple items — casket sprays, standing sprays, and bouquets/tributes.</div>
@@ -2985,7 +3035,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:custom">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="plus" data-lc-sz="17"></span></span>Custom Line Items</div>
         <div class="q-panel-body">
           <div id="fhCustomLines"></div>
@@ -2995,7 +3045,7 @@ tr:hover td{background:var(--navy-100);}
     </div>
 
 <!-- ═══ WA MAXIMA INSURANCE PAYMENT OPTIONS ═══ -->
-<div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="fhInsSection">
+<div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="fhInsSection" data-qs="fh:insurance">
   <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>WA Maxima Insurance Payment Options</div>
   <div class="q-panel-body">
     <div class="callout callout-blue" style="margin-bottom:14px;">Estimates based on <strong>WA - Washington Maxima Revised</strong> (Global Atlantic). Enter client age and optional down payment to see monthly options across all available pay plans.</div>
@@ -3019,7 +3069,7 @@ tr:hover td{background:var(--navy-100);}
 </div>
 
       <!-- Discounts (last panel in FH quote) -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="fh:discounts">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="fhDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
@@ -3325,7 +3375,7 @@ tr:hover td{background:var(--navy-100);}
   <div class="q-layout">
     <div>
       <!-- Cemetery Pull -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cmb:cem">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Cemetery Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
@@ -3336,7 +3386,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
       <!-- FH Pull -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cmb:fh">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Funeral Home Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
@@ -3347,7 +3397,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
       <!-- Additional Items -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cmb:additional">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Additional Items</div>
         <div class="q-panel-body">
           <div id="combCustomLines"></div>
@@ -3355,7 +3405,7 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
       <!-- Combined Discount -->
-      <div class="q-panel">
+      <div class="q-panel" data-qs="cmb:discount">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Combined Discount</div>
         <div class="q-panel-body">
           <div class="q-row">
@@ -3379,7 +3429,7 @@ tr:hover td{background:var(--navy-100);}
   </div>
 
 <!-- ═══ COMBINED PAYMENT OPTIONS ═══ -->
-<div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="combInsSection">
+<div class="q-panel" style="margin:0 0 16px;max-width:100%;box-sizing:border-box;" id="combInsSection" data-qs="cmb:payment">
   <div class="q-panel-header"><span class="ph-ic"><span data-lc="credit-card" data-lc-sz="17"></span></span>Combined Monthly Payment Estimate</div>
   <div class="q-panel-body">
     <div class="callout callout-blue" style="margin-bottom:14px;">Every standard cemetery down-payment tier (10%/20%/25%) and financing term, crossed with every WA Maxima FH plan — no down payment to pick, every real combination is listed. FH options use the age entered in the WA Maxima panel.</div>
@@ -6901,7 +6951,7 @@ var _PL_CANON = {
 };
 function _plHeaderTitle(h){
   var c = h.cloneNode(true);
-  c.querySelectorAll('.ph-ic,.q-chev,.tax-pill,svg').forEach(function(n){ n.remove(); });
+  c.querySelectorAll('.ph-ic,.q-chev,.tax-pill,.q-tag,.q-panel-sum,svg').forEach(function(n){ n.remove(); });
   return (c.textContent || '').replace(/\s*\([^)]*\)\s*$/,'').replace(/\s*[·—–]\s.*$/,'').replace(/\s+/g,' ').trim();
 }
 function buildPriceIndex() {
@@ -7455,7 +7505,9 @@ function cem3pUpdate() {
 function cemUpdate() {
   try {
   var lines = [];
+  qsBegin(lines);
 
+  qsAt('cem:space');
   // Garden / Space
   var gardenVal = val('qGarden');
   var gardenPrice = 0, gardenEcf = 0, gardenLabel = '';
@@ -7642,6 +7694,7 @@ function cemUpdate() {
     setDisp('qMausIndoorDisp', 0); setDisp('qMausOutdoorDisp', 0);
   }
 
+  qsAt('cem:oc');
   // O&C
   if (chk('qOCLawnSingle')) { var q=qty('qOCLawnSingleQty'); lines.push({label:'Lawn Interment – Single Depth'+(q>1?' ×'+q:''), amount:bwFee('OC:lawn_single')*q, taxable:false}); }
   if (chk('qOCLawnDouble1')) { var q=qty('qOCLawnDouble1Qty'); lines.push({label:'Lawn Interment – Double Depth (1st)'+(q>1?' ×'+q:''), amount:bwFee('OC:lawn_double_1st')*q, taxable:false}); }
@@ -7653,11 +7706,13 @@ function cemUpdate() {
   if (chk('qOCNicheNon')) { var q=qty('qOCNicheNonQty'); lines.push({label:'Niche (Non-Inurnment)'+(q>1?' ×'+q:''), amount:bwFee('OC:niche_non_inurnment')*q, taxable:false}); }
 
 
+  qsAt('cem:recording');
   // Recording
   if (chk('qRecGround')) { var rGq = qty('qRecGroundQty'); lines.push({label:'Recording Fee – Interment' + (rGq>1?' ×'+rGq:''), amount:bwFee('RECORDING:all')*rGq, taxable:false}); }
   if (chk('qRecMaus'))   { var rMq = qty('qRecMausQty');   lines.push({label:'Recording Fee – Entombment' + (rMq>1?' ×'+rMq:''), amount:bwFee('RECORDING:all')*rMq, taxable:false}); }
   if (chk('qRecNiche'))  { var rNq = qty('qRecNicheQty');  lines.push({label:'Recording Fee – Inurnment' + (rNq>1?' ×'+rNq:''), amount:bwFee('RECORDING:all')*rNq, taxable:false}); }
 
+  qsAt('cem:recording');
   // Surcharges
   if (chk('qAfter3'))   { var q=qty('qAfter3Qty');   lines.push({label:'After 3:00 PM Surcharge'+(q>1?' ×'+q:''),    amount:455*q, taxable:false}); }
   if (chk('qFriSatSun')) lines.push({label:'Fri/Sat/Sun Surcharge' + (qty('qFriSatSunQty')>1?' ×'+qty('qFriSatSunQty'):''), amount:575*qty('qFriSatSunQty'), taxable:false});
@@ -7666,15 +7721,18 @@ function cemUpdate() {
   if (chk('qWitnessFri')) { var q=qty('qWitnessFriQty'); lines.push({label:'Witness Placement (Fri–Sun)'+(q>1?' ×'+q:''), amount:575*q, taxable:false}); }
   if (chk('qDeedChange')) { var q=qty('qDeedChangeQty'); lines.push({label:'Deed Change Fee'+(q>1?' ×'+q:''),              amount:325*q, taxable:false}); }
 
+  qsAt('cem:setting');
   // Setting (taxable)
   if (chk('qSettingBurial')) { var q=qty('qSettingBurialQty'); lines.push({label:'Burial Vault Setting'+(q>1?' ×'+q:''), amount:685*q, taxable:true}); }
   if (chk('qSettingCrem'))   { var q=qty('qSettingCremQty');   lines.push({label:'Cremation Vault Setting'+(q>1?' ×'+q:''), amount:575*q, taxable:true}); }
 
+  qsAt('cem:vault');
   // Vault (taxable) — multi-add list
   vaultItems.forEach(function(v) {
     if (v.price > 0 && v.qty > 0) lines.push({label: v.name + (v.qty>1?' ×'+v.qty:''), amount: v.price * v.qty, taxable: true});
   });
 
+  qsAt('cem:inscriptions');
   // Inscription (taxable)
   // Inscriptions (multi-add list)
   inscriptions.forEach(function(ins) {
@@ -7689,6 +7747,7 @@ function cemUpdate() {
   if (chk('qInscEmblem'))    { var q=qty('qInscEmblemQty');    lines.push({label:'Additional Emblem'+(q>1?' ×'+q:''),                   amount:285*q, taxable:true}); }
   if (chk('qInscProof'))     { var q=qty('qInscProofQty');     lines.push({label:'Proof Revision'+(q>1?' ×'+q:''),                      amount:235*q, taxable:true}); }
 
+  qsAt('cem:marker');
   // PCM Granite Marker — multi-add list
   markerItems.forEach(function(m) {
     if (m.price > 0 && m.qty > 0) {
@@ -7697,6 +7756,7 @@ function cemUpdate() {
     }
   });
 
+  qsAt('cem:vaseblock');
   // ── Vase Block ──────────────────────────────────────────────────────────
   var vbGroup = val('qVBGroup');
   var vbSizeIdx = val('qVBSize');
@@ -7724,6 +7784,7 @@ function cemUpdate() {
     el('qty_vb_row') && (el('qty_vb_row').style.display = 'none');
   }
 
+  qsAt('cem:marker');
   // ── Foundation ───────────────────────────────────────────────────────────
   var foundV = parseFloat(val('qFoundation')) || 0;
   if (foundV) {
@@ -7738,6 +7799,7 @@ function cemUpdate() {
     setDisp('disp_foundation', 0);
   }
 
+  qsAt('cem:bronze');
   // Bronze Memorial (taxable) — multi-add list
   bronzeItems.forEach(function(b) {
     if (b.total > 0 && b.qty > 0) {
@@ -7751,6 +7813,7 @@ function cemUpdate() {
     }
   });
 
+  qsAt('cem:portrait');
   // ── Portrait (Ceramic Steel) — multi-add list (mirrors markerItems) ──────
   // qty_portrait_row stays visible whenever a shape+size is picked, so Qty is ready
   // for the next "+ Add Portrait to Quote" click; it's no longer a single multiplier.
@@ -7762,6 +7825,7 @@ function cemUpdate() {
     }
   });
 
+  qsAt('cem:cryptframes');
   // ── Crypt-Front Oval Portrait ─────────────────────────────────────
   var cryptOvalV = parseFloat(val('qCryptOval')) || 0;
   if (cryptOvalV) {
@@ -7795,6 +7859,7 @@ function cemUpdate() {
     setDisp('disp_crypt_slim', cryptSlimV * cryptSlimQty);
   } else { el('qty_crypt_slim_row') && (el('qty_crypt_slim_row').style.display = 'none'); setDisp('disp_crypt_slim', 0); }
 
+  qsAt('cem:vases');
   // ── Bronze / Zinc Vases ────────────────────────────────────────────────
   var vaseV = parseFloat(val('qVase')) || 0;
   if (vaseV) {
@@ -7806,6 +7871,7 @@ function cemUpdate() {
     setDisp('disp_vase', vaseV * vaseQty);
   } else { el('qty_vase_row') && (el('qty_vase_row').style.display = 'none'); setDisp('disp_vase', 0); }
 
+  qsAt('cem:custom');
   // Custom lines
   el('cemCustomLines').querySelectorAll('.custom-line-row').forEach(function(row) {
     var d = row.querySelector('.cl-desc').value;
@@ -7814,6 +7880,7 @@ function cemUpdate() {
     if (a > 0) lines.push({label: d || 'Custom Item', amount: a, taxable: t});
   });
 
+  qsAt('cem:discounts');
   // ── Multi-Discount ──────────────────────────────────────────────────
   var totalDiscAmt = 0;
   var discLabels = [];
@@ -7951,6 +8018,7 @@ function cemUpdate() {
   var discLabel = discLabels.join(' | ');
   var discMode  = hasPromo ? 'promo_' : (discAmt > 0 ? 'flat_exempt' : '');
 
+  qsAt('cem:thirdparty');
   // ── 3rd Party Memorialization ─────────────────────────────────────────────
   var sel3p = el('q3pSize');
   if (sel3p && sel3p.value) {
@@ -7969,6 +8037,7 @@ function cemUpdate() {
     }
   }
 
+  qsAt('cem:pcmmisc');
   // PCM Misc & Marker Services
   if (chk('qPin2'))            lines.push({label:'Pinning — 2 Pins',                         amount:620,  taxable:true});
   if (chk('qPin4'))            lines.push({label:'Pinning — 4 Pins',                         amount:975,  taxable:true});
@@ -8024,6 +8093,7 @@ function cemUpdate() {
   _cemDiscData = {amount: discAmt, mode: discMode, label: discLabel};
   _cemLines = lines.slice();
   _cemTotal = renderSummary('cemSummary', lines, discAmt, discLabel, discMode);
+  qsEnd('section-cem-quote');
   if (typeof cemFinUpdate === 'function') cemFinUpdate();
   if (el('comparePanel') && el('comparePanel').style.display !== 'none') updateCompare();
   // Auto-refresh combined quote if cemetery data was already pulled. Calls the sync-only
@@ -10264,7 +10334,9 @@ function fhFlowerRender() {
 function fhUpdate() {
   try {
   var lines = [];
+  qsBegin(lines);
 
+  qsAt('fh:plans');
   // Plan items
   var fhPersonQty = Math.max(1, parseInt((el('fhPersonQty') ? el('fhPersonQty').value : '1')) || 1);
   var planKey = _activePlanKey;
@@ -10316,6 +10388,7 @@ function fhUpdate() {
     if (el('fhDirectCremPlanDisp')) setDisp('fhDirectCremPlanDisp', 0);
   }
 
+  qsAt('fh:prof');
   // Professional Services
   if (chk('fhBasicSvc'))    lines.push({label:'Basic Services of Funeral Director & Staff' + (fhPersonQty>1?' \xd7'+fhPersonQty:''), amount:2425*fhPersonQty, taxable:false});
   if (chk('fhEmbalming'))   lines.push({label:'Embalming' + (fhPersonQty>1?' \xd7'+fhPersonQty:''), amount:945*fhPersonQty, taxable:false});
@@ -10326,6 +10399,7 @@ function fhUpdate() {
   if (chk('fhShelter'))     { var q=qty('fhShelterQty')*fhPersonQty; lines.push({label:'Shelter of Remains (\xd7' + q + ')', amount:965*q, taxable:false}); }
   if (chk('fhLongShelter')) { var q=qty('fhLongShelterQty')*fhPersonQty; lines.push({label:'Long Term Shelter of Embalmed Remains'+(q>1?' \xd7'+q:''), amount:415*q, taxable:false}); }
 
+  qsAt('fh:facilities');
   // Viewing
   var viewV = parseFloat(val('fhViewing')) || 0;
   if (viewV) {
@@ -10370,6 +10444,7 @@ function fhUpdate() {
     setDisp('fhReceptionDisp', recV * rQ);
   } else { el('fhReceptionQtyRow').style.display = 'none'; setDisp('fhReceptionDisp', 0); }
 
+  qsAt('fh:transport');
   // Transportation
   if (chk('fhTransfer'))   lines.push({label:'Transfer of Deceased to Funeral Home', amount:715*fhPersonQty, taxable:false});
   if (chk('fhHearse'))     { var q=qty('fhHearseQty')*fhPersonQty; lines.push({label:'Use of Hearse'+(q>1?' ×'+q:''), amount:705*q, taxable:false}); }
@@ -10378,6 +10453,7 @@ function fhUpdate() {
   if (chk('fhUtilityVeh')) { var q=qty('fhUtilityVehQty')*fhPersonQty; lines.push({label:'Use of Utility Vehicle'+(q>1?' \xd7'+q:''), amount:205*q, taxable:false}); }
   if (chk('fhHorseHearse')) lines.push({label:'Horse-Drawn Hearse', amount:1650, taxable:false});
 
+  qsAt('fh:cremation');
   // Cremation
   if (chk('fhCremProcessing')) lines.push({label:'Cremation & Processing', amount:385*fhPersonQty, taxable:false});
   if (chk('fhWitnessCrem'))    lines.push({label:'Family Witness Cremation', amount:445*fhPersonQty, taxable:false});
@@ -10388,6 +10464,7 @@ function fhUpdate() {
   if (chk('fhStorageRelease')) lines.push({label:'Release from Storage After 90 Days', amount:625*fhPersonQty, taxable:false});
   if (chk('fhKeepsakeTransfer')) { var q=qty('fhKeepsakeTransferQty')*fhPersonQty; lines.push({label:'Transfer to Keepsakes (\xd7'+q+')', amount:10*q, taxable:false}); }
 
+  qsAt('fh:deathcerts');
   // Death Certs & County
   var dcQty = (parseInt(val('fhDeathCerts')) || 0) * fhPersonQty;
   if (dcQty > 0) { lines.push({label:'Certified Death Certificates (\xd7' + dcQty + ')', amount: dcQty * 25, taxable: false}); setDisp('fhDeathCertDisp', dcQty * 25); }
@@ -10400,6 +10477,7 @@ function fhUpdate() {
     setDisp('fhCountyFeeDisp', cfV * fhPersonQty);
   } else { setDisp('fhCountyFeeDisp', 0); }
 
+  qsAt('fh:casket');
   // Casket (multi-add) — multiply each casket qty by person count
   fhCaskets.forEach(function(c) {
     if (c.price > 0 && c.qty > 0) {
@@ -10408,6 +10486,7 @@ function fhUpdate() {
     }
   });
 
+  qsAt('fh:rental');
   // Rental Casket (taxable) — kept off the "Casket:" prefix on purpose: the GA/ClearPoint
   // importers match the purchased casket with /^Casket:/i, and a rental is not a sale.
   var fhRCv = parseFloat(val('fhRentalCasket')) || 0;
@@ -10423,6 +10502,7 @@ function fhUpdate() {
     setDisp('fhRentalCasketDisp', 0);
   }
 
+  qsAt('fh:container');
   // Cremation Container (taxable)
   var fhCCv = parseFloat(val('fhCremContainer')) || 0;
   if (fhCCv) {
@@ -10437,6 +10517,7 @@ function fhUpdate() {
     setDisp('fhCremContainerDisp', 0);
   }
 
+  qsAt('fh:merch');
   // Memorial Merchandise (multi-add) \u2014 multiply by person count
   fhMemPkgs.forEach(function(m) {
     if (m.price > 0 && m.qty > 0) {
@@ -10445,6 +10526,7 @@ function fhUpdate() {
     }
   });
 
+  qsAt('fh:urns');
   // Urns (multi-add) — multiply each urn qty by person count
   fhUrns.forEach(function(u) {
     if (u.price > 0 && u.qty > 0) {
@@ -10460,6 +10542,7 @@ function fhUpdate() {
    {id:'fhEngravNonOptStd',   price:150, label:'Engraving — Non Options Standard'}
   ].forEach(function(e){ if (chk(e.id)) lines.push({label:e.label, amount:e.price, taxable:true}); });
 
+  qsAt('fh:flowers');
   // Flowers (multi-add) — multiply by person count
   fhFlowers.forEach(function(f) {
     if (f.price > 0 && f.qty > 0) {
@@ -10468,6 +10551,7 @@ function fhUpdate() {
     }
   });
 
+  qsAt('fh:custom');
   // Custom Lines (flagged so the GA import can detect unrecognized items for its review field)
   el('fhCustomLines').querySelectorAll('.custom-line-row').forEach(function(row) {
     var d = row.querySelector('.cl-desc').value;
@@ -10477,6 +10561,7 @@ function fhUpdate() {
   });
 
 
+  qsAt('fh:discounts');
   // ── Multi-Discount ──────────────────────────────────────────────────
   var fhExemptSum  = lines.filter(function(l){return !l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var fhTaxableSum = lines.filter(function(l){return  l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
@@ -10504,6 +10589,7 @@ function fhUpdate() {
   _fhLines = lines;
   _fhDiscData = {amount: discAmt, mode: discMode || '', label: discLabel};
   _fhTotal = renderSummary('fhSummary', lines, discAmt, discLabel, discMode);
+  qsEnd('section-fh-quote');
   // Update Maxima insurance payment table
   try { fhInsCalc(); } catch(e) {}
   // Auto-refresh combined quote if FH data was already pulled — see the matching comment in
@@ -10642,6 +10728,7 @@ function combUpdate() {
   if (!hasCem && !hasFh) {
     body.innerHTML = '<div class="summary-empty">Nothing pulled in yet. Pull the cemetery and funeral home quotes to see a combined total.</div>';
     _sumSet('combSummary', { total: 0, split: '', empty: true });
+    qsSet('section-combined-quote', {});
     if (typeof combInsCalc === 'function') combInsCalc();
     return;
   }
@@ -10690,6 +10777,12 @@ function combUpdate() {
   split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
   _sumSet('combSummary', { total: grandTotal, split: split, empty: false });
   body.innerHTML = _sumPreview(items);
+  qsSet('section-combined-quote', {
+    'cmb:cem':        { amt: hasCem ? _combCemTotal : 0, n: hasCem ? _combCemLines.length : 0 },
+    'cmb:fh':         { amt: hasFh  ? _combFhTotal  : 0, n: hasFh  ? _combFhLines.length  : 0 },
+    'cmb:additional': { amt: customNet, n: customLines.length },
+    'cmb:discount':   { amt: -discAmt, n: discAmt > 0 ? 1 : 0 }
+  });
   if (typeof combInsCalc === 'function') combInsCalc();
 }
 
@@ -22516,14 +22609,134 @@ window.paintLucide=paintLucide;
 // toggles a .collapsed class on the .q-panel — pure display, no pricing logic touched. Defaults to
 // OPEN so it never disrupts the daily build flow; the advisor can tidy by collapsing filled panels.
 // Clicks on interactive controls inside a header are ignored so they still work.
+
+// ═══ s19 panel value summaries (DESIGN_HANDOFF §2) ═══════════════════════════════════
+// Every collapsible builder panel carries, in its header, the 1-2 most identifying facts it
+// holds plus its dollar contribution — visible whether the panel is open or collapsed, so
+// the counselor no longer opens panels to find out whether he already filled them in.
+//
+// The money is NOT recomputed. qsBegin/qsAt/qsEnd record index RANGES into the very `lines`
+// array that cemUpdate/fhUpdate hand to renderSummary(), and a panel's figure is the sum of
+// its own range. Nothing is written onto the line objects, so _cemLines/_fhLines — and with
+// them the print/PDF/save pipeline — are byte-for-byte what they were.
+var _QS = { key: null, at: 0, acc: null, lines: null };
+function qsBegin(lines) { _QS = { key: null, at: 0, acc: {}, lines: lines }; }
+function qsFlush() {
+  var L = _QS.lines; if (!L || !_QS.key) { if (L) _QS.at = L.length; return; }
+  var r = _QS.acc[_QS.key] || (_QS.acc[_QS.key] = { amt: 0, n: 0 });
+  for (var i = _QS.at; i < L.length; i++) { r.amt += (L[i].amount || 0); r.n++; }
+  _QS.at = L.length;
+}
+function qsAt(key) { try { qsFlush(); _QS.key = key; } catch (e) {} }
+function qsEnd(sectionId) {
+  try { qsFlush(); qsSet(sectionId, _QS.acc || {}); } catch (e) { console.error('qsEnd:', e); }
+  _QS = { key: null, at: 0, acc: null, lines: null };
+}
+// Money the way the rest of the app writes it, minus the cents when they are .00 — a
+// 44px header row has no space to spend on "$10,344.00".
+function qsMoney(nAmt) {
+  var neg = nAmt < 0, a = Math.abs(nAmt);
+  var t = (Math.round(a * 100) % 100 === 0)
+    ? '$' + Math.round(a).toLocaleString('en-US')
+    : fmt(a);
+  return (neg ? '\u2212' : '') + t;
+}
+function qsStrip(t) {
+  return String(t || '')
+    .replace(/\s*[\u2014\u2013-]\s*\$[\d,.]+(\s*(?:each|ea\.?|per\s[\w-]+|\/\s*mo|\/hr))?\s*$/i, '')
+    .replace(/\s*\$[\d,.]+\s*$/, '')
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/\s+/g, ' ').trim();
+}
+// Is this control hidden by the recalc, as opposed to merely sitting in a view that is not
+// on screen? offsetWidth answers the second question too, and that is the wrong question
+// here: cemUpdate() runs whether or not #section-cem-quote is .active, and the summary must
+// be right either way. An element's OWN computed display is unaffected by a hidden ancestor,
+// so walking up to the panel body and testing each step isolates the rows the recalc hid.
+// Only ever called for a control that already holds a value, so it stays cheap.
+function qsHidden(e, body) {
+  for (var p = e; p && p !== body && p.nodeType === 1; p = p.parentElement) {
+    if (p.style && p.style.display === 'none') return true;
+    try { if (getComputedStyle(p).display === 'none') return true; } catch (x) {}
+  }
+  return false;
+}
+// The 1-2 most identifying facts a panel holds, read straight off its own controls.
+function qsFacts(body) {
+  var out = [], i, e, t;
+  var picks = body.querySelectorAll('select, input[type=checkbox]');
+  for (i = 0; i < picks.length && out.length < 2; i++) {
+    e = picks[i];
+    if (e.disabled) continue;
+    if (e.tagName === 'SELECT') {
+      if (!e.value) continue;
+      var o = e.options[e.selectedIndex];
+      t = qsStrip(o ? o.text : '');
+      if (!t || /^\u2014?\s*none/i.test(t)) continue;
+      if (qsHidden(e, body)) continue;
+      out.push(t);
+    } else {
+      if (!e.checked) continue;
+      var lab = (e.id && body.querySelector('label[for="' + e.id + '"]')) || e.closest('label');
+      t = qsStrip(lab ? lab.textContent : '');
+      if (!t || qsHidden(e, body)) continue;
+      out.push(t);
+    }
+  }
+  if (out.length) return out;
+  // Nothing picked — fall back to filled identity text (Client Information is all text).
+  var txts = body.querySelectorAll('input[type=text], input[type=date], input[type=tel], input[type=email]');
+  for (i = 0; i < txts.length && out.length < 2; i++) {
+    e = txts[i];
+    if (e.disabled) continue;
+    if (e.classList.contains('cl-desc') || e.classList.contains('disc-note') || e.classList.contains('pi-label')) continue;
+    t = String(e.value || '').trim();
+    if (!t || qsHidden(e, body)) continue;
+    out.push(t.replace(/\s+/g, ' '));
+  }
+  return out;
+}
+// Paint one section's headers. `acc` is {panelKey: {amt, n}}; a panel with no entry still
+// gets a summary built from its own controls, and "Not set" when it holds nothing at all.
+function qsSet(sectionId, acc) {
+  var sec = document.getElementById(sectionId); if (!sec) return;
+  acc = acc || {};
+  sec.querySelectorAll('.q-panel[data-qs]').forEach(function (panel) {
+    var sum = panel.querySelector(':scope > .q-panel-header > .q-panel-sum');
+    if (!sum) return;
+    var body = panel.querySelector(':scope > .q-panel-body');
+    var rec = acc[panel.getAttribute('data-qs')] || null;
+    var facts = [];
+    try { if (body) facts = qsFacts(body); } catch (e) { facts = []; }
+    if (!facts.length && rec && rec.n > 0) facts.push(rec.n + (rec.n === 1 ? ' item' : ' items'));
+    var money = (rec && Math.round(rec.amt * 100) !== 0) ? qsMoney(rec.amt) : '';
+    var lead = facts.join(' \u00b7 ');
+    // Keep the whole string near 40ch: the money never gets truncated, the facts do.
+    var room = 40 - (money ? money.length + 3 : 0);
+    if (lead.length > room && room > 6) lead = lead.slice(0, room - 1).replace(/[\s\u00b7]+$/, '') + '\u2026';
+    var text = money ? (lead ? lead + ' \u00b7 ' + money : money) : lead;
+    sum.textContent = text || 'Not set';
+    sum.classList.toggle('q-sum-empty', !text);
+    sum.title = (facts.join(' \u00b7 ') + (money ? ' \u00b7 ' + money : '')) || 'Not set';
+  });
+}
 function initCollapsePanels(){
   document.querySelectorAll(".q-panel-header").forEach(function(h){
     if(h.querySelector(".q-chev")) return;
+    // Value summary first, then the chevron: the summary carries margin-left:auto, so it
+    // is what pushes the pair to the right edge of the 44px row.
+    if(h.closest(".q-panel[data-qs]") && !h.querySelector(".q-panel-sum")){
+      var v=document.createElement("span");
+      v.className="q-panel-sum q-sum-empty"; v.textContent="Not set";
+      h.appendChild(v);
+    }
     var c=document.createElement("span");
     c.className="q-chev ni-ic"; c.setAttribute("data-lc","chevron-down"); c.setAttribute("data-lc-sz","18");
     h.appendChild(c);
   });
   paintLucide();
+  // First paint, so a panel reads "Not set" rather than blank before the first recalc.
+  try{ qsSet("section-cem-quote",{}); qsSet("section-fh-quote",{}); qsSet("section-combined-quote",{}); }catch(e){}
 }
 document.addEventListener("click",function(e){
   if(!e.target.closest) return;
