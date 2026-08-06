@@ -2493,3 +2493,18 @@ New tracked suite `tests/test-family-quote-subtotal.mjs` (31 asserts) covers bot
 subtotal ≠ total, subtotal + tax = total, rows − discount = subtotal, payment bases unchanged,
 the panel's own arithmetic, Print yielding text/html with no download and a raised dialog, and
 every page-2 payment figure. Contract after the fix: **2492 passed, 0 failed across 38 suites**.
+
+**Addendum, same day — the parity check now reads the PDF instead of re-deriving it.** The
+suite's original parity section recomputes each payment figure in JS the way the pdf-lib
+page-2 code does and then looks for it on the printed page — both sides of that comparison
+are the test's own arithmetic, so it would stay green if the *pdf-lib* renderer drifted,
+which is the direction the parity rule exists to catch. Section 5 compares artifact to
+artifact: it wraps `PDFPage.drawText`, records every string a real `_fqBuildPDFBytes()` run
+draws (tagged by page), and diffs the money tokens against the real `_fqRenderHTML()` output
+— page 1 and the payment pages, both directions, nothing computed in between. Current
+agreement: 35/35, 11/11, 61/61 payment figures and 9/8/14 page-1 figures. Letter-spaced caps
+are drawn glyph-by-glyph by the PDF renderer but carry no digits, so they can't collide with
+the money match. **Proven to have teeth** by a negative control (`scratch/`, untracked):
+moving one `FIN_TIERS` rate *after* the PDF capture makes it name exactly the two figures
+that changed ($202.03/$8,034.17 → $217.61/$8,594.80); restoring the rate clears it. Suite
+31 → 40 asserts, contract **2501 passed, 0 failed across 38 suites**.
