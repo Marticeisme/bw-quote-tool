@@ -8,29 +8,60 @@
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Redesign 2026-07-17 (design-tool spec): deep-navy + amber working-tool palette. */
-  --navy:#14304a; --navy-dark:#0f2438; --navy-mid:#14304a; --blue:#2f6fa8; --blue-light:#e8f1f9;
-  --gold:#14304a; --gold-light:#e8f1f9; --white:#ffffff; --offwhite:#eef0f2;
-  --canvas:#eef0f2; --card:#ffffff; --border:#e4e8ec; --ink:#1e2733; --orange-tint:#FDF1EC;
-  --cream:#fff8f0; --warm-border:#f3d9b8; --rule:#e4e8ec;
-  --gray-light:#f2f4f6; --gray-mid:#e2e6ea; --gray-dark:#64707c;
-  --text:#1e2733; --text-dark:#14304a; --text-light:#64707c; --green:#2d6a2d; --red:#c0392b;
-  /* One orange across the mark, the quotes, the guides and this app (was amber #e0851f). */
-  --tax-color:#64707c; --orange:#E5480F; --orange-dark:#C23A0B; --muted:#64707c;
+  /* ── Sprint-19 design tokens (ops/sprints/sprint-19/DESIGN_HANDOFF.md) ───────────
+     The app chrome, the family-quote/PDF layer and the guides now share ONE brand pair:
+     the official 2026 GPL brochure navy #466e86 and orange #e84610. Every dark navy step
+     is that navy scaled (x.40 / .55 / .70 / .85) and every light step is a white mix, so
+     the ramp cannot drift off-hue and a future brand change is a one-line edit. */
+  /* brand — fixed */
+  --bw-navy:#466e86; --bw-orange:#e84610;
+  /* navy ramp — dark steps scaled, light steps mixed with white */
+  --navy-900:#1c2c36;  /* sidebar, topbar                         */
+  --navy-800:#273d4a;  /* sidebar hover, active item, chrome rule */
+  --navy-700:#314d5e;
+  --navy-600:#3c5e72;
+  --navy-500:#466e86;  /* links, focus ring, keylines             */
+  --navy-400:#7492a4;  /* icons, secondary text on light          */
+  --navy-300:#a3b7c3;  /* placeholder, disabled                   */
+  --navy-200:#c8d4db;  /* input border on hover                   */
+  --navy-150:#dde5e9;  /* default border, table rule              */
+  --navy-100:#e3e9ec;  /* panel header fill, row hover            */
+  --navy-50:#f2f5f6;   /* app background                          */
+  --ink:#16242c;       /* headings, money                         */
+  --body:#4a5a64;      /* body copy                               */
+  --muted:#6d818c;     /* labels, meta, helper text               */
+  --orange:#e84610; --orange-press:#c73a0c;
+  --orange-tint:#fdf0ea;  /* only orange fill wider than a button */
+  --ok:#2e6b52; --warn:#8a6414; --stop:#a33a25;  /* text/border only */
+  /* type — Public Sans UI, Source Sans 3 numbers & tables */
+  --t-xs:11px; --t-sm:12.5px; --t-base:14px; --t-md:15px; --t-lg:17px; --t-xl:21px;
+  --t-total:30px;      /* the running total, and nothing else */
+  /* space — 4pt, and only these */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  --r-sm:6px; --r-md:8px; --r-pill:999px;
+  --sh-1:0 1px 2px rgba(22,36,44,.06);
+  --sh-2:0 6px 18px rgba(22,36,44,.10);   /* fixed summary panel only */
+  --ring:0 0 0 3px rgba(70,110,134,.28);  /* every focus state        */
+  /* ── legacy aliases ─────────────────────────────────────────────────────────────
+     ~200 CSS rules and 226 JS-set inline styles reference the pre-s19 names. They are
+     REPOINTED onto the ramp above rather than deleted, so nothing goes unstyled and the
+     next palette change stays a one-line edit. --gold/--gold-light are the drifted
+     "amber" aliases: still referenced by .callout-gold and the Print Comparison and
+     Save Contract buttons, so they resolve to the navy ramp instead of disappearing. */
+  --navy:var(--navy-900); --navy-dark:#152128; --navy-mid:var(--navy-800);
+  --blue:var(--navy-500); --blue-light:var(--navy-100);
+  --gold:var(--navy-800); --gold-light:var(--navy-100);
+  --white:#ffffff; --offwhite:var(--navy-50); --canvas:var(--navy-50); --card:#ffffff;
+  --border:var(--navy-150); --rule:var(--navy-150);
+  --cream:#fbf7f2; --warm-border:var(--navy-150);
+  --gray-light:var(--navy-50); --gray-mid:var(--navy-150); --gray-dark:var(--muted);
+  --text:var(--body); --text-dark:var(--ink); --text-light:var(--muted);
+  --green:var(--ok); --red:var(--stop); --tax-color:var(--muted);
+  --orange-dark:var(--orange-press);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhite);color:var(--text);line-height:1.5;}
 
-/* HEADER */
-.site-header{background:var(--navy);padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
-.header-inner{max-width:1400px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
-.header-logo{height:22px;width:auto;flex-shrink:0;}
-.header-est{font-family:'Public Sans',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
-.header-title{font-family:'Public Sans',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
-.header-title span{color:#fff;}
-.header-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 12px;flex:0 0 220px;position:relative;}
-.header-search input{background:none;border:none;outline:none;color:#fff;font-family:'Public Sans',sans-serif;font-size:13px;width:100%;}
-.header-search input::placeholder{color:rgba(255,255,255,.45);}
 .search-result-item:hover{background:rgba(255,255,255,.1)!important;color:#fff!important;}
 
 /* LAYOUT — full-bleed app shell: navy sidebar + content column with white top bar */
@@ -42,34 +73,35 @@ body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhi
 .tb-crumb .tb-sep{opacity:.5;}
 .tb-crumb #crumbCurrent{color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tb-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.tb-search{display:flex;align-items:center;gap:9px;height:38px;padding:0 14px;background:#f2f4f6;border:1px solid var(--border);border-radius:9px;width:300px;position:relative;}
+.tb-search{display:flex;align-items:center;gap:9px;height:38px;padding:0 14px;background:var(--navy-50);border:1px solid var(--border);border-radius:9px;width:300px;position:relative;}
 .tb-search input{border:none;outline:none;background:none;font-family:inherit;font-size:13px;color:var(--ink);width:100%;}
-.tb-search input::placeholder{color:#9aa4ae;}
-.tb-search .lc{width:15px;height:15px;color:#9aa4ae;flex-shrink:0;}
-.tb-action{height:38px;padding:0 18px;background:var(--orange);color:#fff;border:none;border-radius:9px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
-.tb-action:hover{background:var(--orange-dark);}
+.tb-search input::placeholder{color:var(--navy-300);}
+.tb-search .lc{width:15px;height:15px;color:var(--navy-400);flex-shrink:0;}
+.tb-action{height:38px;padding:0 18px;background:var(--orange);color:#fff;border:1px solid transparent;border-radius:var(--r-md);font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .12s ease;}
+.tb-action:hover{background:var(--orange-press);}
+.tb-action:focus-visible,.tb-action2:focus-visible{outline:0;box-shadow:var(--ring);}
 /* Secondary top-bar action (Funeral Home) — keeps a single orange primary in the bar. */
-.tb-action2{height:38px;padding:0 16px;background:#fff;color:var(--navy);border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;}
-.tb-action2:hover{background:#f2f4f6;border-color:var(--navy);}
+.tb-action2{height:38px;padding:0 16px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .12s ease,border-color .12s ease;}
+.tb-action2:hover{background:var(--navy-50);border-color:var(--navy-400);}
 
 /* SIDEBAR — deep navy, full-height, logo top + user card bottom, white-pill active nav */
-.sidebar{background:#14304a;width:264px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding:0;}
+.sidebar{background:var(--navy-900);width:264px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding:0;}
 .sb-brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.09);flex-shrink:0;}
 .sb-logo{width:172px;height:auto;display:block;}
 .sb-logo-fallback{color:#fff;font-weight:800;font-size:16px;letter-spacing:.03em;}
 .sb-tagline{font-size:10px;letter-spacing:.16em;color:var(--orange);margin-top:11px;font-weight:700;text-transform:uppercase;}
 .sb-nav{flex:1;overflow-y:auto;padding:8px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
 .sb-user{flex-shrink:0;padding:14px 18px;border-top:1px solid rgba(255,255,255,.09);display:flex;align-items:center;gap:11px;}
-.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#14304a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
 .sb-user-name{color:#fff;font-weight:700;font-size:12.5px;line-height:1.3;}
-.sb-user-role{color:#7b899d;font-size:12px;}
-.nav-label{font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#9ab0c6;padding:18px 12px 7px;}
-.nav-item{display:flex;align-items:center;gap:11px;padding:8px 12px;margin-bottom:2px;text-decoration:none;color:#b3c0cf;font-size:13px;font-weight:500;border-radius:8px;transition:background .12s,color .12s,box-shadow .12s;cursor:pointer;user-select:none;}
-.nav-item:hover{color:#fff;background:rgba(255,255,255,.07);}
-.nav-item.active{color:#14304a;background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
-.nav-item.highlight{background:transparent;color:#b3c0cf;font-weight:500;box-shadow:none;}
-.nav-item.highlight:hover{background:rgba(255,255,255,.07);color:#fff;}
-.nav-item.highlight.active,.nav-item.active.highlight{color:#14304a;background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
+.sb-user-role{color:var(--navy-400);font-size:12px;}
+.nav-label{font-size:var(--t-xs);font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--navy-400);padding:18px 12px 7px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:8px 12px;margin-bottom:2px;text-decoration:none;color:var(--navy-200);font-size:13px;font-weight:500;border-radius:var(--r-md);transition:background .12s ease,color .12s ease,box-shadow .12s ease;cursor:pointer;user-select:none;}
+.nav-item:hover{color:#fff;background:var(--navy-800);}
+.nav-item.active{color:var(--navy-900);background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
+.nav-item.highlight{background:transparent;color:var(--navy-200);font-weight:500;box-shadow:none;}
+.nav-item.highlight:hover{background:var(--navy-800);color:#fff;}
+.nav-item.highlight.active,.nav-item.active.highlight{color:var(--navy-900);background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
 
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
@@ -78,7 +110,7 @@ body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhi
 .section{display:none;}
 .section.active{display:block;}
 .section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--navy);}
-.section-icon{width:34px;height:34px;background:#eef2f6;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.section-icon{width:34px;height:34px;background:var(--navy-100);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;color:var(--navy-500);}
 .section-header h2{font-family:'Public Sans',serif;font-size:19px;font-weight:700;color:var(--navy);}
 .badge{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--text-light);text-transform:uppercase;background:var(--gray-light);padding:3px 10px;border-radius:12px;}
 
@@ -86,21 +118,21 @@ body{font-family:'Public Sans',sans-serif;font-size:14px;background:var(--offwhi
 table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;}
 th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;}
 td{padding:8px 12px;border-bottom:1px solid var(--gray-mid);}
-tr:nth-child(even) td{background:#f8fafc;}
-tr:hover td{background:#eef3f8;}
+tr:nth-child(even) td{background:var(--navy-50);}
+tr:hover td{background:var(--navy-100);}
 .price{text-align:right;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums;}
 .bold{font-weight:600;}
 .right{text-align:right;}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;}
-.tag-info{background:#e8f0fe;color:#1a56a0;}
-.tag-call{background:#fff3e0;color:#7a4500;}
-.tag-exempt{background:#e8f5e9;color:#2d6a4f;}
+.tag-info{background:var(--navy-100);color:var(--navy-700);}
+.tag-call{background:var(--orange-tint);color:var(--warn);}
+.tag-exempt{background:rgba(46,107,82,.07);color:var(--ok);}
 
 /* CALLOUTS */
 .callout{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;}
 .callout-blue{background:var(--blue-light);border-left:4px solid var(--blue);}
 .callout-gold{background:var(--gold-light);border-left:4px solid var(--gold);}
-.callout-green{background:#e8f5e9;border-left:4px solid var(--green);}
+.callout-green{background:rgba(46,107,82,.07);border-left:4px solid var(--green);}
 
 /* SUBSECTIONS */
 .subsection{margin-bottom:24px;}
@@ -112,27 +144,27 @@ tr:hover td{background:#eef3f8;}
 .lc{display:inline-block;vertical-align:middle;flex-shrink:0;}
 .nav-item{display:flex;align-items:center;gap:11px;}
 .ni-ic .lc,.ph-ic .lc{width:17px;height:17px;}
-.ph-ic{width:30px;height:30px;border-radius:8px;background:#eef2f6;color:var(--navy);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ph-ic{width:30px;height:30px;border-radius:var(--r-md);background:var(--navy-100);color:var(--navy-500);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 /* ═══ QUOTE BUILDER STYLES ═══ */
 .q-layout{display:block;}
-.q-panel{background:#fff;border:1px solid #e2e8ee;border-radius:12px;margin-bottom:13px;box-shadow:0 1px 2px rgba(26,35,50,.04);}
-.q-panel-header{background:#fff;color:var(--navy);padding:15px 20px;font-family:'Public Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:0;border-bottom:1px solid #eef1f4;border-radius:14px 14px 0 0;display:flex;align-items:center;gap:11px;}
-.q-panel{border-radius:14px !important;border-color:var(--border) !important;}
-.ph-ic{background:#eef3f7;border:1px solid #dbe4ec;}
+.q-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);margin-bottom:var(--s3);box-shadow:var(--sh-1);}
+.q-panel-header{background:#fff;color:var(--ink);padding:15px 20px;font-family:'Public Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:0;border-bottom:1px solid var(--navy-150);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:11px;}
+.q-panel{border-radius:var(--r-md) !important;border-color:var(--border) !important;}
+.ph-ic{background:var(--navy-100);border:1px solid var(--navy-150);}
 .q-panel-body{padding:18px 20px;}
-.bw-stepper{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 18px;background:#fff;border:1px solid #e2e8ee;border-radius:10px;}
+.bw-stepper{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px 18px;background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);}
 .bw-step{display:flex;align-items:center;gap:9px;}
-.bw-step-n{width:22px;height:22px;border-radius:999px;background:#e7edf2;color:#8a97a4;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.bw-step-n{width:22px;height:22px;border-radius:var(--r-pill);background:var(--navy-100);color:var(--navy-400);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 .bw-step-n.on{background:var(--navy);color:#fff;}
-.bw-step-l{font-size:13.5px;font-weight:600;color:#8a97a4;}
+.bw-step-l{font-size:13.5px;font-weight:600;color:var(--navy-400);}
 .bw-step-l.on{color:var(--navy-mid);}
-.bw-step-arrow{color:#c4cfd9;}
+.bw-step-arrow{color:var(--navy-300);}
 .bw-step-arrow .lc{width:16px;height:16px;}
 .q-panel-header{cursor:pointer;user-select:none;}
-.q-chev{margin-left:auto;color:#9aaab8;flex-shrink:0;display:inline-flex;transition:transform .15s;}
+.q-chev{margin-left:auto;color:var(--navy-400);flex-shrink:0;display:inline-flex;transition:transform .12s ease;}
 .q-panel.collapsed .q-chev{transform:rotate(-90deg);}
 .q-panel.collapsed .q-panel-body{display:none;}
-.q-panel.collapsed .q-panel-header{border-bottom:none;border-radius:12px;}
+.q-panel.collapsed .q-panel-header{border-bottom:none;border-radius:var(--r-md);}
 .q-group{margin-bottom:14px;}
 .q-group:last-child{margin-bottom:0;}
 .q-group-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:8px;}
@@ -155,37 +187,73 @@ tr:hover td{background:#eef3f8;}
 #section-fh-quote .q-panel,#section-combined-quote .q-panel,#section-cem-quote .q-panel{max-width:100%;box-sizing:border-box;overflow-x:hidden;}
 .summary-fixed.visible{display:block;}
 
-.summary-panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 24px rgba(20,40,60,.08);overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column;}
-.summary-header{background:var(--navy);padding:16px 20px;font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:#fff;}
-.summary-body{padding:16px 20px;min-height:110px;overflow-y:auto;}
-.summary-empty{color:#9aa4ae;font-size:13px;text-align:center;padding:24px 0;}
-.s-section-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9aa4ae;padding:10px 0 3px;margin-top:4px;}
-.s-line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid #f0f2f4;}
-.s-line .s-lbl{color:#5a6672;font-size:12.5px;}
-.s-line .s-amt{font-size:12.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.summary-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-2);overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column;}
+/* ── s19 summary panel ───────────────────────────────────────────────────────
+   Geometry is unchanged (position:fixed; width:260px, and the coupled 292px content
+   clearance above). What changed is the inside: an isolated white total block, then a
+   three-line item preview, then ranked actions. The 30px total is the only 30px type
+   in the app. */
+.summary-total-block{padding:var(--s4) 18px 14px;border-bottom:1px solid var(--navy-150);}
+.summary-kicker{font:600 var(--t-xs)/1 'Public Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.summary-total{font:600 var(--t-total)/1 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+.summary-split{font:400 var(--t-sm)/1.5 'Public Sans',sans-serif;color:var(--muted);margin-top:var(--s2);}
+.s-split-row{display:flex;justify-content:space-between;gap:var(--s2);}
+.s-split-amt{font-family:'Source Sans 3',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.summary-panel.is-empty .summary-total{color:var(--navy-300);}
+.summary-panel.is-empty .summary-actions .btn,.summary-panel.is-empty .summary-reset{opacity:.45;pointer-events:none;}
+/* three-line item preview */
+.s-prev{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);padding:5px 0;}
+.s-prev-lbl{font:400 var(--t-sm)/1.35 'Public Sans',sans-serif;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.s-prev-amt{font:400 var(--t-sm)/1.35 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.s-prev-more{font:400 var(--t-sm)/1.4 'Public Sans',sans-serif;color:var(--navy-400);padding-top:5px;}
+.summary-body{padding:12px 18px 14px;overflow-y:auto;}
+.summary-empty{color:var(--muted);font-size:var(--t-sm);line-height:1.55;text-align:left;padding:2px 0 4px;}
+.s-section-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:10px 0 3px;margin-top:4px;}
+.s-line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--navy-150);}
+.s-line .s-lbl{color:var(--body);font-size:var(--t-sm);}
+.s-line .s-amt{font-size:var(--t-sm);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .s-line.plan-item .s-lbl{opacity:.7;}
-.s-line.discount-line .s-lbl,.s-line.discount-line .s-amt{color:var(--orange-dark);}
-.s-line.tax-line .s-lbl,.s-line.tax-line .s-amt{color:#5a6672;}
+.s-line.discount-line .s-lbl,.s-line.discount-line .s-amt{color:var(--orange-press);}
+.s-line.tax-line .s-lbl,.s-line.tax-line .s-amt{color:var(--muted);}
 .s-divider{border:none;border-top:2px solid var(--navy);margin:14px 0 0;}
 /* Five-figure totals (e.g. "Combined Total  $12,325.04") overran the fixed-width summary panel and
    clipped at its right edge. Wrap the amount onto its own right-aligned line instead of cutting it. */
 .s-total-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px;gap:8px;flex-wrap:wrap;}
 .s-total-lbl{font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);white-space:nowrap;}
 .s-total-amt{font-family:'Public Sans',sans-serif;font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:auto;}
-.s-tax-note{font-size:10.5px;color:#9aa4ae;margin-top:6px;line-height:1.5;}
-.summary-actions{padding:6px 20px 18px;display:flex;flex-wrap:wrap;gap:8px;}
+.s-tax-note{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.summary-actions{padding:14px 18px var(--s4);display:flex;flex-direction:column;gap:var(--s2);border-top:1px solid var(--navy-150);}
+.summary-quiet-pair{display:flex;gap:var(--s2);}
+.summary-quiet-pair .btn{flex:1;}
+.summary-reset{display:block;width:100%;margin-top:var(--s1);background:none;border:none;padding:6px 0;font:400 12px/1 'Public Sans',sans-serif;color:var(--navy-400);cursor:pointer;text-align:center;}
+.summary-reset:hover{color:var(--stop);text-decoration:underline;}
+.summary-reset:focus-visible{outline:0;box-shadow:var(--ring);border-radius:var(--r-sm);}
+/* ── s19 button ranks. Four, and every button in the app resolves to one of them. ── */
+.btn{font:600 13.5px/1 'Public Sans',sans-serif;border-radius:var(--r-md);padding:12px 18px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:background .12s ease,border-color .12s ease,color .12s ease;}
+.btn .lc{width:15px;height:15px;flex-shrink:0;}
+.btn:focus-visible{outline:0;box-shadow:var(--ring);}
+.btn-primary{background:var(--orange);color:#fff;}
+.btn-primary:hover{background:var(--orange-press);}
+.btn-secondary{background:#fff;color:var(--ink);border-color:var(--navy-200);}
+.btn-secondary:hover{background:var(--navy-50);border-color:var(--navy-400);}
+.btn-quiet{background:none;color:var(--navy-500);padding:10px 12px;font-size:13px;}
+.btn-quiet:hover{background:var(--navy-100);}
+.btn-danger-quiet{background:none;color:var(--stop);padding:10px 12px;font-size:13px;}
+.btn-danger-quiet:hover{background:var(--navy-100);}
+.btn:disabled{background:var(--navy-50);color:var(--navy-300);border-color:var(--navy-150);cursor:default;}
+.btn-block{width:100%;}
 .btn-print{flex:1 1 100%;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Public Sans',sans-serif;}
 .btn-print:hover{background:var(--orange-dark);}
 .btn-print2{flex:1 1 100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:'Public Sans',sans-serif;}
 .btn-print2:hover{background:var(--navy-dark);}
-.btn-export{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--navy);border:1px solid #d3dae1;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;white-space:nowrap;text-align:center;}
+.btn-export{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;white-space:nowrap;text-align:center;}
 .btn-export:hover{background:var(--gray-light);}
-.saved-quote-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f0f2f4;font-size:11px;color:#5a6672;}
-.saved-quote-item button{background:none;border:1px solid #d3dae1;color:#5a6672;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;}
+.saved-quote-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--navy-150);font-size:11px;color:var(--body);}
+.saved-quote-item button{background:none;border:1px solid var(--navy-200);color:var(--body);border-radius:var(--r-sm);padding:2px 6px;font-size:10px;cursor:pointer;}
 .saved-quote-item button:hover{background:var(--gray-light);}
 .saved-quote-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.saved-quote-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9aa4ae;padding:8px 0 4px;}
-.btn-reset{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--navy);border:1px solid #d3dae1;border-radius:9px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;text-align:center;}
+.saved-quote-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 0 4px;}
+.btn-reset{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;text-align:center;}
 .btn-reset:hover{background:var(--gray-light);}
 /* Tax status pills + panel-header polish */
 .tax-pill{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:20px;flex-shrink:0;}
@@ -201,7 +269,7 @@ tr:hover td{background:#eef3f8;}
 .plan-item-row .pi-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;}
 .plan-totals{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-mid);font-size:12px;color:var(--text-light);}
 .plan-totals strong{color:var(--green);}
-.btn-add-item{font-size:11px;padding:4px 12px;border:1px solid var(--blue);border-radius:6px;background:var(--blue-light);color:var(--navy);cursor:pointer;margin-top:8px;}
+.btn-add-item{font-size:11px;padding:5px 12px;border:1px solid var(--navy-200);border-radius:var(--r-sm);background:#fff;color:var(--navy-500);cursor:pointer;margin-top:8px;font-weight:600;}
 
 /* CUSTOM LINES */
 .custom-line-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
@@ -209,13 +277,13 @@ tr:hover td{background:#eef3f8;}
 .custom-line-row input[type=number]{width:90px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;}
 .custom-line-row select{padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:'Public Sans',sans-serif;}
 .custom-line-row .cl-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;}
-.disc-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 9px;background:rgba(27,42,74,.04);border:1px solid var(--gray-light);border-radius:7px;}
+.disc-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:7px 9px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);}
 .disc-row select{padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:11px;}
 .disc-row input[type=number]{width:80px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:11px;}
 .disc-row input[type=text]{flex:1;min-width:100px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;font-size:11px;}
 .disc-row .disc-val-wrap{display:none;align-items:center;gap:5px;flex:1;}
 .disc-row .disc-val-wrap.show{display:flex;}
-.disc-row .disc-efg-wrap{display:none;align-items:center;gap:4px;font-size:10.5px;color:#7f1d1d;font-weight:600;cursor:pointer;white-space:nowrap;}
+.disc-row .disc-efg-wrap{display:none;align-items:center;gap:4px;font-size:10.5px;color:var(--stop);font-weight:600;cursor:pointer;white-space:nowrap;}
 .disc-row .disc-efg-wrap input[type=checkbox]{margin:0;width:auto;}
 .disc-row .cl-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer;white-space:nowrap;}
 .pcm-group-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:5px 0;border-bottom:1px solid var(--gray-light);margin-bottom:4px;}
@@ -224,25 +292,17 @@ tr:hover td{background:#eef3f8;}
 .pcm-group-toggle.open .pcm-arrow{transform:rotate(180deg);}
 .pcm-group-body{overflow:hidden;transition:max-height .25s ease;}
 .pcm-group-body.collapsed{max-height:0!important;}
-.btn-add-line{display:inline-block;padding:6px 14px;background:var(--blue-light);border:1px dashed var(--blue);border-radius:6px;font-size:12px;color:var(--blue);cursor:pointer;font-weight:600;margin-top:4px;}
-.btn-add-line:hover{background:#c4d8ee;}
+.btn-add-line{display:inline-block;padding:6px 14px;background:none;border:1px dashed var(--navy-200);border-radius:var(--r-sm);font-size:12px;color:var(--navy-500);cursor:pointer;font-weight:600;margin-top:4px;}
+.btn-add-line:hover{background:var(--navy-100);border-color:var(--navy-400);}
 
 /* COMBINED PANEL specific */
-.pull-btn{padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;}
-.pull-btn:hover{background:#1e3a6a;}
+.pull-btn{padding:9px 18px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;transition:background .12s ease,border-color .12s ease;}
+.pull-btn:hover{background:var(--navy-50);border-color:var(--navy-400);}
+.pull-btn:focus-visible{outline:0;box-shadow:var(--ring);}
 .pull-result{font-size:13px;font-weight:700;color:var(--navy);}
 .breakdown-lines{margin-top:8px;font-size:12px;border-top:1px solid var(--gray-mid);padding-top:6px;}
 .breakdown-line{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--gray-light);}
 
-/* HERO */
-.hero{background:linear-gradient(135deg,#35566a 0%,#466e86 100%);border-radius:12px;padding:32px 36px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;gap:24px;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;right:-40px;top:-40px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
-.hero-text h1{font-family:'Public Sans',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:5px;}
-.hero-text p{color:rgba(255,255,255,.6);font-size:13px;}
-.hero-stats{display:flex;gap:20px;flex-shrink:0;position:relative;z-index:1;}
-.hero-stat{text-align:center;padding:10px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;}
-.hero-stat .num{font-family:'Public Sans',serif;font-size:22px;font-weight:700;color:#fff;display:block;}
-.hero-stat .lbl{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;}
 
 /* QUICK REF GRID */
 .qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px;}
@@ -722,16 +782,16 @@ tr:hover td{background:#eef3f8;}
   <!-- Quick Launch -->
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
     <button onclick="show('cem-quote', document.querySelector('[onclick*=cem-quote]'))" style="flex:1;min-width:160px;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4;">
-      🧮 Cemetery Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Pre-Need &amp; At-Need pricing</span>
+      Cemetery Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Pre-Need &amp; At-Need pricing</span>
     </button>
     <button onclick="show('fh-quote', document.querySelector('[onclick*=fh-quote]'))" style="flex:1;min-width:160px;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4;">
-      ⚱️ Funeral Home Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Packages, caskets, services</span>
+      Funeral Home Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Packages, caskets, services</span>
     </button>
     <button onclick="show('combined-quote', document.querySelector('[onclick*=combined-quote]'))" style="flex:1;min-width:160px;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4;">
-      🔗 Combined Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Cemetery + Funeral together</span>
+      Combined Quote<br><span style="font-size:11px;font-weight:400;opacity:.7;">Cemetery + Funeral together</span>
     </button>
     <button onclick="show('ric-contract', document.querySelector('[onclick*=ric-contract]'))" style="flex:1;min-width:160px;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;line-height:1.4;">
-      📄 Pre-Need RIC Contract<br><span style="font-size:11px;font-weight:400;opacity:.7;">Cemetery pre-need only</span>
+      Pre-Need RIC Contract<br><span style="font-size:11px;font-weight:400;opacity:.7;">Cemetery pre-need only</span>
     </button>
   </div>
 
@@ -843,14 +903,14 @@ tr:hover td{background:#eef3f8;}
   </div>
   <div class="callout callout-blue" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span>Build a complete cemetery quote. Tax (10.4%) applies to merchandise. Plot, ECF, O&amp;C, Recording, and Scheduling surcharges are tax-exempt.</span>
-    <button onclick="toggleCompare()" id="compareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
+    <button onclick="toggleCompare()" id="compareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Compare Options</button>
   </div>
 
   <!-- Compare Panel -->
   <div id="comparePanel" style="display:none;margin-bottom:16px;padding:16px;background:#f0f4ff;border:2px solid var(--navy);border-radius:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;color:var(--navy);">⚖️ Option Comparison</div>
-      <button onclick="printCompare()" style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">🖨️ Print Comparison</button>
+      <button onclick="printCompare()" style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Print Comparison</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
 
@@ -2202,7 +2262,7 @@ tr:hover td{background:#eef3f8;}
           <div style="margin-top:10px;">
             <button onclick="showAllFinTiers()"
               style="padding:7px 16px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.02em;">
-              📊 Show All Minimum Down Payment Options
+              Show All Minimum Down Payment Options
             </button>
           </div>
           <div id="finTable" style="margin-top:14px;"></div>
@@ -2223,19 +2283,24 @@ tr:hover td{background:#eef3f8;}
 
 
 <div class="summary-fixed" data-for="section-cem-quote">
-  <div class="summary-panel">
-    <div class="summary-header">📋 Cemetery Quote</div>
+  <div class="summary-panel is-empty">
+    <div class="summary-total-block">
+      <div class="summary-kicker" id="cemSummaryKicker">Cemetery quote</div>
+      <div class="summary-total" id="cemSummaryTotal">$0.00</div>
+      <div class="summary-split" id="cemSummarySplit"></div>
+    </div>
     <div class="summary-body" id="cemSummary">
-      <div class="summary-empty">Select items to build your quote</div>
+      <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="downloadCemQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print2" onclick="printCemQuote()">🖨️ Print</button>
-      <button class="btn-export" onclick="copyCemSummary()" title="Copy summary to clipboard" id="cemCopyBtn">📋 Copy</button>
-      <button class="btn-reset" onclick="resetCemQuote()">↺ Reset</button>
-      <button class="btn-export" onclick="saveCemQuote()" title="Save this quote draft">💾 Save</button>
+      <button class="btn btn-primary btn-block" onclick="downloadCemQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
+      <button class="btn btn-secondary btn-block" onclick="saveCemQuote()" title="Save this quote draft">Save quote</button>
+      <div class="summary-quiet-pair">
+        <button class="btn btn-quiet" onclick="printCemQuote()" title="Print the family quote"><span data-lc="printer" data-lc-sz="15"></span>Print</button>
+        <button class="btn btn-quiet" id="cemCopyBtn" onclick="copyCemSummary()" title="Copy summary to clipboard">Copy</button>
+      </div>
+      <button class="summary-reset" onclick="if (confirm('Clear this cemetery quote and start over?')) resetCemQuote();">Reset quote</button>
     </div>
-
   </div>
 </div>
 
@@ -2248,14 +2313,14 @@ tr:hover td{background:#eef3f8;}
   </div>
   <div class="callout callout-blue" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
     <span>Build a funeral home quote. Merchandise is taxable (10.4%). Professional services, transportation, and cremation services are tax-exempt.</span>
-    <button onclick="toggleFhCompare()" id="fhCompareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">⚖️ Compare Options</button>
+    <button onclick="toggleFhCompare()" id="fhCompareToggleBtn" style="flex-shrink:0;padding:7px 14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">Compare Options</button>
   </div>
 
   <!-- FH Compare Panel (top of page, like cemetery) -->
   <div id="fhComparePanel" style="display:none;margin-bottom:16px;padding:16px;background:#f0f4ff;border:2px solid var(--navy);border-radius:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;color:var(--navy);">⚖️ FH Option Comparison</div>
-      <button onclick="printFhCompare()" style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">🖨️ Print Comparison</button>
+      <button onclick="printFhCompare()" style="padding:6px 14px;background:var(--gold);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Print Comparison</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
 
@@ -2968,21 +3033,24 @@ tr:hover td{background:#eef3f8;}
 
 
 <div class="summary-fixed" data-for="section-fh-quote">
-  <div class="summary-panel">
-    <div class="summary-header">📋 Funeral Home Quote</div>
+  <div class="summary-panel is-empty">
+    <div class="summary-total-block">
+      <div class="summary-kicker" id="fhSummaryKicker">Funeral home quote</div>
+      <div class="summary-total" id="fhSummaryTotal">$0.00</div>
+      <div class="summary-split" id="fhSummarySplit"></div>
+    </div>
     <div class="summary-body" id="fhSummary">
-      <div class="summary-empty">Select items to build your quote</div>
+      <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="downloadFhQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print2" onclick="printFhQuote()">🖨️ Print</button>
-      <button class="btn-export" onclick="copyFhSummary()" title="Copy summary to clipboard" id="fhCopyBtn">📋 Copy</button>
-      <button class="btn-reset" onclick="resetFHQuote()">↺ Reset</button>
-      <button class="btn-export" onclick="saveFhQuote()" title="Save this quote draft">💾 Save</button>
+      <button class="btn btn-primary btn-block" onclick="downloadFhQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
+      <button class="btn btn-secondary btn-block" onclick="saveFhQuote()" title="Save this quote draft">Save quote</button>
+      <div class="summary-quiet-pair">
+        <button class="btn btn-quiet" onclick="printFhQuote()" title="Print the family quote"><span data-lc="printer" data-lc-sz="15"></span>Print</button>
+        <button class="btn btn-quiet" id="fhCopyBtn" onclick="copyFhSummary()" title="Copy summary to clipboard">Copy</button>
+      </div>
+      <button class="summary-reset" onclick="if (confirm('Clear this funeral home quote and start over?')) resetFHQuote();">Reset quote</button>
     </div>
-
-
-
   </div>
 </div>
 
@@ -3261,7 +3329,7 @@ tr:hover td{background:#eef3f8;}
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Cemetery Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
-            <button class="pull-btn" onclick="pullCemetery()">⬇️ Pull from Cemetery Quote</button>
+            <button class="pull-btn" onclick="pullCemetery()">⬇ Pull from Cemetery Quote</button>
             <span id="combCemDisp" class="pull-result" style="margin-left:12px;">—</span>
           </div>
           <div id="combCemBreakdown" style="display:none;" class="breakdown-lines"></div>
@@ -3272,7 +3340,7 @@ tr:hover td{background:#eef3f8;}
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Funeral Home Quote</div>
         <div class="q-panel-body">
           <div class="q-row">
-            <button class="pull-btn" onclick="pullFuneral()">⬇️ Pull from Funeral Home Quote</button>
+            <button class="pull-btn" onclick="pullFuneral()">⬇ Pull from Funeral Home Quote</button>
             <span id="combFhDisp" class="pull-result" style="margin-left:12px;">—</span>
           </div>
           <div id="combFhBreakdown" style="display:none;" class="breakdown-lines"></div>
@@ -3565,8 +3633,8 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button onclick="generateRICFromTab()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate RIC Contract PDF</button>
-      <button onclick="saveRicContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
+      <button onclick="generateRICFromTab()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate RIC Contract PDF</button>
+      <button onclick="saveRicContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Save Contract</button>
       <button onclick="ricClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, payment terms) so you can reopen it later to make a correction — see 💾 Saved RICs in the sidebar.</div>
@@ -4168,8 +4236,8 @@ tr:hover td{background:#eef3f8;}
 
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button onclick="generateCirgasPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📗 Generate CIRGAS Packet</button>
-      <button onclick="saveAnContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
+      <button onclick="generateCirgasPacket()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate CIRGAS Packet</button>
+      <button onclick="saveAnContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Save Contract</button>
       <button onclick="anClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
     </div>
     <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, pricing, marker/vault if added) so you can reopen it later to make a correction or add a marker once the family decides — see 💾 Saved CIRGAS Contracts in the sidebar.</div>
@@ -4180,20 +4248,25 @@ tr:hover td{background:#eef3f8;}
 
 
 <div class="summary-fixed" data-for="section-combined-quote">
-  <div class="summary-panel">
-    <div class="summary-header">🔗 Combined Family Quote</div>
+  <div class="summary-panel is-empty">
+    <div class="summary-total-block">
+      <div class="summary-kicker" id="combSummaryKicker">Combined family quote</div>
+      <div class="summary-total" id="combSummaryTotal">$0.00</div>
+      <div class="summary-split" id="combSummarySplit"></div>
+    </div>
     <div class="summary-body" id="combSummary">
-      <div class="summary-empty">Select items to build your quote</div>
+      <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
-      <button class="btn-print" onclick="downloadCombQuotePDF()" title="Download PDF">📥 PDF</button>
-      <button class="btn-print2" onclick="printCombQuote()">🖨️ Print</button>
-      <button class="btn-export" onclick="emailCombQuote()" title="Email this quote">✉</button>
-      <button class="btn-export" onclick="exportCombQuote()" title="Copy to clipboard">Copy</button>
-      <button class="btn-reset" onclick="resetCombQuote()">↺ Reset</button>
+      <button class="btn btn-primary btn-block" onclick="downloadCombQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
+      <button class="btn btn-secondary btn-block" onclick="printCombQuote()" title="Print the family quote"><span data-lc="printer" data-lc-sz="15"></span>Print</button>
+      <div class="summary-quiet-pair">
+        <button class="btn btn-quiet" onclick="emailCombQuote()" title="Email this quote">Email</button>
+        <button class="btn btn-quiet" id="combCopyBtn" onclick="exportCombQuote()" title="Copy to clipboard">Copy</button>
+      </div>
+      <button class="summary-reset" onclick="if (confirm('Clear this combined quote and start over?')) resetCombQuote();">Reset quote</button>
     </div>
   </div>
-
 </div>
 
 <!-- ═══ DEED TRANSFER CONTRACT (CIRGAS Phase 3) ═══ -->
@@ -4367,8 +4440,8 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="printGAContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Filled Contract PDF</button>
-    <button onclick="saveGaContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
+    <button onclick="printGAContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate Filled Contract PDF</button>
+    <button onclick="saveGaContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Save Contract</button>
     <button onclick="gaClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
   <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, imported FH pricing) so you can reopen it later — see 💾 Saved GA Contracts in the sidebar.</div>
@@ -4585,8 +4658,8 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="generateClearPointContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Generate ClearPoint Contract PDF</button>
-    <button onclick="saveCpContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">💾 Save Contract</button>
+    <button onclick="generateClearPointContract()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate ClearPoint Contract PDF</button>
+    <button onclick="saveCpContract()" style="padding:10px 16px;background:var(--gold);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Save Contract</button>
     <button onclick="cpClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
   <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Save keeps a snapshot of everything on this page (client info, imported FH pricing) so you can reopen it later — see 💾 Saved ClearPoint Contracts in the sidebar.</div>
@@ -4631,7 +4704,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="riclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="riclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate Checklist PDF</button>
     <button onclick="riclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
 </div>
@@ -4682,7 +4755,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="anclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="anclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate Checklist PDF</button>
     <button onclick="anclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
 </div>
@@ -4722,7 +4795,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="cpclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="cpclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate Checklist PDF</button>
     <button onclick="cpclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
 </div>
@@ -4765,7 +4838,7 @@ tr:hover td{background:#eef3f8;}
   </div>
 
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-    <button onclick="gaclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📄 Generate Checklist PDF</button>
+    <button onclick="gaclGeneratePdf()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate Checklist PDF</button>
     <button onclick="gaclClearAll()" style="padding:10px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;">↺ Clear All</button>
   </div>
 </div>
@@ -7059,6 +7132,43 @@ function _taxNoteText(isFH) {
 // ═══════════════════════════════════════════════════════════════
 // SUMMARY RENDERER
 // ═══════════════════════════════════════════════════════════════
+// The fixed panel is one component in three places (cem / fh / combined): an isolated
+// total block at the top — the only 30px type in the app — then a three-line item
+// preview, then the ranked actions. The itemisation lives in the printed quote and the
+// PDF, which this refresh does not touch.
+function _sumKicker(containerId) {
+  if (containerId === 'cemSummary') {
+    var t = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'At-Need' : 'Pre-Need';
+    return 'Cemetery quote \u00b7 ' + t;
+  }
+  if (containerId === 'fhSummary') return 'Funeral home quote';
+  return 'Combined family quote';
+}
+function _sumSet(containerId, o) {
+  var totEl = el(containerId + "Total"), splitEl = el(containerId + "Split"), kickEl = el(containerId + "Kicker");
+  var pane = el(containerId);
+  var panel = pane && pane.closest ? pane.closest('.summary-panel') : null;
+  if (panel) panel.classList.toggle('is-empty', !!o.empty);
+  if (kickEl) kickEl.textContent = _sumKicker(containerId);
+  if (totEl) totEl.textContent = fmt(o.total || 0);
+  if (splitEl) splitEl.innerHTML = o.split || '';
+}
+function _sumSplitRow(label, amount, cls) {
+  return '<div class="s-split-row' + (cls ? ' ' + cls : '') + '"><span>' + label
+    + '</span><span class="s-split-amt">' + amount + '</span></div>';
+}
+// Deliberately dumb: the first three item rows and a count of the rest.
+function _sumPreview(items) {
+  var html = '';
+  items.slice(0, 3).forEach(function(l) {
+    html += '<div class="s-prev"><span class="s-prev-lbl">' + l.label
+          + '</span><span class="s-prev-amt">' + fmt(l.amount) + '</span></div>';
+  });
+  var more = items.length - 3;
+  if (more > 0) html += '<div class="s-prev-more">+ ' + more + ' more item' + (more === 1 ? '' : 's') + '</div>';
+  return html;
+}
+
 function renderSummary(containerId, lines, discountAmt, discountLabel, discountMode) {
   var body = el(containerId);
   if (!body) return 0;
@@ -7068,7 +7178,8 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
   var discountLines = lines.filter(function(l) { return l.isDiscount; });
 
   if (exemptLines.length === 0 && taxableLines.length === 0) {
-    body.innerHTML = '<div class="summary-empty">Select services to build your quote</div>';
+    body.innerHTML = '<div class="summary-empty">Nothing selected yet. Services and merchandise you add appear here.</div>';
+    _sumSet(containerId, { total: 0, split: '', empty: true });
     return 0;
   }
 
@@ -7090,57 +7201,22 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
   var tax = Math.round(taxableAfterDiscount * TAX * 100) / 100;
   var grandTotal = taxableAfterDiscount + exemptAfterDiscount + tax;
 
-  var html = '';
+  // Total block: pre-tax net, then discounts, then the tax disclosure, then the total.
+  // subtotal - discounts + tax reconciles to the number on the card.
+  var split = _sumSplitRow('Subtotal', fmt(totalBeforeDiscount));
+  if (appliedDiscount > 0) split += _sumSplitRow(discountLines.length === 1 ? discountLines[0].label : 'Discounts', '-' + fmt(appliedDiscount));
+  split += _sumSplitRow('Sales tax (10.4%)', fmt(tax), 's-split-tax');
+  _sumSet(containerId, { total: grandTotal, split: split, empty: false });
 
-  if (exemptLines.length > 0) {
-    html += '<div class="s-section-label">Tax-Exempt Services</div>';
-    exemptLines.forEach(function(l) {
-      html += '<div class="s-line' + (l.planItem ? ' plan-item' : '') + '">'
-        + '<span class="s-lbl">' + l.label + '</span>'
-        + '<span class="s-amt">' + fmt(l.amount) + '</span></div>';
-    });
-  }
-
-  if (discountLines.length > 0) {
-    discountLines.forEach(function(l) {
-      html += '<div class="s-line discount-line">'
-        + '<span class="s-lbl">' + l.label + '</span>'
-        + '<span class="s-amt">-' + fmt(Math.abs(l.amount)) + '</span></div>';
-    });
-  }
-
-  if (taxableLines.length > 0) {
-    html += '<div class="s-section-label">Taxable Merchandise</div>';
-    taxableLines.forEach(function(l) {
-      html += '<div class="s-line">'
-        + '<span class="s-lbl">' + l.label + '</span>'
-        + '<span class="s-amt">' + fmt(l.amount) + '</span></div>';
-    });
-  }
-
-  if (tax > 0) {
-    html += '<div class="s-line tax-line">'
-      + '<span class="s-lbl">Sales Tax (10.4%)</span>'
-      + '<span class="s-amt">' + fmt(tax) + '</span></div>';
-  }
-
-  html += '<hr class="s-divider">'
-    + '<div class="s-total-row">'
-    + '<span class="s-total-lbl">Total</span>'
-    + '<span class="s-total-amt">' + fmt(grandTotal) + '</span>'
-    + '</div>';
-
-  if (tax > 0) {
-    html += '<div class="s-tax-note">' + _taxNoteText(containerId === 'fhSummary') + '</div>';
-  }
+  var html = _sumPreview(exemptLines.concat(taxableLines));
 
   // Estimated monthly payment hint (10% down, 60 months, 0% — August promo or standard)
   if (grandTotal > 0 && containerId === 'cemSummary') {
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
     var estMonthly = Math.ceil(estBalance / 60);
-    html += '<div id="estPaymentHint" style="margin-top:12px;padding:11px 13px;background:var(--cream);border:1px solid #ece7dd;border-radius:8px;font-size:12px;color:var(--text);line-height:1.5;">'
-      + '<span style="font-weight:700;color:var(--text-dark);">Est. payment:</span> '
+    html += '<div id="estPaymentHint" style="margin-top:12px;padding:10px 12px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--body);line-height:1.5;">'
+      + '<span style="font-weight:600;color:var(--ink);">Est. payment:</span> '
       + fmt(estDown) + ' down &nbsp;&middot;&nbsp; ~' + fmt(estMonthly) + '/mo'
       + ' <span style="color:var(--muted);">(60 mo · 0% · 10% down · ACH)</span>'
       + '</div>';
@@ -8059,7 +8135,7 @@ function exportCemQuote() {
   try {
     var qLabel = cemQuoteType() === 'atneed' ? 'Cemetery At-Need Quote' : 'Cemetery Pre-Need Quote';
     var text = buildExportText(_cemLines || [], _cemTotal || 0, val('cemClientName'), qLabel);
-    var btn = document.querySelector('.btn-export');
+    var btn = el('cemCopyBtn');
     navigator.clipboard.writeText(text).then(function() {
       if (btn) { btn.textContent = '[OK]'; setTimeout(function(){ btn.textContent = 'Copy'; }, 2000); }
     }).catch(function() {
@@ -8073,7 +8149,7 @@ function exportCemQuote() {
 function exportFhQuote() {
   try {
     var text = buildExportText(_fhLines || [], _fhTotal || 0, val('fhClientName'), 'Funeral Home Quote');
-    var btn = document.querySelectorAll('.btn-export')[1];
+    var btn = el('fhCopyBtn');
     navigator.clipboard.writeText(text).then(function() {
       if (btn) { btn.textContent = '[OK]'; setTimeout(function(){ btn.textContent = 'Copy'; }, 2000); }
     }).catch(function() {
@@ -8215,7 +8291,7 @@ function toggleCompare() {
   if (!panel) return;
   var isOpen = panel.style.display !== 'none';
   panel.style.display = isOpen ? 'none' : 'block';
-  el('compareToggleBtn').textContent = isOpen ? '⚖️ Compare Options' : '✖ Close Compare';
+  el('compareToggleBtn').textContent = isOpen ? 'Compare Options' : 'Close Compare';
   if (!isOpen) {
     // Ensure cemetery quote data is current before rendering comparison
     try { cemUpdate(); } catch(e) {}
@@ -8676,7 +8752,7 @@ function resetCemQuote() {
   if (el('qMausLocation'))  el('qMausLocation').value  = '';
   // Close and reset compare panel
   if (el('comparePanel')) el('comparePanel').style.display = 'none';
-  if (el('compareToggleBtn')) el('compareToggleBtn').textContent = '\u2696\ufe0f Compare Options';
+  if (el('compareToggleBtn')) el('compareToggleBtn').textContent = 'Compare Options';
   ['cmpB_garden','cmpB_vault','cmpB_discType'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
   ['cmpB_niche','cmpB_maus','cmpB_discAmt'].forEach(function(id){ var e=el(id); if(e) e.value=''; });
   if (el('cmpB_loc'))    el('cmpB_loc').value = '';
@@ -9831,14 +9907,11 @@ function buildCombExportText() {
     _combFhLines.filter(function(l){return !l.isDiscount&&l.amount>0;}).forEach(function(l){out+=fmtLn(l.label,l.amount);});
     _combFhLines.filter(function(l){return l.isDiscount;}).forEach(function(l){out+='- '+fmtLn(l.label,l.amount);});
   }
-  // Totals from combSummary
-  var sumEl = el('combSummary');
-  if (sumEl) {
-    var taxEl = sumEl.querySelector('.tax-line, [class*="tax"]');
-    var totEl = sumEl.querySelector('.total-line, [class*="total"]');
-    if (taxEl) { var spans=taxEl.querySelectorAll('span'); if(spans.length>=2) out+=fmtLn(spans[0].textContent, 0).replace('$0.00', spans[1].textContent)+'\n'; }
-    if (totEl) { var spans=totEl.querySelectorAll('span'); if(spans.length>=2) out+='-'.repeat(48)+'\n'+fmtLn(spans[0].textContent, 0).replace('$0.00', spans[1].textContent); }
-  }
+  // Totals off the summary panel's total block (ids, not a fuzzy class match).
+  var taxEl = document.querySelector('#combSummarySplit .s-split-tax .s-split-amt');
+  var totEl = el('combSummaryTotal');
+  if (taxEl) out += fmtLn('Sales tax (10.4%)', 0).replace('$0.00', taxEl.textContent) + '\n';
+  if (totEl) out += '-'.repeat(48) + '\n' + fmtLn('COMBINED TOTAL', 0).replace('$0.00', totEl.textContent);
   return out;
 }
 
@@ -9856,7 +9929,7 @@ function emailCombQuote() {
 function exportCombQuote() {
   try {
     var text = buildCombExportText();
-    var btn = document.querySelectorAll('[data-for="section-combined-quote"] .btn-export')[1];
+    var btn = el('combCopyBtn');
     navigator.clipboard.writeText(text).then(function() {
       if (btn) { btn.textContent = '[OK]'; setTimeout(function(){ btn.textContent = 'Copy'; }, 2000); }
     }).catch(function() {
@@ -10567,7 +10640,8 @@ function combUpdate() {
   var hasCem = _combCemLines.filter(function(l){return !l.isDiscount;}).length > 0;
   var hasFh  = _combFhLines.filter(function(l){return !l.isDiscount;}).length > 0;
   if (!hasCem && !hasFh) {
-    body.innerHTML = '<div class="summary-empty">Pull from both builders to see combined total</div>';
+    body.innerHTML = '<div class="summary-empty">Nothing pulled in yet. Pull the cemetery and funeral home quotes to see a combined total.</div>';
+    _sumSet('combSummary', { total: 0, split: '', empty: true });
     if (typeof combInsCalc === 'function') combInsCalc();
     return;
   }
@@ -10575,26 +10649,17 @@ function combUpdate() {
   // disclosed on its own line before the combined total. The old panel printed the tax-inclusive
   // surface total under the label "Subtotal" and footnoted "Tax included…", so the item rows above
   // it never added up to the number and the family saw tax twice over.
-  var html = '', grandTotal = 0, taxTotal = 0;
+  // Every figure below is computed exactly as before; only the painting changed.
+  var items = [], grandTotal = 0, taxTotal = 0, split = '';
   if (hasCem) {
-    html += '<div class="s-section-label">\ud83c\udfdb\ufe0f Cemetery Services</div>';
-    _combCemLines.forEach(function(l) {
-      if (l.isDiscount) html += '<div class="s-line discount-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">-' + fmt(Math.abs(l.amount)) + '</span></div>';
-      else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-      else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-    });
-    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Cemetery Subtotal</span><span class="s-amt">' + fmt(_fqNetOf(_combCemLines)) + '</span></div>';
+    _combCemLines.forEach(function(l) { if (!l.isDiscount && !l.isTax) items.push(l); });
+    split += _sumSplitRow('Cemetery Subtotal', fmt(_fqNetOf(_combCemLines)));
     taxTotal += _fqTaxOf(_combCemLines);
     grandTotal += _combCemTotal;
   }
   if (hasFh) {
-    html += '<div class="s-section-label" style="margin-top:10px;">\u26b0\ufe0f Funeral Home Services</div>';
-    _combFhLines.forEach(function(l) {
-      if (l.isDiscount) html += '<div class="s-line discount-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">-' + fmt(Math.abs(l.amount)) + '</span></div>';
-      else if (l.isTax)  html += '<div class="s-line tax-line"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-      else               html += '<div class="s-line' + (l.planItem?' plan-item':'') + '"><span class="s-lbl">' + l.label + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-    });
-    html += '<div class="s-line" style="font-weight:700;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Funeral Home Subtotal</span><span class="s-amt">' + fmt(_fqNetOf(_combFhLines)) + '</span></div>';
+    _combFhLines.forEach(function(l) { if (!l.isDiscount && !l.isTax) items.push(l); });
+    split += _sumSplitRow('Funeral Home Subtotal', fmt(_fqNetOf(_combFhLines)));
     taxTotal += _fqTaxOf(_combFhLines);
     grandTotal += _combFhTotal;
   }
@@ -10605,30 +10670,26 @@ function combUpdate() {
     var t = row.querySelector('.cl-tax').value === 'taxable';
     if (a > 0) customLines.push({label: d || 'Custom Item', amount: a, taxable: t});
   });
-  if (customLines.length > 0) {
-    html += '<div class="s-section-label" style="margin-top:10px;">\u2795 Additional Items</div>';
-    customLines.forEach(function(l) {
-      var taxAmt = l.taxable ? Math.round(l.amount * TAX * 100) / 100 : 0;
-      html += '<div class="s-line"><span class="s-lbl">' + l.label + (l.taxable?' (taxable)':'') + '</span><span class="s-amt">' + fmt(l.amount) + '</span></div>';
-      // Tax rolls into the single disclosure line below instead of a row per item.
-      if (taxAmt > 0) { taxTotal += taxAmt; grandTotal += taxAmt; }
-      grandTotal += l.amount;
-    });
-  }
-  if (taxTotal > 0) {
-    html += '<div class="s-line tax-line" style="border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:5px;"><span class="s-lbl">Sales tax (10.4% · merchandise only)</span><span class="s-amt">' + fmt(taxTotal) + '</span></div>';
-  }
+  customLines.forEach(function(l) {
+    var taxAmt = l.taxable ? Math.round(l.amount * TAX * 100) / 100 : 0;
+    items.push(l);
+    if (taxAmt > 0) { taxTotal += taxAmt; grandTotal += taxAmt; }
+    grandTotal += l.amount;
+  });
+  // Additional Items carry no surface of their own, so they land in a third split row.
+  var customNet = customLines.reduce(function(a, l) { return a + l.amount; }, 0);
+  if (customNet > 0) split += _sumSplitRow('Additional Items', fmt(customNet));
   var discAmt = 0, discLabel = '';
   if (discMode) {
     var dv = parseFloat(val('combDiscValue')) || 0;
     var dn = val('combDiscNote') || 'Discount';
     discAmt = discMode === 'percent' ? grandTotal * (dv/100) : Math.min(dv, grandTotal);
     discLabel = dn + (discMode === 'percent' ? ' (' + dv + '%)' : '');
-    if (discAmt > 0) { html += '<div class="s-line discount-line"><span class="s-lbl">' + discLabel + '</span><span class="s-amt">-' + fmt(discAmt) + '</span></div>'; grandTotal -= discAmt; }
+    if (discAmt > 0) { split += _sumSplitRow(discLabel, '-' + fmt(discAmt)); grandTotal -= discAmt; }
   }
-  html += '<hr class="s-divider"><div class="s-total-row"><span class="s-total-lbl">Combined Total</span><span class="s-total-amt">' + fmt(grandTotal) + '</span></div>'
-    + (taxTotal > 0 ? '<div class="s-tax-note">' + _taxNoteText(false) + '</div>' : '');
-  body.innerHTML = html;
+  split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
+  _sumSet('combSummary', { total: grandTotal, split: split, empty: false });
+  body.innerHTML = _sumPreview(items);
   if (typeof combInsCalc === 'function') combInsCalc();
 }
 
@@ -19738,9 +19799,9 @@ function copySummaryText(lines, total, clientName, quoteType, btnId) {
   var text = buildExportText(lines, total, clientName, quoteType);
   var btn = el(btnId);
   navigator.clipboard.writeText(text).then(function() {
-    if (btn) { btn.textContent = '✓ Copied'; btn.style.color = '#27ae60'; }
+    if (btn) { btn.textContent = 'Copied'; btn.style.color = 'var(--ok)'; }
     setTimeout(function() {
-      if (btn) { btn.textContent = '📋 Copy'; btn.style.color = ''; }
+      if (btn) { btn.textContent = 'Copy'; btn.style.color = ''; }
     }, 2500);
   }).catch(function() {
     // Fallback: open in new window
@@ -20351,10 +20412,10 @@ function renderContactsHome() {
 
 <style>
 /* PAYMENT TABLE — 0% ACH rows */
-#finTable tbody tr.ach-zero td { background-color:#eef6ee !important; }
-#finTable tbody tr.ach-zero td.ach-rate { color:#2d6a2d !important; font-weight:700; }
-input[type=checkbox] { accent-color:#466e86; width:15px; height:15px; cursor:pointer; }
-input[type=checkbox]:focus { outline:2px solid #466e86; outline-offset:2px; }
+#finTable tbody tr.ach-zero td { background-color:rgba(46,107,82,.07) !important; }
+#finTable tbody tr.ach-zero td.ach-rate { color:var(--ok) !important; font-weight:700; }
+input[type=checkbox] { accent-color:var(--navy-500); width:15px; height:15px; cursor:pointer; }
+input[type=checkbox]:focus { outline:0; box-shadow:var(--ring); }
 
 /* ══ CONTACTS HOME — sprint-05 Track C ═══════════════════════════════════════════════
    One contiguous appended block. The prefix is .cth- and nothing in here selects any of

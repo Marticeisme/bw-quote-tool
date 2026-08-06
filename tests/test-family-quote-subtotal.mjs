@@ -95,15 +95,27 @@ console.log('\n1. Surface subtotal is the pre-tax net, total stays tax-inclusive
 // ── 2. The on-screen combined panel ────────────────────────────────────────────
 console.log('\n2. Combined panel shows subtotal + tax + total, and adds up');
 {
-  const txt = await page.evaluate(() => { combUpdate(); return document.getElementById('combSummary').innerText; });
+  // s19 rebuilt the fixed panel: the figures moved out of #combSummary (now a three-line
+  // item preview) and into the total block above it — same numbers, same money rules, one
+  // element up. Read the whole panel, and take the grand total from its own element since
+  // it is now a bare 30px figure under a kicker rather than a labelled row.
+  const r2 = await page.evaluate(() => {
+    combUpdate();
+    return {
+      txt: document.querySelector('.summary-fixed[data-for="section-combined-quote"] .summary-panel').innerText,
+      total: document.getElementById('combSummaryTotal').textContent,
+    };
+  });
+  const txt = r2.txt;
+  const combTotal = parseFloat(String(r2.total).replace(/[$,]/g, ''));
   const num = (l) => { const m = txt.match(new RegExp(l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\$([\\d,]+\\.\\d\\d)')); return m ? parseFloat(m[1].replace(/,/g, '')) : null; };
   const tax = num('Sales tax (10.4% · merchandise only)');
   ok('panel Cemetery Subtotal is the pre-tax net', num('Cemetery Subtotal') === CEM_NET, num('Cemetery Subtotal'));
   ok('panel Funeral Home Subtotal is the pre-tax net', num('Funeral Home Subtotal') === FH_NET, num('Funeral Home Subtotal'));
   ok('panel discloses sales tax on its own line', tax !== null && tax > 0, tax);
   ok('panel subtotals + tax equal the Combined Total',
-     m2(num('Cemetery Subtotal') + num('Funeral Home Subtotal') + tax) === m2(num('Combined Total')),
-     [num('Cemetery Subtotal'), num('Funeral Home Subtotal'), tax, num('Combined Total')]);
+     m2(num('Cemetery Subtotal') + num('Funeral Home Subtotal') + tax) === m2(combTotal),
+     [num('Cemetery Subtotal'), num('Funeral Home Subtotal'), tax, combTotal]);
   ok('the misleading "Tax included in each subtotal" footnote is gone', !/Tax included in each subtotal/.test(txt));
 }
 
