@@ -191,6 +191,64 @@ console.log('\n4. Printed payment page matches the PDF');
   ok('printed page shows APR rates as well as 0%/ACH', apr.hasApr && apr.hasAch, apr);
 }
 
+// ── 5. Parity against the bytes the PDF actually draws ─────────────────────────
+// Section 4 recomputes the expected figures in JS the way the pdf-lib page-2 code does, so it
+// pins the PRINTED page to that recomputation — but it would keep passing if the pdf-lib
+// renderer itself drifted (both sides of that comparison are the test's own arithmetic). This
+// section closes that: it wraps PDFPage.drawText, records every string the real _fqBuildPDFBytes()
+// run draws, and diffs those money tokens against the real rendered page — artifact against
+// artifact, with no expectation computed in between.
+console.log('\n5. The PDF the button downloads vs the page Print opens, token for token');
+{
+  const r = await page.evaluate(async () => {
+    const cemS = { kind:'cem', name:'Cemetery', tagline:'WMP', lines:_cemLines, total:_cemTotal };
+    const fhS  = { kind:'fh',  name:'Funeral Home', tagline:'S', lines:_fhLines, total:_fhTotal };
+    const base = { scopeLabel:'WMP', clientName:'T', notes:'', showPayment:true };
+    const models = {
+      cem:      _fqBuildModel({ ...base, typeLabel:'Cemetery Quote', surfaces:[cemS] }),
+      fh:       _fqBuildModel({ ...base, typeLabel:'Funeral Home Quote', maxima:_fqMaximaPlans(72, 500, _fhTotal), surfaces:[fhS] }),
+      combined: _fqBuildModel({ ...base, typeLabel:'Combined Family Quote', maxima:_fqMaximaPlans(72, 0, _fhTotal), combBudget:450, surfaces:[cemS, fhS] }),
+    };
+    const MONEY = /\$[\d,]+\.\d{2}/g;                    // money tokens are drawn whole; the
+    const bag = a => a.reduce((m, v) => (m[v] = (m[v] || 0) + 1, m), {});   // letter-spaced caps
+    const short = (a, b) => {                            // that pdf-lib draws glyph-by-glyph
+      const A = bag(a), B = bag(b);                      // carry no digits, so they can't collide
+      return Object.keys(A).filter(k => (B[k] || 0) < A[k]).map(k => k + ' x' + (A[k] - (B[k] || 0)));
+    };
+    const proto = PDFLib.PDFPage.prototype, realDraw = proto.drawText, out = {};
+    for (const k of Object.keys(models)) {
+      const perPage = {}, pages = [];
+      proto.drawText = function (txt) {
+        let i = pages.indexOf(this); if (i === -1) { pages.push(this); i = pages.length - 1; }
+        perPage[i] = (perPage[i] || '') + String(txt) + ' ';
+        return realDraw.apply(this, arguments);
+      };
+      try { await _fqBuildPDFBytes(models[k]); } finally { proto.drawText = realDraw; }
+      const pdf1  = (perPage[0] || '').match(MONEY) || [];
+      const pdfPay = Object.keys(perPage).filter(p => +p > 0).flatMap(p => perPage[p].match(MONEY) || []);
+      const doc = new DOMParser().parseFromString(_fqRenderHTML(models[k]), 'text/html');
+      const sheets = [...doc.querySelectorAll('.sheet')];
+      const txt = el => ((el && (el.innerText || el.textContent)) || '').replace(/\s+/g, ' ');
+      const html1  = txt(sheets[0]).match(MONEY) || [];
+      const htmlPay = sheets.slice(1).flatMap(s => txt(s).match(MONEY) || []);
+      out[k] = { nPdfPay: pdfPay.length, nPdf1: pdf1.length,
+                 payMissing: short(pdfPay, htmlPay), payExtra: short(htmlPay, pdfPay),
+                 p1Missing: short(pdf1, html1),   p1Extra: short(html1, pdf1) };
+    }
+    return out;
+  });
+  Object.keys(r).forEach(k => {
+    const p = r[k];
+    ok(`${k}: all ${p.nPdfPay} payment figures the PDF draws appear on the printed page`,
+       p.nPdfPay > 0 && p.payMissing.length === 0, p.payMissing.slice(0, 6));
+    ok(`${k}: the printed page invents no payment figure the PDF does not draw`,
+       p.payExtra.length === 0, p.payExtra.slice(0, 6));
+    ok(`${k}: all ${p.nPdf1} page-1 figures match, in both directions`,
+       p.nPdf1 > 0 && p.p1Missing.length === 0 && p.p1Extra.length === 0,
+       { missing: p.p1Missing.slice(0, 6), extra: p.p1Extra.slice(0, 6) });
+  });
+}
+
 ok('no page errors', errs.length === 0, errs.slice(0, 3));
 
 await browser.close();
