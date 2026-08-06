@@ -300,9 +300,18 @@ for (const name of PER_GUIDE_CAPS.keys()) {
 console.log('\n=== "ALL ON ONE PAGE" (print layout) ===');
 const browser = await chromium.launch();
 
+// `file` may carry a query — and for anything measured against a BUILT artifact it MUST.
+// These assertions describe the PDF a family receives, and since sprint-16 that PDF is
+// printed from `?print=family`, not from the bare page. The query was dropped here when the
+// build moved and the checks went on measuring the uncondensed page; they kept passing only
+// because guide-print.css §7 was shrinking that page to 7.7pt as well. Sprint-19 Track E
+// made the bare page print at full size — which is the point — and these two immediately
+// reported the uncondensed stack overflowing a sheet, for a PDF that is still exactly two
+// pages. Measure the mode the artifact is built in.
 async function onePage(file, sectionSel, childSel, label) {
+  const [base, query] = file.split('?');
   const page = await browser.newPage({ viewport: { width: 816, height: PAGE_PX } });
-  await page.goto(pathToFileURL(path.resolve(file)).href, { waitUntil: 'networkidle' });
+  await page.goto(pathToFileURL(path.resolve(base)).href + (query ? '?' + query : ''), { waitUntil: 'networkidle' });
   await page.emulateMedia({ media: 'print' });
   const r = await page.evaluate(([s, c]) => {
     const sec = document.querySelector(s);
@@ -324,18 +333,24 @@ async function onePage(file, sectionSel, childSel, label) {
   else fail(`${label}: ${r.n} items span ${r.span}px, more than one ${PAGE_PX}px page`);
 }
 
-await onePage('vault-guide.html', '#urn-vaults', '.uv-card', 'vault-guide urn vault cards');
+await onePage('vault-guide.html?print=family', '#urn-vaults', '.uv-card', 'vault-guide urn vault cards');
 // `.vault-table` is suppressed in print by the pricing rule, so these two now measure what
 // the family actually receives: the section plus the invitation that replaced its table.
-await onePage('vault-guide.html', '#urn-vaults', '.uv-card, .print-invite', 'vault-guide urn vault section incl. invite');
-await onePage('vault-guide.html', '#all-pricing', '.print-invite', 'vault-guide Complete Pricing at a Glance');
-await onePage('direct-cremation.html', '#options', '.sidebar, .prose, .section-photo', 'direct-cremation container section');
+await onePage('vault-guide.html?print=family', '#urn-vaults', '.uv-card, .print-invite', 'vault-guide urn vault section incl. invite');
+// NO `?print=family` on this one, deliberately: `#all-pricing` is `data-pdf="drop"`, so it
+// is not in the family PDF at all and the check would measure a display:none element and
+// self-report as hollow. What it gates is the FULL print — the page a family gets from
+// Ctrl+P on the site — where the section still has to hold together on one sheet.
+await onePage('vault-guide.html', '#all-pricing', '.print-invite', 'vault-guide Complete Pricing at a Glance (full print)');
+await onePage('direct-cremation.html?print=family', '#options', '.sidebar, .prose, .section-photo', 'direct-cremation container section');
 
 // direct-cremation page 1 is the cover plus sections 1 and 2; if that stack is
 // taller than a page, section 2 spills and the handout becomes three pages.
 {
   const page = await browser.newPage({ viewport: { width: 816, height: PAGE_PX } });
-  await page.goto(pathToFileURL(path.resolve('direct-cremation.html')).href, { waitUntil: 'networkidle' });
+  // `?print=family` for the same reason as onePage above: this measures the two-page
+  // handout that is BUILT, not the full-size page a family gets from Ctrl+P.
+  await page.goto(pathToFileURL(path.resolve('direct-cremation.html')).href + '?print=family', { waitUntil: 'networkidle' });
   await page.emulateMedia({ media: 'print' });
   const h = await page.evaluate(() => {
     const q = s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().height : 0; };

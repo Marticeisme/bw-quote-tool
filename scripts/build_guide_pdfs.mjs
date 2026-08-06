@@ -50,7 +50,15 @@ const JOBS = [
   ['markers-guide.html?part=sizes&print=family',  'pdf-assets/Granite Marker Sizes and Colors.pdf'],
   ['markers-guide.html?part=photos&print=family', 'pdf-assets/Marker Photos and Etching.pdf'],
   ['medicaid-family-guide.html?print=family', 'pdf-assets/Medicaid and Planning Ahead.pdf'],
-  ['medicaid-professional-reference.html', 'pdf-assets/Medicaid Professional Reference.pdf'],
+  // `?print=compact` — sprint-19 Track E. This job used to carry NO query at all, and
+  // "no query" is now the FULL print (guide-print.css §9): the operator's Ctrl+P from an
+  // open guide renders the document at its own screen type in one column. The three jobs
+  // that are deliberately built from the UNCONDENSED page therefore have to name the old
+  // behaviour instead of inheriting it from the absence of a query. `compact` selects
+  // nothing and drops nothing — it only keeps §7's 7.7pt geometry compensation and each
+  // guide's own condense block in force, which is exactly what these three printed before,
+  // so their bytes are unchanged (byte-compared at the s19 Track E rebuild).
+  ['medicaid-professional-reference.html?print=compact', 'pdf-assets/Medicaid Professional Reference.pdf'],
   ['who-decides-guide.html?print=family', 'pdf-assets/Who Decides.pdf'],
   ['urn-placement-guide.html?print=family', 'pdf-assets/Urn Placement Options.pdf'],
   ['pre-planning-guide.html?print=family', 'pdf-assets/Pre-Planning Guide.pdf'],
@@ -61,8 +69,11 @@ const JOBS = [
   ['vault-guide.html?print=family', 'pdf-assets/Burial Vault Guide.pdf'],
   ['outside-marker-rules.html?print=family', 'pdf-assets/Outside Marker Rules and Pricing.pdf'],
   ['terramation-guide.html?print=family', 'pdf-assets/Terramation Guide.pdf'],
-  ['granite-niches-guide.html',     'pdf-assets/Granite Niches Guide.pdf'],
-  ['glass-front-niches-guide.html', 'pdf-assets/Glass-Front Niche Guide.pdf'],
+  // `?print=compact` for the same reason as medicaid-professional-reference above: these
+  // two are the eight-page photo-first guides, tuned to 9pt by the named overrides at the
+  // end of guide-print.css, and they are built from the uncondensed page on purpose.
+  ['granite-niches-guide.html?print=compact',     'pdf-assets/Granite Niches Guide.pdf'],
+  ['glass-front-niches-guide.html?print=compact', 'pdf-assets/Glass-Front Niche Guide.pdf'],
   ['urn-gardens-guide.html?print=family', 'pdf-assets/Urn Gardens at Washington Memorial Park.pdf'],
   // THE FIVE PER-AREA PHOTO GUIDES — sprint-13, area-guides. Operator, 2026-08-03:
   // "larger more visual guides for each section that we still have a lot of inventory
