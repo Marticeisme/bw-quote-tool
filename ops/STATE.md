@@ -1,5 +1,14 @@
 # STATE — Living Ledger
 
+**s17 PUSHED LIVE 2026-08-05, operator word "push it all live", wire-verified 8/8:
+granite HTML (map-print ×8, figure-duo, 4.8in box), glass HTML (new footnote, radser
+span, old slop gone), catalog proofs section, 2100.webp 200, HELD 2500.webp 404, both
+live PDFs re-downloaded and rasterized — granite 7pp / glass 6pp, 0 dead "Open the"
+links, 4+3 walk-you-through sentences. All push-gate items shipped as-was (16 MB
+accepted, 12 proofs stay held, B's §7 edit stands). Note: the s17 commits reached
+origin rebased under the quote-session's fa44cf14/8d8dfca2 (close commit is 9de3ff76
+on the wire).**
+
 **s17 CLOSED ON MAIN 2026-08-05 — operator fix round (three Opus tracks) + PCM
 companion-proof class. Final main GREEN: 8 blocks 0 errors; 2461 passed, 0 failed
 across 37 suites** (new contract number, governing docs re-pinned; reconciles exactly
