@@ -7,18 +7,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#3d5a7a; --navy-deep:#2c445e; --ink:#2c4a5a;
-  --orange:#c8540a; --orange-dark:#a5410f;
-  --paper:#f4efe6; --card:#ffffff;
-  --card-border:#ece2ce; --search-border:#e3d9c6; --meta-rule:#f0e9db;
-  --body:#5a6b73; --card-body:#6b7176; --meta:#b0a078;
-  --pill-bg:#ece2cf; --pill-ink:#a08c6a; --ghost-border:#cdd8dd; --footer-ink:#8a8578;
+  /* brand — fixed */
+  --bw-navy:#466e86;          /* official, 2026 GPL brochure */
+  --bw-orange:#e84610;
+
+  /* navy ramp — #466e86 scaled (dark) / mixed with white (light) */
+  --navy-900:#1c2c36;   /* page chrome (header)                    */
+  --navy-800:#273d4a;   /* chrome rule, deep navy                  */
+  --navy-700:#314d5e;
+  --navy-600:#3c5e72;
+  --navy-500:#466e86;   /* links, focus ring, keylines             */
+  --navy-400:#7492a4;   /* icons, secondary text on light          */
+  --navy-300:#a3b7c3;   /* placeholder, disabled                   */
+  --navy-200:#c8d4db;
+  --navy-150:#dde5e9;
+  --navy-100:#e3e9ec;
+  --navy-50:#f2f5f6;
+
+  --ink:#16242c;        /* headings, money                         */
+  --body:#4a5a64;       /* body copy                               */
+  --muted:#6d818c;      /* labels, meta, helper text               */
+
+  --orange:#e84610;
+  --orange-press:#c73a0c;
+  --orange-tint:#fdf0ea;
+
+  --ok:#2e6b52; --warn:#8a6414; --stop:#a33a25;
+
+  --t-xs:11px; --t-sm:12.5px; --t-base:14px; --t-md:15px;
+  --t-lg:17px; --t-xl:21px; --t-total:30px;
+
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px;
+  --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+
+  --r-sm:6px; --r-md:8px; --r-pill:999px;
+
+  --sh-1:0 1px 2px rgba(22,36,44,.06);
+  --sh-2:0 6px 18px rgba(22,36,44,.10);
+  --ring:0 0 0 3px rgba(70,110,134,.28);
+}
+
+/* guides.html — same tokens, warm skin */
+:root{
+  --paper:#f4efe6; --card:#fff;
+  --card-border:#e7dcc7; --rule:#efe7d8;
+  --meta:#9b8d6f; --body:#5a6b73;
+
+  /* guides-only. The Cormorant headings keep this page's serif ink — the same
+     value the handoff hardcodes on .guide-title — so the warm skin survives the
+     move onto the shared --ink token. */
+  --serif-ink:#2c4a5a;
+  --card-body:#6b7176; --search-border:#e3d9c6;
+  --pill-bg:#ece2cf; --pill-ink:#a08c6a; --footer-ink:#8a8578;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--paper);color:var(--body);line-height:1.6;-webkit-font-smoothing:antialiased}
 
 /* header */
-.site-header{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.site-header{background:var(--navy-900);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.18)}
 .header-inner{max-width:1180px;margin:0 auto;padding:0 44px;height:74px;display:flex;align-items:center;gap:16px}
 .header-logo{height:34px;width:auto;flex-shrink:0}
 .header-div{width:1px;height:26px;background:rgba(255,255,255,.28);flex-shrink:0}
@@ -29,35 +75,48 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
 
 /* page */
 .page-wrap{max-width:1180px;margin:0 auto;padding:46px 44px 60px}
-.hero h1{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;color:var(--ink);line-height:1.1;margin-bottom:14px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:600;color:var(--serif-ink);line-height:1.1;margin-bottom:14px}
 .hero p{font-size:16px;line-height:1.6;color:var(--body);max-width:720px;text-wrap:pretty}
 
 /* search */
-.search{margin:26px 0 6px;max-width:520px;background:var(--card);border:1px solid var(--search-border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(60,60,60,.04)}
+.search{margin:26px 0 6px;max-width:520px;background:var(--card);border:1px solid var(--search-border);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 10px rgba(60,60,60,.04);transition:border-color .12s ease,box-shadow .12s ease}
 .search svg{flex-shrink:0}
 .search input{flex:1;border:0;outline:0;background:transparent;font-family:'Source Sans 3',sans-serif;font-size:15px;color:var(--ink)}
+.search:focus-within{border-color:var(--navy-500);box-shadow:var(--ring)}
 .search input::placeholder{color:#9a8f7a}
 .search-count{font-size:12.5px;color:var(--meta);margin-top:10px;min-height:1em}
 
 /* category */
 .category{margin-top:38px}
 .category-header{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
-.category-header h2{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--ink);white-space:nowrap}
+.category-header h2{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--serif-ink);white-space:nowrap}
 .cat-rule{flex:1;height:1px;background:linear-gradient(90deg,#d9cdb6,transparent)}
 .cat-count{font-size:12px;font-weight:600;color:var(--pill-ink);background:var(--pill-bg);border-radius:999px;padding:3px 11px;flex-shrink:0}
 
 /* cards */
 .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.guide-card{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:22px 22px 20px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(60,50,30,.05);transition:box-shadow .18s,transform .18s}
-.guide-card:hover{box-shadow:0 4px 14px rgba(60,50,30,.10);transform:translateY(-2px)}
-.guide-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--ink);line-height:1.25;margin-bottom:9px}
-.guide-desc{font-size:13.5px;line-height:1.55;color:var(--card-body);flex:1;text-wrap:pretty;margin-bottom:16px}
-.guide-meta-info{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--meta);border-top:1px solid var(--meta-rule);padding-top:13px;margin-bottom:14px}
-.guide-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.guide-cta{background:var(--orange);color:#fff;font-size:13px;font-weight:600;text-decoration:none;padding:9px 15px;border-radius:8px;white-space:nowrap;transition:background .15s}
-.guide-cta:hover{background:var(--orange-dark)}
-.guide-pdf{color:var(--navy);background:var(--card);font-size:13px;font-weight:600;text-decoration:none;padding:9px 13px;border:1px solid var(--ghost-border);border-radius:8px;white-space:nowrap;transition:background .15s,border-color .15s}
-.guide-pdf:hover{background:#f4efe6;border-color:var(--navy)}
+.guide-card{position:relative;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:var(--s5) 22px;display:flex;flex-direction:column;box-shadow:var(--sh-1);transition:box-shadow .12s ease,border-color .12s ease}
+.guide-card:hover{border-color:#c8bda3;box-shadow:0 6px 18px rgba(60,50,30,.10)}
+/* orange lands on exactly one card at a time — the one under the cursor */
+.guide-card:hover .guide-cta,.guide-card:focus-within .guide-cta{color:var(--orange)}
+/* pill left, existing meta right. The four longest metas can't share a line with the
+   pill at 1/3 grid width, so the row wraps and the meta keeps its own right-aligned
+   line; the 4px row-gap keeps that from shoving the title far off its neighbours. */
+.guide-cardtop{display:flex;align-items:center;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;margin-bottom:13px}
+.guide-cat{font-family:'Source Sans 3',sans-serif;font-size:10.5px;font-weight:600;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--meta);background:var(--paper);border-radius:var(--r-pill);padding:5px 10px;white-space:nowrap}
+.guide-meta-info{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:600;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:var(--meta);margin-left:auto;text-align:right}
+.guide-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--serif-ink);line-height:1.25;margin-bottom:var(--s2)}
+.guide-desc{font-size:13.5px;line-height:1.55;color:var(--card-body);flex:1;text-wrap:pretty;margin-bottom:var(--s4)}
+.guide-actions{display:flex;align-items:center;gap:10px;border-top:1px solid var(--rule);padding-top:13px}
+.guide-cta{font-family:'Source Sans 3',sans-serif;font-size:13px;font-weight:600;line-height:1;color:var(--navy-500);text-decoration:none;transition:color .12s ease}
+/* the whole card is the link: a stretched pseudo-element, so the PDF anchor
+   inside stays a sibling and the markup never nests one <a> in another */
+.guide-cta::after{content:'';position:absolute;inset:0;border-radius:12px;z-index:1}
+.guide-cta:focus-visible{outline:0}
+.guide-cta:focus-visible::after{box-shadow:var(--ring)}
+.guide-pdf{position:relative;z-index:2;font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:600;line-height:1;color:var(--card-body);background:var(--card);text-decoration:none;padding:7px 11px;border:1px solid #e0d5bf;border-radius:var(--r-sm);white-space:nowrap;transition:background .12s ease,border-color .12s ease,color .12s ease}
+.guide-pdf:hover{background:var(--paper);border-color:#c8bda3;color:var(--serif-ink)}
+.guide-pdf:focus-visible{outline:0;box-shadow:var(--ring)}
 
 .no-results{display:none;color:var(--meta);font-size:14px;padding:26px 0}
 
@@ -66,7 +125,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
 .site-footer .footer-logo{height:30px;width:auto}
 .site-footer .footer-text{font-size:12.5px;line-height:1.6;color:var(--footer-ink)}
 .site-footer a{color:var(--orange);text-decoration:none;font-weight:600}
-.site-footer a:hover{color:var(--orange-dark)}
+.site-footer a:hover{color:var(--orange-press)}
 
 @media (max-width:900px){
   .card-grid{grid-template-columns:repeat(2,1fr)}
@@ -80,7 +139,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
 @media print{
   .site-header,.search,.search-count,.header-back{display:none!important}
   body{background:#fff}
-  .guide-card{break-inside:avoid;page-break-inside:avoid}
+  .guide-card{break-inside:avoid;page-break-inside:avoid;box-shadow:none}
+  .guide-cta::after{display:none}
   @page{margin:12mm}
 }
 </style>
@@ -119,93 +179,93 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="pre-planning guide advance planning why how decisions">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Pre-Planning Guide</div>
           <div class="guide-desc">Why families pre-plan, how the 3-step process works, decisions to make, cremation &amp; burial options, and financial benefits.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="pre-planning-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Pre-Planning%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="who decides right of disposition cremation authorization designated agent next of kin family disagree power of attorney rcw 68.50.160">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Who Decides</div>
           <div class="guide-desc">Who has the legal right to authorize a cremation in Washington, what happens when a family disagrees, and how to settle it in advance.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="who-decides-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Who%20Decides.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="cemetery property guide interment rights deed property types charges endowment care fund columbarium niche crypt mausoleum lawn transfer resale">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Cemetery Property Guide</div>
           <div class="guide-desc">What you&rsquo;re actually buying, the kinds of property at Washington Memorial Park, every charge explained, and what ownership means over time.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="cemetery-property-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Cemetery%20Property%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="granite niches guide rock of ages columbarium roac garden of meditation gomn terrace garden memorial path tgn tgmp niche wall inurnment rights companion interlude urn cremation post paradiso bench birdbath columbarium price range">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Granite Niches</div>
           <div class="guide-desc">The three granite-front niche locations at Washington Memorial Park &mdash; Rock of Ages, the Garden of Meditation and the new Terrace Garden Memorial Path &mdash; with price ranges, rights of interment and what each one includes.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="granite-niches-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Granite%20Niches%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="glass front niches guide eternal light columbarium ecl mountain view columbarium mvc new glass front island radiance rad serenity ser chapel of memories niche urn visible keepsakes price range infographic">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Glass-Front Niches</div>
           <div class="guide-desc">An infographic on the four glass-front niche locations &mdash; Eternal Light, the new Mountain View island, Radiance and Serenity &mdash; what a glass front shows, how it differs from granite, price ranges and current availability.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="glass-front-niches-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Glass-Front%20Niche%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="rock of ages columbarium roac granite niche courtyard pavilion wall a b c d e f g tier interior exterior memorial bench two rights inurnment engraved price range availability photo guide">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Rock of Ages Columbarium</div>
           <div class="guide-desc">A photo guide to the granite courtyard columbarium &mdash; the courtyard faces and the outward ones, what a niche includes, what it costs and how many are still for sale.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="roac-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Rock%20of%20Ages%20Columbarium.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="mountain view columbarium mvc new glass front niches island indoor stained glass family unit four rights opening size price range photo guide">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Mountain View New Glass-Front Niches</div>
           <div class="guide-desc">A photo guide to the new glass-front island inside the Mountain View Columbarium &mdash; the room it stands in, the four walls, the family units, and what each opening costs.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="mvc-niches-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Mountain%20View%20New%20Glass-Front%20Niches.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="eternal light columbarium ecl glass front niche four faces south north west east clear corners bronze scroll vase two rights price range availability photo guide">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Eternal Light Columbarium</div>
           <div class="guide-desc">A photo guide to the four-sided glass-front columbarium indoors &mdash; its four faces, the optional bronzes, what a niche costs and how few are left.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="ecl-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Eternal%20Light%20Columbarium.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="garden of meditation niches gomn stepped black granite wall companion niche two inurnment rights interlude urn niche vase no photos allowed endowment care price range photo guide">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Garden of Meditation Niches</div>
           <div class="guide-desc">A photo guide to the stepped black granite garden wall &mdash; sold as companion niches, the Interlude Urn it requires, the two rules that apply to it, and what is available now.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="gomn-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Garden%20of%20Meditation%20Niches.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="terrace garden memorial path tgmp tgn niche bank cremation post paradiso pedestal bench companion columbarium alcove birdbath bark bed new inventory rights of interment price range photo guide">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; printable</span></div>
           <div class="guide-title">Terrace Garden Memorial Path</div>
           <div class="guide-desc">A photo guide to the newest cremation property &mdash; the granite niche bank and the nine individual memorials along the planted path, with prices, rights and what the garden actually looks like today.</div>
-          <span class="guide-meta-info">Interactive &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="terrace-garden-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Terrace%20Garden%20Memorial%20Path.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="urn gardens guide lake urn garden lug rose urn garden rug ground inurnment cremated remains boulder cremation post cremorial rights of interment garden of flowers one page infographic">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive &middot; prints on one page</span></div>
           <div class="guide-title">Urn Gardens</div>
           <div class="guide-desc">A one-page infographic on the Lake Urn Garden and the Rose Urn Garden &mdash; what an urn garden is, the rights that come with a space, and the three ways an urn can be placed: in the ground, in a boulder by the lake, or in a cremation post.</div>
-          <span class="guide-meta-info">Interactive &middot; prints on one page</span>
           <div class="guide-actions"><a class="guide-cta" href="urn-gardens-guide.html">Open Guide &rarr;</a><a class="guide-pdf" href="pdf-assets/Urn%20Gardens%20at%20Washington%20Memorial%20Park.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="general price list gpl fees">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">17 pages · 2.7 MB</span></div>
           <div class="guide-title">General Price List</div>
           <div class="guide-desc">Our complete itemized price list for funeral and cemetery services.</div>
-          <span class="guide-meta-info">17 pages · 2.7 MB</span>
           <div class="guide-actions"><a class="guide-cta" href="viewer.html?file=pdf-assets/General%20Price%20List.pdf&title=General%20Price%20List&meta=17%20pages%20%C2%B7%202.7%20MB">View Guide →</a><a class="guide-pdf" href="pdf-assets/General%20Price%20List.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="veterans guide va benefits dd-214 military funeral honors tahoma national cemetery marker flag burial first responders veterans garden north">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Veterans Guide</div>
           <div class="guide-desc">VA benefits, the Veterans Garden and Veterans North, marker options, funeral home services, and military funeral honors.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="veterans-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Veterans%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="medicaid medicare spend down spend-down spenddown planning ahead irrevocable burial funds exempt asset dshs apple health long term care protect funeral">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Medicaid and Planning Ahead</div>
           <div class="guide-desc">How pre-paid funeral and cemetery arrangements are treated when qualifying for Medicaid, what a spend-down is, and how to set funds aside the right way.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="medicaid-family-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Medicaid%20and%20Planning%20Ahead.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="medicaid medicare burial exclusions professional reference spend down spenddown irrevocable trust wac rcw dshs case worker social worker rules limits">
+          <div class="guide-cardtop"><span class="guide-cat">Getting Started</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Medicaid Burial Exclusions — Professional Reference</div>
           <div class="guide-desc">The rules behind the guide: burial fund exclusions, irrevocable arrangements, and WAC/RCW citations for case workers, social workers, and advisors.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="medicaid-professional-reference.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Medicaid%20Professional%20Reference.pdf" download>PDF &darr;</a></div>
         </div>
       </div>
@@ -219,27 +279,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="cremation or burial choice decision compare side by side ashes cremated remains resting place scattering">
+          <div class="guide-cardtop"><span class="guide-cat">Burial &amp; Cremation</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Cremation or Burial</div>
           <div class="guide-desc">The two set side by side. What&rsquo;s the same, what actually differs, where cremated remains can go, and why a resting place matters.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="cremation-or-burial-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Cremation%20or%20Burial.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="burial guide ground interment casket vault death certificate funeral graveside">
+          <div class="guide-cardtop"><span class="guide-cat">Burial &amp; Cremation</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Burial Guide</div>
           <div class="guide-desc">What to do when a death occurs, burial vs. entombment, service types, death certificates, caskets, vaults, and what to expect.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="burial-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Burial%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="cremation guide cremation options death certificates plans containers caskets urns">
+          <div class="guide-cardtop"><span class="guide-cat">Burial &amp; Cremation</span><span class="guide-meta-info">Interactive · 60+ products · printable</span></div>
           <div class="guide-title">Cremation Guide</div>
           <div class="guide-desc">Plans, pricing, containers, caskets, rental caskets, urns, and death certificate info &mdash; everything a family needs in one interactive guide.</div>
-          <span class="guide-meta-info">Interactive · 60+ products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="cremation-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Cremation%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="terramation natural organic reduction nor human composting soil green burial alternative eco environmental return home auburn laying in ceremony wisp vessel burlap woodland compost">
+          <div class="guide-cardtop"><span class="guide-cat">Burial &amp; Cremation</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Terramation</div>
           <div class="guide-desc">Natural organic reduction, in partnership with Return Home &mdash; how the process works, the laying-in ceremony, receiving the soil, where it may go, and what it costs.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="terramation-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Terramation%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
       </div>
@@ -253,27 +313,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="granite marker guide flush sizes colors scale all-in price bronze comparison pricing group 1 group 2 tariffed">
+          <div class="guide-cardtop"><span class="guide-cat">Markers &amp; Memorials</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Marker Sizes &amp; Colors</div>
           <div class="guide-desc">Every flush marker size drawn to scale with the complete all-in price inside it, plus the 20+ granite colors in each price group.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="markers-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Granite%20Marker%20Sizes%20and%20Colors.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="marker photos ceramic steel portrait diamond etching laser etch litho photo sizes true size granite">
+          <div class="guide-cardtop"><span class="guide-cat">Markers &amp; Memorials</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Marker Photos, Etching &amp; Photo Sizes</div>
           <div class="guide-desc">Ceramic photo portraits, diamond and laser etching, and true-size outlines so a family can see exactly how big each photo is.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="markers-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Marker%20Photos%20and%20Etching.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="outside marker installation 3rd party third party rules regulations pricing fees allowed sizes granite">
+          <div class="guide-cardtop"><span class="guide-cat">Markers &amp; Memorials</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Outside Marker Rules &amp; Pricing</div>
           <div class="guide-desc">3rd party marker installation fees, allowed marker sizes by material and interment type, approval process, and key requirements for outside vendor memorials.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="outside-marker-rules.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Outside%20Marker%20Rules%20and%20Pricing.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="pcm design catalog granite flat marker designs ledgers companion individual elements ornaments borders panels design numbers lookup examples engraving fonts granite colors">
+          <div class="guide-cardtop"><span class="guide-cat">Markers &amp; Memorials</span><span class="guide-meta-info">Interactive &middot; searchable</span></div>
           <div class="guide-title">PCM Design Catalog</div>
           <div class="guide-desc">Every granite flat-marker and ledger design in the PCM design books &mdash; 700 of them &mdash; plus the full ornament, border and panel library, grouped by category with the design number on every card and a jump box for finding one while you sit with a family.</div>
-          <span class="guide-meta-info">Interactive &middot; searchable</span>
           <div class="guide-actions"><a class="guide-cta" href="pcm-design-catalog.html">Open Catalog →</a></div>
         </div>
       </div>
@@ -287,45 +347,45 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="burial vault guide wilbert bronze triune venetian continental monticello urn vault">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Burial Vault Guide</div>
           <div class="guide-desc">Wilbert burial and urn vault options organized by protection level — premium, standard, and basic — with BW pricing and personalization options.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="vault-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Burial%20Vault%20Guide.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="metal caskets steel bronze copper stainless">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 141 products · printable</span></div>
           <div class="guide-title">Metal Caskets</div>
           <div class="guide-desc">Metal caskets from Batesville with photos, construction details, interior, finish, dimensions, weight, and pricing.</div>
-          <span class="guide-meta-info">Interactive · 141 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="metal-caskets.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Metal%20Caskets.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="wood caskets oak maple cherry walnut poplar">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 63 products · printable</span></div>
           <div class="guide-title">Wood Caskets</div>
           <div class="guide-desc">Wood caskets from Batesville with photos, construction details, interior, stain, dimensions, weight, and pricing.</div>
-          <span class="guide-meta-info">Interactive · 63 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="wood-caskets.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Wood%20Caskets.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="all caskets combined metal wood compare steel bronze copper stainless hardwood oak cherry maple">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 204 products · printable</span></div>
           <div class="guide-title">All Caskets</div>
           <div class="guide-desc">Every metal and wood casket from Batesville in one place, so families can filter and compare across both types side by side.</div>
-          <span class="guide-meta-info">Interactive · 204 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="all-caskets.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/All%20Caskets.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="urn catalog cremation memorial companion biodegradable scattering">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 154 products · printable</span></div>
           <div class="guide-title">Urn Catalog</div>
           <div class="guide-desc">Urns from Batesville with photos &mdash; full-size, companion, biodegradable, and scattering &mdash; with material, volume, and pricing.</div>
-          <span class="guide-meta-info">Interactive · 154 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="urns-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Urn%20Catalog.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="keepsake urn miniature pendant memorial sharing token">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 102 products · printable</span></div>
           <div class="guide-title">Keepsake Urn Catalog</div>
           <div class="guide-desc">Keepsake and miniature urns from Batesville with photos &mdash; keepsakes, miniatures, pendants, and accessories.</div>
-          <span class="guide-meta-info">Interactive · 102 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="keepsake-urns-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Keepsake%20Urn%20Catalog.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="cremation containers rental caskets alternative container cardboard mdf viewing">
+          <div class="guide-cardtop"><span class="guide-cat">Caskets, Urns &amp; Vaults</span><span class="guide-meta-info">Interactive · 29 products · printable</span></div>
           <div class="guide-title">Cremation Containers &amp; Rental Caskets</div>
           <div class="guide-desc">Cremation containers, rental caskets, and the caskets suitable for cremation in full &mdash; from Batesville &mdash; with construction, dimensions, weight, and pricing.</div>
-          <span class="guide-meta-info">Interactive · 29 products · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="cremation-containers-rental-caskets.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Cremation%20Containers%20and%20Rental%20Caskets.pdf" download>PDF &darr;</a></div>
         </div>
       </div>
@@ -339,27 +399,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="mountain view columbarium niche map interactive pricing glass front island">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Mountain View Columbarium — Niche Map</div>
           <div class="guide-desc">Interactive niche pricing map for the 145 new glass front niches on the centre island. Hover or tap any niche for pricing.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/MVC_NewGlassFront_NicheMap_1.html">Open Map →</a></div>
         </div>
         <div class="guide-card" data-name="rock of ages columbarium niche map interactive pricing garden 19">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · 350 niches · printable</span></div>
           <div class="guide-title">Rock of Ages Columbarium — Niche Map</div>
           <div class="guide-desc">Interactive niche pricing map for all 14 walls (7 letters × exterior/interior). Garden 19. Hover for pricing breakdown.</div>
-          <span class="guide-meta-info">Interactive · 350 niches · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/ROAC_NicheMap.html">Open Map →</a></div>
         </div>
         <div class="guide-card" data-name="eternal light columbarium niche map interactive pricing glass front ecl">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · 85 niches · printable</span></div>
           <div class="guide-title">Eternal Light Columbarium — Niche Map</div>
           <div class="guide-desc">Interactive niche pricing map for all four glass-front elevations of ECL-1. Hover or tap any niche for pricing.</div>
-          <span class="guide-meta-info">Interactive · 85 niches · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/ECL_NicheMap.html">Open Map →</a></div>
         </div>
         <div class="guide-card" data-name="chapel of memory mausoleum com crypt map interactive radiance serenity niche walls floor plan">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · 893 crypt spaces · 122 niches · printable</span></div>
           <div class="guide-title">Chapel of Memory Mausoleum — Crypt &amp; Niche Map</div>
           <div class="guide-desc">Interactive floor plan and 3D interior for all 17 crypt banks, plus the Radiance and Serenity niche walls. Tap any crypt or niche for its detail card.</div>
-          <span class="guide-meta-info">Interactive · 893 crypt spaces · 122 niches · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/COM_CryptMap.html">Open Map →</a></div>
         </div>
         <!-- RESTORED 2026-08-04, with a new sibling card for Eternal Light. The Chapel of
@@ -376,39 +436,39 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
              either, so that sentence is gone. Card count here is +2; the Maps pill above
              moved 8 -> 10 to match. -->
         <div class="guide-card" data-name="chapel of memory mausoleum com photoreal walkthrough 3d gaussian splat interior virtual tour crypt wall marble">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive &middot; 3D &middot; not printable</span></div>
           <div class="guide-title">Chapel of Memory Mausoleum &mdash; Photoreal Walkthrough</div>
           <div class="guide-desc">A photographic 3D reconstruction of the marble crypt corridors inside the building, which a family can move through on a phone or a laptop. It follows the path we walked with the camera; more of the building is still to come.</div>
-          <span class="guide-meta-info">Interactive &middot; 3D &middot; not printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/COM_Walkthrough.html">Open Walkthrough →</a></div>
         </div>
         <div class="guide-card" data-name="eternal light mausoleum elm photoreal walkthrough 3d gaussian splat interior virtual tour crypt corridor marble">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive &middot; 3D &middot; not printable</span></div>
           <div class="guide-title">Eternal Light Mausoleum &mdash; Photoreal Walkthrough</div>
           <div class="guide-desc">A photographic 3D reconstruction of the crypt corridors inside the Eternal Light Mausoleum, which a family can move through on a phone or a laptop. It follows the path we walked with the camera; the columbarium has its own niche map.</div>
-          <span class="guide-meta-info">Interactive &middot; 3D &middot; not printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/ELM_Walkthrough.html">Open Walkthrough →</a></div>
         </div>
         <div class="guide-card" data-name="urn placement options columbarium niche garden meditation rock of ages mountain view radiance serenity eternal light">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Urn Placement Options</div>
           <div class="guide-desc">Five columbarium locations, urn garden burial, glass-front niches, and a comparison to help families choose the right placement.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="urn-placement-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Urn%20Placement%20Options.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="scattering garden options pricing rose eternal rest terrace ossuary">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Scattering Garden Options</div>
           <div class="guide-desc">Itemized pricing for the Rose, Eternal Rest, and Terrace Garden Ossuary scattering plans, with line-item breakdowns.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="scattering-guide.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Scattering%20Garden%20Pricing.pdf" download>PDF &darr;</a></div>
         </div>
         <div class="guide-card" data-name="garden of meditation niche map interactive pricing gom stepped granite wall companion interlude">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive · 168 niches · printable</span></div>
           <div class="guide-title">Garden of Meditation — Niche Map</div>
           <div class="guide-desc">Interactive niche pricing map for the stepped granite wall — left wing, center section and right wing. Tap any niche for pricing.</div>
-          <span class="guide-meta-info">Interactive · 168 niches · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/GOMN_NicheMap.html">Open Map →</a></div>
         </div>
         <div class="guide-card" data-name="terrace garden memorial path tgn tgmp niche bank cremation properties paradiso columbarium bench birdbath post map pricing">
+          <div class="guide-cardtop"><span class="guide-cat">Maps</span><span class="guide-meta-info">Interactive &middot; 40 niches &middot; 9 properties &middot; printable</span></div>
           <div class="guide-title">Terrace Garden Memorial Path &mdash; Property Map</div>
           <div class="guide-desc">Interactive 3D map of the whole Terrace Garden Memorial Path: the 40-niche bank plus nine Paradiso cremation properties &mdash; benches, columbarium, birdbath and posts. Tap anything for its price and rights of interment.</div>
-          <span class="guide-meta-info">Interactive &middot; 40 niches &middot; 9 properties &middot; printable</span>
           <div class="guide-actions"><a class="guide-cta" href="MAPS/TGMP_Map.html">Open Map →</a></div>
         </div>
       </div>
@@ -422,27 +482,27 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="vital information worksheet death certificate fillable at-need pre-need">
+          <div class="guide-cardtop"><span class="guide-cat">Letters &amp; Forms</span><span class="guide-meta-info">Interactive · fill &amp; print</span></div>
           <div class="guide-title">Vital Information Worksheet</div>
           <div class="guide-desc">A gentle, fillable worksheet for the details needed on the death certificate — one version for families (at-need) and one to complete for yourself (pre-need).</div>
-          <span class="guide-meta-info">Interactive · fill &amp; print</span>
           <div class="guide-actions"><a class="guide-cta" href="vital-worksheet.html">Open Worksheet →</a></div>
         </div>
         <div class="guide-card" data-name="deed transfer letter cemetery property sell donate">
+          <div class="guide-cardtop"><span class="guide-cat">Letters &amp; Forms</span><span class="guide-meta-info">Interactive · fill &amp; copy</span></div>
           <div class="guide-title">Deed Transfer Letter</div>
           <div class="guide-desc">Fill in a family's details and copy the finished letter straight into an email — no attachment needed.</div>
-          <span class="guide-meta-info">Interactive · fill &amp; copy</span>
           <div class="guide-actions"><a class="guide-cta" href="deed-transfer-letter.html">Open Tool →</a></div>
         </div>
         <div class="guide-card" data-name="payment options letter email credit card check deadline portal">
+          <div class="guide-cardtop"><span class="guide-cat">Letters &amp; Forms</span><span class="guide-meta-info">Interactive · fill &amp; copy</span></div>
           <div class="guide-title">Payment Options Letter</div>
           <div class="guide-desc">Enter service date and amount — deadlines auto-calculate. Copy the formatted payment options email straight into Outlook.</div>
-          <span class="guide-meta-info">Interactive · fill &amp; copy</span>
           <div class="guide-actions"><a class="guide-cta" href="payment-options-letter.html">Open Tool →</a></div>
         </div>
         <div class="guide-card" data-name="follow up emails aftercare check in marker cremation burial pre-planning outreach">
+          <div class="guide-cardtop"><span class="guide-cat">Letters &amp; Forms</span><span class="guide-meta-info">Interactive · fill &amp; copy</span></div>
           <div class="guide-title">Follow-Up Emails</div>
           <div class="guide-desc">Four aftercare check-in emails — marker, cremation only, outside burial and full service at the park — with wording that adjusts to the family's relationship. Copy straight into Outlook.</div>
-          <span class="guide-meta-info">Interactive · fill &amp; copy</span>
           <div class="guide-actions"><a class="guide-cta" href="followup-letter.html">Open Tool →</a></div>
         </div>
       </div>
@@ -456,9 +516,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
       <div class="card-grid">
         <div class="guide-card" data-name="direct cremation plan example quote itemized pricing">
+          <div class="guide-cardtop"><span class="guide-cat">Sample Quotes</span><span class="guide-meta-info">Interactive · printable</span></div>
           <div class="guide-title">Direct Cremation Plan (Example)</div>
           <div class="guide-desc">A sample itemized quote for a direct cremation plan &mdash; $3,784.92 total with Trayview container, tax breakdown, and what each line item covers.</div>
-          <span class="guide-meta-info">Interactive · printable</span>
           <div class="guide-actions"><a class="guide-cta" href="direct-cremation.html">Open Guide →</a><a class="guide-pdf" href="pdf-assets/Direct%20Cremation%20Plan%20Example.pdf" download>PDF &darr;</a></div>
         </div>
       </div>
