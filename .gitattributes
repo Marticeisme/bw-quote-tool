@@ -9,3 +9,12 @@
 # asserts against would all be three different things. `-text` disables EOL conversion in both
 # directions, so the CRLF the file is generated with is the CRLF everyone gets.
 data/demo-contacts.csv -text
+
+# guide-print.css is generator output (build_guide_print_system.mjs writes LF) that is
+# also tracked. Without this line, core.autocrlf=true hands every fresh worktree a CRLF
+# copy while the primary tree holds LF — the sprint-17 trap that failed ~25 PDF
+# staleness checks on pristine code. The manifest hash is eol-insensitive now (see
+# scripts/_pdf_manifest.mjs), but pinning the checkout to LF keeps the on-disk bytes
+# identical to what the generator writes, so byte-level comparisons by any other tool
+# stay honest too.
+guide-print.css text eol=lf
