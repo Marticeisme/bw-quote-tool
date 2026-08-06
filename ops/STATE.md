@@ -1,5 +1,24 @@
 # STATE — Living Ledger
 
+**s18 OPENED with the operator's first ask 2026-08-05: the worktree line-ending trap is
+DEAD — `ebe2f20c` on main, NOT pushed.** Two layers: (1) `scripts/_pdf_manifest.mjs`
+`sha()` now strips CR from text-extension sources before hashing (binary sources keep
+raw bytes), so CRLF and LF checkouts of the same file hash identically; the manifest
+was re-recorded once under the new normalization WITHOUT rebuilding (31 changed / 25
+kept — the builds had just been wire-verified fresh, only the fingerprint algorithm
+changed); (2) `.gitattributes` pins `guide-print.css text eol=lf` so fresh checkouts
+match the generator's bytes on disk too. PROVEN end-to-end: a fresh worktree from
+`ebe2f20c` checks out guide-print.css with zero CR bytes AND its dependency-free
+freshness check reads 31 jobs / 56 hashes / 0 stale / 0 missing (previously ~25 stale
+on pristine code); a CRLF-ified probe copy hashes to the canonical `58aede0fdef552a6`.
+Full suite green after the fix. **CONTRACT-NUMBER NOTE for the next director:** the
+s17 pin (2461/37) is superseded — the quote session's family-quote push added
+`test-family-quote-subtotal.mjs` (the 38th suite, their memory records 2492/38), and
+the 2026-08-05 measured run here printed **2501/38, 0 failed** with that session's
+in-flight edit to the same test file present in the shared working tree. Re-measure
+and re-pin at s18 boot from a clean tree; do not treat 2461 or 2492 as the expected
+output any more.
+
 **s17 PUSHED LIVE 2026-08-05, operator word "push it all live", wire-verified 8/8:
 granite HTML (map-print ×8, figure-duo, 4.8in box), glass HTML (new footnote, radser
 span, old slop gone), catalog proofs section, 2100.webp 200, HELD 2500.webp 404, both
