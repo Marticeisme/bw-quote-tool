@@ -1,5 +1,24 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-19 — OPENED 2026-08-06** (director: Fable session, the same
+session that ran the day's research phase; tracks: Opus per operator word + policy).
+Scope: implement the Claude-Design UI-refresh handoff (verbatim-fidelity token
+ramp/summary panel/buttons/panel headers/saved lists/guide cards — spec pinned at
+`sprints/sprint-19/DESIGN_HANDOFF.md`, from the operator's claude.ai design consult
+2026-08-06) + operator's in-HTML full-print fix for family guides (viewer prints the
+condensed PDF today; he wants viewer/Ctrl+P = FULL guide, downloads stay condensed).
+Operator rulings on record: PDF = summary primary; Contracted auto-stamps on RIC/CIRGAS
+generation (additive fields ONLY — persist path untouched); no status tabs. **Gate 0
+re-measured the contract on clean main: `2501 passed, 0 failed across 38 suites`,
+8 blocks 0 errors — the s18 supersession note is resolved; 2501/38 is pinned in all
+governing docs' spirit for s19.** Five tracks, waves: A chrome-tokens ∥ D
+guides-refresh (spawned 2026-08-06, worktrees) → B panel-headers ∥ E guide-full-print
+→ C saved-lists. Merge order A→D→B→E→C. Briefs in `sprints/sprint-19/`. Research
+artifacts this sprint builds on: `docs/UI_RESEARCH_2026-08-06.md`,
+`docs/DEBRIEF_design_2026-08-06.md` (+ the maps consult brief
+`docs/DEBRIEF_design_maps_2026-08-06.md`, unrun, NOT s19 scope), all three untracked
+in the working tree at open. NO push pre-authorization.
+
 **s18 OPENED with the operator's first ask 2026-08-05: the worktree line-ending trap is
 DEAD — `ebe2f20c` on main, NOT pushed.** Two layers: (1) `scripts/_pdf_manifest.mjs`
 `sha()` now strips CR from text-extension sources before hashing (binary sources keep
