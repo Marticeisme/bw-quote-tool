@@ -16,6 +16,17 @@ Kill the 118/120 border-radius !important fight. This is also where the ~226 JS-
 inline styles get AUDITED: for each `.style.` write that fights the new CSS, either
 migrate it to a class toggle or document it as compatible — list every one touched.
 
+## Director addendum (2026-08-06, from Track A's open question)
+
+Track A left the topbar's `.tb-action` (New Cemetery Quote) filled orange, which makes
+two orange buttons on the three quote-builder views (the summary panel's Download PDF is
+the primary there). Ruling: on the quote-builder views ONLY, the topbar action demotes
+to secondary styling. Implement via a body class toggled in `show()` (e.g.
+`body.view-builder .tb-action{...secondary...}`) keyed off the three builder section
+ids; Home and all other views keep the orange topbar action. Also: Track A left
+`.btn-print/.btn-print2/.btn-export/.btn-reset` as dead CSS — reap them if nothing
+you ship references them.
+
 ## The value-summary JS (the real work)
 
 - One updater per panel, driven off the SAME state/recalc path that feeds the running

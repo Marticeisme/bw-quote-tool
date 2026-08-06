@@ -13,7 +13,21 @@ re-measured the contract on clean main: `2501 passed, 0 failed across 38 suites`
 8 blocks 0 errors — the s18 supersession note is resolved; 2501/38 is pinned in all
 governing docs' spirit for s19.** Five tracks, waves: A chrome-tokens ∥ D
 guides-refresh (spawned 2026-08-06, worktrees) → B panel-headers ∥ E guide-full-print
-→ C saved-lists. Merge order A→D→B→E→C. Briefs in `sprints/sprint-19/`. Research
+→ C saved-lists. Merge order A→D→B→E→C. Briefs in `sprints/sprint-19/`.
+**WAVE 1 MERGED 2026-08-06, main GREEN `2501 passed, 0 failed across 38 suites` + 8/0
+after both merges: A `5b98aa33` (track `0e607c5e` — token ramp verbatim, old var names
+repointed not deleted, summary panel ×3 with PDF-primary/Save-secondary/quiet
+Print+Copy/confirm-gated Reset, button ranks, 23 labels de-emoji'd; family-quote PDF
+proven BYTE-IDENTICAL sha256 with a negative control; parity suite reads the rebuilt
+panel — same five assertions) and D `c5cdef78` (track `5f01e9e7` — guides.html on
+shared tokens + warm skin, stretched-link whole-card pattern with no nested anchors,
+hover-only orange, category pills FREE for search since _hay already carried category
+text, focus rings added; director accepted: Source Sans 3 stands in for the handoff
+CSS's Public Sans per the no-new-families constraint, --serif-ink token added,
+long-meta wrap on 4 cards — eyeball at close). Track A open item RULED to Track B
+addendum: topbar .tb-action demotes to secondary on builder views via body class in
+show(). WAVE 2 SPAWNED: B panel-headers ∥ E guide-full-print (Opus, worktrees, base
+must include c5cdef78). Research
 artifacts this sprint builds on: `docs/UI_RESEARCH_2026-08-06.md`,
 `docs/DEBRIEF_design_2026-08-06.md` (+ the maps consult brief
 `docs/DEBRIEF_design_maps_2026-08-06.md`, unrun, NOT s19 scope), all three untracked
