@@ -1,5 +1,11 @@
 # STATE — Living Ledger
 
+**s20 PUSHED LIVE 2026-08-06 (`0c2bae87..66c9fee1`, 21 commits incl. the quote
+session's s19 operator round), wire-verified 7/7:** live dashboard.html AND index.html
+byte-identical sha256 vs the HEAD blobs (4 deploy-lag retries), Pending Service +
+sidebar + detail screen serving, body.light-mode and the old SC hex map absent from
+the wire. s20d worktree removed post-push; s20/* branches kept until pruned.
+
 **s19 OPERATOR ROUND MERGED 2026-08-06 late — Track F `f4b02cab` (track `31dc3d6b`),
 main GREEN: 8/0; `2685 passed, 0 failed across 41 suites`** (2598 + 87
 test-niche-maus-type). Shipped: (1) summary sidebar lists ALL quote items on cem/fh/
