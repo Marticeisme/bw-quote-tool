@@ -67,7 +67,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 #letter{padding:44px 56px;font-size:14px;color:#1a1a1a;line-height:1.65;}
 #letter .lh-name{font-family:'Cormorant Garamond',serif;font-weight:700;color:var(--navy);font-size:16px;}
 #letter .lh-sub{color:var(--text-light);font-size:12.5px;margin-top:2px;}
-#letter .lh-block{margin-bottom:26px;padding-bottom:16px;border-bottom:2px solid var(--orange);}
+#letter .lh-block{margin-bottom:26px;padding-bottom:16px;border-bottom:2px solid var(--orange);text-align:center;}
 #letter p{margin-bottom:14px;}
 #letter ul{margin:0 0 14px 22px;}
 #letter li{margin-bottom:10px;}
@@ -131,12 +131,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <input type="text" id="propertyOwners" placeholder="e.g. John &amp; Mary Smith">
       </div>
       <div class="field">
+        <label>Property <span class="hint" style="display:inline;">pick from the quote tool's own lists &mdash; auto-fills the description and value below</span></label>
+        <div id="propRows"></div>
+        <button type="button" class="btn btn-ghost" style="padding:8px 12px;font-size:12px;" onclick="addPropRow()">+ Add a space / property</button>
+      </div>
+      <div class="field">
         <label for="propertyDescription">Property Description</label>
         <textarea id="propertyDescription" placeholder="e.g. Lot 45, Block B, Garden of Serenity, Section 12 &mdash; 2 spaces"></textarea>
+        <span class="hint">Auto-filled from the pickers above; edit freely &mdash; your edits win until you change a picker.</span>
       </div>
       <div class="field">
         <label for="currentValue">Current Value (incl. Endowment Care)</label>
-        <input type="text" id="currentValue" placeholder="e.g. $4,500.00">
+        <input type="text" id="currentValue" placeholder="e.g. $4,500.00" inputmode="decimal">
+        <span class="hint">Formats itself as dollars; auto-calculated from the pickers (space + endowment care, &times; qty).</span>
       </div>
       <div class="field">
         <label for="recordDate">Date (in property summary)
@@ -175,8 +182,162 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 </footer>
 
 <script>
+/* ---- Property data, copied VERBATIM from index.html's own selects (qGarden /
+   qNicheName / qMausName). tests/test-deed-letter.mjs asserts these stay identical
+   to the quote tool's lists, so a price change there fails the suite here instead
+   of drifting. Garden value format: key|price|ecf (ecf embedded per option);
+   niche and mausoleum are manual-price in the tool, ECF = 10% (its own rule). ---- */
+const DEED_GARDENS = [
+  ['6_good|14995|2250','Garden 6 – Sunrise (Good) $14,995'],
+  ['6_better|14995|2250','Garden 6 – Sunrise (Better) $14,995'],
+  ['6_best|16995|2550','Garden 6 – Sunrise (Best) $16,995'],
+  ['6_reserved|18995|2850','Garden 6 – Sunrise (Reserved) $18,995'],
+  ['8|6995|1050','Garden 8 – Garden of Memories $6,995'],
+  ['9|6995|1050','Garden 9 – Garden of Hope $6,995'],
+  ['10_good|8995|1350','Garden 10 – Garden of Reflection (Good) $8,995'],
+  ['10_better|8995|1350','Garden 10 – Garden of Reflection (Better/ECF) $8,995'],
+  ['11_good|8995|1350','Garden 11 – Garden of Devotion (Good) $8,995'],
+  ['11_better|8995|1350','Garden 11 – Garden of Devotion (Better/ECF) $8,995'],
+  ['12|8995|1350','Garden 12 – Good Shepherd $8,995'],
+  ['13|8995|1350','Garden 13 – Friendship Garden $8,995'],
+  ['14_good|8995|1350','Garden 14 – Meditation (Good) $8,995'],
+  ['15|7995|1200','Garden 15 – Communion $7,995'],
+  ['16|9995|1500','Garden 16 – Sunset Garden $9,995'],
+  ['17|4995|750','Garden 17 – Sundial Garden $4,995'],
+  ['17s|4995|750','Garden 17S – Sundial Garden South $4,995'],
+  ['18|6995|1050','Garden 18 – Garden of Flowers $6,995'],
+  ['19|8995|1350','Garden 19 – Rock of Ages $8,995'],
+  ['20|7995|1200','Garden 20 – Garden of Light $7,995'],
+  ['21|6995|1050','Garden 21 – Garden of Prayer $6,995'],
+  ['lawn_crypt|14000|2100','Garden 21 – Lawn Crypt — $14,000'],
+  ['lake_urn|5495|825','Lake Urn Garden — $5,495'],
+  ['rose_urn|4395|660','Rose Urn Garden (Sec. 18, in/out perimeter) — $4,395'],
+  ['coh_cremorial|4395|660','Court of Honor – Comp. Cremorial Space — $4,395'],
+  ['23|6995|1050','Garden 23 – Garden of Gethsemane $6,995'],
+  ['23_uprights|11995|1800','Garden 23 – Gethsemane (Uprights) $11,995'],
+  ['verses_burial|325|50','Garden of Verses – Burial $325'],
+  ['verses_niches|325|50','Garden of Verses – Niches $325'],
+  ['vets|5995|900','Veterans Garden $5,995'],
+  ['vets_n|5995|900','Veterans North Garden $5,995'],
+  ['scatter_rose|545|80','Rose Scattering Garden (Sec. 18) — Space $545'],
+  ['scatter_eternal|435|65','Eternal Rest Scattering Garden — Space $435'],
+  ['scatter_ossuary|325|50','Terrace Garden Ossuary — Space $325'],
+];
+const DEED_NICHES = [
+  'Crystal Niches','Court of Honor Niches','Eternal Light Columbarium (New)',
+  'Eternal Light Niches','Garden Court Niches','Terrace Garden Niches',
+  'Garden of Gethsemane Niches','Garden of Meditation Niches',
+  'Mountain View Columbarium (Inside)','Mountain View Columbarium (Outside)',
+  'Mountain View Columbarium (New)','Radiance Wall – Chapel of Memories',
+  'Rock of Ages Columbarium','Serenity Wall – Chapel of Memories',
+];
+const DEED_MAUS = [
+  'Chapel of Memories','Eternal Light Mausoleum','Garden Court Mausoleum',
+  'Terrace Garden Mausoleum',
+];
+const MANUAL_ECF_RATE = 0.10;   // the tool's own rule for niche and crypt ECF
+
+const fmtMoney = n => '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const parseMoney = s => { const n = parseFloat(String(s).replace(/[^0-9.\-]/g,'')); return isFinite(n) ? n : null; };
+// The label already carries the price for the picker; the letter shouldn't repeat it.
+const stripPrice = label => label.replace(/\s*(—\s*)?(Space\s+)?\$[\d,]+$/,'');
+
+let propRowsState = [];
+let rowSeq = 0;
+
+function addPropRow(){
+  propRowsState.push({ id: ++rowSeq, type:'garden', garden:'', name:'', custom:'', price:'', qty:1, location:'' });
+  renderPropRows();
+}
+function removePropRow(id){
+  propRowsState = propRowsState.filter(r => r.id !== id);
+  renderPropRows(); applyPickers();
+}
+function updatePropRow(id, key, value){
+  const r = propRowsState.find(r => r.id === id); if (!r) return;
+  r[key] = value;
+  if (key === 'type') { r.garden=''; r.name=''; r.custom=''; r.price=''; }
+  renderPropRows(); applyPickers();
+}
+
+function renderPropRows(){
+  const host = document.getElementById('propRows');
+  host.innerHTML = propRowsState.map(r => {
+    const sel = (opts, cur, ph) => opts.map(([v,l]) => `<option value="${v.replace(/"/g,'&quot;')}"${v===cur?' selected':''}>${l}</option>`).join('');
+    let detail = '';
+    if (r.type === 'garden') {
+      detail = `<select data-role="detail" onchange="updatePropRow(${r.id},'garden',this.value)" style="width:100%;margin-top:6px;">
+        <option value="">— Select garden / lawn space —</option>${sel(DEED_GARDENS, r.garden)}</select>`;
+    } else {
+      const names = r.type === 'niche' ? DEED_NICHES : DEED_MAUS;
+      detail = `<select data-role="detail" onchange="updatePropRow(${r.id},'name',this.value)" style="width:100%;margin-top:6px;">
+        <option value="">— Select ${r.type === 'niche' ? 'columbarium / niche' : 'mausoleum'} —</option>
+        ${sel(names.map(n=>[n,n]), r.name)}<option value="__custom__"${r.name==='__custom__'?' selected':''}>Custom / Other…</option></select>`
+        + (r.name === '__custom__' ? `<input data-role="custom" type="text" placeholder="Name" value="${(r.custom||'').replace(/"/g,'&quot;')}" oninput="updatePropRowQuiet(${r.id},'custom',this.value)" style="width:100%;margin-top:6px;">` : '')
+        + `<input data-role="price" type="number" min="0" step="0.01" placeholder="Price per ${r.type === 'niche' ? 'niche' : 'crypt'} (before ECF)" value="${r.price}" oninput="updatePropRowQuiet(${r.id},'price',this.value)" style="width:100%;margin-top:6px;">`;
+    }
+    return `<div data-prop-row style="border:1px solid var(--gray-mid);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--offwhite);">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select data-role="type" onchange="updatePropRow(${r.id},'type',this.value)" style="flex:1;">
+          <option value="garden"${r.type==='garden'?' selected':''}>Garden / Lawn Space</option>
+          <option value="niche"${r.type==='niche'?' selected':''}>Columbarium Niche</option>
+          <option value="maus"${r.type==='maus'?' selected':''}>Mausoleum Crypt</option>
+        </select>
+        <label style="font-size:11px;color:var(--text-light);">Qty</label>
+        <input data-role="qty" type="number" min="1" max="99" value="${r.qty}" oninput="updatePropRowQuiet(${r.id},'qty',this.value)" style="width:58px;">
+        <button type="button" onclick="removePropRow(${r.id})" title="Remove" style="border:none;background:none;color:var(--orange-dark);font-size:16px;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      ${detail}
+      <input data-role="loc" type="text" placeholder="Location (optional) — e.g. Lot 42, Section B / Row C, Niche 14" value="${(r.location||'').replace(/"/g,'&quot;')}" oninput="updatePropRowQuiet(${r.id},'location',this.value)" style="width:100%;margin-top:6px;">
+    </div>`;
+  }).join('');
+  // The pickers reuse .field input styling only when inputs sit inside a .field; apply the basics inline-free:
+  host.querySelectorAll('select, input').forEach(el => { el.style.padding='8px 10px'; el.style.border=el.style.border||'1px solid var(--gray-mid)'; el.style.borderRadius='7px'; el.style.fontSize='13px'; el.style.fontFamily="'Source Sans 3',sans-serif"; });
+}
+// Same as updatePropRow but without a full re-render, so typing doesn't lose focus.
+function updatePropRowQuiet(id, key, value){
+  const r = propRowsState.find(r => r.id === id); if (!r) return;
+  r[key] = value; applyPickers();
+}
+
+function rowAmount(r){
+  const qty = Math.max(1, parseInt(r.qty, 10) || 1);
+  if (r.type === 'garden') {
+    if (!r.garden) return null;
+    const [, price, ecf] = r.garden.split('|').map(Number);
+    return (price + ecf) * qty;
+  }
+  const p = parseMoney(r.price);
+  if (p === null) return null;
+  return p * (1 + MANUAL_ECF_RATE) * qty;
+}
+function rowText(r){
+  const qty = Math.max(1, parseInt(r.qty, 10) || 1);
+  let what = '';
+  if (r.type === 'garden') { if (!r.garden) return null; what = stripPrice(DEED_GARDENS.find(([v]) => v === r.garden)?.[1] || ''); }
+  else {
+    what = r.name === '__custom__' ? (r.custom || '').trim() : r.name;
+    if (!what) return null;
+  }
+  const unit = r.type === 'garden' ? 'space' : (r.type === 'niche' ? 'niche' : 'crypt');
+  const qtyTxt = qty + ' ' + unit + (qty > 1 ? 's' : '');
+  return what + ' — ' + qtyTxt + (r.location.trim() ? ' (' + r.location.trim() + ')' : '');
+}
+function applyPickers(){
+  const texts = propRowsState.map(rowText).filter(Boolean);
+  const amounts = propRowsState.map(rowAmount).filter(a => a !== null);
+  if (texts.length) document.getElementById('propertyDescription').value = texts.join('\n');
+  if (amounts.length) document.getElementById('currentValue').value = fmtMoney(amounts.reduce((a,b) => a+b, 0));
+  render();
+}
+
 const fields = ['letterDate','recipientName','propertyOwners','propertyDescription','currentValue','recordDate','sentBy'];
 fields.forEach(id => document.getElementById(id).addEventListener('input', render));
+// Typed dollar amounts settle into $#,###.## on blur.
+document.getElementById('currentValue').addEventListener('blur', function(){
+  const n = parseMoney(this.value);
+  if (n !== null) { this.value = fmtMoney(n); render(); }
+});
 
 function todayISO(){
   const d = new Date();
