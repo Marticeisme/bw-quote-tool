@@ -38,7 +38,10 @@ const REPO = path.resolve(HERE, '..');
 
 // Vocabulary slugs this gate accepts on top of data/pcm-subject-tags.json.
 // Anything added here must also be reported to the operator, not slipped in.
-const FLAGGED_ADDITIONS = [];
+// s21 director ruling 2026-08-07: menorah (B2: 2517/2528, B1 wanted it for 1528),
+// horseshoe (2642), snowman (2654, 1654) -- reported to the operator in the wave-1
+// report. Track C adds them to the shared vocabulary proper.
+const FLAGGED_ADDITIONS = ['menorah', 'horseshoe', 'snowman'];
 
 const LANGUAGES = [
   'vietnamese', 'spanish', 'chinese', 'korean', 'japanese', 'russian',
@@ -53,11 +56,16 @@ function idsFromSource(src) {
   const st = fs.existsSync(src) ? fs.statSync(src) : null;
   if (!st) throw new Error(`expected-source not found: ${src}`);
   if (st.isDirectory()) {
-    return fs.readdirSync(src)
+    const files = fs.readdirSync(src);
+    const jpg = files
       .filter((f) => /^PCM.+\.jpe?g$/i.test(f))
       .map((f) => f.replace(/\.jpe?g$/i, '').slice(3))
       // a proof that failed to download is an HTML error page, not an image
       .filter((id) => fs.statSync(path.join(src, `PCM${id}.jpg`)).size > 8 * 1024);
+    if (jpg.length) return jpg;
+    // repo image directories (pcm-companion-images/, pcm-single-images/) name their
+    // encoded outputs <id>.webp; the id is the whole stem.
+    return files.filter((f) => f.endsWith('.webp')).map((f) => f.slice(0, -5));
   }
   const raw = fs.readFileSync(src, 'utf8');
   if (src.toLowerCase().endsWith('.json')) {
