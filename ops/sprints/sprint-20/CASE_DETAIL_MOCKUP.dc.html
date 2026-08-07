@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Bitter:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0d;font-family:'Instrument Sans',sans-serif}
+a{color:#9a7bbd;text-decoration:none}a:hover{color:#b79ad3}
+.ic{width:16px;height:16px;flex-shrink:0;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</helmet>
+
+<section style="padding:44px 44px 0;font-family:'Instrument Sans',sans-serif">
+<div id="2c" style="width:1320px">
+  <div style="display:flex;align-items:baseline;gap:12px;margin:0 0 6px">
+    <span style="background:#5551E8;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">2c</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Case detail, in 2b&rsquo;s language</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:700px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">One of Chloe&rsquo;s cremation cases opened up. Same sidebar, same type, same indigo. The checklist is all five real groups, collapsed to one line each with their own bar, and the group that is actually blocking the case is the one left open.</div>
+
+  <div style="background:#F6F6FA;border-radius:16px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;color:#16162A;display:grid;grid-template-columns:240px 1fr;box-shadow:0 1px 3px rgba(20,20,43,.08)">
+    <div style="background:#FFFFFF;border-right:1px solid #ECECF3;padding:22px 16px">
+        <div style="display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:26px">
+          <span style="width:30px;height:30px;border-radius:9px;background:#5551E8;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.5px">MF</span>
+          <span style="font-size:15px;font-weight:700;letter-spacing:-.3px">Morrison Frink</span>
+        </div>
+        <sc-for list="{{ navLight }}" as="n" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;margin-bottom:3px;background:{{ n.bg }};color:{{ n.fg }};font-size:14px;font-weight:{{ n.weight }}">
+            <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ n.path }}"></path></svg>
+            <span style="flex:1">{{ n.label }}</span>
+            <span style="font-size:12px;font-weight:600;color:{{ n.countFg }}">{{ n.count }}</span>
+          </div>
+        </sc-for>
+    </div>
+
+    <div style="padding:22px 30px 32px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8E8EA6;font-weight:600;margin-bottom:16px">
+        <span>Cases</span><span>/</span><span style="color:#16162A">Hollis, Marie</span>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+        <span style="width:52px;height:52px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;background:#E4F2F3;color:#0B7580">MH</span>
+        <div style="flex:1">
+          <div style="font-size:28px;font-weight:800;letter-spacing:-.8px;line-height:1.15">Hollis, Marie</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:7px">
+            <span style="font-size:13.5px;color:#6E6E85;font-weight:600">Cremation &middot; Witness</span>
+            <span style="color:#D5D5E0">|</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 10px;background:#FDF1E0;color:#9A5B00"><span style="width:6px;height:6px;border-radius:99px;background:currentColor"></span>Pending family</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <span style="border:1px solid #E2E2EC;background:#fff;border-radius:11px;padding:10px 16px;font-size:13.5px;font-weight:700;color:#16162A">Print</span>
+          <span style="border:1px solid #E2E2EC;background:#fff;border-radius:11px;padding:10px 16px;font-size:13.5px;font-weight:700;color:#16162A">Edit</span>
+          <span style="background:#5551E8;color:#fff;border-radius:11px;padding:10px 18px;font-size:13.5px;font-weight:700">Log a touchpoint</span>
+        </div>
+      </div>
+
+      <div style="background:#FDF1E0;border-radius:12px;padding:13px 16px;margin-bottom:18px;display:flex;align-items:center;gap:11px">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#9A5B00;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+        <span style="font-size:13.5px;font-weight:600;color:#7A4900;flex:1">Service is Saturday and the death certificate is still awaiting KCME release. Nothing downstream can start.</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
+        <sc-for list="{{ detailStats }}" as="s" hint-placeholder-count="4">
+          <div style="background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(20,20,43,.07)">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6;margin-bottom:9px">{{ s.label }}</div>
+            <div style="font-size:19px;font-weight:800;letter-spacing:-.5px;line-height:1.1;color:{{ s.valueFg }}">{{ s.value }}</div>
+            <div style="font-size:12.5px;color:{{ s.noteFg }};font-weight:{{ s.noteWeight }};margin-top:4px">{{ s.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#fff;border-radius:14px;padding:15px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(20,20,43,.07);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Family contact</span>
+        <span style="font-size:13.5px;font-weight:700">Gregory Hollis</span>
+        <span style="font-size:13.5px;color:#6E6E85">son</span>
+        <span style="color:#E2E2EC">|</span>
+        <span style="font-size:13.5px;color:#16162A">(206) 555-0132</span>
+        <span style="color:#E2E2EC">|</span>
+        <span style="font-size:13.5px;color:#16162A">g.hollis@example.com</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:18px">
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 2px rgba(20,20,43,.07);overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #F1F1F6">
+            <span style="font-size:14px;font-weight:800;letter-spacing:-.2px;flex:1">Checklist</span>
+            <span style="font-size:19px;font-weight:800;letter-spacing:-.5px">27%</span>
+            <span style="font-size:12.5px;color:#6E6E85;font-weight:600">12 of 44</span>
+          </div>
+
+          <div style="padding:12px 14px 6px">
+            <div style="border:1px solid #E7E7F0;border-radius:11px;overflow:hidden;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:#FBFBFD">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#6E6E85;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"></path></svg>
+                <span style="flex:1;font-size:13.5px;font-weight:700">Death certificates &amp; permits</span>
+                <span style="width:64px;height:5px;border-radius:99px;background:#F0F0F5;overflow:hidden;display:block"><span style="display:block;height:100%;width:43%;border-radius:99px;background:#5551E8"></span></span>
+                <span style="font-size:12px;color:#6E6E85;font-weight:600;width:32px;text-align:right">3/7</span>
+              </div>
+              <div style="padding:5px 8px 9px">
+                <sc-for list="{{ detailItems }}" as="c" hint-placeholder-count="7">
+                  <div style="display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:8px">
+                    <span style="width:18px;height:18px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1.6px solid {{ c.boxBorder }};background:{{ c.boxBg }};color:#fff">
+                      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2.8;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:{{ c.tick }}"><path d="M20 6 9 17l-5-5"></path></svg>
+                    </span>
+                    <span style="flex:1;font-size:13px;color:{{ c.fg }};text-decoration:{{ c.strike }}">{{ c.text }}</span>
+                    <span style="font-size:11.5px;color:#8E8EA6;font-weight:600">{{ c.date }}</span>
+                    <span style="font-size:11px;font-weight:700;color:#8E8EA6;border:1px solid #E2E2EC;border-radius:6px;padding:3px 8px">N/A</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-for list="{{ detailGroups }}" as="g" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border:1px solid #E7E7F0;border-radius:11px;margin-bottom:8px">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#6E6E85;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round;transform:rotate(-90deg)"><path d="m6 9 6 6 6-6"></path></svg>
+                <span style="flex:1;font-size:13.5px;font-weight:700">{{ g.name }}</span>
+                <span style="font-size:11.5px;color:#8E8EA6;font-weight:600">{{ g.note }}</span>
+                <span style="width:64px;height:5px;border-radius:99px;background:#F0F0F5;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:99px;background:#5551E8;width:{{ g.pct }}"></span></span>
+                <span style="font-size:12px;color:#6E6E85;font-weight:600;width:32px;text-align:right">{{ g.count }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#fff;border-radius:14px;box-shadow:0 1px 2px rgba(20,20,43,.07);padding:16px 20px 20px">
+          <div style="font-size:14px;font-weight:800;letter-spacing:-.2px;margin-bottom:14px">Touchpoints</div>
+          <sc-for list="{{ detailLog }}" as="l" hint-placeholder-count="3">
+            <div style="padding:0 0 15px 15px;border-left:2px solid {{ l.rule }}">
+              <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;color:{{ l.dateFg }};margin-bottom:4px">{{ l.date }}</div>
+              <div style="font-size:13.5px;line-height:1.55;text-wrap:pretty">{{ l.text }}</div>
+            </div>
+          </sc-for>
+          <textarea placeholder="What happened?" style="width:100%;margin-top:2px;background:#F5F7FB;border:1px solid #E2E2EC;border-radius:11px;padding:11px 13px;color:#16162A;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;resize:none;height:76px;outline:none"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section style="padding:44px 44px 0;font-family:'Instrument Sans',sans-serif">
+<div id="3a" style="width:1440px">
+  <div style="display:flex;align-items:baseline;gap:12px;margin:0 0 6px">
+    <span style="background:#1f8a7a;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">3a</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Split view, revised</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:720px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">Six changes against <a href="#1a">1a</a>: teal is now reserved for the one primary action &mdash; selection and current state read as bright neutral, and progress bars are grey; the list is wider and drops the status pill; the two panes separate by value; mono is reserved for the contract and case numbers; the checklist is grouped and collapsible with per-group progress; and N/A is back as a real control.</div>
+
+  <div style="background:#0b1013;border:1px solid #253036;border-radius:14px;overflow:hidden;font-family:'Sora',sans-serif;color:#e8eef0">
+    <div style="display:flex;align-items:center;gap:16px;height:54px;padding:0 20px;border-bottom:1px solid #253036;background:#141b1f">
+      <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">Morrison Frink</div>
+      <div style="display:flex;gap:22px;margin-left:14px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #e8eef0;padding:17px 0">Cases</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:17px 0">Tasks</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:17px 0">Meals</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:17px 0">Calendar</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:17px 0">School</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:2px;background:#0f1417;border:1px solid #253036;border-radius:8px;padding:2px">
+        <span style="background:#253036;color:#e8eef0;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600">Martice</span>
+        <span style="color:#8fa3ab;padding:4px 12px;font-size:12px;font-weight:600">Chloe</span>
+        <span style="color:#8fa3ab;padding:4px 12px;font-size:12px;font-weight:600">All</span>
+      </div>
+      <span style="width:30px;height:30px;border:1px solid #253036;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8fa3ab"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:420px 1fr;min-height:700px">
+      <div style="background:#141b1f;border-right:1px solid #2c3a41">
+        <div style="padding:15px 18px;border-bottom:1px solid #223038">
+          <div style="position:relative;margin-bottom:12px">
+            <svg viewBox="0 0 24 24" style="position:absolute;left:11px;top:10px;width:16px;height:16px;stroke:#8fa3ab;stroke-width:1.8;fill:none;stroke-linecap:round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input placeholder="Search cases" style="width:100%;background:#0f1417;border:1px solid #2c3a41;border-radius:9px;padding:9px 12px 9px 35px;color:#e8eef0;font-family:'Sora',sans-serif;font-size:13px;outline:none"/>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12.5px;color:#8fa3ab">
+            <span style="color:#e8eef0;font-weight:600;border-bottom:1.5px solid #e8eef0;padding-bottom:6px">Active 5</span>
+            <span style="padding-bottom:6px">Needs a call 2</span>
+            <span style="padding-bottom:6px">Done 1</span>
+          </div>
+        </div>
+        <sc-for list="{{ rows3 }}" as="r" hint-placeholder-count="6">
+          <div style="padding:14px 18px 14px 15px;border-bottom:1px solid #1b2429;background:{{ r.rowBg }};border-left:3px solid {{ r.edge }}">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px">
+              <span style="width:7px;height:7px;border-radius:99px;flex-shrink:0;background:{{ r.ownerDot }}"></span>
+              <span style="font-size:14.5px;font-weight:600;flex:1;letter-spacing:-.15px;color:{{ r.nameFg }}">{{ r.name }}</span>
+              <span style="font-size:13px;font-weight:700;color:{{ r.pctFg }}">{{ r.pct }}</span>
+            </div>
+            <div style="padding-left:16px;font-size:12.5px;color:#8fa3ab;margin-bottom:8px">{{ r.sub }}</div>
+            <div style="padding-left:16px;display:flex;align-items:center;gap:10px">
+              <span style="flex:1;height:5px;border-radius:99px;background:#222e34;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:99px;background:{{ r.bar }};width:{{ r.pct }}"></span></span>
+              <span style="font-size:11.5px;color:#8fa3ab;flex-shrink:0">{{ r.count }}</span>
+            </div>
+            <div style="padding-left:16px;margin-top:7px;font-size:12px;font-weight:600;color:{{ r.flagFg }}">{{ r.flag }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#0b1013">
+        <div style="padding:22px 26px 18px;border-bottom:1px solid #253036">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+                <span style="width:8px;height:8px;border-radius:99px;background:#d98c3f"></span>
+                <span style="font-size:12px;font-weight:600;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase">Martice · CIRGAS · Confirmed sale</span>
+              </div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.8px;line-height:1.1;margin-bottom:12px">Alvarez, Ramona</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#2d2515;color:#d9a441">In progress</span>
+                <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#1a2430;color:#7ba3c4">Payment processing</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="border:1px solid #2c3a41;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:#c3cfd4">Edit</span>
+              <span style="background:#1f8a7a;color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600">Log a call</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #253036">
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Service</div>
+            <div style="font-size:17px;font-weight:600;letter-spacing:-.2px">Fri, Aug 7</div>
+            <div style="font-size:13px;color:#d98c3f;font-weight:600;margin-top:2px">11:00 AM · tomorrow</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Checklist</div>
+            <div style="display:flex;align-items:baseline;gap:9px">
+              <span style="font-size:22px;font-weight:700;letter-spacing:-.6px">53%</span>
+              <span style="font-size:13px;color:#8fa3ab">9 of 17</span>
+            </div>
+            <div style="height:6px;border-radius:99px;background:#1c262b;margin:9px 0 4px;overflow:hidden"><div style="height:100%;width:53%;border-radius:99px;background:#7e959e"></div></div>
+            <div style="font-size:12.5px;color:#8fa3ab">2 marked N/A</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Last contact</div>
+            <div style="font-size:17px;font-weight:600;letter-spacing:-.2px">1 day ago</div>
+            <div style="font-size:13px;color:#8fa3ab;margin-top:2px">Next in 3 days</div>
+          </div>
+          <div style="padding:16px 20px">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Contract</div>
+            <div style="font-size:17px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:-.2px">27694</div>
+            <div style="font-size:13px;color:#8fa3ab;font-family:'JetBrains Mono',monospace;margin-top:2px">WM-2026-0219</div>
+          </div>
+        </div>
+
+        <div style="padding:16px 26px;border-bottom:1px solid #253036;display:flex;align-items:center;gap:14px;background:#101619">
+          <span style="font-size:13px;color:#e8eef0;font-weight:500">Danielle Alvarez</span>
+          <span style="font-size:13px;color:#8fa3ab">daughter</span>
+          <span style="color:#2c3a41">|</span>
+          <span style="font-size:13px;color:#e8eef0">(206) 555-0148</span>
+          <span style="color:#2c3a41">|</span>
+          <span style="font-size:13px;color:#e8eef0">d.alvarez@example.com</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.15fr 1fr">
+          <div style="padding:20px 24px;border-right:1px solid #253036">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#8fa3ab;margin-bottom:14px">Checklist</div>
+
+            <div style="border:1px solid #22303a;border-radius:10px;overflow:hidden;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;background:#111a1e">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#8fa3ab;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="m6 9 6 6 6-6"></path></svg>
+                <span style="flex:1;font-size:13.5px;font-weight:600">Commission packet</span>
+                <span style="width:70px;height:5px;border-radius:99px;background:#1c262b;overflow:hidden;display:block"><span style="display:block;height:100%;width:60%;border-radius:99px;background:#7e959e"></span></span>
+                <span style="font-size:12px;color:#8fa3ab;width:38px;text-align:right">6/10</span>
+              </div>
+              <div style="padding:4px 8px 8px">
+                <sc-for list="{{ chk3 }}" as="c" hint-placeholder-count="10">
+                  <div style="display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:7px">
+                    <span style="width:18px;height:18px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1.5px solid {{ c.boxBorder }};background:{{ c.boxBg }};color:#fff">
+                      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:{{ c.tick }}"><path d="M20 6 9 17l-5-5"></path></svg>
+                    </span>
+                    <span style="flex:1;font-size:13px;color:{{ c.fg }};text-decoration:{{ c.strike }}">{{ c.text }}</span>
+                    <span style="font-size:11.5px;color:#7d919a">{{ c.date }}</span>
+                    <span style="font-size:11px;font-weight:600;color:#7d919a;border:1px solid #2c3a41;border-radius:5px;padding:3px 8px">N/A</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-for list="{{ groups3 }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:11px;padding:11px 14px;border:1px solid #22303a;border-radius:10px;margin-bottom:8px">
+                <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#8fa3ab;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;transform:rotate(-90deg)"><path d="m6 9 6 6 6-6"></path></svg>
+                <span style="flex:1;font-size:13.5px;font-weight:600;color:{{ g.fg }}">{{ g.name }}</span>
+                <span style="font-size:11.5px;color:#7d919a">{{ g.note }}</span>
+                <span style="width:70px;height:5px;border-radius:99px;background:#1c262b;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:99px;background:{{ g.bar }};width:{{ g.pct }}"></span></span>
+                <span style="font-size:12px;color:#8fa3ab;width:38px;text-align:right">{{ g.count }}</span>
+              </div>
+            </sc-for>
+
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <input placeholder="Add an item" style="flex:1;background:#0f1417;border:1px solid #2c3a41;border-radius:8px;padding:8px 11px;color:#e8eef0;font-family:'Sora',sans-serif;font-size:13px;outline:none"/>
+              <span style="border:1px solid #2c3a41;border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:#c3cfd4">Add</span>
+            </div>
+          </div>
+
+          <div style="padding:20px 24px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#8fa3ab;margin-bottom:14px">Log</div>
+            <div style="padding:0 0 16px 16px;border-left:2px solid #93a8b1">
+              <div style="font-size:11.5px;color:#cfdade;font-weight:600;margin-bottom:4px;letter-spacing:.04em">AUG 5 · 2:14 PM</div>
+              <div style="font-size:13.5px;line-height:1.55;text-wrap:pretty">Called Danielle — confirmed 11am interment, escorts requested.</div>
+            </div>
+            <div style="padding:0 0 16px 16px;border-left:2px solid #253036">
+              <div style="font-size:11.5px;color:#8fa3ab;margin-bottom:4px;letter-spacing:.04em">AUG 2 · 9:40 AM</div>
+              <div style="font-size:13.5px;line-height:1.55;text-wrap:pretty">Contract signed and uploaded. Balance owing confirmed with cemetery office.</div>
+            </div>
+            <div style="padding:0 0 16px 16px;border-left:2px solid #253036">
+              <div style="font-size:11.5px;color:#8fa3ab;margin-bottom:4px;letter-spacing:.04em">JUL 29 · 4:05 PM</div>
+              <div style="font-size:13.5px;line-height:1.55;text-wrap:pretty">Family requested granite marker proof before Friday.</div>
+            </div>
+            <textarea placeholder="What happened?" style="width:100%;margin-top:4px;background:#0f1417;border:1px solid #2c3a41;border-radius:9px;padding:10px 12px;color:#e8eef0;font-family:'Sora',sans-serif;font-size:13px;resize:none;height:72px;outline:none"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section style="padding:44px 44px 0;font-family:'Instrument Sans',sans-serif">
+<div id="2a" style="width:1320px">
+  <div style="display:flex;align-items:baseline;gap:12px;margin:0 0 6px">
+    <span style="background:#5551E8;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">2a</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Martice — cemetery &amp; pre-need</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:700px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">Light by default, Plus Jakarta Sans, one indigo accent, sidebar instead of tabs. Martice&rsquo;s list is ordered by who is waiting on him: contract type, interment date, and how long since the last call. The commission packet is the progress being tracked.</div>
+  <div style="background:#F6F6FA;border-radius:16px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;color:#16162A;display:grid;grid-template-columns:240px 1fr;box-shadow:0 1px 3px rgba(20,20,43,.08)">
+    <div style="background:#FFFFFF;border-right:1px solid #ECECF3;padding:22px 16px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:26px">
+        <span style="width:30px;height:30px;border-radius:9px;background:#5551E8;color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.5px">MF</span>
+        <span style="font-size:15px;font-weight:700;letter-spacing:-.3px">Morrison Frink</span>
+      </div>
+      <sc-for list="{{ navLight }}" as="n" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;margin-bottom:3px;background:{{ n.bg }};color:{{ n.fg }};font-size:14px;font-weight:{{ n.weight }}">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ n.path }}"></path></svg>
+          <span style="flex:1">{{ n.label }}</span>
+          <span style="font-size:12px;font-weight:600;color:{{ n.countFg }}">{{ n.count }}</span>
+        </div>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #ECECF3;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8E8EA6;padding:0 11px;margin-bottom:9px">Viewing</div>
+        <div style="display:flex;gap:4px;background:#F3F3F8;border-radius:10px;padding:3px"><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:#fff;color:#16162A;box-shadow:0 1px 2px rgba(20,20,43,.08)">Martice</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#6E6E85">Chloe</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#6E6E85">All</span></div>
+      </div>
+    </div>
+
+    <div style="padding:26px 30px 32px">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:22px">
+        <div style="flex:1">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.7px;line-height:1.2">Cases</div>
+          <div style="font-size:14px;color:#6E6E85;margin-top:3px">Cemetery and pre-need. Sorted by who is waiting on you.</div>
+        </div>
+        <div style="position:relative">
+          <svg viewBox="0 0 24 24" style="position:absolute;left:12px;top:11px;width:17px;height:17px;stroke:#8E8EA6;stroke-width:1.8;fill:none;stroke-linecap:round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input placeholder="Search" style="width:200px;background:#FFFFFF;border:1px solid #ECECF3;border-radius:11px;padding:10px 14px 10px 36px;color:#16162A;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none"/>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#5551E8;color:#ffffff;border-radius:11px;padding:11px 17px;font-size:14px;font-weight:700">
+          <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg>New case
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+        <sc-for list="{{ statsMartice }}" as="s" hint-placeholder-count="3">
+          <div style="background:#FFFFFF;border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,20,43,.07)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+              <span style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ s.iconBg }};color:{{ s.iconFg }}">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ s.path }}"></path></svg>
+              </span>
+              <span style="font-size:13px;font-weight:600;color:#6E6E85">{{ s.label }}</span>
+            </div>
+            <div style="font-size:28px;font-weight:800;letter-spacing:-.9px;line-height:1;margin-bottom:6px">{{ s.value }}</div>
+            <div style="font-size:13px;color:{{ s.noteFg }};font-weight:{{ s.noteWeight }}">{{ s.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,43,.07)">
+        <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid #F4F4F8">
+          <sc-for list="{{ tabsMartice }}" as="t" hint-placeholder-count="4">
+            <span style="font-size:13px;font-weight:600;border-radius:9px;padding:7px 13px;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</span>
+          </sc-for>
+          <div style="flex:1"></div>
+          <span style="font-size:13px;color:#6E6E85;font-weight:600">Sorted by follow-up</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;padding:11px 20px;border-bottom:1px solid #F4F4F8;background:#FBFBFD">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Case</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Type</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Status</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Interment</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Follow-up</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6;text-align:right">Packet complete</span>
+        </div>
+
+        <sc-for list="{{ rowsMartice }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;align-items:center;padding:14px 20px;border-bottom:1px solid #F4F4F8">
+            <div style="display:flex;align-items:center;gap:11px;min-width:0">
+              <span style="width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:{{ r.avBg }};color:{{ r.avFg }}">{{ r.initials }}</span>
+              <span style="min-width:0">
+                <span style="display:block;font-size:14px;font-weight:700;letter-spacing:-.2px">{{ r.name }}</span>
+                <span style="display:block;font-size:12.5px;color:#8E8EA6">{{ r.sub }}</span>
+              </span>
+            </div>
+            <span style="font-size:13.5px;color:#6E6E85">{{ r.colB }}</span>
+            <span><span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 10px;background:{{ r.statusBg }};color:{{ r.statusFg }}"><span style="width:6px;height:6px;border-radius:99px;background:currentColor"></span>{{ r.status }}</span></span>
+            <span style="font-size:13.5px;color:{{ r.colDFg }};font-weight:{{ r.colDWeight }}">{{ r.colD }}</span>
+            <span style="font-size:13.5px;color:{{ r.colEFg }};font-weight:{{ r.colEWeight }}">{{ r.colE }}</span>
+            <span style="text-align:right">
+              <span style="display:flex;align-items:baseline;justify-content:flex-end;gap:6px">
+                <span style="font-size:17px;font-weight:800;letter-spacing:-.5px;color:{{ r.pctFg }};font-variant-numeric:tabular-nums">{{ r.progPct }}</span>
+                <span style="font-size:12px;font-weight:600;color:#6E6E85;font-variant-numeric:tabular-nums">{{ r.progress }}</span>
+              </span>
+              <span style="display:block;height:7px;border-radius:99px;background:#F0F0F5;margin-top:6px;overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.progPct }}"></span></span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="2b" style="width:1320px;margin-top:52px">
+  <div style="display:flex;align-items:baseline;gap:12px;margin:0 0 6px">
+    <span style="background:#5551E8;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">2b</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Chloe — funeral direction</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:700px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">Same shell, different job. No sales columns. Chloe&rsquo;s list is ordered by the next service, and the column that would be a pipeline field for Martice is instead the death certificate and permit stage &mdash; the thing that actually blocks a case from moving.</div>
+  <div style="background:#F6F6FA;border-radius:16px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;color:#16162A;display:grid;grid-template-columns:240px 1fr;box-shadow:0 1px 3px rgba(20,20,43,.08)">
+    <div style="background:#FFFFFF;border-right:1px solid #ECECF3;padding:22px 16px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:26px">
+        <span style="width:30px;height:30px;border-radius:9px;background:#5551E8;color:#ffffff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.5px">MF</span>
+        <span style="font-size:15px;font-weight:700;letter-spacing:-.3px">Morrison Frink</span>
+      </div>
+      <sc-for list="{{ navLight }}" as="n" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;margin-bottom:3px;background:{{ n.bg }};color:{{ n.fg }};font-size:14px;font-weight:{{ n.weight }}">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ n.path }}"></path></svg>
+          <span style="flex:1">{{ n.label }}</span>
+          <span style="font-size:12px;font-weight:600;color:{{ n.countFg }}">{{ n.count }}</span>
+        </div>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #ECECF3;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8E8EA6;padding:0 11px;margin-bottom:9px">Viewing</div>
+        <div style="display:flex;gap:4px;background:#F3F3F8;border-radius:10px;padding:3px"><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#6E6E85">Martice</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:#fff;color:#16162A;box-shadow:0 1px 2px rgba(20,20,43,.08)">Chloe</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#6E6E85">All</span></div>
+      </div>
+    </div>
+
+    <div style="padding:26px 30px 32px">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:22px">
+        <div style="flex:1">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.7px;line-height:1.2">Cases</div>
+          <div style="font-size:14px;color:#6E6E85;margin-top:3px">Funeral direction. Sorted by next service.</div>
+        </div>
+        <div style="position:relative">
+          <svg viewBox="0 0 24 24" style="position:absolute;left:12px;top:11px;width:17px;height:17px;stroke:#8E8EA6;stroke-width:1.8;fill:none;stroke-linecap:round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input placeholder="Search" style="width:200px;background:#FFFFFF;border:1px solid #ECECF3;border-radius:11px;padding:10px 14px 10px 36px;color:#16162A;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none"/>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#5551E8;color:#ffffff;border-radius:11px;padding:11px 17px;font-size:14px;font-weight:700">
+          <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg>New case
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+        <sc-for list="{{ statsChloe }}" as="s" hint-placeholder-count="3">
+          <div style="background:#FFFFFF;border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,20,43,.07)">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+              <span style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ s.iconBg }};color:{{ s.iconFg }}">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ s.path }}"></path></svg>
+              </span>
+              <span style="font-size:13px;font-weight:600;color:#6E6E85">{{ s.label }}</span>
+            </div>
+            <div style="font-size:28px;font-weight:800;letter-spacing:-.9px;line-height:1;margin-bottom:6px">{{ s.value }}</div>
+            <div style="font-size:13px;color:{{ s.noteFg }};font-weight:{{ s.noteWeight }}">{{ s.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#FFFFFF;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,20,43,.07)">
+        <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid #F4F4F8">
+          <sc-for list="{{ tabsChloe }}" as="t" hint-placeholder-count="4">
+            <span style="font-size:13px;font-weight:600;border-radius:9px;padding:7px 13px;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</span>
+          </sc-for>
+          <div style="flex:1"></div>
+          <span style="font-size:13px;color:#6E6E85;font-weight:600">Sorted by service date</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;padding:11px 20px;border-bottom:1px solid #F4F4F8;background:#FBFBFD">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Case</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Disposition</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Status</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Service</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6">Certificates & permits</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8E8EA6;text-align:right">Checklist complete</span>
+        </div>
+
+        <sc-for list="{{ rowsChloe }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;align-items:center;padding:14px 20px;border-bottom:1px solid #F4F4F8">
+            <div style="display:flex;align-items:center;gap:11px;min-width:0">
+              <span style="width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:{{ r.avBg }};color:{{ r.avFg }}">{{ r.initials }}</span>
+              <span style="min-width:0">
+                <span style="display:block;font-size:14px;font-weight:700;letter-spacing:-.2px">{{ r.name }}</span>
+                <span style="display:block;font-size:12.5px;color:#8E8EA6">{{ r.sub }}</span>
+              </span>
+            </div>
+            <span style="font-size:13.5px;color:#6E6E85">{{ r.colB }}</span>
+            <span><span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 10px;background:{{ r.statusBg }};color:{{ r.statusFg }}"><span style="width:6px;height:6px;border-radius:99px;background:currentColor"></span>{{ r.status }}</span></span>
+            <span style="font-size:13.5px;color:{{ r.colDFg }};font-weight:{{ r.colDWeight }}">{{ r.colD }}</span>
+            <span style="font-size:13.5px;color:{{ r.colEFg }};font-weight:{{ r.colEWeight }}">{{ r.colE }}</span>
+            <span style="text-align:right">
+              <span style="display:flex;align-items:baseline;justify-content:flex-end;gap:6px">
+                <span style="font-size:17px;font-weight:800;letter-spacing:-.5px;color:{{ r.pctFg }};font-variant-numeric:tabular-nums">{{ r.progPct }}</span>
+                <span style="font-size:12px;font-weight:600;color:#6E6E85;font-variant-numeric:tabular-nums">{{ r.progress }}</span>
+              </span>
+              <span style="display:block;height:7px;border-radius:99px;background:#F0F0F5;margin-top:6px;overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.progPct }}"></span></span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="color:#8b9299;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:22px 0 8px">Same design, dark mode</div>
+  <div style="background:#131320;border-radius:16px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;color:#ECECF5;display:grid;grid-template-columns:240px 1fr">
+    <div style="background:#1B1B2B;border-right:1px solid #272739;padding:22px 16px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:26px">
+        <span style="width:30px;height:30px;border-radius:9px;background:#7C79F0;color:#131320;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.5px">MF</span>
+        <span style="font-size:15px;font-weight:700;letter-spacing:-.3px">Morrison Frink</span>
+      </div>
+      <sc-for list="{{ navDark }}" as="n" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;margin-bottom:3px;background:{{ n.bg }};color:{{ n.fg }};font-size:14px;font-weight:{{ n.weight }}">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ n.path }}"></path></svg>
+          <span style="flex:1">{{ n.label }}</span>
+          <span style="font-size:12px;font-weight:600;color:{{ n.countFg }}">{{ n.count }}</span>
+        </div>
+      </sc-for>
+      <div style="flex:1"></div>
+      <div style="border-top:1px solid #272739;padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8686A0;padding:0 11px;margin-bottom:9px">Viewing</div>
+        <div style="display:flex;gap:4px;background:#232334;border-radius:10px;padding:3px"><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#9494AC">Martice</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:#2B2955;color:#A9A6FF">Chloe</span><span style="flex:1;text-align:center;border-radius:8px;padding:6px 0;font-size:13px;font-weight:600;background:transparent;color:#9494AC">All</span></div>
+      </div>
+    </div>
+
+    <div style="padding:26px 30px 32px">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:22px">
+        <div style="flex:1">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.7px;line-height:1.2">Cases</div>
+          <div style="font-size:14px;color:#9494AC;margin-top:3px">Funeral direction. Sorted by next service.</div>
+        </div>
+        <div style="position:relative">
+          <svg viewBox="0 0 24 24" style="position:absolute;left:12px;top:11px;width:17px;height:17px;stroke:#8686A0;stroke-width:1.8;fill:none;stroke-linecap:round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input placeholder="Search" style="width:200px;background:#1B1B2B;border:1px solid #272739;border-radius:11px;padding:10px 14px 10px 36px;color:#ECECF5;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;outline:none"/>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#7C79F0;color:#131320;border-radius:11px;padding:11px 17px;font-size:14px;font-weight:700">
+          <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg>New case
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+        <sc-for list="{{ statsChloeDark }}" as="s" hint-placeholder-count="3">
+          <div style="background:#1B1B2B;border-radius:14px;padding:18px 20px;border:1px solid #272739">
+            <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">
+              <span style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:{{ s.iconBg }};color:{{ s.iconFg }}">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="{{ s.path }}"></path></svg>
+              </span>
+              <span style="font-size:13px;font-weight:600;color:#9494AC">{{ s.label }}</span>
+            </div>
+            <div style="font-size:28px;font-weight:800;letter-spacing:-.9px;line-height:1;margin-bottom:6px">{{ s.value }}</div>
+            <div style="font-size:13px;color:{{ s.noteFg }};font-weight:{{ s.noteWeight }}">{{ s.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#1B1B2B;border-radius:14px;overflow:hidden;border:1px solid #272739">
+        <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid #232334">
+          <sc-for list="{{ tabsChloeDark }}" as="t" hint-placeholder-count="4">
+            <span style="font-size:13px;font-weight:600;border-radius:9px;padding:7px 13px;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</span>
+          </sc-for>
+          <div style="flex:1"></div>
+          <span style="font-size:13px;color:#9494AC;font-weight:600">Sorted by service date</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;padding:11px 20px;border-bottom:1px solid #232334;background:#1F1F30">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0">Case</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0">Disposition</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0">Status</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0">Service</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0">Certificates & permits</span>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8686A0;text-align:right">Checklist complete</span>
+        </div>
+
+        <sc-for list="{{ rowsChloeDark }}" as="r" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;align-items:center;padding:14px 20px;border-bottom:1px solid #232334">
+            <div style="display:flex;align-items:center;gap:11px;min-width:0">
+              <span style="width:34px;height:34px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:{{ r.avBg }};color:{{ r.avFg }}">{{ r.initials }}</span>
+              <span style="min-width:0">
+                <span style="display:block;font-size:14px;font-weight:700;letter-spacing:-.2px">{{ r.name }}</span>
+                <span style="display:block;font-size:12.5px;color:#8686A0">{{ r.sub }}</span>
+              </span>
+            </div>
+            <span style="font-size:13.5px;color:#9494AC">{{ r.colB }}</span>
+            <span><span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 10px;background:{{ r.statusBg }};color:{{ r.statusFg }}"><span style="width:6px;height:6px;border-radius:99px;background:currentColor"></span>{{ r.status }}</span></span>
+            <span style="font-size:13.5px;color:{{ r.colDFg }};font-weight:{{ r.colDWeight }}">{{ r.colD }}</span>
+            <span style="font-size:13.5px;color:{{ r.colEFg }};font-weight:{{ r.colEWeight }}">{{ r.colE }}</span>
+            <span style="text-align:right">
+              <span style="display:flex;align-items:baseline;justify-content:flex-end;gap:6px">
+                <span style="font-size:17px;font-weight:800;letter-spacing:-.5px;color:{{ r.pctFg }};font-variant-numeric:tabular-nums">{{ r.progPct }}</span>
+                <span style="font-size:12px;font-weight:600;color:#9494AC;font-variant-numeric:tabular-nums">{{ r.progress }}</span>
+              </span>
+              <span style="display:block;height:7px;border-radius:99px;background:#2C2C40;margin-top:6px;overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.progPct }}"></span></span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section style="padding:44px;display:flex;gap:44px;align-items:flex-start;flex-wrap:wrap;font-family:'Instrument Sans',sans-serif">
+
+<div id="1a" style="width:1200px;flex-shrink:0">
+  <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
+    <span style="background:#1f8a7a;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700;letter-spacing:.02em">1a</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Split view</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:620px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">The accordion is gone. A narrow list on the left, one case fully open on the right, always. You stop expanding and collapsing things — you click down the list and the detail follows. Sora, deep teal.</div>
+
+  <div style="background:#0f1417;border:1px solid #253036;border-radius:14px;overflow:hidden;font-family:'Sora',sans-serif;color:#e8eef0">
+    <div style="display:flex;align-items:center;gap:16px;height:52px;padding:0 18px;border-bottom:1px solid #253036">
+      <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">Morrison Frink</div>
+      <div style="display:flex;gap:22px;margin-left:14px">
+        <span style="font-size:13px;font-weight:600;color:#e8eef0;border-bottom:2px solid #1f8a7a;padding:16px 0">Cases</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:16px 0">Tasks</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:16px 0">Meals</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:16px 0">Calendar</span>
+        <span style="font-size:13px;color:#8fa3ab;padding:16px 0">School</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:2px;background:#161c20;border:1px solid #253036;border-radius:8px;padding:2px">
+        <span style="background:#1f8a7a;color:#fff;border-radius:6px;padding:4px 11px;font-size:12px;font-weight:600">Martice</span>
+        <span style="color:#8fa3ab;padding:4px 11px;font-size:12px;font-weight:600">Chloe</span>
+        <span style="color:#8fa3ab;padding:4px 11px;font-size:12px;font-weight:600">All</span>
+      </div>
+      <span style="width:30px;height:30px;border:1px solid #253036;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8fa3ab"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:352px 1fr;min-height:640px">
+      <div style="border-right:1px solid #253036;background:#0f1417">
+        <div style="padding:14px 16px;border-bottom:1px solid #253036">
+          <div style="position:relative;margin-bottom:10px">
+            <svg class="ic" viewBox="0 0 24 24" style="position:absolute;left:11px;top:9px;color:#8fa3ab"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input placeholder="Search cases" style="width:100%;background:#161c20;border:1px solid #253036;border-radius:8px;padding:8px 12px 8px 35px;color:#e8eef0;font-family:'Sora',sans-serif;font-size:13px;outline:none"/>
+          </div>
+          <div style="display:flex;gap:14px;font-size:12px;color:#8fa3ab">
+            <span style="color:#e8eef0;font-weight:600;border-bottom:1.5px solid #1f8a7a;padding-bottom:5px">Active 5</span>
+            <span style="padding-bottom:5px">Needs a call 2</span>
+            <span style="padding-bottom:5px">Done 1</span>
+          </div>
+        </div>
+        <sc-for list="{{ rowsA }}" as="r" hint-placeholder-count="6">
+          <div style="padding:12px 16px;border-bottom:1px solid #1b2327;background:{{ r.rowBg }};border-left:3px solid {{ r.rowEdge }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="width:7px;height:7px;border-radius:99px;flex-shrink:0;background:{{ r.ownerDot }}"></span>
+              <span style="font-size:14px;font-weight:600;flex:1;letter-spacing:-.1px">{{ r.name }}</span>
+              <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:{{ r.pctFg }}">{{ r.pct }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding-left:15px">
+              <span style="font-size:11px;font-weight:600;border-radius:4px;padding:2px 6px;background:{{ r.statusBg }};color:{{ r.statusFg }}">{{ r.status }}</span>
+              <span style="font-size:12px;color:#8fa3ab;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.sub }}</span>
+            </div>
+            <div style="padding-left:15px;margin-top:7px"><div style="height:5px;border-radius:99px;background:#1e262a;overflow:hidden"><div style="height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.pct }}"></div></div></div>
+            <div style="padding-left:15px;margin-top:6px;display:flex;gap:8px;align-items:baseline">
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#8fa3ab">{{ r.progress }}</span>
+              <span style="font-size:11px;font-weight:600;color:{{ r.flagFg }}">{{ r.flag }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="background:#0b1013">
+        <div style="padding:22px 26px 18px;border-bottom:1px solid #253036">
+          <div style="display:flex;align-items:flex-start;gap:14px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+                <span style="width:8px;height:8px;border-radius:99px;background:#d98c3f"></span>
+                <span style="font-size:12px;font-weight:600;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase">Martice · CIRGAS · Confirmed sale</span>
+              </div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.8px;line-height:1.1;margin-bottom:12px">Alvarez, Ramona</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#2d2515;color:#d9a441">In progress</span>
+                <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#1a2430;color:#7ba3c4">Payment processing</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="border:1px solid #253036;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:#c3cfd4">Edit</span>
+              <span style="background:#1f8a7a;color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600">Log a call</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #253036">
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Service</div>
+            <div style="font-size:16px;font-weight:600">Fri, Aug 7</div>
+            <div style="font-size:13px;color:#d98c3f;font-weight:600">11:00 AM · tomorrow</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Checklist</div>
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:22px;font-weight:700;letter-spacing:-.5px;font-family:'JetBrains Mono',monospace;color:#5fb3a4">62%</span><span style="font-size:14px;font-family:'JetBrains Mono',monospace;color:#8fa3ab">13 / 21</span></div>
+            <div style="height:6px;border-radius:99px;background:#1e262a;margin:8px 0 5px;overflow:hidden"><div style="height:100%;width:62%;border-radius:99px;background:#1f8a7a"></div></div>
+            <div style="font-size:13px;color:#8fa3ab">2 marked N/A</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid #253036">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Last contact</div>
+            <div style="font-size:16px;font-weight:600">1 day ago</div>
+            <div style="font-size:13px;color:#5fb3a4">Next in 3 days</div>
+          </div>
+          <div style="padding:16px 20px">
+            <div style="font-size:11px;color:#8fa3ab;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Contract</div>
+            <div style="font-size:16px;font-weight:600;font-family:'JetBrains Mono',monospace">27694</div>
+            <div style="font-size:13px;color:#8fa3ab">WM-2026-0219</div>
+          </div>
+        </div>
+
+        <div style="padding:18px 26px;border-bottom:1px solid #253036;display:flex;align-items:center;gap:12px;background:#161c20">
+          <span style="font-size:13px;color:#8fa3ab">Danielle Alvarez · daughter</span>
+          <span style="color:#3a4a52">|</span>
+          <span style="font-size:13px;color:#e8eef0;font-family:'JetBrains Mono',monospace">(206) 555-0148</span>
+          <span style="color:#3a4a52">|</span>
+          <span style="font-size:13px;color:#e8eef0">d.alvarez@example.com</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          <div style="padding:20px 26px;border-right:1px solid #253036">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#8fa3ab">Commission packet</div>
+              <div style="font-size:12px;color:#8fa3ab;font-family:'JetBrains Mono',monospace">3/8</div>
+            </div>
+            <sc-for list="{{ checkA }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #1b2327">
+                <span style="width:18px;height:18px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1.5px solid {{ c.boxBorder }};background:{{ c.boxBg }};color:#fff">
+                  <svg class="ic" viewBox="0 0 24 24" style="width:11px;height:11px;opacity:{{ c.tick }}"><path d="M20 6 9 17l-5-5"></path></svg>
+                </span>
+                <span style="flex:1;font-size:13px;color:{{ c.fg }};text-decoration:{{ c.strike }}">{{ c.text }}</span>
+                <span style="font-size:11px;color:#8fa3ab;font-family:'JetBrains Mono',monospace">{{ c.date }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:20px 26px">
+            <div style="font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#8fa3ab;margin-bottom:14px">Log</div>
+            <div style="padding:0 0 14px 16px;border-left:2px solid #1f8a7a;position:relative;margin-bottom:4px">
+              <div style="font-size:11px;color:#5fb3a4;font-family:'JetBrains Mono',monospace;margin-bottom:3px">AUG 5 · 2:14 PM</div>
+              <div style="font-size:13px;line-height:1.55;text-wrap:pretty">Called Danielle — confirmed 11am interment, escorts requested.</div>
+            </div>
+            <div style="padding:0 0 14px 16px;border-left:2px solid #253036;margin-bottom:4px">
+              <div style="font-size:11px;color:#8fa3ab;font-family:'JetBrains Mono',monospace;margin-bottom:3px">AUG 2 · 9:40 AM</div>
+              <div style="font-size:13px;line-height:1.55;text-wrap:pretty">Contract signed and uploaded. Balance owing confirmed with cemetery office.</div>
+            </div>
+            <div style="padding:0 0 14px 16px;border-left:2px solid #253036">
+              <div style="font-size:11px;color:#8fa3ab;font-family:'JetBrains Mono',monospace;margin-bottom:3px">JUL 29 · 4:05 PM</div>
+              <div style="font-size:13px;line-height:1.55;text-wrap:pretty">Family requested granite marker proof before Friday.</div>
+            </div>
+            <textarea placeholder="What happened?" style="width:100%;margin-top:10px;background:#161c20;border:1px solid #253036;border-radius:8px;padding:10px 12px;color:#e8eef0;font-family:'Sora',sans-serif;font-size:13px;resize:none;height:66px;outline:none"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="color:#8b9299;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:20px 0 8px">Light</div>
+  <div style="background:#f4f6f6;border:1px solid #dfe5e6;border-radius:14px;overflow:hidden;font-family:'Sora',sans-serif;color:#10181c">
+    <div style="display:flex;align-items:center;gap:16px;height:52px;padding:0 18px;border-bottom:1px solid #dfe5e6;background:#fff">
+      <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">Morrison Frink</div>
+      <div style="display:flex;gap:22px;margin-left:14px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #157567;padding:16px 0">Cases</span>
+        <span style="font-size:13px;color:#5d7079;padding:16px 0">Tasks</span>
+        <span style="font-size:13px;color:#5d7079;padding:16px 0">Meals</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="background:#157567;color:#fff;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:600">Martice</span>
+    </div>
+    <div style="display:grid;grid-template-columns:352px 1fr">
+      <div style="border-right:1px solid #dfe5e6;background:#fff">
+        <sc-for list="{{ rowsALight }}" as="r" hint-placeholder-count="3">
+          <div style="padding:12px 16px;border-bottom:1px solid #edf1f1;background:{{ r.rowBg }};border-left:3px solid {{ r.rowEdge }}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="width:7px;height:7px;border-radius:99px;flex-shrink:0;background:{{ r.ownerDot }}"></span>
+              <span style="font-size:14px;font-weight:600;flex:1">{{ r.name }}</span>
+              <span style="font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:{{ r.pctFg }}">{{ r.pct }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px;padding-left:15px">
+              <span style="font-size:11px;font-weight:600;border-radius:4px;padding:2px 6px;background:{{ r.statusBg }};color:{{ r.statusFg }}">{{ r.status }}</span>
+              <span style="font-size:12px;color:#5d7079;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.sub }}</span>
+            </div>
+            <div style="padding-left:15px;margin-top:7px"><div style="height:5px;border-radius:99px;background:#e6ecec;overflow:hidden"><div style="height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.pct }}"></div></div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#f4f6f6;padding:22px 26px">
+        <div style="font-size:12px;font-weight:600;color:#5d7079;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Martice · CIRGAS · Confirmed sale</div>
+        <div style="font-size:30px;font-weight:600;letter-spacing:-.8px;margin-bottom:12px">Alvarez, Ramona</div>
+        <div style="display:flex;gap:8px">
+          <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#fbf0dc;color:#8a6412">In progress</span>
+          <span style="font-size:12px;font-weight:600;border-radius:6px;padding:5px 11px;background:#e6eef5;color:#3d6580">Payment processing</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#dfe5e6;border:1px solid #dfe5e6;border-radius:10px;overflow:hidden;margin-top:20px">
+          <div style="padding:14px 16px;background:#fff">
+            <div style="font-size:11px;color:#5d7079;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Service</div>
+            <div style="font-size:16px;font-weight:600">Fri, Aug 7</div>
+          </div>
+          <div style="padding:14px 16px;background:#fff">
+            <div style="font-size:11px;color:#5d7079;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Checklist</div>
+            <div style="display:flex;align-items:baseline;gap:7px"><span style="font-size:20px;font-weight:700;letter-spacing:-.4px;font-family:'JetBrains Mono',monospace;color:#157567">62%</span><span style="font-size:13px;font-family:'JetBrains Mono',monospace;color:#5d7079">13 / 21</span></div>
+            <div style="height:6px;border-radius:99px;background:#e6ecec;margin-top:7px;overflow:hidden"><div style="height:100%;width:62%;border-radius:99px;background:#157567"></div></div>
+          </div>
+          <div style="padding:14px 16px;background:#fff">
+            <div style="font-size:11px;color:#5d7079;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Last contact</div>
+            <div style="font-size:16px;font-weight:600">1 day ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="1b" style="width:1200px;flex-shrink:0">
+  <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
+    <span style="background:#8c2f39;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">1b</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">The ledger</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:620px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">Everything on one screen, one line per case, sortable. It treats the dashboard as a register rather than a feed — which is what the work actually is. Detail opens in a drawer. Bitter, oxblood.</div>
+
+  <div style="background:#151113;border:1px solid #302a2d;border-radius:14px;overflow:hidden;font-family:'Bitter',serif;color:#f0eae8">
+    <div style="display:flex;align-items:center;gap:18px;height:56px;padding:0 20px;border-bottom:1px solid #302a2d;background:#1e1a1c">
+      <div style="font-size:17px;font-weight:700;letter-spacing:-.3px">Morrison Frink</div>
+      <div style="display:flex;gap:20px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #8c2f39;padding:18px 0">Cases</span>
+        <span style="font-size:13px;color:#a6968f;padding:18px 0">Tasks</span>
+        <span style="font-size:13px;color:#a6968f;padding:18px 0">Meals</span>
+        <span style="font-size:13px;color:#a6968f;padding:18px 0">Calendar</span>
+        <span style="font-size:13px;color:#a6968f;padding:18px 0">School</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="font-size:13px;color:#a6968f">Synced</span>
+      <span style="background:#8c2f39;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600">New case</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid #302a2d">
+      <input placeholder="Filter 6 cases" style="width:260px;background:#1e1a1c;border:1px solid #302a2d;border-radius:7px;padding:7px 12px;color:#f0eae8;font-family:'Bitter',serif;font-size:13px;outline:none"/>
+      <sc-for list="{{ tabsB }}" as="t" hint-placeholder-count="4">
+        <span style="font-size:13px;border-radius:7px;padding:6px 12px;background:{{ t.bg }};color:{{ t.fg }};font-weight:{{ t.weight }}">{{ t.label }}</span>
+      </sc-for>
+      <div style="flex:1"></div>
+      <span style="font-size:13px;color:#a6968f">Martice · Chloe · <span style="color:#f0eae8;font-weight:600">All</span></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:26px 2.1fr 1.5fr 1.15fr 1.2fr 1.1fr 0.85fr 36px;gap:0;padding:9px 20px;border-bottom:1px solid #302a2d;background:#1a1618">
+      <span></span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Case</span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Type</span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Status</span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Service</span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Follow-up</span>
+      <span style="font-size:11px;color:#a6968f;letter-spacing:.08em;text-transform:uppercase;font-weight:600;text-align:right">Checklist</span>
+      <span></span>
+    </div>
+
+    <sc-for list="{{ rowsB }}" as="r" hint-placeholder-count="6">
+      <div style="display:grid;grid-template-columns:26px 2.1fr 1.5fr 1.15fr 1.2fr 1.1fr 0.85fr 36px;align-items:center;padding:13px 20px;border-bottom:1px solid #241f21;background:{{ r.rowBg }}">
+        <span style="width:8px;height:8px;border-radius:99px;background:{{ r.ownerDot }}"></span>
+        <span style="font-size:15px;font-weight:600;letter-spacing:-.2px">{{ r.name }}</span>
+        <span style="font-size:13px;color:#a6968f">{{ r.type }}</span>
+        <span><span style="font-size:12px;font-weight:600;border-radius:5px;padding:3px 9px;background:{{ r.statusBg }};color:{{ r.statusFg }}">{{ r.status }}</span></span>
+        <span style="font-size:13px;color:{{ r.svcFg }}">{{ r.service }}</span>
+        <span style="font-size:13px;font-weight:{{ r.followWeight }};color:{{ r.followFg }}">{{ r.follow }}</span>
+        <span style="text-align:right">
+          <span style="font-size:13px;font-family:'JetBrains Mono',monospace;color:#f0eae8">{{ r.progress }}</span>
+          <span style="display:block;height:3px;border-radius:99px;background:#302a2d;margin-top:5px;overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ r.progBar }};width:{{ r.progPct }}"></span></span>
+        </span>
+        <span style="text-align:right;color:#a6968f;font-size:15px">›</span>
+      </div>
+    </sc-for>
+
+    <div style="padding:12px 20px;display:flex;gap:22px;font-size:13px;color:#a6968f;background:#1a1618">
+      <span>6 cases</span>
+      <span style="color:#c9737c;font-weight:600">2 need a call</span>
+      <span>1 service this week</span>
+      <div style="flex:1"></div>
+      <span style="font-family:'JetBrains Mono',monospace">$12,700 quoted</span>
+    </div>
+  </div>
+
+  <div style="color:#8b9299;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:20px 0 8px">Light</div>
+  <div style="background:#f7f4f1;border:1px solid #e5ddd7;border-radius:14px;overflow:hidden;font-family:'Bitter',serif;color:#241c1a">
+    <div style="display:flex;align-items:center;gap:18px;height:56px;padding:0 20px;border-bottom:1px solid #e5ddd7;background:#fff">
+      <div style="font-size:17px;font-weight:700;letter-spacing:-.3px">Morrison Frink</div>
+      <div style="display:flex;gap:20px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #7d2831;padding:18px 0">Cases</span>
+        <span style="font-size:13px;color:#6f605a;padding:18px 0">Tasks</span>
+        <span style="font-size:13px;color:#6f605a;padding:18px 0">Meals</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="background:#7d2831;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600">New case</span>
+    </div>
+    <div style="display:grid;grid-template-columns:26px 2.1fr 1.5fr 1.15fr 1.2fr 1.1fr 0.85fr;padding:9px 20px;border-bottom:1px solid #e5ddd7;background:#f0ebe6">
+      <span></span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Case</span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Type</span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Status</span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Service</span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Follow-up</span>
+      <span style="font-size:11px;color:#6f605a;letter-spacing:.08em;text-transform:uppercase;font-weight:600;text-align:right">Checklist</span>
+    </div>
+    <sc-for list="{{ rowsBLight }}" as="r" hint-placeholder-count="4">
+      <div style="display:grid;grid-template-columns:26px 2.1fr 1.5fr 1.15fr 1.2fr 1.1fr 0.85fr;align-items:center;padding:13px 20px;border-bottom:1px solid #eae3dd;background:#fff">
+        <span style="width:8px;height:8px;border-radius:99px;background:{{ r.ownerDot }}"></span>
+        <span style="font-size:15px;font-weight:600;letter-spacing:-.2px">{{ r.name }}</span>
+        <span style="font-size:13px;color:#6f605a">{{ r.type }}</span>
+        <span><span style="font-size:12px;font-weight:600;border-radius:5px;padding:3px 9px;background:{{ r.statusBg }};color:{{ r.statusFg }}">{{ r.status }}</span></span>
+        <span style="font-size:13px;color:{{ r.svcFg }}">{{ r.service }}</span>
+        <span style="font-size:13px;font-weight:{{ r.followWeight }};color:{{ r.followFg }}">{{ r.follow }}</span>
+        <span style="text-align:right;font-size:13px;font-family:'JetBrains Mono',monospace">{{ r.progress }}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+<div id="1c" style="width:1200px;flex-shrink:0">
+  <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:6px">
+    <span style="background:#7b4b9e;color:#fff;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700">1c</span>
+    <span style="color:#f2f4f5;font-size:22px;font-weight:600">Agenda first</span>
+  </div>
+  <div style="color:#8b9299;font-size:15px;max-width:620px;margin-bottom:18px;line-height:1.55;text-wrap:pretty">The list isn't the home screen — the week is. Cases appear where they're due, and the follow-up queue sits beside them as its own object rather than a badge buried in a card. Instrument Sans, plum.</div>
+
+  <div style="background:#14121a;border:1px solid #2e2938;border-radius:14px;overflow:hidden;color:#ece9f2">
+    <div style="display:flex;align-items:center;gap:18px;height:54px;padding:0 22px;border-bottom:1px solid #2e2938;background:#1d1a26">
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.3px">Morrison Frink</div>
+      <div style="display:flex;gap:20px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #7b4b9e;padding:17px 0">Today</span>
+        <span style="font-size:13px;color:#9a93ab;padding:17px 0">Cases</span>
+        <span style="font-size:13px;color:#9a93ab;padding:17px 0">Tasks</span>
+        <span style="font-size:13px;color:#9a93ab;padding:17px 0">Meals</span>
+        <span style="font-size:13px;color:#9a93ab;padding:17px 0">School</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="font-size:13px;color:#9a93ab">Thu, Aug 6</span>
+      <span style="background:#7b4b9e;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600">New case</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 344px;min-height:600px">
+      <div style="padding:24px 26px">
+        <sc-for list="{{ agendaC }}" as="g" hint-placeholder-count="3">
+          <div style="margin-bottom:26px">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px">
+              <span style="font-size:20px;font-weight:700;letter-spacing:-.4px;color:{{ g.headFg }}">{{ g.title }}</span>
+              <span style="font-size:13px;color:#9a93ab">{{ g.sub }}</span>
+              <span style="flex:1;height:1px;background:#2e2938"></span>
+            </div>
+            <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:16px;background:#1d1a26;border:1px solid #2e2938;border-left:3px solid {{ i.edge }};border-radius:10px;padding:14px 18px;margin-bottom:8px">
+                <div style="width:64px;flex-shrink:0">
+                  <div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px">{{ i.time }}</div>
+                  <div style="font-size:11px;color:#9a93ab;letter-spacing:.05em;text-transform:uppercase">{{ i.meridiem }}</div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px">
+                    <span style="width:7px;height:7px;border-radius:99px;background:{{ i.ownerDot }}"></span>
+                    <span style="font-size:16px;font-weight:600;letter-spacing:-.2px">{{ i.name }}</span>
+                    <span style="font-size:11px;font-weight:600;border-radius:5px;padding:2px 8px;background:{{ i.statusBg }};color:{{ i.statusFg }}">{{ i.status }}</span>
+                  </div>
+                  <div style="font-size:13px;color:#9a93ab">{{ i.sub }}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ i.progress }}</div>
+                  <div style="font-size:11px;color:{{ i.openFg }}">{{ i.open }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="border-left:1px solid #2e2938;background:#191622;padding:24px 22px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9a93ab;margin-bottom:14px">Needs a call</div>
+        <sc-for list="{{ callsC }}" as="c" hint-placeholder-count="3">
+          <div style="background:#1d1a26;border:1px solid {{ c.border }};border-radius:10px;padding:13px 15px;margin-bottom:9px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+              <span style="width:7px;height:7px;border-radius:99px;background:{{ c.ownerDot }}"></span>
+              <span style="font-size:14px;font-weight:600;flex:1">{{ c.name }}</span>
+              <span style="font-size:12px;font-weight:700;color:{{ c.dueFg }}">{{ c.due }}</span>
+            </div>
+            <div style="font-size:12px;color:#9a93ab;margin-bottom:10px">{{ c.sub }}</div>
+            <div style="display:flex;gap:7px">
+              <span style="flex:1;text-align:center;background:#7b4b9e;color:#fff;border-radius:7px;padding:6px 0;font-size:12px;font-weight:600">Log a call</span>
+              <span style="text-align:center;border:1px solid #3a3348;color:#c3bcd4;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600">Snooze</span>
+            </div>
+          </div>
+        </sc-for>
+
+        <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9a93ab;margin:24px 0 14px">This week</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <div style="background:#1d1a26;border:1px solid #2e2938;border-radius:10px;padding:13px 15px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.6px">3</div>
+            <div style="font-size:12px;color:#9a93ab">services</div>
+          </div>
+          <div style="background:#1d1a26;border:1px solid #2e2938;border-radius:10px;padding:13px 15px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.6px">27</div>
+            <div style="font-size:12px;color:#9a93ab">open items</div>
+          </div>
+          <div style="background:#1d1a26;border:1px solid #2e2938;border-radius:10px;padding:13px 15px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.6px">2</div>
+            <div style="font-size:12px;color:#9a93ab">quotes out</div>
+          </div>
+          <div style="background:#1d1a26;border:1px solid #2e2938;border-radius:10px;padding:13px 15px">
+            <div style="font-size:24px;font-weight:700;letter-spacing:-.6px;color:#c98fe0">$12.7k</div>
+            <div style="font-size:12px;color:#9a93ab">quoted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="color:#8b9299;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin:20px 0 8px">Light</div>
+  <div style="background:#f6f4f9;border:1px solid #e3dfec;border-radius:14px;overflow:hidden;color:#191524">
+    <div style="display:flex;align-items:center;gap:18px;height:54px;padding:0 22px;border-bottom:1px solid #e3dfec;background:#fff">
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.3px">Morrison Frink</div>
+      <div style="display:flex;gap:20px">
+        <span style="font-size:13px;font-weight:600;border-bottom:2px solid #6b3f8c;padding:17px 0">Today</span>
+        <span style="font-size:13px;color:#665f7a;padding:17px 0">Cases</span>
+        <span style="font-size:13px;color:#665f7a;padding:17px 0">Tasks</span>
+      </div>
+      <div style="flex:1"></div>
+      <span style="background:#6b3f8c;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600">New case</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 344px">
+      <div style="padding:22px 26px">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px">
+          <span style="font-size:20px;font-weight:700;letter-spacing:-.4px;color:#6b3f8c">Today</span>
+          <span style="font-size:13px;color:#665f7a">Thursday, August 6</span>
+          <span style="flex:1;height:1px;background:#e3dfec"></span>
+        </div>
+        <sc-for list="{{ agendaCLight }}" as="i" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #e3dfec;border-left:3px solid {{ i.edge }};border-radius:10px;padding:14px 18px;margin-bottom:8px">
+            <div style="width:64px;flex-shrink:0">
+              <div style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums">{{ i.time }}</div>
+              <div style="font-size:11px;color:#665f7a;letter-spacing:.05em;text-transform:uppercase">{{ i.meridiem }}</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px">
+                <span style="width:7px;height:7px;border-radius:99px;background:{{ i.ownerDot }}"></span>
+                <span style="font-size:16px;font-weight:600;letter-spacing:-.2px">{{ i.name }}</span>
+                <span style="font-size:11px;font-weight:600;border-radius:5px;padding:2px 8px;background:{{ i.statusBg }};color:{{ i.statusFg }}">{{ i.status }}</span>
+              </div>
+              <div style="font-size:13px;color:#665f7a">{{ i.sub }}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ i.progress }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="border-left:1px solid #e3dfec;background:#fbfafd;padding:22px">
+        <div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#665f7a;margin-bottom:14px">Needs a call</div>
+        <sc-for list="{{ callsCLight }}" as="c" hint-placeholder-count="2">
+          <div style="background:#fff;border:1px solid {{ c.border }};border-radius:10px;padding:13px 15px;margin-bottom:9px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+              <span style="width:7px;height:7px;border-radius:99px;background:{{ c.ownerDot }}"></span>
+              <span style="font-size:14px;font-weight:600;flex:1">{{ c.name }}</span>
+              <span style="font-size:12px;font-weight:700;color:{{ c.dueFg }}">{{ c.due }}</span>
+            </div>
+            <div style="font-size:12px;color:#665f7a;margin-bottom:10px">{{ c.sub }}</div>
+            <div style="display:flex;gap:7px">
+              <span style="flex:1;text-align:center;background:#6b3f8c;color:#fff;border-radius:7px;padding:6px 0;font-size:12px;font-weight:600">Log a call</span>
+              <span style="border:1px solid #ddd6e8;color:#665f7a;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600">Snooze</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const M = '#d98c3f', C = '#9a6fd0';
+
+class Component extends DCLogic {
+  renderVals() {
+    const withPct = list => list.map(r => {
+      const pct = {"13/21":"62%","2/8":"25%","18/44":"41%","31/52":"60%","6/14":"43%","44/44":"100%"}[r.progress] || '0%';
+      const done = pct === '100%';
+      return Object.assign({}, r, { pct, progBar: done ? '#2e9d7a' : '#1f8a7a', pctFg: done ? '#5fb3a4' : '#e8eef0' });
+    });
+    const rowsA = [
+      { name: 'Alvarez, Ramona', ownerDot: M, status: 'In progress', statusBg: '#2d2515', statusFg: '#d9a441',
+        sub: 'CIRGAS · Aug 7', progress: '13/21', progFg: '#8fa3ab', flag: 'Service tomorrow · 8 items open', flagFg: '#d98c3f',
+        rowBg: '#161c20', rowEdge: '#1f8a7a' },
+      { name: 'Whitfield, Deborah', ownerDot: M, status: 'Pending family', statusBg: '#2d2410', statusFg: '#c9963a',
+        sub: 'RIC quote · $8,500', progress: '2/8', progFg: '#8fa3ab', flag: 'No contact in 6 days', flagFg: '#d4655a',
+        rowBg: 'transparent', rowEdge: 'transparent' },
+      { name: 'Nakamura, Ken', ownerDot: C, status: 'Pending docs', statusBg: '#1b2229', statusFg: '#8ba4b5',
+        sub: 'Cremation · AOC', progress: '18/44', progFg: '#8fa3ab', flag: 'Call due tomorrow', flagFg: '#d98c3f',
+        rowBg: 'transparent', rowEdge: 'transparent' },
+      { name: 'Boateng, Comfort', ownerDot: C, status: 'Pending payment', statusBg: '#231c2e', statusFg: '#a888cc',
+        sub: 'Burial · Aug 12', progress: '31/52', progFg: '#8fa3ab', flag: '', flagFg: '#8fa3ab',
+        rowBg: 'transparent', rowEdge: 'transparent' },
+      { name: 'Reyes, Manuel', ownerDot: M, status: 'Pending docs', statusBg: '#1b2229', statusFg: '#8ba4b5',
+        sub: 'GA policy · $4,200', progress: '6/14', progFg: '#8fa3ab', flag: 'No contact in 3 days', flagFg: '#d4655a',
+        rowBg: 'transparent', rowEdge: 'transparent' },
+      { name: 'Fitzgerald, Ann', ownerDot: C, status: 'Complete', statusBg: '#16261f', statusFg: '#5fb3a4',
+        sub: 'Memorial · Jul 28', progress: '44/44', progFg: '#5fb3a4', flag: '', flagFg: '#8fa3ab',
+        rowBg: 'transparent', rowEdge: 'transparent' }
+    ];
+
+    const rowsALightRaw = [
+      { name: 'Alvarez, Ramona', ownerDot: M, status: 'In progress', statusBg: '#fbf0dc', statusFg: '#8a6412',
+        sub: 'CIRGAS · Aug 7', progress: '13/21', progFg: '#5d7079', rowBg: '#f0f6f5', rowEdge: '#157567' },
+      { name: 'Whitfield, Deborah', ownerDot: M, status: 'Pending family', statusBg: '#fbf0dc', statusFg: '#8a6412',
+        sub: 'RIC quote · $8,500', progress: '2/8', progFg: '#5d7079', rowBg: '#fff', rowEdge: 'transparent' },
+      { name: 'Nakamura, Ken', ownerDot: C, status: 'Pending docs', statusBg: '#eaeff3', statusFg: '#42627a',
+        sub: 'Cremation · AOC', progress: '18/44', progFg: '#5d7079', rowBg: '#fff', rowEdge: 'transparent' },
+      { name: 'Boateng, Comfort', ownerDot: C, status: 'Pending payment', statusBg: '#f0ebf7', statusFg: '#5c3f80',
+        sub: 'Burial · Aug 12', progress: '31/52', progFg: '#5d7079', rowBg: '#fff', rowEdge: 'transparent' }
+    ];
+
+    const rowsALight = withPct(rowsALightRaw).map(r => Object.assign({}, r, { progBar: r.pct === '100%' ? '#2e9d7a' : '#157567' }));
+    const dn = (text, date) => ({ text, date, boxBorder: '#1f8a7a', boxBg: '#1f8a7a', tick: 1, fg: '#6f8189', strike: 'line-through' });
+    const op = text => ({ text, date: '', boxBorder: '#3a4a52', boxBg: 'transparent', tick: 0, fg: '#e8eef0', strike: 'none' });
+
+    const rowsB = [
+      { name: 'Alvarez, Ramona', ownerDot: M, type: 'CIRGAS · Confirmed', status: 'In progress', statusBg: '#2d2515', statusFg: '#d9a441',
+        service: 'Aug 7, 11:00', svcFg: '#e0a35a', follow: 'Called 1d ago', followFg: '#a6968f', followWeight: '400',
+        progress: '13/21', progPct: '62%', progBar: '#8c2f39', rowBg: '#1a1618' },
+      { name: 'Whitfield, Deborah', ownerDot: M, type: 'RIC · Quote', status: 'Pending family', statusBg: '#2d2410', statusFg: '#c9963a',
+        service: '—', svcFg: '#6d5f5a', follow: 'Overdue 6d', followFg: '#c9737c', followWeight: '600',
+        progress: '2/8', progPct: '25%', progBar: '#8c2f39', rowBg: 'transparent' },
+      { name: 'Nakamura, Ken', ownerDot: C, type: 'Cremation · AOC', status: 'Pending docs', statusBg: '#1f2126', statusFg: '#93a2b0',
+        service: '—', svcFg: '#6d5f5a', follow: 'Due tomorrow', followFg: '#d69a5c', followWeight: '600',
+        progress: '18/44', progPct: '41%', progBar: '#8c2f39', rowBg: 'transparent' },
+      { name: 'Boateng, Comfort', ownerDot: C, type: 'Burial · Traditional', status: 'Pending payment', statusBg: '#231c2e', statusFg: '#a888cc',
+        service: 'Aug 12, 10:00', svcFg: '#d8ccc7', follow: 'Called 2d ago', followFg: '#a6968f', followWeight: '400',
+        progress: '31/52', progPct: '60%', progBar: '#8c2f39', rowBg: 'transparent' },
+      { name: 'Reyes, Manuel', ownerDot: M, type: 'GA Policy · Confirmed', status: 'Pending docs', statusBg: '#1f2126', statusFg: '#93a2b0',
+        service: '—', svcFg: '#6d5f5a', follow: 'Overdue 3d', followFg: '#c9737c', followWeight: '600',
+        progress: '6/14', progPct: '43%', progBar: '#8c2f39', rowBg: 'transparent' },
+      { name: 'Fitzgerald, Ann', ownerDot: C, type: 'Cremation · Memorial', status: 'Complete', statusBg: '#1a2620', statusFg: '#6fae8d',
+        service: 'Jul 28', svcFg: '#6d5f5a', follow: '—', followFg: '#6d5f5a', followWeight: '400',
+        progress: '44/44', progPct: '100%', progBar: '#3f7a5a', rowBg: 'transparent' }
+    ];
+
+    const rowsBLight = [
+      { name: 'Alvarez, Ramona', ownerDot: M, type: 'CIRGAS · Confirmed', status: 'In progress', statusBg: '#fbf0dc', statusFg: '#8a6412',
+        service: 'Aug 7, 11:00', svcFg: '#8a5a1a', follow: 'Called 1d ago', followFg: '#6f605a', followWeight: '400', progress: '13/21' },
+      { name: 'Whitfield, Deborah', ownerDot: M, type: 'RIC · Quote', status: 'Pending family', statusBg: '#fbf0dc', statusFg: '#8a6412',
+        service: '—', svcFg: '#a2938d', follow: 'Overdue 6d', followFg: '#a03340', followWeight: '600', progress: '2/8' },
+      { name: 'Nakamura, Ken', ownerDot: C, type: 'Cremation · AOC', status: 'Pending docs', statusBg: '#edf0f3', statusFg: '#48606f',
+        service: '—', svcFg: '#a2938d', follow: 'Due tomorrow', followFg: '#a26016', followWeight: '600', progress: '18/44' },
+      { name: 'Boateng, Comfort', ownerDot: C, type: 'Burial · Traditional', status: 'Pending payment', statusBg: '#f2edf8', statusFg: '#5c3f80',
+        service: 'Aug 12, 10:00', svcFg: '#241c1a', follow: 'Called 2d ago', followFg: '#6f605a', followWeight: '400', progress: '31/52' }
+    ];
+
+    const P = {
+      folder: 'M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z',
+      check: 'M9 11l3 3L20 5M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h10',
+      utensils: 'M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-3 9v10',
+      calendar: 'M3 9h18M8 3v4M16 3v4M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z',
+      cap: 'M22 10 12 5 2 10l10 5 10-5ZM6 12v5c3 3 9 3 12 0v-5',
+      phone: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z',
+      clock: 'M12 7v5l3 2M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18Z',
+      file: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8ZM14 2v6h6M9 15h6',
+      send: 'm22 2-7 20-4-9-9-4Z',
+      inbox: 'M22 12h-6l-2 3h-4l-2-3H2M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6Z'
+    };
+    const navItem = (label, path, count, active, dark) => ({
+      label, path, count,
+      bg: active ? (dark ? '#2B2955' : '#EEEDFC') : 'transparent',
+      fg: active ? (dark ? '#A9A6FF' : '#5551E8') : (dark ? '#9494AC' : '#6E6E85'),
+      weight: active ? '700' : '500',
+      countFg: active ? (dark ? '#A9A6FF' : '#5551E8') : (dark ? '#6E6E85' : '#A3A3B8')
+    });
+    const nav = dark => [
+      navItem('Cases', P.folder, '6', true, dark),
+      navItem('Tasks', P.check, '4', false, dark),
+      navItem('Meals', P.utensils, '', false, dark),
+      navItem('Calendar', P.calendar, '3', false, dark),
+      navItem('School', P.cap, '2', false, dark)
+    ];
+
+    const LS = {
+      progress: { bg: '#EEEDFC', fg: '#4B47D6' },
+      family:   { bg: '#FDF1E0', fg: '#9A5B00' },
+      docs:     { bg: '#EEF1F6', fg: '#4E6076' },
+      payment:  { bg: '#E9F5EE', fg: '#0F7A45' },
+      marker:   { bg: '#E6F1F7', fg: '#1B6A8C' },
+      neu:      { bg: '#F1F1F6', fg: '#6E6E85' }
+    };
+    const DS = {
+      progress: { bg: '#2B2955', fg: '#A9A6FF' },
+      family:   { bg: '#382C1A', fg: '#E9AE5E' },
+      docs:     { bg: '#242C36', fg: '#93A9C0' },
+      payment:  { bg: '#17301F', fg: '#5FC98C' },
+      marker:   { bg: '#152C38', fg: '#68B4D6' },
+      neu:      { bg: '#26263A', fg: '#9494AC' }
+    };
+    const AV = { m: { bg: '#EEEDFC', fg: '#4B47D6' }, c: { bg: '#E4F2F3', fg: '#0B7580' } };
+    const AVD = { m: { bg: '#2B2955', fg: '#A9A6FF' }, c: { bg: '#123137', fg: '#5FC4CE' } };
+
+    const pal = d => ({
+      S: d ? DS : LS,
+      A: d ? AVD : AV,
+      bar: d ? '#7C79F0' : '#5551E8',
+      done: d ? '#5FC98C' : '#12A150',
+      urgent: d ? '#F58A9C' : '#C7304B',
+      warn: d ? '#E9AE5E' : '#B26B00',
+      calm: d ? '#9494AC' : '#6E6E85',
+      body: d ? '#ECECF5' : '#16162A'
+    });
+
+    const rowsMartice = (d) => {
+      const p = pal(d);
+      const r = (initials, name, sub, colB, status, statusKey, colD, colDTone, colE, colETone, progress, pct) => ({
+        initials, name, sub, colB, status,
+        statusBg: p.S[statusKey].bg, statusFg: p.S[statusKey].fg,
+        avBg: p.A.m.bg, avFg: p.A.m.fg,
+        colD, colDFg: colDTone === 'warn' ? p.warn : colDTone === 'urgent' ? p.urgent : colDTone === 'body' ? p.body : p.calm,
+        colDWeight: colDTone === 'calm' ? '500' : '700',
+        colE, colEFg: colETone === 'warn' ? p.warn : colETone === 'urgent' ? p.urgent : colETone === 'body' ? p.body : p.calm,
+        colEWeight: colETone === 'calm' ? '500' : '700',
+        progress, progPct: pct, progBar: pct === '100%' ? p.done : p.bar, pctFg: pct === '100%' ? p.done : p.body
+      });
+      return [
+        r('DW', 'Whitfield, Deborah', 'Garden of Devotion, Lot 214', 'RIC · Quote', 'Pending family', 'family', 'Sep 12 tentative', 'calm', 'Overdue 6 days', 'urgent', '2 / 8', '25%'),
+        r('MR', 'Reyes, Manuel', 'Pre-need funeral', 'GA Policy · Confirmed', 'Pending docs', 'docs', 'Not set', 'calm', 'Overdue 3 days', 'urgent', '6 / 14', '43%'),
+        r('RC', 'Chen, Robert', 'Pre-need funeral trust', 'Clearpoint · Quote', 'New', 'neu', 'Not set', 'calm', 'Not contacted yet', 'warn', '0 / 8', '0%'),
+        r('RA', 'Alvarez, Ramona', 'Contract 27694', 'CIRGAS · Confirmed', 'In progress', 'progress', 'Tomorrow, 11:00 AM', 'warn', 'Called 1 day ago', 'calm', '13 / 21', '62%'),
+        r('OF', 'Okafor family', 'Second right, Lawn 12', 'Work Order', 'In progress', 'progress', 'Not applicable', 'calm', 'Called 2 days ago', 'calm', '4 / 10', '40%'),
+        r('RM', 'Mendoza, Rosa', 'Contract 26118', 'RIC · Confirmed', 'Pending marker order', 'marker', 'Interred Jun 4', 'calm', 'Called 5 days ago', 'calm', '9 / 17', '53%')
+      ];
+    };
+
+    const rowsChloe = (d) => {
+      const p = pal(d);
+      const r = (initials, name, sub, colB, status, statusKey, colD, colDTone, colE, colETone, progress, pct) => ({
+        initials, name, sub, colB, status,
+        statusBg: p.S[statusKey].bg, statusFg: p.S[statusKey].fg,
+        avBg: p.A.c.bg, avFg: p.A.c.fg,
+        colD, colDFg: colDTone === 'warn' ? p.warn : colDTone === 'urgent' ? p.urgent : colDTone === 'body' ? p.body : p.calm,
+        colDWeight: colDTone === 'calm' ? '500' : '700',
+        colE, colEFg: colETone === 'warn' ? p.warn : colETone === 'urgent' ? p.urgent : colETone === 'body' ? p.body : p.calm,
+        colEWeight: colETone === 'calm' ? '500' : '700',
+        progress, progPct: pct, progBar: pct === '100%' ? p.done : p.bar, pctFg: pct === '100%' ? p.done : p.body
+      });
+      return [
+        r('MH', 'Hollis, Marie', 'Witness cremation', 'Cremation · Witness', 'Pending family', 'family', 'Sat Aug 8, 3:00 PM', 'warn', 'Awaiting KCME release', 'urgent', '12 / 44', '27%'),
+        r('PL', 'Larsen, Paul', 'Graveside, Sunset Hills', 'Burial · Graveside', 'In progress', 'progress', 'Sun Aug 9, 1:00 PM', 'warn', 'DC worksheet signed', 'calm', '22 / 47', '47%'),
+        r('CB', 'Boateng, Comfort', 'Full service, chapel', 'Burial · Traditional', 'Pending payment', 'payment', 'Wed Aug 12, 10:00 AM', 'body', 'DCs released to family', 'calm', '31 / 52', '60%'),
+        r('KN', 'Nakamura, Ken', 'Direct, no service', 'Cremation · AOC', 'Pending docs', 'docs', 'Not scheduled', 'calm', 'Permit pending', 'warn', '18 / 44', '41%'),
+        r('AF', 'Fitzgerald, Ann', 'Memorial held Jul 28', 'Cremation · Memorial', 'Complete', 'neu', 'Jul 28', 'calm', 'Complete', 'calm', '44 / 44', '100%')
+      ];
+    };
+
+    const statFor = (label, value, note, tone, path, d) => {
+      const map = {
+        urgent: d ? { bg: '#3A2029', fg: '#F58A9C', note: '#F58A9C' } : { bg: '#FCEBEE', fg: '#C7304B', note: '#C7304B' },
+        warn:   d ? { bg: '#382C1A', fg: '#E9AE5E', note: '#E9AE5E' } : { bg: '#FDF1E0', fg: '#B26B00', note: '#B26B00' },
+        calm:   d ? { bg: '#2B2955', fg: '#A9A6FF', note: '#9494AC' } : { bg: '#EEEDFC', fg: '#5551E8', note: '#6E6E85' }
+      }[tone];
+      return { label, value, note, path, iconBg: map.bg, iconFg: map.fg, noteFg: map.note, noteWeight: tone === 'calm' ? '500' : '600' };
+    };
+
+    const tab = (label, active, d) => ({
+      label,
+      bg: active ? (d ? '#2B2955' : '#EEEDFC') : 'transparent',
+      fg: active ? (d ? '#A9A6FF' : '#4B47D6') : (d ? '#9494AC' : '#6E6E85')
+    });
+
+    return {
+      detailStats: [{"label":"Service","value":"Sat, Aug 8","note":"3:00 PM · in 2 days","noteFg":"#B26B00","noteWeight":"700","valueFg":"#16162A"},{"label":"Certificates & permits","value":"Blocked","note":"Awaiting KCME release","noteFg":"#C7304B","noteWeight":"700","valueFg":"#C7304B"},{"label":"Last touchpoint","value":"2 days ago","note":"Called Gregory","noteFg":"#6E6E85","noteWeight":"500","valueFg":"#16162A"},{"label":"Case number","value":"WM-2026-0344","note":"Disc 31904","noteFg":"#6E6E85","noteWeight":"500","valueFg":"#16162A"}],
+      detailItems: [{"text":"DC worksheet signed & uploaded","date":"Aug 4","boxBorder":"#12A150","boxBg":"#12A150","tick":1,"fg":"#9A9AAF","strike":"line-through"},{"text":"Admin tagged for DC wkst & KCME DA","date":"Aug 4","boxBorder":"#12A150","boxBg":"#12A150","tick":1,"fg":"#9A9AAF","strike":"line-through"},{"text":"Vitals entered into WHALES","date":"Aug 4","boxBorder":"#12A150","boxBg":"#12A150","tick":1,"fg":"#9A9AAF","strike":"line-through"},{"text":"DC approved","date":"","boxBorder":"#C9C9D9","boxBg":"transparent","tick":0,"fg":"#16162A","strike":"none"},{"text":"DCs ordered","date":"","boxBorder":"#C9C9D9","boxBg":"transparent","tick":0,"fg":"#16162A","strike":"none"},{"text":"Burial transit permit uploaded","date":"","boxBorder":"#C9C9D9","boxBg":"transparent","tick":0,"fg":"#16162A","strike":"none"},{"text":"DCs released to family","date":"","boxBorder":"#C9C9D9","boxBg":"transparent","tick":0,"fg":"#16162A","strike":"none"}],
+      detailGroups: [{"name":"Preproom","note":"","count":"5/8","pct":"63%"},{"name":"Cremation","note":"1 N/A","count":"2/10","pct":"20%"},{"name":"Service details","note":"","count":"1/11","pct":"9%"},{"name":"Contract & payment","note":"","count":"1/8","pct":"13%"}],
+      detailLog: [{"date":"AUG 4 · 11:20 AM","text":"Called Gregory — witness cremation confirmed for Saturday, six attending.","rule":"#5551E8","dateFg":"#4B47D6"},{"date":"AUG 3 · 3:45 PM","text":"KCME still holding release. Left a message with the investigator.","rule":"#ECECF3","dateFg":"#8E8EA6"},{"date":"AUG 2 · 9:05 AM","text":"First call taken. Degree of care signed and uploaded.","rule":"#ECECF3","dateFg":"#8E8EA6"}],
+      rows3: [{"name":"Alvarez, Ramona","ownerDot":"#d98c3f","sub":"CIRGAS · Confirmed sale","pct":"53%","count":"9 of 17","flag":"Service tomorrow, 11:00 AM","flagFg":"#d98c3f","rowBg":"#1c2529","edge":"#cfdade","nameFg":"#ffffff","pctFg":"#e8eef0","bar":"#7e959e"},{"name":"Whitfield, Deborah","ownerDot":"#d98c3f","sub":"RIC quote · Garden of Devotion","pct":"25%","count":"2 of 8","flag":"No contact in 6 days","flagFg":"#d4655a","rowBg":"transparent","edge":"transparent","nameFg":"#e8eef0","pctFg":"#e8eef0","bar":"#7e959e"},{"name":"Reyes, Manuel","ownerDot":"#d98c3f","sub":"GA policy · Confirmed sale","pct":"43%","count":"6 of 14","flag":"No contact in 3 days","flagFg":"#d4655a","rowBg":"transparent","edge":"transparent","nameFg":"#e8eef0","pctFg":"#e8eef0","bar":"#7e959e"},{"name":"Nakamura, Ken","ownerDot":"#9a6fd0","sub":"Cremation · AOC","pct":"41%","count":"18 of 44","flag":"Call due tomorrow","flagFg":"#d98c3f","rowBg":"transparent","edge":"transparent","nameFg":"#e8eef0","pctFg":"#e8eef0","bar":"#7e959e"},{"name":"Boateng, Comfort","ownerDot":"#9a6fd0","sub":"Burial · Traditional · Aug 12","pct":"60%","count":"31 of 52","flag":"Called 2 days ago","flagFg":"#8fa3ab","rowBg":"transparent","edge":"transparent","nameFg":"#e8eef0","pctFg":"#e8eef0","bar":"#7e959e"},{"name":"Fitzgerald, Ann","ownerDot":"#9a6fd0","sub":"Cremation · Memorial · Jul 28","pct":"100%","count":"44 of 44","flag":"Complete","flagFg":"#8fa3ab","rowBg":"transparent","edge":"transparent","nameFg":"#e8eef0","pctFg":"#4a9d7e","bar":"#4a9d7e"}],
+      chk3: [{"text":"Commission worksheet","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"CIRGAS contract","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"Electronic document disclosure & consent","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"Copy of payment","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"Copy of IOA","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"CRM printout","date":"Aug 2","boxBorder":"#4a9d7e","boxBg":"#4a9d7e","tick":1,"fg":"#6f8189","strike":"line-through"},{"text":"Confirmation of balance owing","date":"","boxBorder":"#3a4a52","boxBg":"transparent","tick":0,"fg":"#e8eef0","strike":"none"},{"text":"Memorial order form","date":"","boxBorder":"#3a4a52","boxBg":"transparent","tick":0,"fg":"#e8eef0","strike":"none"},{"text":"Cemetery rules & regulations","date":"","boxBorder":"#3a4a52","boxBg":"transparent","tick":0,"fg":"#e8eef0","strike":"none"},{"text":"Prices confirmed by admin","date":"","boxBorder":"#3a4a52","boxBg":"transparent","tick":0,"fg":"#e8eef0","strike":"none"}],
+      groups3: [{"name":"New property","note":"2 N/A","count":"1/3","pct":"33%","bar":"#7e959e","fg":"#e8eef0"},{"name":"Submission","note":"","count":"1/2","pct":"50%","bar":"#7e959e","fg":"#e8eef0"},{"name":"Follow-up","note":"","count":"1/2","pct":"50%","bar":"#7e959e","fg":"#e8eef0"}],
+      rowsA: withPct(rowsA), rowsALight, rowsB, rowsBLight,
+      navLight: nav(false), navDark: nav(true),
+      rowsMartice: rowsMartice(false),
+      rowsChloe: rowsChloe(false),
+      rowsChloeDark: rowsChloe(true).slice(0, 4),
+      statsMartice: [
+        statFor('Waiting on a call', '2', 'Longest overdue 6 days', 'urgent', P.phone, false),
+        statFor('Quotes out', '2', 'No reply since Jul 31', 'warn', P.send, false),
+        statFor('Packets to submit', '1', 'Alvarez, due Friday', 'calm', P.file, false)
+      ],
+      statsChloe: [
+        statFor('Services this week', '3', 'Next is Saturday, 3:00 PM', 'warn', P.calendar, false),
+        statFor('Certificates pending', '2', 'Hollis awaiting KCME release', 'urgent', P.file, false),
+        statFor('Items due today', '8', 'Across 3 cases', 'calm', P.inbox, false)
+      ],
+      statsChloeDark: [
+        statFor('Services this week', '3', 'Next is Saturday, 3:00 PM', 'warn', P.calendar, true),
+        statFor('Certificates pending', '2', 'Hollis awaiting KCME release', 'urgent', P.file, true),
+        statFor('Items due today', '8', 'Across 3 cases', 'calm', P.inbox, true)
+      ],
+      tabsMartice: [tab('All', true), tab('Needs a call', false), tab('Quotes out', false), tab('Confirmed sales', false), tab('Work orders', false)],
+      tabsChloe: [tab('All', true), tab('This week', false), tab('Awaiting permits', false), tab('Cremation', false), tab('Burial', false)],
+      tabsChloeDark: [tab('All', true, true), tab('This week', false, true), tab('Awaiting permits', false, true), tab('Cremation', false, true)],
+      checkA: [
+        dn('Commission worksheet', 'AUG 2'),
+        dn('CIRGAS contract', 'AUG 2'),
+        dn('Electronic disclosure & consent', 'AUG 2'),
+        op('Copy of payment'),
+        op('Confirmation of balance owing'),
+        op('Memorial order form')
+      ],
+      tabsB: [
+        { label: 'All', bg: '#8c2f39', fg: '#fff', weight: '600' },
+        { label: 'Needs a call', bg: 'transparent', fg: '#a6968f', weight: '400' },
+        { label: 'This week', bg: 'transparent', fg: '#a6968f', weight: '400' },
+        { label: 'Quotes out', bg: 'transparent', fg: '#a6968f', weight: '400' },
+        { label: 'Complete', bg: 'transparent', fg: '#a6968f', weight: '400' }
+      ],
+      agendaC: [
+        { title: 'Today', sub: 'Thursday, August 6', headFg: '#c98fe0', items: [
+          { time: '2:30', meridiem: 'PM', name: 'Reyes, Manuel', ownerDot: M, status: 'Pending docs',
+            statusBg: '#232633', statusFg: '#93a2b0', sub: 'GA policy signing · office', progress: '6/14', open: '8 open', openFg: '#9a93ab', edge: '#7b4b9e' }
+        ]},
+        { title: 'Tomorrow', sub: 'Friday, August 7', headFg: '#ece9f2', items: [
+          { time: '11:00', meridiem: 'AM', name: 'Alvarez, Ramona', ownerDot: M, status: 'In progress',
+            statusBg: '#332a16', statusFg: '#d9a441', sub: 'CIRGAS interment · Garden of Devotion', progress: '13/21', open: '8 open', openFg: '#e0a35a', edge: '#c98fe0' }
+        ]},
+        { title: 'Next week', sub: 'August 10 – 16', headFg: '#ece9f2', items: [
+          { time: '10:00', meridiem: 'AM', name: 'Boateng, Comfort', ownerDot: C, status: 'Pending payment',
+            statusBg: '#2a2135', statusFg: '#a888cc', sub: 'Traditional burial · Wed Aug 12', progress: '31/52', open: '21 open', openFg: '#9a93ab', edge: '#3a3348' },
+          { time: '—', meridiem: 'TBD', name: 'Nakamura, Ken', ownerDot: C, status: 'Pending docs',
+            statusBg: '#232633', statusFg: '#93a2b0', sub: 'Cremation · awaiting ClaimCheck approval', progress: '18/44', open: '26 open', openFg: '#9a93ab', edge: '#3a3348' }
+        ]}
+      ],
+      agendaCLight: [
+        { time: '2:30', meridiem: 'PM', name: 'Reyes, Manuel', ownerDot: M, status: 'Pending docs',
+          statusBg: '#edf0f3', statusFg: '#48606f', sub: 'GA policy signing · office', progress: '6/14', edge: '#6b3f8c' },
+        { time: '4:15', meridiem: 'PM', name: 'Whitfield, Deborah', ownerDot: M, status: 'Pending family',
+          statusBg: '#fbf0dc', statusFg: '#8a6412', sub: 'Follow-up call on RIC quote', progress: '2/8', edge: '#e3dfec' }
+      ],
+      callsC: [
+        { name: 'Whitfield, Deborah', ownerDot: M, due: '6d overdue', dueFg: '#e08c85', border: '#4a2c34',
+          sub: 'RIC quote sent Jul 31 · no reply' },
+        { name: 'Reyes, Manuel', ownerDot: M, due: '3d overdue', dueFg: '#e08c85', border: '#4a2c34',
+          sub: 'Waiting on GA payment method' },
+        { name: 'Nakamura, Ken', ownerDot: C, due: 'tomorrow', dueFg: '#e0a35a', border: '#2e2938',
+          sub: 'Update family on claim status' }
+      ],
+      callsCLight: [
+        { name: 'Whitfield, Deborah', ownerDot: M, due: '6d overdue', dueFg: '#a03340', border: '#eccdd0',
+          sub: 'RIC quote sent Jul 31 · no reply' },
+        { name: 'Reyes, Manuel', ownerDot: M, due: '3d overdue', dueFg: '#a03340', border: '#eccdd0',
+          sub: 'Waiting on GA payment method' },
+        { name: 'Nakamura, Ken', ownerDot: C, due: 'tomorrow', dueFg: '#a26016', border: '#e3dfec',
+          sub: 'Update family on claim status' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,26 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-20 — OPENED 2026-08-06** (director: Fable session; tracks: Opus
+per operator word). Scope: **dashboard.html full redesign** per the operator's
+claude.ai-design brief (pinned `sprints/sprint-20/REDESIGN_BRIEF.md` + case-detail
+mockup `CASE_DETAIL_MOCKUP.dc.html`; mockup PNGs operator-local, copied to
+`scratch/s20-mockups/`) + **new 'Pending Service' status for Chloe**. Operator rulings
+at open: Pending Service is CHLOE-ONLY (hidden viewing as Martice, mirrors the PMO
+pattern; ordered after Pending Docs); full brief all 8 phases this sprint; NO push
+pre-auth. DEVIATION logged: the brief's companion `DESIGN_REFRESH.md` does not exist
+anywhere findable — brief §6 governs the audit carry-overs. **WAVE 0 SHIPPED
+director-direct 2026-08-06: 'Pending Service' live in the OLD UI** — CASE_STATUSES +
+SC + option gating (`psStatusOpt` shows only for wOwner chloe), quick-status gated by
+c.owner, filter chips gated by activeUser (visible in chloe + all views, hidden for
+martice); verified 13/13 by `scratch/s20-wave0-verify.mjs` (Playwright, Firebase
+route-BLOCKED, seeded localStorage — the harness pattern for all s20 tracks; render
+eyeballed). dashboard.html syntax: 2 blocks 0 errors. Four sequential Opus waves
+follow (one file — no parallel tracks): A shell-foundations `s20/shell` → B
+table-views `s20/tables` → C case-detail `s20/detail` → D polish-a11y `s20/polish`,
+worktrees `../bw-quote-tool-s20{a..d}`, merge order = wave order. Briefs in
+`sprints/sprint-20/`. Contract at open: 2598/40 (untouched by dashboard work — no
+suite reads dashboard.html); index.html must stay byte-untouched all sprint.
+
 **s19 PUSHED LIVE 2026-08-06 (operator: "push it all live it looks great";
 `e3c37ea5..9a56c7d2`, 12 commits) — wire-verified 8/8:** live index.html carries the
 new chrome navy/summary-total/status-pill CSS, guides.html the category pills +
