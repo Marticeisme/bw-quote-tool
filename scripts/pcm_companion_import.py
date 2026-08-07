@@ -24,6 +24,26 @@ here because nothing here is upscaled. The proofs live in their own directory so
 regimes cannot reach each other, and verify_pcm_catalog.mjs asserts that separation in
 both directions.
 
+SECOND SOURCE FOLDER, added 2026-08-07 (s21). The operator supplied "PCM COMPANION NEW",
+252 files under a DIFFERENT naming convention -- PCM<num>.jpg, no Headstone-Design-
+prefix, matching the PCM SINGLE folder rather than this one. Both conventions are parsed.
+Of its 252 numbers, 242 are already covered by the original folder and 10 are genuinely
+new (245, 258, 2260, 2261, 2263, 2267, 2343, 2352, 2355, 2538). PRECEDENCE: the ORIGINAL
+folder wins on every number it has. That is deliberate, and it is what keeps the 232
+already-shipped .webp files byte-identical -- the new folder's copies are re-exports at
+different sizes (PCM 2100: 110,856 B .webp here vs 178,035 B .jpg there), so preferring
+them would rewrite 230 shipped files for no gain. The new folder therefore contributes
+exactly the 10 numbers the original does not have. Two shipped numbers (2457, 2458) do
+not appear in the new folder at all; they are unaffected.
+
+CORRUPT SOURCES. Seven of those ten new files are not images at all: 2260, 2261, 2263,
+2267, 2343, 2352, 2355 are each 1,699 bytes of "File Not Found" HTML saved under a .jpg
+name, because PCM's server errored during the operator's download. No other copy exists
+locally. They are detected BY MAGIC BYTES rather than by a hard-coded list, so a later
+re-download is picked up with nothing to edit, and they are recorded in the manifest's
+"unavailable" list so the count story stays honest. That leaves 3 genuinely new proofs
+(245, 258, 2538).
+
 DEDUPE. 245 files, 244 distinct design numbers. The brief expected .jpg/.webp twins of the
 same number; there are none. What is actually there:
 
@@ -62,6 +82,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 from PIL import Image
 
 SRC = os.environ.get('PCM_COMPANION_SRC', r'D:\Cemetery Photos Misc\PCM COMPANION')
+# Second, later folder. Lower precedence: it only contributes numbers SRC does not have.
+SRC2 = os.environ.get('PCM_COMPANION_SRC2', r'D:\Cemetery Photos Misc\PCM COMPANION NEW')
 OUT_DIR = 'pcm-companion-images'
 MANIFEST = 'data/pcm-companion-proofs.json'
 
@@ -69,7 +91,10 @@ FINAL_PX = 700          # the plates' own finalPx; see data/pcm-upscale-manifest
 QUALITY = 70
 METHOD = 6
 
+# Two naming conventions: the original folder's Headstone-Design-PCM-<num>..., and the
+# 2026-08-07 folder's PCM<num>.jpg (the PCM SINGLE convention).
 NAME_RE = re.compile(r'^Headstone-Design-PCM-(\d+)')
+NAME_RE_2 = re.compile(r'^PCM(\d+)\.jpg$', re.I)
 COPY_SUFFIX_RE = re.compile(r' \(\d+\)(?=\.[a-z]+$)', re.I)
 
 # Real-identity proofs. See the PII note above. Number -> what was seen on the proof.
@@ -94,36 +119,78 @@ def sha256(path):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def survey():
-    """{num: chosen filename}, plus the dedupe log. Read-only; D:\\ is never written."""
-    by_num, log = {}, []
-    for fn in sorted(os.listdir(SRC)):
-        m = NAME_RE.match(fn)
+def is_image(path):
+    """Content check, NOT an extension check. See the CORRUPT SOURCES note above: some
+    .jpg files in the 2026-08-07 folder are HTML error bodies. Deciding by magic bytes
+    means a later re-download is picked up automatically, with no list to maintain."""
+    with open(path, 'rb') as f:
+        head = f.read(12)
+    return (head[:3] == b'\xff\xd8\xff'                              # JPEG
+            or (head[:4] == b'RIFF' and head[8:12] == b'WEBP')       # WebP
+            or head[:8] == b'\x89PNG\r\n\x1a\n')                     # PNG
+
+
+def scan(src, log):
+    """{num: [filename, ...]} for one source folder. Read-only; D:\\ is never written."""
+    by_num = {}
+    if not os.path.isdir(src):
+        log.append(('missing-source', src, 'folder not present; skipped'))
+        return by_num
+    for fn in sorted(os.listdir(src)):
+        m = NAME_RE.match(fn) or NAME_RE_2.match(fn)
         if not m:
-            log.append(('unparsed', fn, 'name does not start Headstone-Design-PCM-<num>'))
+            log.append(('unparsed', fn, 'name is neither Headstone-Design-PCM-<num> nor '
+                                        'PCM<num>.jpg (in %s)' % src))
             continue
-        num = int(m.group(1))
-        by_num.setdefault(num, []).append(fn)
+        by_num.setdefault(int(m.group(1)), []).append(fn)
+    return by_num
+
+
+def pick(src, num, files, log):
+    """One file per design number within a folder, by the dedupe rule."""
+    if len(files) == 1:
+        return files[0]
+    # Dedupe rule, in order: prefer a name with no " (n)" copy suffix, then the larger
+    # file, then the lexicographically first name.
+    def key(f):
+        return (COPY_SUFFIX_RE.search(f) is not None,
+                -os.path.getsize(os.path.join(src, f)), f)
+    ranked = sorted(files, key=key)
+    sizes = {f: os.path.getsize(os.path.join(src, f)) for f in files}
+    same = len({sha256(os.path.join(src, f)) for f in files}) == 1
+    log.append(('duplicate', num,
+                'kept %s over %s (%s; %s)' % (
+                    ranked[0], ', '.join(ranked[1:]),
+                    'byte-identical' if same else 'DIFFERENT BYTES',
+                    ', '.join('%s=%d B' % (f, sizes[f]) for f in files))))
+    return ranked[0]
+
+
+def survey():
+    """{num: (src_dir, filename)}, plus the log.
+
+    SRC wins on every number it carries; SRC2 only fills numbers SRC does not have. See
+    the SECOND SOURCE FOLDER note above -- this precedence is what keeps the already
+    shipped outputs byte-identical.
+    """
+    log = []
+    primary = scan(SRC, log)
+    secondary = scan(SRC2, log)
 
     chosen = {}
-    for num, files in sorted(by_num.items()):
-        if len(files) == 1:
-            chosen[num] = files[0]
+    for num, files in sorted(primary.items()):
+        chosen[num] = (SRC, pick(SRC, num, files, log))
+    added = []
+    for num, files in sorted(secondary.items()):
+        if num in chosen:
             continue
-        # Dedupe rule, in order: prefer a name with no " (n)" copy suffix, then the larger
-        # file, then the lexicographically first name.
-        def key(f):
-            return (COPY_SUFFIX_RE.search(f) is not None,
-                    -os.path.getsize(os.path.join(SRC, f)), f)
-        ranked = sorted(files, key=key)
-        chosen[num] = ranked[0]
-        sizes = {f: os.path.getsize(os.path.join(SRC, f)) for f in files}
-        same = len({sha256(os.path.join(SRC, f)) for f in files}) == 1
-        log.append(('duplicate', num,
-                    'kept %s over %s (%s; %s)' % (
-                        ranked[0], ', '.join(ranked[1:]),
-                        'byte-identical' if same else 'DIFFERENT BYTES',
-                        ', '.join('%s=%d B' % (f, sizes[f]) for f in files))))
+        chosen[num] = (SRC2, pick(SRC2, num, files, log))
+        added.append(num)
+    log.append(('second-src', SRC2,
+                '%d numbers scanned, %d already covered by the primary folder (primary '
+                'wins, no re-encode), %d added: %s'
+                % (len(secondary), len(secondary) - len(added), len(added),
+                   ', '.join(str(n) for n in added))))
     return chosen, log
 
 
@@ -132,13 +199,29 @@ def main():
     chosen, log = survey()
 
     print('source   : %s' % SRC)
-    print('files    : %d' % len(os.listdir(SRC)))
+    print('source 2 : %s' % SRC2)
+    print('files    : %d + %d' % (len(os.listdir(SRC)),
+                                  len(os.listdir(SRC2)) if os.path.isdir(SRC2) else 0))
     print('numbers  : %d distinct design numbers' % len(chosen))
     for kind, a, b in log:
         print('  %-10s %s  %s' % (kind, a, b))
+    # Content check, not an extension check: seven .jpg files in the 2026-08-07 folder are
+    # HTML "File Not Found" bodies. Refuse them loudly and record them; re-download slots
+    # straight in with no list to edit.
+    unavailable = []
+    for num in sorted(chosen):
+        d, f = chosen[num]
+        if not is_image(os.path.join(d, f)):
+            unavailable.append(num)
+            print('  UNAVAILABLE %-6d %s in %s is %d B and is NOT an image (the download '
+                  'saved an HTML error body)'
+                  % (num, f, os.path.basename(d), os.path.getsize(os.path.join(d, f))))
+    print('unavailable: %d  %s' % (len(unavailable),
+                                   ', '.join(str(n) for n in unavailable)))
+
     held = sorted(n for n in chosen if n in HELD)
     print('held (PII): %d  %s' % (len(held), ', '.join(str(n) for n in held)))
-    ship = [n for n in sorted(chosen) if n not in HELD]
+    ship = [n for n in sorted(chosen) if n not in HELD and n not in unavailable]
     print('shipping : %d proofs' % len(ship))
     if check:
         return
@@ -146,7 +229,8 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     entries, total = [], 0
     for num in ship:
-        src = os.path.join(SRC, chosen[num])
+        src_dir, src_file = chosen[num]
+        src = os.path.join(src_dir, src_file)
         rel = '%s/%d.webp' % (OUT_DIR, num)
         with Image.open(src) as im:
             im = im.convert('RGB')
@@ -156,7 +240,7 @@ def main():
         b = os.path.getsize(rel)
         total += b
         entries.append(dict(num=num, img=rel, w=w, h=h, bytes=b, sha256=sha256(rel),
-                            source=chosen[num]))
+                            source=src_file, sourceDir=os.path.basename(src_dir)))
 
     # Sweep anything left over from a previous run whose number is now held or gone, so a
     # held proof cannot survive on disk after being pulled from the manifest.
@@ -169,7 +253,9 @@ def main():
     man = dict(
         settings=dict(
             source='Pacific Coast Memorials full-colour companion design proofs, operator '
-                   'folder "PCM COMPANION" (2026-08-05)',
+                   'folders "PCM COMPANION" (2026-08-05) and "PCM COMPANION NEW" '
+                   '(2026-08-07); the first folder wins on every number it carries, the '
+                   'second contributes only numbers the first does not have',
             klass='proof',
             label='Full-colour proof',
             finalPx=FINAL_PX, format='webp', quality=QUALITY, method=METHOD,
@@ -184,7 +270,15 @@ def main():
                      'the public repo pending the operator',
         ),
         count=len(entries), totalBytes=total,
-        held=[dict(num=n, reason=HELD[n], source=chosen[n]) for n in held],
+        held=[dict(num=n, reason=HELD[n], source=chosen[n][1],
+                   sourceDir=os.path.basename(chosen[n][0])) for n in held],
+        unavailable=[dict(num=n, source=chosen[n][1],
+                          sourceDir=os.path.basename(chosen[n][0]),
+                          sourceBytes=os.path.getsize(os.path.join(*chosen[n])),
+                          reason='the operator\'s download saved a "File Not Found" HTML '
+                                 'body under a .jpg name; no image exists anywhere locally, '
+                                 'pending a re-download from the PCM gallery')
+                     for n in unavailable],
         files=entries,
     )
     with open(MANIFEST, 'w', encoding='utf-8', newline='\n') as f:
