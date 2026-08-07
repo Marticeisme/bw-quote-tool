@@ -279,6 +279,41 @@ tr:hover td{background:var(--navy-100);}
 .saved-quote-section-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 0 4px;}
 .btn-reset{flex:1 1 auto;padding:9px 6px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font-size:11.5px;font-weight:600;cursor:pointer;font-family:'Public Sans',sans-serif;text-align:center;}
 .btn-reset:hover{background:var(--gray-light);}
+/* ── s19 saved lists (DESIGN_HANDOFF §4) — rows, not tables ──────────────────────
+   Family name leads at 14.5px/600: it is what you search by out loud. Meta line under
+   it, status pill, money right-aligned and tabular with the saved date beneath. Row
+   actions are ALWAYS visible — hover-revealed actions cost a second every time and are
+   unreachable on a tablet. No status tabs: the list fits on one screen (revisit ~40 rows). */
+.saved-head{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s3);}
+.saved-head-title{font:600 var(--t-lg)/1.3 'Public Sans',sans-serif;color:var(--ink);margin:0;}
+.saved-search{flex:1;max-width:280px;margin-left:auto;height:34px;border:1px solid var(--navy-200);border-radius:var(--r-sm);background:#fff;padding:0 var(--s3);font:400 13px/1 'Public Sans',sans-serif;color:var(--ink);}
+.saved-search:focus{outline:0;border-color:var(--navy-500);box-shadow:var(--ring);}
+.saved-search::placeholder{color:var(--navy-300);}
+.saved-list{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-1);overflow:hidden;}
+.saved-row{display:flex;align-items:center;gap:var(--s4);padding:14px 18px;border-bottom:1px solid var(--navy-150);}
+.saved-row:last-child{border-bottom:none;}
+.saved-row:hover{background:var(--navy-50);}
+.saved-row.is-base{box-shadow:inset 3px 0 0 var(--navy-500);}
+.saved-row-main{flex:1;min-width:0;}
+.saved-name{font:600 14.5px/1.3 'Public Sans',sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.saved-meta{font:400 var(--t-sm)/1.4 'Public Sans',sans-serif;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.saved-money{text-align:right;flex-shrink:0;}
+.saved-total{font:600 15px/1 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;}
+.saved-date{font:400 var(--t-sm)/1.4 'Source Sans 3',sans-serif;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:3px;}
+.saved-delta{font:600 var(--t-sm)/1 'Source Sans 3',sans-serif;font-variant-numeric:tabular-nums;margin-left:6px;}
+.saved-actions{display:flex;align-items:center;gap:var(--s1);flex-shrink:0;}
+.saved-actions .btn{padding:7px 12px;font-size:12.5px;border-radius:var(--r-sm);}
+.saved-foot{display:flex;gap:var(--s2);margin-top:var(--s4);}
+.saved-foot .btn{padding:8px 14px;font-size:12px;}
+/* Three statuses, and the app sets all three. Absent fields read as Draft, so every
+   record saved before this shipped renders correctly with no migration. */
+.pill{font:600 10.5px/1 'Public Sans',sans-serif;letter-spacing:.07em;text-transform:uppercase;border-radius:var(--r-pill);padding:5px 10px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+.pill-draft{color:var(--muted);border-color:var(--navy-150);background:var(--navy-50);}
+.pill-family{color:var(--navy-500);border-color:rgba(70,110,134,.35);background:rgba(70,110,134,.07);}
+.pill-contracted{color:var(--ok);border-color:rgba(46,107,82,.30);background:rgba(46,107,82,.07);}
+.empty{padding:var(--s10) var(--s6);text-align:center;}
+.empty h3{font:600 var(--t-lg)/1.3 'Public Sans',sans-serif;color:var(--ink);margin:0 0 6px;}
+.empty p{font:400 var(--t-base)/1.6 'Public Sans',sans-serif;color:var(--muted);margin:0 auto;max-width:340px;}
 /* Tax status pills + panel-header polish */
 /* s19: Tax-Exempt / Taxable are .q-tag pills in the header now — one neutral treatment,
    not two colours competing with the money. Both classes resolve to the same chip. */
@@ -3320,7 +3355,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved Cemetery Quotes</h2>
   </div>
-  <div id="cemSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the Cemetery Quote Builder and click 💾 Save.</p></div>
+  <div id="cemSavedQuotes"></div>
 </div>
 
 <!-- ═══ RIC SAVED CONTRACTS ═══ -->
@@ -3329,7 +3364,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved RIC Contracts</h2>
   </div>
-  <div id="ricSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.</p></div>
+  <div id="ricSavedQuotes"></div>
 </div>
 
 <!-- ═══ AT-NEED CIRGAS SAVED CONTRACTS ═══ -->
@@ -3338,7 +3373,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved At-Need CIRGAS Contracts</h2>
   </div>
-  <div id="anSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved At-Need contracts yet — go to the At-Need CIRGAS Contract tab and click 💾 Save Contract.</p></div>
+  <div id="anSavedQuotes"></div>
 </div>
 
 <!-- ═══ FH SAVED QUOTES ═══ -->
@@ -3347,7 +3382,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="home" data-lc-sz="18"></span></div>
     <h2>Saved Funeral Home Quotes</h2>
   </div>
-  <div id="fhSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved quotes yet — go to the FH Quote Builder and click 💾 Save.</p></div>
+  <div id="fhSavedQuotes"></div>
 </div>
 
 <!-- ═══ GA SAVED CONTRACTS ═══ -->
@@ -3356,7 +3391,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved GA Contracts</h2>
   </div>
-  <div id="gaSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved GA contracts yet — go to the Pre-Need Contract (GA) tab and click 💾 Save Contract.</p></div>
+  <div id="gaSavedQuotes"></div>
 </div>
 
 <!-- ═══ CLEARPOINT SAVED CONTRACTS ═══ -->
@@ -3365,7 +3400,7 @@ tr:hover td{background:var(--navy-100);}
     <div class="section-icon"><span data-lc="file-text" data-lc-sz="18"></span></div>
     <h2>Saved ClearPoint Contracts</h2>
   </div>
-  <div id="cpSavedQuotes"><p style="color:var(--text-light);font-size:13px;">No saved ClearPoint contracts yet — go to the Pre-Need Contract (ClearPoint) tab and click 💾 Save Contract.</p></div>
+  <div id="cpSavedQuotes"></div>
 </div>
 
 <!-- ═══ COMBINED QUOTE BUILDER ═══ -->
@@ -5127,6 +5162,7 @@ function gaClearDOB() {
 }
 
 function gaClearAll() {
+  bwStampsClear('ga');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('ga');
   _gaPricing = null;
   el('gaInsuredName').value = '';
@@ -8814,6 +8850,7 @@ function _spaceName(selId, otherId, rowId) {
   return sel || '';
 }
 function resetCemQuote() {
+  bwStampsClear('cem');
   try {
   // A fresh quote has no prior vintage to compare against, no contact and no space.
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
@@ -9900,6 +9937,7 @@ async function _fqOpenForPrint(model){
 }
 
 function printCemQuote() {
+  bwStampExport('cem');  // s19: PDF or Print => "With family", first date wins
   logQuoteHistory('Cemetery', val('cemClientName') || '(unnamed)', _cemTotal || 0);
   var isAtNeed = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed');
   var model = _fqBuildModel({
@@ -9948,6 +9986,7 @@ function buildAllTiersPrint(total) {
 
 
 function printFhQuote() {
+  bwStampExport('fh');
   logQuoteHistory('Funeral Home', val('fhClientName') || '(unnamed)', _fhTotal || 0);
   var _fhT = (typeof _fhTotal!=='undefined'?_fhTotal:0);
   var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
@@ -10625,6 +10664,7 @@ function addFhLine() {
 
 
 function resetFHQuote() {
+  bwStampsClear('fh');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('fh');
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
   fhUrns = []; fhUrnRender();
@@ -11920,6 +11960,78 @@ var _gaSavedContracts = [];
 var _cpSavedContracts = [];
 var _anSavedContracts = [];
 var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null, an: null };
+// ── Saved-record status stamps ───────────────────────────────────────────────────────
+// Two optional ISO fields, and nothing else: exportedAt (a family artifact was produced)
+// and contractedAt (a RIC or CIRGAS was generated from this record). Absent ⇒ Draft, so
+// every record saved before this shipped renders correctly with no migration.
+//
+// THE RULE THIS OBEYS: stamping is additive and rides the EXISTING save path. Nothing
+// here writes to Firebase. bwStampsOnSave() folds the stamps onto the snapshot object
+// that saveQuoteRecord() was already about to write; the direct-to-record stamps below
+// only touch the in-memory copy in _quoteStore, so the pill updates the moment the
+// counselor exports and the field persists the next time that record is saved. That is
+// deliberate: auto-saving on export would be a behaviour change, and persistSavedQuotes'
+// whole-node .set() is exactly how real quotes were wiped on 2026-07-11.
+var _bwQuoteStamps    = { cem:{}, fh:{}, ric:{}, ga:{}, cp:{}, an:{} }; // module -> pending stamps
+var _bwLoadedRecordId = {};  // module -> id of the saved record currently in that builder
+var _bwContractSource = {};  // contract module -> id of the cem/fh record its pricing came from
+
+function _bwStampNow() { return new Date().toISOString(); }
+
+// First write wins: "With family" names the FIRST date the quote went out, not the last.
+function _bwSetStamp(obj, field) {
+  if (!obj || obj[field]) return false;
+  obj[field] = _bwStampNow();
+  return true;
+}
+function _bwRecordById(type, id) {
+  if (id == null) return null;
+  var bag = _quoteStore[type] || {};
+  var key = bag['q' + id] ? 'q' + id : Object.keys(bag).filter(function(k){ return bag[k] && bag[k].id === id; })[0];
+  return key ? bag[key] : null;
+}
+// Stamp one named saved record in memory and refresh its list.
+function bwStampRecord(type, id, field) {
+  var rec = _bwRecordById(type, id);
+  if (!rec || !_bwSetStamp(rec, field)) return false;
+  if (typeof renderSavedQuotesList === 'function') { try { renderSavedQuotesList(type); } catch(e) {} }
+  return true;
+}
+// Stamp whatever is in the builder for this module: the pending stamp always, plus the
+// loaded saved record when there is one. An export from an unsaved quote still counts —
+// it just lands when the counselor saves.
+function bwStampModule(type, field) {
+  _bwSetStamp(_bwQuoteStamps[type] || (_bwQuoteStamps[type] = {}), field);
+  bwStampRecord(type, _bwLoadedRecordId[type], field);
+}
+function bwStampExport(type)     { bwStampModule(type, 'exportedAt'); }
+function bwStampContracted(type) {
+  bwStampModule(type, 'contractedAt');
+  // ...and the quote the contract was built from, when the pricing demonstrably came
+  // from a saved one (loadSavedCemQuote -> ricImportFromQuote / anImportFromCemeteryQuote).
+  var src = _bwContractSource[type];
+  if (src && src.type) bwStampRecord(src.type, src.id, 'contractedAt');
+}
+function bwStampsOnSave(type, snap) {
+  var st = _bwQuoteStamps[type] || {};
+  if (st.exportedAt   && !snap.exportedAt)   snap.exportedAt   = st.exportedAt;
+  if (st.contractedAt && !snap.contractedAt) snap.contractedAt = st.contractedAt;
+  _bwLoadedRecordId[type] = snap.id;
+}
+function bwStampsOnLoad(type, snap) {
+  _bwQuoteStamps[type] = { exportedAt: snap.exportedAt || null, contractedAt: snap.contractedAt || null };
+  _bwLoadedRecordId[type] = snap.id;
+}
+function bwStampsClear(type) {
+  _bwQuoteStamps[type] = {};
+  delete _bwLoadedRecordId[type];
+  delete _bwContractSource[type];
+}
+function bwSetContractSource(contractType, sourceType) {
+  var id = _bwLoadedRecordId[sourceType];
+  if (id == null) delete _bwContractSource[contractType];
+  else _bwContractSource[contractType] = { type: sourceType, id: id };
+}
 
 // ═══════════════════════════════════════════════════════════════
 // SAVED QUOTE STORE — one Firebase record per saved quote
@@ -16658,6 +16770,7 @@ function saveCemQuote() {
     // Space and contact link, both optional. bwAttachToSavedRecord writes snap.spaces before the
     // record is saved, and creates the contractRole after — a failed link never costs the quote.
     bwAttachToSavedRecord('cem', snap);
+    bwStampsOnSave('cem', snap);
     saveQuoteRecord('cem', snap, label);
     bwOfferLinks('cem', snap);
     show('cem-saved', el('navCemSaved'));
@@ -16674,6 +16787,7 @@ function saveFhQuote() {
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: _fhTotal || 0, state: captureFhState(), date: d };
     bwAttachToSavedRecord('fh', snap);
+    bwStampsOnSave('fh', snap);
     saveQuoteRecord('fh', snap, label);
     bwOfferLinks('fh', snap);
     show('fh-saved', el('navFhSaved'));
@@ -16704,6 +16818,7 @@ function saveRicContract() {
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
     bwAttachToSavedRecord('ric', snap);
+    bwStampsOnSave('ric', snap);
     saveQuoteRecord('ric', snap, label);
     bwOfferLinks('ric', snap);
     show('ric-saved', el('navRicSaved'));
@@ -16714,6 +16829,7 @@ function loadSavedRicContract(id) {
   var snap = _ricSavedContracts.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { ricClearAll(); } catch(e) {}
+  bwStampsOnLoad('ric', snap);
   var s = snap.state;
   restoreFieldState(s.fields || {});
   _ricPricing = s.ricPricing || null;
@@ -16748,6 +16864,7 @@ function saveGaContract() {
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
     bwAttachToSavedRecord('ga', snap);
+    bwStampsOnSave('ga', snap);
     saveQuoteRecord('ga', snap, label);
     bwOfferLinks('ga', snap);
     show('ga-saved', el('navGaSaved'));
@@ -16758,6 +16875,7 @@ function loadSavedGaContract(id) {
   var snap = _gaSavedContracts.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { gaClearAll(); } catch(e) {}
+  bwStampsOnLoad('ga', snap);
   var s = snap.state;
   restoreFieldState(s.fields || {});
   if (s.disposition) {
@@ -16817,6 +16935,7 @@ function saveCpContract() {
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
     bwAttachToSavedRecord('cp', snap);
+    bwStampsOnSave('cp', snap);
     saveQuoteRecord('cp', snap, label);
     bwOfferLinks('cp', snap);
     show('cp-saved', el('navCpSaved'));
@@ -16827,6 +16946,7 @@ function loadSavedCpContract(id) {
   var snap = _cpSavedContracts.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { cpClearAll(); } catch(e) {}
+  bwStampsOnLoad('cp', snap);
   var s = snap.state;
   restoreFieldState(s.fields || {});
   if (s.disposition) {
@@ -16943,6 +17063,7 @@ function loadSavedCemQuote(id) {
   var snap = _cemSavedQuotes.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { resetCemQuote(); } catch(e) {}
+  bwStampsOnLoad('cem', snap);
   var s = snap.state;
   restoreFieldState(s.fields || {});
   // Re-populate dependent dropdowns (restoreFieldState sets values without firing onchange)
@@ -16972,6 +17093,7 @@ function loadSavedFhQuote(id) {
   var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { resetFHQuote(); } catch(e) {}
+  bwStampsOnLoad('fh', snap);
   var s = snap.state;
   restoreFieldState(s.fields);
   restoreCustomLines('fhCustomLines', s.customLines || []);
@@ -16999,67 +17121,170 @@ function loadSavedFhQuote(id) {
   } else { bwHideVintageBanner(); }
 }
 
+// ── Saved lists (DESIGN_HANDOFF §4) ──────────────────────────────────────────────────
+// Rows, not tables. The family name leads because it is what you search by out loud; the
+// meta line answers "which one is this?" without opening it; the status pill answers
+// "where did this get to?". Open and PDF are always visible — a hover-revealed action
+// costs a second every time and cannot be reached on a tablet.
+var _BW_SAVED_KIND = {
+  cem: { noun:'quote',              plural:'quotes',         open:'Open quote',    where:'Cemetery Quote Builder' },
+  fh:  { noun:'quote',              plural:'quotes',         open:'Open quote',    where:'FH Quote Builder' },
+  ric: { noun:'RIC',                plural:'RICs',         open:'Open RIC',      where:'Pre-Need RIC Contract tab' },
+  ga:  { noun:'GA contract',        plural:'GA contracts',         open:'Open GA',       where:'Pre-Need Contract (GA) tab' },
+  cp:  { noun:'ClearPoint contract',plural:'ClearPoint contracts',
+         open:'Open contract', where:'Pre-Need Contract (ClearPoint) tab' },
+  an:  { noun:'At-Need contract',   plural:'At-Need contracts',         open:'Open contract', where:'At-Need CIRGAS Contract tab' }
+};
+
+// "With family · Aug 3". Anything unparseable degrades to no date rather than "Invalid Date".
+function _bwStampShort(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Three statuses, all derived. No fields ⇒ Draft, which is what every record saved before
+// s19 has, so old quotes render correctly with zero migration.
+function bwSavedStatus(item) {
+  if (item && item.contractedAt) return { cls: 'pill-contracted', text: 'Contracted' };
+  if (item && item.exportedAt) {
+    var d = _bwStampShort(item.exportedAt);
+    return { cls: 'pill-family', text: 'With family' + (d ? ' · ' + d : '') };
+  }
+  return { cls: 'pill-draft', text: 'Draft' };
+}
+
+function _bwSavedLines(type, st) {
+  if (!st) return [];
+  if (st.lines) return st.lines;
+  if (st.ricPricing && st.ricPricing.lines) return st.ricPricing.lines;
+  if (st.anPricing  && st.anPricing.lines)  return st.anPricing.lines;
+  if (st.fhLines) return st.fhLines;
+  return [];
+}
+function _bwSavedNeed(type, f) {
+  if (type === 'an') return 'At-Need';
+  if (type === 'ric' || type === 'ga' || type === 'cp') return 'Pre-Need';
+  var anKey = type === 'fh' ? 'fhTypeAN' : 'cemTypeAN';
+  var pnKey = type === 'fh' ? 'fhTypePN' : 'cemTypePN';
+  if (f[anKey] === true || f[anKey] === 'true') return 'At-Need';
+  if (f[pnKey] === true || f[pnKey] === 'true') return 'Pre-Need';
+  return '';
+}
+// property · N items · Pre-Need. Any part that is not known is simply left out.
+function _bwSavedMeta(type, item) {
+  var st = item.state || {}, f = st.fields || {}, bits = [];
+  var loc = (item.spaces && item.spaces[0] && item.spaces[0].loc)
+    || f.qSpaceLocation || f.qNicheLocation || f.qMausLocation
+    || f.ricLocation || f.anPropertyLocation || '';
+  if (loc) bits.push(String(loc).trim());
+  var n = _bwSavedLines(type, st).length;
+  if (n) bits.push(n + ' item' + (n === 1 ? '' : 's'));
+  var need = _bwSavedNeed(type, f);
+  if (need) bits.push(need);
+  return bits.join(' · ');
+}
+
+// Open a saved row and immediately export it, reusing the module's existing PDF path.
+// Only the two family-facing quote types have one; the four contract modules generate
+// through their own field-mapped generators and are deliberately not driven from here.
+function bwSavedRowPDF(type, id) {
+  if (type === 'cem') { loadSavedCemQuote(id); if (typeof downloadCemQuotePDF === 'function') downloadCemQuotePDF(); return; }
+  if (type === 'fh')  { loadSavedFhQuote(id);  if (typeof downloadFhQuotePDF  === 'function') downloadFhQuotePDF();  return; }
+}
+
 function renderSavedQuotesList(type) {
   try {
-    var containerId, arrRef, searchId, loadFn, emptyMsg;
-    if (type === 'cem') {
-      containerId='cemSavedQuotes'; arrRef=_cemSavedQuotes; searchId='cemQuoteSearch'; loadFn='loadSavedCemQuote';
-      emptyMsg = 'No saved quotes yet — build a quote and click 💾 Save.';
-    } else if (type === 'ric') {
-      containerId='ricSavedQuotes'; arrRef=_ricSavedContracts; searchId='ricQuoteSearch'; loadFn='loadSavedRicContract';
-      emptyMsg = 'No saved RICs yet — go to the Pre-Need RIC Contract tab and click 💾 Save Contract.';
-    } else if (type === 'ga') {
-      containerId='gaSavedQuotes'; arrRef=_gaSavedContracts; searchId='gaQuoteSearch'; loadFn='loadSavedGaContract';
-      emptyMsg = 'No saved GA contracts yet — go to the Pre-Need Contract (GA) tab and click 💾 Save Contract.';
-    } else if (type === 'cp') {
-      containerId='cpSavedQuotes'; arrRef=_cpSavedContracts; searchId='cpQuoteSearch'; loadFn='loadSavedCpContract';
-      emptyMsg = 'No saved ClearPoint contracts yet — go to the Pre-Need Contract (ClearPoint) tab and click 💾 Save Contract.';
-    } else if (type === 'an') {
-      containerId='anSavedQuotes'; arrRef=_anSavedContracts; searchId='anQuoteSearch'; loadFn='loadSavedAnContract';
-      emptyMsg = 'No saved At-Need contracts yet — go to the At-Need CIRGAS Contract tab and click 💾 Save Contract.';
-    } else {
-      containerId='fhSavedQuotes'; arrRef=_fhSavedQuotes; searchId='fhQuoteSearch'; loadFn='loadSavedFhQuote';
-      emptyMsg = 'No saved quotes yet — build a quote and click 💾 Save.';
-    }
+    var kind = _BW_SAVED_KIND[type] || _BW_SAVED_KIND.fh;
+    var containerId, arrRef, searchId, loadFn;
+    if (type === 'cem')      { containerId='cemSavedQuotes'; arrRef=_cemSavedQuotes;    searchId='cemQuoteSearch'; loadFn='loadSavedCemQuote'; }
+    else if (type === 'ric') { containerId='ricSavedQuotes'; arrRef=_ricSavedContracts; searchId='ricQuoteSearch'; loadFn='loadSavedRicContract'; }
+    else if (type === 'ga')  { containerId='gaSavedQuotes';  arrRef=_gaSavedContracts;  searchId='gaQuoteSearch';  loadFn='loadSavedGaContract'; }
+    else if (type === 'cp')  { containerId='cpSavedQuotes';  arrRef=_cpSavedContracts;  searchId='cpQuoteSearch';  loadFn='loadSavedCpContract'; }
+    else if (type === 'an')  { containerId='anSavedQuotes';  arrRef=_anSavedContracts;  searchId='anQuoteSearch';  loadFn='loadSavedAnContract'; }
+    else                     { containerId='fhSavedQuotes';  arrRef=_fhSavedQuotes;     searchId='fhQuoteSearch';  loadFn='loadSavedFhQuote'; }
+
     var listEl = el(containerId);
     if (!listEl) return;
-    var list = arrRef;
+    var list = arrRef || [];
+
     if (!list.length) {
-      listEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0;padding:8px 0;">' + emptyMsg + '</p>';
+      listEl.innerHTML = '<div class="empty"><h3>No saved ' + kind.plural + ' yet</h3>'
+        + '<p>Build one in the ' + kind.where + ' and click Save. Saved ' + kind.plural
+        + ' appear here, newest first.</p></div>';
       return;
     }
+
+    // Re-rendering replaces the search input, which would drop focus mid-word. Remember
+    // where the caret was and put it back.
     var searchEl = el(searchId);
+    var hadFocus = !!(searchEl && document.activeElement === searchEl);
+    var caret    = hadFocus ? searchEl.selectionStart : 0;
     var q = searchEl ? searchEl.value.trim().toLowerCase() : '';
-    var filtered = q ? list.filter(function(s){ return (s.label||'').toLowerCase().indexOf(q) > -1; }) : list;
+
+    // Dumb client-side filter: the name, plus the property text under it.
+    var filtered = !q ? list : list.filter(function(s) {
+      return ((s.label || '') + ' ' + _bwSavedMeta(type, s)).toLowerCase().indexOf(q) > -1;
+    });
+
     var compareId = _savedCompare[type];
     var compareQ  = compareId ? list.find(function(x){ return x.id === compareId; }) : null;
-    var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
-      + '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);">'+list.length+(type==='ric'?' saved RIC':type==='ga'?' saved GA contract':type==='cp'?' saved ClearPoint contract':type==='an'?' saved At-Need contract':' saved quote')+(list.length!==1?'s':'')+'</span>'
-      + '<input id="'+searchId+'" type="text" placeholder="Search by name…" value="'+(q||'')+'" oninput="renderSavedQuotesList(\''+type+'\')"'
-      + ' style="flex:1;max-width:260px;padding:5px 10px;font-size:12px;border:1px solid #dde3ec;border-radius:6px;background:#f5f7fb;color:var(--navy);font-family:inherit;"></div>';
-    if (!filtered.length) { html += '<p style="font-size:12px;color:var(--text-light);">No matches.</p>'; listEl.innerHTML = html; return; }
-    filtered.forEach(function(item) {
-      var diff = '';
-      if (compareQ && item.id !== compareId) {
-        var delta = item.total - compareQ.total;
-        diff = ' <span style="font-size:11px;font-weight:700;color:'+(delta>0?'#dc2626':'#16a34a')+'">'+(delta>0?'+':'')+fmt(delta)+'</span>';
-      }
-      var isBase = item.id === compareId;
-      html += '<div style="background:#fff;border:1px solid '+(isBase?'var(--gold)':'#e0e4ed')+';border-left:3px solid '+(isBase?'var(--gold)':'var(--navy)')+';border-radius:8px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);">'
-        + '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">'
-        + '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:700;color:var(--navy);">'+(item.label||'Untitled')+'</span>'
-        + '<span style="color:#6b7280;font-size:13px;font-weight:600;white-space:nowrap;">'+fmt(item.total)+'</span>'+diff+'</div>'
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
-        + (item.state ? '<button onclick="'+loadFn+'('+item.id+')" style="padding:4px 14px;font-size:12px;font-weight:700;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;">'+(type==='ric'?'Load RIC':type==='ga'?'Load GA':type==='cp'?'Load ClearPoint':type==='an'?'Load Contract':'Load Quote')+'</button>' : '')
-        + '<button onclick="printSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#f0f2f8;border:1px solid #dde3ec;border-radius:6px;cursor:pointer;color:var(--navy);font-family:inherit;">Print</button>'
-        + '<button onclick="savedCompareSelect(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:'+(isBase?'var(--gold)':'#f0f2f8')+';border:1px solid '+(isBase?'var(--gold)':'#dde3ec')+';border-radius:6px;cursor:pointer;color:'+(isBase?'#fff':'var(--navy)')+';font-family:inherit;">'+(isBase?'★ Base':'⚖ Compare')+'</button>'
-        + '<button onclick="deleteSavedQuote(\''+type+'\','+item.id+')" style="padding:4px 12px;font-size:12px;background:#fff;border:1px solid #fecaca;border-radius:6px;cursor:pointer;color:#dc2626;font-family:inherit;margin-left:auto;">✕ Delete</button>'
-        + '</div></div>';
-    });
-    html += '<div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #e8eaf0;">'
-      + '<button onclick="exportSavedQuotesBackup()" style="padding:6px 14px;background:#f5f7fb;border:1px solid #dde3ec;border-radius:6px;color:#6b7280;font-size:11px;cursor:pointer;font-family:inherit;">⬇ Export Backup</button>'
-      + '<button onclick="importSavedQuotesBackup()" style="padding:6px 14px;background:#f5f7fb;border:1px solid #dde3ec;border-radius:6px;color:#6b7280;font-size:11px;cursor:pointer;font-family:inherit;">⬆ Import Backup</button></div>';
+
+    // The section's own <h2> already names the list, so the header title carries the plain
+    // count instead of repeating it — one heading, not two saying the same thing.
+    var html = '<div class="saved-head">'
+      + '<h3 class="saved-head-title">' + list.length + ' ' + (list.length === 1 ? kind.noun : kind.plural) + '</h3>'
+      + (q ? '<span class="saved-meta">' + filtered.length + ' matching</span>' : '')
+      + '<input id="' + searchId + '" class="saved-search" type="text" placeholder="Search by name…"'
+      + ' value="' + _ceEsc(q) + '" oninput="renderSavedQuotesList(\'' + type + '\')"></div>';
+
+    if (!filtered.length) {
+      html += '<div class="saved-list"><div class="empty"><h3>No matches</h3>'
+        + '<p>Nothing here matches “' + _ceEsc(q) + '”. Clear the search to see all '
+        + list.length + '.</p></div></div>';
+    } else {
+      html += '<div class="saved-list">';
+      filtered.forEach(function(item) {
+        var isBase = item.id === compareId;
+        var st = bwSavedStatus(item);
+        var meta = _bwSavedMeta(type, item);
+        var delta = '';
+        if (compareQ && !isBase) {
+          var d = (item.total || 0) - (compareQ.total || 0);
+          delta = '<span class="saved-delta" style="color:' + (d > 0 ? 'var(--stop)' : 'var(--ok)') + '">'
+                + (d > 0 ? '+' : '') + fmt(d) + '</span>';
+        }
+        html += '<div class="saved-row' + (isBase ? ' is-base' : '') + '">'
+          + '<div class="saved-row-main">'
+          +   '<div class="saved-name">' + _ceEsc(item.label || 'Untitled') + '</div>'
+          +   '<div class="saved-meta">' + (meta ? _ceEsc(meta) : '—') + '</div>'
+          + '</div>'
+          + '<span class="pill ' + st.cls + '">' + st.text + '</span>'
+          + '<div class="saved-money"><div class="saved-total">' + fmt(item.total || 0) + delta + '</div>'
+          +   '<div class="saved-date">' + _ceEsc(item.date || '') + '</div></div>'
+          + '<div class="saved-actions">'
+          + (item.state ? '<button class="btn btn-secondary" onclick="' + loadFn + '(' + item.id + ')">' + kind.open + '</button>' : '')
+          + ((type === 'cem' || type === 'fh')
+              ? '<button class="btn btn-quiet" onclick="bwSavedRowPDF(\'' + type + '\',' + item.id + ')">PDF</button>' : '')
+          + '<button class="btn btn-quiet" onclick="printSavedQuote(\'' + type + '\',' + item.id + ')">Print</button>'
+          + '<button class="btn btn-quiet" onclick="savedCompareSelect(\'' + type + '\',' + item.id + ')">'
+          +   (isBase ? 'Base' : 'Compare') + '</button>'
+          + '<button class="btn btn-danger-quiet" onclick="deleteSavedQuote(\'' + type + '\',' + item.id + ')">Delete</button>'
+          + '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="saved-foot">'
+      + '<button class="btn btn-secondary" onclick="exportSavedQuotesBackup()">Export backup</button>'
+      + '<button class="btn btn-secondary" onclick="importSavedQuotesBackup()">Import backup</button></div>';
+
     listEl.innerHTML = html;
+    if (hadFocus) {
+      var again = el(searchId);
+      if (again) { again.focus(); try { again.setSelectionRange(caret, caret); } catch(e) {} }
+    }
   } catch(e) { console.error('renderSavedQuotesList', e); }
 }
 function savedCompareSelect(type, id) {
@@ -17071,6 +17296,7 @@ function printSavedQuote(type, id) {
   var snap = list.find(function(q){ return q.id === id; });
   if (!snap) return;
   var expires = new Date(); expires.setDate(expires.getDate()+30);
+  bwStampRecord(type, id, 'exportedAt');  // s19: printing a saved row is an export
   var expStr  = expires.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   var win = window.open('','_blank');
   win.document.write('<!DOCTYPE html><html><head><title>Quote — '+snap.label+'</title>'
@@ -17133,6 +17359,10 @@ function show(id, navEl) {
   if (_lt) { try { bwRenderLink(_lt); } catch(e) {} }
   // Warm this module's contract templates while the counselor is still filling the form.
   if (_lt) { try { bwPrefetchTemplates(_lt); } catch(e) {} }
+  // A saved list with zero records gets no child_added, so it must render on arrival or
+  // its empty state never appears. Cheap: six arrays already in memory.
+  var _sv = { 'cem-saved':'cem', 'fh-saved':'fh', 'ric-saved':'ric', 'ga-saved':'ga', 'cp-saved':'cp', 'an-saved':'an' }[id];
+  if (_sv) { try { renderSavedQuotesList(_sv); } catch(e) {} }
   var summ = document.querySelector('.summary-fixed[data-for="section-'+id+'"]');
   if (summ) summ.classList.add('visible');
   window.scrollTo(0,0);
@@ -18500,6 +18730,7 @@ async function generateRICContractCore(clientData) {
 }
 
 async function generateRICContract() {
+  bwStampContracted('cem');
   if (!_cemLines || _cemLines.length === 0) {
     alert('Build your cemetery quote first, then click Contract.');
     return;
@@ -18519,6 +18750,9 @@ function ricImportFromQuote() {
     alert('Build your Cemetery Quote first, then import here.');
     return;
   }
+  // s19: remember WHICH saved cemetery quote this pricing came from, so generating the
+  // RIC can stamp that quote Contracted. Null when the builder holds an unsaved quote.
+  bwSetContractSource('ric', 'cem');
   _ricPricing = {
     lines:      JSON.parse(JSON.stringify(_cemLines)),
     total:      _cemTotal,
@@ -18701,6 +18935,7 @@ function fmtRIC(n) {
 }
 
 function ricClearAll() {
+  bwStampsClear('ric');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('ric');
   ['ricName','ricStreet','ricCity','ricZip','ricPhone','ricDayPhone','ricControlNo',
    'ricLocation','ricBenefit','ricDOB1','ricDOB2','ricCoPurchaser',
@@ -18739,6 +18974,7 @@ function dateInputToMDY(v) {
 }
 
 async function generateRICFromTab() {
+  bwStampContracted('ric');  // s19: this RIC, and the saved cemetery quote behind it
   // Validate
   if (!el('ricName').value.trim()) {
     alert('Please enter the purchaser name.');
@@ -18926,6 +19162,7 @@ function anImportFromCemeteryQuote() {
     alert('Build your At-Need Cemetery Quote first, then import here.');
     return;
   }
+  bwSetContractSource('an', 'cem');  // s19: source quote for the Contracted stamp
   _anPricing = { lines: JSON.parse(JSON.stringify(_cemLines)), total: _cemTotal || 0 };
   // On an At-Need quote the Client / Family Name IS the decedent — the purchaser is normally a
   // surviving family member and gets entered separately, so filling Purchaser from it was wrong.
@@ -19008,6 +19245,7 @@ function saveAnContract() {
     label = label.trim() || defaultLabel;
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
     bwAttachToSavedRecord('an', snap);
+    bwStampsOnSave('an', snap);
     saveQuoteRecord('an', snap, label);
     bwOfferLinks('an', snap);
     show('an-saved', el('navAnSaved'));
@@ -19018,6 +19256,7 @@ function loadSavedAnContract(id) {
   var snap = _anSavedContracts.find(function(q){ return q.id === id; });
   if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
   try { anClearAll(); } catch(e) {}
+  bwStampsOnLoad('an', snap);
   var s = snap.state;
   restoreFieldState(s.fields || {});
   _anPricing = s.anPricing || null;
@@ -19034,6 +19273,7 @@ function loadSavedAnContract(id) {
   bwRestoreLinkFor('an', snap);
 }
 function anClearAll() {
+  bwStampsClear('an');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('an');
   _anPricing = null;
   if (el('anContractType')) el('anContractType').value = 'original';
@@ -19274,6 +19514,7 @@ function cpGetCustomAssignments() {
 }
 
 function cpClearAll() {
+  bwStampsClear('cp');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('cp');
   _cpPricing = null;
   ['cpFirstName','cpMiddleName','cpLastName','cpPhone','cpAddress','cpCity','cpState','cpZip',
@@ -20583,6 +20824,7 @@ function _getLogoPngBytes() {
 }
 
 async function downloadCemQuotePDF() {
+  bwStampExport('cem');
   logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
@@ -20637,6 +20879,7 @@ function categorizeCemLines(lines) {
 }
 
 async function downloadFhQuotePDF() {
+  bwStampExport('fh');
   logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
   var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
   if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
@@ -22393,6 +22636,7 @@ async function _fillCirgasXlsx(data) {
   return zip.generateAsync({ type: 'uint8array' });
 }
 async function generateCirgasPacket() {
+  bwStampContracted('an');
   // Only warn about "no pricing" when there's truly nothing to price — no imported quote AND no
   // manual amounts typed AND no On Contract items checked (any of those is a valid standalone fill).
   var _anyManual = ['anAmtSpace','anAmtEcf','anAmtContainer','anAmtContainerSet','anAmtOpening','anAmtRecording','anAmtMemorial','anAmtVase','anAmtUrn','anAmtOtherMerch','anAmtFriSun']
