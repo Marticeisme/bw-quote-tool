@@ -109,16 +109,17 @@ URL_NUM_RE = re.compile(r'PCM-(\d+)\.jpg', re.I)   # 372 URLs are Headstone-Desi
                                                    # one (PCM1348) is a bare PCM-<n>.jpg
 
 PII_POSTURE = (
-    'NOT YET CLEARED FOR THE PUBLIC REPO. Census by eye over all 372, 2026-08-07: 112 '
-    'proofs (design numbers below 1264) use PCM\'s recurring stock sample names -- '
-    'Noah Z. Frost, Addie M. Smith, Lily Bell Sophia, Silvernail, Schmoyer, Gunter, '
-    'Collin S. Adams -- with the same handful of recycled dates, and are not a PII '
-    'question. The remaining 260 (1264 and above) each carry a DIFFERENT, non-recurring '
-    'full name with exact birth and death dates, many with a portrait photograph, some '
-    'with a named place. That is the same profile that got twelve companion proofs held '
-    'in s17, at 20x the volume, and this repo is public. Shipping it is the operator\'s '
-    'call, made to him directly -- not a track\'s, and not a relayed one. Until then the '
-    'encode is reproducible from this script and the outputs stay out of git.')
+    'CLEARED FOR THE PUBLIC REPO by the operator, in-chat, 2026-08-07. Census by eye over '
+    'all 372, 2026-08-07: 112 proofs (design numbers below 1264) use PCM\'s recurring '
+    'stock sample names -- Noah Z. Frost, Addie M. Smith, Lily Bell Sophia, Silvernail, '
+    'Schmoyer, Gunter, Collin S. Adams -- with the same handful of recycled dates, and are '
+    'not a PII question. The remaining 260 (1264 and above) each carry a DIFFERENT, '
+    'non-recurring full name with exact birth and death dates, many with a portrait '
+    'photograph, some with a named place -- the profile that got twelve companion proofs '
+    'held in s17, at 20x the volume. The operator was asked twice, the second time with '
+    'exactly that census quoted back and the public-repo consequence stated plainly, and '
+    'answered "Ship everything" (every image is already publicly served from PCM\'s own '
+    'gallery). The push to the live site remains a separate operator gate on top.')
 
 
 def sha256(path):

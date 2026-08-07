@@ -42,21 +42,23 @@ const COMPANION_PRETRACK_AGG =
 const COMPANION_UNAVAILABLE = [2260, 2261, 2263, 2267, 2343, 2352, 2355];
 const SINGLE_UNAVAILABLE = ['1348'];
 
-// Held out of the public repo pending the operator's decision (see the HELD dict in
-// scripts/pcm_companion_import.py). If these are released the numbers below move; that
-// is a deliberate edit, not a drift.
-const COMPANION_HELD =
+// RELEASED by the operator, in-chat, 2026-08-07 (asked twice, the second time with the
+// full census quoted at scale: "Ship everything"). Formerly the s17 HELD set; the gate
+// now asserts the release posture with the same rigor the hold had: held list EMPTY,
+// released list exactly these 12 with their original hold reasons preserved, and every
+// one of them shipped on disk. See RELEASED in scripts/pcm_companion_import.py.
+const COMPANION_RELEASED =
   [2500, 2501, 2503, 2504, 2506, 2508, 2509, 2510, 2514, 2515, 2516, 2529];
 
-const COMPANION_EXPECTED = 235;   // 232 pre-track + 245, 258, 2538
+const COMPANION_EXPECTED = 247;   // 232 pre-track + 245, 258, 2538 + the 12 released
 const SINGLE_EXPECTED = 372;      // 373 catalogued designs - 1 failed download
 
 function checkClass(name, dir, manifestPath, expected, keyOf, optional = false) {
   const absDir = path.join(ROOT, dir);
   const absMan = path.join(ROOT, manifestPath);
-  // The singles class is generated but NOT committed while its PII census is with the
-  // operator (see PII_POSTURE in scripts/pcm_single_import.py). Absent is a legitimate
-  // state; PARTIALLY present is not, and still fails.
+  // (optional survived from the pre-release posture, when the singles class could be
+  // legitimately absent. Since the operator's 2026-08-07 "Ship everything" both classes
+  // are mandatory; no caller passes optional any more.)
   if (optional && !existsSync(absDir) && !existsSync(absMan)) {
     console.log(`  SKIP ${name}: not present in this tree (run scripts/pcm_single_import.py)`);
     return null;
@@ -109,8 +111,9 @@ const comp = checkClass('companions', 'pcm-companion-images',
 
 if (comp) {
   // The pre-track 232 must be byte-for-byte what they were. Recompute the aggregate over
-  // exactly the entries whose output predates this track: everything except the three new.
-  const NEW_THIS_TRACK = new Set([245, 258, 2538]);
+  // exactly the entries whose output predates this track: everything except the three
+  // new numbers and the 12 released (whose outputs are new encodes by definition).
+  const NEW_THIS_TRACK = new Set([245, 258, 2538, ...COMPANION_RELEASED]);
   const pre = comp.man.files.filter((e) => !NEW_THIS_TRACK.has(e.num))
                            .map((e) => [path.basename(e.img), e.sha256])
                            .sort((a, b) => (a[0] < b[0] ? -1 : 1));
@@ -122,15 +125,21 @@ if (comp) {
      'companions: the 232 pre-track proofs are byte-identical',
      `aggregate ${agg} != ${COMPANION_PRETRACK_AGG}`);
 
-  ok(NEW_THIS_TRACK.size === 3 && [...NEW_THIS_TRACK].every((n) => comp.keys.has(String(n))),
-     'companions: 245, 258 and 2538 shipped');
+  ok(NEW_THIS_TRACK.size === 15 && [...NEW_THIS_TRACK].every((n) => comp.keys.has(String(n))),
+     'companions: 245, 258, 2538 and the 12 released all shipped');
 
-  const held = (comp.man.held || []).map((h) => h.num).sort((a, b) => a - b);
-  ok(JSON.stringify(held) === JSON.stringify(COMPANION_HELD),
-     'companions: the held list is exactly the 12 recorded numbers', held.join(', '));
-  const heldShipped = COMPANION_HELD.filter((n) => comp.keys.has(String(n)));
-  ok(heldShipped.length === 0,
-     'companions: no held number has an image on disk', heldShipped.join(', '));
+  const held = (comp.man.held || []).map((h) => h.num);
+  ok(held.length === 0,
+     'companions: the held list is empty after the 2026-08-07 release', held.join(', '));
+  const released = (comp.man.released || []).map((r) => r.num).sort((a, b) => a - b);
+  ok(JSON.stringify(released) === JSON.stringify(COMPANION_RELEASED),
+     'companions: the released list is exactly the 12 formerly-held numbers',
+     released.join(', '));
+  ok((comp.man.released || []).every((r) => r.originalHoldReason),
+     'companions: every released entry preserves its original hold reason');
+  const relMissing = COMPANION_RELEASED.filter((n) => !comp.keys.has(String(n)));
+  ok(relMissing.length === 0,
+     'companions: every released number shipped on disk', relMissing.join(', '));
 
   const un = (comp.man.unavailable || []).map((u) => u.num).sort((a, b) => a - b);
   ok(JSON.stringify(un) === JSON.stringify(COMPANION_UNAVAILABLE),
@@ -145,7 +154,7 @@ if (comp) {
 // ------------------------------------------------------------------- singles
 const sing = checkClass('singles', 'pcm-single-images',
                         'data/pcm-single-proofs.json', SINGLE_EXPECTED,
-                        (e) => e.id, true);
+                        (e) => e.id);
 
 if (sing) {
   // Keys are STRINGS: "1148" and "1148-2" are different designs, and parsing them as

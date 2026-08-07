@@ -97,8 +97,14 @@ NAME_RE = re.compile(r'^Headstone-Design-PCM-(\d+)')
 NAME_RE_2 = re.compile(r'^PCM(\d+)\.jpg$', re.I)
 COPY_SUFFIX_RE = re.compile(r' \(\d+\)(?=\.[a-z]+$)', re.I)
 
-# Real-identity proofs. See the PII note above. Number -> what was seen on the proof.
-HELD = {
+# RELEASED 2026-08-07. The twelve proofs below were held out of the public repo by s17
+# for the real identities they carry. The operator was asked twice in-session -- the
+# second time with the full census quoted back (portrait photographs, exact dates,
+# hometowns, plus ~260 same-profile singles, public-repo consequence stated plainly;
+# every one of these images is already publicly served from PCM's own gallery) -- and
+# answered "Ship everything." They ship like any other proof; the original hold reasons
+# stay here as provenance. Number -> what was seen on the proof.
+RELEASED = {
     2500: 'Vietnamese full names with portrait photographs',
     2501: 'Vietnamese full names with exact birth/death dates',
     2503: 'Vietnamese full names with exact birth/death dates',
@@ -112,6 +118,7 @@ HELD = {
     2516: 'Vietnamese full names, birthplaces in Viet Nam, home towns Seattle and Tacoma, Washington',
     2529: 'English full names with exact birth/death dates and two portrait photographs',
 }
+HELD = {}
 
 
 def sha256(path):
@@ -268,10 +275,15 @@ def main():
             heldRule='proofs carrying real identities (full names with a specific home town '
                      'or in Vietnamese, exact dates, portrait photographs) are held out of '
                      'the public repo pending the operator',
+            releaseRuling='operator, in-chat, 2026-08-07, asked twice (second time with the '
+                          'full census quoted at scale): "Ship everything". The twelve s17 '
+                          'holds ship; original hold reasons preserved under "released".',
         ),
         count=len(entries), totalBytes=total,
         held=[dict(num=n, reason=HELD[n], source=chosen[n][1],
                    sourceDir=os.path.basename(chosen[n][0])) for n in held],
+        released=[dict(num=n, originalHoldReason=RELEASED[n])
+                  for n in sorted(RELEASED) if n in chosen],
         unavailable=[dict(num=n, source=chosen[n][1],
                           sourceDir=os.path.basename(chosen[n][0]),
                           sourceBytes=os.path.getsize(os.path.join(*chosen[n])),
