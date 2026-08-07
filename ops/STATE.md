@@ -17,7 +17,11 @@ retired location, operator may want a variant). PDF byte-proof triple-run identi
 w/ negative control; family-quote parity 40/0 unadjusted; Compare tool Option B left
 manual per brief. NOTE: main ALSO carries the OTHER session's in-flight s20 dashboard
 merges (cb1e192a, 9accbc7d) — A PUSH OF MAIN DEPLOYS THEIR PARTIAL SPRINT-20 TOO;
-coordinate before pushing. NOT PUSHED. F worktree pending junction-safe removal.
+coordinate before pushing. NOT PUSHED. F worktree removed (junction-safe).
+**PUSH HANDOFF 2026-08-06:** per the operator, the s20 dashboard session ("Dashboard
+pending service option") now owns the push — it pushes EVERYTHING including these s19
+commits when s20 is done; messaged with the contract numbers (2685/41, 8/0) and
+protocol. This session stands down from the tree except ops bookkeeping.
 **Current sprint: sprint-20 — OPENED 2026-08-06** (director: Fable session; tracks: Opus
 per operator word). Scope: **dashboard.html full redesign** per the operator's
 claude.ai-design brief (pinned `sprints/sprint-20/REDESIGN_BRIEF.md` + case-detail
