@@ -57,6 +57,26 @@ TYPE_COLORS neutralized-not-removed (B's job). NOTE: quote session committed 39b
 on main mid-wave (s19 operator-round brief) — merge integrated it cleanly. WAVE 2
 SPAWNED: B table-views (Opus, ../bw-quote-tool-s20b from cb1e192a).**
 
+**s20 WAVE 3 MERGED 2026-08-06 (`38fc84c6`), main GREEN: 2685/41, dashboard 2/0 +
+index 8/0, C's gate 98/0 + B's 120/0 re-run by director on merged main.** C merged
+(track `74b31ba7` — full-page #detailScreen replaces the accordion: breadcrumb,
+identity row with pill-as-quickStatus control (.pill-ctl overlay select), blocker-only
+alert band, four-up strip, contact strip, 1.25fr/1fr grouped checklist (collapsed by
+default, exactly ONE auto-open: first incomplete blocking group) + touchpoints
+timeline; NO new write sites — existing handlers repaint via renderCaseCard→
+renderCaseDetail; accordion provably dead code DELETED: buildCaseCardHTML 313 lines,
+toggleCard, expandedCards + bw:expanded mirror, 32 CSS rule groups, each grepped
+first). Accepted deviations: Interment label for Martice's first stat, delete-case
+kept as quiet text button (only path to deleteCase), add/delete-item rows kept,
+overdue-at-any-amount = urgent for Martice, printCase restyle deferred to D. AUDIT
+NOTE: B's K4 assert ("openCase lands on edit modal — C retargets it") went stale
+exactly as written when C retargeted the seam; director updated s20-b-verify.mjs K4
+to assert the new routing (superseded-assert fix, not a code fix), B back to 120/0.
+WAVE 4 SPAWNED: D polish-a11y (Opus, ../bw-quote-tool-s20d from `38fc84c6`) — carries
+the no-status-no-pill render-default nit, printCase restyle (script-free
+document.write window), emoji sweep, styles-out-of-JS for the four non-case tabs,
+modal focus-trap/Escape/sticky, :focus-visible, motion, print scoping, §9 walk.
+
 **s20 PUSH PRE-AUTHORIZED (operator, direct in-chat, 2026-08-06): "push everything
 live once its all done and green."** Fires after all four waves are merged and the
 final contract is green (dashboard + index syntax checks, full suite ≥2685/41 at 0
