@@ -1,5 +1,9 @@
 # TRACK C — saved-lists (`s19/saved-lists`, index.html only; branches from post-B main)
 
+**Pinned contract (re-measured on main 2026-08-06 after the B+E merges, commit
+09e37d0e): `2519 passed, 0 failed across 39 suites`** — supersedes any 2501/38
+reference below. Worktree −2 in test-contact-csv (wmp-map-absent NOTE) is documented.
+
 Read first: `ops/SPRINT_GUIDELINES.md`, `ops/DESIGN.md` (ESPECIALLY the Firebase rules
 and saved-quote node structure), `ops/sprints/sprint-19/SPRINT.md`,
 `ops/sprints/sprint-19/DESIGN_HANDOFF.md` §4 (saved lists — VERBATIM).

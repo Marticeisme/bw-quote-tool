@@ -27,7 +27,28 @@ CSS's Public Sans per the no-new-families constraint, --serif-ink token added,
 long-meta wrap on 4 cards — eyeball at close). Track A open item RULED to Track B
 addendum: topbar .tb-action demotes to secondary on builder views via body class in
 show(). WAVE 2 SPAWNED: B panel-headers ∥ E guide-full-print (Opus, worktrees, base
-must include c5cdef78). Research
+must include c5cdef78).
+**WAVE 2 MERGED 2026-08-06, main GREEN at the NEW PIN `2519 passed, 0 failed across
+39 suites` + 8/0: B `e4d9b7ef` (44px headers on all 39 panels, chip fills gone,
+`.q-panel-sum` value summaries riding qsBegin/qsAt/qsEnd index ranges over the SAME
+lines array renderSummary uses — nothing written onto line objects; +18-assert
+test-panel-summaries suite; topbar orange demoted on builder views via
+body:has(.summary-fixed.visible); FOUND+FIXED a pre-existing DOM defect: Bronze
+Memorial's stray </div> had 'Bronze Add-Ons' rendering outside its card and panels
+below sitting two levels shallow — .q-layout wrapper repaired at both ends;
+_plHeaderTitle strips sum/tag so PRICE_INDEX stays clean, golden suite 6/6; audit:
+261 inline styles, 29 relevant, all compatible, none migrated) and E `09e37d0e`
+(DIRECTOR'S DIAGNOSIS WRONG, track proved it: viewer.html only ever served the GPL
+card — the reduction was plain Ctrl+P itself, §7's 7.7pt two-column squeeze; now
+three modes: none=FULL at screen scale, ?print=family unchanged, ?print=compact =
+the old squeeze, named explicitly by the 3 build jobs that want it;
+granite/glass-front had MISSED their s16 regeneration — fixed; 2 gate asserts were
+measuring the wrong mode — fixed strict; downloads content-identical 33/33 proven
+page-by-page + pixel on the 3 compact jobs; full-print page counts GROW, e.g.
+cemetery-property 4→13 — inherent to the ask, operator eyeball at close; NO durable
+full-print gate yet — director adds verify_full_print at close). E's viewer
+printPDF() load-listener flakiness on the GPL card logged as future chip. WAVE 3
+SPAWNED: C saved-lists (Opus, worktree, base must include 09e37d0e, pin 2519/39). Research
 artifacts this sprint builds on: `docs/UI_RESEARCH_2026-08-06.md`,
 `docs/DEBRIEF_design_2026-08-06.md` (+ the maps consult brief
 `docs/DEBRIEF_design_maps_2026-08-06.md`, unrun, NOT s19 scope), all three untracked
