@@ -1,5 +1,34 @@
 # STATE — Living Ledger
 
+**s19 CLOSED ON MAIN 2026-08-06 — ALL FIVE TRACKS MERGED (A `5b98aa33` → D `c5cdef78`
+→ B `e4d9b7ef` → E `09e37d0e` → C `b96a122a`), final main GREEN: 8 blocks 0 errors;
+`2598 passed, 0 failed across 40 suites`** (NEW contract number; reconciles 2501/38
++ 18 panel-summaries + 79 saved-status; per-wave numbers recorded in the wave entries
+below). The whole Claude-Design handoff is in: brand ramp from official #466e86/#e84610
+(chrome navy #1c2c36 = brand ×0.40 — the July "deeper navy" ask answered), summary
+panels with the app's only 30px total + PDF-primary ranks, 44px panel headers with
+persistent value summaries, four-rank buttons, saved lists as rows with derived
+Draft/With-family/Contracted pills (additive `exportedAt`/`contractedAt` riding the
+existing per-record save; zero new DB write sites, suite-asserted), guides.html on
+shared tokens with hover-only orange, and full-print: Ctrl+P on a guide = the guide at
+screen scale (three modes: none=FULL / ?print=family / ?print=compact), downloads
+proven content-identical 33/33. Family-quote PDF byte-identical (negative-controlled)
+through the index.html tracks; 14/14 generator signatures byte-identical through C.
+BONUS pre-existing bugs fixed: Bronze Memorial stray </div> (panels below sat two DOM
+levels shallow), unreachable saved-list empty state, granite/glass missed s16
+regeneration, two guide-gate asserts measuring the wrong print mode. AWAITING THE
+OPERATOR'S CLOSE GATE: eyeball renders in scratch/s19-{a,b,c,d,e}-renders (99 files,
+copied from worktrees); rule on C#1 (persist exportedAt immediately on export? one-line
+per-record save if yes — currently stamps persist on next save), C#3 (GA/CP Contracted
+parity, one line each), E's grown full-print page counts (cemetery-property 4→13),
+D's long-meta wrap on 4 cards, the navy shade itself. NOT PUSHED — no pre-auth.
+DEFERRED, on the record: verify_full_print lock-in gate (E's rec — add when the
+operator round settles, re-pin count); viewer.html printPDF() load-listener flakiness
+on the GPL card (chip); the maps design consult (docs/DEBRIEF_design_maps_2026-08-06.md,
+unrun). CLEANUP PENDING push word: five agent-* worktrees + s19/* branches; Track C's
+worktree node_modules is a JUNCTION — delete non-recursively
+(`[System.IO.Directory]::Delete($p,$false)`) before removing that worktree.
+
 **Current sprint: sprint-19 — OPENED 2026-08-06** (director: Fable session, the same
 session that ran the day's research phase; tracks: Opus per operator word + policy).
 Scope: implement the Claude-Design UI-refresh handoff (verbatim-fidelity token
