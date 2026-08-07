@@ -181,7 +181,11 @@ tr:hover td{background:var(--navy-100);}
 .bw-step-arrow .lc{width:16px;height:16px;}
 .q-panel-header{cursor:pointer;user-select:none;}
 .q-panel-header > .lc{width:16px;height:16px;stroke:var(--navy-400);flex-shrink:0;}
-.q-chev{color:var(--navy-400);flex-shrink:0;display:inline-flex;margin-left:2px;}
+/* The value summary is what pushes the pair to the right edge — but only the builder
+   panels have one. On a contract panel the chevron takes the auto margin itself, so the
+   header reads the same everywhere. */
+.q-chev{color:var(--navy-400);flex-shrink:0;display:inline-flex;margin-left:auto;}
+.q-panel-sum + .q-chev{margin-left:2px;}
 .q-panel.collapsed .q-chev{transform:rotate(-90deg);}
 .q-panel.collapsed .q-panel-body{display:none;}
 .q-panel.collapsed > .q-panel-header{background:#fff;border-bottom:none;border-radius:var(--r-md);}
