@@ -118,6 +118,9 @@ html[data-theme="dark"] .table-card{border-color:var(--border)}
 .tab-pill:hover{background:var(--surface-sunk);color:var(--text)}
 .tab-pill.active{background:var(--accent-soft);color:var(--accent)}
 .sort-note{margin-left:auto;font-size:13px;font-weight:600;color:var(--text-2)}
+.sort-select{margin-left:auto;font-size:13px;font-weight:600;color:var(--text-2);background:var(--bg-1);
+  border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;cursor:pointer}
+.sort-select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .trow{display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--row-divider)}
 .trow.all{grid-template-columns:2.25fr .9fr 1.45fr 1.75fr 1.3fr 158px}
 .thead{padding:11px 20px;background:var(--table-head);border-bottom:1px solid var(--divider)}
@@ -2693,11 +2696,18 @@ function renderCases(){
       (search?'No cases match your search.':'No '+(caseFilter==='All'?'':caseFilter.toLowerCase()+' ')+'cases for '+who+'.')+'</div>';
   } else bodyHTML=rows.map(buildCaseRowHTML).join('');
 
+  const SORT_OPTS=[['default',v.sort.replace(/^Sorted by /,'Sort: ')],['status','Sort: case status'],
+                   ['service','Sort: service date'],['name','Sort: family name A–Z'],['newest','Sort: newest first']];
+  const sortHTML='<select class="sort-select" aria-label="Sort cases" onchange="setCaseSort(this.value)">'+
+    SORT_OPTS.map(o=>'<option value="'+o[0]+'"'+(caseSort===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
   document.getElementById('caseTable').innerHTML=
-    '<div class="table-filter">'+tabsHTML+'<span class="sort-note">'+v.sort+'</span></div>'+headHTML+bodyHTML;
+    '<div class="table-filter">'+tabsHTML+sortHTML+'</div>'+headHTML+bodyHTML;
   renderStats(); renderNavCounts(); if(detailCaseId) renderCaseDetail();
 }
 function setCaseFilter(f){ caseFilter=f; renderCases(); }
+let caseSort=localStorage.getItem('bw:caseSort4')||'default';
+if(['default','status','service','name','newest'].indexOf(caseSort)===-1) caseSort='default';
+function setCaseSort(s){ caseSort=s; try{localStorage.setItem('bw:caseSort4',s);}catch(e){} renderCases(); }
 function _dateBucket(ds){ return ds?(ds>=today?0:1):2; } // upcoming, then past, undated last
 function _byDate(ka,kb,A,B,a,b){
   if(ka!==kb) return ka-kb;
@@ -2705,18 +2715,34 @@ function _byDate(ka,kb,A,B,a,b){
   if(ka===1&&A!==B) return B.localeCompare(A);
   return urgencyScore(a)-urgencyScore(b);
 }
+// The view's own smart order — also the tie-break inside every explicit sort, so
+// "by status" still lists each status group in the order the view finds helpful.
+function _defaultCmp(a,b){
+  if(activeUser==='chloe'){
+    const A=a.serviceDate||'',B=b.serviceDate||'';
+    return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);
+  }
+  if(activeUser==='martice') return urgencyScore(a)-urgencyScore(b);
+  const A=a.serviceDate||a.intermentDate||'',B=b.serviceDate||b.intermentDate||'';
+  return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);
+}
 function sortCases(list){
   const arr=[...list];
-  if(activeUser==='chloe'){
-    // service date ascending, already-past services after those, undated last
+  if(caseSort==='status'){
+    // workflow order (CASE_STATUSES), Complete last; unset status renders as New (s20 rule)
+    arr.sort((a,b)=>{
+      const ra=CASE_STATUSES.indexOf(a.status||'New'),rb=CASE_STATUSES.indexOf(b.status||'New');
+      return (ra===-1?99:ra)-(rb===-1?99:rb)||_defaultCmp(a,b);
+    });
+  } else if(caseSort==='service'){
     arr.sort((a,b)=>{const A=a.serviceDate||'',B=b.serviceDate||'';
       return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);});
-  } else if(activeUser==='martice'){
-    // follow-up urgency (the existing urgencyScore)
-    arr.sort((a,b)=>urgencyScore(a)-urgencyScore(b));
+  } else if(caseSort==='name'){
+    arr.sort((a,b)=>(a.decedent||'').localeCompare(b.decedent||'')||_defaultCmp(a,b));
+  } else if(caseSort==='newest'){
+    arr.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||_defaultCmp(a,b));
   } else {
-    arr.sort((a,b)=>{const A=a.serviceDate||a.intermentDate||'',B=b.serviceDate||b.intermentDate||'';
-      return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);});
+    arr.sort(_defaultCmp);
   }
   return arr;
 }
