@@ -1,5 +1,19 @@
 # STATE — Living Ledger
 
+**s21 PUSHED LIVE 2026-08-07 (operator: "push it all live"; `de565e55..ff7cbae9`,
+12 commits) — wire-verified 12/12 after 2 deploy-lag retries** (scratch/
+s21-live-verify.mjs): live catalog page + index.html byte-identical sha256 vs the
+HEAD blobs, source chip absent on the wire, both new sections + counts + vietnamese
+facet serving, five proof webps byte-identical incl. released 2500/2529 and new-class
+16521. The PII release is now PUBLIC per the operator's twice-confirmed ruling.
+PUSH SCAR, promote: with local merge commits, `git pull --rebase` REPLAYS AND
+FLATTENS the sprint's merge topology and re-fires resolved add/add conflicts even
+when origin has NOTHING new — check `git log main..origin/main` FIRST; if empty,
+skip integration entirely; if not, integrate by MERGE (s14 rule). One rebase-abort
+recovered cleanly this time. s21 worktrees already removed; s21/* branches kept
+until pruned. Open: 8 corrupt sources pending re-download; cover-subtitle one-liner;
+ragged portrait rows — all on the operator's list.
+
 **s21 CLOSED ON MAIN 2026-08-07 — ALL FOUR TRACKS IN (A `337b2508` → B1 `c2960d5f` →
 B2 `e55337ab` → C `f8006386`). Final main GREEN: index 8/0 + catalog-page 1/0 syntax;
 suite `2764 passed, 0 failed across 41 suites` (NEW PIN; C's worktree read 2762 — the
