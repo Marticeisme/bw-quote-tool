@@ -1,5 +1,23 @@
 # STATE — Living Ledger
 
+**s19 OPERATOR ROUND MERGED 2026-08-06 late — Track F `f4b02cab` (track `31dc3d6b`),
+main GREEN: 8/0; `2685 passed, 0 failed across 41 suites`** (2598 + 87
+test-niche-maus-type). Shipped: (1) summary sidebar lists ALL quote items on cem/fh/
+combined — the s19 3-line preview is overruled by the operator; `.s-items` is the only
+scrolling region, total + actions always visible, geometry untouched; (2) niche/maus
+selections auto-resolve their arrangement row via `BW_NICHE_TYPE`/`BW_MAUS_TYPE`
+(operator's binding classification 2026-08-06: glass = Crystal/ECL-New/EL-Niches/
+MVC-New/MVC-(Inside)/Radiance/Serenity; granite = CoH/Garden-Court/Terrace-Garden/
+Gethsemane/GoM/MVC-(Outside)/ROAC; indoor = COM/ELM; outdoor = Garden-Court-Maus/
+TG-Maus); hidden row force-UNCHECKED same pass (no invisible charges, sabotage-proven
+6 ways); nothing auto-checks; old "Mountain View Columbarium" option REPLACED by
+"(Inside)"/"(Outside)" pair, legacy saved value loads via the retired-option path
+(shows both rows, "No longer offered" chip — wording slightly off for a split-not-
+retired location, operator may want a variant). PDF byte-proof triple-run identical
+w/ negative control; family-quote parity 40/0 unadjusted; Compare tool Option B left
+manual per brief. NOTE: main ALSO carries the OTHER session's in-flight s20 dashboard
+merges (cb1e192a, 9accbc7d) — A PUSH OF MAIN DEPLOYS THEIR PARTIAL SPRINT-20 TOO;
+coordinate before pushing. NOT PUSHED. F worktree pending junction-safe removal.
 **Current sprint: sprint-20 — OPENED 2026-08-06** (director: Fable session; tracks: Opus
 per operator word). Scope: **dashboard.html full redesign** per the operator's
 claude.ai-design brief (pinned `sprints/sprint-20/REDESIGN_BRIEF.md` + case-detail
