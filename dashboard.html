@@ -114,6 +114,62 @@ html[data-theme="dark"] .stat-tile.urgent{background:#361E24;color:#F58A9C}
 .stat-note.bad{color:var(--urgent);font-weight:600}
 .stat-note.warn{color:var(--warn);font-weight:600}
 
+/* ═══ TABLE CARD (§3) ═══ */
+.table-card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-1);overflow:hidden;border:1px solid transparent}
+html[data-theme="dark"] .table-card{border-color:var(--border)}
+.table-filter{display:flex;align-items:center;gap:7px;padding:14px 20px;border-bottom:1px solid var(--divider);flex-wrap:wrap}
+.tab-pill{background:transparent;border:none;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--text-2);transition:background .15s,color .15s}
+.tab-pill:hover{background:var(--surface-sunk);color:var(--text)}
+.tab-pill.active{background:var(--accent-soft);color:var(--accent)}
+.sort-note{margin-left:auto;font-size:13px;font-weight:600;color:var(--text-2)}
+.trow{display:grid;grid-template-columns:2.25fr 1.45fr 1.75fr 1.3fr 1.3fr 158px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--row-divider)}
+.trow.all{grid-template-columns:2.25fr .9fr 1.45fr 1.75fr 1.3fr 158px}
+.thead{padding:11px 20px;background:var(--table-head);border-bottom:1px solid var(--divider)}
+.thead .th{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);line-height:1.35}
+.thead .th:last-child,.trow .cell:last-child{text-align:right}
+.trow.body{cursor:pointer;transition:background .15s}
+.trow.body:hover{background:var(--surface-sunk)}
+.trow.body:last-child{border-bottom:none}
+.case-cell{display:flex;align-items:center;gap:11px;min-width:0}
+.case-text{min-width:0}
+.avatar{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:-.2px;flex-shrink:0}
+.avatar.m{background:var(--owner-m-bg);color:var(--owner-m-fg)}
+.avatar.c{background:var(--owner-c-bg);color:var(--owner-c-fg)}
+.case-name{font-size:14px;font-weight:700;letter-spacing:-.2px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.case-sub{font-size:12.5px;font-weight:500;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.cell{font-size:13.5px;font-weight:500;color:var(--text);min-width:0;font-variant-numeric:tabular-nums;text-wrap:pretty}
+.cell.muted{color:var(--text-2)}
+.cell.urgent{color:var(--urgent);font-weight:700}
+.cell.warn{color:var(--warn);font-weight:700}
+.cell.done{color:var(--ok);font-weight:600}
+/* Status pills — the §2 token pairs, one class per status, no hex in JS */
+.pill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:700;max-width:100%;background:var(--pill-bg,var(--surface-sunk));color:var(--pill-fg,var(--text-2))}
+.pill::before{content:"";width:6px;height:6px;border-radius:99px;background:currentColor;flex-shrink:0}
+.pill.s-new,.pill.s-complete{--pill-bg:#F1F1F6;--pill-fg:#6E6E85}
+.pill.s-in-progress{--pill-bg:#EEEDFC;--pill-fg:#4B47D6}
+.pill.s-pending-family{--pill-bg:#FDF1E0;--pill-fg:#9A5B00}
+.pill.s-pending-docs{--pill-bg:#EEF1F6;--pill-fg:#4E6076}
+.pill.s-pending-service{--pill-bg:#FBEAF1;--pill-fg:#9B3D6A}
+.pill.s-pending-payment{--pill-bg:#E9F5EE;--pill-fg:#0F7A45}
+.pill.s-pending-marker-order{--pill-bg:#E6F1F7;--pill-fg:#1B6A8C}
+html[data-theme="dark"] .pill.s-new,html[data-theme="dark"] .pill.s-complete{--pill-bg:#26263A;--pill-fg:#9494AC}
+html[data-theme="dark"] .pill.s-in-progress{--pill-bg:#2B2955;--pill-fg:#A9A6FF}
+html[data-theme="dark"] .pill.s-pending-family{--pill-bg:#382C1A;--pill-fg:#E9AE5E}
+html[data-theme="dark"] .pill.s-pending-docs{--pill-bg:#242C36;--pill-fg:#93A9C0}
+html[data-theme="dark"] .pill.s-pending-service{--pill-bg:#33202B;--pill-fg:#E79ABE}
+html[data-theme="dark"] .pill.s-pending-payment{--pill-bg:#17301F;--pill-fg:#5FC98C}
+html[data-theme="dark"] .pill.s-pending-marker-order{--pill-bg:#152C38;--pill-fg:#68B4D6}
+/* Checklist cell — the indicator carried over from today, bigger (§3) */
+.chk{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.chk-top{display:flex;align-items:baseline;gap:7px}
+.chk-pct{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--text);font-variant-numeric:tabular-nums}
+.chk-pct.full{color:var(--ok)}
+.chk-count{font-size:12px;font-weight:600;color:var(--text-2);font-variant-numeric:tabular-nums}
+.chk-bar{width:100%;height:7px;border-radius:99px;background:var(--track);overflow:hidden}
+.chk-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .4s}
+.chk-fill.full{background:var(--ok)}
+.table-empty{text-align:center;padding:45px 20px;color:var(--text-2)}
+@media(max-width:1360px){.trow{gap:10px;padding:13px 16px;grid-template-columns:2.05fr 1.3fr 1.95fr 1.15fr 1.15fr 150px}.trow.all{grid-template-columns:2.05fr .8fr 1.25fr 1.95fr 1.15fr 150px}.thead{padding:11px 16px}.table-filter{padding:13px 16px}.cell{font-size:13px}.pill{font-size:12px;padding:5px 9px}}
 .panel{display:none}.panel.active{display:block}
 .spacer{flex:1}
 
@@ -290,6 +346,9 @@ html[data-theme="dark"] .not-full-badge{background:#361E24;color:#F58A9C}
 <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7A2 2 0 0 1 22 16.9Z"/></symbol>
 <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z"/></symbol>
 <symbol id="i-alert-triangle" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></symbol>
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
 </defs></svg>
 
@@ -340,9 +399,8 @@ html[data-theme="dark"] .not-full-badge{background:#361E24;color:#F58A9C}
       <div class="due-banner-title">Due today / tomorrow</div>
       <div id="dueItems"></div>
     </div>
-    <!-- Filters -->
-    <div class="filter-bar" id="caseFilters"></div>
-    <div id="caseList"></div>
+    <!-- Table card: filter tabs · column headers · rows (§3) -->
+    <div class="table-card" id="caseTable"></div>
   </div>
 
   <!-- TASKS -->
@@ -911,7 +969,6 @@ let wOwner='',wDisp='',wServiceType='';
 let wPickedChecklist=null; // Martice confirmed-sale chosen items {group:[texts]}
 
 const CASE_STATUSES=['New','In Progress','Pending Family','Pending Docs','Pending Service','Pending Payment','Pending Marker Order','Complete'];
-const SC={New:'#c8540a','In Progress':'#c8a96e','Pending Family':'#b8860b','Pending Docs':'#8fa3b8','Pending Service':'#b0577a','Pending Payment':'#6b4fa0','Pending Marker Order':'#2e86ab',Complete:'#2e7d57'};
 const PC={High:'#b03a2e',Medium:'#c8540a',Low:'#8fa3b8'};
 const CC={Family:'#c8a96e','Bill/Payment':'#b03a2e',Appointment:'#c8540a',School:'#2e7d57',Other:'#8fa3b8'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -989,18 +1046,7 @@ const MARTICE_CHECKLISTS={
   }
 };
 
-// Type-based colors: confirmed sale uses full shade, quote uses lighter shade
-const TYPE_COLORS={
-  'RIC':{sale:'#2a9d8f',quote:'#1e7a6e'},
-  'CIRGAS':{sale:'#3a7ca5',quote:'#2d6080'},
-  'GA Policy':{sale:'#5a8f3c',quote:'#476e2e'},
-  'Clearpoint Trust':{sale:'#7b5ea7',quote:'#5e4780'},
-  'Work Order':{sale:'#c8860a',quote:'#c8860a'}
-};
-function caseTypeColor(c){
-  const tc=TYPE_COLORS[c.disp];if(!tc)return null;
-  return c.serviceType==='Quote'?tc.quote:tc.sale;
-}
+// Case type is plain text in its own column now (§2) — the old per-type color map is gone.
 
 function uid(){return Math.random().toString(36).slice(2,10);}
 
@@ -1127,12 +1173,156 @@ const TAB_META={
   calendar:{title:'Calendar',sub:'Upcoming events first, past events below.'},
   school:{title:'School',sub:"Chloe's coursework, sorted by due date."}
 };
-function caseSubtitle(){
-  if(activeUser==='martice') return 'Cemetery and pre-need. Sorted by upcoming date, then who is waiting on you.';
-  if(activeUser==='chloe')   return 'Funeral direction. Sorted by who is waiting on you.';
-  return 'Both caseloads. Sorted by who is waiting on you.';
-}
+function caseSubtitle(){ return view().sub; }
 function poolForUser(){ return activeUser==='all' ? cases : cases.filter(c=>c.owner===activeUser); }
+
+// ═══════════════════════════════════════
+// VIEWS (brief §4) — the user switcher changes which columns exist
+// ═══════════════════════════════════════
+const VIEWS={
+  martice:{sub:'Cemetery and pre-need. Sorted by who is waiting on you.',sort:'Sorted by follow-up',
+    cols:['Case','Type','Status','Interment','Follow-up','Packet complete'],
+    tabs:['All','Needs a call','Quotes out','Confirmed sales','Work orders']},
+  chloe:{sub:'Funeral direction. Sorted by next service.',sort:'Sorted by service date',
+    cols:['Case','Disposition','Status','Service','Certificates & permits','Checklist complete'],
+    tabs:['All','This week','Awaiting permits','Cremation','Burial']},
+  all:{sub:'Both caseloads. Sorted by the next date on the calendar.',sort:'Sorted by date',
+    cols:['Case','Owner','Type / Disposition','Status','Date','Checklist'],
+    tabs:['All','Needs a call','This week','Complete']}
+};
+function view(){ return VIEWS[activeUser]||VIEWS.all; }
+
+// ── status pills: one CSS class per status, no hex in JS (§2) ──
+function statusClass(st){ return 's-'+String(st||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+function statusPillHTML(st){ return st?'<span class="pill '+statusClass(st)+'">'+_ccEsc(st)+'</span>':''; }
+// Chloe-only / Martice-only status visibility (wave 0) — one place, used by pills and pickers.
+function statusVisibleFor(st,user){
+  if(st==='Pending Marker Order'&&user==='chloe') return false;
+  if(st==='Pending Service'&&user==='martice') return false;
+  return true;
+}
+
+// ── formatters ──
+function _dateOf(ds){ if(!ds) return null; const d=new Date(ds+'T12:00:00'); return isNaN(d)?null:d; }
+function fmtMD(ds){ const d=_dateOf(ds); return d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):(ds||''); }
+function fmtWMD(ds){ const d=_dateOf(ds); return d?d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):(ds||''); }
+function fmtTime(t){ const m=/^(\d{1,2}):(\d{2})/.exec(t||''); if(!m) return t||''; let h=+m[1]; const ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+m[2]+' '+ap; }
+function daysFromToday(ds){ const a=_dateOf(ds),b=_dateOf(today); return (a&&b)?Math.round((a-b)/864e5):null; }
+function daysSince(iso){ return iso?Math.floor((Date.now()-new Date(iso))/864e5):null; }
+
+const TYPE_SHORT={'Clearpoint Trust':'Clearpoint'};
+const SERVICE_SHORT={'AOC / Direct Cremation':'AOC','Traditional Service':'Traditional','Memorial Service':'Memorial','I.D. Viewing':'ID Viewing','Viewing & Service':'Viewing','Traditional Burial Service':'Traditional','Graveside Service':'Graveside','Direct Burial / No Service':'Direct'};
+function typeLabel(c){
+  if(c.disp==='Work Order') return 'Work Order';
+  const t=TYPE_SHORT[c.disp]||c.disp||'';
+  const m=c.serviceType==='Confirmed Sale'?'Confirmed':c.serviceType==='Quote'?'Quote':'';
+  return m?t+' · '+m:t;
+}
+function dispLabel(c){
+  const st=SERVICE_SHORT[c.serviceType]||c.serviceType||'';
+  return st?(c.disp||'')+' · '+st:(c.disp||'');
+}
+function ownerLabel(c){ return c.owner==='chloe'?'Chloe':'Martice'; }
+function caseInitials(c){
+  const p=String(c.decedent||'').split(/[\s,]+/).filter(Boolean);
+  return (((p[0]||'?')[0])+((p[1]||'')[0]||'')).toUpperCase();
+}
+function caseRowSub(c){
+  const d=c.caseDetail||{}, w=c.woData||{};
+  if(c.owner==='martice') return d.propertyLocation||d.location||w.propertyLocation||c.passare||(c.disc?'Contract '+c.disc:'')||'';
+  return (c.passare?'Case '+c.passare:'')||(c.disc?'Disc '+c.disc:'')||c.serviceType||'';
+}
+
+// ── checklist math (N/A excluded from the denominator, exactly as today) ──
+function checklistProgress(c){
+  let total=0,done=0;
+  Object.values(c.checklist||{}).forEach(items=>{ if(!Array.isArray(items))return;
+    items.forEach(i=>{ if(i&&!i.na){ total++; if(i.done) done++; } }); });
+  return {total,done,pct:total?Math.round(done/total*100):0};
+}
+function groupProgress(c,rx){
+  let total=0,done=0;
+  Object.entries(c.checklist||{}).forEach(([g,items])=>{ if(!rx.test(g)||!Array.isArray(items))return;
+    items.forEach(i=>{ if(i&&!i.na){ total++; if(i.done) done++; } }); });
+  return {total,done};
+}
+
+// ── cells ──
+function intermentCell(c){
+  if(c.disp==='Work Order') return {t:'Not applicable',cls:'muted'};
+  const ds=c.intermentDate||(c.caseDetail||{}).intermentDate||'';
+  if(!ds) return {t:'Not set',cls:'muted'};
+  const tm=c.intermentTime||(c.caseDetail||{}).intermentTime||'';
+  const n=daysFromToday(ds);
+  if(n===0) return {t:'Today'+(tm?', '+fmtTime(tm):''),cls:'warn'};
+  if(n===1) return {t:'Tomorrow'+(tm?', '+fmtTime(tm):''),cls:'warn'};
+  if(n!==null&&n<0) return {t:'Interred '+fmtMD(ds),cls:'muted'};
+  return {t:fmtMD(ds),cls:''};
+}
+function followUpCell(c){
+  const rd=c.reminderDays||4;
+  if(!c.lastContact) return {t:'Not contacted yet',cls:'warn'};
+  const ds=daysSince(c.lastContact), over=ds-rd;
+  if(over>0) return {t:'Overdue '+over+' day'+(over===1?'':'s'),cls:'urgent'};
+  if(over===0) return {t:'Call due today',cls:'warn'};
+  if(ds<=0) return {t:'Called today',cls:'muted'};
+  return {t:'Called '+ds+' day'+(ds===1?'':'s')+' ago',cls:'muted'};
+}
+function serviceCell(c){
+  if(!c.serviceDate) return {t:'Not scheduled',cls:'muted'};
+  const n=daysFromToday(c.serviceDate);
+  const full=fmtWMD(c.serviceDate)+(c.serviceTime?', '+fmtTime(c.serviceTime):'');
+  if(n!==null&&n<0) return {t:fmtMD(c.serviceDate),cls:'muted'};
+  if(n!==null&&n<=1) return {t:full,cls:'warn'};
+  return {t:full,cls:''};
+}
+const DC_GROUP='Death Certificates & Permits';
+// Plain-words stage for the certificates column. Tone decides which reading wins: a
+// blocking first-incomplete item speaks; otherwise the last completed item does.
+const DC_STAGES={
+  'DC Worksheet Signed & Uploaded':{pending:'DC worksheet pending',done:'DC worksheet signed',tone:''},
+  'Admin Tagged for DC Wkst & KCME DA':{pending:'Awaiting KCME release',done:'Tagged for KCME release',tone:'urgent'},
+  'Vitals Entered Into WHALES':{pending:'Vitals not in WHALES',done:'Vitals entered',tone:''},
+  'DC Approved':{pending:'DC approval pending',done:'DC approved',tone:'warn'},
+  'DCs Ordered':{pending:'DCs not ordered',done:'DCs ordered',tone:'warn'},
+  'Burial Transit Permit Uploaded':{pending:'Permit pending',done:'Permit uploaded',tone:'warn'},
+  'DCs Released to Family':{pending:'DCs not yet released',done:'DCs released to family',tone:''}
+};
+function certStage(c){
+  const items=(c.checklist||{})[DC_GROUP];
+  if(!Array.isArray(items)) return {t:'Not applicable',cls:'muted',state:'none'};
+  const live=items.filter(i=>i&&!i.na);
+  if(!live.length) return {t:'Not applicable',cls:'muted',state:'none'};
+  const open=live.find(i=>!i.done);
+  if(!open) return {t:'Complete',cls:'muted',state:'complete'};
+  const st=DC_STAGES[open.text];
+  if(st&&st.tone) return {t:st.pending,cls:st.tone,state:'pending'};
+  let last=null; live.forEach(i=>{ if(i.done) last=i; });
+  if(last){ const d=DC_STAGES[last.text]; return {t:d?d.done:last.text,cls:'muted',state:'pending'}; }
+  return {t:st?st.pending:open.text,cls:'muted',state:'pending'};
+}
+
+// ── tab filters (§4) ──
+function tabMatch(tab,c){
+  switch(tab){
+    case 'All': return true;
+    case 'Needs a call': { if(c.status==='Complete') return false; if(!c.lastContact) return true;
+      return daysSince(c.lastContact)>=(c.reminderDays||4); }
+    case 'Quotes out': return c.serviceType==='Quote'&&c.status!=='Complete';
+    case 'Confirmed sales': return c.serviceType==='Confirmed Sale';
+    case 'Work orders': return c.disp==='Work Order';
+    case 'This week': { const n=daysFromToday(c.serviceDate); return n!==null&&n>=0&&n<=7; }
+    case 'Awaiting permits': return certStage(c).state==='pending';
+    case 'Cremation': return c.disp==='Cremation';
+    case 'Burial': return c.disp==='Burial';
+    case 'Complete': return c.status==='Complete';
+  }
+  return true;
+}
+
+// ── the one seam Track C retargets at the case-detail screen ──
+function openCase(id){ openCaseModal(id); }
+
 function renderPageHead(){
   const meta=TAB_META[activeTab]||TAB_META.cases;
   const t=document.getElementById('pageTitle'); if(t) t.textContent=meta.title;
@@ -1155,53 +1345,112 @@ function fmtDayLabel(ds){
   const d=new Date(ds+'T12:00:00');
   return isNaN(d) ? ds : d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
-// Three shared stats. Every note carries context — a bare number is not allowed (brief §3).
-// Per-user stat DEFINITIONS land in Track B; the shell renders them.
-function renderStats(){
-  const row=document.getElementById('statRow'); if(!row) return;
-  const pool=poolForUser().filter(c=>c.status!=='Complete');
-  // 1 — who is waiting on a call
+// Three stats per view (§4). Every note carries context — a bare number is not allowed.
+function _callStat(pool){
   let needCall=0,worst=null,never=0;
   pool.forEach(c=>{
     const rd=c.reminderDays||4;
     if(!c.lastContact){needCall++;never++;return;}
-    const ds=Math.floor((Date.now()-new Date(c.lastContact))/864e5);
+    const ds=daysSince(c.lastContact);
     if(ds>=rd){needCall++;const over=ds-rd;if(worst===null||over>worst)worst=over;}
   });
-  let note1,cls1='';
-  if(!needCall) note1=pool.length?'Every family contacted on schedule':'No open cases';
-  else if(worst!==null&&worst>0){note1='Longest overdue '+worst+' day'+(worst===1?'':'s')+(never?' · '+never+' never contacted':'');cls1='bad';}
-  else if(worst!==null){note1='Due today'+(never?' · '+never+' never contacted':'');cls1='warn';}
-  else {note1=never+' never contacted';cls1='warn';}
-  // 2 — services in the next seven days
+  let note,cls='';
+  if(!needCall) note=pool.length?'Every family contacted on schedule':'No open cases';
+  else if(worst!==null&&worst>0){note='Longest overdue '+worst+' day'+(worst===1?'':'s')+(never?' · '+never+' never contacted':'');cls='bad';}
+  else if(worst!==null){note='Due today'+(never?' · '+never+' never contacted':'');cls='warn';}
+  else {note=never+' never contacted';cls='warn';}
+  return {icon:'i-phone',tile:cls==='bad'?'urgent':cls==='warn'?'warn':'',label:'Waiting on a call',value:needCall,note:note,cls:cls};
+}
+function _weekStat(pool){
   const wk=new Date();wk.setDate(wk.getDate()+7);const wkStr=fmtDate(wk);
   const tmr=new Date();tmr.setDate(tmr.getDate()+1);const tmrStr=fmtDate(tmr);
   const svc=pool.filter(c=>c.serviceDate&&c.serviceDate>=today&&c.serviceDate<=wkStr)
                 .sort((a,b)=>a.serviceDate.localeCompare(b.serviceDate));
-  let note2,cls2='';
+  let note,cls='';
   if(svc.length){
     const nx=svc[0];
-    const when=nx.serviceDate===today?'today':nx.serviceDate===tmrStr?'tomorrow':fmtDayLabel(nx.serviceDate);
-    note2='Next is '+(nx.decedent||'a case')+' '+when+(nx.serviceTime?', '+nx.serviceTime:'');
-    if(nx.serviceDate===today||nx.serviceDate===tmrStr)cls2='warn';
-  } else note2='Nothing scheduled through '+fmtDayLabel(wkStr);
-  // 3 — open checklist items
+    const when=nx.serviceDate===today?'today':nx.serviceDate===tmrStr?'tomorrow':fmtWMD(nx.serviceDate);
+    note='Next is '+(nx.decedent||'a case')+' '+when+(nx.serviceTime?', '+fmtTime(nx.serviceTime):'');
+    if(nx.serviceDate===today||nx.serviceDate===tmrStr)cls='warn';
+  } else note='Nothing scheduled through '+fmtWMD(wkStr);
+  return {icon:'i-calendar',tile:cls?'warn':'',label:'Services this week',value:svc.length,note:note,cls:cls};
+}
+function _openItemsStat(pool){
   let open=0,openCases=0,tot=0,dn=0;
-  pool.forEach(c=>{
-    let o=0;
-    Object.values(c.checklist||{}).forEach(items=>{
-      if(!Array.isArray(items))return;
-      items.forEach(i=>{ if(i&&!i.na){tot++; if(i.done)dn++; else o++;} });
-    });
-    if(o){open+=o;openCases++;}
-  });
-  const note3 = open ? 'Across '+openCases+' case'+(openCases===1?'':'s')+' · '+(tot?Math.round(dn/tot*100):0)+'% complete overall'
-                     : (tot?'Everything checked off':'No checklist items yet');
-  const cards=[
-    {icon:'i-phone',tile:cls1==='bad'?'urgent':cls1==='warn'?'warn':'',label:'Waiting on a call',value:needCall,note:note1,cls:cls1},
-    {icon:'i-calendar',tile:cls2?'warn':'',label:'Services this week',value:svc.length,note:note2,cls:cls2},
-    {icon:'i-inbox',tile:'',label:'Checklist items open',value:open,note:note3,cls:''}
-  ];
+  pool.forEach(c=>{ const p=checklistProgress(c); tot+=p.total; dn+=p.done;
+    const o=p.total-p.done; if(o){open+=o;openCases++;} });
+  const note=open?'Across '+openCases+' case'+(openCases===1?'':'s')+' · '+(tot?Math.round(dn/tot*100):0)+'% complete overall'
+                 :(tot?'Everything checked off':'No checklist items yet');
+  return {icon:'i-inbox',tile:'',label:'Checklist items open',value:open,note:note,cls:''};
+}
+function marticeStats(pool){
+  // 2 — quotes out, noting the one that has gone quietest
+  const quotes=pool.filter(c=>c.serviceType==='Quote');
+  let note2='No quotes waiting on a decision',cls2='';
+  if(quotes.length){
+    const st=quotes.map(c=>({c:c,t:new Date(c.lastContact||c.createdAt||Date.now()).getTime(),never:!c.lastContact}))
+                   .sort((a,b)=>a.t-b.t)[0];
+    const d=Math.floor((Date.now()-st.t)/864e5);
+    const who=st.c.decedent||'a quote';
+    note2=st.never?('No contact yet on '+who+' · '+d+' day'+(d===1?'':'s')+' open')
+                  :('No reply since '+fmtMD(fmtDate(new Date(st.t)))+' · '+who);
+    if(d>=(st.c.reminderDays||4)) cls2='warn';
+  }
+  // 3 — commission packets that are complete and waiting to be submitted
+  const sales=pool.filter(c=>c.serviceType==='Confirmed Sale');
+  const ready=sales.filter(c=>{const g=groupProgress(c,/commission packet/i);return g.total>0&&g.done===g.total;});
+  let note3,cls3='';
+  if(ready.length){
+    const dated=ready.filter(c=>c.intermentDate||c.serviceDate)
+                     .sort((a,b)=>(a.intermentDate||a.serviceDate).localeCompare(b.intermentDate||b.serviceDate));
+    const pick=dated[0]||ready[0];
+    const ds=pick.intermentDate||pick.serviceDate||'';
+    const n=ds?daysFromToday(ds):null;
+    note3=(pick.decedent||'A case')+(ds?(', due '+(n===0?'today':n===1?'tomorrow':fmtWMD(ds))):', ready to submit');
+    if(n!==null&&n<=2) cls3='warn';
+  } else if(sales.length){
+    const best=sales.map(c=>({c:c,g:groupProgress(c,/commission packet/i)})).filter(x=>x.g.total)
+                    .sort((a,b)=>(b.g.done/b.g.total)-(a.g.done/a.g.total))[0];
+    note3=best?(best.c.decedent+' is closest at '+best.g.done+' of '+best.g.total+' packet items')
+              :'No commission packets started yet';
+  } else note3='No confirmed sales open';
+  return [_callStat(pool),
+    {icon:'i-send',tile:cls2?'warn':'',label:'Quotes out',value:quotes.length,note:note2,cls:cls2},
+    {icon:'i-file-text',tile:cls3?'warn':'',label:'Packets to submit',value:ready.length,note:note3,cls:cls3}];
+}
+function chloeStats(pool){
+  // 2 — certificates pending, naming the case and what it is waiting on
+  const pend=pool.map(c=>({c:c,st:certStage(c)})).filter(x=>x.st.state==='pending');
+  const rank=t=>t==='urgent'?0:t==='warn'?1:2;
+  const worst=[...pend].sort((a,b)=>rank(a.st.cls)-rank(b.st.cls)||
+    String(a.c.serviceDate||'9999').localeCompare(String(b.c.serviceDate||'9999')))[0];
+  let note2='Every case has its DCs and permits',cls2='';
+  if(worst){
+    const who=String(worst.c.decedent||'A case').split(',')[0];
+    note2=who+' · '+worst.st.t;
+    cls2=worst.st.cls==='urgent'?'bad':worst.st.cls==='warn'?'warn':'';
+  }
+  // 3 — items due today: everything still open on a case whose service is today or tomorrow
+  const imminent=pool.filter(c=>{const n=daysFromToday(c.serviceDate);return n!==null&&n>=0&&n<=1;});
+  let due=0; imminent.forEach(c=>{const p=checklistProgress(c);due+=p.total-p.done;});
+  let note3,cls3='';
+  if(imminent.length){
+    note3='Across '+imminent.length+' case'+(imminent.length===1?'':'s')+' with a service today or tomorrow';
+    if(due) cls3='warn';
+  } else {
+    const nxt=pool.filter(c=>c.serviceDate&&c.serviceDate>=today).sort((a,b)=>a.serviceDate.localeCompare(b.serviceDate))[0];
+    note3=nxt?('Nothing due before '+(nxt.decedent||'the next service')+' on '+fmtWMD(nxt.serviceDate)):'No services scheduled';
+  }
+  return [_weekStat(pool),
+    {icon:'i-file-text',tile:cls2==='bad'?'urgent':cls2?'warn':'',label:'Certificates pending',value:pend.length,note:note2,cls:cls2},
+    {icon:'i-inbox',tile:cls3?'warn':'',label:'Items due today',value:due,note:note3,cls:cls3}];
+}
+function renderStats(){
+  const row=document.getElementById('statRow'); if(!row) return;
+  const pool=poolForUser().filter(c=>c.status!=='Complete');
+  const cards=activeUser==='martice'?marticeStats(pool)
+             :activeUser==='chloe'?chloeStats(pool)
+             :[_callStat(pool),_weekStat(pool),_openItemsStat(pool)];
   row.innerHTML=cards.map(st=>`<div class="stat-card">
     <div class="stat-head"><div class="stat-tile ${st.tile}"><svg class="icon" aria-hidden="true"><use href="#${st.icon}"/></svg></div><div class="stat-label">${st.label}</div></div>
     <div class="stat-value">${st.value}</div>
@@ -1894,7 +2143,13 @@ function addTouchpoint(caseId){
   c.touchpoints.unshift({text,date:new Date().toISOString()});c.lastContact=new Date().toISOString();
   save();ta.value='';renderCaseCard(c);
 }
-function renderCaseCard(c){const el=document.getElementById('ccard-'+c.id);if(el)el.outerHTML=buildCaseCardHTML(c);}
+function renderCaseCard(c){
+  // The accordion card is no longer the list. Repaint it in place when it exists
+  // (Track C's detail screen), otherwise repaint the table.
+  const el=document.getElementById('ccard-'+c.id);
+  if(el){ el.outerHTML=buildCaseCardHTML(c); return; }
+  renderCases();
+}
 function toggleCard(id){
   expandedCards[id]=!expandedCards[id];
   save();
@@ -1946,8 +2201,6 @@ function printCase(id){
 // BUILD CASE CARD
 // ═══════════════════════════════════════
 function buildCaseCardHTML(c){
-  const col=SC[c.status]||'#8fa3b8';
-  const typeCol=caseTypeColor(c)||col;
   const ownerTag=c.owner==='martice'?'<span class="owner-tag-martice">Martice</span>':'<span class="owner-tag-chloe">Chloe</span>';
 
   // Progress — exclude N/A items from total
@@ -2123,7 +2376,7 @@ function buildCaseCardHTML(c){
           ${notFullBadge}
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-          ${ownerTag}<span class="tag" style="background:${typeCol}22;color:${typeCol};border-color:${typeCol}55;opacity:1">${c.disp}</span>${c.serviceType?`<span class="tag">${c.serviceType}</span>`:''}
+          ${ownerTag}<span class="tag">${c.disp}</span>${c.serviceType?`<span class="tag">${c.serviceType}</span>`:''}
           <div style="margin-left:auto;flex-shrink:0">${qs}</div>
         </div>
         ${hasPurchInfo?`<div class="purchaser-row" style="margin-bottom:4px">
@@ -2294,40 +2547,77 @@ function renderDueBanner(){
 function renderCases(){
   renderDueBanner();
   const search=(document.getElementById('caseSearch')?.value||'').toLowerCase().trim();
-  const pool = poolForUser();
-  const bar=document.getElementById('caseFilters');
-  const counts={};CASE_STATUSES.forEach(s=>counts[s]=pool.filter(c=>c.status===s).length);
+  const v=view(), pool=poolForUser();
+  if(v.tabs.indexOf(caseFilter)===-1) caseFilter=v.tabs[0];
 
-  const visibleStatuses=CASE_STATUSES.filter(s=>(s!=='Pending Marker Order'||activeUser!=='chloe')&&(s!=='Pending Service'||activeUser!=='martice'));
-  bar.innerHTML=['All',...visibleStatuses].map(f=>{
-    const cnt=f==='All'?pool.length:counts[f];
-    return `<button class="filter-chip${caseFilter===f?' active':''}" onclick="caseFilter='${f}';renderCases()"><span class="count-badge">${cnt}</span>${f}</button>`;
-  }).join('');
+  let rows=pool.filter(c=>tabMatch(caseFilter,c));
+  if(search) rows=rows.filter(c=>(c.decedent||'').toLowerCase().includes(search)||(c.passare||'').toLowerCase().includes(search)||(c.disc||'').toLowerCase().includes(search));
+  rows=sortCases(rows);
 
-  let filtered=caseFilter==='All'?pool:pool.filter(c=>c.status===caseFilter);
-  if(search) filtered=filtered.filter(c=>(c.decedent||'').toLowerCase().includes(search)||(c.passare||'').toLowerCase().includes(search)||(c.disc||'').toLowerCase().includes(search));
-  // Sort: Martice → interment/service date soonest-first (no-date last), then urgency; others → urgency only
-  filtered=[...filtered].sort((a,b)=>{
-    const isM = activeUser==='martice';
-    if(isM){
-      const dateA=a.intermentDate||a.serviceDate||'';
-      const dateB=b.intermentDate||b.serviceDate||'';
-      if(!dateA&&!dateB) return urgencyScore(a)-urgencyScore(b);
-      if(!dateA) return 1; if(!dateB) return -1;
-      if(dateA!==dateB) return dateA.localeCompare(dateB);
-    }
-    return urgencyScore(a)-urgencyScore(b);
-  });
+  const tabsHTML=v.tabs.map(t=>'<button class="tab-pill'+(caseFilter===t?' active':'')+'" aria-pressed="'+(caseFilter===t)+'" onclick="setCaseFilter(\''+t+'\')">'+t+'</button>').join('');
+  const rowCls=activeUser==='all'?'trow all':'trow';
+  const headHTML='<div class="'+rowCls+' thead" role="row">'+v.cols.map(h=>'<div class="th">'+h+'</div>').join('')+'</div>';
 
-  const list=document.getElementById('caseList');
-  if(!filtered.length){
+  let bodyHTML;
+  if(!rows.length){
     const who=activeUser==='all'?'anyone':activeUser==='martice'?'Martice':'Chloe';
-    list.innerHTML=`<div class="empty"><div class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg></div>${search?'No cases match your search.':'No '+(caseFilter==='All'?'':caseFilter+' ')+'cases for '+who+'.'}</div>`;
-    renderStats(); renderNavCounts();
-    return;
-  }
-  list.innerHTML=filtered.map(buildCaseCardHTML).join('');
+    bodyHTML='<div class="table-empty"><div class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-folder"/></svg></div>'+
+      (search?'No cases match your search.':'No '+(caseFilter==='All'?'':caseFilter.toLowerCase()+' ')+'cases for '+who+'.')+'</div>';
+  } else bodyHTML=rows.map(buildCaseRowHTML).join('');
+
+  document.getElementById('caseTable').innerHTML=
+    '<div class="table-filter">'+tabsHTML+'<span class="sort-note">'+v.sort+'</span></div>'+headHTML+bodyHTML;
   renderStats(); renderNavCounts();
+}
+function setCaseFilter(f){ caseFilter=f; renderCases(); }
+function _dateBucket(ds){ return ds?(ds>=today?0:1):2; } // upcoming, then past, undated last
+function _byDate(ka,kb,A,B,a,b){
+  if(ka!==kb) return ka-kb;
+  if(ka===0&&A!==B) return A.localeCompare(B);
+  if(ka===1&&A!==B) return B.localeCompare(A);
+  return urgencyScore(a)-urgencyScore(b);
+}
+function sortCases(list){
+  const arr=[...list];
+  if(activeUser==='chloe'){
+    // service date ascending, already-past services after those, undated last
+    arr.sort((a,b)=>{const A=a.serviceDate||'',B=b.serviceDate||'';
+      return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);});
+  } else if(activeUser==='martice'){
+    // follow-up urgency (the existing urgencyScore)
+    arr.sort((a,b)=>urgencyScore(a)-urgencyScore(b));
+  } else {
+    arr.sort((a,b)=>{const A=a.serviceDate||a.intermentDate||'',B=b.serviceDate||b.intermentDate||'';
+      return _byDate(_dateBucket(A),_dateBucket(B),A,B,a,b);});
+  }
+  return arr;
+}
+function _cell(o){ return '<div class="cell'+(o.cls?' '+o.cls:'')+'">'+_ccEsc(o.t)+'</div>'; }
+function buildCaseRowHTML(c){
+  const p=checklistProgress(c);
+  const sub=caseRowSub(c);
+  const caseCell='<div class="cell case-cell"><div class="avatar '+(c.owner==='chloe'?'c':'m')+'" aria-hidden="true">'+_ccEsc(caseInitials(c))+'</div>'+
+    '<div class="case-text"><div class="case-name">'+_ccEsc(c.decedent)+'</div>'+
+    (sub?'<div class="case-sub">'+_ccEsc(sub)+'</div>':'')+'</div></div>';
+  const chk='<div class="cell chk"><div class="chk-top"><span class="chk-pct'+(p.pct===100?' full':'')+'">'+p.pct+'%</span>'+
+    '<span class="chk-count">'+p.done+' / '+p.total+'</span></div>'+
+    '<div class="chk-bar"><div class="chk-fill'+(p.pct===100?' full':'')+'" style="width:'+p.pct+'%"></div></div></div>';
+  const pill='<div class="cell">'+(statusVisibleFor(c.status,activeUser)?statusPillHTML(c.status):'')+'</div>';
+  let mid;
+  if(activeUser==='martice'){
+    mid=_cell({t:typeLabel(c),cls:'muted'})+pill+_cell(intermentCell(c))+_cell(followUpCell(c));
+  } else if(activeUser==='chloe'){
+    mid=_cell({t:dispLabel(c),cls:'muted'})+pill+_cell(serviceCell(c))+_cell(certStage(c));
+  } else {
+    const label=c.owner==='chloe'?dispLabel(c):typeLabel(c);
+    const date=c.owner==='chloe'?serviceCell(c):intermentCell(c);
+    mid=_cell({t:ownerLabel(c),cls:'muted'})+_cell({t:label,cls:'muted'})+pill+_cell(date);
+  }
+  const cls=activeUser==='all'?'trow all body':'trow body';
+  const open='openCase(\''+c.id+'\')';
+  return '<div class="'+cls+'" id="crow-'+c.id+'" role="button" tabindex="0" onclick="'+open+'"'+
+    ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();'+open+'}">'+
+    caseCell+mid+chk+'</div>';
 }
 
 function openCaseModal_owner(owner){
@@ -2671,15 +2961,14 @@ function handleDeepLink(){
   // Persist only the expanded-card state — do NOT call save() here because
   // Firebase hasn't synced yet and a full write would overwrite server-side data
   // with potentially stale localStorage values.
-  expandedCards[id]=true;
-  localStorage.setItem('bw:expanded',JSON.stringify(expandedCards));
   // Switch to the owner's view if the current view wouldn't show this case
   if(activeUser!=='all'&&activeUser!==c.owner)setUser(c.owner);
   // Ensure cases tab is active (re-renders with expanded state)
   switchTab('cases');
   setTimeout(function(){
-    var el=document.getElementById('ccard-'+id);
+    var el=document.getElementById('crow-'+id);
     if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+    openCase(id);
   },100);
 }
 
