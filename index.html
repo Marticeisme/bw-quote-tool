@@ -214,10 +214,10 @@ tr:hover td{background:var(--navy-100);}
 .summary-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-2);overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column;}
 /* ── s19 summary panel ───────────────────────────────────────────────────────
    Geometry is unchanged (position:fixed; width:260px, and the coupled 292px content
-   clearance above). What changed is the inside: an isolated white total block, then a
-   three-line item preview, then ranked actions. The 30px total is the only 30px type
-   in the app. */
-.summary-total-block{padding:var(--s4) 18px 14px;border-bottom:1px solid var(--navy-150);}
+   clearance above). What changed is the inside: an isolated white total block, then the
+   full item list, then ranked actions. The 30px total is the only 30px type in the app.
+   The three-line preview this shipped with was overruled by the operator 2026-08-06. */
+.summary-total-block{padding:var(--s4) 18px 14px;border-bottom:1px solid var(--navy-150);flex:0 0 auto;}
 .summary-kicker{font:600 var(--t-xs)/1 'Public Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
 .summary-total{font:600 var(--t-total)/1 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
 .summary-split{font:400 var(--t-sm)/1.5 'Public Sans',sans-serif;color:var(--muted);margin-top:var(--s2);}
@@ -225,12 +225,15 @@ tr:hover td{background:var(--navy-100);}
 .s-split-amt{font-family:'Source Sans 3',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .summary-panel.is-empty .summary-total{color:var(--navy-300);}
 .summary-panel.is-empty .summary-actions .btn,.summary-panel.is-empty .summary-reset{opacity:.45;pointer-events:none;}
-/* three-line item preview */
+/* Full item list — every line on the quote, not a preview (operator ruling 2026-08-06).
+   .s-items is the ONLY thing that scrolls: the total block above and the action buttons
+   below are flex:0 0 auto, so a 40-item quote still shows its total and its Download
+   button without the counselor scrolling the page. Long labels keep their ellipsis. */
+.s-items{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
 .s-prev{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);padding:5px 0;}
 .s-prev-lbl{font:400 var(--t-sm)/1.35 'Public Sans',sans-serif;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .s-prev-amt{font:400 var(--t-sm)/1.35 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
-.s-prev-more{font:400 var(--t-sm)/1.4 'Public Sans',sans-serif;color:var(--navy-400);padding-top:5px;}
-.summary-body{padding:12px 18px 14px;overflow-y:auto;}
+.summary-body{padding:12px 18px 14px;overflow-y:auto;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;}
 .summary-empty{color:var(--muted);font-size:var(--t-sm);line-height:1.55;text-align:left;padding:2px 0 4px;}
 .s-section-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:10px 0 3px;margin-top:4px;}
 .s-line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--navy-150);}
@@ -246,7 +249,7 @@ tr:hover td{background:var(--navy-100);}
 .s-total-lbl{font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;color:var(--navy);white-space:nowrap;}
 .s-total-amt{font-family:'Public Sans',sans-serif;font-size:26px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:auto;}
 .s-tax-note{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
-.summary-actions{padding:14px 18px var(--s4);display:flex;flex-direction:column;gap:var(--s2);border-top:1px solid var(--navy-150);}
+.summary-actions{padding:14px 18px var(--s4);display:flex;flex-direction:column;gap:var(--s2);border-top:1px solid var(--navy-150);flex:0 0 auto;}
 .summary-quiet-pair{display:flex;gap:var(--s2);}
 .summary-quiet-pair .btn{flex:1;}
 .summary-reset{display:block;width:100%;margin-top:var(--s1);background:none;border:none;padding:6px 0;font:400 12px/1 'Public Sans',sans-serif;color:var(--navy-400);cursor:pointer;text-align:center;}
@@ -1408,7 +1411,8 @@ tr:hover td{background:var(--navy-100);}
                 <option value="Terrace Garden Niches">Terrace Garden Niches</option>
                 <option value="Garden of Gethsemane Niches">Garden of Gethsemane Niches</option>
                 <option value="Garden of Meditation Niches">Garden of Meditation Niches</option>
-                <option value="Mountain View Columbarium">Mountain View Columbarium</option>
+                <option value="Mountain View Columbarium (Inside)">Mountain View Columbarium (Inside)</option>
+                <option value="Mountain View Columbarium (Outside)">Mountain View Columbarium (Outside)</option>
                 <option value="Mountain View Columbarium (New)">Mountain View Columbarium (New)</option>
                 <option value="Radiance Wall – Chapel of Memories">Radiance Wall – Chapel of Memories</option>
                 <option value="Rock of Ages Columbarium">Rock of Ages Columbarium</option>
@@ -6255,6 +6259,79 @@ var BW_FEES = {
 };
 // ── END GENERATED ─────────────────────────────────────────────────────────────
 
+// ── Which arrangement a location can actually have ──────────────────────
+// The front of a niche and the weather a crypt sits in are properties of the STRUCTURE,
+// not choices on a form — you cannot buy a glass front in Court of Honor. Until now both
+// arrangement rows showed for every location, so the wrong bundle was one stray click away.
+// Keyed by the exact <option value> in qNicheName / qMausName.
+//
+// PROVENANCE: operator ruling, Martice, 2026-08-06 — binding. Not derived from prices.json
+// and not inferable from MIS; if a wall is re-fronted, this table is what changes.
+// A name that is not listed — "Custom / Other…", nothing selected, or a value retired out of
+// the <select> — shows BOTH rows and force-unchecks nothing. That fallback is what carries
+// backward compatibility: quotes saved before 2026-08-06 hold the ambiguous value
+// "Mountain View Columbarium", which the operator has since split into (Inside) = glass and
+// (Outside) = granite. The old string is deliberately ABSENT from this map — an old quote
+// genuinely does not record which front was sold, so guessing one would be worse than
+// offering both. restoreFieldState() re-attaches it as a disabled BW_RETIRED_OPT_CLASS
+// option (the same path the discontinued vaults use), so the value survives the load, the
+// quote still reads "Mountain View Columbarium", and the counselor can see it wants
+// re-picking. Asserted in tests/test-niche-maus-type.mjs §3.
+//
+// 'both' is still honoured by _applyArrangeType as an escape hatch for a genuinely mixed
+// structure. Nothing uses it today — the operator chose to split MVC into two options
+// rather than ship a mixed case — but leaving it in means a future re-fronting is a data
+// edit, and it stops a stray 'both' from hiding BOTH rows.
+var BW_NICHE_TYPE = {
+  'Crystal Niches': 'glass',
+  'Court of Honor Niches': 'granite',
+  'Eternal Light Columbarium (New)': 'glass',
+  'Eternal Light Niches': 'glass',
+  'Garden Court Niches': 'granite',
+  'Terrace Garden Niches': 'granite',
+  'Garden of Gethsemane Niches': 'granite',   // sold out; the classification still applies
+  'Garden of Meditation Niches': 'granite',
+  'Mountain View Columbarium (Inside)': 'glass',
+  'Mountain View Columbarium (Outside)': 'granite',
+  'Mountain View Columbarium (New)': 'glass',
+  'Radiance Wall \u2013 Chapel of Memories': 'glass',
+  'Rock of Ages Columbarium': 'granite',
+  'Serenity Wall \u2013 Chapel of Memories': 'glass',
+};
+var BW_MAUS_TYPE = {
+  'Chapel of Memories': 'indoor',
+  'Eternal Light Mausoleum': 'indoor',
+  'Garden Court Mausoleum': 'outdoor',
+  'Terrace Garden Mausoleum': 'outdoor',
+};
+
+// Show only the arrangement row this location can have, and UNCHECK the row being hidden.
+// The uncheck is the load-bearing half: cemUpdate() reads the checkbox, not the row, so a
+// checkbox left ticked behind a hidden row bills the family for a line nobody can see.
+// Called from cemUpdate() BEFORE the bundles are priced, so the charge dies in the same pass.
+// `type` is undefined/`'both'` for custom, empty, or a mixed building → every row shows.
+function _applyArrangeType(type, rows) {
+  var unchecked = [];
+  rows.forEach(function(r) {
+    var show = !type || type === 'both' || type === r.type;
+    var rowEl = el(r.rowId);
+    if (rowEl) rowEl.style.display = show ? '' : 'none';
+    if (!show) {
+      var cb = el(r.cbId);
+      if (cb && cb.checked) { cb.checked = false; unchecked.push(r.cbId); }
+    }
+  });
+  return unchecked;
+}
+var BW_NICHE_ROWS = [
+  { type: 'glass',   rowId: 'qNicheGlassRow',   cbId: 'qNicheGlass' },
+  { type: 'granite', rowId: 'qNicheGraniteRow', cbId: 'qNicheGranite' }
+];
+var BW_MAUS_ROWS = [
+  { type: 'indoor',  rowId: 'qMausIndoorRow',  cbId: 'qMausIndoor' },
+  { type: 'outdoor', rowId: 'qMausOutdoorRow', cbId: 'qMausOutdoor' }
+];
+
 // Every quoted fee goes through here. A missing key is a BUILD error, not a runtime condition
 // — sync-prices writes the whole object at once — so this throws rather than returning 0.
 // Silently under-quoting is the one outcome worse than a visible error.
@@ -7223,9 +7300,8 @@ function _taxNoteText(isFH) {
 // SUMMARY RENDERER
 // ═══════════════════════════════════════════════════════════════
 // The fixed panel is one component in three places (cem / fh / combined): an isolated
-// total block at the top — the only 30px type in the app — then a three-line item
-// preview, then the ranked actions. The itemisation lives in the printed quote and the
-// PDF, which this refresh does not touch.
+// total block at the top — the only 30px type in the app — then EVERY line item on
+// the quote, then the ranked actions.
 function _sumKicker(containerId) {
   if (containerId === 'cemSummary') {
     var t = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'At-Need' : 'Pre-Need';
@@ -7247,16 +7323,18 @@ function _sumSplitRow(label, amount, cls) {
   return '<div class="s-split-row' + (cls ? ' ' + cls : '') + '"><span>' + label
     + '</span><span class="s-split-amt">' + amount + '</span></div>';
 }
-// Deliberately dumb: the first three item rows and a count of the rest.
-function _sumPreview(items) {
-  var html = '';
-  items.slice(0, 3).forEach(function(l) {
+// Every line item on the quote, in order, with no cap. The s19 handoff shipped a
+// three-line preview plus "+ N more items"; the operator overruled it on 2026-08-06 —
+// this panel is read aloud to a family, and an item the counselor cannot see is a
+// surprise at signing. The list carries its own scroll (.s-items) so the total block
+// and the action buttons stay on screen however long the quote gets.
+function _sumItems(items) {
+  var html = '<div class="s-items">';
+  items.forEach(function(l) {
     html += '<div class="s-prev"><span class="s-prev-lbl">' + l.label
           + '</span><span class="s-prev-amt">' + fmt(l.amount) + '</span></div>';
   });
-  var more = items.length - 3;
-  if (more > 0) html += '<div class="s-prev-more">+ ' + more + ' more item' + (more === 1 ? '' : 's') + '</div>';
-  return html;
+  return html + '</div>';
 }
 
 function renderSummary(containerId, lines, discountAmt, discountLabel, discountMode) {
@@ -7298,14 +7376,14 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
   split += _sumSplitRow('Sales tax (10.4%)', fmt(tax), 's-split-tax');
   _sumSet(containerId, { total: grandTotal, split: split, empty: false });
 
-  var html = _sumPreview(exemptLines.concat(taxableLines));
+  var html = _sumItems(exemptLines.concat(taxableLines));
 
   // Estimated monthly payment hint (10% down, 60 months, 0% — August promo or standard)
   if (grandTotal > 0 && containerId === 'cemSummary') {
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
     var estMonthly = Math.ceil(estBalance / 60);
-    html += '<div id="estPaymentHint" style="margin-top:12px;padding:10px 12px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--body);line-height:1.5;">'
+    html += '<div id="estPaymentHint" style="flex:0 0 auto;margin-top:12px;padding:10px 12px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--body);line-height:1.5;">'
       + '<span style="font-weight:600;color:var(--ink);">Est. payment:</span> '
       + fmt(estDown) + ' down &nbsp;&middot;&nbsp; ~' + fmt(estMonthly) + '/mo'
       + ' <span style="color:var(--muted);">(60 mo · 0% · 10% down · ACH)</span>'
@@ -7665,6 +7743,9 @@ function cemUpdate() {
     el('qNicheEcfRow').style.display = nicheOwned ? 'none' : 'flex';
     if (el('qNicheLocationRow')) el('qNicheLocationRow').style.display = 'flex';
     if (el('qNicheArrangeOptions')) el('qNicheArrangeOptions').style.display = 'block';
+    // The columbarium decides the front. Runs before the two bundle guards below, so a
+    // row it hides has already lost its checkbox and cannot push a line this pass.
+    _applyArrangeType(BW_NICHE_TYPE[el('qNicheName') ? el('qNicheName').value : ''], BW_NICHE_ROWS);
     if (!nicheOwned) {
       var nicheLbl = (nicheName || 'Niche Space') + (nicheQ > 1 ? ' \xd7' + nicheQ : '') + (nicheLoc ? ' \u2014 ' + nicheLoc : '');
       lines.push({label: nicheLbl, amount: nicheP * nicheQ, taxable: false, isSpace: true, isNiche: true});
@@ -7705,6 +7786,8 @@ function cemUpdate() {
     el('qMausEcfRow').style.display = 'flex';
     if (el('qMausLocationRow')) el('qMausLocationRow').style.display = 'flex';
     if (el('qMausArrangeOptions')) el('qMausArrangeOptions').style.display = 'block';
+    // Same rule for the mausoleum: Chapel of Memories is indoors, Garden Court is not.
+    _applyArrangeType(BW_MAUS_TYPE[el('qMausName') ? el('qMausName').value : ''], BW_MAUS_ROWS);
     var mausLbl = (mausName || 'Mausoleum Crypt') + (mausQ > 1 ? ' \xd7' + mausQ : '') + (mausLoc ? ' \u2014 ' + mausLoc : '');
     lines.push({label: mausLbl, amount: mausP * mausQ, taxable: false, isSpace: true});
     lines.push({label: 'Mausoleum ECF (10%)', amount: mausEcf * mausQ, taxable: false, isSpace: true});
@@ -8891,6 +8974,9 @@ function resetCemQuote() {
   ['qNicheGlassQty','qNicheGraniteQty','qMausIndoorQty','qMausOutdoorQty'].forEach(function(id){ var e=el(id); if(e) e.value=1; });
   if (el('qNicheArrangeOptions')) el('qNicheArrangeOptions').style.display='none';
   if (el('qMausArrangeOptions')) el('qMausArrangeOptions').style.display='none';
+  // _applyArrangeType() writes inline display on these four rows, so a reset has to put them
+  // back — otherwise the next quote opens wearing the last location's shape.
+  ['qNicheGlassRow','qNicheGraniteRow','qMausIndoorRow','qMausOutdoorRow'].forEach(function(id){ var e=el(id); if(e) e.style.display=''; });
   // Reset qty spinners to 1
   ['qty_marker','qty_foundation','qty_bronze','qty_portrait',
    'qGardenQty',
@@ -10820,7 +10906,7 @@ function combUpdate() {
   }
   split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
   _sumSet('combSummary', { total: grandTotal, split: split, empty: false });
-  body.innerHTML = _sumPreview(items);
+  body.innerHTML = _sumItems(items);
   qsSet('section-combined-quote', {
     'cmb:cem':        { amt: hasCem ? _combCemTotal : 0, n: hasCem ? _combCemLines.length : 0 },
     'cmb:fh':         { amt: hasFh  ? _combFhTotal  : 0, n: hasFh  ? _combFhLines.length  : 0 },
