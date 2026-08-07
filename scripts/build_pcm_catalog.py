@@ -258,8 +258,16 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
 .photo-lightbox{position:fixed;inset:0;background:rgba(12,18,26,.92);display:none;align-items:center;justify-content:center;z-index:9999;padding:28px;}
 .photo-lightbox.active{display:flex;}
-.photo-lightbox img{width:min(96vw,1100px);max-height:82vh;object-fit:contain;background:#fff;border-radius:6px;}
-.lightbox-cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;}
+.photo-lightbox img{width:min(96vw,1100px);max-height:74vh;object-fit:contain;background:#fff;border-radius:6px;}
+.lightbox-cap{position:absolute;bottom:64px;left:0;right:0;text-align:center;color:#fff;font-size:15px;font-weight:600;letter-spacing:.05em;}
+/* The enlarged view's own actions. Operator, 2026-08-07: "when enlarging a single pcm
+   image there needs to be an option to print that" — the casket catalogs put a Print
+   button on the enlarged product, this page had none. Every card class that can enlarge
+   gets it, so the answer to "can I print this one?" is the same wherever he is. */
+.lightbox-actions{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:10px;}
+.lightbox-print{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.lightbox-print:hover{background:var(--navy-dark);}
+.lightbox-print svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
 .doc-footer{background:var(--cream);padding:44px 48px 36px;border-top:1px solid var(--rule);text-align:center;}
 .doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
@@ -456,6 +464,66 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .fs-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
   .fs-pageno{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;margin-top:2px;}
 }
+
+/* ---------- SINGLE-DESIGN PRINT SHEET (one design, ONE page) ----------
+   The casket catalogs' #printSheet, ported: enlarge a product, press Print, and one
+   page comes out with that product's photo, name and specs. This page had an enlarged
+   view with no way out of it onto paper (operator, 2026-08-07).
+
+   Same shape as #compareSheet — position:fixed, height:100%, so it CLIPS rather than
+   flowing onto a second page. That is deliberate (one design, one page) and it is
+   exactly why the gate asserts GEOMETRY, not `scrollHeight - clientHeight`: a clipped
+   footer reports no overflow. The photo takes the slack (flex:1) so a long description
+   shortens the plate instead of pushing the footer off the sheet.
+
+   Two things the caskets' sheet does not have to do. The number line is the number PCM
+   PRINTED (`.pcm-number`, i.e. data-num), never the file id — on eight single proofs
+   those differ. And the specs are whatever the card actually carries: a book design has
+   book/group/format/colour, a proof has a title and a sentence and nothing else, an
+   element has its category. Empty rows are dropped rather than printed as em dashes. */
+#designSheet{display:none;}
+@media print{
+  .lightbox-print{display:none!important;}
+  body.design-printing *{display:none!important;}
+  body.design-printing #designSheet,
+  body.design-printing #designSheet *{display:block!important;}
+  /* Beats the blanket rule above: an attribute selector counts as a class, so this is
+     one step MORE specific than `#designSheet *`. Without it a hidden title prints as
+     an empty band. */
+  body.design-printing #designSheet [hidden]{display:none!important;}
+  body.design-printing #designSheet{display:flex!important;flex-direction:column;position:fixed;inset:0;width:100%;height:100%;background:#F6F2E9;z-index:99999;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* Layout-critical rules carry the body.design-printing #designSheet prefix so they
+     out-rank the blanket display:block!important above — a bare .ds-x class would lose
+     to a selector carrying an ID. */
+  body.design-printing #designSheet .ds-masthead{display:flex!important;align-items:center;background:#4B6E81;padding:14px 36px;border-bottom:3px solid #E5480F;flex-shrink:0;}
+  .ds-masthead img{height:36px;width:auto;}
+  .ds-masthead-right{margin-left:auto;text-align:right;}
+  .ds-masthead-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#fff;}
+  .ds-masthead-addr{font-size:9px;color:rgba(255,255,255,.6);margin-top:2px;}
+  .ds-eyebrow{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#E5480F;padding:13px 36px 0;flex-shrink:0;}
+
+  body.design-printing #designSheet .ds-photo{display:flex!important;align-items:center;justify-content:center;flex:1;min-height:0;margin:12px 36px 0;}
+  .ds-photo img{max-width:100%;max-height:100%;object-fit:contain;}
+
+  body.design-printing #designSheet .ds-name-row{display:block!important;text-align:center;padding:16px 36px 10px;border-bottom:2px solid #4B6E81;flex-shrink:0;}
+  .ds-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:#3b4a52;line-height:1.15;font-variant-numeric:tabular-nums lining-nums;}
+  .ds-title{font-family:'Source Sans 3',sans-serif;font-size:15px;color:#4B6E81;margin-top:4px;}
+  /* Inside the name row, above its rule: the sentence belongs to the design it
+     describes, and below the rule it read as the first line of the spec table. */
+  .ds-desc{font-family:'Source Sans 3',sans-serif;font-size:12px;line-height:1.45;color:#45525a;padding:8px 0 0;text-align:center;max-width:5.6in;margin:0 auto;}
+
+  body.design-printing #designSheet .ds-specs{display:block!important;padding:4px 36px 0;margin:0;list-style:none;flex-shrink:0;}
+  body.design-printing #designSheet .ds-specs li{display:flex!important;align-items:baseline;padding:7px 0;border-bottom:1px solid #EDE5D6;font-size:12px;}
+  body.design-printing #designSheet .ds-specs li:last-child{border-bottom:none;}
+  .ds-spec-label{font-family:'Source Sans 3',sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a9299;width:120px;flex-shrink:0;}
+  .ds-spec-value{font-family:'Source Sans 3',sans-serif;color:#45525a;}
+
+  body.design-printing #designSheet .ds-footer{margin-top:auto;padding:11px 36px;border-top:1px solid #DBD3C4;display:flex!important;align-items:baseline;justify-content:space-between;flex-shrink:0;}
+  .ds-advisor-name{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;color:#E5480F;}
+  .ds-advisor-role{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;}
+  .ds-advisor-contact{font-family:'Source Sans 3',sans-serif;font-size:9px;color:#8a9299;text-align:right;}
+}
 """
 
 
@@ -566,6 +634,22 @@ COMPARE_JS = """
       d.format = card.dataset.kind || DASH;
       d.color = DASH;
       d.detail = ((card.querySelector('.proof-title') || {}).textContent || '').trim();
+      d.desc = ((card.querySelector('.proof-desc') || {}).textContent || '').trim();
+    } else if (card.classList.contains('reference-card')) {
+      /* Neither of the last two classes can be compared or reach a filtered sheet —
+         they carry no checkbox and shownCards() does not look at them. They are here
+         because they CAN be enlarged, and the enlarged view now prints. Without a
+         branch they fell to the book-design one below and a photo of a granite sample
+         would have printed as a "Marker design" with a blank number. */
+      d.type = 'Reference plate';
+      d.number = ((card.querySelector('.ref-title') || {}).textContent || '').trim();
+      d.detail = ((card.querySelector('.product-detail') || {}).textContent || '').trim();
+      d.book = d.group = d.category = d.format = d.color = DASH;
+    } else if (card.classList.contains('photo-card')) {
+      d.type = 'Installed example';
+      d.number = '';
+      d.detail = ((card.querySelector('.product-detail') || {}).textContent || '').trim();
+      d.book = d.group = d.category = d.format = d.color = DASH;
     } else {
       d.type = 'Marker design';
       d.book = BOOK_LABELS[card.dataset.book] || card.dataset.book || DASH;
@@ -586,11 +670,10 @@ COMPARE_JS = """
       .filter(Boolean).join(' \\u00b7 ');
   }
 
-  function zoom(src, cap) {
-    document.getElementById('lightboxImg').src = src;
-    document.getElementById('lightboxCap').textContent = cap || '';
-    document.getElementById('photoLightbox').classList.add('active');
-  }
+  /* Enlarging from the compare overlay goes through the SAME entry point as enlarging
+     from a card, so the enlarged view there carries the Print control too and prints the
+     design it is showing — not whatever was enlarged last. */
+  function zoom(key) { window.bwOpenLightbox(byKey(key)); }
 
   function updateCheckboxStates() {
     var cbs = document.querySelectorAll('.compare-cb');
@@ -704,7 +787,7 @@ COMPARE_JS = """
       var img = document.createElement('img');
       img.src = d.img; img.alt = d.number;
       wrap.appendChild(img);
-      if (!isPrint) wrap.addEventListener('click', function () { zoom(d.img, d.number); });
+      if (!isPrint) wrap.addEventListener('click', function () { zoom(d.key); });
       col.appendChild(wrap);
       col.appendChild(el('div', isPrint ? 'cmp-photo-name' : 'compare-photo-name', d.number));
       col.appendChild(el('div', isPrint ? 'cmp-photo-detail' : 'compare-photo-detail',
@@ -899,6 +982,82 @@ COMPARE_JS = """
     document.getElementById('filterPrintPages').textContent =
       n ? (' \\u00b7 ' + pages + (pages === 1 ? ' page' : ' pages')) : '';
   };
+
+  // ---------- print ONE design, from the enlarged view ----------
+  /* The casket catalogs' pattern, ported: the enlarged product carries a Print button,
+     a hidden single-page sheet is filled from that product, a body class swaps the page
+     for the sheet in print media, and afterprint takes the class back off.
+
+     Two deviations from wood-caskets.html, both forced by this page:
+
+     1. The caskets read the modal's own DOM (name, price, six fixed spec <li>s in a
+        known order). There is no modal here and no fixed spec list — a proof has a title
+        and a sentence, a book design has book/group/format/colour, an element has a
+        category. So the sheet is filled from cardData(), the same reader the tray and
+        both other sheets use, and rows that are DASH are dropped rather than printed.
+
+     2. `body.modal-printing > :not(#printSheet)` (a CHILD combinator) is not portable
+        here — #designSheet is not a direct child of <body> on this page, and that rule
+        would hide its own ancestor. This page's own convention is used instead:
+        blanket-hide, then re-show the sheet by id. */
+  var dsSpecs = document.getElementById('dsSpecs');
+
+  function dsLine(id, text) {
+    var node = document.getElementById(id);
+    node.textContent = text || '';
+    node.hidden = !text;
+    return text || '';
+  }
+
+  /* Exposed so a headless run can build the sheet without window.print(), which blocks. */
+  window.bwBuildDesignSheet = function (card) {
+    var d = cardData(card);
+    if (!d) return null;
+    var img = document.getElementById('dsImg');
+    img.src = d.img;
+    img.alt = d.number || d.type;
+    var rows = [['Book', d.book], ['Group', d.group], ['Category', d.category],
+                ['Format', d.format], ['Granite color', d.color], ['Subjects', d.subjects]]
+      .filter(function (r) { return r[1] && r[1] !== DASH; });
+    dsSpecs.innerHTML = '';
+    rows.forEach(function (r) {
+      var li = document.createElement('li');
+      li.appendChild(el('span', 'ds-spec-label', r[0]));
+      li.appendChild(el('span', 'ds-spec-value', r[1]));
+      dsSpecs.appendChild(li);
+    });
+    return {
+      key: d.key,
+      type: dsLine('dsEyebrow', d.type),
+      /* The number PCM PRINTED. cardData reads `.pcm-number`, which the builder writes
+         from data-num — on eight single proofs the file id is a different number and
+         printing it would send a family to the wrong design. */
+      number: dsLine('dsName', d.number),
+      title: dsLine('dsTitle', detailLine(d)),
+      desc: dsLine('dsDesc', d.desc),
+      specs: rows.map(function (r) { return r[0]; }),
+      img: d.img
+    };
+  };
+
+  window.printDesign = function (card) {
+    if (!card) card = window.bwLightboxCard();
+    if (!window.bwBuildDesignSheet(card)) return false;
+    document.body.classList.add('design-printing');
+    setTimeout(function () { window.print(); }, 100);
+    window.addEventListener('afterprint', function handler() {
+      document.body.classList.remove('design-printing');
+      window.removeEventListener('afterprint', handler);
+    });
+    return true;
+  };
+
+  /* The lightbox closes on any click that reaches it, so the button has to keep its own
+     click to itself — otherwise pressing Print dismisses the thing being printed. */
+  document.getElementById('lightboxActions')
+    .addEventListener('click', function (e) { e.stopPropagation(); });
+  document.getElementById('lightboxPrint')
+    .addEventListener('click', function () { window.printDesign(); });
 
   window.bwBindCompare(document);
 })();
@@ -1334,6 +1493,12 @@ def build():
 <div class="photo-lightbox" id="photoLightbox" onclick="closeLightbox()">
   <img id="lightboxImg" alt="">
   <div class="lightbox-cap" id="lightboxCap"></div>
+  <div class="lightbox-actions" id="lightboxActions">
+    <button class="lightbox-print" id="lightboxPrint" type="button">
+      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Print This Design
+    </button>
+  </div>
 </div>
 
 <div class="compare-tray" id="compareTray">
@@ -1383,6 +1548,29 @@ def build():
 
 <!-- Pages are built on demand by printFiltered(). -->
 <div id="filterSheet"></div>
+
+<!-- One design, one page. Filled by bwBuildDesignSheet() from whatever card is enlarged. -->
+<div id="designSheet">
+  <div class="ds-masthead">
+    <img src="logo.svg" alt="Bonney Watson">
+    <div class="ds-masthead-right">
+      <div class="ds-masthead-title">Marker Design Selection</div>
+      <div class="ds-masthead-addr">16445 International Blvd, SeaTac WA 98188 &middot; 206-445-9794</div>
+    </div>
+  </div>
+  <div class="ds-eyebrow" id="dsEyebrow"></div>
+  <div class="ds-photo"><img id="dsImg" src="" alt=""></div>
+  <div class="ds-name-row">
+    <div class="ds-name" id="dsName"></div>
+    <div class="ds-title" id="dsTitle" hidden></div>
+    <div class="ds-desc" id="dsDesc" hidden></div>
+  </div>
+  <ul class="ds-specs" id="dsSpecs"></ul>
+  <div class="ds-footer">
+    <div><div class="ds-advisor-name">Martice Morrison</div><div class="ds-advisor-role">Family Service Advisor &middot; Bonney Watson</div></div>
+    <div class="ds-advisor-contact">mmorrison@bonneywatson.com &middot; 206-445-9794</div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <a href="guides.html">&larr; Back to all guides</a>
@@ -1783,18 +1971,37 @@ function clearAll(keepJump) {{
   applyFilters();
 }}
 
-document.addEventListener('click', function (ev) {{
-  var card = ev.target.closest && ev.target.closest('.product-card');
-  if (!card) return;
+/* WHICH card is enlarged, not just which image — the Print control has to build a sheet
+   for that design (number, title, description, book/format), and an <img> src cannot say
+   any of that. Kept here rather than re-derived from the src, because two cards can share
+   an image (a cross-listed design is two cards) and the caption already came off the
+   card. */
+var lightboxCard = null;
+window.bwOpenLightbox = function (card) {{
+  if (!card) return null;
   var img = card.querySelector('img');
-  if (!img) return;
+  if (!img) return null;
+  lightboxCard = card;
   document.getElementById('lightboxImg').src = img.src;
   document.getElementById('lightboxCap').textContent =
     (card.querySelector('.pcm-number') || card.querySelector('.ref-title') ||
      card.querySelector('.product-detail') || {{}}).textContent || '';
   document.getElementById('photoLightbox').classList.add('active');
+  return card;
+}};
+window.bwLightboxCard = function () {{ return lightboxCard; }};
+document.addEventListener('click', function (ev) {{
+  var card = ev.target.closest && ev.target.closest('.product-card');
+  if (!card) return;
+  window.bwOpenLightbox(card);
 }});
-function closeLightbox() {{ document.getElementById('photoLightbox').classList.remove('active'); }}
+function closeLightbox() {{
+  /* Forgetting the card is part of closing. Print acts on what is ENLARGED, and a stale
+     card would let a Print fired after the view closed emit a sheet for a design nobody
+     is looking at. */
+  lightboxCard = null;
+  document.getElementById('photoLightbox').classList.remove('active');
+}}
 document.addEventListener('keydown', function (e) {{ if (e.key === 'Escape') closeLightbox(); }});
 
 document.getElementById('searchInput').addEventListener('input', applyFilters);
