@@ -1,5 +1,21 @@
 # STATE — Living Ledger
 
+**s21 OPS ROUND PUSHED LIVE 2026-08-07 (operator: "push it all live";
+`f73708a9..1e82619f`, 8 commits) — wire-verified 8/8 after 2 deploy-lag retries**
+(scratch/s21-ops-live-verify.mjs: all four touched pages byte-identical sha256 vs HEAD
+blobs + content probes). Shipped: RIC Import panel to top; deed-transfer-letter
+property pickers/centered letterhead/$-format (+ test-deed-letter.mjs, 42nd suite,
+parity-pins the qGarden/qNicheName/qMausName copies); Track D catalog "Print This
+Design" (gate 377/0); Interlude Urn $655 taxable required in Garden of Meditation
+Niches; per-item checkboxes on all 4 cemetery packages (defaults preserve totals);
+dashboard sort dropdown (status=workflow order/service/name/newest, bw:caseSort4);
+CIRGAS Mem Order sig-block fix (template cells were [1]Information! EXTERNAL-workbook
+formulas — never resolvable; now direct writes, proven on generated flat+upright
+workbooks 7/7). Final contract: **2842/42**, index 8/0, dashboard 2/0, catalog 1/0.
+NOTE: the 8 corrupt PCM proof sources are DELISTED from PCM's site (all URL patterns
+404, gallery no longer references the numbers) — recovery is via the PCM rep only.
+s21d worktree + s21/* branches kept until pruned.
+
 **s21 PUSHED LIVE 2026-08-07 (operator: "push it all live"; `de565e55..ff7cbae9`,
 12 commits) — wire-verified 12/12 after 2 deploy-lag retries** (scratch/
 s21-live-verify.mjs): live catalog page + index.html byte-identical sha256 vs the
