@@ -1,5 +1,43 @@
 # STATE — Living Ledger
 
+**s21 CLOSED ON MAIN 2026-08-07 — ALL FOUR TRACKS IN (A `337b2508` → B1 `c2960d5f` →
+B2 `e55337ab` → C `f8006386`). Final main GREEN: index 8/0 + catalog-page 1/0 syntax;
+suite `2764 passed, 0 failed across 41 suites` (NEW PIN; C's worktree read 2762 — the
+known +2 is test-contact-csv's wmp-map presence check); verify_pcm_catalog 315/0
+(was 238) BW_BASE-pinned fresh 4173; verify_pcm_proofs_import 42/0; both desc
+validators OK (372, 247); director re-proved the source-chip sabotage red/green on the
+merged bytes himself.** Shipped: 372 single proofs (`pcm-single-images/`, NEW class,
+string ids — `1148`≠`1148-2`, UI prints `num` never `id`, 8 differ, gate-pinned) + 247
+companions (232 + 245/258/2538 + THE 12 RELEASED), every proof with a curated
+by-looking title/desc/tags from the shared vocabulary (+menorah/horseshoe/snowman,
+director-ruled), language-tagged (17 Vietnamese, 16 Hebrew, 2 Chinese, 2 Spanish
+across both classes) and searchable; two proof sections at the TOP of the catalog,
+books-dropdown entries (Single marker designs / Companion designs), `format: single`
+facet, `source: full-colour proof` chip GONE chip-and-facet; proofs now join Compare +
+print sheets (1,319 cards · 110 pages unfiltered); `pcm_extract.py --fold-proofs`
+closes the manifest-vs-page refresh gap that stranded the count at 232. **PII RELEASE
+ON THE RECORD: operator asked TWICE in-session (second time with Track A's census
+quoted at scale — ~260 real-identity singles + the 12 held companions, portraits/
+dates/hometowns, public repo), answered "Ship everything"; classifier blocked the
+relayed instruction, so the director executed it himself after the second direct
+answer (`67a4c81c`); every released image verifiably already public on PCM's own
+gallery; hold reasons preserved as RELEASED provenance in script+manifest+gates.**
+Deviations: 8 sources are CORRUPT DOWNLOADS (HTML error bodies as .jpg: companions
+2260/2261/2263/2267/2343/2352/2355 + single 1348) — recorded unavailable in both
+manifests, gates assert none quietly shipped; re-download from PCM's gallery slots in
+with zero edits (magic-byte detection, 1348's URL pattern is `PCM-1348.jpg`). Track A's
+transcript died post-report (3rd occurrence); B1/B2 wrote rival verify_pcm_desc.mjs
+(add/add) — resolved to B1's, director added webp-dir mode + the 3 ruled vocab slugs.
+SCAR, promote: a track brief that RELAYS a PII/publish ruling gets refused by the
+track (correctly) — route release rulings through a direct operator answer, then
+execute director-direct. OPERATOR EYEBALL at close (C's list): cover subtitle still
+books-only + carries an em dash (pre-existing, one edit if wanted); `vietnamese`
+search returns 36 (curated asian/mary synonym) vs exactly 17 language-chipped —
+gate pins the honest rule; 17 portrait-ratio proofs leave ragged grid rows; renders
+in scratch/s21-c-renders/. NOT PUSHED — push gate must restate the PII release.
+Worktrees s21{a,b1,b2,c} removed (junctions non-recursive first); s21/* branches kept
+until pruned.
+
 **Current sprint: sprint-21 — OPENED 2026-08-07** (director: Fable session; tracks: Opus
 per operator word). Scope: PCM proofs expansion — `D:\Cemetery Photos Misc\PCM SINGLE`
 (373 single-marker proofs, new class) + `PCM COMPANION NEW` (252 files; survey: 230 are
