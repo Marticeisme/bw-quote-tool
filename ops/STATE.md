@@ -53,6 +53,24 @@ TYPE_COLORS neutralized-not-removed (B's job). NOTE: quote session committed 39b
 on main mid-wave (s19 operator-round brief) — merge integrated it cleanly. WAVE 2
 SPAWNED: B table-views (Opus, ../bw-quote-tool-s20b from cb1e192a).**
 
+**s20 WAVE 2 MERGED 2026-08-06, main GREEN + both syntax checks; suite now 2685/41 —
+grew from 2598/40 via the QUOTE SESSION's s19 Track F merge (`f4b02cab`, +1 suite),
+not dashboard work; 2685/41 is the running pin.** B merged (track `6bb2b111` — §3
+table card + §4 Martice/Chloe/All views, per-user stats with context notes, named
+filter tabs, §2 pill map as CSS classes both themes, Pending Service pair light
+#FBEAF1/#9B3D6A dark #33202B/#E79ABE; TYPE_COLORS/caseTypeColor/hex-SC DELETED, type
+is plain text; buildCaseCardHTML kept compiling as C's source material; openCase(id)
+seam + crow-<id> rows for C; chip filter bar + #caseList retired — s20-a/wave0 verify
+scripts' chip probes superseded by s20-b-verify's same-contract asserts at the new
+surface, 120/0, director re-ran on branch AND merged main; renders eyeballed).
+Accepted deviations: quick-status select out of rows (pill per §3, modal still edits),
+canonical status strings over mockup sentence case (§8 wins), Chloe sort
+upcoming→past→undated, All view 7-slot grid, tab count badges dropped to match
+mockups, due-banner left for D's sweep. Director-observed nit for D: seeded case
+without status renders NO pill — D should confirm a real default. WAVE 3 SPAWNED:
+C case-detail (Opus, ../bw-quote-tool-s20c from `01644a52`, which includes the quote
+session's operator round — they've left a push-coordination note re s20 in-flight).
+
 **s19 PUSHED LIVE 2026-08-06 (operator: "push it all live it looks great";
 `e3c37ea5..9a56c7d2`, 12 commits) — wire-verified 8/8:** live index.html carries the
 new chrome navy/summary-total/status-pill CSS, guides.html the category pills +
