@@ -1,5 +1,25 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-21 — OPENED 2026-08-07** (director: Fable session; tracks: Opus
+per operator word). Scope: PCM proofs expansion — `D:\Cemetery Photos Misc\PCM SINGLE`
+(373 single-marker proofs, new class) + `PCM COMPANION NEW` (252 files; survey: 230 are
+repeats of the shipped 232 → SKIPPED per operator, 10 genuinely new, 12 = the s17
+PII-held set). **OPERATOR RULINGS AT OPEN, all in-chat 2026-08-07:** (1) **RELEASE ALL 12
+held proofs** — asked with the PII risk spelled out (real names/dates/hometowns/portraits,
+public repo), he chose full release; survey fact: all are already on PCM's public gallery
+(the SINGLE folder's CSV carries the public URLs). (2) TWO sections at the TOP of the
+catalog (singles then companions, above the book plates), NO bespoke filter UI — integrate
+into the EXISTING books dropdown + format facets + search bar. (3) Descriptions BY
+LOOKING on all ~627 proofs, subject tags from the existing vocabulary, `source:
+full-colour proof` chip REMOVED. (4) Non-English (esp. Vietnamese) lettering tagged +
+searchable so families can find Vietnamese examples. (5) Repeats: shipped file wins, zero
+byte churn on the 232. No-enhancement regime unchanged (no upscale, no masking). Waves:
+Wave 1 parallel A `s21/import` ∥ B1 `s21/desc-singles` ∥ B2 `s21/desc-companions`
+(worktrees ../bw-quote-tool-s21{a,b1,b2}, pre-created from LOCAL main by the director —
+stale-base scar) → Wave 2 C `s21/catalog` (builder restructure + gate re-pin). Merge order
+A → B1 → B2 → C. Briefs in `sprints/sprint-21/`. Contract at open: index 8/0, suite pin
+2685/41, verify_pcm_catalog 238/0. NO push pre-authorization.
+
 **s20 PUSHED LIVE 2026-08-06 (`0c2bae87..66c9fee1`, 21 commits incl. the quote
 session's s19 operator round), wire-verified 7/7:** live dashboard.html AND index.html
 byte-identical sha256 vs the HEAD blobs (4 deploy-lag retries), Pending Service +
