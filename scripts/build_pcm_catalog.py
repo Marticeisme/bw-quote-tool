@@ -34,6 +34,36 @@ DATA = 'data/pcm-catalog.json'
 TAGS = 'data/pcm-catalog-tags.json'
 PAGE = 'pcm-design-catalog.html'
 
+# The two full-colour proof classes' curated text (s21 Tracks B1/B2). Same relationship to
+# the proof images that data/pcm-subject-tags.json has to the book plates: somebody looked
+# at every one of them and wrote down what is drawn. data/pcm-catalog.json carries the
+# image facts (id, number, file, pixels); these carry the words.
+DESC = {'single': 'data/pcm-desc-singles.json',
+        'companion': 'data/pcm-desc-companions.json'}
+SUBJECTS = 'data/pcm-subject-tags.json'
+
+# What a proof card is, per class. `key` is how a catalog row finds its description:
+# a companion proof is keyed by its number, a SINGLE proof by its string id, because
+# PCM's gallery serves "1148" and "1148-2" as two different designs and on eight of the
+# 372 the id and the printed number disagree (id 1148 is design PCM 1448). The number is
+# the only thing shown; the id is the only thing joined on. See load_single_proofs().
+PROOF_CLASSES = [
+    ('single', 'singleProofs', 'singles', 'Single Marker Designs',
+     'one name', 'sp'),
+    ('companion', 'proofs', 'proofs', 'Companion Designs',
+     'two names', 'cp'),
+]
+
+# Words that may never enter a proof card's data-name, however they got into the curated
+# text. The page's format search is a FACET match, not a substring one, and sprint-12 wrote
+# down why: when "companion" also matched the card's own name, stripping the facet off a
+# card left it still findable, so the gate's needle landed on an accident instead of on the
+# rule. Twenty single-proof descriptions say "a single rose stem" and would have reopened
+# exactly that hole for the singles facet, so both class words are stripped rather than
+# only the one that happens to collide today.
+NAME_STOP = {'single', 'singles', 'companion', 'companions', 'proof', 'proofs',
+             'individual', 'ledger', 'ledgers', 'flat'}
+
 esc = lambda s: html.escape(str(s), quote=True)
 norm = lambda s: ' '.join(re.sub(r'[^a-z0-9 ]', ' ', str(s).lower()).split())
 
@@ -198,6 +228,12 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .proof-card .product-img{background:#fff;}
 .proof-card .product-img img{object-fit:contain;}
 .proof-card[data-shape="portrait"] .product-img{aspect-ratio:10/13;}
+/* A proof card carries real words now: a title above the number and one sentence below it,
+   both written by looking at the artwork (data/pcm-desc-*.json). The title reuses
+   `.product-detail` so the compare tray and both printed sheets pick it up through the
+   same path every other card uses, rather than needing a second rule that could drift. */
+.proof-card .proof-title{font-size:12.5px;font-weight:600;color:var(--navy-dark);line-height:1.3;}
+.proof-card .proof-desc{font-size:11.5px;color:var(--text-muted);line-height:1.4;margin-top:4px;}
 .reference-card .product-img{aspect-ratio:4/3;background:#fff;}
 .reference-card .product-img img{object-fit:contain;}
 .reference-card .product-body{text-align:left;}
@@ -517,6 +553,19 @@ COMPARE_JS = """
       d.category = DASH;
       d.format = DASH;
       d.color = DASH;
+    } else if (card.classList.contains('proof-card')) {
+      /* A full-colour proof has no book, group, category or granite colour: it is not a
+         page in a book, it is a picture of the artwork. What it does have that no other
+         card has is a TITLE somebody wrote by looking at it, so that is what rides to the
+         tray and to both printed sheets. Read off the card rather than looked up, like
+         everything else here, so a card that renders is a card that can be compared. */
+      d.type = 'Design proof';
+      d.book = DASH;
+      d.group = DASH;
+      d.category = DASH;
+      d.format = card.dataset.kind || DASH;
+      d.color = DASH;
+      d.detail = ((card.querySelector('.proof-title') || {}).textContent || '').trim();
     } else {
       d.type = 'Marker design';
       d.book = BOOK_LABELS[card.dataset.book] || card.dataset.book || DASH;
@@ -531,6 +580,7 @@ COMPARE_JS = """
   /* The same one-line caption the card shows on screen, so a printed sheet and the page
      it came from say the same thing about the same design. */
   function detailLine(d) {
+    if (d.detail) return d.detail;
     if (d.type === 'Design element') return d.group;
     return [d.color !== DASH ? d.color : null, d.format !== DASH ? d.format : null]
       .filter(Boolean).join(' \\u00b7 ');
@@ -728,21 +778,24 @@ COMPARE_JS = """
      rendered element category that was CLOSED again still holds its cards with an empty
      inline display, and a facet that hides the whole elements block leaves them the
      same way. Both have to be walked, or the button promises pages of invisible cards. */
+  /* ONE query in DOM order, not one pass per class. The proof sections sit ABOVE the book
+     designs, so taking the classes in turn would print them in an order the page never
+     shows — and the sheet's whole claim is that it prints what is on screen, in the order
+     it is on screen. `.ex-cat` joins `.el-cat` in the fold test because the proof panels
+     and Installed Examples are that kind of panel, and a folded panel's cards are not on
+     screen however open the group around them is. */
   function shownCards() {
     var out = [];
-    var take = function (list) {
-      for (var i = 0; i < list.length; i++) {
-        var c = list[i];
-        if (c.style.display === 'none') continue;
-        var g = c.closest('.group');
-        if (g && g.hidden) continue;
-        var box = c.closest('.el-cat');
-        if (box && (box.hidden || !box.classList.contains('open'))) continue;
-        out.push(c);
-      }
-    };
-    take(document.querySelectorAll('.design-card'));
-    take(document.querySelectorAll('.element-card'));
+    var list = document.querySelectorAll('.design-card, .proof-card, .element-card');
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      if (c.style.display === 'none') continue;
+      var g = c.closest('.group');
+      if (g && g.hidden) continue;
+      var box = c.closest('.el-cat, .ex-cat');
+      if (box && (box.hidden || !box.classList.contains('open'))) continue;
+      out.push(c);
+    }
     return out;
   }
 
@@ -892,43 +945,62 @@ def photo_card(p):
         f'      </div>')
 
 
-def proof_card(p):
-    """A COMPANION design proof: the same PCM design number as the book plates, but the
-    manufacturer's full-colour proof -- artwork laid onto the real granite colour with
-    sample lettering, rather than the book's black-and-white plate.
+def proof_card(p, kind, prefix, meta):
+    """A full-colour design proof, single or companion: the same PCM design number the
+    books print, but the manufacturer's own proof -- artwork laid onto the real granite
+    colour with sample lettering, rather than the book's black-and-white plate.
 
-    Two things the card has to do that a photo or reference card does not. It carries
-    `data-num`, so the jump box finds a proof by its PCM number exactly as it finds a
-    plate. And it carries `data-facets` with `companion` in it, so the operator's
-    sprint-12 ruling -- typing "companion" shows all companion designs -- keeps holding
-    now that some companion designs are proofs. The facet is real, not a substring
-    accident: it goes through the same singular() match the design cards use, and the
-    chip lights up to say why the card came back.
+    Three things the card has to do that a photo or reference card does not.
 
-    The source chip is not decoration. A family looking at PCM 2271 can now be shown two
-    different pictures of one design, and they must be able to tell which is which."""
-    facets = ['companion', 'proof']
-    chips = (f'<span class="tag tag-facet" data-facet="companion">format: companion</span>'
-             f'<span class="tag tag-facet" data-facet="proof">source: full-colour proof</span>')
-    # NOTE the word "companion" is deliberately NOT in data-name. It was, and the gate's
-    # sabotage caught the consequence: stripping the facet off a proof card left the
-    # singular "companion" still finding it, through a substring hit on the card's own
-    # name, while the plural correctly missed. That is the exact accident sprint-12 wrote
-    # up and refused to keep ("Accident is not a feature") — a shadowed rule that makes a
-    # green check meaningless. With the word out of the name, `companion` and `companions`
-    # both reach these cards through the facet and through nothing else, so the gate's
-    # needle lands on the rule that actually carries the operator's ruling.
-    name = norm(f'pcm {p["num"]} {p["num"]} full colour proof pacific coast memorials')
+    It carries `data-num`, so the jump box finds a proof by its PCM number exactly as it
+    finds a plate -- and `data-num` is the number PCM PRINTED, never the file id, which on
+    eight singles is a different number entirely.
+
+    It carries `data-facets`, so the operator's sprint-12 ruling (typing "companion" shows
+    all companion designs) keeps holding for a class that has no fmt/cat/sub of its own,
+    and so the same sentence is now true of "single". The facet is a real match through
+    singular(), not a substring accident, and the chip lights up to say why the card came
+    back.
+
+    And it carries the curated text: a title, one sentence, and the subject tags, all from
+    data/pcm-desc-*.json. The tags are the SAME slugs the book plates use, which is the
+    point of the shared vocabulary -- one search reaches a plate and a proof of the same
+    subject and explains both with the same chip.
+
+    NO SOURCE CHIP. It used to read "source: full-colour proof" beside the format; the
+    operator removed it (2026-08-07): "not helpful to a family". The section prose says
+    what a proof is once, in words a family can use, instead of every card repeating a
+    manufacturing term 619 times. The facet went with the chip -- a facet nothing explains
+    is a hit with no reason attached, which is the failure the chips exist to prevent."""
+    lang = meta.get('language')
+    facets = [kind] + ([lang] if lang else [])
+    chips = (f'<span class="tag tag-facet" data-facet="{esc(kind)}">'
+             f'format: {esc(kind)}</span>')
+    if lang:
+        chips += (f'<span class="tag tag-facet" data-facet="{esc(lang)}">'
+                  f'language: {esc(lang)}</span>')
+    chips += ''.join(f'<span class="tag" data-tag="{esc(t)}">{esc(t.replace("-", " "))}</span>'
+                     for t in meta['tags'])
+    # The haystack: number, title, sentence, language. NAME_STOP is subtracted afterwards
+    # so no format word can reach a card except through its facet -- see NAME_STOP.
+    words = [w for w in norm(f'pcm {p["num"]} {p["num"]} {meta["title"]} {meta["desc"]} '
+                             f'{lang or ""}').split() if w not in NAME_STOP]
+    name = ' '.join(words)
     return (
-        f'      <div class="product-card proof-card" data-num="{p["num"]}" '
+        f'      <div class="product-card proof-card {kind}-card" '
+        f'data-id="{prefix}-{esc(p.get("id", p["num"]))}" data-num="{p["num"]}" '
+        f'data-kind="{esc(kind)}" '
         f'data-shape="{"portrait" if p["px"][1] > p["px"][0] else "landscape"}" '
-        f'data-name="{esc(name)}" data-facets="{esc(" ".join(facets))}">\n'
+        f'data-name="{esc(name)}" data-tags="{esc(" ".join(meta["tags"]))}" '
+        f'data-facets="{esc(" ".join(facets))}">\n'
         f'        <div class="product-img"><img src="{esc(p["img"])}" '
-        f'alt="PCM {p["num"]} companion design proof" loading="lazy"></div>\n'
+        f'alt="PCM {p["num"]} {kind} design proof" loading="lazy"></div>\n'
         f'        <div class="product-body">\n'
-        f'          <div class="product-detail">Companion &middot; full-colour proof</div>\n'
+        f'          <div class="product-detail proof-title">{esc(meta["title"])}</div>\n'
         f'          <div class="pcm-number">PCM {p["num"]}</div>\n'
+        f'          <div class="proof-desc">{esc(meta["desc"])}</div>\n'
         f'          <div class="tag-row">{chips}</div>\n'
+        f'{COMPARE_TOGGLE}'
         f'        </div>\n'
         f'      </div>')
 
@@ -951,12 +1023,50 @@ def build():
     stem_re = re.compile(tagdata['stemRule'])
     designs, elements = data['designs'], data['elements']
     photos, refs = data['photos'], data['reference']
-    proofs = data.get('proofs', [])
-    # How many proof numbers the books never printed. Computed, not typed: the split
-    # between "a better picture of a plate we already have" and "a design the books do
-    # not carry" is the whole reason this class ships as its own section instead of
-    # replacing plates, and it must not drift out of date on the page.
-    proof_new = len({p['num'] for p in proofs} - {d['num'] for d in designs})
+
+    # ---- the two full-colour proof classes ------------------------------------------
+    # Each is (rows from the catalog) joined to (curated text) on the class's own key, and
+    # the join is asserted BOTH WAYS at build time. A silently unjoined row would ship a
+    # card with a blank title, which is precisely the thing a family would notice first and
+    # a count-based check would not notice at all.
+    vocabulary = json.load(open(SUBJECTS, encoding='utf-8'))['vocabulary']
+    classes = []
+    for kind, data_key, sec, heading, _who, prefix in PROOF_CLASSES:
+        rows = data.get(data_key) or []
+        doc = json.load(open(DESC[kind], encoding='utf-8'))['designs']
+        keys = [str(r.get('id', r['num'])) for r in rows]
+        no_text = [k for k in keys if k not in doc]
+        orphan_text = [k for k in doc if k not in set(keys)]
+        if no_text or orphan_text:
+            raise SystemExit(
+                '%s: %d proof(s) with no description (%s) and %d description(s) with no '
+                'proof (%s); re-run the import or re-curate %s'
+                % (kind, len(no_text), ', '.join(no_text[:6]) or 'none',
+                   len(orphan_text), ', '.join(orphan_text[:6]) or 'none', DESC[kind]))
+        blank = [k for k in keys if not (doc[k].get('title') or '').strip()
+                 or not (doc[k].get('desc') or '').strip()]
+        if blank:
+            raise SystemExit('%s: %d proof(s) have an empty title or description: %s'
+                             % (kind, len(blank), ', '.join(blank[:8])))
+        stray = sorted({t for k in keys for t in doc[k]['tags'] if t not in vocabulary})
+        if stray:
+            raise SystemExit(
+                '%s: tag(s) outside the shared vocabulary in %s: %s. The proof classes and '
+                'the book plates tag from ONE vocabulary (%s) so that one search reaches '
+                'both; add the term there with a gloss, or use the term that already exists.'
+                % (kind, DESC[kind], ', '.join(stray), SUBJECTS))
+        # How many of this class's numbers the books never printed. Computed, not typed:
+        # the split between "a better picture of a plate we already have" and "a design the
+        # books do not carry" is the whole reason these ship as their own sections instead
+        # of replacing plates, and it must not drift out of date on the page.
+        new = len({r['num'] for r in rows} - {d['num'] for d in designs})
+        cards = '\n'.join(proof_card(r, kind, prefix, doc[str(r.get('id', r['num']))])
+                          for r in rows)
+        classes.append(dict(kind=kind, sec=sec, heading=heading, rows=rows,
+                            new=new, cards=cards))
+    singles_c, comp_c = classes[0], classes[1]
+    proofs = comp_c['rows']
+    singles = singles_c['rows']
 
     untagged = [d['id'] for d in designs if not design_tags.get(d['id'])]
     if untagged:
@@ -1023,6 +1133,57 @@ def build():
         payload.append([e['code'], cat_index[e['cat']], e['img'], stem_index[st]])
     stem_tag_payload = [' '.join(stem_tags[s]) for s in stem_list]
 
+    # ---- the two proof sections, at the TOP of the page ------------------------------
+    # Operator ruling, 2026-08-07: singles first, then companions, ABOVE the book-plate
+    # sections. These are the newest and the clearest pictures of the artwork we have, and
+    # a family opening the link should see them before a scan of a printed page.
+    #
+    # Each is the same folding panel Installed Examples is, opening OPEN, so one convention
+    # covers every panel on the page. The prose is the operator's own (voice rules in
+    # docs/GUIDES_VOICE_DEBRIEF_2026-08.md): first person, contractions, no em dashes, and
+    # one sentence saying what a full-colour proof actually is, because "proof" is a
+    # manufacturing word and a family has no reason to know it.
+    PROSE = {
+        'single':
+            'These are Pacific Coast Memorials&rsquo; own <em>full-colour proofs</em>: the '
+            'design printed on the granite colour with sample lettering, instead of the '
+            'black and white plate the design books use. They&rsquo;re the clearest '
+            'pictures I have of these {n} designs for a marker with one name, so I put '
+            'them at the top. {new} of these numbers aren&rsquo;t printed in either design '
+            'book. Search by what you&rsquo;re looking for, and the tags under each card '
+            'show why it came back. Pricing isn&rsquo;t shown here; I build the quote in '
+            'the tool.',
+        'companion':
+            'The same full-colour proofs for {n} designs made for a marker with two names. '
+            'They carry the same PCM numbers as the design books, so the <em>Go to&nbsp;#</em> '
+            'box finds them and typing <em>companion</em> reaches all of them. {new} of '
+            'these numbers aren&rsquo;t printed in either design book.',
+    }
+    proof_sections = []
+    for c in classes:
+        proof_sections.append(
+            f'  <div class="section-wrap" id="sec-{c["sec"]}">\n'
+            f'    <div class="section-head">{esc(c["heading"])}</div>\n'
+            f'    <div class="section-note">'
+            f'{PROSE[c["kind"]].format(n=len(c["rows"]), new=c["new"])}</div>\n'
+            f'  </div>\n'
+            f'  <div class="group" id="group-{c["sec"]}">\n'
+            f'    <div class="ex-cat open" id="elcat-{c["sec"]}">\n'
+            f'      <button class="el-toggle" type="button" '
+            f'onclick="togglePanel(\'{c["sec"]}\')"\n'
+            f'              aria-expanded="true" aria-controls="elbody-{c["sec"]}">\n'
+            f'        <svg class="el-caret" viewBox="0 0 24 24">'
+            f'<polyline points="6 9 12 15 18 9"></polyline></svg>\n'
+            f'        <span>{esc(c["heading"])}</span>'
+            f'<span class="el-count" id="{c["sec"]}Count">{len(c["rows"])}</span>\n'
+            f'      </button>\n'
+            f'      <div class="el-body" id="elbody-{c["sec"]}">\n'
+            f'        <div class="product-grid">\n{c["cards"]}\n        </div>\n'
+            f'      </div>\n'
+            f'    </div>\n'
+            f'  </div>')
+    proof_sections_html = '\n'.join(proof_sections)
+
     books = sorted({d['book'] for d in designs}, reverse=True)
     cats = [c for c, _ in GROUP_ORDER]
     fmts = sorted({d['fmt'] for d in designs})
@@ -1062,7 +1223,7 @@ def build():
       design books, plus the full ornament library &mdash; grouped the way the books group them,
       with the design number on every card so a family can point and we can look it up on the spot.</div>
     <div class="cover-rule"></div>
-    <div class="cover-footer">{len(designs)} designs &middot; {len(elements):,} design elements &middot; {len(proofs)} full-colour companion proofs &middot; {len([p for p in photos])} photographed markers</div>
+    <div class="cover-footer">{len(singles)} single &middot; {len(proofs)} companion full-colour proofs &middot; {len(designs)} book designs &middot; {len(elements):,} design elements &middot; {len([p for p in photos])} photographed markers</div>
   </div>
 
   <div class="toolbar">
@@ -1074,8 +1235,10 @@ def build():
     <span class="jump-note" id="jumpNote">e.g. 1183, PCM 728, BASS 001</span>
     <input type="text" id="searchInput" placeholder="Search by subject &mdash; roses, mountains, fishing&hellip;"
            autocomplete="off" aria-label="Search designs and elements by subject">
-    <select id="bookFilter" aria-label="Design book">
-{opt([(b, ('2020 Design Book' if b == '2020' else '2011 Design Book')) for b in books], 'Both design books')}
+    <select id="bookFilter" aria-label="Design book or proof set">
+{opt([(b, ('2020 Design Book' if b == '2020' else '2011 Design Book')) for b in books] +
+     [('single-proofs', 'Single marker designs'), ('companion-proofs', 'Companion designs')],
+     'All designs')}
     </select>
     <select id="catFilter" aria-label="Category">
 {opt([(c, c) for c in cats], 'All categories')}
@@ -1095,12 +1258,15 @@ def build():
   </div>
 
   <div class="contents">
-    <a href="#sec-designs">Designs</a>
+    <a href="#sec-singles">Single Marker Designs</a>
+    <a href="#sec-proofs">Companion Designs</a>
+    <a href="#sec-designs">Design Books</a>
     <a href="#sec-elements">Design Elements</a>
-    <a href="#sec-proofs">Companion Proofs</a>
     <a href="#sec-examples">Installed Examples</a>
     <a href="#sec-reference">Sizes, Colors &amp; Lettering</a>
   </div>
+
+{proof_sections_html}
 
   <div class="section-wrap" id="sec-designs">
     <div class="section-head">Marker Designs</div>
@@ -1121,30 +1287,6 @@ def build():
   </div>
   <div class="group" id="group-elements">
 {chr(10).join(el_html)}
-  </div>
-
-  <div class="section-wrap" id="sec-proofs">
-    <div class="section-head">Companion Design Proofs</div>
-    <div class="section-note">{len(proofs)} companion designs as Pacific Coast Memorials&rsquo; own
-      <em>full-colour proofs</em> &mdash; the artwork laid onto the granite colour with sample
-      lettering, instead of the design book&rsquo;s black-and-white plate. Same PCM numbers, so
-      the jump box finds them; typing <em>companion</em> reaches them along with every
-      companion design above. {proof_new} of these numbers are not printed in either
-      design book at all.</div>
-  </div>
-  <div class="group" id="group-proofs">
-    <div class="ex-cat open" id="elcat-proofs">
-      <button class="el-toggle" type="button" onclick="toggleProofs()"
-              aria-expanded="true" aria-controls="elbody-proofs">
-        <svg class="el-caret" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        <span>Companion Design Proofs</span><span class="el-count" id="proofsCount">{len(proofs)}</span>
-      </button>
-      <div class="el-body" id="elbody-proofs">
-        <div class="product-grid">
-{chr(10).join(proof_card(p) for p in proofs)}
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="section-wrap" id="sec-examples">
@@ -1317,20 +1459,27 @@ function toggleExamples(open) {{
   el.querySelector('.el-toggle').setAttribute('aria-expanded', on ? 'true' : 'false');
 }}
 
-function toggleProofs(open) {{
-  var el = document.getElementById('elcat-proofs');
+/* The two proof panels fold the same way Installed Examples does. One function rather than
+   one per panel: they are the same control, and three near-identical copies is how the
+   third one quietly stops matching the other two. */
+function togglePanel(key, open) {{
+  var el = document.getElementById('elcat-' + key);
   if (!el) return;
   var on = (open === undefined) ? !el.classList.contains('open') : !!open;
   el.classList.toggle('open', on);
   el.querySelector('.el-toggle').setAttribute('aria-expanded', on ? 'true' : 'false');
 }}
 
-/* The jump box searches DESIGN cards first and companion proofs second, in that order and
-   deliberately. 119 proof numbers are also book plates, and the plate is the canonical
-   record of the design; a counselor who types 2271 should land on the plate, then see the
-   proof by scrolling to the proofs section (or by searching "companion"). The 113 numbers
-   the books never printed have no plate to land on, so for those the proof IS the hit —
-   which is why the fallback exists at all rather than the jump simply missing. */
+/* The jump box searches DESIGN cards first and the proof classes second, in that order and
+   deliberately. 330 proof numbers are also book plates, and the plate is the canonical
+   record of the design; somebody who types 2271 should land on the plate, then see the
+   proof at the top of the page. The 289 numbers the books never printed have no plate to
+   land on, so for those the proof IS the hit — which is why the fallback exists at all
+   rather than the jump simply missing.
+
+   Between the two proof classes the order is page order, and it is free to be: no number
+   is both a single proof and a companion proof, which the gate asserts rather than
+   assumes. */
 var designCards = null;
 function cards() {{
   if (!designCards) designCards = Array.prototype.slice.call(
@@ -1456,12 +1605,24 @@ function applyFilters() {{
   var cat = document.getElementById('catFilter').value;
   var fmt = document.getElementById('fmtFilter').value;
   var col = document.getElementById('colorFilter').value;
+
+  /* The design-book dropdown scopes to a PROOF SET as well as to a book (operator ruling,
+     2026-08-07: a family should be able to say "just show me the single marker designs").
+     Those two values are not books, so they are pulled out here: `bookSel` is the only
+     thing that narrows a design card, and `proofSet` is the only thing that scopes the
+     proof panels. Adding a second dropdown was the alternative and was rejected — the
+     toolbar already carries five controls, and the question "which set am I looking at"
+     is the same question the book dropdown was already asking. */
+  var PROOF_SETS = {{ 'single-proofs': 'singles', 'companion-proofs': 'proofs' }};
+  var proofSet = PROOF_SETS[book] || '';
+  var bookSel = proofSet ? '' : book;
   var facetsOn = !!(book || cat || fmt || col);
   var shownDesigns = 0;
   var perGroup = {{}};
 
   cards().forEach(function (c) {{
-    var ok = (!book || c.dataset.book === book) &&
+    var ok = !proofSet &&
+             (!bookSel || c.dataset.book === bookSel) &&
              (!cat || c.dataset.cat === cat) &&
              (!fmt || c.dataset.fmt === fmt) &&
              (!col || c.dataset.color === col) &&
@@ -1496,7 +1657,7 @@ function applyFilters() {{
     box.hidden = (n === 0) || (facetsOn && !q);
     box.querySelector('.el-count').textContent =
       q ? n + ' of ' + elByCat[i].length : String(elByCat[i].length);
-    if (q && n > 0) setOpen(i, true);
+    if (q && n > 0 && !proofSet) setOpen(i, true);
     /* Every RENDERED category is re-filtered, not just the ones with hits. A jump box
        lookup opens whatever category the number lives in, so by the time a search runs
        several categories may hold cards; leaving the misses displayed left them behind
@@ -1507,39 +1668,53 @@ function applyFilters() {{
       }});
     }}
   }});
-  var elHidden = (facetsOn && !q) || shownEls === 0;
+  /* An ornament belongs to no book and to no proof set, so scoping to one hides the
+     element library outright — including when a search is running, which is the one case
+     the book facets deliberately do NOT hide it in. Scoping is the family saying "show me
+     only these", and answering with four thousand ornaments is not that. */
+  var elHidden = (facetsOn && !q) || shownEls === 0 || !!proofSet;
   document.getElementById('sec-elements').hidden = elHidden;
   document.getElementById('group-elements').hidden = elHidden;
-  if (facetsOn && !q) shownEls = 0;   // the count must describe what is on screen
+  if ((facetsOn && !q) || proofSet) shownEls = 0;  // the count must describe the screen
 
-  /* The three non-design classes filter on the search box only — a proof, a photograph
-     and a reference plate all sit outside the book/category/format/colour dropdowns,
-     which describe the design books. Proofs DO carry facets ("companion", "proof"), so
-     the facet argument is passed for all three; photo and reference cards have no
-     data-facets, facetMatch returns null on an empty string, and their behaviour is
-     unchanged. That is what makes typing "companion" reach the proofs. */
-  ['proofs', 'examples', 'reference'].forEach(function (k) {{
+  /* The four non-book classes filter on the search box and on the proof-set scope only —
+     a proof, a photograph and a reference plate all sit outside the category/format/colour
+     dropdowns, which describe the design books. Proofs DO carry facets ("single",
+     "companion", and a language where there is one), so the facet argument is passed for
+     all four; photo and reference cards have no data-facets, facetMatch returns null on an
+     empty string, and their behaviour is unchanged. That is what makes typing "companion"
+     reach the companion proofs and "vietnamese" reach every card with Vietnamese on it. */
+  var shownProofs = 0;
+  ['singles', 'proofs', 'examples', 'reference'].forEach(function (k) {{
     var grp = document.getElementById('group-' + k);
     var all = grp.querySelectorAll('.product-card');
+    /* Scoped to a proof set: that set answers, everything else here steps aside. Scoped to
+       a book or a colour: these classes are not in the books, so none of them answer. */
+    var allowed = proofSet ? (k === proofSet) : !facetsOn;
     var n = 0;
     all.forEach(function (c) {{
-      var ok = !facetsOn && matches(c.dataset.name, '', terms, q, c.dataset.facets);
+      var ok = allowed && matches(c.dataset.name, c.dataset.tags, terms, q, c.dataset.facets);
       c.style.display = ok ? '' : 'none';
       if (ok) n++;
+      markChips(c, terms);
     }});
     grp.hidden = n === 0;
     document.getElementById('sec-' + k).hidden = n === 0;
+    if (k === 'singles' || k === 'proofs') shownProofs += n;
     /* The panel's count follows the search exactly the way an element category's does
        ("6 of 35"), so the two read as one control and not as two conventions. */
-    if (k === 'examples' || k === 'proofs') {{
-      document.getElementById(k === 'examples' ? 'examplesCount' : 'proofsCount').textContent =
+    if (k !== 'reference') {{
+      document.getElementById(k + 'Count').textContent =
         q ? n + ' of ' + all.length : String(all.length);
     }}
   }});
 
   document.getElementById('filterCount').textContent =
-    shownDesigns.toLocaleString() + ' designs \\u00b7 ' + shownEls.toLocaleString() + ' elements';
-  document.getElementById('emptyNote').hidden = !(shownDesigns === 0 && shownEls === 0);
+    shownDesigns.toLocaleString() + ' designs \\u00b7 ' +
+    shownProofs.toLocaleString() + ' proofs \\u00b7 ' +
+    shownEls.toLocaleString() + ' elements';
+  document.getElementById('emptyNote').hidden =
+    !(shownDesigns === 0 && shownProofs === 0 && shownEls === 0);
   if (window.bwUpdateFilterPrintBtn) window.bwUpdateFilterPrintBtn();
 }}
 
@@ -1563,7 +1738,8 @@ function jump(raw) {{
   if (/^\\d+$/.test(digits)) {{
     hit = cards().filter(function (c) {{ return c.dataset.num === String(parseInt(digits, 10)); }})[0] || null;
     if (!hit) {{
-      toggleProofs(true);
+      togglePanel('singles', true);
+      togglePanel('proofs', true);
       hit = proofs().filter(function (c) {{ return c.dataset.num === String(parseInt(digits, 10)); }})[0] || null;
     }}
   }}
@@ -1640,7 +1816,8 @@ applyFilters();
     kb = os.path.getsize(PAGE) / 1024
     print(f'{PAGE}: {len(designs)} design cards in {len(groups_html)} groups, '
           f'{len(elements)} elements in {len(el_cats)} categories, '
-          f'{len(proofs)} companion proofs ({proof_new} not in either book), '
+          f'{len(singles)} single proofs ({singles_c["new"]} not in either book), '
+          f'{len(proofs)} companion proofs ({comp_c["new"]} not in either book), '
           f'{len(photos)} photos, {len(refs)} reference plates ({kb:.0f} KB)')
 
 
