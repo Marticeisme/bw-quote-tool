@@ -1,5 +1,21 @@
 # STATE — Living Ledger
 
+**s19 PUSHED LIVE 2026-08-06 (operator: "push it all live it looks great";
+`e3c37ea5..9a56c7d2`, 12 commits) — wire-verified 8/8:** live index.html carries the
+new chrome navy/summary-total/status-pill CSS, guides.html the category pills +
+stretched links with zero old-palette hexes, guide-print.css the full-print section,
+Cemetery Property PDF byte-identical sha256, burial-guide + granite-niches
+byte-identical vs the COMMITTED blobs. VERIFIER SCAR, keep: a live-vs-local byte
+compare on TEXT files must diff against `git show HEAD:` blobs, not the working tree —
+autocrlf checkouts are CRLF while Pages serves the repo's LF bytes; two checks
+false-failed for exactly this before the blob compare proved them identical. The five
+s19 worktrees removed (node_modules junctions deleted non-recursively first);
+`s19/*` branches kept until pruned. Close-gate rulings SHIPPED AS-BUILT (operator
+pushed without amendments): exportedAt persists on next save; Contracted = RIC/CIRGAS
+only; full-print page growth accepted; guides long-meta wrap accepted. Still open for
+a future round: those two one-liners if he wants them, verify_full_print lock-in gate,
+viewer GPL print-button chip, maps design consult.
+
 **s19 CLOSED ON MAIN 2026-08-06 — ALL FIVE TRACKS MERGED (A `5b98aa33` → D `c5cdef78`
 → B `e4d9b7ef` → E `09e37d0e` → C `b96a122a`), final main GREEN: 8 blocks 0 errors;
 `2598 passed, 0 failed across 40 suites`** (NEW contract number; reconciles 2501/38
