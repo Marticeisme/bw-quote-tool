@@ -3505,8 +3505,21 @@ tr:hover td{background:var(--navy-100);}
 
   <div class="q-layout" style="max-width:900px;">
 
-    <!-- Client Info -->
+    <!-- Pricing (auto-filled from quote, editable) — kept at the top: import first,
+         then fill in the client details it doesn't cover -->
     <div class="q-panel">
+      <div class="q-panel-header"><span class="ph-ic"><span data-lc="dollar-sign" data-lc-sz="17"></span></span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
+      <div class="q-panel-body">
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button onclick="ricImportFromQuote()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import from Cemetery Quote</button>
+          <button onclick="ricClearPricing()" style="padding:8px 14px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">✕ Clear</button>
+        </div>
+        <div id="ricPricingDisplay" style="font-size:12px;color:var(--text-light);min-height:30px;"></div>
+      </div>
+    </div>
+
+    <!-- Client Info -->
+    <div class="q-panel" style="margin-top:10px;">
       <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Purchaser Information</div>
       <div class="q-panel-body">
         <div class="q-row">
@@ -3618,18 +3631,6 @@ tr:hover td{background:var(--navy-100);}
             <input type="time" id="ricContractTime" style="width:100%;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:4px;box-sizing:border-box;font-family:inherit;">
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Pricing (auto-filled from quote, editable) -->
-    <div class="q-panel" style="margin-top:10px;">
-      <div class="q-panel-header"><span class="ph-ic"><span data-lc="dollar-sign" data-lc-sz="17"></span></span>Pricing <span style="font-size:11px;font-weight:400;opacity:.7;">— auto-filled from Cemetery Quote, or enter manually</span></div>
-      <div class="q-panel-body">
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <button onclick="ricImportFromQuote()" style="padding:8px 16px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⬇ Import from Cemetery Quote</button>
-          <button onclick="ricClearPricing()" style="padding:8px 14px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">✕ Clear</button>
-        </div>
-        <div id="ricPricingDisplay" style="font-size:12px;color:var(--text-light);min-height:30px;"></div>
       </div>
     </div>
 
