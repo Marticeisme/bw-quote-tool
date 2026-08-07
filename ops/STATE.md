@@ -21,6 +21,20 @@ worktrees `../bw-quote-tool-s20{a..d}`, merge order = wave order. Briefs in
 `sprints/sprint-20/`. Contract at open: 2598/40 (untouched by dashboard work — no
 suite reads dashboard.html); index.html must stay byte-untouched all sprint.
 
+**s20 WAVE 1 MERGED 2026-08-06, main GREEN 2598/40 + both syntax checks (dashboard 2/0,
+index 8/0): A `cb1e192a` (track `02dfd031` — brief §2 token block verbatim light+dark,
+body.light-mode block DELETED, data-theme set in <head> pre-stylesheet from
+localStorage→prefers-color-scheme, old var names kept as aliases; <header>+tab strip
+deleted, 240px sidebar with counts + segmented Viewing switcher + dark toggle, page
+header + 3 stat cards with context notes, switchTab on data-tab, sync banner/modal
+removed, 14-icon Lucide sprite, 64px rail <1100px). Director re-ran A's 89/0 verify
+himself on branch AND merged main, re-eyeballed renders (17 in scratch/s20-a-renders).
+A's deliberate deviations accepted: shared stat defs until B, honest subtitles until B,
+Cases-scoped header row, sync dot + gcal btn kept in sidebar bottom (live consumers),
+TYPE_COLORS neutralized-not-removed (B's job). NOTE: quote session committed 39b572a6
+on main mid-wave (s19 operator-round brief) — merge integrated it cleanly. WAVE 2
+SPAWNED: B table-views (Opus, ../bw-quote-tool-s20b from cb1e192a).**
+
 **s19 PUSHED LIVE 2026-08-06 (operator: "push it all live it looks great";
 `e3c37ea5..9a56c7d2`, 12 commits) — wire-verified 8/8:** live index.html carries the
 new chrome navy/summary-total/status-pill CSS, guides.html the category pills +
