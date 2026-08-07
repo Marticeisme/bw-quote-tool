@@ -43,7 +43,7 @@ show. Make the selection determine which arrangement row is offered.
 | Terrace Garden Niches | granite |
 | Garden of Gethsemane Niches | granite (sold out, classification still applies) |
 | Garden of Meditation Niches | granite |
-| Mountain View Columbarium | **mixed** (building: outside granite, inside glass) → show BOTH rows |
+| Mountain View Columbarium | REPLACED by two options (operator 2026-08-06, sent mid-track): "Mountain View Columbarium (Inside)" = glass, "Mountain View Columbarium (Outside)" = granite. Legacy saved value "Mountain View Columbarium" must still load safely (untyped → both rows), asserted. |
 | Mountain View Columbarium (New) | glass |
 | Radiance Wall – Chapel of Memories | glass |
 | Rock of Ages Columbarium | granite |
