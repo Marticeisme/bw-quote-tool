@@ -1648,6 +1648,8 @@ export async function run(ck, base) {
       const g = (id) => getComputedStyle(document.getElementById(id)).display;
       const cb = document.querySelector('.compare-toggle');
       return { compareSheet: g('compareSheet'), filterSheet: g('filterSheet'),
+               designSheet: g('designSheet'), lightbox: g('photoLightbox'),
+               lbPrint: getComputedStyle(document.getElementById('lightboxPrint')).display,
                tray: g('compareTray'), overlay: g('compareOverlay'),
                toggle: cb ? getComputedStyle(cb).display : 'missing',
                btn: getComputedStyle(document.getElementById('filterPrintBtn')).display,
@@ -1655,10 +1657,354 @@ export async function run(ck, base) {
     });
     await page.emulateMedia({ media: 'screen' });
     ck(leak.compareSheet === 'none' && leak.filterSheet === 'none' &&
+       leak.designSheet === 'none' && leak.lightbox === 'none' &&
+       leak.lbPrint === 'none' &&
        leak.tray === 'none' && leak.overlay === 'none' &&
        leak.toggle === 'none' && leak.btn === 'none' && leak.classes === '',
-      `plain print media renders none of it — sheets, tray, overlay, checkbox and ` +
-      `button all display:none (${JSON.stringify(leak)})`);
+      `plain print media renders none of it — all three sheets, the enlarged view and ` +
+      `its Print button, tray, overlay, checkbox and button all display:none ` +
+      `(${JSON.stringify(leak)})`);
+
+    // ---- 12. print ONE design from the enlarged view (s21 Track D) -------------------
+    // Operator, 2026-08-07: "when enlarging a single pcm image there needs to be an
+    // option to print that. Right now there is no print option for a single marker the
+    // same way you can on the casket catalogs."
+    //
+    // The casket pattern is #printSheet + body.modal-printing, filled from the enlarged
+    // product. Three things have to be true here that a "the button exists" check would
+    // not catch:
+    //
+    //   a) EVERY class that can enlarge exposes it. He named singles because that is
+    //      what he was looking at; a Print button on proofs only would read as broken
+    //      the first time he enlarged a book plate.
+    //   b) The sheet carries exactly ONE design, and the number on it is the number PCM
+    //      PRINTED. On eight single proofs the file id is a different number — sp-1148
+    //      IS design 1448 — and a sheet headed PCM 1148 sends a family to another design.
+    //   c) It fits ONE page. #designSheet is position:fixed;height:100%, so like the
+    //      compare sheet it CLIPS rather than flowing, and `scrollHeight - clientHeight`
+    //      is blind to that (s14 Track D). The assertions are geometric on a true
+    //      816x1056 letter viewport, plus a real Chromium PDF page count.
+    await page.emulateMedia({ media: 'screen' });
+    await page.click('#clearFilters');
+    await page.waitForTimeout(320);
+
+    // The element library is lazy: BASS 001's card does not exist until its category is
+    // rendered. Jump to it the way a counsellor would, then fold the panel back so the
+    // rest of this section starts from the same page everything else did.
+    await page.fill('#pcmJump', 'BASS 001');
+    await page.waitForTimeout(320);
+
+    const compProofId = 'cp-' + proofs[0].num;
+    const singleProofId = 'sp-' + ID_NOT_NUM.id;
+    // Six classes can enlarge. The first four are the ones the operator sees; the last
+    // two are on the page too, and before this track they would have fallen through
+    // cardData's book-design branch and printed a granite sample as a "Marker design"
+    // with a blank number.
+    const CLASSES_PRINTABLE = [
+      { label: 'book design',   sel: '.design-card[data-id="2020-717"]',
+        type: 'Marker design',  number: 'PCM 717', desc: false,
+        specs: ['Book', 'Group', 'Category', 'Format', 'Granite color', 'Subjects'] },
+      { label: 'single proof',  sel: `.proof-card[data-id="${singleProofId}"]`,
+        type: 'Design proof',   number: `PCM ${ID_NOT_NUM.num}`, desc: true,
+        specs: ['Format', 'Subjects'] },
+      { label: 'companion proof', sel: `.proof-card[data-id="${compProofId}"]`,
+        type: 'Design proof',   number: `PCM ${proofs[0].num}`, desc: true,
+        specs: ['Format', 'Subjects'] },
+      { label: 'design element', sel: '.element-card[data-id="BASS 001"]',
+        type: 'Design element', number: 'BASS 001', desc: false,
+        specs: ['Book', 'Group'] },
+      { label: 'reference plate', sel: '.reference-card', type: 'Reference plate',
+        number: null, desc: false, specs: [] },
+      { label: 'installed example', sel: '.photo-card', type: 'Installed example',
+        number: '', desc: false, specs: [] },
+    ];
+
+    // The reader used by every assertion below. #designSheet is display:none until a
+    // body class asks for it, so textContent — not innerText, which would be ''.
+    const SHEET_READER = () => {
+      const s = document.getElementById('designSheet');
+      const shown = (sel) => {
+        const n = s.querySelector(sel);
+        return n && !n.hidden ? n.textContent.trim() : '';
+      };
+      return {
+        plates: s.querySelectorAll('.ds-photo img').length,
+        plateSrc: (s.querySelector('.ds-photo img') || {}).getAttribute
+          ? s.querySelector('.ds-photo img').getAttribute('src') : '',
+        names: [...s.querySelectorAll('.ds-name')].map((x) => x.textContent.trim()),
+        eyebrow: shown('.ds-eyebrow'),
+        title: shown('.ds-title'),
+        desc: shown('.ds-desc'),
+        specs: [...s.querySelectorAll('.ds-specs li')].map((li) => [
+          li.querySelector('.ds-spec-label').textContent.trim(),
+          li.querySelector('.ds-spec-value').textContent.trim()]),
+        text: s.textContent.replace(/\s+/g, ' ').trim(),
+      };
+    };
+
+    // A REAL pointer click on a real card, and a REAL pointer click on the button — the
+    // one path a mouse actually takes. The lightbox closes on any click that reaches it,
+    // so a button that forgot to stop its own click would dismiss the thing it prints;
+    // that is what `stillOpen` is watching for. (The rest of the classes are driven by
+    // element.click() below, because a card inside a folded panel is not clickable by a
+    // mouse and the point there is the DATA on the sheet, not the pointer.)
+    await page.click('.design-card[data-id="2020-717"] .product-img img');
+    await page.waitForTimeout(120);
+    const opened = await page.evaluate(() => {
+      const lb = document.getElementById('photoLightbox');
+      const btn = document.getElementById('lightboxPrint');
+      const r = btn.getBoundingClientRect();
+      return { active: lb.classList.contains('active'),
+               cap: document.getElementById('lightboxCap').textContent.trim(),
+               btnText: btn.textContent.replace(/\s+/g, ' ').trim(),
+               btnVisible: getComputedStyle(btn).display !== 'none' &&
+                           r.width > 0 && r.height > 0,
+               card: (window.bwLightboxCard() || {}).dataset.id };
+    });
+    ck(opened.active && opened.btnVisible && /print/i.test(opened.btnText),
+      `enlarging a design shows a Print control in the enlarged view ` +
+      `("${opened.btnText}")`);
+    ck(opened.card === '2020-717' && opened.cap === 'PCM 717',
+      `the enlarged view knows WHICH card it is showing (${opened.card}), not just its ` +
+      `image — two cross-listed cards share one file`);
+    await page.click('#lightboxPrint');
+    await page.waitForTimeout(60);
+    const afterBtn = await page.evaluate(() => {
+      const st = { open: document.getElementById('photoLightbox').classList.contains('active'),
+                   printing: document.body.classList.contains('design-printing') };
+      // window.print() is queued behind a 100ms timeout and BLOCKS headless; take the
+      // state back before it fires, exactly as afterprint would.
+      document.body.classList.remove('design-printing');
+      return st;
+    });
+    ck(afterBtn.open && afterBtn.printing,
+      'pressing Print builds the sheet and does NOT dismiss the enlarged view');
+
+    for (const c of CLASSES_PRINTABLE) {
+      const got = await page.evaluate(({ sel, reader }) => {
+        const card = document.querySelector(sel);
+        if (!card) return { missing: true };
+        // Straight through the same entry point a click uses, so the "which card" state
+        // this sheet reads is the state a click would have left.
+        card.click();
+        const lb = document.getElementById('photoLightbox');
+        const btn = document.getElementById('lightboxPrint');
+        const built = window.bwBuildDesignSheet(window.bwLightboxCard());
+        const sheet = new Function('return (' + reader + ')()')();
+        return { open: lb.classList.contains('active'),
+                 btn: getComputedStyle(btn).display !== 'none',
+                 cardImg: card.querySelector('img').getAttribute('src'),
+                 built, sheet };
+      }, { sel: c.sel, reader: SHEET_READER.toString() });
+
+      ck(!got.missing && got.open && got.btn,
+        `${c.label}: enlarges, and the enlarged view offers Print`);
+      ck(got.sheet.plates === 1 && got.sheet.names.length === 1,
+        `${c.label}: the sheet carries exactly ONE design — one plate, one name ` +
+        `(${got.sheet.plates}/${got.sheet.names.length})`);
+      ck(got.sheet.plateSrc === got.cardImg,
+        `${c.label}: …and it is the image that was enlarged (${got.sheet.plateSrc})`);
+      ck(got.sheet.eyebrow === c.type,
+        `${c.label}: the sheet says what kind of thing it is ("${got.sheet.eyebrow}")`);
+      if (c.number !== null) {
+        ck(got.sheet.names[0] === c.number,
+          `${c.label}: headed "${c.number}" (got "${got.sheet.names[0]}")`);
+      } else {
+        ck(got.sheet.names[0].length > 0,
+          `${c.label}: headed by its own title ("${got.sheet.names[0]}")`);
+      }
+      ck(got.sheet.title.length > 0 || c.specs.length === 0,
+        `${c.label}: carries a one-line title ("${got.sheet.title}")`);
+      ck(c.desc ? got.sheet.desc.length > 20 : got.sheet.desc === '',
+        c.desc ? `${c.label}: carries its written description ` +
+                 `(${got.sheet.desc.length} chars)`
+               : `${c.label}: no description band, because this class has none`);
+      const labels = got.sheet.specs.map((s) => s[0]);
+      ck(c.specs.every((s) => labels.includes(s)) &&
+         got.sheet.specs.every((s) => s[1] && s[1] !== '—'),
+        `${c.label}: spec rows are ${labels.join(', ') || '(none)'} — every one filled, ` +
+        `none printed as an em dash`);
+    }
+
+    // THE TRAP, as its own assertion: the file id must not reach the sheet anywhere.
+    const trap = await page.evaluate(({ sel, reader, id }) => {
+      document.querySelector(sel).click();
+      window.bwBuildDesignSheet(window.bwLightboxCard());
+      const sheet = new Function('return (' + reader + ')()')();
+      return { sheet, cardId: id,
+               plateHasId: /1148/.test(sheet.plateSrc) };
+    }, { sel: `.proof-card[data-id="${singleProofId}"]`, reader: SHEET_READER.toString(),
+         id: singleProofId });
+    ck(trap.sheet.names[0] === `PCM ${ID_NOT_NUM.num}` &&
+       !/\b1148\b/.test(trap.sheet.text),
+      `the single-proof sheet prints the SERVED number PCM ${ID_NOT_NUM.num} and the ` +
+      `file id ${ID_NOT_NUM.id} appears nowhere on it — the card is ${singleProofId} ` +
+      `and its file is ${trap.sheet.plateSrc}`);
+
+    // ---- 12b. one design, ONE page — geometrically ------------------------------------
+    // The longest description on the page is the hardest case: it is the only thing on
+    // this sheet whose height the data controls, and it is what would push the footer
+    // off a fixed-height sheet that clips.
+    const longest = await page.evaluate(() => {
+      let best = null, n = 0;
+      document.querySelectorAll('.proof-card').forEach((c) => {
+        const d = (c.querySelector('.proof-desc') || {}).textContent || '';
+        if (d.length > n) { n = d.length; best = c.dataset.id; }
+      });
+      return { id: best, len: n };
+    });
+    const GEO = () => {
+      const s = document.getElementById('designSheet');
+      const box = (sel) => {
+        const n = s.querySelector(sel);
+        return n ? n.getBoundingClientRect() : null;
+      };
+      const sr = s.getBoundingClientRect();
+      const photo = box('.ds-photo'), img = box('.ds-photo img');
+      const foot = box('.ds-footer');
+      const specs = [...s.querySelectorAll('.ds-specs li')];
+      const last = specs.length ? specs[specs.length - 1].getBoundingClientRect() : null;
+      return {
+        h: Math.round(s.clientHeight), over: s.scrollHeight - s.clientHeight,
+        footSpill: Math.round(foot.bottom - sr.bottom),
+        imgSpill: img && photo ? Math.round(img.bottom - photo.bottom) : 999,
+        imgW: img ? Math.round(img.width) : 0, imgH: img ? Math.round(img.height) : 0,
+        specSpill: last ? Math.round(last.bottom - sr.bottom) : -999,
+      };
+    };
+    await page.setViewportSize({ width: 816, height: 1056 });
+    const geoCases = [
+      ['book design', '.design-card[data-id="2020-717"]'],
+      ['single proof', `.proof-card[data-id="${singleProofId}"]`],
+      ['companion proof', `.proof-card[data-id="${compProofId}"]`],
+      ['design element', '.element-card[data-id="BASS 001"]'],
+      [`longest description (${longest.len} chars)`,
+       `.proof-card[data-id="${longest.id}"]`],
+    ];
+    for (const [label, sel] of geoCases) {
+      await page.evaluate(({ sel }) => {
+        document.querySelector(sel).click();
+        window.bwBuildDesignSheet(window.bwLightboxCard());
+        closeLightbox();
+        document.body.classList.add('design-printing');
+      }, { sel });
+      await page.emulateMedia({ media: 'print' });
+      await page.waitForTimeout(140);
+      const g = await page.evaluate(new Function('return (' + GEO.toString() + ')()'));
+      const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+      const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+      await page.emulateMedia({ media: 'screen' });
+      await page.evaluate(() => document.body.classList.remove('design-printing'));
+      ck(pages === 1 && g.footSpill <= 1 && g.specSpill <= 1 && g.imgSpill <= 1 &&
+         g.imgW > 0 && g.imgH > 0,
+        `${label}: one page — the footer ends ${-g.footSpill}px inside the sheet, the ` +
+        `last spec row ${-g.specSpill}px inside it, the plate ${-g.imgSpill}px inside ` +
+        `its box at ${g.imgW}x${g.imgH}, and the real PDF is ${pages} page`);
+    }
+
+    // ---- 12c. sabotage: each assertion is proven to be able to go red -----------------
+    // Every needle is written to out-rank the rule it is fighting — a needle that loses
+    // on specificity proves nothing but that CSS cascades (s21 ledger).
+    const sabotage = async (name, css, probe, expectGreen) => {
+      const before = await probe();
+      const handle = css
+        ? await page.addStyleTag({ content: css })
+        : null;
+      await page.waitForTimeout(120);
+      const during = await probe();
+      if (handle) await page.evaluate((h) => h.remove(), handle);
+      await page.waitForTimeout(120);
+      const after = await probe();
+      ck(before === expectGreen && during !== expectGreen && after === expectGreen,
+        `sabotage "${name}": green ${before} → red ${during} → green ${after}`);
+    };
+
+    // A. the geometry assert. The sheet clips, so a description that no longer fits is
+    //    invisible in `scrollHeight - clientHeight` — only the footer's edge shows it.
+    //    The needle carries the body-class + id prefix so it beats `.ds-desc`.
+    await page.setViewportSize({ width: 816, height: 1056 });
+    await page.evaluate(({ sel }) => {
+      document.querySelector(sel).click();
+      window.bwBuildDesignSheet(window.bwLightboxCard());
+      document.getElementById('photoLightbox').classList.remove('active');
+      document.body.classList.add('design-printing');
+    }, { sel: `.proof-card[data-id="${longest.id}"]` });
+    await page.emulateMedia({ media: 'print' });
+    const fitsOnePage = async () => {
+      await page.waitForTimeout(80);
+      const g = await page.evaluate(new Function('return (' + GEO.toString() + ')()'));
+      const pdf = await page.pdf({ format: 'Letter', printBackground: true });
+      const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+      return pages === 1 && g.footSpill <= 1;
+    };
+    await sabotage('a description that no longer fits pushes the footer off the sheet',
+      'body.design-printing #designSheet .ds-desc' +
+      '{font-size:64px!important;line-height:1.7!important;}',
+      fitsOnePage, true);
+    // …and prove the blind check really is blind on the same needle.
+    const blind = await page.evaluate(new Function('return (' + GEO.toString() + ')()'));
+    await page.emulateMedia({ media: 'screen' });
+    await page.evaluate(() => document.body.classList.remove('design-printing'));
+    ck(blind.over === 0,
+      `…and scrollHeight - clientHeight is ${blind.over} throughout — the check that ` +
+      `would have missed it`);
+
+    // B. the no-leak assert. An id selector with !important beats `#designSheet{display:none}`.
+    const noLeak = async () => {
+      await page.emulateMedia({ media: 'print' });
+      const d = await page.evaluate(() =>
+        getComputedStyle(document.getElementById('designSheet')).display);
+      await page.emulateMedia({ media: 'screen' });
+      return d === 'none';
+    };
+    await sabotage('the single-design sheet leaks into an ordinary print',
+      '#designSheet{display:block!important;}', noLeak, true);
+
+    // C. the number assert. Not CSS — the failure this guards is the sheet reading the
+    //    wrong field, so the needle changes the field it reads.
+    const servedNumber = async () => page.evaluate(({ sel, reader, want }) => {
+      document.querySelector(sel).click();
+      window.bwBuildDesignSheet(window.bwLightboxCard());
+      const sheet = new Function('return (' + reader + ')()')();
+      return sheet.names[0] === want && !/\b1148\b/.test(sheet.text);
+    }, { sel: `.proof-card[data-id="${singleProofId}"]`, reader: SHEET_READER.toString(),
+         want: `PCM ${ID_NOT_NUM.num}` });
+    {
+      const before = await servedNumber();
+      const restore = await page.evaluate(({ sel, id }) => {
+        const n = document.querySelector(sel + ' .pcm-number');
+        const was = n.textContent;
+        n.textContent = 'PCM ' + id;
+        return was;
+      }, { sel: `.proof-card[data-id="${singleProofId}"]`, id: ID_NOT_NUM.id });
+      const during = await servedNumber();
+      await page.evaluate(({ sel, was }) => {
+        document.querySelector(sel + ' .pcm-number').textContent = was;
+      }, { sel: `.proof-card[data-id="${singleProofId}"]`, was: restore });
+      const after = await servedNumber();
+      ck(before && !during && after,
+        `sabotage "the sheet reads the file id instead of the served number": ` +
+        `green ${before} → red ${during} → green ${after}`);
+    }
+
+    // Nothing enlarged prints nothing, and leaves no printing state behind.
+    const nothing = await page.evaluate(() => {
+      closeLightbox();
+      const r = window.printDesign(null);
+      return { r, printing: document.body.classList.contains('design-printing') };
+    });
+    ck(nothing.r === false && !nothing.printing,
+      'printDesign() with nothing enlarged prints nothing and sets no printing state');
+
+    // Fold the element library back and clear the jump, so section 8 sees the page the
+    // rest of this file left it in.
+    await page.evaluate(() => {
+      document.querySelectorAll('.el-cat.open').forEach((b) => b.querySelector('.el-toggle').click());
+      closeLightbox();
+    });
+    await page.click('#clearFilters');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.waitForTimeout(200);
 
     // ---- 8. page health ----
     // The lightbox <img> carries no src until something is clicked; an image with no src
