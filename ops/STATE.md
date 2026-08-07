@@ -57,6 +57,15 @@ TYPE_COLORS neutralized-not-removed (B's job). NOTE: quote session committed 39b
 on main mid-wave (s19 operator-round brief) — merge integrated it cleanly. WAVE 2
 SPAWNED: B table-views (Opus, ../bw-quote-tool-s20b from cb1e192a).**
 
+**s20 PUSH PRE-AUTHORIZED (operator, direct in-chat, 2026-08-06): "push everything
+live once its all done and green."** Fires after all four waves are merged and the
+final contract is green (dashboard + index syntax checks, full suite ≥2685/41 at 0
+failed, brief §9 walked). Includes the quote session's s19 operator-round commits
+(their handoff confirmed: index.html + tests only, clean tree from their side).
+Push protocol: pull --rebase check for out-of-band movement → syntax checks → full
+suite → push → live wire verification of dashboard.html + a spot-check of the quote
+session's index.html on the wire.
+
 **s20 WAVE 2 MERGED 2026-08-06, main GREEN + both syntax checks; suite now 2685/41 —
 grew from 2598/40 via the QUOTE SESSION's s19 Track F merge (`f4b02cab`, +1 suite),
 not dashboard work; 2685/41 is the running pin.** B merged (track `6bb2b111` — §3
