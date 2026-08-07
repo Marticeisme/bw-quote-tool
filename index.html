@@ -22468,6 +22468,21 @@ async function _fillCirgasXlsx(data) {
   if (data.markerCategory) {
     var mkSheet = data.markerCategory === 'upright' ? 'Mem Order Form Upright & Other' : 'Mem Order Flat Mrkr & Bronze';
     var setMk = function(coord, type, value) { return _xlsxSetCellInSheet(zip, pathMap, cache, mkSheet, coord, type, value); };
+    // The signature block at the bottom of BOTH Mem Order sheets never auto-populated
+    // (operator report 2026-08-07): the template's purchaser-name / email / FSD cells
+    // there are formulas against `[1]Information!…` — an EXTERNAL workbook (the file the
+    // sheet was originally copied from), which Excel can't resolve in a generated packet,
+    // so they printed blank. Every other blue field cascades from THIS workbook's
+    // Information sheet and worked. Write the same Information values directly;
+    // _xlsxSetCell replaces the whole cell, formula included.
+    if (data.markerCategory === 'upright') {
+      await setMk('A50', 's', data.purchName);
+      await setMk('A52', 's', data.purchEmail);
+    } else {
+      await setMk('A49', 's', data.purchName);
+      await setMk('A51', 's', data.purchEmail);
+      await setMk('A53', 's', data.fsd);
+    }
     await setMk('C11', 's', data.mkManufacturer);
     await setMk('C12', 's', data.mkMonumentType);
     await setMk('C13', 's', data.mkGraniteColor);
