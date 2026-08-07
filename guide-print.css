@@ -1170,3 +1170,175 @@
   [data-print-mode="family"] .ladder li span,
   [data-print-mode="family"] .ladder li p { font-size: 10pt; line-height: 1.35; }
 }
+
+/* ==============================================================================   9. THE FULL PRINT  —  no `?print=` mode at all   (sprint-19 Track E)
+
+   Operator, 2026-08-06: "The PDF versions of files on the family resources are different
+   from the HTMLs which was the point. But when I print inside the HTML I want it to be the
+   same as the HTML, not some reduced version. Just make sure the margins fit the whole
+   page."
+
+   WHAT HE WAS ACTUALLY SEEING. Not the ?print=family cut — the guides.html cards link
+   straight to the guide HTML, and viewer.html is reached from exactly one card (the
+   General Price List, a static vendor PDF). Measured before touching anything, with
+   Chromium print emulation on the served tree:
+
+     burial-guide.html            plain Ctrl+P   2pp   15/15 data-pdf="drop" sections VISIBLE
+                                                       body 10.27px   two columns
+     burial-guide.html            ?print=family  2pp    0/15 drop, 8/8 .pdf-summary
+                                                       body 14px      one column
+     cemetery-property-guide.html plain Ctrl+P   4pp   42/42 drop VISIBLE, body 10.27px, 2 col
+
+   So the plain print already carried the WHOLE document. What it did not carry was the
+   document's own type: §7 compensates the entire estate down to 7.7pt (10.27px) for a
+   six-page budget, each guide's own condense block takes prose to 8pt and flows the sheet
+   in TWO columns, while the screen values are 15px body / 15px prose / 34px h2 in ONE
+   column (measured across all 26 guide pages; the vocabulary in §9b is those
+   measurements). Half the type and twice the columns is exactly "some reduced version".
+
+   THE RULE THIS SECTION ADDS. Print has three modes now, and only one of them condenses
+   anything a family can see:
+
+     (none)            FULL — the document at its own screen type, one column. This is
+                              Ctrl+P from an open guide, which is the operator's path.
+     ?print=family     the condensed family cut (§8). Unchanged.
+     ?print=compact    the 7.7pt six-page squeeze — i.e. exactly what "no mode" used to
+                              mean. It exists so the three PDFs that are BUILT from the
+                              uncondensed page keep printing the bytes they printed before:
+                              Granite Niches Guide, Glass-Front Niche Guide and Medicaid
+                              Professional Reference. Their jobs in
+                              scripts/build_guide_pdfs.mjs now say so out loud instead of
+                              relying on the absence of a query, which is what makes this
+                              change a no-op for those three.
+
+   Downloads therefore stay condensed — all 25 built PDFs now carry an explicit mode — and
+   the difference between the download and the printed page survives, deliberately.
+
+   WHAT IS NOT RESTORED, AND WHY. Each of these is a standing operator ruling, not a
+   reduction, so "the same as the HTML" stops at the document body:
+
+     - The masthead. Punch-list item 20, 2026-07-27: "the header ... should be a lot
+       smaller. it is fine in html format but on print or pdf it takes too much of a page
+       up." Capped by scripts/verify_print_header.mjs. Untouched here.
+     - The pricing rule (§6). Operator 2026-08-01: ranges print, itemized prices do not.
+     - Nav, table of contents and .doc-footer stay hidden; the running footer in the @page
+       margin boxes carries the contact block on every sheet instead.
+     - Page geometry (§1) is untouched, which is the "margins fit the whole page" half of
+       the request: real 0.42/0.5/0.46in margins with the cream painted corner to corner by
+       @page{background}. The horizontal 48px section gutter the SCREEN uses is deliberately
+       NOT restored — on paper the @page margin IS that gutter, and adding it inside would
+       put a second margin inside the first and narrow the column.
+     - Card GRIDS stay stacked (the guides' own `.grid{display:block}`). One card per full
+       column width is a paper adaptation, not a reduction; flagged as an open question.
+
+   SIZES ARE IN PX ON PURPOSE, against this file's pt convention. The requirement is "the
+   same as the HTML", the screen values are px, and 15px is 11.25pt — writing the measured
+   number keeps the rule checkable against a screen probe rather than against a conversion.
+   ===================================================================================== */
+
+@media print {
+
+  /* ── 9a. FLOW: one column, like the screen ─────────────────────────────────────
+     The sheet-wide two-column flow is the most visible way the printed page stopped being
+     the page. Same two rules §8b needs, for the same reason — and the column-span sweep is
+     the s16 finding that a `column-span:all` surviving into a one-column flow strands
+     empty pages at a break. */
+  html:not([data-print-mode]) .doc-sheet {
+    column-count: 1 !important; column-gap: normal !important;
+  }
+  html:not([data-print-mode]) * { column-span: none !important; }
+
+  /* ── 9b. TYPE: the measured screen scale ──────────────────────────────────────
+     Every value below is what the SCREEN computes, counted across all 26 guide pages
+     (s19 Track E probe). No !important is needed except where §7 already used one:
+     `html:not([data-print-mode]) .section p` is (0,2,2) and beats both §7's bare `p` and
+     a guide's own `.section p` outright. */
+  html:not([data-print-mode]) body { font-size: 15px; line-height: 1.6; }
+
+  html:not([data-print-mode]) :is(p, .section p, .prose p, .section-wrap p) {
+    font-size: 15px; line-height: 1.65; max-width: none;
+  }
+  html:not([data-print-mode]) :is(.band p, .note p, .faq .answer p, .policy-box p) {
+    font-size: 14.5px; line-height: 1.6;
+  }
+  html:not([data-print-mode]) :is(.card p, .option-card p, .check-card p, .sidebar p) {
+    font-size: 14px; line-height: 1.55;
+  }
+  /* li is the one bimodal measurement: 13.5px in twelve guides, 15px in seven. 14px sits
+     between them rather than picking a side and making the other seven wrong. */
+  html:not([data-print-mode]) :is(li, .prose li, .sidebar li) {
+    font-size: 14px; line-height: 1.5;
+  }
+
+  html:not([data-print-mode]) :is(.section h2, .section-wrap h2) {
+    font-size: 34px; line-height: 1.2;
+  }
+  html:not([data-print-mode]) :is(.section .sub, .section-sub) { font-size: 16px; line-height: 1.6; }
+  /* A general h3 floor. The screen values across the estate are 22px x6, 21px x5, 20px x5,
+     26px x5, 24px x1, 18px x1 — no single number is right for all of them, and the named
+     component rules below carry the ones that are worth being exact about. 21px is the
+     middle of that spread and keeps every h3 ranked above the 15px body, which is what a
+     guide with a dozen bespoke card classes actually needs from this rule. */
+  html:not([data-print-mode]) h3 { font-size: 21px; line-height: 1.35; }
+  html:not([data-print-mode]) .subhead { font-size: 22px; line-height: 1.35; }
+  html:not([data-print-mode]) .section-label { font-size: 15px; }
+  html:not([data-print-mode]) .section-kicker { font-size: 11px; }
+  html:not([data-print-mode]) :is(.card h3, .band h3, .note h3) { font-size: 22px; line-height: 1.35; }
+  html:not([data-print-mode]) .faq summary { font-size: 21px; line-height: 1.6; }
+  html:not([data-print-mode]) .charge-list strong { font-size: 19px; line-height: 1.25; }
+  html:not([data-print-mode]) .charge-list span { font-size: 14px; line-height: 1.5; }
+  html:not([data-print-mode]) :is(.compare td, .compare th) { font-size: 14px; }
+  html:not([data-print-mode]) :is(.price-table td, .price-table th) { font-size: 13.5px; }
+
+  /* The photo-first card at its screen scale. The print half of the component (§3b) keeps
+     its stacked price and 16:9 crop — those are paper adaptations, not reductions. */
+  html:not([data-print-mode]) .pf-card h3 { font-size: 21px; line-height: 1.35; }
+  html:not([data-print-mode]) .pf-card p { font-size: 13.5px; line-height: 1.55; }
+  html:not([data-print-mode]) .pf-range { font-size: 20px; }
+  html:not([data-print-mode]) .pf-ask .pf-range { font-size: 14px; }
+
+  /* §7 uses !important here to beat an inline `style="font-size:14px"` on a bare
+     paragraph. Beating an !important needs an !important; the value restored is the
+     inline one those six paragraphs were written with. */
+  html:not([data-print-mode]) .section-wrap > p[style*="font-size"] {
+    font-size: 15px !important; line-height: 1.65 !important;
+  }
+
+  /* ── 9c. THE BOXES GET THEIR ROOM BACK ────────────────────────────────────────
+     Restored type inside condense-block padding reads as cramped, which is its own kind of
+     "not the HTML". Screen values, except the SECTION gutter: the screen's 48px/40px is
+     vertical air for a continuous scroll, and on paper the page break and the section rule
+     already separate sections, so it is taken at half. Sections keep zero horizontal
+     padding — see the note above about the @page margin being the gutter. */
+  html:not([data-print-mode]) :is(.section, .section-wrap) { padding: 24px 0 20px; }
+  html:not([data-print-mode]) .card { padding: 22px 22px 20px; margin-bottom: 14px; }
+  html:not([data-print-mode]) .band { padding: 26px 30px; margin: 18px 0 10px; }
+  html:not([data-print-mode]) .note { padding: 22px 26px; margin: 18px 0 10px; }
+  html:not([data-print-mode]) .sidebar { padding: 24px 22px; margin-bottom: 18px; }
+  html:not([data-print-mode]) :is(.policy-box, .highlight-box) { padding: 28px 30px; margin-bottom: 20px; }
+
+  /* ── 9d. NO INVERTED HEADINGS ─────────────────────────────────────────────────
+     Restoring body type without restoring the headings BESIDE it is its own defect: a
+     heading that outranks its paragraph on screen must not print smaller than it. An
+     inversion probe over all 25 guide pages (screen rank vs full-print rank, every
+     heading against its nearest sibling paragraph) found exactly two shapes, and these
+     are they — everything else the vocabulary above already carries.
+
+     Every one of them is the same shape wearing five different class names — a step or
+     timeline block whose heading is body-sized bold (13.5-14.5px) over a 12.5-13.5px
+     paragraph. §9b's generic 15px paragraph outranked the heading and turned the pair
+     upside down. The rule is written STRUCTURALLY rather than by class, because that is
+     what the five have in common and because a sixth component with the same shape should
+     be covered the day it lands: a paragraph that is a SIBLING OF AN h4 is component text,
+     not body prose, so it keeps its own scale. */
+  html:not([data-print-mode]) h4 { font-size: 14.5px; line-height: 1.35; }
+  /* `!important`, and not for emphasis. `:is()` takes the specificity of its MOST specific
+     argument, so §9b's `:is(p, .section p, …)` is (0,2,2) for EVERY branch including the
+     bare `p` — while this structural selector is only (0,1,3). Written without the
+     `!important` the rule silently lost and the probe still reported the inversion, which
+     is how the trap was found rather than reasoned about. */
+  html:not([data-print-mode]) :is(h4 + p, h4 ~ p) {
+    font-size: 13px !important; line-height: 1.5 !important;
+  }
+  html:not([data-print-mode]) :is(.policy-box h3, .highlight-box h3) { font-size: 20px; line-height: 1.35; }
+}

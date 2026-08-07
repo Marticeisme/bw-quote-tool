@@ -339,6 +339,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
    WEBSITE. */
 .print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
 /* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
    `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
    metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
@@ -346,6 +360,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    guide-print.css §3). Everything else the shared sheet can express, so this block
    is now one screen-only line and nothing more. */
 </style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
 <!-- BW:PRINT-SYSTEM:END -->
 
 <nav class="site-nav">
