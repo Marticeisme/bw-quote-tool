@@ -99,6 +99,16 @@ export const ALLOW = [
     why: 'marker-design motif names ("gate", "gates of heaven") are products, not jargon',
   },
   {
+    id: 'pcm-proof-text',
+    file: /pcm-design-catalog/i,
+    re: /<div class="product-detail proof-title">[^<]*<\/div>|<div class="proof-desc">[^<]*<\/div>/gi,
+    why: 'the curated title and one-sentence description on a full-colour proof card ' +
+         '(s21). Same reason as the motif tags above and the same narrowness: four of the ' +
+         '619 say "gate", because four of the designs draw a garden gate. Allowed BY SPAN ' +
+         'and to this one file, so a banned word anywhere else on the page — including in ' +
+         'the section prose right above these cards — still fails',
+  },
+  {
     id: 'pcm-search-index',
     file: /pcm-design-catalog/i,
     re: /\bvar\s+(?:ELEMENTS|STEM_TAGS|SYNONYMS|TAGS|DESIGNS)\s*=[\s\S]*?;\s*$/gm,

@@ -74,7 +74,14 @@ PHOTO_DIR = 'pcm-example-images'
 REF_DIR = 'pcm-reference-images'
 PROOF_DIR = 'pcm-companion-images'
 PROOF_MANIFEST = 'data/pcm-companion-proofs.json'
+SINGLE_DIR = 'pcm-single-images'
+SINGLE_MANIFEST = 'data/pcm-single-proofs.json'
 DATA = 'data/pcm-catalog.json'
+
+# The order data/pcm-catalog.json's top-level keys are written in. Named once so that a
+# full re-extract and a `--fold-proofs` refresh produce the same file.
+CATALOG_KEYS = ['designs', 'elements', 'photos', 'reference', 'proofs', 'singleProofs',
+                'designCats', 'elementCats', 'crossListed', 'imageSpec']
 
 DESIGN_PX = 360      # longest edge; the source is 347 px, so this is native-ish
 
@@ -533,6 +540,49 @@ def load_proofs():
             for e in sorted(man['files'], key=lambda e: e['num'])]
 
 
+def load_single_proofs():
+    """The SINGLE / individual design-proof class, from its own committed manifest.
+
+    Same arrangement as load_proofs, with one difference that matters everywhere
+    downstream: a single proof is keyed by a STRING id, not by its number. PCM's gallery
+    serves "1148" and "1148-2" as two different designs, and on eight of the 372 the
+    filename stem and the design number the gallery actually printed disagree (id 1148 is
+    design PCM 1448). So `id` is the join key -- it is what data/pcm-desc-singles.json is
+    keyed by and what the image file is named -- and `num` is the only thing that may ever
+    be SHOWN. Collapsing the two would silently merge two designs into one card.
+    """
+    if not os.path.exists(SINGLE_MANIFEST):
+        return []
+    man = json.load(open(SINGLE_MANIFEST, encoding='utf-8'))
+    return [dict(id=e['id'], num=e['num'], img=e['img'], px=[e['w'], e['h']])
+            for e in sorted(man['files'], key=lambda e: (e['num'], str(e['id'])))]
+
+
+def fold_proofs():
+    """`--fold-proofs`: refresh ONLY the two proof classes in an existing catalog.
+
+    The proof classes do not come out of a PDF, so re-folding them needs neither the
+    design books nor the operator's D:\\ drive -- but `main()` opens the books before it
+    reaches load_proofs(), so on any machine without them the only way to pick up a
+    re-imported manifest used to be a full re-extract. That is how data/pcm-catalog.json
+    sat at 232 companion proofs while the manifest already carried 247.
+
+    Everything else in the file is left byte-for-byte alone; this rewrites two keys.
+    """
+    old = json.load(open(DATA, encoding='utf-8'))
+    before = (len(old.get('proofs') or []), len(old.get('singleProofs') or []))
+    # Rebuilt in CATALOG_KEYS order rather than mutated in place, so a fold and a full
+    # re-extract write the same key order and the file does not churn depending on which
+    # one last touched it.
+    fresh = dict(old, proofs=load_proofs(), singleProofs=load_single_proofs())
+    data = {k: fresh[k] for k in CATALOG_KEYS if k in fresh}
+    data.update({k: v for k, v in fresh.items() if k not in data})
+    with open(DATA, 'w', encoding='utf-8', newline='\n') as f:
+        json.dump(data, f, indent=0, ensure_ascii=False)
+    print('%s: companion proofs %d -> %d, single proofs %d -> %d'
+          % (DATA, before[0], len(data['proofs']), before[1], len(data['singleProofs'])))
+
+
 def extract_reference(write_images):
     out, bytes_ = [], 0
     for book, printed, title, desc in REFERENCE:
@@ -553,7 +603,10 @@ def extract_reference(write_images):
 
 def main():
     """`--data` reuses whatever is already on disk; `--only=elements,photos` re-renders
-    just those parts (the Elements book alone takes ~10 minutes to walk)."""
+    just those parts (the Elements book alone takes ~10 minutes to walk).
+    `--fold-proofs` skips the books entirely and refreshes only the two proof classes."""
+    if '--fold-proofs' in sys.argv:
+        return fold_proofs()
     write_all = '--data' not in sys.argv
     only = None
     for a in sys.argv[1:]:
@@ -574,6 +627,8 @@ def main():
     print(f'reference : {len(refs):4d} pages    ({b/1e6:.2f} MB)')
     proofs = load_proofs()
     print(f'proofs    : {len(proofs):4d} images   (from {PROOF_MANIFEST})')
+    singles = load_single_proofs()
+    print(f'singles   : {len(singles):4d} images   (from {SINGLE_MANIFEST})')
 
     designs = sorted(d2020 + d2011, key=lambda d: (d['book'], d['num']))
     cats = {}
@@ -606,10 +661,11 @@ def main():
                 budgets={ELEM_DIR: 28_000_000, PHOTO_DIR: 9_000_000, REF_DIR: 1_000_000,
                          PROOF_DIR: 17_000_000})
     with open(DATA, 'w', encoding='utf-8', newline='\n') as f:
-        json.dump(dict(designs=designs, elements=elems, photos=photos,
-                       reference=refs, proofs=proofs, designCats=cats, elementCats=ecats,
-                       crossListed=cross, imageSpec=spec),
-                  f, indent=0, ensure_ascii=False)
+        written = dict(designs=designs, elements=elems, photos=photos,
+                       reference=refs, proofs=proofs, singleProofs=singles,
+                       designCats=cats, elementCats=ecats,
+                       crossListed=cross, imageSpec=spec)
+        json.dump({k: written[k] for k in CATALOG_KEYS}, f, indent=0, ensure_ascii=False)
     print(f'\ntotal new image bytes: {total/1e6:.2f} MB')
     print(f'{DATA}: {len(designs)} designs, {len(elems)} elements, '
           f'{len(photos)} photos, {len(refs)} reference pages, {len(proofs)} proofs')

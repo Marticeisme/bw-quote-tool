@@ -25,6 +25,11 @@ CATALOG = os.path.join(ROOT, 'data', 'pcm-catalog.json')
 CURATED = os.path.join(ROOT, 'data', 'pcm-subject-tags.json')
 OUT = os.path.join(ROOT, 'data', 'pcm-catalog-tags.json')
 
+# The two proof classes' curated descriptions (s21 Tracks B1/B2). They carry subject tags
+# from the SAME vocabulary the book plates use, which is the whole point: a proof and a
+# plate that both show a rose have to answer the same search with the same chip.
+DESC_FILES = ['data/pcm-desc-singles.json', 'data/pcm-desc-companions.json']
+
 STEM_RE = re.compile(r'[\s-]*\d+\s*$')
 
 
@@ -94,12 +99,38 @@ def main():
                 die('element stem %r maps to tag %r which is not in vocabulary' % (st, t))
         element_stem_tags[st] = sorted(tags)
 
+    # ---- the proof classes' curated tags -----------------------------------
+    # These are NOT resolved into the output here: they key on a proof id, not on a design
+    # row, and build_pcm_catalog.py reads them straight off the description files. They are
+    # read here for exactly two reasons, both of which would otherwise rot silently.
+    #
+    # First, the vocabulary check. A tag somebody typed into a description file that is not
+    # in data/pcm-subject-tags.json's vocabulary is the same fault as a design carrying one,
+    # and it has to fail in the same place and just as loudly.
+    #
+    # Second, `used` below is what decides whether a synonym survives. A family word whose
+    # only targets are carried by proofs — no plate depicts it — would be dropped as
+    # "expanding to nothing", and the word would then reach none of the cards that DO carry
+    # it. So the proofs' tags count as used.
+    proof_tags = set()
+    for rel in DESC_FILES:
+        path = os.path.join(ROOT, *rel.split('/'))
+        if not os.path.exists(path):
+            continue
+        doc = json.load(open(path, encoding='utf-8'))
+        for did, entry in (doc.get('designs') or {}).items():
+            for t in (entry.get('tags') or []):
+                if t not in vocab:
+                    die('%s: %s uses tag %r which is not in vocabulary' % (rel, did, t))
+                proof_tags.add(t)
+
     # ---- synonyms ----------------------------------------------------------
     used = set()
     for tags in design_tags.values():
         used.update(tags)
     for tags in element_stem_tags.values():
         used.update(tags)
+    used.update(proof_tags)
     syn = {}
     for word, targets in cur['synonyms'].items():
         keep = [t for t in targets if t in used]

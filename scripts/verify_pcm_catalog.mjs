@@ -25,6 +25,44 @@ import { assertServesThisTree } from './served-tree-check.mjs';
 export const PAGE = 'pcm-design-catalog.html';
 export const DATA = 'data/pcm-catalog.json';
 export const TAGS = 'data/pcm-catalog-tags.json';
+export const SUBJECTS = 'data/pcm-subject-tags.json';
+
+// ---- the two full-colour proof classes ----------------------------------------------
+// Pacific Coast Memorials' own proofs: the artwork printed on the granite colour with
+// sample lettering, rather than the design books' black-and-white plates. Two classes, one
+// shape, so the checks are written once and run twice — a class that quietly loses a rule
+// the other one keeps is exactly the failure a hand-copied second block produces.
+//
+// `idKeyed` is the difference that matters. A companion proof is keyed by its number. A
+// SINGLE proof is keyed by a string id, because PCM's gallery serves "1148" and "1148-2"
+// as different designs and on eight of the 372 the id and the number the gallery printed
+// disagree. The join is on the id; the number is the only thing that may be shown.
+export const PROOF_CLASSES = [
+  { kind: 'single', key: 'singleProofs', sec: 'singles', idKeyed: true,
+    dir: 'pcm-single-images', manifest: 'data/pcm-single-proofs.json',
+    desc: 'data/pcm-desc-singles.json', heading: 'Single Marker Designs',
+    option: 'single-proofs' },
+  { kind: 'companion', key: 'proofs', sec: 'proofs', idKeyed: false,
+    dir: 'pcm-companion-images', manifest: 'data/pcm-companion-proofs.json',
+    desc: 'data/pcm-desc-companions.json', heading: 'Companion Designs',
+    option: 'companion-proofs' },
+];
+
+// Eight single proofs carry a file id that is not their design number. This is the one
+// that reads most like a typo and is not: the file is PCM1148.jpg, the gallery URL it came
+// from is Headstone-Design-PCM-1448.jpg, and 1448 is the design. The card must PRINT 1448.
+// Pinned by hand, because "the page agrees with the data" would pass just as happily on a
+// page that printed the id — the whole point is which of the two fields reaches the family.
+export const ID_NOT_NUM = { id: '1148', num: 1448 };
+
+// The s17 PII hold, RELEASED by the operator 2026-08-07. Twelve companion proofs were held
+// out of the public repo for carrying real identities. They now ship, and the manifest
+// keeps each one's original reason under `released[].originalHoldReason` rather than
+// deleting it. The numbers are pinned here on purpose: this is a decision about real
+// people's names on a public site, and it must be a deliberate edit to this list — never a
+// count that quietly follows whatever the manifest happens to say.
+export const RELEASED = [2500, 2501, 2503, 2504, 2506, 2508, 2509, 2510,
+                         2514, 2515, 2516, 2529];
 
 // Subject probes. Each is a word a family actually says, with what it must reach. The
 // counts are NOT constants this file owns — they are computed from the tag data, so the
@@ -362,114 +400,233 @@ export async function run(ck, base) {
   // regime, and no masked plate may drift out of pcm-design-images/. A future sprint that
   // "tidies up" by pointing the masker at every image directory fails here instead of
   // silently blanking 232 proofs the operator asked to keep whole.
-  const PROOF_DIR = 'pcm-companion-images';
-  const PROOF_MANIFEST = 'data/pcm-companion-proofs.json';
   const UPSCALE_MANIFEST = 'data/pcm-upscale-manifest.json';
   const MASK_REGIONS = 'data/pcm-photo-masks.json';
+  const vocabulary = JSON.parse(fs.readFileSync(path.resolve(SUBJECTS), 'utf8')).vocabulary;
+  const plateNums = new Set(data.designs.map((d) => d.num));
 
-  const proofs = data.proofs || [];
-  ck(proofs.length > 0, `the catalog carries the companion proof class (${proofs.length})`);
+  // Every class gets the same census, computed per class and carried into the DOM section
+  // below. `cls.rows` / `cls.text` / `cls.proofOnly` are what the page-driving half asserts
+  // against, so the two halves cannot disagree about what shipped.
+  const CLASSES = [];
+  for (const c of PROOF_CLASSES) {
+    const rows = data[c.key] || [];
+    const man = JSON.parse(fs.readFileSync(path.resolve(c.manifest), 'utf8'));
+    const text = JSON.parse(fs.readFileSync(path.resolve(c.desc), 'utf8')).designs;
+    const keyOf = (r) => String(c.idKeyed ? r.id : r.num);
 
-  const pman = JSON.parse(fs.readFileSync(path.resolve(PROOF_MANIFEST), 'utf8'));
-  ck(pman.count === proofs.length && pman.files.length === proofs.length,
-    `${PROOF_MANIFEST} and the catalog agree on the count ` +
-    `(${pman.count} / ${pman.files.length} / ${proofs.length})`);
+    ck(rows.length > 0, `the catalog carries the ${c.kind} proof class (${rows.length})`);
+    ck(man.count === rows.length && man.files.length === rows.length,
+      `${c.manifest} and the catalog agree on the count ` +
+      `(${man.count} / ${man.files.length} / ${rows.length})`);
 
-  // Both directions across data <-> disk. A one-way check passes happily while half the
-  // images are orphans nobody links to, or while the data names files that 404.
-  const proofFiles = new Set(fs.readdirSync(path.resolve(PROOF_DIR)));
-  const namedFiles = new Set(proofs.map((p) => path.basename(p.img)));
-  const onDiskOnly = [...proofFiles].filter((f) => !namedFiles.has(f));
-  const inDataOnly = [...namedFiles].filter((f) => !proofFiles.has(f));
-  ck(onDiskOnly.length === 0,
-    `no orphan file in ${PROOF_DIR}/ that the catalog never names` +
-    (onDiskOnly.length ? ` — ${onDiskOnly.slice(0, 4).join(', ')}` : ''));
-  ck(inDataOnly.length === 0,
-    `every proof the catalog names is on disk` +
-    (inDataOnly.length ? ` — missing ${inDataOnly.slice(0, 4).join(', ')}` : ''));
+    // Both directions across data <-> disk. A one-way check passes happily while half the
+    // images are orphans nobody links to, or while the data names files that 404.
+    const onDisk = new Set(fs.readdirSync(path.resolve(c.dir)));
+    const named = new Set(rows.map((p) => path.basename(p.img)));
+    const orphans = [...onDisk].filter((f) => !named.has(f));
+    const absent = [...named].filter((f) => !onDisk.has(f));
+    ck(orphans.length === 0,
+      `no orphan file in ${c.dir}/ that the catalog never names` +
+      (orphans.length ? ` — ${orphans.slice(0, 4).join(', ')}` : ''));
+    ck(absent.length === 0,
+      `every ${c.kind} proof the catalog names is on disk` +
+      (absent.length ? ` — missing ${absent.slice(0, 4).join(', ')}` : ''));
 
-  const prInfo = proofs.map((p) => ({ p, i: imageInfo(p.img) }));
-  const prDrift = prInfo.filter(({ p, i }) => !i || i.w !== p.px[0] || i.h !== p.px[1]);
-  ck(prDrift.length === 0,
-    `every proof file's real size matches the catalog (${prDrift.length} disagree)`);
-  const prLong = prInfo.filter(({ i }) => i).map(({ i }) => Math.max(i.w, i.h));
-  ck(Math.max(...prLong) <= spec.proofPx,
-    `no proof exceeds the ${spec.proofPx} px class (largest ${Math.max(...prLong)})`);
-  ck(Math.min(...prLong) === spec.proofPx,
-    `every proof reaches the ${spec.proofPx} px class — the sources are 720-800 px, so ` +
-    `nothing here is enlarged and nothing is short (smallest ${Math.min(...prLong)})`);
+    const info = rows.map((p) => ({ p, i: imageInfo(p.img) }));
+    const drift = info.filter(({ p, i }) => !i || i.w !== p.px[0] || i.h !== p.px[1]);
+    ck(drift.length === 0,
+      `every ${c.kind} proof file's real size matches the catalog (${drift.length} disagree)`);
+    const long = info.filter(({ i }) => i).map(({ i }) => Math.max(i.w, i.h));
+    ck(Math.max(...long) <= spec.proofPx,
+      `no ${c.kind} proof exceeds the ${spec.proofPx} px class (largest ${Math.max(...long)})`);
+    ck(Math.min(...long) === spec.proofPx,
+      `every ${c.kind} proof reaches the ${spec.proofPx} px class — the sources are ` +
+      `720-800 px, so nothing here is enlarged and nothing is short ` +
+      `(smallest ${Math.min(...long)})`);
 
-  // Byte-determinism. The encode is pinned (LANCZOS -> WebP q70 method 6) and the manifest
-  // carries a sha256 per file, so a re-run that lands different bytes — a Pillow upgrade,
-  // a quality tweak someone made locally — fails here instead of shipping a silent
-  // re-encode of 232 images.
-  const hashDrift = pman.files.filter((e) => {
-    if (!fs.existsSync(path.resolve(e.img))) return true;
-    const h = crypto.createHash('sha256').update(fs.readFileSync(path.resolve(e.img))).digest('hex');
-    return h !== e.sha256 || fs.statSync(path.resolve(e.img)).size !== e.bytes;
-  });
-  ck(hashDrift.length === 0,
-    `every proof's bytes still hash to the manifest — the encode is deterministic` +
-    (hashDrift.length ? ` — ${hashDrift.length} drifted, e.g. ${hashDrift[0].img}` : ''));
+    // Byte-determinism. The encode is pinned (LANCZOS -> WebP q70 method 6) and the
+    // manifest carries a sha256 per file, so a re-run that lands different bytes — a
+    // Pillow upgrade, a quality tweak someone made locally — fails here instead of
+    // shipping a silent re-encode of hundreds of images.
+    const hashDrift = man.files.filter((e) => {
+      if (!fs.existsSync(path.resolve(e.img))) return true;
+      const h = crypto.createHash('sha256')
+        .update(fs.readFileSync(path.resolve(e.img))).digest('hex');
+      return h !== e.sha256 || fs.statSync(path.resolve(e.img)).size !== e.bytes;
+    });
+    ck(hashDrift.length === 0,
+      `every ${c.kind} proof's bytes still hash to the manifest — the encode is ` +
+      `deterministic` +
+      (hashDrift.length ? ` — ${hashDrift.length} drifted, e.g. ${hashDrift[0].img}` : ''));
 
-  // The PII hold. Twelve proofs carry real identities (full names with a home town or in
-  // Vietnamese, exact dates, portrait photographs) rather than PCM's stock sample names,
-  // and this repo is public. They are held OUT — asserted absent from the data, from the
-  // manifest's shipping list, and from disk, so a re-run or a merge cannot quietly
-  // reinstate one.
-  const heldNums = new Set((pman.held || []).map((h) => h.num));
-  ck(heldNums.size > 0 && (pman.held || []).every((h) => typeof h.reason === 'string' && h.reason.length >= 12),
-    `${PROOF_MANIFEST} records every held proof and why (${heldNums.size} held)`);
-  const heldShipped = proofs.filter((p) => heldNums.has(p.num));
+    // A source that could not be downloaded is RECORDED, not rounded away. Each entry
+    // carries a reason, and none of them may have quietly shipped anyway.
+    const unavailable = man.unavailable || [];
+    ck(unavailable.every((u) => typeof u.reason === 'string' && u.reason.length >= 20),
+      `${c.manifest} says why each of its ${unavailable.length} unavailable source(s) is ` +
+      `missing rather than dropping them from the count`);
+    const ghostShipped = unavailable.filter((u) =>
+      rows.some((r) => keyOf(r) === String(u.id ?? u.num)));
+    ck(ghostShipped.length === 0,
+      `no unavailable ${c.kind} source reached the catalog` +
+      (ghostShipped.length ? ` — ${ghostShipped.map((u) => u.id ?? u.num).join(', ')}` : ''));
+
+    // ---- the no-masking ruling, per class ----
+    ck(man.settings && man.settings.masked === false &&
+       typeof man.settings.maskingRuling === 'string' &&
+       man.settings.maskingRuling.length >= 20,
+      `${c.manifest} records the operator's no-masking ruling for this class`);
+
+    // ---- the curated text, joined both ways ----
+    // The join is the thing that breaks silently: a row with no description ships a card
+    // with a blank title, and a description with no row is work nobody will ever see.
+    const keys = rows.map(keyOf);
+    const noText = keys.filter((k) => !text[k]);
+    const orphanText = Object.keys(text).filter((k) => !keys.includes(k));
+    ck(noText.length === 0 && orphanText.length === 0,
+      `${c.desc} covers every one of the ${rows.length} ${c.kind} proofs and describes ` +
+      `nothing that does not ship` +
+      (noText.length ? ` — ${noText.length} undescribed, e.g. ${noText[0]}` : '') +
+      (orphanText.length ? ` — ${orphanText.length} orphaned, e.g. ${orphanText[0]}` : ''));
+    const blank = keys.filter((k) => text[k] &&
+      (!String(text[k].title || '').trim() || !String(text[k].desc || '').trim()));
+    ck(blank.length === 0,
+      `every ${c.kind} proof carries a non-empty title AND a non-empty description` +
+      (blank.length ? ` — ${blank.length} blank, e.g. ${blank[0]}` : ''));
+    // The tags are the SAME slugs the book plates use. That is the point of the shared
+    // vocabulary and the reason the chips are worth anything: one search reaches a plate
+    // and a proof of the same subject, and explains both the same way.
+    const strayTag = [...new Set(keys.flatMap((k) =>
+      (text[k]?.tags || []).filter((t) => !vocabulary[t])))];
+    ck(strayTag.length === 0,
+      `every ${c.kind} proof tag is in the shared vocabulary of ${SUBJECTS} ` +
+      `(${Object.keys(vocabulary).length} terms)` +
+      (strayTag.length ? ` — stray ${strayTag.slice(0, 4).join(', ')}` : ''));
+    ck(keys.every((k) => (text[k]?.tags || []).length > 0),
+      `no ${c.kind} proof ships with an empty tag list`);
+
+    // ---- the repeat rule and the overlap census ----
+    const nums = new Set(rows.map((p) => p.num));
+    const alsoPlate = [...nums].filter((n) => plateNums.has(n));
+    const proofOnly = [...nums].filter((n) => !plateNums.has(n));
+    ck(new Set(keys).size === rows.length &&
+       new Set(rows.map((p) => p.img)).size === rows.length,
+      `each shipped ${c.kind} proof key appears EXACTLY once and owns exactly one file ` +
+      `(${new Set(keys).size} keys, ${rows.length} rows)`);
+    ck(alsoPlate.length + proofOnly.length === nums.size && proofOnly.length > 0,
+      `${alsoPlate.length} ${c.kind} proof numbers are also book plates (both ship, ` +
+      `neither replaces the other) and ${proofOnly.length} are designs the books never ` +
+      `printed`);
+
+    CLASSES.push({ ...c, rows, man, text, keys, keyOf, nums, alsoPlate, proofOnly,
+                   langs: keys.map((k) => text[k]?.language).filter(Boolean) });
+  }
+  const singleCls = CLASSES.find((c) => c.kind === 'single');
+  const compCls = CLASSES.find((c) => c.kind === 'companion');
+  const proofs = compCls.rows;
+  const proofNums = compCls.nums;
+  const alsoAPlate = compCls.alsoPlate;
+  const proofOnly = compCls.proofOnly;
+
+  // No number is both a single proof and a companion proof. The jump box relies on this —
+  // it takes the first proof card matching a number, in page order — so it is asserted
+  // rather than assumed. If it ever stops being true the jump has to become a choice, not
+  // a first-match.
+  const bothClasses = [...singleCls.nums].filter((n) => compCls.nums.has(n));
+  ck(bothClasses.length === 0,
+    `no design number is both a single and a companion proof, so a number resolves to ` +
+    `one card` + (bothClasses.length ? ` — ${bothClasses.slice(0, 4).join(', ')}` : ''));
+
+  // The id/number split, which exists on the singles alone. A card that printed its file
+  // id would be showing a number PCM never used for that design.
+  const idNum = singleCls.rows.filter((r) => String(r.id) !== String(r.num));
+  const pinned = singleCls.rows.find((r) => String(r.id) === ID_NOT_NUM.id);
+  ck(idNum.length > 0 && pinned && pinned.num === ID_NOT_NUM.num,
+    `${idNum.length} single proofs carry a file id that is not their design number, ` +
+    `including the pinned one: id ${ID_NOT_NUM.id} is design PCM ${pinned && pinned.num} ` +
+    `(expected ${ID_NOT_NUM.num})`);
+
+  // ---- the s17 PII hold, and its release -------------------------------------------
+  // Twelve companion proofs were held out of this public repo for carrying real identities
+  // (full names with a home town or in Vietnamese, exact dates, portrait photographs). The
+  // operator released all twelve on 2026-08-07. The check did not go away with the hold —
+  // it INVERTED, and it still has to name the same twelve numbers and still has to carry
+  // each one's reason, because "these twelve were looked at and a decision was made about
+  // them" is the fact worth keeping. `held` is now the empty set and must stay empty
+  // unless somebody deliberately holds something again.
+  const pman = compCls.man;
+  const held = pman.held || [];
+  const released = pman.released || [];
+  ck(held.length === 0,
+    `${compCls.manifest} holds nothing back today (${held.length} held) — the s17 hold was ` +
+    `released by the operator on 2026-08-07`);
+  ck(held.every((h) => typeof h.reason === 'string' && h.reason.length >= 12),
+    `…and anything held again would still have to say why (${held.length} entries checked)`);
+  const relNums = released.map((r) => r.num).sort((a, b) => a - b);
+  ck(JSON.stringify(relNums) === JSON.stringify(RELEASED),
+    `${compCls.manifest} records exactly the ${RELEASED.length} released numbers ` +
+    `(${relNums.join(', ')})`);
+  ck(released.every((r) => typeof r.originalHoldReason === 'string' &&
+                           r.originalHoldReason.length >= 12),
+    `every released proof keeps the reason it was originally held ` +
+    `(e.g. "${(released[0] || {}).originalHoldReason || ''}")`);
+  const relMissing = RELEASED.filter((n) => !proofNums.has(n));
+  const relOffDisk = RELEASED.filter((n) =>
+    !fs.existsSync(path.resolve(compCls.dir, `${n}.webp`)));
+  ck(relMissing.length === 0 && relOffDisk.length === 0,
+    `all ${RELEASED.length} released proofs really shipped — in the catalog and on disk` +
+    (relMissing.length ? ` — not in the catalog: ${relMissing.join(', ')}` : '') +
+    (relOffDisk.length ? ` — not on disk: ${relOffDisk.join(', ')}` : ''));
+  const heldShipped = proofs.filter((p) => held.some((h) => h.num === p.num));
   ck(heldShipped.length === 0,
     `no held proof reached the catalog` +
     (heldShipped.length ? ` — ${heldShipped.map((p) => p.num).join(', ')}` : ''));
-  const heldOnDisk = [...heldNums].filter((n) => proofFiles.has(`${n}.webp`));
-  ck(heldOnDisk.length === 0,
-    `no held proof was left on disk` + (heldOnDisk.length ? ` — ${heldOnDisk.join(', ')}` : ''));
 
   // ---- the no-masking ruling, both directions ----
-  ck(pman.settings && pman.settings.masked === false &&
-     typeof pman.settings.maskingRuling === 'string' && pman.settings.maskingRuling.length >= 20,
-    `${PROOF_MANIFEST} records the operator's no-masking ruling for this class`);
   const upman = JSON.parse(fs.readFileSync(path.resolve(UPSCALE_MANIFEST), 'utf8'));
-  const proofUnderUpscale = upman.files.filter((f) => f.path.replace(/\\/g, '/').startsWith(PROOF_DIR + '/'));
+  const proofDirs = PROOF_CLASSES.map((c) => c.dir);
+  const proofUnderUpscale = upman.files.filter((f) =>
+    proofDirs.some((d) => f.path.replace(/\\/g, '/').startsWith(d + '/')));
   ck(proofUnderUpscale.length === 0,
-    `no companion proof is listed in ${UPSCALE_MANIFEST} — the upscale/mask pipeline is ` +
-    `the book plates' and does not reach this class` +
+    `no proof of either class is listed in ${UPSCALE_MANIFEST} — the upscale/mask ` +
+    `pipeline is the book plates' and does not reach these classes` +
     (proofUnderUpscale.length ? ` — ${proofUnderUpscale.map((f) => f.path).join(', ')}` : ''));
   const strayPlate = upman.files.filter((f) => !f.path.replace(/\\/g, '/').startsWith('pcm-design-images/'));
   ck(strayPlate.length === 0,
     `and the reverse: every masked/upscaled entry is still a book plate under ` +
     `pcm-design-images/ (${strayPlate.length} stray)`);
   const maskDoc = JSON.parse(fs.readFileSync(path.resolve(MASK_REGIONS), 'utf8'));
-  const proofNums = new Set(proofs.map((p) => p.num));
   const maskedProof = (maskDoc.plates || []).filter((pl) =>
-    (pl.book || '').toLowerCase() === 'proof' || (pl.dir || '') === PROOF_DIR ||
-    (pl.img || '').startsWith(PROOF_DIR + '/'));
+    (pl.book || '').toLowerCase() === 'proof' || proofDirs.includes(pl.dir || '') ||
+    proofDirs.some((d) => (pl.img || '').startsWith(d + '/')));
   ck(maskedProof.length === 0,
-    `${MASK_REGIONS} names no companion proof — the photographs on this class stay` +
+    `${MASK_REGIONS} names no proof of either class — the photographs on these stay` +
     (maskedProof.length ? ` — ${maskedProof.length} listed` : ''));
   ck((maskDoc.plates || []).every((pl) => pl.book === '2020' || pl.book === '2011'),
     `every photo-mask entry still belongs to a design BOOK, not to a proof or a photo`);
 
-  // ---- the overlap census, which is why this ships as its own class ----
-  const plateNums = new Set(data.designs.map((d) => d.num));
-  const alsoAPlate = [...proofNums].filter((n) => plateNums.has(n));
-  const proofOnly = [...proofNums].filter((n) => !plateNums.has(n));
-  ck(alsoAPlate.length + proofOnly.length === proofs.length && proofOnly.length > 0,
-    `${alsoAPlate.length} proof numbers are also book plates (both ship, neither replaces ` +
-    `the other) and ${proofOnly.length} are designs the books never printed`);
-  ck(new Set(proofs.map((p) => p.img)).size === proofs.length &&
-     proofNums.size === proofs.length,
-    `each proof number appears exactly once and owns exactly one file — the source's ` +
-    `one duplicate (PCM 2643, shipped twice under a " (1)" copy suffix) was deduped`);
   for (const n of alsoAPlate.slice(0, 3)) {
     const plate = data.designs.find((d) => d.num === n);
     ck(/companion/i.test(plate.cat + ' ' + plate.fmt),
       `PCM ${n} overlaps a plate the book files as a companion design ` +
       `(${plate.cat} / ${plate.sub}) — the class is what it says it is`);
   }
+  // …and the singles' overlaps land on plates the books file as INDIVIDUAL designs, which
+  // is the reverse claim and the one that would catch the two classes being swapped.
+  for (const n of singleCls.alsoPlate.slice(0, 3)) {
+    const plate = data.designs.find((d) => d.num === n);
+    ck(!/companion/i.test(plate.cat + ' ' + plate.fmt),
+      `PCM ${n} overlaps a plate the books do NOT file as a companion ` +
+      `(${plate.cat} / ${plate.sub}) — the single class is what it says it is`);
+  }
+
+  // ---- the source chip the operator removed ----------------------------------------
+  // "source: full-colour proof" sat on every proof card beside the format. Operator,
+  // 2026-08-07: "not helpful to a family". Absence is asserted on the page SOURCE, not
+  // through the DOM, so a chip that renders only under some filter state is still caught.
+  ck(!/source:\s*full-colour proof/i.test(src) && !/data-facet="proof"/.test(src),
+    `the "source: full-colour proof" chip and its facet are gone from the page`);
 
   for (const [dir, cap] of Object.entries(spec.budgets || {})) {
     const { bytes, files } = dirBytes(dir);
@@ -515,12 +672,33 @@ export async function run(ck, base) {
         photos: document.querySelectorAll('.photo-card').length,
         refs: document.querySelectorAll('.reference-card').length,
         proofCards: [...document.querySelectorAll('.proof-card')].map((c) => ({
+          id: c.dataset.id,
+          kind: c.dataset.kind,
           num: c.dataset.num,
           printed: (c.querySelector('.pcm-number') || {}).textContent || '',
           img: !!c.querySelector('.product-img img[src]'),
           facets: c.dataset.facets || '',
+          tags: c.dataset.tags || '',
+          title: ((c.querySelector('.proof-title') || {}).textContent || '').trim(),
+          desc: ((c.querySelector('.proof-desc') || {}).textContent || '').trim(),
+          chips: [...c.querySelectorAll('.tag[data-tag]')].map((t) => t.dataset.tag),
         })),
         proofsPill: (document.getElementById('proofsCount') || {}).textContent,
+        singlesPill: (document.getElementById('singlesCount') || {}).textContent,
+        // Section ORDER, read off the live document rather than off the source string, so
+        // a section that exists but renders somewhere else still fails.
+        sectionOrder: [...document.querySelectorAll('.section-wrap[id]')].map((s) => s.id),
+        firstBookGroup: (document.querySelector('.group[data-group-cat]') || {}).id,
+        // Where the two proof panels sit relative to the first book group, in document
+        // order. Positive means the panel comes first, which is the operator's ruling.
+        panelBeforeBooks: ['singles', 'proofs'].map((k) => {
+          const p = document.getElementById('group-' + k);
+          const g = document.querySelector('.group[data-group-cat]');
+          return !!(p && g &&
+            (p.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING));
+        }),
+        bookOptions: [...document.querySelectorAll('#bookFilter option')]
+          .map((o) => [o.value, o.textContent.trim()]),
       };
     });
 
@@ -546,29 +724,106 @@ export async function run(ck, base) {
     ck(dom.refs === data.reference.length,
       `${dom.refs} reference plates rendered (${data.reference.length} in the data)`);
 
+    // ---- 4b. the two proof sections are at the TOP -----------------------------------
+    // Operator ruling, 2026-08-07: singles first, then companions, ABOVE the book-plate
+    // sections, because they are the newest and clearest pictures of the artwork and a
+    // family opening the link should meet them first. Order is the ruling; a section that
+    // merely EXISTS satisfies nothing.
+    const wantOrder = ['sec-singles', 'sec-proofs', 'sec-designs', 'sec-elements',
+                       'sec-examples', 'sec-reference'];
+    ck(JSON.stringify(dom.sectionOrder) === JSON.stringify(wantOrder),
+      `the page's sections run ${dom.sectionOrder.join(' > ')}`);
+    ck(dom.panelBeforeBooks.every(Boolean),
+      `both proof panels' CARDS come before the first book group (${dom.firstBookGroup}) ` +
+      `in document order, not just their headings ` +
+      `(singles ${dom.panelBeforeBooks[0]}, companions ${dom.panelBeforeBooks[1]})`);
+
     // ---- the proof cards on the page, against the data, both directions ----
-    ck(dom.proofCards.length === proofs.length,
-      `${dom.proofCards.length} companion proof cards rendered (${proofs.length} in the data)`);
-    ck(dom.proofsPill === String(proofs.length),
-      `the proofs panel pill says ${dom.proofsPill} (data says ${proofs.length})`);
-    const domProofNums = new Set(dom.proofCards.map((c) => +c.num));
-    const proofNumDrift = [...proofNums].filter((n) => !domProofNums.has(n));
-    ck(proofNumDrift.length === 0 && domProofNums.size === proofNums.size,
-      `every proof number in the data has a card and no card invents one` +
-      (proofNumDrift.length ? ` — missing ${proofNumDrift.slice(0, 4).join(', ')}` : ''));
-    ck(dom.proofCards.every((c) => c.img),
-      `every proof card carries an image ` +
-      `(${dom.proofCards.filter((c) => !c.img).length} without)`);
-    ck(dom.proofCards.every((c) => c.printed === 'PCM ' + c.num),
-      `every proof card prints its own PCM number ` +
-      `(${dom.proofCards.filter((c) => c.printed !== 'PCM ' + c.num).length} disagree)`);
-    // The facet is what makes the sprint-12 "companion" ruling keep holding for a class
-    // that has no fmt/cat/sub of its own. Checked on the card, not only in the search
-    // result, so a card that lost it is named rather than merely making a count wrong.
-    const noFacet = dom.proofCards.filter((c) => !/\bcompanion\b/.test(c.facets));
-    ck(noFacet.length === 0,
-      `every proof card carries the "companion" search facet` +
-      (noFacet.length ? ` — ${noFacet.length} without, e.g. PCM ${noFacet[0].num}` : ''));
+    for (const c of CLASSES) {
+      const mine = dom.proofCards.filter((x) => x.kind === c.kind);
+      ck(mine.length === c.rows.length,
+        `${mine.length} ${c.kind} proof cards rendered (${c.rows.length} in the data)`);
+      const pill = c.kind === 'single' ? dom.singlesPill : dom.proofsPill;
+      ck(pill === String(c.rows.length),
+        `the ${c.kind} panel pill says ${pill} (data says ${c.rows.length})`);
+
+      // Keyed by the class's OWN key, so a singles regression that collapsed "1148" and
+      // "1148-2" onto one card fails here rather than passing a number-based count.
+      const domKeys = new Set(mine.map((x) => x.id));
+      const wantKeys = c.rows.map((r) => `${c.kind === 'single' ? 'sp' : 'cp'}-${c.keyOf(r)}`);
+      const keyDrift = wantKeys.filter((k) => !domKeys.has(k));
+      ck(keyDrift.length === 0 && domKeys.size === wantKeys.length,
+        `every ${c.kind} proof in the data has its own card and no card invents one` +
+        (keyDrift.length ? ` — missing ${keyDrift.slice(0, 4).join(', ')}` : ''));
+      ck(mine.every((x) => x.img),
+        `every ${c.kind} proof card carries an image ` +
+        `(${mine.filter((x) => !x.img).length} without)`);
+
+      // THE NUMBER SHOWN IS `num`, NEVER THE FILE ID. Asserted against the catalog row's
+      // num, and separately against the one pinned design where the two differ.
+      const numByKey = new Map(c.rows.map((r) =>
+        [`${c.kind === 'single' ? 'sp' : 'cp'}-${c.keyOf(r)}`, r.num]));
+      const wrongNum = mine.filter((x) => x.printed !== 'PCM ' + numByKey.get(x.id));
+      ck(wrongNum.length === 0,
+        `every ${c.kind} proof card prints the design number PCM served, not its file id ` +
+        (wrongNum.length
+          ? `— ${wrongNum.length} disagree, e.g. ${wrongNum[0].id} shows "${wrongNum[0].printed}"`
+          : `(${mine.length} checked)`));
+
+      // The facet is what makes the sprint-12 format ruling hold for classes that have no
+      // fmt/cat/sub of their own. Checked on the card, not only in a search result, so a
+      // card that lost it is named rather than merely making a count wrong.
+      const noFacet = mine.filter((x) => !new RegExp(`\\b${c.kind}\\b`).test(x.facets));
+      ck(noFacet.length === 0,
+        `every ${c.kind} proof card carries the "${c.kind}" search facet` +
+        (noFacet.length ? ` — ${noFacet.length} without, e.g. PCM ${noFacet[0].num}` : ''));
+
+      // The real text. Non-empty on the CARD, matching the curated file, and the chips
+      // drawn from the shared vocabulary — a card whose description silently emptied is
+      // the failure a length check on the JSON file would never see.
+      const blankCard = mine.filter((x) => !x.title || !x.desc);
+      ck(blankCard.length === 0,
+        `every ${c.kind} proof card shows a title and a one-sentence description` +
+        (blankCard.length ? ` — ${blankCard.length} blank, e.g. ${blankCard[0].id}` : ''));
+      const textDrift = mine.filter((x) => {
+        const t = c.text[x.id.replace(/^(sp|cp)-/, '')];
+        return !t || t.title !== x.title || t.desc !== x.desc;
+      });
+      ck(textDrift.length === 0,
+        `every ${c.kind} card's words are the curated ones from ${c.desc}` +
+        (textDrift.length ? ` — ${textDrift.length} disagree, e.g. ${textDrift[0].id}` : ''));
+      const chipDrift = mine.filter((x) => {
+        const t = c.text[x.id.replace(/^(sp|cp)-/, '')];
+        return !t || t.tags.join(' ') !== x.chips.join(' ') ||
+               x.tags !== t.tags.join(' ');
+      });
+      ck(chipDrift.length === 0,
+        `every ${c.kind} card draws its tag chips from its curated tags` +
+        (chipDrift.length ? ` — ${chipDrift.length} disagree, e.g. ${chipDrift[0].id}` : ''));
+      const outOfVocab = [...new Set(mine.flatMap((x) => x.chips))]
+        .filter((t) => !vocabulary[t]);
+      ck(outOfVocab.length === 0,
+        `every ${c.kind} tag chip is a term from the shared vocabulary` +
+        (outOfVocab.length ? ` — stray ${outOfVocab.slice(0, 4).join(', ')}` : ''));
+      ck(mine.every((x) => x.chips.length > 0),
+        `no ${c.kind} proof card ships with an empty tag row`);
+    }
+    // No card anywhere still wears the removed chip.
+    ck(!dom.proofCards.some((c) => /\bproof\b/.test(c.facets)),
+      `no proof card carries the removed "proof" facet`);
+    // The twelve released proofs are on the page, by number, not merely in the data.
+    const domCompNums = new Set(dom.proofCards.filter((c) => c.kind === 'companion')
+      .map((c) => +c.num));
+    const relOffPage = RELEASED.filter((n) => !domCompNums.has(n));
+    ck(relOffPage.length === 0,
+      `all ${RELEASED.length} released proofs have a card on the page` +
+      (relOffPage.length ? ` — missing ${relOffPage.join(', ')}` : ''));
+
+    // ---- the design-book dropdown gained both proof sets ----
+    ck(JSON.stringify(dom.bookOptions.map((o) => o[0])) ===
+       JSON.stringify(['', '2020', '2011', 'single-proofs', 'companion-proofs']),
+      `the design-book dropdown offers both books and both proof sets ` +
+      `(${dom.bookOptions.map((o) => o[1]).join(' | ')})`);
 
     // category counts: stated pill == cards present == the data's own census
     for (const [name, actual, stated] of dom.groups) {
@@ -653,10 +908,17 @@ export async function run(ck, base) {
           .filter((c) => c.style.display !== 'none').map((c) => c.dataset.id),
         elementCount: (document.getElementById('filterCount').textContent
           .match(/([\d,]+) elements/) || [, '0'])[1].replace(/,/g, ''),
-        proofs: [...document.querySelectorAll('.proof-card')]
+        proofs: [...document.querySelectorAll('.companion-card')]
           .filter((c) => c.style.display !== 'none').map((c) => +c.dataset.num),
+        singles: [...document.querySelectorAll('.single-card')]
+          .filter((c) => c.style.display !== 'none').map((c) => c.dataset.id),
         proofsPill: (document.getElementById('proofsCount') || {}).textContent,
+        singlesPill: (document.getElementById('singlesCount') || {}).textContent,
         proofsSectionHidden: !!(document.getElementById('sec-proofs') || {}).hidden,
+        singlesSectionHidden: !!(document.getElementById('sec-singles') || {}).hidden,
+        proofChips: [...document.querySelectorAll('.proof-card')]
+          .filter((c) => c.style.display !== 'none')
+          .map((c) => [...c.querySelectorAll('.tag.hit')].map((t) => t.textContent.trim())),
         chips: [...document.querySelectorAll('.design-card')]
           .filter((c) => c.style.display !== 'none')
           .map((c) => [...c.querySelectorAll('.tag.hit')].map((t) => t.dataset.tag)),
@@ -796,10 +1058,93 @@ export async function run(ck, base) {
     ck(indiv.proofs.length === 0,
       `"individual" returns no companion proofs (${indiv.proofs.length}) — the facet ` +
       `discriminates instead of matching everything`);
+    ck(indiv.singles.length === 0,
+      `…and "individual" returns no single proofs either (${indiv.singles.length}) — the ` +
+      `two class facets discriminate against each other, which is what makes either mean ` +
+      `anything`);
     const noise = await shownFor('zzzznotathing');
-    ck(noise.proofs.length === 0 && noise.proofsSectionHidden,
-      `a word that matches nothing hides the proofs section instead of leaving 232 ` +
-      `cards on screen`);
+    ck(noise.proofs.length === 0 && noise.proofsSectionHidden &&
+       noise.singles.length === 0 && noise.singlesSectionHidden,
+      `a word that matches nothing hides BOTH proof sections instead of leaving ` +
+      `${proofs.length + singleCls.rows.length} cards on screen`);
+
+    // ---- 6e. the SINGLE class answers its own format word ---------------------------
+    // The sprint-12 ruling in its new costume: typing "single" must reach every single
+    // marker design, and the plural must reach the same set through the same facet path.
+    const single = await shownFor('single');
+    const singlePlural = await shownFor('singles');
+    ck(single.singles.length === singleCls.rows.length,
+      `"single" returns all ${singleCls.rows.length} single marker designs ` +
+      `(${single.singles.length} shown)`);
+    ck(singlePlural.singles.length === single.singles.length,
+      `"singles" reaches the same ${single.singles.length} — plural tolerance is on the ` +
+      `facet path this class uses`);
+    ck(single.proofs.length === 0,
+      `"single" returns no COMPANION proofs (${single.proofs.length})`);
+    ck(single.singlesPill === `${singleCls.rows.length} of ${singleCls.rows.length}`,
+      `the singles pill reports the search the way an element category does ` +
+      `("${single.singlesPill}")`);
+    // Twenty single descriptions contain the word "single" ("a single rose stem"). If that
+    // text reached the card's data-name, stripping the facet would leave the card findable
+    // anyway and the check above would be measuring an accident — the exact shadowed-rule
+    // trap sprint-12 refused to keep. So the facet has to be the ONLY route.
+    const nameLeak = await page.evaluate(() =>
+      [...document.querySelectorAll('.proof-card')]
+        .filter((c) => /\b(single|companion)s?\b/.test(c.dataset.name || ''))
+        .map((c) => c.dataset.id));
+    ck(nameLeak.length === 0,
+      `no proof card's search text contains its own format word, so the facet is the only ` +
+      `route to it` + (nameLeak.length ? ` — ${nameLeak.slice(0, 4).join(', ')}` : ''));
+    ck(single.proofChips.length > 0 &&
+       single.proofChips.every((cs) => cs.some((t) => /single/.test(t))),
+      `every "single" card carries a chip naming single (e.g. ` +
+      `"${(single.proofChips[0] || [])[0]}")`);
+
+    // ---- 6f. LANGUAGE ---------------------------------------------------------------
+    // A design carrying Vietnamese lettering is the one thing a Vietnamese family will ask
+    // for by name, and it is not a subject anybody would tag "rose" or "cross". Both sides
+    // computed: the census from the two curated files, the actual from the page.
+    const langCensus = {};
+    for (const c of CLASSES) {
+      for (const l of c.langs) langCensus[l] = (langCensus[l] || 0) + 1;
+    }
+    for (const [lang, n] of Object.entries(langCensus).sort()) {
+      const got = await shownFor(lang);
+      const shown = got.singles.length + got.proofs.length;
+      ck(shown >= n,
+        `"${lang}" surfaces at least the ${n} cards the description files record as ` +
+        `${lang} (${shown} shown: ${got.singles.length} single, ${got.proofs.length} companion)`);
+    }
+    // The chip is the WHY, and it has to be the honest why. "vietnamese" is also a curated
+    // synonym for `asian` and `mary` (a Vietnamese family asks for Our Lady of La Vang),
+    // so the word deliberately returns MORE than the language-tagged cards — and the cards
+    // it reaches through the synonym must NOT claim a language they do not have. So: every
+    // returned card lights something, and exactly the language-tagged ones light the
+    // language chip. A card wearing "language: vietnamese" because it was tagged `mary` is
+    // the failure this pins.
+    const viet = await shownFor('vietnamese');
+    const vietTagged = CLASSES.reduce(
+      (n, c) => n + c.langs.filter((l) => l === 'vietnamese').length, 0);
+    const langChipped = viet.proofChips
+      .filter((cs) => cs.some((t) => /language: vietnamese/.test(t))).length;
+    ck(langChipped === vietTagged,
+      `exactly the ${vietTagged} cards recorded as Vietnamese wear a ` +
+      `"language: vietnamese" chip (${langChipped} of ${viet.proofChips.length} returned)`);
+    ck(viet.proofChips.length > vietTagged &&
+       viet.proofChips.every((cs) => cs.length > 0),
+      `and all ${viet.proofChips.length} cards the word reaches say why they came back — ` +
+      `the rest through the curated synonym onto asian/mary, not through a language they ` +
+      `do not have`);
+
+    // A subject word crosses the class boundary: "roses" reaches book plates AND proofs,
+    // because both are tagged from the one vocabulary. That is the whole argument for the
+    // shared vocabulary, so it is asserted rather than hoped for.
+    const rosesMixed = await shownFor('roses');
+    ck(rosesMixed.designs.length > 0 &&
+       rosesMixed.singles.length + rosesMixed.proofs.length > 0,
+      `"roses" mixes classes: ${rosesMixed.designs.length} book designs, ` +
+      `${rosesMixed.singles.length} single proofs, ${rosesMixed.proofs.length} companion ` +
+      `proofs — one vocabulary, one search`);
     // The number path, for the 113 designs the books never printed: those have no plate
     // to jump to, so the proof is the only card that answers.
     const proofOnlyNum = proofOnly[0];
@@ -847,6 +1192,78 @@ export async function run(ck, base) {
     const cleared = await page.evaluate(() =>
       [...document.querySelectorAll('.design-card')].filter((c) => c.style.display !== 'none').length);
     ck(cleared === data.designs.length, `Clear restores all ${cleared} designs`);
+
+    // ---- 7b. the dropdown SCOPES to a proof set --------------------------------------
+    // Operator ruling: no bespoke per-section filter UI; the existing design-book dropdown
+    // gains the two proof sets so a family can say "just show me the single marker
+    // designs". Driven, not merely present: the option is selected and what remains on
+    // screen is counted. Scoping to one set must show all of it, none of the other, no
+    // book designs and no ornaments.
+    for (const c of CLASSES) {
+      const other = CLASSES.find((x) => x.kind !== c.kind);
+      await page.selectOption('#bookFilter', c.option);
+      await page.waitForTimeout(340);
+      const scoped = await page.evaluate(() => ({
+        designs: [...document.querySelectorAll('.design-card')]
+          .filter((x) => x.style.display !== 'none').length,
+        singles: [...document.querySelectorAll('.single-card')]
+          .filter((x) => x.style.display !== 'none').length,
+        comps: [...document.querySelectorAll('.companion-card')]
+          .filter((x) => x.style.display !== 'none').length,
+        elementsHidden: !!document.getElementById('group-elements').hidden,
+        examplesHidden: !!document.getElementById('sec-examples').hidden,
+        designsHidden: !!document.getElementById('sec-designs').hidden,
+        count: document.getElementById('filterCount').textContent,
+      }));
+      const mine = c.kind === 'single' ? scoped.singles : scoped.comps;
+      const theirs = c.kind === 'single' ? scoped.comps : scoped.singles;
+      ck(mine === c.rows.length && theirs === 0 && scoped.designs === 0,
+        `"${c.heading}" scopes to its own ${c.rows.length} cards ` +
+        `(${mine} shown, ${theirs} from the ${other.kind} set, ${scoped.designs} book designs)`);
+      ck(scoped.elementsHidden && scoped.examplesHidden && scoped.designsHidden,
+        `…and folds away the element library, the photographs and the book sections, ` +
+        `which are not what was asked for`);
+      ck(/0 designs/.test(scoped.count) && new RegExp(`${c.rows.length} proofs`).test(scoped.count),
+        `…and the count line says what is on screen ("${scoped.count}")`);
+    }
+    // Scoping and searching compose: inside a scoped set the search still narrows.
+    await page.selectOption('#bookFilter', 'single-proofs');
+    await page.fill('#searchInput', 'vietnamese');
+    await page.waitForTimeout(340);
+    const scopedSearch = await page.evaluate(() => ({
+      singles: [...document.querySelectorAll('.single-card')]
+        .filter((x) => x.style.display !== 'none').length,
+      comps: [...document.querySelectorAll('.companion-card')]
+        .filter((x) => x.style.display !== 'none').length,
+    }));
+    const vietSingles = singleCls.langs.filter((l) => l === 'vietnamese').length;
+    ck(scopedSearch.singles >= vietSingles &&
+       scopedSearch.singles < singleCls.rows.length && scopedSearch.comps === 0,
+      `a search inside a scoped set still narrows: "vietnamese" in the single set leaves ` +
+      `${scopedSearch.singles} of ${singleCls.rows.length} (at least the ${vietSingles} ` +
+      `recorded as Vietnamese, plus the curated asian/mary synonym) and no companion cards`);
+    await page.fill('#searchInput', '');
+    await page.click('#clearFilters');
+    await page.waitForTimeout(320);
+
+    // ---- 7c. the jump box resolves a number from each proof class --------------------
+    // Both taken from the data, not typed here, so they cannot go stale. Each is a number
+    // the design books never printed, so the proof card is the only thing that answers.
+    for (const c of CLASSES) {
+      const n = c.proofOnly[0];
+      await page.fill('#pcmJump', String(n));
+      await page.waitForTimeout(300);
+      const hit = await page.evaluate(() => {
+        const f = document.querySelector('.flash');
+        return { num: f && f.dataset.num, kind: f && f.dataset.kind,
+                 note: document.getElementById('jumpNote').textContent };
+      });
+      ck(hit.kind === c.kind && +hit.num === n,
+        `jumping to ${n} lands on its ${c.kind} proof card ` +
+        `(got ${hit.kind} PCM ${hit.num}, note "${hit.note}")`);
+    }
+    await page.fill('#pcmJump', '');
+    await page.waitForTimeout(200);
 
     // ---- 9. Installed Examples is a panel you can fold away ------------------------
     // Operator, mid-sprint-14: "the real examples needs to have its own toggle option
@@ -937,12 +1354,19 @@ export async function run(ck, base) {
       designCards: document.querySelectorAll('.design-card').length,
       elements: document.querySelectorAll('.element-card .compare-cb').length,
       elementCards: document.querySelectorAll('.element-card').length,
+      proofs: document.querySelectorAll('.proof-card .compare-cb').length,
+      proofCards: document.querySelectorAll('.proof-card').length,
       photos: document.querySelectorAll('.photo-card .compare-cb').length,
       refs: document.querySelectorAll('.reference-card .compare-cb').length,
       max: window.bwCompareMax,
     }));
     ck(cbCensus.designs === cbCensus.designCards && cbCensus.designs === data.designs.length,
       `every one of the ${cbCensus.designs} design cards carries a compare checkbox`);
+    // A proof is an alternative a family picks between in exactly the way a plate is — it
+    // is the same design, better photographed — so it joins compare on the same terms.
+    ck(cbCensus.proofs === cbCensus.proofCards &&
+       cbCensus.proofs === singleCls.rows.length + proofs.length,
+      `every one of the ${cbCensus.proofs} proof cards carries one too`);
     ck(cbCensus.elements === cbCensus.elementCards && cbCensus.elements > 0,
       `a lazily-built element category gets its checkboxes too ` +
       `(${cbCensus.elements} of ${cbCensus.elementCards} rendered element cards)`);
@@ -1107,9 +1531,17 @@ export async function run(ck, base) {
       text: document.getElementById('filterPrintBtn').textContent.replace(/\s+/g, ' ').trim(),
       disabled: document.getElementById('filterPrintBtn').disabled,
     }));
-    ck(allBtn.n === data.designs.length,
-      `with nothing filtered the button offers the ${allBtn.n} designs — and not the ` +
-      `${data.elements.length} elements, none of whose categories is open`);
+    // Same intent as before, at the surface the page now has: what the button offers with
+    // nothing filtered is everything genuinely ON SCREEN. That used to be the 700 book
+    // designs; it is now those plus both proof classes, whose panels open OPEN. Still NOT
+    // the elements, none of whose categories is open — that half of the claim is the one
+    // that catches a lazily-rendered category being counted as visible.
+    const onScreenAll = data.designs.length + singleCls.rows.length + proofs.length;
+    ck(allBtn.n === onScreenAll,
+      `with nothing filtered the button offers the ${allBtn.n} cards on screen — ` +
+      `${data.designs.length} book designs plus ${singleCls.rows.length} single and ` +
+      `${proofs.length} companion proofs — and not the ${data.elements.length} elements, ` +
+      `none of whose categories is open`);
     ck(allBtn.text === `Print these ${allBtn.n.toLocaleString()} · ` +
                        `${Math.ceil(allBtn.n / perPage)} pages` && !allBtn.disabled,
       `the button states what it will print ("${allBtn.text}")`);
@@ -1122,11 +1554,14 @@ export async function run(ck, base) {
       const pageEls = [...document.querySelectorAll('#filterSheet .fs-page')];
       const onPage = [...document.querySelectorAll('#filterSheet .fs-name')]
         .map((x) => x.textContent.trim());
+      // Recomputed independently of shownCards(), in DOM order, over every class that can
+      // reach the sheet — the proof panels included, and `.ex-cat` in the fold test
+      // alongside `.el-cat`, because a folded panel's cards are not on screen.
       const onScreen = [];
-      document.querySelectorAll('.design-card, .element-card').forEach((c) => {
+      document.querySelectorAll('.design-card, .proof-card, .element-card').forEach((c) => {
         if (c.style.display === 'none') return;
         const g = c.closest('.group'); if (g && g.hidden) return;
-        const b = c.closest('.el-cat');
+        const b = c.closest('.el-cat, .ex-cat');
         if (b && (b.hidden || !b.classList.contains('open'))) return;
         onScreen.push((c.querySelector('.pcm-number') || {}).textContent.trim());
       });
