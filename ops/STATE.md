@@ -77,6 +77,28 @@ the no-status-no-pill render-default nit, printCase restyle (script-free
 document.write window), emoji sweep, styles-out-of-JS for the four non-case tabs,
 modal focus-trap/Escape/sticky, :focus-visible, motion, print scoping, §9 walk.
 
+**s20 CLOSED ON MAIN 2026-08-06 — ALL FOUR WAVES + WAVE 0 IN. Final main GREEN:
+dashboard 2/0 + index 8/0 syntax; suite 2685/41; all five s20 gates green on final
+bytes (A 88/0 updated-to-current-surfaces, B 120/0, C 98/0, D 136/0, data-preservation
+9/9).** D merged (track `1f32ee68` — 16 more sprite icons, zero emoji in rendered
+output, all six render fns + printCase emit no inline hex (pill classes with
+--pill-bg/fg pairs, dark overrides), legacy var alias block retired at zero consumers,
+modals sticky+focus-trap+Escape+role=dialog (CIRGAS Save reachable at 800px), zero
+outline:none, no transition:all, reduced-motion honored, print scoped, no-status rows
+render a New pill render-time-only; §9 walked item-by-item, all PASS — D's report has
+the evidence table). DATA-PRESERVATION GATE (director-direct, operator's ask):
+scratch/s20-data-preservation.mjs — seeds all four case shapes, opens edit modal,
+saves with NO edits, asserts no original leaf lost + CIRGAS derivations
+(disc←contractNum etc.); s20 main 9/9; PRE-SPRINT BASELINE FAILS IT (wipes
+'Pending Service' on save — the option didn't exist), so wave 0 closed a real
+data-loss path. GATE-MAINTENANCE SCAR, promote: a wave-N gate that pins wave-N
+surfaces goes stale exactly as later briefed waves land (A's E/G/C7-C8/SC probes, B's
+K4) — the fix is update-the-probe-to-the-same-intent-at-the-new-surface, never
+delete the assert and never "fix" the code backward; C7 threshold moved AFTER seeing
+results (D's F2 self-flag, same honesty rule). Firebase: zero test traffic all
+sprint, asserted per-gate. Worktrees s20a/b/c removed (junctions non-recursive
+first); s20d pending; s20/* branches kept until pruned.
+
 **s20 PUSH PRE-AUTHORIZED (operator, direct in-chat, 2026-08-06): "push everything
 live once its all done and green."** Fires after all four waves are merged and the
 final contract is green (dashboard + index syntax checks, full suite ≥2685/41 at 0
