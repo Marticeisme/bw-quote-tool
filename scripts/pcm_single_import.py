@@ -169,7 +169,13 @@ def survey():
     else:
         problems.append(('missing', CSV, 'no index: manifest will carry no design names'))
 
-    for fn in sorted(set(by_file) - set(files)):
+    # DROPPED by the operator, 2026-08-07: PCM1348's download was an HTML error body, and
+    # PCM has since DELISTED the design (every URL pattern 404s; the gallery no longer
+    # references the number). Ruling: drop it rather than hold the slot -- same ruling
+    # covered the 7 corrupt companions. The .bat line stays as provenance; the file's
+    # absence from disk is expected, not an orphan.
+    DROPPED = {'PCM1348.jpg'}
+    for fn in sorted(set(by_file) - set(files) - DROPPED):
         problems.append(('orphan-line', fn, 'the .bat downloads it but it is not on disk'))
 
     entries, unavailable, seen = [], [], {}

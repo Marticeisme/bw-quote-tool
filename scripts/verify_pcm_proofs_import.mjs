@@ -37,10 +37,12 @@ const COMPANION_PRETRACK_COUNT = 232;
 const COMPANION_PRETRACK_AGG =
   'fee525ced70d58781be4277d07d1233e9bc48156d53a0dddd5dee6dfe8da72e6';
 
-// Sources the operator's download saved as HTML "File Not Found" bodies under a .jpg
-// name. No image exists locally; they are pending a re-download, not lost data.
-const COMPANION_UNAVAILABLE = [2260, 2261, 2263, 2267, 2343, 2352, 2355];
-const SINGLE_UNAVAILABLE = ['1348'];
+// The 8 corrupt downloads (companions 2260/2261/2263/2267/2343/2352/2355, single 1348)
+// were DROPPED by the operator 2026-08-07 after PCM delisted the designs from their own
+// site (every URL pattern 404s; the gallery no longer references the numbers). The
+// placeholder files were deleted at the source; both unavailable lists must be EMPTY.
+const COMPANION_UNAVAILABLE = [];
+const SINGLE_UNAVAILABLE = [];
 
 // RELEASED by the operator, in-chat, 2026-08-07 (asked twice, the second time with the
 // full census quoted at scale: "Ship everything"). Formerly the s17 HELD set; the gate
@@ -143,7 +145,7 @@ if (comp) {
 
   const un = (comp.man.unavailable || []).map((u) => u.num).sort((a, b) => a - b);
   ok(JSON.stringify(un) === JSON.stringify(COMPANION_UNAVAILABLE),
-     'companions: the 7 corrupt sources are recorded as unavailable', un.join(', '));
+     'companions: unavailable list empty (the 7 corrupt sources dropped 2026-08-07)', un.join(', '));
   const unShipped = COMPANION_UNAVAILABLE.filter((n) => comp.keys.has(String(n)));
   ok(unShipped.length === 0,
      'companions: no unavailable number has an image on disk', unShipped.join(', '));
@@ -180,7 +182,7 @@ if (sing) {
 
   const un = (sing.man.unavailable || []).map((u) => String(u.id)).sort();
   ok(JSON.stringify(un) === JSON.stringify(SINGLE_UNAVAILABLE),
-     'singles: PCM1348 is recorded as unavailable', un.join(', '));
+     'singles: unavailable list empty (corrupt PCM1348 dropped 2026-08-07)', un.join(', '));
   ok(SINGLE_UNAVAILABLE.every((id) => !sing.keys.has(id)),
      'singles: no unavailable id has an image on disk');
   ok(sing.man.catalogued === SINGLE_EXPECTED + SINGLE_UNAVAILABLE.length,
