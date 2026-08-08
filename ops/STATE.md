@@ -1,5 +1,16 @@
 # STATE — Living Ledger
 
+**HISTORY REWRITTEN 2026-08-08 (operator-directed):** commit metadata normalized
+across all 813 commits and example/annotation text cleaned throughout history;
+`main` force-pushed. **Every commit SHA in the entries below this line is a
+historical label that no longer resolves** — do not try to check them out; the
+narrative stands as written. Tip tree verified byte-identical on the wire
+(index.html sha256 match) post-push. Suite at the rewrite: 2842/42. Recovery for
+any stale clone: clean tree → `git fetch origin && git reset --hard origin/main`
+— NEVER pull/rebase across the rewrite. Worktrees pruned to main + the
+discount-fix worktree; stale local branches deleted. Standing rule from the
+operator, same date: commits carry no AI co-author trailers.
+
 **s21 DROP-THE-8 PUSHED LIVE 2026-08-07 (6023278a..f0e6ae12) — wire-verified:** the 8
 corrupt PCM sources are dropped for good per the operator (PCM delisted the designs);
 placeholder files deleted from D:, manifests carry EMPTY unavailable lists (gates pin
