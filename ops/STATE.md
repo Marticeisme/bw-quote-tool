@@ -1,5 +1,11 @@
 # STATE — Living Ledger
 
+**s21 DROP-THE-8 PUSHED LIVE 2026-08-07 (6023278a..f0e6ae12) — wire-verified:** the 8
+corrupt PCM sources are dropped for good per the operator (PCM delisted the designs);
+placeholder files deleted from D:, manifests carry EMPTY unavailable lists (gates pin
+them empty: import 42/0 x2, catalog 377/0, suite 2842/42), desc file _unavailable
+block removed. NOTHING pending on the PCM proofs any more.
+
 **s21 OPS ROUND PUSHED LIVE 2026-08-07 (operator: "push it all live";
 `f73708a9..1e82619f`, 8 commits) — wire-verified 8/8 after 2 deploy-lag retries**
 (scratch/s21-ops-live-verify.mjs: all four touched pages byte-identical sha256 vs HEAD
