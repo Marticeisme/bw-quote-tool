@@ -74,6 +74,38 @@ Saudi Arabia $12,500–$14,000; China $22,000.
 - Members receive a welcome letter, a wallet-size member ID card, and a change of
   address card.
 
+**The map visual (operator ruling mid-sprint 2026-08-10 — REQUIRED):** the guide must
+carry a visual, map-style presentation of the repatriation price ranges, not just prose.
+Two-part approach:
+1. Render page 1 of `E:\Downloads\Average Repatriation Expense Map - 2025.pdf` to a
+   web image (PyMuPDF at 2x zoom, re-encode webp into `inman-images/`) and inspect it.
+   If it reads clean at guide width, use it as a figure with a caption crediting
+   "Inman Shipping, January 2025".
+2. Whether or not the rendered page ships, ALSO build a clean brand-token graphic of
+   the same data: a world-regions visual (inline SVG or styled region cards laid out
+   like a map) with the price ranges on each region — Domestic $1,500–$3,000+,
+   Mexico/Central America $5,000–$14,000, Europe $8,000–$11,000, Asia $11,000–$22,000,
+   Australia/NZ $8,700–$16,500, South America $11,000–$11,500, Africa $12,500–$14,500,
+   Middle East $12,500–$14,000 — with 2–4 named examples under each (from the pinned
+   figures above). It must survive print: test it in the PDF build, no clipped tables,
+   legible at 100%.
+
+**Why a family would want this (operator ruling: this is the heart of the guide —
+argue it well, in the voice, concrete not salesy):** lead the guide with the problem,
+not the product. The moments this plan exists for: the snowbird winter in Arizona, the
+cruise, the trip back to the Philippines or Vietnam or Mexico to see family, the
+daughter working overseas, the husband who still drives to Montana every fall. When a
+death happens away from home, the family is suddenly negotiating with a funeral home
+they've never met, in a place they may not know, sometimes in another language and
+currency, while grieving — and the bill for just getting their person home runs $1,500
+to $22,000 BEFORE any funeral costs at home. One $499 payment, once, ends that whole
+category of worry for life: one call to Inman and it's handled and paid. Compare $499
+against the map figures explicitly (one international trip's exposure is 20–40x the
+plan's price). Make the point that it's not travel insurance — no age limit, no health
+questions, no expiration, no per-trip enrollment, covers ordinary domestic travel past
+75 miles too. A short "is this worth it for us?" passage in Martice's voice should do
+the honest math for a family that rarely travels versus one with family overseas.
+
 **Who can enroll whom.** Anyone, any age — and you can buy it for someone else (a mom
 covering her daughter who travels, adult children covering a snowbird parent). Say this
 with one or two concrete examples in the voice.
