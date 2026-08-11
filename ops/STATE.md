@@ -1,5 +1,24 @@
 # STATE — Living Ledger
 
+**s22 OPERATOR ROUND + PUSH 2026-08-10 (operator: "fold tax in" + the official
+CEMETERY MERCH & SERVICES PRICE LIST EFF-03.01.2026.xlsx + "push it all live once
+done"):** director-direct on main (scratch/s22-fold-tax.mjs, 55 asserted edits):
+bronze guide now prints ONE all-in column with 10.4% tax folded in (tables, the five
+drawn prices, gov-match prose $3,521.76 / VA-install $1,308.24, Generally-ranges
+regenerated tax-included $1,308–$27,843). THE PRICE LIST SETTLED EVERYTHING: every
+qBronze figure matches it exactly; the $12,315/$12,475 companion IS 60×20 (rows
+172-173 — my brief's 60×16 pin was wrong, the tool was right); the WMP rules' "24×30
+companion" IS the half ledger, 24×30 on 28×34, $6,525/$6,780 (rows 163-164) — guide
+now names it and carries its size-note; TWO honesty fixes from the list: "w/vase
+core" includes only the fitting, the VASE ITSELF IS SEPARATE (bronze $1,340–$1,445
+pre-tax, zinc $205 — guide now says so, the what-comes-with box no longer implies an
+included vase), and extra wording/emblems/non-Latin lettering carry per-word/character
+fees (rows 126-131) so "nothing else to add" got scoped honestly. Suite green
+2854/42 AFTER one 2851/3 run whose 3 fails (catalog-filter-print + pcm-catalog) were
+the KNOWN runner race — server on 3737 stopped mid-run by an overlapping tail; fresh
+solo run + port ownership check (fresh-timestamp node = the run's own server, no
+zombie) proved the flake; the standing-fix chip stands. Suite-count note: the tax
+fold changed no assert counts (content-only edit).
 **s22 CLOSED ON MAIN 2026-08-10 — BOTH TRACKS IN (A `s22/inman-travel-plan` →
 B `s22/bronze-markers`, merged --no-ff). Final main GREEN: index 8/0;
 `2854 passed, 0 failed across 42 suites` (NEW PIN, re-pinned in all three governing
