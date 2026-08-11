@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Plan by Inman · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5; --gold:#b8945a;
+  --display:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --body:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:var(--body);font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+strong{color:var(--navy-dark);font-weight:700}
+
+/* nav */
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+.nav-logo{height:22px;width:auto;flex-shrink:0}
+.nav-est{font-family:var(--display);font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap}
+.nav-spacer{flex:1}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap}
+.nav-links a:hover,.nav-links a:focus-visible{background:rgba(255,255,255,.15);color:#fff}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s}
+.nav-back:hover{background:rgba(255,255,255,.12)}
+
+/* doc-sheet + cover */
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative}
+.cover-kicker{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative}
+.cover h1{font-family:var(--display);font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
+.cover-sub{font-family:var(--display);font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:600px;position:relative}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative}
+.cover-stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--navy-deep) 0 33.33%,#e9e2d4 33.33% 66.66%,var(--orange) 66.66% 100%);opacity:.9}
+
+/* contents */
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule)}
+.contents-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.contents-item:nth-last-child(-n+2){border-bottom:none}
+.contents-num{font-family:var(--display);font-size:22px;font-weight:600;color:var(--orange);min-width:20px}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s}
+.contents-item a:hover{color:var(--orange)}
+
+/* sections */
+.section{max-width:none;margin:0;padding:48px 48px 40px}
+.section + .section{border-top:1px solid var(--rule)}
+.section-label{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin:0 0 6px}
+.section h2{font-family:var(--display);font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin:0 0 8px}
+.section .sub{font-family:var(--display);font-size:16px;font-style:italic;color:var(--text-muted);margin:0 0 22px;max-width:none}
+.rule{width:50px;height:2.5px;background:var(--orange);border:0;border-radius:2px;margin:0 0 26px}
+.section .sub + .rule{margin-top:0}
+.section p{margin:0 0 16px;max-width:70ch;font-size:15px;line-height:1.65}
+.section p.wide{max-width:none}
+.subhead{font-family:var(--display);font-size:24px;color:var(--navy);margin:34px 0 10px;font-weight:600}
+a.inline{color:var(--orange);font-weight:700;text-decoration:none}
+a.inline:hover{text-decoration:underline}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:16px;margin:8px 0 12px}
+.card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:22px 22px 20px}
+.card h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px;line-height:1.2}
+.card p{margin:0;font-size:14px;color:var(--text);line-height:1.55}
+.card p + p{margin-top:10px}
+.card .fig{display:block;font-family:var(--display);font-size:26px;font-weight:700;color:var(--navy);margin:2px 0 4px}
+
+/* dark callout */
+.band{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.band::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none}
+.band h3{font-family:var(--display);font-size:22px;font-weight:600;color:#fff;margin:0 0 10px}
+.band p{margin:0;color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;max-width:none}
+.band p + p{margin-top:12px}
+.band strong{color:var(--orange-soft)}
+
+/* the call-first warning. Same shape as .band, in the orange family rather than the navy
+   one, because it is the one thing on this page that decides whether anything else on it
+   is worth anything. Print keeps the fill (print-color-adjust below). */
+.warn{background:linear-gradient(135deg,#a5450a 0%,#7d340a 100%);color:#fff;border-radius:12px;padding:26px 30px;margin:26px 0 10px;position:relative;overflow:hidden}
+.warn h3{font-family:var(--display);font-size:24px;font-weight:600;color:#fff;margin:0 0 10px}
+.warn p{margin:0;color:rgba(255,255,255,.92);font-size:14.5px;line-height:1.6;max-width:none}
+.warn p + p{margin-top:12px}
+.warn strong{color:#ffdcb8}
+.warn .callnum{display:block;font-family:var(--display);font-size:30px;font-weight:700;color:#fff;letter-spacing:.01em;margin:2px 0 8px}
+
+/* gold-left note callout */
+.note{background:var(--card-white);border-left:4px solid var(--orange);border-top:1px solid var(--warm-border);border-right:1px solid var(--warm-border);border-bottom:1px solid var(--warm-border);padding:22px 26px;margin:26px 0 10px;border-radius:0 10px 10px 0}
+.note h3{font-family:var(--display);font-size:22px;font-weight:600;color:var(--navy);margin:0 0 8px}
+.note p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.note p + p{margin-top:12px}
+
+/* charge list */
+.costs{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:6px 26px;margin:8px 0 12px}
+.charge-list{list-style:none;margin:0;padding:0}
+.charge-list li{padding:16px 0;border-bottom:1px solid var(--rule)}
+.charge-list li:last-child{border-bottom:0}
+.charge-list strong{display:block;font-family:var(--display);font-size:19px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:2px}
+.charge-list span{display:block;font-size:14px;color:var(--text-muted);line-height:1.5}
+
+/* the provenance line under the cost list */
+.footnote{font-size:12.5px;color:var(--text-muted);margin:6px 0 18px;max-width:none}
+
+/* ── THE REGION MAP ────────────────────────────────────────────────────────────────
+   Inman publishes these figures as a clipart poster (WordArt title, primary-colour
+   continents). Rendered at guide width its price rows measure 7.57pt, well under the
+   10pt family-PDF floor, and being a raster nothing would have caught that — so the
+   figures are redrawn here in the brand instead. Generated by scripts/build_inman_region_map.mjs;
+   change the data there and paste the markup back, never hand-edit the coordinates.
+
+   THE VIEWBOX IS 720 UNITS WIDE ON PURPOSE. That is the printed column, 7.5in at 96dpi,
+   so one user unit is one printed CSS pixel and the 14px floor inside the graphic is a
+   real 14px on paper rather than a number that happens to satisfy a computed-style
+   check. Nothing in here is below 14px for the same reason. */
+.rmap{display:block;width:100%;height:auto;margin:10px 0 4px}
+.rm-plate{fill:var(--card-white);stroke:var(--warm-border);stroke-width:1}
+.rm-bar{fill:var(--orange)}
+.rm-colhead{font-family:var(--body);font-size:14px;font-weight:700;letter-spacing:.09em;fill:var(--orange-dark)}
+.rm-region{font-family:var(--display);font-size:17px;font-weight:600;fill:var(--navy)}
+.rm-range{font-family:var(--display);font-size:27px;font-weight:700;fill:var(--navy-deep)}
+.rm-ex{font-family:var(--body);font-size:14px;fill:var(--text)}
+.rm-fig{font-family:var(--body);font-size:14px;font-weight:700;fill:var(--navy-dark)}
+
+/* ENROLL LINK. Rendered as a labelled control, never as a raw URL in prose, and it has to
+   survive into the PDF: guide-print.css §5 prints every anchor as plain prose with
+   `a, a:link, a:visited { color: inherit !important }`.
+   THE SELECTOR SPELLING IS LOAD-BEARING. A bare `.enroll-btn{color:#fff!important}` is
+   (0,1,0) and LOSES to `a:link`, which is (0,1,1) because a pseudo-class counts as a
+   class. The first build of this guide printed the control with #3a4453 body-grey type on
+   the orange fill, and it was legible enough that only rasterising the page and looking at
+   it caught the colour. Matched at (0,2,1) here so the white wins in both link states. */
+.enroll-btn,
+a.enroll-btn:link,
+a.enroll-btn:visited{display:inline-block;background:var(--orange);color:#fff!important;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.04em;padding:12px 22px;border-radius:6px;margin:4px 0 2px;transition:background .15s ease}
+.enroll-btn:hover,.enroll-btn:focus-visible{background:var(--orange-dark)}
+
+/* faq */
+.faq{border-top:1px solid var(--rule);margin-top:8px}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;padding:20px 40px 20px 0;position:relative;font-family:var(--display);font-size:21px;font-weight:600;color:var(--navy);list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--display);font-size:26px;color:var(--orange);line-height:1}
+.faq details[open] summary::after{content:"3"}
+.faq summary:hover,.faq summary:focus-visible{color:var(--orange)}
+.faq .answer{padding:0 40px 22px 0}
+.faq .answer p{margin:0;max-width:none;font-size:14.5px;line-height:1.6}
+.faq .answer p + p{margin-top:12px}
+
+/* cta */
+.cta{padding:8px 48px 48px}
+.cta-in{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);border-radius:12px;padding:44px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-in h2{font-family:var(--display);font-weight:600;font-size:32px;color:#fff;margin:0 0 12px}
+.cta-in p{color:rgba(255,255,255,.82);margin:0 auto 26px;max-width:52ch;font-size:15px}
+.btn{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:14px 28px;border-radius:6px;transition:background .15s ease}
+.btn:hover,.btn:focus-visible{background:var(--orange-dark)}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#dbe3ef;margin-left:10px}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.cta-in .direct{margin-top:24px;font-size:14px;color:rgba(255,255,255,.7)}
+.cta-in .direct a{color:var(--orange-soft);text-decoration:none}
+.cta-in .direct a:hover{text-decoration:underline}
+
+/* footers */
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;text-decoration:none;display:inline-block}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted)}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none}
+
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+@media (max-width:820px){
+  .nav-links{display:none}
+  .cover{padding:48px 26px 40px}
+  .cover h1{font-size:34px}
+  .contents{padding:32px 26px}
+  .contents-grid{grid-template-columns:1fr}
+  .contents-item:nth-last-child(-n+2){border-bottom:1px solid var(--rule)}
+  .contents-item:last-child{border-bottom:none}
+  .section,.cta{padding-left:26px;padding-right:26px}
+}
+
+@media print{
+  @page{size:letter;margin:0}
+  /* No ligature substitution in print: Ghostscript's downsample corrupts the ToUnicode
+     map for fi/fl/ft, which makes those words unsearchable in the built PDF. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none}
+  html{background:var(--cream)}
+  body{background:var(--cream);font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents,.cta{display:none!important}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto}
+  .cover{padding:20px .5in 16px;margin:0 -.5in;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cover h1{font-size:24pt}
+  .cover-sub{font-size:12pt}
+  .cover-stripe{display:none}
+  .section{padding:14px 0 10px;break-inside:auto}
+  .section + .section{border-top:1px solid var(--rule)}
+  .section h2{break-after:avoid;page-break-after:avoid;font-size:20pt}
+  .card,.band,.warn,.note,.costs{break-inside:avoid;page-break-inside:avoid}
+  .band,.warn{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .band{background:var(--navy)!important}
+  .warn{background:#a5450a!important}
+  .faq details{break-inside:avoid;page-break-inside:avoid}
+  .faq .answer{display:block!important}
+  .faq summary::after{display:none}
+  .doc-footer{padding:24px 0 20px;border-top:1px solid var(--rule)}
+  .doc-footer .footer-url{display:none}
+  a[href^="http"]::after{content:""}
+  /* The region map keeps its plates and its orange accent on paper: the whole point is
+     that a family can read the figures at a glance. It must not break across a page. */
+  .rmap{break-inside:avoid;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* The enrolment control is the whole point of the printed piece, so it keeps its fill
+     and its white type on paper. 10.5pt so it sits at the family-PDF prose floor rather
+     than under it. Same (0,2,1) spelling as the screen rule above, and for the same
+     reason. */
+  .enroll-btn,
+  a.enroll-btn:link,
+  a.enroll-btn:visited{background:var(--orange)!important;color:#fff!important;font-size:10.5pt;padding:7px 14px;
+              -webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
+}
+
+/* PRINT HEADER — punch list item 20, 2026-07-27
+   "the header for all of the files when printing or downloading to pdf should be a
+   lot smaller. it is fine in html format but on print or pdf it takes too much of a
+   page up."  Print media ONLY — the on-screen cover is deliberately unchanged.
+   Measured and capped by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+  .cover-stripe{display:none;}
+}
+/* === PRINT CONDENSE === */
+/* Same treatment every other guide carries (sprint-07 Track G onwards): PRINT MEDIA ONLY,
+   screen untouched. It governs the full Ctrl+P print and `?print=compact`; the family cut
+   this guide is BUILT from puts the type back up to 10.5pt in one column
+   (guide-print.css §8). */
+@media print{
+  body{font-size:8pt;line-height:1.32}
+  .doc-sheet{padding:0 .4in}
+  .cover{margin:0 -.4in;padding:9px .4in 8px}
+  .cover h1{font-size:14pt;margin-bottom:3px}
+  .cover-sub{font-size:8pt;line-height:1.3;max-width:none}
+  .cover-logo{height:16px;margin-bottom:5px}
+  .cover-kicker{font-size:6.5px;margin-bottom:2px}
+  .cover-rule{margin:5px 0 0}
+
+  .doc-sheet{column-count:2;column-gap:15px}
+  .cover,.contents,.doc-footer,.cta{column-span:all}
+  .section{padding:5px 0 3px}
+  .section h2{font-size:12.5pt;margin:0 0 1px;break-after:avoid;page-break-after:avoid}
+  .section .sub{font-size:8pt;margin:0 0 4px;break-after:avoid;page-break-after:avoid}
+  .section .subhead,.subhead{font-size:10.5pt;margin:7px 0 3px;break-after:avoid;page-break-after:avoid}
+  .section-label{font-size:7pt;letter-spacing:.12em;margin:0 0 1px;break-after:avoid;page-break-after:avoid}
+  .rule{height:2px;margin:0 0 5px;break-after:avoid;page-break-after:avoid}
+  .section p{margin:0 0 5px;font-size:8pt;line-height:1.32;max-width:none}
+
+  .grid{display:block;margin:3px 0 5px}
+  .card{padding:7px 9px 6px;margin:0 0 6px;border-radius:6px;break-inside:avoid}
+  .card h3{font-size:10pt;margin:0 0 2px}
+  .card p{font-size:8pt;line-height:1.34}
+  .card p + p{margin-top:5px}
+  .card .fig{font-size:13pt;margin:0 0 2px}
+
+  .band{padding:8px 11px;margin:5px 0 6px;border-radius:8px;break-inside:avoid}
+  .band h3{font-size:11pt;margin:0 0 4px}
+  .band p{font-size:8pt;line-height:1.38}
+  .band p + p{margin-top:5px}
+  .warn{padding:8px 11px;margin:5px 0 6px;border-radius:8px;break-inside:avoid}
+  .warn h3{font-size:11.5pt;margin:0 0 4px}
+  .warn p{font-size:8pt;line-height:1.38}
+  .warn p + p{margin-top:5px}
+  .warn .callnum{font-size:15pt;margin:0 0 4px}
+  .note{padding:7px 11px;margin:5px 0 6px;border-left-width:3px;border-radius:0 6px 6px 0;break-inside:avoid}
+  .note h3{font-size:10pt;margin:0 0 3px}
+  .note p{font-size:8pt;line-height:1.38}
+  .note p + p{margin-top:5px}
+
+  .costs{padding:2px 11px;margin:4px 0 6px;border-radius:6px;break-inside:avoid}
+  .charge-list li{padding:5px 0}
+  .charge-list strong{font-size:9.5pt;margin-bottom:1px}
+  .charge-list span{font-size:8pt;line-height:1.35}
+  .footnote{font-size:7pt;margin:2px 0 6px}
+
+  .faq{margin-top:4px}
+  .faq details{break-inside:avoid;padding:0 0 2px}
+  .faq summary{padding:4px 0 2px;font-size:9.5pt}
+  .faq .answer{padding:0 0 5px}
+  .faq .answer p{font-size:8pt;line-height:1.34}
+  .faq .answer p + p{margin-top:4px}
+
+  .doc-footer{padding:9px 0 7px}
+  .doc-footer .footer-logo{height:14px;margin-bottom:5px}
+  .doc-footer .footer-hours{font-size:8pt;margin-bottom:2px}
+  .doc-footer .footer-legal{font-size:7pt}
+}
+/* === END PRINT CONDENSE === */
+
+/* FAMILY CUT: the two components this guide adds to the shared family vocabulary.
+   `.fam-sign` and `.fam-next` come from guide-print.css §8g; the enrolment control inside
+   the printed close needs a little air above it, and the warning box needs its fill kept
+   at family sizes as well. Nothing here applies without `?print=family`. */
+@media print{
+  [data-print-mode="family"] .warn{padding:10px 16px;margin:8px 0 10px;background:#a5450a!important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
+  [data-print-mode="family"] .warn h3{font-size:15pt;margin:0 0 5px}
+  [data-print-mode="family"] .warn p{font-size:10.5pt;line-height:1.45}
+  [data-print-mode="family"] .warn p + p{margin-top:6px}
+  [data-print-mode="family"] .warn .callnum{font-size:19pt;margin:0 0 5px}
+  [data-print-mode="family"] .fam-next .enroll-btn{margin-top:5px}
+  /* `.grid` is display:block in print, so its two cards are two blocks and the pager is
+     free to break between them. It did: "Sit down with me" printed at the foot of page 2
+     under the How to Sign Up heading and the enrolment card landed alone at the top of
+     page 3, which splits the one section a family is meant to act on. `.card` already
+     carries break-inside:avoid individually; this keeps the PAIR together. */
+  .keep-together{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
+<!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
+<link rel="stylesheet" media="print" href="guide-print.css">
+<!-- BW:PRINT-CSS:END -->
+</head>
+<body>
+<!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
+<style>
+/* Per-guide print constants. Screen is untouched: the only screen rule here hides
+   the generated pricing invitation, which exists solely for the PDF. It must never
+   show on screen — the shared sheet is media=print and so cannot say anything about
+   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
+   WEBSITE. */
+.print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
+</style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
+<!-- BW:PRINT-SYSTEM:END -->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#why">Why This Exists</a>
+      <a href="#call-first">Call Inman First</a>
+      <a href="#map">What It Costs</a>
+      <a href="#price">What the Plan Costs</a>
+      <a href="#worth">Is It Worth It</a>
+      <a href="#signup">How to Sign Up</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Travel Plan by Inman</h1>
+    <div class="cover-sub" data-pdf="summary"><span>If someone in your family flies, cruises, or spends part of the year somewhere warm, here is the bill nobody plans for. Just getting a person home after a death far from home runs $1,500 to $22,000. This covers it for one fee, for the rest of your life.</span><span class="pdf-summary">Getting a person home after a death far from home runs $1,500 to $22,000. One fee covers it for life.</span></div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">One-time fee &middot; any age &middot; worldwide &middot; printable</div>
+    <div class="cover-stripe"></div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#why">Why This Exists</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#what">What the Plan Is</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#call-first">Call Inman First</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#covered">What That One Call Takes Care Of</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#map">What It Costs Without a Plan</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#price">What the Plan Costs</a></div>
+      <div class="contents-item"><span class="contents-num">7</span><a href="#worth">Is This Worth It for Us?</a></div>
+      <div class="contents-item"><span class="contents-num">8</span><a href="#not-insurance">It Is Not Travel Insurance</a></div>
+      <div class="contents-item"><span class="contents-num">9</span><a href="#who">Who You Can Enroll</a></div>
+      <div class="contents-item"><span class="contents-num">10</span><a href="#details">Details Worth Knowing</a></div>
+      <div class="contents-item"><span class="contents-num">11</span><a href="#signup">How to Sign Up</a></div>
+      <div class="contents-item"><span class="contents-num">12</span><a href="#faq">Common Questions</a></div>
+    </div>
+  </div>
+
+<!-- 1 -->
+<div class="section" id="why" data-pdf="summary">
+  <!-- FAMILY PDF: the problem, up front, in the answer block. The product does not get
+       named until the reader knows why they would want one. -->
+  <div class="pdf-summary keep-together">
+    <div class="fam-answer">
+      <h2>The bill<br>nobody<br>plans for</h2>
+      <p>When someone dies away from home, the family is suddenly on the phone with a funeral home they have never heard of, in a place they may not know, sometimes in another language, while they are grieving. Just getting their person home runs <strong>$1,500 to $22,000</strong>, before a dollar of the funeral here. <strong>$499, paid once, ends that for life.</strong> One call to Inman and it is handled and paid for.</p>
+    </div>
+  </div>
+  <p class="section-label">Section 1</p>
+  <h2>Why This Exists</h2>
+  <p class="sub">The bill nobody plans for</p>
+  <hr class="rule">
+  <p>Almost every arrangement I help with assumes the death happens here. Most of them do. The ones that don't are the ones that go badly.</p>
+  <p>Think about who in your family is regularly a long way from home. The winter in Arizona. The cruise. The trip back to the Philippines, or Vietnam, or Mexico, to see everybody. A daughter working overseas. A husband who still drives to Montana every fall.</p>
+  <p>When someone dies in one of those places, the family is on the phone within hours with a funeral home they have never heard of, in a town they may not know, sometimes in another language and another currency. They have to decide fast, they have no idea what anything should cost, and they are doing it in the worst week of their lives.</p>
+  <p><strong>And the bill for just getting their person home runs $1,500 to $22,000.</strong> That is before a single dollar of the funeral back here.</p>
+
+  <div class="band">
+    <h3>One payment, once, and that whole category of worry is gone</h3>
+    <p><strong>$499, paid one time, covers it for the rest of your life.</strong> When it happens, the family makes one call to Inman and it is handled and paid for. That is the whole thing. Everything else on this page is detail.</p>
+  </div>
+</div>
+
+<!-- 2 -->
+<div class="section" id="what" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>What the plan is</h2>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>75 miles or more from home</strong><span>Or anywhere in another country. That is when it applies</span></li>
+        <li><strong>One fee, paid once</strong><span>No renewal, no annual bill, nothing that lapses</span></li>
+        <li><strong>Any age, no health questions</strong><span>Nobody is turned down for age or for health</span></li>
+        <li><strong>Unlimited travel, worldwide</strong><span>As many trips as you like, for as long as you live</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="section-label">Section 2</p>
+  <h2>What the Plan Is</h2>
+  <p class="sub">Travel Plan by Inman, in one paragraph</p>
+  <hr class="rule">
+  <p>Travel Plan by Inman covers getting a person home if they die <strong>75 miles or more from their legal residence</strong>, or anywhere outside the country. You pay once. The coverage lasts the rest of your life.</p>
+  <p>It is backed by Inman Shipping Worldwide, the largest provider of repatriation services for the deceased in the country. They have been doing this since 1978 and they are owned by funeral directors. Repatriation is just the industry word for bringing a person home.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>One fee, paid once</h3>
+      <p>There is no renewal, no annual bill, and nothing that quietly lapses on you.</p>
+    </div>
+    <div class="card">
+      <h3>Any age, no health questions</h3>
+      <p>Nobody is turned down for being too old or for being sick. There is no medical form to fill out.</p>
+    </div>
+    <div class="card">
+      <h3>Unlimited travel</h3>
+      <p>Anywhere in the world, as many trips as you like, for as long as you live.</p>
+    </div>
+    <div class="card">
+      <h3>I can enroll you</h3>
+      <p>I'm a licensed agent through Inman, so we can do this at the same table as everything else.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 3 -->
+<div class="section" id="call-first" data-pdf="keep">
+  <p class="section-label" data-pdf="drop">Section 3</p>
+  <h2>Call Inman First</h2>
+  <p class="sub" data-pdf="drop">The one rule that decides whether any of this is covered</p>
+  <hr class="rule" data-pdf="drop">
+
+  <div class="warn">
+    <h3>Before you arrange anything, call Inman</h3>
+    <span class="callnum">888-889-8508</span>
+    <p>This is the part I need you to remember, so it is near the front. If someone dies away from home, <strong>the family calls Inman before they make any arrangements.</strong> Somebody answers that number 24 hours a day, every day of the year, holidays included.</p>
+    <p><strong>This is not a plan that pays you back later.</strong> If the family hires a funeral home where the death happened and calls Inman afterward, those costs aren't covered. Inman has to be the one making the arrangements. One call, first, and they take it from there.</p>
+  </div>
+
+  <!-- NO `data-pdf="summary"` ON THE WRAPPER. §8a is
+       `[data-pdf="summary"] > *:not(.pdf-summary){display:none}`, so annotating the box
+       itself hides its own h3 AND the paragraph that holds the short version, and the
+       family PDF printed an EMPTY bordered rectangle where the two phone numbers should
+       have been. Found by rasterising page 1 and looking at it; nothing measured it. The
+       annotation belongs on the paragraph that has two versions, never on its container. -->
+  <div class="note">
+    <h3>Two numbers, for two different days</h3>
+    <p data-pdf="summary"><span>Call me at <strong>206-277-5417</strong> with questions about enrolling, or about anything on this page. Call <strong>Inman at 888-889-8508</strong> on the day someone dies away from home. Put the Inman number in your phone now, and tell whoever would be making the calls that it is there.</span><span class="pdf-summary">Call me at <strong>206-277-5417</strong> about enrolling. Call <strong>Inman at 888-889-8508</strong> the day someone dies away from home. Put the Inman number in your phone now, and tell whoever would be making the calls.</span></p>
+  </div>
+</div>
+
+<!-- 4 -->
+<div class="section" id="covered" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>What that one call takes care of</h2>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>Finding a funeral home</strong><span>A licensed funeral home or professional embalming service center near the place of death</span></li>
+        <li><strong>Bringing them into care</strong><span>Transport from the place of death to that facility</span></li>
+        <li><strong>Preparing them to travel</strong><span>The preparation required before a person can be flown</span></li>
+        <li><strong>The shipping container</strong><span>The air tray or container needed for the trip</span></li>
+        <li><strong>All the paperwork</strong><span>Every shipping document, including one death certificate</span></li>
+        <li><strong>The trip home, paid for</strong><span>Inman arranges the transportation back to your funeral home here, and pays for it</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="section-label">Section 4</p>
+  <h2>What That One Call Takes Care Of</h2>
+  <p class="sub">Six things, and the family does none of them</p>
+  <hr class="rule">
+  <p>Once Inman has the call, this is what they handle. You don't coordinate any of it and you don't pay for any of it.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>Finding a funeral home near the death</strong><span>Inman contacts a licensed funeral home or a professional embalming service center close to wherever it happened.</span></li>
+      <li><strong>Bringing your person into care</strong><span>Transportation from the place of death to that facility.</span></li>
+      <li><strong>Preparing them for the trip</strong><span>The preparation the airlines and the law require before a person can be flown.</span></li>
+      <li><strong>The shipping container</strong><span>The air tray or container the trip requires. It's included, not billed separately.</span></li>
+      <li><strong>All of the paperwork</strong><span>Every shipping document, including one death certificate. This is the part that stops families cold in another country.</span></li>
+      <li><strong>The trip home, arranged and paid for</strong><span>Inman books the transportation back to your funeral home here and covers the cost of it.</span></li>
+    </ul>
+  </div>
+
+  <p>What that leaves you doing is the thing you would be doing anyway, which is planning the service once your person is home.</p>
+</div>
+
+<!-- 5 -->
+<!-- THE MAP. `data-pdf="keep"` with the long prose annotated off individually, because the
+     graphic itself is the section and must be identical in both cuts. -->
+<div class="section" id="map" data-pdf="keep">
+  <p class="section-label" data-pdf="drop">Section 5</p>
+  <!-- The heading, the one-line lead, the graphic and the source line are one thought.
+       Without this the pager left "What It Costs Without a Plan" alone at the foot of
+       page 1 with the map on page 2. Found by rasterising, as the last two were. -->
+  <div class="keep-together">
+  <h2>What It Costs Without a Plan</h2>
+  <p class="sub" data-pdf="drop">Average cost of bringing a person home, by part of the world</p>
+  <hr class="rule" data-pdf="drop">
+  <p data-pdf="summary"><span>These are what Inman sees these trips actually cost. <strong>None of them include the funeral, the cremation, or the burial.</strong> This is only the cost of getting a person home.</span><span class="pdf-summary"><strong>None of these include the funeral or the burial.</strong> This is only the cost of getting a person home.</span></p>
+
+  <svg class="rmap" viewBox="0 0 720 476" role="img" aria-label="Average cost of bringing a person home to the United States, by part of the world, from Inman Shipping, January 2025">
+    <text class="rm-colhead" x="2" y="20">THE AMERICAS</text>
+    <g>
+      <rect class="rm-plate" x="0" y="30" width="236" height="134" rx="7"/>
+      <rect class="rm-bar" x="0" y="30" width="4" height="134"/>
+      <text class="rm-region" x="14" y="56">Domestic, 75 miles and up</text>
+      <text class="rm-range" x="14" y="88">$1,500–$3,000</text>
+      <text class="rm-ex" x="14" y="114">Coast to coast</text>
+      <text class="rm-fig" x="224" y="114" text-anchor="end">$2,000–$3,000</text>
+      <text class="rm-ex" x="14" y="134">Hawaii</text>
+      <text class="rm-fig" x="224" y="134" text-anchor="end">$2,850–$6,250</text>
+      <text class="rm-ex" x="14" y="154">Arizona</text>
+      <text class="rm-fig" x="224" y="154" text-anchor="end">$1,500–$2,500</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="0" y="174" width="236" height="134" rx="7"/>
+      <rect class="rm-bar" x="0" y="174" width="4" height="134"/>
+      <text class="rm-region" x="14" y="200">Mexico &amp; Central America</text>
+      <text class="rm-range" x="14" y="232">$5,000–$14,000</text>
+      <text class="rm-ex" x="14" y="258">Mexico</text>
+      <text class="rm-fig" x="224" y="258" text-anchor="end">$5,000–$6,500</text>
+      <text class="rm-ex" x="14" y="278">El Salvador</text>
+      <text class="rm-fig" x="224" y="278" text-anchor="end">$7,500–$9,000</text>
+      <text class="rm-ex" x="14" y="298">Central America</text>
+      <text class="rm-fig" x="224" y="298" text-anchor="end">$9,000–$14,000</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="0" y="318" width="236" height="114" rx="7"/>
+      <rect class="rm-bar" x="0" y="318" width="4" height="114"/>
+      <text class="rm-region" x="14" y="344">South America</text>
+      <text class="rm-range" x="14" y="376">$11,000–$11,500</text>
+      <text class="rm-ex" x="14" y="402">Brazil</text>
+      <text class="rm-fig" x="224" y="402" text-anchor="end">$11,000</text>
+      <text class="rm-ex" x="14" y="422">Peru</text>
+      <text class="rm-fig" x="224" y="422" text-anchor="end">$11,500</text>
+    </g>
+    <text class="rm-colhead" x="244" y="20">EUROPE &amp; AFRICA</text>
+    <g>
+      <rect class="rm-plate" x="242" y="30" width="236" height="154" rx="7"/>
+      <rect class="rm-bar" x="242" y="30" width="4" height="154"/>
+      <text class="rm-region" x="256" y="56">Europe</text>
+      <text class="rm-range" x="256" y="88">$8,000–$11,000</text>
+      <text class="rm-ex" x="256" y="114">England</text>
+      <text class="rm-fig" x="466" y="114" text-anchor="end">$8,000</text>
+      <text class="rm-ex" x="256" y="134">Germany</text>
+      <text class="rm-fig" x="466" y="134" text-anchor="end">$9,000</text>
+      <text class="rm-ex" x="256" y="154">France</text>
+      <text class="rm-fig" x="466" y="154" text-anchor="end">$9,500</text>
+      <text class="rm-ex" x="256" y="174">Italy</text>
+      <text class="rm-fig" x="466" y="174" text-anchor="end">$11,000</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="242" y="194" width="236" height="134" rx="7"/>
+      <rect class="rm-bar" x="242" y="194" width="4" height="134"/>
+      <text class="rm-region" x="256" y="220">Africa</text>
+      <text class="rm-range" x="256" y="252">$12,500–$14,500</text>
+      <text class="rm-ex" x="256" y="278">South Africa</text>
+      <text class="rm-fig" x="466" y="278" text-anchor="end">$12,500</text>
+      <text class="rm-ex" x="256" y="298">Zimbabwe</text>
+      <text class="rm-fig" x="466" y="298" text-anchor="end">$12,900</text>
+      <text class="rm-ex" x="256" y="318">Congo</text>
+      <text class="rm-fig" x="466" y="318" text-anchor="end">$14,500</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="242" y="338" width="236" height="134" rx="7"/>
+      <rect class="rm-bar" x="242" y="338" width="4" height="134"/>
+      <text class="rm-region" x="256" y="364">Somewhere not on here?</text>
+      <text class="rm-ex" x="256" y="396">Inman covers the whole world.</text>
+      <text class="rm-ex" x="256" y="416">Ask me and I will get you the</text>
+      <text class="rm-ex" x="256" y="436">figure for wherever it is.</text>
+    </g>
+    <text class="rm-colhead" x="486" y="20">THE MIDDLE EAST &amp; ASIA</text>
+    <g>
+      <rect class="rm-plate" x="484" y="30" width="236" height="94" rx="7"/>
+      <rect class="rm-bar" x="484" y="30" width="4" height="94"/>
+      <text class="rm-region" x="498" y="56">Middle East</text>
+      <text class="rm-range" x="498" y="88">$12,500–$14,000</text>
+      <text class="rm-ex" x="498" y="114">Saudi Arabia</text>
+      <text class="rm-fig" x="708" y="114" text-anchor="end">$12,500–$14,000</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="484" y="134" width="236" height="154" rx="7"/>
+      <rect class="rm-bar" x="484" y="134" width="4" height="154"/>
+      <text class="rm-region" x="498" y="160">Asia</text>
+      <text class="rm-range" x="498" y="192">$11,000–$22,000</text>
+      <text class="rm-ex" x="498" y="218">South Korea</text>
+      <text class="rm-fig" x="708" y="218" text-anchor="end">$11,000</text>
+      <text class="rm-ex" x="498" y="238">Japan</text>
+      <text class="rm-fig" x="708" y="238" text-anchor="end">$11,500</text>
+      <text class="rm-ex" x="498" y="258">Philippines</text>
+      <text class="rm-fig" x="708" y="258" text-anchor="end">$11,500</text>
+      <text class="rm-ex" x="498" y="278">China</text>
+      <text class="rm-fig" x="708" y="278" text-anchor="end">$22,000</text>
+    </g>
+    <g>
+      <rect class="rm-plate" x="484" y="298" width="236" height="114" rx="7"/>
+      <rect class="rm-bar" x="484" y="298" width="4" height="114"/>
+      <text class="rm-region" x="498" y="324">Australia &amp; New Zealand</text>
+      <text class="rm-range" x="498" y="356">$8,700–$16,500</text>
+      <text class="rm-ex" x="498" y="382">Sydney</text>
+      <text class="rm-fig" x="708" y="382" text-anchor="end">$8,700</text>
+      <text class="rm-ex" x="498" y="402">New Zealand</text>
+      <text class="rm-fig" x="708" y="402" text-anchor="end">$16,500</text>
+    </g>
+  </svg>
+
+  <p class="footnote">Average costs from Inman Shipping, January 2025. Figures are averages, so an individual trip can land either side of them.</p>
+  </div>
+
+  <div class="band">
+    <h3>Now put $499 next to that</h3>
+    <p data-pdf="summary"><span>A domestic trip home is <strong>four to six times</strong> what the plan costs. One trip home from the Philippines is $11,500, which is <strong>twenty-three times</strong> the plan. From China it is $22,000, which is <strong>forty-four times</strong>. You pay the plan once, at a table, on a day when nothing is wrong. You pay the other number in the worst week of your life.</span><span class="pdf-summary">A domestic trip home is <strong>four to six times</strong> what the plan costs. Home from the Philippines is $11,500, <strong>twenty-three times</strong> the plan. From China, $22,000, <strong>forty-four times</strong>. You pay the plan once, on a day when nothing is wrong. You pay the other number in the worst week of your life.</span></p>
+  </div>
+</div>
+
+<!-- 6 -->
+<div class="section" id="price" data-pdf="keep">
+  <p class="section-label" data-pdf="drop">Section 6</p>
+  <h2>What the Plan Costs</h2>
+  <p class="sub" data-pdf="drop">Paid once, and then you are done with it</p>
+  <hr class="rule" data-pdf="drop">
+
+  <div class="grid keep-together">
+    <div class="card">
+      <h3>Individual plan</h3>
+      <span class="fig">$499</span>
+      <p>One person, covered for life.</p>
+    </div>
+    <div class="card">
+      <h3>Couple plan</h3>
+      <span class="fig">$974</span>
+      <p>Two people, covered for life, and cheaper than two individual plans.</p>
+    </div>
+  </div>
+
+  <p>You can pay it all at once, or spread it out: three payments of <strong>$166.33</strong>, or twelve payments of <strong>$41.58</strong>.</p>
+
+  <div class="note">
+    <h3>If you are still paying and something happens</h3>
+    <p>If a person on a payment plan dies while their payments are current, <strong>the rest of the payments are forgiven</strong> and Inman fulfills the plan anyway. The family doesn't have to finish paying it off first.</p>
+  </div>
+
+  <p data-pdf="summary"><span>One timing note. The plan isn't effective until it is paid in full or the first payment has been received, and Inman has issued an enrollment number. That happens quickly, but if you have a trip coming up, get it started rather than waiting.</span><span class="pdf-summary">The plan isn't effective until it is paid in full or the first payment has come in and Inman has issued an enrollment number. If you have a trip coming up, start it now rather than waiting.</span></p>
+</div>
+
+<!-- 7 -->
+<div class="section" id="worth" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>Is this worth it for us?</h2>
+    <p>Honest math, because I would rather you decided this than have me sell it to you. <strong>If nobody in your family goes more than an hour from home, this probably isn't for you</strong>, and I will say that in person too. If somebody spends part of the year in another state, it pays for itself the first time it is needed. If you have family overseas and people go back, it is not close.</p>
+    <p><strong>And you only have to be wrong about it once.</strong> That is really the whole argument.</p>
+  </div>
+  <p class="section-label">Section 7</p>
+  <h2>Is This Worth It for Us?</h2>
+  <p class="sub">The honest math, so you can decide it yourself</p>
+  <hr class="rule">
+  <p>I would rather you worked this out than have me sell it to you, so here it is plainly.</p>
+  <p><strong>If nobody in your family goes more than an hour from home,</strong> this probably isn't for you. I will tell you that in person too. Some families genuinely don't need it and I am not going to pretend otherwise.</p>
+  <p><strong>If somebody spends part of the year in another state,</strong> it pays for itself the first time it is used. A domestic trip home runs four to six times the price of the plan, and snowbirds are away for months at a stretch.</p>
+  <p><strong>If you have family overseas and people go back to see them,</strong> it is not close. One trip home from the Philippines is $11,500. That is twenty-three times what the plan costs, and you would be paying it while you were trying to arrange a funeral.</p>
+  <p>And you only have to be wrong about it once. Nobody schedules this. That is really the whole argument.</p>
+</div>
+
+<!-- 8 -->
+<div class="section" id="not-insurance" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>It is not travel insurance</h2>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>No age limit</strong><span>Travel policies get costly or unavailable as you get older. This one doesn't</span></li>
+        <li><strong>No health questions</strong><span>No medical form, and nobody is turned down for their health</span></li>
+        <li><strong>It does not expire</strong><span>Paid once. Nothing to renew, nothing to re-buy before a trip</span></li>
+        <li><strong>No signing up per trip</strong><span>You don't call anyone before you go. It is simply on</span></li>
+        <li><strong>Ordinary travel counts too</strong><span>Not only overseas. Anywhere past 75 miles from home, including driving trips</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="section-label">Section 8</p>
+  <h2>It Is Not Travel Insurance</h2>
+  <p class="sub">People assume it works the same way, and it doesn't</p>
+  <hr class="rule">
+  <p>Families often tell me they already have something like this through a credit card or a travel policy. Usually they don't, and the differences are the ones that matter most to the people most likely to need it.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>No age limit</strong><span>Travel policies get expensive, and then unavailable, as you get older. This one doesn't. Any age is accepted.</span></li>
+      <li><strong>No health questions</strong><span>There is no medical form and nobody is turned down for their health. A policy will often do both.</span></li>
+      <li><strong>It doesn't expire</strong><span>You pay once. There is nothing to renew each year and nothing to re-buy before each trip.</span></li>
+      <li><strong>No signing up per trip</strong><span>You don't have to call anybody before you go anywhere. It is simply on, all the time.</span></li>
+      <li><strong>Ordinary travel counts too</strong><span>This isn't only for going abroad. Anywhere past 75 miles from home qualifies, which takes in a lot of driving trips.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="section" id="who" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>Who you can enroll</h2>
+    <p>Anyone, at any age, and <strong>you can buy it for somebody else.</strong> A mother enrolls the daughter who flies for work every month. Two adult children enroll their dad, who spends every winter in Arizona. The person covered doesn't have to be the person paying, and they don't have to live with you. If you are the one who would be getting the phone call, this is worth doing for them.</p>
+  </div>
+  <p class="section-label">Section 9</p>
+  <h2>Who You Can Enroll</h2>
+  <p class="sub">Including people who are not you</p>
+  <hr class="rule">
+  <p>Anyone, at any age. There are no health questions and nobody is turned down.</p>
+  <p><strong>You can also buy it for somebody else,</strong> which is how a lot of these get written. A mother enrolls the daughter who flies for work every month. Two adult children enroll their dad, who spends every winter in Arizona and every summer back here.</p>
+  <p>The person covered doesn't have to be the person paying, and they don't have to live with you. If you are the one who would be getting the phone call, this is worth doing for them.</p>
+</div>
+
+<!-- 10 -->
+<div class="section" id="details" data-pdf="summary">
+  <div class="pdf-summary keep-together">
+    <h2>Details worth knowing</h2>
+    <div class="costs">
+      <ul class="charge-list">
+        <li><strong>What counts as home</strong><span>Your legal residence, meaning the full-time home you live in. 180 days or more at an address in the year before death makes it your legal residence, and that includes a nursing home</span></li>
+        <li><strong>Enrolling while you are away</strong><span>It takes effect once you are home again, for later travel. It won't cover the trip you are already on</span></li>
+        <li><strong>Medical tourism</strong><span>Traveling somewhere for a medical procedure isn't covered</span></li>
+        <li><strong>Going overseas</strong><span>Unlimited international travel. Inman asks for a quick call to their Service Center first, and it costs nothing</span></li>
+        <li><strong>What arrives in the mail</strong><span>A welcome letter, a wallet-size member ID card, and a change of address card</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="section-label">Section 10</p>
+  <h2>Details Worth Knowing</h2>
+  <p class="sub">The fine print, in plain words</p>
+  <hr class="rule">
+  <p>None of this is hidden, but it is the kind of thing families find out at the wrong moment, so here it is up front.</p>
+
+  <div class="costs">
+    <ul class="charge-list">
+      <li><strong>What counts as home</strong><span>The plan works off your legal residence, meaning the fixed, full-time home you actually live in. An address you have lived at for 180 days or more in the twelve months before death counts as your legal residence. That includes a nursing home: 180 days there and the nursing home is home.</span></li>
+      <li><strong>Enrolling while you are already away</strong><span>If you sign up while you are out of town, the plan takes effect after you get home, and it covers your travel from then on. It won't cover the trip you are already on.</span></li>
+      <li><strong>Medical tourism isn't covered</strong><span>Traveling somewhere specifically for a medical procedure sits outside the plan.</span></li>
+      <li><strong>Going overseas</strong><span>Coverage is good for unlimited international travel. Inman asks that you give their Service Center a call before an international trip. It costs nothing and it makes their side faster if anything happens.</span></li>
+      <li><strong>What arrives in the mail</strong><span>A welcome letter, a wallet-size member ID card, and a change of address card. Keep the ID card in your wallet, because that is where somebody will look.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- 11 -->
+<div class="section" id="signup" data-pdf="keep">
+  <p class="section-label" data-pdf="drop">Section 11</p>
+  <h2>How to Sign Up</h2>
+  <p class="sub" data-pdf="drop">Two ways, and I would rather you took the first one</p>
+  <hr class="rule" data-pdf="drop">
+
+  <div class="grid keep-together">
+    <div class="card">
+      <h3>Sit down with me</h3>
+      <p>I'm a licensed agent through Inman. Call <strong>206-277-5417</strong> or email me and I'll answer your questions, tell you honestly whether this makes sense for your family, and fill the enrollment out with you. It costs nothing to ask and there's no obligation.</p>
+    </div>
+    <div class="card">
+      <h3>Enroll online</h3>
+      <p>If you would rather just get it done, this goes to my enrollment page at Inman. Same plan, same price, about ten minutes.</p>
+      <p><a class="enroll-btn" href="https://travelplan.shipinman.com/travelplan/cairn?MFN=Martice&amp;MLN=Morrison&amp;MID=MAMOWEST1&amp;ME=mmorrison@bonneywatson.com">Enroll online</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- 12 -->
+<div class="section" id="faq" data-pdf="keep">
+  <p class="section-label" data-pdf="summary"><span>Section 12</span><span class="pdf-summary">Two things families ask</span></p>
+  <h2 data-pdf="drop">Common Questions</h2>
+  <p class="sub" data-pdf="drop">What people ask me about this one</p>
+  <hr class="rule" data-pdf="drop">
+
+  <div class="faq">
+    <details data-pdf="drop">
+      <summary>How is the 75 miles measured?</summary>
+      <div class="answer"><p>From your legal residence, the full-time home you live in. Die 75 miles or more from it, or in another country, and the plan applies. Closer to home than that and we handle it the ordinary way.</p></div>
+    </details>
+    <details>
+      <summary>Does this replace a funeral plan?</summary>
+      <div class="answer"><p>No. This gets a person home. What happens after that, the service, the casket or urn, the cemetery property, is separate. Plenty of families do both, and the two fit together.</p></div>
+    </details>
+    <details>
+      <summary>We already own property at the cemetery. Does that change anything?</summary>
+      <div class="answer"><p>It makes this more useful, not less. Your space is here and your person may not be. Getting them back to it is exactly what this covers.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>Doesn't my travel policy or credit card already do this?</summary>
+      <div class="answer"><p>Usually not, and the exclusions tend to land on the people most likely to need it. Check the age limit, the health questions, whether it expires, and whether you have to sign up before every trip. This one has none of those.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>Is there a health questionnaire?</summary>
+      <div class="answer"><p>No. Any age is accepted and nobody is turned down for their health.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>Can I buy it for my parents?</summary>
+      <div class="answer"><p>Yes. You can enroll anyone, and a lot of people buy this for a parent who travels or spends the winter somewhere else.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>What if we move?</summary>
+      <div class="answer"><p>Tell Inman. They send a change of address card with the welcome packet for exactly this reason. Your legal residence is what the 75 miles is measured from, so keeping it current matters.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>Does it cover a death here at home?</summary>
+      <div class="answer"><p>No, and it isn't meant to. Under 75 miles is a local death, and that's the arrangement I would be handling anyway.</p></div>
+    </details>
+    <details data-pdf="drop">
+      <summary>Is there a cost to ask you about it?</summary>
+      <div class="answer"><p>No. A conversation is free and carries no obligation. If I don't think it is worth it for your family, I'll say so.</p></div>
+    </details>
+  </div>
+</div>
+
+<div class="cta">
+  <div class="cta-in">
+    <h2>Tell me about your travel</h2>
+    <p>If somebody in your family flies, cruises, or spends part of the year in another state, tell me and I'll walk you through whether this is worth it for you.</p>
+    <a class="btn" href="https://calendly.com/mmorrison-bonneywatson/30min">Schedule a conversation</a>
+    <a class="btn ghost" href="guides.html">Browse all guides</a>
+    <p class="direct">Or reach Martice Morrison directly at <a href="tel:+12062775417">206-277-5417</a> or <a href="mailto:mmorrison@bonneywatson.com">mmorrison@bonneywatson.com</a></p>
+  </div>
+</div>
+
+  <!-- FAMILY PDF ONLY. `.cta` above is a screen component (buttons, a scheduling link) and
+       is display:none in print, so the printed document needs its own close: what to do
+       now, the enrolment link, and how to reach me. Hidden on screen and in the
+       full-length Ctrl+P print by `.pdf-summary`; shown only by guide-print.css §8g. -->
+  <div class="fam-next pdf-summary">
+    <h2>Tell me about your travel</h2>
+    <p>If somebody in your family flies, cruises, or spends part of the year in another state, call me and I'll walk you through whether this is worth it. It costs nothing to ask, and if I don't think you need it I will say so. If you would rather just get it done, the enrollment link is right here and it takes about ten minutes.</p>
+    <p><a class="enroll-btn" href="https://travelplan.shipinman.com/travelplan/cairn?MFN=Martice&amp;MLN=Morrison&amp;MID=MAMOWEST1&amp;ME=mmorrison@bonneywatson.com">Enroll online</a></p>
+    <p>And the number for the day it happens: <strong>Inman, 888-889-8508</strong>, answered 24 hours a day.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; Family Service &amp; Advanced Planning Director &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>
