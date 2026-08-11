@@ -1,5 +1,28 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-22 — OPENED 2026-08-10** (director: Fable session; tracks: Opus
+per policy; operator: "boost as a director and use opus sprinters"). Scope: TWO new
+family guides + PDFs + guides.html cards. Track A `s22/inman-travel-plan`:
+inman-travel-plan-guide.html — the Travel Plan by Inman (Martice is a licensed Inman
+agent; sources: his two Inman PDFs in E:\Downloads + travelplanbyinman.com + his live
+enrollment link, all distilled into the brief); will anchor a future email campaign.
+Track B `s22/bronze-markers`: bronze-markers-guide.html — bronze companion to the
+granite marker guide (Matthews + Coldspring partners; WMP bronze rules from
+`E:\Downloads\WMP_Marker_Rules___Regulations (2).pdf` pinned in the brief; all-in prices
+pinned from index.html's qBronze dropdown). **OPERATOR RULINGS AT OPEN (in-chat
+2026-08-10):** (1) Travel Plan prices = the LIVE enrollment page: $499 individual /
+$974 couple + 3-mo/12-mo payment plans + forgiveness clause (FAQ's $495/$990 is stale);
+(2) his personalized enrollment link (marketer ID MAMOWEST1) appears EVERYWHERE — page
+and PDF, public repo understood; (3) bronze imagery pulled from the vendors' public
+sites, one image MUST be the government bronze match for veteran spouses (ordered
+through Coldspring); (4) bronze guide carries all-in prices like the granite guide;
+(5) guides only — index.html byte-untouched all sprint (sha256 audit), no email draft
+this sprint. Parallel worktrees ../bw-quote-tool-s22{a,b} pre-created by the director
+from LOCAL main ab53d2c6 (stale-base scar), node_modules junctioned. Merge order A → B
+(trivial add/add on guides.html + guide-print-meta.mjs resolved by director). Contract
+at open: index 8/0 (measured); suite pin 2842/42 (Gate 0 run in progress at entry time,
+confirmed before spawn). NO push pre-authorization.
+
 **HISTORY REWRITTEN 2026-08-08 (operator-directed):** commit metadata normalized
 across all 813 commits and example/annotation text cleaned throughout history;
 `main` force-pushed. **Every commit SHA in the entries below this line is a
