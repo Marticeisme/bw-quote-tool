@@ -55,6 +55,10 @@ const PAGES = [
   'urns-guide.html',
   'keepsake-urns-guide.html',
   'direct-cremation.html',
+  // sprint-22: listed even though it ships zero tables today. The check is per-page, so
+  // registering it now is what makes a table added to it tomorrow measured rather than
+  // unmeasured — which is the whole reason check C exists.
+  'inman-travel-plan-guide.html',
   'deed-transfer-letter.html',
   'vital-worksheet.html',
   'flush-markers.html',

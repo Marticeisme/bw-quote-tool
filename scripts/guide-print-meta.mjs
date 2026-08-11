@@ -44,6 +44,10 @@ export const GUIDES = [
   'urn-gardens-guide.html',
   'roac-guide.html', 'mvc-niches-guide.html', 'ecl-guide.html', 'gomn-guide.html',
   'terrace-garden-guide.html',
+  // sprint-22: Travel Plan by Inman. A repatriation plan, not a piece of cemetery
+  // property, so it takes the typographic cover (no hero) and the Bonney Watson place
+  // line rather than Washington Memorial Park — the plan has nothing to do with the park.
+  'inman-travel-plan-guide.html',
 ];
 
 // Only genuine scene photography. Verified by eye at cover size, not picked by filename.
@@ -64,6 +68,7 @@ export const PLACE = {
   'pre-planning-guide.html':              'Bonney Watson',
   'cremation-or-burial-guide.html':       'Bonney Watson',
   'vault-guide.html':                     'Bonney Watson',
+  'inman-travel-plan-guide.html':         'Bonney Watson',
 };
 export const PLACE_DEFAULT = 'Washington Memorial Park';
 

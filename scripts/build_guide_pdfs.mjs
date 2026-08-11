@@ -96,6 +96,13 @@ const JOBS = [
   ['ecl-guide.html?print=family',            'pdf-assets/Eternal Light Columbarium.pdf'],
   ['gomn-guide.html?print=family',           'pdf-assets/Garden of Meditation Niches.pdf'],
   ['terrace-garden-guide.html?print=family', 'pdf-assets/Terrace Garden Memorial Path.pdf'],
+  // ── TRAVEL PLAN BY INMAN (sprint-22 Track A) ──────────────────────────────────────
+  // Built from `?print=family` like every other Tier-1/3 guide, and this one is the
+  // campaign piece: the PDF is emailed on its own, so it has to stand up with no web page
+  // behind it. That is why the enrolment link is IN the document body rather than only in
+  // the screen `.cta` (which is display:none in print) — it appears in Section 8 and again
+  // in the printed close. Held at 3 pages in PER_GUIDE_CAPS.
+  ['inman-travel-plan-guide.html?print=family', 'pdf-assets/Travel Plan by Inman.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added
