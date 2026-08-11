@@ -39,6 +39,7 @@ import { pathToFileURL } from 'url';
 // deliberately excluded — it is edited by other tracks and is not a printed handout.
 const PAGES = [
   'markers-guide.html',
+  'bronze-markers-guide.html',
   'vault-guide.html',
   'veterans-guide.html',
   'urn-placement-guide.html',

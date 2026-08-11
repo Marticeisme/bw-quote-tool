@@ -136,6 +136,8 @@ const CAPPED_GUIDES = [
   // photos/etching. Each carries the full six-page family-guide budget in its own right;
   // the operator asked for two separate documents, not one document in two files.
   'Granite Marker Sizes and Colors.pdf', 'Marker Photos and Etching.pdf',
+  // The bronze companion (sprint-22 Track B). One PDF, its own cap below.
+  'Bronze Markers.pdf',
   'Cremation Guide.pdf', 'Veterans Guide.pdf',
   'Who Decides.pdf', 'Burial Vault Guide.pdf', 'Terramation Guide.pdf',
   'Cemetery Property Guide.pdf', 'Medicaid and Planning Ahead.pdf',
@@ -214,6 +216,14 @@ const PER_GUIDE_CAPS = new Map([
   ['Granite Marker Sizes and Colors.pdf', 2],
   ['Marker Photos and Etching.pdf', 2],
   ['Outside Marker Rules and Pricing.pdf', 2],
+  // Bronze Markers (sprint-22 Track B) builds to 5 and is held at 5, not at the shared 6.
+  // It is longer than the two-page Tier-1 cut on purpose: the park's marker rules are the
+  // content, and there are three separate grave cases, each with four or five allowed
+  // marker-and-base pairings. The condensing already applied is the same as everywhere
+  // else (Section 2 summarised, one photograph dropped, photographs at 42% width); what
+  // is left is rules and prices, and cutting those would be cutting the guide. Held at 5
+  // so a future edit that re-lengthens it fails here rather than drifting to six.
+  ['Bronze Markers.pdf', 5],
   ['Burial Vault Guide.pdf', 2],
   ['Terramation Guide.pdf', 2],
   // Medicaid Professional Reference is the audit's one "do not condense" row: its audience
@@ -690,12 +700,12 @@ console.log('\n=== PDF FRESHNESS (source hash vs build manifest) ===');
 {
   const r = manifestCheck();
   // An empty manifest is a HOLLOW GATE, not a pass — it is what you get when someone
-  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 32 = 25 guides + 6
+  // deletes pdf-assets/.build-manifest.json instead of rebuilding. 33 = 26 guides + 6
   // catalogs + the marker guide's SECOND PDF (sprint-11 Track B prints markers-guide.html
   // twice, once per `?part=`); the General Price List is not generated and is deliberately
-  // absent. It was 26 until sprint-13 added the five per-area photo guides, and 31 until
-  // sprint-22 added Travel Plan by Inman.
-  if (r.jobs < 32) fail(`build manifest records only ${r.jobs} job(s); expected 32 — rerun both builders`);
+  // absent. It was 26 until sprint-13 added the five per-area photo guides, 31 until
+  // sprint-22 added Travel Plan by Inman (Track A) and the bronze marker guide (Track B).
+  if (r.jobs < 33) fail(`build manifest records only ${r.jobs} job(s); expected 33 — rerun both builders`);
   for (const m of r.missing) fail(`${m}: recorded in the manifest but the PDF is gone`);
   for (const s of r.stale) fail(`${s.out}: ${s.src} ${s.why} — rerun its builder`);
   if (!r.stale.length && !r.missing.length) ok(`${r.jobs} built PDFs match their sources (${r.checked} source hashes)`);

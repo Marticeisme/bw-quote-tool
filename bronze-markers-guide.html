@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bronze Marker Guide &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* The bronze companion to markers-guide.html. Same tokens, same masthead, contents,
+   section, price-table, scale-guide and footer vocabulary, deliberately: the two guides
+   are a pair and a family often reads them side by side. Everything below that is not
+   copied from that file is the FOUNDATION DRAWING (.bz-*) — a bronze marker at WMP is
+   always mounted on a granite or concrete base, and drawing the bronze inside its base
+   at true relative scale is the only way to show that without a paragraph of prose. */
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+  --bronze:#7a5a36; --bronze-dark:#5d4327; --granite:#b9b6ae;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;}
+
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:540px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+
+.prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+.prose p strong{color:var(--navy-dark);font-weight:700;}
+.prose-sidebar{display:grid;grid-template-columns:1.55fr 1fr;gap:36px;align-items:start;}
+
+.sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;margin-bottom:24px;}
+.sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar li{font-size:13.5px;color:var(--text);padding:8px 0 8px 16px;border-bottom:1px solid var(--rule);position:relative;line-height:1.5;}
+.sidebar li:last-child{border-bottom:none;}
+.sidebar li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+.policy-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:12px;padding:28px 30px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden;}
+.policy-box::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none;}
+.policy-box h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:10px;color:#fff;}
+.policy-box p{color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;margin:0 0 8px;}
+.policy-box .hl{color:var(--orange-soft);font-weight:600;}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
+.compare-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;padding:24px;position:relative;overflow:hidden;}
+.compare-card h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:10px;}
+.compare-card ul{list-style:none;padding:0;}
+.compare-card li{padding:8px 0;border-bottom:1px solid var(--rule);font-size:13.5px;color:var(--text);}
+.compare-card li:last-child{border-bottom:none;}
+
+/* Pricing table — the granite guide's table, rule for rule, including the header
+   right-alignment that scripts/verify_table_alignment.mjs enforces. */
+.price-table{width:100%;border-collapse:collapse;margin-bottom:28px;overflow-x:auto;display:block;}
+.price-table table{width:100%;border-collapse:collapse;min-width:520px;}
+.price-table caption{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);text-align:left;padding-bottom:12px;}
+.price-table th{text-align:left;font-size:12px;font-weight:700;color:var(--navy);padding:10px 12px;border-bottom:2px solid var(--orange);white-space:nowrap;}
+.price-table th:not(:first-child){text-align:right;}
+.price-table td{padding:10px 12px;border-bottom:1px solid var(--rule);font-size:14px;white-space:nowrap;}
+.price-table td:first-child{font-weight:600;color:var(--text-dark);white-space:normal;}
+.price-table td:not(:first-child){font-variant-numeric:tabular-nums;text-align:right;color:var(--text-dark);font-weight:600;}
+.price-table tr:last-child td{border-bottom:none;}
+.price-table .size-note{font-size:12px;color:var(--text-muted);font-weight:400;display:block;margin-top:2px;}
+
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.feature-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:18px 20px;}
+.feature-card h4{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.feature-card p{font-size:12.5px;color:var(--text-muted);line-height:1.5;margin:0;}
+
+.section-photo{border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid var(--warm-border);box-shadow:0 3px 12px rgba(0,0,0,.06);}
+.section-photo img{width:100%;height:auto;display:block;}
+.section-photo-caption{padding:10px 16px;background:var(--sidebar-bg);font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
+.photo-credit{display:block;font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-top:3px;}
+
+/* ── THE FOUNDATION DRAWINGS ────────────────────────────────────────────────────────
+   Relative scale is 4.607px per inch of stone, the same figure markers-guide.html draws
+   its granite at, so a 28in marker is the same width in both guides and the two can be
+   read side by side. The outer block is the granite or concrete base; the inner block is
+   the bronze. Sizes are inline styles rather than classes because every pair is a
+   different real size and a class per size would be twenty dead classes. */
+.scale-guide{background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;padding:28px 24px;margin-bottom:28px;}
+.scale-guide-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.scale-guide-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+.scale-markers{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;justify-content:center;}
+.scale-companion{margin-top:20px;padding-top:20px;border-top:1px solid var(--rule);}
+.scale-companion-label{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:12px;}
+.scale-note{margin-top:18px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;color:var(--text-muted);line-height:1.5;}
+.scale-note strong{color:var(--navy-dark);}
+.bz-unit{text-align:center;}
+.bz-found{background:var(--granite);border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.bz-bronze{background:linear-gradient(150deg,var(--bronze) 0%,var(--bronze-dark) 100%);border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:2px;overflow:hidden;}
+.bz-size{font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;}
+.bz-price{font-size:10.5px;font-weight:700;color:#f2e2cf;margin-top:2px;line-height:1.2;font-variant-numeric:tabular-nums;}
+.bz-base{font-size:10.5px;font-weight:600;color:var(--text-muted);margin-top:5px;line-height:1.25;}
+.bz-key{display:flex;flex-wrap:wrap;gap:4px 18px;margin-bottom:16px;font-size:11.5px;color:var(--text-muted);}
+.bz-key b{color:var(--navy);font-weight:700;}
+.bz-swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:5px;}
+
+p.note-inline{font-size:13px;color:var(--text-muted);font-style:italic;}
+p.note-plain{font-size:13px;color:var(--text-muted);}
+
+/* Download block — screen only. */
+.dl-block{margin:0 48px 8px;padding:20px 22px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:12px;}
+.dl-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dl-card{display:block;padding:14px 16px;border:1px solid var(--warm-border);border-radius:10px;text-decoration:none;background:var(--sidebar-bg);transition:box-shadow .15s,border-color .15s;}
+.dl-card:hover{box-shadow:0 3px 12px rgba(61,90,122,.14);border-color:var(--navy);}
+.dl-card .dl-t{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.dl-card .dl-d{font-size:12.5px;color:var(--text-muted);line-height:1.45;}
+.dl-card .dl-a{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);}
+@media(max-width:768px){.dl-block{margin-left:24px;margin-right:24px;}.dl-grid{grid-template-columns:1fr;}}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .compare-grid{grid-template-columns:1fr;}
+  .feature-grid{grid-template-columns:1fr;}
+  .prose-sidebar{grid-template-columns:1fr;}
+  .contents-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  .scale-markers{gap:10px;}
+}
+
+@media print {
+  @page{size:letter;margin:0;}
+  /* Ghostscript's downsample mangles the ToUnicode map for fi/fl/ft/Th ligatures. Same
+     suppression as markers-guide.html, same reason. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
+  html{background:#f8f6f2;}
+  body{background:#f8f6f2;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.dl-block{display:none!important;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0 .5in;min-height:auto;}
+  .cover{margin:0 -.5in;padding:12px .5in 10px;border-radius:0;background:var(--navy)!important;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer,.cover-stripe{display:none;}
+  .section-wrap{padding:10px 0 6px;}
+  .section-wrap h2{page-break-after:avoid;font-size:15pt;margin-bottom:2px;}
+  .section-kicker{break-after:avoid;page-break-after:avoid;}
+  .section-sub{margin-bottom:6px;break-after:avoid;page-break-after:avoid;}
+  .section-rule{margin-bottom:8px;break-after:avoid;page-break-after:avoid;}
+  .price-table{break-inside:avoid;page-break-inside:avoid;margin-bottom:12px;}
+  .price-table table{min-width:auto;}
+  .compare-card,.sidebar,.feature-card,.policy-box{break-inside:avoid;page-break-inside:avoid;}
+  .compare-grid,.feature-grid{display:block;}
+  .compare-card,.feature-card{margin-bottom:8px;}
+  /* Constrain a section photo by WIDTH so the aspect ratio survives. A max-HEIGHT on an
+     height:auto image leaves it a stamp inside a full-size container. */
+  /* 42% of the sheet, not 62%. These are wide landscape photographs of a marker lying
+     flat, so at 62% each one cost a third of a page and pushed the guide to seven; at
+     42% the marker is still large enough to read the casting and the base under it. */
+  .section-photo{break-inside:avoid;page-break-inside:avoid;box-shadow:none;max-width:42%;margin-left:auto;margin-right:auto;margin-bottom:10px;}
+  .section-photo-caption{padding:5px 10px;}
+  .section-photo img{width:100%;max-width:none;}
+  .scale-guide{break-inside:avoid;page-break-inside:avoid;border:none;background:transparent!important;padding:4px 0;margin-bottom:10px;}
+  .scale-markers{gap:10px;}
+  .doc-footer{page-break-before:avoid;padding:16px 0 12px;border-top:1px solid #ddd6c8;}
+  .doc-footer .footer-url{display:none;}
+  a{text-decoration:none;color:inherit;}
+}
+</style>
+<!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
+<link rel="stylesheet" media="print" href="guide-print.css">
+<!-- BW:PRINT-CSS:END -->
+</head>
+<body>
+<!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
+<style>
+/* Per-guide print constants. Screen is untouched: the only screen rule here hides
+   the generated pricing invitation, which exists solely for the PDF. It must never
+   show on screen — the shared sheet is media=print and so cannot say anything about
+   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
+   WEBSITE. */
+.print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
+</style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
+<!-- BW:PRINT-SYSTEM:END -->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#overview">About Bronze</a>
+      <a href="#granite-or-bronze">Granite or Bronze</a>
+      <a href="#what-fits">What Fits Where</a>
+      <a href="#government-match">Government Match</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#expressions">Expressions</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Bronze Marker Guide</h1>
+    <div class="cover-sub">Cast bronze markers at Washington Memorial Park: the sizes allowed on each kind of grave, the granite or concrete base every one of them sits on, the government match for a veteran's husband or wife, and what each one costs.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">Sizes &middot; foundations &middot; government match &middot; all-in pricing</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#overview">About Bronze Markers</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#granite-or-bronze">Granite or Bronze</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#what-fits">What Fits On Your Grave</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#government-match">The Government Bronze Match</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#pricing">Bronze Marker Pricing</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#expressions">Expressions in Bronze</a></div>
+    </div>
+  </div>
+
+  <div class="dl-block">
+    <div class="dl-label">Download &amp; Print</div>
+    <div class="dl-grid">
+      <a class="dl-card" href="pdf-assets/Bronze%20Markers.pdf" download>
+        <div class="dl-t">Bronze Markers</div>
+        <div class="dl-d">Every bronze size allowed here, the base it has to sit on, the government match, and the complete price for each one.</div>
+        <span class="dl-a">PDF &darr;</span>
+      </a>
+      <a class="dl-card" href="markers-guide.html">
+        <div class="dl-t">Granite Marker Guide</div>
+        <div class="dl-d">The companion guide: flush granite sizes drawn to scale, the 20+ stone colors, photo portraits and etching.</div>
+        <span class="dl-a">Open guide &rarr;</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="policy-box">
+    <h3>Bronze Never Sits On Bare Lawn</h3>
+    <p>Every bronze marker at Washington Memorial Park is mounted on a <span class="hl">granite or concrete foundation</span> that is a few inches larger than the bronze on every side. That base is what keeps the marker level as the ground settles, and it is what the mowers ride on.</p>
+    <p>The base is not an extra you decide on later. It is part of the marker and it is part of every price in this guide.</p>
+    <!-- No inline font-size. The family cut raises `.policy-box p` to 10pt and an inline
+         13px would win that cascade, which is a sub-floor line in the emailed PDF. -->
+    <p style="color:rgba(255,255,255,.55);margin-bottom:0;font-style:italic;">Most of our granite bases are Barrell Gray. Nearly all sections here require flush markers only, in bronze or granite.</p>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-wrap" id="overview">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>About Bronze Markers</h2>
+    <div class="section-sub">Cast metal, set flush with the lawn, on a stone base</div>
+    <div class="section-rule"></div>
+
+    <div class="section-photo">
+      <img src="bronze-images/bronze-on-foundation.webp" alt="Cast bronze marker mounted on a granite foundation, seen from the front">
+      <div class="section-photo-caption">A cast bronze marker on its granite base. The stone border you can see around the bronze is the foundation, and it comes with the marker.
+        <span class="photo-credit">Design example, Coldspring</span></div>
+    </div>
+
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p>A bronze marker is cast, not carved. The names, dates and any emblem are formed in the metal itself, then the raised letters are polished and the background is given its dark finish. Nothing is painted on, so there is nothing to fade or peel.</p>
+        <p>Bronze is the traditional memorial park look, and it is what most people picture when they picture a flat marker. It is also the material the government uses for veterans' markers, which is why the match in Section 4 exists.</p>
+        <p>We order bronze through <strong>Matthews</strong> and through <strong>Coldspring</strong>. Both have been making cemetery bronze for over a century, and both back it with a long warranty. I will tell you which one your marker is coming from when we write the order.</p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">WHAT COMES WITH A BRONZE MARKER</div>
+        <ul>
+          <li>The cast bronze itself, with your wording</li>
+          <li>The granite or concrete base under it</li>
+          <li>Setting the base and mounting the marker</li>
+          <li>A vase, on the sizes that offer one</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2
+       FAMILY PDF: summarised. The two comparison cards are eight bullets of material
+       properties, and in the emailed cut they cost most of a sheet to say what one
+       paragraph says. The long version stays on the website and in a full Ctrl+P print;
+       the short version below is written next to it so the two cannot drift. -->
+  <div class="section-wrap" id="granite-or-bronze" data-pdf="summary">
+    <div class="pdf-summary">
+      <div class="section-kicker">SECTION 2</div>
+      <h2>Granite or Bronze</h2>
+      <div class="prose">
+        <p>Both materials will outlast all of us, so the difference is what you can do with them. Granite gives you over twenty stone colors, ceramic photo portraits, diamond etching and carved scenes, and the marker is its own foundation. Bronze gives you the traditional cast look, the government match, emblems and vases cast into the metal, and the sculpted artwork of Expressions in Bronze, and it always sits on a granite or concrete base. Most families here choose granite for the personalization. If you want the bronze look, or you are matching a government marker already on the grave, bronze is the right answer and it is not a compromise.</p>
+      </div>
+    </div>
+    <div class="section-kicker">SECTION 2</div>
+    <h2>Granite or Bronze</h2>
+    <div class="section-sub">Both last. They are good at different things.</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>This is the question almost every family asks me, so here is the honest answer. Both materials will outlast all of us. The difference is what you can do with them.</p>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3>Granite</h3>
+        <ul>
+          <li>Over twenty stone colors in three price groups</li>
+          <li>Ceramic photo portraits in full color</li>
+          <li>Hand diamond etching and laser etching</li>
+          <li>Carved scenes, emblems and custom artwork</li>
+          <li>The marker is its own foundation, so there is no separate base</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h3>Bronze</h3>
+        <ul>
+          <li>The traditional cast look, in one bronze finish</li>
+          <li>The only material the government match comes in</li>
+          <li>Emblems, borders and vases cast into the metal</li>
+          <li>Sculpted custom artwork through Expressions in Bronze</li>
+          <li>Always mounted on a granite or concrete base</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>If personalization matters most to you, granite gives you more room to work with, and that is why most families here choose it. If you want the traditional bronze look, or you are matching a government marker that is already on the grave, bronze is the right answer and it is not a compromise.</p>
+      <p>Buying a marker from somewhere other than Bonney Watson is allowed, and there are extra charges when you do. Those are set out in the <a href="outside-marker-rules.html" style="color:var(--orange);font-weight:700;text-decoration:none">Outside Marker Rules &amp; Pricing</a> guide.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-wrap" id="what-fits">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>What Fits On Your Grave</h2>
+    <div class="section-sub">The bronze sizes allowed here, and the base each one needs</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>What you can put on a grave depends on how many interment rights that grave carries and whether the marker spans one grave or two. These are the park's rules, and they are the same for everyone. Every measurement below is inches, marker first and then the base it is mounted on.</p>
+    </div>
+
+    <div class="scale-guide">
+      <div class="scale-guide-label">DRAWN TO SCALE, MARKER AND BASE</div>
+      <div class="scale-guide-sub">The gray block is the granite or concrete foundation. The bronze block inside it is the marker. Both are drawn at the same relative scale as the granite guide, so you can hold the two side by side.</div>
+      <div class="bz-key">
+        <span><span class="bz-swatch" style="background:#b9b6ae;"></span><b>Foundation</b> granite, usually Barrell Gray, or concrete</span>
+        <span><span class="bz-swatch" style="background:#7a5a36;"></span><b>Bronze</b> the marker itself</span>
+      </div>
+
+      <div class="scale-companion-label">One grave, one interment right</div>
+      <div class="scale-markers">
+        <div class="bz-unit">
+          <div class="bz-found" style="width:129px;height:74px;"><div class="bz-bronze" style="width:111px;height:55px;"><span class="bz-size">24&times;12</span><span class="bz-price">$3,190</span></div></div>
+          <div class="bz-base">Government bronze<br>on 28&times;16</div>
+        </div>
+        <div class="bz-unit">
+          <div class="bz-found" style="width:129px;height:83px;"><div class="bz-bronze" style="width:111px;height:65px;"><span class="bz-size">24&times;14</span><span class="bz-price">$4,105</span></div></div>
+          <div class="bz-base">Single<br>on 28&times;18</div>
+        </div>
+        <div class="bz-unit">
+          <div class="bz-found" style="width:147px;height:92px;"><div class="bz-bronze" style="width:129px;height:74px;"><span class="bz-size">28&times;16</span><span class="bz-price">$4,820</span></div></div>
+          <div class="bz-base">Single<br>on 32&times;20 granite</div>
+        </div>
+      </div>
+
+      <div class="scale-companion">
+        <div class="scale-companion-label">One companion marker across two graves, both paid in full</div>
+        <div class="scale-markers">
+          <div class="bz-unit">
+            <div class="bz-found" style="width:221px;height:83px;"><div class="bz-bronze" style="width:203px;height:65px;"><span class="bz-size">44&times;14</span><span class="bz-price">$7,645</span></div></div>
+            <div class="bz-base">Companion on a 48&times;18 base</div>
+          </div>
+          <div class="bz-unit">
+            <div class="bz-found" style="width:295px;height:92px;"><div class="bz-bronze" style="width:258px;height:74px;"><span class="bz-size">56&times;16</span><span class="bz-price">$9,600</span></div></div>
+            <div class="bz-base">Companion on a 64&times;20 base</div>
+          </div>
+        </div>
+      </div>
+      <div class="scale-note">The figure inside each marker is the <strong>bronze, the base and the installation together</strong>. Washington sales tax of 10.4% is added to it, and Section 5 has the full price with tax. The 32&times;72 ledger is not drawn here because it is six feet long and would not fit on the page at the same scale as the rest. Its price is in Section 5 with everything else.</div>
+    </div>
+
+    <div class="prose">
+      <p><strong>One grave with one interment right.</strong> A 24&times;12 government bronze on a 28&times;16 granite or concrete base. In Vets and Vets North a 24&times;12 on a concrete base is the standard. Otherwise you can take a 24&times;14 single on a 28&times;18 Barrell Gray base, a 28&times;16 single on a concrete base unless you upgrade it to a 32&times;20, or a 32&times;72 single ledger on a 36&times;76 Barrell Gray base.</p>
+      <p><strong>One grave with two interment rights.</strong> Two people in one grave, so there are more ways to do it. A 24&times;12 government bronze on a 28&times;16 Barrell Gray base at the head with the same again in the center. Two 24&times;12 government bronzes on one 28&times;38 Barrell Gray base. A 28&times;16 bronze companion on a concrete base. A 24&times;30 bronze companion on a 28&times;34 Barrell Gray base. A 32&times;72 companion ledger on a 36&times;76 Barrell Gray base. Or a 16&times;8 or 18&times;10 second-right marker, which is only ever placed below the primary headstone.</p>
+      <p><strong>One marker across two graves.</strong> Both spaces have to be paid in full first. A 44&times;14 bronze on a 48&times;18 Barrell Gray base, a 56&times;16 bronze on a 64&times;20 Barrell Gray base, or a 32&times;72 companion full ledger on a 36&times;76 Barrell Gray base. Two 24&times;12 government bronzes can also share one base: a 60&times;16 Barrell Gray with no vase, or a 64&times;20 Barrell Gray with a 6&Prime; vase hole.</p>
+      <p class="note-inline">Two more rules worth knowing. Markers in the Lake Urn Garden are 15&times;10 singles, except for the Williamsburg companion blocks that are already in place. The infant sections take an 18&times;10, and those are granite only, so there is no bronze option there.</p>
+    </div>
+
+    <div class="section-photo">
+      <img src="bronze-images/bronze-companion.webp" alt="Companion bronze marker with two names on one granite foundation">
+      <div class="section-photo-caption">A companion bronze. Two names, one casting, one base.
+        <span class="photo-credit">Design example, Matthews</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-wrap" id="government-match">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>The Government Bronze Match</h2>
+    <div class="section-sub">When a veteran already has a VA marker and the spouse wants the same one</div>
+    <div class="section-rule"></div>
+
+    <div class="section-photo">
+      <img src="bronze-images/bronze-government-match.webp" alt="A veteran's government-style bronze marker beside a matching bronze for the spouse, on one granite foundation with a vase between them">
+      <div class="section-photo-caption">A veteran's government-style bronze and the matching bronze for the spouse, set side by side.
+        <span class="photo-credit">Design example, Matthews</span></div>
+    </div>
+
+    <div class="prose">
+      <p>The VA gives every eligible veteran a bronze marker at no charge. It is 24&Prime; by 12&Prime;, it has a set layout, and it only ever names the veteran. Washington Memorial Park does not charge for the marker, but it does have to sit on a foundation like any other bronze here, and somebody has to set it.</p>
+      <p>So there are two things families come to me for.</p>
+      <p><strong>The VA sends the marker and we install it.</strong> You apply to the VA, they ship the bronze, and we pour the base and set it. That is <strong>$1,185</strong>.</p>
+      <p><strong>The husband or wife wants a marker that matches.</strong> The VA will not supply a second one, so we order a matching government-style 24&times;12 bronze through <strong>Coldspring</strong>, cast to the same size and the same layout, and mount it on a granite or concrete base beside the first. That is <strong>$3,190</strong>, and that figure covers the bronze, the base and the installation.</p>
+      <p>Side by side they read as a pair, which is the whole point. There are also several veteran combinations on one or two spaces, with or without a vase, and those are in the first group of prices in Section 5.</p>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-label">BEFORE YOU APPLY TO THE VA</div>
+      <ul>
+        <li>Have the discharge paperwork, usually the DD-214, in hand</li>
+        <li>Decide on the emblem of belief before the order goes in, because it is cast in</li>
+        <li>Tell me if a spouse marker may follow later, so we set the first base with room for it</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-wrap" id="pricing">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>Bronze Marker Pricing</h2>
+    <div class="section-sub">Marker, base and installation, with the tax shown separately</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <!-- The emailed PDF prints ranges instead of the tables, so a sentence about "the
+           first column" would be describing something that is not on the page. Same
+           facts, said without pointing at a table. -->
+      <p data-pdf="summary"><span>The first column is the price of the marker, the foundation under it and the installation, all together. Bronze is merchandise, so Washington sales tax of 10.4% is added, and the second column is what you actually pay. There is nothing else to add for the marker itself.</span><span class="pdf-summary">Every figure below covers the marker, the foundation under it and the installation, all together. Bronze is merchandise, so Washington sales tax of 10.4% is added on top of it. There is nothing else to add for the marker itself.</span></p>
+    </div>
+
+    <div class="price-table">
+      <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="bronze-markers-1"><span class="pi-label">Generally</span><span class="pi-range" data-print-range="bronze-markers-1">$1,185&ndash;$4,930</span><p>Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table data-print-suppress="price">
+        <caption>GOVERNMENT AND VETERAN BRONZE</caption>
+        <tr><th>Marker</th><th>Marker, base &amp; install</th><th>With 10.4% tax</th></tr>
+        <tr><td>Government bronze, match<span class="size-note">24&times;12 on a granite or concrete base</span></td><td>$3,190</td><td>$3,521.76</td></tr>
+        <tr><td>Installation only<span class="size-note">Government bronze supplied by the VA</span></td><td>$1,185</td><td>$1,308.24</td></tr>
+        <tr><td>VA match, 1 space, no vase</td><td>$3,725</td><td>$4,112.40</td></tr>
+        <tr><td>VA match, 1 space, with vase core</td><td>$4,340</td><td>$4,791.36</td></tr>
+        <tr><td>VA match, 2 spaces, no vase</td><td>$4,010</td><td>$4,427.04</td></tr>
+        <tr><td>VA match, 2 spaces, with vase core</td><td>$4,465</td><td>$4,929.36</td></tr>
+        <tr><td>VA match, 1 space, two bronzes, no vase</td><td>$4,300</td><td>$4,747.20</td></tr>
+      </table>
+    </div>
+
+    <p class="note-plain">Singles and companions below are the standard Matthews and Coldspring castings. A vase core is the fitting that lets a vase screw into the marker, and it is priced with the marker rather than after it.</p>
+
+    <div class="price-table">
+      <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="bronze-markers-2"><span class="pi-label">Generally</span><span class="pi-range" data-print-range="bronze-markers-2">$3,830&ndash;$27,843</span><p>Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table data-print-suppress="price">
+        <caption>SINGLE, COMPANION AND LEDGER BRONZE</caption>
+        <tr><th>Marker</th><th>Marker, base &amp; install</th><th>With 10.4% tax</th></tr>
+        <tr><td>Single 24&times;14<span class="size-note">No vase, on a 28&times;18 base</span></td><td>$4,105</td><td>$4,531.92</td></tr>
+        <tr><td>Single 28&times;16, concrete base<span class="size-note">No vase</span></td><td>$3,830</td><td>$4,228.32</td></tr>
+        <tr><td>Single 28&times;16, granite base<span class="size-note">No vase</span></td><td>$4,820</td><td>$5,321.28</td></tr>
+        <tr><td>Companion 44&times;14, no vase</td><td>$7,645</td><td>$8,440.08</td></tr>
+        <tr><td>Companion 44&times;14, with vase core</td><td>$7,860</td><td>$8,677.44</td></tr>
+        <tr><td>Companion 56&times;16, no vase</td><td>$9,600</td><td>$10,598.40</td></tr>
+        <tr><td>Companion 56&times;16, with vase core</td><td>$9,755</td><td>$10,769.52</td></tr>
+        <tr><td>Companion 60&times;20, no vase</td><td>$12,315</td><td>$13,595.76</td></tr>
+        <tr><td>Companion 60&times;20, with vase core</td><td>$12,475</td><td>$13,772.40</td></tr>
+        <tr><td>Half ledger, no vase core</td><td>$6,525</td><td>$7,203.60</td></tr>
+        <tr><td>Half ledger, with vase core</td><td>$6,780</td><td>$7,485.12</td></tr>
+        <tr><td>Full ledger, no vase core</td><td>$25,060</td><td>$27,666.24</td></tr>
+        <tr><td>Full ledger, with vase core</td><td>$25,220</td><td>$27,842.88</td></tr>
+      </table>
+    </div>
+
+    <p class="note-plain">The last group covers the urn gardens, the lawn crypts and a second name added to a grave that already has a marker on it.</p>
+
+    <div class="price-table">
+      <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="bronze-markers-3"><span class="pi-label">Generally</span><span class="pi-range" data-print-range="bronze-markers-3">$2,145&ndash;$6,260</span><p>Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table data-print-suppress="price">
+        <caption>URN GARDEN, LAWN CRYPT AND SECOND RIGHT</caption>
+        <tr><th>Marker</th><th>Marker, base &amp; install</th><th>With 10.4% tax</th></tr>
+        <tr><td>Bronze single, Gasser Olds<span class="size-note">Lake Urn Garden</span></td><td>$2,715</td><td>$2,997.36</td></tr>
+        <tr><td>Lake Urn Garden memorial</td><td>$2,910</td><td>$3,212.64</td></tr>
+        <tr><td>Cremorial unit<span class="size-note">Rose, Lake and Vets urn gardens</span></td><td>$5,670</td><td>$6,259.68</td></tr>
+        <tr><td>Second right memorial<span class="size-note">16&times;8 or 18&times;10, below the primary headstone</span></td><td>$2,145</td><td>$2,368.08</td></tr>
+        <tr><td>Lawn crypt, no vase</td><td>$4,280</td><td>$4,725.12</td></tr>
+        <tr><td>Lawn crypt, with vase core</td><td>$4,785</td><td>$5,282.64</td></tr>
+      </table>
+    </div>
+
+    <!-- FAMILY PDF: dropped. Section 5 is the price section and already carries three
+         tables; a fourth photograph of a single bronze adds nothing the photograph in
+         Section 1 has not already shown, and it costs a third of a sheet. -->
+    <div class="section-photo" data-pdf="drop">
+      <img src="bronze-images/bronze-single.webp" alt="A single bronze marker with a cross and border, on a granite foundation set flush with the lawn">
+      <div class="section-photo-caption">A single bronze set flush with the lawn on its granite base.
+        <span class="photo-credit">Design example, Matthews</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-wrap" id="expressions">
+    <div class="section-kicker">SECTION 6</div>
+    <h2>Expressions in Bronze</h2>
+    <div class="section-sub">Matthews' personalized line, with artwork sculpted into the casting</div>
+    <div class="section-rule"></div>
+
+    <div class="section-photo">
+      <img src="bronze-images/bronze-expressions.webp" alt="A bronze marker with a sculpted landscape scene cast into the face of the metal">
+      <div class="section-photo-caption">A scene sculpted into the face of the casting rather than engraved on top of it.
+        <span class="photo-credit">Design example, Matthews</span></div>
+    </div>
+
+    <div class="prose">
+      <p>Expressions in Bronze is Matthews' personalized line. Instead of choosing an emblem from a book, an artist sculpts your artwork and it is cast into the marker: a lake, a stand of trees, a boat, an instrument, whatever the person was known for. Because it is sculpted rather than applied, it has real depth to it, and it ages exactly the way the rest of the marker does.</p>
+      <p>It takes longer than a standard casting and it costs more, and I would rather you know both of those things up front. If you want to see what is possible, tell me what you have in mind and I will bring you proofs before anything is ordered.</p>
+    </div>
+
+    <div class="price-table">
+      <!-- BW:PRICE-RULE:START --><div class="print-invite" data-print-invite="bronze-markers-4"><span class="pi-label">Generally</span><span class="pi-range" data-print-range="bronze-markers-4">$6,180&ndash;$12,509</span><p>Where a particular one falls in that range depends on the size, the location and the options you choose. I would rather give you a real number than a guess. Call or email me and I will put an exact quote in writing for you, with no obligation.</p></div><!-- BW:PRICE-RULE:END --><table data-print-suppress="price">
+        <caption>EXPRESSIONS IN BRONZE</caption>
+        <tr><th>Marker</th><th>Marker, base &amp; install</th><th>With 10.4% tax</th></tr>
+        <tr><td>Single 24&times;14, no vase</td><td>$6,560</td><td>$7,242.24</td></tr>
+        <tr><td>Single 24&times;14, with vase core</td><td>$6,715</td><td>$7,413.36</td></tr>
+        <tr><td>Single 28&times;16, no vase</td><td>$7,170</td><td>$7,915.68</td></tr>
+        <tr><td>Single 28&times;16, concrete base, no vase</td><td>$6,180</td><td>$6,822.72</td></tr>
+        <tr><td>Companion 44&times;14, no vase</td><td>$10,055</td><td>$11,100.72</td></tr>
+        <tr><td>Companion 44&times;14, with vase core</td><td>$10,275</td><td>$11,343.60</td></tr>
+        <tr><td>Companion 56&times;16, no vase</td><td>$11,175</td><td>$12,337.20</td></tr>
+        <tr><td>Companion 56&times;16, with vase core</td><td>$11,330</td><td>$12,508.32</td></tr>
+      </table>
+    </div>
+
+    <div class="prose">
+      <p class="note-plain">Prices include the bronze, the foundation and the installation, and Washington sales tax of 10.4% is added to them. Prices are subject to change without notice, and I will confirm today's figure in writing before you sign anything.</p>
+    </div>
+  </div>
+
+  <div class="fam-next pdf-summary">
+    <h2>Tell me which grave and I will price it exactly</h2>
+    <p>What fits depends on the grave and on how many interment rights it carries, so the fastest way to get a real number is to tell me the space. I will confirm the size that is allowed, the base it needs and the full price with tax, in writing, with no obligation.</p>
+    <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url" style="text-decoration:none;">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+</body>
+</html>

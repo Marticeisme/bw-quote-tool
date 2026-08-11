@@ -36,7 +36,8 @@ import { pluckClass, pluckTag } from './_html-pluck.mjs';
 // scripts/verify_area_guide_ranges.mjs.
 export const GUIDES = [
   'veterans-guide.html', 'cemetery-property-guide.html', 'cremation-or-burial-guide.html',
-  'markers-guide.html', 'medicaid-family-guide.html', 'medicaid-professional-reference.html',
+  'markers-guide.html', 'bronze-markers-guide.html',
+  'medicaid-family-guide.html', 'medicaid-professional-reference.html',
   'who-decides-guide.html', 'urn-placement-guide.html', 'pre-planning-guide.html',
   'burial-guide.html', 'cremation-guide.html', 'scattering-guide.html',
   'direct-cremation.html', 'vault-guide.html', 'outside-marker-rules.html',
