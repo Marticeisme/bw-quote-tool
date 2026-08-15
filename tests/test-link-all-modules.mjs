@@ -70,8 +70,8 @@ console.log('\n2. Modules do not leak into each other');
     show('cem-quote', null); bwSetPendingLink('cem', a.id);
     show('ga-contract', null); bwSetPendingLink('ga', b.id);
     return {
-      cem: bwPartyName(bwPartyById(_bwPendingLink.cem.partyId)),
-      ga: bwPartyName(bwPartyById(_bwPendingLink.ga.partyId)),
+      cem: bwPartyName(bwPartyById(_bwPendingLink.cem[0].partyId)),
+      ga: bwPartyName(bwPartyById(_bwPendingLink.ga[0].partyId)),
       cemBox: document.getElementById('cemLinkedContact').textContent,
       gaBox: document.getElementById('gaLinkedContact').textContent,
       fhUntouched: _bwPendingLink.fh === undefined,
