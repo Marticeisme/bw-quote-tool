@@ -1,6 +1,9 @@
 // Verify guides.html — the hub that links every guide, catalog, map and form.
 // Checks the things that silently rot as guides are added and catalogs change:
 //   * each category's count pill matches the number of cards under it
+//   * the quick-jump nav has one pill per category, each resolving to a real
+//     category id, with a count matching that category's cards — and it is
+//     hidden in print
 //   * every "Open Guide" and "PDF" target actually exists on disk
 //     (including the file= parameter inside viewer.html?file=... links)
 //   * each catalog card's advertised product count matches the real catalog page
@@ -41,6 +44,7 @@ const cats = await page.evaluate(() =>
     name: c.querySelector('h2')?.textContent.trim(),
     pill: parseInt(c.querySelector('.cat-count')?.textContent || '-1', 10),
     actual: c.querySelectorAll('.guide-card').length,
+    id: c.id || null,
   })));
 console.log('=== CATEGORIES (count pill vs cards) ===');
 for (const c of cats) {
@@ -49,6 +53,38 @@ for (const c of cats) {
 }
 const totalCards = cats.reduce((s, c) => s + c.actual, 0);
 console.log(`total cards: ${totalCards}`);
+
+// ---- quick-jump nav: one pill per category, resolving, counts agreeing ----
+// A pill pointing at an id nobody has scrolls nowhere and says nothing, which is
+// exactly the kind of rot that survives a visual glance.
+console.log('\n=== QUICK-JUMP NAV ===');
+const pills = await page.evaluate(() =>
+  Array.from(document.querySelectorAll('.quick-jump a')).map(a => ({
+    href: a.getAttribute('href'),
+    count: parseInt(a.querySelector('.qj-count')?.textContent || '-1', 10),
+    label: a.textContent.replace(/\s+/g, ' ').trim(),
+    resolves: !!(a.getAttribute('href') || '').startsWith('#') &&
+              !!document.getElementById((a.getAttribute('href') || '').slice(1)),
+  })));
+if (pills.length !== cats.length) {
+  fail(`quick-jump has ${pills.length} pills, page has ${cats.length} categories`);
+} else {
+  for (let i = 0; i < pills.length; i++) {
+    const p = pills[i], c = cats[i];
+    if (!c.id) { fail(`category "${c.name}" has no id for a pill to target`); continue; }
+    if (!p.resolves) { fail(`pill "${p.label}": href ${p.href} resolves to no element`); continue; }
+    if (p.href !== '#' + c.id) { fail(`pill ${i + 1} points at ${p.href}, category ${i + 1} is #${c.id}`); continue; }
+    if (p.count !== c.actual) { fail(`pill "${p.label}": says ${p.count}, category has ${c.actual} cards`); continue; }
+    console.log(`OK   ${p.label.padEnd(30)} -> ${p.href}`);
+  }
+}
+// and it must not print
+await page.emulateMedia({ media: 'print' });
+const navPrints = await page.evaluate(() =>
+  getComputedStyle(document.querySelector('.quick-jump')).display !== 'none');
+await page.emulateMedia({ media: 'screen' });
+if (navPrints) fail('quick-jump nav is visible in print');
+else console.log('OK   quick-jump hidden in print');
 
 // ---- every card is complete and every link resolves ----
 const cards = await page.evaluate(() =>
