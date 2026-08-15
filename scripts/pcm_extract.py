@@ -77,11 +77,23 @@ PROOF_MANIFEST = 'data/pcm-companion-proofs.json'
 SINGLE_DIR = 'pcm-single-images'
 SINGLE_MANIFEST = 'data/pcm-single-proofs.json'
 DATA = 'data/pcm-catalog.json'
+FAMILY_2020 = 'data/pcm-2020-family.json'
 
 # The order data/pcm-catalog.json's top-level keys are written in. Named once so that a
 # full re-extract and a `--fold-proofs` refresh produce the same file.
 CATALOG_KEYS = ['designs', 'elements', 'photos', 'reference', 'proofs', 'singleProofs',
-                'designCats', 'elementCats', 'crossListed', 'imageSpec']
+                'designCats', 'designSections', 'elementCats', 'crossListed', 'imageSpec']
+
+# Every design carries `family` ('single' | 'companion') and `theme`, and the catalog page
+# groups on those two instead of on which book the plate came out of (operator ruling,
+# 2026-08-15: "families don't care which book a design came from"). The 2011 book prints
+# both axes itself. The 2020 book prints NEITHER -- no Individual/Companion split and no
+# section headings at all -- so its 354 plates are read out of a checked-in source file,
+# data/pcm-2020-family.json. See that file's _provenance. This is deliberately not a
+# heuristic here: aspect ratio was the old guess and it filed every 2020 companion under
+# "Flat Markers".
+SECTION_LABEL = {'single': 'Single Marker Designs', 'companion': 'Companion Designs'}
+THEMES = ['Classic', 'Religious', 'Outdoors', 'Floral', 'Misc', 'Child', 'Ledgers']
 
 DESIGN_PX = 360      # longest edge; the source is 347 px, so this is native-ish
 
@@ -235,7 +247,33 @@ def match_label_to_image(labels, imgs):
     return pairs
 
 
+def load_family_2020():
+    """The 2020 book's single/companion + theme source file, validated on the way in.
+
+    Loud rather than lenient: a plate with no entry would otherwise land in whichever
+    section the fallback happened to pick, and nothing downstream could tell that apart
+    from a real classification. The census cross-check (every number covered, no extras)
+    runs in main() once the plate list exists."""
+    if not os.path.exists(FAMILY_2020):
+        raise SystemExit(
+            '%s is missing. It is the source of the 2020 book\'s single/companion split '
+            'and cannot be regenerated from the PDF -- restore it from git.' % FAMILY_2020)
+    d = json.load(open(FAMILY_2020, encoding='utf-8'))
+    fam, thm = d['family'], d['theme']
+    bad = sorted({v for v in fam.values()} - set(SECTION_LABEL))
+    if bad:
+        raise SystemExit('%s: family values outside %r: %r'
+                         % (FAMILY_2020, sorted(SECTION_LABEL), bad))
+    bad = sorted({v for v in thm.values()} - set(THEMES))
+    if bad:
+        raise SystemExit('%s: theme values outside %r: %r' % (FAMILY_2020, THEMES, bad))
+    if set(fam) != set(thm):
+        raise SystemExit('%s: family and theme cover different numbers' % FAMILY_2020)
+    return fam, thm
+
+
 def extract_2020(write_images):
+    fam, thm = load_family_2020()
     doc = fitz.open(os.path.join(SRC, BOOK_2020))
     out, bytes_ = [], 0
     for pno in range(5, 95):                      # printed pages 6-95
@@ -254,8 +292,12 @@ def extract_2020(write_images):
             rel = f'{DESIGN_DIR}/2020/{num}.webp'
             if write_images:
                 bytes_ += save_webp(render(page, img, DESIGN_PX), rel, DESIGN_PX)
+            if num not in fam:
+                raise SystemExit('%s has no entry for 2020 plate %s (p.%d)'
+                                 % (FAMILY_2020, num, pno + 1))
             out.append(dict(id=f'2020-{num}', num=int(num), book='2020', page=pno + 1,
                             cat='2020 Collection', sub='Ledgers' if fmt == 'ledger' else 'Flat Markers',
+                            family=fam[num], theme=thm[num],
                             fmt=fmt, color=color, img=rel))
         page.clean_contents() if False else None
     doc.close()
@@ -284,7 +326,14 @@ def extract_2011(write_images):
             if write_images:
                 bytes_ += save_webp(render(page, img, DESIGN_PX), rel, DESIGN_PX)
             out.append(dict(id=f'2011-{num}', num=int(num), book='2011', page=pno + 1,
-                            cat=f'{family} Designs', sub=sub, fmt=fmt, color='', img=rel))
+                            cat=f'{family} Designs', sub=sub,
+                            # The 2011 book prints both axes, so nothing is inferred here:
+                            # its Individual/Companion heading IS the family and its
+                            # section name IS the theme. Preserving that exactly is what
+                            # keeps the 130-companion census intact across the restructure.
+                            family='companion' if family == 'Companion' else 'single',
+                            theme=sub,
+                            fmt=fmt, color='', img=rel))
     doc.close()
     return out, bytes_
 
@@ -635,6 +684,24 @@ def main():
     for d in designs:
         cats.setdefault(d['cat'], {}).setdefault(d['sub'], 0)
         cats[d['cat']][d['sub']] += 1
+
+    # The override file must cover the 2020 census EXACTLY -- no plate without a call and
+    # no call without a plate. A stale extra number is the quiet failure: it means somebody
+    # classified a plate that no longer extracts, so a plate that does extract is probably
+    # missing its call too.
+    fam2020, _ = load_family_2020()
+    have = {str(d['num']) for d in d2020}
+    extra = sorted(set(fam2020) - have, key=int)
+    if extra:
+        raise SystemExit('%s classifies %d number(s) the 2020 book does not extract: %s'
+                         % (FAMILY_2020, len(extra), ', '.join(extra[:12])))
+
+    # Census on the axis the page actually groups on.
+    secs = {}
+    for d in designs:
+        s = SECTION_LABEL[d['family']]
+        secs.setdefault(s, {}).setdefault(d['theme'], 0)
+        secs[s][d['theme']] += 1
     ecats = {}
     for e in elems:
         ecats[e['cat']] = ecats.get(e['cat'], 0) + 1
@@ -663,7 +730,7 @@ def main():
     with open(DATA, 'w', encoding='utf-8', newline='\n') as f:
         written = dict(designs=designs, elements=elems, photos=photos,
                        reference=refs, proofs=proofs, singleProofs=singles,
-                       designCats=cats, elementCats=ecats,
+                       designCats=cats, designSections=secs, elementCats=ecats,
                        crossListed=cross, imageSpec=spec)
         json.dump({k: written[k] for k in CATALOG_KEYS}, f, indent=0, ensure_ascii=False)
     print(f'\ntotal new image bytes: {total/1e6:.2f} MB')
@@ -671,6 +738,9 @@ def main():
           f'{len(photos)} photos, {len(refs)} reference pages, {len(proofs)} proofs')
     for c, subs in cats.items():
         print('  ' + c + ': ' + ', '.join(f'{k} {v}' for k, v in subs.items()))
+    for s, th in secs.items():
+        print('  ' + s + ': ' + ', '.join(f'{k} {v}' for k, v in th.items())
+              + f'  (total {sum(th.values())})')
     print('  elements: ' + ', '.join(f'{k} {v}' for k, v in ecats.items()))
     for k, v in cross.items():
         print(f'  cross-listed: {k} in {" + ".join(v)}')

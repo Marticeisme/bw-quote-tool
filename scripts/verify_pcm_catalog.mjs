@@ -26,6 +26,7 @@ export const PAGE = 'pcm-design-catalog.html';
 export const DATA = 'data/pcm-catalog.json';
 export const TAGS = 'data/pcm-catalog-tags.json';
 export const SUBJECTS = 'data/pcm-subject-tags.json';
+export const FAMILY_2020 = 'data/pcm-2020-family.json';
 
 // ---- the two full-colour proof classes ----------------------------------------------
 // Pacific Coast Memorials' own proofs: the artwork printed on the granite colour with
@@ -85,18 +86,42 @@ export const SUBJECT_PROBES = [
 // bench or bronze section — the only occurrences of those words are in the glossaries,
 // which are outside every range below. "Silver Bronze" in the 2020 captions is a granite
 // COLOR; 18 designs carry it and all 18 belong here.
+// `single`/`companion` are pinned per book, not merely summed: the whole restructure turns
+// on that split being right, and a total alone would pass a classification that moved a
+// hundred plates across the line. The 2011 numbers are the BOOK's own printed sections and
+// must never move (216 Individual + 130 Companion). The 2020 numbers are the sprint-23
+// by-looking pass, recorded in data/pcm-2020-family.json.
 export const CENSUS = {
-  '2020': { firstPage: 6, lastPage: 95, designs: 354 },
-  '2011': { firstPage: 6, lastPage: 94, designs: 346 },
+  '2020': { firstPage: 6, lastPage: 95, designs: 354, single: 241, companion: 113 },
+  '2011': { firstPage: 6, lastPage: 94, designs: 346, single: 216, companion: 130 },
   elements: { firstPage: 10, lastPage: 297, cats: 18 },
 };
 
+// The two family-facing sections and the theme axis inside them, mirrored here rather than
+// imported from the builder so the gate cannot agree with the builder about a shared
+// mistake — the same reason FORMAT_PROBES computes its expectations off the data.
+export const SECTIONS = [
+  { family: 'single', label: 'Single Marker Designs', sec: 'sec-single', proof: 'singles' },
+  { family: 'companion', label: 'Companion Designs', sec: 'sec-companion', proof: 'proofs' },
+];
+export const THEMES = ['Classic', 'Religious', 'Outdoors', 'Floral', 'Misc', 'Child',
+                       'Ledgers'];
+
 // PCM 2271 (GREENE) is printed under Companion/Religious on p.74 and again under
 // Companion/Outdoors on p.82 — it carries both a cross and a mountain scene, so the book
-// files it twice. Both cards ship; the art is one design and one file.
+// files it twice. The DATA still carries both rows, because the book does.
+//
+// The PAGE now carries one card. Ruling 2026-08-15 (sprint-23 Track D): the two listings
+// used to land in two different top-level sections, and now they would land a few hundred
+// pixels apart inside one Companion section, which to a family reading it is simply the
+// same design printed twice. Its home is Outdoors, chosen by looking at the plate — the
+// mountain-lake-forest scene fills the upper two-thirds edge to edge and the cross is a
+// small medallion between the name blocks. So 700 catalog rows render 699 plate cards, and
+// both numbers are asserted below.
 export const CROSS_LISTED = {
   '2011-2271': ['Companion Designs / Religious', 'Companion Designs / Outdoors'],
 };
+export const CROSS_LISTED_HOME = { '2011-2271': 'Outdoors' };
 
 // Sample lookups. Each is a real number from a different book / a different element
 // category, so a regression that breaks one index does not hide behind another.
@@ -118,8 +143,15 @@ export const LOOKUPS = [
 // Designs / Ledgers, whose fmt is `ledger` because they are ledgers. They are companion
 // designs — the book says so on the page — so the ruling covers all 130, and `subset` below
 // asserts separately that every one of the 124 is in the 130.
+//
+// UPDATED sprint-23 for the section restructure, keeping the intent and widening what it
+// covers. The old expectation read the word "companion" out of the DATA's fmt/cat/sub,
+// which worked only because the 2011 book prints the word on its own section headings. The
+// 2020 book prints nothing, so its companions were invisible to that test AND to the
+// family typing the word — 113 designs that answer "companion" and never came back. Now
+// the page files every design by family, so the expectation is the family field itself.
 export const FORMAT_PROBES = [
-  { q: 'companion', match: (d) => /companion/i.test(d.fmt + ' ' + d.cat + ' ' + d.sub),
+  { q: 'companion', match: (d) => d.family === 'companion',
     subset: (d) => d.fmt === 'companion' },
   { q: 'companions', sameAs: 'companion' },
   { q: 'individual', match: (d) => /individual/i.test(d.fmt + ' ' + d.cat + ' ' + d.sub) },
@@ -232,7 +264,81 @@ export async function run(ck, base) {
     ck(Math.min(...pages) >= c.firstPage && Math.max(...pages) <= c.lastPage,
       `${book} book: every design comes from pp. ${c.firstPage}-${c.lastPage} ` +
       `(saw ${Math.min(...pages)}-${Math.max(...pages)})`);
+    for (const fam of ['single', 'companion']) {
+      const n = items.filter((d) => d.family === fam).length;
+      ck(n === c[fam], `${book} book: ${n} ${fam} designs (expected ${c[fam]})`);
+    }
   }
+
+  // ---- 1a. the family / theme axis the page groups on --------------------------------
+  // Every design must land on it, exactly once, with a value from the closed set. A design
+  // that lost its family would be dropped from BOTH sections and no count above would move
+  // — the totals are per book, and a plate that is neither single nor companion is still a
+  // plate in the 2020 book.
+  const badFam = data.designs.filter((d) => !['single', 'companion'].includes(d.family));
+  ck(badFam.length === 0,
+    `every design carries family single|companion` +
+    (badFam.length ? ` — ${badFam.length} do not, e.g. ${badFam[0].id} (${badFam[0].family})` : ''));
+  const badTheme = data.designs.filter((d) => !THEMES.includes(d.theme));
+  ck(badTheme.length === 0,
+    `every design carries a theme from ${THEMES.join('/')}` +
+    (badTheme.length ? ` — e.g. ${badTheme[0].id} (${badTheme[0].theme})` : ''));
+  // A design id in two DIFFERENT sections would put the same marker in front of a family
+  // twice under contradictory headings. The cross-listed plate repeats a section, never
+  // crosses one.
+  const famOf = new Map();
+  const straddlers = [];
+  for (const d of data.designs) {
+    if (famOf.has(d.id) && famOf.get(d.id) !== d.family) straddlers.push(d.id);
+    famOf.set(d.id, d.family);
+  }
+  ck(straddlers.length === 0,
+    `no design belongs to both sections (${straddlers.join(', ') || 'none'})`);
+  const secTotals = Object.fromEntries(SECTIONS.map((s) =>
+    [s.family, data.designs.filter((d) => d.family === s.family).length]));
+  ck(secTotals.single + secTotals.companion === data.designs.length,
+    `the two sections account for every catalog row ` +
+    `(${secTotals.single} + ${secTotals.companion} = ${data.designs.length})`);
+  // The 130-companion ruling, preserved exactly across the restructure: the 2011 book's own
+  // Companion section is 124 fmt=companion plus 6 companion LEDGERS, and every one of the
+  // 130 must be in the Companion SECTION now that sections exist. This is the assertion the
+  // restructure was most able to break silently.
+  const c2011 = data.designs.filter((d) => d.book === '2011' && d.cat === 'Companion Designs');
+  ck(c2011.length === 130 && c2011.every((d) => d.family === 'companion'),
+    `all ${c2011.length} rows the 2011 book files under Companion Designs are in the ` +
+    `Companion section (${c2011.filter((d) => d.fmt === 'companion').length} fmt=companion + ` +
+    `${c2011.filter((d) => d.fmt === 'ledger').length} companion ledgers)`);
+
+  // ---- 1a-ii. the 2020 override file is the source, and it covers the census ----------
+  // scripts/pcm_extract.py cannot derive this from the PDF: the 2020 book prints no
+  // Individual/Companion split at all. So the file is checked-in source, and "it exists and
+  // matches the plates" is the only thing standing between a lost entry and 354 plates
+  // quietly re-sorting themselves.
+  const fam2020 = JSON.parse(fs.readFileSync(path.resolve(FAMILY_2020), 'utf8'));
+  const nums2020 = new Set(data.designs.filter((d) => d.book === '2020')
+    .map((d) => String(d.num)));
+  const keys2020 = new Set(Object.keys(fam2020.family));
+  const noCall = [...nums2020].filter((n) => !keys2020.has(n));
+  const noPlate = [...keys2020].filter((n) => !nums2020.has(n));
+  ck(noCall.length === 0 && noPlate.length === 0 && keys2020.size === CENSUS['2020'].designs,
+    `${FAMILY_2020} covers exactly the ${CENSUS['2020'].designs} plates of the 2020 book ` +
+    (noCall.length ? `— ${noCall.length} plate(s) with no call, e.g. ${noCall[0]} ` : '') +
+    (noPlate.length ? `— ${noPlate.length} call(s) with no plate, e.g. ${noPlate[0]} ` : '') +
+    `(${keys2020.size} entries)`);
+  ck(Object.keys(fam2020.theme).length === keys2020.size,
+    `${FAMILY_2020}: family and theme cover the same ${keys2020.size} numbers ` +
+    `(theme has ${Object.keys(fam2020.theme).length})`);
+  const drift2020 = data.designs.filter((d) => d.book === '2020' &&
+    (d.family !== fam2020.family[String(d.num)] || d.theme !== fam2020.theme[String(d.num)]));
+  ck(drift2020.length === 0,
+    `every 2020 design's family and theme came from ${FAMILY_2020}` +
+    (drift2020.length ? ` — ${drift2020.length} disagree, e.g. ${drift2020[0].id}` : ''));
+  // The judgement calls are DECLARED, not buried. A pass that quietly emptied this list
+  // would hide the fact that six of the 354 are arguable.
+  ck(Object.keys(fam2020._ambiguous || {}).length > 0 &&
+     Object.keys(fam2020._ambiguous).every((n) => keys2020.has(n)),
+    `${FAMILY_2020} still declares its ${Object.keys(fam2020._ambiguous || {}).length} ` +
+    `ambiguous plates, all of which are real numbers`);
   const ePages = data.elements.map((e) => e.page);
   ck(Math.min(...ePages) >= CENSUS.elements.firstPage &&
      Math.max(...ePages) <= CENSUS.elements.lastPage,
@@ -689,21 +795,40 @@ export async function run(ck, base) {
         // a section that exists but renders somewhere else still fails.
         sectionOrder: [...document.querySelectorAll('.section-wrap[id]')].map((s) => s.id),
         firstBookGroup: (document.querySelector('.group[data-group-cat]') || {}).id,
-        // Where the two proof panels sit relative to the first book group, in document
-        // order. Positive means the panel comes first, which is the operator's ruling.
-        panelBeforeBooks: ['singles', 'proofs'].map((k) => {
+        // The proofs-before-plates ruling, at the new geometry: it is now true INSIDE each
+        // section rather than once across the top of the page. For each section, its proof
+        // panel must precede that section's OWN first plate group.
+        panelBeforeBooks: [['singles', 'single'], ['proofs', 'companion']].map(([k, fam]) => {
           const p = document.getElementById('group-' + k);
-          const g = document.querySelector('.group[data-group-cat]');
+          const g = document.querySelector(`.group[data-group-family="${fam}"]`);
           return !!(p && g &&
             (p.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING));
         }),
+        // …and the sections must not interleave: everything single comes before everything
+        // companion. Reading the family off every .group in document order says so in one
+        // string, so a group that rendered into the wrong section is named, not averaged.
+        familyRun: [...document.querySelectorAll('.group[data-group-family], #group-singles, #group-proofs')]
+          .map((g) => g.dataset.groupFamily ||
+                      (g.id === 'group-singles' ? 'single' : 'companion')),
         bookOptions: [...document.querySelectorAll('#bookFilter option')]
           .map((o) => [o.value, o.textContent.trim()]),
+        catOptions: [...document.querySelectorAll('#catFilter optgroup')].map((g) => [
+          g.label, [...g.querySelectorAll('option')].map((o) => o.value)]),
+        sectionHeads: [...document.querySelectorAll('.section-wrap > .section-head')]
+          .map((h) => h.textContent.trim()),
       };
     });
 
-    ck(dom.designs === data.designs.length,
-      `${dom.designs} design cards in the DOM, ${data.designs.length} in the data`);
+    // PLATE_CARDS, not row count: the cross-listed plate is one card for two rows since
+    // sprint-23. Derived from the data's own ids so it cannot go stale, and cross-checked
+    // against CROSS_LISTED_HOME so a NEW cross-listing has to be ruled on rather than
+    // silently absorbed by an arithmetic that already tolerates one.
+    const PLATE_CARDS = new Set(data.designs.map((d) => d.id)).size;
+    ck(data.designs.length - PLATE_CARDS === Object.keys(CROSS_LISTED_HOME).length,
+      `${data.designs.length} catalog rows are ${PLATE_CARDS} distinct designs, and all ` +
+      `${data.designs.length - PLATE_CARDS} repeat(s) have a ruled home in CROSS_LISTED_HOME`);
+    ck(dom.designs === PLATE_CARDS,
+      `${dom.designs} design cards in the DOM, ${PLATE_CARDS} distinct designs in the data`);
     ck(dom.noImg === 0, `every design card carries an image (${dom.noImg} without)`);
     ck(dom.noNum === 0, `every design card shows a "PCM ####" number (${dom.noNum} without)`);
     ck(dom.numMismatch === 0,
@@ -724,19 +849,31 @@ export async function run(ck, base) {
     ck(dom.refs === data.reference.length,
       `${dom.refs} reference plates rendered (${data.reference.length} in the data)`);
 
-    // ---- 4b. the two proof sections are at the TOP -----------------------------------
-    // Operator ruling, 2026-08-07: singles first, then companions, ABOVE the book-plate
-    // sections, because they are the newest and clearest pictures of the artwork and a
-    // family opening the link should meet them first. Order is the ruling; a section that
-    // merely EXISTS satisfies nothing.
-    const wantOrder = ['sec-singles', 'sec-proofs', 'sec-designs', 'sec-elements',
-                       'sec-examples', 'sec-reference'];
+    // ---- 4b. two design sections, proofs leading each one ----------------------------
+    // Operator ruling 2026-08-15: TWO top-level design sections, single then companion,
+    // ahead of Elements / Examples / Reference. Inside each, the 2026-08-07 ruling still
+    // holds — the full-colour proofs come before the book plates, because they are the
+    // clearest pictures of the artwork we have. Order is the ruling; a section that merely
+    // EXISTS satisfies nothing.
+    const wantOrder = ['sec-single', 'sec-single-proofs', 'sec-companion',
+                       'sec-companion-proofs', 'sec-elements', 'sec-examples',
+                       'sec-reference'];
     ck(JSON.stringify(dom.sectionOrder) === JSON.stringify(wantOrder),
       `the page's sections run ${dom.sectionOrder.join(' > ')}`);
+    ck(JSON.stringify(dom.sectionHeads.slice(0, 2)) ===
+       JSON.stringify(SECTIONS.map((s) => s.label)),
+      `the two design sections are headed ${dom.sectionHeads.slice(0, 2).join(' then ')}`);
     ck(dom.panelBeforeBooks.every(Boolean),
-      `both proof panels' CARDS come before the first book group (${dom.firstBookGroup}) ` +
-      `in document order, not just their headings ` +
-      `(singles ${dom.panelBeforeBooks[0]}, companions ${dom.panelBeforeBooks[1]})`);
+      `each section's proof panel CARDS come before that section's own first plate group, ` +
+      `not just its heading (single ${dom.panelBeforeBooks[0]}, ` +
+      `companion ${dom.panelBeforeBooks[1]})`);
+    // Single ... single, then companion ... companion. No interleaving, both present.
+    const run = dom.familyRun;
+    const split = run.lastIndexOf('single');
+    ck(run.length > 2 && run.slice(0, split + 1).every((f) => f === 'single') &&
+       run.slice(split + 1).every((f) => f === 'companion') && run.includes('companion'),
+      `the ${run.length} design groups run ${split + 1} single then ` +
+      `${run.length - split - 1} companion, with no interleaving`);
 
     // ---- the proof cards on the page, against the data, both directions ----
     for (const c of CLASSES) {
@@ -819,22 +956,73 @@ export async function run(ck, base) {
       `all ${RELEASED.length} released proofs have a card on the page` +
       (relOffPage.length ? ` — missing ${relOffPage.join(', ')}` : ''));
 
-    // ---- the design-book dropdown gained both proof sets ----
+    // ---- the design-book dropdown: books for plates, proof SETS for proofs ----
+    // Book identity survives in exactly two places now, and this is one of them (the other
+    // is the detail panel's Book row). The values are unchanged; the two proof labels were
+    // reworded because "Single marker designs" is now the name of a whole SECTION, and a
+    // dropdown option reading the same words while showing only 372 proofs out of 829
+    // single designs is a straightforward lie about what it does.
     ck(JSON.stringify(dom.bookOptions.map((o) => o[0])) ===
        JSON.stringify(['', '2020', '2011', 'single-proofs', 'companion-proofs']),
       `the design-book dropdown offers both books and both proof sets ` +
       `(${dom.bookOptions.map((o) => o[1]).join(' | ')})`);
+    const collide = dom.bookOptions.filter((o) =>
+      SECTIONS.some((s) => s.label.toLowerCase() === o[1].toLowerCase()));
+    ck(collide.length === 0,
+      `no book-dropdown option is worded as a section name` +
+      (collide.length ? ` — "${collide[0][1]}" collides` : ''));
 
-    // category counts: stated pill == cards present == the data's own census
+    // ---- catFilter carries both levels of the new axis ----
+    ck(JSON.stringify(dom.catOptions.map((g) => g[0])) === JSON.stringify(['Section', 'Theme']),
+      `the category dropdown groups its options as Section then Theme ` +
+      `(${dom.catOptions.map((g) => g[0]).join(', ') || 'no optgroups'})`);
+    ck(JSON.stringify((dom.catOptions[0] || [])[1]) ===
+       JSON.stringify(SECTIONS.map((s) => s.label)),
+      `…offering both sections (${((dom.catOptions[0] || [])[1] || []).join(', ')})`);
+    const wantThemes = THEMES.filter((t) => data.designs.some((d) => d.theme === t));
+    ck(JSON.stringify((dom.catOptions[1] || [])[1]) === JSON.stringify(wantThemes),
+      `…and every theme the data uses, in order ` +
+      `(${((dom.catOptions[1] || [])[1] || []).join(', ')})`);
+
+    // ---- group counts: stated pill == cards present == the data's own census ----
+    // Expected census is derived HERE from data.designs' family/theme, not read out of
+    // data.designSections, so a bad designSections and a bad page cannot agree with each
+    // other. The cross-listed plate is subtracted from the theme it is not filed under.
+    const wantGroups = new Map();
+    const seenId = new Set();
+    for (const d of data.designs) {
+      const theme = CROSS_LISTED_HOME[d.id] || d.theme;
+      if (seenId.has(d.id)) continue;
+      seenId.add(d.id);
+      const label = (SECTIONS.find((s) => s.family === d.family) || {}).label;
+      const k = label + ' / ' + theme;
+      wantGroups.set(k, (wantGroups.get(k) || 0) + 1);
+    }
     for (const [name, actual, stated] of dom.groups) {
-      const [cat, sub] = name.split(' / ');
-      const fromData = (data.designCats[cat] || {})[sub];
+      const fromData = wantGroups.get(name);
       ck(actual === stated && actual === fromData,
         `${name}: ${actual} cards, pill says ${stated}, data says ${fromData}`);
     }
+    ck(dom.groups.length === wantGroups.size,
+      `every non-empty section/theme pair has a group on the page ` +
+      `(${dom.groups.length} rendered, ${wantGroups.size} expected)`);
     const domGroupTotal = dom.groups.reduce((s, g) => s + g[1], 0);
-    ck(domGroupTotal === data.designs.length,
-      `the groups account for every design (${domGroupTotal}/${data.designs.length})`);
+    const crossExtra = data.designs.length - new Set(data.designs.map((d) => d.id)).size;
+    ck(domGroupTotal === data.designs.length - crossExtra &&
+       crossExtra === Object.keys(CROSS_LISTED_HOME).length,
+      `the groups account for every design exactly once ` +
+      `(${domGroupTotal} cards = ${data.designs.length} rows minus ${crossExtra} cross-listed)`);
+    // …and the two sections' own totals add back up to that.
+    const domBySection = {};
+    for (const [name, actual] of dom.groups) {
+      const lab = name.split(' / ')[0];
+      domBySection[lab] = (domBySection[lab] || 0) + actual;
+    }
+    ck(Object.values(domBySection).reduce((a, b) => a + b, 0) === domGroupTotal &&
+       SECTIONS.every((s) => domBySection[s.label] > 0),
+      `section plate totals: ` +
+      SECTIONS.map((s) => `${s.label} ${domBySection[s.label]}`).join(', ') +
+      ` (sum ${domGroupTotal})`);
 
     for (const [name, stated] of dom.elCats) {
       ck(stated === data.elementCats[name],
@@ -914,8 +1102,11 @@ export async function run(ck, base) {
           .filter((c) => c.style.display !== 'none').map((c) => c.dataset.id),
         proofsPill: (document.getElementById('proofsCount') || {}).textContent,
         singlesPill: (document.getElementById('singlesCount') || {}).textContent,
-        proofsSectionHidden: !!(document.getElementById('sec-proofs') || {}).hidden,
-        singlesSectionHidden: !!(document.getElementById('sec-singles') || {}).hidden,
+        // Each proof panel's own intro block. Since sprint-23 the proof panels sit
+        // INSIDE a design section, so the thing that must fold away when nothing matches
+        // is the panel's own note -- the section head above it still covers the plates.
+        proofsSectionHidden: !!(document.getElementById('sec-companion-proofs') || {}).hidden,
+        singlesSectionHidden: !!(document.getElementById('sec-single-proofs') || {}).hidden,
         proofChips: [...document.querySelectorAll('.proof-card')]
           .filter((c) => c.style.display !== 'none')
           .map((c) => [...c.querySelectorAll('.tag.hit')].map((t) => t.textContent.trim())),
@@ -996,8 +1187,8 @@ export async function run(ck, base) {
       const missingIds = [...expectSet].filter((id) => !gotSet.has(id));
       const extraIds = [...gotSet].filter((id) => !expectSet.has(id));
       ck(missingIds.length === 0 && extraIds.length === 0,
-        // Sets, not row counts: 2011-2271 is cross-listed, so 130 companion ROWS in the
-        // data are 129 distinct designs and 130 cards on the page.
+        // Sets, not row counts: 2011-2271 is cross-listed, so 243 companion ROWS in the
+        // data are 242 distinct designs and — since sprint-23 places it once — 242 cards.
         `"${probe.q}" returns exactly the ${expectSet.size} distinct designs the data ` +
         `files as ${ref.q} — ${expect.length} rows, ${got.designs.length} cards (got ${gotSet.size}` +
         (missingIds.length ? `, missing ${missingIds.slice(0, 3).join(', ')}` : '') +
@@ -1177,7 +1368,7 @@ export async function run(ck, base) {
     await page.waitForTimeout(320);
     const back = await page.evaluate(() =>
       [...document.querySelectorAll('.design-card')].filter((c) => c.style.display !== 'none').length);
-    ck(back === data.designs.length, `clearing the search restores all ${back} designs`);
+    ck(back === PLATE_CARDS, `clearing the search restores all ${back} designs`);
 
     // ---- 7. facets ----
     const color = data.designs.find((d) => d.color).color;
@@ -1191,7 +1382,7 @@ export async function run(ck, base) {
     await page.waitForTimeout(320);
     const cleared = await page.evaluate(() =>
       [...document.querySelectorAll('.design-card')].filter((c) => c.style.display !== 'none').length);
-    ck(cleared === data.designs.length, `Clear restores all ${cleared} designs`);
+    ck(cleared === PLATE_CARDS, `Clear restores all ${cleared} designs`);
 
     // ---- 7b. the dropdown SCOPES to a proof set --------------------------------------
     // Operator ruling: no bespoke per-section filter UI; the existing design-book dropdown
@@ -1212,7 +1403,15 @@ export async function run(ck, base) {
           .filter((x) => x.style.display !== 'none').length,
         elementsHidden: !!document.getElementById('group-elements').hidden,
         examplesHidden: !!document.getElementById('sec-examples').hidden,
-        designsHidden: !!document.getElementById('sec-designs').hidden,
+        /* There is no single `sec-designs` head to hide any more. The equivalent, and the
+           same intent: every plate GROUP folds away, and the design section that is not
+           being scoped to folds away entirely -- head, note and all -- because nothing
+           under it answers. The scoped section's own head must STAY, since it is now the
+           heading over the proofs the family asked for. */
+        plateGroupsShown: [...document.querySelectorAll('.group[data-group-cat]')]
+          .filter((g) => !g.hidden).length,
+        singleSecHidden: !!document.getElementById('sec-single').hidden,
+        companionSecHidden: !!document.getElementById('sec-companion').hidden,
         count: document.getElementById('filterCount').textContent,
       }));
       const mine = c.kind === 'single' ? scoped.singles : scoped.comps;
@@ -1220,9 +1419,15 @@ export async function run(ck, base) {
       ck(mine === c.rows.length && theirs === 0 && scoped.designs === 0,
         `"${c.heading}" scopes to its own ${c.rows.length} cards ` +
         `(${mine} shown, ${theirs} from the ${other.kind} set, ${scoped.designs} book designs)`);
-      ck(scoped.elementsHidden && scoped.examplesHidden && scoped.designsHidden,
-        `…and folds away the element library, the photographs and the book sections, ` +
-        `which are not what was asked for`);
+      const ownHidden = c.kind === 'single' ? scoped.singleSecHidden : scoped.companionSecHidden;
+      const otherHidden = c.kind === 'single' ? scoped.companionSecHidden : scoped.singleSecHidden;
+      ck(scoped.elementsHidden && scoped.examplesHidden &&
+         scoped.plateGroupsShown === 0 && otherHidden && !ownHidden,
+        `…and folds away the element library, the photographs, all ` +
+        `${dom.groups.length} plate groups and the ${other.kind} section, keeping the ` +
+        `${c.kind} section head over the proofs that were asked for ` +
+        `(${scoped.plateGroupsShown} groups left, other section hidden ${otherHidden}, ` +
+        `own section hidden ${ownHidden})`);
       ck(/0 designs/.test(scoped.count) && new RegExp(`${c.rows.length} proofs`).test(scoped.count),
         `…and the count line says what is on screen ("${scoped.count}")`);
     }
@@ -1360,7 +1565,7 @@ export async function run(ck, base) {
       refs: document.querySelectorAll('.reference-card .compare-cb').length,
       max: window.bwCompareMax,
     }));
-    ck(cbCensus.designs === cbCensus.designCards && cbCensus.designs === data.designs.length,
+    ck(cbCensus.designs === cbCensus.designCards && cbCensus.designs === PLATE_CARDS,
       `every one of the ${cbCensus.designs} design cards carries a compare checkbox`);
     // A proof is an alternative a family picks between in exactly the way a plate is — it
     // is the same design, better photographed — so it joins compare on the same terms.
@@ -1411,7 +1616,10 @@ export async function run(ck, base) {
       `every column shows its plate with a one-line detail under it (${mixed.plates})`);
     ck(!mixed.specTable && !mixed.tabs,
       'the Side-by-Side spec table and its view tabs are genuinely gone from the DOM');
-    // 2011-2271 is cross-listed, so one key can own two cards; both must light up.
+    // Was >= 3 because a cross-listed key could own two cards. Since sprint-23 places
+    // 2011-2271 once the page has one card per key, but the tolerance stays: the assertion
+    // is "every selected card is marked", and tightening it to === would start failing on
+    // a future cross-listing rather than on a real regression.
     ck(mixed.marked >= 3, `every selected card is marked on the page (${mixed.marked})`);
 
     // The cap, exercised through .click() rather than by assigning .checked — a disabled
@@ -1536,10 +1744,10 @@ export async function run(ck, base) {
     // designs; it is now those plus both proof classes, whose panels open OPEN. Still NOT
     // the elements, none of whose categories is open — that half of the claim is the one
     // that catches a lazily-rendered category being counted as visible.
-    const onScreenAll = data.designs.length + singleCls.rows.length + proofs.length;
+    const onScreenAll = PLATE_CARDS + singleCls.rows.length + proofs.length;
     ck(allBtn.n === onScreenAll,
       `with nothing filtered the button offers the ${allBtn.n} cards on screen — ` +
-      `${data.designs.length} book designs plus ${singleCls.rows.length} single and ` +
+      `${PLATE_CARDS} book plates plus ${singleCls.rows.length} single and ` +
       `${proofs.length} companion proofs — and not the ${data.elements.length} elements, ` +
       `none of whose categories is open`);
     ck(allBtn.text === `Print these ${allBtn.n.toLocaleString()} · ` +
