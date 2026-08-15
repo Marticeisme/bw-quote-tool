@@ -7688,7 +7688,10 @@ function cemUpdate() {
       if (el('qScatterItemsGroup')) el('qScatterItemsGroup').style.display = 'block';
       if (el('qSpaceLocationRow')) el('qSpaceLocationRow').style.display = 'none';
       lines.push({label: 'Scattering Service Fee', amount: 0, taxable: false});
-      if (chk('qScatterRecording')) lines.push({label: 'Recording Fee', amount: bwFee('RECORDING:all') * gardenQty, taxable: false});
+      // The label carries the quantity for every other qty-scaled line, and the RIC filler
+      // re-derives Qty 3 / Qty 4 from that "×N" suffix (labelQty). Without it a 2-garden
+      // scatter printed "Qty 1" beside a doubled Recording Fee on the contract.
+      if (chk('qScatterRecording')) lines.push({label: 'Recording Fee' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: bwFee('RECORDING:all') * gardenQty, taxable: false});
       if (chk('qScatterPlaque'))    lines.push({label: 'Memorial Plaque / Engraving' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: scatterPlaques[gardenKey] * gardenQty, taxable: true});
     }
     // Standard Burial Arrangement — per-item checkboxes (operator 2026-08-07: packages
@@ -8639,21 +8642,27 @@ function calcBTotal() {
     // Qty (spaces) — multiplies the base space + ECF (matches qGardenQty in the main builder)
     var bQty = parseInt((el('cmpB_gardenQty') || {}).value) || 1;
     if (bQty < 1) bQty = 1;
-    var bSpaceLabel = bLabel + (bQty > 1 ? ' ×' + bQty : '');
+    var bQtySuffix = bQty > 1 ? ' ×' + bQty : '';
+    var bSpaceLabel = bLabel + bQtySuffix;
     if (!bSpaceOwned) {
       if (bSpace > 0) lines.push({label: bSpaceLabel, amount: bSpace * bQty, taxable: false, isSpace: true});
-      if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)' + (bQty > 1 ? ' ×' + bQty : ''), amount: bEcf * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: 'Endowment Care Fund (ECF)' + bQtySuffix, amount: bEcf * bQty, taxable: false, isSpace: true});
     }
     // 2nd / 3rd Right — each adds ½ space + ½ ECF (matches q2ndRight/q3rdRight in the main builder)
     var bRightPrefix2 = bSpaceOwned ? '2nd Right – ' + bLabel : '2nd Right';
     var bRightPrefix3 = bSpaceOwned ? '3rd Right – ' + bLabel : '3rd Right';
+    // An additional right is bought PER SPACE, so Qty (spaces) scales it — the main builder
+    // does exactly that (cemUpdate: sr2Space = (spacePrice / 2) * gardenQty) and the comment
+    // above claims parity with it. Without the multiplier a 2-space companion comparison
+    // priced one half-space right instead of two, under the space line that already read
+    // "×2" — an undercharge on a figure shown to the family.
     if (chk('cmpB_2ndRight')) {
-      if (bSpace > 0) lines.push({label: bRightPrefix2 + ' (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
-      if (bEcf   > 0) lines.push({label: '2nd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix2 + ' (½ space)' + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '2nd Right ECF (½)' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
     }
     if (chk('cmpB_3rdRight')) {
-      if (bSpace > 0) lines.push({label: bRightPrefix3 + ' (½ space)', amount: bSpace * 0.5, taxable: false, isSpace: true});
-      if (bEcf   > 0) lines.push({label: '3rd Right ECF (½)',   amount: bEcf   * 0.5, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix3 + ' (½ space)' + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '3rd Right ECF (½)' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
     }
   } else if (bNicheP > 0) {
     bLabel = 'Niche Space';
@@ -22184,6 +22193,60 @@ async function _fillWorksheetXlsx(data) {
   var wbXml = await zip.file(wbPath).async('string');
   wbXml = wbXml.replace('<calcPr calcId="191029"/>', '<calcPr calcId="191029" fullCalcOnLoad="1"/>');
   zip.file(wbPath, wbXml);
+
+  // ── Print-path repair (operator issue 5, 2026-08-15) ────────────────────────────
+  // A GENERATED worksheet failed to print and failed convert-to-PDF in Excel on
+  // \\us-sea-v-file01\WMP - Cascade; an IMPORTED one printed fine. Two divergences from the
+  // CIRGAS generator, which has never had the problem:
+  //
+  // 1. Stale xl/calcChain.xml. It is Excel's cached formula dependency order, and we just
+  //    changed cell contents outside Excel, so it no longer matches. On a workbook this
+  //    formula-heavy that is the repair-on-open trigger — _fillCirgasXlsx strips it for
+  //    exactly this reason. fullCalcOnLoad above makes Excel rebuild it from scratch.
+  var ctPathW = '[Content_Types].xml';
+  var ctXmlW  = await zip.file(ctPathW).async('string');
+  if (zip.file('xl/calcChain.xml')) {
+    zip.remove('xl/calcChain.xml');
+    ctXmlW = ctXmlW.replace(/<Override[^>]*PartName="\/xl\/calcChain\.xml"[^>]*\/>/, '');
+    var wbRelsPathW = 'xl/_rels/workbook.xml.rels';
+    var wbRelsXmlW  = await zip.file(wbRelsPathW).async('string');
+    wbRelsXmlW = wbRelsXmlW.replace(/<Relationship[^>]*Target="calcChain\.xml"[^>]*\/>/, '');
+    zip.file(wbRelsPathW, wbRelsXmlW);
+  }
+  // 2. Every sheet's <pageSetup> carries NO paperSize and an r:id pointing at
+  //    xl/printerSettings/printerSettingsN.bin — a DEVMODE blob captured from whatever printer
+  //    the original workbook was last set up on, years ago. Excel replays that DEVMODE against
+  //    the current machine on print/export. Drop the printer-settings parts (and the dangling
+  //    r:id, which would itself be a repair trigger) and pin paperSize="1" (US Letter), so
+  //    Excel falls back to the user's own default printer. Generated output only — the shipped
+  //    template in pdf-templates/embedded/ is never modified.
+  var wsPaths = Object.keys(zip.files).filter(function(p){ return /^xl\/worksheets\/sheet\d+\.xml$/.test(p); });
+  for (var wi = 0; wi < wsPaths.length; wi++) {
+    var wsPath = wsPaths[wi];
+    var wsXml  = await zip.file(wsPath).async('string');
+    wsXml = wsXml.replace(/<pageSetup\b[^>]*>/, function(tag) {
+      var t = tag.replace(/\s+r:id="[^"]*"/, '');
+      if (!/\bpaperSize=/.test(t)) t = t.replace(/^<pageSetup/, '<pageSetup paperSize="1"');
+      return t;
+    });
+    zip.file(wsPath, wsXml);
+    var wsRelsPath = wsPath.replace(/worksheets\/(sheet\d+\.xml)$/, 'worksheets/_rels/$1.rels');
+    if (zip.file(wsRelsPath)) {
+      var wsRelsXml = await zip.file(wsRelsPath).async('string');
+      var psTargets = [];
+      wsRelsXml = wsRelsXml.replace(/<Relationship\b[^>]*printerSettings[^>]*\/>/g, function(rel) {
+        var tm = rel.match(/Target="([^"]*)"/);
+        if (tm) psTargets.push(tm[1]);
+        return '';
+      });
+      zip.file(wsRelsPath, wsRelsXml);
+      psTargets.forEach(function(t){ zip.remove(t.replace(/^\.\.\//, 'xl/')); });
+    }
+  }
+  // No .bin parts survive, so the Default content-type for that extension is dead weight.
+  ctXmlW = ctXmlW.replace(/<Default[^>]*Extension="bin"[^>]*\/>/, '');
+  zip.file(ctPathW, ctXmlW);
+
   return zip.generateAsync({ type: 'uint8array' });
 }
 
@@ -22733,12 +22796,25 @@ async function _fillCirgasXlsx(data) {
     // BLIND CHECK sits right behind Cemetery Rules because it's needed on almost every CIRGAS;
     // IOA ADDL SIGNERS moved out of the front group — additional signers are the exception, so it
     // now sits with the other overflow/signature sheets rather than 4th in the tab bar.
+    //
+    // Amended 2026-08-15 (operator issue 4): "the exception" is decidable at generation time,
+    // so it no longer has to be a static guess. When THIS packet actually has a co-signer
+    // (data.iaMinSignatures > 1 — the purchaser plus at least one filled additional-signer
+    // block, computed at generateCirgasPacket) the sheet is part of the signing flow and sits
+    // directly behind INTERMENT AUTH NEW; with no co-signer it stays at the back, exactly as
+    // 2026-07-22 left it. 'Mem Order Form Addl Signers' deliberately does NOT get the same
+    // treatment — not requested, and its overflow is far rarer.
     var priority = ['Information', 'Cemetery Contract', 'INTERMENT AUTH NEW',
                      'Cemetery Rules', 'BLIND CHECK',
                      'Mem Order Flat Mrkr &amp; Bronze', 'Mem Order Form Upright &amp; Other',
                      'Vault and Urn Vault Order Form',
                      'Addendum A', 'Addendum B', 'Deed Transfer Contract', 'Payment Options',
                      'IOA ADDL SIGNERS', 'Mem Order Form Addl Signers'];
+    if (data.iaMinSignatures > 1 &&
+        priority.indexOf('IOA ADDL SIGNERS') >= 0 && priority.indexOf('INTERMENT AUTH NEW') >= 0) {
+      priority.splice(priority.indexOf('IOA ADDL SIGNERS'), 1);
+      priority.splice(priority.indexOf('INTERMENT AUTH NEW') + 1, 0, 'IOA ADDL SIGNERS');
+    }
     var ordered = [];
     priority.forEach(function(name) { if (byName[name]) { ordered.push(byName[name]); delete byName[name]; } });
     sheetTags.forEach(function(tag) {
