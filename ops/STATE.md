@@ -1,5 +1,36 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-23 — OPENED 2026-08-15** (director: Fable session; tracks:
+Opus per policy + operator word "use opus sprinters"). Scope: the operator's
+9-issue list (`E:\Downloads\QUote tool issues and resources issues.docx`) — see
+`sprints/sprint-23/SPRINT.md` for the issue→track map. Four tracks, two waves:
+Wave 1 A `s23/contract-fixes` (RIC qty-from-label bug: scatter-garden recording
+fee at index 7691 multiplies amount without ×N suffix, Compare-Options fee lines
+8684–8714 ignore garden qty entirely — real undercharge; CIRGAS `IOA ADDL
+SIGNERS` splices after `INTERMENT AUTH NEW` when iaMinSignatures>1; commission
+worksheet gets the CIRGAS calcChain-strip treatment + paperSize fallback +
+printerSettings removal — the print-failure screenshot was Excel repair/Protected
+View on the office printer) ∥ C `s23/resources` (vital-worksheet.html checkbox
+scatter = positional CHECK_KEYS map 53 keys vs 55 DOM boxes, the 2026-07-27
+sex-at-birth pair never added — fix is data-key keyed mapping + phone/date/SSN
+masks ported from index.html:20572; guides.html category quick-jump pill nav,
+builder is rotted so hand-edit, verify_guides_page.mjs extended). Wave 2 (after A
+merges) B `s23/quote-lane` (multi-contact linking — contractRoles join already
+multi-capable, the single slot is `_bwPendingLink` 16467 + roles[0]-only restore
+16853 + unlink-never-deletes bug; sidebar label wrap/qty visibility at 260px
+locked width; payment split cem/FH/grand) ∥ D `s23/pcm-restructure` (two
+top-level sections Single/Companion, proofs first inside each, themes as groups,
+book = filter only; 354 2020 plates classified by looking into a checked-in
+override file; verify_pcm_catalog.mjs re-pinned + sabotage-proven).
+**OPERATOR RULINGS AT OPEN (in-chat 2026-08-15):** (1) payment split renders on
+ALL combined surfaces — quote-PDF page 2 header three figures, combined email
+per-side totals, letter page optional cem/FH fields; (2) PCM = the two-section
+layout above (supersedes s21's proofs-atop-books placement). Merge order
+A → C → B → D. Contract at open (Gate 0 measured): index 8/0; 2854/42 green;
+main == origin/main; baseline 14/14 current. Close-gate items: RIC Acrobat check
+(A changes qty field VALUES), commission-worksheet test on the office printer
+(untestable here), PCM/guides/worksheet eyeballs. NO push pre-authorization.
+
 **s22 OPERATOR ROUND + PUSH 2026-08-10 (operator: "fold tax in" + the official
 CEMETERY MERCH & SERVICES PRICE LIST EFF-03.01.2026.xlsx + "push it all live once
 done"):** director-direct on main (scratch/s22-fold-tax.mjs, 55 asserted edits):
