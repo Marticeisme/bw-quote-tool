@@ -300,8 +300,18 @@ console.log('\n7. Panel geometry: total block and actions stay visible');
       totBottom: tot.getBoundingClientRect().bottom,
       lastBtnBottom: last.getBoundingClientRect().bottom,
       panelBottom: pr.bottom,
+      panelRight: Math.round(pr.right),
       vh: window.innerHeight,
-      ellipsis: getComputedStyle(document.querySelector('#cemSummary .s-prev-lbl')).textOverflow,
+      // s23: long labels no longer ellipse on ONE line — they wrap to at most two and the
+      // untruncated text moves to the row's title attribute. Same intent as the s19 assert
+      // this replaces (a long label must stay inside the 260px panel, never spill it); the
+      // surface it is measured on changed, so the probe changed with it.
+      lblClamp: getComputedStyle(document.querySelector('#cemSummary .s-prev-lbl')).webkitLineClamp,
+      lblOverflow: getComputedStyle(document.querySelector('#cemSummary .s-prev-lbl')).overflow,
+      widestRow: Math.max(...[...document.querySelectorAll('#cemSummary .s-prev')]
+        .map(e => Math.round(e.getBoundingClientRect().right))),
+      rowsWithTitle: document.querySelectorAll('#cemSummary .s-prev[title]').length,
+      rowCount: document.querySelectorAll('#cemSummary .s-prev').length,
     };
   });
   ok('the panel is visible on the cemetery builder', g.visible, g);
@@ -310,7 +320,9 @@ console.log('\n7. Panel geometry: total block and actions stay visible');
   ok('the total figure is on screen with the list scrolled full', g.totBottom > 0 && g.totBottom < g.vh, g);
   ok('the last action button is on screen too', g.lastBtnBottom > 0 && g.lastBtnBottom <= g.vh, g);
   ok('the whole panel fits the viewport', g.panelBottom <= g.vh, g);
-  ok('long labels keep their ellipsis truncation', g.ellipsis === 'ellipsis', g);
+  ok('long labels are clamped to two lines, not left to run', g.lblClamp === '2' && g.lblOverflow === 'hidden', g);
+  ok('and no row spills past the panel edge', g.widestRow <= g.panelRight, g);
+  ok('every row carries its full label on the title attribute', g.rowCount > 0 && g.rowsWithTitle === g.rowCount, g);
 }
 
 ok('cemUpdate never threw into its catch', cemErrs.length === 0, cemErrs);

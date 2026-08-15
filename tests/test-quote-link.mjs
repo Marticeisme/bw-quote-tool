@@ -161,7 +161,7 @@ console.log('\n5. Reopening a linked quote');
       link: _bwPendingLink['cem'],
       space: _bwPendingSpace['cem'],
       linkHtml: document.getElementById('cemLinkedContact').textContent,
-      partyName: _bwPendingLink['cem'] ? bwPartyName(bwPartyById(_bwPendingLink['cem'].partyId)) : null,
+      partyName: _bwPendingLink['cem'] ? bwPartyName(bwPartyById(_bwPendingLink['cem'][0].partyId)) : null,
     };
   }, buildAQuote.toString());
   ok('reset clears the link and the space', r.clearedLink === undefined && r.clearedSpace === undefined, r);

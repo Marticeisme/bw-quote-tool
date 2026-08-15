@@ -211,7 +211,8 @@ tr:hover td{background:var(--navy-100);}
 #section-fh-quote .q-panel,#section-combined-quote .q-panel,#section-cem-quote .q-panel{max-width:100%;box-sizing:border-box;overflow-x:hidden;}
 .summary-fixed.visible{display:block;}
 
-.summary-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-2);overflow:hidden;max-height:calc(100vh - 90px);display:flex;flex-direction:column;}
+/* s23: 90px left a 25px dead gap below the panel while the item list was scrolling. The panel sits at top:65px/right:16px, so 81px lands its bottom on the same 16px inset as its right edge and hands the difference to .s-items. Width and position are unchanged (s19 geometry is locked). */
+.summary-panel{background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-2);overflow:hidden;max-height:calc(100vh - 81px);display:flex;flex-direction:column;}
 /* ── s19 summary panel ───────────────────────────────────────────────────────
    Geometry is unchanged (position:fixed; width:260px, and the coupled 292px content
    clearance above). What changed is the inside: an isolated white total block, then the
@@ -230,9 +231,16 @@ tr:hover td{background:var(--navy-100);}
    below are flex:0 0 auto, so a 40-item quote still shows its total and its Download
    button without the counselor scrolling the page. Long labels keep their ellipsis. */
 .s-items{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
-.s-prev{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2);padding:5px 0;}
-.s-prev-lbl{font:400 var(--t-sm)/1.35 'Public Sans',sans-serif;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.s-prev-amt{font:400 var(--t-sm)/1.35 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+/* s23: the label WRAPS to two lines instead of ellipsing on one. In a 260px panel a
+   single nowrap line clipped most real labels, and the "xN" quantity — appended to the
+   end of the label string — was the first thing the ellipsis ate, which is precisely the
+   figure the counselor is checking when a family asks how many were included. The qty is
+   now lifted into .s-prev-qty, pinned before the amount where nothing can clip it, and the
+   full untruncated label is on the row's title attribute. Panel geometry is untouched. */
+.s-prev{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s2);padding:5px 0;}
+.s-prev-lbl{font:400 var(--t-sm)/1.35 'Public Sans',sans-serif;color:var(--body);flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;}
+.s-prev-qty{font:600 var(--t-sm)/1.35 'Source Sans 3',sans-serif;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto;}
+.s-prev-amt{font:400 var(--t-sm)/1.35 'Source Sans 3',sans-serif;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto;}
 .summary-body{padding:12px 18px 14px;overflow-y:auto;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;}
 .summary-empty{color:var(--muted);font-size:var(--t-sm);line-height:1.55;text-align:left;padding:2px 0 4px;}
 .s-section-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:10px 0 3px;margin-top:4px;}
@@ -7343,11 +7351,24 @@ function _sumSplitRow(label, amount, cls) {
 // this panel is read aloud to a family, and an item the counselor cannot see is a
 // surprise at signing. The list carries its own scroll (.s-items) so the total block
 // and the action buttons stay on screen however long the quote gets.
+// The "xN" quantity is appended INTO l.label at ~40 push sites and that convention is
+// load-bearing elsewhere (the RIC reads line quantities back off the label), so the line
+// objects are deliberately NOT restructured. It is split off here, at render time only.
+// Dimensions in a label are written 28\u00d716 with digits on both sides and no leading
+// space, so requiring whitespace before the sign keeps "Companion 44\u00d714" intact.
+var _S_QTY_RE = /\s\u00d7(\d+)(?!\d)/;
 function _sumItems(items) {
   var html = '<div class="s-items">';
   items.forEach(function(l) {
-    html += '<div class="s-prev"><span class="s-prev-lbl">' + l.label
-          + '</span><span class="s-prev-amt">' + fmt(l.amount) + '</span></div>';
+    var full = String(l.label == null ? '' : l.label), text = full, qty = '';
+    var m = full.match(_S_QTY_RE);
+    if (m) {
+      qty = m[1];
+      text = (full.slice(0, m.index) + full.slice(m.index + m[0].length)).replace(/\s{2,}/g, ' ').trim();
+    }
+    html += '<div class="s-prev" title="' + _ceEsc(full) + '"><span class="s-prev-lbl">' + text + '</span>'
+          + (qty ? '<span class="s-prev-qty">\u00d7' + qty + '</span>' : '')
+          + '<span class="s-prev-amt">' + fmt(l.amount) + '</span></div>';
   });
   return html + '</div>';
 }
@@ -7398,10 +7419,13 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
     var estMonthly = Math.ceil(estBalance / 60);
-    html += '<div id="estPaymentHint" style="flex:0 0 auto;margin-top:12px;padding:10px 12px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--body);line-height:1.5;">'
+    // Tightened in s23: this hint sits between the item list and the action buttons and is
+    // flex:0 0 auto, so every pixel of its padding comes straight off the scrollable item
+    // window. Same three facts, less chrome; the terms drop to 11px on their own line.
+    html += '<div id="estPaymentHint" style="flex:0 0 auto;margin-top:9px;padding:7px 10px;background:var(--navy-50);border:1px solid var(--navy-150);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--body);line-height:1.4;">'
       + '<span style="font-weight:600;color:var(--ink);">Est. payment:</span> '
       + fmt(estDown) + ' down &nbsp;&middot;&nbsp; ~' + fmt(estMonthly) + '/mo'
-      + ' <span style="color:var(--muted);">(60 mo · 0% · 10% down · ACH)</span>'
+      + '<span style="display:block;font-size:11px;color:var(--muted);">60 mo · 0% · 10% down · ACH</span>'
       + '</div>';
   }
 
@@ -9314,6 +9338,19 @@ function _fqBuildModel(opts){
     hasPage2:hasPage2
   };
 }
+// Page-2 subtitle. On a combined quote the family gets all three figures, because one blended
+// "Estimated total" left them unable to see which half was which (operator ruling 2026-08-15).
+// cemBase and fhBase are the TAX-INCLUSIVE surface totals and model.grandTotal is the sum of
+// those same surface totals, so the three figures reconcile to the cent. Do NOT reach for
+// surfaces[].subtotal here: that is the PRE-tax net and the three would not add up.
+function _fqPaySubtitle(model, sep){
+  var p = model.pay;
+  if (p.scope === 'combined') {
+    return 'Cemetery ' + _fqMoney(p.cemBase) + sep + 'Funeral Home ' + _fqMoney(p.fhBase)
+         + sep + 'Estimated total ' + _fqMoney(model.grandTotal);
+  }
+  return 'Estimated total ' + _fqMoney(model.grandTotal);
+}
 function _fqPickTier(model){
   var nRows=0, nGroups=0;
   model.surfaces.forEach(function(s){ nGroups+=s.groups.length; s.groups.forEach(function(g){nRows+=g.rows.length;}); if(s.discount)nRows++; });
@@ -9508,7 +9545,7 @@ function _fqRenderHTML(model){
   var p2='';
   if(model.hasPage2){
     var pay=model.pay;
-    p2='<div class="sheet page2" style="'+sheet+'margin-top:28px;">'+_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; Estimated total '+_fqMoney(model.grandTotal));
+    p2='<div class="sheet page2" style="'+sheet+'margin-top:28px;">'+_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; '+_fqPaySubtitle(model,' &nbsp;·&nbsp; '));
     p2+='<div style="padding:30px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Ways to plan for this</div>'
       +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">'+_fqEsc(_fqPayHeadline(pay))+'</h2>'
       +'<p style="font-size:15px;line-height:1.65;color:'+_FQ.body+';margin:12px 0 0;max-width:640px;">'+_fqEsc(_fqPayIntro(pay,model))+'</p></div>';
@@ -9528,10 +9565,10 @@ function _fqRenderHTML(model){
       p2+=_fqSectLabelHTML('Cemetery','Financing options · '+_fqMoney(pay.cemBase));
       p2+=_fqFinCardsHTML(pay.cemBase);
       if(hasMx){
-        p2+=_fqSectLabelHTML('Funeral home','Payment plans · age '+pay.maxima.age);
+        p2+=_fqSectLabelHTML('Funeral home','Payment plans · '+_fqMoney(pay.fhBase)+' · age '+pay.maxima.age);
         p2+=_fqMaximaCardHTML(pay.maxima);
       } else {
-        p2+=_fqSectLabelHTML('Funeral home','');
+        p2+=_fqSectLabelHTML('Funeral home',_fqMoney(pay.fhBase));
         p2+='<p style="font-size:12.5px;line-height:1.6;color:'+_FQ.m1+';margin:0 0 14px;max-width:640px;">Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member’s age in the Funeral Home quote to include those monthly figures here.</p>';
       }
       if(hasMx && pay.combBudget>0){
@@ -9853,7 +9890,7 @@ async function _fqBuildPDFBytes(model){
   if(model.hasPage2){
     var pay=model.pay;
     function payPage(sub){
-      newPage(); masthead('Payment Options', sub||('For '+clean(model.clientName||'Your Family')+'  \xb7  Estimated total '+_fqMoney(model.grandTotal)));
+      newPage(); masthead('Payment Options', sub||('For '+clean(model.clientName||'Your Family')+'  \xb7  '+_fqPaySubtitle(model,'  \xb7  ')));
     }
     function need(h){ if(y-h < 74){ payPage('Payment options, continued'); return true; } return false; }
     function pill(txt,x,yy,sz){
@@ -10011,10 +10048,12 @@ async function _fqBuildPDFBytes(model){
       sectionLabel('Cemetery','Financing options  \xb7  '+_fqMoney(pay.cemBase),150);
       financeCards(pay.cemBase);
       if(hasMx){
-        sectionLabel('Funeral home','Payment plans  \xb7  age '+pay.maxima.age, 26+16+pay.maxima.plans.length*15.5+7);
+        sectionLabel('Funeral home','Payment plans  \xb7  '+_fqMoney(pay.fhBase)+'  \xb7  age '+pay.maxima.age, 26+16+pay.maxima.plans.length*15.5+7);
         maximaCard(pay.maxima);
       } else {
-        need(40); track('Funeral home', M, y, sansB, 7.9, ORANGE, 0.22); y-=14;
+        // Was a bare kicker with no figure while Cemetery above it carried one. sectionLabel
+        // gives it the same shape and the same pagination guard the other branch uses.
+        sectionLabel('Funeral home', _fqMoney(pay.fhBase), 40);
         wrap("Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member's age in the Funeral Home quote to include those monthly figures here.",sans,9.4,RX-M).forEach(function(ln){ y-=13; page.drawText(ln,{x:M,y:y,size:9.4,font:sans,color:GREY}); });
         y-=8;
       }
@@ -10147,11 +10186,19 @@ function buildCombExportText() {
     _combFhLines.filter(function(l){return !l.isDiscount&&l.amount>0;}).forEach(function(l){out+=fmtLn(l.label,l.amount);});
     _combFhLines.filter(function(l){return l.isDiscount;}).forEach(function(l){out+='- '+fmtLn(l.label,l.amount);});
   }
-  // Totals off the summary panel's total block (ids, not a fuzzy class match).
-  var taxEl = document.querySelector('#combSummarySplit .s-split-tax .s-split-amt');
-  var totEl = el('combSummaryTotal');
-  if (taxEl) out += fmtLn('Sales tax (10.4%)', 0).replace('$0.00', taxEl.textContent) + '\n';
-  if (totEl) out += '-'.repeat(48) + '\n' + fmtLn('COMBINED TOTAL', 0).replace('$0.00', totEl.textContent);
+  // Totals come from the globals combUpdate() computes, not from scraping the panel's DOM back
+  // out again: that pair of querySelectors returns null whenever the summary has not been
+  // painted, and the email then left with no tax line and no total, with nothing to notice.
+  if (_combAdditionalTotal > 0) out += '\nADDITIONAL ITEMS\n' + fmtLn('Additional items', _combAdditionalTotal);
+  if (_combTaxTotal > 0) out += '\n' + fmtLn('Sales tax (10.4% \u00b7 merchandise only)', _combTaxTotal);
+  if (_combDiscountAmt > 0) out += fmtLn('- ' + (_combDiscountLabel || 'Discount'), _combDiscountAmt);
+  // The operator asked for all three figures wherever a combined quote is shown (2026-08-15).
+  // Each side total is tax-inclusive, so cemetery + funeral home + additional - discount is
+  // exactly the combined total; the tax line above discloses the component, it is not added.
+  out += '\n' + '-'.repeat(48) + '\n';
+  if (_combCemTotal > 0) out += fmtLn('CEMETERY TOTAL', _combCemTotal);
+  if (_combFhTotal > 0)  out += fmtLn('FUNERAL HOME TOTAL', _combFhTotal);
+  out += fmtLn('COMBINED TOTAL', _combGrandTotal);
   return out;
 }
 
@@ -10829,6 +10876,8 @@ function resetFHQuote() {
 // COMBINED QUOTE BUILDER
 // ═══════════════════════════════════════════════════════════════
 var _combCemLines = [], _combCemTotal = 0;
+// Computed by combUpdate(), consumed by buildCombExportText(). See the note there.
+var _combTaxTotal = 0, _combGrandTotal = 0, _combAdditionalTotal = 0, _combDiscountAmt = 0, _combDiscountLabel = '';
 var _combFhLines  = [], _combFhTotal  = 0;
 
 // Syncs _combCemLines/_combCemTotal from the current _cemLines/_cemTotal and refreshes the
@@ -10898,6 +10947,7 @@ function combUpdate() {
   var hasFh  = _combFhLines.filter(function(l){return !l.isDiscount;}).length > 0;
   if (!hasCem && !hasFh) {
     body.innerHTML = '<div class="summary-empty">Nothing pulled in yet. Pull the cemetery and funeral home quotes to see a combined total.</div>';
+    _combTaxTotal = 0; _combGrandTotal = 0; _combAdditionalTotal = 0; _combDiscountAmt = 0; _combDiscountLabel = '';
     _sumSet('combSummary', { total: 0, split: '', empty: true });
     qsSet('section-combined-quote', {});
     if (typeof combInsCalc === 'function') combInsCalc();
@@ -10946,6 +10996,15 @@ function combUpdate() {
     if (discAmt > 0) { split += _sumSplitRow(discLabel, '-' + fmt(discAmt)); grandTotal -= discAmt; }
   }
   split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
+  // Published for the export/email path, which used to read these back out of the panel's DOM.
+  // A DOM read returns nothing whenever the panel has not been painted, and the email then went
+  // out with no tax line and no total at all, silently. These are the same numbers, at source.
+  _combTaxTotal = taxTotal;
+  _combGrandTotal = grandTotal;
+  _combAdditionalTotal = customNet + customLines.reduce(function(a, l) {
+    return a + (l.taxable ? Math.round(l.amount * TAX * 100) / 100 : 0); }, 0);
+  _combDiscountAmt = discAmt;
+  _combDiscountLabel = discLabel;
   _sumSet('combSummary', { total: grandTotal, split: split, empty: false });
   body.innerHTML = _sumItems(items);
   qsSet('section-combined-quote', {
@@ -12290,8 +12349,18 @@ function saveQuoteRecord(type, rec, label) {
   var dupKeys = _dupKeysByLabel(type, label);
   if (dupKeys.length && confirm('A saved item named "' + label + '" already exists.\n\nOK = overwrite it    Cancel = keep both')) {
     dupKeys.forEach(function(k) {
+      var dead = _quoteStore[type][k];
       delete _quoteStore[type][k];
       if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + k).remove().catch(function(e){ console.warn('overwrite remove failed', e); });
+      // The overwritten record's contactRoles would otherwise survive pointing at a recordId
+      // that no longer exists. Reopen-and-resave is how a quote gets updated here (every save
+      // mints a new id), so before this each update left one orphan behind and the family's
+      // holdings list grew a phantom copy of the same quote. Measured 2026-08-15.
+      if (dead && dead.id != null && typeof bwRolesForRecord === 'function') {
+        bwRolesForRecord(type, dead.id).forEach(function(r) {
+          try { deleteContractRole(r.id); } catch (e) { console.warn('orphan role cleanup failed', e); }
+        });
+      }
     });
   }
   var key = _quoteKey(rec);
@@ -16473,7 +16542,7 @@ function deleteContactFromEditor() {
 // link makes the family findable afterwards, it is not a precondition for quoting one.
 // Per module, because these are six independent workspaces. A single global would carry the
 // contact you linked on a cemetery quote across to a GA policy the moment you switched tabs.
-var _bwPendingLink = {};       // type -> { partyId, role }
+var _bwPendingLink = {};       // type -> ARRAY of { partyId, role }
 var _bwPendingSpace = {};      // type -> { sid, loc }
 var _cpOnPick = null;          // picker callback
 
@@ -16488,46 +16557,103 @@ var BW_LINK_MODULES = {
   an:  { box: 'anLinkedContact',  spaceRow: 'anLinkedSpaceRow',  spaceBox: 'anLinkedSpace',  name: 'anPurchName'    }
 };
 
-function bwSetPendingLink(type, partyId, role) {
-  if (partyId) _bwPendingLink[type] = { partyId: partyId, role: role || 'purchaser' };
-  else delete _bwPendingLink[type];
+// A record can name several people — purchaser and co-purchaser, or a payer who is not
+// signing. The pending set is therefore a LIST. The key is deleted when the list empties so
+// "nothing linked" stays a plain absence rather than an empty array every caller must test.
+function bwPendingLinks(type) { return _bwPendingLink[type] || []; }
+function _bwTrimPendingLinks(type) { if (!(_bwPendingLink[type] || []).length) delete _bwPendingLink[type]; }
 
-  // Fill the family's name from the contact, but only when it's blank — linking must never
-  // overwrite something already typed for this record.
+// Liability follows the BW_ROLES table rather than a literal comparison, so adding a liable
+// role stays a data change (DESIGN §8, roles are data not an enum).
+function _bwRoleLiable(code) {
+  for (var i = 0; i < BW_ROLES.length; i++) if (BW_ROLES[i].code === code) return !!BW_ROLES[i].liable;
+  return false;
+}
+
+// Fill the family's name from the contact, but only when it's blank — linking must never
+// overwrite something already typed for this record. Only the FIRST link may do this: adding
+// a second person to a quote must not rename the family.
+function _bwFillNameFromLink(type, partyId) {
   var cfg = BW_LINK_MODULES[type] || {};
   var p = partyId ? bwPartyById(partyId) : null;
-  if (p) {
-    if (cfg.first && cfg.last) {
-      var f = el(cfg.first), l = el(cfg.last);
-      if (f && l && !f.value.trim() && !l.value.trim()) { f.value = p.given || ''; l.value = p.family || ''; }
-    } else if (cfg.name) {
-      var nameEl = el(cfg.name);
-      if (nameEl && !nameEl.value.trim()) nameEl.value = bwPartyName(p);
-    }
-    if (cfg.after && typeof window[cfg.after] === 'function') { try { window[cfg.after](); } catch (e) {} }
+  if (!p) return;
+  if (cfg.first && cfg.last) {
+    var f = el(cfg.first), l = el(cfg.last);
+    if (f && l && !f.value.trim() && !l.value.trim()) { f.value = p.given || ''; l.value = p.family || ''; }
+  } else if (cfg.name) {
+    var nameEl = el(cfg.name);
+    if (nameEl && !nameEl.value.trim()) nameEl.value = bwPartyName(p);
   }
+  if (cfg.after && typeof window[cfg.after] === 'function') { try { window[cfg.after](); } catch (e) {} }
+}
+
+// Replaces the whole set with one link, or clears it when partyId is null.
+function bwSetPendingLink(type, partyId, role) {
+  if (partyId) _bwPendingLink[type] = [{ partyId: partyId, role: role || 'purchaser' }];
+  else delete _bwPendingLink[type];
+  if (partyId) _bwFillNameFromLink(type, partyId);
+  bwRenderLink(type);
+}
+
+// Adds one more person without disturbing the ones already linked.
+function bwAddPendingLink(type, partyId, role) {
+  if (!partyId) return;
+  var list = _bwPendingLink[type] || (_bwPendingLink[type] = []);
+  role = role || 'purchaser';
+  // The same person in the same role twice is one link. The same person in a DIFFERENT role is
+  // legitimate — on a GA policy the insured is usually also the purchaser.
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].partyId === partyId && list[i].role === role) { bwRenderLink(type); return; }
+  }
+  var isFirst = list.length === 0;
+  list.push({ partyId: partyId, role: role });
+  if (isFirst) _bwFillNameFromLink(type, partyId);
+  bwRenderLink(type);
+}
+function bwRemovePendingLink(type, idx) {
+  var list = _bwPendingLink[type]; if (!list || !list[idx]) return;
+  list.splice(idx, 1);
+  _bwTrimPendingLinks(type);
+  bwRenderLink(type);
+}
+function bwSetPendingLinkRole(type, idx, role) {
+  var list = _bwPendingLink[type]; if (!list || !list[idx]) return;
+  list[idx].role = role || 'purchaser';
   bwRenderLink(type);
 }
 
 function bwRenderLink(type) {
   var cfg = BW_LINK_MODULES[type]; if (!cfg) return;
-  var link = _bwPendingLink[type], space = _bwPendingSpace[type];
+  var links = bwPendingLinks(type), space = _bwPendingSpace[type];
   var box = el(cfg.box);
   if (box) {
-    var p = link ? bwPartyById(link.partyId) : null;
-    if (p) {
+    // One chip per linked person: name, phone, an editable role and its own unlink. The add
+    // button is PERSISTENT — linking a second contact must not mean unlinking the first.
+    var chips = '';
+    for (var i = 0; i < links.length; i++) {
+      var lk = links[i], p = bwPartyById(lk.partyId);
+      if (!p) continue;
       var ph = _bwPrimary(p.phones);
-      box.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      var opts = '';
+      for (var j = 0; j < BW_ROLES.length; j++) {
+        opts += '<option value="' + BW_ROLES[j].code + '"' + (BW_ROLES[j].code === lk.role ? ' selected' : '')
+             +  '>' + _ceEsc(BW_ROLES[j].label) + '</option>';
+      }
+      chips += '<span class="bw-link-chip" style="display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;padding:4px 8px;margin:0 7px 6px 0;border:1px solid var(--border);border-radius:7px;background:#fff;">'
         + '<span style="font-size:13px;font-weight:700;color:var(--navy);">' + _ceEsc(bwPartyName(p)) + '</span>'
         + (ph ? '<span style="font-size:12px;color:var(--text-light);">' + _ceEsc(bwFmtPhone(ph)) + '</span>' : '')
-        + '<span class="ct-pill" style="margin-left:0;background:var(--blue-light);color:var(--navy);">' + _ceEsc(bwRoleLabel(link.role)) + '</span>'
-        + '<button onclick="bwSetPendingLink(\'' + type + '\', null)" style="padding:2px 9px;font-size:11px;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">Unlink</button>'
+        + '<select onchange="bwSetPendingLinkRole(\'' + type + '\', ' + i + ', this.value)" title="Role on this record" '
+        + 'style="font-family:inherit;font-size:11.5px;padding:2px 4px;border:1px solid var(--gray-mid);border-radius:5px;color:var(--navy);background:var(--blue-light);">'
+        + opts + '</select>'
+        + '<button onclick="bwRemovePendingLink(\'' + type + '\', ' + i + ')" title="Unlink ' + _ceEsc(bwPartyName(p)) + '" '
+        + 'style="padding:1px 7px;font-size:13px;line-height:1.2;font-family:inherit;background:none;border:1px solid var(--gray-mid);border-radius:5px;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</span>';
-    } else {
-      box.innerHTML = '<button onclick="openContactPicker(function(id){ bwSetPendingLink(\'' + type + '\', id); })" '
-        + 'style="padding:6px 13px;font-size:12px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px dashed var(--gray-mid);border-radius:6px;cursor:pointer;">+ Link a contact</button>'
-        + '<span style="margin-left:9px;font-size:11.5px;color:var(--text-light);">optional</span>';
     }
+    box.innerHTML = chips
+      + '<button onclick="openContactPicker(function(id){ bwAddPendingLink(\'' + type + '\', id); })" '
+      + 'style="padding:6px 13px;font-size:12px;font-family:inherit;color:var(--navy);background:var(--gray-light);border:1px dashed var(--gray-mid);border-radius:6px;cursor:pointer;">'
+      + (links.length ? '+ Link another contact' : '+ Link a contact') + '</button>'
+      + (links.length ? '' : '<span style="margin-left:9px;font-size:11.5px;color:var(--text-light);">optional</span>');
   }
   var srow = cfg.spaceRow ? el(cfg.spaceRow) : null, sbox = cfg.spaceBox ? el(cfg.spaceBox) : null;
   if (srow && sbox) {
@@ -16601,21 +16727,48 @@ var _bwAfterContactSave = null;
 // Called by the save functions. Writes the space onto the record and the contact link as a
 // contractRole. Both are no-ops when nothing was linked.
 function bwAttachToSavedRecord(type, snap) {
-  var space = _bwPendingSpace[type], link = _bwPendingLink[type];
+  var space = _bwPendingSpace[type], links = bwPendingLinks(type);
   if (space && (space.sid || space.loc)) {
     // An array from the start: a companion purchase is one contract over two spaces, so a single
     // field would need migrating the first time that happens.
     snap.spaces = [{ sid: space.sid || null, loc: space.loc || null }];
   }
-  if (!link || !link.partyId) return Promise.resolve(snap);
-  return saveContractRole({
-    partyId: link.partyId,
-    recordType: type,
-    recordId: snap.id,
-    role: link.role || 'purchaser',
-    financiallyLiable: (link.role || 'purchaser') === 'purchaser',
-    _prov: bwProv('quote_tool')
-  }).then(function(){ return snap; }).catch(function(e) {
+  // RECONCILE the record's roles against what the UI is holding — do not merely add. The old
+  // version returned early whenever nothing was pending, so unlinking a contact never removed
+  // its contractRole and the row survived every later save.
+  var existing = [];
+  try { existing = bwRolesForRecord(type, snap.id).filter(function(r){ return r.partyId; }); } catch (e) {}
+  var used = {}, jobs = [];
+  function claim(l, exact) {
+    for (var i = 0; i < existing.length; i++) {
+      var r = existing[i];
+      if (used[r.id] || r.partyId !== l.partyId) continue;
+      if (exact && r.role !== (l.role || 'purchaser')) continue;
+      used[r.id] = true; return r;
+    }
+    return null;
+  }
+  // Two passes: an exact party+role match first, so a person holding TWO roles on one record
+  // keeps both rows; then a party-only match, so a plain role change updates the existing row
+  // instead of deleting and recreating it (which would lose its provenance and stamps).
+  var pairs = links.filter(function(l){ return l && l.partyId; })
+                   .map(function(l){ return { link: l, row: claim(l, true) }; });
+  pairs.forEach(function(pr){ if (!pr.row) pr.row = claim(pr.link, false); });
+  pairs.forEach(function(pr) {
+    var role = pr.link.role || 'purchaser';
+    var rec;
+    if (pr.row) {
+      rec = pr.row; rec.role = role; rec.financiallyLiable = _bwRoleLiable(role);
+    } else {
+      rec = { partyId: pr.link.partyId, recordType: type, recordId: snap.id, role: role,
+              financiallyLiable: _bwRoleLiable(role), _prov: bwProv('quote_tool') };
+    }
+    jobs.push(saveContractRole(rec));
+  });
+  // Anything left over was unlinked in the UI. Removing it here is the whole point.
+  existing.forEach(function(r){ if (!used[r.id]) jobs.push(deleteContractRole(r.id)); });
+  if (!jobs.length) return Promise.resolve(snap);
+  return Promise.all(jobs).then(function(){ return snap; }).catch(function(e) {
     // A failed link must never cost the quote. Say so and move on.
     console.warn('contact link failed', e);
     alert('The quote was saved, but linking the contact failed:\n\n' + ((e && e.message) || e));
@@ -16859,8 +17012,11 @@ function bwConfirmLinkOffer() {
 // Restores the link display when a saved quote is reopened.
 function bwRestoreLinkFor(type, snap) {
   var roles = bwRolesForRecord(type, snap.id).filter(function(r){ return r.partyId; });
-  if (roles.length) _bwPendingLink[type] = { partyId: roles[0].partyId, role: roles[0].role };
-  else delete _bwPendingLink[type];
+  // ALL of them. Restoring only roles[0] silently dropped every co-purchaser the moment a
+  // saved record was reopened, and the next save then reconciled them away for good.
+  if (roles.length) {
+    _bwPendingLink[type] = roles.map(function(r){ return { partyId: r.partyId, role: r.role || 'purchaser' }; });
+  } else delete _bwPendingLink[type];
   var sp = (snap.spaces && snap.spaces[0]) || null;
   if (sp) _bwPendingSpace[type] = { sid: sp.sid || null, loc: sp.loc || null };
   else delete _bwPendingSpace[type];
