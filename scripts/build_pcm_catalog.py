@@ -108,11 +108,19 @@ def design_facets(d):
     """(all facet tokens, [(prefix, label, tokens) ...] for the chips).
 
     A chip is emitted only when its label CONTRIBUTES a word the earlier chips did not
-    already carry. Otherwise a 2020 flat marker would wear "format: flat marker" beside
-    "category: flat markers", and the 124 true companions would wear "format: companion"
-    beside "group: companion designs". The six companion LEDGERS are why the group chip
-    exists at all: their fmt is `ledger`, so without it "companion" would return them —
-    the book files them under Companion Designs — with nothing lit to say why."""
+    already carry. Under the section/theme axis the labels are the section ("Single Marker
+    Designs" / "Companion Designs") and the theme, so:
+
+      * a 2011 companion's fmt is already `companion`, the group label adds nothing, and
+        it wears one format chip instead of the same word twice;
+      * every companion LEDGER — the six from 2011 and the six from 2020 — has fmt
+        `ledger`, so the group chip is the only thing that makes typing "companion" reach
+        them AND say why. Sprint-12 kept that chip alive with a comment because the
+        placement lied; now the placement is true and the chip merely agrees with it;
+      * a 2020 plate finally answers "single" / "companion" at all. Before the restructure
+        its only group word was "2020 collection", so 113 companion designs were
+        unreachable by the word a family actually says.
+    """
     seen, chips = [], []
     for prefix, lab in (('format', FMT_LABEL.get(d['fmt'], d['fmt'])),
                         ('group', d['cat']), ('category', d['sub'])):
@@ -124,13 +132,39 @@ def design_facets(d):
         chips.append((prefix, lab, toks))
     return seen, chips
 
-# Order the design groups the way a counselor walks a family through them: the current
-# book first, then the 2011 book's individual designs, then companions.
-GROUP_ORDER = [
-    ('2020 Collection', ['Flat Markers', 'Ledgers']),
-    ('Individual Designs', ['Classic', 'Religious', 'Outdoors', 'Floral', 'Misc', 'Child']),
-    ('Companion Designs', ['Classic', 'Religious', 'Outdoors', 'Floral', 'Misc', 'Ledgers']),
+# TWO top-level design sections, split by the question a family actually asks — one name
+# or two — and inside each, the same theme axis over BOTH books (operator ruling,
+# 2026-08-15, superseding the s21 layout).
+#
+# What this replaces and why. The old GROUP_ORDER led with "2020 Collection", i.e. with
+# WHICH BOOK A PLATE WAS PRINTED IN, and a family has no idea what that means. Worse, the
+# 2020 book prints no sections at all, so its 113 companion designs sat in a bucket called
+# "Flat Markers" underneath a heading about a book — invisible to anyone shopping for a
+# two-name marker, and unreachable by typing "companion". Book identity survives in exactly
+# two places now: the #bookFilter dropdown and the detail panel's Book row.
+#
+# `sec` is the section-wrap id, `proof_sec` names the full-colour proof panel that leads the
+# section (see PROOF_CLASSES) — proofs first, then the plates, which is the 2026-08-07
+# ruling re-expressed at the new geometry.
+SECTION_ORDER = [
+    ('single', 'Single Marker Designs', 'sec-single', 'singles'),
+    ('companion', 'Companion Designs', 'sec-companion', 'proofs'),
 ]
+THEME_ORDER = ['Classic', 'Religious', 'Outdoors', 'Floral', 'Misc', 'Child', 'Ledgers']
+
+# CROSS-LISTED PLATE, ruling 2026-08-15 (sprint-23 Track D). PCM 2271 (GREENE) is printed
+# TWICE in the 2011 book, under Companion/Religious and again under Companion/Outdoors,
+# and data/pcm-catalog.json keeps both rows because the book keeps both. Two rows in two
+# different top-level sections was one thing; two cards a few hundred pixels apart inside
+# ONE Companion section is just a duplicate to the family reading it. So the page places it
+# once, and the choice was made by looking at the plate: a mountain-lake-forest scene fills
+# the whole upper two-thirds edge to edge, and the cross is a small circular medallion
+# tucked between the two name blocks. Somebody asking for a mountain scene should find it;
+# somebody asking for a cross is not looking for this design. Hence Outdoors, not the
+# Religious listing that comes first in the book.
+# The catalog data is UNCHANGED — 700 rows, crossListed intact — so this costs no
+# provenance. The page renders 699 plate cards; the gate pins both numbers.
+CROSS_LISTED_HOME = {'2011-2271': 'Outdoors'}
 
 STYLE = """
 :root {
@@ -182,6 +216,9 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 .section-wrap{padding:40px 48px 8px;}
 .section-head{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--navy-deep);margin-bottom:4px;}
 .section-note{font-size:13.5px;color:var(--text-muted);max-width:820px;margin-bottom:8px;}
+/* The proof panel's own intro, sitting under a section head rather than owning one: same
+   type, much less air above it, so it reads as part of the section it opens. */
+.section-sub{padding:14px 48px 0;}
 .group{padding:0 48px 26px;}
 .group-head{display:flex;align-items:baseline;gap:12px;margin:26px 0 12px;}
 .group-head h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy-dark);}
@@ -888,7 +925,7 @@ COMPARE_JS = """
     var bits = [];
     var q = document.getElementById('searchInput').value.trim();
     if (q) bits.push('Search: "' + q + '"');
-    [['bookFilter', 'Book'], ['catFilter', 'Group'],
+    [['bookFilter', 'Book'], ['catFilter', 'Section or theme'],
      ['fmtFilter', 'Format'], ['colorFilter', 'Granite color']].forEach(function (p) {
       var s = document.getElementById(p[0]);
       if (s && s.value) bits.push(p[1] + ': ' + s.options[s.selectedIndex].textContent.trim());
@@ -1232,31 +1269,61 @@ def build():
         raise SystemExit('%d design(s) have no subject tags; run scripts/pcm_tags.py: %s'
                          % (len(untagged), ', '.join(untagged[:10])))
 
+    # The card reads its group off data-cat / data-sub, and from here on those two carry the
+    # SECTION and the THEME rather than the book's own headings. The book's labels stay in
+    # data/pcm-catalog.json as provenance; nothing on the page groups on them any more.
+    sec_label = {k: lab for k, lab, _, _ in SECTION_ORDER}
+    placed = set()
     by_group = {}
     for d in designs:
-        by_group.setdefault((d['cat'], d['sub']), []).append(d)
+        if 'family' not in d or 'theme' not in d:
+            raise SystemExit(
+                '%s has no family/theme. data/pcm-catalog.json predates the section '
+                'restructure — re-run scripts/pcm_extract.py --data.' % d['id'])
+        theme = CROSS_LISTED_HOME.get(d['id'], d['theme'])
+        if d['id'] in placed:
+            continue            # a cross-listed plate is placed once; see CROSS_LISTED_HOME
+        placed.add(d['id'])
+        d = dict(d, cat=sec_label[d['family']], sub=theme)
+        by_group.setdefault((d['family'], theme), []).append(d)
     for v in by_group.values():
         v.sort(key=lambda d: d['num'])
 
-    groups_html = []
-    for cat, subs in GROUP_ORDER:
-        for sub in subs:
-            items = by_group.get((cat, sub))
+    # A cross-listed row that resolved to a theme its own listings never mention would mean
+    # the ruling and the book have drifted apart, and the surviving card would sit under a
+    # heading nothing supports.
+    for cid, home in CROSS_LISTED_HOME.items():
+        rows = [d for d in designs if d['id'] == cid]
+        if len(rows) < 2:
+            raise SystemExit('%s is in CROSS_LISTED_HOME but is not cross-listed in the '
+                             'catalog (%d row(s))' % (cid, len(rows)))
+        if home not in {r['theme'] for r in rows}:
+            raise SystemExit('%s: CROSS_LISTED_HOME says %r but its listings are %r'
+                             % (cid, home, sorted({r['theme'] for r in rows})))
+
+    groups_html = {}
+    for fam, lab, _sec, _proof in SECTION_ORDER:
+        out = []
+        for theme in THEME_ORDER:
+            items = by_group.get((fam, theme))
             if not items:
                 continue
-            gid = slug(cat + '-' + sub)
+            gid = slug(fam + '-' + theme)
             cards = '\n'.join(design_card(d, design_tags[d['id']]) for d in items)
-            groups_html.append(
-                f'    <div class="group" id="group-{gid}" data-group-cat="{esc(cat)}" '
-                f'data-group-sub="{esc(sub)}">\n'
-                f'      <div class="group-head"><h3>{esc(cat)} &mdash; {esc(sub)}</h3>'
+            out.append(
+                f'    <div class="group" id="group-{gid}" data-group-cat="{esc(lab)}" '
+                f'data-group-sub="{esc(theme)}" data-group-family="{esc(fam)}">\n'
+                f'      <div class="group-head"><h3>{esc(theme)}</h3>'
                 f'<span class="group-rule"></span>'
                 f'<span class="group-count">{len(items)}</span></div>\n'
                 f'      <div class="product-grid">\n{cards}\n      </div>\n'
                 f'    </div>')
-    missing = set(by_group) - {(c, s) for c, subs in GROUP_ORDER for s in subs}
+        groups_html[fam] = '\n'.join(out)
+    # Same guard as before, adapted: a theme nobody ordered would silently not render.
+    missing = set(by_group) - {(f, t) for f, _, _, _ in SECTION_ORDER for t in THEME_ORDER}
     if missing:
-        raise SystemExit('GROUP_ORDER is missing: ' + repr(sorted(missing)))
+        raise SystemExit('SECTION_ORDER/THEME_ORDER is missing: ' + repr(sorted(missing)))
+    n_cards = sum(len(v) for v in by_group.values())
 
     el_cats = []
     for cat in [c for c, _, _ in ELEM_ORDER(data)]:
@@ -1292,39 +1359,57 @@ def build():
         payload.append([e['code'], cat_index[e['cat']], e['img'], stem_index[st]])
     stem_tag_payload = [' '.join(stem_tags[s]) for s in stem_list]
 
-    # ---- the two proof sections, at the TOP of the page ------------------------------
-    # Operator ruling, 2026-08-07: singles first, then companions, ABOVE the book-plate
-    # sections. These are the newest and the clearest pictures of the artwork we have, and
-    # a family opening the link should see them before a scan of a printed page.
+    # ---- the two design sections ----------------------------------------------------
+    # Each section opens with its full-colour proofs and then runs the book plates by
+    # theme. That is the 2026-08-07 ruling — proofs before plates, because they are the
+    # clearest pictures of the artwork we have — held to at the new geometry: it is now
+    # true INSIDE each section instead of across the top of the page.
     #
-    # Each is the same folding panel Installed Examples is, opening OPEN, so one convention
-    # covers every panel on the page. The prose is the operator's own (voice rules in
-    # docs/GUIDES_VOICE_DEBRIEF_2026-08.md): first person, contractions, no em dashes, and
-    # one sentence saying what a full-colour proof actually is, because "proof" is a
-    # manufacturing word and a family has no reason to know it.
+    # The proof panel is the same folding panel Installed Examples is, opening OPEN, so one
+    # convention covers every panel on the page. The prose is the operator's own (voice
+    # rules in docs/GUIDES_VOICE_DEBRIEF_2026-08.md): first person, contractions, no em
+    # dashes, and one sentence saying what a full-colour proof actually is, because "proof"
+    # is a manufacturing word and a family has no reason to know it.
     PROSE = {
+        'single':
+            'Every design here is for a marker with <strong>one name</strong>. The '
+            '{plates} black and white plates further down are scans of the design books, '
+            'grouped by what they show. Pricing isn&rsquo;t shown here; I build the quote '
+            'in the tool.',
+        'companion':
+            'Every design here is for a marker with <strong>two names</strong> &mdash; one '
+            'stone across two spaces. Same arrangement as above: the proofs first, then '
+            'the {plates} book plates by theme.',
+    }
+    PROOF_PROSE = {
         'single':
             'These are Pacific Coast Memorials&rsquo; own <em>full-colour proofs</em>: the '
             'design printed on the granite colour with sample lettering, instead of the '
             'black and white plate the design books use. They&rsquo;re the clearest '
-            'pictures I have of these {n} designs for a marker with one name, so I put '
-            'them at the top. {new} of these numbers aren&rsquo;t printed in either design '
-            'book. Search by what you&rsquo;re looking for, and the tags under each card '
-            'show why it came back. Pricing isn&rsquo;t shown here; I build the quote in '
-            'the tool.',
+            'pictures I have of these {n} one-name designs, so I put them first. {new} of '
+            'these numbers aren&rsquo;t printed in either design book. Search by what '
+            'you&rsquo;re looking for, and the tags under each card show why it came back.',
         'companion':
             'The same full-colour proofs for {n} designs made for a marker with two names. '
             'They carry the same PCM numbers as the design books, so the <em>Go to&nbsp;#</em> '
             'box finds them and typing <em>companion</em> reaches all of them. {new} of '
             'these numbers aren&rsquo;t printed in either design book.',
     }
-    proof_sections = []
-    for c in classes:
-        proof_sections.append(
-            f'  <div class="section-wrap" id="sec-{c["sec"]}">\n'
-            f'    <div class="section-head">{esc(c["heading"])}</div>\n'
+    proof_by_kind = {c['kind']: c for c in classes}
+    plate_count = {fam: sum(len(v) for (f, _t), v in by_group.items() if f == fam)
+                   for fam, _l, _s, _p in SECTION_ORDER}
+    design_sections = []
+    for fam, lab, sec, _proof in SECTION_ORDER:
+        c = proof_by_kind[fam]
+        design_sections.append(
+            f'  <div class="section-wrap" id="{sec}">\n'
+            f'    <div class="section-head">{esc(lab)}</div>\n'
             f'    <div class="section-note">'
-            f'{PROSE[c["kind"]].format(n=len(c["rows"]), new=c["new"])}</div>\n'
+            f'{PROSE[fam].format(plates=plate_count[fam])}</div>\n'
+            f'  </div>\n'
+            f'  <div class="section-wrap section-sub" id="{sec}-proofs">\n'
+            f'    <div class="section-note">'
+            f'{PROOF_PROSE[c["kind"]].format(n=len(c["rows"]), new=c["new"])}</div>\n'
             f'  </div>\n'
             f'  <div class="group" id="group-{c["sec"]}">\n'
             f'    <div class="ex-cat open" id="elcat-{c["sec"]}">\n'
@@ -1333,24 +1418,41 @@ def build():
             f'              aria-expanded="true" aria-controls="elbody-{c["sec"]}">\n'
             f'        <svg class="el-caret" viewBox="0 0 24 24">'
             f'<polyline points="6 9 12 15 18 9"></polyline></svg>\n'
-            f'        <span>{esc(c["heading"])}</span>'
+            # The panel used to repeat the section name; now the section head above says
+            # it, so the panel says what KIND of card is inside instead.
+            f'        <span>Full-colour proofs</span>'
             f'<span class="el-count" id="{c["sec"]}Count">{len(c["rows"])}</span>\n'
             f'      </button>\n'
             f'      <div class="el-body" id="elbody-{c["sec"]}">\n'
             f'        <div class="product-grid">\n{c["cards"]}\n        </div>\n'
             f'      </div>\n'
             f'    </div>\n'
-            f'  </div>')
-    proof_sections_html = '\n'.join(proof_sections)
+            f'  </div>\n'
+            + groups_html[fam])
+    design_sections_html = '\n'.join(design_sections)
 
     books = sorted({d['book'] for d in designs}, reverse=True)
-    cats = [c for c, _ in GROUP_ORDER]
+    # One control, two axes. `catFilter` used to list the book's own top-level groups; it
+    # now lists the two SECTIONS and the seven THEMES, and applyFilters matches a card on
+    # either. A sixth dropdown was the alternative and the toolbar already carries five —
+    # and "which section" and "which theme" are the same question a family is asking
+    # ("show me companion designs", "show me something religious").
+    themes = [t for t in THEME_ORDER if any(f_t[1] == t for f_t in by_group)]
     fmts = sorted({d['fmt'] for d in designs})
     colors = sorted({d['color'] for d in designs if d['color']})
 
     opt = lambda vals, all_label: '\n'.join(
         [f'        <option value="">{all_label}</option>'] +
         [f'        <option value="{esc(v)}">{esc(lbl)}</option>' for v, lbl in vals])
+
+    optgrp = lambda label, vals: '\n'.join(
+        [f'        <optgroup label="{esc(label)}">'] +
+        [f'          <option value="{esc(v)}">{esc(lbl)}</option>' for v, lbl in vals] +
+        ['        </optgroup>'])
+    cat_options = '\n'.join([
+        '        <option value="">All sections and themes</option>',
+        optgrp('Section', [(lab, lab) for _f, lab, _s, _p in SECTION_ORDER]),
+        optgrp('Theme', [(t, t) for t in themes])])
 
     page = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1378,11 +1480,12 @@ def build():
     <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
     <div class="cover-kicker">Granite Flat Markers</div>
     <h1>PCM Design Catalog</h1>
-    <div class="cover-sub">Every flat-marker and ledger design from the Pacific Coast Memorials
-      design books, plus the full ornament library &mdash; grouped the way the books group them,
-      with the design number on every card so a family can point and we can look it up on the spot.</div>
+    <div class="cover-sub">Every flat-marker and ledger design Pacific Coast Memorials makes,
+      plus the full ornament library &mdash; in two sections, one for a marker with one name and
+      one for a marker with two, each grouped by what the design shows. The design number is on
+      every card so a family can point and we can look it up on the spot.</div>
     <div class="cover-rule"></div>
-    <div class="cover-footer">{len(singles)} single &middot; {len(proofs)} companion full-colour proofs &middot; {len(designs)} book designs &middot; {len(elements):,} design elements &middot; {len([p for p in photos])} photographed markers</div>
+    <div class="cover-footer">{plate_count['single'] + len(singles):,} single &middot; {plate_count['companion'] + len(proofs):,} companion designs &middot; {len(singles) + len(proofs)} full-colour proofs &middot; {n_cards} book plates &middot; {len(elements):,} design elements &middot; {len([p for p in photos])} photographed markers</div>
   </div>
 
   <div class="toolbar">
@@ -1396,11 +1499,12 @@ def build():
            autocomplete="off" aria-label="Search designs and elements by subject">
     <select id="bookFilter" aria-label="Design book or proof set">
 {opt([(b, ('2020 Design Book' if b == '2020' else '2011 Design Book')) for b in books] +
-     [('single-proofs', 'Single marker designs'), ('companion-proofs', 'Companion designs')],
+     [('single-proofs', 'Single full-colour proofs only'),
+      ('companion-proofs', 'Companion full-colour proofs only')],
      'All designs')}
     </select>
-    <select id="catFilter" aria-label="Category">
-{opt([(c, c) for c in cats], 'All categories')}
+    <select id="catFilter" aria-label="Section or theme">
+{cat_options}
     </select>
     <select id="fmtFilter" aria-label="Format">
 {opt([(f, FMT_LABEL.get(f, f)) for f in fmts], 'All formats')}
@@ -1417,25 +1521,14 @@ def build():
   </div>
 
   <div class="contents">
-    <a href="#sec-singles">Single Marker Designs</a>
-    <a href="#sec-proofs">Companion Designs</a>
-    <a href="#sec-designs">Design Books</a>
+    <a href="#sec-single">Single Marker Designs</a>
+    <a href="#sec-companion">Companion Designs</a>
     <a href="#sec-elements">Design Elements</a>
     <a href="#sec-examples">Installed Examples</a>
     <a href="#sec-reference">Sizes, Colors &amp; Lettering</a>
   </div>
 
-{proof_sections_html}
-
-  <div class="section-wrap" id="sec-designs">
-    <div class="section-head">Marker Designs</div>
-    <div class="section-note">Granite flat markers and ledgers only &mdash; no uprights, no benches,
-      no bronze. Groups follow each design book&rsquo;s own sections. Search by what the family
-      asks for &mdash; <em>roses</em>, <em>flowers</em>, <em>mountains</em>, <em>fishing</em>,
-      <em>praying hands</em> &mdash; and the tags under each card show why it came back.
-      Pricing is not shown here; build the quote in the tool.</div>
-  </div>
-{chr(10).join(groups_html)}
+{design_sections_html}
 
   <div class="section-wrap" id="sec-elements">
     <div class="section-head">Design Elements</div>
@@ -1807,26 +1900,37 @@ function applyFilters() {{
   var facetsOn = !!(book || cat || fmt || col);
   var shownDesigns = 0;
   var perGroup = {{}};
+  /* Plate cards per SECTION, so a section head can be hidden only when nothing at all is
+     left under it -- neither a plate nor a proof. The old page had one `sec-designs` head
+     over every plate group and could hide it on a single number; now each head owns a
+     proof panel too, and hiding it on the plate count alone would strand the proofs under
+     no heading. */
+  var perSection = {{ single: 0, companion: 0 }};
 
   cards().forEach(function (c) {{
+    /* catFilter carries BOTH levels of the new axis in one control, so a value matches
+       either the section (data-cat) or the theme (data-sub). The two option groups make
+       which is which visible in the dropdown; the values cannot collide, because no theme
+       is named "Single Marker Designs". */
     var ok = !proofSet &&
              (!bookSel || c.dataset.book === bookSel) &&
-             (!cat || c.dataset.cat === cat) &&
+             (!cat || c.dataset.cat === cat || c.dataset.sub === cat) &&
              (!fmt || c.dataset.fmt === fmt) &&
              (!col || c.dataset.color === col) &&
              matches(c.dataset.name, c.dataset.tags, terms, q, c.dataset.facets);
     c.style.display = ok ? '' : 'none';
     if (ok) {{
       shownDesigns++;
-      var g = c.closest('.group').id;
-      perGroup[g] = (perGroup[g] || 0) + 1;
+      var grp = c.closest('.group');
+      perGroup[grp.id] = (perGroup[grp.id] || 0) + 1;
+      var f = grp.dataset.groupFamily;
+      if (f) perSection[f] = (perSection[f] || 0) + 1;
     }}
     markChips(c, terms);
   }});
   document.querySelectorAll('.group[data-group-cat]').forEach(function (g) {{
     g.hidden = !perGroup[g.id];
   }});
-  document.getElementById('sec-designs').hidden = shownDesigns === 0;
 
   /* Elements ignore the design facets — an ornament belongs to no book and no marker
      format — but they must answer the search, including inside a category nobody has
@@ -1887,8 +1991,18 @@ function applyFilters() {{
       markChips(c, terms);
     }});
     grp.hidden = n === 0;
-    document.getElementById('sec-' + k).hidden = n === 0;
-    if (k === 'singles' || k === 'proofs') shownProofs += n;
+    /* Examples and Reference still own their own section head one-to-one. The two proof
+       panels no longer do: they live INSIDE a design section whose head also covers the
+       plate groups, so their own intro paragraph folds away with the panel and the section
+       head is decided below, once both counts are known. */
+    if (k === 'singles' || k === 'proofs') {{
+      var fam = (k === 'singles') ? 'single' : 'companion';
+      document.getElementById('sec-' + fam + '-proofs').hidden = n === 0;
+      perSection[fam] += n;
+      shownProofs += n;
+    }} else {{
+      document.getElementById('sec-' + k).hidden = n === 0;
+    }}
     /* The panel's count follows the search exactly the way an element category's does
        ("6 of 35"), so the two read as one control and not as two conventions. */
     if (k !== 'reference') {{
@@ -1896,6 +2010,9 @@ function applyFilters() {{
         q ? n + ' of ' + all.length : String(all.length);
     }}
   }});
+
+  document.getElementById('sec-single').hidden = perSection.single === 0;
+  document.getElementById('sec-companion').hidden = perSection.companion === 0;
 
   document.getElementById('filterCount').textContent =
     shownDesigns.toLocaleString() + ' designs \\u00b7 ' +
@@ -2021,7 +2138,14 @@ applyFilters();
     with open(PAGE, 'w', encoding='utf-8', newline='\r\n') as f:
         f.write(page)
     kb = os.path.getsize(PAGE) / 1024
-    print(f'{PAGE}: {len(designs)} design cards in {len(groups_html)} groups, '
+    print('  ' + '; '.join(
+        '%s: %s (%d)' % (lab, ', '.join('%s %d' % (t, len(by_group[(f, t)]))
+                                        for t in THEME_ORDER if (f, t) in by_group),
+                         plate_count[f])
+        for f, lab, _s, _p in SECTION_ORDER))
+    print(f'{PAGE}: {n_cards} design cards ({len(designs)} catalog rows, '
+          f'{len(designs) - n_cards} cross-listed) in '
+          f'{sum(len(by_group[k]) > 0 for k in by_group)} groups, '
           f'{len(elements)} elements in {len(el_cats)} categories, '
           f'{len(singles)} single proofs ({singles_c["new"]} not in either book), '
           f'{len(proofs)} companion proofs ({comp_c["new"]} not in either book), '
