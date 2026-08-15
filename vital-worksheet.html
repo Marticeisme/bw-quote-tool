@@ -31,31 +31,93 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
 .card h2{font:400 20px/1.15 'Newsreader',Georgia,serif;color:#466e86;margin:0 0 3px}
 .card .note{font:italic 400 13px/1.5 'Newsreader',Georgia,serif;color:#6a7686;margin:0 0 14px}
 
-/* Compact mode (at-need print) */
-.compact .wsheader{padding:5px 16px !important;border-bottom-width:1px !important}
-.compact .wsheader .intro{display:none !important}
-.compact .wsheader h1{font-size:18px !important}
-.compact .wsbody{column-count:2;column-gap:12px;padding:6px 14px 6px !important}
-.compact .card{padding:7px 12px !important;margin-bottom:5px !important;box-shadow:none !important;break-inside:avoid;border:none !important;border-bottom:1px solid #e6e1d7 !important;border-radius:0 !important}
-.compact .card .note{display:none !important}
-.compact .card .eyebrow{margin-bottom:4px !important;padding-bottom:3px !important}
-.compact .card h2{font-size:14px !important;margin:0 0 1px !important}
-.compact .wsbody div.grid-row{grid-template-columns:1fr 1fr !important;gap:3px 10px !important}
-.compact .check-row{gap:3px 10px !important}
-.compact .check-item{font-size:12px !important}
-.compact .lbl{font-size:9px !important}
-.compact input[type="text"],.compact input[type="email"]{font-size:12px !important;padding:2px 1px 1px !important}
-.compact input[type="checkbox"]{width:12px !important;height:12px !important;min-width:12px !important}
-.compact .wsfooter{padding:4px 16px !important}
-.compact .wsfooter img{height:20px !important}
-.compact .wsfooter div{font-size:11px !important}
+/* ── PRINT ────────────────────────────────────────────────────────────────────
+   The direct browser print (Ctrl+P) has to match the fillable PDF's economy:
+   two columns, every field and label kept, hard cap 3 pages and 2 in practice.
 
+   This is deliberately PURE CSS. It used to be a `beforeprint` handler that set
+   `sheet.style.zoom` against a HARDCODED 816x1056 printable box. That only holds
+   when the print dialog happens to be on zero margins with no browser
+   header/footer; with any other dialog setting it scales against the wrong box,
+   and in a browser where `beforeprint` does not fire or `zoom` is unsupported it
+   does nothing at all — which is the shape of "prints too many pages on my
+   machine but not on yours". CSS reflows into whatever printable area the dialog
+   actually gives, so the page count no longer depends on the dialog's settings,
+   on `beforeprint` firing, or on `zoom` being supported anywhere.
+
+   @page margin stays 0 so the blue header and cream footer keep their full
+   bleed; .wsbody carries its own 24px (0.25in) inset so no FIELD sits in a
+   printer's unprintable edge. Nothing uses `column-span` — a spanner after a
+   page break strands empty pages. */
 @media print{
   .no-print{display:none !important}
   body{background:#fff}
-  .sheet{box-shadow:none !important;margin:0 !important;border:none !important;border-radius:0 !important}
-  .print-wrap{padding:0 !important}
+  /* overflow:visible is load-bearing, not tidying. The .sheet div carries an inline
+     overflow:hidden (it clips the rounded corners on screen), which makes the box
+     monolithic: Chrome cannot fragment it across pages, so as soon as the content
+     exceeded one page it pushed the WHOLE sheet to page 2 and printed a
+     header-only blank first page. Only pre-need was long enough to trigger it. */
+  .sheet{box-shadow:none !important;margin:0 !important;border:none !important;
+    border-radius:0 !important;overflow:visible !important}
+  .print-wrap{padding:0 !important;max-width:none !important}
   @page{margin:0}
+
+  .wsheader{padding:7px 24px !important;border-bottom-width:2px !important}
+  .wsheader .intro{display:none !important}
+  .wsheader h1{font-size:17px !important}
+  .wsheader img{height:25px !important}
+
+  /* two columns in BOTH modes — pre-need was single-column, which is what made
+     it a 3-page print */
+  .wsbody{column-count:2;column-gap:16px;padding:9px 24px 4px !important}
+
+  /* Cards may FLOW across the column break; individual rows may not.
+     Holding whole cards together stranded a ~350px gap at the foot of column
+     one (a tall card that would not fit jumped the column), which pushed the
+     Contact card onto a second, 85%-empty page. Letting the card flow while
+     keeping every label+input row and every check group atomic packs the
+     columns with no gap and no split field. */
+  .card{padding:0 0 5px !important;margin:0 0 6px !important;box-shadow:none !important;
+    border:none !important;border-bottom:1px solid #e6e1d7 !important;border-radius:0 !important;
+    break-inside:auto;page-break-inside:auto}
+  .card .note{display:none !important}
+  .card .eyebrow{margin:0 0 4px !important;padding-bottom:3px !important;font-size:8.5px !important;
+    break-inside:avoid;break-after:avoid;page-break-after:avoid}
+  .card h2{font-size:12.5px !important;margin:0 0 3px !important;
+    break-after:avoid;page-break-after:avoid}
+  .section-lbl{break-after:avoid;page-break-after:avoid}
+  /* the atomic units: a row never splits, so a label is never orphaned from its
+     field and a check never leaves its text behind */
+  .wsbody div.grid-row,.check-row,.sheet label.field,.check-item{
+    break-inside:avoid;page-break-inside:avoid}
+  .enum{width:15px !important;height:15px !important;font-size:8.5px !important}
+
+  /* readability floor: labels 8.5px, check text 11px, typed answers 11.5px */
+  .lbl{font-size:8.5px !important;margin-bottom:1px !important}
+  .section-lbl{font-size:8.5px !important}
+  .check-item{font-size:11px !important;gap:6px !important}
+  .check-row{gap:3px 10px !important}
+  input[type="text"],input[type="email"]{font-size:11.5px !important;padding:2px 1px 1px !important}
+  input[type="checkbox"]{width:11px !important;height:11px !important;min-width:11px !important}
+  input[type="checkbox"]:checked::after{left:3px;top:0;width:2px;height:6px}
+
+  /* wide field rows and the 3-up check grids both fold to 2-up inside a column */
+  .wsbody div.grid-row{grid-template-columns:1fr 1fr !important;gap:3px 10px !important;margin-bottom:4px !important}
+  .wsbody div[style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;gap:3px 12px !important}
+
+  #certCopies{padding:5px 9px !important;margin-top:6px !important;gap:4px 8px !important;
+    break-inside:avoid;page-break-inside:avoid}
+  /* The closing keepsake line is one sentence and the LAST thing in the column
+     flow. Left at screen size it overhung page one by a single line, and because
+     a balanced multicol block that is only just too tall gets pushed whole rather
+     than fragmented, that one line cost an entire extra sheet of paper. */
+  #keepsakeNote{font-size:10px !important;margin:0 auto !important;
+    padding:0 24px 4px !important;break-inside:avoid;page-break-inside:avoid}
+  .wsfooter{padding:4px 24px !important;gap:10px !important;
+    break-inside:avoid;page-break-inside:avoid}
+  .wsfooter img{height:15px !important}
+  .wsfooter div{font-size:9px !important}
+  .wsfooter div[style*="height:26px"]{height:15px !important}
 }
 </style>
 </head>
@@ -108,17 +170,17 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <h2 id="aboutLabel">About My Loved One</h2>
         <p class="note" id="aboutNote">If you're unsure of an exact answer, leave it blank — we'll help with the rest.</p>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr .6fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">First Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Middle Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Last Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Suffix</span><input type="text"></label>
+          <label class="field"><span class="lbl">First Name</span><input data-key="first_name" type="text"></label>
+          <label class="field"><span class="lbl">Middle Name</span><input data-key="middle_name" type="text"></label>
+          <label class="field"><span class="lbl">Last Name</span><input data-key="last_name" type="text"></label>
+          <label class="field"><span class="lbl">Suffix</span><input data-key="suffix" type="text"></label>
         </div>
         <div style="margin-bottom:11px"><span class="lbl" style="display:block;margin-bottom:6px">Sex <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— as recorded on the death certificate</span></span>
           <div class="check-row" style="gap:9px 20px">
-            <label class="check-item"><input type="checkbox"><span>Male</span></label>
-            <label class="check-item"><input type="checkbox"><span>Female</span></label>
-            <label class="check-item"><input type="checkbox"><span>Unknown</span></label>
-            <label class="check-item"><input type="checkbox"><span>X (non-binary)</span></label>
+            <label class="check-item"><input data-key="sex_male" type="checkbox"><span>Male</span></label>
+            <label class="check-item"><input data-key="sex_female" type="checkbox"><span>Female</span></label>
+            <label class="check-item"><input data-key="sex_unknown" type="checkbox"><span>Unknown</span></label>
+            <label class="check-item"><input data-key="sex_x" type="checkbox"><span>X (non-binary)</span></label>
           </div>
           <!-- Sub-category, added 2026-07-27 (punch list item 5). Deliberately small,
                indented and optional: it matters only when the two differ, and Social
@@ -126,20 +188,20 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
           <div style="margin:9px 0 0 18px;padding-left:12px;border-left:2px solid #e4e7ea">
             <span class="lbl" style="display:block;margin-bottom:5px;font-size:.92em">Sex at birth <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">&mdash; only if different from above. Social Security matches its own record, so telling us both avoids a delay.</span></span>
             <div class="check-row" style="gap:9px 20px">
-              <label class="check-item"><input type="checkbox"><span>Male</span></label>
-              <label class="check-item"><input type="checkbox"><span>Female</span></label>
+              <label class="check-item"><input data-key="sex_birth_male" type="checkbox"><span>Male</span></label>
+              <label class="check-item"><input data-key="sex_birth_female" type="checkbox"><span>Female</span></label>
             </div>
           </div>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1.2fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">Date of Birth</span><input type="text" placeholder="MM/DD/YYYY"></label>
-          <label class="field"><span class="lbl">Social Security Number</span><input type="text"></label>
+          <label class="field"><span class="lbl">Date of Birth</span><input data-key="dob" data-mask="date" type="text" placeholder="MM/DD/YYYY"></label>
+          <label class="field"><span class="lbl">Social Security Number</span><input data-key="ssn" data-mask="ssn" type="text" placeholder="XXX-XX-XXXX"></label>
         </div>
         <div class="section-lbl" style="margin:0 0 7px">Aliases <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— other names they were known by</span></div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px 16px">
-          <label class="field"><span class="lbl">First AKA</span><input type="text" placeholder="Or leave blank"></label>
-          <label class="field"><span class="lbl">Second AKA</span><input type="text"></label>
-          <label class="field"><span class="lbl">Third AKA</span><input type="text"></label>
+          <label class="field"><span class="lbl">First AKA</span><input data-key="alias_1" type="text" placeholder="Or leave blank"></label>
+          <label class="field"><span class="lbl">Second AKA</span><input data-key="alias_2" type="text"></label>
+          <label class="field"><span class="lbl">Third AKA</span><input data-key="alias_3" type="text"></label>
         </div>
       </div>
 
@@ -150,32 +212,32 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <p class="note" id="raceNote">Choose whatever your loved one identified with — all that apply.</p>
         <div style="margin-bottom:12px"><span class="lbl" style="display:block;margin-bottom:7px">Hispanic Ethnicity</span>
           <div class="check-row">
-            <label class="check-item"><input type="checkbox"><span>No, not Spanish / Hispanic / Latino</span></label>
-            <label class="check-item"><input type="checkbox"><span>Mexican / Mexican American / Chicano</span></label>
-            <label class="check-item"><input type="checkbox"><span>Puerto Rican</span></label>
-            <label class="check-item"><input type="checkbox"><span>Cuban</span></label>
-            <label class="check-item"><input type="checkbox"><span>Other</span></label>
+            <label class="check-item"><input data-key="hisp_0" type="checkbox"><span>No, not Spanish / Hispanic / Latino</span></label>
+            <label class="check-item"><input data-key="hisp_1" type="checkbox"><span>Mexican / Mexican American / Chicano</span></label>
+            <label class="check-item"><input data-key="hisp_2" type="checkbox"><span>Puerto Rican</span></label>
+            <label class="check-item"><input data-key="hisp_3" type="checkbox"><span>Cuban</span></label>
+            <label class="check-item"><input data-key="hisp_4" type="checkbox"><span>Other</span></label>
           </div>
         </div>
         <span class="lbl" style="display:block;margin-bottom:7px">Race — choose all that apply</span>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 18px">
-          <label class="check-item"><input type="checkbox"><span>White</span></label>
-          <label class="check-item"><input type="checkbox"><span>Japanese</span></label>
-          <label class="check-item"><input type="checkbox"><span>Native Hawaiian</span></label>
-          <label class="check-item"><input type="checkbox"><span>Black or African American</span></label>
-          <label class="check-item"><input type="checkbox"><span>Korean</span></label>
-          <label class="check-item"><input type="checkbox"><span>Guamanian or Chamorro</span></label>
-          <label class="check-item"><input type="checkbox"><span>American Indian / Alaska Native</span></label>
-          <label class="check-item"><input type="checkbox"><span>Vietnamese</span></label>
-          <label class="check-item"><input type="checkbox"><span>Samoan</span></label>
-          <label class="check-item"><input type="checkbox"><span>Asian Indian</span></label>
-          <label class="check-item"><input type="checkbox"><span>Chinese</span></label>
-          <label class="check-item"><input type="checkbox"><span>Other Pacific Islander</span></label>
-          <label class="check-item"><input type="checkbox"><span>Filipino</span></label>
-          <label class="check-item"><input type="checkbox"><span>Other Asian</span></label>
-          <label class="check-item"><input type="checkbox"><span>Other</span></label>
+          <label class="check-item"><input data-key="race_0" type="checkbox"><span>White</span></label>
+          <label class="check-item"><input data-key="race_1" type="checkbox"><span>Japanese</span></label>
+          <label class="check-item"><input data-key="race_2" type="checkbox"><span>Native Hawaiian</span></label>
+          <label class="check-item"><input data-key="race_3" type="checkbox"><span>Black or African American</span></label>
+          <label class="check-item"><input data-key="race_4" type="checkbox"><span>Korean</span></label>
+          <label class="check-item"><input data-key="race_5" type="checkbox"><span>Guamanian or Chamorro</span></label>
+          <label class="check-item"><input data-key="race_6" type="checkbox"><span>American Indian / Alaska Native</span></label>
+          <label class="check-item"><input data-key="race_7" type="checkbox"><span>Vietnamese</span></label>
+          <label class="check-item"><input data-key="race_8" type="checkbox"><span>Samoan</span></label>
+          <label class="check-item"><input data-key="race_9" type="checkbox"><span>Asian Indian</span></label>
+          <label class="check-item"><input data-key="race_10" type="checkbox"><span>Chinese</span></label>
+          <label class="check-item"><input data-key="race_11" type="checkbox"><span>Other Pacific Islander</span></label>
+          <label class="check-item"><input data-key="race_12" type="checkbox"><span>Filipino</span></label>
+          <label class="check-item"><input data-key="race_13" type="checkbox"><span>Other Asian</span></label>
+          <label class="check-item"><input data-key="race_14" type="checkbox"><span>Other</span></label>
         </div>
-        <input type="text" placeholder="Tribe or other — please specify" style="margin-top:11px">
+        <input data-key="race_specify" type="text" placeholder="Tribe or other — please specify" style="margin-top:11px">
       </div>
 
       <!-- 3: BIRTHPLACE & RESIDENCE -->
@@ -185,30 +247,30 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <p class="note" id="homeNote">Your loved one's birthplace and most recent home.</p>
         <div class="section-lbl" style="margin:0 0 7px">Place of Birth</div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">City</span><input type="text"></label>
-          <label class="field"><span class="lbl">County</span><input type="text"></label>
-          <label class="field"><span class="lbl">State</span><input type="text"></label>
-          <label class="field"><span class="lbl">Country</span><input type="text"></label>
+          <label class="field"><span class="lbl">City</span><input data-key="birth_city" type="text"></label>
+          <label class="field"><span class="lbl">County</span><input data-key="birth_county" type="text"></label>
+          <label class="field"><span class="lbl">State</span><input data-key="birth_state" type="text"></label>
+          <label class="field"><span class="lbl">Country</span><input data-key="birth_country" type="text"></label>
         </div>
         <div class="section-lbl" style="margin:15px 0 7px">Current Address <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— most recent residence, not birthplace</span></div>
         <div class="grid-row" style="display:grid;grid-template-columns:2fr .6fr 1.2fr .7fr .9fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">Street</span><input type="text"></label>
-          <label class="field"><span class="lbl">Unit</span><input type="text"></label>
-          <label class="field"><span class="lbl">City</span><input type="text"></label>
-          <label class="field"><span class="lbl">State</span><input type="text"></label>
-          <label class="field"><span class="lbl">Zip</span><input type="text"></label>
+          <label class="field"><span class="lbl">Street</span><input data-key="res_street" type="text"></label>
+          <label class="field"><span class="lbl">Unit</span><input data-key="res_unit" type="text"></label>
+          <label class="field"><span class="lbl">City</span><input data-key="res_city" type="text"></label>
+          <label class="field"><span class="lbl">State</span><input data-key="res_state" type="text"></label>
+          <label class="field"><span class="lbl">Zip</span><input data-key="res_zip" type="text"></label>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:11px 16px">
-          <label class="field"><span class="lbl">Length of Time at This Address</span><input type="text" placeholder="e.g. 12 years"></label>
-          <div><span class="lbl" style="display:block;margin-bottom:6px">Inside City Limits?</span><div style="display:flex;gap:16px"><label class="check-item"><input type="checkbox"><span>Yes</span></label><label class="check-item"><input type="checkbox"><span>No</span></label></div></div>
-          <div><span class="lbl" style="display:block;margin-bottom:6px">Tribal Reservation?</span><div style="display:flex;gap:16px"><label class="check-item"><input type="checkbox"><span>Yes</span></label><label class="check-item"><input type="checkbox"><span>No</span></label></div></div>
+          <label class="field"><span class="lbl">Length of Time at This Address</span><input data-key="res_length" type="text" placeholder="e.g. 12 years"></label>
+          <div><span class="lbl" style="display:block;margin-bottom:6px">Inside City Limits?</span><div style="display:flex;gap:16px"><label class="check-item"><input data-key="cl_yes" type="checkbox"><span>Yes</span></label><label class="check-item"><input data-key="cl_no" type="checkbox"><span>No</span></label></div></div>
+          <div><span class="lbl" style="display:block;margin-bottom:6px">Tribal Reservation?</span><div style="display:flex;gap:16px"><label class="check-item"><input data-key="tr_yes" type="checkbox"><span>Yes</span></label><label class="check-item"><input data-key="tr_no" type="checkbox"><span>No</span></label></div></div>
         </div>
         <div style="margin-top:12px"><span class="lbl" style="display:block;margin-bottom:6px">Did they experience homelessness at the time of, or in the month before, death? <span style="text-transform:none;letter-spacing:0;color:#9aa2ac;font-weight:400">— a required question that Washington State collects for its records; it does not appear on the death certificate itself</span></span>
           <div class="check-row" style="gap:9px 20px">
-            <label class="check-item"><input type="checkbox"><span>Yes</span></label>
-            <label class="check-item"><input type="checkbox"><span>Probably</span></label>
-            <label class="check-item"><input type="checkbox"><span>No</span></label>
-            <label class="check-item"><input type="checkbox"><span>Unknown</span></label>
+            <label class="check-item"><input data-key="hl_yes" type="checkbox"><span>Yes</span></label>
+            <label class="check-item"><input data-key="hl_prob" type="checkbox"><span>Probably</span></label>
+            <label class="check-item"><input data-key="hl_no" type="checkbox"><span>No</span></label>
+            <label class="check-item"><input data-key="hl_unknown" type="checkbox"><span>Unknown</span></label>
           </div>
         </div>
       </div>
@@ -220,35 +282,35 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <p class="note" id="workNote">Please give their usual occupation — not &ldquo;retired.&rdquo;</p>
         <div style="margin-bottom:12px"><span class="lbl" style="display:block;margin-bottom:7px">Highest Level of Education</span>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 18px">
-            <label class="check-item"><input type="checkbox"><span>8th grade or less</span></label>
-            <label class="check-item"><input type="checkbox"><span>9th–12th, no diploma</span></label>
-            <label class="check-item"><input type="checkbox"><span>High school diploma or GED</span></label>
-            <label class="check-item"><input type="checkbox"><span>Some college, no degree</span></label>
-            <label class="check-item"><input type="checkbox"><span>Associate degree</span></label>
-            <label class="check-item"><input type="checkbox"><span>Bachelor's degree</span></label>
-            <label class="check-item"><input type="checkbox"><span>Master's degree</span></label>
-            <label class="check-item"><input type="checkbox"><span>Doctorate / professional degree</span></label>
+            <label class="check-item"><input data-key="edu_0" type="checkbox"><span>8th grade or less</span></label>
+            <label class="check-item"><input data-key="edu_1" type="checkbox"><span>9th–12th, no diploma</span></label>
+            <label class="check-item"><input data-key="edu_2" type="checkbox"><span>High school diploma or GED</span></label>
+            <label class="check-item"><input data-key="edu_3" type="checkbox"><span>Some college, no degree</span></label>
+            <label class="check-item"><input data-key="edu_4" type="checkbox"><span>Associate degree</span></label>
+            <label class="check-item"><input data-key="edu_5" type="checkbox"><span>Bachelor's degree</span></label>
+            <label class="check-item"><input data-key="edu_6" type="checkbox"><span>Master's degree</span></label>
+            <label class="check-item"><input data-key="edu_7" type="checkbox"><span>Doctorate / professional degree</span></label>
           </div>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">Usual Occupation <span style="text-transform:none;letter-spacing:0;color:#c8540a;font-weight:600">(not &ldquo;retired&rdquo;)</span></span><input type="text"></label>
-          <label class="field"><span class="lbl">Kind of Business / Industry</span><input type="text" placeholder="Not a company name"></label>
+          <label class="field"><span class="lbl">Usual Occupation <span style="text-transform:none;letter-spacing:0;color:#c8540a;font-weight:600">(not &ldquo;retired&rdquo;)</span></span><input data-key="occupation" type="text"></label>
+          <label class="field"><span class="lbl">Kind of Business / Industry</span><input data-key="industry" type="text" placeholder="Not a company name"></label>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:.7fr 2fr;gap:11px 18px;margin-bottom:11px;align-items:start">
-          <div><span class="lbl" style="display:block;margin-bottom:6px" id="armedLabel">U.S. Armed Forces?</span><div style="display:flex;gap:16px"><label class="check-item"><input type="checkbox"><span>Yes</span></label><label class="check-item"><input type="checkbox"><span>No</span></label></div></div>
+          <div><span class="lbl" style="display:block;margin-bottom:6px" id="armedLabel">U.S. Armed Forces?</span><div style="display:flex;gap:16px"><label class="check-item"><input data-key="af_yes" type="checkbox"><span>Yes</span></label><label class="check-item"><input data-key="af_no" type="checkbox"><span>No</span></label></div></div>
           <div><span class="lbl" style="display:block;margin-bottom:6px" id="maritalLabel">Marital Status at Time of Death</span>
             <div class="check-row">
-              <label class="check-item"><input type="checkbox"><span>Never Married</span></label>
-              <label class="check-item"><input type="checkbox"><span>Married</span></label>
-              <label class="check-item"><input type="checkbox"><span>Domestic Partner</span></label>
-              <label class="check-item"><input type="checkbox"><span>Divorced</span></label>
-              <label class="check-item"><input type="checkbox"><span>Widowed</span></label>
-              <label class="check-item"><input type="checkbox"><span>Separated</span></label>
-              <label class="check-item"><input type="checkbox"><span>Unknown</span></label>
+              <label class="check-item"><input data-key="mar_0" type="checkbox"><span>Never Married</span></label>
+              <label class="check-item"><input data-key="mar_1" type="checkbox"><span>Married</span></label>
+              <label class="check-item"><input data-key="mar_2" type="checkbox"><span>Domestic Partner</span></label>
+              <label class="check-item"><input data-key="mar_3" type="checkbox"><span>Divorced</span></label>
+              <label class="check-item"><input data-key="mar_4" type="checkbox"><span>Widowed</span></label>
+              <label class="check-item"><input data-key="mar_5" type="checkbox"><span>Separated</span></label>
+              <label class="check-item"><input data-key="mar_6" type="checkbox"><span>Unknown</span></label>
             </div>
           </div>
         </div>
-        <label class="field"><span class="lbl" id="spouseLabel">Surviving Spouse or Domestic Partner Name</span><input type="text" placeholder="Give name prior to first marriage, if applicable"></label>
+        <label class="field"><span class="lbl" id="spouseLabel">Surviving Spouse or Domestic Partner Name</span><input data-key="spouse" type="text" placeholder="Give name prior to first marriage, if applicable"></label>
       </div>
 
       <!-- 5: PARENTS -->
@@ -257,14 +319,14 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <h2 id="familyLabel">Their Parents</h2>
         <p class="note" id="familyNote">Including their mother's name before she first married.</p>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr .6fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl">Father — First Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Middle Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Suffix</span><input type="text"></label>
+          <label class="field"><span class="lbl">Father — First Name</span><input data-key="father_first" type="text"></label>
+          <label class="field"><span class="lbl">Middle Name</span><input data-key="father_middle" type="text"></label>
+          <label class="field"><span class="lbl">Suffix</span><input data-key="father_suffix" type="text"></label>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px 16px">
-          <label class="field"><span class="lbl">Mother — First Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Middle Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Last Name (before first marriage)</span><input type="text"></label>
+          <label class="field"><span class="lbl">Mother — First Name</span><input data-key="mother_first" type="text"></label>
+          <label class="field"><span class="lbl">Middle Name</span><input data-key="mother_middle" type="text"></label>
+          <label class="field"><span class="lbl">Last Name (before first marriage)</span><input data-key="mother_maiden" type="text"></label>
         </div>
       </div>
 
@@ -275,13 +337,13 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <p class="note">Where I would like my service or celebration of life to be held.</p>
         <div style="margin-bottom:12px"><span class="lbl" style="display:block;margin-bottom:7px">Preferred Location</span>
           <div class="check-row" style="gap:9px 22px">
-            <label class="check-item"><input type="checkbox"><span>Funeral Home</span></label>
-            <label class="check-item"><input type="checkbox"><span>Place of Worship</span></label>
-            <label class="check-item"><input type="checkbox"><span>Outside Venue</span></label>
-            <label class="check-item"><input type="checkbox"><span>Other</span></label>
+            <label class="check-item"><input data-key="svc_0" type="checkbox"><span>Funeral Home</span></label>
+            <label class="check-item"><input data-key="svc_1" type="checkbox"><span>Place of Worship</span></label>
+            <label class="check-item"><input data-key="svc_2" type="checkbox"><span>Outside Venue</span></label>
+            <label class="check-item"><input data-key="svc_3" type="checkbox"><span>Other</span></label>
           </div>
         </div>
-        <label class="field"><span class="lbl">Address of venue, place of worship, or other location</span><input type="text"></label>
+        <label class="field"><span class="lbl">Address of venue, place of worship, or other location</span><input data-key="service_address" type="text"></label>
       </div>
 
       <!-- 6/7: CONTACT -->
@@ -290,27 +352,30 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <h2 id="informantLabel">About You (the Informant)</h2>
         <p class="note" id="informantNote">So we know who to reach with any questions.</p>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr;gap:11px 16px;margin-bottom:11px">
-          <label class="field"><span class="lbl" id="contactNameLabel">Your Name</span><input type="text"></label>
-          <label class="field"><span class="lbl">Relationship</span><input type="text"></label>
+          <label class="field"><span class="lbl" id="contactNameLabel">Your Name</span><input data-key="contact_name" type="text"></label>
+          <label class="field"><span class="lbl">Relationship</span><input data-key="contact_relationship" type="text"></label>
         </div>
-        <label class="field" style="margin-bottom:11px"><span class="lbl">Address</span><input type="text" placeholder="Street, City, State, Zip"></label>
+        <label class="field" style="margin-bottom:11px"><span class="lbl">Address</span><input data-key="contact_address" type="text" placeholder="Street, City, State, Zip"></label>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr;gap:11px 16px">
-          <label class="field"><span class="lbl">Phone</span><input type="text"></label>
-          <label class="field"><span class="lbl">Email</span><input type="email"></label>
+          <label class="field"><span class="lbl">Phone</span><input data-key="contact_phone" data-mask="phone" type="text" placeholder="(XXX) XXX-XXXX"></label>
+          <label class="field"><span class="lbl">Email</span><input data-key="contact_email" type="email"></label>
         </div>
       </div>
 
       <!-- CERTIFIED COPIES (at-need only) -->
       <div id="certCopies" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:12px;padding:11px 14px;background:#f8f6f2;border:1px solid #e6e1d7;border-radius:4px">
         <span style="font:600 10px 'Source Sans 3',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#c8540a">Certified Copies of the Death Certificate Needed</span>
-        <input type="text" placeholder="How many?" style="width:80px">
+        <input data-key="cert_copies" type="text" placeholder="How many?" style="width:80px">
         <span style="font:italic 400 12px/1.4 'Newsreader',Georgia,serif;color:#9aa2ac">Most families order several — one for each bank, insurer, and agency. We can help you decide.</span>
       </div>
 
-      <!-- KEEPSAKE NOTE (pre-need only) -->
-      <p id="keepsakeNote" style="display:none;text-align:center;margin:14px auto 0;max-width:560px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
-
     </div>
+
+    <!-- KEEPSAKE NOTE (pre-need only). Deliberately a sibling of .wsbody, not a
+         child: .wsbody becomes a two-column block when printing, and a trailing
+         paragraph inside it must fit the foot of the last column or it is pushed
+         onto a sheet of its own — this one sentence was costing a whole page. -->
+    <p id="keepsakeNote" style="display:none;text-align:center;margin:14px auto 0;padding:0 30px 20px;max-width:620px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
 
     <!-- FOOTER -->
     <div class="wsfooter" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 32px;border-top:1px solid #e6e1d7;background:#f8f6f2;flex-wrap:wrap;text-align:center">
@@ -376,28 +441,11 @@ function resetForm() {
   });
 }
 
-window.addEventListener('beforeprint', function() {
-  var sheet = document.querySelector('.sheet');
-  if (!sheet) return;
-  sheet.style.zoom = '';
-  var w = sheet.getBoundingClientRect().width;
-  var printableW = 816;
-  if (mode === 'preneed') {
-    if (w > printableW) sheet.style.zoom = printableW / w;
-    return;
-  }
-  document.documentElement.classList.add('compact');
-  var h = sheet.scrollHeight;
-  var printableH = 1056;
-  var s = Math.min(printableW / w, printableH / h, 1);
-  if (s < 1) sheet.style.zoom = s;
-});
-
-window.addEventListener('afterprint', function() {
-  var sheet = document.querySelector('.sheet');
-  if (sheet) sheet.style.zoom = '';
-  document.documentElement.classList.remove('compact');
-});
+/* The print layout is entirely in the @media print block at the top of this file.
+   There is deliberately no beforeprint handler: the previous one scaled the sheet
+   with `zoom` against a hardcoded 816x1056 printable box, which is wrong for any
+   print dialog not set to zero margins and no header/footer, and a no-op wherever
+   `beforeprint` does not fire. See the comment on the print stylesheet. */
 
 /* ── Fillable PDF generation via pdf-lib ── */
 /* At-need  → two-column, single Letter page (compact, print-ready).
@@ -439,29 +487,109 @@ var SEX_L = ['Male','Female','Unknown','X (non-binary)'];
 var SEX_K = ['sex_male','sex_female','sex_unknown','sex_x'];
 var HL_L = ['Yes','Probably','No','Unknown'];
 var HL_K = ['hl_yes','hl_prob','hl_no','hl_unknown'];
+/* Sub-category of Sex, asked only when it differs (see the note on the form). */
+var SEXB_L = ['Male','Female'];
+var SEXB_K = ['sex_birth_male','sex_birth_female'];
 
-/* On-screen input order → stable keys (same DOM for both modes). */
+/* The key registry. Every input inside .sheet carries its key in data-key and the
+   PDF pre-fill looks it up BY KEY — never by position.
+   Before 2026-08-15 the pre-fill zipped querySelectorAll() against these arrays by
+   index, so adding the Sex-at-birth pair to the form (2026-07-27) without adding its
+   keys here shifted every checkbox from index 4 on by two: the PDF came back with
+   the marks scattered onto unrelated questions. These arrays are now documentation
+   plus the integrity check below, not the lookup mechanism. */
 var TEXT_KEYS = ['first_name','middle_name','last_name','suffix','dob','ssn','alias_1','alias_2','alias_3','race_specify',
   'birth_city','birth_county','birth_state','birth_country','res_street','res_unit','res_city','res_state','res_zip',
   'res_length','occupation','industry','spouse','father_first','father_middle','father_suffix',
   'mother_first','mother_middle','mother_maiden','service_address','contact_name','contact_relationship',
   'contact_address','contact_phone','contact_email','cert_copies'];
-var CHECK_KEYS = SEX_K
+var CHECK_KEYS = SEX_K.concat(SEXB_K)
   .concat(HISP_K).concat(RACE_K)
   .concat(['cl_yes','cl_no','tr_yes','tr_no']).concat(HL_K)
   .concat(EDU_K).concat(['af_yes','af_no']).concat(MAR_K).concat(SVC_K);
+
+/* Loud on the console the moment the form and the registry disagree — the exact
+   drift that produced the scattered-checkbox bug. Returns the problems it found so
+   a test can assert on it instead of scraping console output. */
+function auditWorksheetKeys() {
+  var problems = [];
+  var seen = {};
+  document.querySelectorAll('.sheet input').forEach(function(el) {
+    var k = el.getAttribute('data-key');
+    if (!k) { problems.push('input with no data-key: ' + (el.placeholder || el.type)); return; }
+    if (seen[k]) problems.push('duplicate data-key: ' + k);
+    seen[k] = true;
+    var reg = el.type === 'checkbox' ? CHECK_KEYS : TEXT_KEYS;
+    if (reg.indexOf(k) < 0) problems.push('data-key not in registry: ' + k);
+  });
+  TEXT_KEYS.concat(CHECK_KEYS).forEach(function(k) {
+    if (!seen[k]) problems.push('registry key has no input: ' + k);
+  });
+  if (problems.length) console.warn('vital-worksheet key audit:\n  ' + problems.join('\n  '));
+  return problems;
+}
+document.addEventListener('DOMContentLoaded', auditWorksheetKeys);
+
+/* ── Input masks ──────────────────────────────────────────────────────────────
+   The operator types raw digits; the field re-renders formatted on every
+   keystroke. Values flow to the PDF exactly as displayed. */
+
+/* Digits into fixed-width groups joined by separators.
+   eager (typing) closes a completed group with its separator right away, so the
+   4th date digit lands as "MM/DD/". Non-eager (deleting) never leaves a trailing
+   separator, so backspace walks straight through one instead of sticking on it. */
+function _maskDigits(raw, sizes, seps, eager) {
+  var total = 0, i;
+  for (i = 0; i < sizes.length; i++) total += sizes[i];
+  var d = String(raw).replace(/\D/g, '').slice(0, total);
+  var out = '', p = 0;
+  for (i = 0; i < sizes.length && p < d.length; i++) {
+    if (i > 0) out += seps[i - 1];
+    out += d.slice(p, p + sizes[i]);
+    p += sizes[i];
+  }
+  if (eager && d.length && p === d.length && i < sizes.length) out += seps[i - 1];
+  return out;
+}
+
+/* Ported from index.html's formatPhoneInput (the RIC/GA/ClearPoint builders) so
+   both surfaces mask phone numbers identically. */
+function formatPhoneInput(inp) {
+  var digits = inp.value.replace(/\D/g, '').slice(0, 10);
+  var formatted = digits;
+  if (digits.length > 6)      formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6);
+  else if (digits.length > 3) formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3);
+  else if (digits.length > 0) formatted = '(' + digits;
+  inp.value = formatted;
+}
+
+var WS_MASKS = {
+  phone: function(el)        { formatPhoneInput(el); },
+  date:  function(el, eager) { el.value = _maskDigits(el.value, [2,2,4], ['/','/'], eager); },
+  ssn:   function(el, eager) { el.value = _maskDigits(el.value, [3,2,4], ['-','-'], eager); }
+};
+document.addEventListener('DOMContentLoaded', function initMasks() {
+  document.querySelectorAll('.sheet input[data-mask]').forEach(function(el) {
+    el.addEventListener('input', function(ev) {
+      var eager = !(ev.inputType && ev.inputType.indexOf('delete') === 0);
+      var fn = WS_MASKS[el.getAttribute('data-mask')];
+      if (fn) fn(el, eager);
+    });
+  });
+});
 
 async function saveFillablePDF() {
   await loadPdfLib();
   var P = window.PDFLib;
   var pre = mode === 'preneed';
 
-  // Pre-fill maps keyed by stable name (skips hidden/mode-specific inputs cleanly).
-  var tin = document.querySelectorAll('.sheet input[type="text"], .sheet input[type="email"]');
-  var cin = document.querySelectorAll('.sheet input[type="checkbox"]');
+  // Pre-fill maps keyed by the input's own data-key. Position is never consulted, so
+  // adding, removing or reordering a field on the form cannot mis-key the PDF.
   var valByKey = {}, chkByKey = {};
-  for (var i=0;i<TEXT_KEYS.length;i++){ if (tin[i]) valByKey[TEXT_KEYS[i]] = tin[i].value; }
-  for (var i=0;i<CHECK_KEYS.length;i++){ if (cin[i]) chkByKey[CHECK_KEYS[i]] = cin[i].checked; }
+  document.querySelectorAll('.sheet input[data-key]').forEach(function(el) {
+    if (el.type === 'checkbox') chkByKey[el.getAttribute('data-key')] = el.checked;
+    else valByKey[el.getAttribute('data-key')] = el.value;
+  });
 
   var doc = await P.PDFDocument.create();
   var form = doc.getForm();
@@ -555,7 +683,10 @@ async function saveFillablePDF() {
     var leftBlocks = [
       {k:'section',num:1,eye:'Required Information',title:'About My Loved One'},
       {k:'text',cols:[['First Name','first_name',.32],['Middle Name','middle_name',.28],['Last Name','last_name',.24],['Suffix','suffix',.16]]},
-      {k:'checks',group:'Sex',cols:2,keys:SEX_K,labels:SEX_L},
+      /* Sex at birth rides alongside Sex rather than under it: the at-need sheet is a
+         single page and a second stacked group would cost a row the layout can't spare. */
+      {k:'row',items:[{t:'checks',label:'Sex',frac:.58,cols:2,keys:SEX_K,labels:SEX_L},
+                      {t:'checks',label:'Sex at Birth',frac:.42,cols:2,keys:SEXB_K,labels:SEXB_L}]},
       {k:'row',items:[{t:'text',label:'Date of Birth',key:'dob',frac:.5},{t:'text',label:'Social Security Number',key:'ssn',frac:.5}]},
       {k:'row',items:[{t:'text',label:'First AKA',key:'alias_1',frac:.34},{t:'text',label:'Second AKA',key:'alias_2',frac:.33},{t:'text',label:'Third AKA',key:'alias_3',frac:.33}]},
       {k:'section',num:2,eye:'Required on the Certificate',title:'Ethnicity & Race'},
@@ -659,6 +790,8 @@ async function saveFillablePDF() {
       {k:'section',num:1,eye:'Required Information',title:'About Me'},
       {k:'text',cols:[['First Name','first_name',.34],['Middle Name','middle_name',.30],['Last Name','last_name',.22],['Suffix','suffix',.14]]},
       {k:'checks',group:'Sex',cols:4,keys:SEX_K,labels:SEX_L},
+      /* The pre-need sheet auto-paginates, so this one gets its own row and the full label. */
+      {k:'checks',group:'Sex at birth — only if different from above',cols:4,keys:SEXB_K,labels:SEXB_L},
       {k:'row',items:[{t:'text',label:'Date of Birth',key:'dob',frac:.45},{t:'text',label:'Social Security Number',key:'ssn',frac:.55}]},
       {k:'row',items:[{t:'text',label:'First AKA',key:'alias_1',frac:.34},{t:'text',label:'Second AKA',key:'alias_2',frac:.33},{t:'text',label:'Third AKA',key:'alias_3',frac:.33}]},
       {k:'section',num:2,eye:'Required on the Certificate',title:'Ethnicity & Race'},

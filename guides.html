@@ -86,8 +86,29 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
 .search input::placeholder{color:#9a8f7a}
 .search-count{font-size:12.5px;color:var(--meta);margin-top:10px;min-height:1em}
 
+/* quick-jump — the .contents pill row from pcm-design-catalog.html, restyled on
+   this page's warm tokens. Anchor jumps only; the search box already matches
+   category names, so these deliberately do not double as filters.
+   Sticky under the 74px site header; scroll-margin-top on .category keeps the
+   heading clear of both bars when a pill lands on it.
+   ONE ROW, scrolled sideways, never wrapped: wrapping made the bar 168px tall on a
+   390px phone and 90px on a tablet, and a sticky bar that tall covers the very
+   heading the pill just jumped to. Nowrap keeps it ~51px at every width, so the
+   fixed scroll-margin below is correct everywhere. It fits without scrolling on
+   desktop, so no scrollbar appears there. */
+.quick-jump{position:sticky;top:74px;z-index:90;display:flex;gap:8px;flex-wrap:nowrap;align-items:center;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  margin:14px -10px 0;padding:10px;background:var(--paper);border-radius:10px}
+.quick-jump a{display:inline-flex;align-items:baseline;gap:7px;font-size:12.5px;font-weight:600;line-height:1;
+  color:var(--serif-ink);text-decoration:none;background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--r-pill);padding:7px 13px;white-space:nowrap;transition:border-color .12s ease,color .12s ease}
+.quick-jump a:hover{border-color:var(--navy-500);color:var(--navy-500)}
+.quick-jump a:focus-visible{outline:0;box-shadow:var(--ring)}
+.quick-jump .qj-count{font-size:11px;font-weight:600;color:var(--pill-ink);background:var(--pill-bg);
+  border-radius:999px;padding:2px 7px}
+
 /* category */
-.category{margin-top:38px}
+.category{margin-top:38px;scroll-margin-top:132px}
 .category-header{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
 .category-header h2{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--serif-ink);white-space:nowrap}
 .cat-rule{flex:1;height:1px;background:linear-gradient(90deg,#d9cdb6,transparent)}
@@ -137,7 +158,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
   .header-div,.header-title{display:none}
 }
 @media print{
-  .site-header,.search,.search-count,.header-back{display:none!important}
+  .site-header,.search,.search-count,.quick-jump,.header-back{display:none!important}
   body{background:#fff}
   .guide-card{break-inside:avoid;page-break-inside:avoid;box-shadow:none}
   .guide-cta::after{display:none}
@@ -169,9 +190,19 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
   </div>
   <div class="search-count" id="filterCount"></div>
 
+  <nav class="quick-jump" id="quickJump" aria-label="Jump to a category">
+    <a href="#cat-getting-started">Getting Started <span class="qj-count">16</span></a>
+    <a href="#cat-burial-cremation">Burial &amp; Cremation <span class="qj-count">4</span></a>
+    <a href="#cat-markers-memorials">Markers &amp; Memorials <span class="qj-count">5</span></a>
+    <a href="#cat-caskets-urns-vaults">Caskets, Urns &amp; Vaults <span class="qj-count">7</span></a>
+    <a href="#cat-maps">Maps <span class="qj-count">10</span></a>
+    <a href="#cat-letters-forms">Letters &amp; Forms <span class="qj-count">4</span></a>
+    <a href="#cat-sample-quotes">Sample Quotes <span class="qj-count">1</span></a>
+  </nav>
+
   <div id="categories">
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-getting-started" data-cat>
       <div class="category-header">
         <h2>Getting Started</h2>
         <div class="cat-rule"></div>
@@ -277,7 +308,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-burial-cremation" data-cat>
       <div class="category-header">
         <h2>Burial &amp; Cremation</h2>
         <div class="cat-rule"></div>
@@ -311,7 +342,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-markers-memorials" data-cat>
       <div class="category-header">
         <h2>Markers &amp; Memorials</h2>
         <div class="cat-rule"></div>
@@ -351,7 +382,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-caskets-urns-vaults" data-cat>
       <div class="category-header">
         <h2>Caskets, Urns &amp; Vaults</h2>
         <div class="cat-rule"></div>
@@ -403,7 +434,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-maps" data-cat>
       <div class="category-header">
         <h2>Maps</h2>
         <div class="cat-rule"></div>
@@ -486,7 +517,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-letters-forms" data-cat>
       <div class="category-header">
         <h2>Letters &amp; Forms</h2>
         <div class="cat-rule"></div>
@@ -520,7 +551,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--pape
       </div>
     </div>
 
-    <div class="category" data-cat>
+    <div class="category" id="cat-sample-quotes" data-cat>
       <div class="category-header">
         <h2>Sample Quotes</h2>
         <div class="cat-rule"></div>
