@@ -151,6 +151,17 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <input type="text" id="paymentAmount" placeholder="e.g. $3,500.00">
       </div>
       <div class="field">
+        <label for="cemAmount">Cemetery Amount <span class="hint">Optional. Fill this and the one below when the balance covers both sides, and the letter shows all three figures.</span>
+        </label>
+        <input type="text" id="cemAmount" placeholder="e.g. $2,100.00">
+      </div>
+      <div class="field">
+        <label for="fhAmount">Funeral Home Amount
+          <span class="hint">Optional. Leave both blank to send the letter exactly as before.</span>
+        </label>
+        <input type="text" id="fhAmount" placeholder="e.g. $1,400.00">
+      </div>
+      <div class="field">
         <label for="paymentFor">Payment For
           <span class="hint">What the payment covers</span>
         </label>
@@ -310,17 +321,59 @@ function setMode(m) {
   render();
 }
 
-var fields = ['recipientName','paymentAmount','paymentFor','serviceDate','contractNum'];
+var fields = ['recipientName','paymentAmount','cemAmount','fhAmount','paymentFor','serviceDate','contractNum'];
 fields.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+
+// Optional cemetery/funeral-home split. Both blank is the old behaviour, byte for byte: the
+// letter runs off the single Payment Amount and no extra block appears. Fill either one and the
+// letter shows both sides and their sum, and that sum becomes the amount the letter quotes.
+function parseMoney(v) {
+  if (!v) return null;
+  var n = parseFloat(String(v).replace(/[$,\s]/g, ''));
+  return isFinite(n) ? n : null;
+}
+function fmtMoney(n) {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function getSplit() {
+  var cemRaw = document.getElementById('cemAmount').value.trim();
+  var fhRaw  = document.getElementById('fhAmount').value.trim();
+  if (!cemRaw && !fhRaw) return null;
+  var cem = parseMoney(cemRaw), fh = parseMoney(fhRaw);
+  // Only compute a sum when every side that was filled in is actually a number. If one is typed
+  // as free text the letter still lists what was typed and falls back to the Payment Amount.
+  var total = null;
+  if ((!cemRaw || cem !== null) && (!fhRaw || fh !== null)) total = (cem || 0) + (fh || 0);
+  return {
+    cemRaw: cemRaw, fhRaw: fhRaw,
+    cemText: cem !== null ? fmtMoney(cem) : cemRaw,
+    fhText:  fh  !== null ? fmtMoney(fh)  : fhRaw,
+    total: total, totalText: total !== null ? fmtMoney(total) : null
+  };
+}
+function splitBlockHTML(split) {
+  if (!split) return '';
+  var h = '<div class="pay-section" id="splitBlock">'
+        + '<div class="pay-header">How the total breaks down</div>';
+  if (split.cemRaw) h += '<div class="pay-detail"><b>Cemetery:</b> ' + esc(split.cemText) + '</div>';
+  if (split.fhRaw)  h += '<div class="pay-detail"><b>Funeral home:</b> ' + esc(split.fhText) + '</div>';
+  if (split.totalText) h += '<div class="pay-detail"><b>Total:</b> ' + esc(split.totalText) + '</div>';
+  return h + '</div>';
+}
 
 function render() {
   var recipientName = val('recipientName', 'Family Contact');
-  var paymentAmount = valAmount('paymentAmount', 'Amount');
+  var split = getSplit();
+  // The split total, when there is one, is the figure the letter quotes and the figure the
+  // family types into the portal, so the two can never disagree.
+  var paymentAmount = split && split.totalText
+    ? '<span class="amount-hl" style="font-size:18px;font-weight:700;color:#466e86;">' + esc(split.totalText) + '</span>'
+    : valAmount('paymentAmount', 'Amount');
   var paymentFor = val('paymentFor', 'What For');
   var contractNum = val('contractNum', 'Contract #');
 
   var amountRaw = document.getElementById('paymentAmount').value.trim();
-  var portalAmount = amountRaw || '[Amount]';
+  var portalAmount = (split && split.totalText) || amountRaw || '[Amount]';
   var paymentForRaw = document.getElementById('paymentFor').value.trim();
   var portalInfo = paymentForRaw || '[What For]';
   var contractRaw = document.getElementById('contractNum').value.trim();
@@ -330,13 +383,13 @@ function render() {
   document.getElementById('letterMeta').textContent = nameRaw ? 'To: ' + nameRaw : '';
 
   if (mode === 'atneed') {
-    renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract);
+    renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract, split);
   } else {
-    renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract);
+    renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract, split);
   }
 }
 
-function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract) {
+function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract, split) {
   var deadlines = getDeadlines();
   var box = document.getElementById('deadlinesBox');
 
@@ -361,6 +414,8 @@ function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, po
     '<p>Hi ' + recipientName + ',</p>' +
 
     '<p>Per our conversation, below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. The total balance of ' + paymentAmount + ' is due in full prior to the date of service. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount is received by the deadlines below.</p>' +
+
+    splitBlockHTML(split) +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay Online via Credit or Debit Card — due by ' + cardDeadline + '</div>' +
@@ -401,13 +456,15 @@ function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, po
     '</div>';
 }
 
-function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract) {
+function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, portalInfo, portalContract, split) {
   document.getElementById('deadlinesBox').style.display = 'none';
 
   document.getElementById('letter').innerHTML =
     '<p>Hi ' + recipientName + ',</p>' +
 
     '<p>It was great speaking with you. Below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount of ' + paymentAmount + ' is received.</p>' +
+
+    splitBlockHTML(split) +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay Online via Credit or Debit Card</div>' +
