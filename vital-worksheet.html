@@ -31,31 +31,93 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
 .card h2{font:400 20px/1.15 'Newsreader',Georgia,serif;color:#466e86;margin:0 0 3px}
 .card .note{font:italic 400 13px/1.5 'Newsreader',Georgia,serif;color:#6a7686;margin:0 0 14px}
 
-/* Compact mode (at-need print) */
-.compact .wsheader{padding:5px 16px !important;border-bottom-width:1px !important}
-.compact .wsheader .intro{display:none !important}
-.compact .wsheader h1{font-size:18px !important}
-.compact .wsbody{column-count:2;column-gap:12px;padding:6px 14px 6px !important}
-.compact .card{padding:7px 12px !important;margin-bottom:5px !important;box-shadow:none !important;break-inside:avoid;border:none !important;border-bottom:1px solid #e6e1d7 !important;border-radius:0 !important}
-.compact .card .note{display:none !important}
-.compact .card .eyebrow{margin-bottom:4px !important;padding-bottom:3px !important}
-.compact .card h2{font-size:14px !important;margin:0 0 1px !important}
-.compact .wsbody div.grid-row{grid-template-columns:1fr 1fr !important;gap:3px 10px !important}
-.compact .check-row{gap:3px 10px !important}
-.compact .check-item{font-size:12px !important}
-.compact .lbl{font-size:9px !important}
-.compact input[type="text"],.compact input[type="email"]{font-size:12px !important;padding:2px 1px 1px !important}
-.compact input[type="checkbox"]{width:12px !important;height:12px !important;min-width:12px !important}
-.compact .wsfooter{padding:4px 16px !important}
-.compact .wsfooter img{height:20px !important}
-.compact .wsfooter div{font-size:11px !important}
+/* ── PRINT ────────────────────────────────────────────────────────────────────
+   The direct browser print (Ctrl+P) has to match the fillable PDF's economy:
+   two columns, every field and label kept, hard cap 3 pages and 2 in practice.
 
+   This is deliberately PURE CSS. It used to be a `beforeprint` handler that set
+   `sheet.style.zoom` against a HARDCODED 816x1056 printable box. That only holds
+   when the print dialog happens to be on zero margins with no browser
+   header/footer; with any other dialog setting it scales against the wrong box,
+   and in a browser where `beforeprint` does not fire or `zoom` is unsupported it
+   does nothing at all — which is the shape of "prints too many pages on my
+   machine but not on yours". CSS reflows into whatever printable area the dialog
+   actually gives, so the page count no longer depends on the dialog's settings,
+   on `beforeprint` firing, or on `zoom` being supported anywhere.
+
+   @page margin stays 0 so the blue header and cream footer keep their full
+   bleed; .wsbody carries its own 24px (0.25in) inset so no FIELD sits in a
+   printer's unprintable edge. Nothing uses `column-span` — a spanner after a
+   page break strands empty pages. */
 @media print{
   .no-print{display:none !important}
   body{background:#fff}
-  .sheet{box-shadow:none !important;margin:0 !important;border:none !important;border-radius:0 !important}
-  .print-wrap{padding:0 !important}
+  /* overflow:visible is load-bearing, not tidying. The .sheet div carries an inline
+     overflow:hidden (it clips the rounded corners on screen), which makes the box
+     monolithic: Chrome cannot fragment it across pages, so as soon as the content
+     exceeded one page it pushed the WHOLE sheet to page 2 and printed a
+     header-only blank first page. Only pre-need was long enough to trigger it. */
+  .sheet{box-shadow:none !important;margin:0 !important;border:none !important;
+    border-radius:0 !important;overflow:visible !important}
+  .print-wrap{padding:0 !important;max-width:none !important}
   @page{margin:0}
+
+  .wsheader{padding:7px 24px !important;border-bottom-width:2px !important}
+  .wsheader .intro{display:none !important}
+  .wsheader h1{font-size:17px !important}
+  .wsheader img{height:25px !important}
+
+  /* two columns in BOTH modes — pre-need was single-column, which is what made
+     it a 3-page print */
+  .wsbody{column-count:2;column-gap:16px;padding:9px 24px 4px !important}
+
+  /* Cards may FLOW across the column break; individual rows may not.
+     Holding whole cards together stranded a ~350px gap at the foot of column
+     one (a tall card that would not fit jumped the column), which pushed the
+     Contact card onto a second, 85%-empty page. Letting the card flow while
+     keeping every label+input row and every check group atomic packs the
+     columns with no gap and no split field. */
+  .card{padding:0 0 5px !important;margin:0 0 6px !important;box-shadow:none !important;
+    border:none !important;border-bottom:1px solid #e6e1d7 !important;border-radius:0 !important;
+    break-inside:auto;page-break-inside:auto}
+  .card .note{display:none !important}
+  .card .eyebrow{margin:0 0 4px !important;padding-bottom:3px !important;font-size:8.5px !important;
+    break-inside:avoid;break-after:avoid;page-break-after:avoid}
+  .card h2{font-size:12.5px !important;margin:0 0 3px !important;
+    break-after:avoid;page-break-after:avoid}
+  .section-lbl{break-after:avoid;page-break-after:avoid}
+  /* the atomic units: a row never splits, so a label is never orphaned from its
+     field and a check never leaves its text behind */
+  .wsbody div.grid-row,.check-row,.sheet label.field,.check-item{
+    break-inside:avoid;page-break-inside:avoid}
+  .enum{width:15px !important;height:15px !important;font-size:8.5px !important}
+
+  /* readability floor: labels 8.5px, check text 11px, typed answers 11.5px */
+  .lbl{font-size:8.5px !important;margin-bottom:1px !important}
+  .section-lbl{font-size:8.5px !important}
+  .check-item{font-size:11px !important;gap:6px !important}
+  .check-row{gap:3px 10px !important}
+  input[type="text"],input[type="email"]{font-size:11.5px !important;padding:2px 1px 1px !important}
+  input[type="checkbox"]{width:11px !important;height:11px !important;min-width:11px !important}
+  input[type="checkbox"]:checked::after{left:3px;top:0;width:2px;height:6px}
+
+  /* wide field rows and the 3-up check grids both fold to 2-up inside a column */
+  .wsbody div.grid-row{grid-template-columns:1fr 1fr !important;gap:3px 10px !important;margin-bottom:4px !important}
+  .wsbody div[style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;gap:3px 12px !important}
+
+  #certCopies{padding:5px 9px !important;margin-top:6px !important;gap:4px 8px !important;
+    break-inside:avoid;page-break-inside:avoid}
+  /* The closing keepsake line is one sentence and the LAST thing in the column
+     flow. Left at screen size it overhung page one by a single line, and because
+     a balanced multicol block that is only just too tall gets pushed whole rather
+     than fragmented, that one line cost an entire extra sheet of paper. */
+  #keepsakeNote{font-size:10px !important;margin:0 auto !important;
+    padding:0 24px 4px !important;break-inside:avoid;page-break-inside:avoid}
+  .wsfooter{padding:4px 24px !important;gap:10px !important;
+    break-inside:avoid;page-break-inside:avoid}
+  .wsfooter img{height:15px !important}
+  .wsfooter div{font-size:9px !important}
+  .wsfooter div[style*="height:26px"]{height:15px !important}
 }
 </style>
 </head>
@@ -307,10 +369,13 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <span style="font:italic 400 12px/1.4 'Newsreader',Georgia,serif;color:#9aa2ac">Most families order several — one for each bank, insurer, and agency. We can help you decide.</span>
       </div>
 
-      <!-- KEEPSAKE NOTE (pre-need only) -->
-      <p id="keepsakeNote" style="display:none;text-align:center;margin:14px auto 0;max-width:560px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
-
     </div>
+
+    <!-- KEEPSAKE NOTE (pre-need only). Deliberately a sibling of .wsbody, not a
+         child: .wsbody becomes a two-column block when printing, and a trailing
+         paragraph inside it must fit the foot of the last column or it is pushed
+         onto a sheet of its own — this one sentence was costing a whole page. -->
+    <p id="keepsakeNote" style="display:none;text-align:center;margin:14px auto 0;padding:0 30px 20px;max-width:620px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
 
     <!-- FOOTER -->
     <div class="wsfooter" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 32px;border-top:1px solid #e6e1d7;background:#f8f6f2;flex-wrap:wrap;text-align:center">
@@ -376,28 +441,11 @@ function resetForm() {
   });
 }
 
-window.addEventListener('beforeprint', function() {
-  var sheet = document.querySelector('.sheet');
-  if (!sheet) return;
-  sheet.style.zoom = '';
-  var w = sheet.getBoundingClientRect().width;
-  var printableW = 816;
-  if (mode === 'preneed') {
-    if (w > printableW) sheet.style.zoom = printableW / w;
-    return;
-  }
-  document.documentElement.classList.add('compact');
-  var h = sheet.scrollHeight;
-  var printableH = 1056;
-  var s = Math.min(printableW / w, printableH / h, 1);
-  if (s < 1) sheet.style.zoom = s;
-});
-
-window.addEventListener('afterprint', function() {
-  var sheet = document.querySelector('.sheet');
-  if (sheet) sheet.style.zoom = '';
-  document.documentElement.classList.remove('compact');
-});
+/* The print layout is entirely in the @media print block at the top of this file.
+   There is deliberately no beforeprint handler: the previous one scaled the sheet
+   with `zoom` against a hardcoded 816x1056 printable box, which is wrong for any
+   print dialog not set to zero margins and no header/footer, and a no-op wherever
+   `beforeprint` does not fire. See the comment on the print stylesheet. */
 
 /* ── Fillable PDF generation via pdf-lib ── */
 /* At-need  → two-column, single Letter page (compact, print-ready).
