@@ -1,5 +1,19 @@
 # STATE — Living Ledger
 
+**CUSTOM DOMAIN LIVE 2026-08-15: https://bwquotetool.com** (operator bought it on
+Cloudflare Registrar; director added the 5 DNS records via Claude-in-Chrome — 4×A
+185.199.108-111.153 on @, CNAME www→marticeisme.github.io, ALL grey-cloud DNS
+only — pushed the CNAME file `cfe368f3`, set https_enforced via gh api).
+Wire-verified: apex serves latest bytes over valid HTTPS; the OLD
+marticeisme.github.io/bw-quote-tool URL 301s to the new domain (bookmarks/printed
+links survive); www still 404 at check time — GitHub's www→apex redirect
+propagates on its own; if it's still dead later, add Cloudflare's suggested
+www→root redirect rule (needs the www record flipped to PROXIED for the rule to
+fire — apex records must STAY DNS only or the GitHub cert breaks). Post-s23
+one-liner also live: discount rows render green (`61b20c1a`, .s-split-disc,
+wire-verified). The tool's canonical address for future links/guides is now
+bwquotetool.com.
+
 **s23 PUSHED LIVE 2026-08-15 (operator: "push it all live"; `fbeefab7..ff22cf6c`,
 14 commits) — wire-verified 7/7** (scratch/s23-live-verify.mjs, 2 deploy-lag
 rounds): index.html, vital-worksheet.html, guides.html, payment-options-letter.html,
