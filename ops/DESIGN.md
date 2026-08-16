@@ -120,7 +120,7 @@ actual output.
 | Gate | Command | Expected |
 |---|---|---|
 | JS syntax, every inline block | `npm run check` | `index.html: 8 blocks, 0 errors` |
-| Assertion suites | `npm test` | `2854 passed, 0 failed across 42 suites` — updated s22 close: 2842 + 12 (each new guide adds 5 verify_family_type + 1 family-register assert); NOTE this pin had drifted (read 2461/37 from s17 until s22 close) |
+| Assertion suites | `npm test` | `3063 passed, 0 failed across 46 suites` — updated s23 close: 2854 + 77 Track A (test-ric-line-qty 26 + test-xlsx-print-path 51) + 111 Track B (test-multi-contact-link 59 + test-combined-totals 50 + 2 net reworked asserts) + 21 Track D (test-pcm-catalog 388→409). In a WORKTREE expect −2 (test-contact-csv's wmp-map cross-check skips where wmp-cemetery-map/ is absent) |
 | Page verifiers | `scripts/verify_catalogs.mjs`, `scripts/verify_guides_page.mjs` | run automatically by the push hook on touched surfaces |
 | Generator output | `node scripts/baseline-capture.mjs` + `scripts/baseline-sign.mjs`, diff `signatures.json` | **14/14 scenarios, every signature byte-identical** to the recorded baseline |
 | **RIC in Adobe Acrobat** | by hand, operator only | **required only when a change touches the RIC itself** — its content, fields, or field mapping. Not required when the RIC's bytes are provably unchanged. |

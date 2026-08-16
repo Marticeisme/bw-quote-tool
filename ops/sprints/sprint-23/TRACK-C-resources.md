@@ -94,6 +94,21 @@ your call, show renders. Requirements:
   viewport; render screen + print-emulation screenshots (the nav must be absent
   in print).
 
+## Fix 3 — MID-SPRINT AMENDMENT (operator, in-chat 2026-08-15): printing the
+## worksheet page directly must match the fillable PDF (2–3 pages max)
+
+Printing vital-worksheet.html straight from the browser (Ctrl+P / the HTML
+link) currently spans too many pages. Requirement: the direct print matches
+the fillable PDF's layout economy — **hard cap 3 pages, target 2** — in both
+modes. Approach is yours (print stylesheet: two-column at-need like
+`buildTwoCol`, compact type ≥ the readability floor, kill dead vertical space,
+hide chrome/buttons; keep every field and label present and legible). Verify
+with Playwright `page.pdf()` per mode, assert the page counts, rasterize and
+eyeball every page, add renders to scratch/s23-c-renders/. Known scars that
+apply: `break-after: avoid` is ignored before unbreakable blocks (use
+keep-together wrappers); a `<script>` inside a document.write'd window never
+runs; `column-span: all` after a page break strands empty pages.
+
 ## Track-wide gates (verbatim in report)
 
 - `npm run check` → `index.html: 8 blocks, 0 errors` (you didn't touch it — the

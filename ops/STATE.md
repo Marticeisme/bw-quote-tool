@@ -1,5 +1,67 @@
 # STATE — Living Ledger
 
+**s23 CLOSED ON MAIN 2026-08-15 — ALL FOUR TRACKS IN (A `s23/contract-fixes` →
+C `s23/resources` → B `s23/quote-lane` → D `s23/pcm-restructure`, merged --no-ff
+in that order). Final main GREEN: index 8/0; `3063 passed, 0 failed across 46
+suites` (NEW PIN, re-pinned in all three governing docs; reconciles 2854 + 77 A
++ 111 B + 21 D; worktrees read −2, the wmp-map skip); verify_pcm_catalog 398/0
++ verify_guides_page ALL OK, both director-re-run on final main bytes; composed
+baseline proof: pre-sprint fbeefab7 capture vs final-main capture = 12/14
+byte-identical, the 2 changed are EXACTLY the intended ones
+(clDownloadFilledWorksheet = A's print-path repair; downloadCombQuotePDF = B's
+three-figure header, sums verified to the cent) — both RIC paths, GA, CP,
+CIRGAS byte-identical.** Shipped: (A) RIC Qty 3/4 now correct for multi-garden
+scatter (label carries ×N; labelQty reads it) + Compare-B 2nd/3rd-Right
+undercharge fixed (was 1 half-space at qty 2); CIRGAS `IOA ADDL SIGNERS` sits
+directly behind the IOA when iaMinSignatures>1, else stays at the back;
+commission worksheet output gets calcChain strip + paperSize=1 + all three
+stale printerSettings DEVMODEs removed (MOTW/Protected View is the residual
+risk — untestable here). (C) vital-worksheet PDF pre-fill is keyed by data-key
+(the 53-keys-vs-55-boxes off-by-two is dead; auditWorksheetKeys() warns on
+drift), sex-at-birth pair in both layouts, phone/date/SSN live masks; DIRECT
+print rebuilt as pure @media print — both modes ONE page (was 3), the zoom-
+against-hardcoded-816×1056 mechanism deleted; guides.html sticky one-row
+quick-jump pill nav (wrapped bar was 168px on a phone — nowrap+sideways
+scroll), category ids added, verifier +8 asserts. (B) multi-contact linking:
+_bwPendingLink is an array, chips w/ BW_ROLES dropdown + per-chip unlink,
+restore ALL roles (roles[0]-only bug dead), reconciliation on save + orphan-
+role cleanup in saveQuoteRecord's overwrite branch (real leak: every re-save
+grew phantom holdings — measured 2→0 orphans); sidebar labels wrap 2 lines w/
+title attr and ×N is its OWN pinned span (9/9 qtys readable vs 3/9);
+cem/FH/grand totals on quote-PDF page 2 + combined email (now computes from
+_combCemTotal/_combFhTotal, not DOM scraping) + optional letter fields. (D)
+PCM catalog is TWO family-facing sections — Single Marker Designs (372 proofs
++ 457 plates) and Companion Designs (247 proofs + 242 plates) — proofs first
+inside each, themes as groups, book = filter + detail row only; 2020's 354
+plates HAND-CLASSIFIED BY LOOKING into checked-in `data/pcm-2020-family.json`
+(241 single / 113 companion / 6 ambiguous documented; method validated 330/330
+against the 2011 book's own split); theme derived deterministically from
+pcm-subject-tags.json (rule table + 25 overrides); PCM 2271 dedup ruled to
+Outdoors (699 cards from 700 rows, both pinned); gate sabotage-proven 3×
+red/green. DEVIATIONS: A ruled Compare-B arrangement packages genuinely DON'T
+scale with Qty(spaces) — matches the main builder — so brief's "fix amounts"
+was wrong there; D's brief said sections sum to 700, truth is 699 (its own
+dedupe); two tracks left stray 3737 dev servers (dev-server.mjs reads PORT not
+--port/BW_PORT — director killed five strays; a runner-hardening chip stands);
+s23d worktree dir still on disk, locked by a dead process handle (junction
+already deleted non-recursively, git worktree pruned — delete the folder after
+reboot). OPEN OPERATOR ITEMS (close gate): push word (nothing pushed); RIC
+Acrobat eyeball recommended for a 2-garden scatter (baseline RIC byte-identical,
+but qty VALUES change on that input shape — A's suite proves bytes, only
+Acrobat proves appearance); commission worksheet on the office printer (if it
+still fails → MOTW/Trusted Location, not code); re-check worksheet direct print
+in HIS browser (track could not repro >3pp locally, fixed the mechanism);
+COMPARE-B PACKAGE-QTY RULING WANTED (per-package qty boxes like the main
+builder, or Qty(spaces) scales packages?); at-need print card 3 splits across
+the column break (price of 1 page — say the word for 2pp clean boundaries);
+guides pills go inert during active search (one-line dim if wanted); pre-need
+worksheet still reads "Did THEY experience homelessness" in an About-Me sheet
+(pre-existing); combined email still doesn't itemize custom lines (totals now
+reconcile because they're included in the side totals). Renders for the
+operator: scratch/s23-{b,c,d}-renders (43 files, copied out of worktrees) +
+A's proof is suite-borne. s23/* branches kept until pruned. NOT PUSHED — no
+pre-authorization.
+
 **Current sprint: sprint-23 — OPENED 2026-08-15** (director: Fable session; tracks:
 Opus per policy + operator word "use opus sprinters"). Scope: the operator's
 9-issue list (`E:\Downloads\QUote tool issues and resources issues.docx`) — see
@@ -26,7 +88,11 @@ override file; verify_pcm_catalog.mjs re-pinned + sabotage-proven).
 ALL combined surfaces — quote-PDF page 2 header three figures, combined email
 per-side totals, letter page optional cem/FH fields; (2) PCM = the two-section
 layout above (supersedes s21's proofs-atop-books placement). Merge order
-A → C → B → D. Contract at open (Gate 0 measured): index 8/0; 2854/42 green;
+A → C → B → D. MID-SPRINT AMENDMENT (operator, in-chat 2026-08-15, C's first
+report in but unmerged): direct browser print of vital-worksheet.html must match
+the fillable PDF's economy — hard cap 3 pages, target 2, both modes; brief
+amended in place (Fix 3), running Track C agent messaged directly, merge of C
+waits for the second report. Contract at open (Gate 0 measured): index 8/0; 2854/42 green;
 main == origin/main; baseline 14/14 current. Close-gate items: RIC Acrobat check
 (A changes qty field VALUES), commission-worksheet test on the office printer
 (untestable here), PCM/guides/worksheet eyeballs. NO push pre-authorization.
