@@ -1,5 +1,21 @@
 # STATE — Living Ledger
 
+**s23 PUSHED LIVE 2026-08-15 (operator: "push it all live"; `fbeefab7..ff22cf6c`,
+14 commits) — wire-verified 7/7** (scratch/s23-live-verify.mjs, 2 deploy-lag
+rounds): index.html, vital-worksheet.html, guides.html, payment-options-letter.html,
+pcm-design-catalog.html, data/pcm-catalog.json, data/pcm-2020-family.json all
+byte-identical sha256 vs the HEAD blobs on the wire, + 5 content probes OK (keyed
+worksheet fields, quick-jump nav, both new PCM sections, CIRGAS priority list).
+PUSH SCAR, keep: intermittent "Could not resolve host: github.com" needed
+exit-code-judged retries — and `git push | tail` in a retry loop MASKS the failure
+exit code (the pipe scar, nearly re-lived); judge pushes bare, never piped.
+Worktrees s23a/b/c removed post-close (junctions non-recursively first); s23d dir
+still locked by a dead process handle, delete after reboot; s23/* branches kept
+until pruned. Still open with the operator: RIC Acrobat eyeball (2-garden
+scatter), commission worksheet on the office printer, his-browser worksheet print
+re-check, the Compare-B package-qty ruling, and the smaller flags in the close
+entry below.
+
 **s23 CLOSED ON MAIN 2026-08-15 — ALL FOUR TRACKS IN (A `s23/contract-fixes` →
 C `s23/resources` → B `s23/quote-lane` → D `s23/pcm-restructure`, merged --no-ff
 in that order). Final main GREEN: index 8/0; `3063 passed, 0 failed across 46

@@ -2514,3 +2514,21 @@ the money match. **Proven to have teeth** by a negative control (`scratch/`, unt
 moving one `FIN_TIERS` rate *after* the PDF capture makes it name exactly the two figures
 that changed ($202.03/$8,034.17 → $217.61/$8,594.80); restoring the rate clears it. Suite
 31 → 40 asserts, contract **2501 passed, 0 failed across 38 suites**.
+
+## 2026-08-15 — Sprint-23 pushed live (fbeefab7..ff22cf6c, 14 commits)
+
+The operator's nine-issue round, wire-verified 7/7 byte-identical sha256 vs the HEAD
+blobs after 2 deploy-lag rounds (scratch/s23-live-verify.mjs) plus 5 content probes.
+Guide-side surfaces in this push: **vital-worksheet.html** (PDF pre-fill keyed by
+data-key — the scattered-checkbox off-by-two is dead; phone/date/SSN input masks;
+direct Ctrl+P print rebuilt as pure @media print, ONE page in both modes),
+**guides.html** (sticky one-row quick-jump pill nav, category ids, print-hidden;
+verify_guides_page.mjs +8 asserts), **pcm-design-catalog.html** (rebuilt: TWO
+family-facing sections, Single Marker Designs / Companion Designs, proofs first in
+each, themes as groups, book demoted to filter + detail row; 2020 book's 354 plates
+hand-classified by looking in the new checked-in data/pcm-2020-family.json, 241
+single / 113 companion; PCM 2271 deduped to Outdoors — 699 cards from 700 rows;
+verify_pcm_catalog.mjs re-pinned 398/0, sabotage-proven 3×). Quote-tool side:
+RIC qty labels, CIRGAS IOA tab order, commission-worksheet print path,
+multi-contact linking, sidebar wrap, cem/FH/grand payment split. Suite pin now
+**3063 passed, 0 failed across 46 suites**.
