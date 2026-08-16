@@ -224,6 +224,7 @@ tr:hover td{background:var(--navy-100);}
 .summary-split{font:400 var(--t-sm)/1.5 'Public Sans',sans-serif;color:var(--muted);margin-top:var(--s2);}
 .s-split-row{display:flex;justify-content:space-between;gap:var(--s2);}
 .s-split-amt{font-family:'Source Sans 3',sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.s-split-disc,.s-split-disc .s-split-amt{color:var(--green);font-weight:600;}
 .summary-panel.is-empty .summary-total{color:var(--navy-300);}
 .summary-panel.is-empty .summary-actions .btn,.summary-panel.is-empty .summary-reset{opacity:.45;pointer-events:none;}
 /* Full item list — every line on the quote, not a preview (operator ruling 2026-08-06).
@@ -7408,7 +7409,7 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
   // Total block: pre-tax net, then discounts, then the tax disclosure, then the total.
   // subtotal - discounts + tax reconciles to the number on the card.
   var split = _sumSplitRow('Subtotal', fmt(totalBeforeDiscount));
-  if (appliedDiscount > 0) split += _sumSplitRow(discountLines.length === 1 ? discountLines[0].label : 'Discounts', '-' + fmt(appliedDiscount));
+  if (appliedDiscount > 0) split += _sumSplitRow(discountLines.length === 1 ? discountLines[0].label : 'Discounts', '-' + fmt(appliedDiscount), 's-split-disc');
   split += _sumSplitRow('Sales tax (10.4%)', fmt(tax), 's-split-tax');
   _sumSet(containerId, { total: grandTotal, split: split, empty: false });
 
@@ -10993,7 +10994,7 @@ function combUpdate() {
     var dn = val('combDiscNote') || 'Discount';
     discAmt = discMode === 'percent' ? grandTotal * (dv/100) : Math.min(dv, grandTotal);
     discLabel = dn + (discMode === 'percent' ? ' (' + dv + '%)' : '');
-    if (discAmt > 0) { split += _sumSplitRow(discLabel, '-' + fmt(discAmt)); grandTotal -= discAmt; }
+    if (discAmt > 0) { split += _sumSplitRow(discLabel, '-' + fmt(discAmt), 's-split-disc'); grandTotal -= discAmt; }
   }
   split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
   // Published for the export/email path, which used to read these back out of the panel's DOM.
