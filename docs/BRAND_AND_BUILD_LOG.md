@@ -2532,3 +2532,16 @@ verify_pcm_catalog.mjs re-pinned 398/0, sabotage-proven 3×). Quote-tool side:
 RIC qty labels, CIRGAS IOA tab order, commission-worksheet print path,
 multi-contact linking, sidebar wrap, cem/FH/grand payment split. Suite pin now
 **3063 passed, 0 failed across 46 suites**.
+
+## 2026-08-19 — PCM catalog: `?family` view (e4830b35)
+
+One-commit push. The catalog now supports a family-safe link —
+`https://bwquotetool.com/pcm-design-catalog.html?family` — for the operator to text or
+email to a family who wants to browse designs. A head script (emitted by
+build_pcm_catalog.py, so it survives rebuilds) adds `family-view` on `<html>` when the
+`family` query param is present; CSS hides the two and only two links out of the page
+(header "All Guides" + footer "Back to all guides"). No other anchors or JS navigation
+exist on the page — grep-verified. Hidden navigation only, NOT access control: the rest
+of the public site is still URL-reachable. Verified headless (normal / ?family /
+?family=1 / lookalike ?familyx=1) and again on the wire post-deploy; tracked gate
+verify_pcm_catalog.mjs still 398/0.
