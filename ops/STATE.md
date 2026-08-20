@@ -1,5 +1,19 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-25 — OPENED 2026-08-20** (director: same Fable session as
+s24; track: Opus). Scope: persistent left sidebar across the guides site per the
+operator's ask, rulings: ALL guide+catalog pages (35 incl. guides.html; tools/maps/
+internal excluded), slide-out drawer on phones, guides-brand skin. One track
+`s25/guide-sidebar` (worktree s25a): shared guide-nav.js single source of truth,
+script tag added in the CATALOG GENERATORS (hand-editing generated HTML = defect),
+PCM ?family view stays navigation-free, PDFs must be byte-stable, new sabotage-proven
+verify_guide_nav.mjs gate. WHO-DECIDES RULING EXECUTED SAME DAY, director-direct
+(operator ruled TWO ways, restructure): signed-authorization card folded into the
+written-wishes card as its "most useful form", PDF summary + cover line now say two,
+"stronger of the two" now correct; PDF rebuilt 2pp, all four guide gates green,
+committed on main (NOT pushed — rides the s25 push word). Gate 0: s24 close numbers
+(3063/46, 8/0) + who-decides commit measured green this session. NO push pre-auth.
+
 **s24 CLOSED + PUSHED LIVE 2026-08-20 (operator: "push it all live";
 `08fdfb27..377b562e` + build-log follow-up) — wire-verified 27/27** (scratch/
 s24-live-verify.mjs: every pushed HTML file byte-identical sha256 vs HEAD blobs after
