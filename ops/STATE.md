@@ -1,5 +1,18 @@
 # STATE — Living Ledger
 
+**s25 OPERATOR ROUND PUSHED LIVE 2026-08-20 (operator: "drop the header logo and push
+it live"; `91b20303..38db8ae9` + build-log follow-up) — wire-verified 4/4
+byte-identical after 3 deploy-lag rounds, hub-header-hide rule confirmed serving.**
+The double-lockup ruling: guides.html's own header logo (+ its divider) is hidden by
+guide-nav.js's injected CSS, scoped html.gnav-on + desktop — the drawer breakpoint,
+?family, and every non-hub page keep their header logos, so no state ever shows zero
+marks; director-verified by render + computed-style probe (desktop none / mobile
+block) before push. Suite green at the 3336/47 pin on the exact push bytes. s25b
+worktree removed (junction non-recursively first, node_modules intact); s25/*
+branches kept until pruned. STILL OPEN with the operator: Letters & Forms in the
+sidebar for counselors?; flush-markers Download points at a nonexistent PDF;
+build_guides_page.py repair chip stands.
+
 **s25 OPERATOR ROUND MERGED 2026-08-20 — Track B `s25/sidebar-redesign` in (track
 `0dbd8a70`+`cee80da6`). Final main GREEN: index 8/0; `3336 passed, 0 failed across 47
 suites` (NEW PIN, re-pinned in all three governing docs; 3484 − 421 + 273 — the gate
