@@ -359,9 +359,14 @@ contractions, carries no em dash, and would survive the delete-the-first-sentenc
 
 **4. Scattering Garden Options (currently opens in flowery marketing voice):**
 
-> In a scattering garden, the cremated remains are scattered into the garden itself, so
-> there's no individual space to buy. Your loved one's name is engraved on a granite
-> memorial in the garden. That's the place your family comes back to.
+> In a scattering garden, the cremated remains are scattered into the garden itself.
+> Your loved one's name is engraved on a granite memorial in the garden. That's the
+> place your family comes back to.
+
+(Corrected at director audit 2026-08-20: the first draft claimed "there's no individual
+space to buy," but every package on that page itemizes a Scattering Space purchase.
+Example openings are style models, never fact sources — verify every fact against the
+live guide before importing a sentence.)
 
 ---
 
