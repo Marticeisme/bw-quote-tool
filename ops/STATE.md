@@ -1,5 +1,30 @@
 # STATE — Living Ledger
 
+**s24 CLOSED + PUSHED LIVE 2026-08-20 (operator: "push it all live";
+`08fdfb27..377b562e` + build-log follow-up) — wire-verified 27/27** (scratch/
+s24-live-verify.mjs: every pushed HTML file byte-identical sha256 vs HEAD blobs after
+one deploy-lag round; probes: banned opener GONE from live cemetery-property, new
+openings live, flush-markers brochure copy gone, terrace 2-sentence card + fixed
+footnote live, letter both-lines split live; the one probe "FAIL" was the probe's own
+apostrophe-escaping — byte-identity + blob grep proves the sentence live). Final
+contract on push bytes: index 8/0; `3063 passed, 0 failed across 46 suites` (solo
+run); family_type 121/0; guide_pages OK; photo_first 23 cards/7 pages OK;
+area_guide_ranges reconciles; PDF manifest 60/0/0; index.html blob byte-identical
+through the sprint. PUSH-GUARD SCAR, promote to every guide-track brief:
+`verify_photo_first.mjs` runs in `.claude/hooks/pre-git-guard.js` but was in NOBODY's
+gate list — it blocked the push (a colon-split rewrite put the terrace niche-bank
+card at 3 sentences vs a 2-sentence budget; colons are legal, restored the
+two-sentence shape). Letter deliverable committed + pushed same round. Cleanup:
+s24a/b/r worktrees removed (junctions deleted non-recursively AFTER `git worktree
+remove` left the dirs on disk — remove junctions FIRST next time; main node_modules
+verified intact); renders copied to scratch/s24-{a,b}-renders (12+14); s24/*
+branches kept until pruned. OPEN OPERATOR ITEMS: who-decides §2 two-vs-three-ways
+contradiction (body says two, PDF sidebar three, three cards shown — needs his
+ruling); flush-markers.html orphaned + Download points at nonexistent "Granite
+Marker Guide.pdf" (link/retire/repoint); optional guide-price-rule.mjs contraction
+one-liner (site-wide regen). Voice-debrief staleness noted both directions — rely on
+source, not its per-guide verdicts.
+
 **Current sprint: sprint-24 — OPENED 2026-08-20** (director: Fable session; tracks:
 Opus per policy). Scope: guide voice & style round per the operator's in-chat ask —
 sample funeral-industry writing (consumer journalism first per ruling), distill into
