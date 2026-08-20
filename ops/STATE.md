@@ -1,5 +1,17 @@
 # STATE — Living Ledger
 
+**s25 PUSHED LIVE 2026-08-20 (operator: "push it all live"; `31a4a3bb..c3f3d19d` +
+build-log follow-up) — wire-verified 35/35** (scratch/s25-live-verify.mjs: every
+pushed public file byte-identical sha256 vs HEAD blobs after 2 deploy-lag rounds;
+probes: guide-nav.js serving, one tag per page — the PCM "2 mentions" probe blip was
+the generator's own comment, real tag count 1 — and who-decides live at TWO ways).
+The who-decides ruling commit rode this push as planned. s25a worktree removed
+(junction deleted non-recursively FIRST this time; main node_modules verified
+intact); s25/* + s24/* branches kept until pruned. VERIFIER LESSON (2nd occurrence
+today, keep): probe for the exact MARKUP (`<script src="guide-nav.js"`), never a
+bare substring — comments and JS-escaped apostrophes both false-fail substring
+probes; byte-identity vs the HEAD blob remains the authoritative check.
+
 **s25 CLOSED ON MAIN 2026-08-20 — Track A `s25/guide-sidebar` MERGED (track
 `cd79ddd6`+`36447bdd`). Final main GREEN: index 8/0; `3484 passed, 0 failed across
 47 suites` (NEW PIN, re-pinned in all three governing docs; reconciles 3063 + 421
