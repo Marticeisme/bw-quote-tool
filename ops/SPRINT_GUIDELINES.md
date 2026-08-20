@@ -89,8 +89,8 @@ Rules of work for every sprint, track, and director. Director runbook:
 ## Git conventions
 
 - Commits: imperative summary, prefixed with the track tag `[sNN/<slug>]` (director
-  ops/merge commits use `[sNN/ops]`); end with:
-  `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
+  ops/merge commits use `[sNN/ops]`). **NO Co-Authored-By or any AI trailer** — standing
+  operator rule 2026-08-08 (this line previously instructed a trailer; corrected s24).
 - **Stage with EXPLICIT paths — never `git add -A` / `git add .`.** Two other sessions have
   in-flight edits in this working tree. `.claude/hooks/pre-git-guard.js` blocks bulk adds,
   blocks a push when `index.html` has a syntax error, and blocks any attempt to commit
