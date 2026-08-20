@@ -2583,3 +2583,30 @@ ways" (PDF sidebar) with three cards shown; flush-markers.html is orphaned and i
 Download button points at a nonexistent PDF (link it / retire it / repoint); optional
 one-liner in scripts/guide-price-rule.mjs would give the generated invitation blocks
 contractions site-wide. Suite pin unchanged: 3063/46.
+
+## 2026-08-20 — Sprint-25 pushed live (31a4a3bb..c3f3d19d): guides-site sidebar
+
+Wire-verified 35/35 public files byte-identical sha256 vs HEAD blobs (2 deploy-lag
+rounds) + probes: guide-nav.js serving, exactly one tag per page, who-decides live at
+"two ways" (the operator's ruling — signed authorization folded into the written-wishes
+card; RCW 68.50.160(1)/(2) are the two mechanisms).
+
+- **`guide-nav.js`** — ONE shared file injects the whole sidebar (model, style, nav,
+  phone drawer) on 34 guide/catalog pages via a single script tag. `gnav-` namespace
+  (`.sidebar` is taken by the prose guides' pull-out boxes); brand values hardcoded
+  (pages don't share token names); drawer button bottom-left (top-left hits sticky
+  headers, bottom-right hits flush-markers' action bar). `?family` suppresses the nav
+  on EVERY page (regex identical to build_pcm_catalog.py's) — any guide is now a
+  family-safe navigation-free link.
+- Generated catalog pages carry the tag via their GENERATORS (hand-editing generated
+  HTML is dropped at rebuild). build_urn_options.py emits no catalog HTML.
+- PDFs untouched: print renders proven identical 33/33 nav-on/nav-off; manifest
+  re-recorded, not rebuilt (the PDF builder is not byte-reproducible).
+- New tracked gate `tests/test-guide-nav.mjs` (421 asserts, sabotage-proven 2×) —
+  **suite pin is now 3484/47**, re-pinned in the three governing docs.
+- CONFIRMED DEAD: build_guides_page.py aborts parsing 0/47 cards on pristine main;
+  guides.html is hand-kept (repair chip spawned).
+
+Open with the operator: Letters & Forms in the sidebar for counselors?; keep or narrow
+the every-page ?family bail-out; flush-markers Download still points at a nonexistent
+PDF.
