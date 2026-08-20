@@ -1,5 +1,36 @@
 # STATE — Living Ledger
 
+**s25 OPERATOR ROUND MERGED 2026-08-20 — Track B `s25/sidebar-redesign` in (track
+`0dbd8a70`+`cee80da6`). Final main GREEN: index 8/0; `3336 passed, 0 failed across 47
+suites` (NEW PIN, re-pinned in all three governing docs; 3484 − 421 + 273 — the gate
+shrank moving site-wide→hub-only; one 3335/1 run was the KNOWN runner race on
+test-pcm-catalog, proven by solo 409/0 + fresh solo full run); guide_nav 273/0
+director-re-run.** Sidebar now renders ONLY on guides.html, decided inside
+guide-nav.js (tags/generators untouched — re-enable is one line); redesigned as the
+page's own left cap: navy #1c2c36 masthead at the header's 74px with the real
+logo.svg lockup + Est. 1868, optical-center aligned to the header's logo, sticky;
+paper surface + card keyline; Cormorant category heads over fading rules; orange
+hover + active-card treatment; width 264px. Track fixed 3 defects BY LOOKING (count
+pills contradicted the page's own card counts — dropped; inset-shadow orange bar
+clipped at rounded corners — real border now; outset focus ring clipped — inset).
+DIRECTOR EYEBALL: renders confirm guides clean, drawer branded, hub reads native.
+Track disclosure: one commit-MESSAGE amend (content untouched, local) to correct a
+sabotage figure 99→103 — measured over derived, accepted. OPEN AT CLOSE: the hub
+header + sidebar both carry the lockup (two marks on one navy band, optically
+aligned, deliberate-looking) — OPERATOR CALL whether to drop one (dropping the
+header's means editing guides.html); "All Guides" is permanently active on the hub
+(orienting card, self-link) — fine unless he objects; push word pending.
+
+**s25 OPERATOR ROUND OPENED 2026-08-20 (post-push feedback, in-chat):** the sidebar
+shows ONLY on guides.html (nowhere else — no nav, drawer, or button on the guides/
+catalogs), and it gets a real design pass: match guides.html's own design language
+(s19 tokens, Cormorant/orange/warm cream) with the brand logo in a masthead — the
+operator called the shipped version plain. Track B `s25/sidebar-redesign` (worktree
+s25b from 91b20303): hub-only via a pathname check INSIDE guide-nav.js (tags and
+generator wiring stay — one-line re-enable later), gate re-pinned to the new intent
+(same-intent-at-new-surface rule), suite pin will move off 3484/47 — re-pin at
+close. NO push pre-auth for the round.
+
 **s25 PUSHED LIVE 2026-08-20 (operator: "push it all live"; `31a4a3bb..c3f3d19d` +
 build-log follow-up) — wire-verified 35/35** (scratch/s25-live-verify.mjs: every
 pushed public file byte-identical sha256 vs HEAD blobs after 2 deploy-lag rounds;
