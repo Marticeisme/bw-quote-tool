@@ -151,13 +151,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <input type="text" id="paymentAmount" placeholder="e.g. $3,500.00">
       </div>
       <div class="field">
-        <label for="cemAmount">Cemetery Amount <span class="hint">Optional. Fill this and the one below when the balance covers both sides, and the letter shows all three figures.</span>
+        <label for="cemAmount">Cemetery Amount <span class="hint">Optional. Fill either amount and the letter shows the cemetery/funeral home breakdown with both lines and the total.</span>
         </label>
         <input type="text" id="cemAmount" placeholder="e.g. $2,100.00">
       </div>
       <div class="field">
         <label for="fhAmount">Funeral Home Amount
-          <span class="hint">Optional. Leave both blank to send the letter exactly as before.</span>
+          <span class="hint">Optional. Leave both blank to skip the breakdown entirely.</span>
         </label>
         <input type="text" id="fhAmount" placeholder="e.g. $1,400.00">
       </div>
@@ -324,9 +324,9 @@ function setMode(m) {
 var fields = ['recipientName','paymentAmount','cemAmount','fhAmount','paymentFor','serviceDate','contractNum'];
 fields.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
 
-// Optional cemetery/funeral-home split. Both blank is the old behaviour, byte for byte: the
-// letter runs off the single Payment Amount and no extra block appears. Fill either one and the
-// letter shows both sides and their sum, and that sum becomes the amount the letter quotes.
+// Optional cemetery/funeral-home split. Both blank: the letter runs off the single Payment
+// Amount and no extra block appears. Fill either one and the letter shows BOTH sides (the
+// empty one as $0.00) and their sum, and that sum becomes the amount the letter quotes.
 function parseMoney(v) {
   if (!v) return null;
   var n = parseFloat(String(v).replace(/[$,\s]/g, ''));
@@ -353,10 +353,12 @@ function getSplit() {
 }
 function splitBlockHTML(split) {
   if (!split) return '';
+  // Both sides always print once either one is filled in, so the family sees the whole
+  // picture even when one half of the balance is zero.
   var h = '<div class="pay-section" id="splitBlock">'
-        + '<div class="pay-header">How the total breaks down</div>';
-  if (split.cemRaw) h += '<div class="pay-detail"><b>Cemetery:</b> ' + esc(split.cemText) + '</div>';
-  if (split.fhRaw)  h += '<div class="pay-detail"><b>Funeral home:</b> ' + esc(split.fhText) + '</div>';
+        + '<div class="pay-header">How the total breaks down</div>'
+        + '<div class="pay-detail"><b>Cemetery:</b> ' + esc(split.cemRaw ? split.cemText : '$0.00') + '</div>'
+        + '<div class="pay-detail"><b>Funeral home:</b> ' + esc(split.fhRaw ? split.fhText : '$0.00') + '</div>';
   if (split.totalText) h += '<div class="pay-detail"><b>Total:</b> ' + esc(split.totalText) + '</div>';
   return h + '</div>';
 }
@@ -413,12 +415,12 @@ function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, po
   document.getElementById('letter').innerHTML =
     '<p>Hi ' + recipientName + ',</p>' +
 
-    '<p>Per our conversation, below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. The total balance of ' + paymentAmount + ' is due in full prior to the date of service. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount is received by the deadlines below.</p>' +
+    '<p>Per our conversation, here\'s the link to our payment portal, along with all the ways you can take care of the ' + paymentFor + '. The total balance of ' + paymentAmount + ' is due in full before the date of service. You\'re welcome to split it across more than one payment method or card, as long as the full amount is in by the deadlines below.</p>' +
 
     splitBlockHTML(split) +
 
     '<div class="pay-section">' +
-      '<div class="pay-header">Pay Online via Credit or Debit Card — due by ' + cardDeadline + '</div>' +
+      '<div class="pay-header">Pay Online via Credit or Debit Card (due by ' + cardDeadline + ')</div>' +
       '<p><a href="' + PORTAL_LINK + '">' + PORTAL_LINK + '</a></p>' +
       '<p>In the additional details section, enter the following:</p>' +
       '<div class="pay-detail"><b>Payment Amount:</b> ' + esc(portalAmount) + '</div>' +
@@ -427,24 +429,24 @@ function renderAtNeed(recipientName, paymentAmount, paymentFor, portalAmount, po
       '<div class="pay-detail"><b>Customer #:</b> Leave blank</div>' +
     '</div>' +
 
-    '<p>One quick note, I\'m not automatically notified when payments come through on the portal. Once you\'ve submitted payment, if you could shoot me a quick email or text at 206-445-9794 to let me know, that way I can pull the receipt and get everything finalized on my end.</p>' +
+    '<p>One quick note: the portal doesn\'t automatically notify me when a payment comes through. Once you\'ve submitted yours, please shoot me a quick email or text at 206-445-9794 so I can pull the receipt and get everything finalized on my end.</p>' +
 
     '<div class="pay-section">' +
-      '<div class="pay-header">Pay by Check — due by ' + checkDeadline + '</div>' +
-      '<p>Personal checks can be mailed or brought in. Please make checks payable to Bonney Watson.</p>' +
+      '<div class="pay-header">Pay by Check (due by ' + checkDeadline + ')</div>' +
+      '<p>Personal checks can be mailed or brought in. Please make them payable to Bonney Watson.</p>' +
     '</div>' +
 
     '<div class="pay-section">' +
-      '<div class="pay-header">Pay by Cashier\'s Check or Cash — due by ' + cashDeadline + '</div>' +
-      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure myself or someone on my team is available to help.</p>' +
+      '<div class="pay-header">Pay by Cashier\'s Check or Cash (due by ' + cashDeadline + ')</div>' +
+      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure I\'m here, or that someone on my team is available to help you.</p>' +
     '</div>' +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay by Phone</div>' +
-      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
+      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. Once it goes through, I\'ll email you a receipt.</p>' +
     '</div>' +
 
-    '<p>Please let me know if you have any questions or if you\'re having any issues with the link. I look forward to hearing from you. Have a great day.</p>' +
+    '<p>If you have any questions, or any trouble with the link, just let me know. I look forward to hearing from you.</p>' +
 
     '<div class="sig-block">' +
       '<p>Thanks,</p>' +
@@ -462,7 +464,7 @@ function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, p
   document.getElementById('letter').innerHTML =
     '<p>Hi ' + recipientName + ',</p>' +
 
-    '<p>It was great speaking with you. Below is a link to our payment portal along with the additional payment options for the ' + paymentFor + '. You\'re welcome to split the total across multiple payment methods or cards as long as the full amount of ' + paymentAmount + ' is received.</p>' +
+    '<p>It was great speaking with you. Here\'s the link to our payment portal, along with all the ways you can take care of the ' + paymentFor + '. You\'re welcome to split the total of ' + paymentAmount + ' across more than one payment method or card, whatever works best for you.</p>' +
 
     splitBlockHTML(split) +
 
@@ -476,24 +478,24 @@ function renderPreNeed(recipientName, paymentAmount, paymentFor, portalAmount, p
       '<div class="pay-detail"><b>Customer #:</b> Leave blank</div>' +
     '</div>' +
 
-    '<p>One quick note, I\'m not automatically notified when payments come through on the portal. Once you\'ve submitted payment, if you could shoot me a quick email or text at 206-445-9794 to let me know, that way I can pull the receipt and get everything finalized on my end.</p>' +
+    '<p>One quick note: the portal doesn\'t automatically notify me when a payment comes through. Once you\'ve submitted yours, please shoot me a quick email or text at 206-445-9794 so I can pull the receipt and get everything finalized on my end.</p>' +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay by Check</div>' +
-      '<p>Personal checks can be mailed or brought in. Please make checks payable to Bonney Watson.</p>' +
+      '<p>Personal checks can be mailed or brought in. Please make them payable to Bonney Watson.</p>' +
     '</div>' +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay by Cashier\'s Check or Cash</div>' +
-      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure myself or someone on my team is available to help.</p>' +
+      '<p>You\'re welcome to come in and take care of this in person. If you can, give me a call or text beforehand so I can make sure I\'m here, or that someone on my team is available to help you.</p>' +
     '</div>' +
 
     '<div class="pay-section">' +
       '<div class="pay-header">Pay by Phone</div>' +
-      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. I\'ll email you a receipt once it\'s been processed.</p>' +
+      '<p>Give me a call at 206-445-9794 and I can process a card payment over the phone. Once it goes through, I\'ll email you a receipt.</p>' +
     '</div>' +
 
-    '<p>If you have any questions at all, please don\'t hesitate to reach out. There\'s no rush, take your time and let me know if there\'s anything else I can help with.</p>' +
+    '<p>There\'s no rush on any of this. Take your time, and if you have any questions at all, don\'t hesitate to reach out.</p>' +
 
     '<div class="sig-block">' +
       '<p>Thanks,</p>' +

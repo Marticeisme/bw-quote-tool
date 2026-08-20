@@ -242,7 +242,8 @@ console.log('\n6. payment-options-letter.html');
     return { both: t, oneSide: document.getElementById('letter').innerText };
   });
   ok('the split sum wins over a stale single amount', /\$3,500\.00/.test(overrides.both) && !/\$99\.00/.test(overrides.both), overrides.both.slice(0, 600));
-  ok('one side alone still renders and totals', /Cemetery:\s*\$2,100\.00/.test(overrides.oneSide) && /Total:\s*\$2,100\.00/.test(overrides.oneSide) && !/Funeral home:/.test(overrides.oneSide), overrides.oneSide.slice(0, 600));
+  // 2026-08-20 operator ruling: one side alone still shows BOTH lines (empty side $0.00)
+  ok('one side alone shows both lines and totals', /Cemetery:\s*\$2,100\.00/.test(overrides.oneSide) && /Funeral home:\s*\$0\.00/.test(overrides.oneSide) && /Total:\s*\$2,100\.00/.test(overrides.oneSide), overrides.oneSide.slice(0, 600));
 
   const cleared = await lp.evaluate(() => {
     document.getElementById('cemAmount').value = '';
