@@ -291,6 +291,12 @@
     'html.gnav-on body{padding-left:var(--gn-w,' + WIDTH + 'px)}',
     '#bwGuideNav{transform:translateX(0);box-shadow:none}',
     '#bwGuideNavToggle,#bwGuideNavBackdrop{display:none}',
+    /* The sidebar masthead carries the lockup, so the page header dropping its own
+     * copy (operator ruling 2026-08-20: one mark on the navy band, the sidebar's).
+     * Scoped to gnav-on + desktop: the drawer breakpoint and the family view keep
+     * the header's logo, so no state ever shows zero marks. .header-div is the
+     * divider that would otherwise strand at the left edge. */
+    'html.gnav-on .site-header .header-logo,html.gnav-on .site-header .header-div{display:none}',
     '}',
 
     /* ---- reduced motion ---- */
