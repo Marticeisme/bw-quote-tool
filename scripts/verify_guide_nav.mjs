@@ -3,12 +3,13 @@
 //   node scripts/verify_guide_nav.mjs      # standalone
 //   tests/test-guide-nav.mjs               # the same checks inside `npm test`
 //
-// The sidebar is one shared file included by one line on every in-scope page. That shape
-// is exactly why it needs a gate: nothing in the build forces a NEW guide to carry the
-// tag, nothing forces a REGENERATED catalog to keep it, and nothing forces the nav model
-// to keep pointing at pages that still exist. Each of those failures is silent — the page
-// simply renders with no sidebar and nobody notices until a counselor is in front of a
-// family.
+// The sidebar is one shared file included by one line on every in-scope page, and since
+// s25 that file decides for itself that only guides.html gets a panel. Both halves of
+// that shape need a gate. Nothing in the build forces a NEW guide to carry the tag,
+// nothing forces a REGENERATED catalog to keep it, nothing forces the nav model to keep
+// pointing at pages that still exist — and nothing but this file stops the hub-only
+// ruling from quietly becoming an every-page sidebar again the next time someone edits
+// the injection condition. Each of those failures is silent.
 //
 // WHAT IS ASSERTED, on the SERVED pages (never on disk bytes alone):
 //   SCOPE    the in-scope set is DERIVED FROM DISK, not restated here: every
@@ -17,20 +18,33 @@
 //            its tag fails the same day.
 //   TAG      every in-scope page serves EXACTLY ONE guide-nav.js script tag (two would
 //            be a generator emitting what a hand edit already added); every out-of-scope
-//            page — index.html above all — serves ZERO.
+//            page — index.html above all — serves ZERO. The WIRING is unchanged by the
+//            hub-only ruling and stays asserted: the tag is what makes re-enabling the
+//            sidebar elsewhere a one-line change instead of a 33-file sweep.
+//   HUB      guides.html injects the panel, and the panel carries the brand masthead:
+//            a real <img> of logo.svg that actually decoded, at the height the design
+//            calls for. "The logo is there" is the operator's ask, and an <img> with a
+//            broken src still satisfies a naive querySelector, so the natural size is
+//            asserted too.
+//   QUIET    every OTHER in-scope page injects ZERO nav DOM — no panel, no style tag, no
+//            menu button, no backdrop — and no gnav-on class and no body offset, so the
+//            guide is exactly the page it was before the sidebar existed. This is the
+//            s25 operator ruling and it is asserted page by page, not sampled.
 //   MODEL    every href in the nav model resolves 200, and every in-scope page appears
 //            in the model exactly once. No orphans: flush-markers.html has no card on
 //            guides.html at all (the s24 finding) and the sidebar is its only home.
-//   ACTIVE   each page marks exactly one item current, and it is that page's own item.
+//   ACTIVE   the hub marks exactly one item current and it is the hub's own All Guides
+//            row.
 //   PRINT    under print emulation NOTHING injected is visible and the body offset is
 //            zero, so the printed page and the built PDFs are what they always were.
-//   FAMILY   pcm-design-catalog.html?family renders ZERO nav DOM — that link is handed
-//            to a family precisely because it is navigation-free — while the lookalike
-//            ?familyx=1 still shows it. The bail-out matches the head script emitted by
-//            build_pcm_catalog.py; a regex that drifted apart from it would either break
-//            the family link or swallow ordinary pages.
-//   DRAWER   at 375px the sidebar is off-screen behind one menu button, opens on tap,
-//            and closes on both Escape and a backdrop tap.
+//   FAMILY   ?family renders ZERO nav DOM — on the hub as well as on the catalog, since
+//            a family-safe link is navigation-free wherever it points — while the
+//            lookalike ?familyx=1 still shows the sidebar on the hub. The bail-out
+//            matches the head script emitted by build_pcm_catalog.py; a regex that
+//            drifted apart from it would either break the family link or swallow
+//            ordinary pages.
+//   DRAWER   at 375px on the hub the sidebar is off-screen behind one menu button, opens
+//            on tap, and closes on both Escape and a backdrop tap.
 //
 // The gate serves the CURRENT tree on its own free port via scripts/_print-server.mjs and
 // still calls assertServesThisTree() before its first assertion — the standing rule after
@@ -41,12 +55,15 @@ import { chromium } from 'playwright';
 import { ROOT, startPrintServer } from './_print-server.mjs';
 import { assertServesThisTree } from './served-tree-check.mjs';
 
+// The one page that gets a sidebar (s25).
+const HUB = 'guides.html';
+
 // Pages that are in scope but do NOT match *-guide.html.
 const EXTRA_IN_SCOPE = [
   'direct-cremation.html', 'outside-marker-rules.html', 'flush-markers.html',
   'all-caskets.html', 'metal-caskets.html', 'wood-caskets.html',
   'cremation-containers-rental-caskets.html', 'pcm-design-catalog.html',
-  'guides.html',
+  HUB,
 ];
 
 // Deliberately OUT of scope. index.html is the quote tool and must stay byte-untouched;
@@ -68,8 +85,18 @@ export function inScopePages() {
 
 const TAG_RE = /<script[^>]+src\s*=\s*["']guide-nav\.js["'][^>]*>/gi;
 
+// Everything guide-nav.js can put on a page. "Injects nothing" means all of it is absent.
+const PROBE = () => ({
+  nodes: document.querySelectorAll(
+    '#bwGuideNav,#bwGuideNavToggle,#bwGuideNavBackdrop,#bwGuideNavStyle').length,
+  links: document.querySelectorAll('.gnav-link,.gnav-home').length,
+  onClass: document.documentElement.classList.contains('gnav-on'),
+  pad: getComputedStyle(document.body).paddingLeft,
+});
+
 export async function run(ck) {
   const PAGES = inScopePages();
+  const OTHERS = PAGES.filter((p) => p !== HUB);
   const srv = await startPrintServer();
   const base = srv.base + '/';
 
@@ -86,13 +113,15 @@ export async function run(ck) {
 
   ck(fs.existsSync(path.join(ROOT, 'guide-nav.js')), 'guide-nav.js exists at the repo root');
   ck(PAGES.length >= 34, `in-scope set derived from disk: ${PAGES.length} pages (>= 34)`);
+  ck(PAGES.includes(HUB), `the hub ${HUB} is in the in-scope set`);
+  ck(OTHERS.length >= 33, `${OTHERS.length} non-hub in-scope pages to prove quiet (>= 33)`);
 
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1400, height: 950 } });
   const page = await ctx.newPage();
 
   try {
-    // ---------------------------------------------------------------- TAG
+    // ---------------------------------------------------------------- TAG (wiring)
     for (const p of PAGES) {
       const r = await fetch(base + p);
       const html = r.ok ? await r.text() : '';
@@ -107,7 +136,7 @@ export async function run(ck) {
     }
 
     // ---------------------------------------------------------------- MODEL
-    await page.goto(base + 'guides.html', { waitUntil: 'domcontentloaded' });
+    await page.goto(base + HUB, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.BW_GUIDE_NAV, null, { timeout: 10000 });
     const model = await page.evaluate(() => window.BW_GUIDE_NAV);
 
@@ -117,6 +146,7 @@ export async function run(ck) {
     const hrefs = [model.home.href, ...model.sections.flatMap((s) => s.items.map((i) => i.href))];
     ck(new Set(hrefs).size === hrefs.length,
       `nav model lists every href once (${hrefs.length} entries, ${new Set(hrefs).size} unique)`);
+    ck(model.home.href === HUB, `the nav model's home row is the hub (${model.home.href})`);
 
     for (const h of hrefs) {
       const r = await fetch(base + h);
@@ -137,84 +167,165 @@ export async function run(ck) {
     ck(labels.every((l) => l.trim().length > 0 && l.length <= 40),
       'every nav label is a short page name (non-empty, <= 40 chars)');
 
-    // ---------------------------------------------------------------- ACTIVE + INJECTION
-    for (const p of PAGES) {
-      await page.goto(base + p, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('#bwGuideNav', { timeout: 15000 }).catch(() => {});
-      const got = await page.evaluate(() => {
-        const nav = document.getElementById('bwGuideNav');
-        if (!nav) return null;
-        const act = [...nav.querySelectorAll('.gnav-active')];
-        return {
-          present: true,
-          drop: nav.getAttribute('data-pdf'),
-          count: act.length,
-          href: act.length === 1 ? act[0].getAttribute('href') : null,
-          current: act.length === 1 ? act[0].getAttribute('aria-current') : null,
-          onClass: document.documentElement.classList.contains('gnav-on'),
-          visible: nav.getBoundingClientRect().width > 100,
-          // the prose guides use a bare `.sidebar` class for their pull-out boxes;
-          // the injected panel must never claim it
-          stealsSidebar: nav.classList.contains('sidebar'),
-        };
-      });
-      ck(!!got && got.present, `${p}: sidebar injected`);
-      if (!got || !got.present) continue;
-      ck(got.count === 1, `${p}: exactly one active item (got ${got.count})`);
-      ck(got.href && got.href.split('/').pop().toLowerCase() === p.toLowerCase(),
-        `${p}: the active item is this page (${got.href})`);
-      ck(got.current === 'page', `${p}: the active item carries aria-current="page"`);
-      ck(got.drop === 'drop', `${p}: the injected nav carries data-pdf="drop"`);
-      ck(got.onClass, `${p}: <html> carries gnav-on so the body offset applies`);
-      ck(got.visible, `${p}: the sidebar is visible at desktop width`);
-      ck(!got.stealsSidebar, `${p}: the panel does not claim the page's own .sidebar class`);
+    // ---------------------------------------------------------------- HUB: the panel
+    await page.goto(base + HUB, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#bwGuideNav', { timeout: 15000 }).catch(() => {});
+    const hub = await page.evaluate(() => {
+      const nav = document.getElementById('bwGuideNav');
+      if (!nav) return null;
+      const act = [...nav.querySelectorAll('.gnav-active')];
+      const img = nav.querySelector('.gnav-head img.gnav-logo');
+      const head = nav.querySelector('.gnav-head');
+      const hr = head ? head.getBoundingClientRect() : null;
+      return {
+        drop: nav.getAttribute('data-pdf'),
+        count: act.length,
+        href: act.length === 1 ? act[0].getAttribute('href') : null,
+        current: act.length === 1 ? act[0].getAttribute('aria-current') : null,
+        onClass: document.documentElement.classList.contains('gnav-on'),
+        width: Math.round(nav.getBoundingClientRect().width),
+        // the prose guides use a bare `.sidebar` class for their pull-out boxes;
+        // the injected panel must never claim it
+        stealsSidebar: nav.classList.contains('sidebar'),
+        links: nav.querySelectorAll('.gnav-link').length,
+        sections: nav.querySelectorAll('.gnav-sec').length,
+        // the masthead
+        logoSrc: img ? img.getAttribute('src') : null,
+        logoAlt: img ? img.getAttribute('alt') : null,
+        logoDecoded: !!img && img.complete && img.naturalWidth > 0,
+        logoH: img ? Math.round(img.getBoundingClientRect().height) : 0,
+        logoW: img ? Math.round(img.getBoundingClientRect().width) : 0,
+        est: (nav.querySelector('.gnav-est') || {}).textContent || '',
+        headH: hr ? Math.round(hr.height) : 0,
+        headTop: hr ? Math.round(hr.top) : -1,
+        headBg: head ? getComputedStyle(head).backgroundColor : '',
+        pageHeadH: (() => {
+          const h = document.querySelector('.header-inner');
+          return h ? Math.round(h.getBoundingClientRect().height) : 0;
+        })(),
+      };
+    });
+    ck(!!hub, `${HUB}: the sidebar IS injected on the hub`);
+    if (hub) {
+      ck(hub.count === 1, `${HUB}: exactly one active item (got ${hub.count})`);
+      ck(hub.href === HUB, `${HUB}: the active item is the All Guides row (${hub.href})`);
+      ck(hub.current === 'page', `${HUB}: the active item carries aria-current="page"`);
+      ck(hub.drop === 'drop', `${HUB}: the injected nav carries data-pdf="drop"`);
+      ck(hub.onClass, `${HUB}: <html> carries gnav-on so the body offset applies`);
+      ck(hub.width > 100, `${HUB}: the sidebar is visible at desktop width (${hub.width}px)`);
+      ck(!hub.stealsSidebar, `${HUB}: the panel does not claim the page's own .sidebar class`);
+      ck(hub.links >= 40, `${HUB}: the whole nav model is rendered (${hub.links} links)`);
+      ck(hub.sections >= 6, `${HUB}: every section is rendered (${hub.sections})`);
+
+      // MASTHEAD — the operator's ask, asserted as a real decoded image.
+      ck(hub.logoSrc === 'logo.svg',
+        `${HUB}: the masthead carries logo.svg, the white-on-navy lockup (got ${hub.logoSrc})`);
+      ck(hub.logoDecoded, `${HUB}: the masthead logo actually decoded (not a broken img)`);
+      ck(hub.logoH >= 24 && hub.logoH <= 40,
+        `${HUB}: the masthead logo is at brand size (${hub.logoH}px tall)`);
+      ck(hub.logoW > hub.logoH * 3,
+        `${HUB}: the masthead logo keeps the lockup aspect (${hub.logoW}x${hub.logoH})`);
+      ck(hub.logoAlt === 'Bonney Watson', `${HUB}: the masthead logo has its alt text`);
+      ck(/Est\. 1868/.test(hub.est),
+        `${HUB}: the masthead carries the site's Est. 1868 line (got "${hub.est}")`);
+      ck(hub.headH === hub.pageHeadH && hub.pageHeadH > 0,
+        `${HUB}: the masthead is the height of the page's own header (${hub.headH} vs ${hub.pageHeadH})`);
+      ck(hub.headTop === 0, `${HUB}: the masthead sits at the top of the panel (${hub.headTop})`);
+      ck(hub.headBg === 'rgb(28, 44, 54)',
+        `${HUB}: the masthead is the page's chrome navy #1c2c36 (got ${hub.headBg})`);
     }
 
-    // ---------------------------------------------------------------- PRINT
-    for (const p of ['burial-guide.html', 'all-caskets.html', 'guides.html', 'pcm-design-catalog.html']) {
+    // The masthead logo has to be a file the server actually has.
+    const logoRes = await fetch(base + 'logo.svg');
+    ck(logoRes.ok, `logo.svg resolves for the masthead (HTTP ${logoRes.status})`);
+
+    // The masthead stays put while the panel scrolls — it is the left cap of a sticky
+    // header, so scrolling it away would leave paper butted against navy.
+    const pinned = await page.evaluate(() => {
+      const nav = document.getElementById('bwGuideNav');
+      nav.scrollTop = 99999;
+      const h = nav.querySelector('.gnav-head').getBoundingClientRect();
+      return { scrolled: nav.scrollTop > 100, top: Math.round(h.top) };
+    });
+    ck(pinned.scrolled && pinned.top === 0,
+      `${HUB}: the masthead stays pinned while the panel scrolls (top ${pinned.top})`);
+
+    // ---------------------------------------------------------- QUIET everywhere else
+    for (const p of OTHERS) {
       await page.goto(base + p, { waitUntil: 'domcontentloaded' });
-      await page.waitForSelector('#bwGuideNav', { timeout: 15000 }).catch(() => {});
-      await page.emulateMedia({ media: 'print' });
-      const seen = await page.evaluate(() => {
-        const ids = ['bwGuideNav', 'bwGuideNavToggle', 'bwGuideNavBackdrop'];
-        const shown = ids.filter((id) => {
-          const n = document.getElementById(id);
-          return n && getComputedStyle(n).display !== 'none';
-        });
-        return { shown, pad: getComputedStyle(document.body).paddingLeft };
+      await page.waitForTimeout(120);
+      const got = await page.evaluate(PROBE);
+      ck(got.nodes === 0 && got.links === 0,
+        `${p}: injects ZERO nav DOM (nodes ${got.nodes}, links ${got.links})`);
+      ck(!got.onClass, `${p}: <html> does not carry gnav-on`);
+      ck(got.pad === '0px', `${p}: full reading width is preserved (padding-left ${got.pad})`);
+    }
+
+    // ---------------------------------------------------------------- PRINT (hub)
+    await page.goto(base + HUB, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#bwGuideNav', { timeout: 15000 }).catch(() => {});
+    await page.emulateMedia({ media: 'print' });
+    const seen = await page.evaluate(() => {
+      const ids = ['bwGuideNav', 'bwGuideNavToggle', 'bwGuideNavBackdrop'];
+      const shown = ids.filter((id) => {
+        const n = document.getElementById(id);
+        return n && getComputedStyle(n).display !== 'none';
       });
+      return { shown, pad: getComputedStyle(document.body).paddingLeft };
+    });
+    await page.emulateMedia({ media: 'screen' });
+    ck(seen.shown.length === 0,
+      `${HUB}: under print emulation nothing injected is visible (shown: ${seen.shown.join(',') || 'none'})`);
+    ck(seen.pad === '0px', `${HUB}: under print emulation the body offset is 0 (got ${seen.pad})`);
+
+    // The guide pages inject nothing at all, so their printed output cannot have changed.
+    for (const p of ['burial-guide.html', 'all-caskets.html', 'pcm-design-catalog.html']) {
+      await page.goto(base + p, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(120);
+      await page.emulateMedia({ media: 'print' });
+      const q = await page.evaluate(PROBE);
       await page.emulateMedia({ media: 'screen' });
-      ck(seen.shown.length === 0,
-        `${p}: under print emulation nothing injected is visible (shown: ${seen.shown.join(',') || 'none'})`);
-      ck(seen.pad === '0px', `${p}: under print emulation the body offset is 0 (got ${seen.pad})`);
+      ck(q.nodes === 0 && q.pad === '0px',
+        `${p}: under print emulation there is nothing to hide (nodes ${q.nodes}, pad ${q.pad})`);
     }
 
     // ---------------------------------------------------------------- FAMILY VIEW
-    await page.goto(base + 'pcm-design-catalog.html?family', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(400);
-    const fam = await page.evaluate(() => ({
-      nav: document.querySelectorAll('#bwGuideNav,#bwGuideNavToggle,#bwGuideNavBackdrop,#bwGuideNavStyle').length,
-      links: document.querySelectorAll('.gnav-link').length,
-      cls: document.documentElement.className,
-    }));
-    ck(fam.nav === 0 && fam.links === 0,
-      `?family renders ZERO nav DOM (nodes ${fam.nav}, links ${fam.links})`);
-    ck(/family-view/.test(fam.cls), '?family still sets html.family-view (the page\'s own head script)');
-    ck(!/gnav-on/.test(fam.cls), '?family does not get the gnav-on body offset');
+    for (const p of ['pcm-design-catalog.html?family', HUB + '?family']) {
+      await page.goto(base + p, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(400);
+      const fam = await page.evaluate(PROBE);
+      ck(fam.nodes === 0 && fam.links === 0,
+        `${p}: renders ZERO nav DOM (nodes ${fam.nodes}, links ${fam.links})`);
+      ck(!fam.onClass, `${p}: does not get the gnav-on body offset`);
+    }
+    const catCls = await (async () => {
+      await page.goto(base + 'pcm-design-catalog.html?family', { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(300);
+      return page.evaluate(() => document.documentElement.className);
+    })();
+    ck(/family-view/.test(catCls),
+      '?family still sets html.family-view on the catalog (the page\'s own head script)');
 
-    await page.goto(base + 'pcm-design-catalog.html?familyx=1', { waitUntil: 'domcontentloaded' });
+    await page.goto(base + HUB + '?familyx=1', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#bwGuideNav', { timeout: 15000 }).catch(() => {});
     const lookalike = await page.evaluate(() => ({
       nav: !!document.getElementById('bwGuideNav'),
       cls: document.documentElement.className,
     }));
-    ck(lookalike.nav, '?familyx=1 is NOT a family view: the sidebar is injected');
+    ck(lookalike.nav, '?familyx=1 is NOT a family view: the hub sidebar is injected');
     ck(!/family-view/.test(lookalike.cls), '?familyx=1 does not set html.family-view either');
 
     // ---------------------------------------------------------------- DRAWER (375px)
     const phone = await browser.newContext({ viewport: { width: 375, height: 812 } });
     const pp = await phone.newPage();
+
+    // The drawer is the hub's too — a guide page has no button to tap.
     await pp.goto(base + 'burial-guide.html', { waitUntil: 'domcontentloaded' });
+    await pp.waitForTimeout(300);
+    ck(await pp.evaluate(() => !document.getElementById('bwGuideNavToggle')),
+      '375px: a guide page has no menu button either');
+
+    await pp.goto(base + HUB, { waitUntil: 'domcontentloaded' });
     await pp.waitForSelector('#bwGuideNavToggle', { timeout: 15000 });
 
     const offscreen = () => pp.evaluate(() => {
@@ -222,8 +333,7 @@ export async function run(ck) {
       const r = n.getBoundingClientRect();
       return { right: Math.round(r.right), open: n.classList.contains('gnav-open') };
     });
-    const toggleVisible = await pp.isVisible('#bwGuideNavToggle');
-    ck(toggleVisible, '375px: the menu button is the one visible control');
+    ck(await pp.isVisible('#bwGuideNavToggle'), '375px: the menu button is the one visible control');
     ck(await pp.evaluate(() => getComputedStyle(document.body).paddingLeft) === '0px',
       '375px: full reading width is preserved (no body offset)');
     let st = await offscreen();
@@ -237,6 +347,10 @@ export async function run(ck) {
       '375px: the button reports aria-expanded="true" while open');
     ck(await pp.evaluate(() => document.activeElement && document.activeElement.closest('#bwGuideNav') !== null),
       '375px: focus moves into the drawer when it opens');
+    ck(await pp.evaluate(() => {
+      const i = document.querySelector('#bwGuideNav .gnav-head img.gnav-logo');
+      return !!i && i.complete && i.naturalWidth > 0 && i.getBoundingClientRect().height > 20;
+    }), '375px: the drawer carries the same brand masthead');
 
     await pp.keyboard.press('Escape');
     await pp.waitForTimeout(350);
@@ -245,7 +359,7 @@ export async function run(ck) {
 
     await pp.click('#bwGuideNavToggle');
     await pp.waitForTimeout(350);
-    await pp.mouse.click(340, 400);          // on the backdrop, right of the 250px panel
+    await pp.mouse.click(350, 400);          // on the backdrop, right of the panel
     await pp.waitForTimeout(350);
     st = await offscreen();
     ck(!st.open && st.right <= 0, `375px: a backdrop tap closes the drawer (right ${st.right}px)`);

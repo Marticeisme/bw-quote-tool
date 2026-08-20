@@ -1,4 +1,4 @@
-/* guide-nav.js — the persistent left sidebar for the family-facing guides site.
+/* guide-nav.js — the left sidebar for guides.html, the family-guides hub.
  *
  * ONE file is the whole feature. Every in-scope page carries exactly one line:
  *
@@ -8,18 +8,46 @@
  * screens a menu button plus a backdrop. Nothing is added to the 34 pages beyond that
  * single tag, so the sidebar can be restyled or retired in one place.
  *
+ * HUB ONLY (s25). The operator's ruling: the sidebar belongs on the hub and nowhere
+ * else. A guide page is something a family reads; a second navigation rail down its
+ * left side competes with the guide's own contents bar and its own header.
+ *
+ * The gate for that lives HERE, in the script, not in the page wiring. Every page keeps
+ * its one tag and every generator keeps emitting it; the script decides. Two reasons.
+ * First, unwiring 33 pages means editing five generators and re-running five builds, and
+ * a page that got missed shows a sidebar nobody asked for. Second, turning the sidebar
+ * back on for guide pages later is then one line here instead of another 33-file sweep.
+ * The tag is the wiring; this function is the ruling.
+ *
  * WHY THE CSS LIVES HERE AND NOT IN A STYLESHEET. The pages are hand-kept and generated
  * in five different ways; a second <link> would have to be threaded through every
  * generator too, and a page that got the script but not the stylesheet would render an
  * unstyled list on top of the cover. One tag cannot half-apply.
  *
- * SKIN. The guides brand, not the quote tool's dark chrome: official navy #466e86 and
- * orange #e84610 off the 2026 GPL brochure, warm cream surfaces, Cormorant Garamond for
- * the section name and Source Sans 3 for the items. Values are hardcoded rather than
- * read from each page's :root because the pages do NOT agree on their token names —
- * the prose guides define --navy/--orange, guides.html defines --bw-navy/--navy-500,
- * and the catalogs define --paper/--card. A var() reference would resolve differently
- * (or not at all) page to page.
+ * SKIN — guides.html's own, quoted rather than approximated. Now that the panel renders
+ * on exactly one page it can stop being a generic list that had to survive 34 different
+ * skins, and become part of THAT page:
+ *
+ *   - The masthead is the site header's left cap. Same navy (--navy-900 #1c2c36), the
+ *     same 74px height, so the navy runs unbroken across the top of the screen and the
+ *     panel's top edge and the header's bottom edge are one line. It carries the real
+ *     brand lockup — logo.svg, the white-on-navy file guides.html's own <header> uses —
+ *     over `Est. 1868` in Cormorant italic, which is the exact treatment the prose
+ *     guides' .site-nav carries.
+ *   - The panel surface is the page's paper (#f4efe6), not a separate cream, with the
+ *     card keyline (#e7dcc7) as its right edge. The sidebar is the page continuing left.
+ *   - Section headings are guides.html's .category-header, verbatim: Cormorant in the
+ *     serif ink #2c4a5a, and the rule that fades out to the right. Not its count pill:
+ *     the nav counts PAGES and the cards count CARDS, and they legitimately differ.
+ *   - Orange lands the way the cards land it: on hover, one item at a time, plus the
+ *     current page's left edge. Nothing is orange at rest.
+ *   - The current item is a card — white, the card keyline, the card shadow — because
+ *     that is what "this one" looks like everywhere else on the page.
+ *
+ * Values are hardcoded rather than read from :root: the pages do NOT agree on their
+ * token names (prose guides --navy/--orange, guides.html --bw-navy/--navy-500, catalogs
+ * --paper/--card), so a var() reference would resolve differently or not at all. These
+ * are guides.html's values; if that page's tokens move, move these with them.
  *
  * NAMESPACE. Everything is `gnav-` / `#bwGuideNav*`. In particular this file must never
  * use the bare class `.sidebar` — the prose guides already use `.sidebar` for the warm
@@ -32,10 +60,10 @@
  * THE FAMILY-VIEW BAIL-OUT. pcm-design-catalog.html?family is a deliberately
  * navigation-free link the operator hands a family: build_pcm_catalog.py emits a head
  * script that sets <html class="family-view"> and hides the page's own back link and
- * footer. Injecting a sidebar there would put every link back. So this file returns
- * before injecting anything when that class is present OR when the URL carries a
- * `family` param — matching the head script's regex EXACTLY, so the lookalike
- * `?familyx=1` is not a family view here either, just as it is not there.
+ * footer. Injecting a sidebar there would put every link back. The bail-out is kept and
+ * still applies to the hub: guides.html?family is navigation-free too. It matches the
+ * head script's regex EXACTLY, so the lookalike `?familyx=1` is not a family view here
+ * either, just as it is not there.
  */
 (function () {
   'use strict';
@@ -129,60 +157,116 @@
   try { window.BW_GUIDE_NAV = { home: HOME, sections: NAV }; } catch (e) {}
 
   var BREAK = 1100;   // desktop sidebar at/above this, drawer below it
-  var WIDTH = 250;    // px
+  var WIDTH = 264;    // px
+  var HEAD_H = 74;    // px — guides.html's own .header-inner height. Keep them equal.
 
   var CSS = [
     /* Tokens are scoped to the injected subtree so they cannot collide with a page's
-       own --navy / --orange / --rule, which differ page to page. */
+       own --navy / --orange / --rule, which differ page to page. Every value here is
+       guides.html's: --navy-900, --bw-orange, --paper, --card, --card-border,
+       --serif-ink, --pill-bg, --pill-ink, --sh-1, --ring. */
     '#bwGuideNav,#bwGuideNavToggle,#bwGuideNavBackdrop{',
-    '--gn-navy:#466e86;--gn-navy-deep:#1c2c36;--gn-navy-mid:#314d5e;',
-    '--gn-orange:#e84610;--gn-cream:#f8f6f2;--gn-offwhite:#f2f5f6;',
-    '--gn-rule:#e0dbd0;--gn-ink:#16242c;--gn-body:#4a5a64;--gn-muted:#6d818c;',
-    '--gn-w:' + WIDTH + 'px;',
+    '--gn-navy:#466e86;--gn-navy-deep:#1c2c36;',
+    '--gn-orange:#e84610;--gn-orange-press:#c73a0c;',
+    '--gn-paper:#f4efe6;--gn-card:#fff;--gn-card-border:#e7dcc7;',
+    '--gn-serif-ink:#2c4a5a;--gn-body:#5a6b73;--gn-fade:#d9cdb6;',
+    '--gn-pill-bg:#ece2cf;--gn-pill-ink:#a08c6a;',
+    '--gn-sh1:0 1px 2px rgba(22,36,44,.06);',
+    '--gn-w:' + WIDTH + 'px;--gn-head-h:' + HEAD_H + 'px;',
     'font-family:"Source Sans 3",system-ui,-apple-system,sans-serif;',
     'box-sizing:border-box;-webkit-font-smoothing:antialiased}',
     '#bwGuideNav *,#bwGuideNavToggle *{box-sizing:border-box}',
 
     /* ---- the panel ---- */
     '#bwGuideNav{position:fixed;top:0;left:0;bottom:0;width:var(--gn-w);z-index:900;',
-    'background:var(--gn-cream);border-right:1px solid var(--gn-rule);',
+    'background:var(--gn-paper);border-right:1px solid var(--gn-card-border);',
     'overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;',
     'transform:translateX(-100%);transition:transform .22s ease;',
-    'box-shadow:0 0 30px rgba(22,36,44,.18);display:flex;flex-direction:column}',
+    'box-shadow:0 0 30px rgba(22,36,44,.18);display:flex;flex-direction:column;',
+    'scrollbar-width:thin;scrollbar-color:#d9cdb6 transparent}',
     '#bwGuideNav.gnav-open{transform:translateX(0)}',
+    '#bwGuideNav::-webkit-scrollbar{width:9px}',
+    '#bwGuideNav::-webkit-scrollbar-thumb{background:#ddd2be;border-radius:9px;',
+    'border:3px solid var(--gn-paper)}',
 
-    '.gnav-head{background:var(--gn-navy-deep);padding:16px 18px 14px;flex-shrink:0}',
-    '.gnav-head .gnav-mark{font-family:"Cormorant Garamond",Georgia,serif;font-size:19px;',
-    'font-weight:600;color:#fff;line-height:1.15;display:block}',
-    '.gnav-head .gnav-est{font-family:"Cormorant Garamond",Georgia,serif;font-size:11px;',
-    'font-style:italic;color:rgba(255,255,255,.55);display:block;margin-top:2px}',
-    '.gnav-head .gnav-rule{width:34px;height:2px;background:var(--gn-orange);',
-    'border-radius:2px;margin-top:10px}',
+    /* ---- masthead: the left cap of guides.html's own header ----
+       Same navy, same 74px, so the two read as one band and the panel's top edge lines
+       up with the header's bottom edge. The lockup is the site's, not a substitute for
+       it: logo.svg over `Est. 1868` in the prose guides' Cormorant italic. */
+    /* align-items:flex-start with a 22px top pad, NOT center: it puts the 30px logo at
+       22..52px, whose centre is 37px — the same centre as the header's own 34px logo in
+       its 74px bar. Centring the two-line lockup instead floats the logo ~7px high, and
+       two copies of the same mark at two heights on one navy band is the first thing the
+       eye catches. `Est. 1868` hangs below inside the remaining 22px. */
+    '.gnav-head{background:var(--gn-navy-deep);height:var(--gn-head-h);flex-shrink:0;',
+    'display:flex;align-items:flex-start;padding:22px 20px 0;',
+    /* STICKY, not merely flex-shrink:0. The scroll container is the panel itself, so a
+       static masthead scrolls out of the top of it — and once the masthead is the left
+       cap of a STICKY site header, scrolling it away leaves paper butted against navy
+       across the top of the screen. Sticky pins it; the items pass underneath and the
+       existing drop shadow reads as the edge they pass under. */
+    'box-shadow:0 2px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:2}',
+    '.gnav-brand{display:block;text-decoration:none;line-height:1}',
+    '.gnav-brand .gnav-logo{height:30px;width:auto;display:block}',
+    '.gnav-brand .gnav-est{font-family:"Cormorant Garamond",Georgia,serif;font-size:12px;',
+    'font-style:italic;color:rgba(255,255,255,.5);display:block;margin-top:5px;',
+    'letter-spacing:.04em}',
+    '.gnav-brand:hover .gnav-est{color:rgba(255,255,255,.78)}',
 
-    '.gnav-body{padding:10px 0 28px;flex:1}',
+    '.gnav-body{padding:6px 0 34px;flex:1}',
 
-    '.gnav-home{display:block;margin:10px 12px 4px;padding:9px 12px;border-radius:6px;',
-    'font-size:13px;font-weight:700;letter-spacing:.02em;text-decoration:none;',
-    'color:var(--gn-navy);background:#fff;border:1px solid var(--gn-rule);transition:all .14s}',
-    '.gnav-home:hover{border-color:var(--gn-navy);color:var(--gn-navy-deep)}',
-    '.gnav-home.gnav-active{background:var(--gn-navy);border-color:var(--gn-navy);color:#fff}',
+    /* ---- the hub row ----
+       The current-page bar is a real 3px left BORDER, not an inset box-shadow. An inset
+       shadow is painted inside the padding box and clipped to its own square corners, so
+       against a 10px radius it showed as an orange crescent leaking past the card's
+       rounded left edge — obvious at 3x and just "smudged" at 1x. Carrying the 3px in the
+       resting border keeps the label on one x-position whether it is current or not. */
+    '.gnav-home{display:block;position:relative;margin:14px 16px 4px;',
+    'padding:10px 14px 10px 12px;border-radius:10px;font-size:13px;font-weight:600;',
+    'letter-spacing:.02em;text-decoration:none;color:var(--gn-serif-ink);',
+    'background:transparent;border:1px solid transparent;border-left:3px solid transparent;',
+    'transition:color .12s ease,background .12s ease,border-color .12s ease}',
+    '.gnav-home:hover{color:var(--gn-orange)}',
+    '.gnav-home.gnav-active{background:var(--gn-card);border-color:var(--gn-card-border);',
+    'border-left-color:var(--gn-orange);box-shadow:var(--gn-sh1)}',
+    '.gnav-home.gnav-active:hover{color:var(--gn-serif-ink)}',
 
-    '.gnav-sec{margin-top:14px}',
-    '.gnav-sec-name{font-family:"Cormorant Garamond",Georgia,serif;font-size:15px;',
-    'font-weight:600;color:var(--gn-navy-mid);padding:0 18px 6px;display:block;',
-    'border-bottom:1px solid var(--gn-rule);margin:0 0 4px}',
+    /* ---- section heading: guides.html's .category-header at panel scale ----
+       Serif name, then the same rule that fades out to the right. Deliberately WITHOUT
+       the page's count pill: the nav lists PAGES and the page's cards count CARDS, and
+       they legitimately differ (markers-guide.html has two cards and one page; the price
+       list and the internal reference have cards and no nav entry). The first render put
+       `Getting Started 14` in the sidebar three inches from the quick-jump's
+       `Getting Started 16` — two numbers for one category on one screen, which reads as
+       a bug whichever one you believe. The rule carries the style; the number is the
+       part that could not be true twice. */
+    '.gnav-sec{margin-top:22px}',
+    '.gnav-sec-head{display:flex;align-items:center;gap:11px;padding:0 20px 9px}',
+    '.gnav-sec-name{font-family:"Cormorant Garamond",Georgia,serif;font-size:16.5px;',
+    'font-weight:600;color:var(--gn-serif-ink);white-space:nowrap;line-height:1.1}',
+    '.gnav-sec-rule{flex:1;height:1px;min-width:10px;',
+    'background:linear-gradient(90deg,var(--gn-fade),transparent)}',
+
     '.gnav-sec ul{list-style:none;margin:0;padding:0}',
     '.gnav-sec li{margin:0;padding:0}',
     '.gnav-sec li::before{content:none}',   /* prose guides style bare <li> — neutralise */
-    '.gnav-link{display:block;padding:7px 18px 7px 16px;font-size:13px;line-height:1.35;',
+    '.gnav-link{display:block;padding:7px 18px 7px 17px;font-size:13.5px;line-height:1.4;',
     'color:var(--gn-body);text-decoration:none;border-left:3px solid transparent;',
-    'transition:background .14s,color .14s,border-color .14s}',
-    '.gnav-link:hover{background:var(--gn-offwhite);color:var(--gn-navy-deep);',
-    'border-left-color:var(--gn-navy)}',
-    '.gnav-link.gnav-active{background:#fff;color:var(--gn-ink);font-weight:700;',
-    'border-left-color:var(--gn-orange);box-shadow:inset -1px 0 0 var(--gn-rule)}',
-    '#bwGuideNav a:focus-visible,#bwGuideNavToggle:focus-visible{outline:0;',
-    'box-shadow:0 0 0 3px rgba(70,110,134,.4)}',
+    'transition:background .12s ease,color .12s ease,border-color .12s ease}',
+    '.gnav-link:hover{background:rgba(255,255,255,.6);color:var(--gn-orange);',
+    'border-left-color:var(--gn-fade)}',
+    '.gnav-link.gnav-active{background:var(--gn-card);color:var(--gn-serif-ink);',
+    'font-weight:600;border-left-color:var(--gn-orange);',
+    'box-shadow:inset -1px 0 0 var(--gn-card-border),var(--gn-sh1)}',
+    '.gnav-link.gnav-active:hover{color:var(--gn-serif-ink)}',
+    /* The items are full-bleed rows, so an OUTSET ring is clipped away at both panel
+       edges and shows as two loose horizontal bars. Drawn inside with a negative offset
+       it reads as a ring on all four sides, and it follows the hub row's radius. The
+       floating toggle is a circle with room around it, so that one keeps the outset. */
+    '#bwGuideNav a:focus-visible{outline:2px solid var(--gn-navy);outline-offset:-3px;',
+    'box-shadow:none}',
+    '.gnav-home.gnav-active:focus-visible{outline-offset:-4px}',
+    '#bwGuideNavToggle:focus-visible{outline:0;box-shadow:0 0 0 3px rgba(70,110,134,.55)}',
 
     /* ---- the phone/tablet controls ---- */
     /* Bottom-LEFT on purpose. Top-left would sit on the sticky navy header's logo on
@@ -251,12 +335,14 @@
       tabindex: '-1'
     });
 
-    var head = el('div', { class: 'gnav-head' }, [
-      el('span', { class: 'gnav-mark' }, ['Bonney Watson']),
-      el('span', { class: 'gnav-est' }, ['Guides and Catalogs']),
-      el('div', { class: 'gnav-rule' })
+    // The masthead carries the real lockup. logo.svg is the white-on-navy file
+    // guides.html's own <header> uses; logo-navy.svg is the dark-on-light one its footer
+    // uses, and it would disappear against this block.
+    var brand = el('a', { class: 'gnav-brand', href: HOME.href }, [
+      el('img', { class: 'gnav-logo', src: 'logo.svg', alt: 'Bonney Watson' }),
+      el('span', { class: 'gnav-est' }, ['Est. 1868'])
     ]);
-    nav.appendChild(head);
+    nav.appendChild(el('div', { class: 'gnav-head' }, [brand]));
 
     var body = el('div', { class: 'gnav-body' });
 
@@ -269,7 +355,10 @@
 
     NAV.forEach(function (sec) {
       var wrap = el('div', { class: 'gnav-sec' });
-      wrap.appendChild(el('span', { class: 'gnav-sec-name' }, [sec.name]));
+      wrap.appendChild(el('div', { class: 'gnav-sec-head' }, [
+        el('span', { class: 'gnav-sec-name' }, [sec.name]),
+        el('span', { class: 'gnav-sec-rule' })
+      ]));
       var ul = el('ul');
       sec.items.forEach(function (it) {
         var on = fileOf(it.href) === here;
@@ -365,11 +454,20 @@
     }
   }
 
+  // Is this page the hub? `fileOf` already drops the query and the hash, and an empty
+  // result — the bare `/` of a server that indexes to guides.html, and the dev server's
+  // directory form — falls back to the hub the same way build() resolves `here`. Every
+  // other page in the tree, guide and catalog alike, returns false and gets nothing.
+  function isHub() {
+    return (fileOf(location.pathname) || 'guides.html') === fileOf(HOME.href);
+  }
+
   function start() {
     // Bail-outs. Return BEFORE injecting anything at all — not "inject then hide".
     var root = document.documentElement;
     if (root.classList.contains('family-view')) return;
     if (FAMILY_RE.test(location.search)) return;
+    if (!isHub()) return;              // s25: the hub is the only page with a sidebar
     inject();
   }
 
