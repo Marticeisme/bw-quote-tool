@@ -262,7 +262,7 @@ function run(sources) {
       else fail(`${PAGES[area]} never states ${what} ("${needle}")`);
     }
     if (src.printedOnThisSheet) fail(`${area} FEE_SOURCE.printedOnThisSheet flipped to true — this check needs rewriting`);
-    else if (/not the older amounts printed on this location|no fees appear on it this location/i.test(html))
+    else if (/not the older amounts printed on this location|no fees appear on this location/i.test(html))
       ok(`${PAGES[area]} says the amounts are not this location's own printed ones`);
     else fail(`${PAGES[area]}: the schedule is borrowed but the page does not say so`);
   }
