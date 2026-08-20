@@ -252,7 +252,12 @@ def build(cats):
             'rel="noopener">bonneywatson.com</a><br>16445 International Blvd, SeaTac, WA 98188 '
             '&middot; 206-445-9794</div>',
             '  </footer>', '</div>', '',
-            '<script>', JS, '</script>', '</body>', '</html>', '']
+            '<script>', JS, '</script>',
+            # The shared guides sidebar (guide-nav.js). Emitted HERE rather than
+            # hand-added to guides.html, because this generator rewrites the whole
+            # file — a hand-edited tag would be dropped by the next rebuild.
+            '<script src="guide-nav.js" defer></script>',
+            '</body>', '</html>', '']
     return '\n'.join(out), total
 
 
