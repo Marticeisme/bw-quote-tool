@@ -1,5 +1,33 @@
 # STATE — Living Ledger
 
+**s25 CLOSED ON MAIN 2026-08-20 — Track A `s25/guide-sidebar` MERGED (track
+`cd79ddd6`+`36447bdd`). Final main GREEN: index 8/0; `3484 passed, 0 failed across
+47 suites` (NEW PIN, re-pinned in all three governing docs; reconciles 3063 + 421
+test-guide-nav); family_type 121/0, guide_pages OK, photo_first 23/7 OK, catalogs
+ALL OK, guide_nav 421/0 director-re-run on merged main; PDF manifest 60/0/0 with
+ZERO PDF byte churn (track proved print-render identical 33/33 with nav on/off and
+re-recorded hashes instead of rebuilding — the builder is not byte-reproducible);
+index.html blob still f2c17d16… byte-identical.** Shipped: guide-nav.js (ONE shared
+file = model + injected style + nav + drawer; gnav- namespace because `.sidebar` is
+taken by the prose guides' pull-out boxes; brand values hardcoded — the pages don't
+share token names), 34 pages wired (script tag IN the generators for generated pages;
+build_urn_options.py ruled dead for HTML), drawer with bottom-left button (top-left
+collides with sticky headers, bottom-right with flush-markers' action bar), ?family
+bails out on EVERY page (regex identical to build_pcm_catalog.py's), sabotage-proven
+test-guide-nav (2× red/green quoted). TRACK'S EYEBALL CAUGHT A REAL DEFECT: menu
+button parked over the open drawer — now steps aside and becomes the × close.
+DEVIATIONS/FINDS: brief said 35 pages, truth is 34 (gate derives the set from disk);
+**build_guides_page.py CANNOT rebuild guides.html on pristine main** (CARD_RE parses
+0 of 47 cards — the s22 rot finding now confirmed as a hard abort; guides.html is
+hand-kept; tag added to the generator anyway for when it's repaired). OPEN OPERATOR
+ITEMS (close gate): push word (who-decides two-ways commit rides the same push);
+should counselors get the Letters & Forms pages in the sidebar (currently omitted —
+they're operator tooling on a family-visible screen)?; ?family suppressing nav on
+every guide (not just PCM) — broader than the original PCM-only intent, flag if
+unwanted; build_guides_page.py repair as its own chip. Renders:
+scratch/s25-a-renders (6). Worktree s25a pending removal at push; s25/* branch kept
+until pruned.
+
 **Current sprint: sprint-25 — OPENED 2026-08-20** (director: same Fable session as
 s24; track: Opus). Scope: persistent left sidebar across the guides site per the
 operator's ask, rulings: ALL guide+catalog pages (35 incl. guides.html; tools/maps/
