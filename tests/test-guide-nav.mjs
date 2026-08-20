@@ -1,4 +1,7 @@
-// The guides sidebar (guide-nav.js), inside `npm test`. The checks live in
+// The guides sidebar (guide-nav.js), inside `npm test`. Since s25 the sidebar renders on
+// guides.html and nowhere else, so this gate proves both halves of that: the hub gets the
+// panel with its brand masthead, and every other in-scope page injects nothing at all
+// while still serving its one script tag. The checks live in
 // scripts/verify_guide_nav.mjs so the same gate runs standalone against a page under
 // construction; this file is how it reaches the suite. Nothing here writes anything —
 // no Firebase, no generated file, no PDF.
