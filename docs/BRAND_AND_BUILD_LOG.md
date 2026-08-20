@@ -2610,3 +2610,20 @@ card; RCW 68.50.160(1)/(2) are the two mechanisms).
 Open with the operator: Letters & Forms in the sidebar for counselors?; keep or narrow
 the every-page ?family bail-out; flush-markers Download still points at a nonexistent
 PDF.
+
+## 2026-08-20 — s25 operator round pushed live (91b20303..38db8ae9): hub-only sidebar, redesigned
+
+Wire-verified 4/4 byte-identical (3 deploy-lag rounds). The sidebar now renders ONLY on
+guides.html (decided inside guide-nav.js — tags and generator wiring untouched, so
+re-enabling site-wide is a one-line ruling) and was redesigned as the hub's own left
+cap: navy #1c2c36 masthead at the header's 74px carrying the real logo.svg lockup +
+Est. 1868 (sticky, optically aligned), paper surface with the card keyline, Cormorant
+category heads over fading rules, orange hover + active-card treatment, 264px. Per the
+operator's follow-up ruling the hub header's own logo copy is HIDDEN while the sidebar
+masthead shows (html.gnav-on + desktop only — the phone drawer breakpoint and ?family
+keep the header logo, so no state shows zero marks). Gate re-pinned to the hub-only
+intent: test-guide-nav 421→273, suite pin now **3336/47** (re-pinned in the three
+governing docs). Track-fixed-by-looking: count pills contradicting the page's card
+counts (dropped), inset-shadow orange bar clipping at rounded corners (real border),
+outset focus ring clipping (inset). Still open: Letters & Forms in the sidebar?;
+flush-markers dead Download target; build_guides_page.py repair chip.
