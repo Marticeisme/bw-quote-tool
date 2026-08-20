@@ -2545,3 +2545,41 @@ exist on the page — grep-verified. Hidden navigation only, NOT access control:
 of the public site is still URL-reachable. Verified headless (normal / ?family /
 ?family=1 / lookalike ?familyx=1) and again on the wire post-deploy; tracked gate
 verify_pcm_catalog.mjs still 398/0.
+
+## 2026-08-20 — Sprint-24 pushed live (08fdfb27..377b562e): guide voice & style round
+
+Operator-directed style round, wire-verified 27/27 HTML files byte-identical sha256 vs
+the HEAD blobs (one deploy-lag round) plus content probes. What changed:
+
+- **New style reference `docs/GUIDE_STYLE_2026-08.md`** — 15 published death-care pieces
+  sampled (12 consumer-facing, 3 trade), distilled into opening moves / cadence / trust
+  techniques, every technique reconciled against the binding voice debrief (voice rules
+  win each conflict). Carries the BANNED-OPENER class with a mechanical test: delete the
+  first sentence; if the guide is unharmed, the sentence was banned.
+- **26 prose guides rewritten at openings + weak passages** (Track A: 12 decision
+  guides; Track B: 14 location/marker guides). The operator's named example is dead:
+  cemetery-property §1 now opens "When you buy cemetery property, you're not buying
+  land." Burial guide opens on the call-first action. flush-markers.html (orphaned, in
+  no prior review) got a full 22-passage debrochure pass. All PDFs rebuilt, every page
+  count unchanged and inside its cap; index.html byte-identical through the sprint.
+- **payment-options-letter.html**: the cem/FH split block now always shows BOTH lines
+  once either amount is filled (empty side $0.00), prose smoothed, deadline headers
+  use parentheses instead of em dashes; test-combined-totals re-pinned to the new
+  contract (50/0).
+- Fixes riding along: terrace-garden stray-word footnote (+ gate needle), style-doc
+  scattering example corrected (examples are style models, never fact sources).
+
+**Scars for the next round:** (1) `verify_photo_first.mjs` runs in the PUSH GUARD but
+was in nobody's gate list — it blocked the push when a colon-split rewrite put a
+photo-first card at 3 sentences against a 2-sentence budget; colons are legal, so the
+fix was restoring the two-sentence shape. Add it to every guide-track brief. (2)
+`PORT=<n> npm test` with nothing listening EXITS 0 HAVING RUN NOTHING — start the
+server first, judge by assertion count. (3) The voice debrief's per-guide verdicts are
+stale both directions: Tier-1 offenders were already clean, "gold standard"
+markers-guide still carried banned phrases. No guide is clean by reputation.
+
+**Still open with the operator:** who-decides §2 says "two ways" (body) vs "three
+ways" (PDF sidebar) with three cards shown; flush-markers.html is orphaned and its
+Download button points at a nonexistent PDF (link it / retire it / repoint); optional
+one-liner in scripts/guide-price-rule.mjs would give the generated invitation blocks
+contractions site-wide. Suite pin unchanged: 3063/46.
