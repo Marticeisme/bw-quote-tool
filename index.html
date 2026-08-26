@@ -16588,11 +16588,134 @@ function _bwFillNameFromLink(type, partyId) {
   if (cfg.after && typeof window[cfg.after] === 'function') { try { window[cfg.after](); } catch (e) {} }
 }
 
+
+// ── Contact auto-import: party ⇄ contract field blocks (sprint-26 Track A) ────────────
+// Linking a contact already filled the family NAME. It did not fill the address, the phone or
+// the email, so the counselor retyped what the contact record already held — the exact double
+// entry the contact layer exists to remove.
+//
+// Both directions are driven from ONE table because roles are DATA, not an enum (DESIGN §8):
+// adding a lane, a role or a field is an edit here and nowhere else.
+//
+// BOTH directions are FILL-BLANKS-ONLY (operator ruling, binding). Nothing below merges: it
+// asks "is this empty?" and only then writes. A value the counselor typed is never overwritten,
+// and a party that already carries a phone/email/address keeps it byte for byte.
+//
+// `roles` maps a BW_ROLES code to a block. A role listed with a falsy value is deliberately
+// UNMAPPED — RIC has one address block and a co-purchaser must not land in the purchaser's.
+// `order` + `orderRoles` is the fallback for the one lane whose two blocks the roles do not
+// distinguish: ClearPoint's blocks are "Funeral Recipient" and "Purchaser (if different)", and
+// the default role on every link is `purchaser`, so first link → block 1, second → block 2 —
+// which is also where _bwFillNameFromLink already puts the first link's name.
+var BW_LINK_FIELDS = {
+  ric: {
+    blocks: {
+      // ricDayPhone is a COMBINED "Email / Day Phone" field. It takes the email half only, and
+      // the phone input-mask at initPhoneAutoFormat deliberately skips it — do not add one.
+      purchaser: { street: 'ricStreet', city: 'ricCity', state: 'ricState', zip: 'ricZip',
+                   phone: 'ricPhone', email: 'ricDayPhone' }
+    },
+    roles: { purchaser: 'purchaser', 'co-purchaser': null, 'for-benefit-of': null, decedent: null }
+  },
+  an: {
+    blocks: {
+      purchaser:      { street: 'anPurchStreet',   city: 'anPurchCity',   state: 'anPurchState',   zip: 'anPurchZip',
+                        phone: 'anPurchHomePhone',   phone2: 'anPurchCellPhone',   email: 'anPurchEmail' },
+      'co-purchaser': { street: 'anCoPurchStreet', city: 'anCoPurchCity', state: 'anCoPurchState', zip: 'anCoPurchZip',
+                        phone: 'anCoPurchHomePhone', phone2: 'anCoPurchCellPhone', email: 'anCoPurchEmail' }
+    },
+    roles: { purchaser: 'purchaser', 'co-purchaser': 'co-purchaser', decedent: null }
+  },
+  ga: {
+    // The GA application has three contact blocks. `purchaser` — the default role on any link —
+    // maps to INSURED, matching BW_LINK_MODULES.ga.name (gaInsuredName): the first link's name
+    // and address then land in the same panel instead of two different ones.
+    blocks: {
+      insured:     { street: 'gaInsuredStreet', city: 'gaInsuredCity', state: 'gaInsuredState', zip: 'gaInsuredZip', phone: 'gaInsuredPhone' },
+      owner:       { street: 'gaOwnerStreet',   city: 'gaOwnerCity',   state: 'gaOwnerState',   zip: 'gaOwnerZip',   phone: 'gaOwnerPhone' },
+      beneficiary: { street: 'gaBenefStreet',   city: 'gaBenefCity',   state: 'gaBenefState',   zip: 'gaBenefZip',   phone: 'gaBenefPhone' }
+    },
+    roles: { insured: 'insured', purchaser: 'insured',
+             'policy-owner': 'owner', 'co-purchaser': 'owner', payer: 'owner',
+             beneficiary: 'beneficiary', decedent: null }
+  },
+  cp: {
+    blocks: {
+      recipient: { street: 'cpAddress',  city: 'cpCity',  state: 'cpState',  zip: 'cpZip',  phone: 'cpPhone'  },
+      purchaser: { street: 'cpAddress2', city: 'cpCity2', state: 'cpState2', zip: 'cpZip2', phone: 'cpPhone2' }
+    },
+    roles: { insured: 'recipient', 'for-benefit-of': 'recipient', decedent: 'recipient',
+             'co-purchaser': 'purchaser', 'policy-owner': 'purchaser', payer: 'purchaser' },
+    order: ['recipient', 'purchaser'],
+    orderRoles: ['purchaser']
+  }
+};
+
+// Which block this link writes to. An explicitly-listed falsy role means "no block" — that is a
+// decision, not an omission, so hasOwnProperty is the test rather than truthiness.
+function _bwLinkBlockKey(type, role, idx) {
+  var cfg = BW_LINK_FIELDS[type]; if (!cfg) return null;
+  role = role || 'purchaser';
+  if (Object.prototype.hasOwnProperty.call(cfg.roles, role)) return cfg.roles[role] || null;
+  if (cfg.order && cfg.orderRoles && cfg.orderRoles.indexOf(role) > -1) return cfg.order[idx] || null;
+  return null;
+}
+
+// The party's primary address AS AN OBJECT. _bwPrimary() returns `.value`, which addresses
+// do not have — they are {street1, city, state, postal}.
+function _bwPartyAddr(p) {
+  if (!p || !p.addresses) return null;
+  var keys = Object.keys(p.addresses);
+  if (!keys.length) return null;
+  var pick = keys.find(function(k){ return p.addresses[k] && p.addresses[k].isPrimary; }) || keys[0];
+  return p.addresses[pick] || null;
+}
+
+function _bwSetIfBlank(id, v) {
+  if (!id || !v) return 0;
+  var e = el(id);
+  if (!e || String(e.value || '').trim()) return 0;
+  e.value = v;
+  return 1;
+}
+
+// Fill ONE role block from the linked party. Returns how many fields it filled, which is what
+// the tests count. Blanks only, always.
+function bwFillBlockFromLink(type, partyId, role, idx) {
+  var cfg = BW_LINK_FIELDS[type]; if (!cfg) return 0;
+  var key = _bwLinkBlockKey(type, role, idx); if (!key) return 0;
+  var b = cfg.blocks[key]; if (!b) return 0;
+  var p = partyId ? bwPartyById(partyId) : null; if (!p) return 0;
+  var n = 0, a = _bwPartyAddr(p);
+  if (a) {
+    n += _bwSetIfBlank(b.street, a.street1 || '');
+    n += _bwSetIfBlank(b.city,   a.city    || '');
+    n += _bwSetIfBlank(b.state,  a.state   || '');
+    n += _bwSetIfBlank(b.zip,    a.postal  || '');
+  }
+  // Phones are DIGITS ONLY on the party; every one of these inputs shows (xxx) xxx-xxxx and is
+  // masked by formatPhoneInput, so they get the formatted form. A second party number goes in
+  // the block's second field where it has one — the same number is never written into both.
+  var primary = _bwPrimary(p.phones);
+  var rest = _bwAllValues(p.phones).filter(function(v){ return v && v !== primary; });
+  n += _bwSetIfBlank(b.phone, bwFmtPhone(primary));
+  if (rest.length) n += _bwSetIfBlank(b.phone2, bwFmtPhone(rest[0]));
+  n += _bwSetIfBlank(b.email, _bwPrimary(p.emails));
+  return n;
+}
+
+// Fill the block for one link by its index in the pending list.
+function _bwFillBlockForIndex(type, idx) {
+  var lk = (bwPendingLinks(type) || [])[idx];
+  if (!lk || !lk.partyId) return 0;
+  try { return bwFillBlockFromLink(type, lk.partyId, lk.role, idx); }
+  catch (e) { console.warn('contact autofill failed', e); return 0; }
+}
 // Replaces the whole set with one link, or clears it when partyId is null.
 function bwSetPendingLink(type, partyId, role) {
   if (partyId) _bwPendingLink[type] = [{ partyId: partyId, role: role || 'purchaser' }];
   else delete _bwPendingLink[type];
-  if (partyId) _bwFillNameFromLink(type, partyId);
+  if (partyId) { _bwFillNameFromLink(type, partyId); _bwFillBlockForIndex(type, 0); }
   bwRenderLink(type);
 }
 
@@ -16609,6 +16732,9 @@ function bwAddPendingLink(type, partyId, role) {
   var isFirst = list.length === 0;
   list.push({ partyId: partyId, role: role });
   if (isFirst) _bwFillNameFromLink(type, partyId);
+  // The NAME is first-link-only (a second person must not rename the family), but every link
+  // fills its own address block — the second person has a second block to go in.
+  _bwFillBlockForIndex(type, list.length - 1);
   bwRenderLink(type);
 }
 function bwRemovePendingLink(type, idx) {
@@ -16620,6 +16746,9 @@ function bwRemovePendingLink(type, idx) {
 function bwSetPendingLinkRole(type, idx, role) {
   var list = _bwPendingLink[type]; if (!list || !list[idx]) return;
   list[idx].role = role || 'purchaser';
+  // Fill the NEW role's block. The old block is left exactly as it is: this is blanks-only in
+  // both directions, and clearing a field the counselor may have typed is not ours to do.
+  _bwFillBlockForIndex(type, idx);
   bwRenderLink(type);
 }
 
@@ -16775,6 +16904,67 @@ function bwAttachToSavedRecord(type, snap) {
     alert('The quote was saved, but linking the contact failed:\n\n' + ((e && e.message) || e));
     return snap;
   });
+}
+
+// ── Write-back: contract → party (sprint-26 Track A) ─────────────────────────────────
+// The counselor types the family's address into a contract long before anyone opens the contact
+// record. Without this the contact layer stays a name and a phone forever.
+//
+// FILL-BLANKS-ONLY on the party side too, and at the SUB-OBJECT level: a party with any phone
+// keeps its phones untouched — this never appends a p2 or an a2 variant, and never edits an
+// existing value. Only the parties that actually gained something are written, so re-saving an
+// unchanged contract issues no party write at all.
+function bwWriteBackLinkedParties(type) {
+  var cfg = BW_LINK_FIELDS[type]; if (!cfg) return Promise.resolve([]);
+  var links = bwPendingLinks(type), jobs = [], seen = {};
+  function fv(id) { var e = id ? el(id) : null; return e ? String(e.value || '').trim() : ''; }
+  for (var i = 0; i < links.length; i++) {
+    var lk = links[i];
+    if (!lk || !lk.partyId || seen[lk.partyId]) continue;
+    seen[lk.partyId] = true;
+    var key = _bwLinkBlockKey(type, lk.role, i); if (!key) continue;
+    var b = cfg.blocks[key]; if (!b) continue;
+    var src = bwPartyById(lk.partyId); if (!src) continue;
+    // Clone before touching it, exactly as submitContactEditor does — _partyStore holds the live
+    // object and a half-built edit must never be visible to the rest of the app.
+    var p = JSON.parse(JSON.stringify(src)), changed = false;
+
+    if (!p.phones || !Object.keys(p.phones).length) {
+      var digits = (fv(b.phone) || fv(b.phone2)).replace(/\D/g, '');
+      if (digits.length >= 10) { p.phones = { p1: { value: digits, type: 'mobile', isPrimary: true, note: '' } }; changed = true; }
+    }
+    if (!p.emails || !Object.keys(p.emails).length) {
+      // RIC's field is a combined Email/Day Phone, so a phone number typed there must not become
+      // an email address. The @ is the test.
+      var em = fv(b.email);
+      if (em.indexOf('@') > 0) { p.emails = { e1: { value: em, isPrimary: true, note: '' } }; changed = true; }
+    }
+    if (!p.addresses || !Object.keys(p.addresses).length) {
+      var st = fv(b.street), ci = fv(b.city), zp = fv(b.zip);
+      if (st || ci || zp) {
+        p.addresses = { a1: { type: 'mailing', street1: st, street2: '', city: ci,
+                              state: fv(b.state), postal: zp, isPrimary: true } };
+        changed = true;
+      }
+    }
+    if (changed) jobs.push(saveParty(p));
+  }
+  if (!jobs.length) return Promise.resolve([]);
+  return Promise.all(jobs).catch(function(e) {
+    // The contract is already saved by the time this runs. A failed contact update is worth a
+    // console warning and nothing more — it must never look like the contract failed.
+    console.warn('party write-back failed', e);
+    return [];
+  });
+}
+
+// Saves the record, then — and only after it resolves — pushes the typed contact details back
+// onto the linked parties. The four contract lanes call this instead of saveQuoteRecord.
+function bwSaveRecordAndWriteBack(type, snap, label) {
+  var job = saveQuoteRecord(type, snap, label);
+  function wb() { try { bwWriteBackLinkedParties(type); } catch (e) { console.warn('party write-back failed', e); } }
+  if (job && typeof job.then === 'function') job.then(wb); else wb();
+  return job;
 }
 
 // ── Offering to link the people the form already names ───────────────────────────────
@@ -17103,7 +17293,7 @@ function saveRicContract() {
     var snap = { id: Date.now(), label: label, total: (_ricPricing ? _ricPricing.total : 0) || 0, state: captureRicState(), date: d };
     bwAttachToSavedRecord('ric', snap);
     bwStampsOnSave('ric', snap);
-    saveQuoteRecord('ric', snap, label);
+    bwSaveRecordAndWriteBack('ric', snap, label);
     bwOfferLinks('ric', snap);
     show('ric-saved', el('navRicSaved'));
     showQuoteToast('RIC saved — viewing saved RICs');
@@ -17149,7 +17339,7 @@ function saveGaContract() {
     var snap = { id: Date.now(), label: label, total: gaTotal() || 0, state: captureGaState(), date: d };
     bwAttachToSavedRecord('ga', snap);
     bwStampsOnSave('ga', snap);
-    saveQuoteRecord('ga', snap, label);
+    bwSaveRecordAndWriteBack('ga', snap, label);
     bwOfferLinks('ga', snap);
     show('ga-saved', el('navGaSaved'));
     showQuoteToast('GA contract saved — viewing saved GA contracts');
@@ -17220,7 +17410,7 @@ function saveCpContract() {
     var snap = { id: Date.now(), label: label, total: cpGetTotal() || 0, state: captureCpState(), date: d };
     bwAttachToSavedRecord('cp', snap);
     bwStampsOnSave('cp', snap);
-    saveQuoteRecord('cp', snap, label);
+    bwSaveRecordAndWriteBack('cp', snap, label);
     bwOfferLinks('cp', snap);
     show('cp-saved', el('navCpSaved'));
     showQuoteToast('ClearPoint contract saved — viewing saved ClearPoint contracts');
@@ -19530,7 +19720,7 @@ function saveAnContract() {
     var snap = { id: Date.now(), label: label, total: anTotal() || 0, state: captureAnState(), date: d };
     bwAttachToSavedRecord('an', snap);
     bwStampsOnSave('an', snap);
-    saveQuoteRecord('an', snap, label);
+    bwSaveRecordAndWriteBack('an', snap, label);
     bwOfferLinks('an', snap);
     show('an-saved', el('navAnSaved'));
     showQuoteToast('At-Need contract saved — viewing saved contracts');
