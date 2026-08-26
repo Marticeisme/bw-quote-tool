@@ -830,6 +830,8 @@ tr:hover td{background:var(--navy-100);}
   <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved"><span class="ni-ic" data-lc="folder"></span>Saved RICs</div>
   <div class="nav-item highlight" onclick="show('an-contract',this)"><span class="ni-ic" data-lc="file-check"></span>At-Need CIRGAS Contract</div>
   <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved"><span class="ni-ic" data-lc="folder"></span>Saved CIRGAS Contracts</div>
+  <div class="nav-item highlight" onclick="show('dt-transfer',this)" id="navDtTransfer"><span class="ni-ic" data-lc="scroll"></span>Deed Transfer</div>
+  <div class="nav-item" onclick="show('dt-saved',this)" id="navDtSaved"><span class="ni-ic" data-lc="folder"></span>Saved Deed Transfers</div>
 
   <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
   <div class="nav-item highlight" onclick="show('fh-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
@@ -3428,6 +3430,243 @@ tr:hover td{background:var(--navy-100);}
     <h2>Saved ClearPoint Contracts</h2>
   </div>
   <div id="cpSavedQuotes"></div>
+</div>
+
+<style>
+/* Deed Transfer lane — same field rhythm as the other contract lanes, one place. */
+#section-dt-transfer .dt-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end;}
+#section-dt-transfer .dt-f{flex:1;min-width:110px;}
+#section-dt-transfer .dt-f label{display:block;font-size:11px;font-weight:600;color:var(--text);}
+#section-dt-transfer .dt-f input{width:100%;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;margin-top:3px;font-family:inherit;box-sizing:border-box;}
+#section-dt-transfer .dt-doc{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;}
+#section-dt-transfer .dt-doc-tick{color:var(--ok,#2e7d32);font-weight:800;}
+#section-dt-transfer .dt-doc-note{color:var(--text-light);font-size:12px;}
+</style>
+
+<!-- ═══ DEED TRANSFER ═══ -->
+<div class="section" id="section-dt-transfer">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="scroll" data-lc-sz="18"></span></div>
+    <h2>Deed Transfer</h2>
+    <span class="badge">WASHINGTON MEMORIAL PARK</span>
+  </div>
+  <div class="callout callout-blue">
+    Fill this in once and the packet builds itself. Answer the questions below, and the download
+    contains <strong>only</strong> the pages this transfer needs — the cover checklist, the right
+    variant of each document, the $325 statement and the terms page. Notary blocks are left blank
+    for the notary to complete.
+  </div>
+
+  <!-- Signing method -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="pen-line" data-lc-sz="17"></span></span>How is this being signed?</div>
+    <div class="q-panel-body">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text);">
+        <input type="checkbox" id="dtDocuSign" onchange="dtUpdateDocs()" style="width:18px;height:18px;cursor:pointer;">
+        Signing via DocuSign
+      </label>
+      <div style="font-size:12px;color:var(--text-light);margin-top:6px;">
+        DocuSign overrides the notary requirement. Leave this off for in-person signing and the
+        packet uses the notarized version of each document instead.
+      </div>
+    </div>
+  </div>
+
+  <!-- Situation -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="list-checks" data-lc-sz="17"></span></span>What is the situation?</div>
+    <div class="q-panel-body">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="dtLostCert" onchange="dtUpdateDocs()" style="width:16px;height:16px;margin-top:1px;cursor:pointer;">
+          <span><strong>The original Certificate of Interment Rights is lost.</strong><br>
+          <span style="color:var(--text-light);">Adds the Affidavit for Loss of Certificate.</span></span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="dtOwnerDeceased" onchange="dtUpdateDocs()" style="width:16px;height:16px;margin-top:1px;cursor:pointer;">
+          <span><strong>The current property owner is deceased.</strong><br>
+          <span style="color:var(--text-light);">Adds the Affidavit of Heirs, signed by the heirs at law.</span></span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="dtPermissionUse" onchange="dtUpdateDocs()" style="width:16px;height:16px;margin-top:1px;cursor:pointer;">
+          <span><strong>Someone specific is being interred in this property.</strong><br>
+          <span style="color:var(--text-light);">Adds the Permission of Use, in which the owner or heir grants permission for one named person to be interred in the space.</span></span>
+        </label>
+      </div>
+      <div id="dtDocList" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- Current owner / grantor -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="17"></span></span>Current Property Owner (Grantor)</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Name(s)</label><input type="text" id="dtGrantorName" placeholder="As shown on the certificate"></div>
+        <div class="dt-f"><label>Phone</label><input type="text" id="dtGrantorPhone" placeholder="206-555-0142"></div>
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtGrantorEmail"></div>
+      </div>
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtGrantorAddress"></div>
+        <div class="dt-f"><label>City</label><input type="text" id="dtGrantorCity"></div>
+        <div class="dt-f" style="flex:0.6;min-width:70px;"><label>State</label><input type="text" id="dtGrantorState" value="WA"></div>
+        <div class="dt-f" style="flex:0.7;min-width:80px;"><label>ZIP</label><input type="text" id="dtGrantorZip"></div>
+        <div class="dt-f"><label>County</label><input type="text" id="dtGrantorCounty" value="King"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Property -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="map-pin" data-lc-sz="17"></span></span>Property Being Transferred</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f"><label>Section</label><input type="text" id="dtSection" oninput="dtUpdateDocs()"></div>
+        <div class="dt-f"><label>Row</label><input type="text" id="dtRow" oninput="dtUpdateDocs()"></div>
+        <div class="dt-f"><label>Block</label><input type="text" id="dtBlock" oninput="dtUpdateDocs()"></div>
+        <div class="dt-f"><label>Lot</label><input type="text" id="dtLot" oninput="dtUpdateDocs()"></div>
+        <div class="dt-f"><label>Plot(s)</label><input type="text" id="dtPlot" oninput="dtUpdateDocs()"></div>
+      </div>
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:3;min-width:240px;"><label>Property location as it should print</label><input type="text" id="dtPropertyLocation" placeholder="Filled in from the boxes above — type here to override"></div>
+        <div class="dt-f"><label>Consideration ($)</label><input type="text" id="dtConsideration" value="10.00"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New owner -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="contact" data-lc-sz="17"></span></span>New Property Owner</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Name(s)</label><input type="text" id="dtNewOwnerName"></div>
+        <div class="dt-f"><label>Phone</label><input type="text" id="dtNewOwnerPhone"></div>
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtNewOwnerEmail"></div>
+      </div>
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtNewOwnerAddress"></div>
+        <div class="dt-f"><label>City</label><input type="text" id="dtNewOwnerCity"></div>
+        <div class="dt-f" style="flex:0.6;min-width:70px;"><label>State</label><input type="text" id="dtNewOwnerState" value="WA"></div>
+        <div class="dt-f" style="flex:0.7;min-width:80px;"><label>ZIP</label><input type="text" id="dtNewOwnerZip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lost certificate -->
+  <div class="q-panel" id="dtLossPanel" style="margin-top:10px;display:none;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Affidavit for Loss of Certificate</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Affiant (who swears the certificate is lost)</label><input type="text" id="dtAffiantName" placeholder="Defaults to the current owner"></div>
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Affiant address</label><input type="text" id="dtAffiantAddress" placeholder="Defaults to the current owner's address"></div>
+      </div>
+      <div class="dt-grid">
+        <div class="dt-f"><label>Certificate number</label><input type="text" id="dtCertNumber"></div>
+        <div class="dt-f"><label>Date the certificate was issued</label><input type="text" id="dtCertDate" placeholder="March 4, 1998"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heirs -->
+  <div class="q-panel" id="dtHeirsPanel" style="margin-top:10px;display:none;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="users" data-lc-sz="17"></span></span>Affidavit of Heirs</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Deceased owner</label><input type="text" id="dtDecedentName" placeholder="Defaults to the current owner"></div>
+        <div class="dt-f"><label>Date of death</label><input type="text" id="dtDateOfDeath" placeholder="on or around"></div>
+        <div class="dt-f" style="flex:2;min-width:180px;"><label>Affiant</label><input type="text" id="dtHeirAffiant"></div>
+        <div class="dt-f"><label>Affiant's relationship</label><input type="text" id="dtHeirAffiantRel"></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin:12px 0 4px;">Surviving heirs at law <span style="font-weight:500;color:var(--text-light);">— the form holds five</span></div>
+      <div id="dtHeirRows">
+        <div class="dt-heir-row" data-dt-heir="1"><div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Name</label><input type="text" id="dtHeir1Name"></div>
+          <div class="dt-f"><label>Relationship</label><input type="text" id="dtHeir1Rel"></div>
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Address</label><input type="text" id="dtHeir1Address"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>Age</label><input type="text" id="dtHeir1Age"></div>
+        </div></div>
+        <div class="dt-heir-row" data-dt-heir="2" style="display:none;"><div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Name</label><input type="text" id="dtHeir2Name"></div>
+          <div class="dt-f"><label>Relationship</label><input type="text" id="dtHeir2Rel"></div>
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Address</label><input type="text" id="dtHeir2Address"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>Age</label><input type="text" id="dtHeir2Age"></div>
+        </div></div>
+        <div class="dt-heir-row" data-dt-heir="3" style="display:none;"><div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Name</label><input type="text" id="dtHeir3Name"></div>
+          <div class="dt-f"><label>Relationship</label><input type="text" id="dtHeir3Rel"></div>
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Address</label><input type="text" id="dtHeir3Address"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>Age</label><input type="text" id="dtHeir3Age"></div>
+        </div></div>
+        <div class="dt-heir-row" data-dt-heir="4" style="display:none;"><div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Name</label><input type="text" id="dtHeir4Name"></div>
+          <div class="dt-f"><label>Relationship</label><input type="text" id="dtHeir4Rel"></div>
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Address</label><input type="text" id="dtHeir4Address"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>Age</label><input type="text" id="dtHeir4Age"></div>
+        </div></div>
+        <div class="dt-heir-row" data-dt-heir="5" style="display:none;"><div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Name</label><input type="text" id="dtHeir5Name"></div>
+          <div class="dt-f"><label>Relationship</label><input type="text" id="dtHeir5Rel"></div>
+          <div class="dt-f" style="flex:2;min-width:170px;"><label>Address</label><input type="text" id="dtHeir5Address"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>Age</label><input type="text" id="dtHeir5Age"></div>
+        </div></div>
+      </div>
+      <button id="dtAddHeirBtn" onclick="dtAddHeirRow()" style="margin-top:8px;padding:7px 14px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">+ Add another heir</button>
+    </div>
+  </div>
+
+  <!-- Permission of use -->
+  <div class="q-panel" id="dtPermissionPanel" style="margin-top:10px;display:none;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-check" data-lc-sz="17"></span></span>Permission of Use</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Person to be interred</label><input type="text" id="dtInterredName"></div>
+        <div class="dt-f" style="flex:2;min-width:200px;"><label>Deceased owner the property belonged to</label><input type="text" id="dtPermDecedent" placeholder="Defaults to the deceased owner above"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:6px;">
+        The property description on this page has no fillable box in the source form — it is
+        written in by hand under the heading.
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover sheet + statement -->
+  <div class="q-panel" style="margin-top:10px;">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="clipboard-list" data-lc-sz="17"></span></span>Cover Sheet &amp; Statement</div>
+    <div class="q-panel-body">
+      <div class="dt-grid">
+        <div class="dt-f" style="flex:2;min-width:180px;"><label>Family Service counselor</label><input type="text" id="dtCounselor"></div>
+        <div class="dt-f" style="flex:2;min-width:180px;"><label>Cemetery services for</label><input type="text" id="dtServicesFor" placeholder="Defaults to the new owner"></div>
+        <div class="dt-f"><label>Statement date</label><input type="date" id="dtStatementDate"></div>
+        <div class="dt-f"><label>Receipt #</label><input type="text" id="dtReceiptNum"></div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text);margin:12px 0 4px;">Supporting documents on the cover checklist</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="checkbox" id="dtChkDeathCert" style="width:15px;height:15px;cursor:pointer;">Death certificate photocopy</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="checkbox" id="dtChkWill" style="width:15px;height:15px;cursor:pointer;">Copy of the original will</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="checkbox" id="dtChkPropertyCards" style="width:15px;height:15px;cursor:pointer;">Property card(s) for the current owner</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="checkbox" id="dtChkFeeReceived" style="width:15px;height:15px;cursor:pointer;">Transfer fee / contract and payment received</label>
+      </div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:8px;">
+        The Release row and the certificate row are always checked — the transfer needs both.
+        The $325 transfer fee is printed on the statement page; nothing here changes it.
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+    <button id="dtGenerateBtn" onclick="generateDeedTransferPDF()" style="padding:11px 20px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">&#128196; Generate Deed Transfer Packet</button>
+    <button onclick="saveDeedTransfer()" style="padding:11px 20px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">&#128190; Save</button>
+    <button onclick="dtClearAll()" style="padding:11px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;">&#10005; Clear All</button>
+  </div>
+</div>
+
+<!-- ═══ SAVED DEED TRANSFERS ═══ -->
+<div class="section" id="section-dt-saved">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="folder" data-lc-sz="18"></span></div>
+    <h2>Saved Deed Transfers</h2>
+  </div>
+  <div id="dtSavedQuotes"></div>
 </div>
 
 <!-- ═══ COMBINED QUOTE BUILDER ═══ -->
@@ -6149,7 +6388,8 @@ var BW_TEMPLATE_FILES = {
   AN_CL_PDF_B64:    'AN_CL_PDF_B64.pdf',
   GA_CL_PDF_B64:    'GA_CL_PDF_B64.pdf',
   COMM_WS_XLSX_B64: 'COMM_WS_XLSX_B64.xlsx',
-  CIRGAS_XLSX_B64:  'CIRGAS_XLSX_B64.xlsx'
+  CIRGAS_XLSX_B64:  'CIRGAS_XLSX_B64.xlsx',
+  DT_PDF_B64:       'DT_PDF_B64.pdf'
 };
 
 // Which templates each module needs, for bwPrefetchTemplates().
@@ -6157,7 +6397,8 @@ var BW_TEMPLATE_MODULES = {
   ric: ['RIC_PDF_B64', 'ACH_PDF_B64', 'RULES_PDF_B64', 'RIC_CL_PDF_B64'],
   ga:  ['GA_PDF', 'GA_CL_PDF_B64'],
   cp:  ['CP_PDF_B64', 'CP_CL_PDF_B64'],
-  an:  ['CIRGAS_XLSX_B64', 'AN_CL_PDF_B64']
+  an:  ['CIRGAS_XLSX_B64', 'AN_CL_PDF_B64'],
+  dt:  ['DT_PDF_B64']
 };
 
 // Cache holds the PROMISE, not the bytes. A contract and its checklist fired back to back
@@ -12146,7 +12387,8 @@ var _ricSavedContracts = [];
 var _gaSavedContracts = [];
 var _cpSavedContracts = [];
 var _anSavedContracts = [];
-var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null, an: null };
+var _dtSavedTransfers = [];
+var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null, an: null, dt: null };
 // ── Saved-record status stamps ───────────────────────────────────────────────────────
 // Two optional ISO fields, and nothing else: exportedAt (a family artifact was produced)
 // and contractedAt (a RIC or CIRGAS was generated from this record). Absent ⇒ Draft, so
@@ -12159,7 +12401,7 @@ var _savedCompare   = { cem: null, fh: null, ric: null, ga: null, cp: null, an: 
 // counselor exports and the field persists the next time that record is saved. That is
 // deliberate: auto-saving on export would be a behaviour change, and persistSavedQuotes'
 // whole-node .set() is exactly how real quotes were wiped on 2026-07-11.
-var _bwQuoteStamps    = { cem:{}, fh:{}, ric:{}, ga:{}, cp:{}, an:{} }; // module -> pending stamps
+var _bwQuoteStamps    = { cem:{}, fh:{}, ric:{}, ga:{}, cp:{}, an:{}, dt:{} }; // module -> pending stamps
 var _bwLoadedRecordId = {};  // module -> id of the saved record currently in that builder
 var _bwContractSource = {};  // contract module -> id of the cem/fh record its pricing came from
 
@@ -12233,8 +12475,8 @@ function bwSetContractSource(contractType, sourceType) {
 //
 // The old savedQuotes node is copied across once and then LEFT IN PLACE, untouched, as a
 // rollback copy. Nothing below ever writes to it again.
-var QUOTE_TYPES = ['cem', 'fh', 'ric', 'ga', 'cp', 'an'];
-var _quoteStore = { cem: {}, fh: {}, ric: {}, ga: {}, cp: {}, an: {} };  // firebase key -> record
+var QUOTE_TYPES = ['cem', 'fh', 'ric', 'ga', 'cp', 'an', 'dt'];
+var _quoteStore = { cem: {}, fh: {}, ric: {}, ga: {}, cp: {}, an: {}, dt: {} };  // firebase key -> record
 
 function _quoteKey(rec) { return 'q' + (rec && rec.id != null ? rec.id : Date.now()); }
 
@@ -12247,6 +12489,7 @@ function _applyTypeArray(type, arr) {
   else if (type === 'ga')  _gaSavedContracts  = arr;
   else if (type === 'cp')  _cpSavedContracts  = arr;
   else if (type === 'an')  _anSavedContracts  = arr;
+  else if (type === 'dt')  _dtSavedTransfers  = arr;
 }
 function _rebuildTypeArray(type, rerender) {
   var bag = _quoteStore[type] || {};
@@ -17607,7 +17850,8 @@ var _BW_SAVED_KIND = {
   ga:  { noun:'GA contract',        plural:'GA contracts',         open:'Open GA',       where:'Pre-Need Contract (GA) tab' },
   cp:  { noun:'ClearPoint contract',plural:'ClearPoint contracts',
          open:'Open contract', where:'Pre-Need Contract (ClearPoint) tab' },
-  an:  { noun:'At-Need contract',   plural:'At-Need contracts',         open:'Open contract', where:'At-Need CIRGAS Contract tab' }
+  an:  { noun:'At-Need contract',   plural:'At-Need contracts',         open:'Open contract', where:'At-Need CIRGAS Contract tab' },
+  dt:  { noun:'deed transfer',      plural:'deed transfers',   open:'Open transfer', where:'Deed Transfer tab' }
 };
 
 // "With family · Aug 3". Anything unparseable degrades to no date rather than "Invalid Date".
@@ -17638,6 +17882,7 @@ function _bwSavedLines(type, st) {
   return [];
 }
 function _bwSavedNeed(type, f) {
+  if (type === 'dt') return 'Deed transfer';
   if (type === 'an') return 'At-Need';
   if (type === 'ric' || type === 'ga' || type === 'cp') return 'Pre-Need';
   var anKey = type === 'fh' ? 'fhTypeAN' : 'cemTypeAN';
@@ -17651,7 +17896,7 @@ function _bwSavedMeta(type, item) {
   var st = item.state || {}, f = st.fields || {}, bits = [];
   var loc = (item.spaces && item.spaces[0] && item.spaces[0].loc)
     || f.qSpaceLocation || f.qNicheLocation || f.qMausLocation
-    || f.ricLocation || f.anPropertyLocation || '';
+    || f.ricLocation || f.anPropertyLocation || f.dtPropertyLocation || '';
   if (loc) bits.push(String(loc).trim());
   var n = _bwSavedLines(type, st).length;
   if (n) bits.push(n + ' item' + (n === 1 ? '' : 's'));
@@ -17677,6 +17922,7 @@ function renderSavedQuotesList(type) {
     else if (type === 'ga')  { containerId='gaSavedQuotes';  arrRef=_gaSavedContracts;  searchId='gaQuoteSearch';  loadFn='loadSavedGaContract'; }
     else if (type === 'cp')  { containerId='cpSavedQuotes';  arrRef=_cpSavedContracts;  searchId='cpQuoteSearch';  loadFn='loadSavedCpContract'; }
     else if (type === 'an')  { containerId='anSavedQuotes';  arrRef=_anSavedContracts;  searchId='anQuoteSearch';  loadFn='loadSavedAnContract'; }
+    else if (type === 'dt')  { containerId='dtSavedQuotes';  arrRef=_dtSavedTransfers;  searchId='dtQuoteSearch';  loadFn='loadSavedDeedTransfer'; }
     else                     { containerId='fhSavedQuotes';  arrRef=_fhSavedQuotes;     searchId='fhQuoteSearch';  loadFn='loadSavedFhQuote'; }
 
     var listEl = el(containerId);
@@ -17766,7 +18012,7 @@ function savedCompareSelect(type, id) {
   renderSavedQuotesList(type);
 }
 function printSavedQuote(type, id) {
-  var list = type === 'cem' ? _cemSavedQuotes : (type === 'ric' ? _ricSavedContracts : type === 'ga' ? _gaSavedContracts : type === 'cp' ? _cpSavedContracts : type === 'an' ? _anSavedContracts : _fhSavedQuotes);
+  var list = type === 'cem' ? _cemSavedQuotes : (type === 'ric' ? _ricSavedContracts : type === 'ga' ? _gaSavedContracts : type === 'cp' ? _cpSavedContracts : type === 'an' ? _anSavedContracts : type === 'dt' ? _dtSavedTransfers : _fhSavedQuotes);
   var snap = list.find(function(q){ return q.id === id; });
   if (!snap) return;
   var expires = new Date(); expires.setDate(expires.getDate()+30);
@@ -17783,7 +18029,7 @@ function printSavedQuote(type, id) {
   win.document.close(); win.print();
 }
 function exportSavedQuotesBackup() {
-  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes, ric: _ricSavedContracts, ga: _gaSavedContracts, cp: _cpSavedContracts, an: _anSavedContracts });
+  var data = JSON.stringify({ cem: _cemSavedQuotes, fh: _fhSavedQuotes, ric: _ricSavedContracts, ga: _gaSavedContracts, cp: _cpSavedContracts, an: _anSavedContracts, dt: _dtSavedTransfers });
   var blob = new Blob([data], { type: 'application/json' });
   var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'BW_Quotes_Backup_'+new Date().toISOString().slice(0,10)+'.json';
@@ -17835,8 +18081,11 @@ function show(id, navEl) {
   if (_lt) { try { bwPrefetchTemplates(_lt); } catch(e) {} }
   // A saved list with zero records gets no child_added, so it must render on arrival or
   // its empty state never appears. Cheap: six arrays already in memory.
-  var _sv = { 'cem-saved':'cem', 'fh-saved':'fh', 'ric-saved':'ric', 'ga-saved':'ga', 'cp-saved':'cp', 'an-saved':'an' }[id];
+  var _sv = { 'cem-saved':'cem', 'fh-saved':'fh', 'ric-saved':'ric', 'ga-saved':'ga', 'cp-saved':'cp', 'an-saved':'an', 'dt-saved':'dt' }[id];
   if (_sv) { try { renderSavedQuotesList(_sv); } catch(e) {} }
+  // Deed Transfer has no contact-link row this sprint, so it warms its template on its own
+  // and redraws the derived-document list, which is empty until something calls it.
+  if (id === 'dt-transfer') { try { bwPrefetchTemplates('dt'); dtUpdateDocs(); } catch(e) {} }
   var summ = document.querySelector('.summary-fixed[data-for="section-'+id+'"]');
   if (summ) summ.classList.add('visible');
   window.scrollTo(0,0);
@@ -20565,6 +20814,666 @@ async function generateClearPointContract() {
 }
 
 
+
+// ═══════════════════════════════════════════════════════════════
+// DEED TRANSFER LANE  (sprint-27 Track A)
+// ═══════════════════════════════════════════════════════════════
+// Fills `pdf-templates/embedded/DT_PDF_B64.pdf` — the ten-page "Deed Transfer Fillable
+// Forms 2026" packet — and downloads ONLY the pages the answered situation needs.
+//
+// THE FIELD MAP. The form author's field names are garbage strings from their editor
+// ("Namesamelamegame", "SWORN BORN LORN", "undefined_4", "Row1231231321"), so every name
+// below was resolved by reading widget rectangles against the page's own text with
+// PyMuPDF — the same way the RIC map was built. Never guess one from its name.
+//
+// PAGE 1 — cover sheet ("Steps To Complete" + "Documents Needed")
+//   Namephone  of current property ownerRow1 .... header, left  1: current owner name / phone
+//   Family ServiceRow1 .......................... header, right 1: Family Service counselor
+//   Row1 ........................................ header, left  2: property location
+//                                                 ⚠ ONE field, TWO widgets — the second sits
+//                                                 on p9 as "Location". Same meaning, so the
+//                                                 shared value is correct on both.
+//   Row1_2 ...................................... header, right 2: new owner name / phone
+//   receipt ..................................... "receipt #" on the transfer-fee row
+//   Check Box1 .................................. doc row: RELEASE OF INTERMENT RIGHTS
+//   Check Box2 .................................. doc row: ORIGINAL DEED/CERTIFICATE (OR)
+//                                                 AFFIDAVIT OF LOST DEED/CERTIFICATE
+//                                                 ⚠ ONE field, TWO widgets — the second is
+//                                                 p9's "1st Right of Interment" X box, which
+//                                                 must NOT be marked on a transfer. The value
+//                                                 cannot be set per-widget, so after checking
+//                                                 it the p9 widget's /AS is forced back to
+//                                                 /Off (dtOffStatementCheckWidget below).
+//   Check Box3 .................................. doc row: AFFIDAVIT OF HEIRS
+//   Check Box4 .................................. doc row: DEATH CERTIFICATE photocopy
+//   Check Box5 .................................. doc row: copy of the original WILL
+//   Check Box6 .................................. doc row: PROPERTY CARD(S) for current owner
+//   Check Box7 .................................. doc row: TRANSFER FEE / payment received
+//   TYPE NEW CERTIFICATE OF INTERMENT RIGHTS ....⌐
+//   TYPE TRANSFER INFORMATION ON ORIGINAL PROPERTY CARDS
+//   undefined ................................... |
+//   INFORMATION FROM ORIGINAL PROPERTY CARDS .... | the eleven small "Steps To Complete
+//   undefined_2 ................................. | Property Transfer" initial boxes. These
+//   TYPE COVER LETTER FOR NEW PROPERTY OWNERS ... | are office steps taken AFTER the family
+//   HAVE NEW CERTIFICATE NOTORIZED CANCEL ORIGINAL DEEDCERTIFICATE
+//   undefined_3 ................................. | signs, so the tool leaves every one blank.
+//   CABINET ..................................... |
+//   TRANSFER PROPERTY IN COMPUTER ............... |
+//   OWNER .......................................⌐
+//   Button1 ..................................... a /ResetForm push button baked into the
+//                                                 template. Left exactly as it is.
+//
+// PAGE 2 — RELEASE OF INTERMENT RIGHTS, notary variant
+//   RELEASE OF INTERMENT RIGHTS ................. "On this the __" — day ordinal
+//   undefined_4 ................................. month
+//   undefined_5 ................................. year
+//   day of ...................................... THE GRANTOR ____ (grantor name)
+//   Address num 2 ............................... grantor street address ("(Address)")
+//   THE GRANTOR ................................. county
+//   state for and in consideration of ........... state
+//   Address ..................................... consideration amount ($)
+//   SECTION 111 / ROW 111 / BLOCK111 / LOT111 / PLOT111 ... property description
+//   purpose of reassigning those interment rights to ...... new owner printed name(s)
+//   Address Line 1 .............................. new owner address (under their signature)
+//   New Owners Signature 2 ...................... new owner phone   (under their signature)
+//   Grantors Address ............................ grantor address   (under their signature)
+//   Grantors Phone Num .......................... grantor phone     (under their signature)
+//   NOTARY BLOCK — NEVER FILLED (operator ruling 4): STATE OF 1, STATE OF 2, COUNTY OF, I,
+//   Public, do hereby certify that on, described in and, within instrument, Given under my
+//   hand and official seal on, NOTARY PUBLIC in and for the state of,
+//   in said county  My commission expires, residing at
+//
+// PAGE 3 — RELEASE OF INTERMENT RIGHTS, plain (DocuSign) variant
+//   RELEASE OF INTERMENT RIGHTS_2 ............... day ordinal
+//   undefined_6 / undefined_7 ................... month / year
+//   day of_2 .................................... grantor name
+//   change name day of .......................... grantor street address
+//   THE GRANTOR_2 ............................... county
+//   state for and in consideration of_2 ......... state
+//   Address_2 ................................... consideration amount ($)
+//   SECTION 222 / ROW 222 / BLOCK222 / LOT2222 / PLOT2222 . property description (row 1 only —
+//                                                 the page prints three property lines but the
+//                                                 author only ever made widgets for the first)
+//   Printed Names of New Owner_2 ................ new owner printed name(s)
+//   2_2 ......................................... grantor printed name
+//
+// PAGE 4 — AFFIDAVIT FOR LOSS OF CERTIFICATE, notary variant
+//   being duly sworn deposes and says ........... affiant name (top line)
+//   NAME NUMERO2 ................................ affiant name ("That I, ____")
+//   reside at ................................... affiant address
+//   That on ..................................... date the certificate was issued
+//   Washington Memorial Park being Certificate Number ..... certificate number
+//   Section / Row / Block / Lot / Plots ......... property row 1
+//   Section_2 / Row_2 / Block_2 / Lot_2 / Plots_2 property row 2
+//   Section_3 / Row_3 / Block_3 / Lot_3 / Plots_3 property row 3
+//   1_3 / 2_3 ................................... affiant signature lines — left blank
+//   NOTARY BLOCK — NEVER FILLED: Subscribed and sworn to before me this, day of_3, Notary Public
+//
+// PAGE 5 — AFFIDAVIT FOR LOSS OF CERTIFICATE, plain (DocuSign) variant. No notary block.
+//   being duly sworn deposes and says_2 ......... affiant name (top line)
+//   NAME NUMERO1 ................................ affiant name ("That I, ____")
+//   reside at_2 ................................. affiant address
+//   That on_2 ................................... date the certificate was issued
+//   Washington Memorial Park being Certificate Number_2 ... certificate number
+//   Section_4..6 / Row_4..6 / Block_4..6 / Lot_4..6 / Plots_4..6 .. property rows 1–3
+//   1_4 / 2_4 ................................... affiant signature lines — left blank
+//
+// PAGE 6 — AFFIDAVIT OF HEIRS (no variant; no notary block, so it ships in both modes)
+//   SWORN BORN LORN ............................. affiant name
+//   DEPOSES SAYS BLANK .......................... the deceased owner's name
+//   Section123213132123 ......................... section
+//   Row1231231321 ............................... row
+//   Block123213214 .............................. block
+//   LOT1221412412312 ............................ lot
+//   Plots12321313 ............................... plot(s)
+//   Date of Death ............................... "died on or around ____"
+//   Namesamelamegame / Relationshipmishipflip / Addressmadressladress / Agepagesagemage
+//                                                 heir 1: name / relationship / address / age
+//   Name_2gamesamelamename / Relationship_2pagesagemagehage /
+//   Address_2maddresssladdress / Age_2sagemagehagecage ......... heir 2
+//   Name_3lamegamesamerain / Relationship_3hipmipliptip /
+//   Address_3laddressmaddressheadfa / Age_3sagemagehage ........ heir 3
+//   Name_4samegamenamehame / Relationship_4shipmiphiplip /
+//   Address_4asdfasd / Age_4hayelfkja .......................... heir 4
+//   Name_5afdfds / Relationship_5fasfdsa /
+//   Address_5afdsdfsa / Age_5afdfdassf ......................... heir 5
+//   from any damages which may result due to any misstatements in the affidavitffff
+//                                                 affiant signature line — left blank
+//   Relationship_6fffffdsafdsa .................. affiant's relationship to the deceased
+//
+// PAGE 7 — PERMISSION of USE, notary variant
+//   I_2 ......................................... the owner/heir granting permission
+//   the property that belonged to ............... the deceased owner
+//   now deceased to ............................. the new owner the rights pass to
+//   I hereby state that I wish to grant permission for .... the person to be interred
+//   named above is rightfully entitled to the use of such interment right in
+//                                                 the person to be interred (repeated)
+//   Date ........................................ signing date
+//   Name_4 / Address 1 / Phone .................. signer's name / address / phone
+//   Address 2 ................................... a stray full-width box sitting on the page's
+//                                                 dotted rule, with no label. Left blank.
+//   NOTARY BLOCK — NEVER FILLED: On this, day of_5, before me personally appeared,
+//   to me personally known to be the grantors described and who executed the, undefined_11,
+//   State of, County of
+//   NOTE: this page has NO widget for the property description — it is written in by hand
+//   under "(Description of Property) located in Washington Memorial Park".
+//
+// PAGE 8 — PERMISSION of USE, plain (DocuSign) variant
+//   I_3 / the property that belonged to_2 / now deceased to_2 /
+//   I hereby state that I wish to grant permission for_2 /
+//   named above is rightfully entitled to the use of such interment right in_2 /
+//   Date_2 / Name_5 / Address_6 / Phone_2 ....... same meanings as page 7
+//
+// PAGE 9 — STATEMENT OF CEMETERY INTERMENT RIGHTS, GOODS AND SERVICES
+//   Full Name for Cirgas ........................ "Cemetery Services for:"
+//   Date3_af_date ............................... statement date
+//   Row1 ........................................ "Location" (shared with p1 — see above)
+//   Check Box2 .................................. "1st Right of Interment" X box (shared with
+//                                                 p1 — forced /Off, see above)
+//   Purch Name Printed .......................... NEW owner printed name
+//   Address Purch / City Purch / State Purch / Zip Code Purch .... new owner address
+//   Email Purch / Cell Phone Purch .............. new owner e-mail / phone
+//   Current Name Print .......................... CURRENT owner printed name
+//   Address Current / City Current / State Current / Zip Current . current owner address
+//   Email Current / Cell Phone Current .......... current owner e-mail / phone
+//   Text2 ....................................... Family Service Director name
+//   The $325 transfer fee and every total on this page are FLAT TEXT baked into the template.
+//   Nothing here computes or fills an amount.
+//
+// PAGE 10 — TERMS AND CONDITIONS. No fields. Always shipped, after the statement (ruling 2).
+
+// Page indexes in the source template, 0-based.
+var DT_PAGES = {
+  cover:              0,
+  releaseNotary:      1,
+  releasePlain:       2,
+  lossNotary:         3,
+  lossPlain:          4,
+  heirs:              5,
+  permissionNotary:   6,
+  permissionPlain:    7,
+  statement:          8,
+  terms:              9
+};
+
+function _dtVal(id) { var e = el(id); return e ? String(e.value || '').trim() : ''; }
+function _dtChk(id) { var e = el(id); return !!(e && e.checked); }
+
+// Which documents this situation needs. Release is always in it — it IS the transfer.
+function dtDocSet() {
+  return {
+    docusign:   _dtChk('dtDocuSign'),
+    release:    true,
+    loss:       _dtChk('dtLostCert'),
+    heirs:      _dtChk('dtOwnerDeceased'),
+    permission: _dtChk('dtPermissionUse')
+  };
+}
+
+// The pages that go in the download, in template order. Kept as a sorted ascending list so
+// the caller can remove everything else from the BACK — removing by index shifts every later
+// index down by one, so a forward pass would delete the wrong pages.
+function dtPageIndexes(sel) {
+  sel = sel || dtDocSet();
+  var keep = [DT_PAGES.cover];
+  keep.push(sel.docusign ? DT_PAGES.releasePlain : DT_PAGES.releaseNotary);
+  if (sel.loss)       keep.push(sel.docusign ? DT_PAGES.lossPlain : DT_PAGES.lossNotary);
+  if (sel.heirs)      keep.push(DT_PAGES.heirs);
+  if (sel.permission) keep.push(sel.docusign ? DT_PAGES.permissionPlain : DT_PAGES.permissionNotary);
+  keep.push(DT_PAGES.statement);
+  keep.push(DT_PAGES.terms);
+  return keep.sort(function(a, b){ return a - b; });
+}
+
+// The named documents, for the on-screen list. Same derivation as dtPageIndexes.
+function dtDocList(sel) {
+  sel = sel || dtDocSet();
+  var v = sel.docusign ? 'DocuSign copy' : 'notarized copy';
+  var out = [{ key:'cover', name:'Transfer cover sheet & checklist', note:'always' },
+             { key:'release', name:'Release of Interment Rights', note:v }];
+  if (sel.loss)       out.push({ key:'loss', name:'Affidavit for Loss of Certificate', note:v });
+  if (sel.heirs)      out.push({ key:'heirs', name:'Affidavit of Heirs', note:'no notary block on this form' });
+  if (sel.permission) out.push({ key:'permission', name:'Permission of Use', note:v });
+  out.push({ key:'statement', name:'Statement of Cemetery Interment Rights ($325 transfer fee)', note:'always' });
+  out.push({ key:'terms', name:'Terms and Conditions', note:'always' });
+  return out;
+}
+
+// Property description, one string. Any part left blank simply drops out.
+function dtPropertyText() {
+  var typed = _dtVal('dtPropertyLocation');
+  if (typed) return typed;
+  var bits = [];
+  if (_dtVal('dtSection')) bits.push('Section ' + _dtVal('dtSection'));
+  if (_dtVal('dtRow'))     bits.push('Row ' + _dtVal('dtRow'));
+  if (_dtVal('dtBlock'))   bits.push('Block ' + _dtVal('dtBlock'));
+  if (_dtVal('dtLot'))     bits.push('Lot ' + _dtVal('dtLot'));
+  if (_dtVal('dtPlot'))    bits.push('Plot ' + _dtVal('dtPlot'));
+  return bits.join(', ');
+}
+
+function _dtCityLine(city, state, zip) {
+  var a = [city, state].filter(Boolean).join(', ');
+  return [a, zip].filter(Boolean).join(' ');
+}
+function _dtFullAddress(prefix) {
+  var street = _dtVal(prefix + 'Address');
+  var rest   = _dtCityLine(_dtVal(prefix + 'City'), _dtVal(prefix + 'State'), _dtVal(prefix + 'Zip'));
+  return [street, rest].filter(Boolean).join(', ');
+}
+function _dtNamePhone(name, phone) {
+  return [name, phone].filter(Boolean).join(' · ');
+}
+
+// Redraws the derived-document list and shows only the panels that situation needs.
+function dtUpdateDocs() {
+  var sel = dtDocSet();
+  var box = el('dtDocList');
+  if (box) {
+    var rows = dtDocList(sel).map(function(d) {
+      return '<div class="dt-doc"><span class="dt-doc-tick">&#10003;</span>'
+           + '<span>' + _ceEsc(d.name) + '</span>'
+           + '<span class="dt-doc-note">' + _ceEsc(d.note) + '</span></div>';
+    }).join('');
+    box.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">'
+      + 'The download will contain ' + dtPageIndexes(sel).length + ' pages:</div>' + rows;
+  }
+  var show2 = function(id, on) { var e = el(id); if (e) e.style.display = on ? '' : 'none'; };
+  show2('dtLossPanel', sel.loss);
+  show2('dtHeirsPanel', sel.heirs);
+  show2('dtPermissionPanel', sel.permission);
+  var loc = el('dtPropertyLocation');
+  if (loc && !loc.value) loc.placeholder = dtPropertyText() || 'Filled in from the boxes above — type here to override';
+}
+
+// Heir rows are capped at five because the form has five. The rows all live in the DOM so
+// captureFieldState()/restoreFieldState() see them; "Add" only reveals the next one.
+function dtAddHeirRow() {
+  var rows = document.querySelectorAll('#dtHeirRows .dt-heir-row');
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].style.display === 'none') {
+      rows[i].style.display = '';
+      if (i + 1 >= rows.length) { var b = el('dtAddHeirBtn'); if (b) b.style.display = 'none'; }
+      return i + 1;
+    }
+  }
+  var b2 = el('dtAddHeirBtn'); if (b2) b2.style.display = 'none';
+  return 0;
+}
+
+function dtClearAll() {
+  var sec = el('section-dt-transfer');
+  if (sec) sec.querySelectorAll('input[id]').forEach(function(e) {
+    if (e.type === 'checkbox' || e.type === 'radio') e.checked = false; else e.value = '';
+  });
+  if (el('dtGrantorState'))  el('dtGrantorState').value  = 'WA';
+  if (el('dtNewOwnerState')) el('dtNewOwnerState').value = 'WA';
+  if (el('dtGrantorCounty')) el('dtGrantorCounty').value = 'King';
+  if (el('dtConsideration')) el('dtConsideration').value = '10.00';
+  document.querySelectorAll('#dtHeirRows .dt-heir-row').forEach(function(r, i) {
+    r.style.display = i === 0 ? '' : 'none';
+  });
+  var b = el('dtAddHeirBtn'); if (b) b.style.display = '';
+  bwStampsClear('dt');
+  dtUpdateDocs();
+}
+
+// "On this the 5th day of September, 2026:" — the three boxes on the Release header line.
+function _dtOrdinal(n) {
+  var s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+var DT_MONTHS = ['January','February','March','April','May','June','July','August',
+                 'September','October','November','December'];
+function dtSigningDateParts() {
+  var raw = _dtVal('dtStatementDate');
+  var d;
+  if (raw && /^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    var p = raw.split('-');
+    d = new Date(+p[0], +p[1] - 1, +p[2]);
+  } else {
+    d = new Date();
+  }
+  return {
+    day:   _dtOrdinal(d.getDate()),
+    month: DT_MONTHS[d.getMonth()],
+    year:  String(d.getFullYear()),
+    iso:   d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2),
+    long:  DT_MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear()
+  };
+}
+
+// Check Box2 is one field with two widgets: the cover's certificate row and the statement's
+// "1st Right of Interment" X box. Checking the field marks both, and a transfer sells no right
+// of interment — so the statement widget's own appearance state is pushed back to /Off. The two
+// widgets are told apart by height: 18pt on the cover, 11.7pt on the statement.
+function dtOffStatementCheckWidget(form) {
+  try {
+    var PN = PDFLib.PDFName;
+    form.getCheckBox('Check Box2').acroField.getWidgets().forEach(function(w) {
+      var r = w.getRectangle();
+      if (r && r.height < 15) w.dict.set(PN.of('AS'), PN.of('Off'));
+    });
+  } catch (e) { console.warn('Deed transfer: statement checkbox decouple failed:', e.message); }
+}
+
+// The five heir rows, in page order. Garbage names, resolved by rectangle.
+var DT_HEIR_FIELDS = [
+  { name:'Namesamelamegame',       rel:'Relationshipmishipflip',           addr:'Addressmadressladress',            age:'Agepagesagemage' },
+  { name:'Name_2gamesamelamename', rel:'Relationship_2pagesagemagehage',   addr:'Address_2maddresssladdress',       age:'Age_2sagemagehagecage' },
+  { name:'Name_3lamegamesamerain', rel:'Relationship_3hipmipliptip',       addr:'Address_3laddressmaddressheadfa',  age:'Age_3sagemagehage' },
+  { name:'Name_4samegamenamehame', rel:'Relationship_4shipmiphiplip',      addr:'Address_4asdfasd',                 age:'Age_4hayelfkja' },
+  { name:'Name_5afdfds',           rel:'Relationship_5fasfdsa',            addr:'Address_5afdsdfsa',                age:'Age_5afdfdassf' }
+];
+
+// Fills every page of the loaded template. Pages that are not in the download are filled too
+// and then removed — cheaper and far less error-prone than conditioning each setter, and the
+// removed bytes never reach the file.
+function dtFillForm(form) {
+  function setTF(name, value) {
+    if (value === null || value === undefined || value === '') return;
+    try { form.getTextField(name).setText(String(value)); } catch(e) {}
+  }
+  function checkCB(name) { try { form.getCheckBox(name).check(); } catch(e) {} }
+
+  var sel        = dtDocSet();
+  var dt         = dtSigningDateParts();
+  var grantor    = _dtVal('dtGrantorName');
+  var grantorAdr = _dtFullAddress('dtGrantor');
+  var newOwner   = _dtVal('dtNewOwnerName');
+  var newOwnerAd = _dtFullAddress('dtNewOwner');
+  var prop       = dtPropertyText();
+  var affiant    = _dtVal('dtAffiantName')    || grantor;
+  var affiantAdr = _dtVal('dtAffiantAddress') || grantorAdr;
+  var decedent   = _dtVal('dtDecedentName')   || grantor;
+
+  // ── PAGE 1 — cover ──────────────────────────────────────────────────────────
+  setTF('Namephone  of current property ownerRow1', _dtNamePhone(grantor, _dtVal('dtGrantorPhone')));
+  setTF('Family ServiceRow1', _dtVal('dtCounselor'));
+  setTF('Row1',   prop);                       // also lands in the statement's Location box
+  setTF('Row1_2', _dtNamePhone(newOwner, _dtVal('dtNewOwnerPhone')));
+  setTF('receipt', _dtVal('dtReceiptNum'));
+  // The checklist mirrors the derived document set. Rows 1 and 2 are required either way —
+  // the transfer IS the Release, and the office needs either the original certificate or the
+  // affidavit that replaces it — so both are always marked.
+  checkCB('Check Box1');
+  checkCB('Check Box2');
+  if (sel.heirs)                    checkCB('Check Box3');
+  if (_dtChk('dtChkDeathCert'))     checkCB('Check Box4');
+  if (_dtChk('dtChkWill'))          checkCB('Check Box5');
+  if (_dtChk('dtChkPropertyCards')) checkCB('Check Box6');
+  if (_dtChk('dtChkFeeReceived'))   checkCB('Check Box7');
+  dtOffStatementCheckWidget(form);
+
+  // ── PAGE 2 — Release, notary variant ────────────────────────────────────────
+  setTF('RELEASE OF INTERMENT RIGHTS', dt.day);
+  setTF('undefined_4', dt.month);
+  setTF('undefined_5', dt.year);
+  setTF('day of', grantor);
+  setTF('Address num 2', _dtVal('dtGrantorAddress'));
+  setTF('THE GRANTOR', _dtVal('dtGrantorCounty'));
+  setTF('state for and in consideration of', _dtVal('dtGrantorState'));
+  setTF('Address', _dtVal('dtConsideration'));
+  setTF('SECTION 111', _dtVal('dtSection'));
+  setTF('ROW 111',     _dtVal('dtRow'));
+  setTF('BLOCK111',    _dtVal('dtBlock'));
+  setTF('LOT111',      _dtVal('dtLot'));
+  setTF('PLOT111',     _dtVal('dtPlot'));
+  setTF('purpose of reassigning those interment rights to', newOwner);
+  setTF('Address Line 1', newOwnerAd);
+  setTF('New Owners Signature 2', _dtVal('dtNewOwnerPhone'));
+  setTF('Grantors Address', grantorAdr);
+  setTF('Grantors Phone Num', _dtVal('dtGrantorPhone'));
+
+  // ── PAGE 3 — Release, plain (DocuSign) variant ──────────────────────────────
+  setTF('RELEASE OF INTERMENT RIGHTS_2', dt.day);
+  setTF('undefined_6', dt.month);
+  setTF('undefined_7', dt.year);
+  setTF('day of_2', grantor);
+  setTF('change name day of', _dtVal('dtGrantorAddress'));
+  setTF('THE GRANTOR_2', _dtVal('dtGrantorCounty'));
+  setTF('state for and in consideration of_2', _dtVal('dtGrantorState'));
+  setTF('Address_2', _dtVal('dtConsideration'));
+  setTF('SECTION 222', _dtVal('dtSection'));
+  setTF('ROW 222',     _dtVal('dtRow'));
+  setTF('BLOCK222',    _dtVal('dtBlock'));
+  setTF('LOT2222',     _dtVal('dtLot'));
+  setTF('PLOT2222',    _dtVal('dtPlot'));
+  setTF('Printed Names of New Owner_2', newOwner);
+  setTF('2_2', grantor);
+
+  // ── PAGES 4 & 5 — Affidavit for Loss of Certificate ─────────────────────────
+  setTF('being duly sworn deposes and says',   affiant);
+  setTF('NAME NUMERO2',                        affiant);
+  setTF('reside at',                           affiantAdr);
+  setTF('That on',                             _dtVal('dtCertDate'));
+  setTF('Washington Memorial Park being Certificate Number', _dtVal('dtCertNumber'));
+  setTF('Section', _dtVal('dtSection'));
+  setTF('Row',     _dtVal('dtRow'));
+  setTF('Block',   _dtVal('dtBlock'));
+  setTF('Lot',     _dtVal('dtLot'));
+  setTF('Plots',   _dtVal('dtPlot'));
+
+  setTF('being duly sworn deposes and says_2', affiant);
+  setTF('NAME NUMERO1',                        affiant);
+  setTF('reside at_2',                         affiantAdr);
+  setTF('That on_2',                           _dtVal('dtCertDate'));
+  setTF('Washington Memorial Park being Certificate Number_2', _dtVal('dtCertNumber'));
+  setTF('Section_4', _dtVal('dtSection'));
+  setTF('Row_4',     _dtVal('dtRow'));
+  setTF('Block_4',   _dtVal('dtBlock'));
+  setTF('Lot_4',     _dtVal('dtLot'));
+  setTF('Plots_4',   _dtVal('dtPlot'));
+
+  // ── PAGE 6 — Affidavit of Heirs ─────────────────────────────────────────────
+  setTF('SWORN BORN LORN',    _dtVal('dtHeirAffiant') || affiant);
+  setTF('DEPOSES SAYS BLANK', decedent);
+  setTF('Section123213132123', _dtVal('dtSection'));
+  setTF('Row1231231321',       _dtVal('dtRow'));
+  setTF('Block123213214',      _dtVal('dtBlock'));
+  setTF('LOT1221412412312',    _dtVal('dtLot'));
+  setTF('Plots12321313',       _dtVal('dtPlot'));
+  setTF('Date of Death', _dtVal('dtDateOfDeath'));
+  setTF('Relationship_6fffffdsafdsa', _dtVal('dtHeirAffiantRel'));
+  DT_HEIR_FIELDS.forEach(function(row, i) {
+    var n = i + 1;
+    setTF(row.name, _dtVal('dtHeir' + n + 'Name'));
+    setTF(row.rel,  _dtVal('dtHeir' + n + 'Rel'));
+    setTF(row.addr, _dtVal('dtHeir' + n + 'Address'));
+    setTF(row.age,  _dtVal('dtHeir' + n + 'Age'));
+  });
+
+  // ── PAGES 7 & 8 — Permission of Use ─────────────────────────────────────────
+  var permGrantor  = _dtVal('dtHeirAffiant') || grantor;
+  var permDecedent = _dtVal('dtPermDecedent') || decedent;
+  var interred     = _dtVal('dtInterredName');
+  // Whoever signs the Permission of Use gets THEIR OWN address and phone under their name.
+  // When the owner is dead the signer is an heir, and printing the deceased owner's address
+  // and phone beside a living heir's name would be wrong on the face of the document. If the
+  // signer is named in a heir row, that row's address is used; otherwise the block is left for
+  // them to complete rather than filled with somebody else's details.
+  var permAddr = grantorAdr, permPhone = _dtVal('dtGrantorPhone');
+  if (permGrantor && permGrantor !== grantor) {
+    permAddr = ''; permPhone = '';
+    for (var h = 1; h <= 5; h++) {
+      if (_dtVal('dtHeir' + h + 'Name') === permGrantor) { permAddr = _dtVal('dtHeir' + h + 'Address'); break; }
+    }
+  }
+  setTF('I_2', permGrantor);
+  setTF('the property that belonged to', permDecedent);
+  setTF('now deceased to', newOwner);
+  setTF('I hereby state that I wish to grant permission for', interred);
+  setTF('named above is rightfully entitled to the use of such interment right in', interred);
+  setTF('Date',      dt.long);
+  setTF('Name_4',    permGrantor);
+  setTF('Address 1', permAddr);
+  setTF('Phone',     permPhone);
+
+  setTF('I_3', permGrantor);
+  setTF('the property that belonged to_2', permDecedent);
+  setTF('now deceased to_2', newOwner);
+  setTF('I hereby state that I wish to grant permission for_2', interred);
+  setTF('named above is rightfully entitled to the use of such interment right in_2', interred);
+  setTF('Date_2',    dt.long);
+  setTF('Name_5',    permGrantor);
+  setTF('Address_6', permAddr);
+  setTF('Phone_2',   permPhone);
+
+  // ── PAGE 9 — Statement ──────────────────────────────────────────────────────
+  setTF('Full Name for Cirgas', _dtVal('dtServicesFor') || newOwner);
+  setTF('Date3_af_date', dt.long);
+  setTF('Purch Name Printed', newOwner);
+  setTF('Address Purch',  _dtVal('dtNewOwnerAddress'));
+  setTF('City Purch',     _dtVal('dtNewOwnerCity'));
+  setTF('State Purch',    _dtVal('dtNewOwnerState'));
+  setTF('Zip Code Purch', _dtVal('dtNewOwnerZip'));
+  setTF('Email Purch',    _dtVal('dtNewOwnerEmail'));
+  setTF('Cell Phone Purch', _dtVal('dtNewOwnerPhone'));
+  setTF('Current Name Print', grantor);
+  setTF('Address Current', _dtVal('dtGrantorAddress'));
+  setTF('City Current',    _dtVal('dtGrantorCity'));
+  setTF('State Current',   _dtVal('dtGrantorState'));
+  setTF('Zip Current',     _dtVal('dtGrantorZip'));
+  setTF('Email Current',   _dtVal('dtGrantorEmail'));
+  setTF('Cell Phone Current', _dtVal('dtGrantorPhone'));
+  setTF('Text2', _dtVal('dtCounselor') || bwCurrentAdvisor().name);
+}
+
+// Every notary-block field in the packet. The tool must never write to one of these
+// (operator ruling 4) — the notary completes their own block by hand. Listed so the
+// assertion suite can check them all, and so a future edit can see what is off limits.
+var DT_NOTARY_FIELDS = [
+  // page 2 — Release, notary variant
+  'STATE OF 1', 'STATE OF 2', 'COUNTY OF', 'I', 'Public', 'do hereby certify that on',
+  'described in and', 'within instrument', 'Given under my hand and official seal on',
+  'NOTARY PUBLIC in and for the state of', 'in said county  My commission expires', 'residing at',
+  // page 4 — Affidavit for Loss, notary variant
+  'Subscribed and sworn to before me this', 'day of_3', 'Notary Public',
+  // page 7 — Permission of Use, notary variant
+  'On this', 'day of_5', 'before me personally appeared',
+  'to me personally known to be the grantors described and who executed the',
+  'undefined_11', 'State of', 'County of'
+];
+
+async function generateDeedTransferPDF() {
+  var btn = el('dtGenerateBtn');
+  try {
+    if (btn) { btn.textContent = 'Building…'; btn.disabled = true; }
+    if (!_dtVal('dtGrantorName'))  { alert('Please enter the current property owner before generating.'); return; }
+    if (!_dtVal('dtNewOwnerName')) { alert('Please enter the new property owner before generating.'); return; }
+
+    var bytes = await bwTemplate('DT_PDF_B64');
+    // Load and fill in place. copyPages() into a fresh document brings the widget annotations
+    // but NOT the /Fields tree, so getForm() comes back empty and every setText silently
+    // no-ops — the bug that once shipped a blank ClearPoint contract.
+    var doc  = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+    var form = doc.getForm();
+    dtFillForm(form);
+
+    // Drop the pages this situation does not need. BACK TO FRONT: removePage(i) shifts every
+    // later page down one, so a forward pass would delete the wrong pages after the first cut.
+    var keep  = dtPageIndexes();
+    var total = doc.getPageCount();
+
+    // Collect the widget dictionaries living on the pages about to go, WHILE those pages are
+    // still there. removePage() detaches the page but leaves its fields in the AcroForm /Fields
+    // tree — orphan widgets pointing at nothing, which is the same defect that made the GA
+    // contract unfillable until it was de-flattened. So the fields go with their pages.
+    var doomed = [];
+    for (var d = 0; d < total; d++) {
+      if (keep.indexOf(d) !== -1) continue;
+      try {
+        var an = doc.getPage(d).node.Annots();
+        if (!an) continue;
+        for (var ai = 0; ai < an.size(); ai++) {
+          try { var dict = an.lookup(ai, PDFLib.PDFDict); if (dict) doomed.push(dict); } catch(e) {}
+        }
+      } catch(e) {}
+    }
+    for (var i = total - 1; i >= 0; i--) {
+      if (keep.indexOf(i) === -1) doc.removePage(i);
+    }
+    // A field survives only if it still has a widget on a page that survived. 'Row1' and
+    // 'Check Box2' each have two widgets across two kept pages, so they stay.
+    try {
+      form.getFields().forEach(function(f) {
+        try {
+          var ws = f.acroField.getWidgets();
+          if (ws.length && ws.every(function(w){ return doomed.indexOf(w.dict) !== -1; })) form.removeField(f);
+        } catch(e) {}
+      });
+    } catch(e) { console.warn('Deed transfer: orphan-field prune failed:', e.message); }
+
+    // Acrobat re-derives appearances when NeedAppearances is true and can lose the fill; the
+    // same pin the RIC uses.
+    try {
+      var acro = doc.catalog.lookup(PDFLib.PDFName.of('AcroForm'));
+      if (acro) acro.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
+    } catch(e) {}
+
+    var out  = await doc.save();
+    var blob = new Blob([out], { type: 'application/pdf' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    var slug = (_dtVal('dtNewOwnerName') || 'Transfer').replace(/[^a-zA-Z0-9]/g, '_');
+    a.href     = url;
+    a.download = 'DeedTransfer_' + slug + '_' + dtSigningDateParts().iso + '.pdf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    bwStampExport('dt');
+  } catch (err) {
+    console.error('Deed transfer error:', err);
+    alert('Error generating the deed transfer packet: ' + err.message);
+  } finally {
+    if (btn) { btn.textContent = '📄 Generate Deed Transfer Packet'; btn.disabled = false; }
+  }
+}
+
+// ── Saving ───────────────────────────────────────────────────────────────────────────
+// Same per-record shape as the other lanes: quotes/dt/q<id>, one node per record, captured
+// and restored through captureFieldState()/restoreFieldState(). No contact-link machinery
+// in this lane yet, so it calls saveQuoteRecord() directly rather than the write-back wrapper.
+function captureDtState() {
+  var section = el('section-dt-transfer');
+  var fieldIds = [];
+  if (section) section.querySelectorAll('input[id], select[id], textarea[id]').forEach(function(e) {
+    if (e.id) fieldIds.push(e.id);
+  });
+  var visible = 0;
+  document.querySelectorAll('#dtHeirRows .dt-heir-row').forEach(function(r) {
+    if (r.style.display !== 'none') visible++;
+  });
+  return { fields: captureFieldState(fieldIds), heirRows: visible || 1, docs: dtDocSet() };
+}
+function saveDeedTransfer() {
+  try {
+    if (!_dtVal('dtGrantorName')) { alert('Please enter the current property owner before saving.'); return; }
+    var d = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    var who = _dtVal('dtNewOwnerName') || _dtVal('dtGrantorName');
+    var defaultLabel = (who || 'Deed Transfer') + ' - ' + d;
+    var label = window.prompt('Name this saved deed transfer:', defaultLabel);
+    if (label === null) return;
+    label = label.trim() || defaultLabel;
+    var snap = { id: Date.now(), label: label, total: 0, state: captureDtState(), date: d };
+    bwStampsOnSave('dt', snap);
+    saveQuoteRecord('dt', snap, label);
+    show('dt-saved', el('navDtSaved'));
+    showQuoteToast('Deed transfer saved — viewing saved deed transfers');
+  } catch (e) { alert('Save failed: ' + e.message); }
+}
+function loadSavedDeedTransfer(id) {
+  var snap = _dtSavedTransfers.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { dtClearAll(); } catch(e) {}
+  bwStampsOnLoad('dt', snap);
+  restoreFieldState(snap.state.fields || {});
+  var rows = document.querySelectorAll('#dtHeirRows .dt-heir-row');
+  var want = Math.max(1, Math.min(rows.length, snap.state.heirRows || 1));
+  for (var i = 0; i < rows.length; i++) rows[i].style.display = i < want ? '' : 'none';
+  var b = el('dtAddHeirBtn'); if (b) b.style.display = want >= rows.length ? 'none' : '';
+  dtUpdateDocs();
+  show('dt-transfer', document.querySelector('[onclick*="dt-transfer"]'));
+}
 
 // ═══════════════════════════════════════════════════════════════
 // GA TWO-PERSON TOGGLE
