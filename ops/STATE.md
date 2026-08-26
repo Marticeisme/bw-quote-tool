@@ -1,5 +1,34 @@
 # STATE — Living Ledger
 
+**s27 CLOSED ON MAIN 2026-08-25 — Track A `s27/deed-transfer` MERGED --no-ff (track
+`c3e1f7e7`). Final main GREEN: index 8/0; `3504 passed, 0 failed across 49 suites`
+(NEW PIN; reconciles 3401 + 103 test-deed-transfer; worktree read 3502/49, the
+documented wmp-map −2; one 3501/1 audit run was the KNOWN runner race on
+test-pcm-catalog, proven by solo 409/0). NOT PUSHED — no pre-authorization.**
+Shipped: standalone Deed Transfer lane beside the other contract lanes. DocuSign
+toggle first (picks plain variants p3/p5/p8 vs notary p2/p4/p7); situation questions
+derive the doc set (Release always; lost-certificate → Loss Affidavit; owner-deceased
+→ Affidavit of Heirs w/ 5-row heir table; someone-being-interred → Permission of Use,
+which has NO cover-checklist row — flips no checkmark); download = only applicable
+pages, removed back-to-front WITH orphan-field prune (removePage leaves fields in
+/Fields — the GA de-flatten class); 22 notary fields never written, suite-pinned;
+saves as new type key `dt` at quotes/dt/q<id> (all six registries extended, deletions
+audited line-by-line); template embedded as DT_PDF_B64.pdf, SHA in manifest
+(589a95d2…). TEMPLATE TRAPS on record: field names are GARBAGE strings (map lives as
+a comment above the lane code); `Row1` and `Check Box2` are each ONE field with TWO
+widgets (cover + statement) — Row1 shares meaning, Check Box2 does NOT (cover
+certificate row vs statement "1st Right of Interment") so the statement widget's /AS
+is forced /Off after checking, told apart by widget height. Director re-ran all gates,
+eyeballed cover/notary-release/statement renders (scratch/s27-a-renders in the s27a
+worktree). OPEN OPERATOR ITEMS (close gate): push word; eyeball packet-notary.pdf +
+packet-docusign.pdf; ruling on cover row 2 (always checked as "certificate OR loss
+affidavit required either way" — or should it mean "loss affidavit enclosed"?);
+"Cemetery Services for" defaults to the NEW owner (editable) — confirm; the /ResetForm
+button bakes into delivered packets (template's own; removable on request); `dt` as
+the Firebase type key (first quotes/dt write happens at first production save); the
+2.2 MB blank template is now a public-repo artifact; s26a + s27a worktrees pending
+removal (junctions non-recursively FIRST).
+
 **s26 CLOSED + PUSHED LIVE 2026-08-25 (operator push word in-chat, covering the sprint
 merge AND the same-day guide-PDF design round; `d9c82503..522a6990`) — wire-verified:
 index.html byte-identical sha256 on the wire, both new guide PDFs byte-identical.
