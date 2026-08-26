@@ -1,5 +1,20 @@
 # STATE — Living Ledger
 
+**s27 HOTFIX PUSHED LIVE 2026-08-25 (`067a4729..8d0e6b66`, wire-verified) — the
+sparse-form generate crash.** The operator's first real deed transfer threw "Expected
+instance of e or e, but got instance of undefined" from doc.save(). ROOT CAUSE: seven
+template widgets (pages 3 and 6) are NOT in their own pages' /Annots, so the orphan
+prune never saw them; left BLANK (a real form's sparser fill) they survived page
+removal and save()'s appearance probe crashed. Filled fields are dirty and take a
+different path — every richly-filled suite case was green while the counselor's real
+form failed. FIX (director-direct): bake form.updateFieldAppearances() BEFORE page
+removal + save({updateFieldAppearances:false}), and the prune also dooms widgets by
+/P page ref. Regression pinned (sparse fill, both variants): suite 113/0, **NEW PIN
+3514 passed, 0 failed across 49 suites**. SCAR, promote to every fill-and-strip
+template brief: test the SPARSE form, not just the rich one — blank fields exercise
+needsAppearancesUpdate, filled ones bypass it; and never trust a page's /Annots to
+enumerate its widgets.
+
 **s27 PUSHED LIVE 2026-08-25 (operator: "push it"; `522a6990..e521efa7`) —
 wire-verified: index.html byte-identical sha vs the HEAD blob after deploy-lag
 polling, Deed Transfer lane serving (13 mentions on the wire).** Push contract:
