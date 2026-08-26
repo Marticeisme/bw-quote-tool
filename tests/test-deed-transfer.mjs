@@ -483,6 +483,38 @@ console.log('\n6. Negative control — the DT_PDF_B64 template as fetched');
   await ctx.close();
 }
 
+// ── 7. Regression: SPARSE fill — the 2026-08-25 live crash ─────────────────────────
+// Only the two required names entered, everything optional left blank, lost-certificate on.
+// This template has seven widgets (pages 3 and 6) that their own pages never list in
+// /Annots; blank, they survived the prune as orphans and save()'s appearance pass crashed
+// ("Expected instance of …, but got instance of undefined"). Filled fields are dirty and
+// take a different path — which is why every richly-filled case above stayed green while
+// the counselor's real, sparser form failed. Both variants exercised.
+console.log('\n7. Regression — sparse fill, blank optionals (the live 2026-08-25 crash)');
+for (const docusign of [false, true]) {
+  const { ctx, page, errs } = await open(browser);
+  await page.evaluate(([o]) => {
+    show('dt-transfer', null);
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+    const tick = (id, v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
+    set('dtGrantorName', 'Sparse Grantor'); set('dtNewOwnerName', 'Sparse NewOwner');
+    tick('dtDocuSign', o.docusign); tick('dtLostCert', true);
+    tick('dtOwnerDeceased', false); tick('dtPermissionUse', false);
+    dtUpdateDocs();
+  }, [{ docusign }]);
+  const label = docusign ? 'DocuSign' : 'notary';
+  const r = await genAudit(page, null);
+  ok(`sparse ${label}: generated without throwing`, !r.error, r.error);
+  ok(`sparse ${label}: 5 pages — cover, release, loss affidavit, statement, terms`, r.pages === 5, r.pages);
+  ok(`sparse ${label}: carries the right release variant`,
+    r.names.indexOf(docusign ? MARKER.releasePlain : MARKER.releaseNotary) >= 0 &&
+    r.names.indexOf(docusign ? MARKER.releaseNotary : MARKER.releasePlain) < 0, r.names.length);
+  ok(`sparse ${label}: the grantor name survived the pre-removal appearance bake`,
+    Object.values(r.values).indexOf('Sparse Grantor') >= 0, r.values);
+  ok(`sparse ${label}: no page errors`, errs.filter(e => !/favicon/.test(e)).length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
 await browser.close();
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

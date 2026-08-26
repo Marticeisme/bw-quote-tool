@@ -21370,6 +21370,16 @@ async function generateDeedTransferPDF() {
     var form = doc.getForm();
     dtFillForm(form);
 
+    // Bake every field appearance NOW, while all ten pages still exist. save() runs this
+    // pass itself by default, but by then the unused pages are gone — and this template has
+    // widgets its own pages never listed in /Annots (seven of them, pages 3 and 6), which
+    // the prune below therefore cannot see. A BLANK such field survives as an orphan and
+    // save()'s appearance probe crashes on it ("Expected instance of …, but got instance of
+    // undefined"). A FILLED one is dirty and takes a different path, which is why the case
+    // only appeared when optional inputs were left empty. Appearances are baked here and
+    // save() is told not to run the pass again.
+    try { form.updateFieldAppearances(); } catch (e) { console.warn('Deed transfer: appearance bake failed:', e.message); }
+
     // Drop the pages this situation does not need. BACK TO FRONT: removePage(i) shifts every
     // later page down one, so a forward pass would delete the wrong pages after the first cut.
     var keep  = dtPageIndexes();
@@ -21379,9 +21389,12 @@ async function generateDeedTransferPDF() {
     // still there. removePage() detaches the page but leaves its fields in the AcroForm /Fields
     // tree — orphan widgets pointing at nothing, which is the same defect that made the GA
     // contract unfillable until it was de-flattened. So the fields go with their pages.
-    var doomed = [];
+    // TWO detection routes, because this template needs both: the page's /Annots array, and
+    // the widget's own /P page reference (the seven stray widgets above appear ONLY via /P).
+    var doomed = [], doomedPageRefs = [];
     for (var d = 0; d < total; d++) {
       if (keep.indexOf(d) !== -1) continue;
+      try { doomedPageRefs.push(doc.getPage(d).ref); } catch(e) {}
       try {
         var an = doc.getPage(d).node.Annots();
         if (!an) continue;
@@ -21389,6 +21402,16 @@ async function generateDeedTransferPDF() {
           try { var dict = an.lookup(ai, PDFLib.PDFDict); if (dict) doomed.push(dict); } catch(e) {}
         }
       } catch(e) {}
+    }
+    function dtWidgetDoomed(w) {
+      if (doomed.indexOf(w.dict) !== -1) return true;
+      try {
+        var pref = w.dict.get(PDFLib.PDFName.of('P'));
+        if (pref) for (var pi = 0; pi < doomedPageRefs.length; pi++) {
+          if (doomedPageRefs[pi] === pref || String(doomedPageRefs[pi]) === String(pref)) return true;
+        }
+      } catch(e) {}
+      return false;
     }
     for (var i = total - 1; i >= 0; i--) {
       if (keep.indexOf(i) === -1) doc.removePage(i);
@@ -21399,7 +21422,7 @@ async function generateDeedTransferPDF() {
       form.getFields().forEach(function(f) {
         try {
           var ws = f.acroField.getWidgets();
-          if (ws.length && ws.every(function(w){ return doomed.indexOf(w.dict) !== -1; })) form.removeField(f);
+          if (ws.length && ws.every(dtWidgetDoomed)) form.removeField(f);
         } catch(e) {}
       });
     } catch(e) { console.warn('Deed transfer: orphan-field prune failed:', e.message); }
@@ -21411,7 +21434,10 @@ async function generateDeedTransferPDF() {
       if (acro) acro.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
     } catch(e) {}
 
-    var out  = await doc.save();
+    // Appearances were baked before page removal (above); running the pass again here would
+    // walk any orphan widget this template hides and crash — the exact live defect of
+    // 2026-08-25.
+    var out  = await doc.save({ updateFieldAppearances: false });
     var blob = new Blob([out], { type: 'application/pdf' });
     var url  = URL.createObjectURL(blob);
     var a    = document.createElement('a');
