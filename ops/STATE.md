@@ -1,5 +1,24 @@
 # STATE — Living Ledger
 
+**s26 CLOSED + PUSHED LIVE 2026-08-25 (operator push word in-chat, covering the sprint
+merge AND the same-day guide-PDF design round; `d9c82503..522a6990`) — wire-verified:
+index.html byte-identical sha256 on the wire, both new guide PDFs byte-identical.
+Final main GREEN: index 8/0; `3401 passed, 0 failed across 48 suites` (NEW PIN,
+reconciles 3360 + 41 test-contact-autofill; worktree read 3399/48, the documented
+wmp-map −2).** Track A `s26/contact-autofill` merged --no-ff (`5a6db413`): ONE
+declarative BW_LINK_FIELDS table drives both directions; import fills role-blocks
+blanks-only on the three interactive link paths (restore path untouched); write-back
+clones the party, fills only empty phones/emails/addresses sub-objects, writes only
+changed parties, after record-save resolves. GA `purchaser`→insured block (matches the
+name fill); CP block 1 = Funeral Recipient, block 2 = Purchaser-if-different, generic
+purchaser falls back to link order; RIC ricDayPhone takes email only (needs @ outbound).
+Suite sabotage-proven ×2 red/green, director re-ran everything. OPEN WITH THE OPERATOR:
+(1) hands-on smoke in his browser — link a contact on RIC + CIRGAS, watch the fill,
+save, confirm the contact gained the address (the one production-Firebase path no test
+exercises); (2) ricState/anPurchState carry value="WA" so blanks-only never fills them
+— should a party's state beat an untouched WA default?; (3) the s26a worktree remains
+for now (junction to main node_modules), remove after the smoke.
+
 **Current sprint: sprint-26 — OPENED 2026-08-25** (director: Fable session; track: Opus
 per policy; operator word "use opus agents"). Scope: contact auto-import on contract
 linking — linking a contact to RIC/CIRGAS/GA/CP fills that person's role block's EMPTY
