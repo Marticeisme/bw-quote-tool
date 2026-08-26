@@ -41,7 +41,11 @@ One track (all work is in index.html): **A `s26/contact-autofill`**, worktree
 
 ## Gates
 
-- Gate 0: 8/0 syntax + full suite green at the 3336/47 pin before spawn.
+- Gate 0 RESULT (measured 2026-08-25): 8/0; first full run read `3359 passed, 1 failed
+  across 47 suites` — the one red was the DIRECTOR'S OWN pre-sprint one-pager (52
+  elements under test-family-type's 10pt floor), fixed director-direct and pushed
+  (`d9c82503`), gate suite then 131/0. **Working pin for this sprint: 3360/47.** The
+  +24 over the old 3336 pin is the two new guides' family-type registers.
 - Track gate: 8/0, full suite (pin RISES with the new suite — re-pin at close),
   new `tests/test-contact-autofill.mjs` sabotage-proven red/green.
 - Close gate (operator): push word; a hands-on link/save round-trip in his browser on a
