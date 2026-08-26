@@ -1,5 +1,17 @@
 # STATE — Living Ledger
 
+**s27 PUSHED LIVE 2026-08-25 (operator: "push it"; `522a6990..e521efa7`) —
+wire-verified: index.html byte-identical sha vs the HEAD blob after deploy-lag
+polling, Deed Transfer lane serving (13 mentions on the wire).** Push contract:
+8/0 re-measured at push time, behind-count 0, suite pin 3504/49 from the close run
+on these exact bytes. Cleanup: s27a worktree removed clean (junction non-recursively
+first, main node_modules verified intact); **s26a's directory is LOCKED by a dead
+process handle** — worktree deregistered, delete the folder after reboot (s23d
+pattern). s27 renders preserved at scratch/s27-a-renders (24 files). STILL OPEN with
+the operator (survive the push): contact-autofill hands-on smoke on live RIC+CIRGAS;
+the WA-state-default ruling; deed-transfer cover row 2 semantics; "Cemetery Services
+for" = new owner confirm; the template's /ResetForm button in delivered packets.
+
 **s27 CLOSED ON MAIN 2026-08-25 — Track A `s27/deed-transfer` MERGED --no-ff (track
 `c3e1f7e7`). Final main GREEN: index 8/0; `3504 passed, 0 failed across 49 suites`
 (NEW PIN; reconciles 3401 + 103 test-deed-transfer; worktree read 3502/49, the
