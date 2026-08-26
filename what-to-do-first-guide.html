@@ -133,7 +133,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
    retypes p/li at 10.5pt with higher specificity, and divs sail past it. Screen
    rendering is untouched — .pdf-summary is display:none outside ?print=family. */
 @media print{
-  html[data-print-mode="family"] .fam-sheet{display:block;padding:11px .5in 0;}
+  html[data-print-mode="family"] .fam-sheet{display:block;padding:14px .5in 0;}
+  /* Operator 2026-08-25: the PDF logo was too small and the sheet left slack. Family mode
+     only; wins over guide-print.css §8's 20px by specificity. */
+  html[data-print-mode="family"] .cover-logo{height:34px!important;margin-bottom:8px;}
   .fam-sheet .fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .fam-sheet .fs-panel{background:#fff;border:1px solid var(--warm-border);border-radius:9px;padding:11px 15px;break-inside:avoid;}
   .fam-sheet .fs-head{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
@@ -141,15 +144,15 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   .fam-sheet .fs-title{font-family:'Cormorant Garamond',serif;font-size:14.5pt;font-weight:600;color:var(--navy-dark);line-height:1.1;}
   .fam-sheet .fs-call{font-size:17pt;font-weight:700;color:var(--orange);margin:2px 0 0;letter-spacing:.01em;}
   .fam-sheet .fs-call-sub{font-size:10pt;font-weight:600;color:var(--text-muted);margin:0 0 7px;}
-  .fam-sheet .fs-row{display:flex;gap:8px;align-items:baseline;padding:4.4px 0;border-bottom:1px solid var(--rule);font-size:10pt;line-height:1.3;}
+  .fam-sheet .fs-row{display:flex;gap:8px;align-items:baseline;padding:5.4px 0;border-bottom:1px solid var(--rule);font-size:10pt;line-height:1.32;}
   .fam-sheet .fs-row:last-child{border-bottom:none;}
   .fam-sheet .fs-row .k{font-weight:700;color:var(--navy-dark);white-space:nowrap;}
-  .fam-sheet .fs-check{display:flex;gap:9px;align-items:baseline;padding:4.4px 0;border-bottom:1px solid var(--rule);font-size:10pt;line-height:1.3;}
+  .fam-sheet .fs-check{display:flex;gap:9px;align-items:baseline;padding:5.4px 0;border-bottom:1px solid var(--rule);font-size:10pt;line-height:1.32;}
   .fam-sheet .fs-check:last-child{border-bottom:none;}
   .fam-sheet .fs-check::before{content:'';flex-shrink:0;width:11px;height:11px;border:1.4px solid var(--navy);border-radius:2px;position:relative;top:1px;}
   .fam-sheet .fs-check .k{font-weight:700;color:var(--navy-dark);}
   .fam-sheet .fs-note{font-size:10pt;color:var(--text-muted);margin-top:8px;line-height:1.35;}
-  .fam-sheet .fs-close{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:9px;padding:10px 16px;color:#fff;margin-top:11px;font-size:10pt;line-height:1.4;}
+  .fam-sheet .fs-close{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:9px;padding:12px 17px;color:#fff;margin-top:13px;font-size:10pt;line-height:1.45;}
   .fam-sheet .fs-close .hl{color:var(--orange-soft);font-weight:700;}
 }
 </style>
