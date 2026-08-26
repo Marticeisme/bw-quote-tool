@@ -108,6 +108,13 @@ const JOBS = [
   // the screen `.cta` (which is display:none in print) — it appears in Section 8 and again
   // in the printed close. Held at 3 pages in PER_GUIDE_CAPS.
   ['inman-travel-plan-guide.html?print=family', 'pdf-assets/Travel Plan by Inman.pdf'],
+  // ── THE AT-NEED CHECKLIST GUIDES (2026-08-25) ─────────────────────────────────────
+  // Both are short by design (checklists, not references) and carry no data-pdf
+  // annotations: the family cut IS the full document, which `?print=family` renders
+  // one-column at 10.5pt. Like the Inman piece, these PDFs are emailed on their own,
+  // so the contact block lives in the document body.
+  ['what-to-do-first-guide.html?print=family', 'pdf-assets/What to Do First.pdf'],
+  ['death-certificates-guide.html?print=family', 'pdf-assets/Death Certificates.pdf'],
 ];
 // outside-marker-rules.html was never registered here, which is the whole reason its
 // card on guides.html offered no PDF download while every other guide did. Added

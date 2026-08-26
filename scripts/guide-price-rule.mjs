@@ -43,6 +43,11 @@ import { pluckTag } from './_html-pluck.mjs';
 
 export const EXEMPT = new Set([
   'direct-cremation.html',   // the guide IS a sample itemisation — see header
+  // Its only priced table is the state's death-certificate fee schedule ($25 per
+  // certified copy plus Pierce County's add-ons). Those are government charges, not
+  // our pricing: there is no quote to invite the family to ask for, and hiding the
+  // figure would defeat the document. 2026-08-25.
+  'death-certificates-guide.html',
 ]);
 
 const MONEY = /\$[0-9][0-9,]*(?:\.[0-9]{2})?/g;

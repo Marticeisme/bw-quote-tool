@@ -49,6 +49,11 @@ export const GUIDES = [
   // property, so it takes the typographic cover (no hero) and the Bonney Watson place
   // line rather than Washington Memorial Park — the plan has nothing to do with the park.
   'inman-travel-plan-guide.html',
+  // 2026-08-25: the two at-need checklist guides, built from Martice's source handouts
+  // ("What to Do First Checklist" and "Information About Death Certificates"). Both are
+  // about the funeral home process, not the park, so they take the typographic cover.
+  'what-to-do-first-guide.html',
+  'death-certificates-guide.html',
 ];
 
 // Only genuine scene photography. Verified by eye at cover size, not picked by filename.

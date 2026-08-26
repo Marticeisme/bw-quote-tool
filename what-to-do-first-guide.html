@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What to Do First &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;}
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:540px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+.prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+.prose p strong{color:var(--navy-dark);font-weight:700;}
+.prose-sidebar{display:grid;grid-template-columns:1.55fr 1fr;gap:36px;align-items:start;}
+
+.sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;margin-bottom:24px;}
+.sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar li{font-size:13.5px;color:var(--text);padding:8px 0 8px 16px;border-bottom:1px solid var(--rule);position:relative;line-height:1.5;}
+.sidebar li:last-child{border-bottom:none;}
+.sidebar li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+.highlight-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:12px;padding:28px 30px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden;}
+.highlight-box::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none;}
+.highlight-box h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:10px;color:#fff;}
+.highlight-box p{color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;margin:0 0 8px;}
+.highlight-box .hl{color:var(--orange-soft);font-weight:600;}
+
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.check-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;padding:18px 20px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .15s;}
+.check-card:hover{box-shadow:0 3px 12px rgba(61,90,122,.1);}
+.check-card h4{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.check-card p{font-size:12.5px;color:var(--text-muted);line-height:1.5;margin:0;}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .checklist{grid-template-columns:1fr;}
+  .prose-sidebar{grid-template-columns:1fr;}
+  .contents-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+}
+@media print{
+  @page{size:letter;margin:0;}
+  /* Ligature suppression, same reason as every other guide: Ghostscript's downsample
+     mangles the ToUnicode map for fi/fl/ft ligatures and makes words unsearchable. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
+  html{height:100%;background:#f8f6f2;}
+  body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  .doc-footer{padding:24px 12px 20px;border-top:1px solid var(--rule);break-inside:avoid;}
+  .doc-footer .footer-url{display:none;}
+  .site-nav{position:static;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
+  .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cover h1{font-size:28pt;}
+  .section-wrap{padding:16px 12px 12px;}
+  .section-wrap h2{page-break-after:avoid;}
+  .check-card,.sidebar,.highlight-box{break-inside:avoid;page-break-inside:avoid;}
+  /* A grid row can't fragment across pages, and the sidebar inside is break-inside:avoid,
+     so the whole prose+sidebar unit jumped to a fresh page and left the one before half
+     blank. Stacked, the section flows and the document packs. */
+  .prose-sidebar{display:block;}
+  a{text-decoration:none;color:inherit;}
+}
+
+/* PRINT HEADER — same cap as every guide (punch list item 20, 2026-07-27): the print
+   masthead stays small. Print media ONLY, the on-screen cover is unchanged. Measured
+   by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+}
+</style>
+<!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
+<link rel="stylesheet" media="print" href="guide-print.css">
+<!-- BW:PRINT-CSS:END -->
+</head>
+<body>
+<!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
+<style>
+/* Per-guide print constants. Screen is untouched: the only screen rule here hides
+   the generated pricing invitation, which exists solely for the PDF. It must never
+   show on screen — the shared sheet is media=print and so cannot say anything about
+   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
+   WEBSITE. */
+.print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
+</style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
+<!-- BW:PRINT-SYSTEM:END -->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#first-call">The First Call</a>
+      <a href="#contacts">Who to Tell</a>
+      <a href="#information">Information</a>
+      <a href="#papers">Papers</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>What to Do First</h1>
+    <div class="cover-sub">Who to call in the first hours, who to tell in the first days, and the information we'll ask you for when we meet.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">First call &middot; contacts &middot; vital information &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#first-call">The First Call</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#contacts">Who to Tell in the First Few Days</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#information">The Information We'll Need</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#papers">Papers Worth Finding</a></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-wrap" id="first-call">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>The First Call</h2>
+    <div class="section-sub">One call is the whole of what has to happen right away</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>Call us at <strong>206-242-1787</strong>, any hour of the day or night. That call is the only thing that has to happen immediately. Everything else in this guide can wait, and most of it should. Where the death occurs changes who makes that first call, so here is each situation.</p>
+    </div>
+
+    <div class="checklist">
+      <div class="check-card"><div><h4>At home, under hospice care</h4><p>Call the hospice nurse. The nurse comes out, completes their part, and calls us for you. You don't need to call 911.</p></div></div>
+      <div class="check-card"><div><h4>At home, without hospice</h4><p>Call 911. When a death at home wasn't under hospice or another at-home medical provider, the county has to release your loved one before we can bring them into our care. Tell the responders you've chosen Bonney Watson.</p></div></div>
+      <div class="check-card"><div><h4>At a hospital</h4><p>Tell the staff you've chosen Bonney Watson. They'll call us once their paperwork is complete, and we take it from there.</p></div></div>
+      <div class="check-card"><div><h4>At a hospice or nursing facility</h4><p>Same as the hospital. Tell the staff you've chosen Bonney Watson and they'll notify us for you.</p></div></div>
+      <div class="check-card"><div><h4>Away from home</h4><p>Call us anyway, even if the death happened in another state or country. We arrange the transportation home and coordinate with a funeral home where the death occurred, so you don't have to make those calls yourself.</p></div></div>
+      <div class="check-card"><div><h4>If a pre-plan exists</h4><p>Tell us on that first call. Most of the decisions are already made, and if your loved one was enrolled in the <a href="inman-travel-plan-guide.html" style="color:var(--orange);font-weight:600;">Travel Plan by Inman</a>, transportation from anywhere is already covered.</p></div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-wrap" id="contacts">
+    <div class="section-kicker">SECTION 2</div>
+    <h2>Who to Tell in the First Few Days</h2>
+    <div class="section-sub">None of these calls have to happen in the first hour</div>
+    <div class="section-rule"></div>
+
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p>Spread these over the first few days. This is also a good list to hand to family and friends who ask what they can do to help, because every call on it is one you don't have to make yourself.</p>
+        <p>The one we handle with you is the first: when you call us, we'll set a time to meet, usually within a day or two. If you own cemetery property at Washington Memorial Park, that call and the funeral home call are the same call.</p>
+        <p>Employers matter twice. The employer of the person who died may owe final wages or benefits, and relatives will need time off for the service.</p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">CONTACT AS SOON AS YOU'RE ABLE</div>
+        <ul>
+          <li><strong>Us</strong>, to set the arrangement appointment: 206-242-1787</li>
+          <li><strong>Relatives and close friends</strong></li>
+          <li><strong>The personal representative</strong> named in the will</li>
+          <li><strong>The cemetery</strong> where you own or want property</li>
+          <li><strong>Employers</strong>: theirs, and anyone needing time off</li>
+          <li><strong>Insurance companies</strong>: life, health, accident</li>
+          <li><strong>Religious, fraternal, civic and veterans organizations</strong>, and unions</li>
+          <li><strong>Their lawyer and accountant</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-wrap" id="information">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>The Information We'll Need</h2>
+    <div class="section-sub">What the state asks for on the death certificate</div>
+    <div class="section-rule"></div>
+
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p>We file the death certificate with the state of Washington, and the state asks for more than most families expect. Gathering this before our appointment saves you a second trip. Don't worry about having every answer. We work through the list together, and a blank can be filled in later.</p>
+        <p>Two of these trip people up. The state won't accept "retired" as an occupation, so think about what they did for most of their working life. And it asks for their mother's last name before her first marriage, which sometimes takes a call to an older relative.</p>
+        <p>If you'd rather work ahead, the <a href="vital-worksheet.html" style="color:var(--orange);font-weight:700;">Vital Statistics Worksheet</a> collects all of this in one printable place.</p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">VITAL STATISTICS CHECKLIST</div>
+        <ul>
+          <li><strong>Full legal name</strong>, plus any other names they used (also known as)</li>
+          <li><strong>Social Security number</strong></li>
+          <li><strong>Date and place of birth</strong></li>
+          <li><strong>Home address</strong>, and how long they lived there</li>
+          <li><strong>Highest level of education</strong></li>
+          <li><strong>Usual occupation</strong> and kind of business, not "retired"</li>
+          <li><strong>Marital status</strong>, and the surviving spouse's or partner's name</li>
+          <li><strong>Parents' names</strong>, including mother's last name before her first marriage</li>
+          <li><strong>U.S. Armed Forces service</strong>, yes or no</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-wrap" id="papers">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>Papers Worth Finding</h2>
+    <div class="section-sub">Nothing here holds up the first call</div>
+    <div class="section-rule"></div>
+
+    <div class="prose">
+      <p>These documents matter at the arrangement appointment and in the weeks after, not in the first hour. Look for them when you're able, and bring what you find.</p>
+    </div>
+
+    <div class="checklist">
+      <div class="check-card"><div><h4>Pre-plan paperwork</h4><p>If your loved one planned ahead with us or with another funeral home, most decisions are already made and often already paid for.</p></div></div>
+      <div class="check-card"><div><h4>DD-214 discharge papers</h4><p>If they served in the military, this one document unlocks the VA benefits. The <a href="veterans-guide.html" style="color:var(--orange);font-weight:600;">Veterans Guide</a> covers what those are worth.</p></div></div>
+      <div class="check-card"><div><h4>Life insurance policies</h4><p>Each insurer needs its own claim, and many families use a policy to pay for the services themselves.</p></div></div>
+      <div class="check-card"><div><h4>Cemetery paperwork</h4><p>If they owned cemetery property, the Certificate of Interment Rights says where. If you can't find it, we can look it up for property here.</p></div></div>
+      <div class="check-card"><div><h4>The will or trust</h4><p>The personal representative needs it to settle the estate. The original matters; a copy is a starting point.</p></div></div>
+      <div class="check-card"><div><h4>A note on death certificates</h4><p>Most families end up needing 8 to 12 certified copies to settle accounts. We order those for you, so you don't need to do anything yet except know it's coming.</p></div></div>
+    </div>
+
+    <div class="highlight-box">
+      <h3>If someone has just died, stop reading here</h3>
+      <p>Call us at <span class="hl">206-242-1787</span>, any hour. We'll bring your loved one into our care and walk through everything else in this guide with you, at the table, one step at a time.</p>
+      <p><strong>Martice Morrison</strong> &middot; Family Service and Advanced Planning Director &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url" style="text-decoration:none;">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+<script src="guide-nav.js" defer></script>
+</body>
+</html>

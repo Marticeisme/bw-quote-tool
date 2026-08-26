@@ -95,6 +95,8 @@
    */
   var NAV = [
     { name: 'Getting Started', items: [
+      { href: 'what-to-do-first-guide.html',    label: 'What to Do First' },
+      { href: 'death-certificates-guide.html',  label: 'Death Certificates' },
       { href: 'pre-planning-guide.html',        label: 'Pre-Planning' },
       { href: 'who-decides-guide.html',         label: 'Who Decides' },
       { href: 'cemetery-property-guide.html',   label: 'Cemetery Property' },
