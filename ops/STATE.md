@@ -1,5 +1,32 @@
 # STATE — Living Ledger
 
+**Current sprint: sprint-26 — OPENED 2026-08-25** (director: Fable session; track: Opus
+per policy; operator word "use opus agents"). Scope: contact auto-import on contract
+linking — linking a contact to RIC/CIRGAS/GA/CP fills that person's role block's EMPTY
+address/phone/email fields from the party record, and saving a contract writes typed
+values BACK onto linked parties where the party record is blank. **Operator rulings at
+open (in-chat): fill-blanks-only in BOTH directions (never overwrite typed form fields;
+never overwrite hand-entered contact data), all four contract lanes (cem/FH stay
+name-only — no address fields).** One track A `s26/contact-autofill` (worktree
+../bw-quote-tool-s26a from local main 57661fdb, node_modules junctioned). Reality at
+open: linking fills NAME only (`_bwFillNameFromLink` ~16577); no harvesting in either
+direction; ricDayPhone is the combined Email/DayPhone field with the no-mask rule
+(~20736); restore path (~17019) must NOT trigger fills. Gate 0: 8/0 measured; full
+suite running at open (scratch/s26-gate0-suite.log), spawn conditional on the 3336/47
+pin. NO push pre-authorization.
+
+**PRE-SPRINT, SAME SESSION 2026-08-25 (director-direct, operator-worded pushes):** two
+new at-need guides LIVE (what-to-do-first-guide.html — family PDF is a ONE-PAGE visual
+checklist sheet per operator feedback — and death-certificates-guide.html, price-rule
+EXEMPT: its $25/$4/$10 figures are government fees, not our pricing; both in guides.html
+Getting Started 16→18 and the guide-nav.js NAV model, which the nav gate requires);
+Trayview container photo cut to transparency (border flood fill; a white-key punches
+holes in the white pillow) + shown 640px in direct-cremation.html; DC two-option
+comparison quote (Trayview + bamboo Eco Scattering Urn #282919 $145) delivered as a
+scratch PDF, never committed. Pushes: 3c7768a3 (trayview), 60afd6dd (guides),
+57661fdb (one-pager rework), each wire-verified. Suite pin unchanged at 3336/47 (no
+index.html changes).
+
 **s25 OPERATOR ROUND PUSHED LIVE 2026-08-20 (operator: "drop the header logo and push
 it live"; `91b20303..38db8ae9` + build-log follow-up) — wire-verified 4/4
 byte-identical after 3 deploy-lag rounds, hub-header-hide rule confirmed serving.**
