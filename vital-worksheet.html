@@ -318,9 +318,10 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
         <div class="eyebrow"><span class="enum">5</span>Parents</div>
         <h2 id="familyLabel">Their Parents</h2>
         <p class="note" id="familyNote">Including their mother's name before she first married.</p>
-        <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr .6fr;gap:11px 16px;margin-bottom:11px">
+        <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr .5fr;gap:11px 16px;margin-bottom:11px">
           <label class="field"><span class="lbl">Father — First Name</span><input data-key="father_first" type="text"></label>
           <label class="field"><span class="lbl">Middle Name</span><input data-key="father_middle" type="text"></label>
+          <label class="field"><span class="lbl">Last Name</span><input data-key="father_last" type="text"></label>
           <label class="field"><span class="lbl">Suffix</span><input data-key="father_suffix" type="text"></label>
         </div>
         <div class="grid-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px 16px">
@@ -500,7 +501,7 @@ var SEXB_K = ['sex_birth_male','sex_birth_female'];
    plus the integrity check below, not the lookup mechanism. */
 var TEXT_KEYS = ['first_name','middle_name','last_name','suffix','dob','ssn','alias_1','alias_2','alias_3','race_specify',
   'birth_city','birth_county','birth_state','birth_country','res_street','res_unit','res_city','res_state','res_zip',
-  'res_length','occupation','industry','spouse','father_first','father_middle','father_suffix',
+  'res_length','occupation','industry','spouse','father_first','father_middle','father_last','father_suffix',
   'mother_first','mother_middle','mother_maiden','service_address','contact_name','contact_relationship',
   'contact_address','contact_phone','contact_email','cert_copies'];
 var CHECK_KEYS = SEX_K.concat(SEXB_K)
@@ -711,7 +712,7 @@ async function saveFillablePDF() {
       {k:'checks',group:'Marital Status at Time of Death',cols:2,keys:MAR_K,labels:MAR_L},
       {k:'text',cols:[['Surviving Spouse or Domestic Partner Name','spouse',1]]},
       {k:'section',num:5,eye:'Parents',title:'Their Parents'},
-      {k:'text',cols:[['Father — First Name','father_first',.4],['Middle Name','father_middle',.4],['Suffix','father_suffix',.2]]},
+      {k:'text',cols:[['Father — First Name','father_first',.3],['Middle Name','father_middle',.26],['Last Name','father_last',.28],['Suffix','father_suffix',.16]]},
       {k:'text',cols:[['Mother — First Name','mother_first',.36],['Middle Name','mother_middle',.32],['Maiden Name','mother_maiden',.32]]},
       {k:'section',num:6,eye:'Contact',title:'About You (the Informant)'},
       {k:'text',cols:[['Your Name','contact_name',.5],['Relationship','contact_relationship',.5]]},
@@ -811,7 +812,7 @@ async function saveFillablePDF() {
       {k:'row',items:[{t:'checks',label:'U.S. Armed Forces?',frac:.28,cols:2,keys:['af_yes','af_no'],labels:['Yes','No']},{t:'checks',label:'My Marital Status',frac:.72,cols:4,keys:MAR_K,labels:MAR_L}]},
       {k:'text',cols:[['Spouse or Domestic Partner Name','spouse',1]]},
       {k:'section',num:5,eye:'Parents',title:'My Parents'},
-      {k:'text',cols:[['Father — First Name','father_first',.4],['Middle Name','father_middle',.4],['Suffix','father_suffix',.2]]},
+      {k:'text',cols:[['Father — First Name','father_first',.3],['Middle Name','father_middle',.26],['Last Name','father_last',.28],['Suffix','father_suffix',.16]]},
       {k:'text',cols:[['Mother — First Name','mother_first',.34],['Middle Name','mother_middle',.33],['Last Name (before first marriage)','mother_maiden',.33]]},
       {k:'section',num:6,eye:'My Wishes',title:'Service & Celebration'},
       {k:'checks',group:'Preferred Location',cols:4,keys:SVC_K,labels:SVC_L},
