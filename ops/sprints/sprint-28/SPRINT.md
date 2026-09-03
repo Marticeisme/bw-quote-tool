@@ -71,3 +71,8 @@ assertions on untouched main because headless Chromium's Google Fonts request re
 **Operator ruling 2026-09-03 (Track C):** legacy records with no owner are visible to
 BOTH users. Non-admin rule = no owner → visible; owner recorded → only if it is me;
 admin → everything. Relayed to Track C mid-build.
+
+**Operator rulings 2026-09-03 (Track B, at merge):** (1) the Discounts panel stays
+visible on At-Need quotes; switching to At-Need clears other rows but keeps a veteran
+row — fine. (2) Quantity is ignored for the Veteran Space Credit; a second veteran is a
+second row — fine. Merged: A `9c4fbf6` → `a364e14`, B `85743e3` → `787a71f`.
