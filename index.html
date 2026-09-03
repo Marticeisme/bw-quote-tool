@@ -315,6 +315,9 @@ tr:hover td{background:var(--navy-100);}
 .saved-delta{font:600 var(--t-sm)/1 'Source Sans 3',sans-serif;font-variant-numeric:tabular-nums;margin-left:6px;}
 .saved-actions{display:flex;align-items:center;gap:var(--s1);flex-shrink:0;}
 .saved-actions .btn{padding:7px 12px;font-size:12.5px;border-radius:var(--r-sm);}
+/* Admin-only owner picker: quiet, so it reads as metadata rather than a fifth action. */
+.owner-pick{font:400 12px/1 'Public Sans',sans-serif;color:var(--muted);background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-sm);padding:7px 8px;max-width:190px;cursor:pointer;}
+.owner-pick:hover{color:var(--ink);border-color:var(--navy-500);}
 .saved-foot{display:flex;gap:var(--s2);margin-top:var(--s4);}
 .saved-foot .btn{padding:8px 14px;font-size:12px;}
 /* Three statuses, and the app sets all three. Absent fields read as Draft, so every
@@ -12667,7 +12670,11 @@ function _applyTypeArray(type, arr) {
 }
 function _rebuildTypeArray(type, rerender) {
   var bag = _quoteStore[type] || {};
-  var arr = Object.keys(bag).map(function(k){ return bag[k]; });
+  // Per-user visibility, enforced HERE and nowhere downstream: everything that reads a saved
+  // list — render, search, print, compare, holdings, the sidebar and dashboard counts — reads
+  // this array. The writes deliberately do NOT: they address _quoteStore, which stays whole.
+  var arr = Object.keys(bag).map(function(k){ return bag[k]; })
+    .filter(function(rec){ return bwCanSeeRecord(rec); });
   // ids are Date.now() stamps, so descending id is newest-first — the order the old
   // unshift-built lists had. Firebase hands child keys back in ascending order.
   arr.sort(function(a, b){ return ((b && b.id) || 0) - ((a && a.id) || 0); });
@@ -12757,7 +12764,13 @@ function _dupKeysByLabel(type, label) {
   var norm = (label || '').trim().toLowerCase();
   if (!norm) return [];
   var bag = _quoteStore[type] || {};
-  return Object.keys(bag).filter(function(k){ return ((bag[k] || {}).label || '').trim().toLowerCase() === norm; });
+  // Scoped to what the signed-in user can see. This NARROWS what the overwrite prompt may
+  // delete — it never widens it — so a second counselor saving "Smith - Sep 3" can no longer
+  // be offered the admin's identically-named record to overwrite. Reads the full store and
+  // filters, rather than reading the filtered array, so the store stays the single source.
+  return Object.keys(bag).filter(function(k){
+    return ((bag[k] || {}).label || '').trim().toLowerCase() === norm && bwCanSeeRecord(bag[k]);
+  });
 }
 
 // Write ONE record. Replaces the save-then-persist-everything pair the six Save buttons used
@@ -12780,6 +12793,13 @@ function saveQuoteRecord(type, rec, label) {
         });
       }
     });
+  }
+  // Ownership, stamped in exactly one place and BLANKS ONLY: an owner already on the record
+  // survives, so the admin opening someone else's record and re-saving it does not take it
+  // over. Both fields, because a production uid cannot be read back into a handle.
+  if (rec && typeof rec === 'object') {
+    if (!rec.ownerUid)    rec.ownerUid    = (window._bwUser && window._bwUser.uid) || '';
+    if (!rec.ownerHandle) { try { rec.ownerHandle = bwCurrentAdvisor().handle || ''; } catch (e) {} }
   }
   var key = _quoteKey(rec);
   _quoteStore[type][key] = rec;
@@ -12834,6 +12854,9 @@ var BW_USERS = {
   martice: { name: 'Martice Morrison', role: 'Advanced Planning',
              email: 'mmorrison@bonneywatson.com', phone: '206-445-9794',
              producerId: '183881',
+             // The admin account: sees every saved record and contact, and is the only one
+             // that can hand a record to another counselor. See bwCanSeeAll().
+             admin: true,
              calendly: 'calendly.com/mmorrison-bonneywatson/30min' },
   randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning',
              email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' }
@@ -12870,6 +12893,145 @@ function bwCurrentAdvisor() {
     producerId: profile.producerId || '',
     calendly: profile.calendly || ''
   };
+}
+
+// ── Per-user visibility ──────────────────────────────────────────────────────────────
+// Martice, 2026-09-03: "I'd like for Randy to not be able to see all of my quotes or
+// contacts, but mine can stay the same where I can see everything." So: a counselor sees
+// his own saved records and his own contacts; the admin sees everything, exactly as before.
+//
+// This is a UI-LEVEL BOOK SPLIT, NOT A SECURITY BOUNDARY. The Firebase rules are unchanged —
+// same stance as the ownerUid note in the contact store ("The UI filters on it; the rules do
+// not"). Both accounts belong to trusted colleagues; the point is a list you can find things
+// in, not a wall. Anyone who wants the raw data can still read the database.
+//
+// ONE accessor pair, no role matrix: bwCanSeeAll() answers "is this the admin", and
+// bwCanSeeRecord() answers "may the signed-in user see THIS record". The second has FIVE
+// callers and no more. Three are the derived views every surface reads — _rebuildTypeArray,
+// _rebuildParties and bwHoldingsFor — so the saved lists, search, the contact home counts,
+// the compare pickers and the sidebar/dashboard counts all inherit the filter without a
+// per-surface flag. The other two are the paths a derived view does not cover:
+// openContactDetail, reachable by a pasted #contact/<id> link, and _dupKeysByLabel, so the
+// overwrite-by-name prompt cannot offer a record the user was never shown.
+//
+// THE RULE THAT KEEPS THIS SAFE: filtering lives in the DERIVED views only. Every write path
+// keeps reading the full stores (_quoteStore, _partyStore). A write fed by a filtered view is
+// how a non-admin save would erase the records he cannot see — the 2026-07-11 failure mode,
+// one level up. saveQuoteRecord, deleteQuoteRecord, saveParty, deleteParty and the owner
+// hand-off below all address ONE record by its own path and read the full store to find it.
+function bwCanSeeAll() {
+  try {
+    var profile = BW_USERS[bwCurrentAdvisor().handle];
+    return !!(profile && profile.admin);
+  } catch (e) { return true; }   // identity unresolvable: behave exactly as the tool did before
+}
+// Production uids are opaque, so ownership is stamped TWICE: ownerUid for the account that
+// created the record, and ownerHandle so it still resolves when the uid cannot be — including
+// a record the admin hands over, since he cannot know another account's uid. Either matches.
+//
+// A record with NEITHER is legacy — saved before ownership existed — and stays visible to
+// EVERYONE. Martice ruled that directly on 2026-09-03, against the opposite assumption: the
+// back catalogue is shared work, and hiding it from the other counselor would take away a
+// book he has always had rather than splitting the new one. So the split applies only to
+// records that actually name an owner, which from now on is everything newly saved. The
+// admin can still move one between books with bwSetRecordOwner().
+function bwCanSeeRecord(rec) {
+  if (bwCanSeeAll()) return true;
+  if (!rec) return false;
+  if (!rec.ownerUid && !rec.ownerHandle) return true;   // unclaimed: nobody's book, so everybody's
+  var uid = (window._bwUser && window._bwUser.uid) || '';
+  if (uid && rec.ownerUid === uid) return true;
+  var handle = '';
+  try { handle = bwCurrentAdvisor().handle || ''; } catch (e) {}
+  return !!(handle && String(rec.ownerHandle || '').toLowerCase() === handle);
+}
+// handle -> uid: the reverse of bwUidName. Only the signed-in account's own uid is knowable
+// first-hand; for anyone else the best available answer is a uid that account already stamped
+// on some record, and failing that none at all — ownerHandle carries the ownership on its own.
+// Never guess a uid. A wrong one hands the record to nobody and says nothing about it.
+function bwUidForHandle(handle) {
+  handle = String(handle || '').trim().toLowerCase();
+  if (!handle) return '';
+  var me = {};
+  try { me = bwCurrentAdvisor() || {}; } catch (e) {}
+  if (handle === me.handle) return (window._bwUser && window._bwUser.uid) || '';
+  var found = '';
+  function scan(rec) {
+    if (found || !rec) return;
+    if (String(rec.ownerHandle || '').toLowerCase() === handle && rec.ownerUid) found = rec.ownerUid;
+  }
+  try {
+    QUOTE_TYPES.forEach(function(t) {
+      var bag = _quoteStore[t] || {};
+      Object.keys(bag).forEach(function(k){ scan(bag[k]); });
+    });
+    Object.keys(_partyStore).forEach(function(k){ scan(_partyStore[k]); });
+  } catch (e) {}
+  return found;
+}
+// Which BW_USERS handle a record belongs to, '' when unowned or unresolvable.
+function bwOwnerHandleOf(rec) {
+  if (!rec) return '';
+  if (rec.ownerHandle) return String(rec.ownerHandle).toLowerCase();
+  var uid = rec.ownerUid; if (!uid) return '';
+  var me = (window._bwUser && window._bwUser.uid) || '';
+  if (uid === me) { try { return bwCurrentAdvisor().handle || ''; } catch (e) { return ''; } }
+  var at = String(uid).indexOf('@');
+  if (at > -1) {
+    var h = String(uid).slice(0, at).replace(/^uid_/, '').toLowerCase();
+    if (BW_USERS[h]) return h;
+  }
+  return '';
+}
+// The admin-only Owner picker, shared by the saved-record rows and the contact detail. A record
+// whose ownerUid resolves to no known handle keeps its current owner as the selected option
+// (value "__x", which the setters ignore) rather than silently reading as Unassigned.
+function bwOwnerSelectHtml(rec, onchange) {
+  var oh = bwOwnerHandleOf(rec);
+  var unres = (!oh && rec && rec.ownerUid) ? bwUidName(rec.ownerUid) : '';
+  var html = '<select class="owner-pick" title="Owner — whose lists this shows up in" onchange="' + onchange + '">';
+  if (unres) html += '<option value="__x" selected>' + _ceEsc(unres) + '</option>';
+  html += '<option value=""' + (!oh && !unres ? ' selected' : '') + '>Unassigned (shared)</option>';
+  Object.keys(BW_USERS).forEach(function(h) {
+    html += '<option value="' + _ceEsc(h) + '"' + (h === oh ? ' selected' : '') + '>'
+          + _ceEsc(BW_USERS[h].name || h) + '</option>';
+  });
+  return html + '</select>';
+}
+// Hand a record to a counselor. Admin only — the guard is here rather than only on the markup,
+// because the markup is not the security of anything. Reads the record out of the FULL store
+// and writes that one path, so it can never touch a record it does not name.
+function bwSetRecordOwner(type, id, handle) {
+  if (!bwCanSeeAll()) return;
+  if (handle === '__x') return;                      // the unresolved-owner placeholder: no change
+  var key = _keyForId(type, id); if (!key) return;
+  var rec = _quoteStore[type][key]; if (!rec) return;
+  handle = String(handle || '').trim().toLowerCase();
+  if (handle && !BW_USERS[handle]) return;           // never stamp an owner nobody can sign in as
+  // Resolve BEFORE stamping. bwUidForHandle scans the stores for a record that names this
+  // handle, and this record is IN those stores — write the handle first and it finds itself,
+  // keeping the previous owner's uid on a record that now claims to belong to someone else.
+  var uid = handle ? bwUidForHandle(handle) : '';
+  rec.ownerHandle = handle;
+  rec.ownerUid    = uid;
+  _rebuildTypeArray(type);
+  if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + key).set(rec)
+    .catch(function(e){ console.warn('owner change failed', e); });
+}
+// Same for a contact. The children (notes, tasks, property, roles) follow it without being
+// touched: they are reached through the contact, so moving the contact moves the lot.
+function bwSetPartyOwner(id, handle) {
+  if (!bwCanSeeAll()) return;
+  if (handle === '__x') return;
+  var p = _partyStore[id]; if (!p) return;
+  handle = String(handle || '').trim().toLowerCase();
+  if (handle && !BW_USERS[handle]) return;
+  var puid = handle ? bwUidForHandle(handle) : '';   // resolved first, same reason as above
+  p.ownerHandle = handle;
+  p.ownerUid    = puid;
+  _rebuildParties();
+  if (typeof renderContactDetail === 'function' && _bwDetailId === id) { try { renderContactDetail(); } catch (e) {} }
+  if (window._fbDB) _fbDB.ref('parties/' + id).set(p).catch(function(e){ console.warn('owner change failed', e); });
 }
 
 // "Name | email | phone", dropping whatever this advisor has no value for. BW_USERS will grow,
@@ -14291,7 +14453,10 @@ function bwPartyIsValid(p) {
 
 function _rebuildParties(rerender) {
   _parties = Object.keys(_partyStore).map(function(k){ return _partyStore[k]; })
-    .filter(function(p){ return p && !p.mergedInto; })
+    // Same rule as _rebuildTypeArray: hidden here, so every contact surface inherits it, and
+    // a hidden contact takes its notes, tasks, property and roles with it — they are only ever
+    // reached through the contact. _partyStore itself is untouched; the writes read that.
+    .filter(function(p){ return p && !p.mergedInto && bwCanSeeRecord(p); })
     .sort(function(a, b){ return bwPartySort(a) < bwPartySort(b) ? -1 : bwPartySort(a) > bwPartySort(b) ? 1 : 0; });
   if (rerender !== false && typeof renderContactsList === 'function') renderContactsList();
 }
@@ -14364,6 +14529,9 @@ function saveParty(p) {
   if (isNew) {
     p.id = window._fbDB ? _fbDB.ref('parties').push().key : 'p' + Date.now();
     if (!p.ownerUid) p.ownerUid = (window._bwUser && window._bwUser.uid) || '';
+    // ...and the handle beside it, for the same reason saved records carry both: an opaque
+    // production uid cannot be resolved back to a counselor, and the admin hands contacts over.
+    if (!p.ownerHandle) { try { p.ownerHandle = bwCurrentAdvisor().handle || ''; } catch (e) {} }
     if (!p._prov) p._prov = bwProv('manual');
     if (!p.kind) p.kind = 'person';
     if (!p.salutation) p.salutation = bwDefaultSalutation(p);
@@ -16577,6 +16745,10 @@ function bwHoldingsFor(partyId) {
     var meta = BW_RECORD_TYPES[r.recordType];
     if (!meta) return;
     var rec = bwRecordFor(r.recordType, r.recordId);
+    // Holdings resolve through _quoteStore rather than the saved-list arrays, so the visibility
+    // filter has to be applied here too. Dropped, not listed as missing: "a record you may not
+    // see" is not the same claim as "a record that was deleted".
+    if (rec && !bwCanSeeRecord(rec)) return;
     if (!rec) { out.missing.push(r); return; }
     var row = { role: r.role, roleId: r.id, type: r.recordType, meta: meta, rec: rec };
     out[meta.side].push(row);
@@ -16589,6 +16761,13 @@ function bwHoldingsFor(partyId) {
 
 var _bwDetailId = null;
 function openContactDetail(id) {
+  // Reached by a pasted #contact/<id> link as well as from the list, so this entry point does
+  // not inherit the list filter and has to ask for itself. Only a contact that EXISTS and
+  // belongs to someone else is refused: an id resolving to nothing keeps the old behaviour,
+  // because the panel is also reopened with a stale id after a section switch, and closing it
+  // there would be a regression rather than a visibility rule.
+  var _ctVisible = bwPartyById(id);
+  if (_ctVisible && !bwCanSeeRecord(_ctVisible)) return;
   // A different family starts on Overview with a clean note box — carrying a half-typed
   // note across contacts is how it ends up on the wrong record.
   if (id !== _bwDetailId) { _bwDetailTab = 'activity'; _bwNoteDraft = ''; _bwTaskDraft = { summary: '', dueOn: '', kind: '' }; }
@@ -16666,7 +16845,9 @@ function _bwIdentityRailHtml(p) {
     + '<div class="ct-panel" id="ctSalutation">'
     + '<div class="ct-panel-ttl">How we address them</div>'
     + editable('salutation', 'Salutation', p.salutation ? _ceEsc(p.salutation) : '')
-    + row('Owner', p.ownerUid ? _ceEsc(bwUidName(p.ownerUid)) : '<span class="ct-none">Unassigned</span>')
+    + row('Owner', bwCanSeeAll()
+        ? bwOwnerSelectHtml(p, 'bwSetPartyOwner(\'' + p.id + '\',this.value)')
+        : (p.ownerUid ? _ceEsc(bwUidName(p.ownerUid)) : '<span class="ct-none">Unassigned</span>'))
     + '</div>';
 }
 
@@ -18164,6 +18345,10 @@ function renderSavedQuotesList(type) {
           + '<button class="btn btn-quiet" onclick="printSavedQuote(\'' + type + '\',' + item.id + ')">Print</button>'
           + '<button class="btn btn-quiet" onclick="savedCompareSelect(\'' + type + '\',' + item.id + ')">'
           +   (isBase ? 'Base' : 'Compare') + '</button>'
+          // Admin only, and the setter re-checks: this is how a record saved before ownership
+          // existed gets handed to the counselor whose family it actually is.
+          + (bwCanSeeAll()
+              ? bwOwnerSelectHtml(item, 'bwSetRecordOwner(\'' + type + '\',' + item.id + ',this.value)') : '')
           + '<button class="btn btn-danger-quiet" onclick="deleteSavedQuote(\'' + type + '\',' + item.id + ')">Delete</button>'
           + '</div></div>';
       });
