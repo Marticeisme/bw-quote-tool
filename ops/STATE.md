@@ -1,5 +1,40 @@
 # STATE — Living Ledger
 
+**s28 MERGED ON THE FEATURE BRANCH 2026-09-03 (remote session, branch
+`claude/print-comparison-september-incentives-sv23lk`; NOT on main, NOT pushed to
+main).** Three tracks, all --no-ff: A `s28/compare-print` (`9c4fbf6`→`a364e14`),
+B `s28/sept-incentives` (`85743e3`→`787a71f`), C `s28/visibility` (`62f276f`→merge).
+Director re-ran: index 8/0 after every merge; new suites on the merged tree
+test-compare-print 111/0, test-september-promo 150/0, test-visibility 83/0,
+test-contacts 49/0, test-contact-detail 81/0, test-quote-store 26/0; full merged-tree
+suite result recorded below when it lands. SHIPPED: (A) both Option Comparison prints
+(cem + FH) rebuilt on the `_fq*` family-quote system — masthead, difference band, two
+grouped columns with tax/total, per-column payment estimate on cem pre-need only, none
+on FH (decision, operator to confirm); panels tidied; `_printQuote*` helpers left in
+place (footer still used by test-advisor-identity). (B) August→September 2026 strings
+and validity (Sept 30) — mode ids unchanged; Second Rights exclusion now its own rule
+line; NEW `promo_veteran` Veteran Space Credit = min($5,995, highest-priced single
+space), DD-214 checkbox persisted with the row, at-need allowed (Discounts panel now
+visible at At-Need — operator ruled fine), quantity ignored (ruled fine), warn-not-block
+on veteran+incentive, RIC label via new `vetCreditAmount` field → "Veteran Credit
+$5,995"; test-august-promo renamed test-september-promo. (C) per-user visibility:
+`BW_USERS.martice.admin`, `bwCanSeeAll()`/`bwCanSeeRecord()`, filtering ONLY in
+`_rebuildTypeArray`/`_rebuildParties`/`bwHoldingsFor`; saves stamp ownerUid+ownerHandle
+blanks-only; legacy unowned records visible to BOTH (operator ruling); admin-only Owner
+picker on saved rows and the contact rail; Firebase rules unchanged; write-path audit
+table in the Track C report — no write reads a derived array. OPEN WITH THE OPERATOR:
+push word for main; FH compare with no payment estimate; non-admin backup export now
+contains only his own book; pre-existing bug flagged by B — monthly promo math still
+discounts a space marked already-owned. ENVIRONMENT (remote container): Playwright 1.60
+wanted browser build 1223, container ships 1194 — aliased under /opt/pw-browsers;
+headless Chromium cannot reach Google Fonts through the proxy so 18 "no page errors"
+assertions (catalog-filter-print 17, pcm-catalog 1) and 1 CRLF-only assertion
+(price-update-path) are red on untouched main here: container pin **3485/19 across 49
+suites** vs the Windows pin 3514. Tracks' runs: A 3596/19 (50), B 3576/19 (49),
+C 3570/19 (51). SCAR: a track used `pkill -f run-all` and killed a sibling's suite run —
+brief tracks to never kill processes they did not start (done for C).
+
+
 **s27 HOTFIX PUSHED LIVE 2026-08-25 (`067a4729..8d0e6b66`, wire-verified) — the
 sparse-form generate crash.** The operator's first real deed transfer threw "Expected
 instance of e or e, but got instance of undefined" from doc.save(). ROOT CAUSE: seven
