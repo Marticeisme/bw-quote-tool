@@ -240,18 +240,28 @@ console.log('\n7. Contacts UI');
 }
 
 // 8. Remote changes
-console.log('\n8. Randy edits arrive live');
+// Contacts became per-user on 2026-09-03 (see bwCanSeeRecord in index.html), so "arrives live"
+// is now two questions: a contact this user owns must still stream in, and one belonging to the
+// other counselor must stay out of his list — while still sitting in the store behind it, which
+// is what every write reads.
+console.log('\n8. Remote edits arrive live, filtered by owner');
 {
   const { ctx, page } = await open(browser);
   const r = await page.evaluate(async () => {
-    await _fbDB.ref('parties/remote1').set({ id: 'remote1', given: 'Randy', family: 'Added', ownerUid: 'uid_randy@bwquote.local' });
+    const me = window._bwUser.uid;
+    await _fbDB.ref('parties/remote1').set({ id: 'remote1', given: 'Mine', family: 'Elsewhere', ownerUid: me });
+    await _fbDB.ref('parties/remote2').set({ id: 'remote2', given: 'Randy', family: 'Added', ownerUid: 'uid_randy@bwquote.local' });
     await new Promise(r => setTimeout(r, 200));
     const seen = _parties.map(p => bwPartyName(p));
+    const stored = Object.keys(_partyStore).sort();
     await _fbDB.ref('parties/remote1').remove();
+    await _fbDB.ref('parties/remote2').remove();
     await new Promise(r => setTimeout(r, 200));
-    return { seen, after: _parties.length };
+    return { seen, stored, after: _parties.length };
   });
-  ok('a contact added elsewhere appears', r.seen.join() === 'Randy Added', r.seen);
+  ok('a contact of mine added elsewhere appears', r.seen.join() === 'Mine Elsewhere', r.seen);
+  ok('another counselor\'s contact does not', r.seen.indexOf('Randy Added') === -1, r.seen);
+  ok('...though the store behind the list holds both', r.stored.join() === 'remote1,remote2', r.stored);
   ok('and disappears when removed', r.after === 0, r.after);
   await ctx.close();
 }
