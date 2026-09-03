@@ -1029,8 +1029,15 @@ tr:hover td{background:var(--navy-100);}
       <div style="background:#fff;border-radius:8px;padding:14px;border:2px dashed var(--navy);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div style="font-size:10px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;">Option B</div>
-          <button onclick="resetOptionB()" style="padding:4px 10px;background:none;border:1.5px solid var(--gray-mid);border-radius:6px;font-size:11px;color:var(--muted);cursor:pointer;">↺ Reset</button>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="cmpB_diff" style="display:none;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;"></div>
+            <button onclick="resetOptionB()" style="padding:4px 10px;background:none;border:1.5px solid var(--gray-mid);border-radius:6px;font-size:11px;color:var(--muted);cursor:pointer;">↺ Reset</button>
+          </div>
         </div>
+
+        <!-- Total display (top of the card, level with Option A's) -->
+        <div id="cmpB_total" style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:2px;">—</div>
+        <div id="cmpB_monthly" style="font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
 
         <!-- Space -->
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Space</div>
@@ -1249,10 +1256,7 @@ tr:hover td{background:var(--navy-100);}
 
         <!-- Result -->
         <div style="border-top:1.5px solid var(--navy);padding-top:10px;">
-          <div id="cmpB_breakdown" style="font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:6px;"></div>
-          <div id="cmpB_total" style="font-size:22px;font-weight:800;color:var(--navy);"></div>
-          <div id="cmpB_monthly" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
-          <div id="cmpB_diff" style="font-size:13px;font-weight:700;margin-top:8px;padding:6px 10px;border-radius:6px;display:none;"></div>
+          <div id="cmpB_breakdown" style="font-size:11px;color:var(--muted);line-height:1.8;"></div>
         </div>
       </div>
     </div>
@@ -8669,111 +8673,30 @@ function emailFhQuote() {
 }
 
 function printCompare() {
-  var clientName = val('cemClientName') || '';
-  var d = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-  var expires = new Date(); expires.setDate(expires.getDate() + 30);
-  var validStr = expires.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
-  // At-Need is paid in full at time of service — no financing/payment plan applies.
+  // At-Need is paid in full at the time of service — no financing estimate belongs on it.
   var isAtNeed = typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed';
-
-  // Option A data
-  var aTotal = _cemTotal || 0;
-  var aGardenSel = el('qGarden');
-  var aLabel = aGardenSel && aGardenSel.value
-    ? aGardenSel.options[aGardenSel.selectedIndex].text.replace(/ \$[\d,]+$/, '')
+  var aSel = el('qGarden');
+  var aLabel = aSel && aSel.value
+    ? aSel.options[aSel.selectedIndex].text.replace(/ \$[\d,]+$/, '')
     : (num('qNichePrice') > 0 ? 'Niche Space' : num('qMausPrice') > 0 ? 'Mausoleum Crypt' : 'Current Quote');
-  var aLoc = val('qSpaceLocation') || val('qNicheLocation') || val('qMausLocation') || '';
-  var aDown = aTotal > 0 ? Math.ceil(aTotal * 0.10) : 0;
-  var aMonthly = aTotal > 0 ? Math.ceil((aTotal - aDown) / 60) : 0;
-
-  // Option B data — recalculate from calcBTotal
-  var bResult  = calcBTotal();
-  var bTotal   = bResult.total;
-  var bLabel   = bResult.label;
-  var bLoc     = val('cmpB_loc') || '';
-  var bLines   = bResult.lines || [];
-  var bTax     = bResult.tax || 0;
-  var isMirror = el('cmpB_mirror') && el('cmpB_mirror').checked;
-  var bDown    = bTotal > 0 ? Math.ceil(bTotal * 0.10) : 0;
-  var bMonthly = bTotal > 0 ? Math.ceil((bTotal - bDown) / 60) : 0;
-  var diff     = bTotal > 0 && aTotal > 0 ? bTotal - aTotal : null;
-
-  function fmtA(n){ return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-
-  // Shares the same steel/orange palette, logo header, and footer as the Cemetery/FH quote
-  // print views (_printQuoteCSS() etc.) instead of this tool's own separate dark-navy design —
-  // this and the Cemetery Quote are the same document family from the family's perspective.
-  var CSS = _printQuoteCSS() + '\n' + [
-    '.grid{display:flex;gap:16px;margin:16px 22px 0;}',
-    '.col{flex:1;border:1px solid '+_PRINT_LGRAY+';border-radius:6px;overflow:hidden;}',
-    '.col-hdr{background:'+_PRINT_STEEL+';color:#fff;padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}',
-    '.col-body{padding:14px;}',
-    '.col-label{font-size:14px;font-weight:700;color:'+_PRINT_DARK+';margin-bottom:4px;}',
-    '.col-loc{font-size:11px;color:'+_PRINT_MUTED+';margin-bottom:12px;}',
-    '.col-total{font-size:26px;font-weight:800;color:'+_PRINT_ORANGE+';margin:8px 0 4px;}',
-    '.col-monthly{font-size:12px;color:'+_PRINT_MUTED+';margin-bottom:12px;}',
-    '.col-breakdown{font-size:11px;color:'+_PRINT_DARK+';line-height:1.8;border-top:1px solid '+_PRINT_LGRAY+';padding-top:10px;}',
-    '.diff-row{margin:16px 22px 0;padding:10px;background:#f7f8fa;border-radius:6px;text-align:center;font-size:13px;font-weight:700;border:1px solid '+_PRINT_LGRAY+';}',
-    '.cheaper{color:#1a6b45;} .pricier{color:#8b2020;} .same{color:'+_PRINT_MUTED+';}'
-  ].join('\n');
-
-  function buildCol(label, loc, total, down, monthly, colLetter, cemLines) {
-    var html = '<div class="col">'
-      + '<div class="col-hdr">Option ' + colLetter + (colLetter === 'A' ? ' &nbsp;<span style="font-weight:400;opacity:.8;">(current quote)</span>' : '') + '</div>'
-      + '<div class="col-body">'
-      + '<div class="col-label">' + (label || '—') + '</div>'
-      + (loc ? '<div class="col-loc">' + loc + '</div>' : '<div style="height:6px;"></div>')
-      + '<div class="col-total">' + (total > 0 ? fmtA(total) : '—') + '</div>'
-      + (total > 0 && !isAtNeed ? '<div class="col-monthly">~' + fmtA(monthly) + '/mo &nbsp;\xb7&nbsp; ' + fmtA(down) + ' down (60 mo \xb7 0% \xb7 10%)</div>' : '')
-      + '<div class="col-breakdown">';
-
-    // For Option A, show full line breakdown
-    if (colLetter === 'A' && cemLines && cemLines.length) {
-      var exempt  = cemLines.filter(function(l){ return !l.taxable && !l.isDiscount && l.amount > 0; });
-      var taxable = cemLines.filter(function(l){ return  l.taxable && !l.isDiscount && l.amount > 0; });
-      var discs   = cemLines.filter(function(l){ return  l.isDiscount; });
-      if (exempt.length)  { html += '<strong>Services</strong><br>'; exempt.forEach(function(l){ html += l.label + '&ensp;' + fmtA(l.amount) + '<br>'; }); }
-      if (taxable.length) { html += '<strong>Merchandise</strong><br>'; taxable.forEach(function(l){ html += l.label + '&ensp;' + fmtA(l.amount) + '<br>'; }); }
-      if (discs.length)   { discs.forEach(function(l){ html += '<span style="color:'+_PRINT_ORANGE+';">− ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>'; }); }
-    } else if (colLetter === 'B' && bLines.length > 0) {
-      if (isMirror) html += '<em style="color:'+_PRINT_STEEL+';font-size:10px;">Mirroring Option A items (space replaced)</em><br>';
-      bLines.filter(function(l){return !l.isDiscount && l.amount > 0;}).forEach(function(l){
-        html += '<span style="color:' + _PRINT_DARK + ';">' + l.label + '&ensp;' + fmtA(l.amount) + '</span><br>';
-      });
-      bLines.filter(function(l){return l.isDiscount;}).forEach(function(l){
-        html += '<span style="color:'+_PRINT_ORANGE+';">− ' + l.label + '&ensp;' + fmtA(Math.abs(l.amount)) + '</span><br>';
-      });
-      if (bTax > 0) html += '<span style="color:'+_PRINT_MUTED+';">Sales Tax (10.4%)&ensp;' + fmtA(bTax) + '</span><br>';
-    } else if (colLetter === 'B') {
-      html += '<em style="color:#aaa;font-size:10px;">No items selected</em>';
-    }
-    html += '</div></div></div>';
-    return html;
-  }
-
-  var win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Option Comparison – Bonney Watson</title><style>'+CSS+'</style></head><body>');
-  win.document.write(_printQuoteHeaderHTML('Space Option Comparison', d, validStr));
-  win.document.write(_printQuotePrepRowHTML(clientName));
-  win.document.write('<div class="grid">');
-  win.document.write(buildCol(aLabel, aLoc, aTotal, aDown, aMonthly, 'A', _cemLines));
-  win.document.write(buildCol(bLabel, bLoc, bTotal, bDown, bMonthly, 'B', null));
-  win.document.write('</div>');
-  if (diff !== null) {
-    var diffCls = diff > 0 ? 'pricier' : diff < 0 ? 'cheaper' : 'same';
-    var diffText = diff === 0 ? 'Same price'
-      : 'Option B is <strong>' + fmtA(Math.abs(diff)) + '</strong> ' + (diff > 0 ? 'more' : 'less') + ' than Option A';
-    win.document.write('<div class="diff-row"><span class="'+diffCls+'">' + diffText + '</span></div>');
-  }
-  if (!isAtNeed && (aTotal > 0 || bTotal > 0)) {
-    win.document.write('<div style="font-size:10.5px;color:'+_PRINT_MUTED+';margin:14px 22px 0;">Payment estimates: 10% down, 60 months, 0% ACH financing.</div>');
-  }
-  win.document.write(_printQuoteFooterHTML());
-  win.document.write('</body></html>');
-  win.document.close();
-  win.print();
+  var b = calcBTotal();
+  var isMirror = !!(el('cmpB_mirror') && el('cmpB_mirror').checked);
+  var model = _fqCompareModel({
+    typeLabel:  isAtNeed ? 'Cemetery At-Need Comparison' : 'Cemetery Option Comparison',
+    scopeLabel: 'Washington Memorial Park',
+    clientName: val('cemClientName') || '',
+    kind: 'cem',
+    showPayment: !isAtNeed,
+    options: [
+      { letter: 'A', note: 'current quote', label: aLabel,
+        sublabel: val('qSpaceLocation') || val('qNicheLocation') || val('qMausLocation') || '',
+        lines: _cemLines || [], total: (typeof _cemTotal !== 'undefined' ? _cemTotal : 0) },
+      { letter: 'B', note: isMirror ? 'mirrors Option A items' : '', label: b.label || 'Option B',
+        sublabel: val('cmpB_loc') || '', lines: b.lines || [], total: b.total || 0 }
+    ]
+  });
+  _fqPrintCompare(model);
 }
-
 function toggleCompare() {
   var panel = el('comparePanel');
   if (!panel) return;
@@ -9165,6 +9088,8 @@ function updateCompare() {
     _cemLines.filter(function(l){return l.isDiscount;}).forEach(function(l){
       abkd += '<span style="color:#1a6b45;">− ' + l.label + ' — ' + fmt(Math.abs(l.amount)) + '</span><br>';
     });
+    var aTax = (typeof _fqTaxOf === 'function') ? _fqTaxOf(_cemLines) : 0;
+    if (aTax > 0) abkd += '<span style="color:var(--gold);">Sales Tax (10.4%) — ' + fmt(aTax) + '</span><br>';
     el('cmpA_breakdown').innerHTML = abkd;
   }
 
@@ -9889,6 +9814,184 @@ function _fqPrint(model){
     setTimeout(fire, 2500);   // safety net if fonts never resolve
   } catch(e){ console.error('Family quote print error:', e); alert('Could not open the print view: '+e.message); }
 }
+
+// ── Option comparison (cemetery + funeral home) ──────────────────────────────────────────────────
+// Both Compare panels print through this renderer, so a comparison is the same document family as
+// the family quote above it: same masthead and logo, same typography, the same orange section
+// kickers, row/discount styling, tax disclosure, totals and footer. What it replaced: the cemetery
+// compare printed on the retired steel/orange _printQuoteCSS() sheet with a full breakdown for
+// Option A and an ungrouped list for B (and no tax line on A at all); the funeral-home compare was
+// a separate hand-rolled navy page with no logo and a different header. Neither read as ours.
+//
+// Every option is priced through the SAME helpers the family quote uses — _fqSurfaceGroups for the
+// grouped rows and the combined discount credit, _fqTaxOf for the embedded sales tax, _fqNetOf for
+// the pre-tax subtotal — so a comparison can never disagree with the quote it was built from.
+// opts: { typeLabel, scopeLabel, clientName, kind:'cem'|'fh', showPayment, options:[
+//         { letter, label, sublabel, note, lines, total } ] }
+function _fqCompareOption(o, kind, showPayment){
+  var lines = o.lines || [];
+  var g = _fqSurfaceGroups(lines, kind);
+  var tax = _fqTaxOf(lines);
+  var net = _fqNetOf(lines);
+  var total = (typeof o.total === 'number' && o.total > 0) ? o.total : Math.round((net + tax) * 100) / 100;
+  // Payment estimate: the SAME 10% down / 60 month / 0% ACH tier the Compare panel quotes on
+  // screen, read off the real FIN_TIERS grid via finMonthly() rather than dividing by 60 in place.
+  var pay = null;
+  if (showPayment && total > 0 && typeof finMonthly === 'function') {
+    var down = Math.ceil(total * 0.10);
+    pay = { down: down, months: 60, monthly: finMonthly(total - down, 60, 0) };
+  }
+  return { letter: o.letter, label: o.label || 'Option ' + o.letter, sublabel: o.sublabel || '',
+           note: o.note || '', groups: g.groups, discount: g.discount,
+           subtotal: net, tax: tax, total: total, pay: pay };
+}
+function _fqCompareModel(opts){
+  var now = new Date(), valid = new Date(); valid.setDate(valid.getDate() + 30);
+  var showPay = opts.showPayment !== false;
+  var options = (opts.options || []).map(function(o){ return _fqCompareOption(o, opts.kind, showPay); });
+  var a = options[0], b = options[1];
+  var diff = (a && b && a.total > 0 && b.total > 0) ? Math.round((b.total - a.total) * 100) / 100 : null;
+  // One column with a location and one without put the two breakdowns 20px out of step.
+  var anySub = options.some(function(o){ return !!o.sublabel; });
+  return {
+    typeLabel: opts.typeLabel,
+    kind: opts.kind,
+    scopeLine: opts.scopeLabel + ' · ' + _fqLongDate(now) + ' · Valid through ' + _fqShortDate(valid),
+    clientName: opts.clientName || '',
+    venueLine: 'Washington Memorial Park · Prepared by ' + bwCurrentAdvisor().name + ', Family Service Advisor',
+    options: options,
+    anySublabel: anySub,
+    diff: diff,
+    showPayment: showPay
+  };
+}
+// Density tier, chosen off the LONGER column so both sides shrink together and the sheet still
+// lands on one page. Same _FQ_TIERS table the family quote reads.
+function _fqPickCompareTier(model){
+  var worst = 0;
+  model.options.forEach(function(o){
+    var units = o.groups.length * 1.4 + (o.discount ? 1 : 0) + 3;
+    o.groups.forEach(function(g){ units += g.rows.length; });
+    if (units > worst) worst = units;
+  });
+  return worst <= 15 ? _FQ_TIERS[0] : worst <= 22 ? _FQ_TIERS[1] : _FQ_TIERS[2];
+}
+function _fqCompareFigHTML(label, value, accent, t){
+  return '<div style="text-align:right;white-space:nowrap;">'
+    + '<div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:' + _FQ.m1 + ';">' + _fqEsc(label) + '</div>'
+    + '<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + (t.sumFig * 0.62).toFixed(1) + 'px;color:' + (accent || _FQ.navy) + ';line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums;">' + _fqEsc(value) + '</div></div>';
+}
+// One option column: warm header strip (kicker + name + location), the grouped rows, the discount
+// credit, then subtotal / sales tax / total and the payment estimate.
+function _fqCompareColHTML(o, t, model){
+  var accent = (o.letter === 'A') ? _FQ.navy : _FQ.orange;
+  var h = '<div class="cmpcol" style="flex:1 1 0;min-width:0;border:1px solid ' + _FQ.cardBorder + ';background:' + _FQ.sheet + ';">'
+    + '<div style="background:' + _FQ2.warm + ';border-left:3px solid ' + accent + ';border-bottom:1px solid ' + _FQ.cardBorder + ';padding:11px 14px;">'
+    + '<div style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;">Option ' + _fqEsc(o.letter)
+    + (o.note ? '<span style="color:' + _FQ.m2 + ';font-weight:600;letter-spacing:.1em;"> · ' + _fqEsc(o.note) + '</span>' : '') + '</div>'
+    + '<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + t.sName + 'px;color:' + _FQ.navyDark + ';margin-top:4px;line-height:1.2;">' + _fqEsc(o.label) + '</div>'
+    + (o.sublabel || model.anySublabel ? '<div style="font-size:' + t.tag + 'px;color:' + _FQ.m2 + ';margin-top:3px;">' + (o.sublabel ? _fqEsc(o.sublabel) : '&nbsp;') + '</div>' : '')
+    + '</div><div style="padding:2px 14px 14px;">';
+  if (!o.groups.length && !o.discount) {
+    h += '<p style="font-size:' + t.base + 'px;color:' + _FQ.m2 + ';margin:18px 0;">Nothing selected for this option yet.</p>';
+  }
+  o.groups.forEach(function(g){
+    h += '<div style="padding-top:' + t.gTop + 'px;"><div style="font-size:' + t.kicker + 'px;letter-spacing:.2em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;margin-bottom:3px;">' + _fqEsc(g.kicker) + '</div>';
+    g.rows.forEach(function(r){ h += _fqRowHTML(r, t); });
+    h += '</div>';
+  });
+  if (o.discount) {
+    h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:11px 0 9px;margin-top:8px;border-top:1px dashed ' + _FQ.discDash + ';">'
+      + '<div><span style="font-size:' + t.base + 'px;font-weight:600;color:' + _FQ.green + ';">' + _fqEsc(o.discount.name) + '</span>'
+      + '<span style="font-size:12.5px;color:' + _FQ.greenMut + ';margin-left:8px;">savings applied</span></div>'
+      + '<div style="font-variant-numeric:tabular-nums;white-space:nowrap;font-size:' + t.base + 'px;color:' + _FQ.green + ';font-weight:700;">−' + _fqMoney(o.discount.amount) + '</div></div>';
+  }
+  if (o.groups.length || o.discount) {
+    h += '<div style="margin-top:' + Math.round(t.gTop * 0.7) + 'px;padding-top:10px;border-top:2px solid ' + _FQ.sectRule + ';">'
+      + '<div style="display:flex;justify-content:space-between;gap:20px;padding:4px 0;font-size:12.5px;color:' + _FQ.m1 + ';">'
+      + '<span style="letter-spacing:.06em;text-transform:uppercase;">Subtotal</span>'
+      + '<span style="font-variant-numeric:tabular-nums;color:' + _FQ.body + ';">' + _fqMoney(o.subtotal) + '</span></div>';
+    if (o.tax > 0) {
+      h += '<div style="display:flex;justify-content:space-between;gap:20px;padding:4px 0;font-size:12.5px;color:' + _FQ.m1 + ';">'
+        + '<span>Sales tax (10.4% · merchandise only)</span>'
+        + '<span style="font-variant-numeric:tabular-nums;color:' + _FQ.body + ';">' + _fqMoney(o.tax) + '</span></div>';
+    }
+    h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:9px 0 0;margin-top:5px;border-top:1px solid ' + _FQ.sectRule + ';">'
+      + '<span style="font-family:\'Public Sans\',serif;font-size:' + t.totLbl + 'px;color:' + _FQ.navyDark + ';">Total</span>'
+      + '<span style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + t.totFig + 'px;color:' + accent + ';font-variant-numeric:tabular-nums;">' + _fqMoney(o.total) + '</span></div>';
+    if (o.pay) {
+      h += '<div style="font-size:12px;color:' + _FQ.m2 + ';margin-top:6px;text-align:right;">'
+        + _fqMoney(o.pay.monthly) + '/mo · ' + _fqMoney(o.pay.down) + ' down · ' + o.pay.months + ' mo at 0% ACH</div>';
+    }
+    h += '</div>';
+  }
+  return h + '</div></div>';
+}
+function _fqRenderCompareHTML(model){
+  var t = _fqPickCompareTier(model);
+  var sheet = 'width:850px;margin:0 auto;background:' + _FQ.sheet + ';box-shadow:0 1px 3px rgba(26,35,50,.12),0 22px 60px rgba(26,35,50,.13);';
+  var p = '<div class="sheet" style="' + sheet + '">' + _fqHeaderHTML(model.typeLabel, model.scopeLine);
+  p += '<div style="padding:26px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;">Prepared with care for</div>'
+    + '<h1 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:22px;color:' + _FQ.navyDark + ';margin:6px 0 0;">' + _fqEsc(model.clientName || 'Your Family') + '</h1>'
+    + '<div style="font-size:13.5px;color:' + _FQ.m1 + ';margin-top:6px;">' + _fqEsc(model.venueLine) + '</div></div>';
+  // Difference callout — the one number the family is looking for, said in words and in figures.
+  var a = model.options[0], b = model.options[1];
+  var diffTxt, diffColor = _FQ.navy;
+  if (model.diff === null) diffTxt = 'Both options need pricing before they can be compared.';
+  else if (model.diff === 0) diffTxt = 'Option A and Option B come to exactly the same price.';
+  else if (model.diff < 0) { diffTxt = 'Option B is ' + _fqMoney(model.diff) + ' less than Option A.'; diffColor = _FQ.green; }
+  else diffTxt = 'Option B is ' + _fqMoney(model.diff) + ' more than Option A.';
+  p += '<div style="margin:22px 56px 0;background:' + _FQ.offwhite + ';border:1px solid ' + _FQ.cardBorder + ';padding:22px 30px;display:flex;align-items:center;justify-content:space-between;gap:32px;">'
+    + '<div style="max-width:330px;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:' + _FQ.navyDark + ';">Two options, side by side</div>'
+    + '<p style="font-size:' + t.sumDesc + 'px;line-height:1.6;color:' + _FQ.body + ';margin:8px 0 0;">' + _fqEsc(diffTxt)
+    + ' Each column below lists everything included, priced the same way as your quote.</p></div>'
+    + '<div style="display:flex;gap:22px;align-items:flex-end;">'
+    + _fqCompareFigHTML('Option A', a && a.total > 0 ? _fqMoney(a.total) : '—', _FQ.navy, t)
+    + _fqCompareFigHTML('Option B', b && b.total > 0 ? _fqMoney(b.total) : '—', _FQ.orange, t)
+    + _fqCompareFigHTML('Difference', model.diff === null ? '—' : (model.diff === 0 ? _fqMoney(0) : (model.diff > 0 ? '+' : '−') + _fqMoney(model.diff)), diffColor, t)
+    + '</div></div>';
+  p += '<div style="display:flex;gap:18px;margin:22px 56px 0;align-items:stretch;">';
+  model.options.forEach(function(o){ p += _fqCompareColHTML(o, t, model); });
+  p += '</div>';
+  p += '<div style="margin:22px 56px 0;"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;">A note</div>'
+    + '<p style="font-size:' + t.note + 'px;line-height:1.65;color:' + _FQ.body + ';margin:9px 0 0;max-width:760px;">This comparison is an estimate prepared for your planning — not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change.'
+    + (model.options.some(function(o){ return !!o.pay; }) ? ' Monthly figures assume 10% down over 60 months at 0% with automatic (ACH) bank withdrawal; other terms are available and carry a finance charge.' : '')
+    + ' Please take the time you need; we’re here to answer any question, whenever you’re ready.</p>'
+    + (model.options.some(function(o){ return o.tax > 0; }) ? '<div style="font-size:12px;color:' + _FQ.m3 + ';margin-top:8px;">' + _taxNoteText(model.kind === 'fh') + '</div>' : '')
+    + '</div>';
+  p += _fqFooterHTML();
+  p += '</div>';
+  var css = '*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Public Sans\',system-ui,sans-serif;color:' + _FQ.bodyDark + ';padding:32px 0 64px;}'
+    + '@page{size:letter;margin:0.45in;}'
+    + '@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;}'
+    + '.cmpcol>div{break-inside:avoid;}'
+    + '*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + _fqEsc(model.typeLabel) + ' – Bonney Watson</title>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    + '<style>' + css + '</style></head><body>' + p + '</body></html>';
+}
+// Same handoff as _fqPrint: open a real printable page, wait for the webfonts so the fit pass
+// measures final metrics, shrink to one LANDSCAPE page, then raise the print dialog.
+function _fqPrintCompare(model){
+  try {
+    var win = window.open('', '_blank');
+    if (!win) { alert('Please allow pop-ups to print the comparison.'); return; }
+    win.document.open();
+    win.document.write(_fqRenderCompareHTML(model));
+    win.document.close();
+    var fired = false;
+    var fire = function(){
+      if (fired) return; fired = true;
+      try { _fqFitForPrint(win.document); win.focus(); win.print(); }
+      catch(e){ console.warn('print handoff:', e); }
+    };
+    var f = win.document.fonts;
+    if (f && f.ready) f.ready.then(function(){ setTimeout(fire, 150); }, function(){ setTimeout(fire, 150); });
+    setTimeout(fire, 2500);
+  } catch(e){ console.error('Comparison print error:', e); alert('Could not open the print view: ' + e.message); }
+}
+
 
 // ── PDF render (pdf-lib) — the AUTHORITATIVE artifact ────────────────────────────────────────────
 // Both "Download PDF" and "Print" build THIS, so the emailed file and the printed page are the same
@@ -18266,7 +18369,7 @@ function toggleFhCompare() {
   var isOpen = panel.style.display !== 'none';
   panel.style.display = isOpen ? 'none' : 'block';
   var btn = el('fhCompareToggleBtn');
-  if (btn) btn.textContent = isOpen ? '⚖️ Compare Options' : '✖ Close Compare';
+  if (btn) btn.textContent = isOpen ? 'Compare Options' : 'Close Compare';
   if (!isOpen) {
     try { fhUpdate(); } catch(e) {}
     fhCompareUpdate();
@@ -18275,10 +18378,17 @@ function toggleFhCompare() {
 }
 function fhCompareUpdate() {
   var aTotal = _fhTotal || 0;
-  var aLabel = val('fhClientName') || 'Current FH Quote';
+  var aLabel = '';
+  try {
+    if (_activePlanType && FH_PLANS[_activePlanType] && FH_PLANS[_activePlanType][_activePlanKey]) {
+      aLabel = FH_PLANS[_activePlanType][_activePlanKey].name || '';
+    }
+  } catch(e) {}
+  if (!aLabel) aLabel = 'Individual Services';
   if (el('fhCmpA_label')) el('fhCmpA_label').textContent = aLabel;
   if (el('fhCmpA_total')) el('fhCmpA_total').textContent = aTotal > 0 ? fmt(aTotal) : '—';
-  if (el('fhCmpA_monthly') && aTotal > 0) {
+  var _fhCmpAtNeed = typeof fhQuoteType === 'function' && fhQuoteType() === 'atneed';
+  if (el('fhCmpA_monthly') && aTotal > 0 && !_fhCmpAtNeed) {
     var aDown = Math.ceil(aTotal * 0.10);
     el('fhCmpA_monthly').textContent = '~' + fmt(Math.ceil((aTotal - aDown) / 60)) + '/mo · ' + fmt(aDown) + ' down (10%, 60 mo, 0%)';
   } else if (el('fhCmpA_monthly')) { el('fhCmpA_monthly').textContent = ''; }
@@ -18290,6 +18400,8 @@ function fhCompareUpdate() {
     _fhLines.filter(function(l){return l.isDiscount;}).forEach(function(l){
       abkd += '<span style="color:#1a6b45;">− ' + l.label + ' — ' + fmt(Math.abs(l.amount)) + '</span><br>';
     });
+    var aTax = (typeof _fqTaxOf === 'function') ? _fqTaxOf(_fhLines) : 0;
+    if (aTax > 0) abkd += '<span style="color:var(--gold);">Sales Tax (10.4%) — ' + fmt(aTax) + '</span><br>';
     el('fhCmpA_breakdown').innerHTML = abkd;
   }
   calcFhBTotal();
@@ -18389,7 +18501,8 @@ function calcFhBTotal() {
 
   if (el('fhCmpB_breakdown')) el('fhCmpB_breakdown').innerHTML = bkd;
   if (el('fhCmpB_total'))     el('fhCmpB_total').textContent   = bTotal > 0 ? fmt(bTotal) : '—';
-  if (el('fhCmpB_monthly') && bTotal > 0) {
+  var _fhCmpBAtNeed = typeof fhQuoteType === 'function' && fhQuoteType() === 'atneed';
+  if (el('fhCmpB_monthly') && bTotal > 0 && !_fhCmpBAtNeed) {
     var bDown = Math.ceil(bTotal * 0.10);
     el('fhCmpB_monthly').textContent = '~' + fmt(Math.ceil((bTotal - bDown) / 60)) + '/mo · ' + fmt(bDown) + ' down (10%, 60 mo, 0%)';
   } else if (el('fhCmpB_monthly')) { el('fhCmpB_monthly').textContent = ''; }
@@ -18435,38 +18548,33 @@ function fhCmpBAddCustom() {
   cont.appendChild(row);
 }
 function printFhCompare() {
-  var bResult = calcFhBTotal();
-  var bTotal = bResult.total;
-  if (!bTotal || bTotal <= 0) { alert('Build Option B first.'); return; }
-  var aLines = _fhLines||[], bLines = bResult.lines;
-  var aTotal = _fhTotal || 0;
-  var clientName = val('fhClientName')||'Family';
-  var d = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  var expires = new Date(); expires.setDate(expires.getDate()+30);
-  var expStr = expires.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  function fmtA(n){ return '$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-  function buildCol(label, lines, total) {
-    var exempt = lines.filter(function(l){return !l.taxable&&!l.isDiscount;}), taxable = lines.filter(function(l){return l.taxable&&!l.isDiscount;}), discs = lines.filter(function(l){return l.isDiscount;});
-    var taxSub = taxable.reduce(function(s,l){return s+l.amount;},0), discTax = discs.filter(function(l){return l.taxableDiscount;}).reduce(function(s,l){return s+Math.abs(l.amount);},0);
-    var tax = Math.round(Math.max(0,taxSub-discTax)*TAX*100)/100;
-    var html = '<div style="flex:1;min-width:220px;background:#fff;border:1.5px solid #1B2A4A;border-radius:8px;padding:14px;margin:0 4px;">';
-    html += '<div style="font-size:12px;font-weight:800;color:#C0673B;margin-bottom:10px;border-bottom:2px solid #1B2A4A;padding-bottom:6px;">'+label+'</div>';
-    if (exempt.length){html+='<div style="font-size:8px;font-weight:700;text-transform:uppercase;color:#C0673B;margin:6px 0 2px;">Tax-Exempt</div>'; exempt.forEach(function(l){html+='<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee;font-size:11px;"><span>'+l.label+'</span><span>'+fmtA(l.amount)+'</span></div>';});}
-    if (taxable.length){html+='<div style="font-size:8px;font-weight:700;text-transform:uppercase;color:#C0673B;margin:6px 0 2px;">Taxable</div>'; taxable.forEach(function(l){html+='<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee;font-size:11px;"><span>'+l.label+'</span><span>'+fmtA(l.amount)+'</span></div>';});}
-    if (discs.length){discs.forEach(function(l){html+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;color:#1a6b45;"><span>'+l.label+'</span><span>'+fmtA(l.amount)+'</span></div>';});}
-    if (tax>0) html+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;color:#4A5568;"><strong>Sales Tax</strong><strong>'+fmtA(tax)+'</strong></div>';
-    html+='<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:2.5px solid #1B2A4A;"><span style="font-size:13px;font-weight:700;">Total</span><span style="font-size:18px;font-weight:800;color:#C0673B;">'+fmtA(total)+'</span></div></div>';
-    return html;
-  }
-  var delta = aTotal - bTotal;
-  var bLabel = bResult.label || 'Option B';
-  var win = window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><title>FH Compare — '+clientName+'</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:32px auto;color:#1B2A4A;font-size:12px;}.hdr{background:#1B2A4A;color:#fff;padding:16px 22px;border-radius:6px;margin-bottom:20px;display:flex;justify-content:space-between;}@media print{body{margin:18px;}}@page{margin:.5in;size:letter landscape;}</style></head><body>');
-  win.document.write('<div class="hdr"><div><div style="font-size:18px;font-weight:800;">BONNEY WATSON · Washington Memorial Park</div><div style="font-size:11px;opacity:.7;margin-top:3px;">Funeral Home Compare — '+clientName+'</div></div><div style="text-align:right;font-size:11px;opacity:.8;">'+d+'<br>Valid through '+expStr+'</div></div>');
-  win.document.write('<div style="display:flex;gap:8px;">'+buildCol('Option A — Current', aLines, aTotal)+buildCol('Option B — '+bLabel, bLines, bTotal)+'</div>');
-  win.document.write('<div style="margin-top:16px;background:#f8f7f3;border-radius:8px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;font-weight:700;">Difference (A vs B)</span><span style="font-size:20px;font-weight:800;color:'+(delta===0?'#888':delta>0?'#c0392b':'#1a6b45')+'">'+(delta===0?'Same':delta>0?'Option A costs $'+Math.abs(delta).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' more':'Option B costs $'+Math.abs(delta).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' more')+'</span></div>');
-  win.document.write('<p style="font-size:10px;color:#888;margin-top:16px;">Valid through '+expStr+'. Please contact Bonney Watson for a formal agreement.</p></body></html>');
-  win.document.close(); win.print();
+  var b = calcFhBTotal();
+  if (!b.total || b.total <= 0) { alert('Build Option B first.'); return; }
+  var isAtNeed = typeof fhQuoteType === 'function' && fhQuoteType() === 'atneed';
+  var aPlan = '';
+  try {
+    if (_activePlanType && FH_PLANS[_activePlanType] && FH_PLANS[_activePlanType][_activePlanKey]) {
+      aPlan = FH_PLANS[_activePlanType][_activePlanKey].name || '';
+    }
+  } catch(e) {}
+  var isMirror = !!(el('fhCmpB_mirror') && el('fhCmpB_mirror').checked);
+  // Funeral-home arrangements are pre-paid through WA Maxima insurance, which is age-based and
+  // not derivable from the Compare panel — so no monthly estimate is quoted here. Cemetery
+  // financing (10% / 60 mo / 0% ACH) is a fixed grid, which is why the cemetery compare shows one.
+  var model = _fqCompareModel({
+    typeLabel:  isAtNeed ? 'Funeral Home At-Need Comparison' : 'Funeral Home Option Comparison',
+    scopeLabel: 'Funeral Home Services',
+    clientName: val('fhClientName') || '',
+    kind: 'fh',
+    showPayment: false,
+    options: [
+      { letter: 'A', note: 'current quote', label: aPlan || 'Current Quote',
+        lines: _fhLines || [], total: (typeof _fhTotal !== 'undefined' ? _fhTotal : 0) },
+      { letter: 'B', note: isMirror ? 'mirrors Option A items' : '', label: b.label || 'Individual Services',
+        lines: b.lines || [], total: b.total || 0 }
+    ]
+  });
+  _fqPrintCompare(model);
 }
 
 
