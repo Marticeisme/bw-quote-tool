@@ -53,3 +53,17 @@ discount select's option TEXT (A must not edit those option strings).
 
 B then A, `--no-ff`. Director pushes ONLY the session's designated `claude/...` branch
 (the remote container is ephemeral); `main` stays an operator gate.
+
+## Amendment 2026-09-03 (operator, in-chat, mid-sprint)
+
+"Randy should not see all of my quotes or contacts; mine stay the same — I see
+everything." → **Track C `s28/visibility`**, worktree `../bw-quote-tool-s28c`,
+`PORT=3777`, brief `TRACK-C.md`. Director assumptions for the close gate: admin = the
+`martice` account; visibility = record `ownerUid` (or `ownerHandle`) equals the signed-in
+user; legacy records without an owner are visible to the admin only, with an admin-only
+owner hand-off control; Firebase rules unchanged (UI-level split, trusted colleague).
+Merge order becomes **B, A, C**.
+
+Environment note: in this remote container `test-catalog-filter-print.mjs` loses 17
+assertions on untouched main because headless Chromium's Google Fonts request resets
+(no proxy); the Playwright browser build also had to be aliased (1223 → installed 1194).
