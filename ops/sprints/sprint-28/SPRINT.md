@@ -67,3 +67,7 @@ Merge order becomes **B, A, C**.
 Environment note: in this remote container `test-catalog-filter-print.mjs` loses 17
 assertions on untouched main because headless Chromium's Google Fonts request resets
 (no proxy); the Playwright browser build also had to be aliased (1223 → installed 1194).
+
+**Operator ruling 2026-09-03 (Track C):** legacy records with no owner are visible to
+BOTH users. Non-admin rule = no owner → visible; owner recorded → only if it is me;
+admin → everything. Relayed to Track C mid-build.
