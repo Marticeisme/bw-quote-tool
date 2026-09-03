@@ -385,6 +385,10 @@ tr:hover td{background:var(--navy-100);}
 .disc-row .disc-val-wrap.show{display:flex;}
 .disc-row .disc-efg-wrap{display:none;align-items:center;gap:4px;font-size:10.5px;color:var(--stop);font-weight:600;cursor:pointer;white-space:nowrap;}
 .disc-row .disc-efg-wrap input[type=checkbox]{margin:0;width:auto;}
+.disc-row .disc-dd214-wrap{display:none;align-items:center;gap:4px;font-size:10.5px;color:var(--navy);font-weight:600;cursor:pointer;white-space:nowrap;}
+.disc-row .disc-dd214-wrap.on{color:#1a6b45;}
+.disc-row .disc-dd214-wrap input[type=checkbox]{margin:0;width:auto;}
+.disc-row .disc-dd214-hint{display:none;font-size:10.5px;font-weight:700;color:var(--stop);white-space:nowrap;}
 .disc-row .cl-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer;white-space:nowrap;}
 .pcm-group-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:5px 0;border-bottom:1px solid var(--gray-light);margin-bottom:4px;}
 .pcm-group-toggle:hover{color:var(--navy);}
@@ -1238,10 +1242,11 @@ tr:hover td{background:var(--navy-100);}
               <option value="">— None —</option>
               <option value="pct_all">% — All Items</option>
               <option value="flat_all">$ — All Items</option>
-              <option value="promo_burial">August Incentive — Burial (10% property + $1,000 O&C)</option>
-              <option value="promo_crem">August Incentive — Cremation (20% property + $500 O&C)</option>
-              <option value="promo_property">August Incentive — Property Only (10% burial / 20% cremation)</option>
+              <option value="promo_burial">September Incentive — Burial (10% property + $1,000 O&C)</option>
+              <option value="promo_crem">September Incentive — Cremation (20% property + $500 O&C)</option>
+              <option value="promo_property">September Incentive — Property Only (10% burial / 20% cremation)</option>
               <option value="promo_family45">Family 45-Day Certificate (15% property)</option>
+              <option value="promo_veteran">Veteran Space Credit — $5,995 off one space (DD-214 required)</option>
               <option value="pct10_svc">10% off Services</option>
               <option value="pct10_merch">10% off Merchandise</option>
             </select>
@@ -2341,17 +2346,19 @@ tr:hover td{background:var(--navy-100);}
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="badge-percent" data-lc-sz="17"></span></span>Discounts</div>
         <div class="q-panel-body">
           <div id="aprilPromoNote" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(127,29,29,.07);border-radius:6px;padding:8px 10px;margin-bottom:8px;line-height:1.7;">
-            <strong>🏷️ August 2026 Pre-Need Sales Incentives</strong> — new property only<br>
+            <strong>🏷️ September 2026 Pre-Need Sales Incentives</strong> — new property only<br>
             • 10% off Burial Property<br>
             • 20% off Select Mausoleum Rows: E, F &amp; G<br>
-            • 20% off Cremation Property (2nd rights not included)<br>
+            • 20% off Cremation Property<br>
             • 0% Financing for 60 Months with 10% Down (ACH required)<br>
             • $1,000 off Burial Opening &amp; Closing<br>
             • $500 off Cremation Opening &amp; Closing<br>
             <span style="color:#555;font-style:italic;">** Incentives are only applicable to purchases of new Pre-Need property.</span><br>
             <span style="color:#555;font-style:italic;">** ECF must always be paid in full — it is never included in the property discount.</span><br>
-            <span style="color:#555;font-style:italic;">Cannot be combined with any other discount (free Veteran space, etc.) · New property PN contracts only · At-Need property not eligible · Valid through August 31, 2026.</span>
+            <span style="color:#555;font-style:italic;">** Second Rights are NOT included in any property discount.</span><br>
+            <span style="color:#555;font-style:italic;">Cannot be combined with any other discount (Veteran Space Credit, etc.) · New property PN contracts only · At-Need property not eligible · Valid through September 30, 2026.</span>
           </div>
+          <div id="cemVetPromoWarn" style="display:none;font-size:11px;color:#7f1d1d;background:rgba(163,0,0,.09);border:1px solid rgba(163,0,0,.25);border-radius:6px;padding:7px 10px;margin-bottom:8px;line-height:1.6;font-weight:600;"></div>
           <div id="cemDiscountList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
           <div class="btn-add-line" onclick="addCemDiscount()">+ Add Discount</div>
         </div>
@@ -2365,7 +2372,7 @@ tr:hover td{background:var(--navy-100);}
             <strong>Financing Terms — Effective Jan 1, 2024</strong><br>
             Min. down: 10% · Min. monthly payment: $50 · Max. term: 72 months<br>
             0% financing requires ACH bank withdrawal · 25%+ down: tiered rate applies<br>
-            <span style="color:#7f1d1d;font-weight:700;">🏷️ August Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through August 31, 2026</span>
+            <span style="color:#7f1d1d;font-weight:700;">🏷️ September Special: 0% for 60 months with 10% down (ACH required) · New property PN contracts only · Valid through September 30, 2026</span>
           </div>
           <div class="q-row" style="flex-wrap:wrap;gap:10px;align-items:flex-end;">
             <div style="flex:1;min-width:150px;">
@@ -7549,6 +7556,9 @@ document.addEventListener('keydown', function(e) {
 // ═══════════════════════════════════════════════════════════════
 var _cemLines = [];   // [{label, amount, taxable, exempt}]
 var _cemDiscData = null;
+// Veteran Space Credit — a flat credit against ONE space (ground, niche or crypt), never
+// ECF / O&C / merchandise / additional rights, and capped at the price of that one space.
+var VET_SPACE_CREDIT = 5995;
 var _cemTotal = 0;
 var _fhLines  = [];
 var _fhTotal  = 0;
@@ -7660,7 +7670,7 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
 
   var html = _sumItems(exemptLines.concat(taxableLines));
 
-  // Estimated monthly payment hint (10% down, 60 months, 0% — August promo or standard)
+  // Estimated monthly payment hint (10% down, 60 months, 0% — September promo or standard)
   if (grandTotal > 0 && containerId === 'cemSummary') {
     var estDown = Math.ceil(grandTotal * 0.10);
     var estBalance = grandTotal - estDown;
@@ -8315,17 +8325,48 @@ function cemUpdate() {
   // ("Commissionable Sale does not include ECF or discounts applied").
   var spaceTotalForDisc = lines.filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
 
+  var hasVetRow = false, hasMonthlyRow = false;
   el('cemDiscountList').querySelectorAll('.disc-row').forEach(function(row) {
     var mode = row.querySelector('.disc-mode').value;
     if (!mode) return;
     var isPromo = mode.indexOf('promo_') === 0;
+    // The Veteran Space Credit rides the promo_ prefix so the manual amount/label inputs stay
+    // hidden, but it is NOT a monthly incentive: it has its own branch below, it never sets
+    // hasPromo (so it does not raise the September note on its own), and it is available on
+    // at-need quotes. promo_family45 is a standing certificate, also not a monthly incentive.
+    var isVeteran = mode === 'promo_veteran';
+    if (isVeteran) hasVetRow = true;
+    else if (isPromo && mode !== 'promo_family45') hasMonthlyRow = true;
     var valWrap = row.querySelector('.disc-val-wrap');
     valWrap && (valWrap.className = 'disc-val-wrap' + (isPromo ? '' : ' show'));
     // Row E/F/G opt-in chip: hidden unless this promo row actually has mausoleum property.
     var efgWrap = row.querySelector('.disc-efg-wrap');
     if (efgWrap) efgWrap.style.display = 'none';
+    // DD-214 attestation chip — only on a Veteran Space Credit row. The credit still computes
+    // while it is unchecked; the row just carries a red "DD-214 required" hint and the printed
+    // line says so too, so an unattested credit cannot quietly reach a contract.
+    var ddWrap = row.querySelector('.disc-dd214-wrap');
+    var ddHint = row.querySelector('.disc-dd214-hint');
+    var ddEl   = row.querySelector('.disc-dd214');
+    var ddOn   = !!(ddEl && ddEl.checked);
+    if (ddWrap) { ddWrap.className = 'disc-dd214-wrap' + (ddOn ? ' on' : ''); ddWrap.style.display = isVeteran ? 'inline-flex' : 'none'; }
+    if (ddHint) ddHint.style.display = (isVeteran && !ddOn) ? 'inline' : 'none';
     var dAmt = 0, dLabel = '';
-    if (isPromo) {
+    if (isVeteran) {
+      // $5,995 off ONE space: the highest-priced single space actually on the quote. A space the
+      // family already owns is not on the quote and cannot be credited. Quantity is deliberately
+      // ignored — one credit is one veteran, one space; a second veteran is a second row.
+      var vetGround = (spacePrice > 0 && gardenQty > 0 && !chk('qSpaceOwned')) ? spacePrice : 0;
+      var vetNiche  = (nicheP > 0 && nicheQ > 0 && !chk('qNicheOwned'))        ? nicheP     : 0;
+      var vetMaus   = (mausP > 0 && mausQ > 0)                                 ? mausP      : 0;
+      var vetOne    = Math.max(vetGround, vetNiche, vetMaus);
+      dAmt        = Math.min(VET_SPACE_CREDIT, vetOne);
+      propDisc    = dAmt;   // the credit is entirely property, for the Commission Worksheet
+      propPctDisp = null;   // no single rate — the RIC label reads vetCreditAmount instead
+      dLabel = dAmt > 0
+        ? 'Veteran Space Credit — $' + Math.round(dAmt).toLocaleString() + ' off one space (' + (ddOn ? 'DD-214 on file' : 'DD-214 required') + ')'
+        : '';
+    } else if (isPromo) {
       hasPromo = true;
       // Family 45-Day Certificate (cert #1390): 15% off pre-need PROPERTY within 45 days of a
       // family member's death. It EXCLUDES 2nd/3rd rights, and — per the certificate — property
@@ -8333,16 +8374,18 @@ function cemUpdate() {
       // so they never enter totalSP. ECF is excluded on every promo (it is never in totalSP).
       // The 10% minimum down is a payment-plan rule, enforced on the financing side, not here.
       var isFamily45 = mode.indexOf('promo_family45') === 0;
-      // AUGUST 2026 incentive (replaces July 2026). Differences from July, all deliberate:
+      // SEPTEMBER 2026 incentive (replaces August 2026). The sheet is rate-for-rate identical
+      // to August — only the month and the validity date changed — so the mode ids stay put
+      // (they are persisted inside saved quotes). The rules it encodes:
       //   • the property rate is no longer a single 10% — burial property is 10%, cremation
       //     property is 20%, and a crypt in mausoleum Rows E/F/G is 20%.
       //   • additional (2nd/3rd) interment rights are NOT discounted. July folded them into
-      //     the same 10% base; the August sheet does not mention them at all, and its
+      //     the same 10% base; the September sheet does not mention them at all, and its
       //     cremation line says '2nd rights not included' explicitly.
       //   • O&C stacking is unchanged: -$1,000/space burial, -$500/space cremation, each
       //     capped at the O&C actually quoted.
       //   • ECF is never discounted, on any promo.
-      var AUG_BURIAL = 0.10, AUG_CREM = 0.20, AUG_EFG = 0.20;
+      var SEP_BURIAL = 0.10, SEP_CREM = 0.20, SEP_EFG = 0.20;
       var groundSP = (spacePrice > 0 && gardenQty > 0) ? spacePrice * gardenQty : 0;
       var nicheSP  = (nicheP > 0 && nicheQ > 0)        ? nicheP * nicheQ         : 0;
       var mausSP   = (mausP > 0 && mausQ > 0)          ? mausP * mausQ           : 0;
@@ -8354,9 +8397,9 @@ function cemUpdate() {
       var efgOn = !isFamily45 && mausSP > 0 && !!(efgEl && efgEl.checked);
       // A ground space is burial property unless this is the cremation promo, in which case it
       // is an urn-garden space and takes the cremation rate. Niches are always cremation.
-      var groundRate = isFamily45 ? 0.15 : (mode.indexOf('promo_crem') === 0 ? AUG_CREM : AUG_BURIAL);
-      var nicheRate  = isFamily45 ? 0.15 : AUG_CREM;
-      var mausRate   = isFamily45 ? 0.15 : (efgOn ? AUG_EFG : AUG_BURIAL);
+      var groundRate = isFamily45 ? 0.15 : (mode.indexOf('promo_crem') === 0 ? SEP_CREM : SEP_BURIAL);
+      var nicheRate  = isFamily45 ? 0.15 : SEP_CREM;
+      var mausRate   = isFamily45 ? 0.15 : (efgOn ? SEP_EFG : SEP_BURIAL);
       var propDisc   = groundSP * groundRate + nicheSP * nicheRate + mausSP * mausRate;
       // Effective property rate as a PERCENT, for the RIC's structured discount label. A mixed
       // 10%/20% quote has no single rate, so report the blended one rather than a lie.
@@ -8367,17 +8410,17 @@ function cemUpdate() {
         propLbl = '15% off pre-need property';
       } else {
         var rateParts = [];
-        if (groundSP > 0) rateParts.push((groundRate * 100) + '% off ' + (groundRate === AUG_CREM ? 'cremation' : 'burial') + ' property');
+        if (groundSP > 0) rateParts.push((groundRate * 100) + '% off ' + (groundRate === SEP_CREM ? 'cremation' : 'burial') + ' property');
         if (mausSP  > 0)  rateParts.push((mausRate  * 100) + '% off mausoleum crypt' + (efgOn ? ' (Row E/F/G)' : ''));
         if (nicheSP > 0)  rateParts.push((nicheRate * 100) + '% off cremation property');
-        propLbl = rateParts.length ? rateParts.join(' + ') : 'August incentive';
+        propLbl = rateParts.length ? rateParts.join(' + ') : 'September incentive';
         if (rightsPresent) propLbl += ' — additional rights not included';
       }
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
       var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn/i); });
       var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
       // Customer-facing line — describe what's discounted, not the internal promo name
-      // ("August Incentive" reads as internal jargon to a family reviewing their quote).
+      // ("September Incentive" reads as internal jargon to a family reviewing their quote).
       if (isFamily45) {
         dAmt = propDisc;
         dLabel = propLbl + ' — Family 45-Day Certificate';
@@ -8430,12 +8473,24 @@ function cemUpdate() {
         label: dLabel, amount: -dAmt, taxable: false, isDiscount: true, taxableDiscount: isTaxableDisc,
         propertyDiscPortion: propDiscPortion,
         propDiscPct:     isPromo ? propPctDisp : null,
+        vetCreditAmount: isVeteran ? dAmt : 0,
         ocDiscAmount:    (isPromo && mode.indexOf('promo_burial') === 0) ? ocDisc    : 0,
         inurnDiscAmount: (isPromo && mode.indexOf('promo_crem')   === 0) ? inurnDisc : 0
       });
     }
   });  // end forEach discount rows
   if (el('aprilPromoNote')) el('aprilPromoNote').style.display = hasPromo ? 'block' : 'none';
+  // Warn, never block: the incentive sheet says the monthly property incentive does not combine
+  // with a credited Veteran space, and that at-need property is not eligible for it at all.
+  var vetWarnEl = el('cemVetPromoWarn');
+  if (vetWarnEl) {
+    var vwAtNeed = typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed';
+    var vwMsgs = [];
+    if (hasVetRow && hasMonthlyRow) vwMsgs.push('The Veteran Space Credit does not combine with the monthly property incentive. Both are priced here — remove one before the contract is written.');
+    if (vwAtNeed && hasMonthlyRow)  vwMsgs.push('At-Need property is not eligible for the monthly Pre-Need incentives.');
+    vetWarnEl.innerHTML = vwMsgs.length ? '⚠️ ' + vwMsgs.join('<br>⚠️ ') : '';
+    vetWarnEl.style.display = vwMsgs.length ? 'block' : 'none';
+  }
   var discAmt   = totalDiscAmt;
   var discLabel = discLabels.join(' | ');
   var discMode  = hasPromo ? 'promo_' : (discAmt > 0 ? 'flat_exempt' : '');
@@ -8561,14 +8616,17 @@ function addCemDiscount() {
     + '<optgroup label="All Items"><option value="percent">% — All Items</option><option value="flat">$ — All Items</option></optgroup>'
     + '<optgroup label="Taxable Only"><option value="percent_taxable">% — Taxable Only</option><option value="flat_taxable">$ — Taxable Only</option></optgroup>'
     + '<optgroup label="Exempt Only"><option value="percent_exempt">% — Exempt Only</option><option value="flat_exempt">$ — Exempt Only</option></optgroup>'
-    + '<optgroup label="🏷️ August 2026 Incentives (New Property PN)"><option value="promo_burial">August Incentive — Burial/Crypt Placement (10% property + $1,000 O&C)</option><option value="promo_crem">August Incentive — Cremation/Inurnment Placement (20% property + $500 O&C)</option><option value="promo_property">August Incentive — Property Only (10% burial / 20% cremation, excl. rights)</option></optgroup>'
+    + '<optgroup label="🏷️ September 2026 Incentives (New Property PN)"><option value="promo_burial">September Incentive — Burial/Crypt Placement (10% property + $1,000 O&C)</option><option value="promo_crem">September Incentive — Cremation/Inurnment Placement (20% property + $500 O&C)</option><option value="promo_property">September Incentive — Property Only (10% burial / 20% cremation, excl. rights)</option></optgroup>'
     + '<optgroup label="🎟️ Family Certificate"><option value="promo_family45">Family 45-Day Certificate — 15% off pre-need property (excl. ECF, 2nd rights)</option></optgroup>'
+    + '<optgroup label="🎖️ Veteran"><option value="promo_veteran">Veteran Space Credit — $5,995 off one space (DD-214 required)</option></optgroup>'
     + '</select>'
     + '<div class="disc-val-wrap">'
     + '<input type="number" class="disc-amt" min="0" step="0.01" placeholder="Amount" oninput="cemUpdate()" style="width:80px;">'
     + '<input type="text" class="disc-note" placeholder="Label" oninput="cemUpdate()">'
     + '</div>'
-    + '<label class="disc-efg-wrap" title="August 2026: mausoleum Rows E, F and G are discounted 20% instead of 10%."><input type="checkbox" class="disc-efg" onchange="cemUpdate()"><span>Crypt in Row E, F or G — 20%</span></label>'
+    + '<label class="disc-efg-wrap" title="September 2026: mausoleum Rows E, F and G are discounted 20% instead of 10%."><input type="checkbox" class="disc-efg" onchange="cemUpdate()"><span>Crypt in Row E, F or G — 20%</span></label>'
+    + '<label class="disc-dd214-wrap" title="Veteran Space Credit: the counselor attests a copy of the DD-214 was received."><input type="checkbox" class="disc-dd214" onchange="cemUpdate()"><span>DD-214 received</span></label>'
+    + '<span class="disc-dd214-hint">DD-214 required</span>'
     + '<button class="cl-remove" onclick="this.parentElement.remove();cemUpdate()">✕</button>';
   el('cemDiscountList').appendChild(div);
 }
@@ -9006,6 +9064,12 @@ function calcBTotal() {
         var bSpV = bGardenVal ? (parseFloat(bGardenVal.split('|')[1])||0) : (bNicheP || bMausP);
         bDiscAmt = bSpV * 0.15;
         bDiscLbl = '15% off Property (Family 45-Day)';
+      } else if (bDiscType === 'promo_veteran') {
+        // Veteran Space Credit: $5,995 against ONE space, capped at the price of that space. Mirrors
+        // cemUpdate() — highest-priced single space, never ECF/O&C/rights, quantity ignored.
+        var bVetOne = bSpaceOwned ? 0 : Math.max((bGardenVal ? (parseFloat(bGardenVal.split('|')[1]) || 0) : 0), bNicheP, bMausP);
+        bDiscAmt = Math.min(VET_SPACE_CREDIT, bVetOne);
+        bDiscLbl = bDiscAmt > 0 ? 'Veteran Space Credit — $' + Math.round(bDiscAmt).toLocaleString() + ' off one space' : '';
       } else if (bDiscType === 'pct10_svc')  { bDiscAmt = bExempt  * 0.10; bDiscLbl = '10% off Services'; }
       else if   (bDiscType === 'pct10_merch'){ bDiscAmt = bTaxable * 0.10; bDiscLbl = '10% off Merchandise'; }
       if (bDiscAmt > 0) {
@@ -9110,11 +9174,18 @@ function cemQuoteTypeChange() {
   if (anLabel) { anLabel.style.background = isAtNeed ? 'var(--navy)' : '#fff'; anLabel.style.color = isAtNeed ? '#fff' : 'var(--navy)'; }
   // Show/hide discount and financing panels
   var discPanel = el('cemDiscountPanel'), finPanel = el('cemFinancingPanel');
-  if (discPanel) discPanel.style.display = isAtNeed ? 'none' : '';
+  // The Discounts panel stays available on an At-Need quote: the Veteran Space Credit applies
+  // to pre-need AND at-need sales. The monthly property incentives do not (the sheet says
+  // At-Need property is not eligible), so switching to At-Need drops every row except a
+  // veteran credit and hides the incentive note, exactly as it used to drop all of them.
+  if (discPanel) discPanel.style.display = '';
   if (finPanel)  finPanel.style.display  = isAtNeed ? 'none' : '';
-  // Clear discounts and financing if switching to at-need
   if (isAtNeed) {
-    if (el('cemDiscountList')) el('cemDiscountList').innerHTML = '';
+    var anDiscList = el('cemDiscountList');
+    if (anDiscList) anDiscList.querySelectorAll('.disc-row').forEach(function(r) {
+      var m = r.querySelector('.disc-mode');
+      if (!m || m.value !== 'promo_veteran') r.remove();
+    });
     if (el('aprilPromoNote')) el('aprilPromoNote').style.display = 'none';
     if (el('finDownAmt')) el('finDownAmt').value = '0';
   }
@@ -18647,7 +18718,11 @@ async function generateRICContractCore(clientData) {
       return String(p || '');
     }
     function compactDiscLabel(dl) {
-      // Promo discounts (August Incentive) carry structured numeric fields — build the label
+      // The Veteran Space Credit is a flat dollar credit with no rate at all; without its own
+      // structured field the 28-char fallback below truncates it mid-number ("Veteran Space
+      // Credit - $5,99"). Read the amount instead.
+      if (dl.vetCreditAmount) return 'Veteran Credit $' + Math.round(dl.vetCreditAmount).toLocaleString();
+      // Promo discounts (September Incentive) carry structured numeric fields — build the label
       // directly from those instead of regex-parsing the prose dLabel. The old regex only
       // recognized "Interment O&C" and matched the generic "o&c" substring test for ANY
       // O&C-mentioning sentence, so a combined Property + Cremation/Inurnment discount got
