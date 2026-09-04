@@ -7,7 +7,9 @@ B `s28/sept-incentives` (`85743e3`→`787a71f`), C `s28/visibility` (`62f276f`�
 Director re-ran: index 8/0 after every merge; new suites on the merged tree
 test-compare-print 111/0, test-september-promo 150/0, test-visibility 83/0,
 test-contacts 49/0, test-contact-detail 81/0, test-quote-store 26/0; full merged-tree
-suite result recorded below when it lands. SHIPPED: (A) both Option Comparison prints
+suite on the exact pushed bytes: **3772 passed, 19 failed across 51 suites** (the same
+19 environmental reds; reconciles 3485 + 111 + 91 + 85 exactly). PUSHED LIVE 2026-09-04
+on the operator's word ("push it"): 8/0 re-measured, behind-count 0. SHIPPED: (A) both Option Comparison prints
 (cem + FH) rebuilt on the `_fq*` family-quote system — masthead, difference band, two
 grouped columns with tax/total, per-column payment estimate on cem pre-need only, none
 on FH (decision, operator to confirm); panels tidied; `_printQuote*` helpers left in
