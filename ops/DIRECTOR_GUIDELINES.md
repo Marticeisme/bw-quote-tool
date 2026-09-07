@@ -94,3 +94,7 @@ trusting prior-session memory.
 - Never move `scratch/name-fixtures.local.mjs` (or the other real-data files listed in
   DESIGN §6) out of `scratch/`.
 - Keep token use lean: direct, audit, merge — don't rebuild.
+
+## Push scar (s29, 2026-09-07)
+
+A plain `git pull --rebase` before the push LINEARIZES --no-ff merge commits (they vanish; track commits land directly on main). Check the behind-count first (`git fetch && git status -sb`); when not behind, push without rebasing. When behind, use `git pull --rebase=merges`. Cite SHAs in STATE.md only AFTER the push, from `git log origin/main`.
