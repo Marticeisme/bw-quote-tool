@@ -21914,26 +21914,49 @@ async function dtBuildOnePacket(bytes, keep) {
 }
 
 // The signature lines that must be SPLIT when the interment rights are held by more than one
-// person (operator ruling, sprint 29: "Release ... needs both of their signatures just split
-// the green box in half"). Everything below is in MuPDF page coordinates - origin top-left of
-// the VISIBLE page, y growing DOWNWARD - measured off the template with PyMuPDF.
+// person. Operator ruling, sprint 29, in order - the last one wins:
+//
+//   "Release ... needs both of their signatures just split the green box in half"
+//   "it's important we give somewhere for both of them to sign but if there's on addresss on
+//    the form and not both thats ok as long as it reads as purcsher & co-purchaser"
+//   "No I think it should separate lines so they don't have to sign so small"
+//
+// So every document the OWNERS sign gives each co-owner a SEPARATE FULL-WIDTH line, stacked
+// one under the other, with that owner's printed name under it - the Release, the Affidavit
+// for Loss and the Permission of Use. The ONE exception is the statement's green box (p9):
+// the operator ruled "split the green box in half" for it by name and the band is only ~24pt
+// tall, so it keeps side-by-side columns. The Affidavit of Heirs is signed by an HEIR, not by
+// the owners, and is left alone.
+//
+// Everything below is in MuPDF page coordinates - origin top-left of the VISIBLE page, y
+// growing DOWNWARD - measured off the template with PyMuPDF.
 //
 // pdf-lib draws in PDF USER space, whose origin is the MediaBox corner, and this template's
-// pages do not agree on that box: the Release pages are [0 0 612 792] but the statement is
+// pages do not agree on that box: nine of the ten are [0 0 612 792] but the statement is
 // [-11.9622 11.9906 600.038 1019.99]. Drawing at the raw MuPDF numbers puts everything ~12pt
 // down and ~12pt right of where it belongs on the statement, which is exactly what the first
 // cut of the statement split did. dtSplitAxes() reads the box off the PAGE it is drawing on,
 // so every page follows its own geometry and a template whose MediaBox moves stays correct.
-var DT_SPLIT_DEFAULTS = { gap: 18, size: 9, minSize: 5, pad: 6, ellipsis: '...' };
+//
+// A 'stack' entry reads: ruleTop/ruleBottom/nameBaseline are the LAST (bottom) row, the one
+// nearest where the template's own rule was; earlier rows are stacked upward rowPitch apart.
+// bandTop is the highest y a rule may take - the floor of the blank band above, measured as
+// real INK on the template, not as a text-line box. At two owners the full rowPitch is used;
+// at three the pitch is squeezed to whatever fits between bandTop and the bottom row, which
+// is why the cap of three fits on every page.
+var DT_SPLIT_DEFAULTS = { gap: 18, size: 9, minSize: 5, pad: 6, ellipsis: '...', rowPitch: 30 };
 var DT_SPLITS = {
-  // Statement (p9), the "form that looks like the CIRGAS". The green Current-Property-Owner
-  // band runs x 344.48-592.28 between the table rules; the single signature rule sits at
-  // y 582.71-583.43 and the green fill stops at y 583.19, so erasing that rule means putting
-  // back green above the boundary and white below. "Printed Name" (x 383-423, y 606.3-613.6)
-  // is whited out - each column is captioned by the name printed under its own line. The
-  // caption "Current Property Owner Signature" is KEPT: it labels the box, not a person. The
-  // 'Current Name Print' widget (y 590.2-606.1) is left empty and the names are drawn in it.
+  // Statement (p9), the "form that looks like the CIRGAS" - the ONE page that keeps columns.
+  // The green Current-Property-Owner band runs x 344.48-592.28 between the table rules; the
+  // single signature rule sits at y 582.71-583.43 and the green fill stops at y 583.19, so
+  // erasing that rule means putting back green above the boundary and white below. "Printed
+  // Name" (x 383-423, y 606.3-613.6) is whited out - each column is captioned by the name
+  // printed under its own line. The caption "Current Property Owner Signature" is KEPT: it
+  // labels the box, not a person. The 'Current Name Print' widget (y 590.2-606.1) is left
+  // empty and the names are drawn in it. There is no room to stack here: from the rule to the
+  // bottom of the green band is ~24pt, one row's worth.
   statement: {
+    layout: 'columns',
     page: DT_PAGES.statement, left: 344.482, right: 592.282,
     ruleTop: 582.71, ruleBottom: 583.43, nameBaseline: 602.3,
     erase: [ { x0: 344.482, x1: 592.282, top: 582.61, bottom: 583.19, color: 'green' },
@@ -21942,22 +21965,78 @@ var DT_SPLITS = {
   },
   // Release, notary variant (p2). The Grantor's Signature rule is x 313.2-522.84 at
   // y 388.96-389.44 and the caption "(Grantor's Signature)" sits IMMEDIATELY under it - its
-  // ink runs y ~392-405 and 'Grantors Address' starts at y 406.8, so there is no room at all
-  // for a printed name between the rule and the caption. The band ABOVE the rule is ~90pt of
-  // blank page, so the split rules are drawn there and the original rule is erased: each name
-  // sits under its own line and the kept caption still labels the block as a whole.
+  // ink runs y 394.33-405.17 and 'Grantors Address' starts at y 406.8, so there is no room at
+  // all for a printed name between the rule and the caption. The band ABOVE the rule is blank
+  // from y 253.33 (the last ink of the body paragraph in this column) down to the rule, so the
+  // rows are stacked there and the original rule is erased: each name sits under its own line
+  // and the kept caption still labels the block as a whole.
   releaseNotary: {
+    layout: 'stack',
     page: DT_PAGES.releaseNotary, left: 313.2, right: 522.84,
-    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6,
+    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6, rowPitch: 30, bandTop: 281.0,
     erase: [ { x0: 312.8, x1: 523.3, top: 388.7, bottom: 389.7, color: 'white' } ]
   },
   // Release, plain/DocuSign variant (p3). The same block 2pt lower (rule at y 390.96-391.44),
   // and the grantor's typed name normally lands ON that rule through the '2_2' widget - which
   // dtFillForm() leaves empty at two or more owners, exactly as it does 'Current Name Print'.
+  // This variant's body paragraph runs 37pt further down (last ink y 290.33), so its band
+  // floor is lower; three rows at the full 30pt pitch still clear it by 20.7pt.
   releasePlain: {
+    layout: 'stack',
     page: DT_PAGES.releasePlain, left: 313.2, right: 522.84,
-    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6,
+    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6, rowPitch: 30, bandTop: 298.0,
     erase: [ { x0: 312.8, x1: 523.3, top: 390.7, bottom: 391.7, color: 'white' } ]
+  },
+  // Affidavit for Loss of Certificate, notary variant (p4). The affiant's signature block is
+  // TWO blank uncaptioned rules - x 279-527.4 at y 430.8-431.28 and again at y 450.12 - with
+  // the never-filled widgets '1_3' and '2_3' over them. Both are erased: the block is ONE
+  // signature block and the stack replaces the whole of it, one captioned row per owner.
+  // Leaving a template rule in place would hang an uncaptioned full-width line among the
+  // printed names and invite a signature in a place nothing labels. The band is blank from
+  // y 398.17 (the last ink of the body paragraph) to y 481.0 (the notary block's first ink),
+  // so the bottom row sits at 461 with its name at 471.6, 9.4pt clear of the notary block.
+  lossNotary: {
+    layout: 'stack',
+    page: DT_PAGES.lossNotary, left: 279.0, right: 527.4,
+    ruleTop: 461.0, ruleBottom: 461.48, nameBaseline: 471.6, rowPitch: 30, bandTop: 405.0,
+    erase: [ { x0: 278.6, x1: 527.8, top: 430.3, bottom: 431.7, color: 'white' },
+             { x0: 277.9, x1: 527.8, top: 449.5, bottom: 451.0, color: 'white' } ]
+  },
+  // Affidavit for Loss, plain/DocuSign variant (p5). The first rule is the same to the point
+  // (x 279-527.4, y 430.8-431.28), so the stack geometry is identical; only the second rule
+  // moves, down to y 466.12, which is the one number that differs between the two variants.
+  // This variant has no notary block, so the band below is open - the geometry is held equal
+  // to the notary variant's on purpose, so the two copies of the same document match.
+  lossPlain: {
+    layout: 'stack',
+    page: DT_PAGES.lossPlain, left: 279.0, right: 527.4,
+    ruleTop: 461.0, ruleBottom: 461.48, nameBaseline: 471.6, rowPitch: 30, bandTop: 405.0,
+    erase: [ { x0: 278.6, x1: 527.8, top: 430.3, bottom: 431.7, color: 'white' },
+             { x0: 277.9, x1: 527.8, top: 465.5, bottom: 467.0, color: 'white' } ]
+  },
+  // Permission of Use, notary variant (p7). The signer's rule is x 72-306 at y 390.6-391.2 and
+  // the "Name:" row starts immediately under it - the label's ink from y 395.0, the 'Name_4'
+  // widget at y 391.3 - with Address: and Phone: stacked below that. The Release's problem
+  // exactly: no room for a printed name under the rule. So the rule is erased and the rows are
+  // stacked above it, in the band that is blank from y 336.5 down to the rule. The "Date:"
+  // rule shares that y but lives at x 386-540 and is untouched, and 'Name_4' keeps the joined
+  // names: it is the block's own printed-name ROW, captioned "Name:", not a name typed on the
+  // signature rule. This is the tightest page in the set - at THREE owners the pitch squeezes
+  // to 18pt, which is this form's own row pitch for Name:/Address:/Phone: but leaves only
+  // ~7.8pt of clear height to sign in. At two owners the full 30pt pitch is used.
+  permissionNotary: {
+    layout: 'stack',
+    page: DT_PAGES.permissionNotary, left: 72.0, right: 306.0,
+    ruleTop: 377.0, ruleBottom: 377.6, nameBaseline: 387.2, rowPitch: 30, bandTop: 341.0,
+    erase: [ { x0: 71.6, x1: 306.4, top: 390.3, bottom: 391.2, color: 'white' } ]
+  },
+  // Permission of Use, plain/DocuSign variant (p8). The same block at the same coordinates to
+  // the point; only the widget names differ ('Name_5', 'Address_6', 'Phone_2').
+  permissionPlain: {
+    layout: 'stack',
+    page: DT_PAGES.permissionPlain, left: 72.0, right: 306.0,
+    ruleTop: 377.0, ruleBottom: 377.6, nameBaseline: 387.2, rowPitch: 30, bandTop: 341.0,
+    erase: [ { x0: 71.6, x1: 306.4, top: 390.3, bottom: 391.2, color: 'white' } ]
   }
 };
 function dtSplitAxes(page) {
@@ -21966,9 +22045,46 @@ function dtSplitAxes(page) {
   return { x: function(v) { return ox + v; }, y: function(v) { return oy - v; } };
 }
 
-// Draws one split signature line: N equal columns, a rule each, that owner's printed name
-// centred under it. `G` is the geometry entry above, so the same code serves the statement and
-// both Release variants. At one owner nothing is drawn and the page is the s27 behaviour.
+// Where each owner's rule and printed name go, in MuPDF page coordinates. 'stack' returns N
+// full-width rows one under the other, the LAST of them on the geometry's own ruleTop, with
+// the pitch squeezed if three rows would not otherwise clear bandTop. 'columns' returns N
+// side-by-side rules on one y - the statement only. rx0/rx1 is the rule, cx0/cx1 the box the
+// name is centred in (they differ for columns, which leave a gap between neighbours but still
+// centre each name on its own full column), max the width the name must fit in.
+function dtSplitSlots(G, n) {
+  var D = DT_SPLIT_DEFAULTS, out = [], i;
+  if (G.layout === 'stack') {
+    var pitch = G.rowPitch || D.rowPitch;
+    if (n > 1 && G.bandTop !== undefined) pitch = Math.min(pitch, (G.ruleTop - G.bandTop) / (n - 1));
+    for (i = 0; i < n; i++) {
+      var dy = (n - 1 - i) * pitch;
+      out.push({ rx0: G.left, rx1: G.right, cx0: G.left, cx1: G.right,
+                 top: G.ruleTop - dy, bottom: G.ruleBottom - dy,
+                 base: G.nameBaseline - dy, max: (G.right - G.left) - D.pad });
+    }
+    return out;
+  }
+  var cw = (G.right - G.left) / n;
+  for (i = 0; i < n; i++) {
+    var x0 = G.left + i * cw, x1 = x0 + cw;
+    // The outer ends run to the borders; adjacent lines leave a gap between them.
+    out.push({ rx0: x0 + (i === 0 ? 0 : D.gap / 2), rx1: x1 - (i === n - 1 ? 0 : D.gap / 2),
+               cx0: x0, cx1: x1, top: G.ruleTop, bottom: G.ruleBottom,
+               base: G.nameBaseline, max: cw - D.pad });
+  }
+  return out;
+}
+
+// Who signs a given document. Where the form takes a named signer and one is typed in, that
+// ONE person signs it and nothing is split; otherwise the co-owners do. Returns a list, so a
+// single named signer reads to dtDrawSignatureSplit() exactly as a single owner does.
+function dtSplitSigners(named, joined, owners) {
+  return (named && named !== joined) ? [] : owners;
+}
+
+// Draws one split signature block: a rule per owner with that owner's printed name centred
+// under it, stacked or side by side according to `G`. At one owner nothing is drawn and the
+// page is the s27 behaviour.
 async function dtDrawSignatureSplit(doc, pageIndex, owners, G) {
   if (pageIndex < 0 || !G || !owners || owners.length < 2) return;
   try {
@@ -21981,28 +22097,24 @@ async function dtDrawSignatureSplit(doc, pageIndex, owners, G) {
     // Erase what the split replaces, putting back whatever was under it.
     (G.erase || []).forEach(function(e) { box(e.x0, e.x1, e.top, e.bottom, INK[e.color]); });
 
-    var W = G.right - G.left, n = owners.length, cw = W / n;
-    for (var i = 0; i < n; i++) {
-      var x0 = G.left + i * cw, x1 = x0 + cw;
-      // The outer ends run to the borders; adjacent lines leave a gap between them.
-      box(x0 + (i === 0 ? 0 : D.gap / 2), x1 - (i === n - 1 ? 0 : D.gap / 2),
-          G.ruleTop, G.ruleBottom, INK.black);
+    dtSplitSlots(G, owners.length).forEach(function(s, i) {
+      box(s.rx0, s.rx1, s.top, s.bottom, INK.black);
       var name = owners[i].name || '';
-      if (!name) continue;
-      var size = D.size, max = cw - D.pad;
-      while (size > D.minSize && font.widthOfTextAtSize(name, size) > max) size -= 0.5;
-      // Still wider than its column at the smallest size - trim rather than run over the
-      // border. Only reachable at three co-owners with a very long name. The FIELD values
+      if (!name) return;
+      var size = D.size;
+      while (size > D.minSize && font.widthOfTextAtSize(name, size) > s.max) size -= 0.5;
+      // Still wider than its slot at the smallest size - trim rather than run over the border.
+      // Only reachable on the statement's three columns with a very long name. The FIELD values
       // always carry the whole name; only the drawn caption is cut.
-      if (font.widthOfTextAtSize(name, size) > max) {
+      if (font.widthOfTextAtSize(name, size) > s.max) {
         var cut = name;
-        while (cut.length > 1 && font.widthOfTextAtSize(cut + D.ellipsis, size) > max) cut = cut.slice(0, -1);
+        while (cut.length > 1 && font.widthOfTextAtSize(cut + D.ellipsis, size) > s.max) cut = cut.slice(0, -1);
         name = cut.replace(/[\s\-]+$/, '') + D.ellipsis;
       }
       var tw = font.widthOfTextAtSize(name, size);
-      page.drawText(name, { x: ax.x((x0 + x1) / 2) - tw / 2, y: ax.y(G.nameBaseline),
+      page.drawText(name, { x: ax.x((s.cx0 + s.cx1) / 2) - tw / 2, y: ax.y(s.base),
                             size: size, font: font, color: INK.black });
-    }
+    });
   } catch (e) { console.warn('Deed transfer: signature split failed:', e.message); }
 }
 
@@ -22020,13 +22132,29 @@ async function generateDeedTransferPDF() {
 
     // ONE packet - the s27 page set, every document once (operator ruling, sprint 29). Where a
     // document names the owner it already carries all the co-owners; where they must BOTH sign
-    // - the Release and the statement's green owner box - the single signature line is split
-    // into one column per co-owner with each printed name under it.
+    // - the Release, the Affidavit for Loss, the Permission of Use and the statement's green
+    // owner box - the signature line becomes one SEPARATE FULL-WIDTH line per co-owner, stacked
+    // with each printed name under it ("separate lines so they don't have to sign so small").
+    // The statement's green box is the exception the operator named himself: split in half.
     var doc = await dtBuildOnePacket(bytes, keepAll);
     if (owners.length > 1) {
-      var release = DT_SPLITS[sel.docusign ? 'releasePlain' : 'releaseNotary'];
+      var variant = function(key) { return DT_SPLITS[key + (sel.docusign ? 'Plain' : 'Notary')]; };
+      var release = variant('release'), loss = variant('loss'), permission = variant('permission');
+      // A line is split only where the CO-OWNERS are the people who sign it. Two of these
+      // documents can be signed by somebody else, and dtFillForm() writes that one person's
+      // name into them: the Affidavit for Loss takes a named affiant, and the Permission of
+      // Use is signed by an HEIR when the owner has died. One signer, one line - the same rule
+      // as one owner. Both tests mirror dtFillForm()'s own "is the signer somebody else?".
+      var joined     = dtOwnerNames();
+      var lossOwners = dtSplitSigners(_dtVal('dtAffiantName'), joined, owners);
+      var permOwners = dtSplitSigners(_dtVal('dtHeirAffiant'), joined, owners);
       await dtDrawSignatureSplit(doc, keepAll.indexOf(DT_PAGES.statement), owners, DT_SPLITS.statement);
       await dtDrawSignatureSplit(doc, keepAll.indexOf(release.page), owners, release);
+      // The Loss affidavit and the Permission of Use are only in the packet when their toggle
+      // is on. keepAll.indexOf() is -1 for a page that was pruned and dtDrawSignatureSplit()
+      // returns without drawing, so the page list is the other half of the guard.
+      await dtDrawSignatureSplit(doc, keepAll.indexOf(loss.page), lossOwners, loss);
+      await dtDrawSignatureSplit(doc, keepAll.indexOf(permission.page), permOwners, permission);
     }
 
     // Acrobat re-derives appearances when NeedAppearances is true and can lose the fill; the
