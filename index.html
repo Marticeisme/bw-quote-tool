@@ -3525,14 +3525,12 @@ tr:hover td{background:var(--navy-100);}
         </div></div>
         <div class="dt-co-row" data-dt-co="2" style="display:none;"><div class="dt-grid">
           <div class="dt-f" style="flex:2;min-width:200px;"><label>Co-owner name</label><input type="text" id="dtCoOwner2Name"></div>
-          <div class="dt-f"><label>Phone</label><input type="text" id="dtCoOwner2Phone"></div>
-          <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtCoOwner2Email"></div>
+          <div style="flex:3;min-width:110px;"></div>
           <button type="button" class="dt-rowbtn dt-co-rm" onclick="dtRemoveCoOwnerRow(2)">&#10005; Remove</button>
         </div></div>
         <div class="dt-co-row" data-dt-co="3" style="display:none;"><div class="dt-grid">
           <div class="dt-f" style="flex:2;min-width:200px;"><label>Co-owner name</label><input type="text" id="dtCoOwner3Name"></div>
-          <div class="dt-f"><label>Phone</label><input type="text" id="dtCoOwner3Phone"></div>
-          <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtCoOwner3Email"></div>
+          <div style="flex:3;min-width:110px;"></div>
           <button type="button" class="dt-rowbtn dt-co-rm" onclick="dtRemoveCoOwnerRow(3)">&#10005; Remove</button>
         </div></div>
       </div>
@@ -3540,8 +3538,8 @@ tr:hover td{background:var(--navy-100);}
       <div style="font-size:12px;color:var(--text-light);">
         Interment rights can be held by more than one person. Every co-owner listed here gets their
         own copy of each document they sign, and their own signature line on the statement page.
-        The address below is shared &mdash; it is the address of record for the property, not a
-        personal address.
+        A co-owner needs their <strong>name only</strong> &mdash; the address below is shared, and the
+        phone and e-mail on the cover sheet and the statement are the first owner&rsquo;s.
       </div>
       <div class="dt-grid">
         <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtGrantorAddress"></div>
@@ -21400,12 +21398,17 @@ var DT_MAX_CO_OWNERS = 3;
 
 // [{name, phone, email}, ...] - primary first, rows with no name dropped. Never empty, so
 // every caller can treat the list as having at least one owner.
+//
+// OPERATOR AMENDMENT 2026-09-07: a co-owner is a NAME ONLY. No phone or e-mail is collected
+// for one anywhere - not on the form, not on the record, not in the packet - so their phone
+// and e-mail are always blank here. The cover sheet and the statement print the FIRST
+// owner's, and a per-copy field that would carry a co-owner's own number is left empty
+// rather than filled with somebody else's, the same rule the Permission of Use already
+// follows for an heir signer.
 function dtCoOwners() {
   var out = [{ name: _dtVal('dtGrantorName'), phone: _dtVal('dtGrantorPhone'), email: _dtVal('dtGrantorEmail') }];
   for (var i = 2; i <= DT_MAX_CO_OWNERS; i++) {
-    out.push({ name:  _dtVal('dtCoOwner' + i + 'Name'),
-               phone: _dtVal('dtCoOwner' + i + 'Phone'),
-               email: _dtVal('dtCoOwner' + i + 'Email') });
+    out.push({ name: _dtVal('dtCoOwner' + i + 'Name'), phone: '', email: '' });
   }
   var named = out.filter(function(o) { return !!o.name; });
   return named.length ? named : [out[0]];
@@ -21560,13 +21563,9 @@ function dtRemoveCoOwnerRow(n) {
   var R = dtCoOwnerRowEls().length;
   if (!(n >= 2 && n <= R)) return dtVisibleCoOwnerRows();
   for (var i = n; i < R; i++) {
-    _dtSet('dtCoOwner' + i + 'Name',  _dtVal('dtCoOwner' + (i + 1) + 'Name'));
-    _dtSet('dtCoOwner' + i + 'Phone', _dtVal('dtCoOwner' + (i + 1) + 'Phone'));
-    _dtSet('dtCoOwner' + i + 'Email', _dtVal('dtCoOwner' + (i + 1) + 'Email'));
+    _dtSet('dtCoOwner' + i + 'Name', _dtVal('dtCoOwner' + (i + 1) + 'Name'));
   }
   _dtSet('dtCoOwner' + R + 'Name', '');
-  _dtSet('dtCoOwner' + R + 'Phone', '');
-  _dtSet('dtCoOwner' + R + 'Email', '');
   var out = dtSyncCoOwnerRows(dtVisibleCoOwnerRows() - 1);
   dtUpdateDocs();
   return out;
@@ -21704,6 +21703,8 @@ function dtFillForm(form, self, owners) {
   setTF('Address Line 1', newOwnerAd);
   setTF('New Owners Signature 2', _dtVal('dtNewOwnerPhone'));
   setTF('Grantors Address', grantorAdr);
+  // Blank on a co-owner's copy: no phone is collected for one, and the FIRST owner's number
+  // under a co-owner's signature would be wrong on the face of the document.
   setTF('Grantors Phone Num', grantorPh);
 
   // ── PAGE 3 — Release, plain (DocuSign) variant ──────────────────────────────
@@ -22504,8 +22505,7 @@ function formatPhoneInput(inp) {
   ['ricPhone', 'gaInsuredPhone', 'gaOwnerPhone', 'gaBenefPhone', 'cpPhone', 'cpPhone2',
    'anPurchHomePhone', 'anPurchCellPhone', 'anCoPurchHomePhone', 'anCoPurchCellPhone',
    // Deed transfer lane (operator request 2026-08-25: same auto-format as RIC/CIRGAS).
-   'dtGrantorPhone', 'dtNewOwnerPhone',
-   'dtCoOwner2Phone', 'dtCoOwner3Phone'].forEach(function(id) {
+   'dtGrantorPhone', 'dtNewOwnerPhone'].forEach(function(id) {
     var e = document.getElementById(id);
     if (e) e.addEventListener('input', function(){ formatPhoneInput(e); });
   });
