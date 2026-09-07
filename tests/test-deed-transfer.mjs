@@ -198,19 +198,15 @@ const MARKER = {
   // page 10 (Terms) carries no fields at all — counted, not fingerprinted.
 };
 
-// Which template document a page IS, from the field only that page carries. Copies 2..N
-// have their fields renamed (' co2', ' co3') so two AcroForm fields with one name cannot be
-// forced to share a value.
+// Which template document a page IS, from the field only that page carries.
 const pageIs  = (r, i, key) => (r.perPage[i] || { names: [] }).names.indexOf(MARKER[key]) >= 0;
-const pageIs2 = (r, i, key) => (r.perPage[i] || { names: [] }).names.indexOf(MARKER[key] + ' co2') >= 0;
-const pageIs3 = (r, i, key) => (r.perPage[i] || { names: [] }).names.indexOf(MARKER[key] + ' co3') >= 0;
-// Every value printed on one page, as one string — for "the other owner is not on this page".
+// Every value printed on one page, as one string.
 const pageText = (r, i) => Object.keys((r.perPage[i] || {}).values || {})
   .map(k => r.perPage[i].values[k]).join(String.fromCharCode(10));
 
-// The split statement box prints each co-owner's name and signature line as page CONTENT,
-// not as field values — pdf-lib emits hex-encoded show-text and filled rectangles. Nothing in
-// the AcroForm carries them, so the only honest check is to decompress the page and look.
+// A split signature box prints each co-owner's name and rule as page CONTENT, not as field
+// values — pdf-lib emits hex-encoded show-text and filled rectangles. Nothing in the AcroForm
+// carries them, so the only honest check is to decompress the page and look.
 async function pageContent(b64, pageIndex) {
   const doc = await PDFDocument.load(Buffer.from(b64, 'base64'), { ignoreEncryption: true });
   const page = doc.getPages()[pageIndex];
@@ -250,9 +246,11 @@ const drawnTexts = (content) => {
   });
   return out.sort((a, b) => a.x - b.x);
 };
-// The signature lines: the black ones at the rule y, left to right.
-const sigLines = (content) => drawnRects(content)
-  .filter(d => d.r === 0 && d.g === 0 && d.b === 0 && Math.abs(d.h - 0.72) < 0.01)
+// The drawn signature rules: the black ones of that thickness, left to right. Each page keeps
+// its own template's rule height — 0.72 on the statement, 0.48 on both Release variants.
+const RULE_H = { statement: 0.72, release: 0.48 };
+const sigLines = (content, h) => drawnRects(content)
+  .filter(d => d.r === 0 && d.g === 0 && d.b === 0 && Math.abs(d.h - h) < 0.01)
   .sort((a, b) => a.x - b.x);
 
 const browser = await chromium.launch();
@@ -600,7 +598,9 @@ for (const docusign of [false, true]) {
 
 // ── 8. Co-owners: the list, the row UI and the page maths ──────────────────────────
 // Sprint 29. The current owner side is a LIST: the primary in the original dtGrantor*
-// fields, co-owners 2..3 in rows that already exist in the DOM.
+// fields, co-owners 2..3 in rows that already exist in the DOM. Operator ruling 2026-09-07:
+// "We can collect all the info it just doesn't need to print everywhere if there's not room"
+// — so the list changes what the packet SAYS, never how many pages it has.
 console.log('\n8. The co-owner list, the row UI and the page maths');
 {
   const { ctx, page, errs } = await open(browser);
@@ -608,15 +608,23 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
     show('dt-transfer', null);
     const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
     const btn = () => document.getElementById('dtAddCoOwnerBtn').style.display;
+    const listed = () => document.getElementById('dtDocList').textContent;
+    const sel = { docusign: false, release: true, loss: true, heirs: true, permission: true };
     set('dtGrantorName', fx.grantor); set('dtGrantorPhone', fx.grantorPhone);
     set('dtGrantorEmail', fx.grantorEmail);
-    const one = dtCoOwners();
+    dtUpdateDocs();
+    const one = dtCoOwners(), names1 = dtOwnerNames();
+    const pages1 = dtPageIndexes(sel).length, listed1 = listed();
     const addedRow = dtAddCoOwnerRow();
     set('dtCoOwner2Name', fx.co2); set('dtCoOwner2Phone', fx.co2Phone); set('dtCoOwner2Email', fx.co2Email);
-    const two = dtCoOwners();
+    dtUpdateDocs();
+    const two = dtCoOwners(), names2 = dtOwnerNames();
+    const pages2 = dtPageIndexes(sel).length, listed2 = listed();
     dtAddCoOwnerRow();
     set('dtCoOwner3Name', fx.co3); set('dtCoOwner3Phone', fx.co3Phone);
-    const three = dtCoOwners();
+    dtUpdateDocs();
+    const three = dtCoOwners(), names3 = dtOwnerNames();
+    const pages3 = dtPageIndexes(sel).length, listed3 = listed();
     const btnHidden = btn() === 'none';
     const capped = dtAddCoOwnerRow();
     // A row with a phone but no name is not a co-owner.
@@ -631,17 +639,13 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
       r3: document.getElementById('dtCoOwner3Name').value, btn: btn()
     };
     const primaryKept = dtRemoveCoOwnerRow(1);   // the primary can never be removed
-    const sel = { docusign: false, release: true, loss: true, heirs: true, permission: true };
-    const maths = {
-      per: dtPerOwnerPages(sel), keep: dtPageIndexes(sel),
-      t1: dtTotalPages(sel, 1), t2: dtTotalPages(sel, 2), t3: dtTotalPages(sel, 3),
-      releaseOnly3: dtTotalPages({ docusign: false, release: true }, 3)
-    };
+    const docs = dtDocList(sel).map(d => d.name + ' | ' + d.note);
     dtClearAll();
     const cleared = { rows: dtVisibleCoOwnerRows(),
                       name2: document.getElementById('dtCoOwner2Name').value, btn: btn() };
     return { one, two, three, addedRow, capped, btnHidden, blankDropped, afterRemove,
-             primaryKept, maths, cleared };
+             primaryKept, cleared, docs,
+             names1, names2, names3, pages1, pages2, pages3, listed1, listed2, listed3 };
   }, FIX);
 
   ok('one owner: dtCoOwners() is the primary alone',
@@ -651,7 +655,7 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
   ok('"Add co-owner" reveals row 2', m.addedRow === 2, m.addedRow);
   ok('two owners: the primary is FIRST, then the co-owner',
     m.two.length === 2 && m.two[0].name === FIX.grantor && m.two[1].name === FIX.co2, m.two);
-  ok('the co-owner carries their own phone and e-mail',
+  ok("a co-owner's phone and e-mail are still COLLECTED — they are kept on the record",
     m.two[1].phone === FIX.co2Phone && m.two[1].email === FIX.co2Email, m.two[1]);
   ok('three is the cap: the Add button hides at three rows', m.btnHidden, m.btnHidden);
   ok('a fourth Add does nothing', m.capped === 3 && m.three.length === 3, [m.capped, m.three.length]);
@@ -663,91 +667,90 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
   ok('the surviving list is the primary plus the pulled-up co-owner',
     m.afterRemove.names.join('|') === FIX.grantor + '|' + FIX.co3, m.afterRemove.names);
   ok('the primary row can never be removed', m.primaryKept === 2, m.primaryKept);
-  ok('the per-owner pages are the documents somebody signs, not the cover/statement/terms',
-    m.maths.per.join() === '1,3,5,6', m.maths.per);
-  ok('at ONE co-owner the total is the s27 page set, unchanged',
-    m.maths.t1 === m.maths.keep.length && m.maths.t1 === 7, [m.maths.t1, m.maths.keep.length]);
-  ok('the total is 1 + N x documents + 2', m.maths.t2 === 11 && m.maths.t3 === 15, [m.maths.t2, m.maths.t3]);
-  ok('release only, three co-owners: 1 + 3 + 2 = 6 pages', m.maths.releaseOnly3 === 6, m.maths.releaseOnly3);
+
+  // Operator ruling: "Some of these on the forms should be as simple as giving both names."
+  ok('dtOwnerNames() is one name at one owner', m.names1 === FIX.grantor, m.names1);
+  ok('dtOwnerNames() joins two owners with " & "',
+    m.names2 === FIX.grantor + ' & ' + FIX.co2, m.names2);
+  ok('dtOwnerNames() joins three the same way',
+    m.names3 === FIX.grantor + ' & ' + FIX.co2 + ' & ' + FIX.co3, m.names3);
+
+  // The ruling that replaced the per-copy assembly: one packet, however many owners.
+  ok('the page set does NOT grow with the number of co-owners — one packet, one copy of each',
+    m.pages1 === 7 && m.pages2 === 7 && m.pages3 === 7, [m.pages1, m.pages2, m.pages3]);
+  ok('the on-screen document list says the same thing at one, two and three co-owners',
+    m.listed1 === m.listed2 && m.listed2 === m.listed3, [m.listed1, m.listed2]);
+  // No situation toggle is ticked here, so the on-screen set is the baseline four pages —
+  // and it stays four with three co-owners on the deed, not a multiple of them.
+  ok('and it says 4 pages at three co-owners, not a per-owner multiple',
+    /^The download will contain 4 pages:/.test(m.listed3), m.listed3.slice(0, 60));
+  ok('no document is tagged as copied per co-owner',
+    m.docs.every(d => !/co-owner/i.test(d)), m.docs);
   ok('Clear All collapses the list back to the primary row alone',
     m.cleared.rows === 1 && m.cleared.name2 === '' && m.cleared.btn === '', m.cleared);
   ok('no page errors across the co-owner row UI', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
-// ── 9. Two co-owners, in person: one copy of each document, per owner, in order ─────
-console.log('\n9. Two co-owners (notary) — one copy of each signed document per owner');
+// ── 9. Two co-owners, in person: ONE packet, both names, split signature lines ──────
+// The operator's ruling of 2026-09-07: "Permission of Use, Affidavit of Heirs, Affidavit for
+// Loss of Certificate, Release if Interment rights needs both of their signatures just split
+// the green box in half." One copy of each document, both names written in, and the two places
+// they must BOTH sign — the Release line and the statement's green box — split in half.
+console.log('\n9. Two co-owners (notary) — one packet, both names, split signature lines');
 {
   const { ctx, page, errs } = await open(browser);
   const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  const BOTH = FIX.grantor + ' & ' + FIX.co2;
   const r = await genAudit(page, { docusign: false, lost: true, deceased: true,
                                    permission: true, heirs: 1, coOwners: CO });
   ok('the two-co-owner packet generated without throwing', !r.error, r.error);
-  ok('11 pages: cover + 4 documents x 2 owners + statement + terms', r.pages === 11, r.pages);
+  ok('7 pages — exactly the one-owner page set: there are no per-co-owner copies',
+    r.pages === 7, r.pages);
+  ok('cover, release, loss, heirs, permission, statement, terms — once each',
+    pageIs(r, 0, 'cover') && pageIs(r, 1, 'releaseNotary') && pageIs(r, 2, 'lossNotary') &&
+    pageIs(r, 3, 'heirs') && pageIs(r, 4, 'permissionNotary') && pageIs(r, 5, 'statement') &&
+    r.perPage[6].names.length === 0,
+    r.perPage.map(p => p.names[0]));
+  ok('no field name carries a copy suffix — there are no copies to tell apart',
+    r.names.every(n => !/ co\d+$/.test(n)), r.names.filter(n => / co\d+$/.test(n)));
 
-  ok('p1 is the cover', pageIs(r, 0, 'cover'), r.perPage[0].names[0]);
-  ok('owner A block is release, loss, heirs, permission (pages 2-5)',
-    pageIs(r, 1, 'releaseNotary') && pageIs(r, 2, 'lossNotary') &&
-    pageIs(r, 3, 'heirs') && pageIs(r, 4, 'permissionNotary'),
-    r.perPage.slice(1, 5).map(p => p.names[0]));
-  ok('owner B block repeats the same four documents, in the same order (pages 6-9)',
-    pageIs2(r, 5, 'releaseNotary') && pageIs2(r, 6, 'lossNotary') &&
-    pageIs2(r, 7, 'heirs') && pageIs2(r, 8, 'permissionNotary'),
-    r.perPage.slice(5, 9).map(p => p.names[0]));
-  ok('p10 is the statement and p11 the terms (no fields at all)',
-    pageIs(r, 9, 'statement') && r.perPage[10].names.length === 0,
-    [r.perPage[9].names[0], r.perPage[10].names.length]);
-
-  ok("owner A's release names owner A",
-    r.perPage[1].values['day of'] === FIX.grantor, r.perPage[1].values['day of']);
-  ok("owner B's release names owner B",
-    r.perPage[5].values['day of co2'] === FIX.co2, r.perPage[5].values['day of co2']);
-  ok("each release carries that owner's own phone",
-    r.perPage[1].values['Grantors Phone Num'] === FIX.grantorPhone &&
-    r.perPage[5].values['Grantors Phone Num co2'] === FIX.co2Phone,
-    [r.perPage[1].values['Grantors Phone Num'], r.perPage[5].values['Grantors Phone Num co2']]);
-  ok("owner B's name appears NOWHERE on owner A's four pages",
-    [1, 2, 3, 4].every(i => pageText(r, i).indexOf(FIX.co2) < 0),
-    [1, 2, 3, 4].filter(i => pageText(r, i).indexOf(FIX.co2) >= 0));
-  ok("owner A's name is not the grantor or affiant on owner B's pages",
-    r.perPage[5].values['day of co2'] !== FIX.grantor &&
-    r.perPage[6].values['being duly sworn deposes and says co2'] === FIX.co2,
-    r.perPage[6].values['being duly sworn deposes and says co2']);
-  ok('the shared address is on BOTH copies — one property, one address of record',
-    /Larkspur/.test(r.perPage[1].values['Grantors Address'] || '') &&
-    /Larkspur/.test(r.perPage[5].values['Grantors Address co2'] || ''),
-    [r.perPage[1].values['Grantors Address'], r.perPage[5].values['Grantors Address co2']]);
-
+  ok('the release names BOTH owners in the grantor box', r.values['day of'] === BOTH, r.values['day of']);
+  ok('the release address and phone stay the shared address and the primary phone',
+    /Larkspur/.test(r.values['Grantors Address'] || '') &&
+    r.values['Grantors Phone Num'] === FIX.grantorPhone,
+    [r.values['Grantors Address'], r.values['Grantors Phone Num']]);
   ok('the cover joins the names with " & " and prints the primary phone',
-    r.values['Namephone  of current property ownerRow1'] ===
-      FIX.grantor + ' & ' + FIX.co2 + ' · ' + FIX.grantorPhone,
+    r.values['Namephone  of current property ownerRow1'] === BOTH + ' · ' + FIX.grantorPhone,
     r.values['Namephone  of current property ownerRow1']);
-
   ok('the statement leaves Current Name Print EMPTY at two co-owners',
-    !r.perPage[9].values['Current Name Print'], r.perPage[9].values['Current Name Print']);
+    !r.values['Current Name Print'], r.values['Current Name Print']);
   ok('the statement address block stays ONE block: shared address, primary e-mail and phone',
-    r.perPage[9].values['Address Current'] === FIX.grantorAddress &&
-    r.perPage[9].values['Zip Current'] === FIX.grantorZip &&
-    r.perPage[9].values['Email Current'] === FIX.grantorEmail &&
-    r.perPage[9].values['Cell Phone Current'] === FIX.grantorPhone,
-    [r.perPage[9].values['Address Current'], r.perPage[9].values['Email Current'],
-     r.perPage[9].values['Cell Phone Current']]);
+    r.values['Address Current'] === FIX.grantorAddress &&
+    r.values['Zip Current'] === FIX.grantorZip &&
+    r.values['Email Current'] === FIX.grantorEmail &&
+    r.values['Cell Phone Current'] === FIX.grantorPhone,
+    [r.values['Address Current'], r.values['Email Current'], r.values['Cell Phone Current']]);
+  ok("the co-owner's own phone and e-mail print NOWHERE — there is no box for them",
+    Object.values(r.values).every(v => v.indexOf(FIX.co2Phone) < 0 && v.indexOf(FIX.co2Email) < 0),
+    Object.keys(r.values).filter(k => /0188|beatrix@/.test(r.values[k])));
 
-  const st = await pageContent(r.b64, 9);
-  ok('BOTH printed names are DRAWN into the split signature box',
+  // ── the statement's green box, split in half ──
+  const st = await pageContent(r.b64, 5);
+  ok('BOTH printed names are DRAWN into the split statement box',
     drawn(st, FIX.grantor) && drawn(st, FIX.co2), [drawn(st, FIX.grantor), drawn(st, FIX.co2)]);
-  ok('the box is split into TWO signature lines of equal width',
-    sigLines(st).length === 2 && Math.abs(sigLines(st)[0].w - sigLines(st)[1].w) < 0.01,
-    sigLines(st));
-  ok('the two lines sit inside the green box, left edge to right edge',
-    sigLines(st).length === 2 &&
-    sigLines(st)[0].x > 332.4 && sigLines(st)[0].x < 332.6 &&
-    sigLines(st)[1].x + sigLines(st)[1].w > 580.2 &&
-    sigLines(st).every(l => Math.abs(l.y - 436.56) < 0.01),
-    sigLines(st));
-
-  ok('the original full-width rule was erased and its background restored: green above the ' +
-     'fill boundary, white below',
+  ok('the statement box is split into TWO signature lines of equal width',
+    sigLines(st, RULE_H.statement).length === 2 &&
+    Math.abs(sigLines(st, RULE_H.statement)[0].w - sigLines(st, RULE_H.statement)[1].w) < 0.01,
+    sigLines(st, RULE_H.statement));
+  ok('the two statement lines sit inside the green box, left edge to right edge',
+    sigLines(st, RULE_H.statement).length === 2 &&
+    sigLines(st, RULE_H.statement)[0].x > 332.4 && sigLines(st, RULE_H.statement)[0].x < 332.6 &&
+    sigLines(st, RULE_H.statement)[1].x + sigLines(st, RULE_H.statement)[1].w > 580.2 &&
+    sigLines(st, RULE_H.statement).every(l => Math.abs(l.y - 436.56) < 0.01),
+    sigLines(st, RULE_H.statement));
+  ok('the original full-width statement rule was erased and its background restored: green ' +
+     'above the fill boundary, white below',
     drawnRects(st).some(d => d.r === 0.8 && d.g === 1 && d.b === 0.8 && Math.abs(d.w - 247.8) < 0.01) &&
     drawnRects(st).some(d => d.r === 1 && d.g === 1 && d.b === 1 && Math.abs(d.w - 247.8) < 0.01),
     drawnRects(st).filter(d => Math.abs(d.w - 247.8) < 0.01));
@@ -756,135 +759,254 @@ console.log('\n9. Two co-owners (notary) — one copy of each signed document pe
                              Math.abs(d.w - 40) < 0.01 && Math.abs(d.h - 7.3) < 0.01),
     drawnRects(st).filter(d => d.r === 1 && d.w < 100));
 
+  // ── the Release's Grantor's Signature line, split the same way ──
+  const rl = await pageContent(r.b64, 1);
+  ok("BOTH printed names are DRAWN under the Release's split signature line",
+    drawn(rl, FIX.grantor) && drawn(rl, FIX.co2), [drawn(rl, FIX.grantor), drawn(rl, FIX.co2)]);
+  ok('the Release line is split into TWO rules of equal width',
+    sigLines(rl, RULE_H.release).length === 2 &&
+    Math.abs(sigLines(rl, RULE_H.release)[0].w - sigLines(rl, RULE_H.release)[1].w) < 0.01,
+    sigLines(rl, RULE_H.release));
+  ok('the two Release rules run the full width of the original line, 313.2 to 522.84',
+    sigLines(rl, RULE_H.release).length === 2 &&
+    Math.abs(sigLines(rl, RULE_H.release)[0].x - 313.2) < 0.01 &&
+    Math.abs(sigLines(rl, RULE_H.release)[1].x + sigLines(rl, RULE_H.release)[1].w - 522.84) < 0.01 &&
+    sigLines(rl, RULE_H.release).every(l => Math.abs(l.y - 420.52) < 0.01),
+    sigLines(rl, RULE_H.release));
+  ok("the template's own full-width Release rule was whited out at its own y (392.3 down to " +
+     '402.3 in user space), so only one set of lines is on the page',
+    drawnRects(rl).some(d => d.r === 1 && d.g === 1 && d.b === 1 &&
+                             Math.abs(d.w - 210.5) < 0.01 && Math.abs(d.y - 402.3) < 0.01),
+    drawnRects(rl).filter(d => d.r === 1));
+  ok('each printed name sits BELOW its own rule and ABOVE the kept "(Grantor\'s Signature)" ' +
+     'caption, whose baseline is y 389.4',
+    drawnTexts(rl).length === 2 && drawnTexts(rl).every(t => t.y < 420.52 && t.y > 389.4),
+    drawnTexts(rl).map(t => t.y));
+  ok('each drawn name starts inside its own column',
+    drawnTexts(rl).every((t, i) => t.x >= 313.2 + i * ((522.84 - 313.2) / 2) - 0.01),
+    drawnTexts(rl).map(t => t.x));
+
   const notary = await page.evaluate(() => window.DT_NOTARY_FIELDS);
-  const filled = notary.filter(n => r.values[n] || r.values[n + ' co2']);
-  ok('EVERY notary-block field is still blank, on the copies too', filled.length === 0, filled);
-  ok('the notary fields really are present on the copies (so the check can see them)',
-    notary.filter(n => r.names.indexOf(n + ' co2') >= 0).length >= 10,
-    notary.filter(n => r.names.indexOf(n + ' co2') >= 0).length);
+  const filled = notary.filter(n => r.values[n]);
+  ok('EVERY notary-block field is still blank', filled.length === 0, filled);
   ok('no page errors on the two-co-owner path', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
-// ── 10. Two co-owners, DocuSign: the plain variants, copied the same way ────────────
-console.log('\n10. Two co-owners (DocuSign) — the plain variants, one copy per owner');
+// ── 10. Two co-owners, DocuSign: the plain variants, split the same way ─────────────
+console.log('\n10. Two co-owners (DocuSign) — the plain variants');
 {
   const { ctx, page, errs } = await open(browser);
   const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  const BOTH = FIX.grantor + ' & ' + FIX.co2;
   const r = await genAudit(page, { docusign: true, lost: true, deceased: true,
                                    permission: true, heirs: 1, coOwners: CO });
   ok('the DocuSign two-co-owner packet generated without throwing', !r.error, r.error);
-  ok('11 pages', r.pages === 11, r.pages);
-  ok('owner A block is the PLAIN variants',
+  ok('7 pages — the same page set as one owner', r.pages === 7, r.pages);
+  ok('every document is the PLAIN variant, once each',
     pageIs(r, 1, 'releasePlain') && pageIs(r, 2, 'lossPlain') &&
     pageIs(r, 3, 'heirs') && pageIs(r, 4, 'permissionPlain'),
     r.perPage.slice(1, 5).map(p => p.names[0]));
-  ok('owner B block is the PLAIN variants too',
-    pageIs2(r, 5, 'releasePlain') && pageIs2(r, 6, 'lossPlain') &&
-    pageIs2(r, 7, 'heirs') && pageIs2(r, 8, 'permissionPlain'),
-    r.perPage.slice(5, 9).map(p => p.names[0]));
-  ok('no notary variant reached the file, on either copy',
-    !r.names.some(n => n === MARKER.releaseNotary || n === MARKER.releaseNotary + ' co2'),
-    r.names.filter(n => /^day of( co2)?$/.test(n)));
-  ok("owner A's plain release names A, owner B's names B",
-    r.perPage[1].values['day of_2'] === FIX.grantor &&
-    r.perPage[5].values['day of_2 co2'] === FIX.co2,
-    [r.perPage[1].values['day of_2'], r.perPage[5].values['day of_2 co2']]);
-  ok('the second signature line on the plain release is that owner too',
-    r.perPage[1].values['2_2'] === FIX.grantor && r.perPage[5].values['2_2 co2'] === FIX.co2,
-    [r.perPage[1].values['2_2'], r.perPage[5].values['2_2 co2']]);
-  const st = await pageContent(r.b64, 9);
+  ok('no notary variant reached the file', !r.names.some(n => n === MARKER.releaseNotary),
+    r.names.filter(n => /^day of$/.test(n)));
+  ok('the plain release names BOTH owners in the grantor box',
+    r.values['day of_2'] === BOTH, r.values['day of_2']);
+  ok("the plain release's own printed-name widget ('2_2') is left EMPTY — the split draws the " +
+     'names on the rule instead',
+    !r.values['2_2'], r.values['2_2']);
+
+  const rl = await pageContent(r.b64, 1);
+  ok('the plain Release line is split into TWO rules of equal width, full width',
+    sigLines(rl, RULE_H.release).length === 2 &&
+    Math.abs(sigLines(rl, RULE_H.release)[0].w - sigLines(rl, RULE_H.release)[1].w) < 0.01 &&
+    Math.abs(sigLines(rl, RULE_H.release)[0].x - 313.2) < 0.01 &&
+    Math.abs(sigLines(rl, RULE_H.release)[1].x + sigLines(rl, RULE_H.release)[1].w - 522.84) < 0.01,
+    sigLines(rl, RULE_H.release));
+  ok("BOTH names are drawn under the plain Release's rules",
+    drawn(rl, FIX.grantor) && drawn(rl, FIX.co2), [drawn(rl, FIX.grantor), drawn(rl, FIX.co2)]);
+  ok("the plain variant's own rule is 2pt lower than the notary one, and that is the rule " +
+     'erased here (y 400.3, not 402.3)',
+    drawnRects(rl).some(d => d.r === 1 && Math.abs(d.y - 400.3) < 0.01 && Math.abs(d.w - 210.5) < 0.01),
+    drawnRects(rl).filter(d => d.r === 1));
+
+  const st = await pageContent(r.b64, 5);
   ok('the statement is split for the DocuSign case as well',
-    drawn(st, FIX.grantor) && drawn(st, FIX.co2) && sigLines(st).length === 2, sigLines(st));
+    drawn(st, FIX.grantor) && drawn(st, FIX.co2) && sigLines(st, RULE_H.statement).length === 2,
+    sigLines(st, RULE_H.statement));
   ok('no page errors', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
-// ── 11. Three co-owners ────────────────────────────────────────────────────────────
-console.log('\n11. Three co-owners — three copies, three columns on the statement');
+// ── 11. The fallback names at two co-owners ────────────────────────────────────────
+// Nothing optional typed in, so every "or fall back to the owner" default fires. Both names
+// go in wherever the document NAMES the owner — with one exception: a decedent is one person,
+// so the Affidavit of Heirs falls back to the PRIMARY alone. "A & B" is not a decedent.
+console.log('\n11. Fallback names at two co-owners — and the decedent exception');
+{
+  const { ctx, page, errs } = await open(browser);
+  const BOTH = FIX.grantor + ' & ' + FIX.co2;
+  await page.evaluate((fx) => {
+    show('dt-transfer', null);
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+    const tick = (id, v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
+    set('dtGrantorName', fx.grantor); set('dtGrantorPhone', fx.grantorPhone);
+    set('dtGrantorAddress', fx.grantorAddress); set('dtGrantorCity', fx.grantorCity);
+    set('dtGrantorState', fx.grantorState); set('dtGrantorZip', fx.grantorZip);
+    set('dtNewOwnerName', fx.newOwner);
+    dtAddCoOwnerRow(); set('dtCoOwner2Name', fx.co2);
+    tick('dtLostCert', true); tick('dtOwnerDeceased', true); tick('dtPermissionUse', true);
+    dtUpdateDocs();
+  }, FIX);
+  const r = await genAudit(page, null);
+  ok('the defaults packet generated without throwing', !r.error, r.error);
+  ok('the loss affidavit affiant defaults to BOTH owners',
+    r.values['being duly sworn deposes and says'] === BOTH,
+    r.values['being duly sworn deposes and says']);
+  ok('the loss affidavit "That I, ... reside at" names both owners at the shared address',
+    r.values['NAME NUMERO2'] === BOTH && /Larkspur/.test(r.values['reside at'] || ''),
+    [r.values['NAME NUMERO2'], r.values['reside at']]);
+  ok('the affidavit of heirs affiant defaults to BOTH owners',
+    r.values['SWORN BORN LORN'] === BOTH, r.values['SWORN BORN LORN']);
+  ok('EXCEPTION — the affidavit of heirs DECEDENT is the primary owner ALONE, never a joined ' +
+     'string: a death is not recorded under two names',
+    r.values['DEPOSES SAYS BLANK'] === FIX.grantor, r.values['DEPOSES SAYS BLANK']);
+  ok('the permission-of-use signer defaults to BOTH owners',
+    r.values['I_2'] === BOTH && r.values['Name_4'] === BOTH, [r.values['I_2'], r.values['Name_4']]);
+  ok('the permission-of-use deceased owner is the primary alone, for the same reason',
+    r.values['the property that belonged to'] === FIX.grantor,
+    r.values['the property that belonged to']);
+  ok('the signer being the owners themselves, the address and phone under the signature are ' +
+     'the shared address and the primary phone',
+    /Larkspur/.test(r.values['Address 1'] || '') && r.values['Phone'] === FIX.grantorPhone,
+    [r.values['Address 1'], r.values['Phone']]);
+  await page.evaluate(() => {
+    document.getElementById('dtDecedentName').value = 'Someone Else Entirely';
+    document.getElementById('dtAffiantName').value  = 'Named Affiant';
+  });
+  const r2 = await genAudit(page, null);
+  ok('a typed affiant and a typed decedent both override the co-owner defaults',
+    r2.values['being duly sworn deposes and says'] === 'Named Affiant' &&
+    r2.values['DEPOSES SAYS BLANK'] === 'Someone Else Entirely',
+    [r2.values['being duly sworn deposes and says'], r2.values['DEPOSES SAYS BLANK']]);
+  ok('no page errors on the defaults path', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 12. Three co-owners ────────────────────────────────────────────────────────────
+console.log('\n12. Three co-owners — still one packet, three columns');
 {
   const { ctx, page, errs } = await open(browser);
   const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email },
               { name: FIX.co3, phone: FIX.co3Phone, email: FIX.co3Email }];
+  const ALL = FIX.grantor + ' & ' + FIX.co2 + ' & ' + FIX.co3;
   const r = await genAudit(page, { docusign: false, coOwners: CO });
   ok('the three-co-owner packet generated without throwing', !r.error, r.error);
-  ok('6 pages: cover + release x 3 + statement + terms', r.pages === 6, r.pages);
-  ok('the three releases are pages 2, 3 and 4',
-    pageIs(r, 1, 'releaseNotary') && pageIs2(r, 2, 'releaseNotary') && pageIs3(r, 3, 'releaseNotary'),
-    r.perPage.slice(1, 4).map(p => p.names[0]));
-  ok('each release names its own co-owner, in list order',
-    r.perPage[1].values['day of'] === FIX.grantor &&
-    r.perPage[2].values['day of co2'] === FIX.co2 &&
-    r.perPage[3].values['day of co3'] === FIX.co3,
-    [r.perPage[1].values['day of'], r.perPage[2].values['day of co2'], r.perPage[3].values['day of co3']]);
+  ok('4 pages — cover, release, statement, terms', r.pages === 4, r.pages);
+  ok('the release names all three owners', r.values['day of'] === ALL, r.values['day of']);
   ok('the cover joins all three names with " & "',
-    r.values['Namephone  of current property ownerRow1'] ===
-      FIX.grantor + ' & ' + FIX.co2 + ' & ' + FIX.co3 + ' · ' + FIX.grantorPhone,
+    r.values['Namephone  of current property ownerRow1'] === ALL + ' · ' + FIX.grantorPhone,
     r.values['Namephone  of current property ownerRow1']);
-  const st = await pageContent(r.b64, 4);
+
+  const st = await pageContent(r.b64, 2), rl = await pageContent(r.b64, 1);
   ok('all three printed names are drawn on the statement',
     drawn(st, FIX.grantor) && drawn(st, FIX.co2) && drawn(st, FIX.co3),
     [drawn(st, FIX.grantor), drawn(st, FIX.co2), drawn(st, FIX.co3)]);
-  ok('the box is split into THREE equal columns',
-    sigLines(st).length === 3 &&
-    Math.max.apply(null, sigLines(st).map(l => l.w)) - Math.min.apply(null, sigLines(st).map(l => l.w)) < 9.01,
-    sigLines(st));
+  ok('the statement box is split into THREE columns',
+    sigLines(st, RULE_H.statement).length === 3 &&
+    Math.max.apply(null, sigLines(st, RULE_H.statement).map(l => l.w)) -
+    Math.min.apply(null, sigLines(st, RULE_H.statement).map(l => l.w)) < 9.01,
+    sigLines(st, RULE_H.statement));
+  ok('the Release line is split into THREE columns too, still full width',
+    sigLines(rl, RULE_H.release).length === 3 &&
+    Math.abs(sigLines(rl, RULE_H.release)[0].x - 313.2) < 0.01 &&
+    Math.abs(sigLines(rl, RULE_H.release)[2].x + sigLines(rl, RULE_H.release)[2].w - 522.84) < 0.01,
+    sigLines(rl, RULE_H.release));
+  ok('all three names are drawn under the Release rules',
+    drawn(rl, FIX.grantor) && drawn(rl, FIX.co2) && drawn(rl, FIX.co3),
+    drawnTexts(rl).map(t => t.text));
   ok('no page errors', errs.length === 0, errs.slice(0, 3));
 
   // A name longer than its own column must shrink, then trim — never cross the border.
-  const LONG = 'Cormac Fitzwilliam Ashgrove-Hollowell';
+  const LONG = 'Cormac Fitzwilliam Ashgrove-Hollowell-Beaumont';
   await page.evaluate((long) => {
     document.getElementById('dtCoOwner3Name').value = long; dtUpdateDocs();
   }, LONG);
   const r2 = await genAudit(page, null);
-  const st2 = await pageContent(r2.b64, 4);
-  const texts = drawnTexts(st2);
-  ok('an over-long name is shrunk to the minimum and then trimmed',
-    texts.length === 3 && /\.\.\.$/.test(texts[2].text) && texts[2].size === 5, texts);
-  ok('every drawn name starts inside its own column — centred text therefore cannot cross ' +
-     'the table border',
-    texts.every((t, i) => t.x >= 332.51 + i * (247.8 / 3) - 0.01), texts.map(t => t.x));
+  const t2 = drawnTexts(await pageContent(r2.b64, 2));
+  ok('an over-long name is shrunk to the minimum and then trimmed on the statement',
+    t2.length === 3 && /\.\.\.$/.test(t2[2].text) && t2[2].size === 5, t2);
+  ok('every drawn name starts inside its own column — centred text therefore cannot cross the ' +
+     'table border',
+    t2.every((t, i) => t.x >= 332.51 + i * (247.8 / 3) - 0.01), t2.map(t => t.x));
   ok('the FIELD value still carries the whole name — only the drawn caption is trimmed',
-    r2.perPage[3].values['day of co3'] === LONG, r2.perPage[3].values['day of co3']);
+    r2.values['day of'] === FIX.grantor + ' & ' + FIX.co2 + ' & ' + LONG, r2.values['day of']);
   ok('no page errors on the over-long name', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
-// ── 12. Regression: sparse fill WITH co-owners ─────────────────────────────────────
-// The 2026-08-25 crash was blank optional fields surviving the prune as orphan widgets.
-// The multi-copy path builds one whole packet per co-owner, so it has to survive the same
-// case N times over, in both variants.
-console.log('\n12. Regression — sparse fill, two co-owners, both variants');
+// ── 13. Control: at ONE owner nothing is drawn at all ──────────────────────────────
+// The split is what a second owner buys. With one owner both pages must be byte-for-byte the
+// s27 behaviour — no erase rectangle, no rule, no drawn name — or the assertions above would
+// pass just as happily on a generator that always splits.
+console.log('\n13. Control — at one owner neither page is drawn on');
+{
+  const { ctx, page, errs } = await open(browser);
+  const r = await genAudit(page, { docusign: false, lost: true, deceased: true,
+                                   permission: true, heirs: 1 });
+  ok('the one-owner packet generated without throwing', !r.error, r.error);
+  ok('7 pages', r.pages === 7, r.pages);
+  const rl = await pageContent(r.b64, 1), st = await pageContent(r.b64, 5);
+  ok('nothing is drawn on the Release page', drawnRects(rl).length === 0 && drawnTexts(rl).length === 0,
+    [drawnRects(rl).length, drawnTexts(rl).length]);
+  ok('nothing is drawn on the statement page', drawnRects(st).length === 0 && drawnTexts(st).length === 0,
+    [drawnRects(st).length, drawnTexts(st).length]);
+  ok('the statement prints the single owner in Current Name Print, as it always did',
+    r.values['Current Name Print'] === FIX.grantor, r.values['Current Name Print']);
+  ok('the plain release variant is not in this packet, so its widget is untested here',
+    r.names.indexOf('2_2') < 0, r.names.indexOf('2_2'));
+  ok('no page errors', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 14. Regression: sparse fill WITH co-owners ─────────────────────────────────────
+// The 2026-08-25 crash was blank optional fields surviving the prune as orphan widgets. The
+// split draws over a page whose fields have already been baked and pruned, so the sparse case
+// has to survive that too — in both variants.
+console.log('\n14. Regression — sparse fill, two co-owners, both variants');
 for (const docusign of [false, true]) {
   const { ctx, page, errs } = await open(browser);
-  await page.evaluate(([fx, o]) => {
+  await page.evaluate(([o]) => {
     show('dt-transfer', null);
     const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
     const tick = (id, v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
     set('dtGrantorName', 'Sparse Grantor'); set('dtNewOwnerName', 'Sparse NewOwner');
     dtAddCoOwnerRow();
     set('dtCoOwner2Name', 'Sparse CoOwner');
-    set('dtSection', 'GOM'); set('dtPlot', '3');
     tick('dtDocuSign', o.docusign); tick('dtLostCert', true);
     dtUpdateDocs();
-  }, [FIX, { docusign }]);
+  }, [{ docusign }]);
   const label = docusign ? 'DocuSign' : 'notary';
   const r = await genAudit(page, null);
   ok(`sparse ${label}, 2 co-owners: generated without throwing`, !r.error, r.error);
-  ok(`sparse ${label}, 2 co-owners: 7 pages — cover + (release + loss) x 2 + statement + terms`,
-    r.pages === 7, r.pages);
-  ok(`sparse ${label}, 2 co-owners: both copies survived the appearance bake`,
-    pageText(r, 1).indexOf('Sparse Grantor') >= 0 && pageText(r, 3).indexOf('Sparse CoOwner') >= 0,
-    [pageText(r, 1).slice(0, 60), pageText(r, 3).slice(0, 60)]);
+  ok(`sparse ${label}, 2 co-owners: 5 pages — cover, release, loss affidavit, statement, terms`,
+    r.pages === 5, r.pages);
+  ok(`sparse ${label}, 2 co-owners: both names survived the appearance bake`,
+    pageText(r, 1).indexOf('Sparse Grantor & Sparse CoOwner') >= 0, pageText(r, 1).slice(0, 80));
   ok(`sparse ${label}, 2 co-owners: the statement still splits`,
-    drawn(await pageContent(r.b64, 5), 'Sparse CoOwner'));
+    drawn(await pageContent(r.b64, 3), 'Sparse CoOwner'));
+  ok(`sparse ${label}, 2 co-owners: the release still splits`,
+    sigLines(await pageContent(r.b64, 1), RULE_H.release).length === 2,
+    sigLines(await pageContent(r.b64, 1), RULE_H.release));
   ok(`sparse ${label}, 2 co-owners: no page errors`,
     errs.filter(e => !/favicon/.test(e)).length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
-// ── 13. Save / restore round-trips the co-owner list ───────────────────────────────
-console.log('\n13. Save / restore with co-owners, and a record saved before sprint 29');
+// ── 15. Save / restore round-trips the co-owner list ───────────────────────────────
+// A co-owner's phone and e-mail print nowhere, but they are still COLLECTED and must still
+// round-trip: the operator's ruling was "we can collect all the info it just doesn't need to
+// print everywhere if there's not room."
+console.log('\n15. Save / restore with co-owners, and a record saved before sprint 29');
 {
   const { ctx, page, errs } = await open(browser);
   await fillLane(page, { docusign: true, lost: true, heirs: 0,
@@ -898,27 +1020,31 @@ console.log('\n13. Save / restore with co-owners, and a record saved before spri
   });
   ok('the record carries a coOwners array', Array.isArray(saved.coOwners) && saved.coOwners.length === 2, saved.coOwners);
   ok('coOwners is primary-first', saved.coOwners[0].name === FIX.grantor && saved.coOwners[1].name === FIX.co2, saved.coOwners);
+  ok("the co-owner's phone and e-mail are on the record even though they print nowhere",
+    saved.coOwners[1].phone === FIX.co2Phone && saved.coOwners[1].email === FIX.co2Email, saved.coOwners[1]);
   ok('the visible row count is recorded too', saved.rows === 2, saved.rows);
 
   const back = await page.evaluate((id) => {
     dtClearAll();
     loadSavedDeedTransfer(id);
     const g = (i) => (document.getElementById(i) || {}).value;
-    return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(),
+    return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(), joined: dtOwnerNames(),
              phone2: g('dtCoOwner2Phone'), email2: g('dtCoOwner2Email'),
              btn: document.getElementById('dtAddCoOwnerBtn').style.display };
   }, saved.id);
   ok('restore brings back two visible co-owner rows', back.rows === 2, back.rows);
   ok('restore brings back both names, primary first',
     back.names.join('|') === FIX.grantor + '|' + FIX.co2, back.names);
+  ok('and dtOwnerNames() joins them again after the restore',
+    back.joined === FIX.grantor + ' & ' + FIX.co2, back.joined);
   ok("restore brings back the co-owner's own phone and e-mail",
     back.phone2 === FIX.co2Phone && back.email2 === FIX.co2Email, [back.phone2, back.email2]);
   ok('the Add button is still offered at two of three rows', back.btn === '', back.btn);
 
   const again = await genAudit(page, null);
   ok('the restored two-co-owner transfer regenerates the same packet',
-    again.pages === 7 && again.perPage[3].values['day of_2 co2'] === FIX.co2,
-    [again.pages, again.perPage[3] && again.perPage[3].values['day of_2 co2']]);
+    again.pages === 5 && again.values['day of_2'] === FIX.grantor + ' & ' + FIX.co2,
+    [again.pages, again.values['day of_2']]);
 
   // A record written before sprint 29 has no coOwners and no dtCoOwner* fields at all.
   const legacy = await page.evaluate((id) => {
@@ -929,10 +1055,12 @@ console.log('\n13. Save / restore with co-owners, and a record saved before spri
     loadSavedDeedTransfer(id);
     const g = (i) => (document.getElementById(i) || {}).value;
     return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(), name2: g('dtCoOwner2Name'),
-             grantor: g('dtGrantorName'), btn: document.getElementById('dtAddCoOwnerBtn').style.display };
+             grantor: g('dtGrantorName'), joined: dtOwnerNames(),
+             btn: document.getElementById('dtAddCoOwnerBtn').style.display };
   }, saved.id);
   ok('a pre-sprint-29 record restores as ONE owner', legacy.rows === 1 && legacy.names.length === 1, legacy);
   ok('a pre-sprint-29 record still restores its grantor', legacy.grantor === FIX.grantor, legacy.grantor);
+  ok('and names nobody else on the documents', legacy.joined === FIX.grantor, legacy.joined);
   ok('no stale co-owner value is left behind', legacy.name2 === '', legacy.name2);
   ok('and the Add button is offered again', legacy.btn === '', legacy.btn);
   ok('no page errors across save and restore with co-owners', errs.length === 0, errs.slice(0, 3));

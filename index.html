@@ -3538,10 +3538,8 @@ tr:hover td{background:var(--navy-100);}
       </div>
       <button type="button" id="dtAddCoOwnerBtn" class="dt-rowbtn" onclick="dtAddCoOwnerRow()">+ Add co-owner</button>
       <div style="font-size:12px;color:var(--text-light);">
-        Interment rights can be held by more than one person. Every co-owner listed here gets their
-        own copy of each document they sign, and their own signature line on the statement page.
-        The address below is shared &mdash; it is the address of record for the property, not a
-        personal address.
+        The address below is shared by everyone listed here, and a co-owner&rsquo;s phone and e-mail
+        are kept on the record but do not print on the packet.
       </div>
       <div class="dt-grid">
         <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtGrantorAddress"></div>
@@ -21413,6 +21411,12 @@ function dtCoOwners() {
 function dtCoOwnerNames() {
   return dtCoOwners().map(function(o) { return o.name; }).filter(Boolean);
 }
+// Operator ruling, sprint 29: "Some of these on the forms should be as simple as giving both
+// names." So wherever a document names the owner it names ALL the co-owners, in list order,
+// in ONE box. At a single owner this is that owner's name and nothing changes.
+function dtOwnerNames() {
+  return dtCoOwnerNames().join(' & ');
+}
 
 // Which documents this situation needs. Release is always in it — it IS the transfer.
 function dtDocSet() {
@@ -21440,28 +21444,16 @@ function dtPageIndexes(sel) {
   return keep.sort(function(a, b){ return a - b; });
 }
 
-// The pages that get ONE COPY PER CO-OWNER (operator ruling, sprint 29): every document
-// somebody signs. The cover checklist, the statement and the terms page stay single however
-// many people are on the deed.
-function dtPerOwnerPages(sel) {
-  return dtPageIndexes(sel).filter(function(i) {
-    return i !== DT_PAGES.cover && i !== DT_PAGES.statement && i !== DT_PAGES.terms;
-  });
-}
-function dtTotalPages(sel, n) {
-  n = Math.max(1, n || dtCoOwners().length);
-  return 1 + n * dtPerOwnerPages(sel).length + 2;
-}
 
 // The named documents, for the on-screen list. Same derivation as dtPageIndexes.
 function dtDocList(sel) {
   sel = sel || dtDocSet();
   var v = sel.docusign ? 'DocuSign copy' : 'notarized copy';
   var out = [{ key:'cover', name:'Transfer cover sheet & checklist', note:'always' },
-             { key:'release', name:'Release of Interment Rights', note:v, perOwner:true }];
-  if (sel.loss)       out.push({ key:'loss', name:'Affidavit for Loss of Certificate', note:v, perOwner:true });
-  if (sel.heirs)      out.push({ key:'heirs', name:'Affidavit of Heirs', note:'no notary block on this form', perOwner:true });
-  if (sel.permission) out.push({ key:'permission', name:'Permission of Use', note:v, perOwner:true });
+             { key:'release', name:'Release of Interment Rights', note:v }];
+  if (sel.loss)       out.push({ key:'loss', name:'Affidavit for Loss of Certificate', note:v });
+  if (sel.heirs)      out.push({ key:'heirs', name:'Affidavit of Heirs', note:'no notary block on this form' });
+  if (sel.permission) out.push({ key:'permission', name:'Permission of Use', note:v });
   out.push({ key:'statement', name:'Statement of Cemetery Interment Rights ($325 transfer fee)', note:'always' });
   out.push({ key:'terms', name:'Terms and Conditions', note:'always' });
   return out;
@@ -21496,18 +21488,15 @@ function _dtNamePhone(name, phone) {
 // Redraws the derived-document list and shows only the panels that situation needs.
 function dtUpdateDocs() {
   var sel = dtDocSet();
-  var n   = dtCoOwners().length;
   var box = el('dtDocList');
   if (box) {
     var rows = dtDocList(sel).map(function(d) {
-      var note = _ceEsc(d.note)
-               + (n > 1 && d.perOwner ? ' &middot; one copy per co-owner (&times;' + n + ')' : '');
       return '<div class="dt-doc"><span class="dt-doc-tick">&#10003;</span>'
            + '<span>' + _ceEsc(d.name) + '</span>'
-           + '<span class="dt-doc-note">' + note + '</span></div>';
+           + '<span class="dt-doc-note">' + _ceEsc(d.note) + '</span></div>';
     }).join('');
     box.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">'
-      + 'The download will contain ' + dtTotalPages(sel, n) + ' pages:</div>' + rows;
+      + 'The download will contain ' + dtPageIndexes(sel).length + ' pages:</div>' + rows;
   }
   var show2 = function(id, on) { var e = el(id); if (e) e.style.display = on ? '' : 'none'; };
   show2('dtLossPanel', sel.loss);
@@ -21641,7 +21630,7 @@ var DT_HEIR_FIELDS = [
 // Fills every page of the loaded template. Pages that are not in the download are filled too
 // and then removed — cheaper and far less error-prone than conditioning each setter, and the
 // removed bytes never reach the file.
-function dtFillForm(form, self, owners) {
+function dtFillForm(form) {
   function setTF(name, value) {
     if (value === null || value === undefined || value === '') return;
     try { form.getTextField(name).setText(String(value)); } catch(e) {}
@@ -21650,26 +21639,27 @@ function dtFillForm(form, self, owners) {
 
   var sel        = dtDocSet();
   var dt         = dtSigningDateParts();
-  // Every document somebody signs is filled as if THIS co-owner were the only grantor; the
-  // caller builds one copy per owner. The cover and the statement are single pages and use
-  // the whole list (names joined) and the primary. The ADDRESS is shared either way - one
-  // property, one address of record.
-  owners         = (owners && owners.length) ? owners : dtCoOwners();
-  self           = self || owners[0];
-  var grantor    = self.name;
-  var grantorPh  = self.phone;
+  // ONE packet, one copy of every document (operator ruling, sprint 29). Where a document
+  // NAMES the owner it names all the co-owners in one box; where they must both SIGN, the
+  // signature line is split into a column each and dtDrawSignatureSplit() draws the printed
+  // names. Phone, e-mail and the address have one box apiece, so they stay the primary's and
+  // the shared address - one property, one address of record.
+  var owners     = dtCoOwners();
+  var grantor    = dtOwnerNames();
+  var grantorPh  = owners[0].phone;
   var grantorAdr = _dtFullAddress('dtGrantor');
   var newOwner   = _dtVal('dtNewOwnerName');
   var newOwnerAd = _dtFullAddress('dtNewOwner');
   var prop       = dtPropertyText();
   var affiant    = _dtVal('dtAffiantName')    || grantor;
   var affiantAdr = _dtVal('dtAffiantAddress') || grantorAdr;
-  var decedent   = _dtVal('dtDecedentName')   || grantor;
+  // EXCEPTION: a decedent is one person. "A & B" is not a name a death is recorded under, so
+  // the Affidavit of Heirs falls back to the PRIMARY owner alone.
+  var decedent   = _dtVal('dtDecedentName')   || owners[0].name;
 
   // ── PAGE 1 — cover ──────────────────────────────────────────────────────────
   // One current-owner row on the checklist, so the names are joined there.
-  setTF('Namephone  of current property ownerRow1',
-        _dtNamePhone(owners.map(function(o) { return o.name; }).join(' & '), owners[0].phone));
+  setTF('Namephone  of current property ownerRow1', _dtNamePhone(grantor, grantorPh));
   setTF('Family ServiceRow1', _dtVal('dtCounselor'));
   setTF('Row1',   prop);                       // also lands in the statement's Location box
   setTF('Row1_2', _dtNamePhone(newOwner, _dtVal('dtNewOwnerPhone')));
@@ -21721,7 +21711,10 @@ function dtFillForm(form, self, owners) {
   setTF('LOT2222',     _dtVal('dtLot'));
   setTF('PLOT2222',    _dtVal('dtPlot'));
   setTF('Printed Names of New Owner_2', newOwner);
-  setTF('2_2', grantor);
+  // The plain variant normally types the grantor name ON the signature rule. At two or more
+  // co-owners that rule is split into a column each with the names drawn under them, so the
+  // widget is left EMPTY - the same rule "Current Name Print" follows on the statement.
+  if (owners.length < 2) setTF('2_2', grantor);
 
   // ── PAGES 4 & 5 — Affidavit for Loss of Certificate ─────────────────────────
   setTF('being duly sworn deposes and says',   affiant);
@@ -21774,7 +21767,7 @@ function dtFillForm(form, self, owners) {
   // signer is named in a heir row, that row's address is used; otherwise the block is left for
   // them to complete rather than filled with somebody else's details.
   var permAddr = grantorAdr, permPhone = grantorPh;
-  if (permGrantor && permGrantor !== grantor) {
+  if (permGrantor && permGrantor !== grantor) {   // grantor is every co-owner, joined
     permAddr = ''; permPhone = '';
     for (var h = 1; h <= 5; h++) {
       if (_dtVal('dtHeir' + h + 'Name') === permGrantor) { permAddr = _dtVal('dtHeir' + h + 'Address'); break; }
@@ -21811,9 +21804,9 @@ function dtFillForm(form, self, owners) {
   setTF('Email Purch',    _dtVal('dtNewOwnerEmail'));
   setTF('Cell Phone Purch', _dtVal('dtNewOwnerPhone'));
   // At two or more co-owners the printed-name box is left EMPTY and the signature area above
-  // it is split into one column per owner instead - dtDrawStatementSplit() draws those. The
+  // it is split into one column per owner instead - dtDrawSignatureSplit() draws those. The
   // address block stays one block: the shared address, the primary's e-mail and phone.
-  if (owners.length < 2) setTF('Current Name Print', owners[0].name);
+  if (owners.length < 2) setTF('Current Name Print', grantor);
   setTF('Address Current', _dtVal('dtGrantorAddress'));
   setTF('City Current',    _dtVal('dtGrantorCity'));
   setTF('State Current',   _dtVal('dtGrantorState'));
@@ -21839,17 +21832,16 @@ var DT_NOTARY_FIELDS = [
   'undefined_11', 'State of', 'County of'
 ];
 
-// ONE packet: the template loaded fresh, filled for `self`, appearances baked while all ten
-// pages still exist, then everything outside `keep` removed. Factored out of the generator so
-// each co-owner gets an identical build - the s27 order (bake BEFORE page removal, and save
-// with updateFieldAppearances:false) is the whole reason a sparse form does not crash.
-async function dtBuildOnePacket(bytes, self, owners, keep) {
+// THE packet: the template loaded fresh, filled, appearances baked while all ten pages still
+// exist, then everything outside `keep` removed. The s27 order (bake BEFORE page removal, and
+// save with updateFieldAppearances:false) is the whole reason a sparse form does not crash.
+async function dtBuildOnePacket(bytes, keep) {
   // Load and fill in place. copyPages() into a fresh document brings the widget annotations
   // but NOT the /Fields tree, so getForm() comes back empty and every setText silently
   // no-ops — the bug that once shipped a blank ClearPoint contract.
   var doc  = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
   var form = doc.getForm();
-  dtFillForm(form, self, owners);
+  dtFillForm(form);
 
   // Bake every field appearance NOW, while all ten pages still exist. save() runs this
   // pass itself by default, but by then the unused pages are gone — and this template has
@@ -21921,116 +21913,97 @@ async function dtBuildOnePacket(bytes, self, owners, keep) {
   return doc;
 }
 
-// Operator ruling, sprint 29: every document a co-owner signs gets ONE COPY PER CO-OWNER, in
-// co-owner order. Each copy is a full build of its own, so its pages carry that owner's name
-// everywhere the single grantor used to land. copyPages() brings the widget annotations but
-// NOT the /Fields tree, so the copied fields are registered on the base form by hand - and
-// they are RENAMED first, because two AcroForm fields with the same name are ONE field and
-// would be forced to share a value, which is exactly what these copies must not do.
-async function dtAppendCoOwnerCopies(doc, bytes, owners, perOwn) {
-  var PN = PDFLib.PDFName, k = perOwn.length;
-  if (!k || owners.length < 2) return;
-  var idx = []; for (var p = 0; p < k; p++) idx.push(p);
-  for (var i = 1; i < owners.length; i++) {
-    var sub    = await dtBuildOnePacket(bytes, owners[i], owners, perOwn);
-    var copied = await doc.copyPages(sub, idx);
-    var at     = 1 + i * k;            // after the cover and every earlier owner's block
-    var suffix = ' co' + (i + 1);
-    for (var j = 0; j < copied.length; j++) {
-      var page = copied[j];
-      doc.insertPage(at + j, page);
-      var an = page.node.Annots();
-      if (!an) continue;
-      for (var a = 0; a < an.size(); a++) {
-        try {
-          var ref  = an.get(a);
-          var dict = an.lookup(a, PDFLib.PDFDict);
-          if (!dict || dict === ref) continue;      // a direct annot has no ref to register
-          var t = dict.get(PN.of('T'));
-          if (!t) continue;                          // a kid widget - its name is on the parent
-          dict.set(PN.of('T'), PDFLib.PDFString.of(dtFieldText(t) + suffix));
-          dict.set(PN.of('P'), page.ref);
-          doc.getForm().acroForm.addField(ref);
-        } catch (e) {}
-      }
-    }
-  }
-}
-function dtFieldText(t) {
-  try { if (t.decodeText) return t.decodeText(); } catch (e) {}
-  try { if (t.asString)   return t.asString(); } catch (e) {}
-  return String(t);
-}
-
-// The statement page (p9) measured off the template with PyMuPDF. Everything below is in
-// MuPDF page coordinates: origin top-left of the visible page, y growing DOWNWARD.
-//   green Current-Property-Owner signature band  x 344.48-592.28, y 558.47-582.71
-//   the single signature rule                                     y 582.71-583.43, full width
-//   caption "Current Property Owner  Signature"                   y 582.8 -593.8  (KEPT: it
-//                                                                  labels the box, not a person)
-//   the Current Name Print widget                x 343.8 -592.7,  y 590.2 -606.1 (left empty)
-//   caption "Printed Name"                       x 384.3 -421.9,  y 605.2 -614.2 (whited out)
+// The signature lines that must be SPLIT when the interment rights are held by more than one
+// person (operator ruling, sprint 29: "Release ... needs both of their signatures just split
+// the green box in half"). Everything below is in MuPDF page coordinates - origin top-left of
+// the VISIBLE page, y growing DOWNWARD - measured off the template with PyMuPDF.
 //
 // pdf-lib draws in PDF USER space, whose origin is the MediaBox corner, and this template's
-// MediaBox is [-11.9622 11.9906 600.038 1019.99] — NOT [0 0 612 1008]. Drawing at the raw
-// MuPDF numbers puts everything ~12pt down and ~12pt right of where it belongs, which is
-// exactly what the first cut of this did. dtP9Axes() reads the box off the page and returns
-// the two converters, so a template whose MediaBox moves stays correct.
-var DT_P9 = {
-  left: 344.482, right: 592.282,
-  ruleTop: 582.71, ruleBottom: 583.43, greenBottom: 583.19, eraseTop: 582.61, eraseBottom: 584.03,
-  nameBaseline: 602.3,
-  label: { x0: 383.0, x1: 423.0, top: 606.3, bottom: 613.6 },
-  gap: 18, size: 9, minSize: 5, pad: 6, ellipsis: '...'
+// pages do not agree on that box: the Release pages are [0 0 612 792] but the statement is
+// [-11.9622 11.9906 600.038 1019.99]. Drawing at the raw MuPDF numbers puts everything ~12pt
+// down and ~12pt right of where it belongs on the statement, which is exactly what the first
+// cut of the statement split did. dtSplitAxes() reads the box off the PAGE it is drawing on,
+// so every page follows its own geometry and a template whose MediaBox moves stays correct.
+var DT_SPLIT_DEFAULTS = { gap: 18, size: 9, minSize: 5, pad: 6, ellipsis: '...' };
+var DT_SPLITS = {
+  // Statement (p9), the "form that looks like the CIRGAS". The green Current-Property-Owner
+  // band runs x 344.48-592.28 between the table rules; the single signature rule sits at
+  // y 582.71-583.43 and the green fill stops at y 583.19, so erasing that rule means putting
+  // back green above the boundary and white below. "Printed Name" (x 383-423, y 606.3-613.6)
+  // is whited out - each column is captioned by the name printed under its own line. The
+  // caption "Current Property Owner Signature" is KEPT: it labels the box, not a person. The
+  // 'Current Name Print' widget (y 590.2-606.1) is left empty and the names are drawn in it.
+  statement: {
+    page: DT_PAGES.statement, left: 344.482, right: 592.282,
+    ruleTop: 582.71, ruleBottom: 583.43, nameBaseline: 602.3,
+    erase: [ { x0: 344.482, x1: 592.282, top: 582.61, bottom: 583.19, color: 'green' },
+             { x0: 344.482, x1: 592.282, top: 583.19, bottom: 584.03, color: 'white' },
+             { x0: 383.0,   x1: 423.0,   top: 606.3,  bottom: 613.6,  color: 'white' } ]
+  },
+  // Release, notary variant (p2). The Grantor's Signature rule is x 313.2-522.84 at
+  // y 388.96-389.44 and the caption "(Grantor's Signature)" sits IMMEDIATELY under it - its
+  // ink runs y ~392-405 and 'Grantors Address' starts at y 406.8, so there is no room at all
+  // for a printed name between the rule and the caption. The band ABOVE the rule is ~90pt of
+  // blank page, so the split rules are drawn there and the original rule is erased: each name
+  // sits under its own line and the kept caption still labels the block as a whole.
+  releaseNotary: {
+    page: DT_PAGES.releaseNotary, left: 313.2, right: 522.84,
+    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6,
+    erase: [ { x0: 312.8, x1: 523.3, top: 388.7, bottom: 389.7, color: 'white' } ]
+  },
+  // Release, plain/DocuSign variant (p3). The same block 2pt lower (rule at y 390.96-391.44),
+  // and the grantor's typed name normally lands ON that rule through the '2_2' widget - which
+  // dtFillForm() leaves empty at two or more owners, exactly as it does 'Current Name Print'.
+  releasePlain: {
+    page: DT_PAGES.releasePlain, left: 313.2, right: 522.84,
+    ruleTop: 371.0, ruleBottom: 371.48, nameBaseline: 381.6,
+    erase: [ { x0: 312.8, x1: 523.3, top: 390.7, bottom: 391.7, color: 'white' } ]
+  }
 };
-function dtP9Axes(page) {
+function dtSplitAxes(page) {
   var mb = page.getMediaBox();
   var ox = mb.x, oy = mb.y + mb.height;
   return { x: function(v) { return ox + v; }, y: function(v) { return oy - v; } };
 }
 
-// Operator ruling, sprint 29: at two or more co-owners BOTH sign the statement, so the green
-// box is split into N equal columns — a signature line each, that owner's printed name under
-// it. The address block below stays one block. At one co-owner this never runs.
-async function dtDrawStatementSplit(doc, pageIndex, owners) {
-  if (pageIndex < 0 || !owners || owners.length < 2) return;
+// Draws one split signature line: N equal columns, a rule each, that owner's printed name
+// centred under it. `G` is the geometry entry above, so the same code serves the statement and
+// both Release variants. At one owner nothing is drawn and the page is the s27 behaviour.
+async function dtDrawSignatureSplit(doc, pageIndex, owners, G) {
+  if (pageIndex < 0 || !G || !owners || owners.length < 2) return;
   try {
-    var G = DT_P9, page = doc.getPage(pageIndex), ax = dtP9Axes(page), rgb = PDFLib.rgb;
-    var font  = await doc.embedFont(PDFLib.StandardFonts.TimesRoman);
-    var white = rgb(1, 1, 1), green = rgb(0.8, 1, 0.8), black = rgb(0, 0, 0);
-    var W = G.right - G.left;
-    var box = function(x0, x1, yTop, yBot, color) {
+    var D = DT_SPLIT_DEFAULTS, page = doc.getPage(pageIndex), ax = dtSplitAxes(page), rgb = PDFLib.rgb;
+    var font = await doc.embedFont(PDFLib.StandardFonts.TimesRoman);
+    var INK  = { white: rgb(1, 1, 1), green: rgb(0.8, 1, 0.8), black: rgb(0, 0, 0) };
+    var box  = function(x0, x1, yTop, yBot, color) {
       page.drawRectangle({ x: ax.x(x0), y: ax.y(yBot), width: x1 - x0, height: yBot - yTop, color: color });
     };
+    // Erase what the split replaces, putting back whatever was under it.
+    (G.erase || []).forEach(function(e) { box(e.x0, e.x1, e.top, e.bottom, INK[e.color]); });
 
-    // Erase the single full-width rule, putting back what was under it: the green fill above
-    // the boundary, white below. Then erase "Printed Name", which now names nothing — each
-    // column is captioned by the name printed under its own line.
-    box(G.left, G.right, G.eraseTop, G.greenBottom, green);
-    box(G.left, G.right, G.greenBottom, G.eraseBottom, white);
-    box(G.label.x0, G.label.x1, G.label.top, G.label.bottom, white);
-
-    var n = owners.length, cw = W / n;
+    var W = G.right - G.left, n = owners.length, cw = W / n;
     for (var i = 0; i < n; i++) {
       var x0 = G.left + i * cw, x1 = x0 + cw;
-      box(x0 + (i === 0 ? 0 : G.gap / 2), x1 - (i === n - 1 ? 0 : G.gap / 2),
-          G.ruleTop, G.ruleBottom, black);
+      // The outer ends run to the borders; adjacent lines leave a gap between them.
+      box(x0 + (i === 0 ? 0 : D.gap / 2), x1 - (i === n - 1 ? 0 : D.gap / 2),
+          G.ruleTop, G.ruleBottom, INK.black);
       var name = owners[i].name || '';
       if (!name) continue;
-      var size = G.size, max = cw - G.pad;
-      while (size > G.minSize && font.widthOfTextAtSize(name, size) > max) size -= 0.5;
-      // Still wider than its column at the smallest size — trim rather than run over the
-      // table border. Only reachable at three co-owners with a very long name.
+      var size = D.size, max = cw - D.pad;
+      while (size > D.minSize && font.widthOfTextAtSize(name, size) > max) size -= 0.5;
+      // Still wider than its column at the smallest size - trim rather than run over the
+      // border. Only reachable at three co-owners with a very long name. The FIELD values
+      // always carry the whole name; only the drawn caption is cut.
       if (font.widthOfTextAtSize(name, size) > max) {
         var cut = name;
-        while (cut.length > 1 && font.widthOfTextAtSize(cut + G.ellipsis, size) > max) cut = cut.slice(0, -1);
-        name = cut.replace(/[\s\-]+$/, '') + G.ellipsis;
+        while (cut.length > 1 && font.widthOfTextAtSize(cut + D.ellipsis, size) > max) cut = cut.slice(0, -1);
+        name = cut.replace(/[\s\-]+$/, '') + D.ellipsis;
       }
       var tw = font.widthOfTextAtSize(name, size);
       page.drawText(name, { x: ax.x((x0 + x1) / 2) - tw / 2, y: ax.y(G.nameBaseline),
-                            size: size, font: font, color: black });
+                            size: size, font: font, color: INK.black });
     }
-  } catch (e) { console.warn('Deed transfer: statement split failed:', e.message); }
+  } catch (e) { console.warn('Deed transfer: signature split failed:', e.message); }
 }
 
 async function generateDeedTransferPDF() {
@@ -22040,19 +22013,20 @@ async function generateDeedTransferPDF() {
     if (!_dtVal('dtGrantorName'))  { alert('Please enter the current property owner before generating.'); return; }
     if (!_dtVal('dtNewOwnerName')) { alert('Please enter the new property owner before generating.'); return; }
 
+    var sel     = dtDocSet();
     var owners  = dtCoOwners();
-    var keepAll = dtPageIndexes();
-    var perOwn  = dtPerOwnerPages();
+    var keepAll = dtPageIndexes(sel);
     var bytes   = await bwTemplate('DT_PDF_B64');
 
-    // The base packet is the FIRST co-owner's: the cover, their copy of every signed document,
-    // the statement and the terms. Owners 2..N get a packet of their own holding only the pages
-    // they sign, spliced in after the previous owner's block:
-    //   p1, [docs x owner 1], [docs x owner 2], ..., p9, p10.
-    var doc = await dtBuildOnePacket(bytes, owners[0], owners, keepAll);
+    // ONE packet - the s27 page set, every document once (operator ruling, sprint 29). Where a
+    // document names the owner it already carries all the co-owners; where they must BOTH sign
+    // - the Release and the statement's green owner box - the single signature line is split
+    // into one column per co-owner with each printed name under it.
+    var doc = await dtBuildOnePacket(bytes, keepAll);
     if (owners.length > 1) {
-      await dtDrawStatementSplit(doc, keepAll.indexOf(DT_PAGES.statement), owners);
-      await dtAppendCoOwnerCopies(doc, bytes, owners, perOwn);
+      var release = DT_SPLITS[sel.docusign ? 'releasePlain' : 'releaseNotary'];
+      await dtDrawSignatureSplit(doc, keepAll.indexOf(DT_PAGES.statement), owners, DT_SPLITS.statement);
+      await dtDrawSignatureSplit(doc, keepAll.indexOf(release.page), owners, release);
     }
 
     // Acrobat re-derives appearances when NeedAppearances is true and can lose the fill; the
