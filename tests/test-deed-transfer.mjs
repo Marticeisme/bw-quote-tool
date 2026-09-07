@@ -45,9 +45,9 @@ const FIX = {
   heirAffiant: 'Marisol Ashgrove-Reyes', heirAffiantRel: 'Daughter',
   interred: 'Theodore Ashgrove',
   counselor: 'Martice Morrison', receipt: 'R-70314', statementDate: '2026-09-04',
-  // Sprint 29: the current owner side can be several people. Operator amendment 2026-09-07:
-  // a co-owner is a NAME ONLY, so there is no co-owner phone or e-mail to invent.
-  co2: 'Beatrix Ashgrove-Hollowell', co3: 'Cormac Ashgrove'
+  // Sprint 29: the current owner side can be several people.
+  co2: 'Beatrix Ashgrove-Hollowell', co2Phone: '206-555-0188', co2Email: 'beatrix@example.com',
+  co3: 'Cormac Ashgrove', co3Phone: '206-555-0199', co3Email: 'cormac@example.com'
 };
 
 // Reads a saved PDF back inside the page: page count, every field name, every text value,
@@ -132,9 +132,11 @@ async function fillLane(page, opts) {
     set('dtStatementDate', fx.statementDate);
     tick('dtDocuSign', o.docusign); tick('dtLostCert', o.lost);
     tick('dtOwnerDeceased', o.deceased); tick('dtPermissionUse', o.permission);
-    (o.coOwners || []).forEach(function(name, ci) {
+    (o.coOwners || []).forEach(function(c, ci) {
       dtAddCoOwnerRow();
-      set('dtCoOwner' + (ci + 2) + 'Name', name);
+      set('dtCoOwner' + (ci + 2) + 'Name',  c.name);
+      set('dtCoOwner' + (ci + 2) + 'Phone', c.phone);
+      set('dtCoOwner' + (ci + 2) + 'Email', c.email);
     });
     for (let i = 1; i <= (o.heirs || 0); i++) {
       if (i > 1) dtAddHeirRow();
@@ -610,17 +612,14 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
     set('dtGrantorEmail', fx.grantorEmail);
     const one = dtCoOwners();
     const addedRow = dtAddCoOwnerRow();
-    set('dtCoOwner2Name', fx.co2);
+    set('dtCoOwner2Name', fx.co2); set('dtCoOwner2Phone', fx.co2Phone); set('dtCoOwner2Email', fx.co2Email);
     const two = dtCoOwners();
     dtAddCoOwnerRow();
-    set('dtCoOwner3Name', fx.co3);
+    set('dtCoOwner3Name', fx.co3); set('dtCoOwner3Phone', fx.co3Phone);
     const three = dtCoOwners();
     const btnHidden = btn() === 'none';
     const capped = dtAddCoOwnerRow();
-    // A co-owner row is a NAME ONLY — there is no phone or e-mail input on it at all.
-    const rowInputs = Array.prototype.slice
-      .call(document.querySelectorAll('#dtCoOwnerRows .dt-co-row[data-dt-co="2"] input'))
-      .map(e => e.id);
+    // A row with a phone but no name is not a co-owner.
     set('dtCoOwner3Name', '');
     const blankDropped = dtCoOwners().length;
     set('dtCoOwner3Name', fx.co3);
@@ -642,7 +641,7 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
     const cleared = { rows: dtVisibleCoOwnerRows(),
                       name2: document.getElementById('dtCoOwner2Name').value, btn: btn() };
     return { one, two, three, addedRow, capped, btnHidden, blankDropped, afterRemove,
-             primaryKept, maths, cleared, rowInputs };
+             primaryKept, maths, cleared };
   }, FIX);
 
   ok('one owner: dtCoOwners() is the primary alone',
@@ -652,13 +651,11 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
   ok('"Add co-owner" reveals row 2', m.addedRow === 2, m.addedRow);
   ok('two owners: the primary is FIRST, then the co-owner',
     m.two.length === 2 && m.two[0].name === FIX.grantor && m.two[1].name === FIX.co2, m.two);
-  ok('a co-owner row has ONE input: their name. No phone, no e-mail (amendment 2026-09-07)',
-    m.rowInputs.join() === 'dtCoOwner2Name', m.rowInputs);
-  ok('and dtCoOwners() reports a co-owner with no phone and no e-mail',
-    m.two[1].phone === '' && m.two[1].email === '', m.two[1]);
+  ok('the co-owner carries their own phone and e-mail',
+    m.two[1].phone === FIX.co2Phone && m.two[1].email === FIX.co2Email, m.two[1]);
   ok('three is the cap: the Add button hides at three rows', m.btnHidden, m.btnHidden);
   ok('a fourth Add does nothing', m.capped === 3 && m.three.length === 3, [m.capped, m.three.length]);
-  ok('an empty row is dropped', m.blankDropped === 2, m.blankDropped);
+  ok('a row with a phone but no name is dropped', m.blankDropped === 2, m.blankDropped);
   ok('removing row 2 pulls row 3 up into it',
     m.afterRemove.r2 === FIX.co3 && m.afterRemove.r3 === '', m.afterRemove);
   ok('removing a row hides the last one and brings the Add button back',
@@ -682,8 +679,9 @@ console.log('\n8. The co-owner list, the row UI and the page maths');
 console.log('\n9. Two co-owners (notary) — one copy of each signed document per owner');
 {
   const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
   const r = await genAudit(page, { docusign: false, lost: true, deceased: true,
-                                   permission: true, heirs: 1, coOwners: [FIX.co2] });
+                                   permission: true, heirs: 1, coOwners: CO });
   ok('the two-co-owner packet generated without throwing', !r.error, r.error);
   ok('11 pages: cover + 4 documents x 2 owners + statement + terms', r.pages === 11, r.pages);
 
@@ -704,14 +702,10 @@ console.log('\n9. Two co-owners (notary) — one copy of each signed document pe
     r.perPage[1].values['day of'] === FIX.grantor, r.perPage[1].values['day of']);
   ok("owner B's release names owner B",
     r.perPage[5].values['day of co2'] === FIX.co2, r.perPage[5].values['day of co2']);
-  ok('the first owner\'s release carries their phone; the co-owner\'s is left BLANK, because ' +
-     'no phone is collected for a co-owner and the primary\'s under their signature would be wrong',
+  ok("each release carries that owner's own phone",
     r.perPage[1].values['Grantors Phone Num'] === FIX.grantorPhone &&
-    !r.perPage[5].values['Grantors Phone Num co2'],
+    r.perPage[5].values['Grantors Phone Num co2'] === FIX.co2Phone,
     [r.perPage[1].values['Grantors Phone Num'], r.perPage[5].values['Grantors Phone Num co2']]);
-  ok("the co-owner's Permission of Use leaves its phone box blank for the same reason",
-    !r.perPage[8].values['Phone co2'] && r.names.indexOf('Phone co2') >= 0,
-    [r.perPage[8].values['Phone co2'], r.names.indexOf('Phone co2')]);
   ok("owner B's name appears NOWHERE on owner A's four pages",
     [1, 2, 3, 4].every(i => pageText(r, i).indexOf(FIX.co2) < 0),
     [1, 2, 3, 4].filter(i => pageText(r, i).indexOf(FIX.co2) >= 0));
@@ -776,8 +770,9 @@ console.log('\n9. Two co-owners (notary) — one copy of each signed document pe
 console.log('\n10. Two co-owners (DocuSign) — the plain variants, one copy per owner');
 {
   const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
   const r = await genAudit(page, { docusign: true, lost: true, deceased: true,
-                                   permission: true, heirs: 1, coOwners: [FIX.co2] });
+                                   permission: true, heirs: 1, coOwners: CO });
   ok('the DocuSign two-co-owner packet generated without throwing', !r.error, r.error);
   ok('11 pages', r.pages === 11, r.pages);
   ok('owner A block is the PLAIN variants',
@@ -809,7 +804,9 @@ console.log('\n10. Two co-owners (DocuSign) — the plain variants, one copy per
 console.log('\n11. Three co-owners — three copies, three columns on the statement');
 {
   const { ctx, page, errs } = await open(browser);
-  const r = await genAudit(page, { docusign: false, coOwners: [FIX.co2, FIX.co3] });
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email },
+              { name: FIX.co3, phone: FIX.co3Phone, email: FIX.co3Email }];
+  const r = await genAudit(page, { docusign: false, coOwners: CO });
   ok('the three-co-owner packet generated without throwing', !r.error, r.error);
   ok('6 pages: cover + release x 3 + statement + terms', r.pages === 6, r.pages);
   ok('the three releases are pages 2, 3 and 4',
@@ -890,7 +887,8 @@ for (const docusign of [false, true]) {
 console.log('\n13. Save / restore with co-owners, and a record saved before sprint 29');
 {
   const { ctx, page, errs } = await open(browser);
-  await fillLane(page, { docusign: true, lost: true, heirs: 0, coOwners: [FIX.co2] });
+  await fillLane(page, { docusign: true, lost: true, heirs: 0,
+                         coOwners: [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }] });
   const saved = await page.evaluate(() => {
     const realPrompt = window.prompt;
     window.prompt = () => 'Ashgrove co-owner transfer';
@@ -905,14 +903,16 @@ console.log('\n13. Save / restore with co-owners, and a record saved before spri
   const back = await page.evaluate((id) => {
     dtClearAll();
     loadSavedDeedTransfer(id);
+    const g = (i) => (document.getElementById(i) || {}).value;
     return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(),
+             phone2: g('dtCoOwner2Phone'), email2: g('dtCoOwner2Email'),
              btn: document.getElementById('dtAddCoOwnerBtn').style.display };
   }, saved.id);
   ok('restore brings back two visible co-owner rows', back.rows === 2, back.rows);
   ok('restore brings back both names, primary first',
     back.names.join('|') === FIX.grantor + '|' + FIX.co2, back.names);
-  ok('the saved co-owner entry carries no phone and no e-mail',
-    saved.coOwners[1].phone === '' && saved.coOwners[1].email === '', saved.coOwners[1]);
+  ok("restore brings back the co-owner's own phone and e-mail",
+    back.phone2 === FIX.co2Phone && back.email2 === FIX.co2Email, [back.phone2, back.email2]);
   ok('the Add button is still offered at two of three rows', back.btn === '', back.btn);
 
   const again = await genAudit(page, null);
