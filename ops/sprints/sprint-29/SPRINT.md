@@ -22,7 +22,20 @@ one grantor and the template carries one signature line per role.
 4. Cover page (p1) has one current-owner row: join the names with " & " there
    (director call, not an operator ruling).
 
-## Track A scope
+## FINAL RULING 2026-09-07 (supersedes 1–4 above; Track B implements it)
+
+Track A's per-copy assembly was the director's misreading. The operator, verbatim:
+"We can collect all the info it just doesn't need to print everywhere if there's not
+room." / "Some of these on the forms should be as simple as giving both names." /
+Permission of Use, Affidavit of Heirs, Affidavit for Loss are ONE copy with both names;
+"Release if Interment rights needs both of their signatures just split the green box in
+half. This is what I said from the get go. NO regressions to my wordings please." /
+"Push when these changes are in." → packet = the s27 page set, names joined wherever
+the owner is named, Release signature line split per co-owner, p9 split kept, co-owner
+phone/email collected + saved but printed only where a box exists. Push authorized once
+Track B is audited and merged.
+
+## Track A scope (as built, then superseded)
 
 - Form: current owner becomes a small list (primary + "Add co-owner", cap 3). Each
   co-owner is a NAME ONLY (operator amendment 2026-09-07: no per-co-owner phone or
