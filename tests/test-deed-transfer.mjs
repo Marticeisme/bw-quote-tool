@@ -47,7 +47,10 @@ const FIX = {
   counselor: 'Martice Morrison', receipt: 'R-70314', statementDate: '2026-09-04',
   // Sprint 29: the current owner side can be several people.
   co2: 'Beatrix Ashgrove-Hollowell', co2Phone: '206-555-0188', co2Email: 'beatrix@example.com',
-  co3: 'Cormac Ashgrove', co3Phone: '206-555-0199', co3Email: 'cormac@example.com'
+  co3: 'Cormac Ashgrove', co3Phone: '206-555-0199', co3Email: 'cormac@example.com',
+  // Track E: a co-owner who does NOT live with the primary. Synthetic, like everything here.
+  co2Address: '77 Quillfeather Court', co2City: 'Tukwila', co2State: 'WA', co2Zip: '98188',
+  co3Address: '15 Thornbury Bend', co3City: 'Bend', co3State: 'OR', co3Zip: '97701'
 };
 
 // Reads a saved PDF back inside the page: page count, every field name, every text value,
@@ -137,6 +140,12 @@ async function fillLane(page, opts) {
       set('dtCoOwner' + (ci + 2) + 'Name',  c.name);
       set('dtCoOwner' + (ci + 2) + 'Phone', c.phone);
       set('dtCoOwner' + (ci + 2) + 'Email', c.email);
+      // Track E: a co-owner may carry an address of their own. Only touched when the case
+      // supplies one, so every pre-Track-E case still leaves the row's address blank.
+      ['Address', 'City', 'State', 'Zip'].forEach(function(k) {
+        var v = c[k.toLowerCase()];
+        if (v !== undefined) set('dtCoOwner' + (ci + 2) + k, v);
+      });
     });
     for (let i = 1; i <= (o.heirs || 0); i++) {
       if (i > 1) dtAddHeirRow();
@@ -1279,6 +1288,276 @@ console.log('\n18. Control — one owner, owner alive, loss and permission both 
   ok('and the single owner is still named as the signer on both',
     r.values['I_2'] === FIX.grantor && r.values['being duly sworn deposes and says'] === FIX.grantor,
     [r.values['I_2'], r.values['being duly sworn deposes and says']]);
+  ok('no page errors', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 19. Track E: a co-owner's own address is COLLECTED on the form ─────────────────
+// Operator ruling 2026-09-08: "i thought we agreed to collect the purchaser and
+// co-purchasers address if they are diffferent on the site at least?" So each co-owner row
+// carries a street/city/state/ZIP block of its own. Blank means "same as the first owner's",
+// which is the address every document already prints — the PACKET did not change (§21).
+console.log('\n19. A co-owner\'s own address — the fields, the row, the list, Clear All');
+{
+  const { ctx, page, errs } = await open(browser);
+  const m = await page.evaluate((fx) => {
+    show('dt-transfer', null);
+    const g  = (id) => document.getElementById(id);
+    const set = (id, v) => { const e = g(id); if (e) e.value = v; };
+    const val = (id) => (g(id) || {}).value;
+    // Visible to a counselor? Walk up looking for a display:none ancestor — the row is
+    // hidden by an inline style on .dt-co-row, so this is the same thing the counselor sees.
+    const seen = (id) => {
+      let e = g(id);
+      if (!e) return false;
+      while (e && e !== document.body) {
+        if (getComputedStyle(e).display === 'none') return false;
+        e = e.parentElement;
+      }
+      return true;
+    };
+    const rowOf = (id) => { const e = g(id); const r = e && e.closest('.dt-co-row');
+                            return r ? r.getAttribute('data-dt-co') : null; };
+
+    const ids = ['Address', 'City', 'State', 'Zip'];
+    const exist = {};
+    const inRow = {};
+    [2, 3].forEach(function(n) {
+      exist[n] = ids.every(function(k) { return !!g('dtCoOwner' + n + k); });
+      inRow[n] = ids.every(function(k) { return rowOf('dtCoOwner' + n + k) === String(n); });
+    });
+    const hiddenBefore = !seen('dtCoOwner2Address') && !seen('dtCoOwner3Address');
+    // Guard against the whole check passing vacuously because the section itself is hidden.
+    const primaryVisible = seen('dtGrantorAddress');
+    const stateDefault = { primary: val('dtGrantorState'), co2: val('dtCoOwner2State'),
+                           co3: val('dtCoOwner3State') };
+
+    set('dtGrantorName', fx.grantor); set('dtGrantorPhone', fx.grantorPhone);
+    set('dtGrantorEmail', fx.grantorEmail); set('dtGrantorAddress', fx.grantorAddress);
+    set('dtGrantorCity', fx.grantorCity); set('dtGrantorState', fx.grantorState);
+    set('dtGrantorZip', fx.grantorZip);
+    dtAddCoOwnerRow();
+    const shownAfterAdd = seen('dtCoOwner2Address') && seen('dtCoOwner2City') &&
+                          seen('dtCoOwner2State') && seen('dtCoOwner2Zip');
+    const row3StillHidden = !seen('dtCoOwner3Address');
+
+    set('dtCoOwner2Name', fx.co2); set('dtCoOwner2Phone', fx.co2Phone);
+    set('dtCoOwner2Email', fx.co2Email);
+    // Nothing typed in the address block yet: the co-owner lives with the primary.
+    const sameAddr = dtCoOwners();
+    set('dtCoOwner2Address', fx.co2Address); set('dtCoOwner2City', fx.co2City);
+    set('dtCoOwner2State', fx.co2State);     set('dtCoOwner2Zip', fx.co2Zip);
+    const ownAddr = dtCoOwners();
+
+    // Row 3 takes the out-of-state case, then row 2 is removed: row 3 must move up whole.
+    dtAddCoOwnerRow();
+    set('dtCoOwner3Name', fx.co3); set('dtCoOwner3Phone', fx.co3Phone);
+    set('dtCoOwner3Email', fx.co3Email);
+    set('dtCoOwner3Address', fx.co3Address); set('dtCoOwner3City', fx.co3City);
+    set('dtCoOwner3State', fx.co3State);     set('dtCoOwner3Zip', fx.co3Zip);
+    const three = dtCoOwners();
+    dtRemoveCoOwnerRow(2);
+    const moved = { name: val('dtCoOwner2Name'), address: val('dtCoOwner2Address'),
+                    city: val('dtCoOwner2City'), state: val('dtCoOwner2State'),
+                    zip: val('dtCoOwner2Zip'),
+                    r3Address: val('dtCoOwner3Address'), r3City: val('dtCoOwner3City'),
+                    r3State: val('dtCoOwner3State'), r3Zip: val('dtCoOwner3Zip'),
+                    list: dtCoOwners() };
+
+    dtClearAll();
+    const cleared = { a2: val('dtCoOwner2Address'), c2: val('dtCoOwner2City'),
+                      s2: val('dtCoOwner2State'), z2: val('dtCoOwner2Zip'),
+                      a3: val('dtCoOwner3Address'), c3: val('dtCoOwner3City'),
+                      s3: val('dtCoOwner3State'), z3: val('dtCoOwner3Zip'),
+                      rows: dtVisibleCoOwnerRows() };
+    return { exist, inRow, hiddenBefore, primaryVisible, stateDefault, shownAfterAdd, row3StillHidden,
+             sameAddr, ownAddr, three, moved, cleared };
+  }, FIX);
+
+  ok('row 2 has its own street/city/state/ZIP inputs', m.exist[2], m.exist);
+  ok('row 3 has them too', m.exist[3], m.exist);
+  ok('each address field lives INSIDE its own co-owner row, so it hides and shows with it',
+    m.inRow[2] && m.inRow[3], m.inRow);
+  ok("the primary's own address block is visible — so \"hidden\" below means hidden, not off-screen",
+    m.primaryVisible, m.primaryVisible);
+  ok('before "Add co-owner" no co-owner address field is visible', m.hiddenBefore, m.hiddenBefore);
+  ok('"Add co-owner" reveals row 2\'s whole address block', m.shownAfterAdd, m.shownAfterAdd);
+  ok('and row 3\'s address block stays hidden', m.row3StillHidden, m.row3StillHidden);
+  ok('State defaults to WA on a co-owner exactly as it does on the primary',
+    m.stateDefault.primary === 'WA' && m.stateDefault.co2 === 'WA' && m.stateDefault.co3 === 'WA',
+    m.stateDefault);
+
+  ok('dtCoOwners() returns seven keys per owner',
+    m.sameAddr.every(o => ['name','phone','email','address','city','state','zip']
+      .every(k => Object.prototype.hasOwnProperty.call(o, k))), m.sameAddr[0]);
+  ok("the primary's address comes from the dtGrantor* fields",
+    m.sameAddr[0].address === FIX.grantorAddress && m.sameAddr[0].city === FIX.grantorCity &&
+    m.sameAddr[0].state === FIX.grantorState && m.sameAddr[0].zip === FIX.grantorZip,
+    m.sameAddr[0]);
+  ok("a co-owner who typed no address reports a blank one — blank means \"same as the first owner's\"",
+    m.sameAddr[1].address === '' && m.sameAddr[1].city === '' && m.sameAddr[1].zip === '',
+    m.sameAddr[1]);
+  ok('a co-owner who typed one carries it on the list',
+    m.ownAddr[1].address === FIX.co2Address && m.ownAddr[1].city === FIX.co2City &&
+    m.ownAddr[1].state === FIX.co2State && m.ownAddr[1].zip === FIX.co2Zip, m.ownAddr[1]);
+  ok("and it does not disturb the primary's own address",
+    m.ownAddr[0].address === FIX.grantorAddress && m.ownAddr[0].zip === FIX.grantorZip,
+    m.ownAddr[0]);
+  ok('three owners each keep their own address, out-of-state ZIP and all',
+    m.three.length === 3 && m.three[2].state === FIX.co3State && m.three[2].zip === FIX.co3Zip,
+    m.three[2]);
+
+  ok("removing row 2 carries row 3's ADDRESS up with the name, not just the name",
+    m.moved.name === FIX.co3 && m.moved.address === FIX.co3Address &&
+    m.moved.city === FIX.co3City && m.moved.state === FIX.co3State &&
+    m.moved.zip === FIX.co3Zip, m.moved);
+  ok("and the vacated row keeps no stale address — State back to its WA default",
+    m.moved.r3Address === '' && m.moved.r3City === '' && m.moved.r3Zip === '' &&
+    m.moved.r3State === 'WA', m.moved);
+  ok('the compacted list is the primary plus the pulled-up co-owner with his own address',
+    m.moved.list.length === 2 && m.moved.list[1].name === FIX.co3 &&
+    m.moved.list[1].address === FIX.co3Address, m.moved.list);
+
+  ok('Clear All blanks every co-owner address field on both rows',
+    m.cleared.a2 === '' && m.cleared.c2 === '' && m.cleared.z2 === '' &&
+    m.cleared.a3 === '' && m.cleared.c3 === '' && m.cleared.z3 === '', m.cleared);
+  ok("Clear All puts the co-owner State back to WA, the way it does the primary's",
+    m.cleared.s2 === 'WA' && m.cleared.s3 === 'WA', m.cleared);
+  ok('Clear All still collapses the list to the primary row', m.cleared.rows === 1, m.cleared.rows);
+  ok('no page errors across the co-owner address UI', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 20. Save / restore round-trips all seven fields of every co-owner ──────────────
+// captureDtState() sweeps every input in the section by id, so the new fields join the
+// captured list without being named anywhere. That is convenient and invisible, which is
+// exactly why it is pinned here — and a record written before Track E has no address keys
+// at all and must still restore.
+console.log('\n20. Save / restore with a co-owner address (fake Firebase — nothing is written to production)');
+{
+  const { ctx, page, errs } = await open(browser);
+  await fillLane(page, { docusign: true, lost: true, heirs: 0, coOwners: [
+    { name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+      address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip }] });
+  const saved = await page.evaluate(() => {
+    const realPrompt = window.prompt;
+    window.prompt = () => 'Ashgrove co-owner, own address';
+    try { saveDeedTransfer(); } finally { window.prompt = realPrompt; }
+    const snap = _dtSavedTransfers[0] || {};
+    return { id: snap.id, coOwners: (snap.state || {}).coOwners,
+             fields: (snap.state || {}).fields };
+  });
+  ok("the record's coOwners entry carries the co-owner's own address",
+    saved.coOwners[1].address === FIX.co2Address && saved.coOwners[1].city === FIX.co2City &&
+    saved.coOwners[1].state === FIX.co2State && saved.coOwners[1].zip === FIX.co2Zip,
+    saved.coOwners[1]);
+  ok("and the primary's entry carries the primary's",
+    saved.coOwners[0].address === FIX.grantorAddress && saved.coOwners[0].zip === FIX.grantorZip,
+    saved.coOwners[0]);
+  ok('the four new ids are in the captured field list, not only in the coOwners array',
+    ['dtCoOwner2Address','dtCoOwner2City','dtCoOwner2State','dtCoOwner2Zip','dtCoOwner3Address']
+      .every(k => Object.prototype.hasOwnProperty.call(saved.fields, k)),
+    Object.keys(saved.fields).filter(k => /^dtCoOwner/.test(k)));
+
+  const back = await page.evaluate((id) => {
+    dtClearAll();
+    loadSavedDeedTransfer(id);
+    const g = (i) => (document.getElementById(i) || {}).value;
+    return { list: dtCoOwners(),
+             a2: g('dtCoOwner2Address'), c2: g('dtCoOwner2City'),
+             s2: g('dtCoOwner2State'), z2: g('dtCoOwner2Zip'),
+             rows: dtVisibleCoOwnerRows() };
+  }, saved.id);
+  ok("restore brings back the co-owner's address, city, state and ZIP",
+    back.a2 === FIX.co2Address && back.c2 === FIX.co2City &&
+    back.s2 === FIX.co2State && back.z2 === FIX.co2Zip, back);
+  ok('all seven fields round-trip for the co-owner',
+    ['name','phone','email','address','city','state','zip'].every(k =>
+      back.list[1][k] === { name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+        address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip }[k]),
+    back.list[1]);
+  ok('and for the primary', back.list[0].address === FIX.grantorAddress &&
+    back.list[0].phone === FIX.grantorPhone, back.list[0]);
+  ok('two rows come back visible', back.rows === 2, back.rows);
+
+  // A record written before Track E: co-owner name/phone/e-mail, and no address keys at all.
+  const legacy = await page.evaluate((id) => {
+    const snap = _dtSavedTransfers.find(q => q.id === id);
+    Object.keys(snap.state.fields).forEach(k => {
+      if (/^dtCoOwner\d(Address|City|State|Zip)$/.test(k)) delete snap.state.fields[k];
+    });
+    (snap.state.coOwners || []).forEach(o => {
+      delete o.address; delete o.city; delete o.state; delete o.zip;
+    });
+    dtClearAll();
+    loadSavedDeedTransfer(id);
+    const g = (i) => (document.getElementById(i) || {}).value;
+    return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(), joined: dtOwnerNames(),
+             a2: g('dtCoOwner2Address'), s2: g('dtCoOwner2State'),
+             phone2: g('dtCoOwner2Phone'), grantorAddr: g('dtGrantorAddress') };
+  }, saved.id);
+  ok('a record with no address keys still restores both co-owner rows',
+    legacy.rows === 2 && legacy.names.join('|') === FIX.grantor + '|' + FIX.co2, legacy);
+  ok("it restores as a co-owner who shares the primary's address — the blank block",
+    legacy.a2 === '' && legacy.s2 === 'WA', legacy);
+  ok('the fields it DOES carry are untouched',
+    legacy.phone2 === FIX.co2Phone && legacy.grantorAddr === FIX.grantorAddress, legacy);
+  ok('and the documents still name both owners', legacy.joined === FIX.grantor + ' & ' + FIX.co2,
+    legacy.joined);
+  ok('no page errors across save and restore with a co-owner address', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 21. The PACKET did not change ─────────────────────────────────────────────────
+// Track E is collection and saving only. Every form has ONE address box and it keeps
+// printing the first owner's. So the same case, generated once with the co-owner's address
+// block blank and once with a completely different address typed into it, must produce the
+// same document: same fields, same values, page for page, and the same drawn content on
+// every page the signature stacks touch.
+console.log('\n21. A different co-owner address changes NOTHING in the packet');
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO = { name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email };
+  await fillLane(page, { docusign: false, lost: true, deceased: false,
+                         permission: true, coOwners: [CO] });
+  // Owner alive, so the Permission of Use is signed by the owners and stacks too — this case
+  // draws on every page Track D touches.
+  await page.evaluate(() => { document.getElementById('dtHeirAffiant').value = ''; dtUpdateDocs(); });
+  const a = await genAudit(page, null);
+  const typed = await page.evaluate((fx) => {
+    const set = (id, v) => { document.getElementById(id).value = v; };
+    set('dtCoOwner2Address', fx.co3Address); set('dtCoOwner2City', fx.co3City);
+    set('dtCoOwner2State', fx.co3State);     set('dtCoOwner2Zip', fx.co3Zip);
+    dtUpdateDocs();
+    return dtCoOwners()[1].address + ' / ' + dtCoOwners()[1].state;
+  }, FIX);
+  const b = await genAudit(page, null);
+
+  ok('the case really did pick up a different address for the co-owner',
+    typed === FIX.co3Address + ' / ' + FIX.co3State, typed);
+  ok('both packets generated', !a.error && !b.error, [a.error, b.error]);
+  ok('same page count', a.pages === b.pages && a.pages === 6, [a.pages, b.pages]);
+  ok('the same field names, in the same order',
+    a.names.join('|') === b.names.join('|'));
+  ok('every printed VALUE is identical — no co-owner address reached any box',
+    JSON.stringify(a.values) === JSON.stringify(b.values),
+    Object.keys(a.values).filter(k => a.values[k] !== b.values[k]));
+  ok('page for page, the text is byte-identical',
+    a.perPage.map((_, i) => pageText(a, i)).join(String.fromCharCode(12)) ===
+    b.perPage.map((_, i) => pageText(b, i)).join(String.fromCharCode(12)),
+    a.perPage.map((_, i) => (pageText(a, i) === pageText(b, i) ? null : i)).filter(i => i !== null));
+  ok('and no page carries the co-owner street, city or ZIP anywhere in its text',
+    a.perPage.every((_, i) => !new RegExp(FIX.co3Address.split(' ')[1]).test(pageText(b, i))) &&
+    !JSON.stringify(b.values).includes(FIX.co3Zip),
+    Object.keys(b.values).filter(k => String(b.values[k]).includes(FIX.co3City)));
+  // The three drawn pages — Release (1), Affidavit for Loss (2), Permission of Use (3) — plus
+  // the statement (4), where the printed names are page CONTENT rather than field values.
+  const streams = [];
+  for (const i of [1, 2, 3, 4]) {
+    streams.push([i, await pageContent(a.b64, i), await pageContent(b.b64, i)]);
+  }
+  ok('every drawn signature block is byte-identical too',
+    streams.every(([, x, y]) => x === y), streams.filter(([, x, y]) => x !== y).map(([i]) => i));
   ok('no page errors', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
