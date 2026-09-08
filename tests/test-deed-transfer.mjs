@@ -97,6 +97,34 @@ const AUDIT = `(function(b64){
   })();
 })`;
 
+// §26's reader. AUDIT above answers "what is in the form"; this answers "is the object graph
+// sound" — which page each field's widgets are attached to via their own /P, and whether
+// pdf-lib can walk and re-serialise the whole document. A dangling reference throws there.
+const DEEP = `(function(b64){
+  return (async function(){
+    var raw = atob(b64), arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    var doc = await PDFLib.PDFDocument.load(arr, { ignoreEncryption: true });
+    var form = doc.getForm(), PN = PDFLib.PDFName;
+    var pages = doc.getPages(), refs = pages.map(function(p){ return String(p.ref); });
+    var fields = form.getFields().map(function(f){
+      var on = [];
+      try {
+        f.acroField.getWidgets().forEach(function(w){
+          var p = w.dict.get(PN.of('P'));
+          on.push(p ? refs.indexOf(String(p)) : -1);
+        });
+      } catch(e) { on.push('ERR'); }
+      return { name: f.getName(), on: on };
+    });
+    var resaved = 0, err = null;
+    try { resaved = (await doc.save({ updateFieldAppearances: false })).length; }
+    catch (e) { err = String(e && e.message); }
+    return { pages: pages.length, fields: fields, resaved: resaved, resaveError: err };
+  })();
+})`;
+const deep = (page, b64) => page.evaluate(`(${DEEP})(${JSON.stringify(b64)})`);
+
 async function open(browser) {
   const ctx = await browser.newContext({ acceptDownloads: true });
   await ctx.route(/gstatic\.com\/firebasejs/, r => r.abort());
@@ -220,6 +248,20 @@ const MARKER = {
 
 // Which template document a page IS, from the field only that page carries.
 const pageIs  = (r, i, key) => (r.perPage[i] || { names: [] }).names.indexOf(MARKER[key]) >= 0;
+// The Permission of Use is ONE COPY PER LIVING OWNER (operator ruling 2026-09-08, "Permission
+// of use would only be one per" → "One Permission of Use per owner"). Copy 1 is the page the
+// packet always had; copies 2..N are appended straight after it with every field renamed by a
+// ' po<n>' suffix, because two AcroForm fields with one fully-qualified name are ONE field and
+// would be forced to share a value — which is exactly what these copies must not do.
+const poSfx  = (n) => (n > 1 ? ' po' + n : '');
+const permIs = (r, i, docusign, n) =>
+  (r.perPage[i] || { names: [] }).names.indexOf((docusign ? 'I_3' : 'I_2') + poSfx(n)) >= 0;
+// One field's value on copy n.
+const permVal = (r, key, n) => r.values[key + poSfx(n)];
+// Every field name on a page with the copy suffix taken off, so copy n can be compared
+// field-for-field against copy 1 — the proof a copy is the WHOLE template page, not a subset.
+const permBaseNames = (r, i, n) => (r.perPage[i] || { names: [] }).names
+  .map(x => (n > 1 && x.endsWith(poSfx(n)) ? x.slice(0, -poSfx(n).length) : x)).sort();
 // Every value printed on one page, as one string.
 const pageText = (r, i) => Object.keys((r.perPage[i] || {}).values || {})
   .map(k => r.perPage[i].values[k]).join(String.fromCharCode(10));
@@ -1020,8 +1062,12 @@ console.log('\n11. Fallback names at two co-owners — and the decedent exceptio
   ok('EXCEPTION — the affidavit of heirs DECEDENT is the primary owner ALONE, never a joined ' +
      'string: a death is not recorded under two names',
     r.values['DEPOSES SAYS BLANK'] === FIX.grantor, r.values['DEPOSES SAYS BLANK']);
-  ok('the permission-of-use signer defaults to BOTH owners',
-    r.values['I_2'] === BOTH && r.values['Name_4'] === BOTH, [r.values['I_2'], r.values['Name_4']]);
+  ok('EXCEPTION 2 — the permission of use is ONE COPY PER OWNER, so neither copy carries the ' +
+     'joined string: copy 1 names the primary alone and copy 2 the co-owner alone',
+    r.values['I_2'] === FIX.grantor && r.values['Name_4'] === FIX.grantor &&
+    r.values['I_2 po2'] === FIX.co2 && r.values['Name_4 po2'] === FIX.co2 &&
+    r.values['I_2'] !== BOTH,
+    [r.values['I_2'], r.values['I_2 po2']]);
   ok('the permission-of-use deceased owner is the primary alone, for the same reason',
     r.values['the property that belonged to'] === FIX.grantor,
     r.values['the property that belonged to']);
@@ -1029,6 +1075,10 @@ console.log('\n11. Fallback names at two co-owners — and the decedent exceptio
      'the shared address and the primary phone',
     /Larkspur/.test(r.values['Address 1'] || '') && r.values['Phone'] === FIX.grantorPhone,
     [r.values['Address 1'], r.values['Phone']]);
+  ok('this co-owner typed no address and no phone of her own, so HER copy falls back to the ' +
+     'shared address and leaves the phone blank rather than printing somebody else\'s number',
+    /Larkspur/.test(r.values['Address 1 po2'] || '') && !r.values['Phone po2'],
+    [r.values['Address 1 po2'], r.values['Phone po2']]);
   await page.evaluate(() => {
     document.getElementById('dtDecedentName').value = 'Someone Else Entirely';
     document.getElementById('dtAffiantName').value  = 'Named Affiant';
@@ -1246,17 +1296,20 @@ console.log('\n15. Save / restore with co-owners, and a record saved before spri
   await ctx.close();
 }
 
-// ── 16. The Permission of Use when the OWNERS sign it ──────────────────────────────
-// The operator's amendment: "it's important we give somewhere for both of them to sign but if
-// there's on addresss on the form and not both thats ok as long as it reads as purcsher &
-// co-purchaser," then "No I think it should separate lines so they don't have to sign so
-// small." The Permission of Use is signed by whoever relinquishes the rights. With the
-// owner-deceased toggle OFF that is the co-owners themselves, so the line stacks; sections 9
-// and 10 pin the other half, where an heir signs alone and it must not.
-console.log('\n16. Permission of Use signed by the co-owners themselves — both variants');
+// ── 16. The Permission of Use when the OWNERS sign it: ONE COPY EACH ───────────────
+// Operator ruling 2026-09-08, asked how two owners should sign this one form: "Permission of
+// use would only be one per" — and, asked which of the two readings, "One Permission of Use
+// per owner". So the side-by-side columns this section used to pin are GONE. Each living owner
+// gets a whole filled copy of the page with the template's own single signature line, their
+// own name in the signer boxes, their own address where they typed one and their own phone.
+// Sections 9 and 10 pin the other half, where an heir signs alone and there is one copy.
+console.log('\n16. Permission of Use — one filled copy per living owner, both variants');
 for (const docusign of [false, true]) {
   const { ctx, page, errs } = await open(browser);
-  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  // This co-owner DOES have an address of her own, because her copy is the first place on the
+  // packet a co-owner's own address has ever printed.
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+                address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip }];
   const BOTH = FIX.grantor + ' & ' + FIX.co2;
   const label = docusign ? 'DocuSign' : 'notary';
   const first = await genAudit(page, { docusign, lost: false, deceased: false,
@@ -1266,35 +1319,62 @@ for (const docusign of [false, true]) {
   // both agree" case.
   await page.evaluate(() => { document.getElementById('dtHeirAffiant').value = ''; dtUpdateDocs(); });
   const r = await genAudit(page, null);
+  const iF = docusign ? 'I_3' : 'I_2', nF = docusign ? 'Name_5' : 'Name_4';
+  const aF = docusign ? 'Address_6' : 'Address 1', pF = docusign ? 'Phone_2' : 'Phone';
   ok(`${label}: the packet generated without throwing`, !r.error, r.error || first.error);
-  ok(`${label}: 5 pages — cover, release, permission of use, statement, terms`, r.pages === 5, r.pages);
-  const iField = docusign ? 'I_3' : 'I_2', nField = docusign ? 'Name_5' : 'Name_4';
-  ok(`${label}: the Permission of Use names BOTH owners as the signer`,
-    r.values[iField] === BOTH, r.values[iField]);
-  ok(`${label}: its "Name:" row carries both names too — that row is the block's own ` +
-     'printed-name line, captioned by the form, not a name typed on the signature rule',
-    r.values[nField] === BOTH, r.values[nField]);
-  const pm = await pageContent(r.b64, 2);
-  ok(`${label}: the two owners sign SIDE BY SIDE on the rule's own y (user space 400.9), 72 ` +
-     'to 348, a 14pt gutter between them — this page cannot stack, its blank band is 53.8pt',
-    colsOK(pm, RULE_H.permission, 400.9, 72, 348, 14, 2),
-    sigLines(pm, RULE_H.permission).map(l => [l.x, l.w, l.y]));
-  ok(`${label}: BOTH columns sit on ONE y, so each signer has the WHOLE 53.8pt band above ` +
-     'him — against the ~20pt a stack on this page gave either of them',
-    sigLines(pm, RULE_H.permission).length === 2 &&
-    sigLines(pm, RULE_H.permission)[0].y === sigLines(pm, RULE_H.permission)[1].y,
-    sigLines(pm, RULE_H.permission).map(l => l.y));
-  ok(`${label}: NO name is drawn on this page — the row immediately under the rules is the ` +
-     "form's own captioned printed-name row and 'Name_" + (docusign ? '5' : '4') + "' already carries both names, joined",
-    drawnTexts(pm).length === 0, drawnTexts(pm));
-  ok(`${label}: the template's own signer rule was whited out at its own y (user space 400.3, ` +
-     '1.7pt tall, 235pt wide) so the gutter between the two columns is clean',
-    drawnRects(pm).some(d => d.r === 1 && d.g === 1 && d.b === 1 &&
-                             Math.abs(d.y - 400.3) < 0.01 && Math.abs(d.w - 235.0) < 0.01),
-    drawnRects(pm).filter(d => d.r === 1));
-  ok(`${label}: the "Date:" rule shares that y and is untouched — nothing was drawn or erased ` +
-     'right of x 348, and the "Date:" label\'s own ink starts at x 360',
-    drawnRects(pm).every(d => d.x + d.w <= 348.01), drawnRects(pm).map(d => d.x + d.w));
+  ok(`${label}: 6 pages — cover, release, permission ×2, statement, terms: the ONE extra page ` +
+     'is the second owner\'s own copy',
+    r.pages === 6, r.pages);
+  ok(`${label}: the two Permission pages are CONTIGUOUS, where the single one sat — page 2 is ` +
+     'the first owner\'s copy and page 3 the second\'s, and the statement follows them',
+    permIs(r, 2, docusign, 1) && permIs(r, 3, docusign, 2) && pageIs(r, 4, 'statement'),
+    [r.perPage.map((p, i) => i + ':' + p.names.length)]);
+  ok(`${label}: copy 1 names the FIRST owner alone in both signer boxes — never the joined ` +
+     'string the rest of the packet uses',
+    permVal(r, iF, 1) === FIX.grantor && permVal(r, nF, 1) === FIX.grantor &&
+    permVal(r, iF, 1) !== BOTH,
+    [permVal(r, iF, 1), permVal(r, nF, 1)]);
+  ok(`${label}: copy 2 names the SECOND owner alone, in deed order`,
+    permVal(r, iF, 2) === FIX.co2 && permVal(r, nF, 2) === FIX.co2,
+    [permVal(r, iF, 2), permVal(r, nF, 2)]);
+  ok(`${label}: each copy carries its OWN owner's address — the shared one on copy 1, and on ` +
+     'copy 2 the address this co-owner typed for herself',
+    /Larkspur/.test(permVal(r, aF, 1) || '') && /Quillfeather/.test(permVal(r, aF, 2) || ''),
+    [permVal(r, aF, 1), permVal(r, aF, 2)]);
+  ok(`${label}: and its own owner's phone`,
+    permVal(r, pF, 1) === FIX.grantorPhone && permVal(r, pF, 2) === FIX.co2Phone,
+    [permVal(r, pF, 1), permVal(r, pF, 2)]);
+  ok(`${label}: the decedent, the person to be interred and the new owner read the SAME on ` +
+     'both copies — only the signer changes',
+    permVal(r, docusign ? 'the property that belonged to_2' : 'the property that belonged to', 1) ===
+    permVal(r, docusign ? 'the property that belonged to_2' : 'the property that belonged to', 2) &&
+    permVal(r, docusign ? 'now deceased to_2' : 'now deceased to', 1) ===
+    permVal(r, docusign ? 'now deceased to_2' : 'now deceased to', 2) &&
+    permVal(r, docusign ? 'I hereby state that I wish to grant permission for_2'
+                        : 'I hereby state that I wish to grant permission for', 1) === FIX.interred &&
+    permVal(r, docusign ? 'I hereby state that I wish to grant permission for_2'
+                        : 'I hereby state that I wish to grant permission for', 2) === FIX.interred,
+    [permVal(r, docusign ? 'now deceased to_2' : 'now deceased to', 2)]);
+  const p1 = await pageContent(r.b64, 2), p2 = await pageContent(r.b64, 3);
+  ok(`${label}: NOTHING is drawn or erased on either copy — no rule, no printed name, no white ` +
+     "box. Each signer has the template's own full-width line, which is what the ruling asked for",
+    drawnRects(p1).length === 0 && drawnTexts(p1).length === 0 &&
+    drawnRects(p2).length === 0 && drawnTexts(p2).length === 0,
+    [drawnRects(p1).length, drawnTexts(p1).length, drawnRects(p2).length, drawnTexts(p2).length]);
+  ok(`${label}: the copy is the WHOLE template page — field for field it carries exactly what ` +
+     "copy 1 carries, the notary block's own empty widgets included",
+    permBaseNames(r, 2, 1).join('|') === permBaseNames(r, 3, 2).join('|'),
+    [permBaseNames(r, 2, 1).length, permBaseNames(r, 3, 2).length]);
+  ok(`${label}: the copy's fields are REGISTERED on the form under their ' po2' names — ` +
+     'getFields() on the saved bytes returns them, so the copy is fillable and not an orphan',
+    r.names.indexOf(iF + ' po2') >= 0 && r.names.indexOf(nF + ' po2') >= 0 &&
+    r.names.indexOf(aF + ' po2') >= 0,
+    r.names.filter(x => / po2$/.test(x)).length);
+  ok(`${label}: and they are SEPARATE fields, not one field with two widgets — same-named ` +
+     'AcroForm fields are one field and would have forced both owners to share a value',
+    r.names.indexOf(iF) >= 0 && r.names.indexOf(iF + ' po2') >= 0 &&
+    permVal(r, iF, 1) !== permVal(r, iF, 2),
+    [permVal(r, iF, 1), permVal(r, iF, 2)]);
   ok(`${label}: no page errors`, errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
@@ -1315,7 +1395,9 @@ console.log('\n17. Three co-owners — three stacked rows on every page that sta
   await page.evaluate(() => { document.getElementById('dtHeirAffiant').value = ''; dtUpdateDocs(); });
   const r = await genAudit(page, null);
   ok('the three-co-owner packet generated without throwing', !r.error, r.error || first.error);
-  ok('6 pages — cover, release, loss, permission, statement, terms', r.pages === 6, r.pages);
+  ok('8 pages — cover, release, loss, permission ×3, statement, terms: three living owners ' +
+     'means three copies of the Permission of Use',
+    r.pages === 8, r.pages);
   const rl = await pageContent(r.b64, 1), lo = await pageContent(r.b64, 2),
         pm = await pageContent(r.b64, 3);
   ok('the Release stacks three full-width rows 40pt apart',
@@ -1331,11 +1413,28 @@ console.log('\n17. Three co-owners — three stacked rows on every page that sta
     nameRows(lo).length === 3 && nameRows(lo).every(t => Math.abs(t.y - 322) < 0.01) &&
     drawnTexts(lo).map(t => t.text).join('|') === ALL3.join('|'),
     drawnTexts(lo).map(t => [t.x, t.text]));
-  ok('the Permission of Use takes three columns too — 85 / 78 / 85pt, the tightest block in ' +
-     'the packet, but every one of the three still has the whole 53.8pt band above it',
-    colsOK(pm, RULE_H.permission, 400.9, 72, 348, 14, 3) &&
-    sigLines(pm, RULE_H.permission).every(l => l.w > 75) && drawnTexts(pm).length === 0,
-    sigLines(pm, RULE_H.permission).map(l => [l.x, l.w]));
+  ok('the Permission of Use is not split at all — it is COPIED, three contiguous pages in ' +
+     'deed order, each naming one owner alone and each keeping the template\'s own full line',
+    permIs(r, 3, false, 1) && permIs(r, 4, false, 2) && permIs(r, 5, false, 3) &&
+    permVal(r, 'I_2', 1) === FIX.grantor && permVal(r, 'I_2', 2) === FIX.co2 &&
+    permVal(r, 'I_2', 3) === FIX.co3 &&
+    drawnRects(pm).length === 0 && drawnTexts(pm).length === 0,
+    [permVal(r, 'I_2', 1), permVal(r, 'I_2', 2), permVal(r, 'I_2', 3),
+     drawnRects(pm).length]);
+  ok('nothing is drawn on the second or third copy either, and the third copy\'s fields are ' +
+     "registered under ' po3'",
+    (await pageContent(r.b64, 4)).length > 0 &&
+    drawnRects(await pageContent(r.b64, 4)).length === 0 &&
+    drawnRects(await pageContent(r.b64, 5)).length === 0 &&
+    r.names.indexOf('I_2 po3') >= 0 && r.names.indexOf('Name_4 po3') >= 0,
+    [drawnRects(await pageContent(r.b64, 4)).length,
+     drawnRects(await pageContent(r.b64, 5)).length,
+     r.names.filter(x => / po3$/.test(x)).length]);
+  ok('the third owner typed no address of his own, so his copy prints the shared one — but ' +
+     'his own phone, which he did type',
+    /Larkspur/.test(permVal(r, 'Address 1', 3) || '') &&
+    permVal(r, 'Phone', 3) === FIX.co3Phone,
+    [permVal(r, 'Address 1', 3), permVal(r, 'Phone', 3)]);
   ok('every drawn name is at its page\'s own size and none had to shrink — 7.5pt on the ' +
      'Release, 9pt on the Loss affidavit, none at all on the Permission of Use',
     nameRows(rl).length === 3 && nameRows(rl).every(t => t.size === 7.5) &&
@@ -1584,13 +1683,14 @@ console.log('\n20. Save / restore with a co-owner address (fake Firebase — not
   await ctx.close();
 }
 
-// ── 21. The PACKET did not change ─────────────────────────────────────────────────
-// Track E is collection and saving only. Every form has ONE address box and it keeps
-// printing the first owner's. So the same case, generated once with the co-owner's address
-// block blank and once with a completely different address typed into it, must produce the
-// same document: same fields, same values, page for page, and the same drawn content on
-// every page the signature stacks touch.
-console.log('\n21. A different co-owner address changes NOTHING in the packet');
+// ── 21. The co-owner's own address reaches ONE box, and only one ──────────────────
+// Track E collected a co-owner's own address and nothing on the packet read it. Track G is
+// where it first reaches paper: the operator ruled one Permission of Use per owner, and that
+// copy prints THAT owner's address. Everywhere else the rule is unchanged — every other form
+// has one address box and it stays the shared one. So the same case, generated once with the
+// co-owner's address block blank and once with a completely different address typed into it,
+// must differ on exactly one page and in exactly one field.
+console.log('\n21. A different co-owner address changes ONE box — her own Permission copy');
 {
   const { ctx, page, errs } = await open(browser);
   const CO = { name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email };
@@ -1612,24 +1712,30 @@ console.log('\n21. A different co-owner address changes NOTHING in the packet');
   ok('the case really did pick up a different address for the co-owner',
     typed === FIX.co3Address + ' / ' + FIX.co3State, typed);
   ok('both packets generated', !a.error && !b.error, [a.error, b.error]);
-  ok('same page count', a.pages === b.pages && a.pages === 6, [a.pages, b.pages]);
+  ok('same page count — 7, the second owner\'s Permission copy included',
+    a.pages === b.pages && a.pages === 7, [a.pages, b.pages]);
   ok('the same field names, in the same order',
     a.names.join('|') === b.names.join('|'));
-  ok('every printed VALUE is identical — no co-owner address reached any box',
-    JSON.stringify(a.values) === JSON.stringify(b.values),
+  ok('EXACTLY ONE printed value changed, and it is the co-owner\'s own copy of the Permission ' +
+     'of Use — her address line, nothing else in the whole packet',
+    Object.keys(a.values).concat(Object.keys(b.values))
+      .filter((k, i, all) => all.indexOf(k) === i)
+      .filter(k => a.values[k] !== b.values[k]).join('|') === 'Address 1 po2',
     Object.keys(a.values).filter(k => a.values[k] !== b.values[k]));
-  ok('page for page, the text is byte-identical',
-    a.perPage.map((_, i) => pageText(a, i)).join(String.fromCharCode(12)) ===
-    b.perPage.map((_, i) => pageText(b, i)).join(String.fromCharCode(12)),
+  ok('page for page, every page but that one copy is byte-identical',
+    a.perPage.map((_, i) => (i === 4 ? '' : pageText(a, i))).join(String.fromCharCode(12)) ===
+    b.perPage.map((_, i) => (i === 4 ? '' : pageText(b, i))).join(String.fromCharCode(12)),
     a.perPage.map((_, i) => (pageText(a, i) === pageText(b, i) ? null : i)).filter(i => i !== null));
-  ok('and no page carries the co-owner street, city or ZIP anywhere in its text',
-    a.perPage.every((_, i) => !new RegExp(FIX.co3Address.split(' ')[1]).test(pageText(b, i))) &&
-    !JSON.stringify(b.values).includes(FIX.co3Zip),
-    Object.keys(b.values).filter(k => String(b.values[k]).includes(FIX.co3City)));
-  // The three drawn pages — Release (1), Affidavit for Loss (2), Permission of Use (3) — plus
-  // the statement (4), where the printed names are page CONTENT rather than field values.
+  ok('the co-owner street, city and ZIP appear on HER copy and on no other page — the Release, ' +
+     'the Loss affidavit, the statement and the first owner\'s copy still print the shared address',
+    /Thornbury/.test(pageText(b, 4)) &&
+    b.perPage.every((_, i) => i === 4 || !/Thornbury|97701/.test(pageText(b, i))),
+    b.perPage.map((_, i) => (/Thornbury|97701/.test(pageText(b, i)) ? i : null)).filter(i => i !== null));
+  // The drawn pages — Release (1), Affidavit for Loss (2) — plus the two Permission copies
+  // (3, 4), where nothing is drawn, and the statement (5), where the printed names are page
+  // CONTENT rather than field values.
   const streams = [];
-  for (const i of [1, 2, 3, 4]) {
+  for (const i of [1, 2, 3, 4, 5]) {
     streams.push([i, await pageContent(a.b64, i), await pageContent(b.b64, i)]);
   }
   ok('every drawn signature block is byte-identical too',
@@ -1917,6 +2023,151 @@ console.log('\n25. Save / restore the Deceased flags and dates, and a legacy rec
     legacy.names.join('|') === FIX.grantor + '|' + FIX.co2 + '|' + FIX.co3, legacy.names);
   ok('with no stale date of death left in a box', legacy.dod === '', legacy.dod);
   ok('no page errors across the deceased-flag save and restore', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 26. Track G: the per-owner copies, in depth ────────────────────────────────────
+// §16 pins what a copy SAYS. This pins what a copy IS: how many pages the packet grows by,
+// that the copies are contiguous and in deed order, that their widgets are attached to their
+// own page and registered on the base form, and that the resulting file is a sound document
+// rather than one carrying dangling references — the failure mode Track A hit when pdf-lib's
+// page cache was left stale across a removePage()/copyPages() pair.
+console.log('\n26. The per-owner Permission copies: page maths, object graph, controls');
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+                address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip },
+              { name: FIX.co3, phone: FIX.co3Phone, email: FIX.co3Email }];
+
+  // ── one owner: the control the page maths is measured against ──
+  const one = await genAudit(page, { docusign: false, lost: true, deceased: false, permission: true });
+  await page.evaluate(() => { document.getElementById('dtHeirAffiant').value = ''; dtUpdateDocs(); });
+  const solo = await genAudit(page, null);
+  ok('one owner: 6 pages and ONE Permission of Use', solo.pages === 6 && !solo.error,
+    [solo.pages, solo.error || one.error]);
+  const soloPm = await pageContent(solo.b64, 3);
+  ok('one owner: the Permission of Use is the pristine template — nothing drawn, nothing ' +
+     'erased, no field renamed',
+    drawnRects(soloPm).length === 0 && drawnTexts(soloPm).length === 0 &&
+    solo.names.every(x => !/ po\d$/.test(x)),
+    [drawnRects(soloPm).length, solo.names.filter(x => / po\d$/.test(x))]);
+  ok('one owner: the on-screen list says 6 pages and does NOT claim a copy per owner',
+    await page.evaluate(() => dtTotalPages() + '|' +
+      dtDocList().filter(d => d.key === 'permission')[0].note) === '6|notarized copy',
+    await page.evaluate(() => dtTotalPages() + '|' +
+      dtDocList().filter(d => d.key === 'permission')[0].note));
+  await ctx.close();
+}
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO2 = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+                 address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip }];
+
+  // ── two living owners ──
+  await genAudit(page, { docusign: false, lost: true, deceased: false, permission: true, coOwners: CO2 });
+  await page.evaluate(() => { document.getElementById('dtHeirAffiant').value = ''; dtUpdateDocs(); });
+  const two = await genAudit(page, null);
+  ok('two living owners: 7 pages — the one-owner count plus exactly one, and the extra page ' +
+     'is a Permission of Use',
+    two.pages === 7 && permIs(two, 4, false, 2), [two.pages, two.error]);
+  ok('the copies are CONTIGUOUS and in deed order, where the single Permission sat: ' +
+     'cover, release, loss, permission ×2, statement, terms',
+    pageIs(two, 0, 'cover') && pageIs(two, 1, 'releaseNotary') && pageIs(two, 2, 'lossNotary') &&
+    permIs(two, 3, false, 1) && permIs(two, 4, false, 2) &&
+    pageIs(two, 5, 'statement'),
+    two.perPage.map((p, i) => i + ':' + p.names.slice(0, 1)));
+  ok('the on-screen page count and the Permission row both say so',
+    await page.evaluate(() => dtTotalPages() + '|' +
+      dtDocList().filter(d => d.key === 'permission')[0].note) ===
+      '7|notarized copy \u00b7 one per owner (\u00d72)',
+    await page.evaluate(() => dtTotalPages() + '|' +
+      dtDocList().filter(d => d.key === 'permission')[0].note));
+
+  // The object graph, read out of the SAVED bytes.
+  const d = await deep(page, two.b64);
+  ok('the saved file re-opens with pdf-lib and re-serialises — no dangling reference survived ' +
+     'the page copy (the failure mode a stale pdf-lib page cache produces)',
+    d.resaveError === null && d.resaved > 0, [d.resaveError, d.resaved]);
+  const copyFields = d.fields.filter(f => / po2$/.test(f.name));
+  ok('every field of the copy is registered on the BASE form under its \' po2\' name — 17 of ' +
+     'them on this variant, the notary block\'s own empty widgets included',
+    copyFields.length === d.fields.filter(f => f.on.join() === '3').length &&
+    copyFields.length > 10,
+    [copyFields.length, d.fields.filter(f => f.on.join() === '3').length]);
+  ok('and every one of those widgets sits on page 4, the copy\'s own page, and on no other — ' +
+     'the /P reference was rewritten with the field name',
+    copyFields.every(f => f.on.length === 1 && f.on[0] === 4),
+    copyFields.filter(f => !(f.on.length === 1 && f.on[0] === 4)).map(f => [f.name, f.on]));
+  ok('no field name is duplicated in the form — two AcroForm fields with one name are ONE ' +
+     'field and the two owners would have been forced to share every value',
+    d.fields.length === new Set(d.fields.map(f => f.name)).size,
+    d.fields.length - new Set(d.fields.map(f => f.name)).size);
+
+  // ── one of the two has died: back to a single copy ──
+  await page.evaluate(() => {
+    document.getElementById('dtOwner2Deceased').checked = true;
+    document.getElementById('dtOwner2Dod').value = 'March 3, 2025';
+    dtOwnerDeceasedChanged();
+    document.getElementById('dtHeirAffiant').value = '';
+    dtUpdateDocs();
+  });
+  const dead = await genAudit(page, null);
+  ok('one living owner of two: ONE Permission of Use again, and the packet is one page shorter ' +
+     '— a person who has died does not sign a copy',
+    dead.pages === 8 - 1 && dead.names.every(x => !/ po\d$/.test(x)),
+    [dead.pages, dead.names.filter(x => / po\d$/.test(x))]);
+  const deadPm = await pageContent(dead.b64, 4);
+  ok('and that page is the pristine template — nothing drawn on it',
+    drawnRects(deadPm).length === 0 && drawnTexts(deadPm).length === 0,
+    [drawnRects(deadPm).length, drawnTexts(deadPm).length]);
+  ok('no page errors', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+{
+  // ── the heir-affiant case: ONE copy, signed by the heir, exactly as before ──
+  const { ctx, page, errs } = await open(browser);
+  const CO2 = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  const r = await genAudit(page, { docusign: false, lost: false, deceased: true,
+                                   permission: true, heirs: 2, coOwners: CO2, dead: [1] });
+  ok('owner deceased with an heir affiant: ONE Permission of Use, no copies at all',
+    r.pages === 6 && r.names.every(x => !/ po\d$/.test(x)),
+    [r.pages, r.names.filter(x => / po\d$/.test(x))]);
+  ok('and the HEIR signs it, with her own address — not the owners, and not one page each',
+    r.values['I_2'] === FIX.heirAffiant && r.values['Name_4'] === FIX.heirAffiant &&
+    /Fernbank/.test(r.values['Address 1'] || ''),
+    [r.values['I_2'], r.values['Address 1']]);
+  const pm = await pageContent(r.b64, 4);
+  ok('nothing is drawn on it either', drawnRects(pm).length === 0 && drawnTexts(pm).length === 0,
+    [drawnRects(pm).length, drawnTexts(pm).length]);
+
+  // Both living again, but the heir affiant still named: the SAME guard, the other way round.
+  await page.evaluate(() => {
+    document.getElementById('dtOwner1Deceased').checked = false;
+    dtOwnerDeceasedChanged();
+    dtUpdateDocs();
+  });
+  const named = await genAudit(page, null);
+  ok('two LIVING owners but a different person named as the Permission signer: still ONE copy ' +
+     '— a page each for two people who are not signing it would be a false document',
+    named.names.every(x => !/ po\d$/.test(x)) &&
+    named.values['I_2'] === FIX.heirAffiant,
+    [named.pages, named.values['I_2'], named.names.filter(x => / po\d$/.test(x))]);
+  ok('no page errors', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+{
+  // ── the Permission is NOT in the document set: nothing is copied ──
+  const { ctx, page, errs } = await open(browser);
+  const CO2 = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  const r = await genAudit(page, { docusign: false, lost: true, deceased: false,
+                                   permission: false, coOwners: CO2 });
+  ok('permission toggle OFF at two living owners: 5 pages and no copy of anything',
+    r.pages === 5 && r.names.every(x => !/ po\d$/.test(x)),
+    [r.pages, r.names.filter(x => / po\d$/.test(x))]);
+  ok('and the on-screen count agrees',
+    await page.evaluate(() => dtTotalPages()) === 5,
+    await page.evaluate(() => dtTotalPages()));
+  ok('no page errors', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
