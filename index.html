@@ -3528,18 +3528,36 @@ tr:hover td{background:var(--navy-100);}
           <div class="dt-f"><label>Phone</label><input type="text" id="dtCoOwner2Phone"></div>
           <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtCoOwner2Email"></div>
           <button type="button" class="dt-rowbtn dt-co-rm" onclick="dtRemoveCoOwnerRow(2)">&#10005; Remove</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-light);margin:-4px 0 8px;">
+          Leave this blank if this co-owner lives at the address below.
+        </div>
+        <div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:200px;"><label>Co-owner street address</label><input type="text" id="dtCoOwner2Address"></div>
+          <div class="dt-f"><label>City</label><input type="text" id="dtCoOwner2City"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>State</label><input type="text" id="dtCoOwner2State" value="WA"></div>
+          <div class="dt-f" style="flex:0.7;min-width:80px;"><label>ZIP</label><input type="text" id="dtCoOwner2Zip"></div>
         </div></div>
         <div class="dt-co-row" data-dt-co="3" style="display:none;"><div class="dt-grid">
           <div class="dt-f" style="flex:2;min-width:200px;"><label>Co-owner name</label><input type="text" id="dtCoOwner3Name"></div>
           <div class="dt-f"><label>Phone</label><input type="text" id="dtCoOwner3Phone"></div>
           <div class="dt-f" style="flex:2;min-width:200px;"><label>E-mail</label><input type="text" id="dtCoOwner3Email"></div>
           <button type="button" class="dt-rowbtn dt-co-rm" onclick="dtRemoveCoOwnerRow(3)">&#10005; Remove</button>
+        </div>
+        <div style="font-size:12px;color:var(--text-light);margin:-4px 0 8px;">
+          Leave this blank if this co-owner lives at the address below.
+        </div>
+        <div class="dt-grid">
+          <div class="dt-f" style="flex:2;min-width:200px;"><label>Co-owner street address</label><input type="text" id="dtCoOwner3Address"></div>
+          <div class="dt-f"><label>City</label><input type="text" id="dtCoOwner3City"></div>
+          <div class="dt-f" style="flex:0.6;min-width:70px;"><label>State</label><input type="text" id="dtCoOwner3State" value="WA"></div>
+          <div class="dt-f" style="flex:0.7;min-width:80px;"><label>ZIP</label><input type="text" id="dtCoOwner3Zip"></div>
         </div></div>
       </div>
       <button type="button" id="dtAddCoOwnerBtn" class="dt-rowbtn" onclick="dtAddCoOwnerRow()">+ Add co-owner</button>
       <div style="font-size:12px;color:var(--text-light);">
-        The address below is shared by everyone listed here, and a co-owner&rsquo;s phone and e-mail
-        are kept on the record but do not print on the packet.
+        The address below is the one every document prints, and a co-owner&rsquo;s phone, e-mail
+        and own address are kept on the record but do not print on the packet.
       </div>
       <div class="dt-grid">
         <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtGrantorAddress"></div>
@@ -21386,6 +21404,17 @@ var DT_PAGES = {
 };
 
 function _dtVal(id) { var e = el(id); return e ? String(e.value || '').trim() : ''; }
+// One owner, read off whichever field prefix holds them - dtGrantor for the primary,
+// dtCoOwner<n> for a co-owner. Same seven keys either way, so no caller has to know which.
+function _dtOwnerRecord(prefix) {
+  return { name:    _dtVal(prefix + 'Name'),
+           phone:   _dtVal(prefix + 'Phone'),
+           email:   _dtVal(prefix + 'Email'),
+           address: _dtVal(prefix + 'Address'),
+           city:    _dtVal(prefix + 'City'),
+           state:   _dtVal(prefix + 'State'),
+           zip:     _dtVal(prefix + 'Zip') };
+}
 function _dtChk(id) { var e = el(id); return !!(e && e.checked); }
 function _dtSet(id, v) { var e = el(id); if (e) e.value = v; }
 
@@ -21393,17 +21422,22 @@ function _dtSet(id, v) { var e = el(id); if (e) e.value = v; }
 // every one of them has to sign. The primary stays in the original dtGrantor* fields, so
 // every record saved before sprint 29 restores unchanged; co-owners 2..N live in
 // dtCoOwner<n>* rows that sit in the DOM at load and are revealed by "Add co-owner".
-// Address/city/state/zip/county are NOT per person - one property, one address of record.
+// The COUNTY is not per person - it is the county the property sits in, one per deed. The
+// mailing address IS per person: operator ruling 2026-09-08, "i thought we agreed to collect
+// the purchaser and co-purchasers address if they are diffferent on the site at least?" A
+// co-owner whose address block is left blank lives at the primary's address, which is the
+// one every form prints - the packet still has one address box per document and did not
+// change. Collection and saving only.
 var DT_MAX_CO_OWNERS = 3;
 
-// [{name, phone, email}, ...] - primary first, rows with no name dropped. Never empty, so
-// every caller can treat the list as having at least one owner.
+// [{name, phone, email, address, city, state, zip}, ...] - primary first, rows with no name
+// dropped. Never empty, so every caller can treat the list as having at least one owner. A
+// co-owner's address fields are returned exactly as typed: blank means "same as the first
+// owner's", which is what the form says and what every document already prints.
 function dtCoOwners() {
-  var out = [{ name: _dtVal('dtGrantorName'), phone: _dtVal('dtGrantorPhone'), email: _dtVal('dtGrantorEmail') }];
+  var out = [_dtOwnerRecord('dtGrantor')];
   for (var i = 2; i <= DT_MAX_CO_OWNERS; i++) {
-    out.push({ name:  _dtVal('dtCoOwner' + i + 'Name'),
-               phone: _dtVal('dtCoOwner' + i + 'Phone'),
-               email: _dtVal('dtCoOwner' + i + 'Email') });
+    out.push(_dtOwnerRecord('dtCoOwner' + i));
   }
   var named = out.filter(function(o) { return !!o.name; });
   return named.length ? named : [out[0]];
@@ -21543,19 +21577,27 @@ function dtAddCoOwnerRow() {
   dtUpdateDocs();
   return n;
 }
+// Every field a co-owner row owns. The address joined the row on 2026-09-08; the compaction,
+// the blanker and Clear All all read this list so none of them can fall behind the form.
+var DT_CO_OWNER_FIELDS = ['Name', 'Phone', 'Email', 'Address', 'City', 'State', 'Zip'];
+// State is the one field with a default - "WA", exactly as dtGrantorState is defaulted in the
+// markup - so blanking a row restores that default rather than leaving it empty.
+function dtBlankCoOwnerRow(n) {
+  DT_CO_OWNER_FIELDS.forEach(function(f) {
+    _dtSet('dtCoOwner' + n + f, f === 'State' ? 'WA' : '');
+  });
+}
 // Row 1 is the primary and never goes. Removing row n pulls every later row up one and
 // blanks the last, so the values stay contiguous with the visible rows.
 function dtRemoveCoOwnerRow(n) {
   var R = dtCoOwnerRowEls().length;
   if (!(n >= 2 && n <= R)) return dtVisibleCoOwnerRows();
   for (var i = n; i < R; i++) {
-    _dtSet('dtCoOwner' + i + 'Name',  _dtVal('dtCoOwner' + (i + 1) + 'Name'));
-    _dtSet('dtCoOwner' + i + 'Phone', _dtVal('dtCoOwner' + (i + 1) + 'Phone'));
-    _dtSet('dtCoOwner' + i + 'Email', _dtVal('dtCoOwner' + (i + 1) + 'Email'));
+    DT_CO_OWNER_FIELDS.forEach(function(f) {
+      _dtSet('dtCoOwner' + i + f, _dtVal('dtCoOwner' + (i + 1) + f));
+    });
   }
-  _dtSet('dtCoOwner' + R + 'Name', '');
-  _dtSet('dtCoOwner' + R + 'Phone', '');
-  _dtSet('dtCoOwner' + R + 'Email', '');
+  dtBlankCoOwnerRow(R);
   var out = dtSyncCoOwnerRows(dtVisibleCoOwnerRows() - 1);
   dtUpdateDocs();
   return out;
@@ -21568,6 +21610,7 @@ function dtClearAll() {
   });
   if (el('dtGrantorState'))  el('dtGrantorState').value  = 'WA';
   if (el('dtNewOwnerState')) el('dtNewOwnerState').value = 'WA';
+  for (var _ci = 2; _ci <= DT_MAX_CO_OWNERS; _ci++) dtBlankCoOwnerRow(_ci);
   if (el('dtGrantorCounty')) el('dtGrantorCounty').value = 'King';
   if (el('dtConsideration')) el('dtConsideration').value = '10.00';
   document.querySelectorAll('#dtHeirRows .dt-heir-row').forEach(function(r, i) {
