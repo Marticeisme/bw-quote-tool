@@ -50,7 +50,9 @@ const FIX = {
   co3: 'Cormac Ashgrove', co3Phone: '206-555-0199', co3Email: 'cormac@example.com',
   // Track E: a co-owner who does NOT live with the primary. Synthetic, like everything here.
   co2Address: '77 Quillfeather Court', co2City: 'Tukwila', co2State: 'WA', co2Zip: '98188',
-  co3Address: '15 Thornbury Bend', co3City: 'Bend', co3State: 'OR', co3Zip: '97701'
+  co3Address: '15 Thornbury Bend', co3City: 'Bend', co3State: 'OR', co3Zip: '97701',
+  // Track F: an owner can have died. Invented dates, like every other value here.
+  dod2: 'March 3, 2025'
 };
 
 // Reads a saved PDF back inside the page: page count, every field name, every text value,
@@ -147,6 +149,15 @@ async function fillLane(page, opts) {
         if (v !== undefined) set('dtCoOwner' + (ci + 2) + k, v);
       });
     });
+    // Track F: which owner ROWS have died (1 is the primary). Ticking one of those boxes is
+    // what turns the situation toggle on, so the tick above is left to the cases that do not
+    // flag anybody.
+    (o.dead || []).forEach(function(row, di) {
+      const box = document.getElementById('dtOwner' + row + 'Deceased');
+      if (box) box.checked = true;
+      set('dtOwner' + row + 'Dod', di === 0 ? fx.dod : fx.dod2);
+    });
+    if ((o.dead || []).length) dtOwnerDeceasedChanged();
     for (let i = 1; i <= (o.heirs || 0); i++) {
       if (i > 1) dtAddHeirRow();
       // Heir 1 IS the affiant, so the Permission-of-Use signer-address lookup gets exercised.
@@ -286,6 +297,29 @@ const stackOK = (content, h, x, w, names) => {
       Math.abs(r.x - x) < 0.01 && Math.abs(r.w - w) < 0.01 &&
       (i === 0 || Math.abs((R[i - 1].y - r.y) - pitch) < 0.01) &&
       T[i].text === names[i] && T[i].y < r.y && T[i].y > r.y - pitch);
+};
+
+// A row of side-by-side columns: N rules on ONE y, left to right, sharing left..right with an
+// even gutter. This is the shape the Affidavit for Loss and the Permission of Use took in
+// Track F: the blank band above those lines is too short to stack two signers in, but the
+// width of the page beside them is empty, so the signers go across instead of down.
+const colsOK = (content, h, y, left, right, gutter, count) => {
+  const L = sigLines(content, h);
+  if (L.length !== count) return false;
+  const cw = (right - left) / count;
+  return L.every((l, i) => {
+    const x0 = left + i * cw + (i === 0 ? 0 : gutter / 2);
+    const x1 = left + (i + 1) * cw - (i === count - 1 ? 0 : gutter / 2);
+    return Math.abs(l.y - y) < 0.01 && Math.abs(l.x - x0) < 0.01 &&
+           Math.abs(l.w - (x1 - x0)) < 0.01;
+  });
+};
+// The clear vertical distance between two stacked signature rows, which is what "room to sign"
+// means: the operator's complaint was that 30pt of pitch with a 9pt name hard under the rule
+// left about 20pt to write in.
+const pitchOf = (content, h) => {
+  const R = sigRows(content, h);
+  return R.length > 1 ? R[0].y - R[1].y : 0;
 };
 
 const browser = await chromium.launch();
@@ -804,44 +838,67 @@ console.log('\n9. Two co-owners (notary) — one packet, both names, split signa
      '522.84, one above the other, each with that owner\'s name under it',
     stackOK(rl, RULE_H.release, 313.2, 209.64, [FIX.grantor, FIX.co2]),
     [sigRows(rl, RULE_H.release), nameRows(rl)]);
-  ok('the two Release lines are STACKED, not side by side: same x, 30pt apart in y',
+  ok('the two Release lines are STACKED, not side by side: same x, and 48pt apart in y — the ' +
+     'notary variant has 122pt of blank band above its rule, so the adaptive pitch takes the ' +
+     'whole 48pt cap (y 457.52 and 409.52)',
     sigRows(rl, RULE_H.release).length === 2 &&
-    Math.abs(sigRows(rl, RULE_H.release)[0].y - 450.52) < 0.01 &&
-    Math.abs(sigRows(rl, RULE_H.release)[1].y - 420.52) < 0.01,
+    Math.abs(sigRows(rl, RULE_H.release)[0].y - 457.52) < 0.01 &&
+    Math.abs(sigRows(rl, RULE_H.release)[1].y - 409.52) < 0.01,
     sigRows(rl, RULE_H.release).map(l => [l.x, l.y]));
-  ok('the two drawn names sit at DIFFERENT y — the proof they are not columns',
-    nameRows(rl).length === 2 && Math.abs(nameRows(rl)[0].y - 440.4) < 0.01 &&
-    Math.abs(nameRows(rl)[1].y - 410.4) < 0.01, nameRows(rl).map(t => t.y));
-  ok("the template's own full-width Release rule was whited out at its own y (392.3 down to " +
-     '402.3 in user space), so only the stack is on the page',
+  ok('THE OPERATOR\'S COMPLAINT, pinned: two Release signers are at least 40pt apart — "still ' +
+     'not enough room for each person to sign" was 30pt with the name hard under the rule',
+    pitchOf(rl, RULE_H.release) >= 40, pitchOf(rl, RULE_H.release));
+  ok('the two drawn names sit at DIFFERENT y — the proof they are not columns — 8pt under ' +
+     'their own rule at 7.5pt, so each signer has ~38pt of clear height',
+    nameRows(rl).length === 2 && Math.abs(nameRows(rl)[0].y - 450) < 0.01 &&
+    Math.abs(nameRows(rl)[1].y - 402) < 0.01 && nameRows(rl).every(t => t.size === 7.5),
+    nameRows(rl).map(t => [t.y, t.size]));
+  ok("the template's own full-width Release rule was whited out at its own y (402.0 up to " +
+     '403.7 in user space), so only the stack is on the page, and the erase stands 0.5pt proud ' +
+     'of the rule on each side so no antialiased hairline survives',
     drawnRects(rl).some(d => d.r === 1 && d.g === 1 && d.b === 1 &&
-                             Math.abs(d.w - 210.5) < 0.01 && Math.abs(d.y - 402.3) < 0.01),
+                             Math.abs(d.w - 211.0) < 0.01 && Math.abs(d.h - 1.7) < 0.01 &&
+                             Math.abs(d.y - 402.0) < 0.01),
     drawnRects(rl).filter(d => d.r === 1));
   ok('the whole stack sits ABOVE the kept "(Grantor\'s Signature)" caption (top of its ink is ' +
-     'y 397.67) and inside the blank band, whose ceiling is the body text at y 538.67',
+     'y 397.67 in user space) and inside the blank band, whose ceiling is the body text at ' +
+     'y 538.50',
     nameRows(rl).every(t => t.y > 397.67) &&
     sigRows(rl, RULE_H.release).every(l => l.y < 538.67),
     [nameRows(rl).map(t => t.y), sigRows(rl, RULE_H.release).map(l => l.y)]);
 
   // ── the Affidavit for Loss, stacked the same way (the operator's amendment) ──
+  // ── the Affidavit for Loss: "Not enough room for each signature here." The band above that
+  // block is 51pt — one signer's worth — so the two signers go SIDE BY SIDE across the width
+  // of the page instead, on one line at the bottom of the band.
   const lo = await pageContent(r.b64, 2);
-  ok('the Loss affidavit gives each owner a full-width line of his own, 279 to 527.4, stacked',
-    stackOK(lo, RULE_H.loss, 279, 248.4, [FIX.grantor, FIX.co2]),
-    [sigRows(lo, RULE_H.loss), nameRows(lo)]);
-  ok('the two Loss lines are 30pt apart in y (360.52 and 330.52) and their names differ in y too',
-    Math.abs(sigRows(lo, RULE_H.loss)[0].y - 360.52) < 0.01 &&
-    Math.abs(sigRows(lo, RULE_H.loss)[1].y - 330.52) < 0.01 &&
-    nameRows(lo)[0].y !== nameRows(lo)[1].y,
-    [sigRows(lo, RULE_H.loss).map(l => l.y), nameRows(lo).map(t => t.y)]);
-  ok("BOTH of the block's blank template rules were whited out — the stack replaces the whole " +
-     'two-line block, so no uncaptioned full-width line is left among the printed names',
+  ok('the Loss affidavit puts the two signers SIDE BY SIDE across the page — 83.88 to 527.4, ' +
+     'the span of the page\'s own widest rule, two columns with a 14pt gutter',
+    colsOK(lo, RULE_H.loss, 330.52, 83.88, 527.4, 14, 2),
+    sigLines(lo, RULE_H.loss).map(l => [l.x, l.w, l.y]));
+  ok('each Loss column is 214.76pt wide — a longer line than either signer had before, and ' +
+     'the two are on ONE y, not stacked',
+    sigLines(lo, RULE_H.loss).every(l => l.w > 210) &&
+    sigLines(lo, RULE_H.loss)[0].y === sigLines(lo, RULE_H.loss)[1].y,
+    sigLines(lo, RULE_H.loss).map(l => l.w));
+  ok('both names are printed under their own column, at the same y, in owner order',
+    nameRows(lo).length === 2 && nameRows(lo).every(t => Math.abs(t.y - 322) < 0.01) &&
+    drawnTexts(lo)[0].text === FIX.grantor && drawnTexts(lo)[1].text === FIX.co2,
+    drawnTexts(lo).map(t => [t.x, t.y, t.text]));
+  ok("BOTH of the block's blank template rules were whited out — the columns replace the whole " +
+     'two-line block, so no uncaptioned full-width line is left above the new one',
     drawnRects(lo).filter(d => d.r === 1 && d.g === 1 && d.b === 1 &&
-      (Math.abs(d.y - 360.3) < 0.01 || Math.abs(d.y - 341.0) < 0.01)).length === 2,
-    drawnRects(lo).filter(d => d.r === 1));
-  ok('the whole Loss stack is inside its blank band — below the body paragraph (y 393.83) and ' +
-     'clear above the notary block (first ink y 311.0)',
-    sigRows(lo, RULE_H.loss).every(l => l.y < 393.83) && nameRows(lo).every(t => t.y > 311.0),
-    [sigRows(lo, RULE_H.loss).map(l => l.y), nameRows(lo).map(t => t.y)]);
+      (Math.abs(d.y - 360.0) < 0.01 || Math.abs(d.y - 340.7) < 0.01)).length === 2,
+    drawnRects(lo).filter(d => d.r === 1).map(d => d.y));
+  ok('the line sits at the BOTTOM of its blank band, so every signer has the whole 51.3pt of ' +
+     'it to sign in — below the body paragraph (y 382.33) and clear above the notary block ' +
+     '(first ink y 311.0)',
+    sigLines(lo, RULE_H.loss).every(l => l.y < 382.33) && nameRows(lo).every(t => t.y > 311.0),
+    [sigLines(lo, RULE_H.loss).map(l => l.y), nameRows(lo).map(t => t.y)]);
+  ok('the two never-filled widgets that stood on the erased rules are GONE from the form — ' +
+     'Acrobat draws their empty highlight boxes over the new line otherwise',
+    r.names.indexOf('1_3') < 0 && r.names.indexOf('2_3') < 0,
+    r.names.filter(x => /^[12]_3$/.test(x)));
 
   // ── the Permission of Use, NOT stacked here: an HEIR signs it in this situation ──
   // The owner is deceased in this case, so dtFillForm() puts the heir affiant in 'I_2' and
@@ -880,32 +937,44 @@ console.log('\n10. Two co-owners (DocuSign) — the plain variants');
     r.names.filter(n => /^day of$/.test(n)));
   ok('the plain release names BOTH owners in the grantor box',
     r.values['day of_2'] === BOTH, r.values['day of_2']);
-  ok("the plain release's own printed-name widget ('2_2') is left EMPTY — the split draws the " +
-     'names on the rule instead',
-    !r.values['2_2'], r.values['2_2']);
+  ok("the plain release's own printed-name widget ('2_2') is REMOVED FROM THE FORM at two " +
+     'signers — it sat on the erased rule, and Acrobat was drawing its empty highlight box ' +
+     'across the new lines',
+    r.names.indexOf('2_2') < 0 && !r.values['2_2'], [r.names.indexOf('2_2'), r.values['2_2']]);
 
   const rl = await pageContent(r.b64, 1);
   ok('the plain Release gives each owner his own full-width line, stacked, names underneath',
     stackOK(rl, RULE_H.release, 313.2, 209.64, [FIX.grantor, FIX.co2]),
     [sigRows(rl, RULE_H.release), nameRows(rl)]);
-  ok('the plain Release stack sits at the same y as the notary one — 450.52 and 420.52',
-    Math.abs(sigRows(rl, RULE_H.release)[0].y - 450.52) < 0.01 &&
-    Math.abs(sigRows(rl, RULE_H.release)[1].y - 420.52) < 0.01,
+  ok('the plain Release stack shares the notary one\'s BOTTOM row (y 409.52) but pitches 42pt ' +
+     'instead of 48: this variant\'s body paragraph runs 37pt further down, so its band is ' +
+     'shorter and the adaptive pitch takes what is there',
+    Math.abs(sigRows(rl, RULE_H.release)[0].y - 451.52) < 0.01 &&
+    Math.abs(sigRows(rl, RULE_H.release)[1].y - 409.52) < 0.01,
     sigRows(rl, RULE_H.release).map(l => l.y));
+  ok('and it is still at least 40pt — the operator\'s complaint was made against THIS variant, ' +
+     'the one his Acrobat screenshot shows',
+    pitchOf(rl, RULE_H.release) >= 40, pitchOf(rl, RULE_H.release));
   ok("the plain variant's own rule is 2pt lower than the notary one, and that is the rule " +
-     'erased here (y 400.3, not 402.3)',
-    drawnRects(rl).some(d => d.r === 1 && Math.abs(d.y - 400.3) < 0.01 && Math.abs(d.w - 210.5) < 0.01),
-    drawnRects(rl).filter(d => d.r === 1));
+     'erased here (y 400.0, not 402.0)',
+    drawnRects(rl).some(d => d.r === 1 && Math.abs(d.y - 400.0) < 0.01 && Math.abs(d.w - 211.0) < 0.01) &&
+    !drawnRects(rl).some(d => d.r === 1 && Math.abs(d.y - 402.0) < 0.01),
+    drawnRects(rl).filter(d => d.r === 1).map(d => d.y));
 
   const lo = await pageContent(r.b64, 2);
-  ok('the plain Loss affidavit stacks two full-width lines, 279 to 527.4, names underneath',
-    stackOK(lo, RULE_H.loss, 279, 248.4, [FIX.grantor, FIX.co2]),
-    [sigRows(lo, RULE_H.loss), nameRows(lo)]);
+  ok('the plain Loss affidavit lays the two signers out side by side on the same geometry as ' +
+     'the notary one — two copies of one document must not sit at different heights',
+    colsOK(lo, RULE_H.loss, 330.52, 83.88, 527.4, 14, 2) &&
+    nameRows(lo).length === 2 && nameRows(lo).every(t => Math.abs(t.y - 322) < 0.01),
+    [sigLines(lo, RULE_H.loss).map(l => [l.x, l.w]), nameRows(lo).map(t => t.y)]);
   ok("the plain variant's SECOND blank rule is 16pt lower than the notary one, and that is the " +
-     'one erased here (user space 325.0, not 341.0)',
-    drawnRects(lo).some(d => d.r === 1 && Math.abs(d.y - 325.0) < 0.01) &&
-    !drawnRects(lo).some(d => d.r === 1 && Math.abs(d.y - 341.0) < 0.01),
+     'one erased here (user space 324.7, not 340.7)',
+    drawnRects(lo).some(d => d.r === 1 && Math.abs(d.y - 324.7) < 0.01) &&
+    !drawnRects(lo).some(d => d.r === 1 && Math.abs(d.y - 340.7) < 0.01),
     drawnRects(lo).filter(d => d.r === 1).map(d => d.y));
+  ok("the plain variant's own pair of signature-line widgets is removed too ('1_4'/'2_4')",
+    r.names.indexOf('1_4') < 0 && r.names.indexOf('2_4') < 0,
+    r.names.filter(x => /^[12]_4$/.test(x)));
   ok('the plain Permission of Use is not stacked either — the heir signs it in this case too',
     drawnRects(await pageContent(r.b64, 4)).length === 0 &&
     drawnTexts(await pageContent(r.b64, 4)).length === 0);
@@ -970,9 +1039,9 @@ console.log('\n11. Fallback names at two co-owners — and the decedent exceptio
     r2.values['DEPOSES SAYS BLANK'] === 'Someone Else Entirely',
     [r2.values['being duly sworn deposes and says'], r2.values['DEPOSES SAYS BLANK']]);
   // The signer guard, both ways round, on the same page of the same case.
-  ok('with NO affiant typed the Loss affidavit stacks a line for each co-owner',
-    stackOK(await pageContent(r.b64, 2), RULE_H.loss, 279, 248.4, [FIX.grantor, FIX.co2]),
-    sigRows(await pageContent(r.b64, 2), RULE_H.loss));
+  ok('with NO affiant typed the Loss affidavit draws a column for each co-owner',
+    colsOK(await pageContent(r.b64, 2), RULE_H.loss, 330.52, 83.88, 527.4, 14, 2),
+    sigLines(await pageContent(r.b64, 2), RULE_H.loss));
   ok('with a DIFFERENT affiant named, that one person signs and nothing is stacked — two ' +
      'owner lines under an affidavit sworn by somebody else would be a false document',
     drawnRects(await pageContent(r2.b64, 2)).length === 0 &&
@@ -1006,17 +1075,23 @@ console.log('\n12. Three co-owners — still one packet, three columns');
     Math.max.apply(null, sigLines(st, RULE_H.statement).map(l => l.w)) -
     Math.min.apply(null, sigLines(st, RULE_H.statement).map(l => l.w)) < 9.01,
     sigLines(st, RULE_H.statement));
-  ok('the Release gives all THREE owners a full-width line each, stacked 30pt apart, in the ' +
+  ok('the Release gives all THREE owners a full-width line each, evenly stacked, in the ' +
      'order they were entered',
     stackOK(rl, RULE_H.release, 313.2, 209.64, [FIX.grantor, FIX.co2, FIX.co3]),
     [sigRows(rl, RULE_H.release), nameRows(rl)]);
-  ok('the three Release lines are at y 480.52 / 450.52 / 420.52 and all three names are drawn ' +
-     'at 9pt — a stacked line does not shrink the way a third column does',
-    atY(sigRows(rl, RULE_H.release), [480.52, 450.52, 420.52]) &&
-    nameRows(rl).every(t => t.size === 9),
+  ok('the three Release lines are at y 489.52 / 449.52 / 409.52 — a 40pt pitch, squeezed from ' +
+     'the 48pt cap by the band, and all three names are drawn at the full 7.5pt: a stacked ' +
+     'line does not shrink the way a third column does',
+    atY(sigRows(rl, RULE_H.release), [489.52, 449.52, 409.52]) &&
+    nameRows(rl).every(t => t.size === 7.5),
     [sigRows(rl, RULE_H.release).map(l => l.y), nameRows(rl).map(t => t.size)]);
-  ok('the top of the three-row stack still clears the body text above it (y 538.67)',
-    sigRows(rl, RULE_H.release)[0].y < 538.67, sigRows(rl, RULE_H.release)[0].y);
+  ok('even at THREE signers the rows are 40pt apart — the adaptive pitch divides the band by n, ' +
+     'not by n-1, so the top signer keeps a row\'s worth of blank above him as well',
+    pitchOf(rl, RULE_H.release) >= 40 &&
+    sigRows(rl, RULE_H.release)[0].y + pitchOf(rl, RULE_H.release) <= 532,
+    [pitchOf(rl, RULE_H.release), sigRows(rl, RULE_H.release)[0].y]);
+  ok('the top of the three-row stack still clears the body text above it (y 538.50)',
+    sigRows(rl, RULE_H.release)[0].y < 538.50, sigRows(rl, RULE_H.release)[0].y);
   ok('no page errors', errs.length === 0, errs.slice(0, 3));
 
   // A name longer than its own column must shrink, then trim — never cross the border.
@@ -1098,10 +1173,9 @@ for (const docusign of [false, true]) {
     stackOK(await pageContent(r.b64, 1), RULE_H.release, 313.2, 209.64,
       ['Sparse Grantor', 'Sparse CoOwner']),
     sigRows(await pageContent(r.b64, 1), RULE_H.release));
-  ok(`sparse ${label}, 2 co-owners: the Affidavit for Loss still stacks`,
-    stackOK(await pageContent(r.b64, 2), RULE_H.loss, 279, 248.4,
-      ['Sparse Grantor', 'Sparse CoOwner']),
-    sigRows(await pageContent(r.b64, 2), RULE_H.loss));
+  ok(`sparse ${label}, 2 co-owners: the Affidavit for Loss still lays out its two columns`,
+    colsOK(await pageContent(r.b64, 2), RULE_H.loss, 330.52, 83.88, 527.4, 14, 2),
+    sigLines(await pageContent(r.b64, 2), RULE_H.loss));
   ok(`sparse ${label}, 2 co-owners: no page errors`,
     errs.filter(e => !/favicon/.test(e)).length === 0, errs.slice(0, 3));
   await ctx.close();
@@ -1201,27 +1275,26 @@ for (const docusign of [false, true]) {
      'printed-name line, captioned by the form, not a name typed on the signature rule',
     r.values[nField] === BOTH, r.values[nField]);
   const pm = await pageContent(r.b64, 2);
-  ok(`${label}: each owner gets a full-width line of his own, 72 to 306, stacked, with his ` +
-     'name under it',
-    stackOK(pm, RULE_H.permission, 72, 234, [FIX.grantor, FIX.co2]),
-    [sigRows(pm, RULE_H.permission), nameRows(pm)]);
-  ok(`${label}: the two lines are STACKED 30pt apart (y 444.4 and 414.4), not side by side`,
-    Math.abs(sigRows(pm, RULE_H.permission)[0].y - 444.4) < 0.01 &&
-    Math.abs(sigRows(pm, RULE_H.permission)[1].y - 414.4) < 0.01 &&
-    nameRows(pm)[0].y !== nameRows(pm)[1].y,
-    [sigRows(pm, RULE_H.permission).map(l => l.y), nameRows(pm).map(t => t.y)]);
-  ok(`${label}: the template's own signer rule was whited out at its own y (user space 400.8) ` +
-     'and the stack drawn above it, because "Name:" starts immediately under it',
+  ok(`${label}: the two owners sign SIDE BY SIDE on the rule's own y (user space 400.9), 72 ` +
+     'to 348, a 14pt gutter between them — this page cannot stack, its blank band is 53.8pt',
+    colsOK(pm, RULE_H.permission, 400.9, 72, 348, 14, 2),
+    sigLines(pm, RULE_H.permission).map(l => [l.x, l.w, l.y]));
+  ok(`${label}: BOTH columns sit on ONE y, so each signer has the WHOLE 53.8pt band above ` +
+     'him — against the ~20pt a stack on this page gave either of them',
+    sigLines(pm, RULE_H.permission).length === 2 &&
+    sigLines(pm, RULE_H.permission)[0].y === sigLines(pm, RULE_H.permission)[1].y,
+    sigLines(pm, RULE_H.permission).map(l => l.y));
+  ok(`${label}: NO name is drawn on this page — the row immediately under the rules is the ` +
+     "form's own captioned printed-name row and 'Name_" + (docusign ? '5' : '4') + "' already carries both names, joined",
+    drawnTexts(pm).length === 0, drawnTexts(pm));
+  ok(`${label}: the template's own signer rule was whited out at its own y (user space 400.3, ` +
+     '1.7pt tall, 235pt wide) so the gutter between the two columns is clean',
     drawnRects(pm).some(d => d.r === 1 && d.g === 1 && d.b === 1 &&
-                             Math.abs(d.y - 400.8) < 0.01 && Math.abs(d.w - 234.8) < 0.01),
+                             Math.abs(d.y - 400.3) < 0.01 && Math.abs(d.w - 235.0) < 0.01),
     drawnRects(pm).filter(d => d.r === 1));
-  ok(`${label}: the stack is inside the blank band — below the body paragraph (y 455.5) and ` +
-     'above the kept "Name:" row (its ink starts at y 397.0)',
-    sigRows(pm, RULE_H.permission).every(l => l.y < 455.5) && nameRows(pm).every(t => t.y > 397.0),
-    [sigRows(pm, RULE_H.permission).map(l => l.y), nameRows(pm).map(t => t.y)]);
-  ok(`${label}: the "Date:" rule shares that y but is untouched — nothing was drawn or erased ` +
-     'right of x 306.4',
-    drawnRects(pm).every(d => d.x + d.w <= 306.41), drawnRects(pm).map(d => d.x + d.w));
+  ok(`${label}: the "Date:" rule shares that y and is untouched — nothing was drawn or erased ` +
+     'right of x 348, and the "Date:" label\'s own ink starts at x 360',
+    drawnRects(pm).every(d => d.x + d.w <= 348.01), drawnRects(pm).map(d => d.x + d.w));
   ok(`${label}: no page errors`, errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
@@ -1245,26 +1318,29 @@ console.log('\n17. Three co-owners — three stacked rows on every page that sta
   ok('6 pages — cover, release, loss, permission, statement, terms', r.pages === 6, r.pages);
   const rl = await pageContent(r.b64, 1), lo = await pageContent(r.b64, 2),
         pm = await pageContent(r.b64, 3);
-  ok('the Release stacks three full-width rows at the full 30pt pitch',
+  ok('the Release stacks three full-width rows 40pt apart',
     stackOK(rl, RULE_H.release, 313.2, 209.64, ALL3) &&
-    atY(sigRows(rl, RULE_H.release), [480.52, 450.52, 420.52]),
+    atY(sigRows(rl, RULE_H.release), [489.52, 449.52, 409.52]),
     sigRows(rl, RULE_H.release).map(l => l.y));
-  ok('the Loss affidavit stacks three rows at a 28pt pitch — squeezed to clear the paragraph ' +
-     'above (y 393.83) and the notary block below (y 311.0)',
-    stackOK(lo, RULE_H.loss, 279, 248.4, ALL3) &&
-    atY(sigRows(lo, RULE_H.loss), [386.52, 358.52, 330.52]) &&
-    sigRows(lo, RULE_H.loss)[0].y < 393.83 && nameRows(lo)[2].y > 311.0,
-    sigRows(lo, RULE_H.loss).map(l => l.y));
-  ok('the Permission of Use stacks three rows at an 18pt pitch — the tightest page in the set, ' +
-     'still inside its band (paragraph y 455.5, "Name:" ink y 397.0)',
-    stackOK(pm, RULE_H.permission, 72, 234, ALL3) &&
-    atY(sigRows(pm, RULE_H.permission), [450.4, 432.4, 414.4]) &&
-    sigRows(pm, RULE_H.permission)[0].y < 455.5 && nameRows(pm)[2].y > 397.0,
-    sigRows(pm, RULE_H.permission).map(l => l.y));
-  ok('every name on every stacked page is drawn at the full 9pt — stacking, unlike columns, ' +
-     'never has to shrink a name to fit',
-    [rl, lo, pm].every(c => nameRows(c).length === 3 && nameRows(c).every(t => t.size === 9)),
-    [rl, lo, pm].map(c => nameRows(c).map(t => t.size)));
+  ok('the Loss affidavit lays three columns across the page on one y — 140.84 / 133.84 / ' +
+     '140.84 wide, the middle one narrower because the outer two run to the borders',
+    colsOK(lo, RULE_H.loss, 330.52, 83.88, 527.4, 14, 3) &&
+    sigLines(lo, RULE_H.loss).every(l => l.w > 130),
+    sigLines(lo, RULE_H.loss).map(l => [l.x, l.w]));
+  ok('and its three printed names are all on ONE baseline, in owner order',
+    nameRows(lo).length === 3 && nameRows(lo).every(t => Math.abs(t.y - 322) < 0.01) &&
+    drawnTexts(lo).map(t => t.text).join('|') === ALL3.join('|'),
+    drawnTexts(lo).map(t => [t.x, t.text]));
+  ok('the Permission of Use takes three columns too — 85 / 78 / 85pt, the tightest block in ' +
+     'the packet, but every one of the three still has the whole 53.8pt band above it',
+    colsOK(pm, RULE_H.permission, 400.9, 72, 348, 14, 3) &&
+    sigLines(pm, RULE_H.permission).every(l => l.w > 75) && drawnTexts(pm).length === 0,
+    sigLines(pm, RULE_H.permission).map(l => [l.x, l.w]));
+  ok('every drawn name is at its page\'s own size and none had to shrink — 7.5pt on the ' +
+     'Release, 9pt on the Loss affidavit, none at all on the Permission of Use',
+    nameRows(rl).length === 3 && nameRows(rl).every(t => t.size === 7.5) &&
+    nameRows(lo).length === 3 && nameRows(lo).every(t => t.size === 9),
+    [nameRows(rl).map(t => t.size), nameRows(lo).map(t => t.size)]);
   ok('no page errors on the three-co-owner path', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
@@ -1559,6 +1635,288 @@ console.log('\n21. A different co-owner address changes NOTHING in the packet');
   ok('every drawn signature block is byte-identical too',
     streams.every(([, x, y]) => x === y), streams.filter(([, x, y]) => x !== y).map(([i]) => i));
   ok('no page errors', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 22. Track F: the widgets are only removed where a block was actually drawn ──────
+// The other half of §9/§10's "gone from the form". At ONE signer nothing is drawn, so the
+// template's own rules and the widgets that sit on them must ALL still be there — otherwise
+// the removal assertions above would pass just as happily on a generator that always strips.
+console.log('\n22. The signature-line widgets are present at ONE signer, on both variants');
+for (const docusign of [false, true]) {
+  const { ctx, page, errs } = await open(browser);
+  const label = docusign ? 'DocuSign' : 'notary';
+  const r = await genAudit(page, { docusign, lost: true, deceased: false, permission: true });
+  ok(`${label}: the one-owner packet generated without throwing`, !r.error, r.error);
+  ok(`${label}: the Affidavit for Loss keeps BOTH of its signature-line widgets`,
+    r.names.indexOf(docusign ? '1_4' : '1_3') >= 0 && r.names.indexOf(docusign ? '2_4' : '2_3') >= 0,
+    r.names.filter(x => /^[12]_[34]$/.test(x)));
+  if (docusign) {
+    ok('DocuSign: the plain Release keeps its \'2_2\' printed-name widget, carrying the owner',
+      r.names.indexOf('2_2') >= 0 && r.values['2_2'] === FIX.grantor,
+      [r.names.indexOf('2_2'), r.values['2_2']]);
+  }
+  const lo = await pageContent(r.b64, 2);
+  ok(`${label}: and nothing at all is drawn or erased on that page — the template's own two ` +
+     'blank rules are the block',
+    drawnRects(lo).length === 0 && drawnTexts(lo).length === 0,
+    [drawnRects(lo).length, drawnTexts(lo).length]);
+  ok(`${label}: no page errors`, errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 23. Track F: LIVING owners sign ────────────────────────────────────────────────
+// Operator, 2026-09-08, asked whose signature lines appear when one of two owners has died:
+// "Living owners only". So the name boxes still read the deed — both names, joined — but there
+// is one signer, which is the same case as a sole owner: the template's own single line, no
+// erase, no drawn name, no widget removed.
+console.log('\n23. One owner of two has died — living owners only');
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email }];
+  const BOTH = FIX.grantor + ' & ' + FIX.co2;
+  await fillLane(page, { docusign: false, lost: true, permission: true, heirs: 2,
+                         coOwners: CO, dead: [1] });
+  const state = await page.evaluate(() => {
+    document.getElementById('dtDecedentName').value = '';
+    document.getElementById('dtDateOfDeath').value  = '';
+    return { toggle: document.getElementById('dtOwnerDeceased').checked,
+             signers: dtSigners().map(o => o.name),
+             deceased: dtDeceasedOwners().map(o => o.name),
+             owners: dtOwnerNames() };
+  });
+  ok('ticking an owner\'s Deceased box turned the situation toggle on by itself',
+    state.toggle === true, state.toggle);
+  ok('dtSigners() is the LIVING owners, in deed order', state.signers.join('|') === FIX.co2,
+    state.signers);
+  ok('dtDeceasedOwners() is the other one', state.deceased.join('|') === FIX.grantor, state.deceased);
+  ok('and the NAME the documents print is still both of them, as the deed reads',
+    state.owners === BOTH, state.owners);
+
+  const r = await genAudit(page, null);
+  ok('the packet generated without throwing', !r.error, r.error);
+  ok('7 pages — cover, release, loss, heirs, permission, statement, terms', r.pages === 7, r.pages);
+  ok('the Release still names BOTH owners in the grantor box', r.values['day of'] === BOTH,
+    r.values['day of']);
+  ok('the statement prints BOTH names in Current Name Print again — nothing is drawn over it, ' +
+     'so the box is where the names belong',
+    r.values['Current Name Print'] === BOTH, r.values['Current Name Print']);
+  const rl = await pageContent(r.b64, 1), lo = await pageContent(r.b64, 2),
+        pm = await pageContent(r.b64, 4), st = await pageContent(r.b64, 5);
+  ok('NOTHING is drawn on the Release — one living signer signs the template\'s own line',
+    drawnRects(rl).length === 0 && drawnTexts(rl).length === 0,
+    [drawnRects(rl).length, drawnTexts(rl).length]);
+  ok('nothing on the Affidavit for Loss, nothing on the Permission of Use, nothing on the ' +
+     'statement either',
+    [lo, pm, st].every(c => drawnRects(c).length === 0 && drawnTexts(c).length === 0),
+    [lo, pm, st].map(c => [drawnRects(c).length, drawnTexts(c).length]));
+  ok('and no widget was removed — the Loss affidavit still carries \'1_3\' and \'2_3\'',
+    r.names.indexOf('1_3') >= 0 && r.names.indexOf('2_3') >= 0,
+    r.names.filter(x => /^[12]_3$/.test(x)));
+
+  // ── the Affidavit of Heirs, one decedent ──
+  ok('the Affidavit of Heirs names the DEAD owner as the decedent, not the primary by position',
+    r.values['DEPOSES SAYS BLANK'] === FIX.grantor, r.values['DEPOSES SAYS BLANK']);
+  ok('and takes his date of death off his own row', r.values['Date of Death'] === FIX.dod,
+    r.values['Date of Death']);
+
+  // ── both owners now dead: "One affidavit naming both" ──
+  await page.evaluate((fx) => {
+    document.getElementById('dtOwner2Deceased').checked = true;
+    document.getElementById('dtOwner2Dod').value = fx.dod2;
+    dtOwnerDeceasedChanged();
+  }, FIX);
+  const r2 = await genAudit(page, null);
+  ok('BOTH dead: one affidavit naming both — the decedent line joins the two names with " & "',
+    r2.values['DEPOSES SAYS BLANK'] === BOTH, r2.values['DEPOSES SAYS BLANK']);
+  ok('BOTH dead: and the date-of-death line joins the two dates in the SAME order',
+    r2.values['Date of Death'] === FIX.dod + ' & ' + FIX.dod2, r2.values['Date of Death']);
+  ok('BOTH dead: still ONE Affidavit of Heirs page, not two', r2.pages === 7, r2.pages);
+  const dead2 = [];
+  for (const i of [1, 2, 4, 5]) dead2.push([i, await pageContent(r2.b64, i)]);
+  ok('BOTH dead: zero living signers, so nothing is drawn on the Release, the Loss ' +
+     'affidavit, the Permission of Use or the statement',
+    dead2.every(([, c]) => drawnRects(c).length === 0 && drawnTexts(c).length === 0),
+    dead2.map(([i, c]) => [i, drawnRects(c).length, drawnTexts(c).length]));
+
+  // ── a typed override still wins, both ways ──
+  await page.evaluate(() => {
+    document.getElementById('dtDecedentName').value = 'Typed Decedent';
+    document.getElementById('dtDateOfDeath').value  = 'April 1, 2020';
+  });
+  const r3 = await genAudit(page, null);
+  ok('a typed decedent and a typed date override the joined lines',
+    r3.values['DEPOSES SAYS BLANK'] === 'Typed Decedent' &&
+    r3.values['Date of Death'] === 'April 1, 2020',
+    [r3.values['DEPOSES SAYS BLANK'], r3.values['Date of Death']]);
+
+  // ── nobody flagged, the toggle ticked by hand: the pre-Track-F behaviour ──
+  const r4 = await page.evaluate(() => {
+    document.getElementById('dtOwner1Deceased').checked = false;
+    document.getElementById('dtOwner2Deceased').checked = false;
+    dtOwnerDeceasedChanged();
+    const t = document.getElementById('dtOwnerDeceased');
+    const cleared = t.checked;
+    t.checked = true;                       // ticked by hand, nobody flagged
+    document.getElementById('dtDecedentName').value = '';
+    document.getElementById('dtDateOfDeath').value  = '';
+    dtUpdateDocs();
+    return { cleared: cleared, signers: dtSigners().length };
+  });
+  ok('clearing the LAST Deceased box clears the situation toggle with it', r4.cleared === false, r4.cleared);
+  ok('and both owners are signers again', r4.signers === 2, r4.signers);
+  const r5 = await genAudit(page, null);
+  ok('nobody flagged but the toggle ticked by hand — the decedent falls back to the PRIMARY ' +
+     'owner alone, exactly as it did before this track',
+    r5.values['DEPOSES SAYS BLANK'] === FIX.grantor, r5.values['DEPOSES SAYS BLANK']);
+  ok('and the two living owners get their two Release lines back',
+    sigRows(await pageContent(r5.b64, 1), RULE_H.release).length === 2,
+    sigRows(await pageContent(r5.b64, 1), RULE_H.release).length);
+  ok('no page errors on the deceased-owner path', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 24. Track F: list the current owners as the surviving heirs at law ─────────────
+// Operator, 2026-09-08: "should also be able to list the current owners as the surviving heirs
+// at law if applicable." The LIVING owners only — a dead owner is the decedent, not his own
+// heir — with the address they gave, relationship and age left for the counselor.
+console.log('\n24. "List current owners as heirs"');
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email,
+                address: FIX.co2Address, city: FIX.co2City, state: FIX.co2State, zip: FIX.co2Zip },
+              { name: FIX.co3, phone: FIX.co3Phone, email: FIX.co3Email }];
+  await fillLane(page, { docusign: false, permission: false, heirs: 0, coOwners: CO, dead: [1] });
+  const first = await page.evaluate(() => {
+    const added = dtHeirsFromOwners();
+    const g = (i) => (document.getElementById(i) || {}).value;
+    const rows = document.querySelectorAll('#dtHeirRows .dt-heir-row');
+    return { added: added,
+             names: [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Name')),
+             addrs: [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Address')),
+             rels:  [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Rel')),
+             ages:  [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Age')),
+             visible: Array.prototype.filter.call(rows, r => r.style.display !== 'none').length,
+             btn: document.getElementById('dtAddHeirBtn').style.display };
+  });
+  ok('the button filled a row for each LIVING owner and none for the dead one', first.added === 2,
+    [first.added, first.names]);
+  ok('the two living owners are in the first two rows, in deed order',
+    first.names[0] === FIX.co2 && first.names[1] === FIX.co3, first.names);
+  ok('the co-owner who typed an address of his own gets THAT address',
+    first.addrs[0] === FIX.co2Address + ', ' + FIX.co2City + ', ' + FIX.co2State + ' ' + FIX.co2Zip,
+    first.addrs[0]);
+  ok('the co-owner who left his address blank gets the shared one, which is the address every ' +
+     'document already prints for him',
+    first.addrs[1] === FIX.grantorAddress + ', ' + FIX.grantorCity + ', ' + FIX.grantorState +
+      ' ' + FIX.grantorZip,
+    first.addrs[1]);
+  ok('relationship and age are left EMPTY — the tool does not know how one owner is related ' +
+     'to the owner who died, and a sworn affidavit is no place to guess',
+    first.rels.every(v => !v) && first.ages.every(v => !v), [first.rels, first.ages]);
+  ok('the rows it filled were revealed, and no more than that', first.visible === 2, first.visible);
+  ok('the Add-another-heir button is still offered at two of five rows', first.btn === '', first.btn);
+
+  const again = await page.evaluate(() => {
+    const added = dtHeirsFromOwners();
+    const g = (i) => (document.getElementById(i) || {}).value;
+    return { added: added, names: [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Name')) };
+  });
+  ok('pressing it twice adds nobody twice — a name already in a row is never repeated',
+    again.added === 0 && again.names.filter(Boolean).length === 2, again.names);
+
+  const capped = await page.evaluate(() => {
+    ['A', 'B', 'C', 'D'].forEach((x, i) => {
+      dtAddHeirRow();
+      document.getElementById('dtHeir' + (i + 2) + 'Name').value = 'Existing Heir ' + x;
+    });
+    document.getElementById('dtHeir1Name').value = 'Existing Heir Z';   // free nobody a slot
+    const added = dtHeirsFromOwners();
+    const g = (i) => (document.getElementById(i) || {}).value;
+    return { added: added, names: [1, 2, 3, 4, 5].map(i => g('dtHeir' + i + 'Name')) };
+  });
+  ok('with all five rows taken it adds nobody and overwrites nobody — the form holds five',
+    capped.added === 0 && capped.names.every(Boolean) &&
+    capped.names.indexOf(FIX.co3) < 0, capped.names);
+  ok('no page errors on the owners-as-heirs path', errs.length === 0, errs.slice(0, 3));
+  await ctx.close();
+}
+
+// ── 25. Track F: the Deceased flag and date save, restore and compact ──────────────
+console.log('\n25. Save / restore the Deceased flags and dates, and a legacy record');
+{
+  const { ctx, page, errs } = await open(browser);
+  const CO = [{ name: FIX.co2, phone: FIX.co2Phone, email: FIX.co2Email },
+              { name: FIX.co3, phone: FIX.co3Phone, email: FIX.co3Email }];
+  await fillLane(page, { docusign: true, heirs: 0, coOwners: CO, dead: [2] });
+  const saved = await page.evaluate(() => {
+    const realPrompt = window.prompt;
+    window.prompt = () => 'Ashgrove deceased-owner transfer';
+    try { saveDeedTransfer(); } finally { window.prompt = realPrompt; }
+    const snap = _dtSavedTransfers[0] || {};
+    return { id: snap.id, co: (snap.state || {}).coOwners, fields: (snap.state || {}).fields };
+  });
+  ok('the record carries the Deceased flag on the owner it belongs to',
+    saved.co[1].deceased === true && saved.co[0].deceased === false &&
+    saved.co[2].deceased === false,
+    saved.co.map(o => [o.name, o.deceased]));
+  ok('and that owner\'s own date of death', saved.co[1].dod === FIX.dod, saved.co[1].dod);
+  ok('the four new ids are in the captured field list too, not only inside the coOwners array',
+    saved.fields.dtOwner2Deceased === true && saved.fields.dtOwner2Dod === FIX.dod &&
+    saved.fields.dtOwner1Deceased === false && saved.fields.dtOwner3Deceased === false,
+    [saved.fields.dtOwner1Deceased, saved.fields.dtOwner2Deceased, saved.fields.dtOwner2Dod]);
+
+  const back = await page.evaluate((id) => {
+    dtClearAll();
+    loadSavedDeedTransfer(id);
+    return { signers: dtSigners().map(o => o.name), dead: dtDeceasedOwners().map(o => o.name),
+             dod: (document.getElementById('dtOwner2Dod') || {}).value,
+             toggle: document.getElementById('dtOwnerDeceased').checked,
+             rows: dtVisibleCoOwnerRows() };
+  }, saved.id);
+  ok('restore brings the flag back on the right owner', back.dead.join('|') === FIX.co2, back.dead);
+  ok('restore brings the two living owners back as the signers',
+    back.signers.join('|') === FIX.grantor + '|' + FIX.co3, back.signers);
+  ok('restore brings the date of death back', back.dod === FIX.dod, back.dod);
+  ok('and the situation toggle with it', back.toggle === true, back.toggle);
+  ok('three rows are visible again', back.rows === 3, back.rows);
+
+  // Removing the row the dead owner is on carries the flag up with the rest of the row.
+  const compacted = await page.evaluate(() => {
+    dtRemoveCoOwnerRow(2);
+    return { names: dtCoOwnerNames(), dead: dtDeceasedOwners().map(o => o.name),
+             dod2: (document.getElementById('dtOwner2Dod') || {}).value,
+             dod3: (document.getElementById('dtOwner3Dod') || {}).value,
+             box3: document.getElementById('dtOwner3Deceased').checked,
+             toggle: document.getElementById('dtOwnerDeceased').checked };
+  });
+  ok('removing the dead owner\'s row removes the death with it — nobody is flagged now',
+    compacted.dead.length === 0 && compacted.names.join('|') === FIX.grantor + '|' + FIX.co3,
+    [compacted.dead, compacted.names]);
+  ok('and it clears the situation toggle, because nothing is driving it any more',
+    compacted.toggle === false, compacted.toggle);
+  ok('the vacated last row keeps no stale flag and no stale date',
+    compacted.box3 === false && compacted.dod3 === '' && compacted.dod2 === '',
+    [compacted.box3, compacted.dod2, compacted.dod3]);
+
+  // A record written before Track F has no dtOwner<n>Deceased / dtOwner<n>Dod keys at all.
+  const legacy = await page.evaluate((id) => {
+    const snap = _dtSavedTransfers.find(q => q.id === id);
+    Object.keys(snap.state.fields).forEach(k => { if (/^dtOwner\d/.test(k)) delete snap.state.fields[k]; });
+    (snap.state.coOwners || []).forEach(o => { delete o.deceased; delete o.dod; });
+    dtClearAll();
+    loadSavedDeedTransfer(id);
+    return { rows: dtVisibleCoOwnerRows(), names: dtCoOwnerNames(),
+             dead: dtDeceasedOwners().length, signers: dtSigners().length,
+             dod: (document.getElementById('dtOwner2Dod') || {}).value };
+  }, saved.id);
+  ok('a record saved before Track F restores with NOBODY deceased', legacy.dead === 0, legacy.dead);
+  ok('so all three owners are signers, which is what such a record meant',
+    legacy.signers === 3 && legacy.rows === 3, [legacy.signers, legacy.rows]);
+  ok('and it still restores its owner list unchanged',
+    legacy.names.join('|') === FIX.grantor + '|' + FIX.co2 + '|' + FIX.co3, legacy.names);
+  ok('with no stale date of death left in a box', legacy.dod === '', legacy.dod);
+  ok('no page errors across the deceased-flag save and restore', errs.length === 0, errs.slice(0, 3));
   await ctx.close();
 }
 
