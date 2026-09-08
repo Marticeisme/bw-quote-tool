@@ -3567,8 +3567,9 @@ tr:hover td{background:var(--navy-100);}
       </div>
       <button type="button" id="dtAddCoOwnerBtn" class="dt-rowbtn" onclick="dtAddCoOwnerRow()">+ Add co-owner</button>
       <div style="font-size:12px;color:var(--text-light);">
-        The address below is the one every document prints, and a co-owner&rsquo;s phone, e-mail
-        and own address are kept on the record but do not print on the packet.
+        The address below is the one every document prints. A co-owner&rsquo;s own address and
+        phone print only on their own copy of the Permission of Use; their e-mail is kept on
+        the record and does not print.
       </div>
       <div class="dt-grid">
         <div class="dt-f" style="flex:2;min-width:200px;"><label>Street address</label><input type="text" id="dtGrantorAddress"></div>
@@ -21518,6 +21519,30 @@ function dtPageIndexes(sel) {
   return keep.sort(function(a, b){ return a - b; });
 }
 
+// Operator ruling 2026-09-08, asked how the Permission of Use should carry two owners:
+// "Permission of use would only be one per" - and, asked which, "One Permission of Use per
+// owner". So that ONE page becomes one filled copy per LIVING owner, each with the template's
+// single signature line and that owner's name in the signer box. Nothing is drawn on it any
+// more; the other signed documents keep their split lines.
+//
+// Who the copies are for: the same test dtDrawSignatureSplit() uses for the split it replaces.
+// When an heir signs the Permission - the owner has died and dtHeirAffiant names somebody who
+// is not the owners - that heir signs ONE copy, exactly as before.
+function dtPermissionCopyOwners() {
+  return dtSplitSigners(_dtVal('dtHeirAffiant'), dtOwnerNames(), dtSigners());
+}
+// How many copies of the Permission of Use the packet carries. Always at least one.
+function dtPermissionCopies() {
+  var o = dtPermissionCopyOwners();
+  return o.length > 1 ? o.length : 1;
+}
+// Pages in the download. dtPageIndexes() is the TEMPLATE pages the packet is pruned to, one
+// each; this is what the counselor will actually count, the extra Permission copies included.
+function dtTotalPages(sel) {
+  sel = sel || dtDocSet();
+  return dtPageIndexes(sel).length + (sel.permission ? dtPermissionCopies() - 1 : 0);
+}
+
 
 // The named documents, for the on-screen list. Same derivation as dtPageIndexes.
 function dtDocList(sel) {
@@ -21527,7 +21552,12 @@ function dtDocList(sel) {
              { key:'release', name:'Release of Interment Rights', note:v }];
   if (sel.loss)       out.push({ key:'loss', name:'Affidavit for Loss of Certificate', note:v });
   if (sel.heirs)      out.push({ key:'heirs', name:'Affidavit of Heirs', note:'no notary block on this form' });
-  if (sel.permission) out.push({ key:'permission', name:'Permission of Use', note:v });
+  if (sel.permission) {
+    // The ONE row that can stand for several pages - one per living owner (operator ruling).
+    var pc = dtPermissionCopies();
+    out.push({ key:'permission', name:'Permission of Use',
+               note: pc > 1 ? v + ' \u00b7 one per owner (\u00d7' + pc + ')' : v });
+  }
   out.push({ key:'statement', name:'Statement of Cemetery Interment Rights ($325 transfer fee)', note:'always' });
   out.push({ key:'terms', name:'Terms and Conditions', note:'always' });
   return out;
@@ -21570,7 +21600,7 @@ function dtUpdateDocs() {
            + '<span class="dt-doc-note">' + _ceEsc(d.note) + '</span></div>';
     }).join('');
     box.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">'
-      + 'The download will contain ' + dtPageIndexes(sel).length + ' pages:</div>' + rows;
+      + 'The download will contain ' + dtTotalPages(sel) + ' pages:</div>' + rows;
   }
   var show2 = function(id, on) { var e = el(id); if (e) e.style.display = on ? '' : 'none'; };
   show2('dtLossPanel', sel.loss);
@@ -21752,7 +21782,11 @@ var DT_HEIR_FIELDS = [
 // Fills every page of the loaded template. Pages that are not in the download are filled too
 // and then removed — cheaper and far less error-prone than conditioning each setter, and the
 // removed bytes never reach the file.
-function dtFillForm(form) {
+// `permOwner`, when given, is the ONE living owner this copy of the Permission of Use is for
+// (operator ruling 2026-09-08: "One Permission of Use per owner"). It changes nothing else on
+// the packet - the decedent, the person to be interred and the new owner read the same on every
+// copy. Left out, the Permission of Use fills exactly as it did before this track.
+function dtFillForm(form, permOwner) {
   function setTF(name, value) {
     if (value === null || value === undefined || value === '') return;
     try { form.getTextField(name).setText(String(value)); } catch(e) {}
@@ -21905,7 +21939,15 @@ function dtFillForm(form) {
   // signer is named in a heir row, that row's address is used; otherwise the block is left for
   // them to complete rather than filled with somebody else's details.
   var permAddr = grantorAdr, permPhone = grantorPh;
-  if (permGrantor && permGrantor !== grantor) {   // grantor is every co-owner, joined
+  if (permOwner) {
+    // This copy belongs to ONE owner: their name alone in both signer boxes, their own address
+    // if they typed one and the shared address if they did not, and their own phone. The
+    // template's single signature line is left exactly as it is - nothing is drawn on this
+    // page any more, because each signer now has a whole page of their own.
+    permGrantor = permOwner.name;
+    permAddr    = permOwner.address ? _dtOwnerAddress(permOwner) : grantorAdr;
+    permPhone   = permOwner.phone;
+  } else if (permGrantor && permGrantor !== grantor) {   // grantor is every co-owner, joined
     permAddr = ''; permPhone = '';
     for (var h = 1; h <= 5; h++) {
       if (_dtVal('dtHeir' + h + 'Name') === permGrantor) { permAddr = _dtVal('dtHeir' + h + 'Address'); break; }
@@ -21974,13 +22016,13 @@ var DT_NOTARY_FIELDS = [
 // THE packet: the template loaded fresh, filled, appearances baked while all ten pages still
 // exist, then everything outside `keep` removed. The s27 order (bake BEFORE page removal, and
 // save with updateFieldAppearances:false) is the whole reason a sparse form does not crash.
-async function dtBuildOnePacket(bytes, keep) {
+async function dtBuildOnePacket(bytes, keep, permOwner) {
   // Load and fill in place. copyPages() into a fresh document brings the widget annotations
   // but NOT the /Fields tree, so getForm() comes back empty and every setText silently
   // no-ops — the bug that once shipped a blank ClearPoint contract.
   var doc  = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
   var form = doc.getForm();
-  dtFillForm(form);
+  dtFillForm(form, permOwner);
 
   // Bake every field appearance NOW, while all ten pages still exist. save() runs this
   // pass itself by default, but by then the unused pages are gone — and this template has
@@ -22052,6 +22094,53 @@ async function dtBuildOnePacket(bytes, keep) {
   return doc;
 }
 
+// Operator ruling 2026-09-08, on two owners and the Permission of Use: "Permission of use would
+// only be one per" - and, asked which, "One Permission of Use per owner". So instead of two
+// signature lines on one page, the packet carries one filled COPY of the page per living owner,
+// contiguously, where the single Permission sat. Each copy is a full build of its own so its
+// signer boxes, address and phone carry that owner and nobody else; every other field on it -
+// the decedent, the person to be interred, the new owner - reads the same on all of them.
+//
+// copyPages() brings the widget annotations but NOT the /Fields tree, so the copied widgets are
+// registered on the base form by hand - and they are RENAMED first, because two AcroForm fields
+// with the same fully-qualified name are ONE field and would be forced to share a value, which
+// is exactly what these copies must not do.
+async function dtAppendPermissionCopies(doc, bytes, owners, sel) {
+  var PN = PDFLib.PDFName;
+  if (!owners || owners.length < 2) return;
+  var permPage = sel.docusign ? DT_PAGES.permissionPlain : DT_PAGES.permissionNotary;
+  var at = dtPageIndexes(sel).indexOf(permPage);
+  if (at < 0) return;                          // the Permission is not in this document set
+  for (var i = 1; i < owners.length; i++) {
+    // A packet of ONE page: built, filled for this owner and pruned by the same path the whole
+    // packet takes, so the appearance bake and the orphan-field prune are the proven ones.
+    var sub    = await dtBuildOnePacket(bytes, [permPage], owners[i]);
+    var copied = await doc.copyPages(sub, [0]);
+    var page   = copied[0];
+    doc.insertPage(at + i, page);
+    var suffix = ' po' + (i + 1);
+    var an = page.node.Annots();
+    if (!an) continue;
+    for (var a = 0; a < an.size(); a++) {
+      try {
+        var ref  = an.get(a);
+        var dict = an.lookup(a, PDFLib.PDFDict);
+        if (!dict || dict === ref) continue;    // a direct annot has no ref to register
+        var t = dict.get(PN.of('T'));
+        if (!t) continue;                       // a kid widget - its name is on the parent
+        dict.set(PN.of('T'), PDFLib.PDFString.of(dtFieldText(t) + suffix));
+        dict.set(PN.of('P'), page.ref);
+        doc.getForm().acroForm.addField(ref);
+      } catch (e) {}
+    }
+  }
+}
+function dtFieldText(t) {
+  try { if (t.decodeText) return t.decodeText(); } catch (e) {}
+  try { if (t.asString)   return t.asString(); } catch (e) {}
+  return String(t);
+}
+
 // The signature lines that must be SPLIT when the interment rights are held by more than one
 // LIVING person. Operator rulings, sprint 29, in order - the last one on each point wins:
 //
@@ -22078,13 +22167,15 @@ async function dtBuildOnePacket(bytes, keep) {
 //    above that block is only 51pt, but the whole width of the page beside the rule is empty,
 //    so the signers go side by side on one line at 83.88-527.40 - the exact span of the
 //    page's own widest rule - each column 214.76pt wide with a 14pt gutter.
-//  - COLUMNS across the free width (both Permission of Use variants). Same shape, but this
-//    page's signature rule SHARES its y with the "Date:" rule at x 386-540, which must not be
-//    touched, so the columns run from the left margin to 12pt clear of the "Date:" label.
 //  - The statement's green box (p9) keeps Track B's columns unchanged: the operator ruled
 //    "split the green box in half" for that box by name.
 //
 // The Affidavit of Heirs is signed by an HEIR, not by the owners, and is left alone.
+//
+// The PERMISSION OF USE is not in this table at all any more. It briefly took columns of its
+// own; the operator then ruled "Permission of use would only be one per" - one whole copy of
+// the page per owner - so nothing is drawn or erased on it and each signer gets the template's
+// own single line. dtAppendPermissionCopies() builds the copies.
 //
 // Everything below is in MuPDF page coordinates - origin top-left of the VISIBLE page, y
 // growing DOWNWARD - measured off the template with PyMuPDF.
@@ -22186,31 +22277,6 @@ var DT_SPLITS = {
     erase: [ { x0: 277.5, x1: 528.0, top: 430.0, bottom: 432.0, color: 'white' },
              { x0: 277.5, x1: 528.0, top: 465.4, bottom: 467.3, color: 'white' } ],
     drop: ['1_4', '2_4']
-  },
-  // Permission of Use, notary variant (p7). The signer's rule is x 72-306, ink y 390.50-391.17,
-  // and the "Name:" row starts immediately under it (label ink from 395.00, the 'Name_4' widget
-  // at 391.32) with Address: and Phone: stacked below. The band above is 53.8pt - one row's
-  // worth, not two - so this page goes side by side as well. It is the ONE page where the
-  // columns cannot use the full width: the "Date:" rule at x 386-540 shares the signature
-  // rule's y and the "Date:" label's ink starts at x 360, so the columns stop at 348 and every
-  // pixel right of that is left exactly as the template drew it. That gives 131pt a column -
-  // shorter than the template's single 234pt rule, and the trade this page forces: 53.8pt of
-  // clear height each instead of 20. Nothing is printed under the rules, because the row
-  // immediately below them is the form's OWN captioned printed-name row and 'Name_4' already
-  // carries both owners' names, joined.
-  permissionNotary: {
-    layout: 'columns', names: false,
-    page: DT_PAGES.permissionNotary, left: 72.0, right: 348.0, gap: 14,
-    ruleTop: 390.5, ruleBottom: 391.1, nameBaseline: 400.0,
-    erase: [ { x0: 71.5, x1: 306.5, top: 390.0, bottom: 391.7, color: 'white' } ]
-  },
-  // Permission of Use, plain/DocuSign variant (p8). The same block at the same coordinates to
-  // the point; only the widget names differ ('Name_5', 'Address_6', 'Phone_2').
-  permissionPlain: {
-    layout: 'columns', names: false,
-    page: DT_PAGES.permissionPlain, left: 72.0, right: 348.0, gap: 14,
-    ruleTop: 390.5, ruleBottom: 391.1, nameBaseline: 400.0,
-    erase: [ { x0: 71.5, x1: 306.5, top: 390.0, bottom: 391.7, color: 'white' } ]
   }
 };
 function dtSplitAxes(page) {
@@ -22320,6 +22386,12 @@ async function generateDeedTransferPDF() {
     var signers = dtSigners();
     var keepAll = dtPageIndexes(sel);
     var bytes   = await bwTemplate('DT_PDF_B64');
+    // The Permission of Use is ONE COPY PER LIVING OWNER (operator ruling 2026-09-08). The
+    // base packet carries the first owner's copy; dtAppendPermissionCopies() adds the rest
+    // straight after it. At one signer, or when an heir signs it, this list is short and the
+    // page is the pristine template it has always been.
+    var permOwners = sel.permission ? dtPermissionCopyOwners() : [];
+    var permFirst  = permOwners.length > 1 ? permOwners[0] : null;
 
     // ONE packet - the s27 page set, every document once (operator ruling, sprint 29). Where a
     // document names the owner it already carries all the co-owners; where they must BOTH sign
@@ -22328,10 +22400,10 @@ async function generateDeedTransferPDF() {
     // much room to sign in as its page can give: stacked at an adaptive pitch on the Release,
     // side by side across the page on the Affidavit for Loss and the Permission of Use, and
     // split in half in the statement's green box, which is the shape the operator named.
-    var doc = await dtBuildOnePacket(bytes, keepAll);
+    var doc = await dtBuildOnePacket(bytes, keepAll, permFirst);
     if (signers.length > 1) {
       var variant = function(key) { return DT_SPLITS[key + (sel.docusign ? 'Plain' : 'Notary')]; };
-      var release = variant('release'), loss = variant('loss'), permission = variant('permission');
+      var release = variant('release'), loss = variant('loss');
       // A line is split only where the CO-OWNERS are the people who sign it. Two of these
       // documents can be signed by somebody else, and dtFillForm() writes that one person's
       // name into them: the Affidavit for Loss takes a named affiant, and the Permission of
@@ -22339,15 +22411,16 @@ async function generateDeedTransferPDF() {
       // as one owner. Both tests mirror dtFillForm()'s own "is the signer somebody else?".
       var joined     = dtOwnerNames();
       var lossOwners = dtSplitSigners(_dtVal('dtAffiantName'), joined, signers);
-      var permOwners = dtSplitSigners(_dtVal('dtHeirAffiant'), joined, signers);
       await dtDrawSignatureSplit(doc, keepAll.indexOf(DT_PAGES.statement), signers, DT_SPLITS.statement);
       await dtDrawSignatureSplit(doc, keepAll.indexOf(release.page), signers, release);
-      // The Loss affidavit and the Permission of Use are only in the packet when their toggle
-      // is on. keepAll.indexOf() is -1 for a page that was pruned and dtDrawSignatureSplit()
-      // returns without drawing, so the page list is the other half of the guard.
+      // The Loss affidavit is only in the packet when its toggle is on. keepAll.indexOf() is
+      // -1 for a page that was pruned and dtDrawSignatureSplit() returns without drawing, so
+      // the page list is the other half of the guard.
       await dtDrawSignatureSplit(doc, keepAll.indexOf(loss.page), lossOwners, loss);
-      await dtDrawSignatureSplit(doc, keepAll.indexOf(permission.page), permOwners, permission);
     }
+    // Nothing is drawn on the Permission of Use; it is COPIED instead, one filled page per
+    // living owner, contiguous with the first owner's copy already in the packet.
+    await dtAppendPermissionCopies(doc, bytes, permOwners, sel);
 
     // Acrobat re-derives appearances when NeedAppearances is true and can lose the fill; the
     // same pin the RIC uses.
