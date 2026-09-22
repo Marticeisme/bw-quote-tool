@@ -8380,6 +8380,28 @@ function cemUpdate() {
   // ("Commissionable Sale does not include ECF or discounts applied").
   var spaceTotalForDisc = lines.filter(function(l){ return l.isSpace && !/ECF/i.test(l.label); }).reduce(function(s,l){ return s + l.amount; }, 0);
 
+  // Promo O&C credits are per OPENING ACTUALLY PURCHASED, not per space. Two plots with a
+  // single interment earn ONE $1,000 credit, not two — the old code took $1,000 × spaces and
+  // clamped it to the O&C total, which quietly zeroed out a whole single interment fee.
+  // Quantity lives in the label as "×N" (every O&C lines.push site writes it that way), so
+  // read it back to split a multi-quantity line into its units. Returned high-to-low; each
+  // unit is credited at min(promo amount, its own price).
+  function ocUnitPrices(arr) {
+    var out = [];
+    arr.forEach(function(l) {
+      var m = /×\s*(\d+)\s*$/.exec(l.label);
+      var n = m ? parseInt(m[1], 10) : 1;
+      if (!(n > 0)) n = 1;
+      for (var i = 0; i < n; i++) out.push(l.amount / n);
+    });
+    return out.sort(function(a, b) { return b - a; });
+  }
+  function ocCredit(arr, per, cap) {
+    var units = ocUnitPrices(arr), n = Math.min(cap, units.length), sum = 0;
+    for (var i = 0; i < n; i++) sum += Math.min(per, units[i]);
+    return { amount: sum, count: n };
+  }
+
   var hasVetRow = false, hasMonthlyRow = false;
   el('cemDiscountList').querySelectorAll('.disc-row').forEach(function(row) {
     var mode = row.querySelector('.disc-mode').value;
@@ -8472,8 +8494,11 @@ function cemUpdate() {
         if (rightsPresent) propLbl += ' — additional rights not included';
       }
       // Filter only relevant O&C lines (exclude ECF, exclude isDiscount)
-      var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn/i); });
-      var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF/i); });
+      // Recording fees are NOT openings — "Recording Fee – Interment" / "– Inurnment" match the
+      // service word and used to be credited as if they were an O&C. Exclude them, same as the
+      // RIC's own O&C split does.
+      var burialOCLines = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Interment|Entombment/i) && !l.label.match(/ECF|Inurn|Recording/i); });
+      var inurnOCLines  = lines.filter(function(l){ return !l.isDiscount && l.label.match(/Inurnment/i) && !l.label.match(/ECF|Recording/i); });
       // Customer-facing line — describe what's discounted, not the internal promo name
       // ("September Incentive" reads as internal jargon to a family reviewing their quote).
       if (isFamily45) {
@@ -8481,16 +8506,16 @@ function cemUpdate() {
         dLabel = propLbl + ' — Family 45-Day Certificate';
       } else if (mode.indexOf('promo_burial') === 0) {
         var ocQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (mausP > 0 ? mausQ : 0));
-        var ocActual = burialOCLines.reduce(function(s,l){return s+l.amount;},0);
-        var ocDisc = Math.min(1000 * ocQ, ocActual);
+        var ocCr = ocCredit(burialOCLines, 1000, ocQ);
+        var ocDisc = ocCr.amount;
         dAmt = propDisc + ocDisc;
-        dLabel = propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Burial O&C' + (ocQ > 1 ? ' — $1,000 × ' + ocQ + ' spaces' : '') : '');
+        dLabel = propLbl + (ocDisc > 0 ? ' + −$' + Math.round(ocDisc).toLocaleString() + ' Burial O&C' + (ocCr.count > 1 ? ' — $1,000 × ' + ocCr.count + ' openings' : '') : '');
       } else if (mode.indexOf('promo_crem') === 0) {
         var inQ = Math.max(1, (spacePrice > 0 ? gardenQty : 0) + (nicheP > 0 ? nicheQ : 0));
-        var inurnActual = inurnOCLines.reduce(function(s,l){return s+l.amount;},0);
-        var inurnDisc = Math.min(500 * inQ, inurnActual);
+        var inCr = ocCredit(inurnOCLines, 500, inQ);
+        var inurnDisc = inCr.amount;
         dAmt = propDisc + inurnDisc;
-        dLabel = propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Cremation O&C' + (inQ > 1 ? ' — $500 × ' + inQ + ' spaces' : '') : '');
+        dLabel = propLbl + (inurnDisc > 0 ? ' + −$' + Math.round(inurnDisc).toLocaleString() + ' Cremation O&C' + (inCr.count > 1 ? ' — $500 × ' + inCr.count + ' openings' : '') : '');
       } else {
         dAmt = propDisc;
         dLabel = propLbl;
@@ -9652,57 +9677,80 @@ function _fqPickTier(model){
 }
 
 // ── HTML render (Print window) ──────────────────────────────────────────────────────────────────
+// This is a MIRROR of the pdf-lib renderer below (_fqBuildPDFBytes), not a second design. The two
+// had drifted apart: the PDF was rebuilt on the _FQ2 palette (slate masthead, cream sheet, warm
+// hairlines, Source Serif 4 / Source Sans 3) while this path was still on the old _FQ one (white
+// masthead, grey summary card) and asked for 'Public Sans' while only loading Playfair — so every
+// heading printed in Times. Printing a quote and downloading it gave a family two different
+// documents. Rules for keeping them together:
+//   • Geometry is in POINTS. CSS pt == PDF pt (both 1/72in), so every number here is the same
+//     number the pdf-lib code uses, and the sheet is exactly one 612x792 Letter page.
+//   • Colours come from _FQ2 (the PDF's palette). _FQ survives only for the compare sheet.
+//   • Density comes from _FQ2_TIERS, the PDF's own tier table, chosen by real measurement in
+//     _fqFitForPrint rather than the PDF's width estimate.
+//   • Type is the same Source Serif 4 / Source Sans 3 the PDF embeds — literally the same WOFF
+//     subsets out of FQ_FONTS, with the Google webfonts behind them for glyphs the subset drops.
+var _FQ2_SERIF = "'BWSerif','Source Serif 4',Georgia,'Times New Roman',serif";
+var _FQ2_SANS  = "'BWSans','Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif";
+// @font-face out of the PDF's own embedded subsets, so a printed page and its PDF set the same
+// glyphs — and so printing still works with no network. Silently skipped if FQ_FONTS is missing.
+function _fqFontFaceCSS(){
+  try {
+    if (typeof FQ_FONTS === 'undefined') return '';
+    var faces = [['BWSerif','serif600',600],['BWSerif','serif700',700],
+                 ['BWSans','sans400',400],['BWSans','sans600',600],['BWSans','sans700',700]], css='';
+    faces.forEach(function(f){
+      if(!FQ_FONTS[f[1]]) return;
+      css += "@font-face{font-family:'"+f[0]+"';font-weight:"+f[2]+";font-style:normal;font-display:block;"
+          +  "src:url(data:font/woff;base64,"+FQ_FONTS[f[1]]+") format('woff');}";
+    });
+    return css;
+  } catch(e){ console.warn('print webfonts skipped:', e); return ''; }
+}
+function _fqGoogleFontLink(){
+  return '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">';
+}
+// Masthead: slate band, white logo left, big serif title right over the scope line, orange keyline
+// under it. Same 85pt band / 2.25pt keyline / 25pt title as masthead() in the PDF.
 function _fqHeaderHTML(rightTitle, rightSub){
-  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:24px;padding:40px 56px 24px;">'
-    +'<img src="data:image/svg+xml;base64,'+btoa(_fqNavyLogoSVG())+'" alt="Bonney Watson" style="height:30px;width:auto;display:block;">'
-    +'<div style="text-align:right;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navy+';letter-spacing:.01em;">'+_fqEsc(rightTitle)+'</div>'
-    +'<div style="font-size:13px;color:'+_FQ.m1+';margin-top:3px;">'+rightSub+'</div></div></div>'
-    +'<div style="height:2px;background:'+_FQ.orange+';margin:0 56px;"></div>';
+  var logo = '';
+  try { logo = '<img src="data:image/svg+xml;base64,'+btoa(_fqWhiteLogoSVG())+'" alt="Bonney Watson" class="mast-logo">'; }
+  catch(e){ logo = '<span style="color:#fff;font-size:15pt;letter-spacing:.12em;">BONNEY WATSON</span>'; }
+  return '<div class="mast">'+logo
+    +'<div class="mast-r"><div class="mast-t">'+_fqEsc(rightTitle)+'</div>'
+    +'<div class="mast-s">'+rightSub+'</div></div></div><div class="keyline"></div>';
 }
-// No page counter: the payment sheet can run past one printed page (the PDF paginates it to 2-3),
-// so "Page 2 of 2" would be a false claim. The pdf-lib footer carries no page number either.
+// Footer: hairline, advisor block left, contact + address right — the PDF's footer(), which sits
+// on every page. No page counter: the payment sheet can run past one page, so "Page 2 of 2" would
+// be a false claim, and the pdf-lib footer carries no page number either.
 function _fqFooterHTML(){
-  return '<div style="margin-top:36px;padding:24px 56px 40px;border-top:1px solid '+_FQ.footRule+';display:flex;align-items:center;justify-content:space-between;gap:24px;">'
-    +'<div style="font-size:12.5px;color:'+_FQ.m2+';line-height:1.6;">Bonney Watson &nbsp;·&nbsp; 16445 International Blvd, SeaTac, WA 98188<br>'+bwAdvisorContactPair(' &nbsp;·&nbsp; ')+' &nbsp;·&nbsp; Available 24 hours</div></div>';
+  var a = bwCurrentAdvisor();
+  return '<div class="foot"><div><div class="foot-name">'+_fqEsc(a.name)+'</div>'
+    +'<div class="foot-role">Family Service Advisor · Bonney Watson</div></div>'
+    +'<div class="foot-r"><div class="foot-contact">'+bwAdvisorContactPair('&nbsp; · &nbsp;')+'</div>'
+    +'<div class="foot-addr">16445 International Blvd, SeaTac, WA 98188 &nbsp; · &nbsp; Available 24 hours</div></div></div>';
 }
-// ── HTML payment-options page (page 2) ──────────────────────────────────────────────────────────
-// These mirror the pdf-lib page 2 exactly: the real FIN_TIERS rate table (24-72 mo, 0-10% APR) for
-// cemetery financing, the WA Maxima insurance plans for funeral-home quotes, and the combined
-// monthly-budget grid. The print page used to render _fqPayTiers() — a simplified flat-0%
-// 36/48/60 grid — so a printed quote and its PDF disagreed the moment a term carried an APR.
-function _fqPillHTML(txt){
-  return '<span style="display:inline-block;background:'+_FQ2.pillbg+';color:'+_FQ.orange+';font-weight:700;font-size:11px;padding:2px 8px;white-space:nowrap;">'+_fqEsc(txt)+'</span>';
-}
+function _fqPillHTML(txt){ return '<span class="pill">'+_fqEsc(txt)+'</span>'; }
 function _fqSectLabelHTML(kick, title){
-  return '<div class="seclab" style="margin:18px 0 10px;"><div style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">'+_fqEsc(kick)+'</div>'
-    +(title?'<div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navyDark+';margin-top:5px;">'+_fqEsc(title)+'</div>':'')+'</div>';
+  return '<div class="seclab"><div class="kick">'+_fqEsc(kick)+'</div>'
+    +(title?'<div class="seclab-t">'+_fqEsc(title)+'</div>':'')+'</div>';
 }
-function _fqDiscHTML(txt){
-  return '<div style="background:'+_FQ2.warm+';border-left:3px solid '+_FQ.navy+';padding:14px 18px;margin-bottom:14px;break-inside:avoid;">'
-    +'<p style="margin:0;font-size:11.5px;line-height:1.6;color:'+_FQ.m1+';">'+_fqEsc(txt)+'</p></div>';
-}
-// Shared card chrome: warm header strip with an orange keyline, right-aligned figure block, then a
-// four-column table. Cell contents are pre-built HTML (already escaped by the callers).
+function _fqDiscHTML(txt){ return '<div class="disc"><p>'+_fqEsc(txt)+'</p></div>'; }
+// Shared card chrome — the PDF's tierCard(): 1pt border, warm header strip with an orange
+// keyline, right-aligned figure block, then the four-column table. Cells arrive as built HTML.
 function _fqPayCardHTML(title, figs, cols, rows){
-  var h='<div class="payopt" style="border:1px solid '+_FQ2.tierbrd+';background:'+_FQ.sheet+';margin-bottom:14px;">'
-    +'<div style="background:'+_FQ2.warm+';border-left:3px solid '+_FQ.orange+';border-bottom:1px solid '+_FQ2.tierbrd+';padding:12px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;">'
-    +'<div style="font-family:\'Public Sans\',serif;font-size:20px;color:'+_FQ.navy+';">'+_fqEsc(title)+'</div>'
-    +'<div style="display:flex;gap:28px;">';
+  var h='<div class="payopt"><div class="pay-hd"><div class="pay-hd-t">'+_fqEsc(title)+'</div><div class="pay-figs">';
   figs.forEach(function(f){
-    h+='<div style="text-align:right;white-space:nowrap;"><div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:'+_FQ.m2+';">'+_fqEsc(f.label)+'</div>'
-      +'<div style="font-size:16px;font-weight:600;color:'+(f.accent||_FQ.bodyDark)+';font-variant-numeric:tabular-nums;margin-top:2px;">'+_fqEsc(f.value)+'</div></div>';
+    h+='<div class="pay-fig"><div class="pay-fig-l">'+_fqEsc(f.label)+'</div>'
+      +'<div class="pay-fig-v"'+(f.accent?' style="color:'+f.accent+';"':'')+'>'+_fqEsc(f.value)+'</div></div>';
   });
-  h+='</div></div><table style="width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;"><thead><tr>';
-  cols.forEach(function(c){
-    h+='<th style="text-align:'+(c.align||'left')+';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+_FQ.m2+';font-weight:700;padding:11px 18px 7px;border-bottom:1px solid '+_FQ.hair+';">'+_fqEsc(c.label)+'</th>';
-  });
+  h+='</div></div><table><thead><tr>';
+  cols.forEach(function(c){ h+='<th class="'+(c.align==='right'?'r':'l')+'">'+_fqEsc(c.label)+'</th>'; });
   h+='</tr></thead><tbody>';
   rows.forEach(function(r,i){
-    h+='<tr>';
-    r.forEach(function(cell,ci){
-      h+='<td style="text-align:'+((cols[ci]||{}).align||'left')+';padding:6px 18px;font-size:13.5px;'
-        +(i<rows.length-1?'border-bottom:1px solid '+_FQ2.rowline+';':'')+'">'+cell+'</td>';
-    });
+    h+='<tr'+(i===rows.length-1?' class="last"':'')+'>';
+    r.forEach(function(cell,ci){ h+='<td class="'+(((cols[ci]||{}).align)==='right'?'r':'l')+'">'+cell+'</td>'; });
     h+='</tr>';
   });
   return h+'</tbody></table></div>';
@@ -9716,15 +9764,15 @@ function _fqFinCardsHTML(base){
     var rows=tiers.map(function(t){
       var mo=t[0], rate=t[1], monthly=finMonthly(bal,mo,rate), tot=down+monthly*mo;
       return [
-        '<span style="font-weight:600;color:'+_FQ.bodyDark+';">'+mo+' months</span>',
+        '<span class="c-term">'+mo+' months</span>',
         rate===0 ? _fqPillHTML('0% · ACH')
-                 : '<span style="color:'+_FQ.m2+';">'+(rate*100).toFixed(0)+'%</span> <span style="font-size:11px;color:'+_FQ.m3+';">APR</span>',
-        '<span style="font-weight:700;color:'+_FQ.navy+';">'+_fqMoney(monthly)+'/mo</span>',
-        '<span style="color:'+_FQ.m1+';">'+_fqMoney(tot)+'</span>'
+                 : '<span class="c-rate">'+(rate*100).toFixed(0)+'%</span> <span class="c-apr">APR</span>',
+        '<span class="c-mo">'+_fqMoney(monthly)+'/mo</span>',
+        '<span class="c-tot">'+_fqMoney(tot)+'</span>'
       ];
     });
     out+=_fqPayCardHTML(d[0],
-      [{label:'Down payment', value:_fqMoney(down)},{label:'Remaining balance', value:_fqMoney(bal), accent:_FQ.navy}],
+      [{label:'Down payment', value:_fqMoney(down)},{label:'Remaining balance', value:_fqMoney(bal), accent:_FQ2.slate}],
       [{label:'Term'},{label:'Rate'},{label:'Monthly',align:'right'},{label:'Total cost',align:'right'}],
       rows);
   });
@@ -9734,10 +9782,10 @@ function _fqFinCardsHTML(base){
 function _fqMaximaCardHTML(mx){
   var rows=mx.plans.map(function(p){
     return [
-      '<span style="font-weight:600;color:'+_FQ.bodyDark+';">'+_fqEsc(p.name)+'</span>',
-      p.oneTime?'<span style="color:'+_FQ.m2+';">—</span>':'<span style="font-weight:700;color:'+_FQ.navy+';">'+_fqMoney(p.monthly)+'/mo</span>',
-      p.oneTime?'<span style="color:'+_FQ.m1+';">paid once</span>':'<span style="color:'+_FQ.m1+';">'+p.months+' mo</span>',
-      '<span style="color:'+_FQ.m1+';">'+_fqMoney(p.totalPaid)+'</span>'
+      '<span class="c-term">'+_fqEsc(p.name)+'</span>',
+      p.oneTime?'<span class="c-rate">—</span>':'<span class="c-mo">'+_fqMoney(p.monthly)+'/mo</span>',
+      p.oneTime?'<span class="c-tot">paid once</span>':'<span class="c-tot">'+p.months+' mo</span>',
+      '<span class="c-tot">'+_fqMoney(p.totalPaid)+'</span>'
     ];
   });
   return _fqPayCardHTML('Payment Plans', [{label:'Age', value:String(mx.age)}],
@@ -9761,92 +9809,191 @@ function _fqBudgetHTML(base, mx, budget){
   if(!rows.length) return '';
   rows.sort(function(a,b){return a.diff-b.diff;});
   var bestVal=rows[0].total, top5=rows.slice(0,5).sort(function(a,b){return a.total-b.total;});
-  var h='<div class="payopt" style="border:1px solid '+_FQ2.tierbrd+';background:'+_FQ.sheet+';margin-bottom:14px;">';
+  var h='<div class="payopt">';
   top5.forEach(function(r,i){
     var best=(r.total===bestVal);
-    h+='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:11px 16px;'
-      +(best?'background:'+_FQ2.warm+';border-left:3px solid '+_FQ.orange+';':'border-left:3px solid transparent;')
-      +(i<top5.length-1?'border-bottom:1px solid '+_FQ2.rowline+';':'')+'">'
-      +'<div><div style="font-size:13.5px;font-weight:600;color:'+_FQ.navyDark+';">'+_fqEsc(r.label)+'</div>'
-      +'<div style="font-size:11.5px;color:'+_FQ.m1+';margin-top:3px;">cemetery '+_fqMoney(r.cemMo)+'/mo &nbsp;+&nbsp; funeral plan '+_fqMoney(r.fhMo)+'/mo'
+    h+='<div class="bud'+(best?' best':'')+(i===top5.length-1?' last':'')+'">'
+      +'<div><div class="bud-l">'+_fqEsc(r.label)+'</div>'
+      +'<div class="bud-s">cemetery '+_fqMoney(r.cemMo)+'/mo &nbsp;+&nbsp; funeral plan '+_fqMoney(r.fhMo)+'/mo'
       +(best?' &nbsp;·&nbsp; closest to your target':'')+'</div></div>'
-      +'<div style="font-size:17px;font-weight:700;color:'+(best?_FQ.orange:_FQ.navy)+';font-variant-numeric:tabular-nums;white-space:nowrap;">'+_fqMoney(r.total)+'/mo</div></div>';
+      +'<div class="bud-v'+(best?' best':'')+'">'+_fqMoney(r.total)+'/mo</div></div>';
   });
   return h+'</div>';
 }
-function _fqRowHTML(r, t){
-  return '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:'+t.rowPad+'px 0;border-bottom:1px solid '+_FQ.hair+';">'
-    +'<div><span style="font-size:'+t.base+'px;font-weight:600;color:'+_FQ.bodyDark+';">'+_fqEsc(r.name)+'</span>'
-    +(r.note?'<span style="font-size:'+(t.base-2.5)+'px;color:'+_FQ.m2+';margin-left:8px;">'+_fqEsc(r.note)+'</span>':'')
-    +'</div><div style="font-variant-numeric:tabular-nums;font-size:'+t.base+'px;color:'+_FQ.navy+';font-weight:600;">'+_fqMoney(r.amount)+'</div></div>';
+function _fqRowHTML(r){
+  return '<div class="row"><div class="row-n">'+_fqEsc(r.name)
+    +(r.note?'<span class="row-note">'+_fqEsc(r.note)+'</span>':'')
+    +'</div><div class="row-a">'+_fqMoney(r.amount)+'</div></div>';
 }
-function _fqSurfaceHTML(sf, t){
-  var h='<div class="surface" style="padding-top:'+t.sTop+'px;">'
-    +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid '+_FQ.sectRule+';padding-bottom:9px;">'
-    +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.sName+'px;color:'+_FQ.navyDark+';margin:0;">'+_fqEsc(sf.name)+'</h2>'
-    +'<span style="font-size:'+t.tag+'px;color:'+_FQ.m2+';">'+_fqEsc(sf.tagline)+'</span></div>';
+function _fqSurfaceHTML(sf){
+  var h='<div class="surface"><div class="sect"><h2>'+_fqEsc(sf.name)+'</h2>'
+    +'<span class="sect-tag">'+_fqEsc(sf.tagline)+'</span></div><div class="sect-rule"></div>';
   sf.groups.forEach(function(g){
-    h+='<div style="padding-top:'+t.gTop+'px;"><div style="font-size:'+t.kicker+'px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;margin-bottom:3px;">'+_fqEsc(g.kicker)+'</div>';
-    g.rows.forEach(function(r){ h+=_fqRowHTML(r,t); });
+    h+='<div class="grp"><div class="kick">'+_fqEsc(g.kicker)+'</div>';
+    g.rows.forEach(function(r){ h+=_fqRowHTML(r); });
     h+='</div>';
   });
   if(sf.discount){
-    h+='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:11px 0 9px;margin-top:8px;border-top:1px dashed '+_FQ.discDash+';">'
-      +'<div><span style="font-size:'+t.base+'px;font-weight:600;color:'+_FQ.green+';">'+_fqEsc(sf.discount.name)+'</span>'
-      +'<span style="font-size:12.5px;color:'+_FQ.greenMut+';margin-left:8px;">savings applied</span></div>'
-      +'<div style="font-variant-numeric:tabular-nums;font-size:'+t.base+'px;color:'+_FQ.green+';font-weight:700;">−'+_fqMoney(sf.discount.amount)+'</div></div>';
+    h+='<div class="row disc-row"><div class="row-n">'+_fqEsc(sf.discount.name)
+      +'<span class="row-note">discount applied</span></div>'
+      +'<div class="row-a">-'+_fqMoney(sf.discount.amount)+'</div></div>';
   }
-  h+='<div style="display:flex;justify-content:flex-end;gap:40px;padding:11px 0 0;">'
-    +'<span style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:'+_FQ.m2+';">'+_fqEsc(sf.name)+' subtotal</span>'
-    +'<span style="font-variant-numeric:tabular-nums;font-size:'+t.subFig+'px;font-weight:700;color:'+_FQ.navyDark+';min-width:104px;text-align:right;">'+_fqMoney(sf.subtotal)+'</span></div></div>';
+  // Martice 2026-07-20: the section subtotal shows on EVERY quote, single-section included.
+  h+='<div class="subt"><span class="subt-l">'+_fqEsc(sf.name)+' subtotal</span>'
+    +'<span class="subt-v">'+_fqMoney(sf.subtotal)+'</span></div></div>';
   return h;
 }
+// The stylesheet. Point-for-point the pdf-lib geometry; the tier numbers arrive as CSS custom
+// properties so _fqFitForPrint can step the density down by measurement without re-rendering.
+function _fqSheetCSS(){
+  var F=_FQ2;
+  return _fqFontFaceCSS()
+  +'*{box-sizing:border-box;}html,body{margin:0;padding:0;}'
+  +'body{background:#e7eaee;font-family:'+_FQ2_SANS+';color:'+F.bodytx+';padding:24pt 0 48pt;'
+  +'--row:10.5pt;--rowpad:5.25pt;--sub:9.4pt;--cat:8.25pt;--ggap:12pt;--stop:19.5pt;'
+  +'--name:30pt;--subl:10.1pt;--note:9.75pt;--ngap:19.5pt;--rectop:15pt;}'
+  +'.sheet{position:relative;width:612pt;min-height:792pt;margin:0 auto 24pt;background:'+F.cream+';'
+  +'display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(26,35,50,.12),0 22px 60px rgba(26,35,50,.13);}'
+  +'.body{flex:1 1 auto;padding:0 40pt;}'
+  // masthead
+  +'.mast{height:85pt;background:'+F.slate+';display:flex;align-items:center;justify-content:space-between;gap:24pt;padding:0 40pt;}'
+  +'.mast-logo{height:39pt;width:auto;display:block;}'
+  +'.mast-r{text-align:right;min-width:0;}'
+  +'.mast-t{font-family:'+_FQ2_SERIF+';font-weight:700;font-size:25pt;line-height:1.1;color:#fff;white-space:nowrap;}'
+  +'.mast-s{font-size:9pt;line-height:1.3;color:'+F.mastsub+';margin-top:3pt;}'
+  +'.keyline{height:2.25pt;background:'+F.orange+';}'
+  // eyebrow + family name
+  +'.kick,.eyebrow{font-weight:700;text-transform:uppercase;color:'+F.orange+';}'
+  +'.eyebrow{font-size:8.25pt;letter-spacing:.24em;padding-top:24.5pt;}'
+  +'.fam{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:var(--name);line-height:1.12;color:'+F.head+';margin:3.75pt 0 0;}'
+  +'.venue{font-size:var(--subl);color:'+F.grey+';margin-top:4.5pt;}'
+  // estimated-total band
+  +'.band{margin-top:18pt;height:81pt;background:'+F.slate+';display:flex;align-items:flex-start;'
+  +'justify-content:space-between;gap:24pt;padding:16.5pt 19.5pt 0;}'
+  +'.band-t{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:18pt;line-height:1;color:#fff;}'
+  +'.band-d{font-size:9.75pt;line-height:1.24;color:'+F.mastsub+';margin-top:6pt;max-width:270pt;}'
+  +'.band-r{text-align:right;white-space:nowrap;}'
+  +'.band-l{font-size:7.9pt;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:'+F.mastsub+';}'
+  +'.band-v{font-family:'+_FQ2_SERIF+';font-weight:700;font-size:28.5pt;line-height:1.05;color:#fff;margin-top:4pt;}'
+  +'.band-fine{font-size:7.9pt;color:'+F.bandfine+';margin-top:4pt;}'
+  // sections / rows
+  +'.surface{padding-top:var(--stop);}'
+  +'.sect{display:flex;align-items:baseline;justify-content:space-between;gap:16pt;}'
+  +'.sect h2{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:16.5pt;line-height:1;color:'+F.head+';margin:0;}'
+  +'.sect-tag{font-size:9.4pt;color:'+F.muted+';}'
+  +'.sect-rule{height:1.5pt;background:'+F.slate+';margin-top:6pt;}'
+  +'.grp{padding-top:var(--ggap);}'
+  +'.kick{font-size:var(--cat);letter-spacing:.2em;}'
+  +'.row{display:flex;align-items:baseline;justify-content:space-between;gap:20pt;'
+  +'padding:var(--rowpad) 0 calc(var(--rowpad) * 0.6);border-bottom:0.5pt solid '+F.line+';}'
+  +'.row-n{font-size:var(--row);font-weight:600;color:'+F.ink+';}'
+  +'.row-note{font-size:var(--sub);font-weight:400;color:'+F.subtle+';margin-left:5pt;}'
+  +'.row-a{font-size:var(--row);font-weight:600;color:'+F.slate+';font-variant-numeric:tabular-nums;white-space:nowrap;}'
+  +'.disc-row .row-n,.disc-row .row-a{color:'+F.green+';}'
+  +'.subt{display:flex;align-items:baseline;justify-content:flex-end;gap:20pt;padding:calc(var(--rowpad) + 3pt) 0 6pt;}'
+  +'.subt-l{font-size:var(--sub);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:'+F.muted+';}'
+  +'.subt-v{font-size:calc(var(--row) + 0.5pt);font-weight:600;color:'+F.head+';font-variant-numeric:tabular-nums;'
+  +'min-width:80pt;text-align:right;}'
+  // reconciliation
+  +'.recon{margin-top:var(--rectop);border-top:1pt solid '+F.recontop+';padding-top:10.5pt;}'
+  +'.recon-tax{display:flex;justify-content:flex-end;gap:16.5pt;font-size:var(--row);color:'+F.bodytx+';padding-bottom:4pt;}'
+  +'.recon-tax span:last-child{font-variant-numeric:tabular-nums;min-width:80pt;text-align:right;}'
+  +'.recon-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:16.5pt;padding-top:6pt;}'
+  +'.recon-tot .l{font-size:9pt;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:'+F.muted+';}'
+  +'.recon-tot .v{font-size:11.25pt;font-weight:700;color:'+F.head+';font-variant-numeric:tabular-nums;'
+  +'min-width:80pt;text-align:right;}'
+  +'.recon-note{text-align:right;font-size:8.6pt;color:'+F.subtle+';margin-top:2pt;}'
+  // a note
+  +'.note{margin-top:var(--ngap);}'
+  +'.note .kick{font-size:7.9pt;letter-spacing:.22em;}'
+  +'.note p{font-size:var(--note);line-height:1.6;color:'+F.bodytx+';margin:5pt 0 0;}'
+  // footer
+  +'.foot{margin-top:14pt;padding:11pt 40pt 12pt;border-top:1pt solid '+F.hair+';'
+  +'display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;}'
+  +'.foot-name{font-size:12pt;font-weight:700;color:'+F.orange+';line-height:1.2;}'
+  +'.foot-role{font-size:9.4pt;color:'+F.grey+';margin-top:3pt;}'
+  +'.foot-r{text-align:right;}'
+  +'.foot-contact{font-size:10.1pt;font-weight:700;color:'+F.slate+';line-height:1.2;min-height:12.2pt;}'
+  +'.foot-addr{font-size:9pt;color:'+F.contactb+';margin-top:3pt;}'
+  // page 2 — payment options
+  +'.p2-head{padding-top:24.5pt;}'
+  +'.p2-head h2{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:19.5pt;line-height:1;color:'+F.head+';margin:4pt 0 0;}'
+  +'.p2-head p{font-size:10.1pt;line-height:1.6;color:'+F.bodytx+';margin:12pt 0 0;max-width:492pt;}'
+  +'.legend{display:flex;align-items:baseline;gap:8pt;margin:16pt 0 16pt;font-size:9.4pt;color:'+F.bodytx+';}'
+  +'.pill{display:inline-block;background:'+F.pillbg+';color:'+F.orange+';font-weight:700;font-size:8.25pt;'
+  +'padding:1.2pt 7.5pt;line-height:1.2;white-space:nowrap;}'
+  +'.seclab{margin:14pt 0 8pt;}'
+  +'.seclab .kick{font-size:8.25pt;letter-spacing:.22em;}'
+  +'.seclab-t{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:15pt;color:'+F.slate+';margin-top:4pt;}'
+  +'.disc{background:'+F.warm+';border-left:2.25pt solid '+F.slate+';padding:9pt 15pt;margin-bottom:10pt;}'
+  +'.disc p{margin:0;font-size:8.25pt;line-height:12.8pt;color:'+F.grey+';}'
+  +'.payopt{border:1pt solid '+F.tierbrd+';background:'+F.cream+';margin-bottom:10pt;}'
+  +'.pay-hd{background:'+F.warm+';border-left:2.25pt solid '+F.orange+';border-bottom:0.7pt solid '+F.tierbrd+';'
+  +'padding:4pt 15pt 3pt;display:flex;align-items:flex-end;justify-content:space-between;gap:24pt;}'
+  +'.pay-hd-t{font-family:'+_FQ2_SERIF+';font-weight:600;font-size:15pt;line-height:1;color:'+F.slate+';}'
+  +'.pay-figs{display:flex;gap:24pt;}'
+  +'.pay-fig{text-align:right;white-space:nowrap;}'
+  +'.pay-fig-l{font-size:7.1pt;line-height:1;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:'+F.muted+';}'
+  +'.pay-fig-v{font-size:12pt;line-height:1;font-weight:700;color:'+F.head+';font-variant-numeric:tabular-nums;margin-top:1pt;}'
+  +'.payopt table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}'
+  +'.payopt th{font-size:7.1pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:'+F.muted+';'
+  +'line-height:1;padding:4.5pt 15pt 4.4pt;border-bottom:0.7pt solid '+F.tierbrd+';}'
+  +'.payopt td{padding:1.1pt 15pt;font-size:10pt;line-height:12.3pt;border-bottom:0.5pt solid '+F.rowline+';}'
+  +'.payopt tr.last td{border-bottom:none;padding-bottom:8.1pt;}'
+  +'.payopt th.l,.payopt td.l{text-align:left;}.payopt th.r,.payopt td.r{text-align:right;}'
+  +'.c-term{font-weight:700;color:'+F.ink+';}.c-rate{color:'+F.muted+';}.c-apr{font-size:8.5pt;color:'+F.aprgrey+';}'
+  +'.c-mo{font-weight:700;color:'+F.slate+';}.c-tot{color:'+F.bodytx+';}'
+  +'.bud{display:flex;align-items:baseline;justify-content:space-between;gap:20pt;padding:8pt 12pt;'
+  +'border-left:2.25pt solid transparent;border-bottom:0.5pt solid '+F.rowline+';}'
+  +'.bud.best{background:'+F.warm+';border-left-color:'+F.orange+';}.bud.last{border-bottom:none;}'
+  +'.bud-l{font-size:10pt;font-weight:700;color:'+F.ink+';}'
+  +'.bud-s{font-size:8.25pt;color:'+F.grey+';margin-top:2pt;}'
+  +'.bud-v{font-size:13pt;font-weight:700;color:'+F.slate+';font-variant-numeric:tabular-nums;white-space:nowrap;}'
+  +'.bud-v.best{color:'+F.orange+';}'
+  // print
+  +'@page{size:letter;margin:0;}'
+  +'@media print{body{background:#fff !important;padding:0 !important;}'
+  +'.sheet{box-shadow:none !important;margin:0 auto !important;}'
+  +'.page2{break-before:page;}'
+  +'.payopt,.recon,.note,.band,.surface .grp{break-inside:avoid;}'
+  +'.seclab{break-after:avoid;break-inside:avoid;}'
+  +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
+}
 function _fqRenderHTML(model){
-  var t=_fqPickTier(model);
-  var sheet='width:850px;margin:0 auto;background:'+_FQ.sheet+';box-shadow:0 1px 3px rgba(26,35,50,.12),0 22px 60px rgba(26,35,50,.13);';
-  // PAGE 1
-  var p1='<div class="sheet" style="'+sheet+'">'+_fqHeaderHTML(model.typeLabel, model.scopeLine);
-  p1+='<div style="padding:28px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Prepared with care for</div>'
-    +'<h1 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:22px;color:'+_FQ.navyDark+';margin:6px 0 0;">'+_fqEsc(model.clientName||'Your Family')+'</h1>'
-    +'<div style="font-size:13.5px;color:'+_FQ.m1+';margin-top:6px;">'+_fqEsc(model.venueLine)+'</div></div>';
-  p1+='<div style="margin:24px 56px 0;background:'+_FQ.offwhite+';border:1px solid '+_FQ.cardBorder+';padding:24px 30px;display:flex;align-items:center;justify-content:space-between;gap:36px;">'
-    +'<div style="max-width:440px;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:'+_FQ.navyDark+';">Your arrangements</div>'
-    +'<p style="font-size:'+t.sumDesc+'px;line-height:1.6;color:'+_FQ.body+';margin:8px 0 0;">'+_fqEsc(model.arrangements)+'</p></div>'
-    +'<div style="text-align:right;white-space:nowrap;"><div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:'+_FQ.m1+';">Estimated total</div>'
-    +'<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.sumFig+'px;color:'+_FQ.navy+';line-height:1.05;margin-top:2px;">'+_fqMoney(model.grandTotal)+'</div>'
-    +(model.taxAmount>0?'<div style="font-size:12px;color:'+_FQ.m2+';margin-top:4px;">includes sales tax on merchandise</div>':'')+'</div></div>';
-  p1+='<div style="padding:6px 56px 0;">';
-  model.surfaces.forEach(function(sf){ p1+=_fqSurfaceHTML(sf,t); });
-  p1+='</div>';
-  // Totals
-  p1+='<div class="totals" style="margin:'+(t.sTop)+'px 56px 0;padding-top:15px;border-top:2px solid '+_FQ.sectRule+';">';
+  // PAGE 1 — the quote
+  var p1='<div class="sheet">'+_fqHeaderHTML(model.typeLabel, model.scopeLine)+'<div class="body">'
+    +'<div class="eyebrow">Prepared with care for</div>'
+    +'<h1 class="fam">'+_fqEsc(model.clientName||'Your Family')+'</h1>'
+    +'<div class="venue">'+_fqEsc(model.venueLine)+'</div>';
+  p1+='<div class="band"><div><div class="band-t">Your arrangements</div>'
+    +'<div class="band-d">'+_fqEsc(model.arrangements)+'</div></div>'
+    +'<div class="band-r"><div class="band-l">Estimated total</div>'
+    +'<div class="band-v">'+_fqMoney(model.grandTotal)+'</div>'
+    +(model.taxAmount>0?'<div class="band-fine">includes sales tax on merchandise</div>':'')+'</div></div>';
+  model.surfaces.forEach(function(sf){ p1+=_fqSurfaceHTML(sf); });
+  // Reconciliation — quiet and right-aligned. The total is a line, not a second headline.
+  p1+='<div class="recon">';
   if(model.taxAmount>0){
-    p1+='<div style="display:flex;justify-content:flex-end;gap:60px;padding:6px 0;font-size:14.5px;color:'+_FQ.m1+';"><span>Sales tax (10.4% · merchandise only)</span>'
-      +'<span style="font-variant-numeric:tabular-nums;min-width:104px;text-align:right;color:'+_FQ.body+';">'+_fqMoney(model.taxAmount)+'</span></div>';
+    p1+='<div class="recon-tax"><span>Sales tax (10.4% · merchandise only)</span>'
+      +'<span>'+_fqMoney(model.taxAmount)+'</span></div>';
   }
-  p1+='<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:60px;padding:12px 0 0;margin-top:6px;border-top:1px solid '+_FQ.sectRule+';">'
-    +'<span style="font-family:\'Public Sans\',serif;font-size:'+t.totLbl+'px;color:'+_FQ.navyDark+';">Total</span>'
-    +'<span style="font-family:\'Public Sans\',serif;font-weight:600;font-size:'+t.totFig+'px;color:'+_FQ.navy+';font-variant-numeric:tabular-nums;min-width:104px;text-align:right;">'+_fqMoney(model.grandTotal)+'</span></div>'
-    +(model.taxAmount>0?'<div style="text-align:right;font-size:12px;color:'+_FQ.m3+';margin-top:8px;">'+_taxNoteText(model.pay.scope==='fh')+'</div>':'')+'</div>';
-  // Note
-  p1+='<div style="margin:24px 56px 0;"><div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">A note</div>'
-    +'<p style="font-size:'+t.note+'px;line-height:1.65;color:'+_FQ.body+';margin:9px 0 0;max-width:640px;">This is an estimate prepared for your planning — not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we’re here to answer any question, whenever you’re ready.'
-    +(model.hasPage2?' A summary of payment options follows on the next page.':'')+'</p></div>';
-  p1+=_fqFooterHTML();
-  p1+='</div>';
-  // PAGE 2 (payment options)
+  p1+='<div class="recon-tot"><span class="l">Total</span><span class="v">'+_fqMoney(model.grandTotal)+'</span></div>'
+    +(model.taxAmount>0?'<div class="recon-note">'+_taxNoteText(model.pay.scope==='fh')+'</div>':'')+'</div>';
+  p1+='<div class="note"><div class="kick">A note</div><p>'+_fqEsc(_fqNoteText(model))+'</p></div>';
+  p1+='</div>'+_fqFooterHTML()+'</div>';
+  // PAGE 2 — payment options
   var p2='';
   if(model.hasPage2){
     var pay=model.pay;
-    p2='<div class="sheet page2" style="'+sheet+'margin-top:28px;">'+_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; '+_fqPaySubtitle(model,' &nbsp;·&nbsp; '));
-    p2+='<div style="padding:30px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:'+_FQ.orange+';font-weight:700;">Ways to plan for this</div>'
-      +'<h2 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:26px;color:'+_FQ.navyDark+';margin:8px 0 0;">'+_fqEsc(_fqPayHeadline(pay))+'</h2>'
-      +'<p style="font-size:15px;line-height:1.65;color:'+_FQ.body+';margin:12px 0 0;max-width:640px;">'+_fqEsc(_fqPayIntro(pay,model))+'</p></div>';
-    p2+='<div style="padding:18px 56px 0;">';
+    p2='<div class="sheet page2">'
+      +_fqHeaderHTML('Payment Options','For '+_fqEsc(model.clientName||'Your Family')+' &nbsp;·&nbsp; '+_fqPaySubtitle(model,' &nbsp;·&nbsp; '))
+      +'<div class="body"><div class="p2-head"><div class="kick" style="font-size:8.25pt;letter-spacing:.24em;">Ways to plan for this</div>'
+      +'<h2>'+_fqEsc(_fqPayHeadline(pay))+'</h2>'
+      +'<p>'+_fqEsc(_fqPayIntro(pay,model))+'</p></div>';
     if(pay.scope!=='fh'){   // ACH legend — only where financing tiers appear
-      p2+='<div style="display:flex;align-items:baseline;gap:9px;margin-bottom:16px;">'+_fqPillHTML('0% · ACH')
-        +'<span style="font-size:12.5px;color:'+_FQ.body+';">= no interest, paid by automatic bank withdrawal. Other terms include the finance charge shown.</span></div>';
-    }
+      p2+='<div class="legend">'+_fqPillHTML('0% · ACH')
+        +'<span>= no interest, paid by automatic bank withdrawal. Other terms include the finance charge shown.</span></div>';
+    } else { p2+='<div style="height:12pt;"></div>'; }
     if(pay.scope==='fh'){
       p2+=_fqMaximaCardHTML(pay.maxima);
       p2+=_fqDiscHTML('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
@@ -9862,7 +10009,7 @@ function _fqRenderHTML(model){
         p2+=_fqMaximaCardHTML(pay.maxima);
       } else {
         p2+=_fqSectLabelHTML('Funeral home',_fqMoney(pay.fhBase));
-        p2+='<p style="font-size:12.5px;line-height:1.6;color:'+_FQ.m1+';margin:0 0 14px;max-width:640px;">Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member’s age in the Funeral Home quote to include those monthly figures here.</p>';
+        p2+='<p style="font-size:9.75pt;line-height:1.55;color:'+_FQ2.grey+';margin:0 0 10pt;max-width:470pt;">Funeral home expenses can be prearranged and paid over time (amounts are age-based). Enter the family member’s age in the Funeral Home quote to include those monthly figures here.</p>';
       }
       if(hasMx && pay.combBudget>0){
         p2+=_fqSectLabelHTML('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month');
@@ -9870,44 +10017,38 @@ function _fqRenderHTML(model){
       }
       p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms.');
     }
-    p2+='</div>';
-    p2+=_fqFooterHTML();
-    p2+='</div>';
+    p2+='</div>'+_fqFooterHTML()+'</div>';
   }
-  // @page pins the paper geometry so the fit script below can trust it (the sheets are drawn at a
-  // fixed 850px design width — letting print scale them to 100% of an unknown page box is what
-  // pushed the "A note" block and the footer onto a second sheet).
-  var css='*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Public Sans\',system-ui,sans-serif;color:'+_FQ.bodyDark+';padding:32px 0 64px;}'
-    +'@page{size:letter;margin:0.45in;}'
-    +'@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;}'
-    +'.page2{break-before:page;margin-top:0 !important;}.payopt,.totals,.surface>div{break-inside:avoid;}'
-    +'.seclab{break-after:avoid;break-inside:avoid;}'
-    +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+_fqEsc(model.typeLabel)+' – Bonney Watson</title>'
-    +'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-    +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">'
-    +'<style>'+css+'</style></head><body>'+p1+p2+'</body></html>';
+    +_fqGoogleFontLink()+'<style>'+_fqSheetCSS()+'</style></head><body>'+p1+p2+'</body></html>';
 }
-// Fit-to-page. Each sheet is drawn at a fixed 850px design width and a natural height that runs
-// taller than a Letter page box — printing 1:1 pushed the "A note" block and the footer onto a
-// sheet of their own. So we measure each sheet and add a PRINT-ONLY zoom rule: shrink just enough
-// to land on one page. The quote sheet gets a low floor (the one-page rule wins there, as it does
-// in the PDF); the payment sheet gets a higher one and is allowed to run onto a second page rather
-// than shrink to an unreadable size. An @media print rule, not an inline style, so the on-screen
-// view is untouched. This runs from the OPENER against the child document — a <script> written
-// into the print window via document.write never executes.
+// Fit page 1 onto one Letter sheet — the PDF's density tiers, chosen by measurement instead of by
+// its width estimate. Page 1 is drawn at the roomiest _FQ2_TIERS entry; if the sheet runs past
+// 792pt we step down a tier and measure again, and only if the tightest tier still overflows do we
+// fall back to a print-only zoom. The payment sheet is left alone: the PDF paginates it to 2-3
+// pages, so letting it break is the honest behaviour, not shrinking it to an unreadable size.
+// Runs from the OPENER against the child document — a <script> written in via document.write
+// never executes — which is also how it reaches _FQ2_TIERS.
 function _fqFitForPrint(doc){
   try {
-    var PW=725, PH=952;   // Letter at the 0.45in @page margin above, less a little headroom:
-                          // landing a sheet on exactly the page height still spilled its footer.
-    var sh=doc.querySelectorAll('.sheet'), css='';
-    for(var i=0;i<sh.length;i++){
-      var r=sh[i].getBoundingClientRect();
-      if(!r.width || !r.height) continue;
-      var MIN=sh[i].classList.contains('page2')?0.68:0.55;
-      var k=Math.min(PW/r.width, PH/r.height, 1); if(k<MIN) k=MIN;
-      sh[i].setAttribute('data-fq', i);
-      if(k<1) css+='[data-fq="'+i+'"]{zoom:'+k.toFixed(4)+';}';
+    var PH=792, sheets=doc.querySelectorAll('.sheet'), p1=sheets[0];
+    if(!p1) return '';
+    var vars=[['row','row'],['rowpad','rowPad'],['sub','sub'],['cat','cat'],['ggap','gGap'],
+              ['stop','sTop'],['name','name'],['subl','subl'],['note','note'],['ngap','nGap'],['rectop','recTop']];
+    var applied=_FQ2_TIERS[0];
+    for(var ti=0;ti<_FQ2_TIERS.length;ti++){
+      var t=_FQ2_TIERS[ti];
+      vars.forEach(function(v){ doc.body.style.setProperty('--'+v[0], t[v[1]]+'pt'); });
+      applied=t;
+      // offsetHeight is CSS px; the sheet's min-height is 792pt = 1056px at 96dpi.
+      if(p1.offsetHeight <= PH*(4/3) + 0.5) break;
+    }
+    var css='';
+    var overBy = p1.offsetHeight - PH*(4/3);
+    if(overBy > 0.5){
+      var k=Math.max(0.72, (PH*(4/3))/p1.offsetHeight);
+      p1.setAttribute('data-fq','1');
+      css='[data-fq="1"]{zoom:'+k.toFixed(4)+';}';
     }
     var old=doc.getElementById('fqFitStyle'); if(old && old.parentNode) old.parentNode.removeChild(old);
     if(css){ var st=doc.createElement('style'); st.id='fqFitStyle'; st.textContent='@media print{'+css+'}'; doc.head.appendChild(st); }
@@ -9918,7 +10059,7 @@ function _fqFitForPrint(doc){
 // dialog. It used to alias _fqOpenForPrint(), which builds the pdf-lib artifact, wraps it in a
 // blob: URL and window.open()s it — every browser DOWNLOADS that instead of showing it, so Print
 // silently behaved like Download. The 📥 PDF button still produces the pdf-lib artifact; the two
-// renderers read the same model and now show identical figures on both pages.
+// renderers read the same model and now draw the same document.
 function _fqPrint(model){
   try {
     var win = window.open('', '_blank');
@@ -9940,7 +10081,6 @@ function _fqPrint(model){
     setTimeout(fire, 2500);   // safety net if fonts never resolve
   } catch(e){ console.error('Family quote print error:', e); alert('Could not open the print view: '+e.message); }
 }
-
 // ── Option comparison (cemetery + funeral home) ──────────────────────────────────────────────────
 // Both Compare panels print through this renderer, so a comparison is the same document family as
 // the family quote above it: same masthead and logo, same typography, the same orange section
@@ -10002,10 +10142,19 @@ function _fqPickCompareTier(model){
   });
   return worst <= 15 ? _FQ_TIERS[0] : worst <= 22 ? _FQ_TIERS[1] : _FQ_TIERS[2];
 }
+// The comparison sheet keeps its own px grid and _FQ palette — it has no pdf-lib counterpart to
+// match, so it was left out of the pt rebuild above. It needs its own row renderer: the family
+// quote's _fqRowHTML now emits the pt stylesheet's classes, which this document doesn't carry.
+function _fqCmpRowHTML(r, t){
+  return '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:'+t.rowPad+'px 0;border-bottom:1px solid '+_FQ.hair+';">'
+    +'<div><span style="font-size:'+t.base+'px;font-weight:600;color:'+_FQ.bodyDark+';">'+_fqEsc(r.name)+'</span>'
+    +(r.note?'<span style="font-size:'+(t.base-2.5)+'px;color:'+_FQ.m2+';margin-left:8px;">'+_fqEsc(r.note)+'</span>':'')
+    +'</div><div style="font-variant-numeric:tabular-nums;font-size:'+t.base+'px;color:'+_FQ.navy+';font-weight:600;">'+_fqMoney(r.amount)+'</div></div>';
+}
 function _fqCompareFigHTML(label, value, accent, t){
   return '<div style="text-align:right;white-space:nowrap;">'
     + '<div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:' + _FQ.m1 + ';">' + _fqEsc(label) + '</div>'
-    + '<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + (t.sumFig * 0.62).toFixed(1) + 'px;color:' + (accent || _FQ.navy) + ';line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums;">' + _fqEsc(value) + '</div></div>';
+    + '<div style="font-family:' + _FQ2_SERIF + ';font-weight:600;font-size:' + (t.sumFig * 0.62).toFixed(1) + 'px;color:' + (accent || _FQ.navy) + ';line-height:1.1;margin-top:3px;font-variant-numeric:tabular-nums;">' + _fqEsc(value) + '</div></div>';
 }
 // One option column: warm header strip (kicker + name + location), the grouped rows, the discount
 // credit, then subtotal / sales tax / total and the payment estimate.
@@ -10015,7 +10164,7 @@ function _fqCompareColHTML(o, t, model){
     + '<div style="background:' + _FQ2.warm + ';border-left:3px solid ' + accent + ';border-bottom:1px solid ' + _FQ.cardBorder + ';padding:11px 14px;">'
     + '<div style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;">Option ' + _fqEsc(o.letter)
     + (o.note ? '<span style="color:' + _FQ.m2 + ';font-weight:600;letter-spacing:.1em;"> · ' + _fqEsc(o.note) + '</span>' : '') + '</div>'
-    + '<div style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + t.sName + 'px;color:' + _FQ.navyDark + ';margin-top:4px;line-height:1.2;">' + _fqEsc(o.label) + '</div>'
+    + '<div style="font-family:' + _FQ2_SERIF + ';font-weight:600;font-size:' + t.sName + 'px;color:' + _FQ.navyDark + ';margin-top:4px;line-height:1.2;">' + _fqEsc(o.label) + '</div>'
     + (o.sublabel || model.anySublabel ? '<div style="font-size:' + t.tag + 'px;color:' + _FQ.m2 + ';margin-top:3px;">' + (o.sublabel ? _fqEsc(o.sublabel) : '&nbsp;') + '</div>' : '')
     + '</div><div style="padding:2px 14px 14px;">';
   if (!o.groups.length && !o.discount) {
@@ -10023,7 +10172,7 @@ function _fqCompareColHTML(o, t, model){
   }
   o.groups.forEach(function(g){
     h += '<div style="padding-top:' + t.gTop + 'px;"><div style="font-size:' + t.kicker + 'px;letter-spacing:.2em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;margin-bottom:3px;">' + _fqEsc(g.kicker) + '</div>';
-    g.rows.forEach(function(r){ h += _fqRowHTML(r, t); });
+    g.rows.forEach(function(r){ h += _fqCmpRowHTML(r, t); });
     h += '</div>';
   });
   if (o.discount) {
@@ -10043,8 +10192,8 @@ function _fqCompareColHTML(o, t, model){
         + '<span style="font-variant-numeric:tabular-nums;color:' + _FQ.body + ';">' + _fqMoney(o.tax) + '</span></div>';
     }
     h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:9px 0 0;margin-top:5px;border-top:1px solid ' + _FQ.sectRule + ';">'
-      + '<span style="font-family:\'Public Sans\',serif;font-size:' + t.totLbl + 'px;color:' + _FQ.navyDark + ';">Total</span>'
-      + '<span style="font-family:\'Public Sans\',serif;font-weight:600;font-size:' + t.totFig + 'px;color:' + accent + ';font-variant-numeric:tabular-nums;">' + _fqMoney(o.total) + '</span></div>';
+      + '<span style="font-family:' + _FQ2_SERIF + ';font-size:' + t.totLbl + 'px;color:' + _FQ.navyDark + ';">Total</span>'
+      + '<span style="font-family:' + _FQ2_SERIF + ';font-weight:600;font-size:' + t.totFig + 'px;color:' + accent + ';font-variant-numeric:tabular-nums;">' + _fqMoney(o.total) + '</span></div>';
     if (o.pay) {
       h += '<div style="font-size:12px;color:' + _FQ.m2 + ';margin-top:6px;text-align:right;">'
         + _fqMoney(o.pay.monthly) + '/mo · ' + _fqMoney(o.pay.down) + ' down · ' + o.pay.months + ' mo at 0% ACH</div>';
@@ -10058,7 +10207,7 @@ function _fqRenderCompareHTML(model){
   var sheet = 'width:850px;margin:0 auto;background:' + _FQ.sheet + ';box-shadow:0 1px 3px rgba(26,35,50,.12),0 22px 60px rgba(26,35,50,.13);';
   var p = '<div class="sheet" style="' + sheet + '">' + _fqHeaderHTML(model.typeLabel, model.scopeLine);
   p += '<div style="padding:26px 56px 0;"><div style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:' + _FQ.orange + ';font-weight:700;">Prepared with care for</div>'
-    + '<h1 style="font-family:\'Public Sans\',serif;font-weight:600;font-size:22px;color:' + _FQ.navyDark + ';margin:6px 0 0;">' + _fqEsc(model.clientName || 'Your Family') + '</h1>'
+    + '<h1 style="font-family:' + _FQ2_SERIF + ';font-weight:600;font-size:22px;color:' + _FQ.navyDark + ';margin:6px 0 0;">' + _fqEsc(model.clientName || 'Your Family') + '</h1>'
     + '<div style="font-size:13.5px;color:' + _FQ.m1 + ';margin-top:6px;">' + _fqEsc(model.venueLine) + '</div></div>';
   // Difference callout — the one number the family is looking for, said in words and in figures.
   var a = model.options[0], b = model.options[1];
@@ -10068,7 +10217,7 @@ function _fqRenderCompareHTML(model){
   else if (model.diff < 0) { diffTxt = 'Option B is ' + _fqMoney(model.diff) + ' less than Option A.'; diffColor = _FQ.green; }
   else diffTxt = 'Option B is ' + _fqMoney(model.diff) + ' more than Option A.';
   p += '<div style="margin:22px 56px 0;background:' + _FQ.offwhite + ';border:1px solid ' + _FQ.cardBorder + ';padding:22px 30px;display:flex;align-items:center;justify-content:space-between;gap:32px;">'
-    + '<div style="max-width:330px;"><div style="font-family:\'Public Sans\',serif;font-size:19px;color:' + _FQ.navyDark + ';">Two options, side by side</div>'
+    + '<div style="max-width:330px;"><div style="font-family:' + _FQ2_SERIF + ';font-size:19px;color:' + _FQ.navyDark + ';">Two options, side by side</div>'
     + '<p style="font-size:' + t.sumDesc + 'px;line-height:1.6;color:' + _FQ.body + ';margin:8px 0 0;">' + _fqEsc(diffTxt)
     + ' Each column below lists everything included, priced the same way as your quote.</p></div>'
     + '<div style="display:flex;gap:22px;align-items:flex-end;">'
@@ -10087,18 +10236,53 @@ function _fqRenderCompareHTML(model){
     + '</div>';
   p += _fqFooterHTML();
   p += '</div>';
-  var css = '*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:\'Public Sans\',system-ui,sans-serif;color:' + _FQ.bodyDark + ';padding:32px 0 64px;}'
+  // Same masthead, footer and type as the family quote (_fqHeaderHTML/_fqFooterHTML emit the pt
+  // stylesheet's chrome classes), over this sheet's own px body grid.
+  var css = _fqFontFaceCSS()
+    + '*{box-sizing:border-box;}html,body{margin:0;padding:0;}body{background:#e7eaee;font-family:' + _FQ2_SANS + ';color:' + _FQ.bodyDark + ';padding:32px 0 64px;}'
+    + '.mast{height:85pt;background:' + _FQ2.slate + ';display:flex;align-items:center;justify-content:space-between;gap:24pt;padding:0 40pt;}'
+    + '.mast-logo{height:39pt;width:auto;display:block;}'
+    + '.mast-r{text-align:right;min-width:0;}'
+    + '.mast-t{font-family:' + _FQ2_SERIF + ';font-weight:700;font-size:25pt;line-height:1.1;color:#fff;white-space:nowrap;}'
+    + '.mast-s{font-size:9pt;line-height:1.3;color:' + _FQ2.mastsub + ';margin-top:3pt;}'
+    + '.keyline{height:2.25pt;background:' + _FQ2.orange + ';}'
+    + '.foot{margin-top:28px;padding:12pt 56px 26pt;border-top:1pt solid ' + _FQ2.hair + ';'
+    + 'display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;}'
+    + '.foot-name{font-size:12pt;font-weight:700;color:' + _FQ2.orange + ';line-height:1.2;}'
+    + '.foot-role{font-size:9.4pt;color:' + _FQ2.grey + ';margin-top:3pt;}'
+    + '.foot-r{text-align:right;}'
+    + '.foot-contact{font-size:10.1pt;font-weight:700;color:' + _FQ2.slate + ';line-height:1.2;}'
+    + '.foot-addr{font-size:9pt;color:' + _FQ2.contactb + ';margin-top:3pt;}'
     + '@page{size:letter;margin:0.45in;}'
     + '@media print{body{background:#fff !important;padding:0 !important;}.sheet{box-shadow:none !important;margin:0 auto !important;}'
     + '.cmpcol>div{break-inside:avoid;}'
     + '*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + _fqEsc(model.typeLabel) + ' – Bonney Watson</title>'
-    + '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-    + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    + _fqGoogleFontLink()
     + '<style>' + css + '</style></head><body>' + p + '</body></html>';
 }
+// The comparison's own fit pass. It can't use _fqFitForPrint: that one steps the family quote's
+// _FQ2_TIERS density vars and measures against a sheet that is already exactly one Letter page.
+// This sheet is drawn at a fixed 850px design width, wider than the printable box, so it needs
+// the plain measure-and-zoom — on WIDTH as well as height.
+function _fqFitCompareForPrint(doc){
+  try {
+    var PW=725, PH=952;   // Letter at the 0.45in @page margin, less a little headroom.
+    var sh=doc.querySelectorAll('.sheet'), css='';
+    for(var i=0;i<sh.length;i++){
+      var r=sh[i].getBoundingClientRect();
+      if(!r.width || !r.height) continue;
+      var k=Math.min(PW/r.width, PH/r.height, 1); if(k<0.55) k=0.55;
+      sh[i].setAttribute('data-fq', i);
+      if(k<1) css+='[data-fq="'+i+'"]{zoom:'+k.toFixed(4)+';}';
+    }
+    var old=doc.getElementById('fqFitStyle'); if(old && old.parentNode) old.parentNode.removeChild(old);
+    if(css){ var st=doc.createElement('style'); st.id='fqFitStyle'; st.textContent='@media print{'+css+'}'; doc.head.appendChild(st); }
+    return css;
+  } catch(e){ console.warn('fit-to-page skipped:', e); return ''; }
+}
 // Same handoff as _fqPrint: open a real printable page, wait for the webfonts so the fit pass
-// measures final metrics, shrink to one LANDSCAPE page, then raise the print dialog.
+// measures final metrics, shrink to one page, then raise the print dialog.
 function _fqPrintCompare(model){
   try {
     var win = window.open('', '_blank');
@@ -10109,7 +10293,7 @@ function _fqPrintCompare(model){
     var fired = false;
     var fire = function(){
       if (fired) return; fired = true;
-      try { _fqFitForPrint(win.document); win.focus(); win.print(); }
+      try { _fqFitCompareForPrint(win.document); win.focus(); win.print(); }
       catch(e){ console.warn('print handoff:', e); }
     };
     var f = win.document.fonts;
