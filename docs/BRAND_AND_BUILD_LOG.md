@@ -2627,3 +2627,19 @@ governing docs). Track-fixed-by-looking: count pills contradicting the page's ca
 counts (dropped), inset-shadow orange bar clipping at rounded corners (real border),
 outset focus ring clipping (inset). Still open: Letters & Forms in the sidebar?;
 flush-markers dead Download target; build_guides_page.py repair chip.
+
+## 2026-09-25 — 3rd-party fee tax, Rose Scattering ECF, combined-quote tax split
+
+Accounting email (9/25): the 3rd Party Inspection & Review fee is a cemetery
+service and is NOT taxable; only Installation stays in Merchandise with tax. Quote line
+flipped to non-taxable; CIRGAS now puts Admin on Other 1 and Inspection on Other 2 with
+their names in C27/C28, install on the Installation row (uprights no longer land on
+Memorial Base). outside-marker-rules.html tax note corrected ($1,693.60 flat / $2,816.40
+upright) and its PDF rebuilt. Rose Scattering Garden ECF $80 → $85 (quote tool,
+deed-transfer letter, scattering-guide + Scattering Garden Pricing.pdf, now $1,532.92).
+Combined family quote (Print + PDF): each half closes on its own subtotal / sales tax /
+total, band shows "Cemetery $X + Funeral Home $Y". Page 1 kept to one sheet: print row
+line-height pinned, zoom fallback given 2% headroom and a 0.66 floor, pdf-lib page 1 gets a
+scale-to-fit fallback (both previously overflowed on heavy combined quotes). New gate
+tests/test-3p-tax-combined-split.mjs (34). Known RIC gap: non-taxable "other" cemetery
+lines have no RIC row.

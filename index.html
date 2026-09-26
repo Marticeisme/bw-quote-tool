@@ -1348,7 +1348,7 @@ tr:hover td{background:var(--navy-100);}
                 <option value="vets|5995|900">Veterans Garden $5,995</option>
                 <option value="vets_n|5995|900">Veterans North Garden $5,995</option>
                 <optgroup label="── Scattering ──">
-                  <option value="scatter_rose|545|80">Rose Scattering Garden (Sec. 18) — Space $545</option>
+                  <option value="scatter_rose|545|85">Rose Scattering Garden (Sec. 18) — Space $545</option>
                   <option value="scatter_eternal|435|65">Eternal Rest Scattering Garden — Space $435</option>
                   <option value="scatter_ossuary|325|50">Terrace Garden Ossuary — Space $325</option>
                 </optgroup>
@@ -2147,7 +2147,7 @@ tr:hover td{background:var(--navy-100);}
       <!-- Bronze & Zinc Vases -->
       <!-- 3rd Party Memorialization -->
       <div class="q-panel" data-qs="cem:thirdparty">
-        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>3rd Party Memorialization<span class="tax-pill tax-taxable">Taxable</span></div>
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="award" data-lc-sz="17"></span></span>3rd Party Memorialization<span class="tax-pill tax-taxable">Install taxable</span></div>
         <div class="q-panel-body">
           <div class="callout callout-gold" style="font-size:11.5px;margin-bottom:10px;line-height:1.6;">
             <strong>No discounts apply.</strong> All installations by PCM only. Requires Hold Harmless Agreement, Cemetery Contract, proof approval, and full payment before processing.
@@ -2194,7 +2194,7 @@ tr:hover td{background:var(--navy-100);}
               <span id="disp_3p_install" class="q-price-disp" style="color:var(--text-light);">—</span>
             </div>
             <div class="q-row">
-              <label style="color:var(--text-light);font-size:11px;">Inspection / Design Review (50%)</label>
+              <label style="color:var(--text-light);font-size:11px;">Inspection / Design Review (50%) · non-taxable</label>
               <span id="disp_3p_inspect" class="q-price-disp" style="color:var(--text-light);">—</span>
             </div>
             <div class="q-row">
@@ -8586,7 +8586,9 @@ function cemUpdate() {
     var p3size    = p3parts.slice(3).join('|') || 'Memorial';
     var p3Label   = '3rd Party — ' + p3size;
     if (p3install > 0) lines.push({label: p3Label + ' — Installation',            amount: p3install, taxable: true});
-    if (p3inspect > 0) lines.push({label: p3Label + ' — Inspection/Design Review', amount: p3inspect, taxable: true});
+    // Accounting 2026-09-25: the inspection/review fee is a cemetery SERVICE, not taxable. Only
+    // the installation stays in Merchandise and carries sales tax.
+    if (p3inspect > 0) lines.push({label: p3Label + ' — Inspection/Design Review', amount: p3inspect, taxable: false});
     if (p3admin   > 0) lines.push({label: p3Label + ' — Admin Processing',          amount: p3admin,   taxable: false});
     if (chk('q3pWitness')) {
       var wAmt = parseFloat(el('q3pWitnessVal') ? el('q3pWitnessVal').value : 0) || 0;
@@ -9619,7 +9621,7 @@ function _fqBuildModel(opts){
     // subtotal = PRE-tax net (what the printed rows add up to); total = tax-inclusive grand total
     // for this surface (what the payment math has always been based on). Keep them distinct.
     surfaces.push({kind:s.kind, name:s.name, tagline:s.tagline, groups:g.groups, discount:g.discount,
-                   subtotal:_fqNetOf(s.lines), total:s.total});
+                   subtotal:_fqNetOf(s.lines), tax:_fqTaxOf(s.lines), total:s.total});
     grand+=s.total; taxAmt+=_fqTaxOf(s.lines);
   });
   // Payment-options descriptor for page 2. Cemetery arrangements are financed (FIN_TIERS grid);
@@ -9651,6 +9653,10 @@ function _fqBuildModel(opts){
     surfaces:surfaces,
     taxAmount:taxAmt,
     grandTotal:grand,
+    // Combined quote: cemetery and funeral home are written on separate contracts, so each
+    // section closes on its own sales tax and its own total instead of one blended tax line
+    // (Martice 2026-09-25: the single tax line confused families).
+    combined:surfaces.length>1,
     maxima:mx,
     pay:pay,
     hasPage2:hasPage2
@@ -9672,6 +9678,7 @@ function _fqPaySubtitle(model, sep){
 function _fqPickTier(model){
   var nRows=0, nGroups=0;
   model.surfaces.forEach(function(s){ nGroups+=s.groups.length; s.groups.forEach(function(g){nRows+=g.rows.length;}); if(s.discount)nRows++; });
+  if(model.combined) model.surfaces.forEach(function(s){ if(s.tax>0) nRows+=1.5; });
   var units=nRows + nGroups*1.4 + model.surfaces.length*2.2;
   return units<=20?_FQ_TIERS[0] : units<=32?_FQ_TIERS[1] : _FQ_TIERS[2];
 }
@@ -9825,7 +9832,12 @@ function _fqRowHTML(r){
     +(r.note?'<span class="row-note">'+_fqEsc(r.note)+'</span>':'')
     +'</div><div class="row-a">'+_fqMoney(r.amount)+'</div></div>';
 }
-function _fqSurfaceHTML(sf){
+// Combined quotes only: the band's fine line names both halves so the family sees the split up top.
+function _fqSplitText(model){
+  return model.surfaces.map(function(sf){ return sf.name+' '+_fqMoney(sf.total); }).join(' + ');
+}
+var _FQ_COMB_NOTE = 'Cemetery and funeral home are separate contracts, each with its own sales tax.';
+function _fqSurfaceHTML(sf, combined){
   var h='<div class="surface"><div class="sect"><h2>'+_fqEsc(sf.name)+'</h2>'
     +'<span class="sect-tag">'+_fqEsc(sf.tagline)+'</span></div><div class="sect-rule"></div>';
   sf.groups.forEach(function(g){
@@ -9837,6 +9849,18 @@ function _fqSurfaceHTML(sf){
     h+='<div class="row disc-row"><div class="row-n">'+_fqEsc(sf.discount.name)
       +'<span class="row-note">discount applied</span></div>'
       +'<div class="row-a">-'+_fqMoney(sf.discount.amount)+'</div></div>';
+  }
+  if(combined){
+    // subtotal / its own sales tax / its own total; no tax means subtotal IS the total.
+    if(sf.tax>0){
+      h+='<div class="subt subt-a"><span class="subt-l">'+_fqEsc(sf.name)+' subtotal</span>'
+        +'<span class="subt-v">'+_fqMoney(sf.subtotal)+'</span></div>'
+        +'<div class="subt subt-tax"><span class="subt-l">Sales tax (10.4% \u00b7 merchandise only)</span>'
+        +'<span class="subt-v">'+_fqMoney(sf.tax)+'</span></div>';
+    }
+    h+='<div class="subt subt-tot"><span class="subt-l">'+_fqEsc(sf.name)+' total</span>'
+      +'<span class="subt-v">'+_fqMoney(sf.total)+'</span></div></div>';
+    return h;
   }
   // Martice 2026-07-20: the section subtotal shows on EVERY quote, single-section included.
   h+='<div class="subt"><span class="subt-l">'+_fqEsc(sf.name)+' subtotal</span>'
@@ -9884,6 +9908,10 @@ function _fqSheetCSS(){
   +'.sect-rule{height:1.5pt;background:'+F.slate+';margin-top:6pt;}'
   +'.grp{padding-top:var(--ggap);}'
   +'.kick{font-size:var(--cat);letter-spacing:.2em;}'
+  // line-height pinned on the row-level lines: left at 'normal' (~1.26x) they ran a third taller
+  // than the PDF's row pitch, so a combined quote of 7+ items a side spilled page 1 onto a second
+  // sheet while the PDF of the same model fit (measured 2026-09-25).
+  +'.row,.grp .kick,.subt,.recon-tax,.recon-tot{line-height:1.1;}'
   +'.row{display:flex;align-items:baseline;justify-content:space-between;gap:20pt;'
   +'padding:var(--rowpad) 0 calc(var(--rowpad) * 0.6);border-bottom:0.5pt solid '+F.line+';}'
   +'.row-n{font-size:var(--row);font-weight:600;color:'+F.ink+';}'
@@ -9894,6 +9922,12 @@ function _fqSheetCSS(){
   +'.subt-l{font-size:var(--sub);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:'+F.muted+';}'
   +'.subt-v{font-size:calc(var(--row) + 0.5pt);font-weight:600;color:'+F.head+';font-variant-numeric:tabular-nums;'
   +'min-width:80pt;text-align:right;}'
+  +'.subt-a{padding-bottom:2pt;}'
+  +'.subt-tax{padding:0 0 2pt;}'
+  +'.subt-tax .subt-l{font-size:var(--row);font-weight:400;letter-spacing:0;text-transform:none;color:'+F.bodytx+';}'
+  +'.subt-tax .subt-v{font-weight:400;color:'+F.bodytx+';}'
+  +'.subt-tot{padding:2pt 0 6pt;}'
+  +'.subt-tot .subt-v{font-weight:700;}'
   // reconciliation
   +'.recon{margin-top:var(--rectop);border-top:1pt solid '+F.recontop+';padding-top:10.5pt;}'
   +'.recon-tax{display:flex;justify-content:flex-end;gap:16.5pt;font-size:var(--row);color:'+F.bodytx+';padding-bottom:4pt;}'
@@ -9969,16 +10003,18 @@ function _fqRenderHTML(model){
     +'<div class="band-d">'+_fqEsc(model.arrangements)+'</div></div>'
     +'<div class="band-r"><div class="band-l">Estimated total</div>'
     +'<div class="band-v">'+_fqMoney(model.grandTotal)+'</div>'
-    +(model.taxAmount>0?'<div class="band-fine">includes sales tax on merchandise</div>':'')+'</div></div>';
-  model.surfaces.forEach(function(sf){ p1+=_fqSurfaceHTML(sf); });
+    +(model.combined?'<div class="band-fine">'+_fqEsc(_fqSplitText(model))+'</div>'
+      :(model.taxAmount>0?'<div class="band-fine">includes sales tax on merchandise</div>':''))+'</div></div>';
+  model.surfaces.forEach(function(sf){ p1+=_fqSurfaceHTML(sf, model.combined); });
   // Reconciliation — quiet and right-aligned. The total is a line, not a second headline.
   p1+='<div class="recon">';
-  if(model.taxAmount>0){
+  if(model.taxAmount>0 && !model.combined){
     p1+='<div class="recon-tax"><span>Sales tax (10.4% · merchandise only)</span>'
       +'<span>'+_fqMoney(model.taxAmount)+'</span></div>';
   }
   p1+='<div class="recon-tot"><span class="l">Total</span><span class="v">'+_fqMoney(model.grandTotal)+'</span></div>'
-    +(model.taxAmount>0?'<div class="recon-note">'+_taxNoteText(model.pay.scope==='fh')+'</div>':'')+'</div>';
+    +(model.combined?'<div class="recon-note">'+_FQ_COMB_NOTE+'</div>'
+      :(model.taxAmount>0?'<div class="recon-note">'+_taxNoteText(model.pay.scope==='fh')+'</div>':''))+'</div>';
   p1+='<div class="note"><div class="kick">A note</div><p>'+_fqEsc(_fqNoteText(model))+'</p></div>';
   p1+='</div>'+_fqFooterHTML()+'</div>';
   // PAGE 2 — payment options
@@ -10046,7 +10082,12 @@ function _fqFitForPrint(doc){
     var css='';
     var overBy = p1.offsetHeight - PH*(4/3);
     if(overBy > 0.5){
-      var k=Math.max(0.72, (PH*(4/3))/p1.offsetHeight);
+      // 2% headroom: under zoom, print layout runs ~1% taller than this screen measurement (line
+      // boxes round up), so a zoom computed to the exact page edge spilled the footer onto a second
+      // sheet (measured 2026-09-25: screen 1097px, print 1106px at the same zoom).
+      // Floor 0.66 (was 0.72): a heavy combined quote (~22 lines, 12 categories) needs ~0.73, and
+      // Martice wants page 1 kept to one sheet rather than spilling onto a second.
+      var k=Math.max(0.66, 0.98*(PH*(4/3))/p1.offsetHeight);
       p1.setAttribute('data-fq','1');
       css='[data-fq="1"]{zoom:'+k.toFixed(4)+';}';
     }
@@ -10442,8 +10483,9 @@ async function _fqBuildPDFBytes(model){
       sf.groups.forEach(function(g){ h += t.gGap + t.cat + 1.5 + g.rows.length*(t.row+t.rowPad*2+1); });
       if(sf.discount) h += t.row+t.rowPad*2+1;
       if(model.surfaces.length>1) h += t.row+t.rowPad*2+6;  // subtotal (combined only)
+      if(model.combined && sf.tax>0) h += 2*(t.row*0.95+2);  // own sales tax + own total
     });
-    h += t.recTop + 10.5 + (model.taxAmount>0?t.row+4:0) + 6 + 11.25 + 4 + 8.6;
+    h += t.recTop + 10.5 + (model.taxAmount>0&&!model.combined?t.row+4:0) + 6 + 11.25 + 4 + 8.6;
     h += t.nGap + 7.9 + 5 + wrap(_fqNoteText(model),sans,t.note,RX-M).length*t.note*1.6;
     h += t.ftGap;
     return h;
@@ -10474,7 +10516,8 @@ async function _fqBuildPDFBytes(model){
   var labW=trackW('Estimated total',sansH,7.9,0.2);
   track('Estimated total', aR-labW, aTop-7.9, sansH, 7.9, MASTSUB, 0.2);
   rt(_fqMoney(model.grandTotal), aR, aTop-7.9-4-28.5*0.75, serifB, 28.5, WHITE);
-  if(model.taxAmount>0) rt('includes sales tax on merchandise', aR, bandBot+9, sans, 7.9, BANDFINE);
+  if(model.combined) rt(_fqSplitText(model), aR, bandBot+9, sans, 7.9, BANDFINE);
+  else if(model.taxAmount>0) rt('includes sales tax on merchandise', aR, bandBot+9, sans, 7.9, BANDFINE);
   y = bandBot - 4.5;
 
   // Sections
@@ -10508,7 +10551,24 @@ async function _fqBuildPDFBytes(model){
       y -= tier.rowPad*0.6;
       page.drawLine({start:{x:M,y:y},end:{x:RX,y:y},thickness:0.5,color:LINE});
     }
-    {
+    if(model.combined){
+      // Mirror of _fqSurfaceHTML's combined close: subtotal / own sales tax / own total.
+      y -= tier.rowPad + tier.row*0.9;
+      if(sf.tax>0){
+        var cs=sf.name+' subtotal', csW=trackW(cs,sansB,tier.sub,0.14);
+        track(cs, RX-csW-90, y, sansB, tier.sub, MUTED, 0.14);
+        rt(_fqMoney(sf.subtotal), RX, y, sansB, tier.row+0.5, HEAD);
+        y -= 2 + tier.row*0.95;
+        var tl=clean('Sales tax (10.4% \xb7 merchandise only)');
+        page.drawText(tl,{x:RX-90-sans.widthOfTextAtSize(tl,tier.row),y:y,size:tier.row,font:sans,color:BODYTX});
+        rt(_fqMoney(sf.tax), RX, y, sans, tier.row+0.5, BODYTX);
+        y -= 2 + tier.row*0.95;
+      }
+      var ct=sf.name+' total', ctW=trackW(ct,sansB,tier.sub,0.14);
+      track(ct, RX-ctW-90, y, sansB, tier.sub, MUTED, 0.14);
+      rt(_fqMoney(sf.total), RX, y, sansH, tier.row+0.5, HEAD);
+      y -= 6;
+    } else {
       y -= tier.rowPad + tier.row*0.9;
       var stW=trackW(sf.name+' subtotal',sansB,tier.sub,0.14);
       track(sf.name+' subtotal', RX-stW-90, y, sansB, tier.sub, MUTED, 0.14);
@@ -10521,7 +10581,7 @@ async function _fqBuildPDFBytes(model){
   y -= tier.recTop;
   page.drawLine({start:{x:M,y:y},end:{x:RX,y:y},thickness:1,color:RECONTOP});
   y -= 10.5;
-  if(model.taxAmount>0){
+  if(model.taxAmount>0 && !model.combined){
     y -= tier.row*0.78;
     var taxW=sans.widthOfTextAtSize(_fqMoney(model.taxAmount),tier.row);
     rt(clean('Sales tax (10.4% \xb7 merchandise only)'), RX-taxW-16.5, y, sans, tier.row, BODYTX);
@@ -10532,13 +10592,27 @@ async function _fqBuildPDFBytes(model){
   var totW=sansB.widthOfTextAtSize(_fqMoney(model.grandTotal),11.25), tlW=trackW('Total',sansB,9,0.14);
   track('Total', RX-totW-16.5-tlW, y, sansB, 9, MUTED, 0.14);
   rt(_fqMoney(model.grandTotal), RX, y, sansH, 11.25, HEAD);
-  if(model.taxAmount>0){ y -= 2 + 8.6; rt(_taxNoteText(model.pay.scope==='fh'), RX, y, sans, 8.6, SUBTLE); }
+  if(model.combined){ y -= 2 + 8.6; rt(_FQ_COMB_NOTE, RX, y, sans, 8.6, SUBTLE); }
+  else if(model.taxAmount>0){ y -= 2 + 8.6; rt(_taxNoteText(model.pay.scope==='fh'), RX, y, sans, 8.6, SUBTLE); }
 
   // A note
   y -= tier.nGap;
   track('A note', M, y, sansH, 7.9, ORANGE, 0.22);
   y -= 5;
   wrap(_fqNoteText(model),sans,tier.note,RX-M).forEach(function(ln){ y -= tier.note*1.6; page.drawText(ln,{x:M,y:y,size:tier.note,font:sans,color:BODYTX}); });
+  // Last resort when even the densest tier overflows (a heavy combined quote): shrink page 1's
+  // body to fit above the footer rule instead of letting rows run into the footer and off the
+  // sheet. The body drawn so far is embedded as a form and redrawn, scaled, on a fresh page 1
+  // under an unscaled masthead; the draft page is then dropped. (Mirror of _fqFitForPrint's zoom.)
+  var P1_FLOOR=64;
+  if(y < P1_FLOOR){
+    var bTop=PH-MAST_H-KEY_H, bBot=y-4, k=(bTop-P1_FLOOR)/(bTop-bBot);
+    var bodyForm=await doc.embedPage(page, {left:0, bottom:bBot, right:PW, top:bTop});
+    newPage();
+    masthead(model.typeLabel, model.scopeLine);
+    page.drawPage(bodyForm, {x:PW*(1-k)/2, y:bTop-k*(bTop-bBot), xScale:k, yScale:k});
+    doc.removePage(0);
+  }
   footer();
 
   // ═══ PAGE 2+ — payment options ═══
@@ -24729,6 +24803,11 @@ function _anCategorizeLine(l) {
   // (Better/ECF)"), which is NOT the actual Endowment Care Fund line — only match the real ECF
   // line's own label shapes ("Endowment Care Fund (ECF)", "Niche ECF (10%)", "Mausoleum ECF (10%)").
   if (l.isSpace) return /endowment care|\becf\s*\(10%\)/.test(lb) ? 'ecf' : 'space';
+  // 3rd Party (outside vendor) memorial — Accounting 2026-09-25: Installation is the only
+  // Merchandise line; the Admin and Inspection & Review fees go in Cemetery Services Other 1/2.
+  // Checked first: an upright's size text ("… / Base 26″×12″×6″") would otherwise hit the
+  // Memorial Base row below.
+  if (/^3rd party/.test(lb)) return /installation/.test(lb) ? 'install' : 'other';
   if (/^recording fee/.test(lb)) return 'recording';
   if (/vault.*setting|setting.*vault|container.*setting|setting.*container/.test(lb)) return 'containerSet';
   if (/vault|container/.test(lb)) return 'container';
@@ -24925,6 +25004,18 @@ async function _fillCirgasXlsx(data) {
   // Other 1 / Other 2 are two distinct labeled slots on the real template (e.g. Witness
   // Placement Mon-Thu, Disinterment fee) — first unmapped item to Other 1, second to Other 2;
   // any further overflow sums into Other 2 rather than being silently dropped.
+  // Accounting's layout puts the 3rd Party Administrative Fee on Other 1 and the Inspection &
+  // Review Fee on Other 2 (email 2026-09-25); the quote builds them in the opposite order.
+  var _an3pRank = function(l){ var lb = l.label.toLowerCase(); return !/^3rd party/.test(lb) ? 2 : /admin/.test(lb) ? 0 : /inspection/.test(lb) ? 1 : 2; };
+  otherLines = otherLines.map(function(l, i){ return {l:l, i:i}; })
+    .sort(function(a, b){ return (_an3pRank(a.l) - _an3pRank(b.l)) || (a.i - b.i); })
+    .map(function(x){ return x.l; });
+  var _anOtherDesc = function(l){
+    var lb = l.label.toLowerCase();
+    if (/^3rd party/.test(lb) && /admin/.test(lb)) return '3rd Party Administrative Fee';
+    if (/^3rd party/.test(lb) && /inspection/.test(lb)) return '3rd Party Inspection & Review Fee';
+    return l.label;
+  };
   var other1Amt = otherLines[0] ? Math.max(0, otherLines[0].amount) : 0;
   var other2Amt = otherLines.slice(1).reduce(function(s,l){ return s + Math.max(0, l.amount); }, 0);
   // Other Merchandise 1 / 2 (I45/I46) — same two-slot pattern as Section A's Other 1/2 above,
@@ -24958,6 +25049,9 @@ async function _fillCirgasXlsx(data) {
   await setCCAmt('I26', buckets.oc, data.ocOpening);
   await setCCAmt('I27', other1Amt);
   await setCCAmt('I28', other2Amt);
+  // C27:G27 / C28:G28 are the merged description cells beside each "Other" label.
+  if (otherLines[0]) await setCC('C27', 's', _anOtherDesc(otherLines[0]));
+  if (otherLines.length > 1) await setCC('C28', 's', otherLines.slice(1).map(_anOtherDesc).join(' + '));
   await setCCAmt('I29', buckets.friSun);
   await setCCAmt('I37', buckets.container, data.ocContainer);
   await setCCAmt('I38', buckets.containerSet, data.ocContainerSet);
