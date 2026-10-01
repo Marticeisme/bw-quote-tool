@@ -2643,3 +2643,15 @@ line-height pinned, zoom fallback given 2% headroom and a 0.66 floor, pdf-lib pa
 scale-to-fit fallback (both previously overflowed on heavy combined quotes). New gate
 tests/test-3p-tax-combined-split.mjs (34). Known RIC gap: non-taxable "other" cemetery
 lines have no RIC row.
+
+## 2026-09-30 — `?family` view on the six product catalogs
+
+Same switch as pcm-design-catalog.html (e4830b35): two lines before `</head>` hide
+`.nav-back` and `.site-footer` when the URL carries `?family`, so a family sent the link
+can't navigate to the other guides. Pages: all-caskets, metal-caskets, wood-caskets,
+urns-guide, keepsake-urns-guide, cremation-containers-rental-caskets. Family links
+(operator-sanctioned): `all-caskets.html?family`, `urns-guide.html?family`,
+`cremation-containers-rental-caskets.html?family`. The doc-footer bonneywatson.com link
+stays (public site, not a guide). Build scripts read the live pages, so it survives
+rebuilds. Print/PDF untouched, no PDF rebuild. Playwright 18/18 (plain, ?family,
+?familyx=1 lookalike).
