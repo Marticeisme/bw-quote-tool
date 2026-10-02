@@ -1,10 +1,10 @@
-// September 2026 pre-need incentives + the Veteran Space Credit — the discount math in
+// Q4 2026 (Oct 1 – Dec 31) pre-need incentives + the Veteran Space Credit — the discount math in
 // cemUpdate(), the compare Option B builder, and the discount panel's own wording.
 //
 // The September sheet is rate-for-rate identical to August: only the month, the validity
 // date (September 30, 2026) and the user-facing strings moved. The rules it encodes:
 //   • the property rate is no longer one flat 10%. Burial property is 10%, cremation
-//     property is 20%, and a mausoleum crypt in Rows E/F/G is 20% (counselor opt-in,
+//     property is 20%, and a mausoleum crypt in Rows E/F/G is 25% in Q4 (counselor opt-in,
 //     because the builder does not know a crypt's row).
 //   • additional (2nd/3rd) interment rights are NO LONGER discounted. July folded them
 //     into the same 10% base.
@@ -189,8 +189,8 @@ console.log('\n3. Cremation property — 20%, 2nd rights excluded');
      /20% off cremation property/.test(r2.disc.label) && !/off burial property/.test(r2.disc.label), r2.disc.label);
 }
 
-// ── 4. Mausoleum Rows E/F/G — 20% vs 10%, in one quote with ground at 10% ──
-console.log('\n4. Mausoleum Rows E, F & G — 20% while ground stays 10%');
+// ── 4. Mausoleum Rows E/F/G — 25% vs 10%, in one quote with ground at 10% ──
+console.log('\n4. Mausoleum Rows E, F & G — 25% while ground stays 10%');
 {
   const off = await page.evaluate(() => __T.build({ garden: true, maus: 20000, mode: 'promo_burial' }));
   const ground = off.spaceSum - 20000;
@@ -200,10 +200,10 @@ console.log('\n4. Mausoleum Rows E, F & G — 20% while ground stays 10%');
 
   const on = await page.evaluate(() => __T.build({ garden: true, maus: 20000, mode: 'promo_burial', efg: true }));
   const ground2 = on.spaceSum - 20000;
-  ok('checked: crypt 20%, ground still 10%', near(-on.disc.amount, ground2 * 0.10 + 20000 * 0.20), { amt: on.disc.amount, ground: ground2 });
-  ok('label shows both rates', /10% off burial property/.test(on.disc.label) && /20% off mausoleum crypt \(Row E\/F\/G\)/.test(on.disc.label), on.disc.label);
+  ok('checked: crypt 25%, ground still 10%', near(-on.disc.amount, ground2 * 0.10 + 20000 * 0.25), { amt: on.disc.amount, ground: ground2 });
+  ok('label shows both rates', /10% off burial property/.test(on.disc.label) && /25% off mausoleum crypt \(Row E\/F\/G\)/.test(on.disc.label), on.disc.label);
   ok('blended propDiscPct is reported, not a single rate',
-     on.disc.propDiscPct > 10 && on.disc.propDiscPct < 20, on.disc.propDiscPct);
+     on.disc.propDiscPct > 10 && on.disc.propDiscPct < 25, on.disc.propDiscPct);
 
   const noMaus = await page.evaluate(() => __T.build({ garden: true, mode: 'promo_burial' }));
   ok('chip hidden when there is no mausoleum line', noMaus.efgVisible === false, noMaus.efgVisible);
@@ -233,12 +233,14 @@ console.log('\n5. O&C stacking caps at the actual fee');
   ok('total = 20% property + capped O&C', near(-c.disc.amount, 2000 + Math.min(500, inActual)), c.disc);
   ok('label names the cremation O&C', /Cremation O&C/.test(c.disc.label), c.disc.label);
 
-  // Two spaces: the cap scales per space.
+  // Two spaces, ONE interment on the quote: the credit is per opening actually purchased (Martice's
+  // 2026-09-21 ruling — "10% off the two plots and then 1k off one of the opening and closings"),
+  // so this earns a single $1,000, not $1,000 x 2 clamped to the whole interment fee.
   const two = await page.evaluate(() => __T.build({ garden: true, gardenQty: 2, mode: 'promo_burial', check: ['qBurialArrange'] }));
   const ocTwo = await page.evaluate(() => (window._cemLines || [])
     .filter(l => !l.isDiscount && /Interment|Entombment/i.test(l.label) && !/ECF|Inurn|Recording/i.test(l.label))
     .reduce((a, l) => a + l.amount, 0));
-  ok('two spaces: cap is $1,000 x 2, still capped at actual', near(two.disc.ocDiscAmount, Math.min(2000, ocTwo)), { d: two.disc.ocDiscAmount, actual: ocTwo });
+  ok('two spaces, one opening: one $1,000 credit, capped at that opening', near(two.disc.ocDiscAmount, Math.min(1000, ocTwo)), { d: two.disc.ocDiscAmount, actual: ocTwo });
 }
 
 // ── 6. Property-only mode takes no O&C ────────────────────────────────────
@@ -259,7 +261,7 @@ console.log('\n7. ECF is never discounted');
   const promo   = await page.evaluate(() => __T.build({ garden: true, maus: 20000, mode: 'promo_burial', efg: true }));
   ok('the ECF lines are identical with and without the promo', near(noPromo.ecfSum, promo.ecfSum) && promo.ecfSum > 0, { a: noPromo.ecfSum, b: promo.ecfSum });
   ok('the discount base excludes ECF entirely',
-     near(-promo.disc.amount, (promo.spaceSum - 20000) * 0.10 + 20000 * 0.20), { amt: promo.disc.amount, space: promo.spaceSum, ecf: promo.ecfSum });
+     near(-promo.disc.amount, (promo.spaceSum - 20000) * 0.10 + 20000 * 0.25), { amt: promo.disc.amount, space: promo.spaceSum, ecf: promo.ecfSum });
 }
 
 // ── 8. Family 45-Day Certificate is untouched ─────────────────────────────
@@ -320,8 +322,8 @@ console.log('\n10. The E/F/G choice round-trips through a saved quote');
   ok('and restored, so the 20% row rate survives', /Row E\/F\/G/.test(r.disc.label), r.disc.label);
 }
 
-// ── 11. The September banner text ─────────────────────────────────────────
-console.log('\n11. September banner, financing note and discount options');
+// ── 11. The Q4 banner text ─────────────────────────────────────────
+console.log('\n11. Q4 banner, financing note and discount options');
 {
   const t = await page.evaluate(async () => {
     await __T.build({ garden: true, mode: 'promo_burial' });
@@ -332,30 +334,33 @@ console.log('\n11. September banner, financing note and discount options');
       optgroups: [...sel.querySelectorAll('optgroup')].map(o => o.label),
       options: [...sel.options].map(o => o.value + '\u0000' + o.text),
       cmpOptions: [...document.getElementById('cmpB_discType').options].map(o => o.value + '\u0000' + o.text),
+      efgText: (document.querySelector('#cemDiscountList .disc-efg-wrap') || {}).textContent || '',
     };
   });
-  ok('banner says September 2026', /September 2026 Pre-Need Sales Incentives/.test(t.banner), t.banner.slice(0, 80));
-  ok('banner has no "August" or "July"', !/August|July/.test(t.banner), t.banner);
-  ok('all six incentive bullets', ['10% off Burial Property', '20% off Select Mausoleum Rows: E, F & G',
+  ok('banner says Q4 2026, Oct 1 – Dec 31', /Q4 2026 Pre-Need Sales Incentives/.test(t.banner) && /October 1 – December 31/.test(t.banner), t.banner.slice(0, 80));
+  ok('banner has no "September", "August" or "July"', !/September|August|July/.test(t.banner), t.banner);
+  ok('all six incentive bullets', ['10% off Burial Property', '25% off Select Mausoleum Rows: E, F & G',
       '20% off Cremation Property', '0% Financing for 60 Months with 10% Down',
       '$1,000 off Burial Opening & Closing', '$500 off Cremation Opening & Closing']
       .every(s => t.banner.indexOf(s) !== -1), t.banner);
   ok('the standing rules are stated', /only applicable to purchases of new Pre-Need property/.test(t.banner) && /ECF must always be paid in full/.test(t.banner), t.banner);
   ok('SECOND RIGHTS exclusion is explicit on the note',
      /Second Rights are NOT included in any property discount/.test(t.banner), t.banner);
-  ok('valid through September 30, 2026', /Valid through September 30, 2026/.test(t.banner), t.banner);
-  ok('financing note relabelled September', /September Special/.test(t.fin) && /Valid through September 30, 2026/.test(t.fin) && !/August|July/.test(t.fin), t.fin.slice(0, 200));
-  ok('the discount optgroup is labelled September 2026', t.optgroups.some(l => /September 2026 Incentives/.test(l)), t.optgroups);
+  ok('valid through December 31, 2026', /Valid through December 31, 2026/.test(t.banner), t.banner);
+  ok('no-combining rule names management approval before the contract', /management approval BEFORE the contract is written/.test(t.banner), t.banner);
+  ok('financing note relabelled Q4', /Q4 Special/.test(t.fin) && /Valid through December 31, 2026/.test(t.fin) && !/September|August|July/.test(t.fin), t.fin.slice(0, 200));
+  ok('the discount optgroup is labelled Q4 2026', t.optgroups.some(l => /Q4 2026 Incentives/.test(l)), t.optgroups);
   ok('a Veteran optgroup exists', t.optgroups.some(l => /Veteran/.test(l)), t.optgroups);
-  ok('no discount option still says "August"', !t.options.some(o => /August/.test(o)), t.options.filter(o => /August/.test(o)));
+  ok('no discount option still says "September" or "August"', !t.options.some(o => /September|August/.test(o)), t.options.filter(o => /September|August/.test(o)));
+  ok('the Row E/F/G chip reads 25%', /Crypt in Row E, F or G — 25%/.test(t.efgText), t.efgText);
   ok('the three incentive modes keep their persisted ids',
      ['promo_burial', 'promo_crem', 'promo_property'].every(v => t.options.some(o => o.split('\u0000')[0] === v)), t.options);
-  ok('all three are relabelled September',
-     t.options.filter(o => /^promo_(burial|crem|property)\u0000/.test(o)).every(o => /September Incentive/.test(o)), t.options);
+  ok('all three are relabelled Q4',
+     t.options.filter(o => /^promo_(burial|crem|property)\u0000/.test(o)).every(o => /Q4 Incentive/.test(o)), t.options);
   ok('the veteran mode is offered, with its DD-214 requirement in the label',
      t.options.some(o => /^promo_veteran\u0000Veteran Space Credit — \$5,995 off one space \(DD-214 required\)$/.test(o)), t.options);
-  ok('compare Option B is relabelled September too', !t.cmpOptions.some(o => /August/.test(o))
-     && t.cmpOptions.filter(o => /^promo_(burial|crem|property)\u0000/.test(o)).every(o => /September Incentive/.test(o)), t.cmpOptions);
+  ok('compare Option B is relabelled Q4 too', !t.cmpOptions.some(o => /September|August/.test(o))
+     && t.cmpOptions.filter(o => /^promo_(burial|crem|property)\u0000/.test(o)).every(o => /Q4 Incentive/.test(o)), t.cmpOptions);
   ok('compare Option B offers the veteran mode',
      t.cmpOptions.some(o => /^promo_veteran\u0000Veteran Space Credit/.test(o)), t.cmpOptions);
 }
