@@ -54,6 +54,10 @@ export const EXEMPT = new Set([
   // the guide "needs to use the pricing from the gpl"; showing the figures was his call
   // to delegate ("up to you").
   'terramation-guide.html',
+  // Cost is the reason this guide exists: families' first hesitation on a vase is price,
+  // and every option is the same 12x12 block, so the generic 'depends on the size' range
+  // box was wrong for it. Shows the real vase, block and all-in tables. 2026-10-01.
+  'vase-guide.html',
 ]);
 
 const MONEY = /\$[0-9][0-9,]*(?:\.[0-9]{2})?/g;

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vases and Vase Blocks &middot; Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
+  --orange:#c8540a; --orange-dark:#a5450a; --orange-soft:#dda06e;
+  --white:#ffffff; --offwhite:#f4f6f8; --cream:#f8f6f2; --card-white:#fff;
+  --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --text:#3a4453; --text-dark:#1a2332; --text-muted:#6a7686;
+  --sidebar-bg:#f9f8f5;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.6;}
+.site-nav{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.nav-inner{max-width:1100px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px;}
+.nav-logo{height:22px;width:auto;flex-shrink:0;}
+.nav-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.5);font-style:italic;white-space:nowrap;}
+.nav-spacer{flex:1;}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap;}
+.nav-links a{color:rgba(255,255,255,.75);font-size:12px;font-weight:600;text-decoration:none;padding:5px 12px;border-radius:20px;transition:all .15s;white-space:nowrap;}
+.nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.nav-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;margin-left:10px;transition:background .15s;}
+.nav-back:hover{background:rgba(255,255,255,.12);}
+.doc-sheet{max-width:960px;margin:0 auto;background:var(--cream);border-radius:0 0 4px 4px;box-shadow:0 4px 30px rgba(0,0,0,.08);min-height:100vh;}
+.cover{background:var(--navy);padding:64px 48px 56px;position:relative;overflow:hidden;}
+.cover::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(200,84,10,.12) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none;}
+.cover-logo{height:34px;width:auto;display:block;margin-bottom:24px;position:relative;}
+.cover-kicker{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:10px;position:relative;}
+.cover h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#fff;line-height:1.15;margin-bottom:16px;position:relative;}
+.cover-sub{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.7);line-height:1.5;max-width:540px;position:relative;}
+.cover-rule{width:50px;height:3px;background:var(--orange);margin:24px 0;border-radius:2px;position:relative;}
+.cover-footer{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);position:relative;}
+.contents{padding:40px 48px;border-bottom:1px solid var(--rule);}
+.contents-label{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:18px;}
+.contents-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.contents-item{display:flex;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);}
+.contents-item:nth-last-child(-n+2){border-bottom:none;}
+.contents-num{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--orange);min-width:20px;}
+.contents-item a{font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;transition:color .15s;}
+.contents-item a:hover{color:var(--orange);}
+.section-wrap{padding:48px 48px 40px;}
+.section-wrap + .section-wrap{border-top:1px solid var(--rule);}
+.section-kicker{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:6px;}
+.section-wrap h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--navy-dark);line-height:1.2;margin-bottom:8px;}
+.section-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:24px;}
+.section-rule{width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin-bottom:24px;}
+.prose p{font-size:15px;line-height:1.65;margin-bottom:14px;}
+.prose p strong{color:var(--navy-dark);font-weight:700;}
+.prose-sidebar{display:grid;grid-template-columns:1.55fr 1fr;gap:36px;align-items:start;}
+
+.sidebar{background:var(--sidebar-bg);border:1px solid var(--warm-border);border-radius:10px;padding:24px 22px;margin-bottom:24px;}
+.sidebar-label{font-family:'Source Sans 3',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar li{font-size:13.5px;color:var(--text);padding:8px 0 8px 16px;border-bottom:1px solid var(--rule);position:relative;line-height:1.5;}
+.sidebar li:last-child{border-bottom:none;}
+.sidebar li::before{content:'\2014';position:absolute;left:0;color:var(--orange);font-weight:700;}
+
+.timeline{display:grid;grid-template-columns:1fr;gap:0;margin-bottom:28px;}
+.timeline-step{display:flex;gap:18px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--rule);}
+.timeline-step:last-child{border-bottom:none;}
+.timeline-num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.timeline-step h4{font-size:14.5px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.timeline-step p{font-size:13.5px;color:var(--text);line-height:1.55;margin:0;}
+
+.highlight-box{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-dark) 100%);border-radius:12px;padding:28px 30px;margin-bottom:28px;color:#fff;position:relative;overflow:hidden;}
+.highlight-box::after{content:'';position:absolute;top:0;right:0;width:120px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04));pointer-events:none;}
+.highlight-box h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:10px;color:#fff;}
+.highlight-box p{color:rgba(255,255,255,.88);font-size:14.5px;line-height:1.6;margin:0 0 8px;}
+.highlight-box .hl{color:var(--orange-soft);font-weight:600;}
+
+.price-table{width:100%;border-collapse:collapse;margin-bottom:28px;background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;}
+.price-table th{background:var(--navy);color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:12px 16px;}
+.price-table td{padding:11px 16px;font-size:14px;border-bottom:1px solid var(--rule);vertical-align:top;}
+.price-table tr:last-child td{border-bottom:none;}
+.price-table .amt{white-space:nowrap;font-weight:700;color:var(--navy-dark);}
+
+.doc-footer{background:var(--cream);padding:48px 48px 40px;border-top:1px solid var(--rule);text-align:center;}
+.doc-footer .footer-logo{height:24px;width:auto;margin:0 auto 14px;display:block;}
+.doc-footer .footer-hours{font-size:14px;color:var(--text);margin-bottom:4px;}
+.doc-footer .footer-url{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;}
+.doc-footer .footer-legal{font-size:12px;color:var(--text-muted);}
+.site-footer{padding:22px 24px;background:var(--navy);color:rgba(255,255,255,.6);text-align:center;font-size:12px;}
+.site-footer a{color:rgba(255,255,255,.75);text-decoration:none;}
+
+@media(max-width:768px){
+  .doc-sheet{margin:0;}
+  .cover,.section-wrap,.contents{padding-left:24px;padding-right:24px;}
+  .cover h1{font-size:32px;}
+  .prose-sidebar{grid-template-columns:1fr;}
+  .contents-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+}
+@media print{
+  @page{size:letter;margin:0;}
+  /* Ligature suppression, same reason as every other guide: Ghostscript's downsample
+     mangles the ToUnicode map for fi/fl/ft ligatures and makes words unsearchable. */
+  *{font-variant-ligatures:none;-webkit-font-variant-ligatures:none;}
+  html{height:100%;background:#f8f6f2;}
+  body{background:#f8f6f2;font-size:11pt;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .site-nav,.site-footer,.nav-back,.nav-links,.contents{display:none!important;}
+  .doc-footer{padding:24px 12px 20px;border-top:1px solid var(--rule);break-inside:avoid;}
+  .doc-footer .footer-url{display:none;}
+  .site-nav{position:static;}
+  .doc-sheet{max-width:none;box-shadow:none;margin:0;border-radius:0;padding:0;}
+  .cover{padding:20px 12px 16px;border-radius:0;background:var(--navy)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .cover h1{font-size:28pt;}
+  .section-wrap{padding:16px 12px 12px;}
+  .section-wrap h2{page-break-after:avoid;}
+  .sidebar,.highlight-box,.timeline-step{break-inside:avoid;page-break-inside:avoid;}
+  /* A grid row can't fragment across pages, and the sidebar inside is break-inside:avoid,
+     so the whole prose+sidebar unit jumped to a fresh page and left the one before half
+     blank. Stacked, the section flows and the document packs. */
+  .prose-sidebar{display:block;}
+  .price-table{break-inside:avoid;}
+  a{text-decoration:none;color:inherit;}
+}
+
+/* FAMILY-PDF DESIGN ROUND (operator 2026-08-25): bigger brand marks and less slack on
+   the PDF. Family mode only; html-prefixed selectors win over guide-print.css §8. */
+@media print{
+  html[data-print-mode="family"] .cover-logo{height:34px!important;margin-bottom:8px;}
+  html[data-print-mode="family"] .doc-footer .footer-logo{height:22px!important;}
+  html[data-print-mode="family"] .sidebar li{padding:7.5px 0 7.5px 16px;}
+  html[data-print-mode="family"] .timeline-step{padding:8px 0 8px 26px;}
+  html[data-print-mode="family"] .highlight-box{padding:13px 17px;margin:8px 0 10px;}
+  html[data-print-mode="family"] .price-table th{padding:8px 12px;}
+  html[data-print-mode="family"] .price-table td{padding:8px 12px;}
+}
+
+/* PRINT HEADER — same cap as every guide (punch list item 20, 2026-07-27): the print
+   masthead stays small. Print media ONLY, the on-screen cover is unchanged. Measured
+   by scripts/verify_print_header.mjs. */
+@media print{
+  .cover{padding:12px .5in 10px;}
+  .cover-logo{height:20px;margin-bottom:7px;}
+  .cover-kicker{font-size:8px;letter-spacing:.16em;margin-bottom:3px;}
+  .cover h1{font-size:16pt;line-height:1.1;margin-bottom:5px;}
+  .cover-sub{font-size:9pt;line-height:1.35;max-width:none;margin-bottom:0;}
+  .cover-rule{height:2px;margin:7px 0 0;}
+  .cover-footer{display:none;}
+}
+
+.vase-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px;}
+.vase-card{background:var(--card-white);border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;}
+.vase-photo{background:#efe9df;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.vase-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;}
+.vase-body{padding:14px 16px 12px;}
+.vase-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy-dark);line-height:1.2;}
+.vase-meta{font-size:12px;color:var(--text-muted);margin:2px 0 8px;display:flex;align-items:baseline;gap:6px;}
+.vase-price{margin-left:auto;font-size:17px;font-weight:700;color:var(--navy-dark);}
+.vase-body p{font-size:13.5px;line-height:1.55;margin:0;}
+.fine{font-size:12.5px;color:var(--text-muted);line-height:1.5;margin:4px 0 0;}
+.price-table .muted{font-size:12.5px;color:var(--text-muted);}
+@media(max-width:768px){.vase-grid{grid-template-columns:1fr;}}
+@media print{.vase-grid{grid-template-columns:1fr 1fr;gap:8px;}.vase-card{break-inside:avoid;flex-direction:row;}.vase-photo{flex:0 0 1.35in;width:1.35in;aspect-ratio:1/1;}.vase-photo img{object-position:50% 30%;}.vase-body{padding:8px 10px;}.vase-name{font-size:14pt;}.vase-body p{font-size:10pt;line-height:1.38;}.vase-meta{font-size:10pt;}.fine{font-size:10pt;}.price-table .muted{font-size:10pt;}}
+</style>
+<!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
+<link rel="stylesheet" media="print" href="guide-print.css">
+<!-- BW:PRINT-CSS:END -->
+</head>
+<body>
+<!-- BW:PRINT-SYSTEM:START (generated by scripts/build_guide_print_system.mjs — do not hand-edit) -->
+<style>
+/* Per-guide print constants. Screen is untouched: the only screen rule here hides
+   the generated pricing invitation, which exists solely for the PDF. It must never
+   show on screen — the shared sheet is media=print and so cannot say anything about
+   screen, which is exactly how the invitation blocks first shipped VISIBLE ON THE
+   WEBSITE. */
+.print-invite{display:none}
+/* The condensed-PDF convention (sprint-16). A `.pdf-summary` block is the SHORT
+   version of the section it sits in, written next to the long version so the two
+   cannot drift. It is for the `?print=family` PDF only: hidden on screen, hidden in
+   an ordinary Ctrl+P print, and shown only by the family rules in guide-print.css §8.
+   It is hidden here rather than in the shared sheet for the same reason
+   `.print-invite` is: that sheet is media=print and cannot say anything about
+   screen. */
+/* !important, unlike `.print-invite` above, and not for symmetry: a summary is often a
+   <span> inside a list item or a paragraph, and the guides style those — `.charge-list
+   span{display:block}` is 0,1,1 and beats a bare class selector outright. Seven summary
+   spans shipped VISIBLE ON THE WEBSITE the first time this was written without it, and
+   only the screen pixel diff caught them. The family rules in guide-print.css §8a still
+   win, because `[data-print-mode="family"] .pdf-summary` is more specific than this. */
+.pdf-summary{display:none!important}
+/* THERE IS NO RUNNING HEADER. This block used to also emit a per-guide
+   `@page{@top-left{content:"Bonney Watson · <title>"}}` — the only reason the guide
+   metadata was needed at print time at all. Operator, 2026-08-03: "we also do not
+   need a header." Removed; the brand mark went back on the masthead instead (see
+   guide-print.css §3). Everything else the shared sheet can express, so this block
+   is now one screen-only line and nothing more. */
+</style>
+<script>
+/* Print selection. `?part=` picks a half of a two-PDF guide; `?print=family` asks for
+   the condensed family cut. Both mark <html> so the print stylesheets can select on
+   them; neither does anything without the query, so the website and an ordinary
+   Ctrl+P are untouched. Generated — see scripts/build_guide_print_system.mjs. */
+(function () {
+  var q = new URLSearchParams(location.search);
+  [["part", "data-print-part"], ["print", "data-print-mode"]].forEach(function (pair) {
+    var v = q.get(pair[0]);
+    if (v && /^[a-z][a-z0-9-]{0,23}$/.test(v)) document.documentElement.setAttribute(pair[1], v);
+  });
+})();
+</script>
+<!-- BW:PRINT-SYSTEM:END -->
+
+<nav class="site-nav">
+  <div class="nav-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="nav-logo">
+    <span class="nav-est">Est. 1868</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <a href="#what">What They Are</a>
+      <a href="#vases">The Vases</a>
+      <a href="#block">The Block</a>
+      <a href="#cost">Cost</a>
+      <a href="#rules">Flower Rules</a>
+    </div>
+    <a class="nav-back" href="guides.html">&larr; All Guides</a>
+  </div>
+</nav>
+
+<div class="doc-sheet">
+
+  <div class="cover">
+    <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+    <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+    <h1>Vases and Vase Blocks</h1>
+    <div class="cover-sub">The four vases we offer on a 12 by 12 granite block, what each one costs, why bronze costs what it does, and the cemetery's rules for flowers.</div>
+    <div class="cover-rule"></div>
+    <div class="cover-footer">The vases &middot; the block &middot; what it adds up to &middot; flower rules &middot; printable</div>
+  </div>
+
+  <div class="contents">
+    <div class="contents-label">In This Guide</div>
+    <div class="contents-grid">
+      <div class="contents-item"><span class="contents-num">1</span><a href="#what">What a Vase and Vase Block Are</a></div>
+      <div class="contents-item"><span class="contents-num">2</span><a href="#vases">The Four Vases</a></div>
+      <div class="contents-item"><span class="contents-num">3</span><a href="#block">The Granite Vase Block</a></div>
+      <div class="contents-item"><span class="contents-num">4</span><a href="#cost">What It Adds Up To</a></div>
+      <div class="contents-item"><span class="contents-num">5</span><a href="#why">Why They Cost What They Do</a></div>
+      <div class="contents-item"><span class="contents-num">6</span><a href="#rules">The Cemetery's Flower Rules</a></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-wrap" id="what">
+    <div class="section-kicker">SECTION 1</div>
+    <h2>What a Vase and Vase Block Are</h2>
+    <div class="section-sub">A permanent place for flowers that the mowers can pass over</div>
+    <div class="section-rule"></div>
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p>A cemetery vase isn't a vase you set on the grass. It sits in a hole cut into a granite block that's set level with the lawn. When it's holding flowers, it stands upright. When it isn't, it turns upside down and rests flush in the block, so the mowers pass right over it and nothing gets broken.</p>
+        <p>Every option in this guide uses the same <strong>12 by 12 by 4 inch</strong> granite block, polished on top with sawn sides, with the hole for the vase already drilled. Our own crew sets the block and the vase.</p>
+        <p>If your loved one has a bronze marker, it can carry its own vase core, the fitting a vase screws into, and the vase can go in the marker instead. The <a href="bronze-markers-guide.html" style="color:var(--orange);font-weight:600;">Bronze Markers</a> guide covers that. This guide is about a vase on its own block.</p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">WHAT YOU'RE CHOOSING</div>
+        <ul>
+          <li><strong>The vase</strong>: gray zinc, or one of three bronze styles</li>
+          <li><strong>The block</strong>: the granite color, which sets its price group</li>
+          <li><strong>Setting it</strong>: one installation charge, $175</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-wrap" id="vases">
+    <div class="section-kicker">SECTION 2</div>
+    <h2>The Four Vases</h2>
+    <div class="section-sub">These are the only vases the cemetery offers, and why that's the case is in Section 6</div>
+    <div class="section-rule"></div>
+    <div class="vase-grid">
+      <div class="vase-card">
+        <div class="vase-photo"><img src="vase-images/gray-zinc.jpg" alt="Gray zinc vase set in a light gray granite block" loading="lazy"></div>
+        <div class="vase-body">
+          <div class="vase-name">Gray Zinc</div>
+          <div class="vase-meta">5" core &middot; vase only <span class="vase-price">$315</span></div>
+          <p>Cast zinc with a gray finish. It's the simplest vase we offer and the one we keep in stock here, so it can usually be set sooner. Zinc holds up well, but it's softer than bronze and won't last as many lifetimes.</p>
+        </div>
+      </div>
+      <div class="vase-card">
+        <div class="vase-photo"><img src="vase-images/bronze-veterans-ring.jpg" alt="Bronze veterans vase with a star ring set in a granite block" loading="lazy"></div>
+        <div class="vase-body">
+          <div class="vase-name">Bronze, Grecian or Veterans</div>
+          <div class="vase-meta">6" core &middot; vase only <span class="vase-price">$1,340</span></div>
+          <p>Cast bronze by Matthews. The Veterans version carries a cross on the vase and a ring of stars around its base. The Grecian version has a plain ring.</p>
+        </div>
+      </div>
+      <div class="vase-card">
+        <div class="vase-photo"><img src="vase-images/bronze-doric-hammered-ring.jpg" alt="Hammered bronze Doric vase with a hammered ring set in a granite block" loading="lazy"></div>
+        <div class="vase-body">
+          <div class="vase-name">Bronze Doric, Hammered or Grecian ring</div>
+          <div class="vase-meta">6" core &middot; vase only <span class="vase-price">$1,405</span></div>
+          <p>The Doric vase has a hand-hammered texture, set in either a matching hammered ring or a plain Grecian ring.</p>
+        </div>
+      </div>
+      <div class="vase-card">
+        <div class="vase-photo"><img src="vase-images/bronze-doric-floral-innocence-ring.jpg" alt="Hammered bronze Doric vase with a floral ring set in a red granite block" loading="lazy"></div>
+        <div class="vase-body">
+          <div class="vase-name">Bronze Doric, Floral Innocence ring</div>
+          <div class="vase-meta">6" core &middot; vase only <span class="vase-price">$1,445</span></div>
+          <p>The hammered Doric vase in the Floral Innocence ring, a ring of cast flowers around the base. This is the most detailed casting we offer.</p>
+        </div>
+      </div>
+    </div>
+    <p class="fine">Prices are for the vase alone. The block, its installation and sales tax are added in Section 4.</p>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-wrap" id="block">
+    <div class="section-kicker">SECTION 3</div>
+    <h2>The Granite Vase Block</h2>
+    <div class="section-sub">The same block in every color; the color sets the price</div>
+    <div class="section-rule"></div>
+    <div class="prose">
+      <p>Most families match the block to the marker, so the two read as one memorial. Granite is priced in color groups. The lighter grays and pinks cost the least, and the rarer colors, which are quarried farther away, cost the most. Some colors are imported and carry tariffs, and the price list splits those out.</p>
+    </div>
+    <table class="price-table">
+      <tr><th>12&times;12&times;4 vase block, by color group</th><th>Block</th></tr>
+      <tr><td><strong>Group 1, non-tariffed</strong><br><span class="muted">Cloud White, Misty Pink, PC Violet</span></td><td class="amt">$525</td></tr>
+      <tr><td><strong>Group 1, tariffed</strong><br><span class="muted">Cascade Gray, Classic Gray</span></td><td class="amt">$630</td></tr>
+      <tr><td><strong>Group 2</strong><br><span class="muted">Absolute Black, Barre Gray, Blue Pearl and others</span></td><td class="amt">$800</td></tr>
+      <tr><td><strong>Group 3</strong><br><span class="muted">Balmoral Red, Barre Gray, Cherrywood and others</span></td><td class="amt">$965</td></tr>
+      <tr><td><strong>Group 4, non-tariffed</strong><br><span class="muted">American Bouquet, Gorman Green and others</span></td><td class="amt">$1,210</td></tr>
+      <tr><td><strong>Group 4, tariffed</strong><br><span class="muted">Crystal White, Emerald Pearl</span></td><td class="amt">$1,450</td></tr>
+    </table>
+    <p class="fine">Setting the block and vase is $175, the same for every color. I'll bring granite samples to our meeting, or you can see the colors in the Granite Marker Sizes and Colors guide.</p>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-wrap" id="cost">
+    <div class="section-kicker">SECTION 4</div>
+    <h2>What It Adds Up To</h2>
+    <div class="section-sub">Vase, 12&times;12 block and installation, with sales tax</div>
+    <div class="section-rule"></div>
+    <table class="price-table">
+      <tr><th>Vase</th><th>Least costly block</th><th>Most costly block</th></tr>
+      <tr><td>Gray Zinc</td><td class="amt">$1,120.56</td><td class="amt">$2,141.76</td></tr>
+      <tr><td>Bronze, Grecian or Veterans</td><td class="amt">$2,252.16</td><td class="amt">$3,273.36</td></tr>
+      <tr><td>Bronze Doric, Hammered or Grecian ring</td><td class="amt">$2,323.92</td><td class="amt">$3,345.12</td></tr>
+      <tr><td>Bronze Doric, Floral Innocence ring</td><td class="amt">$2,368.08</td><td class="amt">$3,389.28</td></tr>
+    </table>
+    <div class="prose">
+      <p>The left column uses a Group 1 non-tariffed block and the right column a Group 4 tariffed block, so every other color falls between the two. Sales tax of 10.4% applies to the vase, the block and the installation. I'll put the exact figure for your colors in writing before anything is ordered.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-wrap" id="why">
+    <div class="section-kicker">SECTION 5</div>
+    <h2>Why They Cost What They Do</h2>
+    <div class="section-sub">It's the most common question families ask about vases, and it deserves a straight answer</div>
+    <div class="section-rule"></div>
+    <div class="prose">
+      <p><strong>Bronze is mostly copper.</strong> A bronze vase is a solid casting, roughly 85% copper, made in an American foundry and finished by hand. Copper hit record prices in September 2026, around $6.89 a pound, up from about $4 at the start of 2025, and the price of every bronze casting follows it. That's the biggest single reason a bronze vase costs what it does today.</p>
+      <p><strong>Bronze lasts for generations.</strong> It doesn't rust, it doesn't crack in a freeze, and it weathers to a deep brown that matches a bronze marker. Families buy it once. Zinc costs far less and holds up well, but it's a softer metal, and over the decades it won't keep its shape and finish the way bronze does.</p>
+      <p><strong>The block is quarried stone.</strong> Each one is cut, polished and drilled from solid granite. Some colors come from overseas, and tariffs added in 2025 raised what those cost, which is why the most expensive group is a tariffed color.</p>
+      <p><strong>It's set to stay.</strong> The price includes our crew setting the block level so it stays put and the mowers can pass over it for as long as the cemetery stands.</p>
+    </div>
+    <div class="highlight-box">
+      <h3>If the bronze price is the hesitation</h3>
+      <p>The gray zinc vase on a Group 1 block comes to <span class="hl">$1,120.56</span> with tax, about half the cost of bronze. It's a real, permanent vase that meets every cemetery rule. Plenty of families start there.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-wrap" id="rules">
+    <div class="section-kicker">SECTION 6</div>
+    <h2>The Cemetery's Flower Rules</h2>
+    <div class="section-sub">Why a permanent vase matters, from the Washington Memorial Park rules and regulations</div>
+    <div class="section-rule"></div>
+    <div class="prose-sidebar">
+      <div class="prose">
+        <p><strong>Fresh cut flowers are welcome at any time, in a regulation vase.</strong> Without a vase, there's no regulation place for them, and flowers left on the grass are removed by our grounds crew when they become unsightly.</p>
+        <p><strong>Non-permanent vases aren't allowed.</strong> That includes plastic vases, glass vases and anything pushed into the ground. Permanent vases are purchased through the office and installed by the park. Glass is the bigger concern: it can shatter under a mower and injure someone.</p>
+        <p><strong>Artificial flowers are allowed only during the non-mowing season.</strong> Any placed during mowing season are removed and disposed of.</p>
+        <p><strong>Holiday decorations come down 7 to 14 days after each holiday.</strong></p>
+      </div>
+      <div class="sidebar">
+        <div class="sidebar-label">NOT PERMITTED ON A GRAVE</div>
+        <ul>
+          <li>Plastic or other non-permanent vases</li>
+          <li>Glass of any kind</li>
+          <li>Balloons and pinwheels</li>
+          <li>Planter boxes and decorative rocks</li>
+          <li>Photographs and souvenirs</li>
+          <li>Preserved flowers</li>
+          <li>Enclosures or borders around a plot</li>
+        </ul>
+      </div>
+    </div>
+    <div class="highlight-box">
+      <h3>Questions, or a time to choose</h3>
+      <p>I'm happy to bring photos and granite samples to a meeting, or walk the park with you to see vases already in place.</p>
+      <p><strong>Martice Morrison</strong> &middot; Family Service and Advanced Planning Director &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+    <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+    <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url" style="text-decoration:none;">bonneywatson.com</a>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; (206) 242-1787<br>Martice Morrison &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <a href="guides.html">&larr; Back to Family Guides &amp; Resources</a>
+</footer>
+
+<script src="guide-nav.js" defer></script>
+</body>
+</html>

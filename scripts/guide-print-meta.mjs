@@ -54,6 +54,9 @@ export const GUIDES = [
   // about the funeral home process, not the park, so they take the typographic cover.
   'what-to-do-first-guide.html',
   'death-certificates-guide.html',
+  // 2026-10-01: vases and 12x12 vase blocks (Martice's vase options sheets, PCM price book,
+  // cemetery rules). Product cards, no scene photo, so the typographic cover.
+  'vase-guide.html',
 ];
 
 // Only genuine scene photography. Verified by eye at cover size, not picked by filename.

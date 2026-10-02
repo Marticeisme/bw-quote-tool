@@ -2689,3 +2689,17 @@ CP's cremation authorization); shipping containers no longer read as the cremati
 and the death-certificate line no longer matches the mailing line. Five package scenarios
 generate GA + CP PDFs whose totals reconcile to the quote (no mismatch). run-all 4129/3; the
 3 failures (compare-print, family-quote-subtotal, september-promo) fail identically on 7cbbdfdc.
+
+## 2026-10-01: Vases & Vase Blocks guide (new)
+
+vase-guide.html + pdf-assets/Vases and Vase Blocks.pdf (4 pp), Markers & Memorials (5 -> 6,
+quick-jump matched), sidebar after Bronze Markers. The four vases (Gray Zinc $315, Bronze
+Grecian/Veterans $1,340, Doric Hammered/Grecian $1,405, Doric Floral Innocence $1,445), the
+12x12x4 PCM block by color group ($525-$1,450), install $175, all taxable: all-in totals
+$1,120.56 to $3,389.28 computed from the quote tool's numbers. "Why they cost what they do"
+(copper record high Sept 2026, granite tariffs) and the cemetery's flower rules, quoted from
+the Rules & Regulations. Photos from Martice's vase options sheets (vase-images/); the 2026
+sheet's "Grecian Floral Ring" photo shows a smooth vase, so Floral Innocence uses the 2020
+sheet's hammered-Doric photo. Exempt from the range-only print rule (cost is the guide's
+point; every option is the same block). verify_guides_page ALL OK, guide_nav 291/0,
+family_type 136/0, guide_pages only the 6 known stale catalog PDFs.

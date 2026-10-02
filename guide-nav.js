@@ -121,6 +121,7 @@
     { name: 'Markers & Memorials', items: [
       { href: 'markers-guide.html',             label: 'Granite Markers' },
       { href: 'bronze-markers-guide.html',      label: 'Bronze Markers' },
+      { href: 'vase-guide.html',                label: 'Vases & Vase Blocks' },
       { href: 'flush-markers.html',             label: 'Flush Markers' },
       { href: 'outside-marker-rules.html',      label: 'Outside Marker Rules' },
       { href: 'pcm-design-catalog.html',        label: 'PCM Design Catalog' }

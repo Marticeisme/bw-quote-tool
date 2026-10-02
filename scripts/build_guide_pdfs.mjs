@@ -54,6 +54,7 @@ const JOBS = [
   // with its own true-size drawings, and bronze has no equivalent second half. Built from
   // `?print=family` like every other guide added since sprint-16.
   ['bronze-markers-guide.html?print=family', 'pdf-assets/Bronze Markers.pdf'],
+  ['vase-guide.html?print=family', 'pdf-assets/Vases and Vase Blocks.pdf'],
   ['medicaid-family-guide.html?print=family', 'pdf-assets/Medicaid and Planning Ahead.pdf'],
   // `?print=compact` — sprint-19 Track E. This job used to carry NO query at all, and
   // "no query" is now the FULL print (guide-print.css §9): the operator's Ctrl+P from an
