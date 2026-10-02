@@ -32,8 +32,9 @@ const empty = await page.evaluate(() => {
     notSet: p.filter(x => (x.querySelector(':scope > .q-panel-header > .q-panel-sum') || {}).textContent === 'Not set').length,
   };
 });
-ok('all 39 builder panels carry a .q-panel-sum', empty.panels === 39 && empty.withSum === 39, empty);
-ok('an empty quote reads "Not set" on every panel', empty.notSet === 39, empty);
+// 40 since 2026-10-01: + FH 'Shipping & Terramation Add-Ons' panel (GPL p13)
+ok('all 40 builder panels carry a .q-panel-sum', empty.panels === 40 && empty.withSum === 40, empty);
+ok('an empty quote reads "Not set" on every panel', empty.notSet === 40, empty);
 
 // 2. the header row is 44px and the icon carries no chip fill
 const geom = await page.evaluate(() => {

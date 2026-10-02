@@ -2672,3 +2672,20 @@ box, no form field). Cards open the PDF in the browser viewer (fillable) and dow
 "Bonney Watson - <name>.pdf". verify_guides_page ALL OK, verify_guide_nav 285/0.
 Known, not from this change: six catalog PDFs read stale in verify_guide_pages since the
 9/30 ?family commit.
+
+## 2026-10-01: GPL gaps in the FH quote: packages, add-ons, contract mapping
+
+Full GPL audit vs the FH quote (49 lines checked OK). New PACKAGES in Price Plans, itemized
+like Direct Cremation, each its own dropdown (fhPlanChange generalized via FH_PLAN_SELECTS):
+Direct Burial (customer casket / BW casket billed separately) $3,780 with $65 savings;
+Terramation $7,795 (NOR line is the remainder, GPL prices only the package); Forwarding $4,290;
+Receiving $3,165 (basic + hearse = $3,130, the $35 balance is its own line: GPL gap, flagged);
+Disinterment $3,540. Add-ons panel: international processing $1,465, combination shipping
+container $445 and air tray $345 (taxable), Laying in Ceremony $895. Also: FD hourly $205,
+additional mileage $3.75/mi, additional time $155/hr, mailing certified death certificates
+$15/$20/$25 by count. GA + ClearPoint statements map all of it (Forwarding/Receiving row,
+Other rows, shipping containers as merchandise, terramation ticks DISPOSITION Other and skips
+CP's cremation authorization); shipping containers no longer read as the cremation container,
+and the death-certificate line no longer matches the mailing line. Five package scenarios
+generate GA + CP PDFs whose totals reconcile to the quote (no mismatch). run-all 4129/3; the
+3 failures (compare-print, family-quote-subtotal, september-promo) fail identically on 7cbbdfdc.

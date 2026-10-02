@@ -2499,6 +2499,16 @@ tr:hover td{background:var(--navy-100);}
             <option value="direct|3935|Direct Cremation – Standard Brown Container">Standard Brown Container — $3,935</option>
             <option value="direct|3055b|Direct Cremation – BW Container">BW Container (billed separately) — $3,055</option>
           </optgroup>
+          <optgroup label="── Direct Burial Plans ──">
+            <option value="dburial|3780|Direct Burial – Customer Casket">Direct Burial – Customer-Provided Casket — $3,780</option>
+            <option value="dburial|3780b|Direct Burial – BW Casket">Direct Burial – BW Casket (billed separately) — $3,780</option>
+          </optgroup>
+          <optgroup label="── Other Packages ──">
+            <option value="terra|7795|Terramation">Terramation — $7,795</option>
+            <option value="ship|4290|Forwarding of Remains">Forwarding of Remains — $4,290</option>
+            <option value="ship|3165|Receiving of Remains">Receiving of Remains — $3,165</option>
+            <option value="disinter|3540|Disinterment">Disinterment — $3,540</option>
+          </optgroup>
         </select>
 
         <!-- Mirror checkbox -->
@@ -2666,6 +2676,52 @@ tr:hover td{background:var(--navy-100);}
               <span id="fhDirectCremPlanDisp" class="q-price-disp">—</span>
             </div>
           </div>
+          <div class="q-group">
+            <div class="q-group-label">Direct Burial Plans</div>
+            <div class="q-row">
+              <label>Plan</label>
+              <select id="fhDirectBurialPlan" onchange="fhPlanChange('dburial')">
+                <option value="">— None —</option>
+                <option value="3780c">Direct Burial — Customer-Provided Casket — $3,780</option>
+                <option value="3780b">Direct Burial — BW Casket (billed separately) — $3,780</option>
+              </select>
+              <span id="fhDirectBurialPlanDisp" class="q-price-disp">—</span>
+            </div>
+          </div>
+          <div class="q-group">
+            <div class="q-group-label">Terramation</div>
+            <div class="q-row">
+              <label>Plan</label>
+              <select id="fhTerraPlan" onchange="fhPlanChange('terra')">
+                <option value="">— None —</option>
+                <option value="7795">Terramation (Natural Organic Reduction) — $7,795</option>
+              </select>
+              <span id="fhTerraPlanDisp" class="q-price-disp">—</span>
+            </div>
+          </div>
+          <div class="q-group">
+            <div class="q-group-label">Forwarding &amp; Receiving</div>
+            <div class="q-row">
+              <label>Plan</label>
+              <select id="fhShipPlan" onchange="fhPlanChange('ship')">
+                <option value="">— None —</option>
+                <option value="4290">Forwarding of Remains to Another Funeral Home — $4,290</option>
+                <option value="3165">Receiving of Remains from Another Funeral Home — $3,165</option>
+              </select>
+              <span id="fhShipPlanDisp" class="q-price-disp">—</span>
+            </div>
+          </div>
+          <div class="q-group">
+            <div class="q-group-label">Disinterment</div>
+            <div class="q-row">
+              <label>Plan</label>
+              <select id="fhDisinterPlan" onchange="fhPlanChange('disinter')">
+                <option value="">— None —</option>
+                <option value="3540">Disinterment — $3,540</option>
+              </select>
+              <span id="fhDisinterPlanDisp" class="q-price-disp">—</span>
+            </div>
+          </div>
 
           <!-- Plan items area -->
           <div class="plan-items-area" id="fhPlanArea">
@@ -2693,6 +2749,7 @@ tr:hover td{background:var(--navy-100);}
           <div class="q-check-row"><input type="checkbox" id="fhOtherPrep" onchange="fhUpdateD()"><label for="fhOtherPrep">Other Preparation of Deceased — $375</label></div>
           <div class="q-check-row"><input type="checkbox" id="fhAutopsy" onchange="fhUpdateD()"><label for="fhAutopsy">Autopsy / Donor Repair — $425</label></div>
           <div class="q-check-row"><input type="checkbox" id="fhHair" onchange="fhUpdateD()"><label for="fhHair">Hair Dressing — $105</label></div>
+          <div class="q-check-row"><input type="checkbox" id="fhFDHourly" onchange="fhUpdateD()"><label for="fhFDHourly">Meeting with a Funeral Director — $205/hr</label><span class="qty-x">×</span><input type="number" id="fhFDHourlyQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhShelter" onchange="fhUpdateD()"><label for="fhShelter">Shelter of Remains (Embalming Not Authorized) — $965</label><span class="qty-x">×</span><input type="number" id="fhShelterQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhLongShelter" onchange="fhUpdateD()"><label for="fhLongShelter">Long Term Shelter of Embalmed Remains — $415</label><span class="qty-x">×</span><input type="number" id="fhLongShelterQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
         </div>
@@ -2764,6 +2821,8 @@ tr:hover td{background:var(--navy-100);}
           <div class="q-check-row"><input type="checkbox" id="fhFlowerVeh" onchange="fhUpdateD()"><label for="fhFlowerVeh">Use of Flower Vehicle — $205</label><span class="qty-x">×</span><input type="number" id="fhFlowerVehQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhUtilityVeh" onchange="fhUpdateD()"><label for="fhUtilityVeh">Use of Utility Vehicle — $205</label><span class="qty-x">×</span><input type="number" id="fhUtilityVehQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
           <div class="q-check-row"><input type="checkbox" id="fhHorseHearse" onchange="fhUpdateD()"><label for="fhHorseHearse">Horse-Drawn Hearse — $1,650</label></div>
+          <div class="q-check-row"><input type="checkbox" id="fhAddlMileage" onchange="fhUpdateD()"><label for="fhAddlMileage">Additional Mileage beyond 30 mi (one-way) — $3.75/mi</label><span class="qty-x">×</span><input type="number" id="fhAddlMileageQty" class="qty-input" min="1" max="999" value="1" oninput="fhUpdateD()"></div>
+          <div class="q-check-row"><input type="checkbox" id="fhAddlTime" onchange="fhUpdateD()"><label for="fhAddlTime">Additional Time — $155/hr</label><span class="qty-x">×</span><input type="number" id="fhAddlTimeQty" class="qty-input" min="1" max="99" value="1" oninput="fhUpdateD()"></div>
         </div>
       </div>
 
@@ -2783,6 +2842,23 @@ tr:hover td{background:var(--navy-100);}
         </div>
       </div>
 
+      <!-- Shipping & Terramation Add-Ons (GPL p13; the packages themselves are in Price Plans) -->
+      <div class="q-panel" data-qs="fh:shipping">
+        <div class="q-panel-header"><span class="ph-ic"><span data-lc="plane" data-lc-sz="17"></span></span>Shipping &amp; Terramation Add-Ons<span class="tax-pill tax-exempt">Containers Taxable</span></div>
+        <div class="q-panel-body">
+          <div class="q-group">
+            <div class="q-group-label">With Forwarding of Remains</div>
+          <div class="q-check-row"><input type="checkbox" id="fhIntlProcessing" onchange="fhUpdateD()"><label for="fhIntlProcessing">International Processing Fee (up to 6 hrs) — $1,465</label></div>
+          <div class="q-check-row"><input type="checkbox" id="fhCombContainer" onchange="fhUpdateD()"><label for="fhCombContainer">Combination Shipping Container (taxable) — $445</label></div>
+          <div class="q-check-row"><input type="checkbox" id="fhAirTray" onchange="fhUpdateD()"><label for="fhAirTray">Outside Receptacle (Air Tray, excludes casket, taxable) — $345</label></div>
+          </div>
+          <div class="q-group">
+            <div class="q-group-label">With Terramation</div>
+          <div class="q-check-row"><input type="checkbox" id="fhLayingIn" onchange="fhUpdateD()"><label for="fhLayingIn">Laying in Ceremony — $895</label></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Death Certs -->
       <div class="q-panel" data-qs="fh:deathcerts">
         <div class="q-panel-header"><span class="ph-ic"><span data-lc="file-text" data-lc-sz="17"></span></span>Death Certificates &amp; County Fees<span class="tax-pill tax-exempt">Tax-Exempt</span></div>
@@ -2793,6 +2869,7 @@ tr:hover td{background:var(--navy-100);}
             <span style="font-size:12px;color:var(--text-light);">× $25 each</span>
             <span id="fhDeathCertDisp" class="q-price-disp">—</span>
           </div>
+          <div class="q-check-row" style="margin-top:6px;"><input type="checkbox" id="fhDCMail" onchange="fhUpdateD()"><label for="fhDCMail">Mail the certified copies — $15 (1–5), $20 (6–10), $25 (over 10)</label></div>
           <div class="q-row" style="margin-top:8px;">
             <label>County Fee</label>
             <select id="fhCountyFee" onchange="fhUpdateD()">
@@ -5618,6 +5695,16 @@ async function printGAContract() {
   var deliveryAmt     = amt(findLine('Delivery of Remains'));
   var storageAmt      = amt(findLine('Release from Storage'));
   var keepsakesAmt    = amt(findLine('Transfer of Remains to Keepsakes'));
+  // GPL p9-p13 items added to the FH quote 2026-10-01
+  var fwdRecvAmt      = amt(findLine('Forwarding of Remains')) + amt(findLine('Receiving of Remains')) + amt(findLine('International Processing'));
+  var terramationAmt  = amt(findLine('Natural Organic Reduction'));
+  var layingInAmt     = amt(findLine('Laying in Ceremony'));
+  var disintermentAmt = amt(findLine('Disinterment'));
+  var fdHourlyAmt     = amt(findLine('Meeting with a Funeral Director')) + amt(findLine('Funeral Director Time'));
+  var addlMileageAmt  = amt(findLine('Additional Mileage'));
+  var addlTimeAmt     = amt(findLine('Additional Time'));
+  var dcMailAmt       = amt(findLine('Mailing of Certified Death'));
+  var shipContAmt     = sumLines(lines.filter(function(l){ return !l.isDiscount && /shipping container|air tray/i.test(l.label); }));
 
   // Plan discount
   var discountLine    = lines.find(function(l){ return l.isDiscount; });
@@ -5652,7 +5739,7 @@ async function printGAContract() {
     if (_ckMatch && _ckMatch.i) casketModelNum = '#' + _ckMatch.i;
   }
 
-  var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+  var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label) && !/shipping container/i.test(l.label); });
   var cremContPrice, cremContLabel;
   if (cremContFallbackLine) {
     cremContPrice = Math.max(0, cremContFallbackLine.amount);
@@ -5699,7 +5786,7 @@ async function printGAContract() {
   // wrong when generating from a loaded saved GA contract (the live builder fields were never
   // touched by the load) and silently dropped both amounts from the guaranteed/non-guaranteed
   // totals entirely, not just their display fields.
-  var dcLine          = findLine('Certified Death Certificates');
+  var dcLine          = lines.find(function(l){ var b = l.label.toLowerCase(); return b.includes('certified death certificates') && !b.includes('mailing'); });
   var dcAmt           = dcLine ? Math.abs(dcLine.amount) : 0;
   var dcQty           = dcAmt > 0 ? Math.round(dcAmt / 25) : 0;
 
@@ -5729,6 +5816,13 @@ async function printGAContract() {
   pushLeft('Prep Prior to Cremation', prepCremAmt);
   pushLeft('Release from Storage', storageAmt);
   pushLeft('Keepsake Transfer', keepsakesAmt);
+  pushLeft('Terramation', terramationAmt);
+  pushLeft('Laying in Ceremony', layingInAmt);
+  pushLeft('Disinterment', disintermentAmt);
+  pushLeft('Funeral Director Time', fdHourlyAmt);
+  pushLeft('Additional Mileage', addlMileageAmt);
+  pushLeft('Additional Time', addlTimeAmt);
+  pushLeft('Mailing of Death Certificates', dcMailAmt);
   // (Push B: assigned custom "left-side" items will be appended here.)
 
   // RIGHT-side "Other (specify)" candidates (merchandise), in addendum priority order.
@@ -5745,8 +5839,9 @@ async function printGAContract() {
   if (memMerchTotal > 0)        rightOther.push({label:'Memorial Merchandise', amt: memMerchTotal});
   if (urnEngravTotal > 0)       rightOther.push({label:'Urn Engraving',        amt: urnEngravTotal});
   if (urnAllowanceTotal > 0)    rightOther.push({label:'Urn Allowance',        amt: urnAllowanceTotal});
+  if (shipContAmt > 0)          rightOther.push({label:'Shipping Container',   amt: shipContAmt});
   // (Push B: assigned custom "right-side" items will be appended here.)
-  var rightOtherTotal = flowerAllowanceTotal + urnAllowanceTotal + memMerchTotal + urnEngravTotal;
+  var rightOtherTotal = flowerAllowanceTotal + urnAllowanceTotal + memMerchTotal + urnEngravTotal + shipContAmt;
 
   // PAGE 3 (non-guaranteed cash advance) sources
   var obituaryTotal  = sumLines(lines.filter(function(l){ return /obituary/i.test(l.label); }));
@@ -5775,6 +5870,7 @@ async function printGAContract() {
     cremFeeAmt + mailingAmt + deliveryAmt + storageAmt + keepsakesAmt +
     (chapelLine ? Math.abs(chapelLine.amount) : 0) +
     witnessAmt + expediteAmt + prepCremAmt + ceremonyHourAmt + recAmt + assignedLeftTotal +
+    fwdRecvAmt + terramationAmt + layingInAmt + disintermentAmt + fdHourlyAmt + addlMileageAmt + addlTimeAmt + dcMailAmt +
     surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
 
   // Merchandise = casket/urn + right-side "Other (specify)" merchandise (flower allowance,
@@ -6056,8 +6152,9 @@ async function printGAContract() {
     setTF('1002-14 - SIG - Purchaser',         purchaser || '');
     setTF('1002-14 - SIG - Funeral Recipient Signature Date', dateStr);
 
-    // Disposition checkboxes: Box43=Burial, Box44=Cremation
-    if (isBurial) { checkBox('Check Box43'); }
+    // Disposition checkboxes: Box43=Burial, Box44=Cremation, Box45=Other (terramation)
+    if (terramationAmt > 0) { checkBox('Check Box45'); }
+    else if (isBurial) { checkBox('Check Box43'); }
     else          { checkBox('Check Box44'); }
 
     // Casket / Urn section
@@ -6098,7 +6195,8 @@ async function printGAContract() {
     }
     if (hearseAmt)        setTF('1002-14 - Hearse',               fmt$(hearseAmt));
     if (cremFeeAmt)       setTF('1002-14 - Cremation Fee',        fmt$(cremFeeAmt));
-    // Forwarding/Receiving Remains — left blank (no FH Builder equivalent, per addendum).
+    // Forwarding/Receiving Remains: forwarding + receiving + international processing (GPL p13)
+    if (fwdRecvAmt)       setTF('1002-14 - Forwarding/Receiving Remains', fmt$(fwdRecvAmt));
     // "Other Services/Facilities/Equipment/Service Vehicle" row = vehicles (utility/flower)
     if (otherServicesVehicleAmt > 0) {
       setTF('1002-14 - Other Services', fmt$(otherServicesVehicleAmt));
@@ -7363,6 +7461,9 @@ var _PL_CAT_FH = [
   // rules below ("LifeStories MemoryFrame Floral Design" would otherwise land in Flowers,
   // "Vanderbur Urn Vault … Engraving Plate" in Urns).
   [/lifestories|lifesymbols|tribute panel|decorative kit|flag case|memoryframe|engraving plate/, 'Memorial Merchandise'],
+  // GPL p11/p13 items (2026-10-01): before the casket/container rules they'd otherwise hit
+  [/direct burial|terramation|forwarding of remains|receiving of remains|disinterment/, 'Price Plans'],
+  [/shipping container|air tray|international processing|laying in ceremony/, 'Shipping & Terramation Add-Ons'],
   [/casket spray/, 'Flowers'],          // a casket spray is a flower, not a casket
   [/casket/, 'Caskets'],
   [/container/, 'Cremation Containers'],
@@ -10984,6 +11085,45 @@ function printCombQuote() {
 // FUNERAL HOME PLAN DATA
 // ═══════════════════════════════════════════════════════════════
 var FH_PLANS = {
+  // GPL p11 "Immediate Burial": transfer, basic services and hearse; casket is separate.
+  // Items total $3,845, so the $3,780 package carries a $65 savings (GPL range says $3,775).
+  dburial: {
+    '3780c': {name:'Direct Burial — Customer-Provided Casket', price:3780, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Use of Hearse (delivery to cemetery)',705],['Service Savings',-65],['Casket (customer-provided)',0,true]
+    ]},
+    '3780b': {name:'Direct Burial — BW Casket (billed separately)', price:3780, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Use of Hearse (delivery to cemetery)',705],['Service Savings',-65],['Casket (billed separately)',0,true]
+    ]}
+  },
+  // GPL p13. The GPL prices the package, not bathing or the NOR itself, so that line is the
+  // remainder ($7,795 - 2,425 - 715 - 205). Laying in Ceremony is an add-on (Shipping panel).
+  // Label must not contain "urn" (the contracts read any "urn" line as an urn: "Return Home" did).
+  terra: {
+    '7795': {name:'Terramation (Natural Organic Reduction)', price:7795, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Use of Utility Vehicle',205],['Natural Organic Reduction (third-party facility), incl. bathing',4450]
+    ]}
+  },
+  // GPL p13. Forwarding sums exactly. Receiving lists basic services + hearse ($3,130) but is
+  // priced $3,165; the $35 balance is its own line so the package nets the GPL price.
+  ship: {
+    '4290': {name:'Forwarding of Remains to Another Funeral Home', price:4290, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
+      ['Embalming',945],['Use of Utility Vehicle (to airport or rail station)',205]
+    ]},
+    '3165': {name:'Receiving of Remains from Another Funeral Home', price:3165, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Use of Hearse',705],
+      ['Receiving of Remains: balance of GPL package price',35]
+    ]}
+  },
+  // GPL p13: basic services, additional time with a funeral director (up to 2 hours), hearse.
+  disinter: {
+    '3540': {name:'Disinterment', price:3540, items:[
+      ['Basic Services of Funeral Director & Staff',2425],['Funeral Director Time (up to 2 hrs)',410],['Use of Hearse',705]
+    ]}
+  },
   direct: {
     '3055c': {name:'Direct Cremation — Customer-Provided Container', price:3055, items:[
       ['Basic Services of Funeral Director & Staff',2425],['Transfer of Deceased to Funeral Home (within 30 mi.)',715],
@@ -11065,26 +11205,15 @@ function fhAddPlanItem() {
   fhUpdate();
 }
 
+// One dropdown per package type; choosing a package in one clears the others.
+var FH_PLAN_SELECTS = {burial:'fhBurialPlan', crem:'fhCremPlan', direct:'fhDirectCremPlan', dburial:'fhDirectBurialPlan',
+                       terra:'fhTerraPlan', ship:'fhShipPlan', disinter:'fhDisinterPlan'};
 function fhPlanChange(type) {
-  var burialKey = val('fhBurialPlan');
-  var cremKey   = val('fhCremPlan');
-  var directKey = el('fhDirectCremPlan') ? val('fhDirectCremPlan') : '';
-
-  if (type === 'burial' && burialKey) {
-    el('fhCremPlan').value = ''; cremKey = '';
-    if (el('fhDirectCremPlan')) { el('fhDirectCremPlan').value = ''; directKey = ''; }
-  }
-  if (type === 'crem' && cremKey) {
-    el('fhBurialPlan').value = ''; burialKey = '';
-    if (el('fhDirectCremPlan')) { el('fhDirectCremPlan').value = ''; directKey = ''; }
-  }
-  if (type === 'direct' && directKey) {
-    el('fhBurialPlan').value = ''; burialKey = '';
-    el('fhCremPlan').value = ''; cremKey = '';
-  }
-
-  var activeKey  = type === 'burial' ? burialKey : (type === 'crem' ? cremKey : directKey);
-  var activeType = type === 'burial' ? 'burial' : (type === 'crem' ? 'crem' : 'direct');
+  var activeKey = el(FH_PLAN_SELECTS[type]) ? val(FH_PLAN_SELECTS[type]) : '';
+  if (activeKey) Object.keys(FH_PLAN_SELECTS).forEach(function(t) {
+    if (t !== type && el(FH_PLAN_SELECTS[t])) el(FH_PLAN_SELECTS[t]).value = '';
+  });
+  var activeType = type;
   var planData   = activeKey ? FH_PLANS[activeType][activeKey] : null;
 
   _activePlanType = planData ? activeType : '';
@@ -11103,9 +11232,9 @@ function fhPlanChange(type) {
     el('fhPlanArea').style.display = 'none';
   }
 
-  setDisp('fhBurialPlanDisp',     burialKey ? FH_PLANS.burial[burialKey].price : 0);
-  setDisp('fhCremPlanDisp',       cremKey   ? FH_PLANS.crem[cremKey].price     : 0);
-  if (el('fhDirectCremPlanDisp')) setDisp('fhDirectCremPlanDisp', directKey ? FH_PLANS.direct[directKey].price : 0);
+  Object.keys(FH_PLAN_SELECTS).forEach(function(t) {
+    if (el(FH_PLAN_SELECTS[t] + 'Disp')) setDisp(FH_PLAN_SELECTS[t] + 'Disp', (t === activeType && planData) ? planData.price : 0);
+  });
 
   // Lock the plan discount at the original itemized total minus plan price
   if (planData) {
@@ -11326,12 +11455,13 @@ function fhUpdate() {
     el('fhPlanSubtotal').textContent = fmt(planSubtotal);
     el('fhPlanDiscount').textContent = planDiscount > 0 ? '-' + fmt(planDiscount) : '-$0.00';
     el('fhPlanNet').textContent = fmt(planNet);
-    setDisp('fhBurialPlanDisp', planType === 'burial' ? planNet : 0);
-    setDisp('fhCremPlanDisp',   planType === 'crem'   ? planNet : 0);
-    if (el('fhDirectCremPlanDisp')) setDisp('fhDirectCremPlanDisp', planType === 'direct' ? planNet : 0);
+    Object.keys(FH_PLAN_SELECTS).forEach(function(t) {
+      if (el(FH_PLAN_SELECTS[t] + 'Disp')) setDisp(FH_PLAN_SELECTS[t] + 'Disp', planType === t ? planNet : 0);
+    });
   } else {
-    setDisp('fhBurialPlanDisp', 0); setDisp('fhCremPlanDisp', 0);
-    if (el('fhDirectCremPlanDisp')) setDisp('fhDirectCremPlanDisp', 0);
+    Object.keys(FH_PLAN_SELECTS).forEach(function(t) {
+      if (el(FH_PLAN_SELECTS[t] + 'Disp')) setDisp(FH_PLAN_SELECTS[t] + 'Disp', 0);
+    });
   }
 
   qsAt('fh:prof');
@@ -11356,6 +11486,9 @@ function fhUpdate() {
     lines.push({label: vLbl + (vQ > 1 ? ' \xd7' + vQ : ''), amount: viewV * vQ, taxable: false});
     setDisp('fhViewingDisp', viewV * vQ);
   } else { el('fhViewingQtyRow').style.display = 'none'; setDisp('fhViewingDisp', 0); }
+
+  // Meeting with a funeral director (GPL p10), per hour, per quote
+  if (chk('fhFDHourly')) { var q=qty('fhFDHourlyQty'); lines.push({label:'Meeting with a Funeral Director (\xd7'+q+' hr)', amount:205*q, taxable:false}); }
 
   // Services / Ceremonies
   var svcItems = [
@@ -11398,6 +11531,9 @@ function fhUpdate() {
   if (chk('fhFlowerVeh'))  { var q=qty('fhFlowerVehQty')*fhPersonQty; lines.push({label:'Use of Flower Vehicle'+(q>1?' \xd7'+q:''), amount:205*q, taxable:false}); }
   if (chk('fhUtilityVeh')) { var q=qty('fhUtilityVehQty')*fhPersonQty; lines.push({label:'Use of Utility Vehicle'+(q>1?' \xd7'+q:''), amount:205*q, taxable:false}); }
   if (chk('fhHorseHearse')) lines.push({label:'Horse-Drawn Hearse', amount:1650, taxable:false});
+  // Beyond the 30-mile radius (GPL p11); per trip, not per person
+  if (chk('fhAddlMileage')) { var q=qty('fhAddlMileageQty'); lines.push({label:'Additional Mileage (\xd7'+q+' mi)', amount:Math.round(375*q)/100, taxable:false}); }
+  if (chk('fhAddlTime'))    { var q=qty('fhAddlTimeQty');    lines.push({label:'Additional Time (\xd7'+q+' hr)', amount:155*q, taxable:false}); }
 
   qsAt('fh:cremation');
   // Cremation
@@ -11410,11 +11546,24 @@ function fhUpdate() {
   if (chk('fhStorageRelease')) lines.push({label:'Release from Storage After 90 Days', amount:625*fhPersonQty, taxable:false});
   if (chk('fhKeepsakeTransfer')) { var q=qty('fhKeepsakeTransferQty')*fhPersonQty; lines.push({label:'Transfer to Keepsakes (\xd7'+q+')', amount:10*q, taxable:false}); }
 
+  qsAt('fh:shipping');
+  // Shipping, receiving & other arrangements (GPL p13)
+  if (chk('fhIntlProcessing')) lines.push({label:'International Processing Fee', amount:1465*fhPersonQty, taxable:false});
+  if (chk('fhCombContainer'))  lines.push({label:'Combination Shipping Container', amount:445*fhPersonQty, taxable:true});
+  if (chk('fhAirTray'))        lines.push({label:'Outside Receptacle (Air Tray)', amount:345*fhPersonQty, taxable:true});
+  if (chk('fhLayingIn'))       lines.push({label:'Laying in Ceremony', amount:895*fhPersonQty, taxable:false});
+
   qsAt('fh:deathcerts');
   // Death Certs & County
   var dcQty = (parseInt(val('fhDeathCerts')) || 0) * fhPersonQty;
   if (dcQty > 0) { lines.push({label:'Certified Death Certificates (\xd7' + dcQty + ')', amount: dcQty * 25, taxable: false}); setDisp('fhDeathCertDisp', dcQty * 25); }
   else { setDisp('fhDeathCertDisp', 0); }
+  // Mailing of certified copies (GPL p9): tier set by the copies per person
+  if (chk('fhDCMail') && dcQty > 0) {
+    var perPerson = dcQty / fhPersonQty;
+    var mailFee = perPerson <= 5 ? 15 : (perPerson <= 10 ? 20 : 25);
+    lines.push({label:'Mailing of Certified Death Certificates', amount: mailFee * fhPersonQty, taxable: false});
+  }
   var cfV = parseFloat(val('fhCountyFee')) || 0;
   if (cfV) {
     var cfEl = el('fhCountyFee');
@@ -11579,7 +11728,7 @@ function resetFHQuote() {
   if (el('fhPersonQty')) el('fhPersonQty').value = 1;
   el('fhBurialPlan').value = '';
   el('fhCremPlan').value = '';
-  if (el('fhDirectCremPlan')) el('fhDirectCremPlan').value = '';
+  ['fhDirectCremPlan','fhDirectBurialPlan','fhTerraPlan','fhShipPlan','fhDisinterPlan'].forEach(function(id){ if (el(id)) el(id).value = ''; });
   el('fhPlanItems').innerHTML = '';
   el('fhPlanArea').style.display = 'none';
   _activePlanType = ''; _activePlanKey = ''; _lockedPlanDiscount = 0;
@@ -11591,10 +11740,11 @@ function resetFHQuote() {
    'fhFriSatSun','fhHoliday','fhOvernight','fhEvening','fhTransfer','fhHearse','fhFlowerVeh','fhUtilityVeh','fhHorseHearse',
    'fhCremProcessing','fhWitnessCrem','fhExpedite','fhPrepCrem','fhMailRemains','fhDeliverRemains',
    'fhStorageRelease','fhKeepsakeTransfer','fhMotoEscort',
+   'fhFDHourly','fhAddlMileage','fhAddlTime','fhIntlProcessing','fhCombContainer','fhAirTray','fhLayingIn','fhDCMail',
    'fhEngravOptCustom','fhEngravOptNameDate','fhEngravOptStd','fhEngravNonOptStd'
   ].forEach(function(id) { var e = el(id); if (e) e.checked = false; });
   el('fhDeathCerts').value = '0';
-  ['fhShelterQty','fhLongShelterQty','fhHearseQty','fhMotoEscortQty'].forEach(function(id){ var e=el(id); if(e) e.value=1; });
+  ['fhShelterQty','fhLongShelterQty','fhHearseQty','fhMotoEscortQty','fhFDHourlyQty','fhAddlMileageQty','fhAddlTimeQty'].forEach(function(id){ var e=el(id); if(e) e.value=1; });
   el('fhCustomLines').innerHTML = '';
   _fhLines = []; _fhTotal = 0;
   if (el('fhDiscountList')) el('fhDiscountList').innerHTML = '';
@@ -21036,6 +21186,16 @@ async function generateClearPointContract() {
     var deliveryAmt    = amt(findLine('Delivery of Remains'));
     var storageAmt     = amt(findLine('Release from Storage'));
     var keepsakesAmt   = amt(findLine('Keepsake'));
+    // GPL p9-p13 items added to the FH quote 2026-10-01 (mirrors printGAContract)
+    var fwdRecvAmt      = amt(findLine('Forwarding of Remains')) + amt(findLine('Receiving of Remains')) + amt(findLine('International Processing'));
+    var terramationAmt  = amt(findLine('Natural Organic Reduction'));
+    var layingInAmt     = amt(findLine('Laying in Ceremony'));
+    var disintermentAmt = amt(findLine('Disinterment'));
+    var fdHourlyAmt     = amt(findLine('Meeting with a Funeral Director')) + amt(findLine('Funeral Director Time'));
+    var addlMileageAmt  = amt(findLine('Additional Mileage'));
+    var addlTimeAmt     = amt(findLine('Additional Time'));
+    var dcMailAmt       = amt(findLine('Mailing of Certified Death'));
+    var shipContAmt     = sumLines(lines.filter(function(l){ return !l.isDiscount && /shipping container|air tray/i.test(l.label); }));
     var chapelLine     = findLine('Chapel Rental');
     var motoEscortAmt  = amt(findLine('Motorcycle Escort'));
     var limousineAmt   = amt(findLine('Horse-Drawn Hearse'));
@@ -21072,7 +21232,7 @@ async function generateClearPointContract() {
               || CASKET_DATA.find(function(c){ return casketModelName.toLowerCase().indexOf(c.n.toLowerCase()) >= 0; });
       if (_ckM && _ckM.i) casketModelNum = '#' + _ckM.i;
     }
-    var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label); });
+    var cremContFallbackLine = lines.find(function(l){ return !l.isDiscount && /container/i.test(l.label) && !/shipping container/i.test(l.label); });
     var cremContPrice, cremContLabel;
     if (cremContFallbackLine) {
       cremContPrice = Math.max(0, cremContFallbackLine.amount);
@@ -21114,7 +21274,8 @@ async function generateClearPointContract() {
     if (memMerchTotal > 0)        rightMerch.push({label:'Memorial Merchandise', amt: memMerchTotal});
     if (urnEngravTotal > 0)       rightMerch.push({label:'Urn Engraving',        amt: urnEngravTotal});
     if (urnAllowanceTotal > 0)    rightMerch.push({label:'Urn Allowance',        amt: urnAllowanceTotal});
-    var rightMerchTotal = flowerAllowanceTotal + memMerchTotal + urnEngravTotal + urnAllowanceTotal;
+    if (shipContAmt > 0)          rightMerch.push({label:'Shipping Container',   amt: shipContAmt});
+    var rightMerchTotal = flowerAllowanceTotal + memMerchTotal + urnEngravTotal + urnAllowanceTotal + shipContAmt;
 
     // Non-guaranteed cash advance sources (mirror GA)
     var obituaryTotal  = sumLines(lines.filter(function(l){ return /obituary/i.test(l.label); }));
@@ -21136,6 +21297,13 @@ async function generateClearPointContract() {
     pushLeft('Prep Prior to Cremation', prepCremAmt);
     pushLeft('Release from Storage', storageAmt);
     pushLeft('Keepsake Transfer', keepsakesAmt);
+    pushLeft('Terramation', terramationAmt);
+    pushLeft('Laying in Ceremony', layingInAmt);
+    pushLeft('Disinterment', disintermentAmt);
+    pushLeft('Funeral Director Time', fdHourlyAmt);
+    pushLeft('Additional Mileage', addlMileageAmt);
+    pushLeft('Additional Time', addlTimeAmt);
+    pushLeft('Mailing of Death Certificates', dcMailAmt);
 
     // Custom-item assignments from the builder review field (mirrors GA so unrecognized
     // custom FH lines aren't silently dropped). Routes: left / right / ca1 / ca2 / omit.
@@ -21158,7 +21326,7 @@ async function generateClearPointContract() {
     // Read from lines (like everything else here), not the live FH Quote Builder's own
     // fhDeathCerts/fhCountyFee inputs — same fix as printGAContract(), same reason: those
     // reflect whatever's currently on that page, not what's in this saved/imported contract.
-    var dcLine        = findLine('Certified Death Certificates');
+    var dcLine        = lines.find(function(l){ var b = l.label.toLowerCase(); return b.includes('certified death certificates') && !b.includes('mailing'); });
     var dcAmt         = dcLine ? Math.abs(dcLine.amount) : 0;
     var dcQty         = dcAmt > 0 ? Math.round(dcAmt / 25) : 0;
     var countyFeeLine = findLine('County');
@@ -21172,6 +21340,7 @@ async function generateClearPointContract() {
       transferAmt + hearseAmt + otherServicesVehicleAmt + cremFeeAmt +
       ceremonyHourAmt + recAmt + (chapelLine ? Math.abs(chapelLine.amount) : 0) +
       mailingAmt + deliveryAmt + witnessAmt + expediteAmt + prepCremAmt + storageAmt + keepsakesAmt +
+      fwdRecvAmt + terramationAmt + layingInAmt + disintermentAmt + fdHourlyAmt + addlMileageAmt + addlTimeAmt + dcMailAmt +
       cpAssignedLeftTotal +
       surchLines.reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
     var servicesAfterDiscount = servicesTotal - planDiscount;          // TOTAL SERVICES (left column incl discount)
@@ -21281,7 +21450,8 @@ async function generateClearPointContract() {
 
     // ── PAGE 3 — Statement of Goods & Services ────────────────────────────────
     // Disposition
-    if (isBurial)  { checkCB('Burial');   } else { checkCB('Cremation'); }
+    if (terramationAmt > 0) { checkCB('Other'); }          // terramation: DISPOSITION "Other"
+    else if (isBurial)  { checkCB('Burial');   } else { checkCB('Cremation'); }
     if (!formCasketPrice) { checkCB('None'); }
 
     // Services (left column)
@@ -21297,6 +21467,7 @@ async function generateClearPointContract() {
     setTF('undefined_6', fmt$(gravesideTotal));
     if (transferAmt > 0) { setTF('Transfer of Deceased', '30'); setTF('undefined_7', fmt$(transferAmt)); }
     setTF('undefined_10', fmt$(hearseAmt));
+    if (fwdRecvAmt > 0) setTF('undefined_12', fmt$(fwdRecvAmt));                           // Forwarding/Receiving Remains (GPL p13)
     if (otherServicesVehicleAmt > 0) setTF('undefined_13', fmt$(otherServicesVehicleAmt)); // Other Services/Equip/Vehicle
 
     // Left "Other (Specify)" — 2 rows; plan discount claims its own row as a negative value.
@@ -21403,7 +21574,8 @@ async function generateClearPointContract() {
         try { newDoc.getPages()[pageIdx].drawText('X', { x: x, y: y, size: sz, font: _xBold, color: _navy }); } catch(e) {}
       }
       // Page 3 disposition (page index 2): Burial x=399 y=687, Cremation x=449 y=687, Other x=518 y=687
-      if (isBurial) drawX(2, 400, 688, 9);
+      if (terramationAmt > 0) drawX(2, 519, 688, 9);   // terramation: Other
+      else if (isBurial) drawX(2, 400, 688, 9);
       else          drawX(2, 450, 688, 9);
       if (!formCasketPrice) drawX(2, 400, 671, 9);   // None
       // Page 1 guaranteed boxes: G Box x=527 y=683, NG Box x=561 y=682
@@ -21417,7 +21589,7 @@ async function generateClearPointContract() {
     // (Transaction Date / Decedent Name / Funeral Home Representative all live there). Only
     // appended when Cremation is selected. No field-name collisions with ClearPoint's own 106
     // fields were found, so this can merge in directly without flattening first.
-    if (!isBurial) {
+    if (!isBurial && !(terramationAmt > 0)) {   // terramation is not a cremation: no authorization page
       // Template LOAD outside the try, as for the RIC's attachments: a fetch failure must be
       // visible, not a ClearPoint contract that quietly downloads without the authorization.
       var gaCremBytes = await bwTemplate('GA_PDF');
