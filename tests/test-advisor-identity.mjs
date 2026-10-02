@@ -90,7 +90,7 @@ for (const who of [MARTICE, RANDY]) {
   }
 
   ok('family-quote venue line names the signed-in advisor',
-    r.venueLine === 'Washington Memorial Park · Prepared by ' + who.name + ', Family Service Advisor', r.venueLine);
+    r.venueLine === 'Washington Memorial Park · Prepared by ' + who.name + ', Family Service Director', r.venueLine);
   ok('family-quote footer carries their email and phone',
     r.fqFooter.includes(who.email) && r.fqFooter.includes(who.phone), r.fqFooter.slice(0, 200));
   ok('print-window footer carries their email and phone',

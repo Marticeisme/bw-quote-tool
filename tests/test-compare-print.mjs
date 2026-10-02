@@ -165,7 +165,7 @@ console.log('\n1. Cemetery compare model');
   ok('the payment estimate is 10% down over 60 months', !!A.pay && A.pay.months === 60 && A.pay.down === Math.ceil(A.total * 0.10), A.pay);
   ok('the monthly is the balance over 60 at 0%', !!A.pay && m2(A.pay.monthly) === m2((A.total - A.pay.down) / 60), A.pay);
   ok('the scope line carries the park and a validity date', /Washington Memorial Park · .* · Valid through /.test(r.scope), r.scope);
-  ok('the venue line names the advisor', /Prepared by .+, Family Service Advisor/.test(r.venue), r.venue);
+  ok('the venue line names the advisor', /Prepared by .+, Family Service Director/.test(r.venue), r.venue);
 }
 
 // ── 2. The cemetery print ──────────────────────────────────────────────────────
@@ -187,7 +187,7 @@ let cemPrint;
   ok('the document is titled as a comparison', /Cemetery Option Comparison/.test(s.title), s.title);
   ok('the _fq masthead type label is present', /Cemetery Option Comparison/.test(s.text));
   ok('the family is named the _fq way', /PREPARED WITH CARE FOR Rivera Family/.test(s.text), s.text.slice(0, 300));
-  ok('the venue/advisor line is present', /Prepared by .+, Family Service Advisor/.test(s.text));
+  ok('the venue/advisor line is present', /Prepared by .+, Family Service Director/.test(s.text));
   ok('there are exactly two option columns', s.colCount === 2, s.colCount);
   ok('Option A is marked as the current quote', /OPTION A · CURRENT QUOTE/i.test(s.cols[0]), s.cols[0].slice(0, 120));
   ok('Option B is labelled', /OPTION B/i.test(s.cols[1]), s.cols[1].slice(0, 120));

@@ -9748,7 +9748,7 @@ function _fqBuildModel(opts){
     typeLabel:opts.typeLabel,
     scopeLine:opts.scopeLabel+' · '+_fqLongDate(now)+' · Valid through '+_fqShortDate(valid),
     clientName:opts.clientName||'',
-    venueLine:'Washington Memorial Park · Prepared by '+bwCurrentAdvisor().name+', Family Service Advisor',
+    venueLine:'Washington Memorial Park · Prepared by '+bwCurrentAdvisor().name+', Family Service Director',
     arrangements:_fqArrangements(opts),
     surfaces:surfaces,
     taxAmount:taxAmt,
@@ -9834,7 +9834,7 @@ function _fqHeaderHTML(rightTitle, rightSub){
 function _fqFooterHTML(){
   var a = bwCurrentAdvisor();
   return '<div class="foot"><div><div class="foot-name">'+_fqEsc(a.name)+'</div>'
-    +'<div class="foot-role">Family Service Advisor · Bonney Watson</div></div>'
+    +'<div class="foot-role">Family Service Director · Bonney Watson</div></div>'
     +'<div class="foot-r"><div class="foot-contact">'+bwAdvisorContactPair('&nbsp; · &nbsp;')+'</div>'
     +'<div class="foot-addr">16445 International Blvd, SeaTac, WA 98188 &nbsp; · &nbsp; Available 24 hours</div></div></div>';
 }
@@ -10132,10 +10132,10 @@ function _fqRenderHTML(model){
     } else { p2+='<div style="height:12pt;"></div>'; }
     if(pay.scope==='fh'){
       p2+=_fqMaximaCardHTML(pay.maxima);
-      p2+=_fqDiscHTML('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
+      p2+=_fqDiscHTML('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Director will provide exact figures and terms when you are ready.');
     } else if(pay.scope==='cem'){
       p2+=_fqFinCardsHTML(pay.cemBase);
-      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.');
+      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Director will provide exact figures when you are ready.');
     } else {
       var hasMx = pay.maxima && pay.maxima.plans.length;
       p2+=_fqSectLabelHTML('Cemetery','Financing options · '+_fqMoney(pay.cemBase));
@@ -10151,7 +10151,7 @@ function _fqRenderHTML(model){
         p2+=_fqSectLabelHTML('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month');
         p2+=_fqBudgetHTML(pay.cemBase, pay.maxima, pay.combBudget);
       }
-      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms.');
+      p2+=_fqDiscHTML('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Director will provide exact figures and terms.');
     }
     p2+='</div>'+_fqFooterHTML()+'</div>';
   }
@@ -10265,7 +10265,7 @@ function _fqCompareModel(opts){
     kind: opts.kind,
     scopeLine: opts.scopeLabel + ' · ' + _fqLongDate(now) + ' · Valid through ' + _fqShortDate(valid),
     clientName: opts.clientName || '',
-    venueLine: 'Washington Memorial Park · Prepared by ' + bwCurrentAdvisor().name + ', Family Service Advisor',
+    venueLine: 'Washington Memorial Park · Prepared by ' + bwCurrentAdvisor().name + ', Family Service Director',
     options: options,
     anySublabel: anySub,
     diff: diff,
@@ -10568,7 +10568,7 @@ async function _fqBuildPDFBytes(model){
   function footer(){
     page.drawLine({start:{x:M,y:52},end:{x:RX,y:52},thickness:1,color:HAIR});
     page.drawText(bwCurrentAdvisor().name,{x:M,y:38,size:12,font:sansH,color:ORANGE});
-    page.drawText(clean('Family Service Advisor \xb7 Bonney Watson'),{x:M,y:26,size:9.4,font:sans,color:GREY});
+    page.drawText(clean('Family Service Director \xb7 Bonney Watson'),{x:M,y:26,size:9.4,font:sans,color:GREY});
     rt(bwAdvisorContactPair('  \xb7  '), RX, 38, sansH, 10.1, SLATE);
     rt('16445 International Blvd, SeaTac, WA 98188  \xb7  Available 24 hours', RX, 26, sans, 9, CONTACTB);
   }
@@ -10868,10 +10868,10 @@ async function _fqBuildPDFBytes(model){
 
     if(pay.scope==='fh'){
       maximaCard(pay.maxima);
-      discBlock('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms when you are ready.');
+      discBlock('These estimates are for illustration only and are not a contract. Amounts depend on age and may change. Your Family Service Director will provide exact figures and terms when you are ready.');
     } else if(pay.scope==='cem'){
       financeCards(pay.cemBase);
-      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Advisor will provide exact figures when you are ready.');
+      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Minimum down payment 10%; minimum monthly payment $50. Terms marked 0% require automatic (ACH) bank withdrawal; other terms carry the finance charge shown. Early payoff is allowed and may reduce total finance charges. Your Family Service Director will provide exact figures when you are ready.');
     } else {
       var hasMx = pay.maxima && pay.maxima.plans.length;
       sectionLabel('Cemetery','Financing options  \xb7  '+_fqMoney(pay.cemBase),150);
@@ -10890,7 +10890,7 @@ async function _fqBuildPDFBytes(model){
         sectionLabel('Together','Closest to about '+_fqMoney(pay.combBudget)+' per month', 5*28+16);
         budgetMatches(pay.cemBase, pay.maxima, pay.combBudget);
       }
-      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Advisor will provide exact figures and terms.');
+      discBlock('All figures are estimates for illustration only and do not constitute a financing offer or contract. Cemetery financing: minimum 10% down, $50/mo minimum; terms marked 0% require ACH withdrawal, other terms carry the finance charge shown. Funeral-home plan amounts depend on age and may change. Your Family Service Director will provide exact figures and terms.');
     }
     doc.getPages().forEach(function(pg,i){ if(i>0){ page=pg; footer(); } });
   }
@@ -10902,8 +10902,8 @@ function _fqNoteText(model){
 }
 function _fqPayHeadline(pay){ return 'Options for paying over time.'; }
 function _fqPayIntro(pay, model){
-  if(pay.scope==='fh') return 'Funeral expenses can be prearranged and paid over time. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Advisor can walk you through each option.';
-  if(pay.scope==='cem') return 'The cost can be spread over time. The options below list every down-payment amount and term available. Your Family Service Advisor can walk you through any of these.';
+  if(pay.scope==='fh') return 'Funeral expenses can be prearranged and paid over time. The estimates below show monthly amounts by plan for age '+pay.maxima.age+(pay.maxima.down>0?(', after a '+_fqMoney(pay.maxima.down)+' initial payment'):'')+'. Your Family Service Director can walk you through each option.';
+  if(pay.scope==='cem') return 'The cost can be spread over time. The options below list every down-payment amount and term available. Your Family Service Director can walk you through any of these.';
   return 'The cemetery and the funeral home are paid through two different programs. Cemetery arrangements can be financed over time; funeral home expenses can be prearranged and paid over time. Both are shown below.';
 }
 
