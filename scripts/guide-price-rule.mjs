@@ -48,6 +48,12 @@ export const EXEMPT = new Set([
   // our pricing: there is no quote to invite the family to ask for, and hiding the
   // figure would defeat the document. 2026-08-25.
   'death-certificates-guide.html',
+  // Two flat GPL charges, not a menu: Terramation $7,795 and the optional Laying in
+  // Ceremony $895. The range-only rule printed "$895-$7,795, depends on size, location
+  // and options", which read as if terramation could cost $895. Operator, 2026-10-01:
+  // the guide "needs to use the pricing from the gpl"; showing the figures was his call
+  // to delegate ("up to you").
+  'terramation-guide.html',
 ]);
 
 const MONEY = /\$[0-9][0-9,]*(?:\.[0-9]{2})?/g;

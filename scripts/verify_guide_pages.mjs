@@ -225,7 +225,7 @@ const PER_GUIDE_CAPS = new Map([
   // so a future edit that re-lengthens it fails here rather than drifting to six.
   ['Bronze Markers.pdf', 5],
   ['Burial Vault Guide.pdf', 2],
-  ['Terramation Guide.pdf', 2],
+  ['Terramation Guide.pdf', 3],  // 2026-10-01: GPL prices + Receiving the Soil + Practical Matters restored
   // Medicaid Professional Reference is the audit's one "do not condense" row: its audience
   // is case workers and attorneys and the WAC/RCW citations are the product. It got the
   // two legibility fixes only (type to the 10.5pt floor, two-column flow off — see
