@@ -2655,3 +2655,20 @@ urns-guide, keepsake-urns-guide, cremation-containers-rental-caskets. Family lin
 stays (public site, not a guide). Build scripts read the live pages, so it survives
 rebuilds. Print/PDF untouched, no PDF rebuild. Playwright 18/18 (plain, ?family,
 ?familyx=1 lookalike).
+
+## 2026-10-01: Gray zinc vase $315, and four family information worksheets
+
+Gray zinc vase $205 to $315 per Dawn's 9/15 price list update (892a1565): both Gray Zinc
+options in index.html, bronze-markers-guide.html's with-tax figure ($226 to $348, at 10.4%)
+and Bronze Markers.pdf rebuilt, price-index golden fixture. Syntax 8/0, golden 6/6.
+
+Letters & Forms on guides.html gains four fillable PDFs (4 to 8 cards, quick-jump pill
+matched): Cemetery Arrangement Information (after a death), Next of Kin Information (when
+more than one person is next of kin), Cemetery Property Information and Funeral Plan
+Information. Built in scratch/family-worksheets (worksheets.mjs) on the quote/packet
+layout; fields follow the real CIRGAS, RIC, GA and ClearPoint forms. No vendor names, no
+"at need"/"pre need" on the sheets. Social Security numbers are hand-written only (printed
+box, no form field). Cards open the PDF in the browser viewer (fillable) and download as
+"Bonney Watson - <name>.pdf". verify_guides_page ALL OK, verify_guide_nav 285/0.
+Known, not from this change: six catalog PDFs read stale in verify_guide_pages since the
+9/30 ?family commit.
