@@ -1550,7 +1550,7 @@ tr:hover td{background:var(--navy-100);}
                   <input type="number" id="qMausIndoorQty" min="1" max="10" value="1" oninput="cemUpdateD()" style="width:52px;margin-left:4px;">
                   <span id="qMausIndoorDisp" class="q-price-disp" style="color:var(--navy);">—</span>
                 </div>
-                <div style="font-size:10px;color:var(--text-light);line-height:1.6;margin-left:22px;">Recording Fee <span data-fee="RECORDING:all"></span> · Mausoleum Entombment O&amp;C <span data-fee="OC:mausoleum_entombment"></span> · Monobar Court Memorial <span data-fee="MONOBAR:crypt"></span> · Monobar Court Install $225</div>
+                <div style="font-size:10px;color:var(--text-light);line-height:1.6;margin-left:22px;">Recording Fee <span data-fee="RECORDING:all"></span> · Mausoleum Entombment O&amp;C <span data-fee="OC:mausoleum_entombment"></span> · Monobar Indoor Crypt Memorial <span data-fee="MONOBAR:crypt"></span> · Monobar Indoor Crypt Install $225</div>
               </div>
               <div id="qMausOutdoorRow" style="padding:10px 12px;background:rgba(27,42,74,.05);border:1px solid var(--navy);border-radius:8px;">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);margin-bottom:6px;">Outdoor Mausoleum Arrangement</div>
@@ -1850,7 +1850,7 @@ tr:hover td{background:var(--navy-100);}
                   <option value="4300|2020|1485|795">VA Match: 1 Space, 2 Bronze – No Vase — $4,300</option>
                 </optgroup>
                 <optgroup label="── Scrolls &amp; Plaques ──">
-                  <option value="1670|1445|0|225">Monobar Court O / Crypt — $1,670</option>
+                  <option value="1670|1445|0|225">Monobar Indoor Crypt — $1,670</option>
                   <option value="435|435|0|0">Final Date Scroll — $435</option>
                   <option value="785|785|0|0">Bronze Scroll #5108 — $785</option>
                   <option value="785|785|0|0">Bronze Scroll #5108 – Single Niche (Vets COH) — $785</option>
@@ -8263,8 +8263,8 @@ function cemUpdate() {
       setDisp('qMausIndoorDisp', miTotal);
       lines.push({label: 'Recording Fee – Entombment' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: bwFee('RECORDING:all') * miQ, taxable: false});
       lines.push({label: 'Mausoleum Entombment O&C' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: bwFee('OC:mausoleum_entombment') * miQ, taxable: false});
-      lines.push({label: 'Monobar Court O/Crypt – Memorial' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: bwFee('MONOBAR:crypt') * miQ, taxable: true});
-      lines.push({label: 'Monobar Court O/Crypt – Install' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: 225 * miQ, taxable: true});
+      lines.push({label: 'Monobar Indoor Crypt – Memorial' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: bwFee('MONOBAR:crypt') * miQ, taxable: true});
+      lines.push({label: 'Monobar Indoor Crypt – Install' + (miQ > 1 ? ' \xd7' + miQ : ''), amount: 225 * miQ, taxable: true});
     } else { setDisp('qMausIndoorDisp', 0); }
     // Outdoor Mausoleum Arrangement
     if (chk('qMausOutdoor')) {
@@ -9144,8 +9144,8 @@ function calcBTotal() {
     if (chk('cmpB_indoorMaus')) {
       lines.push({label: 'Recording Fee – Entombment', amount: bwFee('RECORDING:all'), taxable: false});
       lines.push({label: 'Mausoleum Entombment O&C', amount: bwFee('OC:mausoleum_entombment'), taxable: false});
-      lines.push({label: 'Monobar Court – Memorial', amount: bwFee('MONOBAR:crypt'), taxable: true});
-      lines.push({label: 'Monobar Court – Install', amount: 225, taxable: true});
+      lines.push({label: 'Monobar Indoor Crypt – Memorial', amount: bwFee('MONOBAR:crypt'), taxable: true});
+      lines.push({label: 'Monobar Indoor Crypt – Install', amount: 225, taxable: true});
     }
     // Outdoor Mausoleum
     if (chk('cmpB_outdoorMaus')) {

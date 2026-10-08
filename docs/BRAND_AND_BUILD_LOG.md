@@ -2703,3 +2703,10 @@ sheet's "Grecian Floral Ring" photo shows a smooth vase, so Floral Innocence use
 sheet's hammered-Doric photo. Exempt from the range-only print rule (cost is the guide's
 point; every option is the same block). verify_guides_page ALL OK, guide_nav 291/0,
 family_type 136/0, guide_pages only the 6 known stale catalog PDFs.
+
+## 2026-10-08: Monobar label reads "Monobar Indoor Crypt"
+
+Quote lines, the indoor-mausoleum dropdown option and its fee help line said "Monobar Court
+O/Crypt" (or "Monobar Court"); Martice: "just say monobar indoor crypt". Labels only: prices
+($1,445 memorial + $225 install), tax and totals unchanged. Tests updated to the new label;
+niche-maus-type 89/0, prices-source 58/0.

@@ -206,7 +206,7 @@ console.log('\n5. The niche and mausoleum bundles equal the file');
   ok('outdoor mausoleum bundle = recording + entombment + inscription',
     (r.outdoor || '').indexOf(money(FEES['RECORDING:all'] + FEES['OC:mausoleum_entombment'] + FEES['INSCRIPTION:all'])) > -1, r.outdoor);
   ok('the monobar memorial line equals MONOBAR:crypt',
-    r.sum['Monobar Court O/Crypt – Memorial'] === FEES['MONOBAR:crypt'], r.sum['Monobar Court O/Crypt – Memorial']);
+    r.sum['Monobar Indoor Crypt – Memorial'] === FEES['MONOBAR:crypt'], r.sum['Monobar Indoor Crypt – Memorial']);
   ok('the shutter inscription line equals INSCRIPTION:all',
     r.sum['Shutter Inscription – In-shop'] === FEES['INSCRIPTION:all'], r.sum['Shutter Inscription – In-shop']);
   await ctx.close();

@@ -108,7 +108,7 @@ const probeMaus = (name) => page.evaluate((nm) => {
     indoorChk: document.getElementById('qMausIndoor').checked,
     outdoorChk: document.getElementById('qMausOutdoor').checked,
     recordingLines: lbls.filter(l => /^Recording Fee – Entombment/.test(l)).length,
-    monobar: lbls.some(l => /^Monobar Court/.test(l)),
+    monobar: lbls.some(l => /^Monobar Indoor Crypt/.test(l)),
     mausInsc: lbls.some(l => /^Mausoleum\/Columbarium Inscription/.test(l)),
     total: _cemTotal,
   };
