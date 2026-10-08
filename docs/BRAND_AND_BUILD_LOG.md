@@ -2714,3 +2714,25 @@ Quote lines, the indoor-mausoleum dropdown option and its fee help line said "Mo
 O/Crypt" (or "Monobar Court"); Martice: "just say monobar indoor crypt". Labels only: prices
 ($1,445 memorial + $225 install), tax and totals unchanged. Tests updated to the new label;
 niche-maus-type 89/0, prices-source 58/0.
+
+## 2026-10-08: Travel Plan by Inman family PDF redesigned
+
+Martice: the guide "looks very sloppy compared to our other guides", "colors are very off".
+The family PDF is now four designed sheets (a .fam-pdf .pdf-summary block, the What to Do
+First .fam-sheet pattern) in the GPL brand pair (navy #466e86, orange #e84610, ink #1c2c36)
+with logo-brand.svg (logo-navy recoloured). Same copy as before, re-flowed so no page is half
+empty: p1 lead, what the plan is, Call Inman First; p2 what one call covers, costs by region,
+$499 next to that; p3 plan costs, payment forgiveness, worth it, not travel insurance, who can
+enroll; p4 details, sign up, two questions, close with the enrollment link. Web: the brown
+.warn box is navy with an orange top rule. Design drafted on a /design canvas first.
+family_type 136/0, print_header 0 over, guide_nav 291/0, family_register 191/0, guide_pages
+only the 6 known stale catalog PDFs.
+
+## 2026-10-08: One number for Martice, (206) 445-9794
+
+Every guide that said 206-277-5417 for Martice now says 206-445-9794 (footers, "reach me
+directly" lines, tel: links, the flush-markers print header; 32 places in 16 pages plus the
+reskin_guides.py template). Left alone on purpose: what-to-do-first-guide.html (families call
+Bonney Watson there, not Martice) and deed-transfer-letter.html (lists both numbers). The 15
+affected guide PDFs were rebuilt; only Medicaid Professional Reference prints the number,
+the other 14 are text-identical to before.

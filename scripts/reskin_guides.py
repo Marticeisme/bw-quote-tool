@@ -304,7 +304,7 @@ FOOTER_HTML = """  <div class="doc-footer">
     <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
     <div class="footer-hours">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
     <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
-    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-277-5417 &middot; mmorrison@bonneywatson.com</div>
+    <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794<br>Martice Morrison &middot; 206-445-9794 &middot; mmorrison@bonneywatson.com</div>
   </div>
 
 </div>
