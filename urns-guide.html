@@ -4,7 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Urn Catalog &middot; Bonney Watson</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Local STATIC fonts, not the Google <link>: Chrome serves Google's variable fonts and
+   Save as PDF embeds them as Type3 (wobbly baselines, uneven spacing when zoomed). The
+   static per-weight files print as real Type0 fonts. Same files as the booklets use. */
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:400;src:url('fonts/CormorantGaramond-400i.woff') format('woff');}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;src:url('fonts/CormorantGaramond-500i.woff') format('woff');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:400;src:url('fonts/CormorantGaramond-400.woff') format('woff');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;src:url('fonts/CormorantGaramond-500.woff') format('woff');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;src:url('fonts/CormorantGaramond-600.woff') format('woff');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:700;src:url('fonts/CormorantGaramond-700.woff') format('woff');}
+@font-face{font-family:'Source Sans 3';font-style:italic;font-weight:400;src:url('fonts/SourceSans3-400i.woff') format('woff');}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400;src:url('fonts/SourceSans3-400.woff') format('woff');}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:600;src:url('fonts/SourceSans3-600.woff') format('woff');}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:700;src:url('fonts/SourceSans3-700.woff') format('woff');}
+</style>
 <style>
 :root {
   --navy:#3d5a7a; --navy-dark:#2c445e; --navy-deep:#1e3a55;
@@ -3288,6 +3302,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
   // The sheet says what it is a sheet OF — a printed page with no filter line is a
   // page a family cannot put back in context a week later.
+  /* The same filter line, made safe for a file name and dropped when nothing is
+     filtered, so the title stays "All Caskets 204". */
+  window.bwFilterTitleSuffix = function(){
+    var t = activeFilterText();
+    if (t === 'All products') return '';
+    return ' - ' + t.replace(/\s+\u00b7\s+/g, ', ');
+  };
   function activeFilterText(){
     var bits = [];
     var q = document.getElementById('searchInput');
@@ -3390,16 +3411,35 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   window.bwBuildFilteredSheet = function(){ return build(visibleCards()); };
   window.bwFilteredPerPage = PER_PAGE;
 
+  /* Save as PDF names the file after document.title, so every print from this page used
+     to land as "<page title> (3).pdf". Each sheet now names the tab for what it prints
+     (filename-safe), and afterprint puts the page title back. */
+  var PAGE_TITLE = document.title;
+  window.bwCatalogName = PAGE_TITLE.split(/\s\u00b7\s/)[0];
+  window.bwPrintWithTitle = function (title, cls) {
+    document.title = title.replace(/[\\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+    document.body.classList.add(cls);
+    /* The sheets use faces the screen never asks for (Cormorant 700 for the big name),
+       and a face first requested in print media can miss the snapshot and fall back to
+       Times. Pull every print face in before the dialog opens; 1.5s cap so a missing
+       file still prints. The dialog never opens sooner than the 100ms it always took. */
+    var faces = ['700 1em "Cormorant Garamond"', '600 1em "Cormorant Garamond"',
+                 '400 1em "Source Sans 3"', '600 1em "Source Sans 3"', '700 1em "Source Sans 3"']
+      .map(function (f) { return document.fonts.load(f).catch(function () {}); });
+    var go = function () { if (go.done) return; go.done = true; window.print(); };
+    Promise.all(faces).then(function () { setTimeout(go, 100); });
+    setTimeout(go, 1500);
+    window.addEventListener('afterprint', function handler() {
+      document.body.classList.remove(cls);
+      document.title = PAGE_TITLE;
+      window.removeEventListener('afterprint', handler);
+    });
+  };
   window.printFiltered = function(){
     var cards = visibleCards();
     if (!cards.length) return;
     build(cards);
-    document.body.classList.add('filter-printing');
-    setTimeout(function(){ window.print(); }, 100);
-    window.addEventListener('afterprint', function handler(){
-      document.body.classList.remove('filter-printing');
-      window.removeEventListener('afterprint', handler);
-    });
+    window.bwPrintWithTitle(window.bwCatalogName + ' ' + cards.length + window.bwFilterTitleSuffix() + ' - Bonney Watson', 'filter-printing');
   };
 
   window.bwUpdateFilterPrintBtn = function(n){
@@ -3499,12 +3539,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     var sku = modalItem.textContent.replace('#','').trim();
     document.getElementById('psItem').textContent = 'Item #' + sku + ' · Prices shown pre-tax and subject to change.';
 
-    document.body.classList.add('modal-printing');
-    setTimeout(function(){ window.print(); }, 100);
-    window.addEventListener('afterprint', function handler(){
-      document.body.classList.remove('modal-printing');
-      window.removeEventListener('afterprint', handler);
-    });
+    window.bwPrintWithTitle(modalName.textContent.trim() + (sku ? ' #' + sku : '') + ' - Bonney Watson', 'modal-printing');
   });
 })();
 </script>
@@ -3888,12 +3923,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       sheet.classList.add('cmp-mode-specs');
       sheet.classList.remove('cmp-mode-photos');
     }
-    document.body.classList.add('compare-printing');
-    setTimeout(function(){ window.print(); }, 100);
-    window.addEventListener('afterprint', function handler(){
-      document.body.classList.remove('compare-printing');
-      window.removeEventListener('afterprint', handler);
-    });
+    window.bwPrintWithTitle('Compare ' + selected.map(function(k){ var d = getCardData(k); return d ? d.name.trim() : k; }).join(' vs ') + (currentView === 'photos' ? ' photos' : ' specs') + ' - Bonney Watson', 'compare-printing');
   });
 
   updateCheckboxStates();
