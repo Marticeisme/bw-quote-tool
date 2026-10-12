@@ -2736,3 +2736,18 @@ reskin_guides.py template). Left alone on purpose: what-to-do-first-guide.html (
 Bonney Watson there, not Martice) and deed-transfer-letter.html (lists both numbers). The 15
 affected guide PDFs were rebuilt; only Medicaid Professional Reference prints the number,
 the other 14 are text-identical to before.
+
+## 2026-10-11: Sympathy Flowers catalog (new)
+
+Martice: all of Love's Buds & Blooms' sympathy flowers organized by type, Deal of the Day out,
+a live catalog with compare like the casket and urn catalogs, plus a PDF like the flower sheets,
+credited to the florist with her logo (she shares our address; we offer her flowers on her
+behalf). sympathy-flowers.html: 159 arrangements in 13 types, built by
+scripts/build_flowers_catalog.py from scripts/flowers-data.json, templated off the live
+urns-guide.html so it carries the same facets, compare, enlarge, single-item print and
+Print-these engines (facets Type, Color, Price; Color is multi-valued). Photos in
+flower-images/<SKU>.jpg, logo flower-images/loves-logo*.png. PDF pdf-assets/Sympathy Flowers.pdf
+(59 pp, three per page, built in scratch/flowers/pdf). guides.html gains a Flowers category.
+guide_nav 291/0; catalog print test run with the flower page added 148/149 (the one is the
+cross-catalog block hash: this page prints "Family Service Director", the six older catalogs
+still say "Family Service Advisor").
