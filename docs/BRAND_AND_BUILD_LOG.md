@@ -2759,3 +2759,12 @@ white padding and the cards used object-fit:cover, so wide casket-spray and coll
 their ends. All 159 re-fetched full size, white padding trimmed (scratch/flowers/trim_images.py),
 and the cards now show the whole photo (square box, object-fit:contain, 12px inset). Checked by
 Playwright screenshots of every section; scratch/flowers/verify.mjs 10/0.
+## 2026-10-12: Quote tool sidebar, color-banded sections
+
+Martice: the sidebar sections were hard to tell apart. Picked option E of five rendered side by
+side (scratch/sidebar-options/). Each section heading is now a solid color band (Overview gray-blue,
+Cemetery green, Funeral Home amber, Combined purple, Checklist teal, Resources coral), icons take
+their section color, the selected item gets a left bar in that color, and every "Saved ..." list is
+indented under the builder that makes it. Accents live on data-g attributes and are sidebar-only;
+page chrome stays navy + orange. Items stay flat siblings, so the breadcrumb lookup still works.
+Checked by Playwright screenshots (Cemetery, Funeral Home, Checklist active), syntax 8/0.

@@ -107,6 +107,22 @@ body:has(.summary-fixed.visible) .tb-action:hover{background:var(--navy-50);bord
 .nav-item.highlight{background:transparent;color:var(--navy-200);font-weight:500;box-shadow:none;}
 .nav-item.highlight:hover{background:var(--navy-800);color:#fff;}
 .nav-item.highlight.active,.nav-item.active.highlight{color:var(--navy-900);background:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--orange);}
+/* Sidebar groups: each section carries its own accent (solid heading band, icon tint, active rail) so
+   Cemetery / Funeral Home / Checklist read apart at a glance. "Saved ..." lists sit indented
+   under the builder that makes them. Accents are sidebar-only; page chrome stays navy+orange. */
+[data-g]{--g:var(--navy-300);}
+[data-g="cem"]{--g:#7cc49a;} [data-g="fh"]{--g:#e3a857;} [data-g="cmb"]{--g:#b6a0e6;}
+[data-g="chk"]{--g:#5fbcc8;} [data-g="res"]{--g:#e88d6a;}
+.nav-label[data-g]{background:var(--g);color:var(--navy-900);font-weight:800;font-size:11.5px;letter-spacing:.1em;border-top:0 !important;border-radius:6px;padding:6px 10px;margin:18px 0 6px;}
+.nav-label[data-g="ov"]{margin-top:4px;}
+.nav-item[data-g] .ni-ic{color:var(--g);display:flex;}
+.nav-item.active[data-g]{box-shadow:inset 4px 0 0 var(--g);background:#fff;}
+.nav-item.active[data-g] .ni-ic{color:var(--navy-900);}
+.nav-item.nav-sub{margin-left:22px;padding:5px 10px;font-size:12.5px;color:var(--navy-300);border-left:1px solid rgba(255,255,255,.12);border-radius:0 var(--r-md) var(--r-md) 0;}
+.nav-item.nav-sub .ni-ic .lc{width:14px;height:14px;}
+.nav-item.nav-sub .ni-ic{opacity:.75;}
+.nav-item.nav-sub.active{border-left-color:transparent;color:var(--navy-900);}
+.nav-item.nav-sub.active .ni-ic{opacity:1;}
 
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
@@ -824,41 +840,41 @@ tr:hover td{background:var(--navy-100);}
     <div class="sb-tagline">Quote &amp; Contract Tool · 2026</div>
   </div>
   <div class="sb-nav">
-  <div class="nav-label">Overview</div>
-  <div class="nav-item active highlight" onclick="show('home',this)"><span class="ni-ic" data-lc="home"></span>Home / Quick Ref</div>
-  <div class="nav-item highlight" onclick="show('price-list',this)"><span class="ni-ic" data-lc="tag"></span>Price List</div>
+  <div class="nav-label" data-g="ov">Overview</div>
+  <div class="nav-item active highlight" data-g="ov" onclick="show('home',this)"><span class="ni-ic" data-lc="home"></span>Home / Quick Ref</div>
+  <div class="nav-item highlight" data-g="ov" onclick="show('price-list',this)"><span class="ni-ic" data-lc="tag"></span>Price List</div>
 
-  <div class="nav-item highlight" onclick="show('contacts-home',this)" id="navContacts"><span class="ni-ic" data-lc="users"></span>Contacts</div>
+  <div class="nav-item highlight" data-g="ov" onclick="show('contacts-home',this)" id="navContacts"><span class="ni-ic" data-lc="users"></span>Contacts</div>
 
-  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Cemetery</div>
-  <div class="nav-item highlight" onclick="show('cem-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
-  <div class="nav-item" onclick="show('cem-saved',this)" id="navCemSaved"><span class="ni-ic" data-lc="folder"></span>Saved Cem Quotes</div>
-  <div class="nav-item highlight" onclick="show('ric-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need RIC Contract</div>
-  <div class="nav-item" onclick="show('ric-saved',this)" id="navRicSaved"><span class="ni-ic" data-lc="folder"></span>Saved RICs</div>
-  <div class="nav-item highlight" onclick="show('an-contract',this)"><span class="ni-ic" data-lc="file-check"></span>At-Need CIRGAS Contract</div>
-  <div class="nav-item" onclick="show('an-saved',this)" id="navAnSaved"><span class="ni-ic" data-lc="folder"></span>Saved CIRGAS Contracts</div>
-  <div class="nav-item highlight" onclick="show('dt-transfer',this)" id="navDtTransfer"><span class="ni-ic" data-lc="scroll"></span>Deed Transfer</div>
-  <div class="nav-item" onclick="show('dt-saved',this)" id="navDtSaved"><span class="ni-ic" data-lc="folder"></span>Saved Deed Transfers</div>
+  <div class="nav-label" data-g="cem">Cemetery</div>
+  <div class="nav-item highlight" data-g="cem" onclick="show('cem-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
+  <div class="nav-item nav-sub" data-g="cem" onclick="show('cem-saved',this)" id="navCemSaved"><span class="ni-ic" data-lc="folder"></span>Saved Cem Quotes</div>
+  <div class="nav-item highlight" data-g="cem" onclick="show('ric-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need RIC Contract</div>
+  <div class="nav-item nav-sub" data-g="cem" onclick="show('ric-saved',this)" id="navRicSaved"><span class="ni-ic" data-lc="folder"></span>Saved RICs</div>
+  <div class="nav-item highlight" data-g="cem" onclick="show('an-contract',this)"><span class="ni-ic" data-lc="file-check"></span>At-Need CIRGAS Contract</div>
+  <div class="nav-item nav-sub" data-g="cem" onclick="show('an-saved',this)" id="navAnSaved"><span class="ni-ic" data-lc="folder"></span>Saved CIRGAS Contracts</div>
+  <div class="nav-item highlight" data-g="cem" onclick="show('dt-transfer',this)" id="navDtTransfer"><span class="ni-ic" data-lc="scroll"></span>Deed Transfer</div>
+  <div class="nav-item nav-sub" data-g="cem" onclick="show('dt-saved',this)" id="navDtSaved"><span class="ni-ic" data-lc="folder"></span>Saved Deed Transfers</div>
 
-  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Funeral Home</div>
-  <div class="nav-item highlight" onclick="show('fh-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
-  <div class="nav-item" onclick="show('fh-saved',this)" id="navFhSaved"><span class="ni-ic" data-lc="folder"></span>Saved FH Quotes</div>
-  <div class="nav-item highlight" onclick="show('ga-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need Contract (GA)</div>
-  <div class="nav-item" onclick="show('ga-saved',this)" id="navGaSaved"><span class="ni-ic" data-lc="folder"></span>Saved GA Contracts</div>
-  <div class="nav-item highlight" onclick="show('cp-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need Contract (ClearPoint)</div>
-  <div class="nav-item" onclick="show('cp-saved',this)" id="navCpSaved"><span class="ni-ic" data-lc="folder"></span>Saved ClearPoint Contracts</div>
+  <div class="nav-label" data-g="fh">Funeral Home</div>
+  <div class="nav-item highlight" data-g="fh" onclick="show('fh-quote',this)"><span class="ni-ic" data-lc="calculator"></span>Quote Builder</div>
+  <div class="nav-item nav-sub" data-g="fh" onclick="show('fh-saved',this)" id="navFhSaved"><span class="ni-ic" data-lc="folder"></span>Saved FH Quotes</div>
+  <div class="nav-item highlight" data-g="fh" onclick="show('ga-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need Contract (GA)</div>
+  <div class="nav-item nav-sub" data-g="fh" onclick="show('ga-saved',this)" id="navGaSaved"><span class="ni-ic" data-lc="folder"></span>Saved GA Contracts</div>
+  <div class="nav-item highlight" data-g="fh" onclick="show('cp-contract',this)"><span class="ni-ic" data-lc="file-text"></span>Pre-Need Contract (ClearPoint)</div>
+  <div class="nav-item nav-sub" data-g="fh" onclick="show('cp-saved',this)" id="navCpSaved"><span class="ni-ic" data-lc="folder"></span>Saved ClearPoint Contracts</div>
 
-  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Combined</div>
-  <div class="nav-item highlight" onclick="show('combined-quote',this)"><span class="ni-ic" data-lc="link"></span>Combined Quote</div>
+  <div class="nav-label" data-g="cmb">Combined</div>
+  <div class="nav-item highlight" data-g="cmb" onclick="show('combined-quote',this)"><span class="ni-ic" data-lc="link"></span>Combined Quote</div>
 
-  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Checklist</div>
-  <div class="nav-item highlight" onclick="show('ric-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>RIC Checklist</div>
-  <div class="nav-item highlight" onclick="show('cp-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>ClearPoint Checklist</div>
-  <div class="nav-item highlight" onclick="show('ga-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>GA Checklist</div>
-  <div class="nav-item highlight" onclick="show('atneed-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>CIRGAS Checklist</div>
+  <div class="nav-label" data-g="chk">Checklist</div>
+  <div class="nav-item highlight" data-g="chk" onclick="show('ric-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>RIC Checklist</div>
+  <div class="nav-item highlight" data-g="chk" onclick="show('cp-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>ClearPoint Checklist</div>
+  <div class="nav-item highlight" data-g="chk" onclick="show('ga-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>GA Checklist</div>
+  <div class="nav-item highlight" data-g="chk" onclick="show('atneed-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>CIRGAS Checklist</div>
 
-  <div class="nav-label" style="margin-top:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;">Resources</div>
-  <a class="nav-item" href="guides.html" target="_blank" rel="noopener"><span class="ni-ic" data-lc="book-open"></span>Family Guides &amp; Resources</a>
+  <div class="nav-label" data-g="res">Resources</div>
+  <a class="nav-item" data-g="res" href="guides.html" target="_blank" rel="noopener"><span class="ni-ic" data-lc="book-open"></span>Family Guides &amp; Resources</a>
   </div><!-- /sb-nav -->
   <div id="fbStatus" style="font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#c3d0de;padding:5px 12px;margin:0 10px 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">● Saved quotes: connecting…</div>
   <div class="sb-user">
