@@ -99,7 +99,8 @@ sections = '\n\n'.join(
 
 EXTRA_CSS = '''
 /* ── Sympathy Flowers additions ── */
-.product-img{aspect-ratio:4/5;background:#fff;}
+.product-img{aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center;}
+.product-img img{object-fit:contain!important;padding:12px;box-sizing:border-box;}
 .product-card .fl-flowers{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .product-card .fl-about{display:none;}
 .section-blurb{font-size:14px;color:var(--text-muted);margin:-12px 0 20px;max-width:760px;line-height:1.5;}

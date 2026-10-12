@@ -2751,3 +2751,11 @@ flower-images/<SKU>.jpg, logo flower-images/loves-logo*.png. PDF pdf-assets/Symp
 guide_nav 291/0; catalog print test run with the flower page added 148/149 (the one is the
 cross-catalog block hash: this page prints "Family Service Director", the six older catalogs
 still say "Family Service Advisor").
+
+## 2026-10-11: Sympathy Flowers photo crops
+
+Martice: the crops on a lot of the photos were off. The florist photos are 4:5 frames with wide
+white padding and the cards used object-fit:cover, so wide casket-spray and collection photos lost
+their ends. All 159 re-fetched full size, white padding trimmed (scratch/flowers/trim_images.py),
+and the cards now show the whole photo (square box, object-fit:contain, 12px inset). Checked by
+Playwright screenshots of every section; scratch/flowers/verify.mjs 10/0.
