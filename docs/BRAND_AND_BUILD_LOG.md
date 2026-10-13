@@ -2797,3 +2797,16 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   builder is empty and untouched).
 - Deed Transfer: "Deed Letter" opens deed-transfer-letter.html filled in (localStorage hand-off, never the URL).
 - dev-server.mjs decodes %20 like Pages. Full suite 4330 passed / 0 failed across 59 suites.
+
+## 2026-10-12: Guides cleanup (audit of 44 pages, 11 maps, 45 PDFs)
+
+- Prices to the tool (his ruling): Eternal Rest plaque $625, Terrace ossuary engraving $715, ECL vase $375.
+- Binding rules applied: no "no cost to file your wishes" (Pre-Planning, Who Decides); the crematory /
+  transfers / family-owned paragraph next to cremation prices (one-line PDF version where pages are capped);
+  21 third-person "family service director" lines now first person; hub blurbs without em dashes.
+- guides.html?family hides the Quote Tool link and the three letter tools. "Chapel of Memories" everywhere
+  family-facing. WTDF footer shows the BW line (families call BW there, not Martice).
+- Phone fit for six pages; vault guide photos 14.1 MB -> 1.0 MB; 125 dead files removed (list in 36e16f9b).
+- NOTE: build_guides_page.py is stale (aborts on the current hub markup); guides.html is hand-maintained now.
+- NOTE: verify_walkthrough.mjs COM crashes in headless (window.bwWalkthrough) on main too; not from this change.
+- Open: vault-guide.html still on the old template (full move needs a design preview first).
