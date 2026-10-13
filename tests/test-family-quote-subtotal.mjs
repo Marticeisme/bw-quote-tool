@@ -136,7 +136,14 @@ console.log('\n3. Print opens a printable browser page');
   const s = await pop.evaluate(() => ({
     url: location.href, ct: document.contentType, sheets: document.querySelectorAll('.sheet').length,
     embed: !!document.querySelector('embed,object[type="application/pdf"]'),
-    printed: !!window.__printed, fit: !!document.getElementById('fqFitStyle'),
+    printed: !!window.__printed,
+    // _fqFitForPrint (since 34ce1345) first steps the density tiers, setting --row etc. on <body>,
+    // and only adds the #fqFitStyle zoom rule when even the tightest tier overflows. So the fit
+    // pass is proven by the tier vars, and the outcome by page 1's printed height.
+    fitRan: document.body.style.getPropertyValue('--row') !== '',
+    p1h: (function(){ const p = document.querySelector('.sheet'); if (!p) return 1e9;
+      const m = ((document.getElementById('fqFitStyle') || {}).textContent || '').match(/zoom:([\d.]+)/);
+      return p.offsetHeight * (m ? parseFloat(m[1]) : 1); })(),
     text: document.body.innerText.replace(/\s+/g, ' '),
   }));
   ok('print window is not a blob: URL', !/^blob:/.test(s.url), s.url.slice(0, 60));
@@ -145,7 +152,8 @@ console.log('\n3. Print opens a printable browser page');
   ok('print window renders both quote sheets', s.sheets === 2, s.sheets);
   ok('no file was downloaded', downloaded === false);
   ok('the browser print dialog was raised', s.printed === true);
-  ok('a fit-to-page rule was installed', s.fit === true);
+  ok('the fit-to-page pass ran', s.fitRan === true);
+  ok('page 1 fits one Letter sheet (1056px)', s.p1h <= 1056.5, s.p1h);
   ok('printed page shows the pre-tax subtotal', /Cemetery subtotal \$9,700\.00/i.test(s.text),
      (s.text.match(/Cemetery subtotal \$[\d,.]+/i) || ['(missing)'])[0]);
   await pop.close();
