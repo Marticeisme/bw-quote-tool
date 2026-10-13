@@ -84,11 +84,91 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
 .site-footer .footer-url{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);}
 .site-footer .footer-legal{font-size:11px;color:var(--muted);margin-top:6px;}
 
+/* #letter is the plain email body read by the Copy buttons; it stays laid out (innerText needs
+   layout) but off screen. What you see and print is #doc below. */
+.letter-wrap{position:relative;}
+#letter{position:absolute;left:-10000px;top:0;width:720px;}
+
+/* ---- Designed letter (preview + print). Same pieces as the family quote PDF: slate masthead
+   with the white logo, orange keyline, serif headings, cream sheet, advisor footer. Palette and
+   sizes are copied from index.html's _FQ2 / _fqSheetCSS so the two read as one set. ---- */
+@font-face{font-family:'BWSerif';font-weight:600;font-style:normal;font-display:block;src:url('fonts/SourceSerif4-600.woff') format('woff');}
+@font-face{font-family:'BWSerif';font-weight:700;font-style:normal;font-display:block;src:url('fonts/SourceSerif4-700.woff') format('woff');}
+@font-face{font-family:'BWSans';font-weight:400;font-style:normal;font-display:block;src:url('fonts/SourceSans3-400.woff') format('woff');}
+@font-face{font-family:'BWSans';font-weight:400;font-style:italic;font-display:block;src:url('fonts/SourceSans3-400i.woff') format('woff');}
+@font-face{font-family:'BWSans';font-weight:600;font-style:normal;font-display:block;src:url('fonts/SourceSans3-600.woff') format('woff');}
+@font-face{font-family:'BWSans';font-weight:700;font-style:normal;font-display:block;src:url('fonts/SourceSans3-700.woff') format('woff');}
+#docWrap{background:#e7eaee;padding:22px 0;overflow:hidden;}
+#doc{--slate:#4B6E81;--orange:#E5480F;--cream:#FDFCFA;--warm:#F3EEE4;--ink:#33414A;--head:#3B4A52;
+  --body:#5A666D;--muted:#8a9299;--grey:#6a767d;--line:#EFE9DC;--hair:#DBD3C4;--mastsub:#D3DDE3;--bandfine:#C3D0D7;
+  font-family:'BWSans','Source Sans 3',sans-serif;color:var(--body);transform-origin:top left;}
+#doc .sheet{position:relative;width:612pt;height:792pt;margin:0 auto 18pt;background:var(--cream);display:flex;flex-direction:column;
+  box-shadow:0 1px 3px rgba(26,35,50,.12),0 22px 60px rgba(26,35,50,.13);overflow:hidden;}
+#doc .sheet:last-child{margin-bottom:0;}
+#doc .mast{flex:0 0 85pt;background:var(--slate);display:flex;align-items:center;justify-content:space-between;gap:24pt;padding:0 40pt;}
+#doc .mast.slim{flex-basis:40pt;}
+#doc .mast-logo{height:39pt;width:auto;display:block;}
+#doc .mast.slim .mast-logo{height:20pt;}
+#doc .mast-r{text-align:right;min-width:0;}
+#doc .mast-t{font-family:'BWSerif',Georgia,serif;font-weight:700;font-size:25pt;line-height:1.1;color:#fff;white-space:nowrap;}
+#doc .mast.slim .mast-t{font-size:12pt;font-weight:600;}
+#doc .mast-s{font-size:9pt;line-height:1.3;color:var(--mastsub);margin-top:3pt;}
+#doc .keyline{flex:0 0 2.25pt;background:var(--orange);}
+#doc .body{flex:1 1 auto;padding:0 40pt;overflow:hidden;}
+#doc .body > :first-child{margin-top:20pt;}
+#doc .eyebrow,#doc .kick{font-weight:700;text-transform:uppercase;color:var(--orange);}
+#doc .eyebrow{font-size:8.25pt;letter-spacing:.24em;}
+#doc .fam{font-family:'BWSerif',Georgia,serif;font-weight:600;font-size:28pt;line-height:1.12;color:var(--head);margin:3.75pt 0 0;}
+#doc .venue{font-size:10.1pt;color:var(--grey);margin-top:4.5pt;}
+#doc p{font-size:10.5pt;line-height:1.55;color:var(--ink);margin:0 0 9pt;}
+#doc .salute{margin-top:16pt;}
+#doc strong{font-weight:700;color:var(--head);}
+#doc .sect{display:flex;align-items:baseline;justify-content:space-between;gap:16pt;margin-top:16pt;}
+#doc .sect h2{font-family:'BWSerif',Georgia,serif;font-weight:600;font-size:16.5pt;line-height:1;color:var(--head);margin:0;}
+#doc .sect-rule{height:1.5pt;background:var(--slate);margin:6pt 0 4pt;}
+#doc .opt{display:flex;gap:12pt;padding:8pt 0 7pt;border-bottom:0.5pt solid var(--line);}
+#doc .opt-n{flex:0 0 18pt;height:18pt;border-radius:50%;background:var(--slate);color:#fff;font-weight:700;font-size:9pt;
+  display:flex;align-items:center;justify-content:center;margin-top:1pt;}
+#doc .opt-t{font-family:'BWSerif',Georgia,serif;font-weight:600;font-size:12pt;line-height:1.2;color:var(--slate);}
+#doc .opt p{margin:3pt 0 0;}
+#doc .after-opts{margin-top:9pt;}
+#doc .notes{background:var(--warm);border-left:2.25pt solid var(--orange);padding:10pt 15pt 4pt;margin-top:10pt;}
+#doc .notes .kick{font-size:8.25pt;letter-spacing:.22em;margin-bottom:5pt;}
+#doc .notes ul{margin:0;padding:0 0 0 13pt;}
+#doc .notes li{font-size:10.5pt;line-height:1.5;color:var(--ink);margin:0 0 6pt;}
+#doc .band{margin-top:16pt;background:var(--slate);display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;padding:15pt 19.5pt 14pt;}
+#doc .band-t{font-family:'BWSerif',Georgia,serif;font-weight:600;font-size:18pt;line-height:1;color:#fff;}
+#doc .band-d{font-size:9.75pt;line-height:1.24;color:var(--mastsub);margin-top:6pt;}
+#doc .band-r{text-align:right;white-space:nowrap;}
+#doc .band-l{font-size:7.9pt;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mastsub);}
+#doc .band-v{font-family:'BWSerif',Georgia,serif;font-weight:700;font-size:26pt;line-height:1.05;color:#fff;margin-top:4pt;}
+#doc .row{display:flex;gap:20pt;padding:7pt 0 6pt;border-bottom:0.5pt solid var(--line);}
+#doc .row-l{flex:0 0 120pt;font-size:8.25pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-top:2pt;}
+#doc .row-v{flex:1;font-size:10.5pt;font-weight:600;line-height:1.4;color:var(--ink);}
+#doc .close{margin-top:16pt;}
+#doc .sig{margin-top:24pt;border-top:0.75pt solid var(--ink);width:200pt;}
+#doc .sig-n{font-size:10.5pt;line-height:1.45;color:var(--ink);margin-top:4pt;}
+#doc .sig-n b{font-weight:700;color:var(--head);}
+#doc .foot{flex:0 0 auto;margin-top:10pt;padding:11pt 40pt 12pt;border-top:1pt solid var(--hair);display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;}
+#doc .foot-name{font-size:12pt;font-weight:700;color:var(--orange);line-height:1.2;}
+#doc .foot-role{font-size:9.4pt;color:var(--grey);margin-top:3pt;}
+#doc .foot-r{text-align:right;}
+#doc .foot-contact{font-size:10.1pt;font-weight:700;color:var(--slate);line-height:1.2;}
+#doc .foot-addr{font-size:9pt;color:#7A848B;margin-top:3pt;}
+#doc .blank{color:#b4753a;font-style:italic;font-weight:400;}
+
 @media print {
-  .site-header,.page-intro,.howto,.panel,.site-footer,.letter-toolbar{display:none !important;}
-  .layout{display:block;}
-  .letter-wrap{border:none;}
-  #letter{padding:0;}
+  @page{size:letter;margin:0;}
+  body{background:#fff;}
+  .site-header,.page-intro,.howto,.panel,.site-footer,.letter-toolbar,#letter{display:none !important;}
+  .page-wrap{padding:0;max-width:none;}
+  .layout{display:block;margin:0;}
+  .letter-wrap{border:none;border-radius:0;}
+  #docWrap{padding:0;background:none;}
+  #doc{zoom:1 !important;}
+  #doc .sheet{margin:0;box-shadow:none;break-after:page;}
+  #doc .sheet:last-child{break-after:auto;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
 </style>
 </head>
@@ -170,6 +250,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <span id="letterMeta"></span>
       </div>
       <div id="letter"></div>
+      <div id="docWrap"><div id="doc"></div></div>
     </div>
   </div>
 </div>
@@ -360,6 +441,27 @@ function val(id, placeholder){
   return v ? esc(v) : '<span class="blank">[' + placeholder + ']</span>';
 }
 
+// The letter's wording, written once. render() builds two things from it: #letter, the plain
+// email body that Copy for Email / Copy Plain Text read, and #doc, the designed Letter-size sheets
+// shown in the preview and printed / saved as PDF.
+const LT = {
+  intro: 'If you are considering selling or transferring your cemetery property, we can assist with the necessary documentation to ensure the process is completed properly. While we are unable to purchase the property, locate a buyer, or negotiate on your behalf, the following options may be helpful:',
+  options: [
+    ['Reach out to family members', 'If you have loved ones interred at our cemetery, other family members may be interested in securing nearby property.'],
+    ['Advertise your property', 'Many sellers choose to list their property on websites such as Craigslist.org, GraveSolutions.com, or similar platforms. You might also consider advertising in local newspapers or publications.'],
+    ['Donate your property to a qualifying organization', 'Some families choose to donate their cemetery property to a qualifying nonprofit organization, such as a religious institution, charitable organization, or similar 501(c)(3) entity. If you choose this route, <strong>we waive the $325 deed transfer fee</strong> as a courtesy for charitable transfers. Donating to a qualified 501(c)(3) organization may also provide a tax benefit. Donors may be eligible to deduct the fair market value of the donated property on their federal return when itemizing deductions on Schedule A (Form 1040). For noncash donations exceeding $500, IRS Form 8283 is required; donations valued above $5,000 generally require a qualified appraisal conducted within 60 days before the donation date. We recommend consulting a tax advisor to confirm eligibility and ensure proper documentation. To receive a deduction, the donor must not receive any goods or services of substantial value in return for the transfer.'],
+  ],
+  newspaper: 'Sound Publishing owns several community newspapers, including the Federal Way Mirror and Des Moines News (1-800-388-2527), as well as online outlets covering SeaTac, Burien, and White Center. Additionally, distributing flyers or sharing information with area churches, retirement communities, or fraternal organizations may be effective.',
+  showing: 'We are happy to show your property to potential buyers and answer any questions they may have. Once you have identified a buyer and agreed on a sale price, please contact me at <strong>206-277-5417</strong> or <strong>206-445-9794 (cell)</strong> to schedule an appointment and finalize the necessary paperwork.',
+  signing: 'We recommend that both parties meet at the cemetery to complete the transfer. Regardless of where the transaction takes place, <strong>signatures from both parties are required</strong>. All signatures must be notarized, which we can provide in-office at no additional charge, or through DocuSign for your convenience.',
+  notes: [
+    '<strong>A $325 deed transfer fee applies.</strong> You may choose to include this in your asking price.',
+    'You may sell your property for any amount, though many sellers typically ask for approximately <strong>half of the current value</strong> or list it as &ldquo;OBO&rdquo; (Or Best Offer).',
+    '<strong>Be cautious of scams.</strong> Do not provide any funds to a buyer. Accept payment via cash or money order and verify all funds through your bank.',
+  ],
+  closing: 'We hope this information is helpful. Please don&rsquo;t hesitate to contact us with any questions or if we can be of further assistance.',
+};
+
 function render(){
   const letterDate = formatDate(document.getElementById('letterDate').value);
   const recipientName = val('recipientName', 'Recipient Name');
@@ -380,25 +482,21 @@ function render(){
     <p>Date: ${letterDate}</p>
     <p>Dear ${recipientName},</p>
 
-    <p>If you are considering selling or transferring your cemetery property, we can assist with the necessary documentation to ensure the process is completed properly. While we are unable to purchase the property, locate a buyer, or negotiate on your behalf, the following options may be helpful:</p>
+    <p>${LT.intro}</p>
 
     <ul>
-      <li><strong>Reach out to family members:</strong> If you have loved ones interred at our cemetery, other family members may be interested in securing nearby property.</li>
-      <li><strong>Advertise your property:</strong> Many sellers choose to list their property on websites such as Craigslist.org, GraveSolutions.com, or similar platforms. You might also consider advertising in local newspapers or publications.</li>
-      <li><strong>Donate your property to a qualifying organization:</strong> Some families choose to donate their cemetery property to a qualifying nonprofit organization, such as a religious institution, charitable organization, or similar 501(c)(3) entity. If you choose this route, <strong>we waive the $325 deed transfer fee</strong> as a courtesy for charitable transfers. Donating to a qualified 501(c)(3) organization may also provide a tax benefit. Donors may be eligible to deduct the fair market value of the donated property on their federal return when itemizing deductions on Schedule A (Form 1040). For noncash donations exceeding $500, IRS Form 8283 is required; donations valued above $5,000 generally require a qualified appraisal conducted within 60 days before the donation date. We recommend consulting a tax advisor to confirm eligibility and ensure proper documentation. To receive a deduction, the donor must not receive any goods or services of substantial value in return for the transfer.</li>
+      ${LT.options.map(([t, x]) => `<li><strong>${t}:</strong> ${x}</li>`).join('\n      ')}
     </ul>
 
-    <p>Sound Publishing owns several community newspapers, including the Federal Way Mirror and Des Moines News (1-800-388-2527), as well as online outlets covering SeaTac, Burien, and White Center. Additionally, distributing flyers or sharing information with area churches, retirement communities, or fraternal organizations may be effective.</p>
+    <p>${LT.newspaper}</p>
 
-    <p>We are happy to show your property to potential buyers and answer any questions they may have. Once you have identified a buyer and agreed on a sale price, please contact me at <strong>206-277-5417</strong> or <strong>206-445-9794 (cell)</strong> to schedule an appointment and finalize the necessary paperwork.</p>
+    <p>${LT.showing}</p>
 
-    <p>We recommend that both parties meet at the cemetery to complete the transfer. Regardless of where the transaction takes place, <strong>signatures from both parties are required</strong>. All signatures must be notarized, which we can provide in-office at no additional charge, or through DocuSign for your convenience.</p>
+    <p>${LT.signing}</p>
 
     <h3>Important Notes</h3>
     <ul>
-      <li><strong>A $325 deed transfer fee applies.</strong> You may choose to include this in your asking price.</li>
-      <li>You may sell your property for any amount, though many sellers typically ask for approximately <strong>half of the current value</strong> or list it as &ldquo;OBO&rdquo; (Or Best Offer).</li>
-      <li><strong>Be cautious of scams.</strong> Do not provide any funds to a buyer. Accept payment via cash or money order and verify all funds through your bank.</li>
+      ${LT.notes.map(n => `<li>${n}</li>`).join('\n      ')}
     </ul>
 
     <h3>Summary of Your Property</h3>
@@ -409,15 +507,101 @@ function render(){
       <tr><td class="k">Date</td><td>${recordDate}</td></tr>
     </table>
 
-    <p>We hope this information is helpful. Please don&rsquo;t hesitate to contact us with any questions or if we can be of further assistance.</p>
+    <p>${LT.closing}</p>
 
     <p>Sincerely,</p>
     <div class="sig-line">&nbsp;</div>
     <p style="margin-top:2px;">${sentBy ? sentBy + '<br>' : ''}Bonney-Watson Funeral Homes<br>Washington Memorial Park Cemetery</p>
   `;
 
+  const sect = t => `<div class="sect"><h2>${t}</h2></div><div class="sect-rule"></div>`;
+  const opt = ([t, x], i) => `<div class="opt"><div class="opt-n">${i + 1}</div><div><div class="opt-t">${t}</div><p>${x}</p></div></div>`;
+  // Each entry is one unbreakable block; paginate() moves whole blocks to the next sheet. A
+  // section heading always travels with the block under it, so it can never end a page alone.
+  const blocks = [
+    `<div><div class="eyebrow">Prepared for</div><div class="fam">${recipientName}</div><div class="venue">${letterDate}</div></div>`,
+    `<p class="salute">Dear ${recipientName},</p>`,
+    `<p>${LT.intro}</p>`,
+    `<div>${sect('Your Options')}${opt(LT.options[0], 0)}</div>`,
+    opt(LT.options[1], 1),
+    opt(LT.options[2], 2),
+    `<p class="after-opts">${LT.newspaper}</p>`,
+    `<div>${sect('Completing the Transfer')}<p>${LT.showing}</p></div>`,
+    `<p>${LT.signing}</p>`,
+    `<div class="notes"><div class="kick">Important Notes</div><ul>${LT.notes.map(n => `<li>${n}</li>`).join('')}</ul></div>`,
+    `<div><div class="band"><div><div class="band-t">Summary of Your Property</div><div class="band-d">Value includes endowment care</div></div>`
+      + `<div class="band-r"><div class="band-l">Current Value</div><div class="band-v">${currentValue}</div></div></div>`
+      + `<div class="row"><div class="row-l">Property Owner(s)</div><div class="row-v">${propertyOwners}</div></div>`
+      + `<div class="row"><div class="row-l">Property</div><div class="row-v">${propertyDescription}</div></div>`
+      + `<div class="row"><div class="row-l">Date</div><div class="row-v">${recordDate}</div></div></div>`,
+    `<div class="close"><p>${LT.closing}</p><p>Sincerely,</p><div class="sig"></div>`
+      + `<div class="sig-n">${sentBy ? '<b>' + sentBy + '</b><br>' : ''}Bonney-Watson Funeral Homes<br>Washington Memorial Park Cemetery</div></div>`,
+  ];
+  paginate(blocks, sentBy);
+
   document.getElementById('letterMeta').textContent = recipientName.startsWith('<') ? '' : 'To: ' + document.getElementById('recipientName').value;
 }
+
+// Lay the blocks onto Letter sheets: full masthead on page 1, a slim one after, the footer on
+// every page. A block that overflows its sheet moves whole to a new one.
+// The logo is inline SVG, not an <img>: the sheets are rebuilt as printing starts, and a fresh
+// <img> would not have loaded in time to appear on the printed page.
+const BW_LOGO = "<svg class=\"mast-logo\" role=\"img\" aria-label=\"Bonney Watson\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 308.34 56.42\"><path d=\"M.83,19.83a.47.47,0,0,1,.47-.46H6.79c3,0,5.09,2,5.09,4.53a4.7,4.7,0,0,1-2.55,3.9,4.44,4.44,0,0,1,3.07,4c0,2.75-2.26,4.73-5.34,4.73H1.3a.47.47,0,0,1-.47-.46ZM7,34.27A2.61,2.61,0,0,0,9.68,31.6a2.82,2.82,0,0,0-3-2.58H3.31v5.25Zm-.39-7.45A2.45,2.45,0,0,0,9.16,24.2a2.36,2.36,0,0,0-2.52-2.53H3.33v5.15Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M27.48,19.12A8.83,8.83,0,1,1,18.68,28a8.81,8.81,0,0,1,8.8-8.85m0,15.2A6.38,6.38,0,1,0,21.14,28a6.37,6.37,0,0,0,6.34,6.35\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M43.71,19.56a.46.46,0,0,1,.46-.44h.62l10.63,12.3h0V19.83a.46.46,0,0,1,.46-.46h1.57a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.64L46.21,24.12h0V36.06a.46.46,0,0,1-.46.46H44.17a.48.48,0,0,1-.46-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M66.5,19.56a.46.46,0,0,1,.47-.44h.61l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.57a.48.48,0,0,1,.46.46v16.5a.46.46,0,0,1-.46.44h-.64L69,24.12h0V36.06a.47.47,0,0,1-.47.46H67a.48.48,0,0,1-.47-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M89.3,19.83a.46.46,0,0,1,.46-.46h9.81a.46.46,0,0,1,.46.46v1.38a.46.46,0,0,1-.46.46H91.82v5h6.54a.48.48,0,0,1,.47.47v1.37a.46.46,0,0,1-.47.46H91.82v5.27h7.75a.46.46,0,0,1,.46.47v1.35a.46.46,0,0,1-.46.46H89.76a.46.46,0,0,1-.46-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M111.63,28.26l-5.74-8.18a.45.45,0,0,1,.39-.71h1.82a.48.48,0,0,1,.39.22l4.44,6.25,4.43-6.25a.53.53,0,0,1,.39-.22h1.84a.45.45,0,0,1,.39.71l-5.8,8.16v7.82a.48.48,0,0,1-.47.46h-1.62a.46.46,0,0,1-.46-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M192.52,20a.43.43,0,0,1,.44-.59h1.65a.51.51,0,0,1,.44.34L198,31h.1l4-11.57a.44.44,0,0,1,.42-.27H203a.44.44,0,0,1,.42.27l4,11.57h.1l2.92-11.25a.5.5,0,0,1,.44-.34h1.64A.43.43,0,0,1,213,20l-4.63,16.46a.48.48,0,0,1-.44.35h-.39a.48.48,0,0,1-.42-.27l-4.31-12.18h-.13L198.4,36.5a.46.46,0,0,1-.41.27h-.4a.48.48,0,0,1-.44-.35Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M216.77,35.89l7.53-16.5a.55.55,0,0,1,.41-.27H225a.55.55,0,0,1,.41.27l7.48,16.5a.43.43,0,0,1-.42.63h-1.54a.57.57,0,0,1-.57-.36L228.8,32.8h-8c-.49,1.12-1,2.23-1.49,3.36a.62.62,0,0,1-.57.36h-1.54a.43.43,0,0,1-.42-.63m11.1-5.2-3-6.72h-.12l-3,6.72Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M240.38,21.67h-4a.47.47,0,0,1-.47-.46V19.83a.47.47,0,0,1,.47-.46h10.53a.47.47,0,0,1,.47.46v1.38a.47.47,0,0,1-.47.46h-4V36.06a.48.48,0,0,1-.47.46h-1.61a.48.48,0,0,1-.47-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M253.07,34.05c.22-.32.42-.69.64-1a.55.55,0,0,1,.83-.19,7.21,7.21,0,0,0,3.92,1.69c1.69,0,2.77-1,2.77-2.28,0-1.47-1.27-2.4-3.7-3.41s-4.46-2.35-4.46-5.19c0-1.92,1.47-4.54,5.37-4.54A8.27,8.27,0,0,1,263,20.57a.58.58,0,0,1,.15.83l-.61.93a.58.58,0,0,1-.86.25,7.51,7.51,0,0,0-3.31-1.23c-2.06,0-2.77,1.3-2.77,2.21,0,1.4,1.08,2.25,3.11,3.09,2.85,1.15,5.27,2.5,5.27,5.49,0,2.54-2.28,4.63-5.46,4.63a7.92,7.92,0,0,1-5.27-1.94.51.51,0,0,1-.15-.78\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M278.7,19.12A8.83,8.83,0,1,1,269.91,28a8.81,8.81,0,0,1,8.79-8.85m0,15.2A6.38,6.38,0,1,0,272.36,28a6.38,6.38,0,0,0,6.34,6.35\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M294.93,19.56a.46.46,0,0,1,.47-.44H296l10.64,12.3h0V19.83a.47.47,0,0,1,.47-.46h1.56a.48.48,0,0,1,.47.46v16.5a.46.46,0,0,1-.47.44h-.63L297.43,24.12h0V36.06a.47.47,0,0,1-.47.46H295.4a.48.48,0,0,1-.47-.46Z\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#fff\"/><path d=\"M156.28.29A28.21,28.21,0,1,0,184.49,28.5,28.25,28.25,0,0,0,156.28.29m0,55A26.74,26.74,0,1,1,183,28.5a26.78,26.78,0,0,1-26.74,26.74\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#ff5100\"/><path d=\"M179.47,28.24h0a6,6,0,0,0-.23-.59,8.13,8.13,0,0,0-5.74-5.11c-5.33-1.27-11.43,2.61-13.63,8.66a12.65,12.65,0,0,0-.72,3h-1c.38-6.16,5.88-10.77,5.78-16-.08-4.62-3.55-8.32-4.82-9.84s-2.19-3.42-2.75-3.43h0c-.56,0-1.48,1.92-2.75,3.43s-4.74,5.22-4.82,9.84c-.1,5.26,5.4,9.87,5.78,16H153.4a12.62,12.62,0,0,0-.71-3c-2.2-6.05-8.3-9.93-13.63-8.66a8.11,8.11,0,0,0-5.74,5.11,4.24,4.24,0,0,0-.23.59h0a5,5,0,0,0-.23,1.51,5.19,5.19,0,1,0,9-3.45c3.22-.05,6.56,2.4,7.87,6a8.88,8.88,0,0,1,.46,1.95H149a1,1,0,0,0-1,1v1.21a1,1,0,0,0,1,1h.9A5.55,5.55,0,0,1,147,40.83a3.24,3.24,0,1,0-3.75,3.7,9.2,9.2,0,0,0,3.77-.09,8.35,8.35,0,0,0,6.26-6.92h1c-1.16,7-5.9,10,2,15.12h0c7.89-5.15,3.15-8.08,2-15.12h.95a8.35,8.35,0,0,0,6.26,6.92,9.16,9.16,0,0,0,3.76.09,3.24,3.24,0,1,0-3.74-3.7,5.52,5.52,0,0,1-2.91-3.31h.61a1,1,0,0,0,1-1V35.27a1,1,0,0,0-1-1h-.92a8.88,8.88,0,0,1,.46-1.95c1.31-3.58,4.65-6,7.87-6a5.18,5.18,0,1,0,9,3.45,5.3,5.3,0,0,0-.22-1.51\" transform=\"translate(-0.83 -0.29)\" style=\"fill:#ff5100\"/></svg>";
+function paginate(blocks, sentBy){
+  const doc = document.getElementById('doc');
+  const mast = first => first
+    ? `<div class="mast">${BW_LOGO}<div class="mast-r"><div class="mast-t">Deed Transfer</div><div class="mast-s">Washington Memorial Park Cemetery</div></div></div><div class="keyline"></div>`
+    : `<div class="mast slim">${BW_LOGO}<div class="mast-r"><div class="mast-t">Deed Transfer</div></div></div><div class="keyline"></div>`;
+  const foot = `<div class="foot"><div><div class="foot-name">${sentBy || 'Bonney Watson'}</div><div class="foot-role">Washington Memorial Park Cemetery</div></div>`
+    + `<div class="foot-r"><div class="foot-contact">206-277-5417 &nbsp;&middot;&nbsp; 206-445-9794 (cell)</div>`
+    + `<div class="foot-addr">16445 International Blvd, SeaTac, WA 98188 &nbsp;&middot;&nbsp; <span class="pg"></span></div></div></div>`;
+  doc.innerHTML = '';
+  let body = null;
+  const newSheet = () => {
+    const s = document.createElement('div');
+    s.className = 'sheet';
+    s.innerHTML = mast(!doc.children.length) + '<div class="body"></div>' + foot;
+    doc.appendChild(s);
+    body = s.querySelector('.body');
+  };
+  newSheet();
+  blocks.forEach(html => {
+    const t = document.createElement('template');
+    t.innerHTML = html.trim();
+    const el = t.content.firstElementChild;
+    body.appendChild(el);
+    if (body.scrollHeight > body.clientHeight + 1 && body.children.length > 1) {
+      el.remove(); newSheet(); body.appendChild(el);
+    }
+  });
+  const sheets = doc.querySelectorAll('.sheet');
+  sheets.forEach((s, i) => { s.querySelector('.pg').textContent = 'Page ' + (i + 1) + ' of ' + sheets.length; });
+  fitPreview();
+}
+
+// The sheets are drawn at true size (612pt wide); the preview scales them to the pane.
+function fitPreview(){
+  const wrap = document.getElementById('docWrap'), doc = document.getElementById('doc');
+  if (window.__printing) { doc.style.zoom = ''; return; }
+  doc.style.zoom = Math.min(1, (wrap.clientWidth - 32) / 816).toFixed(4);
+}
+window.addEventListener('resize', fitPreview);
+
+// Saving as PDF names the file after the family; Ctrl+P takes the same path as the button.
+let _savedTitle = document.title;
+window.addEventListener('beforeprint', () => {
+  window.__printing = true;
+  _savedTitle = document.title;
+  const who = document.getElementById('recipientName').value.trim();
+  document.title = 'Deed Transfer Letter' + (who ? ' - ' + who : '') + ' - Bonney Watson';
+  render();
+});
+window.addEventListener('afterprint', () => {
+  window.__printing = false;
+  document.title = _savedTitle;
+  render();
+});
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
 
 function showToast(msg, isError){
   const t = document.getElementById('toast');
