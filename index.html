@@ -5897,9 +5897,8 @@ async function printGAContract() {
   var totalServicesDisplayed = guaranteedServicesTotal - planDiscount; // left column incl. discount row
 
   // Tax: mirror FH quote taxable-flag logic — sum all lines marked taxable:true
-  var taxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
-  var taxDiscAmt  = lines.filter(function(l){ return l.isDiscount && l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
-  var taxAmt      = Math.round(Math.max(0, taxableBase - taxDiscAmt) * 0.104 * 100) / 100;
+  // Same rule (and the same TAX constant) as the FH quote, so the two cannot disagree.
+  var taxAmt      = _bwTaxOfLines(lines);
   var guaranteedWithTax = totalGuaranteedFuneral + taxAmt;
 
   var nonGuarTotal = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total + assignedP3Total;
@@ -7801,6 +7800,39 @@ function _sumItems(items) {
   return html + '</div>';
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DISCOUNTS → TAX BUCKETS (one rule for every total in the tool)
+// ═══════════════════════════════════════════════════════════════
+// A discount comes off one side of the quote: merchandise-only discounts (taxableDiscount) off the
+// taxable side, everything else off the exempt services side. That is unchanged. What is new is
+// the overflow: when a discount is bigger than its own side, the rest now comes off the other side.
+// It used to be clamped to zero and thrown away, so on a merchandise-only quote a flat $500
+// discount printed "−$500.00" while the total stayed exactly what it was with no discount.
+// Whenever a discount fits its own side (nearly every quote) the result is identical to before.
+function _bwNetBuckets(taxableSub, exemptSub, discountLines) {
+  var t = taxableSub || 0, e = exemptSub || 0;
+  (discountLines || []).forEach(function(dl) {
+    var d = Math.abs(dl.amount || 0), a;
+    if (!(d > 0)) return;
+    if (dl.taxableDiscount) { a = Math.min(d, Math.max(0, t)); t -= a; e = Math.max(0, e - (d - a)); }
+    else                    { a = Math.min(d, Math.max(0, e)); e -= a; t = Math.max(0, t - (d - a)); }
+  });
+  return { taxable: Math.round(Math.max(0, t) * 100) / 100, exempt: Math.round(Math.max(0, e) * 100) / 100 };
+}
+// The same, straight from a quote's line list (tax lines ignored).
+function _bwLineBuckets(lines) {
+  var t = 0, e = 0, d = [];
+  (lines || []).forEach(function(l) {
+    if (l.isTax) return;
+    if (l.isDiscount) { d.push(l); return; }
+    if (l.taxable) t += (l.amount || 0); else e += (l.amount || 0);
+  });
+  return _bwNetBuckets(t, e, d);
+}
+function _bwTaxOfLines(lines) {
+  return Math.round(_bwLineBuckets(lines).taxable * TAX * 100) / 100;
+}
+
 function renderSummary(containerId, lines, discountAmt, discountLabel, discountMode) {
   var body = el(containerId);
   if (!body) return 0;
@@ -7817,17 +7849,10 @@ function renderSummary(containerId, lines, discountAmt, discountLabel, discountM
 
   var exemptSubtotal = exemptLines.reduce(function(s, l) { return s + l.amount; }, 0);
   var taxableSubtotal = taxableLines.reduce(function(s, l) { return s + l.amount; }, 0);
-  // Apply each discount to the correct tax bucket based on taxableDiscount flag
-  var taxableAfterDiscount = taxableSubtotal;
-  var exemptAfterDiscount  = exemptSubtotal;
-  discountLines.forEach(function(dl) {
-    var dAmt = Math.abs(dl.amount);
-    if (dl.taxableDiscount) {
-      taxableAfterDiscount = Math.max(0, taxableAfterDiscount - dAmt);
-    } else {
-      exemptAfterDiscount = Math.max(0, exemptAfterDiscount - dAmt);
-    }
-  });
+  // Each discount off its own tax bucket, overflow into the other: see _bwNetBuckets().
+  var _nb = _bwNetBuckets(taxableSubtotal, exemptSubtotal, discountLines);
+  var taxableAfterDiscount = _nb.taxable;
+  var exemptAfterDiscount  = _nb.exempt;
   var totalBeforeDiscount = exemptSubtotal + taxableSubtotal;
   var appliedDiscount = discountLines.reduce(function(s,l){return s+Math.abs(l.amount);},0);
   var tax = Math.round(taxableAfterDiscount * TAX * 100) / 100;
@@ -8872,7 +8897,9 @@ function buildExportText(lines, total, clientName, quoteType) {
   if (exempt.length)  { out += '\nTAX-EXEMPT SERVICES\n'; exempt.forEach(function(l){out+=fmtLine(l.label,l.amount);}); }
   if (taxable.length) { out += '\nTAXABLE MERCHANDISE\n'; taxable.forEach(function(l){out+=fmtLine(l.label,l.amount);}); }
   if (discs.length)   { out += '\nDISCOUNTS\n'; discs.forEach(function(l){out+='- '+fmtLine(l.label,l.amount);}); }
-  var tax = Math.round(lines.filter(function(l){return l.taxable&&!l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0)*TAX*100)/100;
+  // Was taxable × TAX with discounts ignored, so the copied text overstated tax whenever a
+  // merchandise discount applied. Same figure as the summary card now.
+  var tax = _bwTaxOfLines(lines);
   if (tax > 0) out += fmtLine('Sales Tax (10.4%)', tax);
   out += '-'.repeat(48) + '\n';
   out += fmtLine('TOTAL', total);
@@ -9281,12 +9308,8 @@ function calcBTotal() {
   var bExemptSub  = lines.filter(function(l){return !l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var bTaxableSub = lines.filter(function(l){return  l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var bDiscLines  = lines.filter(function(l){return l.isDiscount;});
-  var bTaxableAfter = bTaxableSub, bExemptAfter = bExemptSub;
-  bDiscLines.forEach(function(dl){
-    var dAmt = Math.abs(dl.amount);
-    if (dl.taxableDiscount) bTaxableAfter = Math.max(0, bTaxableAfter - dAmt);
-    else bExemptAfter = Math.max(0, bExemptAfter - dAmt);
-  });
+  var _bNb = _bwNetBuckets(bTaxableSub, bExemptSub, bDiscLines);   // see _bwNetBuckets()
+  var bTaxableAfter = _bNb.taxable, bExemptAfter = _bNb.exempt;
   var bTax   = Math.round(bTaxableAfter * TAX * 100) / 100;
   var bTotal = bExemptAfter + bTaxableAfter + bTax;
 
@@ -9677,13 +9700,7 @@ function _fqSurfaceGroups(lines, kind){
 // are tax-inclusive, so the "Sales tax" line on the totals block is a disclosure of tax already
 // baked into the total — never added on top.
 function _fqTaxOf(lines){
-  var taxable=0, taxDisc=0;
-  lines.forEach(function(l){
-    if(l.isTax) return;
-    if(l.isDiscount){ if(l.taxableDiscount) taxDisc+=Math.abs(l.amount); return; }
-    if(l.taxable) taxable+=l.amount;
-  });
-  return Math.round(Math.max(0,taxable-taxDisc)*TAX*100)/100;
+  return _bwTaxOfLines(lines);
 }
 // Pre-tax net for a set of lines — the sum of exactly the rows the quote prints (every non-tax,
 // non-discount item, less every discount). This is the SUBTOTAL. The surface `total` handed in by
@@ -11884,9 +11901,20 @@ function combUpdate() {
   if (discMode) {
     var dv = parseFloat(val('combDiscValue')) || 0;
     var dn = val('combDiscNote') || 'Discount';
-    discAmt = discMode === 'percent' ? grandTotal * (dv/100) : Math.min(dv, grandTotal);
+    // Figured on the PRE-tax total (a percentage of the tax-inclusive total discounted the sales
+    // tax itself), and taken off services first like every other all-items discount; only a
+    // discount bigger than the combined services reaches merchandise and lowers the tax.
+    var preTax = grandTotal - taxTotal;
+    discAmt = discMode === 'percent' ? Math.round(preTax * (dv/100) * 100) / 100 : Math.min(dv, preTax);
     discLabel = dn + (discMode === 'percent' ? ' (' + dv + '%)' : '');
-    if (discAmt > 0) { split += _sumSplitRow(discLabel, '-' + fmt(discAmt), 's-split-disc'); grandTotal -= discAmt; }
+    if (discAmt > 0) {
+      var cb = _bwLineBuckets([].concat(hasCem ? _combCemLines : [], hasFh ? _combFhLines : [], customLines));
+      var taxAfter = Math.round(_bwNetBuckets(cb.taxable, cb.exempt, [{ amount: discAmt }]).taxable * TAX * 100) / 100;
+      var taxCut = Math.max(0, Math.round((taxTotal - taxAfter) * 100) / 100);
+      // Only the overflow case moves the tax; otherwise taxCut is 0 and nothing else changes.
+      if (cb.exempt < discAmt && taxCut > 0) { taxTotal -= taxCut; grandTotal -= taxCut; }
+      split += _sumSplitRow(discLabel, '-' + fmt(discAmt), 's-split-disc'); grandTotal -= discAmt;
+    }
   }
   split += _sumSplitRow('Sales tax (10.4% \u00b7 merchandise only)', fmt(taxTotal), 's-split-tax');
   // Published for the export/email path, which used to read these back out of the panel's DOM.
@@ -19209,12 +19237,8 @@ function calcFhBTotal() {
   var bExemptSub  = lines.filter(function(l){return !l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var bTaxableSub = lines.filter(function(l){return  l.taxable && !l.isDiscount;}).reduce(function(s,l){return s+l.amount;},0);
   var bDiscLines  = lines.filter(function(l){return l.isDiscount;});
-  var bTaxableAfter = bTaxableSub, bExemptAfter = bExemptSub;
-  bDiscLines.forEach(function(dl) {
-    var dAmt = Math.abs(dl.amount);
-    if (dl.taxableDiscount) bTaxableAfter = Math.max(0, bTaxableAfter - dAmt);
-    else bExemptAfter = Math.max(0, bExemptAfter - dAmt);
-  });
+  var _bNb = _bwNetBuckets(bTaxableSub, bExemptSub, bDiscLines);   // see _bwNetBuckets()
+  var bTaxableAfter = _bNb.taxable, bExemptAfter = _bNb.exempt;
   var bTax   = Math.round(bTaxableAfter * TAX * 100) / 100;
   var bTotal = bExemptAfter + bTaxableAfter + bTax;
 
@@ -19435,8 +19459,8 @@ async function generateRICContractCore(clientData) {
     // Tax base = taxable subtotal minus any discount flagged taxableDiscount (e.g. "10% Prop Disc"
     // applies to taxable merchandise). Was: taxableSub × TAX, which overcharged tax by the
     // discount × TAX (~$31 on a $299 prop discount).
-    var taxableDiscAmt = discLines.filter(function(l){ return l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
-    var taxAmount     = Math.round(Math.max(0, taxableSub - taxableDiscAmt) * TAX * 100) / 100;
+    // Same rule as the cemetery quote (_bwNetBuckets), so the RIC total matches the quote's.
+    var taxAmount     = Math.round(_bwNetBuckets(taxableSub, exemptSub, discLines).taxable * TAX * 100) / 100;
     var grandTotal    = Math.round((exemptSub + taxableSub + discAmt + taxAmount) * 100) / 100;
     var subTotal      = Math.round((exemptSub + taxableSub + discAmt) * 100) / 100;
     var downAmt       = _finData ? (_finData.downAmt  || 0) : 0;
@@ -21361,9 +21385,8 @@ async function generateClearPointContract() {
     var totalFuneralPrice     = Math.max(0, servicesTotal + formCasketPrice + urnTotalAmt + rightMerchTotal - planDiscount);
     // Tax base = sum of taxable non-discount lines MINUS any discount flagged taxableDiscount
     // (mirrors GA so taxable discounts properly reduce tax).
-    var _cpTaxableBase = lines.filter(function(l){ return l.taxable && !l.isDiscount; }).reduce(function(s,l){ return s + l.amount; }, 0);
-    var _cpTaxDiscAmt  = lines.filter(function(l){ return l.isDiscount && l.taxableDiscount; }).reduce(function(s,l){ return s + Math.abs(l.amount); }, 0);
-    var taxAmt      = Math.round(Math.max(0, _cpTaxableBase - _cpTaxDiscAmt) * 0.104 * 100) / 100;
+    // Same rule (and the same TAX constant) as the FH quote, so the two cannot disagree.
+    var taxAmt      = _bwTaxOfLines(lines);
     var nonGuar     = motoEscortAmt + dcAmt + countyFeeAmt + obituaryTotal + limousineAmt + flowersP3Total + cpAssignedCATotal;
     var caTotal     = nonGuar + taxAmt;                                 // ClearPoint folds tax into the cash-advance allowance
     var fpTotal     = totalFuneralPrice + caTotal;
