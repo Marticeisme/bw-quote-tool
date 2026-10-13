@@ -130,6 +130,11 @@ body:has(.summary-fixed.visible) .tb-action:hover{background:var(--navy-50);bord
    builders stack in one column, and each builder's summary panel becomes a bottom bar with the
    total and a Text quote button: a short, editable text message instead of the PDF and Print. */
 .tb-menu{display:none;}
+.tb-find{display:none;}
+body.bw-mobile .tb-find{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;flex-shrink:0;background:none;border:1px solid var(--navy-150);border-radius:10px;color:var(--ink);cursor:pointer;}
+/* Phone view: the search box opens as a row under the top bar (prices and families). */
+body.bw-mobile.bw-find .tb-search{display:flex !important;position:fixed;top:62px;left:10px;right:10px;width:auto;z-index:270;background:#fff;box-shadow:var(--sh-2);height:46px;}
+body.bw-mobile.bw-find .tb-search input{font-size:16px !important;}
 .tb-view{height:38px;padding:0 12px;display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font:600 13px/1 'Public Sans',sans-serif;cursor:pointer;white-space:nowrap;}
 .tb-view:hover{background:var(--navy-50);border-color:var(--navy-400);}
 .tb-view .lc{width:16px;height:16px;}
@@ -996,8 +1001,9 @@ tr:hover td{background:var(--navy-100);}
   <button class="tb-menu" type="button" onclick="bwToggleDrawer()" aria-label="Menu"><span data-lc="menu" data-lc-sz="22"></span></button>
   <div class="tb-crumb"><span id="crumbGroup">Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
   <div class="tb-right">
+    <button class="tb-find" type="button" onclick="bwToggleFind()" aria-label="Search prices or families"><span data-lc="search" data-lc-sz="20"></span></button>
     <button class="tb-view" id="tbView" type="button" onclick="bwToggleViewMode()" title="Switch to the phone layout for quick quotes">Phone view</button>
-    <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();plFromSearch();}" autocomplete="off"></div>
+    <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search prices or families…" oninput="doSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();plFromSearch();}" autocomplete="off"></div>
     <button class="tb-action2" onclick="show('fh-quote', document.querySelector('.nav-item[onclick*=fh-quote]'))">New Funeral Home Quote</button>
     <button class="tb-action" onclick="show('cem-quote', document.querySelector('.nav-item[onclick*=cem-quote]'))">New Cemetery Quote</button>
   </div>
@@ -7752,6 +7758,62 @@ function plFromSearch(){ var si = document.getElementById('searchInput'); openPr
 window.plFromSearch = plFromSearch;
 window.buildPriceIndex = buildPriceIndex;
 
+// ── Family search (top bar) ───────────────────────────────────────────────────────────────
+// The price search also finds a FAMILY: contacts by name, and every saved quote, contract and
+// deed transfer by its saved name. All of it is already in memory and already filtered to what
+// this user may see (and minus Recently deleted), so nothing is fetched or written.
+var BW_FAMILY_TYPES = [
+  ['cem', 'Cemetery quote',     function(){ return _cemSavedQuotes; },    'loadSavedCemQuote',     'cem-saved'],
+  ['fh',  'Funeral home quote', function(){ return _fhSavedQuotes; },     'loadSavedFhQuote',      'fh-saved'],
+  ['ric', 'RIC contract',       function(){ return _ricSavedContracts; }, 'loadSavedRicContract',  'ric-saved'],
+  ['ga',  'GA contract',        function(){ return _gaSavedContracts; },  'loadSavedGaContract',   'ga-saved'],
+  ['cp',  'ClearPoint contract',function(){ return _cpSavedContracts; },  'loadSavedCpContract',   'cp-saved'],
+  ['an',  'At-need contract',   function(){ return _anSavedContracts; },  'loadSavedAnContract',   'an-saved'],
+  ['dt',  'Deed transfer',      function(){ return _dtSavedTransfers; },  'loadSavedDeedTransfer', 'dt-saved']
+];
+function _bwNameScore(name, ql) {
+  var n = String(name || '').toLowerCase();
+  if (!n || ql.length < 2) return 0;
+  if (n.indexOf(ql) === 0) return 100;
+  if (n.split(/[\s,\-–—&/().]+/).some(function(w){ return w && w.indexOf(ql) === 0; })) return 85;
+  if (n.indexOf(ql) > -1) return 60;
+  return 0;
+}
+function bwFamilyMatches(q) {
+  var ql = String(q || '').toLowerCase().trim(), out = [];
+  if (ql.length < 2) return out;
+  try {
+    Object.keys(_partyStore || {}).forEach(function(id) {
+      var p = _partyStore[id];
+      if (!p || p.mergedInto || (typeof bwCanSeeRecord === 'function' && !bwCanSeeRecord(p))) return;
+      var nm = bwPartyName(p), sc = _bwNameScore(nm, ql);
+      if (sc) out.push({ s: sc + 5, title: nm, sub: 'Contact', go: "bwFamilyGo('contact','" + id + "')" });
+    });
+  } catch (e) {}
+  BW_FAMILY_TYPES.forEach(function(t) {
+    (t[2]() || []).forEach(function(rec) {
+      var sc = _bwNameScore(rec.label, ql);
+      if (!sc) return;
+      out.push({ s: sc, title: rec.label || 'Untitled',
+        sub: t[1] + (rec.date ? ' · ' + rec.date : '') + (rec.total ? ' · ' + fmt(rec.total) : '') + (rec.archivedAt ? ' · archived' : ''),
+        go: "bwFamilyGo('" + t[0] + "'," + rec.id + ")" });
+    });
+  });
+  out.sort(function(a, b){ return b.s - a.s || a.title.localeCompare(b.title); });
+  return out.slice(0, 8);
+}
+function bwFamilyGo(type, id) {
+  var dd = el('searchDropdown'); if (dd) dd.style.display = 'none';
+  var si = el('searchInput'); if (si) si.value = '';
+  document.body.classList.remove('bw-find');
+  if (type === 'contact') { show('contacts', el('navContacts')); openContactDetail(id); return; }
+  var t = BW_FAMILY_TYPES.filter(function(x){ return x[0] === type; })[0]; if (!t) return;
+  var rec = (t[2]() || []).filter(function(r){ return r.id === id; })[0];
+  // A record saved without its builder state can't be reopened; land on its saved list instead.
+  if (rec && rec.state && typeof window[t[3]] === 'function') window[t[3]](id);
+  else show(t[4], document.querySelector('.nav-item[onclick^="show(\'' + t[4] + '\'"]'));
+}
+
 function doSearch(q) {
   var dropdown = el('searchDropdown');
   if (!q || q.length < 2) {
@@ -7794,7 +7856,8 @@ function doSearch(q) {
   scored.sort(function(a, b){ return b.score - a.score; });
   var topCats = scored.slice(0, 5);
 
-  if (!topItems.length && !topCats.length) {
+  var fams = bwFamilyMatches(q);
+  if (!topItems.length && !topCats.length && !fams.length) {
     if (dropdown) dropdown.style.display = 'none';
     return;
   }
@@ -7807,6 +7870,15 @@ function doSearch(q) {
   }
 
   var html = '';
+  // Families first: when a name matches, that's almost always what was being looked for.
+  if (fams.length) {
+    html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;">Families</div>';
+    html += fams.map(function(r) {
+      return '<div class="search-result-item bw-fam-hit" onclick="' + r.go + '" style="padding:8px 14px;cursor:pointer;font-size:12.5px;color:#fff;border-bottom:1px solid rgba(255,255,255,.07);">'
+        + '<div style="font-weight:600;">' + _ceEsc(r.title) + '</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:1px;">' + _ceEsc(r.sub) + '</div></div>';
+    }).join('');
+  }
   if (topItems.length) {
     html += '<div style="padding:7px 14px 3px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;">Prices</div>';
     html += topItems.map(function(r) {
@@ -26395,6 +26467,11 @@ function bwToggleViewMode() {
   var next = document.body.classList.contains('bw-mobile') ? 'desktop' : 'mobile';
   try { localStorage.setItem(BW_VIEW_KEY, next); } catch (e) {}
   bwApplyViewMode(next);
+}
+function bwToggleFind(open) {
+  var on = open === undefined ? !document.body.classList.contains('bw-find') : !!open;
+  document.body.classList.toggle('bw-find', on);
+  if (on) { var si = document.getElementById('searchInput'); if (si) setTimeout(function(){ si.focus(); }, 30); }
 }
 function bwToggleDrawer(open) {
   var on = open === undefined ? !document.body.classList.contains('bw-drawer') : !!open;
