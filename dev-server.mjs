@@ -51,7 +51,10 @@ http.createServer((req, res) => {
     return;
   }
 
-  let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+  // Decode %20 etc. the way GitHub Pages does, so pdf-assets/Cremation%20Guide.pdf resolves here too.
+  let reqPath = req.url.split('?')[0];
+  try { reqPath = decodeURIComponent(reqPath); } catch (e) {}
+  let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : reqPath);
   // SPA fallback for extensionless routes only. A missing FILE must 404: silently serving
   // index.html in its place is how a worktree's test page came back as another tree's
   // index.html and produced phantom results (GitHub Pages 404s here too).

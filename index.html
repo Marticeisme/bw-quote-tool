@@ -195,6 +195,18 @@ body.bw-mobile .saved-actions button[onclick^="bwSavedRowPDF"],body.bw-mobile .s
 .bwts-actions{display:flex;gap:8px;}
 .bwts-actions .btn{flex:1;min-height:48px;justify-content:center;font-size:15px;}
 
+/* Family Packet */
+.pk-guides{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 24px;}
+.pk-group{margin-bottom:10px;}
+.pk-meta{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.pk-off label{color:var(--navy-300);}
+.pk-hint{font-size:12px;color:var(--muted);}
+.pk-bar{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;margin-top:8px;background:#fff;border:1px solid var(--navy-150);border-radius:var(--r-md);box-shadow:var(--sh-2);}
+.pk-count{font:600 14px/1.3 'Public Sans',sans-serif;color:var(--ink);}
+.pk-status{font-size:12.5px;color:var(--muted);margin-top:2px;}
+body.bw-mobile .pk-bar{bottom:8px;flex-wrap:wrap;}
+body.bw-mobile .pk-bar .btn{flex:1 1 100%;min-height:46px;justify-content:center;}
+
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
 
@@ -954,6 +966,7 @@ tr:hover td{background:var(--navy-100);}
   <div class="nav-item highlight" data-g="chk" onclick="show('atneed-checklist',this)"><span class="ni-ic" data-lc="list-checks"></span>CIRGAS Checklist</div>
 
   <div class="nav-label" data-g="res">Resources</div>
+  <div class="nav-item highlight" data-g="res" onclick="show('packet',this)"><span class="ni-ic" data-lc="package"></span>Family Packet</div>
   <a class="nav-item" data-g="res" href="guides.html" target="_blank" rel="noopener"><span class="ni-ic" data-lc="book-open"></span>Family Guides &amp; Resources</a>
   </div><!-- /sb-nav -->
   <div id="fbStatus" style="font-size:10.5px;font-weight:600;letter-spacing:.02em;color:#c3d0de;padding:5px 12px;margin:0 10px 6px;border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">● Saved quotes: connecting…</div>
@@ -4880,6 +4893,42 @@ tr:hover td{background:var(--navy-100);}
       </div>
       <button class="summary-reset" onclick="if (confirm('Clear this combined quote and start over?')) resetCombQuote();">Reset quote</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ FAMILY PACKET ═══ -->
+<div class="section" id="section-packet">
+  <div class="section-header">
+    <div class="section-icon"><span data-lc="package" data-lc-sz="18"></span></div>
+    <h2>Family Packet</h2>
+  </div>
+  <div class="callout callout-blue">Put a quote and any guides, catalogs or worksheets into one PDF to email or print. The quote pages are the same family quote PDF. Nothing here is saved.</div>
+
+  <div class="q-panel">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="user-round" data-lc-sz="16"></span></span>Family</div>
+    <div class="q-panel-body">
+      <div class="q-row"><label for="pkFamily">Family name</label>
+        <input type="text" id="pkFamily" placeholder="e.g. Smith Family" oninput="this.dataset.touched='1'" style="flex:1;"></div>
+      <div class="q-check-row"><input type="checkbox" id="pkCover" checked onchange="bwPacketCount()"><label for="pkCover">Cover page with what's inside and page numbers</label></div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="calculator" data-lc-sz="16"></span></span>Quote</div>
+    <div class="q-panel-body">
+      <div id="pkQuotes"></div>
+      <div class="pk-hint">A quote shows here once it's built in the Cemetery, Funeral Home or Combined builder. Open a saved quote first to include it.</div>
+    </div>
+  </div>
+
+  <div class="q-panel">
+    <div class="q-panel-header"><span class="ph-ic"><span data-lc="book-open" data-lc-sz="16"></span></span>Guides, catalogs and worksheets</div>
+    <div class="q-panel-body"><div id="pkGuides" class="pk-guides"></div></div>
+  </div>
+
+  <div class="pk-bar">
+    <div><div id="pkCount" class="pk-count"></div><div id="pkStatus" class="pk-status"></div></div>
+    <button class="btn btn-primary" id="pkGo" onclick="bwDownloadPacket()" disabled><span data-lc="file-down" data-lc-sz="15"></span>Download packet</button>
   </div>
 </div>
 
@@ -19151,6 +19200,7 @@ function show(id, navEl) {
   // fresh install: with no contacts there is no child_added, so nothing ever triggers a render
   // and the empty state that tells you what to do never appears.
   if (id === 'contacts') { try { renderContactsList(); } catch(e) {} }
+  if (id === 'packet') { try { bwPacketRender(); } catch(e) {} }
   if (id === 'crm-settings') { try { renderCrmSettings(); } catch(e) {} }
   if (id === 'import-contacts') { try { renderContactImport(); } catch(e) {} }
   // Leaving Contacts drops back to the list, so returning never lands on a stale detail panel.
@@ -23921,13 +23971,37 @@ function _getLogoPngBytes() {
   });
 }
 
-async function downloadCemQuotePDF() {
-  bwStampExport('cem');
-  logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
+// ═══════════════════════════════════════════════════════════════
+// FAMILY PACKET — the quote plus any guides, catalogs and worksheets, as ONE PDF
+// ═══════════════════════════════════════════════════════════════
+// The quote pages are the same family quote PDF the Download PDF buttons make (same model,
+// same _fqBuildPDFBytes). Guides come from pdf-assets/, exactly the files the guides site serves.
+// An optional cover lists what's inside with page numbers. Nothing is saved; the packet is
+// built in the browser and downloaded.
+var BW_PACKET_GROUPS = [
+  ['Guides', ['Cremation Guide', 'Burial Guide', 'Cremation or Burial', 'Pre-Planning Guide', 'Who Decides',
+              'What to Do First', 'Death Certificates', 'Veterans Guide', 'Medicaid and Planning Ahead',
+              'Direct Cremation Plan Example', 'Travel Plan by Inman', 'Terramation Guide']],
+  ['Cemetery property', ['Cemetery Property Guide', 'Urn Placement Options', 'Urn Gardens at Washington Memorial Park',
+              'Eternal Light Columbarium', 'Garden of Meditation Niches', 'Glass-Front Niche Guide', 'Granite Niches Guide',
+              'Mountain View New Glass-Front Niches', 'Rock of Ages Columbarium', 'Terrace Garden Memorial Path',
+              'Scattering Garden Pricing', 'Burial Vault Guide']],
+  ['Markers and memorials', ['Bronze Markers', 'Granite Marker Sizes and Colors', 'Marker Photos and Etching',
+              'Marker Sizes and Pricing', 'Outside Marker Rules and Pricing', 'Vases and Vase Blocks']],
+  ['Catalogs', ['All Caskets', 'Metal Caskets', 'Wood Caskets', 'Cremation Containers and Rental Caskets',
+              'Urn Catalog', 'Keepsake Urn Catalog', 'Sympathy Flowers']],
+  ['Price list', ['General Price List']],
+  ['Information worksheets (fillable)', ['Cemetery Arrangement Information', 'Cemetery Property Information',
+              'Funeral Plan Information', 'Next of Kin Information']]
+];
+
+// The three family quote models, shared with the Download PDF buttons so the packet's quote
+// pages can never differ from the quote PDF itself. null when that builder is empty.
+function bwCemQuoteModel() {
   var lines = (typeof _cemLines !== 'undefined' && Array.isArray(_cemLines)) ? _cemLines : [];
-  if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
+  if (!lines.length) return null;
   var isAtNeed = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed');
-  var model = _fqBuildModel({
+  return _fqBuildModel({
     typeLabel:  isAtNeed ? 'Cemetery At-Need Quote' : 'Cemetery Quote',
     scopeLabel: 'Washington Memorial Park',
     clientName: val('cemClientName') || '',
@@ -23935,6 +24009,267 @@ async function downloadCemQuotePDF() {
     showPayment: !isAtNeed,
     surfaces: [{ kind:'cem', name:'Cemetery', tagline:'Washington Memorial Park', lines:lines, total:(typeof _cemTotal!=='undefined'?_cemTotal:0) }]
   });
+}
+function bwFhQuoteModel() {
+  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
+  if (!lines.length) return null;
+  var _fhT = (typeof _fhTotal!=='undefined'?_fhTotal:0);
+  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
+  return _fqBuildModel({
+    typeLabel:  'Funeral Home Quote',
+    scopeLabel: 'Funeral Home Services',
+    clientName: val('fhClientName') || '',
+    notes:      val('fhQuoteNotes') || '',
+    showPayment: true,
+    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, _fhT) : null,
+    surfaces: [{ kind:'fh', name:'Funeral Home', tagline:'Services & merchandise', lines:lines, total:_fhT }]
+  });
+}
+function bwCombQuoteModel() {
+  var cemLines = (typeof _combCemLines !== 'undefined' ? _combCemLines : []) || [];
+  var fhLines  = (typeof _combFhLines  !== 'undefined' ? _combFhLines  : []) || [];
+  if (!cemLines.length && !fhLines.length) return null;
+  var cemTotal   = (typeof _combCemTotal !== 'undefined' ? _combCemTotal : 0);
+  var fhTotalVal = (typeof _combFhTotal  !== 'undefined' ? _combFhTotal  : 0);
+  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
+  return _fqBuildModel({
+    typeLabel:  'Combined Family Quote',
+    scopeLabel: 'Cemetery & Funeral Home',
+    clientName: (val('cemClientName') || val('fhClientName') || '').trim(),
+    notes:      '',
+    showPayment: true,
+    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, fhTotalVal) : null,
+    combBudget: parseFloat((el('combTargetBudget')||{}).value)||0,
+    surfaces: [
+      { kind:'cem', name:'Cemetery',     tagline:'Washington Memorial Park', lines:cemLines, total:cemTotal },
+      { kind:'fh',  name:'Funeral Home', tagline:'Services & merchandise',    lines:fhLines,  total:fhTotalVal }
+    ]
+  });
+}
+
+var BW_PACKET_QUOTES = [
+  { key: 'cem',  label: 'Cemetery quote',      model: function(){ return bwCemQuoteModel(); },  total: function(){ return _cemTotal || 0; } },
+  { key: 'fh',   label: 'Funeral home quote',  model: function(){ return bwFhQuoteModel(); },   total: function(){ return _fhTotal || 0; } },
+  { key: 'comb', label: 'Combined quote',      model: function(){ return bwCombQuoteModel(); }, total: function(){ return (_combCemTotal || 0) + (_combFhTotal || 0); } }
+];
+
+function bwPacketRender() {
+  var fam = el('pkFamily');
+  if (fam && !fam.dataset.touched) fam.value = (val('cemClientName') || val('fhClientName') || '').trim();
+  var qh = el('pkQuotes');
+  if (qh) {
+    // Remember what was ticked across re-renders; a builder with nothing in it can't be picked.
+    var was = {}; qh.querySelectorAll('input[type=checkbox]').forEach(function(c){ was[c.value] = c.checked; });
+    qh.innerHTML = BW_PACKET_QUOTES.map(function(q) {
+      var has = !!q.model();
+      var on = has && (q.key in was ? was[q.key] : false);
+      return '<div class="q-check-row' + (has ? '' : ' pk-off') + '"><input type="checkbox" id="pkq-' + q.key + '" value="' + q.key + '"'
+        + (has ? '' : ' disabled') + (on ? ' checked' : '') + ' onchange="bwPacketCount()">'
+        + '<label for="pkq-' + q.key + '">' + q.label + '</label>'
+        + '<span class="pk-meta">' + (has ? fmt(q.total()) : 'nothing built yet') + '</span></div>';
+    }).join('');
+  }
+  var gh = el('pkGuides');
+  if (gh && !gh.children.length) {
+    gh.innerHTML = BW_PACKET_GROUPS.map(function(g, gi) {
+      return '<div class="pk-group"><div class="q-group-label">' + g[0] + '</div>'
+        + g[1].map(function(name, i) {
+            var id = 'pkg-' + gi + '-' + i;
+            return '<div class="q-check-row"><input type="checkbox" id="' + id + '" value="' + _ceEsc(name) + '" onchange="bwPacketCount()">'
+              + '<label for="' + id + '">' + _ceEsc(name) + '</label></div>';
+          }).join('') + '</div>';
+    }).join('');
+  }
+  bwPacketCount();
+}
+function _bwPacketPicks() {
+  var quotes = [], files = [];
+  document.querySelectorAll('#pkQuotes input[type=checkbox]:checked').forEach(function(c){ quotes.push(c.value); });
+  document.querySelectorAll('#pkGuides input[type=checkbox]:checked').forEach(function(c){ files.push(c.value); });
+  return { quotes: quotes, files: files, cover: !!(el('pkCover') && el('pkCover').checked),
+           family: (val('pkFamily') || '').trim() };
+}
+function bwPacketCount() {
+  var p = _bwPacketPicks(), n = p.quotes.length + p.files.length;
+  var c = el('pkCount');
+  if (c) c.textContent = n ? (n + (n === 1 ? ' item' : ' items') + (p.cover ? ' plus a cover page' : '')) : 'Pick a quote or a guide below.';
+  var b = el('pkGo'); if (b) b.disabled = !n;
+}
+
+// Cover page, drawn with the family quote's own pieces: slate masthead with the white logo,
+// orange keyline, the "Prepared for" eyebrow and serif name, and the advisor footer.
+async function _bwPacketCoverBytes(family, contents) {
+  var PDFDocument = PDFLib.PDFDocument, rgb = PDFLib.rgb, StandardFonts = PDFLib.StandardFonts;
+  function C(h){ return rgb(parseInt(h.substr(1,2),16)/255, parseInt(h.substr(3,2),16)/255, parseInt(h.substr(5,2),16)/255); }
+  var SLATE=C(_FQ2.slate), ORANGE=C(_FQ2.orange), CREAM=C(_FQ2.cream), INK=C(_FQ2.ink), MUTED=C(_FQ2.muted),
+      GREY=C(_FQ2.grey), LINE=C(_FQ2.line), HAIR=C(_FQ2.hair), HEAD=C(_FQ2.head), CONTACTB=C(_FQ2.contactb),
+      MASTSUB=C(_FQ2.mastsub), WHITE=rgb(1,1,1);
+  var PW=612, PH=792, M=40, RX=PW-M;
+  var doc = await PDFDocument.create(), serif, serifB, sans, sansB, sansH;
+  try {
+    doc.registerFontkit(window.fontkit);
+    var ef = async function(k){ return await doc.embedFont(_fqB64ToBytes(FQ_FONTS[k]), { subset: true }); };
+    serif = await ef('serif600'); serifB = await ef('serif700'); sans = await ef('sans400'); sansB = await ef('sans600'); sansH = await ef('sans700');
+  } catch (e) {
+    serif = await doc.embedFont(StandardFonts.TimesRoman); serifB = await doc.embedFont(StandardFonts.TimesRomanBold);
+    sans = await doc.embedFont(StandardFonts.Helvetica); sansB = await doc.embedFont(StandardFonts.HelveticaBold); sansH = sansB;
+  }
+  var logo = null;
+  try { logo = await doc.embedPng(await _fqLogoPngBytes(_fqWhiteLogoSVG(), 226)); } catch (e) {}
+  function clean(s){ return String(s == null ? '' : s).replace(/[‐-―−]/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/·/g,'\xb7').replace(/[^\x00-\xFF]/g,''); }
+  var page = doc.addPage([PW, PH]);
+  function rt(t, xR, y, font, size, color){ t = clean(t); page.drawText(t, { x: xR - font.widthOfTextAtSize(t, size), y: y, size: size, font: font, color: color }); }
+  function track(s, x, y, font, size, color, ls){ s = clean(s).toUpperCase(); var cx = x;
+    for (var i = 0; i < s.length; i++) { page.drawText(s[i], { x: cx, y: y, size: size, font: font, color: color }); cx += font.widthOfTextAtSize(s[i], size) + size * ls; } }
+  page.drawRectangle({ x: 0, y: 0, width: PW, height: PH, color: CREAM });
+  var MAST_H = 85, bot = PH - MAST_H, mid = bot + MAST_H / 2;
+  page.drawRectangle({ x: 0, y: bot, width: PW, height: MAST_H, color: SLATE });
+  page.drawRectangle({ x: 0, y: bot - 2.25, width: PW, height: 2.25, color: ORANGE });
+  if (logo) { var lh = 39; page.drawImage(logo, { x: M, y: mid - lh / 2, width: lh * (308.34 / 56.42), height: lh }); }
+  rt('Family Packet', RX, mid + 4, serifB, 25, WHITE);
+  rt('Washington Memorial Park \xb7 ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), RX, mid - 13, sans, 9, MASTSUB);
+  var y = bot - 2.25 - 44;
+  track('Prepared for', M, y, sansH, 8.25, ORANGE, 0.24);
+  y -= 36;
+  var name = clean(family || 'Your Family'), nsz = 30;
+  while (serif.widthOfTextAtSize(name, nsz) > RX - M && nsz > 18) nsz -= 1;
+  page.drawText(name, { x: M, y: y, size: nsz, font: serif, color: HEAD });
+  y -= 52;
+  page.drawText("What's Inside", { x: M, y: y, size: 16.5, font: serif, color: HEAD });
+  page.drawRectangle({ x: M, y: y - 8, width: RX - M, height: 1.5, color: SLATE });
+  y -= 30;
+  contents.forEach(function(c) {
+    var t = clean(c.title), sz = 11;
+    while (sansB.widthOfTextAtSize(t, sz) > RX - M - 80 && sz > 8) sz -= 0.5;
+    page.drawText(t, { x: M, y: y, size: sz, font: sansB, color: INK });
+    rt('page ' + c.page, RX, y, sans, 10, MUTED);
+    page.drawRectangle({ x: M, y: y - 9, width: RX - M, height: 0.5, color: LINE });
+    y -= 25;
+  });
+  // footer, as on the quote
+  var a = bwCurrentAdvisor(), fy = 52;
+  page.drawRectangle({ x: 0, y: fy + 26, width: PW, height: 1, color: HAIR });
+  page.drawText(clean(a.name || 'Bonney Watson'), { x: M, y: fy + 6, size: 12, font: sansH, color: ORANGE });
+  page.drawText('Family Service Director \xb7 Bonney Watson', { x: M, y: fy - 9, size: 9.4, font: sans, color: GREY });
+  rt([a.email, a.phone].filter(Boolean).join('  \xb7  '), RX, fy + 6, sansB, 10.1, SLATE);
+  rt('16445 International Blvd, SeaTac, WA 98188  \xb7  Available 24 hours', RX, fy - 9, sans, 9, CONTACTB);
+  return await doc.save();
+}
+
+// Copied pages bring their form widgets but not the source's AcroForm, so a worksheet would land
+// as a picture of a form. Re-register each copied field in the packet's form (renaming a field
+// whose name another document already used) so the worksheets stay fillable.
+function _bwPacketKeepFields(out, src, pages, used, tag) {
+  var N = PDFLib.PDFName, S = PDFLib.PDFString, form = out.catalog.getOrCreateAcroForm();
+  // The fields' fonts (/DA "/Helv 0 Tf" etc.) live in the source form's /DR; bring those across.
+  var sf = src.catalog.getAcroForm && src.catalog.getAcroForm();
+  var sdr = sf && sf.dict.get(N.of('DR'));
+  if (sdr) {
+    var cdr = PDFLib.PDFObjectCopier.for(src.context, out.context).copy(src.context.lookup(sdr));
+    var odr = form.dict.get(N.of('DR'));
+    if (!odr) form.dict.set(N.of('DR'), cdr);
+    else {
+      var of = out.context.lookup(odr).get(N.of('Font')), nf = cdr.get(N.of('Font'));
+      if (nf && !of) out.context.lookup(odr).set(N.of('Font'), nf);
+      else if (nf && of) { var ofd = out.context.lookup(of), nfd = out.context.lookup(nf); nfd.keys().forEach(function(k){ if (!ofd.get(k)) ofd.set(k, nfd.get(k)); }); }
+    }
+    if (!form.dict.get(N.of('DA')) && sf.dict.get(N.of('DA'))) form.dict.set(N.of('DA'), sf.dict.get(N.of('DA')));
+  }
+  var seen = new Set();
+  pages.forEach(function(pg) {
+    var annots = pg.node.Annots(); if (!annots) return;
+    for (var i = 0; i < annots.size(); i++) {
+      var ref = annots.get(i);
+      if (!(ref instanceof PDFLib.PDFRef)) continue;
+      var d = out.context.lookup(ref);
+      if (!d || !d.get || String(d.get(N.of('Subtype'))) !== '/Widget') continue;
+      var top = ref, td = d, guard = 0;
+      while (td.get(N.of('Parent')) && guard++ < 20) { top = td.get(N.of('Parent')); td = out.context.lookup(top); }
+      var key = String(top); if (seen.has(key)) continue; seen.add(key);
+      var t = td.get(N.of('T')), nm = t ? (t.decodeText ? t.decodeText() : String(t)) : '';
+      if (nm && used.has(nm)) td.set(N.of('T'), S.of(nm + ' (' + tag + ')'));
+      used.add(nm);
+      form.addField(top);
+    }
+  });
+}
+
+async function bwPacketBytes(p, onStep) {
+  if (typeof PDFLib === 'undefined') throw new Error('PDF library not loaded. Reload the page and try again.');
+  var PDFDocument = PDFLib.PDFDocument, parts = [];
+  for (var qi = 0; qi < p.quotes.length; qi++) {
+    var q = BW_PACKET_QUOTES.filter(function(x){ return x.key === p.quotes[qi]; })[0];
+    var m = q && q.model(); if (!m) continue;
+    onStep && onStep('Building the ' + q.label + '…');
+    parts.push({ title: m.typeLabel || q.label, bytes: await _fqBuildPDFBytes(m) });
+  }
+  for (var fi = 0; fi < p.files.length; fi++) {
+    onStep && onStep('Adding ' + p.files[fi] + '…');
+    var res = await fetch('pdf-assets/' + encodeURIComponent(p.files[fi]) + '.pdf');
+    if (!res.ok) throw new Error('Could not load "' + p.files[fi] + '" (' + res.status + ')');
+    parts.push({ title: p.files[fi], bytes: new Uint8Array(await res.arrayBuffer()) });
+  }
+  for (var i = 0; i < parts.length; i++) {
+    parts[i].src = await PDFDocument.load(parts[i].bytes, { ignoreEncryption: true });
+    parts[i].n = parts[i].src.getPageCount();
+  }
+  onStep && onStep('Putting it together…');
+  var out = await PDFDocument.create(), pageNo = 1, contents = [], used = new Set();
+  if (p.cover) pageNo = 2;
+  parts.forEach(function(pt){ contents.push({ title: pt.title, page: pageNo }); pageNo += pt.n; });
+  if (p.cover) {
+    var cov = await PDFDocument.load(await _bwPacketCoverBytes(p.family, contents));
+    (await out.copyPages(cov, [0])).forEach(function(pg){ out.addPage(pg); });
+  }
+  for (var j = 0; j < parts.length; j++) {
+    var idx = parts[j].src.getPageIndices();
+    var copied = await out.copyPages(parts[j].src, idx);
+    copied.forEach(function(pg){ out.addPage(pg); });
+    try { _bwPacketKeepFields(out, parts[j].src, copied, used, j + 1); } catch (e) { console.warn('packet: form fields not kept for', parts[j].title, e); }
+  }
+  out.setTitle((p.family ? p.family + ' - ' : '') + 'Bonney Watson Family Packet');
+  out.setAuthor('Bonney Watson');
+  return { bytes: await out.save(), pages: out.getPageCount(), contents: contents };
+}
+
+async function bwDownloadPacket() {
+  var p = _bwPacketPicks();
+  if (!p.quotes.length && !p.files.length) { alert('Pick a quote or at least one guide first.'); return; }
+  var def = (p.family ? p.family + ' - ' : '') + 'Bonney Watson Packet';
+  var name = window.prompt('Save packet as:', def); if (name === null) return;
+  name = (name.trim() || def).replace(/\.pdf$/i, '');
+  var btn = el('pkGo'), st = el('pkStatus');
+  var say = function(t){ if (st) st.textContent = t; };
+  if (btn) btn.disabled = true;
+  try {
+    var r = await bwPacketBytes(p, say);
+    // Same bookkeeping as the quote's own Download PDF: a quote in a packet has gone to the family.
+    p.quotes.forEach(function(k){
+      if (k === 'cem') { bwStampExport('cem'); logQuoteHistory('Cemetery', val('cemClientName') || '(unnamed)', _cemTotal || 0); }
+      if (k === 'fh')  { bwStampExport('fh');  logQuoteHistory('Funeral Home', val('fhClientName') || '(unnamed)', _fhTotal || 0); }
+      if (k === 'comb') logQuoteHistory('Combined', p.family || '(unnamed)', (_combCemTotal || 0) + (_combFhTotal || 0));
+    });
+    var url = URL.createObjectURL(new Blob([r.bytes], { type: 'application/pdf' }));
+    var a = document.createElement('a'); a.href = url; a.download = name + '.pdf'; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+    var mb = r.bytes.length / 1048576;
+    say('Done: ' + r.pages + ' pages, ' + mb.toFixed(1) + ' MB.'
+      + (mb > 15 ? ' That is too big for most email. Try fewer catalogs.' : ''));
+  } catch (e) {
+    console.error('Packet error:', e);
+    say('');
+    alert('Could not build the packet: ' + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function downloadCemQuotePDF() {
+  bwStampExport('cem');
+  logQuoteHistory('Cemetery', val('cemClientName')||'(unnamed)', _cemTotal||0);
+  var model = bwCemQuoteModel();   // shared with the Family Packet
+  if (!model) { alert('Build a quote first — no items to export.'); return; }
   await _fqDownloadPDF(model, 'BW_Cemetery_Quote');
 }
 // ── PDF section categorization helpers ───────────────────────────
@@ -23979,44 +24314,16 @@ function categorizeCemLines(lines) {
 async function downloadFhQuotePDF() {
   bwStampExport('fh');
   logQuoteHistory('Funeral Home', val('fhClientName')||'(unnamed)', _fhTotal||0);
-  var lines = (typeof _fhLines !== 'undefined' && Array.isArray(_fhLines)) ? _fhLines : [];
-  if (!lines.length) { alert('Build a quote first — no items to export.'); return; }
-  var _fhT = (typeof _fhTotal!=='undefined'?_fhTotal:0);
-  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
-  var model = _fqBuildModel({
-    typeLabel:  'Funeral Home Quote',
-    scopeLabel: 'Funeral Home Services',
-    clientName: val('fhClientName') || '',
-    notes:      val('fhQuoteNotes') || '',
-    showPayment: true,
-    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, _fhT) : null,
-    surfaces: [{ kind:'fh', name:'Funeral Home', tagline:'Services & merchandise', lines:lines, total:_fhT }]
-  });
+  var model = bwFhQuoteModel();    // shared with the Family Packet
+  if (!model) { alert('Build a quote first — no items to export.'); return; }
   await _fqDownloadPDF(model, 'BW_FuneralHome_Quote');
 }
 
 async function downloadCombQuotePDF() {
-  var cemLines = (typeof _combCemLines !== 'undefined' ? _combCemLines : []) || [];
-  var fhLines  = (typeof _combFhLines  !== 'undefined' ? _combFhLines  : []) || [];
-  if (!cemLines.length && !fhLines.length) { alert('Build both quotes first — no items to export.'); return; }
-  var clientName  = (val('cemClientName') || val('fhClientName') || '').trim();
-  var cemTotal    = (typeof _combCemTotal !== 'undefined' ? _combCemTotal : 0);
-  var fhTotalVal  = (typeof _combFhTotal  !== 'undefined' ? _combFhTotal  : 0);
-  logQuoteHistory('Combined', clientName||'(unnamed)', cemTotal + fhTotalVal);
-  var _mxAge = parseInt((el('fhInsAge')||{}).value)||0, _mxDown = parseFloat((el('fhInsDown')||{}).value)||0;
-  var model = _fqBuildModel({
-    typeLabel:  'Combined Family Quote',
-    scopeLabel: 'Cemetery & Funeral Home',
-    clientName: clientName,
-    notes:      '',
-    showPayment: true,
-    maxima:     _mxAge>0 ? _fqMaximaPlans(_mxAge, _mxDown, fhTotalVal) : null,
-    combBudget: parseFloat((el('combTargetBudget')||{}).value)||0,
-    surfaces: [
-      { kind:'cem', name:'Cemetery',     tagline:'Washington Memorial Park', lines:cemLines, total:cemTotal },
-      { kind:'fh',  name:'Funeral Home', tagline:'Services & merchandise',    lines:fhLines,  total:fhTotalVal }
-    ]
-  });
+  var model = bwCombQuoteModel();  // shared with the Family Packet
+  if (!model) { alert('Build both quotes first — no items to export.'); return; }
+  logQuoteHistory('Combined', (val('cemClientName') || val('fhClientName') || '').trim() || '(unnamed)',
+    (typeof _combCemTotal !== 'undefined' ? _combCemTotal : 0) + (typeof _combFhTotal !== 'undefined' ? _combFhTotal : 0));
   await _fqDownloadPDF(model, 'BW_Combined_Quote');
 }
 
