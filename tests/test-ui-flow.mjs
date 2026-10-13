@@ -120,8 +120,10 @@ const afterDelete = await p2.evaluate(() => {
     listCount: _cemSavedQuotes.length,
   };
 });
-ok('delete removed the record', afterDelete.remaining.length === 0, afterDelete.remaining);
-ok('delete issued one remove()', afterDelete.writes.length === 1 && afterDelete.writes[0].op === 'remove', afterDelete.writes);
+// Delete is recoverable (Recently deleted): the record leaves the list but stays in the database.
+ok('delete took the record off the list', afterDelete.listCount === 0, afterDelete.listCount);
+ok('delete issued one deletedAt update, no remove()',
+   afterDelete.writes.length === 1 && afterDelete.writes[0].op === 'update' && afterDelete.remaining.length === 1, afterDelete.writes);
 ok('list emptied', afterDelete.listCount === 0);
 
 ok('no page errors anywhere', errs.length === 0, errs);

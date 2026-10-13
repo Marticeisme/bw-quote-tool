@@ -342,6 +342,15 @@ tr:hover td{background:var(--navy-100);}
 .pill-draft{color:var(--muted);border-color:var(--navy-150);background:var(--navy-50);}
 .pill-family{color:var(--navy-500);border-color:rgba(70,110,134,.35);background:rgba(70,110,134,.07);}
 .pill-contracted{color:var(--ok);border-color:rgba(46,107,82,.30);background:rgba(46,107,82,.07);}
+/* Archived: hidden from the list by default, shown dimmed when "Show archived" is on. */
+.pill-archived{color:var(--muted);border-color:var(--navy-200);background:#fff;}
+.saved-row.is-archived .saved-name,.saved-row.is-archived .saved-total,.saved-row.is-archived .saved-meta{color:var(--navy-300);}
+.saved-archived-toggle{background:none;border:none;padding:0;font:600 12.5px/1 'Public Sans',sans-serif;color:var(--navy-500);cursor:pointer;white-space:nowrap;}
+.saved-archived-toggle:hover{text-decoration:underline;}
+/* Recently deleted: a quiet second list under the main one, Restore / Delete forever. */
+.saved-deleted{margin-top:var(--s5);}
+.saved-deleted-title{font:700 11px/1 'Public Sans',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 2px;}
+.saved-deleted .saved-name,.saved-deleted .saved-total,.saved-deleted .saved-meta{color:var(--navy-300);}
 .empty{padding:var(--s10) var(--s6);text-align:center;}
 .empty h3{font:600 var(--t-lg)/1.3 'Public Sans',sans-serif;color:var(--ink);margin:0 0 6px;}
 .empty p{font:400 var(--t-base)/1.6 'Public Sans',sans-serif;color:var(--muted);margin:0 auto;max-width:340px;}
@@ -13170,13 +13179,20 @@ function _applyTypeArray(type, arr) {
   else if (type === 'an')  _anSavedContracts  = arr;
   else if (type === 'dt')  _dtSavedTransfers  = arr;
 }
+var _bwDeletedByType = {};
 function _rebuildTypeArray(type, rerender) {
   var bag = _quoteStore[type] || {};
   // Per-user visibility, enforced HERE and nowhere downstream: everything that reads a saved
   // list — render, search, print, compare, holdings, the sidebar and dashboard counts — reads
   // this array. The writes deliberately do NOT: they address _quoteStore, which stays whole.
-  var arr = Object.keys(bag).map(function(k){ return bag[k]; })
+  var vis = Object.keys(bag).map(function(k){ return bag[k]; })
     .filter(function(rec){ return bwCanSeeRecord(rec); });
+  // Deleted records (deletedAt stamped by Delete, see deleteSavedQuote) leave this array, so
+  // every reader treats them as gone, exactly as before. They are kept, newest first, in
+  // _bwDeletedByType for the "Recently deleted" list, where they can be restored.
+  var arr = vis.filter(function(rec){ return !(rec && rec.deletedAt); });
+  _bwDeletedByType[type] = vis.filter(function(rec){ return rec && rec.deletedAt; })
+    .sort(function(a, b){ return String(b.deletedAt).localeCompare(String(a.deletedAt)); });
   // ids are Date.now() stamps, so descending id is newest-first — the order the old
   // unshift-built lists had. Firebase hands child keys back in ascending order.
   arr.sort(function(a, b){ return ((b && b.id) || 0) - ((a && a.id) || 0); });
@@ -13271,7 +13287,8 @@ function _dupKeysByLabel(type, label) {
   // be offered the admin's identically-named record to overwrite. Reads the full store and
   // filters, rather than reading the filtered array, so the store stays the single source.
   return Object.keys(bag).filter(function(k){
-    return ((bag[k] || {}).label || '').trim().toLowerCase() === norm && bwCanSeeRecord(bag[k]);
+    return ((bag[k] || {}).label || '').trim().toLowerCase() === norm && bwCanSeeRecord(bag[k])
+      && !(bag[k] || {}).deletedAt;
   });
 }
 
@@ -13283,8 +13300,11 @@ function saveQuoteRecord(type, rec, label) {
   if (dupKeys.length && confirm('A saved item named "' + label + '" already exists.\n\nOK = overwrite it    Cancel = keep both')) {
     dupKeys.forEach(function(k) {
       var dead = _quoteStore[type][k];
-      delete _quoteStore[type][k];
-      if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + k).remove().catch(function(e){ console.warn('overwrite remove failed', e); });
+      // The replaced version goes to Recently deleted (one field on that one record), not
+      // erased: "OK = overwrite" is one misclick away from losing a family's earlier quote.
+      if (dead) dead.deletedAt = _bwStampNow();
+      if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + k).update({ deletedAt: dead ? dead.deletedAt : _bwStampNow() })
+        .catch(function(e){ console.warn('overwrite soft-delete failed', e); });
       // The overwritten record's contactRoles would otherwise survive pointing at a recordId
       // that no longer exists. Reopen-and-resave is how a quote gets updated here (every save
       // mints a new id), so before this each update left one orphan behind and the family's
@@ -18555,8 +18575,58 @@ function loadSavedCpContract(id) {
   show('cp-contract', document.querySelector('[onclick*="cp-contract"]'));
   bwRestoreLinkFor('cp', snap);
 }
-function deleteSavedQuote(type, id) {
+// ── Archive and Delete (every saved list) ───────────────────────────────────────────────
+// Archiving hides a quote from its saved list without deleting it. It is ONE optional field,
+// archivedAt, written onto that one record with update(), so it cannot touch any other saved
+// quote; Restore writes null, which removes the field. Absent field = active, so every record
+// saved before this shipped is active with no migration. Archived quotes stay in the arrays,
+// so contact holdings, compare and load-by-id keep finding them; only the list hides them.
+var BW_ARCHIVE_TYPES = { cem: true, fh: true, ric: true, ga: true, cp: true, an: true, dt: true };
+var _bwShowArchived = {};
+function bwIsArchived(rec) { return !!(rec && rec.archivedAt); }
+function bwArchiveSavedQuote(type, id, archive) {
+  if (!BW_ARCHIVE_TYPES[type]) return;
+  var key = _keyForId(type, id); if (!key) return;
+  var rec = _quoteStore[type][key]; if (!rec) return;
+  var val = archive ? _bwStampNow() : null;
+  if (archive) rec.archivedAt = val; else delete rec.archivedAt;
+  _rebuildTypeArray(type);
+  if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + key).update({ archivedAt: val }).catch(function(e) {
+    console.warn('archive change failed', e);
+    alert('This quote could not be ' + (archive ? 'archived' : 'restored') + ' in the database:\n\n' + ((e && e.message) || e));
+  });
+}
+function bwToggleShowArchived(type) {
+  _bwShowArchived[type] = !_bwShowArchived[type];
+  renderSavedQuotesList(type);
+}
+// Delete works the same way as Archive: ONE field, deletedAt, written onto that one record.
+// The record leaves every list (see _rebuildTypeArray) but sits in "Recently deleted" until
+// someone restores it or deletes it forever. Before this, Delete erased the record outright,
+// with no prompt and no way back.
+var _bwShowDeleted = {};
+function _bwSetRecordFlag(type, id, field, val, verb) {
+  var key = _keyForId(type, id); if (!key) return;
+  var rec = _quoteStore[type][key]; if (!rec) return;
+  if (val == null) delete rec[field]; else rec[field] = val;
+  _rebuildTypeArray(type);
+  var patch = {}; patch[field] = val;
+  if (window._fbDB) _fbDB.ref('quotes/' + type + '/' + key).update(patch).catch(function(e) {
+    console.warn(field + ' change failed', e);
+    alert('This could not be ' + verb + ' in the database:\n\n' + ((e && e.message) || e));
+  });
+}
+function deleteSavedQuote(type, id) { _bwSetRecordFlag(type, id, 'deletedAt', _bwStampNow(), 'deleted'); }
+function bwRestoreDeleted(type, id)  { _bwSetRecordFlag(type, id, 'deletedAt', null, 'restored'); }
+function bwDeleteForever(type, id) {
+  var key = _keyForId(type, id), rec = key && _quoteStore[type][key];
+  if (!rec) return;
+  if (!confirm('Delete "' + (rec.label || 'Untitled') + '" forever?\n\nThis cannot be undone.')) return;
   deleteQuoteRecord(type, id);
+}
+function bwToggleShowDeleted(type) {
+  _bwShowDeleted[type] = !_bwShowDeleted[type];
+  renderSavedQuotesList(type);
 }
 
 // ── Quoted-then vs today ─────────────────────────────────────────────────────────────
@@ -18785,8 +18855,10 @@ function renderSavedQuotesList(type) {
     var listEl = el(containerId);
     if (!listEl) return;
     var list = arrRef || [];
+    var deleted  = _bwDeletedByType[type] || [];
+    var showDel  = !!_bwShowDeleted[type] && deleted.length > 0;
 
-    if (!list.length) {
+    if (!list.length && !deleted.length) {
       listEl.innerHTML = '<div class="empty"><h3>No saved ' + kind.plural + ' yet</h3>'
         + '<p>Build one in the ' + kind.where + ' and click Save. Saved ' + kind.plural
         + ' appear here, newest first.</p></div>';
@@ -18795,6 +18867,12 @@ function renderSavedQuotesList(type) {
 
     // Re-rendering replaces the search input, which would drop focus mid-word. Remember
     // where the caret was and put it back.
+    // Archive: hidden unless the toggle is on. Counted from the full list first.
+    var canArchive = !!BW_ARCHIVE_TYPES[type];
+    var archivedN  = canArchive ? list.filter(bwIsArchived).length : 0;
+    var showArch   = canArchive && !!_bwShowArchived[type];
+    var headN      = list.length - archivedN;
+    if (canArchive && !showArch) list = list.filter(function(s){ return !bwIsArchived(s); });
     var searchEl = el(searchId);
     var hadFocus = !!(searchEl && document.activeElement === searchEl);
     var caret    = hadFocus ? searchEl.selectionStart : 0;
@@ -18811,12 +18889,21 @@ function renderSavedQuotesList(type) {
     // The section's own <h2> already names the list, so the header title carries the plain
     // count instead of repeating it — one heading, not two saying the same thing.
     var html = '<div class="saved-head">'
-      + '<h3 class="saved-head-title">' + list.length + ' ' + (list.length === 1 ? kind.noun : kind.plural) + '</h3>'
+      + '<h3 class="saved-head-title">' + headN + ' ' + (headN === 1 ? kind.noun : kind.plural) + '</h3>'
+      + (archivedN ? '<button class="saved-archived-toggle" onclick="bwToggleShowArchived(\'' + type + '\')">'
+          + (showArch ? 'Hide archived' : 'Show archived (' + archivedN + ')') + '</button>' : '')
+      + (deleted.length ? '<button class="saved-archived-toggle" onclick="bwToggleShowDeleted(\'' + type + '\')">'
+          + (showDel ? 'Hide deleted' : 'Recently deleted (' + deleted.length + ')') + '</button>' : '')
       + (q ? '<span class="saved-meta">' + filtered.length + ' matching</span>' : '')
       + '<input id="' + searchId + '" class="saved-search" type="text" placeholder="Search by name…"'
       + ' value="' + _ceEsc(q) + '" oninput="renderSavedQuotesList(\'' + type + '\')"></div>';
 
-    if (!filtered.length) {
+    if (!filtered.length && !q) {
+      html += '<div class="saved-list"><div class="empty"><h3>No active ' + kind.plural + '</h3>'
+        + (archivedN ? '<p>All ' + archivedN + ' are archived. Click Show archived to see them.</p>'
+                     : '<p>Deleted ' + kind.plural + ' are under Recently deleted, where they can be restored.</p>')
+        + '</div></div>';
+    } else if (!filtered.length) {
       html += '<div class="saved-list"><div class="empty"><h3>No matches</h3>'
         + '<p>Nothing here matches “' + _ceEsc(q) + '”. Clear the search to see all '
         + list.length + '.</p></div></div>';
@@ -18832,11 +18919,13 @@ function renderSavedQuotesList(type) {
           delta = '<span class="saved-delta" style="color:' + (d > 0 ? 'var(--stop)' : 'var(--ok)') + '">'
                 + (d > 0 ? '+' : '') + fmt(d) + '</span>';
         }
-        html += '<div class="saved-row' + (isBase ? ' is-base' : '') + '">'
+        var isArch = canArchive && bwIsArchived(item);
+        html += '<div class="saved-row' + (isBase ? ' is-base' : '') + (isArch ? ' is-archived' : '') + '">'
           + '<div class="saved-row-main">'
           +   '<div class="saved-name">' + _ceEsc(item.label || 'Untitled') + '</div>'
           +   '<div class="saved-meta">' + (meta ? _ceEsc(meta) : '—') + '</div>'
           + '</div>'
+          + (isArch ? '<span class="pill pill-archived">Archived</span>' : '')
           + '<span class="pill ' + st.cls + '">' + st.text + '</span>'
           + '<div class="saved-money"><div class="saved-total">' + fmt(item.total || 0) + delta + '</div>'
           +   '<div class="saved-date">' + _ceEsc(item.date || '') + '</div></div>'
@@ -18851,10 +18940,33 @@ function renderSavedQuotesList(type) {
           // existed gets handed to the counselor whose family it actually is.
           + (bwCanSeeAll()
               ? bwOwnerSelectHtml(item, 'bwSetRecordOwner(\'' + type + '\',' + item.id + ',this.value)') : '')
+          + (canArchive ? '<button class="btn btn-quiet" onclick="bwArchiveSavedQuote(\'' + type + '\',' + item.id + ',' + (isArch ? 'false' : 'true') + ')">'
+              + (isArch ? 'Restore' : 'Archive') + '</button>' : '')
           + '<button class="btn btn-danger-quiet" onclick="deleteSavedQuote(\'' + type + '\',' + item.id + ')">Delete</button>'
           + '</div></div>';
       });
       html += '</div>';
+    }
+
+    if (showDel) {
+      html += '<div class="saved-deleted"><div class="saved-deleted-title">Recently deleted</div><div class="saved-list">';
+      deleted.forEach(function(item) {
+        var meta = _bwSavedMeta(type, item);
+        var when = '';
+        try { when = new Date(item.deletedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch (e) {}
+        html += '<div class="saved-row is-deleted">'
+          + '<div class="saved-row-main">'
+          +   '<div class="saved-name">' + _ceEsc(item.label || 'Untitled') + '</div>'
+          +   '<div class="saved-meta">' + (meta ? _ceEsc(meta) : '—') + '</div>'
+          + '</div>'
+          + '<div class="saved-money"><div class="saved-total">' + fmt(item.total || 0) + '</div>'
+          +   '<div class="saved-date">Deleted ' + _ceEsc(when) + '</div></div>'
+          + '<div class="saved-actions">'
+          + '<button class="btn btn-secondary" onclick="bwRestoreDeleted(\'' + type + '\',' + item.id + ')">Restore</button>'
+          + '<button class="btn btn-danger-quiet" onclick="bwDeleteForever(\'' + type + '\',' + item.id + ')">Delete forever</button>'
+          + '</div></div>';
+      });
+      html += '</div></div>';
     }
 
     html += '<div class="saved-foot">'

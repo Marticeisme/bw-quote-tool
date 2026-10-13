@@ -137,11 +137,14 @@ console.log('\n5. Delete is scoped to one record');
       writes: window.__fake.log().filter(l => !['once', 'signIn', 'signOut'].includes(l.op)),
       keys: Object.keys(window.__fake.get('quotes').cem).sort(),
       list: _cemSavedQuotes.map(q => q.label),
+      stamped: Object.keys(window.__fake.get('quotes').cem).filter(k => window.__fake.get('quotes').cem[k].deletedAt),
     };
   });
-  ok('one remove, correct path',
-    r.writes.length === 1 && r.writes[0].op === 'remove' && r.writes[0].path === 'quotes/cem/q2', r.writes);
-  ok('siblings survive', r.keys.join(',') === 'q1,q3', r.keys);
+  // Delete is recoverable now (Recently deleted): one deletedAt update on that record, no remove.
+  ok('one update of deletedAt, correct path, no remove',
+    r.writes.length === 1 && r.writes[0].op === 'update' && r.writes[0].path === 'quotes/cem/q2'
+      && JSON.stringify(r.writes[0].keys) === '["deletedAt"]', r.writes);
+  ok('siblings survive, and only q2 is marked deleted', r.keys.join(',') === 'q1,q2,q3' && r.stamped.join() === 'q2', r);
   ok('list updated', r.list.sort().join('|') === 'keep me|keep me too', r.list);
   await ctx.close();
 }
@@ -160,7 +163,8 @@ console.log('\n6. Overwrite by name');
       labels: _cemSavedQuotes.map(q => q.label + ':' + q.total).sort(),
     };
   });
-  ok('old duplicate removed by its own key, new one written', r.keys.join(',') === 'q11,q12', r.keys);
+  // The replaced version is kept in Recently deleted (deletedAt), not erased.
+  ok('old duplicate kept as deleted under its own key, new one written', r.keys.join(',') === 'q10,q11,q12', r.keys);
   ok('unrelated record untouched', r.labels.join('|') === 'Other:222|Same Name:333', r.labels);
 
   // and "Cancel" keeps both
@@ -169,7 +173,7 @@ console.log('\n6. Overwrite by name');
     await saveQuoteRecord('cem', { id: 13, label: 'Same Name', total: 444, date: 'x', state: {} }, 'Same Name');
     return Object.keys(window.__fake.get('quotes').cem).sort();
   });
-  ok('declining the prompt keeps both copies', r2.join(',') === 'q11,q12,q13', r2);
+  ok('declining the prompt keeps both copies', r2.join(',') === 'q10,q11,q12,q13', r2);
   await ctx.close();
 }
 
