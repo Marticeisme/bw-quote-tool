@@ -156,7 +156,7 @@ export const FEES = {
   OC: 875,         // Open & Closing, each — operator 2026-07-31 (was 835)
   REC: 235,        // Recording Fee, each — operator 2026-07-31 (was 225)
   SCROLL: 785,     // #5108 Bronze Scroll — optional add-on, taxable, NOT in per-niche math
-  VASE: 370,       // Vase with Ring — optional add-on, taxable, NOT in per-niche math
+  VASE: 375,       // Vase with Ring — optional add-on, taxable, NOT in per-niche math
   TAX: 0.104,      // applies to the scroll/vase add-ons only, nothing else
 };
 

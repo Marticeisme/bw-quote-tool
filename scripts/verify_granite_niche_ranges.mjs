@@ -199,7 +199,8 @@ console.log('\n=== GARDEN OF MEDITATION FEE SCHEDULE vs gomn-niche-data FEES ===
   // service director confirms the charges — which is the part a family can act on. The
   // check is kept (not deleted) because the failure it guards is real: a fee schedule
   // that came from a DIFFERENT area's sheet must always be presented as confirmable.
-  if (/confirm the current charges before quoting/i.test(gomn)) ok('and tells the reader the charges are confirmed before quoting');
+  // First person since 2026-10-12 (voice rule): "I'll confirm the current charges before I quote."
+  if (/confirm the current charges before (quoting|I quote)/i.test(gomn)) ok('and tells the reader the charges are confirmed before quoting');
   else fail('the section never tells the reader the charges are confirmed before quoting');
 
   // 4. the ×2 inscription allowance, and the urn as merchandise at its module price.

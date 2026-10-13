@@ -42,9 +42,9 @@ export const SCENES = {
     page: 'MAPS/COM_Walkthrough.html',
     asset: 'COM_Walkthrough.splat',
     pathFile: 'com-walkthrough-path.json',
-    title: 'Chapel of Memory Mausoleum',
+    title: 'Chapel of Memories Mausoleum',
     subtitle: 'Photographic preview &middot; Washington Memorial Park',
-    docTitle: 'Bonney Watson — Chapel of Memory Mausoleum: Photographic Preview',
+    docTitle: 'Bonney Watson — Chapel of Memories Mausoleum: Photographic Preview',
     // Relisted 2026-08-04 on the operator's word (see the header note).
     listed: true,
     // What the note calls the place, in a sentence.
