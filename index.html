@@ -432,6 +432,11 @@ tr:hover td{background:var(--navy-100);}
 .pill-contracted{color:var(--ok);border-color:rgba(46,107,82,.30);background:rgba(46,107,82,.07);}
 /* Archived: hidden from the list by default, shown dimmed when "Show archived" is on. */
 .pill-archived{color:var(--muted);border-color:var(--navy-200);background:#fff;}
+/* Today's prices differ from what was quoted (see bwCheckTodaysPrices). */
+.pill-price{white-space:nowrap;letter-spacing:0;text-transform:none;cursor:help;}
+.pill-price.up{color:var(--stop);border-color:rgba(163,58,37,.3);background:rgba(163,58,37,.06);}
+.pill-price.down{color:var(--ok);border-color:rgba(46,107,82,.3);background:rgba(46,107,82,.07);}
+.pill-price.warn{color:var(--warn);border-color:rgba(138,100,20,.35);background:var(--orange-tint);}
 .saved-row.is-archived .saved-name,.saved-row.is-archived .saved-total,.saved-row.is-archived .saved-meta{color:var(--navy-300);}
 .saved-archived-toggle{background:none;border:none;padding:0;font:600 12.5px/1 'Public Sans',sans-serif;color:var(--navy-500);cursor:pointer;white-space:nowrap;}
 .saved-archived-toggle:hover{text-decoration:underline;}
@@ -18925,12 +18930,8 @@ function bwShowVintageBanner(sectionId, savedDate, cmp) {
   else sec.insertBefore(box, sec.firstChild);
 }
 
-function loadSavedCemQuote(id) {
-  var snap = _cemSavedQuotes.find(function(q){ return q.id === id; });
-  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
-  try { resetCemQuote(); } catch(e) {}
-  bwStampsOnLoad('cem', snap);
-  var s = snap.state;
+// The builder-restore half of loadSavedCemQuote, shared with the saved-list price check.
+function _bwRestoreCemState(s) {
   restoreFieldState(s.fields || {});
   // Re-populate dependent dropdowns (restoreFieldState sets values without firing onchange)
   if (typeof vbPopulateSizes === 'function') vbPopulateSizes();
@@ -18945,6 +18946,14 @@ function loadSavedCemQuote(id) {
   if (s.markerItems  && s.markerItems.length)  { markerItems  = s.markerItems;  if (typeof markerRender === 'function') markerRender(); }
   if (s.portraitItems && s.portraitItems.length) { portraitItems = s.portraitItems; if (typeof portraitRender === 'function') portraitRender(); }
   if (typeof cemQuoteTypeChange === 'function') cemQuoteTypeChange();
+}
+function loadSavedCemQuote(id) {
+  var snap = _cemSavedQuotes.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { resetCemQuote(); } catch(e) {}
+  bwStampsOnLoad('cem', snap);
+  var s = snap.state;
+  _bwRestoreCemState(s);
   cemUpdate();
   show('cem-quote', document.querySelector('[onclick*="cem-quote"]'));
   // Older records were saved before lines were stored; there is nothing to compare against, so
@@ -18955,12 +18964,8 @@ function loadSavedCemQuote(id) {
   } else { bwHideVintageBanner(); }
   bwRestoreLinkFor('cem', snap);
 }
-function loadSavedFhQuote(id) {
-  var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
-  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
-  try { resetFHQuote(); } catch(e) {}
-  bwStampsOnLoad('fh', snap);
-  var s = snap.state;
+// The builder-restore half of loadSavedFhQuote, shared with the saved-list price check.
+function _bwRestoreFhState(s) {
   restoreFieldState(s.fields);
   restoreCustomLines('fhCustomLines', s.customLines || []);
   restoreDiscountRows('fhDiscountList', s.discounts || []);
@@ -18978,6 +18983,14 @@ function loadSavedFhQuote(id) {
     }
   }
   fhQuoteTypeChange();
+}
+function loadSavedFhQuote(id) {
+  var snap = _fhSavedQuotes.find(function(q){ return q.id === id; });
+  if (!snap || !snap.state) { alert('No restore data. Re-save to enable loading.'); return; }
+  try { resetFHQuote(); } catch(e) {}
+  bwStampsOnLoad('fh', snap);
+  var s = snap.state;
+  _bwRestoreFhState(s);
   fhUpdate();
   show('fh-quote', document.querySelector('[onclick*="fh-quote"]'));
   bwRestoreLinkFor('fh', snap);
@@ -19059,6 +19072,78 @@ function _bwSavedMeta(type, item) {
 // through their own field-mapped generators and are deliberately not driven from here.
 // Phone view: a saved quote's Text button opens it in the builder (as PDF does) and then the
 // text sheet over it, so the family gets the same figures the PDF would show.
+// ── Today's prices on the saved list ───────────────────────────────────────────────────────
+// Each saved cemetery / FH quote is rebuilt at today's prices (the same restore + update that
+// Open quote runs) and compared with what it was quoted at (bwCompareQuoteVintage), so the list
+// can say "Today $X (+$Y)" before the quote is reopened with the family.
+//
+// The rebuild borrows the live builder, so it only ever runs while that builder is EMPTY AND
+// UNTOUCHED: no items, no family name, no loaded record, no contact link, no unsaved typing. Each
+// quote is rebuilt and the builder reset within one synchronous step, so nothing paints and the
+// autosave (1.5s after real input) never sees it. The moment the counselor starts work, the
+// check stops; any quote not checked yet simply shows no tag. Results last until reload.
+var _bwPriceNow = { cem: {}, fh: {} };
+var _bwPriceBusy = {};
+function _bwBuilderPristine(type) {
+  if (typeof bwIsDirty === 'function' && bwIsDirty()) return false;
+  if (typeof _bwLoadedRecordId !== 'undefined' && _bwLoadedRecordId[type]) return false;
+  if (typeof _bwPendingLink !== 'undefined' && _bwPendingLink[type]) return false;
+  var lines = type === 'cem' ? _cemLines : _fhLines;
+  if ((lines || []).some(function(l){ return !l.isDiscount && Math.abs(l.amount || 0) > 0.005; })) return false;
+  return !(val(type === 'cem' ? 'cemClientName' : 'fhClientName') || '').trim();
+}
+function _bwRepriceSnap(type, snap) {
+  var s = snap.state, r;
+  if (type === 'cem') {
+    _bwRestoreCemState(s); cemUpdate();
+    r = bwCompareQuoteVintage(s.lines, s.total, _cemLines, _cemTotal);
+    resetCemQuote(); cemUpdate();
+  } else {
+    _bwRestoreFhState(s); fhUpdate();
+    r = bwCompareQuoteVintage(s.lines, s.total, _fhLines, _fhTotal);
+    resetFHQuote(); fhUpdate();
+  }
+  return r;
+}
+function bwCheckTodaysPrices(type) {
+  if (_bwPriceBusy[type] || !_bwBuilderPristine(type)) return;
+  var list = (type === 'cem' ? _cemSavedQuotes : _fhSavedQuotes) || [];
+  var todo = list.filter(function(q){ return q && q.state && q.state.lines && q.state.lines.length && !(q.id in _bwPriceNow[type]); });
+  if (!todo.length) return;
+  _bwPriceBusy[type] = true;
+  var i = 0, done = 0;
+  (function step() {
+    if (i >= todo.length || !_bwBuilderPristine(type)) {
+      _bwPriceBusy[type] = false;
+      if (done) renderSavedQuotesList(type);
+      return;
+    }
+    var q = todo[i++];
+    try { _bwPriceNow[type][q.id] = _bwRepriceSnap(type, q); done++; }
+    catch (e) {
+      console.warn('price check skipped for', q.id, e);
+      _bwPriceNow[type][q.id] = null;
+      try { if (type === 'cem') { resetCemQuote(); cemUpdate(); } else { resetFHQuote(); fhUpdate(); } } catch (e2) {}
+    }
+    setTimeout(step, 0);
+  })();
+}
+function _bwPricePill(type, item) {
+  var r = (_bwPriceNow[type] || {})[item.id];
+  if (!r) return '';
+  if (r.missing && r.missing.length) {
+    var tip = 'No longer priced the same way, re-pick when you reopen:\n' + r.missing.map(function(l){ return '• ' + l.label; }).join('\n');
+    return '<span class="pill pill-price warn" title="' + _ceEsc(tip) + '">' + r.missing.length
+      + (r.missing.length === 1 ? ' item' : ' items') + ' to re-pick</span>';
+  }
+  var d = (r.liveTotal || 0) - (r.savedTotal || 0);
+  if (Math.abs(d) < 0.005) return '';
+  var tip2 = 'Quoted ' + fmt(r.savedTotal) + ', today ' + fmt(r.liveTotal)
+    + (r.changed.length ? '\n' + r.changed.map(function(c){ return '• ' + c.label + ': ' + fmt(c.was) + ' → ' + fmt(c.now); }).join('\n') : '');
+  return '<span class="pill pill-price ' + (d > 0 ? 'up' : 'down') + '" title="' + _ceEsc(tip2) + '">Today '
+    + fmt(r.liveTotal) + ' (' + (d > 0 ? '+' : '-') + fmt(Math.abs(d)) + ')</span>';
+}
+
 function bwSavedRowText(type, id) {
   if (type === 'cem') loadSavedCemQuote(id); else if (type === 'fh') loadSavedFhQuote(id); else return;
   setTimeout(function(){ bwOpenTextQuote(type); }, 60);
@@ -19155,6 +19240,7 @@ function renderSavedQuotesList(type) {
           + '</div>'
           + (isArch ? '<span class="pill pill-archived">Archived</span>' : '')
           + '<span class="pill ' + st.cls + '">' + st.text + '</span>'
+          + ((type === 'cem' || type === 'fh') ? _bwPricePill(type, item) : '')
           + '<div class="saved-money"><div class="saved-total">' + fmt(item.total || 0) + delta + '</div>'
           +   '<div class="saved-date">' + _ceEsc(item.date || '') + '</div></div>'
           + '<div class="saved-actions">'
@@ -19203,6 +19289,8 @@ function renderSavedQuotesList(type) {
       + '<button class="btn btn-secondary" onclick="importSavedQuotesBackup()">Import backup</button></div>';
 
     listEl.innerHTML = html;
+    if ((type === 'cem' || type === 'fh') && el('section-' + type + '-saved') && el('section-' + type + '-saved').classList.contains('active'))
+      setTimeout(function(){ bwCheckTodaysPrices(type); }, 30);
     if (hadFocus) {
       var again = el(searchId);
       if (again) { again.focus(); try { again.setSelectionRange(caret, caret); } catch(e) {} }
