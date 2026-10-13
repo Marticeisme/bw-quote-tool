@@ -124,6 +124,77 @@ body:has(.summary-fixed.visible) .tb-action:hover{background:var(--navy-50);bord
 .nav-item.nav-sub.active{border-left-color:transparent;color:var(--navy-900);}
 .nav-item.nav-sub.active .ni-ic{opacity:1;}
 
+/* ═══ PHONE VIEW ═══════════════════════════════════════════════════════════════════════════
+   body.bw-mobile is the phone layout, switched by the "Phone view" / "Desktop" button in the top
+   bar (remembered per device; a small screen starts in it). The sidebar becomes a drawer, the
+   builders stack in one column, and each builder's summary panel becomes a bottom bar with the
+   total and a Text quote button: a short, editable text message instead of the PDF and Print. */
+.tb-menu{display:none;}
+.tb-view{height:38px;padding:0 12px;display:inline-flex;align-items:center;gap:7px;background:#fff;color:var(--ink);border:1px solid var(--navy-200);border-radius:var(--r-md);font:600 13px/1 'Public Sans',sans-serif;cursor:pointer;white-space:nowrap;}
+.tb-view:hover{background:var(--navy-50);border-color:var(--navy-400);}
+.tb-view .lc{width:16px;height:16px;}
+@media (max-width:1280px){body:not(.bw-mobile) .tb-view span{display:none;}body:not(.bw-mobile) .tb-view{padding:0 10px;}body:not(.bw-mobile) .tb-search{width:220px;}}
+.bw-text-btn{display:none !important;}
+#bwScrim{display:none;}
+body.bw-mobile .topbar{height:56px;padding:0 10px;gap:8px;}
+body.bw-mobile .tb-menu{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;flex-shrink:0;background:none;border:1px solid var(--navy-150);border-radius:10px;color:var(--ink);cursor:pointer;}
+body.bw-mobile .tb-menu .lc{width:22px;height:22px;}
+body.bw-mobile .tb-search,body.bw-mobile .tb-action,body.bw-mobile .tb-action2{display:none !important;}
+body.bw-mobile .tb-crumb{flex:1;min-width:0;font-size:14px;}
+body.bw-mobile #crumbGroup,body.bw-mobile .tb-sep{display:none;}
+body.bw-mobile .tb-right{gap:6px;}
+body.bw-mobile .tb-view{height:38px;padding:0 10px;font-size:12.5px;}
+body.bw-mobile .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:300;transform:translateX(-105%);transition:transform .2s ease;}
+body.bw-mobile.bw-drawer .sidebar{transform:none;box-shadow:6px 0 30px rgba(0,0,0,.35);}
+/* saved lists: each row stacks, its buttons wrap under it */
+body.bw-mobile .saved-head{flex-wrap:wrap;gap:8px 14px;}
+body.bw-mobile .saved-search{flex:1 1 100%;width:100%;}
+body.bw-mobile .saved-row{flex-wrap:wrap;gap:8px 12px;padding:12px 14px;}
+body.bw-mobile .saved-row-main{flex:1 1 60%;min-width:0;}
+body.bw-mobile .saved-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;gap:6px;}
+body.bw-mobile.bw-drawer #bwScrim{display:block;position:fixed;inset:0;background:rgba(15,25,32,.45);z-index:290;}
+body.bw-mobile .content-col{width:100%;max-width:640px;margin:0 auto;}
+body.bw-mobile .main{padding:12px 12px 200px;}
+body.bw-mobile #section-cem-quote,body.bw-mobile #section-fh-quote,body.bw-mobile #section-combined-quote{padding-right:0;}
+body.bw-mobile .section-header{gap:10px;margin-bottom:12px;}
+body.bw-mobile .section-header h2{font-size:17px;}
+body.bw-mobile .section-header .badge{display:none;}
+body.bw-mobile #compareToggleBtn,body.bw-mobile #comparePanel{display:none !important;}
+body.bw-mobile .callout{font-size:12.5px;padding:10px 12px;}
+body.bw-mobile .q-panel-body{padding:14px;}
+body.bw-mobile .q-row label{white-space:normal;min-width:0;}
+body.bw-mobile .q-row select,body.bw-mobile .q-row input[type=text],body.bw-mobile .q-row textarea{min-width:0;flex:1 1 100%;width:100%;}
+body.bw-mobile .q-row:has(textarea) > label{flex:1 1 100%;}
+body.bw-mobile input,body.bw-mobile select,body.bw-mobile textarea{font-size:16px !important;}
+body.bw-mobile .q-check-row{font-size:14px;padding:3px 0;}
+body.bw-mobile .q-check-row input[type=checkbox]{width:20px;height:20px;}
+body.bw-mobile .q-panel-sum{max-width:38%;}
+body.bw-mobile .section [style*="grid-template-columns"]{grid-template-columns:1fr !important;}
+body.bw-mobile .summary-fixed{top:auto;bottom:0;left:0;right:0;width:auto;max-width:640px;margin:0 auto;z-index:250;}
+body.bw-mobile .summary-panel{border-radius:14px 14px 0 0;max-height:78vh;box-shadow:0 -6px 24px rgba(22,36,44,.18);}
+body.bw-mobile .summary-total-block{cursor:pointer;position:relative;padding:10px 16px 8px;}
+body.bw-mobile .summary-total-block::after{content:"Details \25B4";position:absolute;right:16px;top:12px;font:600 11.5px/1 'Public Sans',sans-serif;color:var(--navy-500);}
+body.bw-mobile .summary-fixed.bw-sheet-open .summary-total-block::after{content:"Hide \25BE";}
+body.bw-mobile .summary-fixed:not(.bw-sheet-open) .summary-body,
+body.bw-mobile .summary-fixed:not(.bw-sheet-open) .summary-split,
+body.bw-mobile .summary-fixed:not(.bw-sheet-open) .summary-reset{display:none !important;}
+body.bw-mobile .summary-quiet-pair{display:none !important;}
+body.bw-mobile .summary-actions{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;padding:8px 12px 12px;}
+body.bw-mobile .summary-actions .btn-block{flex:1 1 0;width:auto;min-height:44px;margin:0;}
+body.bw-mobile .summary-actions .summary-reset{flex-basis:100%;}
+body.bw-mobile .summary-actions button[onclick*="PDF"],body.bw-mobile .summary-actions button[onclick^="print"]{display:none !important;}
+body.bw-mobile .bw-text-btn{display:inline-flex !important;}
+body.bw-mobile .saved-actions button[onclick^="bwSavedRowPDF"],body.bw-mobile .saved-actions button[onclick^="printSavedQuote"]{display:none !important;}
+#bwTextSheet{display:none;position:fixed;inset:0;z-index:400;background:rgba(15,25,32,.5);align-items:flex-end;justify-content:center;}
+#bwTextSheet.open{display:flex;}
+.bwts-card{background:#fff;width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:14px 14px 16px;display:flex;flex-direction:column;gap:10px;max-height:92vh;box-sizing:border-box;}
+.bwts-head{display:flex;align-items:center;justify-content:space-between;font:700 16px/1.2 'Public Sans',sans-serif;color:var(--ink);}
+.bwts-x{width:40px;height:40px;border:none;background:none;color:var(--navy-500);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+.bwts-note{font-size:12.5px;color:var(--muted);margin-top:-4px;}
+#bwTextBody{width:100%;min-height:300px;flex:1;box-sizing:border-box;font:15px/1.45 'Public Sans',sans-serif;color:var(--ink);padding:12px;border:1px solid var(--navy-200);border-radius:10px;resize:vertical;}
+.bwts-actions{display:flex;gap:8px;}
+.bwts-actions .btn{flex:1;min-height:48px;justify-content:center;font-size:15px;}
+
 /* MAIN */
 .main{padding:28px 32px 60px;overflow-x:auto;}
 
@@ -891,12 +962,28 @@ tr:hover td{background:var(--navy-100);}
     <div><div class="sb-user-name">Martice Morrison</div><div class="sb-user-role">Advanced Planning</div></div>
   </div>
 </nav>
+<div id="bwScrim" onclick="bwToggleDrawer(false)"></div>
+<!-- Text quote sheet (phone view): a short, editable text instead of the PDF -->
+<div id="bwTextSheet" onclick="if(event.target===this)bwCloseTextQuote()">
+  <div class="bwts-card" role="dialog" aria-label="Send quote">
+    <div class="bwts-head"><span>Send quote</span><button class="bwts-x" type="button" onclick="bwCloseTextQuote()" aria-label="Close"><span data-lc="x" data-lc-sz="22"></span></button></div>
+    <div class="bwts-note">Edit anything before you send it.</div>
+    <textarea id="bwTextBody" spellcheck="true"></textarea>
+    <div class="bwts-actions">
+      <button class="btn btn-primary" type="button" onclick="bwSendTextQuote()"><span data-lc="message-square" data-lc-sz="16"></span>Text it</button>
+      <button class="btn btn-secondary" type="button" onclick="bwEmailTextQuote()">Email it</button>
+      <button class="btn btn-secondary" type="button" id="bwTextCopy" onclick="bwCopyTextQuote(this)">Copy</button>
+    </div>
+  </div>
+</div>
 
 <div class="content-col">
 <!-- TOP BAR -->
 <header class="topbar">
+  <button class="tb-menu" type="button" onclick="bwToggleDrawer()" aria-label="Menu"><span data-lc="menu" data-lc-sz="22"></span></button>
   <div class="tb-crumb"><span id="crumbGroup">Overview</span><span class="tb-sep">/</span><span id="crumbCurrent">Quick Reference</span></div>
   <div class="tb-right">
+    <button class="tb-view" id="tbView" type="button" onclick="bwToggleViewMode()" title="Switch to the phone layout for quick quotes">Phone view</button>
     <div class="tb-search"><span class="ni-ic" data-lc="search"></span><input type="text" id="searchInput" placeholder="Search prices…" oninput="doSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();plFromSearch();}" autocomplete="off"></div>
     <button class="tb-action2" onclick="show('fh-quote', document.querySelector('.nav-item[onclick*=fh-quote]'))">New Funeral Home Quote</button>
     <button class="tb-action" onclick="show('cem-quote', document.querySelector('.nav-item[onclick*=cem-quote]'))">New Cemetery Quote</button>
@@ -2450,6 +2537,7 @@ tr:hover td{background:var(--navy-100);}
       <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
+      <button class="btn btn-primary btn-block bw-text-btn" onclick="bwOpenTextQuote('cem')" title="Text or email this quote"><span data-lc="message-square" data-lc-sz="15"></span>Send quote</button>
       <button class="btn btn-primary btn-block" onclick="downloadCemQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
       <button class="btn btn-secondary btn-block" onclick="saveCemQuote()" title="Save this quote draft">Save quote</button>
       <div class="summary-quiet-pair">
@@ -3277,6 +3365,7 @@ tr:hover td{background:var(--navy-100);}
       <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
+      <button class="btn btn-primary btn-block bw-text-btn" onclick="bwOpenTextQuote('fh')" title="Text or email this quote"><span data-lc="message-square" data-lc-sz="15"></span>Send quote</button>
       <button class="btn btn-primary btn-block" onclick="downloadFhQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
       <button class="btn btn-secondary btn-block" onclick="saveFhQuote()" title="Save this quote draft">Save quote</button>
       <div class="summary-quiet-pair">
@@ -4782,6 +4871,7 @@ tr:hover td{background:var(--navy-100);}
       <div class="summary-empty">Nothing selected yet.</div>
     </div>
     <div class="summary-actions">
+      <button class="btn btn-primary btn-block bw-text-btn" onclick="bwOpenTextQuote('comb')" title="Text or email this quote"><span data-lc="message-square" data-lc-sz="15"></span>Send quote</button>
       <button class="btn btn-primary btn-block" onclick="downloadCombQuotePDF()" title="Download the family quote PDF"><span data-lc="file-down" data-lc-sz="15"></span>Download PDF</button>
       <button class="btn btn-secondary btn-block" onclick="printCombQuote()" title="Print the family quote"><span data-lc="printer" data-lc-sz="15"></span>Print</button>
       <div class="summary-quiet-pair">
@@ -18846,6 +18936,12 @@ function _bwSavedMeta(type, item) {
 // Open a saved row and immediately export it, reusing the module's existing PDF path.
 // Only the two family-facing quote types have one; the four contract modules generate
 // through their own field-mapped generators and are deliberately not driven from here.
+// Phone view: a saved quote's Text button opens it in the builder (as PDF does) and then the
+// text sheet over it, so the family gets the same figures the PDF would show.
+function bwSavedRowText(type, id) {
+  if (type === 'cem') loadSavedCemQuote(id); else if (type === 'fh') loadSavedFhQuote(id); else return;
+  setTimeout(function(){ bwOpenTextQuote(type); }, 60);
+}
 function bwSavedRowPDF(type, id) {
   if (type === 'cem') { loadSavedCemQuote(id); if (typeof downloadCemQuotePDF === 'function') downloadCemQuotePDF(); return; }
   if (type === 'fh')  { loadSavedFhQuote(id);  if (typeof downloadFhQuotePDF  === 'function') downloadFhQuotePDF();  return; }
@@ -18943,7 +19039,8 @@ function renderSavedQuotesList(type) {
           + '<div class="saved-actions">'
           + (item.state ? '<button class="btn btn-secondary" onclick="' + loadFn + '(' + item.id + ')">' + kind.open + '</button>' : '')
           + ((type === 'cem' || type === 'fh')
-              ? '<button class="btn btn-quiet" onclick="bwSavedRowPDF(\'' + type + '\',' + item.id + ')">PDF</button>' : '')
+              ? '<button class="btn btn-quiet" onclick="bwSavedRowPDF(\'' + type + '\',' + item.id + ')">PDF</button>'
+              + '<button class="btn btn-quiet bw-text-btn" onclick="bwSavedRowText(\'' + type + '\',' + item.id + ')">Send</button>' : '')
           + '<button class="btn btn-quiet" onclick="printSavedQuote(\'' + type + '\',' + item.id + ')">Print</button>'
           + '<button class="btn btn-quiet" onclick="savedCompareSelect(\'' + type + '\',' + item.id + ')">'
           +   (isBase ? 'Base' : 'Compare') + '</button>'
@@ -25956,6 +26053,151 @@ var LUCIDE={"search":"<path d=\"m21 21-4.34-4.34\"></path><circle cx=\"11\" cy=\
 function lcSvg(name,sz,color){var inner=LUCIDE[name];if(!inner)return "";sz=sz||17;return "<svg class=\"lc\" viewBox=\"0 0 24 24\" width=\""+sz+"\" height=\""+sz+"\" fill=\"none\" stroke=\""+(color||"currentColor")+"\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"+inner+"</svg>";}
 function paintLucide(root){(root||document).querySelectorAll("[data-lc]").forEach(function(e){if(e.getAttribute("data-lc-done"))return;var n=e.getAttribute("data-lc");var sz=parseInt(e.getAttribute("data-lc-sz"))||17;e.innerHTML=lcSvg(n,sz);e.setAttribute("data-lc-done","1");});}
 window.paintLucide=paintLucide;
+// Icons the phone view needs (Lucide, same stroke set as the rest).
+Object.assign(LUCIDE, {
+  "menu": "<line x1=\"4\" x2=\"20\" y1=\"12\" y2=\"12\"></line><line x1=\"4\" x2=\"20\" y1=\"6\" y2=\"6\"></line><line x1=\"4\" x2=\"20\" y1=\"18\" y2=\"18\"></line>",
+  "smartphone": "<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"></rect><path d=\"M12 18h.01\"></path>",
+  "monitor": "<rect width=\"20\" height=\"14\" x=\"2\" y=\"3\" rx=\"2\"></rect><line x1=\"8\" x2=\"16\" y1=\"21\" y2=\"21\"></line><line x1=\"12\" x2=\"12\" y1=\"17\" y2=\"21\"></line>",
+  "message-square": "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path>",
+  "x": "<path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path>"
+});
+
+// ── Phone view ────────────────────────────────────────────────────────────────────────────────
+// A per-device choice (localStorage), so the office desktop and the phone in the cemetery each
+// keep their own. With no choice made yet, a screen narrower than 760px starts in phone view.
+var BW_VIEW_KEY = 'bwViewMode';
+function bwViewMode() {
+  var v = null;
+  try { v = localStorage.getItem(BW_VIEW_KEY); } catch (e) {}
+  if (v === 'mobile' || v === 'desktop') return v;
+  // screen.width, not just innerWidth: on a phone the desktop layout is wider than the screen,
+  // so the browser zooms out and innerWidth reports ~1100px. The narrower of the two decides.
+  return Math.min(window.innerWidth || 1200, (window.screen && screen.width) || 9999) < 760 ? 'mobile' : 'desktop';
+}
+function bwApplyViewMode(mode) {
+  var m = mode === 'mobile';
+  document.body.classList.toggle('bw-mobile', m);
+  if (!m) document.body.classList.remove('bw-drawer');
+  var b = document.getElementById('tbView');
+  if (b) {
+    b.innerHTML = lcSvg(m ? 'monitor' : 'smartphone', 16) + '<span>' + (m ? 'Desktop' : 'Phone view') + '</span>';
+    b.title = m ? 'Switch to the full desktop layout' : 'Switch to the phone layout for quick quotes';
+  }
+}
+function bwToggleViewMode() {
+  var next = document.body.classList.contains('bw-mobile') ? 'desktop' : 'mobile';
+  try { localStorage.setItem(BW_VIEW_KEY, next); } catch (e) {}
+  bwApplyViewMode(next);
+}
+function bwToggleDrawer(open) {
+  var on = open === undefined ? !document.body.classList.contains('bw-drawer') : !!open;
+  document.body.classList.toggle('bw-drawer', on);
+}
+document.addEventListener('click', function(e) {
+  if (!document.body.classList.contains('bw-mobile') || !e.target.closest) return;
+  if (e.target.closest('.sb-nav .nav-item')) bwToggleDrawer(false);   // picking a page closes the menu
+  var tb = e.target.closest('.summary-total-block');                   // tapping the total opens the details
+  if (tb) { var sf = tb.closest('.summary-fixed'); if (sf) sf.classList.toggle('bw-sheet-open'); }
+});
+bwApplyViewMode(bwViewMode());
+
+// ── Text quote ────────────────────────────────────────────────────────────────────────────────
+// The same lines, discount, tax and total as the summary card, as a short text message. Nothing
+// is saved or stamped: it only fills the sheet, and the counselor edits it before sending.
+function _bwTextRows(lines) {
+  var items = (lines || []).filter(function(l){ return !l.isDiscount && !l.isTax && Math.abs(l.amount || 0) >= 0.005; });
+  return _fqDedupeRows(items).map(function(r) {
+    var tag = r.note ? (/^\u00d7/.test(r.note) ? ' ' + r.note : ' (' + r.note + ')') : '';
+    return r.name + tag + ': ' + fmt(r.amount);
+  });
+}
+function _bwTextDiscounts(lines) {
+  return (lines || []).filter(function(l){ return l.isDiscount && Math.abs(l.amount || 0) >= 0.005; })
+    .map(function(l){ return (l.label || 'Discount') + ': -' + fmt(Math.abs(l.amount)); });
+}
+function bwQuoteText(kind) {
+  var now = new Date(), valid = new Date(now.getTime()); valid.setDate(valid.getDate() + 30);
+  var d = function(x){ return x.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+  var a = bwCurrentAdvisor();
+  var rows = [], name = '', title = '', tax = 0, total = 0;
+  if (kind === 'cem') {
+    name  = val('cemClientName');
+    title = (typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'Cemetery at-need quote' : 'Cemetery quote';
+    rows  = _bwTextRows(_cemLines).concat(_bwTextDiscounts(_cemLines));
+    tax = _bwTaxOfLines(_cemLines || []); total = _cemTotal || 0;
+  } else if (kind === 'fh') {
+    name  = val('fhClientName');
+    title = 'Funeral home quote';
+    rows  = _bwTextRows(_fhLines).concat(_bwTextDiscounts(_fhLines));
+    tax = _bwTaxOfLines(_fhLines || []); total = _fhTotal || 0;
+  } else {
+    name  = val('cemClientName') || val('fhClientName');
+    title = 'Cemetery and funeral home quote';
+    rows  = _bwTextRows(_combCemLines).concat(_bwTextRows(_combFhLines),
+              _bwTextDiscounts(_combCemLines), _bwTextDiscounts(_combFhLines));
+    document.querySelectorAll('#combCustomLines .custom-line-row').forEach(function(row) {
+      var amt = parseFloat((row.querySelector('.cl-amt') || {}).value) || 0;
+      if (amt > 0) rows.push(((row.querySelector('.cl-desc') || {}).value || 'Additional item') + ': ' + fmt(amt));
+    });
+    if (_combDiscountAmt > 0) rows.push((_combDiscountLabel || 'Discount') + ': -' + fmt(_combDiscountAmt));
+    tax = _combTaxTotal || 0; total = _combGrandTotal || 0;
+  }
+  if (!rows.length) return '';
+  var out = ['Bonney Watson' + (kind === 'fh' ? '' : ' \u00b7 Washington Memorial Park'),
+             title + (name.trim() ? ' for ' + name.trim() : ''),
+             d(now) + ' \u00b7 valid through ' + d(valid), ''];
+  out = out.concat(rows);
+  if (tax > 0) out.push('Sales tax: ' + fmt(tax));
+  out.push('Total: ' + fmt(total));
+  // The same payment estimate the cemetery summary card shows (10% down, 60 months, 0%, ACH).
+  // Pre-need only: at-need quotes never carry payment options.
+  if (kind === 'cem' && total > 0 && !(typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed')) {
+    var dn = Math.ceil(total * 0.10);
+    out.push('Payment option: ' + fmt(dn) + ' down, about ' + fmt(Math.ceil((total - dn) / 60)) + '/mo for 60 months at 0% (ACH)');
+  }
+  out.push('', 'This is an estimate, not a contract.');
+  var who = [a.name, a.phone].filter(Boolean).join(' \u00b7 ');
+  if (who) out.push(who);
+  return out.join('\n');
+}
+var _bwTextKind = 'cem';
+function bwOpenTextQuote(kind) {
+  var t = bwQuoteText(kind);
+  if (!t) { alert('Nothing is on this quote yet.'); return; }
+  _bwTextKind = kind;
+  el('bwTextBody').value = t;
+  el('bwTextSheet').classList.add('open');
+}
+// Email: the same short message, in a new email. Subject in the house style, "Family: What It
+// Covers", e.g. "Avery Family: Cemetery Quote".
+function bwQuoteEmailSubject(kind) {
+  var name = kind === 'fh' ? val('fhClientName') : kind === 'cem' ? val('cemClientName') : (val('cemClientName') || val('fhClientName'));
+  var what = kind === 'fh' ? 'Funeral Home Quote'
+    : kind === 'cem' ? ((typeof cemQuoteType === 'function' && cemQuoteType() === 'atneed') ? 'Cemetery At-Need Quote' : 'Cemetery Quote')
+    : 'Cemetery and Funeral Home Quote';
+  name = (name || '').trim();
+  return (name ? name + ': ' : 'Bonney Watson: ') + what;
+}
+function bwEmailTextQuote() {
+  var t = el('bwTextBody').value;
+  if (typeof bwSuppressUnloadPrompt === 'function') bwSuppressUnloadPrompt();  // deliberate navigation, not a close
+  location.href = 'mailto:?subject=' + encodeURIComponent(bwQuoteEmailSubject(_bwTextKind)) + '&body=' + encodeURIComponent(t);
+}
+function bwCloseTextQuote() { el('bwTextSheet').classList.remove('open'); }
+function bwSendTextQuote() {
+  var t = el('bwTextBody').value;
+  // The phone's share sheet (Messages, WhatsApp, email...) where there is one; otherwise straight
+  // into a new text message. "sms:?&body=" is the form both iPhone and Android accept.
+  if (navigator.share) { navigator.share({ text: t }).catch(function(){}); return; }
+  location.href = 'sms:?&body=' + encodeURIComponent(t);
+}
+function bwCopyTextQuote(btn) {
+  var t = el('bwTextBody').value;
+  var done = function(){ btn.textContent = 'Copied'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(done, function(){ var ta = el('bwTextBody'); ta.focus(); ta.select(); });
+  } else { var ta = el('bwTextBody'); ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} }
+}
 // Collapsible builder panels (progressive disclosure). Adds a chevron to each .q-panel-header and
 // toggles a .collapsed class on the .q-panel — pure display, no pricing logic touched. Defaults to
 // OPEN so it never disrupts the daily build flow; the advisor can tidy by collapsing filled panels.
