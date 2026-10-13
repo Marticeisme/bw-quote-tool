@@ -112,6 +112,10 @@ Known characteristics:
 
 ## 4. Build log
 
+### 2026-10-12 — Terramation guide: soil amount now matches Return Home's website
+
+Martice: use whatever Return Home's site says. RH soil FAQ: "approximately 1-1.5 cubic yards, or typically about 250 pounds of soil", in breathable burlap bags, no bag count. `terramation-guide.html`: three spots changed from "roughly one cubic yard, about 250 pounds, in 10 to 15 burlap bags" to "about 1 to 1.5 cubic yards, typically about 250 pounds, in breathable burlap bags". PDF rebuilt: `node scripts/build_guide_pdfs.mjs terramation-guide`. Bag sizes (large about 20 lb down to mini) unchanged; they come from BW's own info booklet.
+
 ### 2026-10-08 — County fee at death: Pierce $115 in the guides (death certificates + cremation)
 
 Martice: the Pierce charge is the $100 medical examiner fee plus the required $15 burial-transit permit = $115. The old "$4.00 shipping + $10.00 review fee" lines were TPCHD's death-certificate ORDER fees misread as a per-death charge (official-source check 2026-10-08, quotes in scratch/church-preplanning/research.md). `death-certificates-guide.html` Section 3 table now lists the county fee at the time of death: King $100, Pierce $115, Snohomish none; prose matches. `cremation-guide.html` "Cost in Washington" matches. Family-facing copy leaves out the Pierce prepaid-before-2026 exemption (his call: no family planning now can qualify); the quote tool keeps its $15 option for staff. PDFs rebuilt: `node scripts/build_guide_pdfs.mjs death-certificates-guide cremation-guide`. verify_guide_pages: both pass; the 6 FAILs are pre-existing stale catalog PDFs (unchanged by this push). Quote tool County Fee box went live separately in 18e1d4bf.
