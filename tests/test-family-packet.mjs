@@ -28,7 +28,8 @@ console.log('\n1. Every listed file exists, and every family PDF is listed');
   const missing = listed.filter(n => !onDisk.includes(n));
   ok('all ' + listed.length + ' listed guides are in pdf-assets/', missing.length === 0, missing);
   // Professional-only material stays out of a family packet on purpose.
-  const EXCLUDED = ['Medicaid Professional Reference'];
+  // 'Marker Sizes and Pricing' is a stale June sheet retired from family use (2026-10-12 audit).
+  const EXCLUDED = ['Medicaid Professional Reference', 'Marker Sizes and Pricing'];
   const unlisted = onDisk.filter(n => !listed.includes(n) && !EXCLUDED.includes(n));
   ok('no family PDF in pdf-assets/ is left off the picker (add new guides to BW_PACKET_GROUPS)', unlisted.length === 0, unlisted);
   ok('the professional reference is not offered', !listed.includes('Medicaid Professional Reference'));
