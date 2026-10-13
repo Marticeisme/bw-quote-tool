@@ -3937,6 +3937,7 @@ tr:hover td{background:var(--navy-100);}
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
     <button id="dtGenerateBtn" onclick="generateDeedTransferPDF()" style="padding:11px 20px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">&#128196; Generate Deed Transfer Packet</button>
     <button onclick="saveDeedTransfer()" style="padding:11px 20px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">&#128190; Save</button>
+    <button onclick="bwOpenDeedLetter()" title="Open the deed transfer letter with these owners and this property filled in" style="padding:11px 20px;background:#fff;color:var(--navy);border:1px solid var(--navy-200);border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">&#9993; Deed Letter</button>
     <button onclick="dtClearAll()" style="padding:11px 16px;background:#f0f0ee;border:1px solid #ccc;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;">&#10005; Clear All</button>
   </div>
 </div>
@@ -22371,6 +22372,28 @@ function dtOwnerNames() {
 // died: "Living owners only". So the name boxes still read the deed - every owner, joined -
 // but a line is only ever drawn for somebody who can sign it. The heir affiant signs the
 // Affidavit of Heirs and, as before, the Permission of Use.
+// Opens deed-transfer-letter.html filled in from this deed transfer. The names travel through
+// localStorage, never the URL (a URL is logged and shared; this is a family's personal data), and
+// the letter page deletes the hand-off the moment it reads it. It expires after five minutes in
+// case the new tab never opened.
+var BW_DEED_LETTER_KEY = 'bwDeedLetterPrefill';
+function bwOpenDeedLetter() {
+  var living = dtSigners().map(function(o){ return o.name; }).filter(Boolean);
+  var owners = dtOwnerNames();
+  var data = {
+    at: Date.now(),
+    recipientName: living.join(' & ') || _dtVal('dtGrantorName'),
+    propertyOwners: owners,
+    propertyDescription: dtPropertyText(),
+    sentBy: _dtVal('dtCounselor') || bwCurrentAdvisor().name || ''
+  };
+  if (!data.recipientName && !data.propertyOwners && !data.propertyDescription) {
+    alert('Fill in the owner or the property first, then open the letter.'); return;
+  }
+  try { localStorage.setItem(BW_DEED_LETTER_KEY, JSON.stringify(data)); } catch (e) {}
+  var w = window.open('deed-transfer-letter.html', '_blank');
+  if (!w) alert('Please allow pop-ups to open the deed letter.');
+}
 function dtSigners()        { return dtCoOwners().filter(function(o) { return !o.deceased; }); }
 // In deed order, which is the order the Affidavit of Heirs joins their names and dates in.
 function dtDeceasedOwners() { return dtCoOwners().filter(function(o) { return  o.deceased; }); }

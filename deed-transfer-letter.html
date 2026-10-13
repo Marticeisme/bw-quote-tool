@@ -642,6 +642,18 @@ async function copyPlainText(){
   }
 }
 
+// Filled in from the quote tool's Deed Transfer page ("Deed Letter" button). Read once, then
+// deleted, and ignored if older than five minutes. Property value stays for the pickers.
+(function prefillFromDeedTransfer() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem('bwDeedLetterPrefill') || 'null'); localStorage.removeItem('bwDeedLetterPrefill'); } catch (e) {}
+  if (!d || !d.at || Date.now() - d.at > 5 * 60 * 1000) return;
+  [['recipientName', d.recipientName], ['propertyOwners', d.propertyOwners],
+   ['propertyDescription', d.propertyDescription], ['sentBy', d.sentBy]].forEach(([id, v]) => {
+    if (v) document.getElementById(id).value = v;
+  });
+  showToast('Filled in from the deed transfer. Add the property value with the pickers.');
+})();
 render();
 </script>
 
