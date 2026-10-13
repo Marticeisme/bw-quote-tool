@@ -2772,3 +2772,14 @@ their section color, the selected item gets a left bar in that color, and every 
 indented under the builder that makes it. Accents live on data-g attributes and are sidebar-only;
 page chrome stays navy + orange. Items stay flat siblings, so the breadcrumb lookup still works.
 Checked by Playwright screenshots (Cemetery, Funeral Home, Checklist active), syntax 8/0.
+## 2026-10-12: Discounts, Archive + Recently deleted, deed letter design, green suite
+
+Discounts: a discount bigger than its own side of the quote used to be clamped and lost (merchandise-only
+quote + flat $500 printed the line but kept the total). Overflow now comes off the other side; quotes whose
+discount fits are unchanged (Martice ruled: services first stays). One helper, _bwNetBuckets, feeds the
+summary, compare builders, family quote, Copy text, combined quote and the RIC/GA/ClearPoint contracts.
+Saved lists: Archive on all seven; Delete stamps deletedAt and moves the record to Recently deleted
+(Restore / Delete forever), overwrite-by-name keeps the replaced version there too.
+Deed transfer letter: print/Save as PDF now uses the family quote design (masthead, keyline, value band,
+footer), wording unchanged; fonts/SourceSerif4-600/700.woff added. Comparison print title fit from the
+other session included. Full suite 4218 passed / 0 failed across 54 suites.
