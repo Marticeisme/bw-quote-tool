@@ -2783,3 +2783,17 @@ Saved lists: Archive on all seven; Delete stamps deletedAt and moves the record 
 Deed transfer letter: print/Save as PDF now uses the family quote design (masthead, keyline, value band,
 footer), wording unchanged; fonts/SourceSerif4-600/700.woff added. Comparison print title fit from the
 other session included. Full suite 4218 passed / 0 failed across 54 suites.
+
+## 2026-10-12: Phone view, Send quote, Family Packet, family search, price flag, deed letter fill-in
+
+- Phone view: "Phone view" / "Desktop" switch in the top bar (per device; phones start in it). Drawer menu,
+  one-column builders, bottom total bar. PDF/Print give way to Send quote: a short editable message (items,
+  tax, total, pre-need payment estimate, counselor and number) to Text, Email ("Family: Cemetery Quote") or Copy.
+- Family Packet (Resources): quote PDF + any of the 42 family PDFs in pdf-assets as one file, optional cover in
+  the quote design with page numbers; worksheets stay fillable. A new guide PDF must be added to
+  BW_PACKET_GROUPS (tests/test-family-packet.mjs fails until it is). Medicaid Professional Reference excluded.
+- Family search: the top-bar search lists contacts and saved records by name above prices.
+- Saved quotes: "Today $X (+$Y)" / "N items to re-pick" when today's prices differ (rebuilds only while the
+  builder is empty and untouched).
+- Deed Transfer: "Deed Letter" opens deed-transfer-letter.html filled in (localStorage hand-off, never the URL).
+- dev-server.mjs decodes %20 like Pages. Full suite 4330 passed / 0 failed across 59 suites.
