@@ -10451,6 +10451,17 @@ function _fqRenderCompareHTML(model){
 function _fqFitCompareForPrint(doc){
   try {
     var PW=725, PH=952;   // Letter at the 0.45in @page margin, less a little headroom.
+    // The masthead title is 25pt and nowrap, sized for the family quote's short labels. Every
+    // comparison label is longer than the room beside the logo (427px here), so the text ran off
+    // the band: "Funeral Home At-Need Comparison" lost most of its last word. Shrink only a title
+    // that actually overflows, just enough to fit; the band itself never changes height.
+    var mt=doc.querySelectorAll('.mast-t');
+    for(var j=0;j<mt.length;j++){
+      if(mt[j].scrollWidth > mt[j].clientWidth + 0.5){
+        var fs=parseFloat(doc.defaultView.getComputedStyle(mt[j]).fontSize);
+        mt[j].style.fontSize=(fs*0.98*mt[j].clientWidth/mt[j].scrollWidth).toFixed(2)+'px';
+      }
+    }
     var sh=doc.querySelectorAll('.sheet'), css='';
     for(var i=0;i<sh.length;i++){
       var r=sh[i].getBoundingClientRect();

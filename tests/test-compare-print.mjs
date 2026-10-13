@@ -100,7 +100,7 @@ async function capture(fn) {
   return out;
 }
 // The fit pass adds a print-only zoom; the sheet at that zoom must sit inside the 725x952 box
-// _fqFitForPrint targets (Letter at the 0.45in @page margin, less headroom).
+// _fqFitCompareForPrint targets (Letter at the 0.45in @page margin, less headroom).
 function fitsOnePage(s) {
   const m = String(s.fitCss).match(/zoom:([\d.]+)/);
   const k = m ? parseFloat(m[1]) : 1;
@@ -365,7 +365,7 @@ console.log('\n7. FH At-Need panel');
 // ── 8. It still fits one page at a realistic length, and says so when B is empty ───────────
 console.log('\n8. Length and empty-B behaviour');
 {
-  const r = await page.evaluate(() => {
+  const r = await page.evaluate(async () => {
     // 12 priced rows per column plus property, ECF and a discount — a long but ordinary quote.
     const lines = [{ label: 'Garden 17 – Sundial', amount: 4995, taxable: false, isSpace: true },
                    { label: 'Endowment Care Fund (ECF)', amount: 750, taxable: false, isSpace: true }];
@@ -379,15 +379,38 @@ console.log('\n8. Length and empty-B behaviour');
                 { letter: 'B', label: 'Garden 6', lines: lines, total: total }] });
     const w = window.open('', '_blank'); w.print = function () {};
     w.document.open(); w.document.write(_fqRenderCompareHTML(m)); w.document.close();
-    const css = _fqFitForPrint(w.document);
+    // Measure on the real faces, as _fqPrintCompare does: before the embedded BWSerif/BWSans
+    // land, the fallback serif sets the masthead title narrower and the sheet ~40px shorter.
+    await w.document.fonts.load('700 25pt BWSerif'); await w.document.fonts.ready;
+    // The comparison's own fit pass, the one _fqPrintCompare runs. Not _fqFitForPrint: since
+    // 34ce1345 that is the family quote's tier stepper (1056px target, 0.66 zoom floor), which
+    // this 850px sheet never goes through, so measuring it here failed on a page that fits.
+    const css = _fqFitCompareForPrint(w.document);
     const rect = w.document.querySelector('.sheet').getBoundingClientRect();
     const k = parseFloat((String(css).match(/zoom:([\d.]+)/) || [0, '1'])[1]);
     w.close();
-    return { h: rect.height, w: rect.width, k: k, tierPicked: _fqPickCompareTier(m).base };
+    // Masthead title: measure the glyphs (a Range), not the element box — the box is clamped by
+    // the flex row while nowrap text runs on past it. The longest label is the FH At-Need one.
+    const overrun = async label => {
+      const m2 = _fqCompareModel({ typeLabel: label, scopeLabel: 'Funeral Home', kind: 'fh', showPayment: false,
+        options: [{ letter: 'A', lines: lines, total: total }, { letter: 'B', lines: lines, total: total }] });
+      const w2 = window.open('', '_blank'); w2.print = function () {};
+      w2.document.open(); w2.document.write(_fqRenderCompareHTML(m2)); w2.document.close();
+      await w2.document.fonts.load('700 25pt BWSerif'); await w2.document.fonts.ready;
+      _fqFitCompareForPrint(w2.document);
+      const t = w2.document.querySelector('.mast-t'), rg = w2.document.createRange(); rg.selectNodeContents(t);
+      const over = rg.getBoundingClientRect().right - w2.document.querySelector('.mast-r').getBoundingClientRect().right;
+      w2.close();
+      return Math.round(over * 10) / 10;
+    };
+    return { h: rect.height, w: rect.width, k: k, tierPicked: _fqPickCompareTier(m).base,
+             titleOver: { cem: await overrun('Cemetery Option Comparison'), fhAN: await overrun('Funeral Home At-Need Comparison') } };
   });
   ok('a 14-row-per-column comparison still fits one Letter page',
      r.h * r.k <= 953 && r.w * r.k <= 726, r);
   ok('and it does that by tightening the density tier, not by clipping', r.tierPicked <= 13.5, r);
+  ok('the masthead title stays inside the band, even the longest label',
+     r.titleOver.cem <= 0.5 && r.titleOver.fhAN <= 0.5, r.titleOver);
 
   // Empty Option B: the cemetery compare still prints (the FH one refuses — see 5), and says
   // plainly that there is nothing to compare rather than showing a bogus difference.
