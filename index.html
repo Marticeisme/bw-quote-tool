@@ -8425,18 +8425,18 @@ function cemUpdate() {
       var sr2Space = (spacePrice / 2) * gardenQty;
       var sr2Ecf   = (gardenEcf   / 2) * gardenQty;
       setDisp('q2ndRightDisp', sr2Space + sr2Ecf);
-      var srLabel = (spaceOwned ? 'Second Right – ' + gardenLabel : 'Second Right') + ' (½ space)';
+      var srLabel = spaceOwned ? 'Second Right – ' + gardenLabel : 'Second Right';
       lines.push({label: srLabel + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr2Space, taxable: false, isSecondRight: true, isSpace: true});
-      if (sr2Ecf > 0) lines.push({label: 'Second Right – ECF (½ ECF)' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr2Ecf, taxable: false, isSpace: true});
+      if (sr2Ecf > 0) lines.push({label: 'Second Right – ECF' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr2Ecf, taxable: false, isSpace: true});
     } else { setDisp('q2ndRightDisp', 0); }
     // Third Right
     if (el('q3rdRight') && chk('q3rdRight')) {
       var sr3Space = (spacePrice / 2) * gardenQty;
       var sr3Ecf   = (gardenEcf   / 2) * gardenQty;
       setDisp('q3rdRightDisp', sr3Space + sr3Ecf);
-      var trLabel = (spaceOwned ? 'Third Right – ' + gardenLabel : 'Third Right') + ' (½ space)';
+      var trLabel = spaceOwned ? 'Third Right – ' + gardenLabel : 'Third Right';
       lines.push({label: trLabel + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr3Space, taxable: false, isSecondRight: true, isSpace: true});
-      if (sr3Ecf > 0) lines.push({label: 'Third Right – ECF (½ ECF)' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr3Ecf, taxable: false, isSpace: true});
+      if (sr3Ecf > 0) lines.push({label: 'Third Right – ECF' + (gardenQty > 1 ? ' ×' + gardenQty : ''), amount: sr3Ecf, taxable: false, isSpace: true});
     } else if (el('q3rdRightDisp')) { setDisp('q3rdRightDisp', 0); } else {
       setDisp('q2ndRightDisp', 0);
     }
@@ -9355,12 +9355,12 @@ function calcBTotal() {
     // priced one half-space right instead of two, under the space line that already read
     // "×2" — an undercharge on a figure shown to the family.
     if (chk('cmpB_2ndRight')) {
-      if (bSpace > 0) lines.push({label: bRightPrefix2 + ' (½ space)' + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
-      if (bEcf   > 0) lines.push({label: '2nd Right ECF (½)' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix2 + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '2nd Right – ECF' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
     }
     if (chk('cmpB_3rdRight')) {
-      if (bSpace > 0) lines.push({label: bRightPrefix3 + ' (½ space)' + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
-      if (bEcf   > 0) lines.push({label: '3rd Right ECF (½)' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bSpace > 0) lines.push({label: bRightPrefix3 + bQtySuffix, amount: bSpace * 0.5 * bQty, taxable: false, isSpace: true});
+      if (bEcf   > 0) lines.push({label: '3rd Right – ECF' + bQtySuffix,   amount: bEcf   * 0.5 * bQty, taxable: false, isSpace: true});
     }
   } else if (bNicheP > 0) {
     bLabel = 'Niche Space';
