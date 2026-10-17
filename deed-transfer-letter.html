@@ -234,6 +234,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:14px;background:var(--offw
         <span class="hint">Formats itself as dollars; auto-calculated from the pickers (space + endowment care, &times; qty).</span>
       </div>
       <div class="field">
+        <label for="valueEach">Value per Space</label>
+        <textarea id="valueEach" rows="2" placeholder="e.g. $8,045.00 each (2 spaces)"></textarea>
+        <span class="hint">Auto-filled when there&rsquo;s more than one space, so the family sees one space&rsquo;s value next to the combined value. Leave blank to hide it.</span>
+      </div>
+      <div class="field">
         <label for="recordDate">Date (in property summary)
           <span class="hint">Whatever this line was used for on the original form &mdash; e.g. valuation or purchase date.</span>
         </label>
@@ -412,15 +417,34 @@ function rowText(r){
   const qtyTxt = qty + ' ' + unit + (qty > 1 ? 's' : '');
   return what + ' — ' + qtyTxt + (r.location.trim() ? ' (' + r.location.trim() + ')' : '');
 }
+// One space's value (space + endowment care) for a picked row: "$8,045.00 each (2 spaces)".
+// With more than one picked row, each line names its property, since their prices differ.
+function rowEach(r, named){
+  const amt = rowAmount(r); if (amt === null) return null;
+  const qty = Math.max(1, parseInt(r.qty, 10) || 1);
+  const unit = r.type === 'garden' ? 'space' : (r.type === 'niche' ? 'niche' : 'crypt');
+  const line = fmtMoney(amt / qty) + ' each (' + qty + ' ' + unit + (qty > 1 ? 's' : '') + ')';
+  if (!named) return line;
+  const name = (rowText(r) || '').split(' — ')[0];
+  return name ? name + ': ' + line : line;
+}
 function applyPickers(){
   const texts = propRowsState.map(rowText).filter(Boolean);
   const amounts = propRowsState.map(rowAmount).filter(a => a !== null);
   if (texts.length) document.getElementById('propertyDescription').value = texts.join('\n');
   if (amounts.length) document.getElementById('currentValue').value = fmtMoney(amounts.reduce((a,b) => a+b, 0));
+  // Per-space value, only when the pickers add up to more than one space (Martice 2026-10-16:
+  // families want one plot's value as well as the combined value).
+  const priced = propRowsState.filter(r => rowAmount(r) !== null);
+  if (priced.length) {
+    const spaces = priced.reduce((s, r) => s + Math.max(1, parseInt(r.qty, 10) || 1), 0);
+    document.getElementById('valueEach').value = spaces > 1
+      ? priced.map(r => rowEach(r, priced.length > 1)).join('\n') : '';
+  }
   render();
 }
 
-const fields = ['letterDate','recipientName','propertyOwners','propertyDescription','currentValue','recordDate','sentBy'];
+const fields = ['letterDate','recipientName','propertyOwners','propertyDescription','currentValue','valueEach','recordDate','sentBy'];
 fields.forEach(id => document.getElementById(id).addEventListener('input', render));
 // Typed dollar amounts settle into $#,###.## on blur.
 document.getElementById('currentValue').addEventListener('blur', function(){
@@ -476,6 +500,8 @@ function render(){
   const propertyOwners = val('propertyOwners', 'Property Owner(s)');
   const propertyDescription = val('propertyDescription', 'Property Description').replace(/\n/g,'<br>');
   const currentValue = val('currentValue', 'Current Value');
+  const valueEachRaw = document.getElementById('valueEach').value.trim();
+  const valueEach = esc(valueEachRaw).replace(/\n/g,'<br>');
   const recordDate = formatDate(document.getElementById('recordDate').value);
   const sentByRaw = document.getElementById('sentBy').value.trim();
   const sentBy = sentByRaw ? esc(sentByRaw) : '';
@@ -512,6 +538,7 @@ function render(){
       <tr><td class="k">Property Owner(s)</td><td>${propertyOwners}</td></tr>
       <tr><td class="k">Property Description</td><td>${propertyDescription}</td></tr>
       <tr><td class="k">Current Value (incl. Endowment Care)</td><td>${currentValue}</td></tr>
+      ${valueEachRaw ? `<tr><td class="k">Value per Space</td><td>${valueEach}</td></tr>` : ''}
       <tr><td class="k">Date</td><td>${recordDate}</td></tr>
     </table>
 
@@ -541,6 +568,7 @@ function render(){
       + `<div class="band-r"><div class="band-l">Current Value</div><div class="band-v">${currentValue}</div></div></div>`
       + `<div class="row"><div class="row-l">Property Owner(s)</div><div class="row-v">${propertyOwners}</div></div>`
       + `<div class="row"><div class="row-l">Property</div><div class="row-v">${propertyDescription}</div></div>`
+      + (valueEachRaw ? `<div class="row"><div class="row-l">Value per Space</div><div class="row-v">${valueEach}</div></div>` : '')
       + `<div class="row"><div class="row-l">Date</div><div class="row-v">${recordDate}</div></div></div>`,
     `<div class="close"><p>${LT.closing}</p><p>Sincerely,</p><div class="sig"></div>`
       + `<div class="sig-n">${sentBy ? '<b>' + sentBy + '</b><br>' : ''}Bonney-Watson Funeral Homes<br>Washington Memorial Park Cemetery</div></div>`,
