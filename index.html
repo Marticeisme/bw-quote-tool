@@ -5694,7 +5694,7 @@ function gaRenderCustomReview() {
   var items = gaUnrecognizedCustomLines();
   if (!items.length) { box.innerHTML = ''; return; }
   var p3 = [['p3:1','Page 3 — Obituary'],['p3:2','Page 3 — Limousine'],['p3:4','Page 3 — Clergy Honorarium'],
-            ['p3:6','Page 3 — Vocalist/Organist/Pianist'],['p3:7','Page 3 — Dove/Balloon/Bagpiper'],
+            ['p3:5','Page 3 — Flowers'],['p3:6','Page 3 — Vocalist/Organist/Pianist'],['p3:7','Page 3 — Dove/Balloon/Bagpiper'],
             ['p3:9','Page 3 — Video Tribute'],['p3:10','Page 3 — Gifts/Donations'],['p3:11','Page 3 — Catering'],
             ['p3:12','Page 3 — Outside Cemetery Fees'],['p3:13','Page 3 — Shipping'],['p3:14','Page 3 — Travel/Lodging'],
             ['p3:15','Page 3 — Misc.']];
@@ -5708,7 +5708,9 @@ function gaRenderCustomReview() {
     html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">'
       + '<span style="flex:1;font-size:12px;color:var(--text);" data-ga-cust-label="' + encodeURIComponent(it.label) + '" data-ga-cust-amt="' + it.amount + '">'
       + (it.label || 'Custom Item') + ' — $' + Math.abs(it.amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>'
-      + '<select class="ga-cust-dest" style="flex:0 0 250px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:inherit;">' + opts + '</select>'
+      // A custom flowers line belongs on Page 3 Flowers (Group5), so that's its starting choice.
+      + '<select class="ga-cust-dest" style="flex:0 0 250px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;font-family:inherit;">'
+      + (/flower|floral/i.test(it.label || '') ? opts.replace('value="p3:5"', 'value="p3:5" selected') : opts) + '</select>'
       + '</div>';
   });
   html += '</div>';
