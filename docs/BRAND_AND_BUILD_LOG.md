@@ -2810,3 +2810,14 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - NOTE: build_guides_page.py is stale (aborts on the current hub markup); guides.html is hand-maintained now.
 - NOTE: verify_walkthrough.mjs COM crashes in headless (window.bwWalkthrough) on main too; not from this change.
 - Open: vault-guide.html still on the old template (full move needs a design preview first).
+
+## 2026-10-15/16: Second Right labels, worksheets, ACH typos, deed letter, GA flowers
+
+- Cemetery Quote: Second/Third Right lines no longer print "(½ space)" / "(½ ECF)" (the PDF font has no ½,
+  so it printed as a gap). They read "Second Right – Garden 21 – Garden of Prayer" / "Second Right – ECF". (16bee666)
+- Cemetery Property worksheet: the two "who is it for" sections merged into one with room for two people;
+  bank info is asked for after the DocuSign goes out. Clear form button on all four worksheets.
+- RIC ACH form: six template typos fixed (Routing, may be, once, default, month, card sentence order).
+- Deed transfer letter: "Value per Space" next to the combined value when more than one space is picked.
+- GA import: custom line items can be routed to Page 3 Flowers (pre-selected for flower/floral lines).
+- Full suite 4340 passed / 0 failed across 59 suites.
