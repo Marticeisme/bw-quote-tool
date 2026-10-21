@@ -112,6 +112,10 @@ Known characteristics:
 
 ## 4. Build log
 
+### 2026-10-20 — Quote tool: Taxable/Exempt on every FH package line
+
+Martice: a line added to a funeral package was never taxed, which threw off the tax total. Package rows (Plan Line Items) had no tax setting, so the tool guessed from the name, and anything not named like merchandise came out exempt. `makePlanRow` in `index.html` now gives every row a Taxable/Exempt dropdown. Package items start from FH_PLANS, "+ Add Item" rows start Taxable, and the counselor can change any row. Saves write `tax` per plan item. Saves from before this have no `tax` field and keep the old name guess, so they reload unchanged. Test: `tests/test-fh-plan-tax.mjs` (10/10). Also passing: saved-lines, discount-buckets, combined-totals, family-quote-subtotal, compare-print, 3p-tax-combined-split.
+
 ### 2026-10-12 — Terramation guide: soil amount now matches Return Home's website
 
 Martice: use whatever Return Home's site says. RH soil FAQ: "approximately 1-1.5 cubic yards, or typically about 250 pounds of soil", in breathable burlap bags, no bag count. `terramation-guide.html`: three spots changed from "roughly one cubic yard, about 250 pounds, in 10 to 15 burlap bags" to "about 1 to 1.5 cubic yards, typically about 250 pounds, in breathable burlap bags". PDF rebuilt: `node scripts/build_guide_pdfs.mjs terramation-guide`. Bag sizes (large about 20 lb down to mini) unchanged; they come from BW's own info booklet.

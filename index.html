@@ -480,12 +480,13 @@ tr:hover td{background:var(--navy-100);}
 /* the discount/custom-line micro-rows keep their compact controls */
 #section-cem-quote .disc-row input,#section-fh-quote .disc-row input,#section-combined-quote .disc-row input,
 #section-cem-quote .disc-row select,#section-fh-quote .disc-row select,#section-combined-quote .disc-row select{height:30px;font-size:12px;padding:0 var(--s2);}
-#section-cem-quote .plan-item-row input,#section-fh-quote .plan-item-row input{height:30px;font-size:12px;}
+#section-cem-quote .plan-item-row input,#section-fh-quote .plan-item-row input,#section-fh-quote .plan-item-row select{height:30px;font-size:12px;}
 
 /* PLAN ITEMS */
 .plan-items-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-mid);display:none;}
 .plan-item-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;max-width:720px;}
 .plan-item-row .pi-label{flex:1;max-width:600px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;font-family:'Public Sans',sans-serif;}
+.plan-item-row .pi-tax{width:84px;padding:0 4px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;font-family:'Public Sans',sans-serif;}
 .plan-item-row .pi-amount{width:80px;padding:4px 7px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;text-align:right;font-family:'Public Sans',sans-serif;}
 .plan-item-row .pi-remove{border:none;background:var(--red);color:#fff;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;}
 .plan-totals{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-mid);font-size:12px;color:var(--text-light);}
@@ -11456,21 +11457,41 @@ var _lockedPlanDiscount = 0;
 var _fhLines = [], _fhTotal = 0;
 var _fhDiscData = null;
 
+// Guess for rows saved before the Taxable/Exempt picker existed: the package's own flag for
+// that label, else taxable merchandise detected by name. New rows never guess.
+function _fhGuessPlanTaxable(label) {
+  var planData = (_activePlanType && _activePlanKey && FH_PLANS[_activePlanType]) ? FH_PLANS[_activePlanType][_activePlanKey] : null;
+  if (planData && planData.items) {
+    var matchItem = planData.items.find(function(it){ return it[0] === label; });
+    if (matchItem && matchItem[2]) return true;
+  }
+  var lblL = String(label || '').toLowerCase();
+  if (/urn|casket|memorial package|box ?set|register book|service folder|prayer card|engraving|vase|keepsake|memento/.test(lblL)) return true;
+  return lblL.indexOf('flower') >= 0 && lblL.indexOf('vehicle') < 0; // flower merchandise/allowance, NOT "Use of Flower Vehicle"
+}
+
+// Saved plan item → its tax flag. `tax` is written since the picker; older saves only stored
+// `taxable`, and their false could mean "unknown", so a false there falls back to the guess.
+function _fhPlanItemTaxable(item) {
+  if (item.tax) return item.tax === 'taxable';
+  return item.taxable ? true : _fhGuessPlanTaxable(item.label);
+}
+
 function makePlanRow(label, amount, taxable) {
   var row = document.createElement('div');
   row.className = 'plan-item-row';
-  // Persist the taxable flag ON the row so it survives label edits AND save/restore.
-  // (Previously taxability was re-derived by matching the original label, which broke when
-  // a plan row was edited — e.g. renaming "Urn Allowance" to an actual urn dropped its tax.)
-  if (taxable) row.setAttribute('data-taxable', '1');
+  // Every row carries its own Taxable/Exempt picker, so an added line or an edited label
+  // is taxed the way the counselor sets it rather than by a name guess.
+  if (taxable === undefined) taxable = _fhGuessPlanTaxable(label);
   row.innerHTML = '<input type="text" class="pi-label" value="' + label.replace(/"/g,'&quot;') + '" oninput="fhUpdate()">'
+    + '<select class="pi-tax" onchange="fhUpdate()" title="Sales tax"><option value="taxable"' + (taxable ? ' selected' : '') + '>Taxable</option><option value="exempt"' + (taxable ? '' : ' selected') + '>Exempt</option></select>'
     + '<input type="number" class="pi-amount" value="' + amount + '" oninput="fhUpdate()">'
     + '<button class="cl-remove" onclick="this.parentElement.remove();fhUpdate()" title="Remove">×</button>';
   return row;
 }
 
 function fhAddPlanItem() {
-  var row = makePlanRow('', 0);
+  var row = makePlanRow('', 0, true);
   el('fhPlanItems').appendChild(row);
   fhUpdate();
 }
@@ -11695,22 +11716,12 @@ function fhUpdate() {
       if (!labelEl || !amtEl) return;
       var lbl = labelEl.value || 'Service';
       var amt = parseFloat(amtEl.value) || 0;
+      var taxEl = row.querySelector('.pi-tax');
       var isTaxable;
-      if (row.hasAttribute('data-taxable')) {
-        isTaxable = row.getAttribute('data-taxable') === '1';      // flag stored on the row (survives edits)
+      if (taxEl) {
+        isTaxable = taxEl.value === 'taxable';
       } else {
-        isTaxable = false;                                          // legacy fallback: match original label
-        if (planData && planData.items) {
-          var matchItem = planData.items.find(function(it){ return it[0] === labelEl.defaultValue; });
-          if (matchItem) isTaxable = !!matchItem[2];
-        }
-        // Safety net for edited/manually-added rows (and pre-fix saved quotes): taxable
-        // merchandise detected by name even if the label no longer matches a plan item.
-        if (!isTaxable) {
-          var lblL = lbl.toLowerCase();
-          if (/\burn\b|casket|memorial package|box ?set|register book|service folder|prayer card|engraving|\bvase\b|keepsake|memento/.test(lblL)) isTaxable = true;
-          else if (lblL.indexOf('flower') >= 0 && lblL.indexOf('vehicle') < 0) isTaxable = true; // flower merchandise/allowance, NOT "Use of Flower Vehicle"
-        }
+        isTaxable = _fhGuessPlanTaxable(lbl);                         // row built without a picker
       }
       var amtTotal = amt * fhPersonQty;
       var lblFull = lbl + (fhPersonQty > 1 ? ' ×' + fhPersonQty : '');
@@ -13278,7 +13289,9 @@ function captureFhState() {
   if (planContainer) {
     planContainer.querySelectorAll('.plan-item-row').forEach(function(row) {
       var lbl = row.querySelector('.pi-label'), amt = row.querySelector('.pi-amount');
-      if (lbl && amt) planItems.push({ label: lbl.value, amount: amt.value, taxable: row.getAttribute('data-taxable') === '1' });
+      var tx = row.querySelector('.pi-tax');
+      var isTx = tx ? tx.value === 'taxable' : row.getAttribute('data-taxable') === '1';
+      if (lbl && amt) planItems.push({ label: lbl.value, amount: amt.value, taxable: isTx, tax: isTx ? 'taxable' : 'exempt' });
     });
   }
   return {
@@ -18982,7 +18995,7 @@ function _bwRestoreFhState(s) {
     fhPlanChange(s.activePlanType);
     if (s.planItems && s.planItems.length > 0) {
       var container = el('fhPlanItems');
-      if (container) { container.innerHTML = ''; s.planItems.forEach(function(item){ container.appendChild(makePlanRow(item.label, item.amount, item.taxable)); }); }
+      if (container) { container.innerHTML = ''; s.planItems.forEach(function(item){ container.appendChild(makePlanRow(item.label, item.amount, _fhPlanItemTaxable(item))); }); }
     }
   }
   fhQuoteTypeChange();
@@ -24669,7 +24682,7 @@ async function downloadCombQuotePDF() {
             var _pc = el('fhPlanItems');
             if (_pc && typeof makePlanRow === 'function') {
               _pc.innerHTML = '';
-              fd.planItems.forEach(function(item){ _pc.appendChild(makePlanRow(item.label, item.amount, item.taxable)); });
+              fd.planItems.forEach(function(item){ _pc.appendChild(makePlanRow(item.label, item.amount, _fhPlanItemTaxable(item))); });
             }
           }
         }
