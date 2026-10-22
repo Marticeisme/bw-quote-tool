@@ -93,7 +93,7 @@ let out = html.slice(0, b) + block + html.slice(e + END.length);
 const OC_LABEL_KEY = {
   LawnSingle: 'OC:lawn_single', LawnDouble1: 'OC:lawn_double_1st',
   LawnDouble2: 'OC:lawn_double_2nd', Maus: 'OC:mausoleum_entombment',
-  Ground: 'OC:ground_inurnment', Boulder: 'OC:boulder_inurnment',
+  Ground: 'OC:ground_inurnment', GroundVault: 'OC:ground_inurnment_vault', Boulder: 'OC:boulder_inurnment',
   Niche: 'OC:niche_inurnment', NicheNon: 'OC:niche_non_inurnment',
 };
 let labelsSeen = 0;
@@ -109,8 +109,8 @@ out = out.replace(/(<label for="qOC(\w+)">[^<]*?[—–-]\s*\$)([\d,]+)(<\/label
     if (had !== want) labelMoved.push('  ' + key + ' (label qOC' + id + '): ' + had + ' -> ' + want);
     return head + want.toLocaleString('en-US') + tail;
   });
-if (labelsSeen !== 8) {
-  die('found ' + labelsSeen + ' O&C labels, expected 8. If one was renamed, the map\'s ' +
+if (labelsSeen !== Object.keys(OC_LABEL_KEY).length) {
+  die('found ' + labelsSeen + ' O&C labels, expected ' + Object.keys(OC_LABEL_KEY).length + '. If one was renamed, the map\'s ' +
     'build-prices.py can no longer read it either — fix both.');
 }
 

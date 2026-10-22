@@ -1073,7 +1073,8 @@ tr:hover td{background:var(--navy-100);}
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-light);margin-bottom:6px;">Common O&amp;C</div>
             <div style="font-size:12px;line-height:2;">
               Lawn Interment: <strong><span data-fee="OC:lawn_single"></span></strong><br>
-              Ground Inurnment: <strong><span data-fee="OC:ground_inurnment"></span></strong><br>
+              Ground Inurnment, lawn + urn vault: <strong><span data-fee="OC:ground_inurnment_vault"></span></strong><br>
+              Ground Inurnment, urn garden or combo urn: <strong><span data-fee="OC:ground_inurnment"></span></strong><br>
               Mausoleum Entombment: <strong><span data-fee="OC:mausoleum_entombment"></span></strong><br>
               Niche: <strong><span data-fee="OC:niche_inurnment"></span></strong>
             </div>
@@ -1248,7 +1249,7 @@ tr:hover td{background:var(--navy-100);}
           <!-- Standard Urn Burial -->
           <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:6px;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;">
             <input type="checkbox" id="cmpB_stdUrn" onchange="calcBTotal()" style="accent-color:var(--navy);">
-            <div><span style="font-weight:600;">Standard Urn Burial</span><span style="color:var(--muted);margin-left:6px;">Urn Vault $935 · Setting $575 · Recording <span data-fee="RECORDING:all"></span> · Ground Inurnment <span data-fee="OC:ground_inurnment"></span></span></div>
+            <div><span style="font-weight:600;">Standard Urn Burial</span><span style="color:var(--muted);margin-left:6px;">Urn Vault $935 · Setting $575 · Recording <span data-fee="RECORDING:all"></span> · Ground Inurnment <span data-fee="OC:ground_inurnment_vault"></span> (urn garden <span data-fee="OC:ground_inurnment"></span>)</span></div>
           </label>
 
           <!-- Glass Front Niche -->
@@ -1559,7 +1560,7 @@ tr:hover td{background:var(--navy-100);}
                 <label style="display:block;cursor:pointer;"><input type="checkbox" id="qUAItemVault" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Monticello Urn Vault $935</label>
                 <label style="display:block;cursor:pointer;"><input type="checkbox" id="qUAItemSetting" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Cremation Vault Setting $575</label>
                 <label style="display:block;cursor:pointer;"><input type="checkbox" id="qUAItemRecording" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Recording Fee <span data-fee="RECORDING:all"></span></label>
-                <label style="display:block;cursor:pointer;"><input type="checkbox" id="qUAItemOC" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Ground Inurnment <span data-fee="OC:ground_inurnment"></span></label>
+                <label style="display:block;cursor:pointer;"><input type="checkbox" id="qUAItemOC" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Ground Inurnment <span id="qUAItemOCFee" data-fee="OC:ground_inurnment_vault"></span></label>
               </div>
             </div>
           </div>
@@ -1734,11 +1735,18 @@ tr:hover td{background:var(--navy-100);}
               <input type="number" id="qOCMausQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
             <div class="q-check-row">
+              <input type="checkbox" id="qOCGroundVault" onchange="cemUpdateD()">
+              <label for="qOCGroundVault">Ground Inurnment, Lawn Space with Separate Urn Vault — $985</label>
+              <span class="qty-x">×</span>
+              <input type="number" id="qOCGroundVaultQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
+            </div>
+            <div class="q-check-row">
               <input type="checkbox" id="qOCGround" onchange="cemUpdateD()">
-              <label for="qOCGround">Ground Inurnment — $875</label>
+              <label for="qOCGround">Ground Inurnment, Urn Garden or Combination Urn Vault — $875</label>
               <span class="qty-x">×</span>
               <input type="number" id="qOCGroundQty" class="qty-input" min="1" max="9" value="1" oninput="cemUpdateD()">
             </div>
+            <div id="qOCGroundNote" style="display:none;font-size:11px;line-height:1.4;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:6px 9px;margin:2px 0 6px;"></div>
             <div class="q-check-row">
               <input type="checkbox" id="qOCBoulder" onchange="cemUpdateD()">
               <label for="qOCBoulder">Boulder Inurnment — $1,425</label>
@@ -4523,7 +4531,7 @@ tr:hover td{background:var(--navy-100);}
 
           <label style="font-size:13px;" for="anOcOpening">Opening &amp; Closing</label>
           <div style="text-align:center;"><input type="checkbox" id="anOcOpening"></div>
-          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"><input type="number" id="anAmtOpening" min="0" step="1" placeholder="0.00" style="width:100px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"><select onchange="anQFsel(this,'anAmtOpening')" style="font-size:11px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;"><option value="">＋ O&amp;C…</option><option value="1535">Lawn Interment $1,535</option><option value="875">Ground Inurnment $875</option><option value="875">Niche Inurnment $875</option><option value="1205">Mausoleum Entombment $1,205</option></select></div>
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;"><input type="number" id="anAmtOpening" min="0" step="1" placeholder="0.00" style="width:100px;padding:5px 8px;border:1px solid var(--gray-mid);border-radius:5px;font-size:12px;"><select onchange="anQFsel(this,'anAmtOpening')" style="font-size:11px;padding:4px 6px;border:1px solid var(--gray-mid);border-radius:5px;"><option value="">＋ O&amp;C…</option><option value="1535">Lawn Interment $1,535</option><option value="985">Ground Inurnment, lawn + separate urn vault $985</option><option value="875">Ground Inurnment, urn garden or combination urn vault $875</option><option value="875">Niche Inurnment $875</option><option value="1205">Mausoleum Entombment $1,205</option></select><div id="anOCWarn" style="display:none;flex-basis:100%;font-size:11px;line-height:1.4;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:6px 9px;margin-top:2px;"></div></div>
 
           <label style="font-size:13px;" for="anOcRecording">Recording Fee</label>
           <div style="text-align:center;"><input type="checkbox" id="anOcRecording"></div>
@@ -6850,12 +6858,13 @@ function bwPrefetchTemplates(moduleType) {
 // ── GENERATED FROM data/prices.json — DO NOT EDIT BY HAND ─────────────────────
 // Regenerate with:  npm run sync-prices
 var BW_PRICES_URL = 'data/prices.json';
-var BW_PRICES_GENERATED = '2026-07-31';
+var BW_PRICES_GENERATED = '2026-10-22';
 var BW_FEES = {
   'INSCRIPTION:all': 660,
   'MONOBAR:crypt': 1445,
   'OC:boulder_inurnment': 1425,
   'OC:ground_inurnment': 875,
+  'OC:ground_inurnment_vault': 985,
   'OC:lawn_double_1st': 2085,
   'OC:lawn_double_2nd': 1535,
   'OC:lawn_single': 1535,
@@ -6958,6 +6967,55 @@ function bwFeeText(key) {
   return '$' + bwFee(key).toLocaleString('en-US');
 }
 window.bwFeeText = bwFeeText;
+
+// ── Ground inurnment O&C (Martice, 2026-10-22) ────────────────────────────────────────
+// "When placing urn and urn vault in the ground they dig the space larger and we charge more
+// for the opening and closing, but when using the combo urn vault we've always charged less."
+//   urn garden (Lake / Rest Haven, Rose, Court of Honor, Garden of Verses)  $875, vault or not
+//     (URN GARDEN & GARDEN OF VERSES PACKAGES 08-2026: O&C $875 next to a separate urn vault)
+//   lawn space + separate urn vault (or an urn vault setting)             $985  OC:ground_inurnment_vault
+//     (Cemetery Merchandise & Services Price List eff. 09/08/2026, Placement of Urn in Lawn Space)
+//   lawn space + combination urn vault (the urn is its own vault)         $875  OC:ground_inurnment
+//     (Martice's practice, 10/22/2026. NOT a printed price: the 9/15 list has no combination-urn
+//     O&C line, only "no setting fee applies to the Marbleon combination urn/vault")
+// Sprint-09 (2026-07-31) moved the one key to $875 for every ground inurnment, which quoted
+// every lawn space with a separate urn vault $110 low until this split.
+function bwIsUrnGardenKey(k) { return /^(lake_urn|rose_urn|coh_|verses_)/.test(k || ''); }
+function bwIsUrnGardenText(t) { return /urn garden|rest haven|court of honor|cremorial|garden of verses|\b(LUG|RUG|VCUG|COH)\b/i.test(t || ''); }
+// A separate urn vault on the quote: a vault or setting line, never the O&C line itself.
+function bwHasSeparateUrnVault(lines) {
+  return (lines || []).some(function(l) { var t = l.label || ''; return !l.groundOC && !l.isDiscount && (l.amount || 0) > 0 && !/inurnment/i.test(t) && /urn vault|cremation vault setting/i.test(t); });
+}
+// Rewrites ground-inurnment O&C lines (tagged groundOC) in place to the right fee. Returns the
+// note to show, which O&C checkboxes to flip, and the arrangement's delta and fee key.
+function bwResolveGroundOC(lines, gardenKey, locText) {
+  var urnGarden = gardenKey ? bwIsUrnGardenKey(gardenKey) : bwIsUrnGardenText(locText);
+  var want = urnGarden ? 'combo' : (bwHasSeparateUrnVault(lines) ? 'vault' : null);
+  var out = { note: '', switched: [], uaDelta: 0, uaKey: null };
+  (lines || []).forEach(function(l) {
+    if (!l.groundOC) return;
+    var to = want || (l.groundSrc === 'ua' ? 'combo' : l.groundOC);
+    if (l.groundSrc === 'ua') out.uaKey = to === 'vault' ? 'OC:ground_inurnment_vault' : 'OC:ground_inurnment';
+    if (to === l.groundOC) return;
+    var q = l.groundQty || 1, key = to === 'vault' ? 'OC:ground_inurnment_vault' : 'OC:ground_inurnment';
+    var amt = bwFee(key) * q;
+    if (l.groundSrc === 'ua') out.uaDelta += amt - l.amount; else out.switched.push(to);
+    l.amount = amt; l.groundOC = to;
+    l.label = (to === 'vault' ? 'Ground Inurnment – Lawn Space' : 'Ground Inurnment') + (q > 1 ? ' ×' + q : '');
+    if (l.groundSrc !== 'ua') out.note = to === 'vault'
+      ? 'Switched to ' + bwFeeText(key) + ': this quote has a separate urn vault in a lawn space. ' + bwFeeText('OC:ground_inurnment') + ' is only for an urn garden or a combination urn vault.'
+      : 'Switched to ' + bwFeeText(key) + ': urn garden placements are ' + bwFeeText(key) + ' with or without an urn vault.';
+  });
+  return out;
+}
+// For saved quotes and contracts: true when a lawn-space quote carries a separate urn vault but
+// its ground-inurnment O&C is the $875 rate. Used by the impact list and the test suite.
+function bwGroundOCLow(lines, gardenKey, locText) {
+  var urnGarden = gardenKey ? bwIsUrnGardenKey(gardenKey) : bwIsUrnGardenText(locText);
+  if (urnGarden || !bwHasSeparateUrnVault(lines)) return false;
+  return (lines || []).some(function(l) { return /ground inurnment/i.test(l.label || '') && !/lawn space/i.test(l.label || '') && Math.round(l.amount / (l.groundQty || (/×\s*(\d+)/.exec(l.label) || [0, 1])[1])) === 875; });
+}
+window.bwResolveGroundOC = bwResolveGroundOC; window.bwGroundOCLow = bwGroundOCLow;
 
 // Fill every <span data-fee="…"> with its amount. Called synchronously at the end of this
 // script block — by then the whole <body> has parsed — so no label is ever momentarily blank
@@ -7618,6 +7676,9 @@ var _PL_CAT_CEM = [
   [/vase|zinc/, 'Vases'],
   [/poem|epitaph|litho|artwork|autograph|family crest|custom element|rush (photo|production)/, 'Inscriptions & Services'],
   [/pins|drill|core hole|cutting granite|shape carving|pressure wash|hourly|shop work|pulling marker|re-?set|rubbing|clean marker|crating|dispose|foundation/, 'Marker Services'],
+  // The ground inurnment O&C labels name the container ("…Separate Urn Vault"), so this goes
+  // ahead of the urn-vault rule or both O&C fees would file under Urn Vaults.
+  [/ground inurnment/, 'Opening & Closing'],
   [/urn vault/, 'Urn Vaults'],
   [/setting/, 'Vault & Urn-Vault Settings'],
   [/vault|wilbert|monticello|continental|venetian|tribute|cameo|triune|stainless|loved.*cherished/, 'Burial Vaults'],
@@ -8420,7 +8481,7 @@ function cemUpdate() {
       if (pkgItem('qUAItemVault'))     { uaTotal += 935 * uaQty; lines.push({label: 'Monticello Urn Vault' + (uaQty > 1 ? ' ×' + uaQty : ''), amount: 935 * uaQty, taxable: true}); }
       if (pkgItem('qUAItemSetting'))   { uaTotal += 575 * uaQty; lines.push({label: 'Cremation Vault Setting' + (uaQty > 1 ? ' ×' + uaQty : ''), amount: 575 * uaQty, taxable: true}); }
       if (pkgItem('qUAItemRecording')) { uaTotal += bwFee('RECORDING:all') * uaQty; lines.push({label: 'Recording Fee' + (uaQty > 1 ? ' ×' + uaQty : ''), amount: bwFee('RECORDING:all') * uaQty, taxable: false}); }
-      if (pkgItem('qUAItemOC'))        { uaTotal += bwFee('OC:ground_inurnment') * uaQty; lines.push({label: 'Ground Inurnment' + (uaQty > 1 ? ' ×' + uaQty : ''), amount: bwFee('OC:ground_inurnment') * uaQty, taxable: false}); }
+      if (pkgItem('qUAItemOC'))        { uaTotal += bwFee('OC:ground_inurnment') * uaQty; lines.push({label: 'Ground Inurnment' + (uaQty > 1 ? ' ×' + uaQty : ''), amount: bwFee('OC:ground_inurnment') * uaQty, taxable: false, groundOC: 'combo', groundQty: uaQty, groundSrc: 'ua'}); }
       setDisp('qUrnArrangeDisp', uaTotal);
     } else if (el('qUrnArrangeDisp')) { setDisp('qUrnArrangeDisp', 0); }
     // Second Right
@@ -8558,7 +8619,8 @@ function cemUpdate() {
   if (chk('qOCLawnDouble1')) { var q=qty('qOCLawnDouble1Qty'); lines.push({label:'Lawn Interment – Double Depth (1st)'+(q>1?' ×'+q:''), amount:bwFee('OC:lawn_double_1st')*q, taxable:false}); }
   if (chk('qOCLawnDouble2')) { var q=qty('qOCLawnDouble2Qty'); lines.push({label:'Lawn Interment – Double Depth (2nd)'+(q>1?' ×'+q:''), amount:bwFee('OC:lawn_double_2nd')*q, taxable:false}); }
   if (chk('qOCMaus')) { var q=qty('qOCMausQty'); lines.push({label:'Mausoleum Entombment'+(q>1?' ×'+q:''), amount:bwFee('OC:mausoleum_entombment')*q, taxable:false}); }
-  if (chk('qOCGround')) { var q=qty('qOCGroundQty'); lines.push({label:'Ground Inurnment'+(q>1?' ×'+q:''), amount:bwFee('OC:ground_inurnment')*q, taxable:false}); }
+  if (chk('qOCGroundVault')) { var q=qty('qOCGroundVaultQty'); lines.push({label:'Ground Inurnment – Lawn Space'+(q>1?' ×'+q:''), amount:bwFee('OC:ground_inurnment_vault')*q, taxable:false, groundOC:'vault', groundQty:q}); }
+  if (chk('qOCGround')) { var q=qty('qOCGroundQty'); lines.push({label:'Ground Inurnment'+(q>1?' ×'+q:''), amount:bwFee('OC:ground_inurnment')*q, taxable:false, groundOC:'combo', groundQty:q}); }
   if (chk('qOCBoulder')) { var q=qty('qOCBoulderQty'); lines.push({label:'Boulder Inurnment'+(q>1?' ×'+q:''), amount:bwFee('OC:boulder_inurnment')*q, taxable:false}); }
   if (chk('qOCNiche')) { var q=qty('qOCNicheQty'); lines.push({label:'Niche Inurnment'+(q>1?' ×'+q:''), amount:bwFee('OC:niche_inurnment')*q, taxable:false}); }
   if (chk('qOCNicheNon')) { var q=qty('qOCNicheNonQty'); lines.push({label:'Niche (Non-Inurnment)'+(q>1?' ×'+q:''), amount:bwFee('OC:niche_non_inurnment')*q, taxable:false}); }
@@ -8737,6 +8799,31 @@ function cemUpdate() {
     var t = row.querySelector('.cl-tax').value === 'taxable';
     if (a > 0) lines.push({label: d || 'Custom Item', amount: a, taxable: t});
   });
+
+  // Ground inurnment O&C follows where the urn goes and what it goes in (Martice, 2026-10-22):
+  // urn garden $875 always; lawn space with a separate urn vault $985; lawn space with a
+  // combination urn vault $875. Runs here, after vaults, settings and custom lines, so a vault
+  // added anywhere on the quote counts. The wrong pairing is corrected, not just flagged.
+  (function() {
+    var fix = bwResolveGroundOC(lines, gardenKey, val('qSpaceLocation'));
+    if (fix.uaDelta && el('qUrnArrangeDisp')) setDisp('qUrnArrangeDisp', uaTotal + fix.uaDelta);
+    var fee = el('qUAItemOCFee');
+    if (fee) { var k = fix.uaKey || 'OC:ground_inurnment_vault'; fee.setAttribute('data-fee', k); fee.textContent = bwFeeText(k); }
+    fix.switched.forEach(function(sw) {
+      var from = sw === 'vault' ? 'qOCGround' : 'qOCGroundVault', to = sw === 'vault' ? 'qOCGroundVault' : 'qOCGround';
+      if (el(from) && el(to)) { el(to).checked = true; el(from).checked = false; if (el(to + 'Qty') && el(from + 'Qty')) el(to + 'Qty').value = el(from + 'Qty').value; }
+    });
+    var note = el('qOCGroundNote');
+    // The note outlives the redraw pass below: it stays while the box it switched to is still
+    // checked, and goes when the counselor unchecks it or the quote is reset.
+    if (fix.note) window._bwGroundNote = { text: fix.note, box: fix.switched[fix.switched.length - 1] === 'vault' ? 'qOCGroundVault' : 'qOCGround' };
+    if (window._bwGroundNote && !chk(window._bwGroundNote.box)) window._bwGroundNote = null;
+    var gn = window._bwGroundNote;
+    if (note) { note.textContent = gn ? gn.text : ''; note.style.display = gn ? '' : 'none'; }
+    // The O&C panel's collapsed summary was drawn before this ran; one more pass redraws it from
+    // the flipped checkbox. The next pass finds nothing to switch, so this cannot loop.
+    if (fix.switched.length) cemUpdateD();
+  })();
 
   qsAt('cem:discounts');
   // ── Multi-Discount ──────────────────────────────────────────────────
@@ -9399,7 +9486,9 @@ function calcBTotal() {
       lines.push({label: 'Monticello Urn Vault', amount: 935, taxable: true});
       lines.push({label: 'Cremation Vault Setting', amount: 575, taxable: true});
       lines.push({label: 'Recording Fee – Inurnment', amount: bwFee('RECORDING:all'), taxable: false});
-      lines.push({label: 'Ground Inurnment', amount: bwFee('OC:ground_inurnment'), taxable: false});
+      // It always includes the Monticello urn vault, so $985 in a lawn space, $875 in an urn garden.
+      var bUrnGarden = bwIsUrnGardenKey((bGardenVal || '').split('|')[0]);
+      lines.push({label: bUrnGarden ? 'Ground Inurnment' : 'Ground Inurnment – Lawn Space', amount: bwFee(bUrnGarden ? 'OC:ground_inurnment' : 'OC:ground_inurnment_vault'), taxable: false});
     }
     // Glass Front Niche
     if (chk('cmpB_glassNiche')) {
@@ -9681,6 +9770,7 @@ function _spaceName(selId, otherId, rowId) {
 }
 function resetCemQuote() {
   bwStampsClear('cem');
+  window._bwGroundNote = null;
   try {
   // A fresh quote has no prior vintage to compare against, no contact and no space.
   if (typeof bwHideVintageBanner === 'function') bwHideVintageBanner();
@@ -9728,7 +9818,7 @@ function resetCemQuote() {
   ['qty_marker','qty_foundation','qty_bronze','qty_portrait',
    'qGardenQty',
    'qOCLawnSingleQty','qOCLawnDouble1Qty','qOCLawnDouble2Qty','qOCMausQty',
-   'qOCGroundQty','qOCBoulderQty','qOCNicheQty','qOCNicheNonQty',
+   'qOCGroundQty','qOCGroundVaultQty','qOCBoulderQty','qOCNicheQty','qOCNicheNonQty',
    'qRecGroundQty','qRecMausQty','qRecNicheQty',
    'qAfter3Qty','qFriSatSunQty','qHolidayQty','qWitnessMonQty','qWitnessFriQty','qDeedChangeQty',
    'qVaultQty','qSettingBurialQty','qSettingCremQty',
@@ -9740,7 +9830,7 @@ function resetCemQuote() {
    'qCustom1ElemQty','qExtraSurfaceQty','qSpecialEmblemQty','qMonuSealQty'
   ].forEach(function(id) { var e = el(id); if (e) e.value = '1'; });
   // Uncheck all checkboxes
-  ['qOCLawnSingle','qOCLawnDouble1','qOCLawnDouble2','qOCMaus','qOCGround','qOCBoulder','qOCNiche','qOCNicheNon',
+  ['qOCLawnSingle','qOCLawnDouble1','qOCLawnDouble2','qOCMaus','qOCGround','qOCGroundVault','qOCBoulder','qOCNiche','qOCNicheNon',
    'qSettingBurial','qSettingCrem',
    'qRecGround','qRecMaus','qRecNiche',
    'qAfter3','qFriSatSun','qHoliday','qWitnessMon','qWitnessFri','qDeedChange',
@@ -21389,7 +21479,21 @@ function anCustomToggle(selectEl, customId) {
 // Quick-fill an On Contract amount box with a standard price (the buttons/dropdowns in the panel),
 // so a CIRGAS can be priced directly without importing a Cemetery Quote.
 function anQF(id, amt) { var e = el(id); if (e) e.value = amt; }
-function anQFsel(sel, id) { if (sel && sel.value) { var e = el(id); if (e) e.value = sel.value; sel.selectedIndex = 0; } }
+function anQFsel(sel, id) { if (sel && sel.value) { var e = el(id); if (e) e.value = sel.value; sel.selectedIndex = 0; } if (typeof anGroundOCCheck === 'function') anGroundOCCheck(); }
+// Ground inurnment O&C on the At-Need tab: $985 for an urn in a LAWN space with a separate urn
+// vault, $875 for an urn garden or a combination urn vault (Martice, 2026-10-22). The tab is free
+// text, so this warns rather than rewrites: an urn vault named in the Vault box with $875 entered
+// is the $110-low pairing unless the location is an urn garden.
+function anGroundOCCheck() {
+  var w = el('anOCWarn'); if (!w) return;
+  var amt = parseFloat((el('anAmtOpening') || {}).value) || 0;
+  var vault = (el('anVault') || {}).value || '';
+  var loc = (el('anPropertyLocation') || {}).value || '';
+  var bad = amt === bwFee('OC:ground_inurnment') && /urn vault/i.test(vault) && !bwIsUrnGardenText(loc);
+  w.style.display = bad ? '' : 'none';
+  w.textContent = bad ? 'Urn vault in a lawn space: ground inurnment O&C is ' + bwFeeText('OC:ground_inurnment_vault') + '. ' + bwFeeText('OC:ground_inurnment') + ' is only for an urn garden or a combination urn vault (no separate vault).' : '';
+}
+document.addEventListener('input', function(e) { if (e.target && /^(anAmtOpening|anVault|anPropertyLocation)$/.test(e.target.id)) anGroundOCCheck(); });
 // Appends a picked common remark to the Additional Remarks box, then resets the dropdown so more
 // can be stacked. Phrases were derived from ~186 real at-need packets; "___" blanks (chair counts,
 // locations) are filled in by hand.

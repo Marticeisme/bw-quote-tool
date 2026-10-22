@@ -96,10 +96,12 @@ console.log('\n2. The look-alike LIVE figures survived');
   ok('Burial Vault Setting still prices at $685', r.burialSetting === 685, { got: r.burialSetting, labels: r.labels });
   ok('Cremation Vault Setting still prices at $575', r.cremSetting === 575, { got: r.cremSetting, labels: r.labels });
   ok('Standard Burial Arrangement still totals $4,760', /4,?760/.test(r.burialBundle || ''), r.burialBundle);
-  // $2,620 since 2026-07-31, not $2,730: urn vault 935 + setting 575 + recording 235 +
-  // ground inurnment O&C, and that O&C dropped 985 -> 875 on the operator's ruling against
-  // the 06/2026 urn-garden packages sheet (sprint-09 Track S). The bundle itself is unchanged.
-  ok('Standard Urn Arrangement still totals $2,620', /2,?620/.test(r.urnBundle || ''), r.urnBundle);
+  // $2,730 in a LAWN garden: urn vault 935 + setting 575 + recording 235 + ground inurnment
+  // O&C $985. The bundle carries a separate urn vault, and in a lawn space that O&C is $985
+  // (Martice, 2026-10-22). The 2026-07-31 ruling had moved it to $875 for every ground
+  // inurnment, which priced this bundle $110 low; $875 is right only in an urn garden
+  // ($2,620 there, pinned in test-ground-inurnment-oc.mjs). The bundle itself is unchanged.
+  ok('Standard Urn Arrangement totals $2,730 in a lawn garden', /2,?730/.test(r.urnBundle || ''), r.urnBundle);
   ok('the $715 on-site shutter inscription is untouched', r.shutter && r.shutter.value === '715', r.shutter);
   ok('no page errors', errs.length === 0, errs);
   await ctx.close();

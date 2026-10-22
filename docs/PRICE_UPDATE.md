@@ -1,10 +1,10 @@
 # Changing a cemetery fee
 
-Eleven cemetery service fees have exactly one source: **`data/prices.json`**. This page is how
+Twelve cemetery service fees have exactly one source: **`data/prices.json`**. This page is how
 you change one, what is *not* covered, and the one thing that still has to be fixed before the
 path works end to end for opening & closing.
 
-## The eleven
+## The twelve
 
 | Key in `prices.json` | Today | Where it shows up in the tool |
 |---|---|---|
@@ -12,7 +12,8 @@ path works end to end for opening & closing.
 | `OC:lawn_double_1st` | 2,085 | O&C checkbox |
 | `OC:lawn_double_2nd` | 1,535 | O&C checkbox |
 | `OC:mausoleum_entombment` | 1,205 | O&C checkbox, both mausoleum bundles, comparison panel |
-| `OC:ground_inurnment` | 875 | O&C checkbox, Standard Urn bundle, comparison panel |
+| `OC:ground_inurnment` | 875 | Urn garden, or a lawn space with a combination urn vault: O&C checkbox, Standard Urn bundle in an urn garden, comparison panel, At-Need quick-fill |
+| `OC:ground_inurnment_vault` | 985 | Lawn space with a separate urn vault or vault setting: O&C checkbox, Standard Urn bundle in a lawn space, comparison panel, At-Need quick-fill |
 | `OC:boulder_inurnment` | 1,425 | O&C checkbox |
 | `OC:niche_inurnment` | 875 | O&C checkbox, both niche bundles, comparison panel |
 | `OC:niche_non_inurnment` | 375 | O&C checkbox |
@@ -48,7 +49,7 @@ cd bw-quote-tool
 npm run sync-prices
 ```
 
-It rewrites the `BW_FEES` block in `index.html` and the eight O&C label amounts, prints every
+It rewrites the `BW_FEES` block in `index.html` and the nine O&C label amounts, prints every
 amount that moved, and names any `prices.json` key the tool does not read.
 `npm run sync-prices -- --check` reports without writing.
 
@@ -102,6 +103,21 @@ operator's ruling against the 06/2026 packages sheet. Because of the loop, step 
 `python scripts/build-prices.py` in the map, then `npm run sync-prices` here. The dated
 record in `CORRECTIONS` carries the provenance — it cannot carry the *value*, because
 `current_of()` prefers a live-quote-tool record over a dated one and the scrape would win.
+
+**Worked example, 2026-10-22: one fee became two.** The July ruling moved *every* ground
+inurnment to $875, so every urn in a lawn space with a separate urn vault was quoted $110 low
+(caught at contracts on a lawn-space RIC with a Monticello urn vault). Martice's rule: urn
+gardens $875 with or without a vault (08-2026 urn-garden packages sheet); lawn space with a
+separate urn vault or vault setting **$985** (Cemetery Merchandise & Services Price List, eff.
+09/08/2026); lawn space with a combination urn vault $875 (Martice's practice, 10/22/2026;
+the price list prints no combination-urn O&C, only that the Marbleon combination urn/vault
+takes no setting fee). A new label `qOCGroundVault`
+(`Ground Inurnment, Lawn Space with Separate Urn Vault — $985`) went into `index.html`, then
+`GroundVault: ground_inurnment_vault` into the map's `OC_PRODUCTS` (with a dated `CORRECTIONS`
+record), `build-prices.py`, `sync-prices`. `sync-prices` now expects as many labels as
+`OC_LABEL_KEY` has keys instead of a literal 8. The quote picks the fee itself
+(`bwResolveGroundOC`): the wrong pairing is corrected, not just flagged, and
+`tests/test-ground-inurnment-oc.mjs` fails if it ever comes back.
 
 ### The other scrape, and why it now fails loudly
 
