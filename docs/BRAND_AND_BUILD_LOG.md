@@ -2825,3 +2825,18 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Deed transfer letter: "Value per Space" next to the combined value when more than one space is picked.
 - GA import: custom line items can be routed to Page 3 Flowers (pre-selected for flower/floral lines).
 - Full suite 4340 passed / 0 failed across 59 suites.
+
+## 2026-10-22/26: Ground inurnment O&C by placement and container
+
+- Ground inurnment O&C is no longer one $875 fee (his rule, 10/22). Urn garden (Lake, Rose, Court of Honor,
+  Garden of Verses): $875 with or without an urn vault. Lawn space with a separate urn vault or a cremation
+  vault setting: $985, new key OC:ground_inurnment_vault (price list eff. 09/08/2026, "Placement of Urn in
+  Lawn Space"). Lawn space with a combination urn vault: $875 (his practice; no printed price).
+- Why: the 2026-07-31 change (290ece8f) set every ground inurnment to $875, so lawn spaces with a separate
+  urn vault were quoted $110 low. A read-only scan of saved quotes and contracts since 7/31 found 12.
+- Cemetery Quote: two O&C boxes; the quote corrects a wrong pairing itself and says why. Standard Urn
+  bundle $2,730 in a lawn space, $2,620 in an urn garden; comparison panel follows the garden.
+- At-Need: quick-fill offers both rates, and warns on an urn vault with $875 outside an urn garden.
+- The $985 line reads "Ground Inurnment – Lawn Space": a label with "vault" in it is sorted as a vault.
+- prices.json regenerated (build-prices.py + sync-prices); only the new key moved. (b1b090e7)
+- New tests/test-ground-inurnment-oc.mjs. Full suite 61/61 suites green.
