@@ -117,8 +117,15 @@ def card_html(p):
         f'            <div class="product-price">${p["price"]:,.2f}</div>',
     ]
     lines += [f'            <div class="product-detail">{esc(d)}</div>' for d in p['details']]
+    # The compare toggle is on every live card (added after this builder was written);
+    # emit it here so a rebuild doesn't strip it. build_all_caskets.py's CARD_RE also
+    # needs the closing </label> to find a card at all.
     lines += [
         f'            <div class="product-meta">#{p["sku"]}</div>',
+        '            <label class="compare-toggle">',
+        '              <input type="checkbox" class="compare-cb">',
+        '              <span>Compare</span>',
+        '            </label>',
         '          </div>',
         '        </div>',
     ]
@@ -126,7 +133,9 @@ def card_html(p):
 
 
 def main():
-    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8')) if r['category'] == CAT]
+    # Rows marked data_status=discontinued (no longer in Batesville's catalog) are left off.
+    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8'))
+            if r['category'] == CAT and r.get('data_status', '').strip() != 'discontinued']
     prods = [derive(r) for r in rows if r['sku'].strip() not in EXCLUDE]
     prods.sort(key=lambda p: p['price'])
 

@@ -46,7 +46,8 @@ for (const file of pages) {
       .filter(c => /^\d+$/.test(c.dataset.item || '') && !c.querySelector('.product-meta')).length);
   const noSkuCards = await page.evaluate(() =>
     [...document.querySelectorAll('.product-card')]
-      .filter(c => !/^\d+$/.test(c.dataset.item || '')).length);
+      // A non-Batesville product (Artful Ashes) has no SKU; it declares its maker instead.
+      .filter(c => !/^\d+$/.test(c.dataset.item || '') && !c.dataset.vendor).length);
 
   const noPrice = await page.evaluate(() =>
     [...document.querySelectorAll('.product-card')]

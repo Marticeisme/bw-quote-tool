@@ -52,6 +52,12 @@ def main():
     new_inner = '\n' + '\n'.join('        ' + c for _, c in combined)
     s = s[:i] + new_inner + s[j:]
 
+    # ---- counts: matched by pattern, since the wood template's own count changes ----
+    s = re.sub(r'<div class="cover-footer">\d+ caskets &middot; [^<]*</div>',
+               '<div class="cover-footer">%d caskets &middot; %s &ndash; %s</div>' % (n, money(lo), money(hi)), s, count=1)
+    s = re.sub(r'(<span class="filter-count" id="filterCount">)\d+ caskets(</span>)',
+               r'\g<1>%d caskets\g<2>' % n, s, count=1)
+
     # ---- text / label swaps ----
     subs = [
         ('<title>Wood Caskets &middot; Bonney Watson</title>',
@@ -59,10 +65,6 @@ def main():
         ('<h1>Wood Caskets</h1>', '<h1>All Caskets</h1>'),
         ('Hardwood and veneer caskets from Batesville suitable for burial or cremation — available at Washington Memorial Park.',
          'Every metal and wood casket from Batesville, side by side — filter and compare across both. Available at Washington Memorial Park.'),
-        ('<div class="cover-footer">63 caskets &middot; $1,540.00 &ndash; $21,100.00</div>',
-         '<div class="cover-footer">%d caskets &middot; %s &ndash; %s</div>' % (n, money(lo), money(hi))),
-        ('<span class="filter-count" id="filterCount">63 caskets</span>',
-         '<span class="filter-count" id="filterCount">%d caskets</span>' % n),
         ('<div class="ps-eyebrow" id="psEyebrow">Wood Caskets</div>',
          '<div class="ps-eyebrow" id="psEyebrow">Caskets</div>'),
         ('<div class="compare-title">Compare Wood Caskets</div>',

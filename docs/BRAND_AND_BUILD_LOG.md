@@ -2840,3 +2840,31 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - The $985 line reads "Ground Inurnment – Lawn Space": a label with "vault" in it is sorted as a vault.
 - prices.json regenerated (build-prices.py + sync-prices); only the new key moved. (b1b090e7)
 - New tests/test-ground-inurnment-oc.mjs. Full suite 61/61 suites green.
+
+## 2026-10-26: Passare + Batesville price sync, catalogs, Artful Ashes
+
+- Read Passare's funeral price list (319 items, read only, nothing saved) and Batesville's showroom
+  catalog with BW retail prices, and checked both against GPL-April-2026.
+- Quote tool: Virgo caskets $1,470/$1,555 -> $1,995 (Batesville). New: 6 Scorpio caskets $1,695,
+  Trayview 27 $680 and Trayview 20 $610. Engraving to Passare: Options Custom $95, Non Options
+  Standard $165. 21 caskets + 5 urns no longer in Batesville's catalog carry a red "no longer in
+  Batesville catalog" tag in search (still pickable for old quotes).
+- Quote tool: 38 non-Batesville urns/keepsakes from Passare (Granville, Halo, Interlude, Raku, ...) show
+  "Passare price list" in place of an item #. Memorial Merchandise gained Keepsakes & Jewelry
+  (Artful Ashes), Catering per guest, Rosary/Crucifix, Stationery extras, and White Dove Release
+  (tax-exempt, as in Passare). Every existing urn matched Batesville to the cent.
+- Receiving of Remains stays $3,130. Passare and the GPL both say $3,165; Martice re-confirmed
+  "gpl is wrong" 10/26. Passare's entry is the one to fix.
+- Catalogs: Scorpio + Trayview cards with Batesville photos (in D:\Property Cards\Batesville Product
+  Images and INDEX.csv); Virgo at $1,995. The 26 discontinued SKUs are marked data_status=discontinued
+  in INDEX.csv and every builder now skips them (wood/urn builders also drop the preserved card).
+  Counts: metal 127, wood 62, all 189, urns 154, keepsakes 104, cremation 31. Keepsakes lost its
+  one-item Wind Chimes section.
+- Artful Ashes Heart/Orb/Star ($275) in Keepsakes and a new urn-catalog Section 5 "Artful Ashes Glass
+  Memorials" with the Orb Urn ($285), photos from Martice's E:\Downloads\ArtfulAshes (skipped the
+  engraved-name and certificate shots). Cards carry data-vendor="artful-ashes"; verify_catalogs accepts
+  that in place of a SKU. Urn/keepsake footer: "Urns by Batesville and Artful Ashes."
+- Builder fixes: build_metal_caskets.py emits the Compare toggle (a rebuild used to strip it);
+  build_all_caskets.py matches the wood count by pattern (it hard-coded "63 caskets").
+- All six catalog PDFs rebuilt. price-index golden regenerated: 7 prices moved (5 Virgo, 2 engraving),
+  74 items added, nothing else. Full suite green apart from that fixture before regeneration.

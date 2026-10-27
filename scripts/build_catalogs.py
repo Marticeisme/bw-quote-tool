@@ -164,8 +164,12 @@ def run(key):
     cfg = CATALOGS[key]
     page = cfg['page']
     extra = cfg.get('extra_skus', set())
-    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8'))
-            if r['category'] == cfg['cat'] or r['sku'].strip() in extra]
+    all_rows = list(csv.DictReader(open(CSVP, encoding='utf-8')))
+    # Rows marked data_status=discontinued (no longer in Batesville's catalog) are left off,
+    # and so is a live card for one, which the preserve step below would otherwise keep.
+    gone = {r['sku'].strip() for r in all_rows if r.get('data_status', '').strip() == 'discontinued'}
+    rows = [r for r in all_rows
+            if (r['category'] == cfg['cat'] or r['sku'].strip() in extra) and r['sku'].strip() not in gone]
 
     s = open(page, encoding='utf-8').read()
     grid_open = '<div class="product-grid" id="productGrid">'
@@ -229,7 +233,7 @@ def run(key):
     # preserve live cards the CSV doesn't know about
     kept = 0
     for k, c in live_by_key.items():
-        if k in consumed:
+        if k in consumed or k in gone:
             continue
         p = card_attr(c, 'data-price')
         built.append((float(p) if p else 0.0, c))

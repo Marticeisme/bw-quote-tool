@@ -122,7 +122,9 @@ def build_card(sku, name, price, details, img):
 
 
 def main():
-    rows = list(csv.DictReader(open(CSVP, encoding='utf-8')))
+    # Rows marked data_status=discontinued (no longer in Batesville's catalog) are left off.
+    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8'))
+            if r.get('data_status', '').strip() != 'discontinued']
     for sid, _, sel in SECTIONS:
         if 'skus' in sel and sel['skus'] is None:
             sel['skus'] = cremation_casket_skus()

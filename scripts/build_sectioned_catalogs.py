@@ -134,7 +134,11 @@ def build_card(sku, name, price, details, img):
 def run(key):
     cfg = CATALOGS[key]
     page = cfg['page']
-    rows = [r for r in csv.DictReader(open(CSVP, encoding='utf-8')) if r['category'] == cfg['cat']]
+    all_rows = list(csv.DictReader(open(CSVP, encoding='utf-8')))
+    # Rows marked data_status=discontinued (no longer in Batesville's catalog) are left off,
+    # and so is a live card for one, which the preserve step below would otherwise keep.
+    gone = {r['sku'].strip() for r in all_rows if r.get('data_status', '').strip() == 'discontinued'}
+    rows = [r for r in all_rows if r['category'] == cfg['cat'] and r['sku'].strip() not in gone]
     s = open(page, encoding='utf-8').read()
 
     # --- read existing sections ---
@@ -197,7 +201,7 @@ def run(key):
     for sid, cards in sections:
         for c in cards:
             k = attr(c, 'data-item')
-            if k in consumed:
+            if k in consumed or k in gone:
                 continue
             p = attr(c, 'data-price')
             assigned[sid].append((float(p) if p else 0.0, c))
