@@ -26,10 +26,10 @@ async function signedInAs(browser, handle) {
   const errs = [];
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(FAKE);
-  await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(handle + '@bwquote.local')}, 'pw');`);
+  await page.addInitScript(`window.__fake.addAccount(${JSON.stringify(handle + '@bwquote.local')}, 'pw-test');`);
   await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.fill('#bwUser', handle);
-  await page.fill('#bwPass', 'pw');
+  await page.fill('#bwPass', 'pw-test');
   await page.click('#bwGateBtn');
   await page.waitForTimeout(600);
   return { ctx, page, errs };

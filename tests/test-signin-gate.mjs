@@ -111,9 +111,9 @@ console.log('\n3. Successful sign-in');
 // ── 4. A second counselor sees the same shared list ──────────────────────────────────
 console.log('\n4. Second FSD, shared quotes');
 {
-  const { ctx, page } = await open(browser, { account: ['randy@bwquote.local', 'pw2'] });
+  const { ctx, page } = await open(browser, { account: ['randy@bwquote.local', 'pw2-test'] });
   await page.fill('#bwUser', 'randy');
-  await page.fill('#bwPass', 'pw2');
+  await page.fill('#bwPass', 'pw2-test');
   await page.click('#bwGateBtn');
   await page.waitForTimeout(600);
   const s = await gateState(page);
@@ -128,9 +128,9 @@ console.log('\n4. Second FSD, shared quotes');
 // ── 4b. An account with no BW_USERS entry still works ────────────────────────────────
 console.log('\n4b. Unmapped account falls back gracefully');
 {
-  const { ctx, page } = await open(browser, { account: ['newhire@bwquote.local', 'pw3'] });
+  const { ctx, page } = await open(browser, { account: ['newhire@bwquote.local', 'pw3-test'] });
   await page.fill('#bwUser', 'newhire');
-  await page.fill('#bwPass', 'pw3');
+  await page.fill('#bwPass', 'pw3-test');
   await page.click('#bwGateBtn');
   await page.waitForTimeout(600);
   const s = await gateState(page);

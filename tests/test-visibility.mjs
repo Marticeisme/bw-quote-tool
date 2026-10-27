@@ -61,11 +61,11 @@ async function signedInAs(browser, handle, tree) {
   page.on('pageerror', e => errs.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push(m.text().slice(0, 160)); });
   await page.addInitScript(FAKE);
-  await page.addInitScript(`(${(s, id) => { window.__fake.seed(s); window.__fake.addAccount(id, 'pw'); }})`
+  await page.addInitScript(`(${(s, id) => { window.__fake.seed(s); window.__fake.addAccount(id, 'pw-test'); }})`
     + `.call(null, ${JSON.stringify(tree === undefined ? seed() : tree)}, ${JSON.stringify(handle + '@bwquote.local')});`);
   await page.goto(BASE, { waitUntil: 'load', timeout: 120000 });
   await page.fill('#bwUser', handle);
-  await page.fill('#bwPass', 'pw');
+  await page.fill('#bwPass', 'pw-test');
   await page.click('#bwGateBtn');
   await page.waitForTimeout(700);
   return { ctx, page, errs };

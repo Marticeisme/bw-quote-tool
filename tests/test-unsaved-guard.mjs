@@ -25,10 +25,10 @@ async function open() {
   const errs = [], dialogs = [];
   page.on('pageerror', e => errs.push(e.message));
   await page.addInitScript(FAKE);
-  await page.addInitScript(`window.__fake.seed(${JSON.stringify(SEED)}); window.__fake.addAccount('martice@bwquote.local','pw');`);
+  await page.addInitScript(`window.__fake.seed(${JSON.stringify(SEED)}); window.__fake.addAccount('martice@bwquote.local','pw-test');`);
   await page.goto(BASE, { waitUntil: 'load' });
   await page.fill('#bwUser', 'martice');
-  await page.fill('#bwPass', 'pw');
+  await page.fill('#bwPass', 'pw-test');
   await page.click('#bwGateBtn');
   await page.waitForTimeout(700);
   return { ctx, page, errs, dialogs };

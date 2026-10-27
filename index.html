@@ -729,6 +729,12 @@ tr:hover td{background:var(--navy-100);}
   // Consequence worth knowing: there is no reset-by-email. A forgotten password is reset from
   // the Firebase console (Authentication → Users → Reset password) by the project owner.
   var BW_LOGIN_SUFFIX = '@bwquote.local';
+  // Firebase refuses any password under 6 characters, but Martice wanted Chloe's to be a
+  // 4-digit PIN (2026-10-26). So a short password is padded with this fixed tail before it is
+  // sent, and the account is created in the console with the padded form (PIN + this tail).
+  // Never write a real PIN in this file: the repo is public.
+  // Passwords of 6+ characters go through untouched, so no existing account is affected.
+  var BW_SHORT_PW_PAD = '#bwqt';
 
   // (The ?nosignin=1 rollout hatch was removed once the database rules were tightened to
   //  auth !== null on 2026-07-24. It could no longer help anyone: skipping the gate left a tool
@@ -760,6 +766,7 @@ tr:hover td{background:var(--navy-100);}
     if (!_fbAuth) { bwGateError('Sign-in is unavailable — the authentication service did not load. Check your connection and reload.'); return false; }
     // A username with an @ in it is already a full identifier; leave it alone.
     var ident = user.indexOf('@') > -1 ? user : user + BW_LOGIN_SUFFIX;
+    if (pass.length < 6) pass += BW_SHORT_PW_PAD;
     if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
     _fbAuth.signInWithEmailAndPassword(ident, pass).catch(function(err) {
       var code = (err && err.code) || '';
@@ -13714,10 +13721,24 @@ var BW_USERS = {
              admin: true,
              calendly: 'calendly.com/mmorrison-bonneywatson/30min' },
   randy:   { name: 'Randy Bergquist',  role: 'Advanced Planning',
-             email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' }
+             email: 'rbergquist@bonneywatson.com', phone: '206-242-1787' },
              // No producerId: none is on file. Leave it out rather than guessing — see
              // A4176-PG1-2 in printGAContract for why a blank beats a plausible wrong one.
+  chloe:   { name: 'Chloe Frink',      role: 'Funeral Director Intern',
+             // Her cell, not the office line — Martice, 2026-10-26: "let families see her cell".
+             email: 'cfrink@bonneywatson.com', phone: '206-277-5421',
+             // Martice, 2026-10-26: full capabilities like his, so admin. No producerId on file.
+             admin: true,
+             // Kept out of anything a non-admin sees (the "other counselor" filter label), so
+             // Randy's view reads exactly as it did with two accounts. See bwVisibleUserKeys().
+             hidden: true }
 };
+// The BW_USERS handles the signed-in account may see listed. A non-admin never sees a hidden
+// profile; the admin sees everyone, since he is the one who hands records between books.
+function bwVisibleUserKeys() {
+  var all = bwCanSeeAll();
+  return Object.keys(BW_USERS).filter(function(k) { return all || !BW_USERS[k].hidden; });
+}
 
 // Whose name a document carries when NO account is signed in. The gate normally makes that
 // impossible; this covers a blocked or offline auth SDK, where the tool deliberately stays
@@ -17181,7 +17202,7 @@ function bwRelTime(ts) {
 function _bwCtOtherOwnerLabel() {
   var meName = '';
   try { meName = bwCurrentAdvisor().name; } catch (e) {}
-  var others = Object.keys(BW_USERS).map(function(k){ return BW_USERS[k].name; })
+  var others = bwVisibleUserKeys().map(function(k){ return BW_USERS[k].name; })
     .filter(function(n){ return n && n !== meName; });
   return others.length === 1 ? String(others[0]).split(' ')[0] : 'Someone else';
 }
