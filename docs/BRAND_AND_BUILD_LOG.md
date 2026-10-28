@@ -2907,3 +2907,24 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   scripts/build_pcm_catalog.py. Grid fonts load per card as it scrolls in; an ordinary print of the
   catalog leaves the section out.
 - New tests/test-pcm-lettering.mjs (70). verify_pcm_catalog section order now includes sec-lettering.
+
+### Same day, round 2: PCM granites and engraving styles
+
+- Stone choices are now Martice's four PCM granites, drawn from PCM's own swatch photos
+  (pcm-granite-images/, from the granite booklet's designmemorials.com swatches): Barrell Gray
+  (the default), Absolute Black, Bahama Blue, Sentinel Red. No brown, per Martice.
+- New Engraving picker with the eight styles on PCM's "Engraving Styles" pages (2020 book pp 98-99),
+  named as the book names them: cut-in with an outlined border; cut-in on a frosted panel; raised
+  polish outlined with a double border; raised polish outlined on a frosted panel; raised polish on
+  a cut-in panel; cut-in with a raised polish outline; frosted outlined with a double border; gold
+  leaf. Each has a one-line plain explanation.
+- Lettering color now follows granite + engraving, the way PCM's own examples look: removing polish
+  lightens granite (PCM glossary: frosted panel = "removing polish to produce a contrasting
+  surface"), so frosted panels and frosted letters read lighter; cut letters on Barrell Gray are
+  filled black (the book's Barrell Gray example); raised polish letters keep the stone's own
+  polished face; gold is gold. Gentle notes for gold leaf and a polished outline on light granite.
+  The comparison cards follow the same colors, with the busy granite softened behind the letters.
+- The downloaded picture's key now names the granite and the engraving style.
+- Old saved visits (black/gray/red/brown) open on the nearest PCM granite.
+- tests/test-pcm-lettering.mjs now 82 (granites offered, engraving names, color per stone and style,
+  all eight draw differently, key, gold note).

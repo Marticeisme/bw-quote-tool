@@ -99,12 +99,65 @@ console.log('\n3. A fresh visit: one-name layout, the Classic starting point, a 
   ck(s.rows.join() === 'top,first,last,dates,bottom', 'the one-name layout has the lines PCM\'s proofs use', s.rows);
   ck(s.last === 'trajan' && s.lastCase === 'upper' && s.dates === 'palatino', 'Classic: a capitals surname over plain dates', s);
   ck(s.w > 0 && Math.abs(s.h / s.w - 0.5) < 0.01, 'the marker is drawn at 24 x 12 proportions', s);
-  const ink = await page.evaluate(() => {
-    const c = document.getElementById('ltCanvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-    let light = 0; for (let i = 0; i < d.length; i += 16) if (d[i] > 200 && d[i + 1] > 200) light++;
-    return light;
+  const first = await page.evaluate(() => ({
+    stone: document.querySelector('.lt-stone-btn[aria-pressed="true"]').dataset.stone,
+    engrave: document.getElementById('ltEngrave').value,
+    stones: [...document.querySelectorAll('.lt-stone-btn')].map((b) => b.textContent.trim()),
+    engraves: [...document.querySelectorAll('#ltEngrave option')].map((o) => o.textContent),
+  }));
+  ck(first.stones.join() === 'Barrell Gray,Absolute Black,Bahama Blue,Sentinel Red', 'the four PCM granites are offered, no brown', first.stones);
+  ck(first.engraves.length === 8 && first.engraves[0] === 'Cut-in lettering, single outlined border' &&
+     first.engraves[7] === 'Cut-in, gold leaf lettering', 'the eight engraving styles, named as PCM\'s book names them', first.engraves);
+  ck(first.stone === 'barrell-gray' && first.engrave === 'cut-border', 'it starts on Barrell Gray with cut-in lettering', first);
+}
+
+console.log('\n3b. The lettering color follows the granite and the engraving, the way PCM\'s book shows it');
+{
+  // the color at the darkest/lightest pixels inside the inscription, against the stone around it
+  const probe = () => page.evaluate(async () => {
+    await new Promise((r) => setTimeout(r, 350));
+    const c = document.getElementById('ltCanvas'), x = c.getContext('2d');
+    const d = x.getImageData(c.width * 0.3, c.height * 0.35, c.width * 0.4, c.height * 0.3).data;
+    let dark = 0, light = 0, gold = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      n++;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      if (r < 50 && g < 50 && b < 50) dark++;
+      if (r > 200 && g > 200 && b > 195) light++;
+      if (r > 170 && g > 120 && b < 110 && r - b > 80) gold++;
+    }
+    return { dark: dark / n, light: light / n, gold: gold / n, url: c.toDataURL().length };
   });
-  ck(ink > 500, 'lettering is drawn on the stone (light letters on black granite)', ink);
+  await page.selectOption(sel('last', 'lt-font'), 'trajan');
+  let p = await probe();
+  ck(p.dark > 0.03, 'cut-in on Barrell Gray: the letters are filled black, as in PCM\'s Barrell Gray example', p);
+  await page.click('.lt-stone-btn[data-stone="absolute-black"]');
+  p = await probe();
+  ck(p.light > 0.02 && p.dark > 0.5, 'cut-in on Absolute Black: frosted light letters on the black stone', p);
+  await page.selectOption('#ltEngrave', 'cut-panel');
+  p = await probe();
+  ck(p.dark > 0.03 && p.dark < 0.4, 'frosted panel on Absolute Black: a light panel with black letters', p);
+  await page.selectOption('#ltEngrave', 'gold');
+  p = await probe();
+  ck(p.gold > 0.02, 'gold leaf draws gold letters', p);
+  ck(await page.evaluate(() => !/em/.test(document.getElementById('ltEngraveSay').innerHTML)), 'no warning for gold leaf on black');
+  await page.click('.lt-stone-btn[data-stone="barrell-gray"]');
+  ck(await page.evaluate(() => /hard to read on light granite/.test(document.getElementById('ltEngraveSay').textContent)),
+    'gold leaf on light granite gets a gentle note');
+  const cards = [];
+  for (const e of ['cut-border', 'polish-panel', 'frost-outline', 'gold']) {
+    await page.selectOption('#ltEngrave', e);
+    cards.push(await page.evaluate(() => getComputedStyle(document.querySelector('#lt-trajan .lt-stone')).color));
+  }
+  ck(new Set(cards).size >= 3, 'the cards\' lettering color changes with the engraving too', cards);
+  const urls = new Set();
+  for (const e of await page.evaluate(() => [...document.querySelectorAll('#ltEngrave option')].map((o) => o.value))) {
+    await page.selectOption('#ltEngrave', e);
+    urls.add((await page.evaluate(async () => { await new Promise((r) => setTimeout(r, 300)); return document.getElementById('ltCanvas').toDataURL(); })).slice(-400));
+  }
+  ck(urls.size === 8, 'each of the eight engraving styles draws differently', urls.size);
+  ck(await page.evaluate(() => document.getElementById('ltEngraveSay').textContent.length > 30), 'each style is explained in plain words');
+  await page.selectOption('#ltEngrave', 'cut-border');
 }
 
 console.log('\n4. Every line takes its own style, and the drawing follows');
@@ -209,20 +262,23 @@ console.log('\n8. Two names: the companion layout');
   ck(c.twoNames && c.dates, 'a box for each person\'s name and both of their dates');
   ck(Math.abs(c.h / c.w - 14 / 44) < 0.01, 'the marker is drawn at 44 x 14 proportions', c);
   await page.fill('[data-key="middle"]', 'Married June 1, 1960');
-  await page.check('input[name="ltStone"][value="gray"]');
-  ck(await page.evaluate(() => document.getElementById('ltGrid').dataset.stone) === 'gray', 'the stone color carries to the cards');
+  await page.click('.lt-stone-btn[data-stone="bahama-blue"]');
+  ck(await page.evaluate(() => /bahama-blue/.test(document.getElementById('ltGrid').style.getPropertyValue('--lt-bg'))),
+    'the granite carries to the cards');
 }
 
 console.log('\n9. Download: a picture of exactly that marker, with a key to every line');
 {
   const pic = await page.evaluate(async () => {
     const cv = await window.bwLetteringPicture();
-    const d = cv.getContext('2d').getImageData(cv.width / 2 - 200, 200, 400, 200).data;
-    let stone = 0; for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 161) < 40 && Math.abs(d[i + 2] - 154) < 40) stone++;
+    const d = cv.getContext('2d').getImageData(100, 100, 120, 60).data;   // the polished margin, top left
+    let stone = 0; for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - 69) < 45 && Math.abs(d[i + 2] - 82) < 45 && d[i + 2] >= d[i] - 6) stone++;
     return { w: cv.width, h: cv.height, stone };
   });
   ck(pic.w === 2400 && pic.h > 2400 * 14 / 44, `the picture is 2400 px wide with room for the key (${pic.w} x ${pic.h})`);
-  ck(pic.stone > 1000, 'and shows the gray stone that was picked');
+  ck(pic.stone > 3000, 'and shows the Bahama Blue that was picked', pic.stone);
+  const key = await page.evaluate(() => window.bwLetteringKey().slice(0, 2).map((r) => r.label + ': ' + r.style));
+  ck(key[0] === 'Granite: Bahama Blue' && key[1] === 'Engraving: Cut-in lettering, single outlined border', 'its key names the granite and the engraving', key);
   const dl = page.waitForEvent('download', { timeout: 30000 });
   await page.click('#ltDownload');
   const d = await dl;
@@ -261,10 +317,10 @@ console.log('\n11. Kept on this device, and "Start over" clears it');
   const kept = await page.evaluate(() => ({
     layout: document.querySelector('.lt-seg-btn[aria-pressed="true"]').dataset.layout,
     middle: document.querySelector('[data-key="middle"]').value,
-    stone: document.querySelector('input[name="ltStone"]:checked').value,
+    stone: document.querySelector('.lt-stone-btn[aria-pressed="true"]').dataset.stone,
     stars: document.getElementById('ltStarCount').textContent,
   }));
-  ck(kept.layout === 'companion' && kept.middle === 'Married June 1, 1960' && kept.stone === 'gray' && kept.stars === '2',
+  ck(kept.layout === 'companion' && kept.middle === 'Married June 1, 1960' && kept.stone === 'bahama-blue' && kept.stars === '2',
     'a reload brings back the layout, the words, the stone and the short list', kept);
   await page.click('#ltReset');
   await settle(300);

@@ -509,9 +509,16 @@ html.family-view .nav-back,html.family-view .site-footer{display:none;}
 .lt-side{position:sticky;top:120px;}
 .lt-canvas-wrap{border-radius:8px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.18);background:#222;}
 #ltCanvas{display:block;width:100%;height:auto;}
-.lt-stone-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:12px 0 10px;font-size:13px;color:var(--text);}
-.lt-stone-pick label{display:flex;align-items:center;gap:5px;cursor:pointer;}
-.lt-stone-pick input{accent-color:var(--navy);}
+.lt-stone-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:12px 0 10px;font-size:13px;color:var(--text);}
+.lt-stone-pick > span{margin-right:4px;}
+.lt-stone-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--warm-border);background:#fff;border-radius:999px;padding:3px 11px 3px 4px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;color:var(--navy-dark);cursor:pointer;}
+.lt-stone-btn[aria-pressed="true"]{border-color:var(--navy);box-shadow:0 0 0 2px rgba(61,90,122,.25);}
+.lt-sw{width:22px;height:22px;border-radius:50%;background-size:cover;background-position:center;border:1px solid rgba(0,0,0,.2);}
+.lt-eng{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+.lt-eng > span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-dark);}
+.lt-eng select{width:100%;padding:7px 10px;border:1px solid var(--warm-border);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;color:var(--text-dark);background:#fff;}
+.lt-eng-say{font-size:12.5px;line-height:1.45;color:var(--text);margin:2px 0 12px;}
+.lt-eng-say em{display:block;font-style:normal;color:var(--orange-dark);margin-top:3px;}
 .lt-actions{display:flex;flex-wrap:wrap;gap:8px;}
 .lt-act{border:1px solid var(--navy);background:#fff;color:var(--navy-dark);border-radius:8px;padding:8px 14px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;}
 .lt-act-main{background:var(--navy);color:#fff;}
@@ -539,15 +546,12 @@ html.family-view .nav-back,html.family-view .site-footer{display:none;}
 .lt-match.same,.lt-match.close{background:#e6efe8;color:#2d5a38;}
 .lt-match.similar{background:var(--offwhite);color:var(--text-muted);border:1px solid var(--warm-border);}
 .lt-match.none{background:#fbeee5;color:var(--orange-dark);}
-/* The card swatches follow the stone picked above: a fine two-layer speckle over the color. */
+/* The card swatches follow the granite and engraving picked above (set as variables on the
+   grid by the script): the stone's own photo, or the frosted panel color, with the lettering
+   in the color that engraving gives it on that stone. */
 .lt-stone{margin:0 12px;border-radius:8px;min-height:132px;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;overflow:hidden;
-  background-color:#26272b;color:#e6e2da;
-  background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px),radial-gradient(rgba(0,0,0,.35) 1px,transparent 1.6px);
-  background-size:7px 7px,11px 11px;background-position:0 0,3px 5px;}
-.lt-grid[data-stone="gray"] .lt-stone{background-color:#a3a19c;color:#26282b;
-  background-image:radial-gradient(rgba(255,255,255,.22) 1px,transparent 1.6px),radial-gradient(rgba(0,0,0,.18) 1px,transparent 1.6px);}
-.lt-grid[data-stone="red"] .lt-stone{background-color:#8a4b42;color:#efe2dc;}
-.lt-grid[data-stone="brown"] .lt-stone{background-color:#5b3d31;color:#eedfd3;}
+  background:var(--lt-bg,#b7b8b7);background-size:520px;color:var(--lt-ink,#18191b);
+  -webkit-text-stroke:var(--lt-stroke-w,0px) var(--lt-stroke,transparent);paint-order:stroke fill;text-shadow:var(--lt-shadow,none);}
 .lt-preview{width:100%;line-height:1.2;}
 /* Until its look-alike has loaded and been sized, a preview shows nothing rather than the
    name in the page's own font at the wrong size. */
@@ -13574,13 +13578,16 @@ html.family-view .nav-back,html.family-view .site-footer{display:none;}
         <div class="lt-rows" id="ltRows"></div>
         <div class="lt-side">
           <div class="lt-canvas-wrap"><canvas id="ltCanvas" role="img" aria-label="Preview of the marker lettering"></canvas></div>
-          <div class="lt-stone-pick" role="radiogroup" aria-label="Stone color">
-            <span>Stone</span>
-            <label><input type="radio" name="ltStone" value="black" checked> Black</label>
-            <label><input type="radio" name="ltStone" value="gray"> Gray</label>
-            <label><input type="radio" name="ltStone" value="red"> Red</label>
-            <label><input type="radio" name="ltStone" value="brown"> Brown</label>
+          <div class="lt-stone-pick" role="radiogroup" aria-label="Granite">
+            <span>Granite</span>
+            <button type="button" class="lt-stone-btn" data-stone="barrell-gray" aria-pressed="false"><span class="lt-sw" style="background-image:url('pcm-granite-images/barrell-gray.webp')"></span>Barrell Gray</button>
+            <button type="button" class="lt-stone-btn" data-stone="absolute-black" aria-pressed="false"><span class="lt-sw" style="background-image:url('pcm-granite-images/absolute-black.webp')"></span>Absolute Black</button>
+            <button type="button" class="lt-stone-btn" data-stone="bahama-blue" aria-pressed="false"><span class="lt-sw" style="background-image:url('pcm-granite-images/bahama-blue.webp')"></span>Bahama Blue</button>
+            <button type="button" class="lt-stone-btn" data-stone="sentinel-red" aria-pressed="false"><span class="lt-sw" style="background-image:url('pcm-granite-images/sentinel-red.webp')"></span>Sentinel Red</button>
           </div>
+          <label class="lt-eng"><span>Engraving</span>
+            <select id="ltEngrave" aria-label="Engraving style"><option value="cut-border">Cut-in lettering, single outlined border</option><option value="cut-panel">Cut-in lettering, single outlined frosted panel</option><option value="polish-outline-double">Raised polish outlined lettering, double outlined raised polish border</option><option value="polish-outline-panel">Raised polish outlined lettering, single outlined frosted panel</option><option value="polish-panel">Raised polish lettering, cut-in panel, no border</option><option value="cut-polish-outline">Cut-in lettering with raised polish outline, cut-in panel with raised polish outlined border</option><option value="frost-outline">Frosted outlined lettering, double outlined frosted border</option><option value="gold">Cut-in, gold leaf lettering</option></select></label>
+          <p class="lt-eng-say" id="ltEngraveSay"></p>
           <div class="lt-actions">
             <button type="button" class="lt-act lt-act-main" id="ltDownload">Download picture</button>
             <button type="button" class="lt-act" id="ltShare" hidden>Share</button>
@@ -13588,7 +13595,8 @@ html.family-view .nav-back,html.family-view .site-footer{display:none;}
             <button type="button" class="lt-act lt-act-quiet" id="ltReset">Start over</button>
           </div>
           <p class="lt-keep">Kept on this device so you can come back to it. Nothing you type is sent
-            anywhere. Stone colors are close, not exact; your proof shows the granite you choose.</p>
+            anywhere. The granite is PCM&rsquo;s own photo of each stone, and the engraving styles are the
+            ones in PCM&rsquo;s design book; every stone varies, and your proof shows the real thing.</p>
         </div>
       </div>
     </div>
@@ -13597,7 +13605,7 @@ html.family-view .nav-back,html.family-view .site-footer{display:none;}
         <label class="lt-gal-show">Compare <select id="ltTarget" aria-label="Which line to compare"></select></label></div>
       <div class="lt-chips" role="group" aria-label="Kind of lettering"><button type="button" class="lt-chip" data-kind="" aria-pressed="true">All<span class="n">62</span></button><button type="button" class="lt-chip" data-kind="roman" aria-pressed="false">Classic serif<span class="n">18</span></button><button type="button" class="lt-chip" data-kind="script" aria-pressed="false">Script<span class="n">15</span></button><button type="button" class="lt-chip" data-kind="sans" aria-pressed="false">Sans serif<span class="n">12</span></button><button type="button" class="lt-chip" data-kind="caps" aria-pressed="false">Capitals<span class="n">8</span></button><button type="button" class="lt-chip" data-kind="deco" aria-pressed="false">Decorative<span class="n">9</span></button><button type="button" class="lt-chip" data-kind="starred" aria-pressed="false">&#9733; Short list<span class="n" id="ltStarCount">0</span></button></div>
     </div>
-    <div class="lt-grid" id="ltGrid" data-stone="black">
+    <div class="lt-grid" id="ltGrid">
         <div class="lt-card" id="lt-accolade" data-slug="accolade" data-name="accolade classic serif roman lettering letters font" data-kind="roman" data-ff="L Faustina" data-w="400" data-i="0">
           <div class="lt-head"><span class="lt-name">Accolade</span><span class="lt-inuse" hidden>In use</span><span class="lt-match similar">Similar style</span></div>
           <div class="lt-stone"><div class="lt-preview"><span class="lt-line lt-l1"></span><span class="lt-line lt-l2"></span><span class="lt-line lt-l3"></span></div></div>
@@ -14671,7 +14679,7 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     oldworld: { top: ['monotype-corsiva', 'as'], first: ['garamond', 'as'], last: ['old-english', 'as'], family: ['old-english', 'as'], dates: ['garamond', 'as'], bottom: ['monotype-corsiva', 'as'], middle: ['monotype-corsiva', 'as'] }
   };
   function fresh() {
-    var st = { v: 1, layout: 'single', stone: 'black', target: 'all', kind: '', fmt: 'full', arr: 'line', starred: [], roles: {},
+    var st = { v: 1, layout: 'single', stone: 'barrell-gray', engrave: 'cut-border', target: 'all', kind: '', fmt: 'full', arr: 'line', starred: [], roles: {},
       text: { first: 'Margaret Ann', last: 'Wilson', born: 'June 21, 1938', died: 'July 10, 2024', top: '', bottom: '',
               family: 'Wilson', first1: 'Robert J.', first2: 'Margaret A.', born1: '1936', died1: '2019',
               born2: '1938', died2: '', bottom1: '', bottom2: '', middle: '' } };
@@ -14769,33 +14777,126 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     }));
   }
 
-  /* ---- canvas drawing ------------------------------------------------------------------ */
+  /* ---- granite and engraving ------------------------------------------------------------
+     The four stones are PCM's own swatch photographs (pcm-granite-images/), laid as mirrored
+     tiles about 6 inches across so the grain is the right size on a 24-inch marker. How each
+     engraving looks follows PCM's Engraving Styles pages (2020 book pp 98-99) and PCM's
+     glossary ("Frosted Panel: surface created by removing polish to produce a contrasting
+     surface"): taking the polish off LIGHTENS granite, so frosted panels and frosted letters
+     read lighter than the polished stone; cut letters on light granite are filled black (the
+     book's Barrell Gray example), on dark granite they read frosted; raised polish letters
+     keep the stone's own polished face; gold leaf is gold. `frost` is the panel color, `cut`
+     the color of a frosted cut letter, `line` a frosted outline; all are approximations. */
   var STONES = {
-    black: { base: '#232427', ink: '#e8e4dc', cut: 'rgba(0,0,0,.55)', fleck: [[255, 255, 255, 0.10], [0, 0, 0, 0.35]], rim: 'rgba(255,255,255,.16)' },
-    gray:  { base: '#a19f9a', ink: '#26282b', cut: 'rgba(255,255,255,.35)', fleck: [[255, 255, 255, 0.28], [0, 0, 0, 0.20]], rim: 'rgba(0,0,0,.18)' },
-    red:   { base: '#8a4b42', ink: '#f1e4de', cut: 'rgba(0,0,0,.45)', fleck: [[255, 225, 215, 0.18], [40, 10, 10, 0.35]], rim: 'rgba(255,255,255,.18)' },
-    brown: { base: '#5a3c30', ink: '#efe1d6', cut: 'rgba(0,0,0,.5)', fleck: [[255, 235, 220, 0.14], [20, 8, 4, 0.38]], rim: 'rgba(255,255,255,.16)' }
+    'barrell-gray':   { n: 'Barrell Gray',   light: true,  avg: '#b7b8b7', frost: '#e2e2df', cut: '#18191b', line: '#18191b' },
+    'absolute-black': { n: 'Absolute Black', light: false, avg: '#131211', frost: '#a9a9a6', cut: '#cfcecb', line: '#d9d8d4' },
+    'bahama-blue':    { n: 'Bahama Blue',    light: false, avg: '#454553', frost: '#b5b6c1', cut: '#d3d4dc', line: '#dcdde4' },
+    'sentinel-red':   { n: 'Sentinel Red',   light: false, avg: '#754131', frost: '#d3b0a3', cut: '#efdcd3', line: '#f1e1d9' }
   };
+  var OLD_STONE = { black: 'absolute-black', gray: 'barrell-gray', red: 'sentinel-red', brown: 'sentinel-red' };
+  var LITHO = '#18191b';
+  var ENGRAVE = {
+    'cut-border': { panel: 0, border: 1, bc: 'cut', letters: 'cut',
+      say: 'Letters cut into the polished stone, with one line around the inscription. On gray granite the cut letters are filled black so they read; on dark granite they show frosted.' },
+    'cut-panel': { panel: 1, border: 1, bc: 'litho', letters: 'litho',
+      say: 'The polish is taken off a panel behind the words, leaving it frosted and lighter. The panel is outlined, and the letters are cut in and filled black.' },
+    'polish-outline-double': { panel: 0, border: 2, bc: 'line', letters: 'polish-outline',
+      say: 'The letters stay polished and are traced with a thin outline, inside two thin border lines. Elegant, but quieter than a filled letter.' },
+    'polish-outline-panel': { panel: 1, border: 1, bc: 'litho', letters: 'polish-dark',
+      say: 'Polished letters with a dark outline, standing out on a frosted panel.' },
+    'polish-panel': { panel: 1, border: 0, letters: 'polish',
+      say: 'The panel around the letters is frosted away, so the letters stay polished and show the stone’s own color. No border.' },
+    'cut-polish-outline': { panel: 1, border: 1, bc: 'polish', letters: 'frost-polish',
+      say: 'Frosted letters edged with a thin band of polished stone, on a frosted panel with a polished border.' },
+    'frost-outline': { panel: 0, border: 2, bc: 'litho', letters: 'frost-dark',
+      say: 'Frosted letters with a dark outline, inside a double border, right on the polished stone.' },
+    'gold': { panel: 0, border: 0, letters: 'gold',
+      say: 'Letters cut in and finished in gold leaf. PCM shows it on black granite, where it reads best.' }
+  };
+  function stone() { return STONES[state.stone] || STONES['barrell-gray']; }
+  function engraving() { return ENGRAVE[state.engrave] || ENGRAVE['cut-border']; }
+  var IMG = {};
+  function stoneImg(k) {
+    if (!IMG[k]) {
+      IMG[k] = new Image();
+      IMG[k].src = 'pcm-granite-images/' + k + '.webp';
+      IMG[k]._ready = (IMG[k].decode ? IMG[k].decode() : Promise.resolve()).catch(function () {});
+    }
+    return IMG[k];
+  }
+  var tileCache = {};
+  function stonePattern(c, W) {
+    var img = stoneImg(state.stone), s = Math.max(48, Math.round(W / 4)), key = state.stone + '@' + s;
+    if (!img.complete || !img.naturalWidth) return null;
+    if (!tileCache[key]) {
+      var t = document.createElement('canvas'); t.width = t.height = 2 * s;
+      var x = t.getContext('2d');
+      [[0, 0, 1, 1], [2, 0, -1, 1], [0, 2, 1, -1], [2, 2, -1, -1]].forEach(function (m) {
+        x.save(); x.translate(m[0] * s, m[1] * s); x.scale(m[2], m[3]); x.drawImage(img, 0, 0, s, s); x.restore();
+      });
+      tileCache[key] = t;
+    }
+    return c.createPattern(tileCache[key], 'repeat');
+  }
   function rng(seed) { return function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; }
+  var curPat = null;
   function drawStone(c, W, H) {
-    var st = STONES[state.stone] || STONES.black;
-    c.beginPath(); c.rect(0, 0, W, H); c.clip();   // flecks at the edge stay on the stone
-    c.fillStyle = st.base;
+    var st = stone();
+    c.beginPath(); c.rect(0, 0, W, H); c.clip();   // nothing drawn spills off the stone
+    c.fillStyle = curPat || st.avg;
     c.fillRect(0, 0, W, H);
-    var r = rng(1868), n = Math.round(W * H / 260);
-    st.fleck.forEach(function (f) {
-      for (var i = 0; i < n; i++) {
-        c.fillStyle = 'rgba(' + f[0] + ',' + f[1] + ',' + f[2] + ',' + (f[3] * (0.4 + r() * 0.6)).toFixed(3) + ')';
-        var s = Math.max(1, W / 900) * (0.6 + r() * 1.6);
-        c.fillRect(r() * W, r() * H, s, s);
-      }
-    });
-    var g = c.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, 'rgba(255,255,255,.07)'); g.addColorStop(0.5, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.12)');
+    var g = c.createLinearGradient(0, 0, W, H);      // the sheen of a polished face
+    g.addColorStop(0, 'rgba(255,255,255,.10)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.10)');
     c.fillStyle = g; c.fillRect(0, 0, W, H);
-    var m = H * 0.045;
-    c.strokeStyle = st.rim; c.lineWidth = Math.max(1, W / 700);
-    c.strokeRect(m, m, W - 2 * m, H - 2 * m);
+    c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = Math.max(1, W / 500);
+    c.strokeRect(0, 0, W, H);
+  }
+  function drawPanel(c, R, W) {
+    var st = stone();
+    c.fillStyle = st.frost;
+    c.fillRect(R.x, R.y, R.w, R.h);
+    var r = rng(98), n = Math.round(R.w * R.h / 90);   // the fine grain of a sandblasted face
+    for (var i = 0; i < n; i++) {
+      c.fillStyle = r() < 0.5 ? 'rgba(255,255,255,.18)' : 'rgba(0,0,0,.07)';
+      var s = Math.max(1, W / 1400);
+      c.fillRect(R.x + r() * R.w, R.y + r() * R.h, s, s);
+    }
+  }
+  function drawBorder(c, R, W, e) {
+    if (!e.border) return;
+    var st = stone(), lw = Math.max(1, W * 0.0035), col;
+    if (e.bc === 'polish') col = curPat || st.avg;
+    else if (e.bc === 'line') col = st.light ? LITHO : st.line;
+    else if (e.bc === 'cut') col = st.light ? LITHO : st.cut;
+    else col = e.panel || st.light ? LITHO : st.line;   // 'litho': dark on a light face, light on dark stone
+    c.strokeStyle = col;
+    c.lineWidth = e.bc === 'polish' ? lw * 2.4 : lw;
+    var ins = e.bc === 'polish' ? lw * 3 : 0;
+    c.strokeRect(R.x + ins, R.y + ins, R.w - 2 * ins, R.h - 2 * ins);
+    if (e.border === 2) { var gap = W * 0.009; c.strokeRect(R.x + gap, R.y + gap, R.w - 2 * gap, R.h - 2 * gap); }
+  }
+  /* How the letters are drawn for this stone and engraving: a fill, an outline on top, an
+     outline underneath (a band of polished stone), and a cut shadow. */
+  function look() {
+    var st = stone();
+    switch (engraving().letters) {
+      case 'cut': return st.light ? { fill: LITHO, shadow: 'rgba(255,255,255,.4)' } : { fill: st.cut, shadow: 'rgba(0,0,0,.6)' };
+      case 'litho': return { fill: LITHO, shadow: 'rgba(255,255,255,.45)' };
+      case 'polish-outline': return { stroke: st.light ? LITHO : st.line, strokeW: 0.045 };
+      /* Outlines on a FILLED letter go underneath (half of the line shows, outside the
+         letter): drawn on top, a dark line eats a thin serif's whole face. */
+      case 'polish-dark': return { under: LITHO, underW: 0.08, fill: curPat || st.avg };
+      case 'polish': return { fill: curPat || st.avg, stroke: 'rgba(0,0,0,.35)', strokeW: 0.012 };
+      case 'frost-polish': return { under: curPat || st.avg, underW: 0.13, fill: '#f6f5f2' };
+      case 'frost-dark': return { under: LITHO, underW: 0.09, fill: st.light ? '#f6f6f3' : st.cut };
+      case 'gold': return { fill: 'gold', shadow: 'rgba(0,0,0,.55)' };
+    }
+    return { fill: LITHO };
+  }
+  function goldFill(c, base, px) {
+    var g = c.createLinearGradient(0, base - px * 0.8, 0, base + px * 0.1);
+    g.addColorStop(0, '#f8e08f'); g.addColorStop(0.45, '#d8a945'); g.addColorStop(0.75, '#b98a2e'); g.addColorStop(1, '#efcd70');
+    return g;
   }
   /* A line as runs, so Small Caps can be drawn (canvas has no small caps of its own). */
   function runs(text, small) {
@@ -14813,14 +14914,16 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     rs.forEach(function (r) { c.font = fontStr(s, px * r.k); w += c.measureText(r.t).width; });
     return w;
   }
-  function drawLine(c, ln, cx, base, ink, cut) {
+  function drawLine(c, ln, cx, base, lk) {
     var w = measure(c, ln.s, ln.px, ln.rs), x = cx - w / 2;
-    c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+    c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.lineJoin = 'round';
     ln.rs.forEach(function (r) {
-      c.font = fontStr(ln.s, ln.px * r.k);
-      var off = Math.max(0.6, ln.px / 34);
-      c.fillStyle = cut; c.fillText(r.t, x + off, base + off);
-      c.fillStyle = ink; c.fillText(r.t, x, base);
+      var px = ln.px * r.k, off = Math.max(0.6, px / 34);
+      c.font = fontStr(ln.s, px);
+      if (lk.shadow) { c.fillStyle = lk.shadow; c.fillText(r.t, x + off, base + off); }
+      if (lk.under) { c.strokeStyle = lk.under; c.lineWidth = px * lk.underW; c.strokeText(r.t, x, base); }
+      if (lk.fill) { c.fillStyle = lk.fill === 'gold' ? goldFill(c, base, px) : lk.fill; c.fillText(r.t, x, base); }
+      if (lk.stroke) { c.strokeStyle = lk.stroke; c.lineWidth = Math.max(0.8, px * lk.strokeW); c.strokeText(r.t, x, base); }
       x += c.measureText(r.t).width;
     });
   }
@@ -14836,34 +14939,34 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
   }
   /* Stack lines into a block: each advances by its own size plus a little air. */
   function blockH(lines) { return lines.reduce(function (h, l) { return h + (l ? l.px * 1.22 : 0); }, 0); }
-  function drawBlock(c, lines, cx, top, ink, cut) {
+  function drawBlock(c, lines, cx, top, lk) {
     var y = top;
     lines.forEach(function (l) {
       if (!l) return;
       y += l.px * 0.98;
-      if (l.text) drawLine(c, l, cx, y, ink, cut);
+      if (l.text) drawLine(c, l, cx, y, lk);
       y += l.px * 0.24;
     });
   }
-  function layoutLines(c, W, H, k) {
+  function layoutLines(c, H, k, maxW) {
     var T = state.text, R = roles(), rel = {}, out;
     R.forEach(function (r) { rel[r.k] = r.rel * k; });
-    function line(rk, text, maxW, relOverride) {
-      return mkLine(c, rk, text, relOverride || rel[rk], H, maxW);
+    function line(rk, text, mw, relOverride) {
+      return mkLine(c, rk, text, relOverride || rel[rk], H, mw);
     }
     if (state.layout === 'single') {
-      var mw = W * 0.84, L = [];
-      if (T.top) L.push(line('top', T.top, mw));
-      if (T.first) L.push(line('first', T.first, mw));
-      if (T.last) L.push(line('last', T.last, mw));
+      var L = [];
+      if (T.top) L.push(line('top', T.top, maxW));
+      if (T.first) L.push(line('first', T.first, maxW));
+      if (T.last) L.push(line('last', T.last, maxW));
       var dl = dateLines(T.born, T.died);
-      dl.forEach(function (d) { L.push(line('dates', d, mw, dl.length > 1 ? rel.dates * 0.9 : rel.dates)); });
-      if (T.bottom) L.push(line('bottom', T.bottom, mw));
+      dl.forEach(function (d) { L.push(line('dates', d, maxW, dl.length > 1 ? rel.dates * 0.9 : rel.dates)); });
+      if (T.bottom) L.push(line('bottom', T.bottom, maxW));
       out = { center: L };
     } else {
-      var full = W * 0.86, col = W * 0.4, head = [], cols = [[], []], foot = [];
-      if (T.top) head.push(line('top', T.top, full));
-      if (T.family) head.push(line('family', T.family, full));
+      var col = maxW * 0.46, head = [], cols = [[], []], foot = [];
+      if (T.top) head.push(line('top', T.top, maxW));
+      if (T.family) head.push(line('family', T.family, maxW));
       [1, 2].forEach(function (p, i) {
         if (T['first' + p]) cols[i].push(line('first', T['first' + p], col));
         dateLines(T['born' + p], T['died' + p]).forEach(function (d, j, all) {
@@ -14871,34 +14974,72 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
         });
         if (T['bottom' + p]) cols[i].push(line('bottom', T['bottom' + p], col));
       });
-      if (T.middle) foot.push(line('middle', T.middle, full));
+      if (T.middle) foot.push(line('middle', T.middle, maxW));
       out = { head: head, cols: cols, foot: foot };
     }
     return out;
   }
   function render(c, W, H) {
     c.save();
+    curPat = stonePattern(c, W);
     drawStone(c, W, H);
-    var st = STONES[state.stone] || STONES.black, k = 1, L, total;
-    /* Shrink everything together until the whole inscription fits inside the polished face. */
+    var e = engraving(), framed = !!(e.panel || e.border), k = 1, L, total;
+    /* The panel or border sits inside the polished margin; the inscription sits inside that. */
+    var R = state.layout === 'single' ? { x: W * 0.07, y: H * 0.12, w: W * 0.86, h: H * 0.76 }
+                                      : { x: W * 0.055, y: H * 0.13, w: W * 0.89, h: H * 0.74 };
+    if (e.panel) drawPanel(c, R, W);
+    drawBorder(c, R, W, e);
+    var budget = framed ? R.h * 0.82 : H * 0.8, maxW = framed ? R.w * 0.88 : W * 0.84;
+    /* Shrink everything together until the whole inscription fits. */
     for (var tries = 0; tries < 12; tries++) {
-      L = layoutLines(c, W, H, k);
+      L = layoutLines(c, H, k, maxW);
       total = state.layout === 'single' ? blockH(L.center)
         : blockH(L.head) + Math.max(blockH(L.cols[0]), blockH(L.cols[1])) + blockH(L.foot) + H * 0.04;
-      if (total <= H * 0.8) break;
-      k *= (H * 0.8) / total * 0.98;
+      if (total <= budget) break;
+      k *= budget / total * 0.98;
     }
-    var top = (H - total) / 2;
+    var lk = look();
+    var top = framed ? R.y + (R.h - total) / 2 : (H - total) / 2;
     if (state.layout === 'single') {
-      drawBlock(c, L.center, W / 2, top, st.ink, st.cut);
+      drawBlock(c, L.center, W / 2, top, lk);
     } else {
-      drawBlock(c, L.head, W / 2, top, st.ink, st.cut);
+      var lx = framed ? R.x + R.w * 0.26 : W * 0.28, rx = framed ? R.x + R.w * 0.74 : W * 0.72;
+      drawBlock(c, L.head, W / 2, top, lk);
       var y2 = top + blockH(L.head) + H * 0.02, colH = Math.max(blockH(L.cols[0]), blockH(L.cols[1]));
-      drawBlock(c, L.cols[0], W * 0.28, y2 + (colH - blockH(L.cols[0])) / 2, st.ink, st.cut);
-      drawBlock(c, L.cols[1], W * 0.72, y2 + (colH - blockH(L.cols[1])) / 2, st.ink, st.cut);
-      drawBlock(c, L.foot, W / 2, y2 + colH + H * 0.02, st.ink, st.cut);
+      drawBlock(c, L.cols[0], lx, y2 + (colH - blockH(L.cols[0])) / 2, lk);
+      drawBlock(c, L.cols[1], rx, y2 + (colH - blockH(L.cols[1])) / 2, lk);
+      drawBlock(c, L.foot, W / 2, y2 + colH + H * 0.02, lk);
     }
     c.restore();
+  }
+  /* The grid's swatches mirror the drawing as closely as CSS can: the stone photo (or the
+     frosted panel color), and the letters in the engraving's color for that stone. */
+  function cardLook() {
+    /* A card is far smaller than the marker, so busy granite (Barrell Gray's speckle) is
+       washed toward its own average color behind the letters: a light veil over light
+       stone, a dark one over dark stone. Thin black letters stay readable either way. */
+    var st = stone(), e = engraving(), veil = st.light ? 'rgba(232,233,231,.55)' : 'rgba(0,0,0,.25)', v = {
+      bg: e.panel ? st.frost : 'linear-gradient(' + veil + ',' + veil + "),url('pcm-granite-images/" + state.stone + ".webp')",
+      ink: LITHO, sw: '0px', stroke: 'transparent', shadow: 'none' };
+    switch (e.letters) {
+      case 'cut': v.ink = st.light ? LITHO : st.cut; break;
+      case 'litho': v.ink = LITHO; break;
+      case 'polish-outline': v.ink = 'transparent'; v.sw = '1px'; v.stroke = st.light ? LITHO : st.line; break;
+      case 'polish-dark': v.ink = st.avg; v.sw = '1px'; v.stroke = LITHO; break;
+      case 'polish': v.ink = st.avg; break;
+      case 'frost-polish': v.ink = '#f6f5f2'; v.sw = '3px'; v.stroke = st.avg; break;
+      case 'frost-dark': v.ink = st.light ? '#f6f6f3' : st.cut; v.sw = '1px'; v.stroke = LITHO; break;
+      case 'gold': v.ink = '#d8a945'; v.shadow = '1px 1px 0 rgba(0,0,0,.5)'; break;
+    }
+    var g = grid.style;
+    g.setProperty('--lt-bg', v.bg); g.setProperty('--lt-ink', v.ink); g.setProperty('--lt-stroke-w', v.sw);
+    g.setProperty('--lt-stroke', v.stroke); g.setProperty('--lt-shadow', v.shadow);
+  }
+  function engraveSay() {
+    var e = engraving(), st = stone(), note = '';
+    if (state.engrave === 'gold' && st.light) note = 'Gold leaf is hard to read on light granite. PCM shows it on black.';
+    if (state.engrave === 'polish-outline-double' && st.light) note = 'On light granite a polished outline is subtle; PCM shows this style on dark granite.';
+    document.getElementById('ltEngraveSay').innerHTML = e.say.replace(/&/g, '&amp;').replace(/</g, '&lt;') + (note ? '<em>' + note + '</em>' : '');
   }
   var RATIO = { single: 12 / 24, companion: 14 / 44 };   // 24x12 and 44x14 flat markers
   var canvas = document.getElementById('ltCanvas');
@@ -14908,10 +15049,11 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     roles().forEach(function (r) { var s = BY[(state.roles[r.k] || {}).s]; if (s && !seen[s.s]) { seen[s.s] = 1; out.push(s); } });
     return out;
   }
+  function ready() { return Promise.all([loadStyles(usedStyles()), stoneImg(state.stone)._ready]); }
   function paint() {
     if (pending) return;
     pending = true;
-    loadStyles(usedStyles()).then(function () {
+    ready().then(function () {
       pending = false;
       var cssW = canvas.clientWidth || 600, dpr = Math.min(2, window.devicePixelRatio || 1);
       var W = Math.round(cssW * dpr), H = Math.round(W * RATIO[state.layout]);
@@ -14924,7 +15066,10 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
   /* ---- the picture families keep: the marker plus a key to every line ------------------ */
   var CASE_LABEL = { as: 'as typed', upper: 'all capitals', small: 'small capitals' };
   function keyRows() {
-    var T = state.text, out = [];
+    var T = state.text, out = [
+      { label: 'Granite', style: stone().n, detail: 'PCM granite', match: '' },
+      { label: 'Engraving', style: document.querySelector('#ltEngrave option[value="' + state.engrave + '"]').textContent, detail: '', match: '' }
+    ];
     roles().forEach(function (r) {
       var has = r.dates ? true : r.two ? (T[r.k + '1'] || T[r.k + '2']) : T[r.k];
       if (!has) return;
@@ -14937,7 +15082,7 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     return out;
   }
   function picture() {
-    return loadStyles(usedStyles()).then(function () {
+    return ready().then(function () {
       return document.fonts.load("600 20px 'Source Sans 3'").catch(function () {});
     }).then(function () {
       var W = 2400, MH = Math.round(W * RATIO[state.layout]), rows = keyRows();
@@ -14958,15 +15103,17 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
         y += rowH;
         c.fillStyle = '#6a7686'; c.font = "700 26px 'Source Sans 3', sans-serif";
         c.fillText(r.label.toUpperCase(), pad, y);
+        var room = W - pad * 2 - 520, fs = 36;
         c.fillStyle = '#1a2332'; c.font = "600 36px 'Source Sans 3', sans-serif";
+        while (c.measureText(r.style).width > room && fs > 22) { fs -= 1; c.font = '600 ' + fs + "px 'Source Sans 3', sans-serif"; }
         c.fillText(r.style, pad + 520, y);
-        var sw = c.measureText(r.style).width;
+        var sw = c.measureText(r.style).width, rest = [r.detail, r.match].filter(Boolean);
         c.fillStyle = '#3a4453'; c.font = "400 30px 'Source Sans 3', sans-serif";
-        c.fillText('  ·  ' + r.detail + '  ·  ' + r.match, pad + 520 + sw, y);
+        if (rest.length) c.fillText('  ·  ' + rest.join('  ·  '), pad + 520 + sw, y);
       });
       y += 90;
       c.fillStyle = '#6a7686'; c.font = "400 28px 'Source Sans 3', sans-serif";
-      c.fillText('Shown in free fonts that look like PCM’s lettering, with colors close to the granite. The proof PCM sends shows the actual lettering, sizes and spacing.', pad, y);
+      c.fillText('Shown in free fonts that look like PCM’s lettering, on PCM’s photo of the granite. Every stone varies; the proof PCM sends shows the actual lettering, sizes and spacing.', pad, y);
       c.fillStyle = '#c8540a'; c.font = "700 26px 'Source Sans 3', sans-serif";
       c.fillText('BONNEY WATSON  ·  WASHINGTON MEMORIAL PARK  ·  BONNEYWATSON.COM', pad, y + 52);
       return cv;
@@ -14989,6 +15136,7 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
     });
   }
   window.bwLetteringPicture = picture;   // the test suite reads the picture through this
+  window.bwLetteringKey = keyRows;       // ...and the key printed under it
 
   /* ---- the line rows -------------------------------------------------------------------- */
   var rowsEl = document.getElementById('ltRows');
@@ -15209,11 +15357,13 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
   document.querySelectorAll('.lt-preset').forEach(function (b) {
     b.addEventListener('click', function () { applyPreset(state, b.dataset.preset); buildRows(); changed(false); });
   });
-  document.querySelectorAll('input[name="ltStone"]').forEach(function (r) {
-    r.addEventListener('change', function () {
-      if (!r.checked) return;
-      state.stone = r.value; grid.dataset.stone = r.value; persist(); paint();
+  document.querySelectorAll('.lt-stone-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.stone = b.dataset.stone; restoreControls(); persist(); paint();
     });
+  });
+  document.getElementById('ltEngrave').addEventListener('change', function () {
+    state.engrave = this.value; restoreControls(); persist(); paint();
   });
   var kind = state.kind || '';
   document.querySelectorAll('.lt-chip').forEach(function (b) {
@@ -15253,8 +15403,14 @@ document.getElementById('pcmJump').addEventListener('keydown', function (e) {
   });
   function restoreControls() {
     document.querySelectorAll('.lt-seg-btn').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.layout === state.layout ? 'true' : 'false'); });
-    document.querySelectorAll('input[name="ltStone"]').forEach(function (x) { x.checked = x.value === state.stone; });
+    /* A visit saved before the PCM granites (black/gray/red/brown) maps to the nearest one. */
+    if (!STONES[state.stone]) state.stone = OLD_STONE[state.stone] || 'barrell-gray';
+    if (!ENGRAVE[state.engrave]) state.engrave = 'cut-border';
+    document.querySelectorAll('.lt-stone-btn').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.stone === state.stone ? 'true' : 'false'); });
+    document.getElementById('ltEngrave').value = state.engrave;
     grid.dataset.stone = state.stone;
+    cardLook();
+    engraveSay();
     document.querySelectorAll('.lt-chip').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.kind === kind ? 'true' : 'false'); });
   }
 

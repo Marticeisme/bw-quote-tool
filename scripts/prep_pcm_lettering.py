@@ -36,6 +36,10 @@ SITE_DIR = 'scratch/pcm-fonts/site'
 OLD_UA = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.100 Safari/534.30'
 GYRE = {'TeX Gyre Pagella': 'texgyrepagella-regular', 'TeX Gyre Chorus': 'texgyrechorus-mediumitalic',
         'TeX Gyre Schola': 'texgyreschola-regular', 'TeX Gyre Adventor': 'texgyreadventor-bold'}
+SWATCH_DIR = 'scratch/granite-booklet/swatches/pcm-site'
+GRANITE_DIR = 'pcm-granite-images'
+GRANITES = [('Barrell_Gray1.jpg', 'barrell-gray'), ('Absolute_Black1.jpg', 'absolute-black'),
+            ('Bahama_Blue1.jpg', 'bahama-blue'), ('Sentinel_Red1.jpg', 'sentinel-red')]
 # Book strips are named by the book's own label; these differ from the style names.
 BOOK_FILE = {'Government': 'government', 'Monument': 'monument', 'Monument Condensed': 'monument-cond',
              'Special Roman 2': 'special-roman-2-aica', 'Vermarco': 'vermarco'}
@@ -146,6 +150,11 @@ def main():
             if st['ref'] == 'book' and im.width > 1600:
                 im = im.resize((1600, round(im.height * 1600 / im.width)), Image.LANCZOS)
             im.save(f"{IMG_DIR}/{slug(st['name'])}.webp", 'WEBP', quality=80, method=6)
+    # PCM's swatch photos of the granites the builder offers (Martice, 2026-10-27), saved from
+    # designmemorials.com's color pages for the granite booklet.
+    os.makedirs(GRANITE_DIR, exist_ok=True)
+    for src, out in GRANITES:
+        Image.open(f'{SWATCH_DIR}/{src}').convert('RGB').save(f'{GRANITE_DIR}/{out}.webp', 'WEBP', quality=84, method=6)
     with open(f'{FONT_DIR}/LICENSES.md', 'w', encoding='utf-8', newline='\n') as f:
         f.write('# Lettering preview fonts\n\n'
                 'Freely licensed look-alikes used by the Try Your Lettering section of\n'
