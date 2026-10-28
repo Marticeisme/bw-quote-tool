@@ -2868,3 +2868,42 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   build_all_caskets.py matches the wood count by pattern (it hard-coded "63 caskets").
 - All six catalog PDFs rebuilt. price-index golden regenerated: 7 prices moved (5 Virgo, 2 engraving),
   74 items added, nothing else. Full suite green apart from that fixture before regeneration.
+
+## 2026-10-27: PCM catalog "Design Your Lettering"
+
+- New section in pcm-design-catalog.html (also in ?family view): a marker layout builder. One-name
+  or companion layout with the lines PCM's proofs use (top line, first names, last/family name,
+  dates, a line under each name, center line); every line gets its own style (62) and case (as
+  typed, ALL CAPS, Small Caps). Dates are typed once (6/21/1938, June 21 1938, 1938...) and shown
+  full, abbreviated (Sept., Jan.) or years only, on one line, stacked, or Born/Died; a blank date of
+  death (pre-arrangement) ends the line on the dash. Five starting points (Classic, Script names,
+  Modern, All capitals, Old World). Gentle notes for script on dates, script in capitals, long script.
+- The marker is drawn on a canvas at 24x12 or 44x14 proportions on black, gray, red or brown granite.
+  Download gives a 2400 px PNG of that drawing plus a key (each line's style, case, date format, how
+  close the look-alike is); Share uses the phone's share sheet; Print puts the same picture on a sheet
+  of its own (Save as PDF named after the family). Kept in this browser's localStorage only; nothing
+  is sent anywhere or put in a link. "Start over" clears it.
+- The 62-style grid compares any one line ("Compare styles" on a line, or the Compare dropdown): every
+  card shows that line in its style, with "Use for dates" etc., an "In use" tag and a short list.
+  Kind chips (classic serif, script, sans, capitals, decorative, short list); page search finds styles
+  by name ("trajan").
+- Research behind it: 48 of PCM's own full-colour proofs nearly all mix styles (capitals surname,
+  script or roman first names, plain dates, small italic phrase); consumer headstone designers mostly
+  allow one font for the whole inscription. Legibility guidance (block/roman for names and dates on
+  flat markers, script for a short line) is what the notes say.
+- Styles: the 50 in PCM's 2011 book (Font Styles pp 109-113, E:\Downloads\Fonts.pdf) plus 12 only on
+  designmemorials.com/fonts-lettering (Berling, Brassboard, Brighton, Century Schoolbook, Hebrew,
+  Michelangelo, Nanum Brush Script, New Cicle, Not Mary Kate, Nunito Sans, Ornamental, Zurich).
+  Michelangelo has no sample anywhere (PCM's own site shows a stand-in), so its card says to ask.
+- PCM's fonts are commercial and the repo is public, so they are NOT here. Each style previews in a
+  free look-alike (58 families, OFL / Apache / GUST, fonts/lettering/LICENSES.md), picked by eye on
+  side-by-side sheets against PCM's alphabet. Every card says "Same font" (2), "Very close" (14) or
+  "Similar style" and shows PCM's real alphabet under the preview (pcm-lettering-images/).
+- PCM's own sampler is partly broken: Accolade, Bible Script, Eras, Tiffany fall back to a stand-in,
+  Michelangelo is Andale Mono, Century/Corsiva/Phyllis/Zurich Calligraphic show another font. The book
+  is the reference wherever it has the style.
+- Data: data/pcm-lettering.json. Fonts + images: scripts/prep_pcm_lettering.py (alphabet strips cut by
+  scratch/pcm-fonts/crop_book.py, site samples by scratch/pcm-fonts/site_peek.mjs). Page:
+  scripts/build_pcm_catalog.py. Grid fonts load per card as it scrolls in; an ordinary print of the
+  catalog leaves the section out.
+- New tests/test-pcm-lettering.mjs (70). verify_pcm_catalog section order now includes sec-lettering.

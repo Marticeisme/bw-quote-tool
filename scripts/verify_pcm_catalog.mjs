@@ -855,9 +855,11 @@ export async function run(ck, base) {
     // holds — the full-colour proofs come before the book plates, because they are the
     // clearest pictures of the artwork we have. Order is the ruling; a section that merely
     // EXISTS satisfies nothing.
+    // sec-lettering (Try Your Lettering, 2026-10-27) sits just before the reference plates,
+    // which include PCM's printed font pages. tests/test-pcm-lettering.mjs owns its checks.
     const wantOrder = ['sec-single', 'sec-single-proofs', 'sec-companion',
                        'sec-companion-proofs', 'sec-elements', 'sec-examples',
-                       'sec-reference'];
+                       'sec-lettering', 'sec-reference'];
     ck(JSON.stringify(dom.sectionOrder) === JSON.stringify(wantOrder),
       `the page's sections run ${dom.sectionOrder.join(' > ')}`);
     ck(JSON.stringify(dom.sectionHeads.slice(0, 2)) ===

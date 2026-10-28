@@ -1234,6 +1234,949 @@ def reference_card(r):
         f'      </div>')
 
 
+# ---- Try Your Lettering ------------------------------------------------------------------
+# Martice, 2026-10-27: every PCM lettering style in the catalog, with a box where a family
+# types the name and dates and sees them in each one. Then, same day: "some will want to see
+# dates in a certain font side by side, with the name in different fonts", and "they should
+# be able to save or download it ... as an image". So the section is a MARKER LAYOUT BUILDER:
+#   * a single or companion layout with the lines PCM's own proofs use (a phrase on top,
+#     first names, the last or family name, dates, a line under each name, a center line),
+#     each line with its own style and case;
+#   * dates typed once and shown in the format the family picks (full, abbreviated, years;
+#     one line, stacked, or Born/Died);
+#   * a drawn marker preview (canvas), which is also what Download, Share and Print send, so
+#     the image is exactly what they saw;
+#   * the 62-style grid below compares ONE line (or all of them) across every style, with a
+#     "Use for ..." button on each card;
+#   * kept in this browser's localStorage only. A family's names never leave their screen and
+#     never go in a link.
+# PCM's fonts are commercial (Adobe, Linotype, ITC, Monotype, Bitstream, PCM's own) and the
+# repo is public, so they are never shipped: each style is previewed in a freely licensed
+# look-alike (fonts/lettering/, fetched by scripts/prep_pcm_lettering.py) picked by eye
+# against PCM's own alphabet, and that alphabet sits under every card.
+# Cards are NOT .product-card: the page's click handler enlarges any product card.
+LETTERING = 'data/pcm-lettering.json'
+LT_KINDS = [('roman', 'Classic serif'), ('script', 'Script'), ('sans', 'Sans serif'),
+            ('caps', 'Capitals'), ('deco', 'Decorative')]
+# Words the search box can find a style by, beyond its name.
+LT_KIND_WORDS = {'roman': 'classic serif roman', 'script': 'script cursive handwriting',
+                 'sans': 'sans plain modern', 'caps': 'capitals caps uppercase',
+                 'deco': 'decorative'}
+LT_MATCH = {'same': 'Same font', 'close': 'Very close', 'similar': 'Similar style',
+            'none': 'No sample'}
+
+
+def lt_face(font):
+    fam, w, it = (font + [False])[:3]
+    return fam, w, bool(it), f"{slug(fam)}-{w}{'i' if it else ''}"
+
+
+def lettering_faces(styles):
+    """One @font-face per look-alike face. 'L ' keeps them apart from the page's own faces
+    (and from any font of the same name installed on the viewer's computer)."""
+    seen, out = set(), []
+    for st in styles:
+        if not st['font']:
+            continue
+        fam, w, it, key = lt_face(st['font'])
+        if key in seen:
+            continue
+        seen.add(key)
+        if not os.path.exists(f'fonts/lettering/{key}.woff'):
+            raise SystemExit(f'fonts/lettering/{key}.woff is missing; run scripts/prep_pcm_lettering.py')
+        out.append(f"@font-face{{font-family:'L {fam}';font-style:{'italic' if it else 'normal'};"
+                   f"font-weight:{w};font-display:swap;src:url('fonts/lettering/{key}.woff') format('woff');}}")
+    return '\n'.join(out)
+
+
+def lettering_data(styles):
+    """The styles the builder's dropdowns and canvas need, as a JSON ARRAY (a bare array is
+    also a valid JS expression, so the page's syntax check passes over this block)."""
+    rows = []
+    for st in styles:
+        if not st['font']:
+            continue
+        fam, w, it, _ = lt_face(st['font'])
+        rows.append({'s': slug(st['name']), 'n': st['name'], 'k': st['kind'], 'm': st['match'],
+                     'ff': 'L ' + fam, 'w': w, 'i': 1 if it else 0, 'c': st.get('caps', '')})
+    return json.dumps(rows, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
+
+
+def lettering_card(st):
+    s = slug(st['name'])
+    name = esc(norm(f"{st['name']} {LT_KIND_WORDS[st['kind']]} lettering letters font"))
+    cls = 'lt-card' + (' lt-caps' if st.get('caps') == 'all' else '') + ('' if st['font'] else ' lt-none')
+    attrs = f'class="{cls}" id="lt-{s}" data-slug="{s}" data-name="{name}" data-kind="{st["kind"]}"'
+    if st['font']:
+        fam, w, it, _ = lt_face(st['font'])
+        attrs += f' data-ff="L {esc(fam)}" data-w="{w}" data-i="{1 if it else 0}"'
+        if st.get('caps'):
+            attrs += f' data-caps="{st["caps"]}"'
+        stone = ('<div class="lt-preview"><span class="lt-line lt-l1"></span>'
+                 '<span class="lt-line lt-l2"></span><span class="lt-line lt-l3"></span></div>')
+        use = ('\n          <div class="lt-use-row"><button type="button" class="lt-use">Use this style</button>'
+               '<button type="button" class="lt-star" aria-pressed="false" title="Keep on my short list">'
+               '<span aria-hidden="true">&#9734;</span> Short list</button></div>')
+    else:
+        stone = f'<div class="lt-empty">{esc(st["note"])}</div>'
+        use = ''
+    notes = []
+    if st.get('caps') == 'all':
+        notes.append('Capitals only. PCM cuts this style in capital letters.')
+    elif st.get('caps') == 'small':
+        notes.append('All capitals. Small letters are cut as smaller capitals.')
+    if st['font'] and st.get('note'):
+        notes.append(st['note'])
+    note = ''.join(f'\n          <div class="lt-note">{esc(n)}</div>' for n in notes)
+    ref = ''
+    if st['ref']:
+        where = 'their design book' if st['ref'] == 'book' else 'their website'
+        ref = (f'\n          <figure class="lt-ref"><img src="pcm-lettering-images/{s}.webp" loading="lazy" '
+               f'alt="PCM\'s {esc(st["name"])} alphabet"><figcaption>PCM\'s own {esc(st["name"])}, '
+               f'from {where}</figcaption></figure>')
+    return (f'        <div {attrs}>\n'
+            f'          <div class="lt-head"><span class="lt-name">{esc(st["name"])}</span>'
+            f'<span class="lt-inuse" hidden>In use</span>'
+            f'<span class="lt-match {st["match"]}">{LT_MATCH[st["match"]]}</span></div>\n'
+            f'          <div class="lt-stone">{stone}</div>{use}{note}{ref}\n'
+            f'        </div>')
+
+
+def lettering_section(styles):
+    counts = {k: sum(1 for s in styles if s['kind'] == k) for k, _ in LT_KINDS}
+    chips = [f'<button type="button" class="lt-chip" data-kind="" aria-pressed="true">All<span class="n">{len(styles)}</span></button>']
+    chips += [f'<button type="button" class="lt-chip" data-kind="{k}" aria-pressed="false">{label}'
+              f'<span class="n">{counts[k]}</span></button>' for k, label in LT_KINDS]
+    chips.append('<button type="button" class="lt-chip" data-kind="starred" aria-pressed="false">'
+                 '&#9733; Short list<span class="n" id="ltStarCount">0</span></button>')
+    return f"""  <div class="section-wrap" id="sec-lettering">
+    <div class="section-head">Design Your Lettering</div>
+    <div class="section-note">Type the names and dates, pick a lettering style for each line, and see
+      the marker take shape. Compare any one line, like just the dates, in all {len(styles)} styles PCM
+      offers. When it looks right, download it as a picture, share it or print it. PCM's own fonts are
+      licensed to them, so each style here is shown in a free font that looks like it, with PCM's real
+      alphabet under it. The proof PCM sends you is cut in their actual lettering.</div>
+  </div>
+  <div class="group" id="group-lettering">
+    <script type="application/json" id="ltData">{lettering_data(styles)}</script>
+    <div class="lt-builder" id="ltBuilder">
+      <div class="lt-bar">
+        <div class="lt-seg" role="radiogroup" aria-label="Marker">
+          <button type="button" class="lt-seg-btn" data-layout="single" aria-pressed="true">One name</button>
+          <button type="button" class="lt-seg-btn" data-layout="companion" aria-pressed="false">Two names (companion)</button>
+        </div>
+        <div class="lt-presets"><span>Start from</span>
+          <button type="button" class="lt-preset" data-preset="classic">Classic</button>
+          <button type="button" class="lt-preset" data-preset="script">Script names</button>
+          <button type="button" class="lt-preset" data-preset="modern">Modern</button>
+          <button type="button" class="lt-preset" data-preset="caps">All capitals</button>
+          <button type="button" class="lt-preset" data-preset="oldworld">Old World</button>
+        </div>
+      </div>
+      <div class="lt-main">
+        <div class="lt-rows" id="ltRows"></div>
+        <div class="lt-side">
+          <div class="lt-canvas-wrap"><canvas id="ltCanvas" role="img" aria-label="Preview of the marker lettering"></canvas></div>
+          <div class="lt-stone-pick" role="radiogroup" aria-label="Stone color">
+            <span>Stone</span>
+            <label><input type="radio" name="ltStone" value="black" checked> Black</label>
+            <label><input type="radio" name="ltStone" value="gray"> Gray</label>
+            <label><input type="radio" name="ltStone" value="red"> Red</label>
+            <label><input type="radio" name="ltStone" value="brown"> Brown</label>
+          </div>
+          <div class="lt-actions">
+            <button type="button" class="lt-act lt-act-main" id="ltDownload">Download picture</button>
+            <button type="button" class="lt-act" id="ltShare" hidden>Share</button>
+            <button type="button" class="lt-act" id="ltPrint">Print</button>
+            <button type="button" class="lt-act lt-act-quiet" id="ltReset">Start over</button>
+          </div>
+          <p class="lt-keep">Kept on this device so you can come back to it. Nothing you type is sent
+            anywhere. Stone colors are close, not exact; your proof shows the granite you choose.</p>
+        </div>
+      </div>
+    </div>
+    <div class="lt-gal-head">
+      <div class="lt-gal-title"><span id="ltGalTitle">Every style, with your lettering</span>
+        <label class="lt-gal-show">Compare <select id="ltTarget" aria-label="Which line to compare"></select></label></div>
+      <div class="lt-chips" role="group" aria-label="Kind of lettering">{''.join(chips)}</div>
+    </div>
+    <div class="lt-grid" id="ltGrid" data-stone="black">
+{chr(10).join(lettering_card(s) for s in styles)}
+    </div>
+    <p class="lt-fine">&ldquo;Very close&rdquo; means you&rsquo;d have a hard time telling the two apart in a
+      name and dates. &ldquo;Similar style&rdquo; means it&rsquo;s the same kind of lettering, but some
+      letters are shaped differently, so look at PCM&rsquo;s alphabet under it. The size and spacing on
+      your marker depend on the marker and the design; this preview only shows the style.</p>
+  </div>
+"""
+
+
+LETTERING_STYLE = """
+/* ================= DESIGN YOUR LETTERING ============================================= */
+.lt-builder{background:#fff;border:1px solid var(--warm-border);border-radius:12px;padding:16px 18px 18px;margin:6px 0 22px;}
+.lt-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px;}
+.lt-seg{display:inline-flex;border:1px solid var(--navy);border-radius:9px;overflow:hidden;}
+.lt-seg-btn{border:none;background:#fff;color:var(--navy-dark);font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;padding:7px 14px;cursor:pointer;}
+.lt-seg-btn[aria-pressed="true"]{background:var(--navy);color:#fff;}
+.lt-presets{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.lt-presets > span,.lt-stone-pick > span,.lt-row-label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-dark);}
+.lt-presets > span{margin-right:4px;}
+.lt-preset{border:1px solid var(--warm-border);background:var(--cream);border-radius:999px;padding:4px 11px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;color:var(--navy-dark);cursor:pointer;}
+.lt-preset:hover{border-color:var(--navy);}
+.lt-main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;align-items:start;}
+.lt-rows{display:grid;gap:10px;}
+.lt-row{border:1px solid var(--warm-border);border-radius:10px;padding:10px 12px;background:var(--cream);}
+.lt-row.lt-target{border-color:var(--orange);box-shadow:0 0 0 2px rgba(200,84,10,.15);}
+.lt-row-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.lt-row-label span{font-weight:400;letter-spacing:0;text-transform:none;color:var(--text-muted);}
+.lt-cmp{margin-left:auto;border:1px solid var(--warm-border);background:#fff;border-radius:999px;padding:3px 10px;font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:600;color:var(--navy-dark);cursor:pointer;white-space:nowrap;}
+.lt-cmp[aria-pressed="true"]{background:var(--orange);border-color:var(--orange);color:#fff;}
+.lt-texts{display:grid;gap:6px;grid-template-columns:1fr;}
+.lt-texts.two{grid-template-columns:1fr 1fr;}
+.lt-texts input,.lt-row select{width:100%;padding:7px 10px;border:1px solid var(--warm-border);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:14px;color:var(--text-dark);background:#fff;outline:none;min-width:0;}
+.lt-texts input:focus,.lt-row select:focus{border-color:var(--navy);}
+.lt-sub{font-size:11px;color:var(--text-muted);margin:0 0 -3px 2px;}
+.lt-opts{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:6px;margin-top:6px;}
+.lt-opts.dates{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);}
+.lt-hint{margin-top:6px;font-size:12px;line-height:1.4;color:var(--orange-dark);}
+.lt-hint[hidden]{display:none;}
+.lt-side{position:sticky;top:120px;}
+.lt-canvas-wrap{border-radius:8px;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.18);background:#222;}
+#ltCanvas{display:block;width:100%;height:auto;}
+.lt-stone-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:12px 0 10px;font-size:13px;color:var(--text);}
+.lt-stone-pick label{display:flex;align-items:center;gap:5px;cursor:pointer;}
+.lt-stone-pick input{accent-color:var(--navy);}
+.lt-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.lt-act{border:1px solid var(--navy);background:#fff;color:var(--navy-dark);border-radius:8px;padding:8px 14px;font-family:'Source Sans 3',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;}
+.lt-act-main{background:var(--navy);color:#fff;}
+.lt-act-quiet{border-color:var(--warm-border);color:var(--text-muted);margin-left:auto;}
+.lt-act[hidden]{display:none;}
+.lt-keep{margin-top:10px;font-size:12px;line-height:1.45;color:var(--text-muted);}
+.lt-gal-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:4px 0 14px;}
+.lt-gal-title{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy-dark);}
+.lt-gal-show{display:flex;align-items:center;gap:6px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;color:var(--text-muted);}
+.lt-gal-show select{padding:5px 8px;border:1px solid var(--warm-border);border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--text-dark);background:#fff;}
+.lt-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.lt-chip{border:1px solid var(--warm-border);background:#fff;border-radius:999px;padding:5px 13px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;color:var(--navy-dark);cursor:pointer;}
+.lt-chip:hover{border-color:var(--navy);}
+.lt-chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;}
+.lt-chip .n{margin-left:6px;font-weight:400;opacity:.7;font-variant-numeric:tabular-nums;}
+.lt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.lt-card{background:#fff;border:1px solid var(--warm-border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;}
+.lt-card[hidden]{display:none;}
+.lt-card.lt-current{border-color:var(--orange);}
+.lt-head{display:flex;align-items:baseline;gap:8px;padding:10px 14px 8px;}
+.lt-name{font-size:15px;font-weight:700;color:var(--navy-deep);}
+.lt-inuse{font-size:11px;font-weight:700;color:#fff;background:var(--orange);border-radius:9px;padding:0 7px;line-height:1.6;}
+.lt-inuse[hidden]{display:none;}
+.lt-match{margin-left:auto;font-size:11px;font-weight:600;line-height:1.6;border-radius:9px;padding:0 8px;white-space:nowrap;}
+.lt-match.same,.lt-match.close{background:#e6efe8;color:#2d5a38;}
+.lt-match.similar{background:var(--offwhite);color:var(--text-muted);border:1px solid var(--warm-border);}
+.lt-match.none{background:#fbeee5;color:var(--orange-dark);}
+/* The card swatches follow the stone picked above: a fine two-layer speckle over the color. */
+.lt-stone{margin:0 12px;border-radius:8px;min-height:132px;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;overflow:hidden;
+  background-color:#26272b;color:#e6e2da;
+  background-image:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px),radial-gradient(rgba(0,0,0,.35) 1px,transparent 1.6px);
+  background-size:7px 7px,11px 11px;background-position:0 0,3px 5px;}
+.lt-grid[data-stone="gray"] .lt-stone{background-color:#a3a19c;color:#26282b;
+  background-image:radial-gradient(rgba(255,255,255,.22) 1px,transparent 1.6px),radial-gradient(rgba(0,0,0,.18) 1px,transparent 1.6px);}
+.lt-grid[data-stone="red"] .lt-stone{background-color:#8a4b42;color:#efe2dc;}
+.lt-grid[data-stone="brown"] .lt-stone{background-color:#5b3d31;color:#eedfd3;}
+.lt-preview{width:100%;line-height:1.2;}
+/* Until its look-alike has loaded and been sized, a preview shows nothing rather than the
+   name in the page's own font at the wrong size. */
+.lt-card:not(.lt-ready) .lt-preview{visibility:hidden;}
+.lt-line{display:block;white-space:nowrap;}
+.lt-line + .lt-line{margin-top:4px;}
+.lt-line:empty{display:none;}
+.lt-caps .lt-preview,.lt-preview.lt-upper{text-transform:uppercase;}
+.lt-preview.lt-small{font-variant-caps:small-caps;}
+.lt-none .lt-stone{background:var(--offwhite)!important;color:var(--text-muted);font-size:13.5px;line-height:1.45;}
+.lt-use-row{display:flex;gap:8px;padding:9px 12px 0;}
+.lt-use{flex:1;border:1px solid var(--navy);background:#fff;color:var(--navy-dark);border-radius:7px;padding:6px 10px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;}
+.lt-use:hover{background:var(--navy);color:#fff;}
+.lt-star{border:1px solid var(--warm-border);background:#fff;color:var(--text-muted);border-radius:7px;padding:6px 10px;font-family:'Source Sans 3',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.lt-star[aria-pressed="true"]{background:#fdf1e7;border-color:var(--orange);color:var(--orange-dark);}
+.lt-note{padding:8px 14px 0;font-size:12px;line-height:1.4;color:var(--text-muted);}
+.lt-ref{margin:10px 12px 12px;}
+/* Book strips are wide and short; the website samples are boxier. One height cap keeps a
+   website sample from towering over the preview it explains. */
+.lt-ref img{width:100%;max-height:120px;object-fit:contain;object-position:left center;display:block;border:1px solid var(--rule);border-radius:4px;background:#fff;}
+.lt-ref figcaption{margin-top:4px;font-size:11px;color:var(--text-muted);}
+.lt-fine{max-width:900px;margin-top:16px;font-size:12.5px;line-height:1.5;color:var(--text-muted);}
+#ltSheet{display:none;}
+@media(max-width:1200px){.lt-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:980px){.lt-main{grid-template-columns:1fr;}.lt-side{position:static;order:-1;}}
+@media(max-width:768px){.lt-grid,.lt-texts.two{grid-template-columns:1fr;}.lt-opts,.lt-opts.dates{grid-template-columns:1fr 1fr;}.lt-opts .lt-font{grid-column:1/-1;}.lt-act-quiet{margin-left:0;}}
+/* Not printed with the page: the grid's look-alikes load only as cards scroll into view.
+   The Print button prints the drawn marker instead, on a sheet of its own. */
+@media print{
+  #sec-lettering,#group-lettering{display:none!important;}
+  body.lettering-printing > *:not(#ltSheet){display:none!important;}
+  body.lettering-printing #ltSheet{display:block!important;padding:.45in .5in;}
+  #ltSheet img{display:block;width:100%;height:auto;}
+}
+"""
+
+LETTERING_JS = r"""
+/* ---- Design Your Lettering ----------------------------------------------------------
+   One state object drives three views: the line rows, the drawn marker (canvas, which is
+   also what Download/Share/Print send) and the comparison grid. Every grid card's font loads
+   only when the card nears the screen. */
+(function () {
+  var grid = document.getElementById('ltGrid');
+  var dataEl = document.getElementById('ltData');
+  if (!grid || !dataEl) return;
+  var STYLES = JSON.parse(dataEl.textContent);
+  var BY = {};
+  STYLES.forEach(function (s) { BY[s.s] = s; });
+  var ltCards = [].slice.call(grid.querySelectorAll('.lt-card'));
+  var KEY = 'bwLettering.v1';
+
+  /* The lines PCM's own proofs use. `rel` is the line's capital height as a share of the
+     marker's height; `two` = one box per person on a companion. */
+  var ROLES = {
+    single: [
+      { k: 'top', label: 'Top line', opt: true, ph: ['Forever in our hearts'], rel: 0.07 },
+      { k: 'first', label: 'First and middle names', ph: ['Margaret Ann'], rel: 0.115 },
+      { k: 'last', label: 'Last name', ph: ['Wilson'], rel: 0.165 },
+      { k: 'dates', label: 'Dates', dates: true, rel: 0.08 },
+      { k: 'bottom', label: 'Bottom line', opt: true, ph: ['Beloved Mother and Grandmother'], rel: 0.065 }
+    ],
+    companion: [
+      { k: 'top', label: 'Top line', opt: true, ph: ['Loving parents'], rel: 0.078 },
+      { k: 'family', label: 'Family name', ph: ['Wilson'], rel: 0.18 },
+      { k: 'first', label: 'First names', two: true, ph: ['Robert J.', 'Margaret A.'], rel: 0.115 },
+      { k: 'dates', label: 'Dates', two: true, dates: true, rel: 0.082 },
+      { k: 'bottom', label: 'Under each name', opt: true, two: true, ph: ['Beloved Father', 'Beloved Mother'], rel: 0.07 },
+      { k: 'middle', label: 'Center line', opt: true, ph: ['Married June 1, 1960'], rel: 0.072 }
+    ]
+  };
+  var CASES = [['as', 'As typed'], ['upper', 'ALL CAPS'], ['small', 'Small Caps']];
+  var FORMATS = [['full', 'June 21, 1938'], ['abbr', 'Jun. 21, 1938'], ['years', '1938 (years only)']];
+  var ARRANGE = [['line', 'One line'], ['stack', 'Stacked'], ['labels', 'Born / Died']];
+  /* Starting points read off PCM's proofs: capitals surname over roman dates, a script name,
+     a plain modern face, capitals throughout, a blackletter surname. */
+  var PRESETS = {
+    classic:  { top: ['zapf-chancery', 'as'], first: ['palatino', 'as'], last: ['trajan', 'upper'], family: ['trajan', 'upper'], dates: ['palatino', 'as'], bottom: ['zapf-chancery', 'as'], middle: ['zapf-chancery', 'as'] },
+    script:   { top: ['zapf-chancery', 'as'], first: ['park-avenue', 'as'], last: ['park-avenue', 'as'], family: ['park-avenue', 'as'], dates: ['garamond', 'as'], bottom: ['garamond', 'as'], middle: ['garamond', 'as'] },
+    modern:   { top: ['optima', 'as'], first: ['optima', 'as'], last: ['franklin-gothic', 'upper'], family: ['franklin-gothic', 'upper'], dates: ['optima', 'as'], bottom: ['optima', 'as'], middle: ['optima', 'as'] },
+    caps:     { top: ['monument', 'upper'], first: ['monument', 'upper'], last: ['monument', 'upper'], family: ['monument', 'upper'], dates: ['monument', 'upper'], bottom: ['monument', 'upper'], middle: ['monument', 'upper'] },
+    oldworld: { top: ['monotype-corsiva', 'as'], first: ['garamond', 'as'], last: ['old-english', 'as'], family: ['old-english', 'as'], dates: ['garamond', 'as'], bottom: ['monotype-corsiva', 'as'], middle: ['monotype-corsiva', 'as'] }
+  };
+  function fresh() {
+    var st = { v: 1, layout: 'single', stone: 'black', target: 'all', kind: '', fmt: 'full', arr: 'line', starred: [], roles: {},
+      text: { first: 'Margaret Ann', last: 'Wilson', born: 'June 21, 1938', died: 'July 10, 2024', top: '', bottom: '',
+              family: 'Wilson', first1: 'Robert J.', first2: 'Margaret A.', born1: '1936', died1: '2019',
+              born2: '1938', died2: '', bottom1: '', bottom2: '', middle: '' } };
+    applyPreset(st, 'classic');
+    return st;
+  }
+  function applyPreset(st, name) {
+    var p = PRESETS[name];
+    Object.keys(p).forEach(function (k) { st.roles[k] = { s: p[k][0], c: p[k][1] }; });
+    if (name === 'caps' || name === 'modern') st.fmt = 'abbr';
+    else if (name === 'classic' || name === 'script' || name === 'oldworld') st.fmt = 'full';
+  }
+  var state = fresh();
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved && saved.v === 1 && saved.roles && saved.text) {
+      Object.keys(saved).forEach(function (k) { state[k] = saved[k]; });
+      Object.keys(state.roles).forEach(function (k) { if (!BY[state.roles[k].s]) state.roles[k].s = 'palatino'; });
+    }
+  } catch (e) {}
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function roles() { return ROLES[state.layout]; }
+  function roleOf(k) { return roles().filter(function (r) { return r.k === k; })[0]; }
+
+  /* ---- dates: typed once, shown in the family's format -------------------------------- */
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var ABBR = ['Jan.', 'Feb.', 'March', 'April', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
+  function monthIndex(w) {
+    w = w.toLowerCase().replace(/\./g, '');
+    for (var i = 0; i < 12; i++) if (MONTHS[i].toLowerCase().indexOf(w.slice(0, 3)) === 0 && w.length >= 3) return i;
+    return -1;
+  }
+  function parseDate(s) {
+    s = String(s || '').trim();
+    if (!s) return null;
+    var m;
+    if ((m = s.match(/^(\d{4})$/))) return { y: +m[1] };
+    if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) return { y: +m[1], m: +m[2] - 1, d: +m[3] };
+    if ((m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})$/))) {
+      var y = +m[3]; if (y < 100) y += (y > 30 ? 1900 : 2000);
+      if (+m[1] >= 1 && +m[1] <= 12) return { y: y, m: +m[1] - 1, d: +m[2] };
+    }
+    if ((m = s.match(/^([A-Za-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/)) && monthIndex(m[1]) >= 0) return { y: +m[3], m: monthIndex(m[1]), d: +m[2] };
+    if ((m = s.match(/^(\d{1,2})\s+([A-Za-z]+)\.?,?\s+(\d{4})$/)) && monthIndex(m[2]) >= 0) return { y: +m[3], m: monthIndex(m[2]), d: +m[1] };
+    if ((m = s.match(/^([A-Za-z]+)\.?,?\s+(\d{4})$/)) && monthIndex(m[1]) >= 0) return { y: +m[2], m: monthIndex(m[1]) };
+    return { raw: s };
+  }
+  function fmtDate(s) {
+    var p = parseDate(s);
+    if (!p) return '';
+    if (p.raw) return p.raw;
+    if (state.fmt === 'years' || p.m == null) return String(p.y);
+    var mo = (state.fmt === 'abbr' ? ABBR : MONTHS)[p.m];
+    return p.d ? mo + ' ' + p.d + ', ' + p.y : mo + ' ' + p.y;
+  }
+  /* A living person's date of death is left blank (pre-arrangement): one line ends on the
+     dash, stacked keeps the empty line so the space is visibly there. */
+  function dateLines(born, died) {
+    var b = fmtDate(born), d = fmtDate(died);
+    if (state.arr === 'stack') return [b, d];
+    if (state.arr === 'labels') return [b ? 'Born ' + b : '', d ? 'Died ' + d : ''];
+    if (b && d) return [b + ' – ' + d];
+    return [b ? b + ' –' : d];
+  }
+
+  /* ---- case and text ------------------------------------------------------------------ */
+  function cased(text, rk) {
+    var r = state.roles[rk] || { s: 'palatino', c: 'as' }, s = BY[r.s];
+    if (s && s.c === 'all') return String(text).toUpperCase();
+    if (r.c === 'upper') return String(text).toUpperCase();
+    return String(text);
+  }
+  function smallCaps(rk) {
+    var r = state.roles[rk], s = r && BY[r.s];
+    return !!(r && r.c === 'small' && s && !s.c);
+  }
+
+  /* ---- fonts -------------------------------------------------------------------------- */
+  var ctx0 = document.createElement('canvas').getContext('2d');
+  function fontStr(s, px) { return (s.i ? 'italic ' : '') + s.w + ' ' + px.toFixed(2) + 'px "' + s.ff + '"'; }
+  var capCache = {};
+  /* Sizes are set by CAPITAL height, not font size, so a small script and a big serif come
+     out the same height. Measured once the face has loaded. */
+  function capScale(s) {
+    if (capCache[s.s]) return capCache[s.s];
+    ctx0.font = fontStr(s, 100);
+    var cap = ctx0.measureText('HIEB').actualBoundingBoxAscent || 70;
+    var v = Math.max(0.8, Math.min(1.7, 70 / cap));
+    if (document.fonts.check(fontStr(s, 30))) capCache[s.s] = v;
+    return v;
+  }
+  function loadStyles(list) {
+    return Promise.all(list.map(function (s) {
+      return document.fonts.load(fontStr(s, 30), 'HIEBa1').catch(function () {});
+    }));
+  }
+
+  /* ---- canvas drawing ------------------------------------------------------------------ */
+  var STONES = {
+    black: { base: '#232427', ink: '#e8e4dc', cut: 'rgba(0,0,0,.55)', fleck: [[255, 255, 255, 0.10], [0, 0, 0, 0.35]], rim: 'rgba(255,255,255,.16)' },
+    gray:  { base: '#a19f9a', ink: '#26282b', cut: 'rgba(255,255,255,.35)', fleck: [[255, 255, 255, 0.28], [0, 0, 0, 0.20]], rim: 'rgba(0,0,0,.18)' },
+    red:   { base: '#8a4b42', ink: '#f1e4de', cut: 'rgba(0,0,0,.45)', fleck: [[255, 225, 215, 0.18], [40, 10, 10, 0.35]], rim: 'rgba(255,255,255,.18)' },
+    brown: { base: '#5a3c30', ink: '#efe1d6', cut: 'rgba(0,0,0,.5)', fleck: [[255, 235, 220, 0.14], [20, 8, 4, 0.38]], rim: 'rgba(255,255,255,.16)' }
+  };
+  function rng(seed) { return function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; }
+  function drawStone(c, W, H) {
+    var st = STONES[state.stone] || STONES.black;
+    c.beginPath(); c.rect(0, 0, W, H); c.clip();   // flecks at the edge stay on the stone
+    c.fillStyle = st.base;
+    c.fillRect(0, 0, W, H);
+    var r = rng(1868), n = Math.round(W * H / 260);
+    st.fleck.forEach(function (f) {
+      for (var i = 0; i < n; i++) {
+        c.fillStyle = 'rgba(' + f[0] + ',' + f[1] + ',' + f[2] + ',' + (f[3] * (0.4 + r() * 0.6)).toFixed(3) + ')';
+        var s = Math.max(1, W / 900) * (0.6 + r() * 1.6);
+        c.fillRect(r() * W, r() * H, s, s);
+      }
+    });
+    var g = c.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, 'rgba(255,255,255,.07)'); g.addColorStop(0.5, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,.12)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    var m = H * 0.045;
+    c.strokeStyle = st.rim; c.lineWidth = Math.max(1, W / 700);
+    c.strokeRect(m, m, W - 2 * m, H - 2 * m);
+  }
+  /* A line as runs, so Small Caps can be drawn (canvas has no small caps of its own). */
+  function runs(text, small) {
+    if (!small) return [{ t: text, k: 1 }];
+    var out = [];
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i], low = ch !== ch.toUpperCase();
+      var k = low ? 0.78 : 1, t = low ? ch.toUpperCase() : ch;
+      if (out.length && out[out.length - 1].k === k) out[out.length - 1].t += t; else out.push({ t: t, k: k });
+    }
+    return out;
+  }
+  function measure(c, s, px, rs) {
+    var w = 0;
+    rs.forEach(function (r) { c.font = fontStr(s, px * r.k); w += c.measureText(r.t).width; });
+    return w;
+  }
+  function drawLine(c, ln, cx, base, ink, cut) {
+    var w = measure(c, ln.s, ln.px, ln.rs), x = cx - w / 2;
+    c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+    ln.rs.forEach(function (r) {
+      c.font = fontStr(ln.s, ln.px * r.k);
+      var off = Math.max(0.6, ln.px / 34);
+      c.fillStyle = cut; c.fillText(r.t, x + off, base + off);
+      c.fillStyle = ink; c.fillText(r.t, x, base);
+      x += c.measureText(r.t).width;
+    });
+  }
+  /* Build one line: its style, size from the role, shrunk to its width. */
+  function mkLine(c, rk, text, rel, H, maxW) {
+    var r = state.roles[rk], s = BY[r.s] || BY.palatino;
+    text = cased(text, rk);
+    var px = rel * H * capScale(s) * 1.45;
+    var rs = runs(text, smallCaps(rk));
+    var w = measure(c, s, px, rs);
+    if (w > maxW && w > 0) px *= maxW / w;
+    return { s: s, px: px, rs: rs, text: text };
+  }
+  /* Stack lines into a block: each advances by its own size plus a little air. */
+  function blockH(lines) { return lines.reduce(function (h, l) { return h + (l ? l.px * 1.22 : 0); }, 0); }
+  function drawBlock(c, lines, cx, top, ink, cut) {
+    var y = top;
+    lines.forEach(function (l) {
+      if (!l) return;
+      y += l.px * 0.98;
+      if (l.text) drawLine(c, l, cx, y, ink, cut);
+      y += l.px * 0.24;
+    });
+  }
+  function layoutLines(c, W, H, k) {
+    var T = state.text, R = roles(), rel = {}, out;
+    R.forEach(function (r) { rel[r.k] = r.rel * k; });
+    function line(rk, text, maxW, relOverride) {
+      return mkLine(c, rk, text, relOverride || rel[rk], H, maxW);
+    }
+    if (state.layout === 'single') {
+      var mw = W * 0.84, L = [];
+      if (T.top) L.push(line('top', T.top, mw));
+      if (T.first) L.push(line('first', T.first, mw));
+      if (T.last) L.push(line('last', T.last, mw));
+      var dl = dateLines(T.born, T.died);
+      dl.forEach(function (d) { L.push(line('dates', d, mw, dl.length > 1 ? rel.dates * 0.9 : rel.dates)); });
+      if (T.bottom) L.push(line('bottom', T.bottom, mw));
+      out = { center: L };
+    } else {
+      var full = W * 0.86, col = W * 0.4, head = [], cols = [[], []], foot = [];
+      if (T.top) head.push(line('top', T.top, full));
+      if (T.family) head.push(line('family', T.family, full));
+      [1, 2].forEach(function (p, i) {
+        if (T['first' + p]) cols[i].push(line('first', T['first' + p], col));
+        dateLines(T['born' + p], T['died' + p]).forEach(function (d, j, all) {
+          cols[i].push(line('dates', d, col, all.length > 1 ? rel.dates * 0.9 : rel.dates));
+        });
+        if (T['bottom' + p]) cols[i].push(line('bottom', T['bottom' + p], col));
+      });
+      if (T.middle) foot.push(line('middle', T.middle, full));
+      out = { head: head, cols: cols, foot: foot };
+    }
+    return out;
+  }
+  function render(c, W, H) {
+    c.save();
+    drawStone(c, W, H);
+    var st = STONES[state.stone] || STONES.black, k = 1, L, total;
+    /* Shrink everything together until the whole inscription fits inside the polished face. */
+    for (var tries = 0; tries < 12; tries++) {
+      L = layoutLines(c, W, H, k);
+      total = state.layout === 'single' ? blockH(L.center)
+        : blockH(L.head) + Math.max(blockH(L.cols[0]), blockH(L.cols[1])) + blockH(L.foot) + H * 0.04;
+      if (total <= H * 0.8) break;
+      k *= (H * 0.8) / total * 0.98;
+    }
+    var top = (H - total) / 2;
+    if (state.layout === 'single') {
+      drawBlock(c, L.center, W / 2, top, st.ink, st.cut);
+    } else {
+      drawBlock(c, L.head, W / 2, top, st.ink, st.cut);
+      var y2 = top + blockH(L.head) + H * 0.02, colH = Math.max(blockH(L.cols[0]), blockH(L.cols[1]));
+      drawBlock(c, L.cols[0], W * 0.28, y2 + (colH - blockH(L.cols[0])) / 2, st.ink, st.cut);
+      drawBlock(c, L.cols[1], W * 0.72, y2 + (colH - blockH(L.cols[1])) / 2, st.ink, st.cut);
+      drawBlock(c, L.foot, W / 2, y2 + colH + H * 0.02, st.ink, st.cut);
+    }
+    c.restore();
+  }
+  var RATIO = { single: 12 / 24, companion: 14 / 44 };   // 24x12 and 44x14 flat markers
+  var canvas = document.getElementById('ltCanvas');
+  var pending = false;
+  function usedStyles() {
+    var seen = {}, out = [];
+    roles().forEach(function (r) { var s = BY[(state.roles[r.k] || {}).s]; if (s && !seen[s.s]) { seen[s.s] = 1; out.push(s); } });
+    return out;
+  }
+  function paint() {
+    if (pending) return;
+    pending = true;
+    loadStyles(usedStyles()).then(function () {
+      pending = false;
+      var cssW = canvas.clientWidth || 600, dpr = Math.min(2, window.devicePixelRatio || 1);
+      var W = Math.round(cssW * dpr), H = Math.round(W * RATIO[state.layout]);
+      canvas.width = W; canvas.height = H;
+      render(canvas.getContext('2d'), W, H);
+      canvas.dataset.painted = String(Date.now());
+    });
+  }
+
+  /* ---- the picture families keep: the marker plus a key to every line ------------------ */
+  var CASE_LABEL = { as: 'as typed', upper: 'all capitals', small: 'small capitals' };
+  function keyRows() {
+    var T = state.text, out = [];
+    roles().forEach(function (r) {
+      var has = r.dates ? true : r.two ? (T[r.k + '1'] || T[r.k + '2']) : T[r.k];
+      if (!has) return;
+      var ro = state.roles[r.k], s = BY[ro.s];
+      var cs = s.c === 'all' ? 'capitals only' : s.c === 'small' ? 'capitals and small capitals' : CASE_LABEL[ro.c];
+      var extra = r.dates ? ', ' + FORMATS.filter(function (f) { return f[0] === state.fmt; })[0][1].replace(' (years only)', '') +
+        ' style, ' + ARRANGE.filter(function (a) { return a[0] === state.arr; })[0][1].toLowerCase() : '';
+      out.push({ label: r.label, style: s.n, detail: cs + extra, match: { same: 'same font', close: 'very close look-alike', similar: 'similar style' }[s.m] });
+    });
+    return out;
+  }
+  function picture() {
+    return loadStyles(usedStyles()).then(function () {
+      return document.fonts.load("600 20px 'Source Sans 3'").catch(function () {});
+    }).then(function () {
+      var W = 2400, MH = Math.round(W * RATIO[state.layout]), rows = keyRows();
+      var pad = 90, rowH = 64, keyH = 150 + rows.length * rowH + 150;
+      var cv = document.createElement('canvas');
+      cv.width = W; cv.height = pad + MH + keyH;
+      var c = cv.getContext('2d');
+      c.fillStyle = '#ffffff'; c.fillRect(0, 0, cv.width, cv.height);
+      c.save(); c.translate(pad, pad);
+      var mw = W - 2 * pad, mh = Math.round(mw * RATIO[state.layout]);
+      render(c, mw, mh);
+      c.restore();
+      var y = pad + mh + 90;
+      c.fillStyle = '#1e3a55'; c.font = "600 46px 'Cormorant Garamond', serif";
+      c.fillText('My marker lettering', pad, y);
+      y += 30;
+      rows.forEach(function (r) {
+        y += rowH;
+        c.fillStyle = '#6a7686'; c.font = "700 26px 'Source Sans 3', sans-serif";
+        c.fillText(r.label.toUpperCase(), pad, y);
+        c.fillStyle = '#1a2332'; c.font = "600 36px 'Source Sans 3', sans-serif";
+        c.fillText(r.style, pad + 520, y);
+        var sw = c.measureText(r.style).width;
+        c.fillStyle = '#3a4453'; c.font = "400 30px 'Source Sans 3', sans-serif";
+        c.fillText('  ·  ' + r.detail + '  ·  ' + r.match, pad + 520 + sw, y);
+      });
+      y += 90;
+      c.fillStyle = '#6a7686'; c.font = "400 28px 'Source Sans 3', sans-serif";
+      c.fillText('Shown in free fonts that look like PCM’s lettering, with colors close to the granite. The proof PCM sends shows the actual lettering, sizes and spacing.', pad, y);
+      c.fillStyle = '#c8540a'; c.font = "700 26px 'Source Sans 3', sans-serif";
+      c.fillText('BONNEY WATSON  ·  WASHINGTON MEMORIAL PARK  ·  BONNEYWATSON.COM', pad, y + 52);
+      return cv;
+    });
+  }
+  function fileName() {
+    var n = state.layout === 'single' ? state.text.last : state.text.family;
+    n = String(n || '').replace(/[^\w\- ]+/g, '').trim();
+    return 'Marker lettering' + (n ? ' - ' + n : '') + '.png';
+  }
+  function download() {
+    return picture().then(function (cv) {
+      return new Promise(function (res) { cv.toBlob(res, 'image/png'); });
+    }).then(function (blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = fileName();
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      return blob;
+    });
+  }
+  window.bwLetteringPicture = picture;   // the test suite reads the picture through this
+
+  /* ---- the line rows -------------------------------------------------------------------- */
+  var rowsEl = document.getElementById('ltRows');
+  var styleOptions = (function () {
+    var groups = [['roman', 'Classic serif'], ['script', 'Script'], ['sans', 'Sans serif'], ['caps', 'Capitals'], ['deco', 'Decorative']];
+    var tag = { same: '', close: ' (very close)', similar: '' };
+    return groups.map(function (g) {
+      return '<optgroup label="' + g[1] + '">' + STYLES.filter(function (s) { return s.k === g[0]; }).map(function (s) {
+        return '<option value="' + s.s + '">' + s.n + tag[s.m] + '</option>';
+      }).join('') + '</optgroup>';
+    }).join('');
+  })();
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]; }); }
+  function input(key, ph, sub) {
+    return '<label>' + (sub ? '<div class="lt-sub">' + sub + '</div>' : '') +
+      '<input type="text" data-key="' + key + '" value="' + esc(state.text[key] || '') + '" placeholder="' + esc(ph || '') + '" maxlength="70" autocomplete="off"></label>';
+  }
+  function select(cls, opts, val, label) {
+    return '<select class="' + cls + '" aria-label="' + label + '">' + (typeof opts === 'string' ? opts :
+      opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('')) + '</select>';
+  }
+  function buildRows() {
+    rowsEl.innerHTML = roles().map(function (r) {
+      var texts;
+      if (r.dates && r.two) {
+        texts = '<div class="lt-texts two">' + input('born1', '1936', 'Left: born') + input('died1', '2019', 'Left: died') +
+          input('born2', 'August 11, 1938', 'Right: born') + input('died2', 'leave blank if living', 'Right: died') + '</div>';
+      } else if (r.dates) {
+        texts = '<div class="lt-texts two">' + input('born', 'June 21, 1938', 'Born') + input('died', 'leave blank if living', 'Died') + '</div>';
+      } else if (r.two) {
+        texts = '<div class="lt-texts two">' + input(r.k + '1', r.ph[0], 'Left') + input(r.k + '2', r.ph[1], 'Right') + '</div>';
+      } else {
+        texts = '<div class="lt-texts">' + input(r.k, r.ph[0]) + '</div>';
+      }
+      var opts = '<div class="lt-opts' + (r.dates ? ' dates' : '') + '">' + select('lt-font', styleOptions, '', r.label + ' lettering style') +
+        select('lt-case', CASES, '', r.label + ' capitals') +
+        (r.dates ? select('lt-fmt', FORMATS, '', 'Date format') + select('lt-arr', ARRANGE, '', 'Date layout') : '') + '</div>';
+      return '<div class="lt-row" data-role="' + r.k + '"><div class="lt-row-top"><span class="lt-row-label">' + r.label +
+        (r.opt ? ' <span>(optional)</span>' : '') + '</span><button type="button" class="lt-cmp" aria-pressed="false">Compare styles</button></div>' +
+        texts + opts + '<div class="lt-hint" hidden></div></div>';
+    }).join('');
+    rowsEl.querySelectorAll('.lt-row').forEach(function (row) {
+      var rk = row.dataset.role, ro = state.roles[rk];
+      row.querySelector('.lt-font').value = ro.s;
+      row.querySelector('.lt-case').value = ro.c;
+      if (row.querySelector('.lt-fmt')) { row.querySelector('.lt-fmt').value = state.fmt; row.querySelector('.lt-arr').value = state.arr; }
+    });
+    syncTargetUI();
+    hints();
+  }
+  /* Script is the hardest lettering to read small (and flat markers are read from above);
+     PCM's own proofs keep dates in plain lettering. Say so, never forbid it. */
+  function hints() {
+    rowsEl.querySelectorAll('.lt-row').forEach(function (row) {
+      var rk = row.dataset.role, s = BY[state.roles[rk].s], r = roleOf(rk), msg = '';
+      var longest = 0;
+      row.querySelectorAll('input').forEach(function (i) { longest = Math.max(longest, i.value.length); });
+      var ro = state.roles[rk];
+      if (s.k === 'script' && ro.c !== 'as') msg = 'Script letters in capitals are very hard to read. Script looks best with “As typed”.';
+      else if (s.k === 'script' && r.dates) msg = 'Script is the hardest lettering to read on dates. PCM’s own designs usually keep the dates in plain lettering.';
+      else if (s.k === 'script' && longest > 32) msg = 'Script reads best on a short line. A long line in script can be hard to read on a flat marker.';
+      var h = row.querySelector('.lt-hint');
+      h.textContent = msg; h.hidden = !msg;
+    });
+  }
+  rowsEl.addEventListener('input', function (e) {
+    var k = e.target.dataset && e.target.dataset.key;
+    if (!k) return;
+    state.text[k] = e.target.value;
+    changed(true);
+  });
+  rowsEl.addEventListener('change', function (e) {
+    var row = e.target.closest('.lt-row'); if (!row) return;
+    var rk = row.dataset.role, t = e.target;
+    if (t.classList.contains('lt-font')) state.roles[rk].s = t.value;
+    else if (t.classList.contains('lt-case')) state.roles[rk].c = t.value;
+    else if (t.classList.contains('lt-fmt')) state.fmt = t.value;
+    else if (t.classList.contains('lt-arr')) state.arr = t.value;
+    else return;
+    changed(true);
+  });
+  rowsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.lt-cmp'); if (!b) return;
+    var rk = b.closest('.lt-row').dataset.role;
+    setTarget(state.target === rk ? 'all' : rk);
+  });
+
+  /* ---- the comparison grid --------------------------------------------------------------- */
+  var targetSel = document.getElementById('ltTarget');
+  function syncTargetUI() {
+    targetSel.innerHTML = '<option value="all">All lines</option>' + roles().map(function (r) {
+      return '<option value="' + r.k + '">' + r.label + '</option>';
+    }).join('');
+    if (state.target !== 'all' && !roleOf(state.target)) state.target = 'all';
+    targetSel.value = state.target;
+    rowsEl.querySelectorAll('.lt-row').forEach(function (row) {
+      var on = row.dataset.role === state.target;
+      row.classList.toggle('lt-target', on);
+      row.querySelector('.lt-cmp').setAttribute('aria-pressed', on ? 'true' : 'false');
+      row.querySelector('.lt-cmp').textContent = on ? 'Comparing below' : 'Compare styles';
+    });
+    var r = roleOf(state.target);
+    document.getElementById('ltGalTitle').textContent = r ? 'Your ' + r.label.toLowerCase() + ' in every style' : 'Every style, with your lettering';
+    ltCards.forEach(function (c) {
+      var b = c.querySelector('.lt-use');
+      if (b) b.textContent = r ? 'Use for ' + r.label.toLowerCase() : 'Use for every line';
+    });
+  }
+  targetSel.addEventListener('change', function () { setTarget(targetSel.value); });
+  function setTarget(t) {
+    state.target = t;
+    syncTargetUI();
+    cardText();
+    persist();
+    if (t !== 'all') { var g = document.getElementById('ltGrid'); if (g.getBoundingClientRect().top > window.innerHeight) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  }
+  /* What every card shows: the compared line, or the name and dates for "All lines". */
+  function cardLines() {
+    var T = state.text, t = state.target;
+    if (state.layout === 'single') {
+      if (t === 'all') return [[T.first, T.last].filter(Boolean).join(' '), dateLines(T.born, T.died)[0], ''];
+      if (t === 'dates') return dateLines(T.born, T.died).concat(['']).slice(0, 3);
+      return [T[t] || roleOf(t).ph[0], '', ''];
+    }
+    var r = roleOf(t);
+    if (t === 'all') return [T.family, [T.first1, T.first2].filter(Boolean).join('    '), dateLines(T.born1, T.died1)[0]];
+    if (t === 'dates') return dateLines(T.born1, T.died1).concat(['']).slice(0, 3);
+    if (r.two) return [T[t + '1'] || r.ph[0], T[t + '2'] || r.ph[1], ''];
+    return [T[t] || r.ph[0], '', ''];
+  }
+  function cardText() {
+    var lines = cardLines(), t = state.target, ro = state.roles[t];
+    var upper = t !== 'all' && ro && ro.c === 'upper', small = t !== 'all' && ro && ro.c === 'small';
+    var n = lines.filter(Boolean).length;
+    BASE = n <= 1 ? [36, 0, 0] : n === 2 ? [30, 22, 0] : [26, 20, 18];
+    ltCards.forEach(function (c) {
+      var pv = c.querySelector('.lt-preview'); if (!pv) return;
+      pv.classList.toggle('lt-upper', !!upper);
+      pv.classList.toggle('lt-small', !!small && !c.dataset.caps);
+      c.querySelectorAll('.lt-line').forEach(function (el, i) { el.textContent = lines[i] || ''; });
+      var cur = t === 'all' ? roles().every(function (r) { return state.roles[r.k].s === c.dataset.slug; })
+        : (ro && ro.s === c.dataset.slug);
+      c.classList.toggle('lt-current', !!cur);
+      c.querySelector('.lt-inuse').hidden = !cur;
+      fit(c);
+    });
+  }
+  var BASE = [30, 22, 18];
+  function fit(c) {
+    if (!c._ready || c.hidden) return;
+    var s = BY[c.dataset.slug], k = s ? capScale(s) : 1;
+    c.querySelectorAll('.lt-line').forEach(function (el, i) {
+      if (!BASE[i]) return;
+      el.style.fontSize = (BASE[i] * k) + 'px';
+      var room = el.clientWidth;
+      if (room > 0 && el.scrollWidth > room) el.style.fontSize = (BASE[i] * k * room / el.scrollWidth * 0.97) + 'px';
+    });
+  }
+  function load(c) {
+    if (c._loading || !c.dataset.ff) return;
+    c._loading = true;
+    var pv = c.querySelector('.lt-preview');
+    pv.style.fontFamily = '"' + c.dataset.ff + '", serif';
+    pv.style.fontWeight = c.dataset.w;
+    pv.style.fontStyle = c.dataset.i === '1' ? 'italic' : 'normal';
+    var done = function () { c._ready = true; fit(c); c.classList.add('lt-ready'); };
+    document.fonts.load((c.dataset.i === '1' ? 'italic ' : '') + c.dataset.w + ' 30px "' + c.dataset.ff + '"', 'HIEB').then(done, done);
+  }
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function (seen) {
+    seen.forEach(function (e) { if (e.isIntersecting) { load(e.target); io.unobserve(e.target); } });
+  }, { rootMargin: '800px 0px' }) : null;
+  ltCards.forEach(function (c) { if (io) io.observe(c); else load(c); });
+  window.addEventListener('resize', function () { ltCards.forEach(fit); paint(); });
+
+  grid.addEventListener('click', function (e) {
+    var card = e.target.closest('.lt-card'); if (!card) return;
+    if (e.target.closest('.lt-use')) {
+      var t = state.target;
+      (t === 'all' ? roles().map(function (r) { return r.k; }) : [t]).forEach(function (rk) { state.roles[rk].s = card.dataset.slug; });
+      rowsEl.querySelectorAll('.lt-row').forEach(function (row) { row.querySelector('.lt-font').value = state.roles[row.dataset.role].s; });
+      changed(false);
+      var b = card.querySelector('.lt-use'), was = b.textContent;
+      b.textContent = 'Done – see the marker above';
+      setTimeout(function () { b.textContent = was; syncTargetUI(); }, 1600);
+    } else if (e.target.closest('.lt-star')) {
+      var sl = card.dataset.slug, i = state.starred.indexOf(sl);
+      if (i >= 0) state.starred.splice(i, 1); else state.starred.push(sl);
+      stars();
+      persist();
+      if (kind === 'starred') applyFilters();
+    }
+  });
+  function stars() {
+    ltCards.forEach(function (c) {
+      var b = c.querySelector('.lt-star'); if (!b) return;
+      var on = state.starred.indexOf(c.dataset.slug) >= 0;
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.innerHTML = '<span aria-hidden="true">' + (on ? '★' : '☆') + '</span> ' + (on ? 'On short list' : 'Short list');
+    });
+    document.getElementById('ltStarCount').textContent = String(state.starred.length);
+  }
+
+  /* ---- everything else ------------------------------------------------------------------- */
+  function changed(textOnly) {
+    persist();
+    hints();
+    cardText();
+    paint();
+  }
+  document.querySelectorAll('.lt-seg-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.layout = b.dataset.layout;
+      document.querySelectorAll('.lt-seg-btn').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      buildRows();
+      changed(false);
+    });
+  });
+  document.querySelectorAll('.lt-preset').forEach(function (b) {
+    b.addEventListener('click', function () { applyPreset(state, b.dataset.preset); buildRows(); changed(false); });
+  });
+  document.querySelectorAll('input[name="ltStone"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      if (!r.checked) return;
+      state.stone = r.value; grid.dataset.stone = r.value; persist(); paint();
+    });
+  });
+  var kind = state.kind || '';
+  document.querySelectorAll('.lt-chip').forEach(function (b) {
+    b.addEventListener('click', function () {
+      kind = b.dataset.kind; state.kind = kind; persist();
+      document.querySelectorAll('.lt-chip').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      applyFilters();
+    });
+  });
+  document.getElementById('ltDownload').addEventListener('click', function () { download(); });
+  var shareBtn = document.getElementById('ltShare');
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] })) shareBtn.hidden = false;
+  } catch (e) {}
+  shareBtn.addEventListener('click', function () {
+    picture().then(function (cv) { return new Promise(function (res) { cv.toBlob(res, 'image/png'); }); }).then(function (blob) {
+      return navigator.share({ files: [new File([blob], fileName(), { type: 'image/png' })], title: 'Marker lettering' });
+    }).catch(function () {});
+  });
+  document.getElementById('ltPrint').addEventListener('click', function () {
+    picture().then(function (cv) {
+      var sheet = document.getElementById('ltSheet');
+      if (!sheet) { sheet = document.createElement('div'); sheet.id = 'ltSheet'; sheet.innerHTML = '<img alt="Marker lettering">'; document.body.appendChild(sheet); }
+      var img = sheet.querySelector('img');
+      /* bwPrintWithTitle names the Save-as-PDF file, sets the body class the print rules key
+         on, and clears both after printing. */
+      img.onload = function () { window.bwPrintWithTitle(fileName().replace(/\.png$/, ''), 'lettering-printing'); };
+      img.src = cv.toDataURL('image/png');
+    });
+  });
+  document.getElementById('ltReset').addEventListener('click', function () {
+    if (!window.confirm('Clear what you typed and start over?')) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    state = fresh(); kind = '';
+    restoreControls();
+    buildRows(); stars(); changed(false); applyFilters();
+  });
+  function restoreControls() {
+    document.querySelectorAll('.lt-seg-btn').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.layout === state.layout ? 'true' : 'false'); });
+    document.querySelectorAll('input[name="ltStone"]').forEach(function (x) { x.checked = x.value === state.stone; });
+    grid.dataset.stone = state.stone;
+    document.querySelectorAll('.lt-chip').forEach(function (x) { x.setAttribute('aria-pressed', x.dataset.kind === kind ? 'true' : 'false'); });
+  }
+
+  /* Called from applyFilters. The search box narrows the styles by name or kind ("script",
+     "trajan"); the book, format and colour dropdowns describe designs, not lettering, so
+     they hide the section the way they hide the element library. `n` counts what the SEARCH
+     leaves, before the kind chips: the section stays up while the search has an answer, so a
+     chip that empties the grid can still be switched off. */
+  window.ltFilter = function (q, terms, hideAll) {
+    var n = 0;
+    ltCards.forEach(function (c) {
+      var hit = !hideAll && matches(c.dataset.name, '', terms, q);
+      var keep = !kind || (kind === 'starred' ? state.starred.indexOf(c.dataset.slug) >= 0 : c.dataset.kind === kind);
+      c.hidden = !(hit && keep);
+      if (hit) n++;
+    });
+    requestAnimationFrame(function () { ltCards.forEach(fit); });
+    return n;
+  };
+  restoreControls();
+  buildRows();
+  stars();
+  cardText();
+  paint();
+})();
+"""
+
+
 def build():
     data = json.load(open(DATA, encoding='utf-8'))
     tagdata = json.load(open(TAGS, encoding='utf-8'))
@@ -1243,6 +2186,10 @@ def build():
     stem_re = re.compile(tagdata['stemRule'])
     designs, elements = data['designs'], data['elements']
     photos, refs = data['photos'], data['reference']
+    lt_styles = json.load(open(LETTERING, encoding='utf-8'))['styles']
+    for st in lt_styles:
+        if st['ref'] and not os.path.exists(f"pcm-lettering-images/{slug(st['name'])}.webp"):
+            raise SystemExit(f"pcm-lettering-images/{slug(st['name'])}.webp is missing; run scripts/prep_pcm_lettering.py")
 
     # ---- the two full-colour proof classes ------------------------------------------
     # Each is (rows from the catalog) joined to (curated text) on the class's own key, and
@@ -1499,8 +2446,10 @@ def build():
 @font-face{{font-family:'Source Sans 3';font-style:normal;font-weight:400;src:url('fonts/SourceSans3-400.woff') format('woff');}}
 @font-face{{font-family:'Source Sans 3';font-style:normal;font-weight:600;src:url('fonts/SourceSans3-600.woff') format('woff');}}
 @font-face{{font-family:'Source Sans 3';font-style:normal;font-weight:700;src:url('fonts/SourceSans3-700.woff') format('woff');}}
+/* Try Your Lettering: free look-alikes of PCM's lettering styles (fonts/lettering/LICENSES.md). */
+{lettering_faces(lt_styles)}
 </style>
-<style>{STYLE}</style>
+<style>{STYLE}{LETTERING_STYLE}</style>
 <script>if(/[?&]family(=|&|$)/.test(location.search))document.documentElement.classList.add('family-view');</script>
 </head>
 <body>
@@ -1524,7 +2473,7 @@ def build():
       one for a marker with two, each grouped by what the design shows. The design number is on
       every card so a family can point and we can look it up on the spot.</div>
     <div class="cover-rule"></div>
-    <div class="cover-footer">{plate_count['single'] + len(singles):,} single &middot; {plate_count['companion'] + len(proofs):,} companion designs &middot; {len(singles) + len(proofs)} full-colour proofs &middot; {n_cards} book plates &middot; {len(elements):,} design elements &middot; {len([p for p in photos])} photographed markers</div>
+    <div class="cover-footer">{plate_count['single'] + len(singles):,} single &middot; {plate_count['companion'] + len(proofs):,} companion designs &middot; {len(singles) + len(proofs)} full-colour proofs &middot; {n_cards} book plates &middot; {len(elements):,} design elements &middot; {len([p for p in photos])} photographed markers &middot; {len(lt_styles)} lettering styles</div>
   </div>
 
   <div class="toolbar">
@@ -1564,6 +2513,7 @@ def build():
     <a href="#sec-companion">Companion Designs</a>
     <a href="#sec-elements">Design Elements</a>
     <a href="#sec-examples">Installed Examples</a>
+    <a href="#sec-lettering">Try Your Lettering</a>
     <a href="#sec-reference">Sizes, Colors &amp; Lettering</a>
   </div>
 
@@ -1600,6 +2550,7 @@ def build():
     </div>
   </div>
 
+{lettering_section(lt_styles)}
   <div class="section-wrap" id="sec-reference">
     <div class="section-head">Sizes, Colors &amp; Lettering</div>
     <div class="section-note">Reference plates from the same books: what sizes a flat marker comes in,
@@ -1618,7 +2569,8 @@ def build():
     <div class="footer-hours">Washington Memorial Park &middot; 16445 International Blvd, SeaTac, WA 98188</div>
     <div class="footer-url">bonneywatson.com</div>
     <div class="footer-legal">Designs and design elements &copy; Pacific Coast Memorials. Shown for
-      selection purposes; artwork may be adapted to fit the marker size you choose.</div>
+      selection purposes; artwork may be adapted to fit the marker size you choose. Lettering
+      previews use free fonts that look like PCM&rsquo;s; your proof shows PCM&rsquo;s own lettering.</div>
   </div>
 </div>
 
@@ -2053,12 +3005,19 @@ function applyFilters() {{
   document.getElementById('sec-single').hidden = perSection.single === 0;
   document.getElementById('sec-companion').hidden = perSection.companion === 0;
 
+  /* Lettering answers the search box (by style name or kind) and steps aside, like the
+     element library, when the family scopes to a book, format, colour or proof set. It is
+     not counted in filterCount: that line counts designs, proofs and elements. */
+  var shownFonts = window.ltFilter ? window.ltFilter(q, terms, (facetsOn && !q) || !!proofSet) : 0;
+  document.getElementById('sec-lettering').hidden = shownFonts === 0;
+  document.getElementById('group-lettering').hidden = shownFonts === 0;
+
   document.getElementById('filterCount').textContent =
     shownDesigns.toLocaleString() + ' designs \\u00b7 ' +
     shownProofs.toLocaleString() + ' proofs \\u00b7 ' +
     shownEls.toLocaleString() + ' elements';
   document.getElementById('emptyNote').hidden =
-    !(shownDesigns === 0 && shownProofs === 0 && shownEls === 0);
+    !(shownDesigns === 0 && shownProofs === 0 && shownEls === 0 && shownFonts === 0);
   if (window.bwUpdateFilterPrintBtn) window.bwUpdateFilterPrintBtn();
 }}
 
@@ -2168,6 +3127,7 @@ document.getElementById('pcmJump').addEventListener('input', function () {{ jump
 document.getElementById('pcmJump').addEventListener('keydown', function (e) {{
   if (e.key === 'Enter') jump(this.value);
 }});
+{LETTERING_JS}
 {COMPARE_JS}
 applyFilters();
 </script>
