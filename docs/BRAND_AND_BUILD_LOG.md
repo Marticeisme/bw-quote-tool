@@ -2928,3 +2928,11 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Old saved visits (black/gray/red/brown) open on the nearest PCM granite.
 - tests/test-pcm-lettering.mjs now 82 (granites offered, engraving names, color per stone and style,
   all eight draw differently, key, gold note).
+
+## 2026-10-31: Vital worksheet prints without on-screen hints
+
+- Browser print of vital-worksheet.html (both "For a Loved One" and "For Myself") no longer carries the
+  italic guidance: the certified-copies advice and the keepsake line are now .no-print, and placeholder
+  examples ("e.g. 12 years", "Or leave blank", "MM/DD/YYYY") print transparent instead of looking like answers.
+  The old #keepsakeNote print sizing rule went with it. Screen view and the fillable PDF are unchanged.
+- Verified by printing both modes blank and filled under Playwright: one page each, typed answers still print.

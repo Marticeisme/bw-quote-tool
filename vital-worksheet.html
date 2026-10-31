@@ -107,12 +107,11 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
 
   #certCopies{padding:5px 9px !important;margin-top:6px !important;gap:4px 8px !important;
     break-inside:avoid;page-break-inside:avoid}
-  /* The closing keepsake line is one sentence and the LAST thing in the column
-     flow. Left at screen size it overhung page one by a single line, and because
-     a balanced multicol block that is only just too tall gets pushed whole rather
-     than fragmented, that one line cost an entire extra sheet of paper. */
-  #keepsakeNote{font-size:10px !important;margin:0 auto !important;
-    padding:0 24px 4px !important;break-inside:avoid;page-break-inside:avoid}
+  /* On-screen guidance stays on screen: the italic notes (cert-copies advice,
+     keepsake line) carry .no-print, and placeholder hints ("e.g. 12 years",
+     "Or leave blank") would otherwise print inside the blanks as if they were
+     answers. */
+  input::placeholder{color:transparent !important}
   .wsfooter{padding:4px 24px !important;gap:10px !important;
     break-inside:avoid;page-break-inside:avoid}
   .wsfooter img{height:15px !important}
@@ -367,7 +366,7 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
       <div id="certCopies" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:12px;padding:11px 14px;background:#f8f6f2;border:1px solid #e6e1d7;border-radius:4px">
         <span style="font:600 10px 'Source Sans 3',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#c8540a">Certified Copies of the Death Certificate Needed</span>
         <input data-key="cert_copies" type="text" placeholder="How many?" style="width:80px">
-        <span style="font:italic 400 12px/1.4 'Newsreader',Georgia,serif;color:#9aa2ac">Most families order several — one for each bank, insurer, and agency. We can help you decide.</span>
+        <span class="no-print" style="font:italic 400 12px/1.4 'Newsreader',Georgia,serif;color:#9aa2ac">Most families order several — one for each bank, insurer, and agency. We can help you decide.</span>
       </div>
 
     </div>
@@ -376,7 +375,7 @@ input[type="checkbox"]:checked::after{content:"";position:absolute;left:4px;top:
          child: .wsbody becomes a two-column block when printing, and a trailing
          paragraph inside it must fit the foot of the last column or it is pushed
          onto a sheet of its own — this one sentence was costing a whole page. -->
-    <p id="keepsakeNote" style="display:none;text-align:center;margin:14px auto 0;padding:0 30px 20px;max-width:620px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
+    <p id="keepsakeNote" class="no-print" style="display:none;text-align:center;margin:14px auto 0;padding:0 30px 20px;max-width:620px;font:italic 400 14px/1.6 'Newsreader',Georgia,serif;color:#6a7686">Once complete, keep this worksheet with your important papers — and let your family know where to find it.</p>
 
     <!-- FOOTER -->
     <div class="wsfooter" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 32px;border-top:1px solid #e6e1d7;background:#f8f6f2;flex-wrap:wrap;text-align:center">
