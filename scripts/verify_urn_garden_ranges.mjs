@@ -116,9 +116,9 @@ const [ROSE_SPACE, ROSE_ECF] = roseOpts[0] || [0, 0];
 // marker-only prices and its $495 setting fee can be checked against the tool (Track U,
 // sprint-09) — before this the script only read the total and could not see either.
 const MEMORIALS = [
-  ['mem.cremorial',   /<option value="([\d|]+)">Cremorial Unit \(Rose\/Lake\/Vets Urn Gardens\)/],
-  ['mem.lug',         /<option value="([\d|]+)">Lake Urn Garden Memorial/],
-  ['mem.gasser',      /<option value="([\d|]+)">Bronze Single &ndash; Gasser Olds \(Lake Urn Garden\)|<option value="([\d|]+)">Bronze Single – Gasser Olds \(Lake Urn Garden\)/],
+  ['mem.cremorial',   /<option value="([\d|]+)">Cremorial Unit Scroll – Together Forever Roses \(Rose\/Lake\/Vets Urn Gardens\)/],
+  ['mem.lug',         /<option value="([\d|]+)">Cremorial Unit Scroll – Williamsburg Plain\/Puritan \(Lake Urn Garden\)/],
+  ['mem.gasser',      /<option value="([\d|]+)">Flat Bronze Single – Gasser Olds \(Lake Urn Garden\)/],
   ['mem.second',      /<option value="([\d|]+)">2nd Right Memorial/],
   ['mem.bouldercap',  /<option value="([\d|]+)">Bronze Boulder Cap/],
 ];

@@ -144,7 +144,7 @@ console.log('\n4. Every quoted fee line equals the file');
     show('cem-quote', null);
     const g = document.getElementById('qGarden');
     g.value = [...g.options].find((o) => /\|/.test(o.value)).value;
-    ['qOCLawnSingle', 'qOCLawnDouble1', 'qOCLawnDouble2', 'qOCMaus', 'qOCGround', 'qOCGroundVault',
+    ['qOCLawnSingle', 'qOCLawnDouble1', 'qOCLawnDouble2', 'qOCMaus', 'qOCMausInurn', 'qOCGround', 'qOCGroundVault',
       'qOCBoulder', 'qOCNiche', 'qOCNicheNon', 'qRecGround'].forEach((id) => {
       const e = document.getElementById(id); if (e) e.checked = true;
     });
@@ -159,6 +159,7 @@ console.log('\n4. Every quoted fee line equals the file');
     'Lawn Interment – Double Depth (1st)': 'OC:lawn_double_1st',
     'Lawn Interment – Double Depth (2nd)': 'OC:lawn_double_2nd',
     'Mausoleum Entombment': 'OC:mausoleum_entombment',
+    'Mausoleum Inurnment': 'OC:mausoleum_inurnment',
     'Ground Inurnment': 'OC:ground_inurnment',
     'Ground Inurnment – Lawn Space': 'OC:ground_inurnment_vault',
     'Boulder Inurnment': 'OC:boulder_inurnment',
@@ -225,12 +226,12 @@ console.log('\n6. Every fee label still reads `Name — $1,234`, and is in PRICE
       ...document.querySelectorAll('#section-cem-quote .q-check-row label, #section-fh-quote .q-check-row label'),
       ...document.querySelectorAll('#section-cem-quote .q-group-label, #section-fh-quote .q-group-label'),
     ];
-    // The ten index-bearing fee labels, named rather than sniffed: nine O&C checkboxes
+    // The eleven index-bearing fee labels, named rather than sniffed: ten O&C checkboxes
     // (literal text — the map's build-prices.py scrapes these, see index.html's price block)
     // and the recording-fee group header (a data-fee span).
     const OC = {
       qOCLawnSingle: 'OC:lawn_single', qOCLawnDouble1: 'OC:lawn_double_1st',
-      qOCLawnDouble2: 'OC:lawn_double_2nd', qOCMaus: 'OC:mausoleum_entombment',
+      qOCLawnDouble2: 'OC:lawn_double_2nd', qOCMaus: 'OC:mausoleum_entombment', qOCMausInurn: 'OC:mausoleum_inurnment',
       qOCGround: 'OC:ground_inurnment', qOCGroundVault: 'OC:ground_inurnment_vault', qOCBoulder: 'OC:boulder_inurnment',
       qOCNiche: 'OC:niche_inurnment', qOCNicheNon: 'OC:niche_non_inurnment',
     };
@@ -265,7 +266,7 @@ console.log('\n6. Every fee label still reads `Name — $1,234`, and is in PRICE
   ok('every data-fee span rendered an amount — none left blank', r.blank.length === 0, r.blank);
   ok('all 42 fee spans are present', r.total === 42, r.total);
   ok('the O&C and recording labels were all found', r.labels.every((l) => l.found), r.labels.map((l) => l.text));
-  ok('there are ten of them', r.labels.length === 10, r.labels.map((l) => l.text));
+  ok('there are eleven of them', r.labels.length === 11, r.labels.map((l) => l.text));
   ok('and buildPriceIndex actually scans every one', r.labels.every((l) => l.scanned),
     r.labels.filter((l) => !l.scanned).map((l) => l.text));
 
@@ -325,7 +326,7 @@ console.log('\n8. The map\'s build-prices.py can still read our O&C labels');
   const rx = /<label for="qOC(\w+)">([^<]*?)\s*[-—]+\s*\$([\d,]+)<\/label>/g;
   const OC_PRODUCTS = {
     LawnSingle: 'lawn_single', LawnDouble1: 'lawn_double_1st',
-    LawnDouble2: 'lawn_double_2nd', Maus: 'mausoleum_entombment',
+    LawnDouble2: 'lawn_double_2nd', Maus: 'mausoleum_entombment', MausInurn: 'mausoleum_inurnment',
     Ground: 'ground_inurnment', GroundVault: 'ground_inurnment_vault', Boulder: 'boulder_inurnment',
     Niche: 'niche_inurnment', NicheNon: 'niche_non_inurnment',
   };
@@ -335,7 +336,7 @@ console.log('\n8. The map\'s build-prices.py can still read our O&C labels');
   while ((m = rx.exec(html))) found['OC:' + (OC_PRODUCTS[m[1]] || '?' + m[1])] = Number(m[3].replace(/,/g, ''));
   const keys = Object.keys(found).sort();
 
-  ok('all nine O&C labels are still scrapable text, not empty spans', keys.length === 9, keys);
+  ok('all ten O&C labels are still scrapable text, not empty spans', keys.length === 10, keys);
   ok('every id maps to a known product slug', keys.every((k) => k.indexOf('?') < 0), keys);
   const wrong = keys.filter((k) => found[k] !== FEES[k]).map((k) => k + ': label ' + found[k] + ' vs file ' + FEES[k]);
   ok('and each reads the amount data/prices.json holds', wrong.length === 0, wrong);
@@ -368,6 +369,7 @@ console.log('\n9. The sourced amounts are what the operator says they are');
     'OC:lawn_double_1st': 2085,          // unchanged
     'OC:lawn_double_2nd': 1535,          // unchanged
     'OC:mausoleum_entombment': 1205,     // unchanged
+    'OC:mausoleum_inurnment': 985,       // urn in crypt - new line on the 11/04/2026 price list
     'OC:boulder_inurnment': 1425,        // unchanged - the sheet has no boulder column
     'OC:niche_inurnment': 875,           // unchanged - already 875, for an unrelated reason
     'OC:niche_non_inurnment': 375,       // unchanged

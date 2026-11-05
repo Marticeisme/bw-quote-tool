@@ -60,7 +60,8 @@ console.log('\n1. The five discontinued products are unquotable');
   ok('no "Rough Box" option anywhere', r.roughBox.length === 0, r.roughBox);
   ok('the empty Loved & Cherished optgroup is gone too', r.lcOptgroups.length === 0, r.lcOptgroups);
   ok('cmpB_vault still offers the surviving vaults', r.cmpBCount === 13, r.cmpBCount);
-  ok('qVault still offers the surviving vaults', r.qVaultCount === 21, r.qVaultCount);
+  // 21 survivors + #2 and #3 Oversize Monarch, added from the 11/04/2026 price list.
+  ok('qVault still offers the surviving vaults', r.qVaultCount === 23, r.qVaultCount);
   ok('no page errors', errs.length === 0, errs);
   await ctx.close();
 }

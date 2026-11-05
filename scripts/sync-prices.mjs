@@ -92,7 +92,7 @@ let out = html.slice(0, b) + block + html.slice(e + END.length);
 // scraping), after which these can become spans like everything else.
 const OC_LABEL_KEY = {
   LawnSingle: 'OC:lawn_single', LawnDouble1: 'OC:lawn_double_1st',
-  LawnDouble2: 'OC:lawn_double_2nd', Maus: 'OC:mausoleum_entombment',
+  LawnDouble2: 'OC:lawn_double_2nd', Maus: 'OC:mausoleum_entombment', MausInurn: 'OC:mausoleum_inurnment',
   Ground: 'OC:ground_inurnment', GroundVault: 'OC:ground_inurnment_vault', Boulder: 'OC:boulder_inurnment',
   Niche: 'OC:niche_inurnment', NicheNon: 'OC:niche_non_inurnment',
 };

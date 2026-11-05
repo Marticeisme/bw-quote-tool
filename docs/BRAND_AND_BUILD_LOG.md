@@ -2954,3 +2954,32 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   quote total to the cent; 15 real ClearPoint contracts re-filled on the new form, every box fits; new
   tests test-clearpoint-fields (72) and test-ga-rental-casket (7), red on the old code; full suite
   4572/0; live files byte-checked on bwquotetool.com and both tests re-run against the live site.
+
+## 2026-11-05: CIRGAS Rev 11/2026 workbook, 11/04/2026 price list items, quote fixes
+
+- CIRGAS: the tool's template is now Martice's CIRGAS_AT_NEED_CEMETERY_CONTRACT_PACKET_REV_11_2026.xlsx.
+  New memorial-event questions on both memorial order forms (Anniversary Event Planned? / Unveiling? /
+  Witnessed Installation? Yes/No/Maybe + Requested event date) are on the CIRGAS tab and fill in; the
+  upright form's Inscription / Special / Installation boxes moved (F19 / F25 / F29). Rev 11 bug fixed in
+  the tool's copy AND the master in Downloads: inserting the rows shifted the Flat form's Property Location
+  and FSD formulas onto empty cells (G45 / Y9 -> G42 / Y6). Typo "an Witnessed" -> "a Witnessed".
+- CIRGAS fixes found while testing: the memorial order's PHONE line printed the purchaser's email and the
+  flat form's EMAIL line printed the FSD (template formulas were crossed); the Flat/Upright choice was not
+  saved, so a saved Upright contract reloaded as Flat.
+- Cemetery quote, from the Cemetery Merchandise & Services Price List eff. 11/04/2026: Specialty Witness
+  Placement $650/$775 (replaces the standard witness fee that day), Memorial Unveiling $250/$350,
+  Anniversary Gathering $395/$495, Mausoleum Inurnment $985 (new OC:mausoleum_inurnment in prices.json,
+  sync-prices and the map's build-prices.py), cemetery disinterment/disinurnment ($4,625 / $3,525 /
+  $3,525 / $1,645 / $1,045, CIRGAS "Other" line), Wilbert Way set-up + $575 oversized fee, #2/#3 Oversize
+  Monarch vaults, Gorham scroll $925, Rose Urn Garden scroll #952 $745, install-only flat bronze $495,
+  monobars #5015/#5103/#6031 $1,760 and the Court O niche monobars, bronze per-character/word/line
+  charges, renamed bronze and vase lines, Garden of Verses scroll $355 -> $335, VA Match 1 Space 2 Bronze
+  $3,985 (Martice: $495 install). Tax treatment confirmed by Martice.
+- Two dead controls fixed: Bronze Add-Ons (emblems, proof revision, extra words) were never billed; the
+  3rd-party witness amount row never appeared. 3rd party now takes a second piece and vase blocks
+  ($350 + $175), one combined inspection line and one $250 admin per order, and $650/$775 witness buttons.
+- NOT changed, pending management: the granite-base totals (2nd Right, Single 28x16, Expressions 28x16)
+  and the five discontinued vaults still printed on the price list (kept out of the tool).
+- Verified: CIRGAS packets recalculated and rendered in Excel; new-item suite 64/64, CIRGAS UI 11/11;
+  tests updated: prices-source (10th O&C label), discontinued-vaults (23 vault options), price-index
+  golden (950 items).
