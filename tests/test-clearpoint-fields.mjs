@@ -12,6 +12,8 @@
 //      quote; blank when the quote has none. Burial: no authorization pages.
 //   6. The ClearPoint ACH (T6017-05) page follows: holder name always, the monthly debit
 //      ticked with the Funeral Plan Payment only on a payment plan.
+//   8. A rental casket goes on the CASKET row with whatever else is there (Martice 2026-11-04);
+//      it used to be dropped, leaving the contract short of the quote.
 //   7. The templates' printed pages: CP_ACH_PDF_B64 exists and CP_PDF_B64's check boxes carry
 //      their own appearances (no drawn "X" overlays needed).
 import { chromium } from 'playwright';
@@ -36,6 +38,14 @@ const LINES_CREM = [
 const LINES_CREM_BARE = [
   { label: 'Basic Services of Funeral Director and Staff', amount: 1450, taxable: false },
   { label: 'Cremation Fee', amount: 395, taxable: false },
+];
+const LINES_RENTAL = [   // a real quote's shape: viewing in a rental, then cremation
+  { label: 'Basic Services of Funeral Director & Staff', amount: 2425, taxable: false },
+  { label: 'Cremation & Processing', amount: 385, taxable: false },
+  { label: 'Viewing - Sunday-Thursday up to 3 hrs', amount: 515, taxable: false },
+  { label: 'Rental Casket: Brockton 27 Rental #246588', amount: 1930, taxable: true },
+  { label: 'Cremation Container: Trayview Cremation Container #242414', amount: 480, taxable: true },
+  { label: 'Viewing & Funeral Plan (Cremation) Discount', amount: -585, isDiscount: true },
 ];
 const LINES_BURIAL = [
   { label: 'Basic Services of Funeral Director and Staff', amount: 2450, taxable: false },
@@ -115,6 +125,7 @@ async function generate(page, sc) {
     const total = sc.lines.reduce((t, l) => t + l.amount, 0) + _bwTaxOfLines(sc.lines);
     window._cpPricing = { lines: JSON.parse(JSON.stringify(sc.lines)), total: total };
   }, sc);
+  sc.quoteTotal = await page.evaluate((lines) => Math.round((lines.reduce((t, l) => t + l.amount, 0) + _bwTaxOfLines(lines)) * 100) / 100, sc.lines);
   const dl = page.waitForEvent('download', { timeout: 90000 });
   const r = await page.evaluate(async () => { try { await window.generateClearPointContract(); return 'ok'; } catch (e) { return 'threw: ' + e.message; } });
   if (r !== 'ok') throw new Error(r);
@@ -131,6 +142,7 @@ const SC = [
   { id: 'cremation, plan, guaranteed', disp: 'Cremation', guar: 'yes', dp: '1000', n: '36', lines: LINES_CREM },
   { id: 'cremation, no urn or container, pay in full', disp: 'Cremation', guar: 'yes', lines: LINES_CREM_BARE },
   { id: 'burial, pay in full, non-guaranteed', disp: 'Burial', guar: 'no', lines: LINES_BURIAL },
+  { id: 'cremation after a viewing in a rental casket', disp: 'Cremation', guar: 'yes', lines: LINES_RENTAL },
 ];
 for (const sc of SC) {
   console.log('\n' + sc.id);
@@ -154,13 +166,19 @@ for (const sc of SC) {
   const merch = ['fill_57', 'fill_58', 'fill_59'].reduce((t, n) => t + num(v['2:' + n]), 0);
   ok('TOTAL FUNERAL PRICE = services + merchandise', Math.abs(num(v['2:fill_60']) + merch - num(v['2:FP'])) < 0.005);
   ok('FUNERAL PLAN TOTAL = funeral price + cash advances', Math.abs(num(v['2:FP']) + num(v['2:CATotal']) - num(v['2:FPTotal'])) < 0.005);
+  ok('FUNERAL PLAN TOTAL = the quote total to the cent', Math.abs(num(v['2:FPTotal']) - sc.quoteTotal) < 0.005, [v['2:FPTotal'], sc.quoteTotal]);
+  if (sc.lines === LINES_RENTAL) {
+    ok('casket row = rental + container ($2,410.00)', num(v['2:fill_57']) === 2410, v['2:fill_57']);
+    ok('casket row names the rental first', /^Brockton 27 Rental #246588 \+ /.test(v['2:Model  and Name'] || ''), v['2:Model  and Name']);
+  }
   // 4
   const over = r.fit.filter(f => f.widest > f.box - 2 + 0.05 || f.size < 4.5);
   ok('every filled box fits (' + r.fit.length + ' measured)', over.length === 0, over.slice(0, 4));
   // 5
   if (crem) {
     ok('authorization pages are Legal size', r.heights.slice(3, 6).every(h => h === 1008), r.heights);
-    const want = sc.lines === LINES_CREM ? ['Alternative Container (Cardboard)', 'Tribute Solid Cherry Wood Urn'] : ['', ''];
+    const want = sc.lines === LINES_CREM ? ['Alternative Container (Cardboard)', 'Tribute Solid Cherry Wood Urn']
+      : sc.lines === LINES_RENTAL ? ['Trayview Cremation Container #242414', ''] : ['', ''];
     ok('authorization Container = ' + JSON.stringify(want[0]), (v['3:Container'] || '') === want[0], v['3:Container']);
     ok('authorization Urn = ' + JSON.stringify(want[1]), (v['3:Urn'] || '') === want[1], v['3:Urn']);
     ok('authorization decedent name', v['3:Decedent Name'] === 'Aaron Prescott', v['3:Decedent Name']);

@@ -21977,6 +21977,17 @@ async function generateClearPointContract() {
     // cremation dispositions.)
     var formCasketPrice = casketPrice > 0 ? casketPrice : cremContPrice;
     var formCasketModel = casketPrice > 0 ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName) : cremContLabel;
+    // Rental casket → the CASKET row too (Martice, 2026-11-04: "Casket row"). The FH builder keeps
+    // rentals off the "Casket:" prefix on purpose (a rental is not a sale), so they used to be
+    // dropped from the contract entirely: a viewing-then-cremation quote with a $1,930 rental came
+    // out $1,930 short. The rental is added to whatever the row already holds (usually the
+    // cremation container) and named first; the Cremation Authorization's Container is unchanged.
+    var rentalLines = lines.filter(function(l){ return !l.isDiscount && /^Rental Casket:/i.test(l.label) && l.amount > 0; });
+    if (rentalLines.length) {
+      formCasketPrice += rentalLines.reduce(function(t, l){ return t + l.amount; }, 0);
+      formCasketModel = rentalLines.map(function(l){ return l.label.replace(/^Rental Casket:\s*/i, '').trim(); })
+        .concat(formCasketModel ? [String(formCasketModel).replace(/^Cremation Container:\s*/i, '')] : []).join(' + ');
+    }
 
     // Right-side merchandise / allowances (mirror GA)
     var flowerAllowanceTotal = sumLines(lines.filter(function(l){ return /flower allowance/i.test(l.label); }));
