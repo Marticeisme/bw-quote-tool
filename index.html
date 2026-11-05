@@ -6013,6 +6013,20 @@ async function printGAContract() {
     formCasketModel    = cremContLabel;
     formCasketModelNum = cremContLabel;
   }
+  // Rental casket → the Casket row too (Martice, 2026-11-04, same ruling as ClearPoint). The FH
+  // builder keeps rentals off the "Casket:" prefix (a rental is not a sale), so this importer
+  // dropped them and a viewing-then-cremation contract came out short by the rental. Added to
+  // what the row already holds (usually the cremation container) and named first.
+  var gaRentalLines = lines.filter(function(l){ return !l.isDiscount && /^Rental Casket:/i.test(l.label) && l.amount > 0; });
+  if (gaRentalLines.length) {
+    var gaRentalNames = gaRentalLines.map(function(l){ return l.label.replace(/^Rental Casket:\s*/i, '').trim(); });
+    var withRental = function(base) {
+      return gaRentalNames.concat(base ? [String(base).replace(/^Cremation Container:\s*/i, '')] : []).join(' + ');
+    };
+    formCasketPrice   += gaRentalLines.reduce(function(t, l){ return t + l.amount; }, 0);
+    formCasketModel    = withRental(formCasketModel);
+    formCasketModelNum = withRental(formCasketModelNum);
+  }
 
   // ── Death Certs & County Fee ──────────────────────────────────────────────
   // Read from _fhLines (like every other section here), not the live FH Quote Builder's own
