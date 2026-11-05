@@ -2936,3 +2936,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   examples ("e.g. 12 years", "Or leave blank", "MM/DD/YYYY") print transparent instead of looking like answers.
   The old #keepsakeNote print sizing rule went with it. Screen view and the fillable PDF are unchanged.
 - Verified by printing both modes blank and filled under Playwright: one page each, typed answers still print.
+
+## 2026-11-04: ClearPoint contract rebuilt, cremation authorization + ClearPoint ACH, rental caskets
+
+- ClearPoint contract (CP_PDF_B64.pdf): printed pages byte-identical; every fillable field re-seated on
+  its own printed line or box (one Helvetica size per row, amounts right-aligned, no shading or border).
+  Junk template defaults removed: Non-Guaranteed was pre-checked, so guaranteed contracts printed BOTH
+  boxes; also a stray "30" miles, "Qty - 1" and -3,550.80. New Seller's Number box. BW's page-3 labels
+  (URN ALLOWANCE, Motorcycle Escort) kept, per Martice; the Downloads copy is the older ClearPoint form.
+- Generator: every box fits (shrinks, then wraps to two lines); Single Payment Amount is positive; the
+  cremation fee now prints in the (Specify) rows (it was in TOTAL SERVICES but on no line); the 3-page
+  Bonney Watson Crematory Cremation Authorization attaches on cremations with Container and Urn from the
+  quote (blank when none); ClearPoint's own ACH form (T6017-05, new CP_ACH_PDF_B64.pdf) is attached and
+  filled (name, contract #, phone, date, New, and the monthly debit on a payment plan).
+- Rental caskets now go on the Casket row of both the ClearPoint and GA contracts (they were dropped).
+- Verified: 50 real FH quotes through the tool, 100/100 ClearPoint and 50/50 GA contracts match the
+  quote total to the cent; 15 real ClearPoint contracts re-filled on the new form, every box fits; new
+  tests test-clearpoint-fields (72) and test-ga-rental-casket (7), red on the old code; full suite
+  4572/0; live files byte-checked on bwquotetool.com and both tests re-run against the live site.
