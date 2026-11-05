@@ -115,8 +115,9 @@ for (const mode of ['burial', 'cremation']) {
   const r = await page.evaluate(`(${AUDIT})(${JSON.stringify(b64)})`);
 
   ok(mode + ': the contract generated and has fields', r.fields > 0, r.fields);
-  ok(mode + ': page count is ' + (mode === 'cremation' ? 4 : 3),
-    r.pages === (mode === 'cremation' ? 4 : 3), r.pages);
+  // contract 3 + ClearPoint ACH 1, plus the 3-page cremation authorization on a cremation
+  ok(mode + ': page count is ' + (mode === 'cremation' ? 7 : 4),
+    r.pages === (mode === 'cremation' ? 7 : 4), r.pages);
   ok(mode + ': ZERO form fields carry an /AA action dictionary',
     r.aaFields.length === 0, r.aaFields.slice(0, 12));
   ok(mode + ': ZERO field widgets carry an /AA action dictionary', r.aaWidgets === 0, r.aaWidgets);

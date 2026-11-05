@@ -6782,6 +6782,7 @@ var BW_TEMPLATE_FILES = {
   RULES_PDF_B64:    'RULES_PDF_B64.pdf',
   RIC_CL_PDF_B64:   'RIC_CL_PDF_B64.pdf',
   CP_CL_PDF_B64:    'CP_CL_PDF_B64.pdf',
+  CP_ACH_PDF_B64:   'CP_ACH_PDF_B64.pdf',
   AN_CL_PDF_B64:    'AN_CL_PDF_B64.pdf',
   GA_CL_PDF_B64:    'GA_CL_PDF_B64.pdf',
   COMM_WS_XLSX_B64: 'COMM_WS_XLSX_B64.xlsx',
@@ -6793,7 +6794,7 @@ var BW_TEMPLATE_FILES = {
 var BW_TEMPLATE_MODULES = {
   ric: ['RIC_PDF_B64', 'ACH_PDF_B64', 'RULES_PDF_B64', 'RIC_CL_PDF_B64'],
   ga:  ['GA_PDF', 'GA_CL_PDF_B64'],
-  cp:  ['CP_PDF_B64', 'CP_CL_PDF_B64'],
+  cp:  ['CP_PDF_B64', 'CP_CL_PDF_B64', 'CP_ACH_PDF_B64'],
   an:  ['CIRGAS_XLSX_B64', 'AN_CL_PDF_B64'],
   dt:  ['DT_PDF_B64']
 };
@@ -21805,6 +21806,24 @@ function cpCalcPayment() {
   }
 }
 
+// Largest font size (<= max, >= 4.5, half-point steps) at which `txt` word-wraps into at most
+// two lines of width `w` stacked inside height `h` (pdf-lib's multiline line height =
+// font.heightAtSize). null when even 4.5pt will not do. Used by the ClearPoint fit loop.
+function _cpTwoLineSize(font, txt, w, h, max) {
+  for (var s = Math.min(max, 9); s >= 4.5; s -= 0.5) {
+    if (2 * font.heightAtSize(s) > h) continue;
+    var words = String(txt).split(/\s+/), lines = [''], ok = true;
+    for (var i = 0; i < words.length; i++) {
+      var tryLine = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + words[i] : words[i];
+      if (font.widthOfTextAtSize(tryLine, s) <= w) { lines[lines.length - 1] = tryLine; continue; }
+      if (font.widthOfTextAtSize(words[i], s) > w) { ok = false; break; }
+      lines.push(words[i]);
+    }
+    if (ok && lines.length <= 2) return s;
+  }
+  return null;
+}
+
 async function generateClearPointContract() {
   var firstName  = (el('cpFirstName').value  || '').trim();
   var middleName = (el('cpMiddleName').value || '').trim();
@@ -21982,6 +22001,11 @@ async function generateClearPointContract() {
     // Left "Other (Specify)" candidates (2 rows; plan discount claims its own row)
     var leftOther = [];
     function pushLeft(lab, a){ if (a > 0) leftOther.push({label: lab, amt: a}); }
+    // The cremation fee is counted in TOTAL SERVICES but the ClearPoint statement has no row of
+    // its own, so it was printed NOWHERE: on every cremation contract the services column fell
+    // short of its own TOTAL SERVICES by the fee (found 2026-11 by the real-quote stress test,
+    // scratch/cp-rebuild/stress_compare.py). It goes first in the (Specify) rows.
+    pushLeft(amt(findLine('Cremation & Processing')) ? 'Cremation & Processing' : 'Cremation Fee', cremFeeAmt);
     pushLeft('Additional Ceremony Hour', ceremonyHourAmt);
     surchLines.forEach(function(l){ pushLeft(l.label.split(' ×')[0], Math.abs(l.amount)); });
     if (chapelLine)    pushLeft('Chapel Rental', Math.abs(chapelLine.amount));
@@ -22119,10 +22143,11 @@ async function generateClearPointContract() {
     setTF('FP',                  fmt$(totalFuneralPrice));
     setTF('CATotal',             fmt$(caTotal));
     setTF('FPTotal',             fmt$(fpTotal));
-    // Single-payment amount: clear the template's leftover -3,550.80 calc default;
-    // fill with the full price (displayed as a negative, matching the template's convention)
-    // when there's no multi-payment plan ("Pay in Full" sets numPay = 0).
-    try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : (fpTotal > 0 ? '-' + fmt$(fpTotal) : '')); } catch(e) {}
+    // Single-payment amount = the full plan total when there is no multi-payment plan ("Pay in
+    // Full" sets numPay = 0). It used to print as a NEGATIVE, copying a leftover -3,550.80 junk
+    // default in the old template; the rebuilt template (2026-11) has no default, and a single
+    // payment is a positive amount owed.
+    try { form.getTextField('SinglePaymentAmount').setText(numPay > 0 ? '' : fmt$(fpTotal)); } catch(e) {}
     setTF('Amount Trusted',      fmt$(amtTrusted));
 
     // Multiple payments section
@@ -22237,53 +22262,52 @@ async function generateClearPointContract() {
 
     // Render appearances with an embedded font, keep editable (mirrors GA — flatten left every
     // filled field blank because the template's /DA fonts aren't embedded).
+    // Fit every filled box. The rebuilt template (2026-11, scratch/cp-rebuild/build_cp.py) seats
+    // each field on its own printed line with its size in /DA: 10pt on page 1, 9pt on page 3,
+    // 8pt in the small count / cash-advance label boxes. A value that would not fit its box at
+    // that size shrinks (half-point steps) instead of running past the line. A label that would
+    // need less than 6pt on one line (a long county-fee name, or several left-side extras joined
+    // with " + ") wraps onto TWO lines inside its box instead, at the largest size that fits.
+    // A field with two widgets (Contract Number, the totals, the date) is fitted to its NARROWEST box.
+    // Check boxes need nothing here: the template carries its own bold X appearances, which
+    // pdf-lib keeps (they replace the drawn "X" overlays the old template needed).
     var _cpFont;
     try {
       _cpFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-      // Dynamically shrink the narrow left "Specify" label cells (incl. the cremation discount /
-      // "Service Savings" line) to fit their own text, so long labels don't clip to nothing. Sized
-      // before updateFieldAppearances so the baked-in (flattened) appearance uses the fitted size.
-      ['Specify 1', 'Specify 2', 'OTHER MERCHANDISE Specify 1', 'OTHER MERCHANDISE Specify 2'
-      ].forEach(function(name){
+      form.getFields().forEach(function(f){
+        if (!(f instanceof PDFLib.PDFTextField)) return;
         try {
-          var f = form.getTextField(name);
           var txt = f.getText() || '';
-          var size = 8;
-          if (txt) {
-            var avail = f.acroField.getWidgets()[0].getRectangle().width - 4;
-            while (size > 4 && _cpFont.widthOfTextAtSize(txt, size) > avail) size -= 0.5;
+          if (!txt) return;
+          var da = String(f.acroField.getDefaultAppearance() || '');
+          var m = da.match(/([\d.]+)\s+Tf/);
+          var size = m ? parseFloat(m[1]) : 10;
+          if (!(size > 0)) size = 10;
+          var rects = f.acroField.getWidgets().map(function(w){ return w.getRectangle(); });
+          var avail = Math.min.apply(null, rects.map(function(r){ return r.width; })) - 4;
+          var fit = size;
+          while (fit > 6 && _cpFont.widthOfTextAtSize(txt, fit) > avail) fit -= 0.5;
+          if (_cpFont.widthOfTextAtSize(txt, fit) > avail) {
+            var two = _cpTwoLineSize(_cpFont, txt, avail, Math.min.apply(null, rects.map(function(r){ return r.height; })) - 2, size);
+            if (two) { f.enableMultiline(); fit = two; }
+            else { while (fit > 4.5 && _cpFont.widthOfTextAtSize(txt, fit) > avail) fit -= 0.5; }
           }
-          f.setFontSize(size);
+          if (fit !== size) f.setFontSize(fit);
         } catch(e) {}
       });
       form.updateFieldAppearances(_cpFont);
     } catch(e) { try { form.updateFieldAppearances(); } catch(e2) {} }
 
-    // Disposition / Guaranteed checkbox marks: the template's boxes are tiny (9x8 / 10x11)
-    // and pdf-lib's regenerated checkmark renders thinly inside them. Draw a bolder "X" on
-    // top so the selection is unmistakable.
-    try {
-      var _xBold = await newDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-      var _navy  = PDFLib.rgb(0.05, 0.1, 0.2);
-      function drawX(pageIdx, x, y, sz) {
-        try { newDoc.getPages()[pageIdx].drawText('X', { x: x, y: y, size: sz, font: _xBold, color: _navy }); } catch(e) {}
-      }
-      // Page 3 disposition (page index 2): Burial x=399 y=687, Cremation x=449 y=687, Other x=518 y=687
-      if (terramationAmt > 0) drawX(2, 519, 688, 9);   // terramation: Other
-      else if (isBurial) drawX(2, 400, 688, 9);
-      else          drawX(2, 450, 688, 9);
-      if (!formCasketPrice) drawX(2, 400, 671, 9);   // None
-      // Page 1 guaranteed boxes: G Box x=527 y=683, NG Box x=561 y=682
-      drawX(0, isGuaranteed ? 528 : 562, isGuaranteed ? 684 : 683, 10);
-    } catch(e) {}
-
     // ── Cremation Authorization (E3) ──────────────────────────────────────────
-    // ClearPoint's own 3-page template has no Cremation Authorization page — reuse the exact
-    // same page + fill logic already built for GA rather than sourcing a separate template:
-    // it's page index 8 ("Page 9") of the same GA_PDF, verified via its own field widgets
-    // (Transaction Date / Decedent Name / Funeral Home Representative all live there). Only
-    // appended when Cremation is selected. No field-name collisions with ClearPoint's own 106
-    // fields were found, so this can merge in directly without flattening first.
+    // ClearPoint's own 3-page template has no Cremation Authorization: reuse the Bonney Watson
+    // Crematory "Cremation Authorization and Disposition Form" that rides in GA_PDF as page
+    // indexes 8-10 ("Page 1 of 3" .. "Page 3 of 3", Legal size), verified by their own fields
+    // (Transaction Date / Decedent Name / Container / Urn on page 1, Cremation Confirmed Date
+    // and the additional signers on page 3). All three pages, only for a cremation.
+    // MERCHANDISE SELECTED is filled from the quote when present and left blank when not:
+    //   Container = the purchased casket when the cremation uses one, else the cremation
+    //               container line (its "Cremation Container:" prefix dropped)
+    //   Urn       = every "Urn:" line, prefix dropped ("Urn Allowance" is an allowance, not an urn)
     if (!isBurial && !(terramationAmt > 0)) {   // terramation is not a cremation: no authorization page
       // Template LOAD outside the try, as for the RIC's attachments: a fetch failure must be
       // visible, not a ClearPoint contract that quietly downloads without the authorization.
@@ -22292,14 +22316,75 @@ async function generateClearPointContract() {
         var gaDoc = await PDFLib.PDFDocument.load(gaCremBytes, { ignoreEncryption: true });
         var gaForm = gaDoc.getForm();
         function setGaT(name, v) { if (v == null || v === '') return; try { gaForm.getTextField(name).setText(String(v)); } catch(e) {} }
+        var caContainer = casketPrice > 0
+          ? (casketModelNum ? casketModelNum + ' ' + casketModelName : casketModelName)
+          : String(cremContLabel || '').replace(/^Cremation Container:\s*/i, '').trim();
+        var caUrnLines = lines.filter(function(l){ return !l.isDiscount && /^urn:/i.test(l.label) && l.amount > 0; });
+        var caUrn = caUrnLines.length
+          ? caUrnLines.map(function(l){ return l.label.replace(/^urn:\s*/i, '').trim(); }).join('; ')
+          : (urnFbLines.length ? '' : urnLabel);      // live-builder fallback, as for the contract's urn row
         setGaT('Transaction Date', dateStr);
         setGaT('Decedent Name', insured);
+        setGaT('Container', caContainer);
+        setGaT('Urn', caUrn);
         setGaT('Funeral Home Representative', bwCurrentAdvisor().name);
-        try { var gaHelv = await gaDoc.embedFont(PDFLib.StandardFonts.Helvetica); gaForm.updateFieldAppearances(gaHelv); } catch(e) {}
-        var cremAuthPages = await newDoc.copyPages(gaDoc, [8]);
+        try {
+          var gaHelv = await gaDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+          ['Container', 'Urn'].forEach(function(n){
+            try {
+              var f = gaForm.getTextField(n), t = f.getText() || '';
+              var avail = f.acroField.getWidgets()[0].getRectangle().width - 4, sz = 9;
+              while (sz > 5 && gaHelv.widthOfTextAtSize(t, sz) > avail) sz -= 0.5;
+              f.setFontSize(sz);
+            } catch(e) {}
+          });
+          gaForm.updateFieldAppearances(gaHelv);
+        } catch(e) {}
+        var cremAuthPages = await newDoc.copyPages(gaDoc, [8, 9, 10]);
         cremAuthPages.forEach(function(p){ newDoc.addPage(p); });
-      } catch(e) { console.warn('ClearPoint Cremation Authorization page failed:', e.message); }
+      } catch(e) { console.warn('ClearPoint Cremation Authorization pages failed:', e.message); }
     }
+
+    // ── ClearPoint ACH Debit Authorization (T6017-05) ─────────────────────────
+    // ClearPoint's own ACH form with a rebuilt field layer (scratch/cp-rebuild/build_ach.py).
+    // Always attached, like the RIC's ACH page. Filled from the contract: account holder =
+    // purchaser (else the funeral recipient), contract number, phone, the signing date, and
+    // "New". On a payment plan it also ticks "Indicated below for $___ on the date selected of
+    // each month" with the Funeral Plan Payment. Left for the family: bank, account, routing,
+    // email, the debit day (3rd-22nd) and first month (the tool has no field for them yet), the
+    // down-payment and paid-in-full choices, the signature, and the whole revocation box.
+    var cpAchBytes = await bwTemplate('CP_ACH_PDF_B64');
+    try {
+      var achDoc = await PDFLib.PDFDocument.load(cpAchBytes, { ignoreEncryption: true });
+      var achForm = achDoc.getForm();
+      function setAch(name, v) { if (v == null || v === '') return; try { achForm.getTextField(name).setText(String(v)); } catch(e) {} }
+      function checkAch(name) { try { achForm.getCheckBox(name).check(); } catch(e) {} }
+      setAch('Name', purchaser || insured);
+      setAch('Contract Number', cpContractNum === 'QUOTE ONLY' ? '' : cpContractNum);
+      setAch('Phone Number', purchaser ? (phone2 || phone) : phone);
+      setAch('DATE', dateStr);
+      checkAch('Check Box15');                                  // Authorization Type: New
+      if (numPay > 0 && monthlyPay > 0) {
+        checkAch('Indicated belowfor');                         // monthly debit
+        // the template's misnamed field: it is the monthly "$____" blank
+        setAch('authorization is revoked', fmt$(Math.round(monthlyPay * 100) / 100));
+      }
+      try {
+        var achHelv = await achDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        achForm.getFields().forEach(function(f){
+          if (!(f instanceof PDFLib.PDFTextField)) return;
+          try {
+            var t = f.getText() || ''; if (!t) return;
+            var avail = f.acroField.getWidgets()[0].getRectangle().width - 4, sz = 10;
+            while (sz > 5 && achHelv.widthOfTextAtSize(t, sz) > avail) sz -= 0.5;
+            if (sz !== 10) f.setFontSize(sz);
+          } catch(e) {}
+        });
+        achForm.updateFieldAppearances(achHelv);
+      } catch(e) {}
+      var achPages = await newDoc.copyPages(achDoc, [0]);
+      achPages.forEach(function(p){ newDoc.addPage(p); });
+    } catch(e) { console.warn('ClearPoint ACH page failed:', e.message); }
 
     // ── Strip Acrobat's own field JavaScript from the DOWNLOADED copy ─────────
     // The template ships a live calculation chain: AcroForm /CO with 6 entries (e.g.
