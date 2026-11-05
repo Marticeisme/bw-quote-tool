@@ -2983,3 +2983,20 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: CIRGAS packets recalculated and rendered in Excel; new-item suite 64/64, CIRGAS UI 11/11;
   tests updated: prices-source (10th O&C label), discontinued-vaults (23 vault options), price-index
   golden (950 items).
+
+## 2026-11-05: Rebuilt RIC (SSN version) in the quote tool, for Martice only
+
+- Martice's RIC tab now makes the rebuilt RIC: today's wording, redrawn clean, with real boxes for
+  city/state/zip and the signing dates (new template pdf-templates/embedded/RIC_REBUILT_PDF.pdf = the
+  SSN version reviewed in October). Every other FSD keeps today's RIC until Ray approves the switch
+  for everyone ("rays approval is to fully replace it with the current ric and all fsds not me").
+  Gate: bwRicUseRebuilt() = signed in as martice + a RIC-tab switch only he sees (on by default).
+- On the rebuilt form the tool fills the City/State/Zip and Signed/Accepted day-month-year boxes
+  instead of drawing text on the page, writes "$" on the 31 money boxes (the form prints none), fits
+  each box to its text, fills the O/C and Recording descriptions, and carries the RIC fixes that were
+  on hold: real finance charge and total sale price on interest plans, the ACH note only on payment
+  plans, Contract No, the conveyance name and address, phone format, remarks/email fitted by width.
+- Other FSDs: proven unchanged. The same three RICs (0% plan, interest plan, paid in full) made by
+  another FSD on this code and on the previous commit were identical, every page and all 146 boxes.
+- Verified: rendered and looked at all three; real Acrobat read every box; tests/test-ric-rebuilt.mjs
+  (22) new, test-ric-remarks-fit.mjs (28) now signs in as Martice; full suite 4634/0 across 67.

@@ -4465,6 +4465,11 @@ tr:hover td{background:var(--navy-100);}
       </div>
     </div>
 
+    <!-- Rebuilt RIC switch: shown only to Martice (bwRicRebuiltUi); everyone else gets today's RIC -->
+    <div id="ricUseRebuiltRow" style="display:none;margin-top:14px;align-items:center;gap:8px;font-size:13px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="ricUseRebuilt" checked>Use the rebuilt RIC form (with SSN lines)</label>
+      <span style="font-size:11px;color:var(--text-light);">Only you see this. Untick to make a RIC on the old form.</span>
+    </div>
     <!-- Generate button -->
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
       <button onclick="generateRICFromTab()" style="padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Generate RIC Contract PDF</button>
@@ -6943,6 +6948,7 @@ var BW_TEMPLATE_FILES = {
   GA_PDF:           'GA_PDF.pdf',
   CP_PDF_B64:       'CP_PDF_B64.pdf',
   RIC_PDF_B64:      'RIC_PDF_B64.pdf',
+  RIC_REBUILT_PDF:  'RIC_REBUILT_PDF.pdf',   // rebuilt RIC (SSN version); Martice only, see bwRicUseRebuilt()
   ACH_PDF_B64:      'ACH_PDF_B64.pdf',
   RULES_PDF_B64:    'RULES_PDF_B64.pdf',
   RIC_CL_PDF_B64:   'RIC_CL_PDF_B64.pdf',
@@ -14309,6 +14315,7 @@ function bwApplySignedInUser() {
     roleEl.appendChild(a);
   }
   bwApplyAdvisorDefaults();
+  if (typeof bwRicRebuiltUi === 'function') bwRicRebuiltUi();
 }
 
 // The store starts only once a user is signed in — bwStartAppIfAllowed() is also called by the
@@ -20362,7 +20369,11 @@ async function generateRICContractCore(clientData) {
     // Load and clear PDF
     if (typeof PDFLib === 'undefined' || !PDFLib.PDFDocument) { alert('PDFLib not loaded'); return; }
 
-    var bytes = await bwTemplate('RIC_PDF_B64');
+    // Martice's RIC uses the rebuilt form; everyone else's is unchanged (bwRicUseRebuilt). Every
+    // difference between the two paths below is behind _ricNew, so the old path stays as it was.
+    var _ricNew = (typeof bwRicUseRebuilt === 'function') && bwRicUseRebuilt();
+    var ricQtyless = function(s) { return String(s || '').replace(/\s+[×x]\s*\d+\s*$/, '').trim(); };
+    var bytes = await bwTemplate(_ricNew ? 'RIC_REBUILT_PDF' : 'RIC_PDF_B64');
 
     var pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, throwOnInvalidObject: false });
     var form   = pdfDoc.getForm();
@@ -20452,7 +20463,16 @@ async function generateRICContractCore(clientData) {
         .replace(/…/g, '...').replace(/×/g, 'x')
         .replace(/[^\x00-\xFF]/g, '');
     }
+    // The rebuilt form prints no "$" (its own format scripts added it, and the tool strips those):
+    // the 31 money boxes get "$" written in. "-1,234.00" -> "-$1,234.00".
+    var _RIC_NEW_MONEY = {'BWCredit':1,'DPAmount':1,'Discount':1,'ECF 1':1,'ECF 2':1,'FCAmount':1,'FCAmount_TIL':1,
+      'NonTax1':1,'NonTax2':1,'Opening/Closing':1,'PaymentAmount1':1,'Recording Fee':1,'SubTotal':1,'TaxAmount':1,
+      'Taxable1':1,'Taxable2':1,'Taxable3':1,'Taxable4':1,'Taxable5':1,'Taxable6':1,'Taxable7':1,'Text2':1,
+      'Total Sales Price':1,'TotalCP':1,'TotalDP':1,'TotalDP_TIL':1,'TotalPayments':1,'TotalPayments_TIL':1,
+      'TotalSalesPrice_TIL':1,'UnpaidBalance':1,'UnpaidBalance_TIL':1};
     function setF(name, value) {
+      if (_ricNew && _RIC_NEW_MONEY[name] && value != null && /^-?[\d,]+(\.\d+)?$/.test(String(value)))
+        value = String(value).replace(/^(-?)/, '$1$');
       try {
         var f = form.getField(name);
         if (f instanceof PDFLib.PDFTextField) {
@@ -20618,7 +20638,14 @@ async function generateRICContractCore(clientData) {
     // Text3 is the "Page 1 of 2" blue-box header — pdf-lib resets its template value on load,
     // so we must write it explicitly.
     setF('Month', sigMon);
-    setF('Text3', 'Page 1 of 2');
+    if (_ricNew) {
+      // The rebuilt form has real boxes for the "Signed this ___ day of ___, ___" and "Accepted
+      // this ___ day of ___, ___" lines; the old form had none, so its dates are drawn further down.
+      setF('Signed Day', sigDay);   setF('Signed Year', sigYr);
+      setF('Accepted Day', sigDay); setF('Accepted Month', sigMon); setF('Accepted Year', sigYr);
+    } else {
+      setF('Text3', 'Page 1 of 2');
+    }
     // Purchaser name — combine with co-purchaser when present
     var purchaserDisplay = clientName;
     if (clientData && clientData.coPurchaser) purchaserDisplay += ' & ' + clientData.coPurchaser;
@@ -20629,7 +20656,17 @@ async function generateRICContractCore(clientData) {
     // across all five so nothing gets clipped on a single line.
     var _achDisc = 'ACH bank withdrawals required to receive 0 percent financing and discount if applicable.';
     var _customRem = clientData ? (clientData.remarks || (clientData.benefit ? 'For the benefit of: ' + clientData.benefit : '')) : '';
-    var _remarksText = _customRem ? _achDisc + '  ' + _customRem : _achDisc;
+    var _remarksText;
+    if (_ricNew) {
+      // Rebuilt RIC: only when there is a payment plan (paid-in-full contracts printed it too).
+      var _planMonths = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value) || finMonths) : finMonths;
+      var _planDown   = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value) || 0) : downAmt;
+      var _financed   = _planMonths > 0 && Math.round((grandTotal - _planDown) * 100) > 0;
+      if (!_financed) _achDisc = '';
+      _remarksText = [_achDisc, _customRem].filter(Boolean).join('  ');
+    } else {
+      _remarksText = _customRem ? _achDisc + '  ' + _customRem : _achDisc;
+    }
     // Per-line widths (chars): Notes 5 is narrower than 6-9 because "Remarks:" label sits
     // beside it. Conservative caps at fontSize 8 (Helvetica ~4pt/char average).
     var _remCaps = [48, 60, 60, 60, 60];   // Notes 5, 6, 7, 8, 9
@@ -20663,8 +20700,15 @@ async function generateRICContractCore(clientData) {
       setF('State',    clientData.state  || 'WA');
       setF('Zip Code', clientData.zip    || '');
       setF('Phone Number', formatPhone(clientData.phone || ''));
-      setF('Day Telephone No', clientData.dayPhone || '');
+      setF('Day Telephone No', !_ricNew ? (clientData.dayPhone || '')
+        : /@/.test(clientData.dayPhone || '') ? clientData.dayPhone : formatPhone(clientData.dayPhone || ''));
       setF('Control #', clientData.controlNo || '');
+      if (_ricNew) {
+        setF('Contract No', clientData.controlNo || '');   // the same number as the Control No.
+        // "Seller agrees to convey the above-described Interment Rights to: Name and address" — the purchaser
+        var _cityLine = [clientData.city, [clientData.state || 'WA', clientData.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+        setF('Name & Address', [clientData.name, clientData.street, _cityLine].filter(Boolean).join(', '));
+      }
       // Property type checkboxes
       setF('Check Box4',  clientData.developed    || false);
       setF('Check Box9',  clientData.predeveloped || false);
@@ -20710,12 +20754,16 @@ async function generateRICContractCore(clientData) {
       var totalOC = ocLines.reduce(function(s,l){ return s+l.amount; }, 0);
       var ocQty = ocLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || ocLines.length;
       setF('Qty 3', String(ocQty)); setF('Opening/Closing', fmtC(totalOC));
+      // The rebuilt form has a typing line beside the O/C and Recording amounts: name what they are.
+      if (_ricNew) setF('Opening/Closing Description', ocLines.map(function(l){ return ricQtyless(l.label); }).join(' + '));
     }
     // Row 4 — Recording
     if (recLines.length) {
       var totalRec = recLines.reduce(function(s,l){ return s+l.amount; }, 0);
       var recQty = recLines.reduce(function(s,l){ return s+labelQty(l); }, 0) || recLines.length;
       setF('Qty 4', String(recQty)); setF('Recording Fee', fmtC(totalRec));
+      if (_ricNew) setF('Recording Fee Description', recLines.map(function(l){
+        return ricQtyless(l.label).replace(/^Recording Fee\s*[–—-]?\s*/i, '') || 'Recording Fee'; }).join(' + '));
     }
     // ── Taxable row mapping with overflow combining ────────────────
     // Contract rows available:
@@ -20886,14 +20934,16 @@ async function generateRICContractCore(clientData) {
     setF('TotalDP',         downAmt ? fmtC(downAmt) : '');
     setF('UnpaidBalance',   fmtC(unpaid));
     setF('Finance Charge',  _finData && _finData.rate ? String(Math.round(_finData.rate * 100)) + '.00' : '0.00');
-    setF('FCAmount',        '0.00');
+    // Rebuilt RIC only (the old path keeps 0.00 / the cash price): the real finance charge on an interest plan.
+    var fc0 = (_ricNew && finMonths && finRate > 0) ? Math.max(0, Math.round((totPmts - unpaid) * 100) / 100) : 0;
+    setF('FCAmount',        fmtC(fc0));
     setF('TotalPayments',   fmtC(totPmts));
-    setF('Total Sales Price', fmtC(grandTotal));
-    setF('FCAmount_TIL',    '0');
+    setF('Total Sales Price', fmtC(grandTotal + fc0));
+    setF('FCAmount_TIL',    _ricNew ? fmtC(fc0) : '0');
     setF('UnpaidBalance_TIL',   fmtC(unpaid));
     setF('TotalPayments_TIL',   fmtC(totPmts));
     setF('TotalDP_TIL',     downAmt ? fmtC(downAmt) : '');
-    setF('TotalSalesPrice_TIL', fmtC(grandTotal));
+    setF('TotalSalesPrice_TIL', fmtC(grandTotal + fc0));
     // Payment schedule — use RIC tab fields if available, else auto-calculate
     var ricDown    = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value)   || 0) : downAmt;
     var ricMonths  = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value)    || finMonths) : finMonths;
@@ -20908,14 +20958,19 @@ async function generateRICContractCore(clientData) {
     setF('DPAmount',        ricDown ? fmtC(ricDown) : '');
     setF('TotalDP',         ricDown ? fmtC(ricDown) : '');
     setF('UnpaidBalance',   fmtC(ricUnpaid));
-    setF('FCAmount',        '0.00');
+    // Finance charge = what the payments add up to beyond the amount financed (0.00 on a 0% plan);
+    // Total Sale Price = (a) cash price + (d) finance charge. Both used to be fixed at 0.00 / the
+    // cash price, so an interest plan's disclosure box did not add up.
+    // Rebuilt RIC only; the old path keeps 0.00 / the cash price.
+    var ricFC = (_ricNew && ricMonths && ricRateRaw > 0) ? Math.max(0, Math.round((ricTotPmts - ricUnpaid) * 100) / 100) : 0;
+    setF('FCAmount',        fmtC(ricFC));
     setF('TotalPayments',   fmtC(ricTotPmts));
-    setF('Total Sales Price', fmtC(grandTotal));
-    setF('FCAmount_TIL',    '0');
+    setF('Total Sales Price', fmtC(grandTotal + ricFC));
+    setF('FCAmount_TIL',    _ricNew ? fmtC(ricFC) : '0');
     setF('UnpaidBalance_TIL',    fmtC(ricUnpaid));
     setF('TotalPayments_TIL',    fmtC(ricTotPmts));
     setF('TotalDP_TIL',          ricDown ? fmtC(ricDown) : '');
-    setF('TotalSalesPrice_TIL',  fmtC(grandTotal));
+    setF('TotalSalesPrice_TIL',  fmtC(grandTotal + ricFC));
     setF('Cash', ricPayMeth);
     setF('Finance Charge',  String(Math.round(ricRateRaw)) + '.00');
 
@@ -20927,7 +20982,7 @@ async function generateRICContractCore(clientData) {
 
     // Day phone / email — shrink font if email so it fits the narrow field
     if (clientData && clientData.dayPhone) {
-      setF('Day Telephone No', clientData.dayPhone);
+      setF('Day Telephone No', (!_ricNew || /@/.test(clientData.dayPhone)) ? clientData.dayPhone : formatPhone(clientData.dayPhone));
       if ((clientData.dayPhone||'').indexOf('@') >= 0) {
         try { var _dtf = form.getTextField('Day Telephone No'); _dtf.setFontSize(7); } catch(e) {}
       }
@@ -20968,100 +21023,175 @@ async function generateRICContractCore(clientData) {
       });
     })(pdfDoc);
 
-    // Narrow currency fields (≈52-57 pt wide): font size 8 so AP stream doesn't clip long values.
-    // /F (Format) actions were stripped above, so "1.#R" is gone — but the AP stream is still
-    // rendered at the field's default font size, which overflows narrow fields at 11pt.
-    var _narrowCurrencyFields = [
-      'NonTax1','NonTax2','ECF 1','ECF 2',
-      'Taxable1','Taxable2','Taxable3','Taxable4','Taxable5','Taxable6','Taxable7',
-      'TotalCP','Opening/Closing','Recording Fee','Discount',
-      'FCAmount','TaxAmount','DPAmount','TotalDP','UnpaidBalance','TotalPayments','Total Sales Price',
-      'FCAmount_TIL','UnpaidBalance_TIL','TotalPayments_TIL','TotalDP_TIL','TotalSalesPrice_TIL',
-      'PaymentAmount1','SubTotal'
-    ];
-    var _descFields = [
-      'Description of Interment Rights',
-      'Notes 1','Notes 2','Notes 3','Other Merch 1 Description','Other Merch 2 Description',
-      'Discount Description 1','Discount Description 2'
-    ];
-    _narrowCurrencyFields.forEach(function(fn) {
-      try { form.getTextField(fn).setFontSize(8); } catch(e) {}
-    });
-    _descFields.forEach(function(fn) {
-      try { form.getTextField(fn).setFontSize(0); } catch(e) {}
-    });
-    // Memorial/Base description rows: auto-size(0) was picking ~10pt for a typical combined
-    // "Flush 44x20x4 + Flush 28x16x4" label, which runs right up against the 239pt-wide field's
-    // edge. Fix at a smaller size so there's visible margin instead of relying on auto-fit.
-    ['Memorial Description', 'Mem Base Description'].forEach(function(fn) {
-      try { form.getTextField(fn).setFontSize(7); } catch(e) {}
-    });
-    // Both fields start at x=75, but the static row labels ("Memorialization Type" /
-    // "Memorial Base - Type", verified via pdfjs) run to x=119.4 / x=121.6 — well past the
-    // field's own left edge — so the entered text visually overlapped the tail of the label.
-    // Shift each widget's rect right past the label (keeping its right edge fixed) instead of
-    // padding the value with spaces, so it isn't font-size dependent.
-    [['Memorial Description', 119.4], ['Mem Base Description', 121.6]].forEach(function(pair) {
-      try {
-        var fld = form.getTextField(pair[0]);
-        fld.acroField.getWidgets().forEach(function(w) {
-          var r = w.getRectangle();
-          var newX = pair[1] + 3;
-          w.setRectangle({ x: newX, y: r.y, width: (r.x + r.width) - newX, height: r.height });
-        });
-      } catch(e) {}
-    });
-    // Remarks (Notes 5-9): five separate one-line fields. Use a consistent readable size.
-    // The actual text is already word-wrapped across the five fields above; just size them
-    // so long lines don't auto-shrink.
-    [5, 6, 7, 8, 9].forEach(function(n){
-      try { form.getTextField('Notes ' + n).setFontSize(8); } catch(e) {}
-    });
+    if (!_ricNew) {
+      // Narrow currency fields (≈52-57 pt wide): font size 8 so AP stream doesn't clip long values.
+      // /F (Format) actions were stripped above, so "1.#R" is gone — but the AP stream is still
+      // rendered at the field's default font size, which overflows narrow fields at 11pt.
+      var _narrowCurrencyFields = [
+        'NonTax1','NonTax2','ECF 1','ECF 2',
+        'Taxable1','Taxable2','Taxable3','Taxable4','Taxable5','Taxable6','Taxable7',
+        'TotalCP','Opening/Closing','Recording Fee','Discount',
+        'FCAmount','TaxAmount','DPAmount','TotalDP','UnpaidBalance','TotalPayments','Total Sales Price',
+        'FCAmount_TIL','UnpaidBalance_TIL','TotalPayments_TIL','TotalDP_TIL','TotalSalesPrice_TIL',
+        'PaymentAmount1','SubTotal'
+      ];
+      var _descFields = [
+        'Description of Interment Rights',
+        'Notes 1','Notes 2','Notes 3','Other Merch 1 Description','Other Merch 2 Description',
+        'Discount Description 1','Discount Description 2'
+      ];
+      _narrowCurrencyFields.forEach(function(fn) {
+        try { form.getTextField(fn).setFontSize(8); } catch(e) {}
+      });
+      _descFields.forEach(function(fn) {
+        try { form.getTextField(fn).setFontSize(0); } catch(e) {}
+      });
+      // Memorial/Base description rows: auto-size(0) was picking ~10pt for a typical combined
+      // "Flush 44x20x4 + Flush 28x16x4" label, which runs right up against the 239pt-wide field's
+      // edge. Fix at a smaller size so there's visible margin instead of relying on auto-fit.
+      ['Memorial Description', 'Mem Base Description'].forEach(function(fn) {
+        try { form.getTextField(fn).setFontSize(7); } catch(e) {}
+      });
+      // Both fields start at x=75, but the static row labels ("Memorialization Type" /
+      // "Memorial Base - Type", verified via pdfjs) run to x=119.4 / x=121.6 — well past the
+      // field's own left edge — so the entered text visually overlapped the tail of the label.
+      // Shift each widget's rect right past the label (keeping its right edge fixed) instead of
+      // padding the value with spaces, so it isn't font-size dependent.
+      [['Memorial Description', 119.4], ['Mem Base Description', 121.6]].forEach(function(pair) {
+        try {
+          var fld = form.getTextField(pair[0]);
+          fld.acroField.getWidgets().forEach(function(w) {
+            var r = w.getRectangle();
+            var newX = pair[1] + 3;
+            w.setRectangle({ x: newX, y: r.y, width: (r.x + r.width) - newX, height: r.height });
+          });
+        } catch(e) {}
+      });
+      // Remarks (Notes 5-9): five separate one-line fields. Use a consistent readable size.
+      // The actual text is already word-wrapped across the five fields above; just size them
+      // so long lines don't auto-shrink.
+      [5, 6, 7, 8, 9].forEach(function(n){
+        try { form.getTextField('Notes ' + n).setFontSize(8); } catch(e) {}
+      });
+    }
+    // Embed the font first: the remarks below are measured with it, then every field's
+    // appearance is drawn with it.
+    var helvetica = null;
+    try { helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica); } catch(eh) {}
 
-    // Embed font and update field appearances so values display without clicking
-    var helvetica;
+    if (_ricNew) {
+      // Remarks (Notes 5-9): five separate one-line fields. Lay the whole remark out across the
+      // five by MEASURED width, at the largest size up to 8 pt at which all of it fits. The old
+      // fixed character counts (48/60 per line at 8 pt) piled whatever was left onto Notes 9,
+      // where it printed cut off (a 350-character remark lost its last ~120 characters).
+      (function fitRemarks() {
+        var fields = [5, 6, 7, 8, 9].map(function(n){ try { return form.getTextField('Notes ' + n); } catch(e) { return null; } });
+        if (fields.some(function(f){ return !f; })) return;
+        if (!helvetica) { fields.forEach(function(f){ f.setFontSize(8); }); return; }
+        // usable width: the box less the field's own padding and border on both sides
+        var widths = fields.map(function(f){ return f.acroField.getWidgets()[0].getRectangle().width - 6; });
+        var words = sanitizeForPdf(String(_remarksText)).replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+        function wrap(size, force) {
+          var lines = [], wi = 0;
+          for (var i = 0; i < widths.length; i++) {
+            var cur = '';
+            while (wi < words.length) {
+              var next = cur ? cur + ' ' + words[wi] : words[wi];
+              if (helvetica.widthOfTextAtSize(next, size) > widths[i] && cur) break;
+              cur = next; wi++;
+            }
+            lines.push(cur);
+          }
+          if (wi < words.length) {
+            if (!force) return null;
+            lines[lines.length - 1] += ' ' + words.slice(wi).join(' ');   // cannot fit even at the floor
+            console.warn('[RIC] remarks too long for five lines even at 5 pt; the end of the last line will not print');
+          }
+          return lines;
+        }
+        var size = 8, lines = wrap(size);
+        while (!lines && size > 5) { size -= 0.25; lines = wrap(size); }
+        if (!lines) { size = 5; lines = wrap(size, true); }
+        fields.forEach(function(f, i){ f.setText(lines[i] || ''); f.setFontSize(size); });
+      })();
+
+      // Day phone: usually an email. Size it to fit its box by measured width (up to 9 pt, floor 5);
+      // the old fixed 7 pt still ran a 40-character address past the edge of the box.
+      (function fitDayEmail() {
+        try {
+          var f = form.getTextField('Day Telephone No'), v = f.getText() || '';
+          if (!helvetica || v.indexOf('@') < 0) return;
+          var room = f.acroField.getWidgets()[0].getRectangle().width - 6;
+          var size = Math.floor(room / helvetica.widthOfTextAtSize(v, 1) * 4) / 4;
+          f.setFontSize(Math.max(5, Math.min(9, size)));
+        } catch(e) {}
+      })();
+
+      // Every other filled box on the rebuilt form: keep its own text size unless the value would
+      // not fit its blank, then shrink in quarter points down to 5.5 (the old form used fixed sizes
+      // tuned to its own boxes, which do not match the rebuilt layout).
+      (function fitBoxes() {
+        if (!helvetica) return;
+        var skip = { 'Notes 5':1, 'Notes 6':1, 'Notes 7':1, 'Notes 8':1, 'Notes 9':1, 'Day Telephone No':1 };
+        form.getFields().forEach(function(f) {
+          try {
+            if (!(f instanceof PDFLib.PDFTextField) || skip[f.getName()]) return;
+            var v = f.getText() || ''; if (!v) return;
+            var m = String(f.acroField.getDefaultAppearance() || '').match(/([\d.]+)\s+Tf/);
+            var size = m ? parseFloat(m[1]) : 9; if (!size) size = 9;
+            var room = Math.min.apply(null, f.acroField.getWidgets().map(function(w){ return w.getRectangle().width; })) - 4;
+            while (size > 5.5 && helvetica.widthOfTextAtSize(v, size) > room) size -= 0.25;
+            f.setFontSize(size);
+          } catch(e) {}
+        });
+      })();
+    }
+
+    // Update field appearances so values display without clicking
     try {
-      helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      if (!helvetica) helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
       form.updateFieldAppearances(helvetica);
     } catch(efua) {
       try { form.updateFieldAppearances(); } catch(e2) {}
     }
 
-    // Draw signing-block day/year overlays — the bottom "Signed this __ day of __" and
-    // "Accepted this __ day of __" lines have NO form widgets for day/year (only Month
-    // is a real field). Coordinates verified via pdfjs text anchors on page 0:
-    //   y=174  "Signed this" at x=23, "day of" at x=125, "Time" at x=338
-    //   y=83   "Accepted this" at x=329, "day of" at x=416
-    try {
-      if (helvetica) {
-        var navyCol = PDFLib.rgb(0.05, 0.1, 0.2);
-        var p0 = pdfDoc.getPages()[0];
-        // Signed block (purchaser) — the template's own printed "," (part of the page's
-        // raster background, not text pdf-lib can see) already sits at ~x=323 between this
-        // Year position and the "Time" field at x=369.7, so no comma needs to be drawn here.
-        p0.drawText(sigDay, { x: 88,  y: 176, size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigYr,  { x: 290, y: 176, size: 10, font: helvetica, color: navyCol });
-        // Accepted block (counselor / officer) — this line has TWO separate blanks plus a
-        // printed "," between them, all baked into the page's raster background (invisible
-        // to pdfjs text/vector extraction, only found by rasterizing the template at 300dpi
-        // and measuring dark-pixel runs): a long Month blank [x=438.7-541.7] then a printed
-        // "," at x=544.8-545.5, then a short Year blank [x=549.6-581.0]. Earlier attempts drew
-        // Year right after Month (crowding it against a comma that was already there) — it
-        // belongs in that separate short blank instead.
-        var _acMonBlankX = 438.7, _acYrBlankX = 549.6, _acYrBlankW = 31.4;
-        var _acYrW = helvetica.widthOfTextAtSize(sigYr, 10);
-        p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigMon, { x: _acMonBlankX + 7, y: 85, size: 10, font: helvetica, color: navyCol });
-        p0.drawText(sigYr,  { x: _acYrBlankX + (_acYrBlankW - _acYrW) / 2, y: 85, size: 10, font: helvetica, color: navyCol });
-        // City / State / Zip — no AcroForm fields exist for these on the template;
-        // overlay them just above the Street/City/State/Zip labels at y=859 (verified via pdfjs).
-        if (clientData) {
-          if (clientData.city)  p0.drawText(clientData.city,  { x: 343, y: 870, size: 9, font: helvetica, color: navyCol });
-          if (clientData.state) p0.drawText(clientData.state, { x: 452, y: 870, size: 9, font: helvetica, color: navyCol });
-          if (clientData.zip)   p0.drawText(clientData.zip,   { x: 522, y: 870, size: 9, font: helvetica, color: navyCol });
+    if (!_ricNew) {
+      // Draw signing-block day/year overlays — the bottom "Signed this __ day of __" and
+      // "Accepted this __ day of __" lines have NO form widgets for day/year (only Month
+      // is a real field). Coordinates verified via pdfjs text anchors on page 0:
+      //   y=174  "Signed this" at x=23, "day of" at x=125, "Time" at x=338
+      //   y=83   "Accepted this" at x=329, "day of" at x=416
+      try {
+        if (helvetica) {
+          var navyCol = PDFLib.rgb(0.05, 0.1, 0.2);
+          var p0 = pdfDoc.getPages()[0];
+          // Signed block (purchaser) — the template's own printed "," (part of the page's
+          // raster background, not text pdf-lib can see) already sits at ~x=323 between this
+          // Year position and the "Time" field at x=369.7, so no comma needs to be drawn here.
+          p0.drawText(sigDay, { x: 88,  y: 176, size: 10, font: helvetica, color: navyCol });
+          p0.drawText(sigYr,  { x: 290, y: 176, size: 10, font: helvetica, color: navyCol });
+          // Accepted block (counselor / officer) — this line has TWO separate blanks plus a
+          // printed "," between them, all baked into the page's raster background (invisible
+          // to pdfjs text/vector extraction, only found by rasterizing the template at 300dpi
+          // and measuring dark-pixel runs): a long Month blank [x=438.7-541.7] then a printed
+          // "," at x=544.8-545.5, then a short Year blank [x=549.6-581.0]. Earlier attempts drew
+          // Year right after Month (crowding it against a comma that was already there) — it
+          // belongs in that separate short blank instead.
+          var _acMonBlankX = 438.7, _acYrBlankX = 549.6, _acYrBlankW = 31.4;
+          var _acYrW = helvetica.widthOfTextAtSize(sigYr, 10);
+          p0.drawText(sigDay, { x: 388, y: 85,  size: 10, font: helvetica, color: navyCol });
+          p0.drawText(sigMon, { x: _acMonBlankX + 7, y: 85, size: 10, font: helvetica, color: navyCol });
+          p0.drawText(sigYr,  { x: _acYrBlankX + (_acYrBlankW - _acYrW) / 2, y: 85, size: 10, font: helvetica, color: navyCol });
+          // City / State / Zip — no AcroForm fields exist for these on the template;
+          // overlay them just above the Street/City/State/Zip labels at y=859 (verified via pdfjs).
+          if (clientData) {
+            if (clientData.city)  p0.drawText(clientData.city,  { x: 343, y: 870, size: 9, font: helvetica, color: navyCol });
+            if (clientData.state) p0.drawText(clientData.state, { x: 452, y: 870, size: 9, font: helvetica, color: navyCol });
+            if (clientData.zip)   p0.drawText(clientData.zip,   { x: 522, y: 870, size: 9, font: helvetica, color: navyCol });
+          }
         }
-      }
-    } catch(e) { console.warn('[RIC] signing-block overlay:', e.message); }
+      } catch(e) { console.warn('[RIC] signing-block overlay:', e.message); }
+    }
 
     // ── Append ACH Auto Pay Form + Cemetery Rules & Regs ─────────────────────
     // Both ride along after the RIC main contract in a single download. Bank/card/sig
@@ -21186,6 +21316,24 @@ async function generateRICContractCore(clientData) {
   } finally {
     if (btn) { btn.textContent = '\uD83D\uDCC4 Contract'; btn.disabled = false; }
   }
+}
+
+// ── Rebuilt RIC (2026-11-05) ─────────────────────────────────────────────────
+// Martice: "rays approval is to fully replace it with the current ric and all fsds not me". So the
+// rebuilt RIC (the SSN version: same wording as today's form, redrawn clean, real boxes for city,
+// state, zip and the signing dates) is what MARTICE's RIC tab produces now, and every other FSD
+// keeps today's RIC, byte for byte the same code path, until Ray approves the switch for everyone.
+// The gate is the signed-in account; a switch on the RIC tab (shown only to Martice) lets him make
+// an old-form RIC when he needs one. To roll it out to everyone later, return true here for all.
+function bwRicUseRebuilt() {
+  if (!window._bwUser) return false;
+  if (bwCurrentAdvisor().handle !== 'martice') return false;
+  var sw = el('ricUseRebuilt');
+  return !sw || sw.checked;
+}
+function bwRicRebuiltUi() {
+  var row = el('ricUseRebuiltRow'); if (!row) return;
+  row.style.display = (window._bwUser && bwCurrentAdvisor().handle === 'martice') ? 'flex' : 'none';
 }
 
 async function generateRICContract() {
