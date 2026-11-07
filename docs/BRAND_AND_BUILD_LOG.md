@@ -3015,3 +3015,11 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Refresh: re-pull MIS, then node scripts/build-space-inventory.mjs <csv folder> <date>.
 - Verified: tests/test-space-dropdowns.mjs (70) new, test-niche-maus-type 89/0 and eight related
   suites green; panel screenshot looked at.
+
+## 2026-11-07: Cremation authorization signatures box
+
+- "Number of Signatures Required ___ of ___" on the Cremation Authorization and Disposition Form (GA template
+  pages 9-11, also attached to ClearPoint cremation contracts) now prints both numbers at 9 pt, centered. The second
+  box was 12 pt, left-aligned. Template-only change (incremental update); the fill code is unchanged.
+- Verified: rendered "2 of 3" through pdf-lib and in a real ClearPoint cremation contract; test-clearpoint-fields 72,
+  test-clearpoint-nojs 27, test-ga-rental-casket 7, all passing.
