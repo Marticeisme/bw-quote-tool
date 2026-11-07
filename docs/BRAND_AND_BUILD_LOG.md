@@ -3000,3 +3000,18 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   another FSD on this code and on the previous commit were identical, every page and all 146 boxes.
 - Verified: rendered and looked at all three; real Acrobat read every box; tests/test-ric-rebuilt.mjs
   (22) new, test-ric-remarks-fit.mjs (28) now signs in as Martice; full suite 4634/0 across 67.
+
+## 2026-11-06: Niche and crypt spaces picked from MIS availability
+
+- Quote tool, Burial Space panel: under Columbarium and Mausoleum a new Space / Crypt dropdown lists
+  every open space in the chosen building with its MIS price (Property Cards session's live pull of
+  11/06/2026: every Available / Un-Sold space). Picking one fills Price, Qty 1 and Location; a typed
+  price still works. 1,088 spaces; $0 MIS rows left out (the note counts them).
+- Rulings 11/06: the 26 cents-priced rows (COH B/C/D, COM A-183/184, GCM 2R D-7/8) are half-price
+  entries, listed with "verify price in MIS"; Garden of Verses niches are children's spaces, left out;
+  MVC E-INT Level ED 2/3 and the island D/E doubles carry 4 rights (shown on the quote); ROAC D-INT D-5
+  stays $14,995 (8/1 ruling reaffirmed; MIS still says $16,495, kept as a reported override); tool's
+  rounded-up ECF is right. Added Lake Cremation Garden and Lake Urn Boulder Garden niches.
+- Refresh: re-pull MIS, then node scripts/build-space-inventory.mjs <csv folder> <date>.
+- Verified: tests/test-space-dropdowns.mjs (70) new, test-niche-maus-type 89/0 and eight related
+  suites green; panel screenshot looked at.
