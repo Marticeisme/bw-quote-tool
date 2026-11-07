@@ -1572,10 +1572,10 @@ tr:hover td{background:var(--navy-100);}
             </div>
           </div>
           <div class="q-group">
-            <div class="q-group-label">Niche Space (manual price)</div>
+            <div class="q-group-label">Niche Space</div>
             <div class="q-row">
               <label>Columbarium</label>
-              <select id="qNicheName" onchange="cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+              <select id="qNicheName" onchange="bwSpaceBuildingChanged('niche');cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
                 <option value="">— Select columbarium / niche —</option>
                 <option value="Crystal Niches">Crystal Niches</option>
                 <option value="Court of Honor Niches">Court of Honor Niches</option>
@@ -1591,9 +1591,16 @@ tr:hover td{background:var(--navy-100);}
                 <option value="Radiance Wall – Chapel of Memories">Radiance Wall – Chapel of Memories</option>
                 <option value="Rock of Ages Columbarium">Rock of Ages Columbarium</option>
                 <option value="Serenity Wall – Chapel of Memories">Serenity Wall – Chapel of Memories</option>
+                <option value="Lake Cremation Garden">Lake Cremation Garden</option>
+                <option value="Lake Urn Boulder Garden">Lake Urn Boulder Garden</option>
                 <option value="__custom__">Custom / Other…</option>
               </select>
             </div>
+            <div class="q-row" id="qNicheSpaceRow" style="display:none;">
+              <label>Space</label>
+              <select id="qNicheSpace" data-retired-text="&#9888; Not on the current availability list &mdash; as previously quoted" onchange="bwSpacePicked('niche');cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;"></select>
+            </div>
+            <div id="qNicheSpaceNote" style="display:none;font-size:10px;color:var(--text-light);margin:-2px 0 6px;"></div>
             <div class="q-row" id="qNicheNameOtherRow" style="display:none;">
               <label>Custom Name</label>
               <input type="text" id="qNicheNameOther" placeholder="Type columbarium / niche name" oninput="cemUpdateD()" style="flex:1;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
@@ -1653,10 +1660,10 @@ tr:hover td{background:var(--navy-100);}
             </div>
           </div>
           <div class="q-group">
-            <div class="q-group-label">Mausoleum Crypt (manual price)</div>
+            <div class="q-group-label">Mausoleum Crypt</div>
             <div class="q-row">
               <label>Mausoleum</label>
-              <select id="qMausName" onchange="cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
+              <select id="qMausName" onchange="bwSpaceBuildingChanged('maus');cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
                 <option value="">— Select mausoleum —</option>
                 <option value="Chapel of Memories">Chapel of Memories</option>
                 <option value="Eternal Light Mausoleum">Eternal Light Mausoleum</option>
@@ -1665,6 +1672,11 @@ tr:hover td{background:var(--navy-100);}
                 <option value="__custom__">Custom / Other…</option>
               </select>
             </div>
+            <div class="q-row" id="qMausSpaceRow" style="display:none;">
+              <label>Crypt</label>
+              <select id="qMausSpace" data-retired-text="&#9888; Not on the current availability list &mdash; as previously quoted" onchange="bwSpacePicked('maus');cemUpdateD()" style="flex:1;padding:7px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;"></select>
+            </div>
+            <div id="qMausSpaceNote" style="display:none;font-size:10px;color:var(--text-light);margin:-2px 0 6px;"></div>
             <div class="q-row" id="qMausNameOtherRow" style="display:none;">
               <label>Custom Name</label>
               <input type="text" id="qMausNameOther" placeholder="Type mausoleum name" oninput="cemUpdateD()" style="flex:1;padding:6px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:12px;">
@@ -7118,6 +7130,10 @@ var BW_FEES = {
 // structure. Nothing uses it today — the operator chose to split MVC into two options
 // rather than ship a mixed case — but leaving it in means a future re-fronting is a data
 // edit, and it stops a stray 'both' from hiding BOTH rows.
+// ── GENERATED SPACE INVENTORY — scripts/build-space-inventory.mjs — DO NOT EDIT BY HAND ──
+// MIS snapshot 2026-11-06. units: [wall, level, space, price, flag, rights?]; flag 1 = price has cents, verify in MIS; rights only when not 2.
+var BW_SPACE_INV = {"asOf":"2026-11-06","source":"MIS Property Info, every Available / Un-Sold space","niche":{"Crystal Niches":{"code":"CN","units":[["1","G","9",3995,0],["1","G","10",3995,0],["1","G","11",3995,0],["1","G","12",3995,0],["1","G","14",3995,0],["1","G","15",3995,0],["1","G","18",3995,0],["1","G","22",3995,0],["1","H","2",2995,0],["1","H","3",3495,0],["1","H","5",2995,0],["1","H","6",2995,0],["1","H","7",3495,0],["1","H","8",2995,0],["1","H","9",3495,0],["1","H","10",2995,0],["1","H","11",2995,0],["1","H","13",2995,0],["1","H","14",2995,0],["1","H","15",3495,0],["1","H","17",3495,0],["1","H","19",2995,0],["1","H","20",2995,0],["1","H","21",3495,0],["1","H","23",3495,0],["1","J","2",2495,0],["1","J","4",2495,0],["1","J","6",2495,0],["1","J","8",2495,0],["1","J","21",2495,0],["1","J","23",2495,0],["1","J","24",1995,0]]},"Court of Honor Niches":{"code":"COH","units":[["NO-ADD","A","4",1095,0],["NO-ADD","A","5",1095,0],["NO-ADD","A","6",1095,0],["NO-ADD","A","7",1095,0],["NO-ADD","A","8",1095,0],["NO-ADD","A","12",1095,0],["NO-ADD","A","13",1095,0],["NO-ADD","A","14",1095,0],["NO-ADD","A","15",1095,0],["NO-ADD","B","1",2197.5,1],["NO-ADD","B","2",2197.5,1],["NO-ADD","B","3",2197.5,1],["NO-ADD","B","4",2197.5,1],["NO-ADD","B","5",2197.5,1],["NO-ADD","B","6",2197.5,1],["NO-ADD","B","7",2197.5,1],["NO-ADD","B","8",2197.5,1],["NO-ADD","B","15",2197.5,1],["NO-ADD","B","16",2197.5,1],["NO-ADD","C","5",2747.5,1],["NO-ADD","C","6",2747.5,1],["NO-ADD","C","7",2747.5,1],["NO-ADD","C","8",2747.5,1],["NO-ADD","C","9",2747.5,1],["NO-ADD","C","10",2747.5,1],["NO-ADD","C","13",2747.5,1],["NO-ADD","C","14",2747.5,1],["NO-ADD","C","15",2747.5,1],["NO-ADD","C","16",2747.5,1],["NO-ADD","D","3",2747.5,1],["NO-ADD","D","4",2747.5,1],["SO-ADD","A","3",1095,0],["SO-ADD","A","4",1095,0],["SO-ADD","A","5",1095,0],["SO-ADD","A","7",1095,0],["SO-ADD","A","8",1095,0],["SO-ADD","A","9",1095,0],["SO-ADD","A","11",1095,0],["SO-ADD","A","12",1095,0],["SO-ADD","A","13",1095,0],["SO-ADD","A","14",1095,0],["SO-ADD","A","16",1095,0],["SO-ADD","F","14",3295,0],["SO-ADD","F","16",3295,0]]},"Eternal Light Columbarium (New)":{"code":"ECL","units":[["E","F","2",20895,0],["N","A","2",10995,0],["N","B","4",15395,0],["N","C","2",55000,0],["N","C","3",17595,0],["N","C","4",55000,0],["N","E","1",17595,0],["S","A","2",10995,0],["S","A","4",10995,0],["S","C","1",29695,0],["S","C","2",17595,0],["S","C","3",82500,0],["S","C","4",17595,0],["S","D","1",17595,0],["S","D","3",32995,0],["S","D","4",17595,0],["S","F","2",18695,0],["S","F","3",29695,0],["S","F","4",18695,0],["W","D","2",18695,0],["W","F","2",20895,0]]},"Eternal Light Niches":{"code":"ELN","units":[["ISL-4-NE","L","1",2895,0],["ISL-4-NW","H","5",4000,0],["WEST WALL","G","1",6000,0]]},"Garden of Meditation Niches":{"code":"GOM","units":[["1","C","9",5995,0],["1","C","14",5995,0],["1","C","20",5995,0],["1","C","22",5995,0],["1","C","24",5995,0],["1","C","25",5995,0],["1","C","26",5995,0],["1","D","15",6995,0],["1","D","20",6995,0],["1","D","24",6995,0],["1","D","26",6995,0],["1","G","13",8995,0],["1","G","14",8995,0],["1","G","15",8995,0]]},"Lake Cremation Garden":{"code":"LCG","units":[["PILLAR-24","7028","1",8795,0],["POST-COMP","1004","2",24195,0],["POST-COMP","1004","6",24195,0],["POST-COMP","1004","8",24195,0],["POST-COMP","1004","10",24195,0],["POST-SNGL","1003","10",13195,0],["POST-SNGL","1003","11",13195,0],["POST-SNGL","1003","13",13195,0],["POST-SNGL","1003","14",13195,0],["POST-SNGL","1003","15",13195,0]]},"Lake Urn Boulder Garden":{"code":"LUGB","units":[["POST","1004","1",21995,0],["POST","1004","2",21995,0]]},"Mountain View Columbarium (Inside)":{"code":"MVC","units":[["E-INT","ED","2",32995,0,4],["E-INT","ED","3",32995,0,4]]},"Mountain View Columbarium (New)":{"code":"MVC","units":[["ISL-E","A","1",8000,0],["ISL-E","A","2",8000,0],["ISL-E","A","3",8000,0],["ISL-E","A","4",8000,0],["ISL-E","A","5",8000,0],["ISL-E","A","6",8000,0],["ISL-E","A","7",8000,0],["ISL-E","A","8",8000,0],["ISL-E","A","9",8000,0],["ISL-E","A","10",8000,0],["ISL-E","B","1",10000,0],["ISL-E","B","2",16000,0],["ISL-E","B","3",14000,0],["ISL-E","B","4",12000,0],["ISL-E","B","5",14000,0],["ISL-E","B","6",16000,0],["ISL-E","B","7",10000,0],["ISL-E","C","1",16000,0],["ISL-E","C","2",16000,0],["ISL-E","C","3",20000,0],["ISL-E","C","4",20000,0],["ISL-E","C","5",16000,0],["ISL-E","C","6",16000,0],["ISL-E","D","1",14000,0],["ISL-E","D","2",18000,0],["ISL-E","D","3",16000,0],["ISL-E","D","4",18000,0],["ISL-E","D","5",14000,0],["ISL-E","D/E","1",48000,0,4],["ISL-E","D/E","2",48000,0,4],["ISL-E","E","1",14000,0],["ISL-E","E","2",20000,0],["ISL-E","E","3",20000,0],["ISL-E","E","4",14000,0],["ISL-E","F","1",16000,0],["ISL-E","F","2",16000,0],["ISL-E","F","3",16000,0],["ISL-E","F","4",12000,0],["ISL-E","F","5",16000,0],["ISL-E","F","6",16000,0],["ISL-E","F","7",16000,0],["ISL-E","G","1",8000,0],["ISL-E","G","2",8000,0],["ISL-E","G","3",8000,0],["ISL-E","G","4",8000,0],["ISL-E","G","5",8000,0],["ISL-E","G","6",8000,0],["ISL-E","G","7",8000,0],["ISL-E","G","8",8000,0],["ISL-E","G","9",8000,0],["ISL-E","G","10",8000,0],["ISL-N","A","1",8000,0],["ISL-N","A","2",8000,0],["ISL-N","A","3",8000,0],["ISL-N","A","4",8000,0],["ISL-N","B","1",14000,0],["ISL-N","B","2",14000,0],["ISL-N","B","3",14000,0],["ISL-N","C","1",18000,0],["ISL-N","C","2",14000,0],["ISL-N","C","3",14000,0],["ISL-N","D","1",16000,0],["ISL-N","D","2",16000,0],["ISL-N","E","1",18000,0],["ISL-N","E","2",14000,0],["ISL-N","F","1",16000,0],["ISL-N","F","2",16000,0],["ISL-N","G","1",8000,0],["ISL-N","G","2",8000,0],["ISL-N","G","3",8000,0],["ISL-N","G","4",8000,0],["ISL-S","A","1",8000,0],["ISL-S","A","2",8000,0],["ISL-S","A","3",8000,0],["ISL-S","A","4",8000,0],["ISL-S","B","1",14000,0],["ISL-S","B","2",14000,0],["ISL-S","B","3",14000,0],["ISL-S","C","1",18000,0],["ISL-S","C","2",14000,0],["ISL-S","C","3",14000,0],["ISL-S","D","1",16000,0],["ISL-S","D","2",16000,0],["ISL-S","D","3",16000,0],["ISL-S","E","2",14000,0],["ISL-S","E","3",14000,0],["ISL-S","F","1",16000,0],["ISL-S","F","2",16000,0],["ISL-S","F","3",16000,0],["ISL-S","G","1",8000,0],["ISL-S","G","2",8000,0],["ISL-S","G","3",8000,0],["ISL-S","G","4",8000,0],["ISL-W","A","1",7000,0],["ISL-W","A","2",7000,0],["ISL-W","A","3",7000,0],["ISL-W","A","4",7000,0],["ISL-W","A","5",7000,0],["ISL-W","A","6",7000,0],["ISL-W","A","7",7000,0],["ISL-W","A","8",7000,0],["ISL-W","B","1",10000,0],["ISL-W","B","2",12000,0],["ISL-W","B","3",10000,0],["ISL-W","B","4",10000,0],["ISL-W","B","5",12000,0],["ISL-W","B","6",10000,0],["ISL-W","C","1",14000,0],["ISL-W","C","2",14000,0],["ISL-W","C","3",10000,0],["ISL-W","C","4",10000,0],["ISL-W","C","5",14000,0],["ISL-W","C","6",14000,0],["ISL-W","D","1",12000,0],["ISL-W","D","2",16000,0],["ISL-W","D","3",14000,0],["ISL-W","D","4",16000,0],["ISL-W","D","5",12000,0],["ISL-W","D/E","1",42000,0,4],["ISL-W","D/E","2",42000,0,4],["ISL-W","E","2",18000,0],["ISL-W","E","3",18000,0],["ISL-W","E","4",12000,0],["ISL-W","F","2",14000,0],["ISL-W","F","3",14000,0],["ISL-W","F","4",10000,0],["ISL-W","F","6",14000,0],["ISL-W","F","7",14000,0],["ISL-W","G","3",7000,0],["ISL-W","G","4",7000,0],["ISL-W","G","5",7000,0],["ISL-W","G","6",7000,0],["ISL-W","G","7",7000,0],["ISL-W","G","8",7000,0],["ISL-W","G","9",7000,0],["ISL-W","G","10",7000,0]]},"Radiance Wall – Chapel of Memories":{"code":"RAD","units":[["1","H","2",12095,0],["1","H","3",10995,0],["1","H","4",12095,0],["1","H","6",10995,0],["1","J","1",9895,0],["1","J","3",9895,0],["1","J","5",9895,0],["1","J","6",7695,0],["1","J","7",9895,0],["1","K","1",5495,0],["1","K","2",7695,0],["1","K","3",5495,0],["1","K","4",7695,0],["1","K","5",7695,0],["1","K","7",7695,0]]},"Rock of Ages Columbarium":{"code":"ROAC","units":[["A-EXT","A","1",8795,0],["A-EXT","A","2",8795,0],["A-EXT","A","3",8795,0],["A-EXT","A","4",8795,0],["A-EXT","A","5",8795,0],["A-EXT","B","1",9895,0],["A-EXT","B","2",9895,0],["A-EXT","B","3",9895,0],["A-EXT","B","4",9895,0],["A-EXT","B","5",9895,0],["A-EXT","C","1",10995,0],["A-EXT","C","2",10995,0],["A-EXT","C","4",10995,0],["A-EXT","C","5",10995,0],["A-EXT","D","1",12095,0],["A-EXT","D","2",12095,0],["A-EXT","D","3",12095,0],["A-EXT","D","4",12095,0],["A-EXT","D","5",12095,0],["A-EXT","E","2",13195,0],["A-EXT","E","3",13195,0],["A-EXT","E","4",13195,0],["A-INT","A","1",10995,0],["A-INT","A","2",10995,0],["A-INT","A","3",10995,0],["A-INT","A","4",10995,0],["A-INT","A","5",10995,0],["A-INT","B","1",11995,0],["A-INT","B","2",11995,0],["A-INT","B","3",11995,0],["A-INT","B","4",11995,0],["A-INT","B","5",11995,0],["A-INT","C","1",12995,0],["A-INT","C","2",12995,0],["A-INT","C","3",12995,0],["A-INT","C","4",12995,0],["A-INT","C","5",12995,0],["A-INT","D","1",13995,0],["A-INT","D","2",13995,0],["A-INT","D","3",13995,0],["A-INT","D","4",13995,0],["A-INT","D","5",13995,0],["A-INT","E","1",14995,0],["A-INT","E","2",14995,0],["A-INT","E","3",14995,0],["A-INT","E","4",14995,0],["B-EXT","A","3",8795,0],["B-EXT","A","4",8795,0],["B-EXT","A","5",8795,0],["B-EXT","B","1",9895,0],["B-EXT","B","2",9895,0],["B-EXT","B","3",9895,0],["B-EXT","B","4",9895,0],["B-EXT","B","5",9895,0],["B-EXT","C","1",10995,0],["B-EXT","C","2",10995,0],["B-EXT","C","3",10995,0],["B-EXT","C","4",10995,0],["B-EXT","C","5",10995,0],["B-EXT","D","1",12095,0],["B-EXT","D","2",12095,0],["B-EXT","D","3",12095,0],["B-EXT","D","4",12095,0],["B-EXT","D","5",12095,0],["B-EXT","E","1",13195,0],["B-EXT","E","2",13195,0],["B-EXT","E","4",13195,0],["B-EXT","E","5",13195,0],["B-INT","A","1",11995,0],["B-INT","A","2",11995,0],["B-INT","A","3",11995,0],["B-INT","A","4",11995,0],["B-INT","A","5",11995,0],["B-INT","B","1",12995,0],["B-INT","B","2",12995,0],["B-INT","B","3",12995,0],["B-INT","B","4",12995,0],["B-INT","B","5",12995,0],["B-INT","C","1",13995,0],["B-INT","C","2",13995,0],["B-INT","C","3",13995,0],["B-INT","C","4",13995,0],["B-INT","C","5",13995,0],["B-INT","D","1",14995,0],["B-INT","D","2",14995,0],["B-INT","D","3",14995,0],["B-INT","D","4",14995,0],["B-INT","D","5",14995,0],["B-INT","E","1",15995,0],["B-INT","E","2",15995,0],["B-INT","E","3",15995,0],["B-INT","E","4",15995,0],["B-INT","E","5",15995,0],["C-EXT","A","2",8795,0],["C-EXT","A","3",8795,0],["C-EXT","B","2",9895,0],["C-EXT","B","3",9895,0],["C-EXT","B","4",9895,0],["C-EXT","B","5",9895,0],["C-EXT","C","2",10995,0],["C-EXT","C","3",10995,0],["C-EXT","C","4",10995,0],["C-EXT","C","5",10995,0],["C-EXT","D","1",12095,0],["C-EXT","D","2",12095,0],["C-EXT","D","3",12095,0],["C-EXT","D","4",12095,0],["C-EXT","D","5",12095,0],["C-EXT","E","1",13195,0],["C-EXT","E","2",13195,0],["C-EXT","E","3",13195,0],["C-EXT","E","4",13195,0],["C-EXT","E","5",13195,0],["C-INT","A","2",8795,0],["C-INT","A","3",8795,0],["C-INT","A","4",8795,0],["C-INT","A","5",8795,0],["C-INT","B","2",9895,0],["C-INT","B","3",9895,0],["C-INT","B","4",9895,0],["C-INT","B","5",9895,0],["C-INT","C","3",10995,0],["C-INT","C","4",10995,0],["C-INT","D","1",12095,0],["C-INT","D","2",12095,0],["C-INT","D","3",12095,0],["C-INT","D","4",12095,0],["C-INT","D","5",12095,0],["C-INT","E","2",13195,0],["C-INT","E","3",13195,0],["C-INT","E","4",13195,0],["C-INT","E","5",13195,0],["D-EXT","A","2",8795,0],["D-EXT","A","5",8795,0],["D-EXT","B","1",9895,0],["D-EXT","B","2",9895,0],["D-EXT","B","3",9895,0],["D-EXT","B","4",9895,0],["D-EXT","D","1",12095,0],["D-EXT","D","2",12095,0],["D-EXT","D","4",12095,0],["D-EXT","E","1",13195,0],["D-EXT","E","2",13195,0],["D-EXT","E","4",13195,0],["D-INT","A","1",11995,0],["D-INT","A","2",11995,0],["D-INT","A","3",11995,0],["D-INT","A","4",11995,0],["D-INT","A","5",11995,0],["D-INT","B","1",12995,0],["D-INT","B","2",12995,0],["D-INT","B","3",12995,0],["D-INT","B","4",12995,0],["D-INT","B","5",12995,0],["D-INT","C","1",13995,0],["D-INT","C","2",13995,0],["D-INT","C","4",13995,0],["D-INT","C","5",13995,0],["D-INT","D","1",14995,0],["D-INT","D","4",14995,0],["D-INT","D","5",14995,0],["D-INT","E","1",15995,0],["D-INT","E","2",15995,0],["D-INT","E","4",15995,0],["D-INT","E","5",15995,0],["E-EXT","A","1",8795,0],["E-EXT","A","2",8795,0],["E-EXT","A","3",8795,0],["E-EXT","A","4",8795,0],["E-EXT","A","5",8795,0],["E-EXT","B","1",9895,0],["E-EXT","B","2",9895,0],["E-EXT","B","3",9895,0],["E-EXT","B","4",9895,0],["E-EXT","B","5",9895,0],["E-EXT","C","1",10995,0],["E-EXT","C","2",10995,0],["E-EXT","C","3",10995,0],["E-EXT","C","4",10995,0],["E-EXT","C","5",10995,0],["E-EXT","D","1",12095,0],["E-EXT","D","2",12095,0],["E-EXT","D","3",12095,0],["E-EXT","D","4",12095,0],["E-EXT","D","5",12095,0],["E-EXT","E","1",13195,0],["E-EXT","E","2",13195,0],["E-EXT","E","3",13195,0],["E-EXT","E","4",13195,0],["E-EXT","E","5",13195,0],["E-INT","A","1",8795,0],["E-INT","A","2",8795,0],["E-INT","A","3",8795,0],["E-INT","A","4",8795,0],["E-INT","B","1",9895,0],["E-INT","B","2",9895,0],["E-INT","B","3",9895,0],["E-INT","B","4",9895,0],["E-INT","C","1",10995,0],["E-INT","C","2",10995,0],["E-INT","C","4",10995,0],["E-INT","D","1",12095,0],["E-INT","D","2",12095,0],["E-INT","D","3",12095,0],["E-INT","D","4",12095,0],["E-INT","D","5",12095,0],["E-INT","E","1",13195,0],["E-INT","E","2",13195,0],["E-INT","E","3",13195,0],["E-INT","E","4",13195,0],["E-INT","E","5",13195,0],["F-EXT","A","1",8795,0],["F-EXT","A","2",8795,0],["F-EXT","A","3",8795,0],["F-EXT","A","4",8795,0],["F-EXT","A","5",8795,0],["F-EXT","B","1",9895,0],["F-EXT","B","2",9895,0],["F-EXT","B","3",9895,0],["F-EXT","B","4",9895,0],["F-EXT","B","5",9895,0],["F-EXT","C","1",10995,0],["F-EXT","C","2",10995,0],["F-EXT","C","3",10995,0],["F-EXT","C","4",10995,0],["F-EXT","C","5",10995,0],["F-EXT","D","1",12095,0],["F-EXT","D","2",12095,0],["F-EXT","D","3",12095,0],["F-EXT","D","4",12095,0],["F-EXT","D","5",12095,0],["F-EXT","E","1",13195,0],["F-EXT","E","2",13195,0],["F-EXT","E","4",13195,0],["F-EXT","E","5",13195,0],["F-INT","A","1",11995,0],["F-INT","A","2",11995,0],["F-INT","A","3",11995,0],["F-INT","A","4",11995,0],["F-INT","A","5",11995,0],["F-INT","B","1",12995,0],["F-INT","B","2",12995,0],["F-INT","B","3",12995,0],["F-INT","B","4",12995,0],["F-INT","B","5",12995,0],["F-INT","C","1",13995,0],["F-INT","C","2",13995,0],["F-INT","C","3",13995,0],["F-INT","C","4",13995,0],["F-INT","C","5",13995,0],["F-INT","D","1",14995,0],["F-INT","D","2",14995,0],["F-INT","D","4",14995,0],["F-INT","D","5",14995,0],["F-INT","E","1",15995,0],["F-INT","E","2",15995,0],["F-INT","E","3",15995,0],["F-INT","E","4",15995,0],["F-INT","E","5",15995,0],["G-EXT","A","2",7995,0],["G-EXT","A","3",7995,0],["G-EXT","B","1",8995,0],["G-EXT","B","2",8995,0],["G-EXT","B","4",8995,0],["G-EXT","B","5",8995,0],["G-EXT","C","1",9995,0],["G-EXT","C","2",9995,0],["G-EXT","C","3",9995,0],["G-EXT","C","4",9995,0],["G-EXT","C","5",9995,0],["G-EXT","D","1",10995,0],["G-EXT","D","2",10995,0],["G-EXT","D","3",10995,0],["G-EXT","D","4",10995,0],["G-EXT","D","5",10995,0],["G-EXT","E","1",11995,0],["G-EXT","E","2",11995,0],["G-EXT","E","3",11995,0],["G-EXT","E","4",11995,0],["G-EXT","E","5",11995,0],["G-INT","A","1",10995,0],["G-INT","A","2",10995,0],["G-INT","A","3",10995,0],["G-INT","A","4",10995,0],["G-INT","A","5",10995,0],["G-INT","B","1",11995,0],["G-INT","B","2",11995,0],["G-INT","B","5",11995,0],["G-INT","C","1",12995,0],["G-INT","C","2",12995,0],["G-INT","C","3",12995,0],["G-INT","C","4",12995,0],["G-INT","C","5",12995,0],["G-INT","D","1",13995,0],["G-INT","D","2",13995,0],["G-INT","D","3",13995,0],["G-INT","D","4",13995,0],["G-INT","D","5",13995,0],["G-INT","E","1",14995,0],["G-INT","E","2",14995,0],["G-INT","E","3",14995,0],["G-INT","E","4",14995,0],["G-INT","E","5",14995,0]]},"Serenity Wall – Chapel of Memories":{"code":"SER","units":[["1","G","2",16495,0],["1","H","1",9895,0],["1","H","2",9895,0],["1","H","3",9895,0],["1","J","5",3850,0],["1","J","6",6595,0],["1","K","1",4395,0]]},"Terrace Garden Niches":{"code":"TGN","units":[["1","A","1",12000,0],["1","A","2",12000,0],["1","A","3",12000,0],["1","A","4",12000,0],["1","A","5",12000,0],["1","A","6",12000,0],["1","A","7",12000,0],["1","A","8",12000,0],["1","B","1",14000,0],["1","B","2",14000,0],["1","B","3",14000,0],["1","B","4",14000,0],["1","B","5",14000,0],["1","B","6",14000,0],["1","B","7",14000,0],["1","B","8",14000,0],["1","C","1",16000,0],["1","C","2",16000,0],["1","C","3",16000,0],["1","C","4",16000,0],["1","C","5",16000,0],["1","C","6",16000,0],["1","C","7",16000,0],["1","C","8",16000,0],["1","D","1",14000,0],["1","D","2",14000,0],["1","D","3",14000,0],["1","D","4",14000,0],["1","D","5",14000,0],["1","D","6",14000,0],["1","D","7",14000,0],["1","D","8",14000,0],["1","E","1",12000,0],["1","E","2",12000,0],["1","E","3",12000,0],["1","E","4",12000,0],["1","E","5",12000,0],["1","E","6",12000,0],["1","E","7",12000,0],["1","E","8",12000,0]]}},"maus":{"Chapel of Memories":{"code":"COM","units":[["","A","104",30995,0],["","A","110",30995,0],["","A","115",30995,0],["","A","116",61990,0],["","A","117",61990,0],["","A","118",61990,0],["","A","119",61990,0],["","A","122",61990,0],["","A","123",61990,0],["","A","124",24995,0],["","A","133",24995,0],["","A","134",24995,0],["","A","135",24995,0],["","A","136",24995,0],["","A","137",24995,0],["","A","152",12995,0],["","A","153",12995,0],["","A","155",12995,0],["","A","160",18995,0],["","A","161",18995,0],["","A","173",24995,0],["","A","175",24995,0],["","A","176",24995,0],["","A","177",24995,0],["","A","178",24995,0],["","A","183",12497.5,1],["","A","184",12497.5,1],["","A","185",30995,0],["","A","186",30995,0],["","A","187",30995,0],["","A","188",30995,0],["","A","189",30995,0],["","A","190",30995,0],["","A","191",30995,0],["","A","192",22995,0],["","A","193",22995,0],["","A","195",36995,0],["","A","196",36995,0],["","A","198",36995,0],["","A","199",36995,0],["","A","200",22995,0],["","A","201",24995,0],["","A","202",24995,0],["","A","203",24995,0],["","A","204",24995,0],["","A","209",24995,0],["","A","210",24995,0],["","A","211",24995,0],["","A","212",24995,0],["","A","224",24995,0],["","A","225",24995,0],["","A","226",24995,0],["","B","104",32995,0],["","B","105",32995,0],["","B","106",32995,0],["","B","107",32995,0],["","B","108",32995,0],["","B","109",32995,0],["","B","128",28995,0],["","B","135",28995,0],["","B","146",28995,0],["","B","167",20995,0],["","B","173",28995,0],["","B","175",28995,0],["","B","176",28995,0],["","B","187",32995,0],["","B","188",32995,0],["","B","189",32995,0],["","B","200",24995,0],["","B","227",28995,0],["","C","103",32995,0],["","C","104",32995,0],["","C","105",32995,0],["","C","106",32995,0],["","C","108",32995,0],["","C","109",32995,0],["","C","110",32995,0],["","C","113",32995,0],["","C","114",32995,0],["","C","124",28995,0],["","C","129",28995,0],["","C","131",28995,0],["","C","133",28995,0],["","C","134",28995,0],["","C","135",28995,0],["","C","136",28995,0],["","C","137",28995,0],["","C","144",28995,0],["","C","145",28995,0],["","C","147",28995,0],["","C","155",14995,0],["","C","168",14995,0],["","C","176",28995,0],["","C","185",32995,0],["","C","186",32995,0],["","C","187",32995,0],["","C","188",32995,0],["","C","190",32995,0],["","C","191",32995,0],["","C","193",24995,0],["","C","225",28995,0],["","D","101",36995,0],["","D","102",36995,0],["","D","103",30995,0],["","D","104",30995,0],["","D","105",30995,0],["","D","107",30995,0],["","D","108",30995,0],["","D","109",30995,0],["","D","110",30995,0],["","D","111",30995,0],["","D","112",30995,0],["","D","113",30995,0],["","D","114",30995,0],["","D","115",30995,0],["","D","116",61990,0],["","D","117",61990,0],["","D","122",61990,0],["","D","123",61990,0],["","D","124",24995,0],["","D","128",24995,0],["","D","129",24995,0],["","D","130",24995,0],["","D","131",24995,0],["","D","132",24995,0],["","D","133",24995,0],["","D","134",24995,0],["","D","135",24995,0],["","D","136",24995,0],["","D","137",24995,0],["","D","145",24995,0],["","D","146",24995,0],["","D","147",24995,0],["","D","148",24995,0],["","D","152",20895,0],["","D","174",24995,0],["","D","175",24995,0],["","D","176",24995,0],["","D","177",24995,0],["","D","179",24995,0],["","D","180",24995,0],["","D","183",24995,0],["","D","184",24995,0],["","D","185",30995,0],["","D","186",30995,0],["","D","187",30995,0],["","D","188",30995,0],["","D","189",30995,0],["","D","190",30995,0],["","D","191",30995,0],["","D","192",22995,0],["","D","197",22995,0],["","D","198",36995,0],["","D","199",36995,0],["","D","205",16995,0],["","D","211",24995,0],["","D","217",28995,0],["","D","218",28995,0],["","D","225",24995,0],["","D","226",24995,0],["","E","101",33995,0],["","E","102",33995,0],["","E","103",27995,0],["","E","104",27995,0],["","E","106",27995,0],["","E","107",27995,0],["","E","108",27995,0],["","E","109",27995,0],["","E","110",27995,0],["","E","111",27995,0],["","E","112",27995,0],["","E","113",27995,0],["","E","114",27995,0],["","E","115",27995,0],["","E","116",55990,0],["","E","117",55990,0],["","E","118",55990,0],["","E","119",55990,0],["","E","120",55990,0],["","E","121",55990,0],["","E","122",55990,0],["","E","123",55990,0],["","E","124",18995,0],["","E","125",18995,0],["","E","126",18995,0],["","E","127",18995,0],["","E","128",18995,0],["","E","130",18995,0],["","E","131",18995,0],["","E","132",18995,0],["","E","133",18995,0],["","E","134",18995,0],["","E","135",18995,0],["","E","136",18995,0],["","E","137",18995,0],["","E","144",18995,0],["","E","145",18995,0],["","E","146",18995,0],["","E","147",18995,0],["","E","148",18995,0],["","E","149",19995,0],["","E","150",19995,0],["","E","151",12995,0],["","E","152",12995,0],["","E","154",12995,0],["","E","155",12995,0],["","E","157",19995,0],["","E","158",19995,0],["","E","160",15995,0],["","E","161",15995,0],["","E","177",21995,0],["","E","178",21995,0],["","E","179",21995,0],["","E","180",21995,0],["","E","181",12995,0],["","E","182",12995,0],["","E","183",21995,0],["","E","184",21995,0],["","E","186",27995,0],["","E","187",27995,0],["","E","188",27995,0],["","E","189",27995,0],["","E","190",27995,0],["","E","191",27995,0],["","E","192",19995,0],["","E","193",19995,0],["","E","194",19995,0],["","E","195",33995,0],["","E","196",33995,0],["","E","197",19995,0],["","E","202",18995,0],["","E","203",18995,0],["","E","204",18995,0],["","E","205",14995,0],["","E","206",36295,0],["","E","207",36295,0],["","E","208",14995,0],["","E","209",18995,0],["","E","210",18995,0],["","E","211",18995,0],["","E","212",18995,0],["","E","213",13995,0],["","E","214",25995,0],["","E","215",25995,0],["","E","216",15995,0],["","E","217",25995,0],["","E","218",25995,0],["","E","221",25995,0],["","E","222",25995,0],["","E","225",18995,0],["","E","226",18995,0],["","E","228",14995,0],["","F","104",27995,0],["","F","105",27995,0],["","F","106",27995,0],["","F","107",27995,0],["","F","109",27995,0],["","F","111",27995,0],["","F","112",27995,0],["","F","113",27995,0],["","F","114",27995,0],["","F","115",27995,0],["","F","116",51990,0],["","F","117",51990,0],["","F","118",51990,0],["","F","119",51990,0],["","F","120",51990,0],["","F","121",51990,0],["","F","122",51990,0],["","F","123",51990,0],["","F","124",15995,0],["","F","125",15995,0],["","F","126",15995,0],["","F","127",15995,0],["","F","128",15995,0],["","F","129",15995,0],["","F","130",15995,0],["","F","131",15995,0],["","F","132",15995,0],["","F","133",15995,0],["","F","134",15995,0],["","F","135",15995,0],["","F","136",15995,0],["","F","145",15995,0],["","F","146",15995,0],["","F","147",15995,0],["","F","148",15995,0],["","F","149",19995,0],["","F","150",19995,0],["","F","153",9995,0],["","F","155",9995,0],["","F","156",9995,0],["","F","162",15995,0],["","F","164",15995,0],["","F","173",15995,0],["","F","174",15995,0],["","F","175",15995,0],["","F","176",15995,0],["","F","177",15995,0],["","F","178",15995,0],["","F","179",18995,0],["","F","180",18995,0],["","F","181",10995,0],["","F","182",10995,0],["","F","183",18995,0],["","F","184",18995,0],["","F","185",25995,0],["","F","186",25995,0],["","F","187",25995,0],["","F","188",25995,0],["","F","189",25995,0],["","F","190",25995,0],["","F","191",25995,0],["","F","192",19995,0],["","F","193",19995,0],["","F","195",33995,0],["","F","196",33995,0],["","F","197",19995,0],["","F","198",33995,0],["","F","199",33995,0],["","F","200",19995,0],["","F","201",13995,0],["","F","202",15995,0],["","F","203",15995,0],["","F","204",15995,0],["","F","206",30795,0],["","F","207",30795,0],["","F","208",12995,0],["","F","209",15995,0],["","F","210",15995,0],["","F","211",15995,0],["","F","212",15995,0],["","F","214",25995,0],["","F","215",25995,0],["","F","217",25995,0],["","F","218",25995,0],["","F","219",13995,0],["","F","220",13995,0],["","F","221",25995,0],["","F","222",25995,0],["","F","224",15995,0],["","F","225",15995,0],["","F","226",15995,0],["","F","227",15995,0],["","F","229",30795,0],["","F","230",30795,0],["","G","112",22995,0],["","G","113",22995,0],["","G","116",45990,0],["","G","117",45990,0],["","G","118",45990,0],["","G","119",45990,0],["","G","120",45990,0],["","G","121",45990,0],["","G","122",45990,0],["","G","123",45990,0],["","G","124",12995,0],["","G","125",12995,0],["","G","126",12995,0],["","G","127",12995,0],["","G","128",12995,0],["","G","129",12995,0],["","G","130",12995,0],["","G","131",12995,0],["","G","132",12995,0],["","G","133",12995,0],["","G","134",12995,0],["","G","135",12995,0],["","G","136",12995,0],["","G","144",12995,0],["","G","145",12995,0],["","G","147",12995,0],["","G","148",12995,0],["","G","149",16995,0],["","G","150",16995,0],["","G","151",9995,0],["","G","152",9995,0],["","G","153",9995,0],["","G","162",12995,0],["","G","164",12995,0],["","G","165",12995,0],["","G","174",12995,0],["","G","175",12995,0],["","G","176",12995,0],["","G","177",12995,0],["","G","179",16995,0],["","G","180",16995,0],["","G","181",9995,0],["","G","182",9995,0],["","G","183",16995,0],["","G","184",16995,0],["","G","186",22995,0],["","G","187",22995,0],["","G","188",22995,0],["","G","189",22995,0],["","G","190",22995,0],["","G","194",16995,0],["","G","195",30995,0],["","G","196",30995,0],["","G","197",16995,0],["","G","198",30995,0],["","G","199",30995,0],["","G","202",12995,0],["","G","203",12995,0],["","G","206",26395,0],["","G","207",26395,0],["","G","208",9995,0],["","G","209",12995,0],["","G","210",12995,0],["","G","211",12995,0],["","G","212",12995,0],["","G","213",9995,0],["","G","214",22995,0],["","G","215",22995,0],["","G","216",9895,0],["","G","217",22995,0],["","G","218",22995,0],["","G","219",9995,0],["","G","221",22995,0],["","G","222",22995,0],["","G","223",9995,0],["","G","224",12995,0],["","G","225",12995,0],["","G","226",12995,0],["","G","227",12995,0],["","G","228",9995,0],["","G","229",26395,0],["","G","230",26395,0],["","G","231",9995,0]]},"Eternal Light Mausoleum":{"code":"ELM","units":[["ISL4-NORTH","E","5",17595,0],["WEST","A","3",18695,0],["WEST","A","7",18695,0],["WEST","A","8",18695,0],["WEST","A","25",18695,0]]},"Garden Court Mausoleum":{"code":"GCM","units":[["2N","C","10",27495,0],["2Q","A","5",20995,0],["2Q","A","15",24195,0],["2Q","A","18",24195,0],["2Q","A","19",24195,0],["2Q","C","7",24995,0],["2Q","W","5",20995,0],["2Q","W","15",24195,0],["2Q","W","18",24195,0],["2Q","W","19",24195,0],["2R","A","9",21995,0],["2R","D","7",14997.5,1],["2R","D","8",14997.5,1],["2R","W","9",21995,0]]},"Terrace Garden Mausoleum":{"code":"TGM","units":[["1","A","5",26395,0],["1","A","55",25295,0],["1","A","56",23095,0],["1","B","57",23095,0],["1","D","50",17595,0],["1","D","56",15395,0],["1","E","30",16495,0],["1","E","47",18695,0],["1","E","52",13195,0],["1","W","1",26395,0],["1","W","5",26395,0]]}},"unpriced":{"Garden of Meditation Niches":1,"Mountain View Columbarium (Outside)":2,"Mountain View Columbarium (Inside)":2,"Chapel of Memories":1}};
+// ── END GENERATED SPACE INVENTORY ──
 var BW_NICHE_TYPE = {
   'Crystal Niches': 'glass',
   'Court of Honor Niches': 'granite',
@@ -7140,6 +7156,130 @@ var BW_MAUS_TYPE = {
   'Garden Court Mausoleum': 'outdoor',
   'Terrace Garden Mausoleum': 'outdoor',
 };
+
+// ── Space / Crypt dropdowns (2026-11-06) ────────────────────────────────────────────────
+// Martice: "prices on all niches that you can select from an additional dropdown depending on
+// the mausoleum or niche section chosen based off whats currently available." Picking a
+// building lists its open spaces from BW_SPACE_INV (generated above from the live-MIS pull);
+// picking a space fills Price, Qty 1 and Location. The price field stays editable and typing a
+// price with no space picked works exactly as before, so custom and unlisted spaces are unchanged.
+// The selected value is "wall|level|space" and is saved with the quote; restoreFieldState()
+// rebuilds the list first (BW_SPACE_BY_SEL) so a saved space comes back selected, and a space
+// that has since sold comes back as a disabled "not on the current availability list" option
+// with its saved price intact.
+var BW_SPACE_UI = {
+  niche: { name: 'qNicheName', space: 'qNicheSpace', row: 'qNicheSpaceRow', note: 'qNicheSpaceNote',
+           price: 'qNichePrice', qty: 'qNicheQty', loc: 'qNicheLocation' },
+  maus:  { name: 'qMausName',  space: 'qMausSpace',  row: 'qMausSpaceRow',  note: 'qMausSpaceNote',
+           price: 'qMausPrice',  qty: 'qMausQty',  loc: 'qMausLocation' }
+};
+var BW_SPACE_BY_SEL = { qNicheSpace: 'niche', qMausSpace: 'maus' };
+function _bwSpaceKey(u) { return u[0] + '|' + u[1] + '|' + u[2]; }
+function _bwSpaceLoc(u) {
+  var p = [];
+  if (u[0]) p.push('Wall ' + u[0]);
+  if (u[1]) p.push('Level ' + u[1]);
+  p.push('Space ' + u[2]);
+  // Two-tier niches (MVC E-INT ED, island D/E) hold 4 rights, not the usual 2 — say so on the quote.
+  return p.join(', ') + (u[5] ? ' (' + u[5] + ' rights)' : '');
+}
+function _bwSpaceMoney(n) {
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+}
+function _bwSpaceAsOf() {
+  var d = (typeof BW_SPACE_INV !== 'undefined' && BW_SPACE_INV.asOf) || '';
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+  return m ? m[2] + '/' + m[3] + '/' + m[1] : d;
+}
+function _bwSpaceUnits(kind, building) {
+  var inv = typeof BW_SPACE_INV !== 'undefined' ? BW_SPACE_INV[kind] : null;
+  return (inv && building && inv[building]) ? inv[building].units : null;
+}
+function _bwSpaceFind(kind, building, key) {
+  var units = _bwSpaceUnits(kind, building) || [];
+  for (var i = 0; i < units.length; i++) if (_bwSpaceKey(units[i]) === key) return units[i];
+  return null;
+}
+// Rebuild the space list for `building`. `keep` = a saved value that must stay visible even
+// when the building now has nothing open (restoreFieldState appends it as a retired option).
+function bwFillSpaceSelect(kind, building, keep) {
+  var c = BW_SPACE_UI[kind], sel = el(c.space), row = el(c.row), note = el(c.note);
+  if (!sel) return;
+  sel.innerHTML = '';
+  var units = _bwSpaceUnits(kind, building);
+  var unpriced = (typeof BW_SPACE_INV !== 'undefined' && BW_SPACE_INV.unpriced && BW_SPACE_INV.unpriced[building]) || 0;
+  var noun = kind === 'maus' ? 'crypt' : 'space';
+  var real = building && building !== '__custom__';
+  if (!units || !units.length) {
+    if (row) row.style.display = keep ? 'flex' : 'none';
+    if (keep) { var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '— None open per MIS ' + _bwSpaceAsOf() + ' —'; sel.appendChild(o0); }
+    if (note) {
+      note.style.display = real ? 'block' : 'none';
+      note.textContent = real ? ('No priced ' + noun + 's open per MIS as of ' + _bwSpaceAsOf()
+        + (unpriced ? ' (' + unpriced + ' open with no price set in MIS)' : '') + ' — type the price below.') : '';
+    }
+    return;
+  }
+  var walls = {};
+  units.forEach(function(u) { walls[u[0]] = 1; });
+  var byWall = Object.keys(walls).length > 1;
+  var first = document.createElement('option');
+  first.value = '';
+  first.textContent = '— Pick a ' + noun + ' (' + units.length + ' open) or type a price below —';
+  sel.appendChild(first);
+  var group = null, gKey = null;
+  units.forEach(function(u) {
+    var k = byWall ? u[0] : u[1];
+    if (k !== gKey) {
+      gKey = k;
+      group = document.createElement('optgroup');
+      group.label = byWall ? 'Wall ' + u[0] : 'Level ' + u[1];
+      sel.appendChild(group);
+    }
+    var o = document.createElement('option');
+    o.value = _bwSpaceKey(u);
+    // A closed <select> hides its optgroup, so the option names its own wall/level in full.
+    o.textContent = _bwSpaceLoc(u) + ' — ' + _bwSpaceMoney(u[3])
+      + (u[4] ? '  ⚠ verify price in MIS' : '');
+    group.appendChild(o);
+  });
+  if (row) row.style.display = 'flex';
+  if (note) {
+    note.style.display = 'block';
+    note.textContent = 'Open per MIS as of ' + _bwSpaceAsOf() + ' — confirm in MIS before writing.'
+      + (unpriced ? ' ' + unpriced + ' more open with no price set in MIS.' : '');
+  }
+}
+// Clear Price / Location only if they still hold what the last picked space put there — a
+// price the counselor typed by hand is never wiped.
+function _bwSpaceClearFilled(c, sel) {
+  var p = el(c.price), l = el(c.loc);
+  if (p && sel.dataset.filledPrice && p.value === sel.dataset.filledPrice) p.value = '';
+  if (l && sel.dataset.filledLoc && l.value === sel.dataset.filledLoc) l.value = '';
+  delete sel.dataset.filledPrice; delete sel.dataset.filledLoc;
+}
+function bwSpaceBuildingChanged(kind) {
+  var c = BW_SPACE_UI[kind], sel = el(c.space);
+  if (sel && sel.value) _bwSpaceClearFilled(c, sel);
+  bwFillSpaceSelect(kind, val(c.name));
+}
+function bwSpacePicked(kind) {
+  var c = BW_SPACE_UI[kind], sel = el(c.space), note = el(c.note);
+  if (!sel) return;
+  var u = _bwSpaceFind(kind, val(c.name), sel.value);
+  if (!u) { _bwSpaceClearFilled(c, sel); bwFillSpaceSelect(kind, val(c.name)); return; }
+  var price = String(u[3]), loc = _bwSpaceLoc(u);
+  if (el(c.price)) el(c.price).value = price;
+  if (el(c.qty)) el(c.qty).value = '1';
+  if (el(c.loc)) el(c.loc).value = loc;
+  sel.dataset.filledPrice = price;
+  sel.dataset.filledLoc = loc;
+  if (note && u[4]) {
+    note.style.display = 'block';
+    note.textContent = '⚠ MIS shows ' + _bwSpaceMoney(u[3]) + ' for this ' + (kind === 'maus' ? 'crypt' : 'niche')
+      + ' — the cents suggest a half-price entry. Confirm the price in MIS before quoting.';
+  }
+}
 
 // Show only the arrangement row this location can have, and UNCHECK the row being hidden.
 // The uncheck is the load-bearing half: cemUpdate() reads the checkbox, not the row, so a
@@ -10119,6 +10259,7 @@ function resetCemQuote() {
    'qReHighlight','qMonuSeal','qNicheName','qMausName','qWWSetup'
   ].forEach(function(id) { var e = el(id); if (e) e.value = ''; });
   ['qNicheNameOther','qMausNameOther'].forEach(function(id){ var e = el(id); if (e) e.value = ''; });
+  ['niche','maus'].forEach(function(k){ var s = el(BW_SPACE_UI[k].space); if (s) { delete s.dataset.filledPrice; delete s.dataset.filledLoc; } bwFillSpaceSelect(k, ''); });
   ['qNicheNameOtherRow','qMausNameOtherRow'].forEach(function(id){ var e = el(id); if (e) e.style.display = 'none'; });
   // Clear number inputs to 0
   ['qNichePrice','qNicheQty','qMausPrice','qMausQty','qExtraWords','qBronzeAsianChars','qBronzeCyrillicWords','qBronzeArabicLines','q3pWitnessVal','finDownAmt'
@@ -13575,13 +13716,20 @@ function restoreFieldState(state) {
       for (var k = 0; k < stale.length; k++) stale[k].parentNode.removeChild(stale[k]);
     }
     var v = state[id] || '';
+    // Space / Crypt lists are built from the building, so build them before assigning.
+    var spaceKind = isSel && BW_SPACE_BY_SEL[id];
+    if (spaceKind) {
+      var sc = BW_SPACE_UI[spaceKind];
+      bwFillSpaceSelect(spaceKind, state[sc.name] || '', v);
+      if (v) { e.dataset.filledPrice = String(state[sc.price] || ''); e.dataset.filledLoc = state[sc.loc] || ''; }
+    }
     e.value = v;
     if (isSel && v !== '' && e.selectedIndex === -1) {
       var opt = document.createElement('option');
       opt.value = v;
       opt.disabled = true;
       opt.className = BW_RETIRED_OPT_CLASS;
-      opt.textContent = BW_RETIRED_OPT_TEXT;
+      opt.textContent = e.getAttribute('data-retired-text') || BW_RETIRED_OPT_TEXT;
       e.appendChild(opt);
       e.value = v;
     }
