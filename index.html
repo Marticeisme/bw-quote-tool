@@ -11312,6 +11312,17 @@ function _fqLogoPngBytes(svgText, hPx){
     } catch(e){ reject(e); }
   });
 }
+// The brand font subsets in FQ_FONTS don't carry every accented letter (Ñ, ú, ...). pdf-lib drew those
+// blank, so "José Ñúñez" printed as "José  ñez". Map a letter the fonts can't draw to its plain letter
+// (Ñ -> N, ú -> u); drop only what has no plain form (emoji). Returns a per-character mapper for .replace().
+function _fqGlyphFitter(fonts){
+  var cs=null;
+  try { var sets=fonts.map(function(f){ return f.getCharacterSet(); }); cs=new Set(sets[0].filter(function(c){ return sets.every(function(x){ return x.indexOf(c)>=0; }); })); } catch(e){}
+  function ok(c){ return cs ? cs.has(c) : c<=0xFF; }
+  return function(ch){ var c=ch.charCodeAt(0); if(c<0x20||ok(c)) return ch;
+    var b=ch.normalize?ch.normalize('NFD').replace(/[\u0300-\u036f]/g,''):'';
+    return (b && b!==ch && b.split('').every(function(x){ return ok(x.charCodeAt(0)); })) ? b : ''; };
+}
 async function _fqBuildPDFBytes(model){
   if (typeof PDFLib === 'undefined') throw new Error('PDF library not loaded. Reload the page and try again.');
   var PDFDocument=PDFLib.PDFDocument, rgb=PDFLib.rgb, StandardFonts=PDFLib.StandardFonts;
@@ -11350,9 +11361,10 @@ async function _fqBuildPDFBytes(model){
   var logoW=null;
   try { logoW=await doc.embedPng(await _fqLogoPngBytes(_fqWhiteLogoSVG(), 226)); } catch(e){ console.warn('white logo embed failed',e); }
 
+  var _fitCh=_fqGlyphFitter([serif,serifB,sans,sansB,sansH]);
   function clean(s){ if(s==null)return ''; return String(s)
     .replace(/[‐-―−]/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/…/g,'...')
-    .replace(/·/g,'\xb7').replace(/×/g,'x').replace(/ /g,' ').replace(/[^\x00-\xFF]/g,''); }
+    .replace(/·/g,'\xb7').replace(/×/g,'x').replace(/ /g,' ').replace(/[\s\S]/g,_fitCh); }
   function wrap(text,font,size,maxW){ var words=clean(text).split(/\s+/),lines=[],cur='';
     words.forEach(function(w){ var t=cur?cur+' '+w:w; if(font.widthOfTextAtSize(t,size)>maxW && cur){lines.push(cur);cur=w;} else cur=t; });
     if(cur)lines.push(cur); return lines; }
@@ -25144,7 +25156,8 @@ async function _bwPacketCoverBytes(family, contents) {
   }
   var logo = null;
   try { logo = await doc.embedPng(await _fqLogoPngBytes(_fqWhiteLogoSVG(), 226)); } catch (e) {}
-  function clean(s){ return String(s == null ? '' : s).replace(/[‐-―−]/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/·/g,'\xb7').replace(/[^\x00-\xFF]/g,''); }
+  var _fitCh=_fqGlyphFitter([serif,serifB,sans,sansB,sansH]);
+  function clean(s){ return String(s == null ? '' : s).replace(/[‐-―−]/g,'-').replace(/[’‘]/g,"'").replace(/[“”]/g,'"').replace(/·/g,'\xb7').replace(/[\s\S]/g,_fitCh); }
   var page = doc.addPage([PW, PH]);
   function rt(t, xR, y, font, size, color){ t = clean(t); page.drawText(t, { x: xR - font.widthOfTextAtSize(t, size), y: y, size: size, font: font, color: color }); }
   function track(s, x, y, font, size, color, ls){ s = clean(s).toUpperCase(); var cx = x;
