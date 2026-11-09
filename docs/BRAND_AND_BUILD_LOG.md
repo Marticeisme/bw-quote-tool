@@ -3023,3 +3023,13 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   box was 12 pt, left-aligned. Template-only change (incremental update); the fill code is unchanged.
 - Verified: rendered "2 of 3" through pdf-lib and in a real ClearPoint cremation contract; test-clearpoint-fields 72,
   test-clearpoint-nojs 27, test-ga-rental-casket 7, all passing.
+
+## 2026-11-09: Accented letters in quote PDFs
+
+- The brand fonts embedded in the family quote PDF and the Family Packet cover are subsets that leave out some
+  accented letters (Ñ, ú and similar). Those letters used to print blank: "José Ñúñez" came out "José  ñez". They now
+  print as the plain letter (Ñ -> N, ú -> u) via `_fqGlyphFitter`; letters the fonts have (é, ñ) are unchanged, and
+  only characters with no plain form (emoji) are dropped. The Print view was never affected.
+- Verified: rendered a quote PDF and a Family Packet cover for "José Ñúñez-O'Brien · Nguyễn Văn" (reads "José
+  Nuñez-O'Brien · Nguyen Van", no blanks); test-fq-pdf-vs-print builds all three quote types. test-fq-subtotal-print
+  has 3 failures on the Combined summary panel that fail identically without this change.
