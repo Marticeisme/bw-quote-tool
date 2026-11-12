@@ -3058,3 +3058,16 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: 200-check Playwright run (laptop + phone, every control, ?family, print), verify_guide_pages,
   verify_family_type, verify_print_header, verify_table_alignment, verify_photo_first all passing; slide
   fit checked at 1024x768 to 2560x1440.
+
+## 2026-11-12: Batesville price check (Grey Doeskin $1,610)
+
+- Checked Batesville_Prices_2026-11-12.csv (694 items) against all 500 Batesville item prices in the quote tool
+  (caskets, urns, rental caskets, cremation and alternative containers, tribute panels, kits, LifeStories, flag
+  cases). Only one had changed: Grey Doeskin Oval Cut Top #147970, $1,600 -> $1,610. Missing items were not added,
+  per Martice.
+- Changed in `index.html` (CASKET_DATA + `#fhCremContainer`), the golden price index, `all-caskets.html`,
+  `wood-caskets.html`, `cremation-containers-rental-caskets.html` and `cremation-guide.html`; rebuilt All Caskets,
+  Wood Caskets and Cremation Containers and Rental Caskets PDFs. INDEX.csv on D: updated too so catalog rebuilds
+  keep $1,610. Commit f99b6109.
+- Verified: syntax check clean, test-price-index-golden 6/6, in-page read shows $1,610 in all three places,
+  verify_catalogs ALL PAGES OK, rebuilt PDFs read $1,610.00.
