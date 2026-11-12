@@ -224,7 +224,7 @@ const PER_GUIDE_CAPS = new Map([
   // is left is rules and prices, and cutting those would be cutting the guide. Held at 5
   // so a future edit that re-lengthens it fails here rather than drifting to six.
   ['Bronze Markers.pdf', 5],
-  ['Burial Vault Guide.pdf', 2],
+  ['Burial Vault Guide.pdf', 5],  // 2026-11-11: photo + price sheet, four vaults to a page
   ['Terramation Guide.pdf', 3],  // 2026-10-01: GPL prices + Receiving the Soil + Practical Matters restored
   // Medicaid Professional Reference is the audit's one "do not condense" row: its audience
   // is case workers and attorneys and the WAC/RCW citations are the product. It got the
@@ -353,10 +353,12 @@ async function onePage(file, sectionSel, childSel, label) {
   else fail(`${label}: ${r.n} items span ${r.span}px, more than one ${PAGE_PX}px page`);
 }
 
-await onePage('vault-guide.html?print=family', '#urn-vaults', '.uv-card', 'vault-guide urn vault cards');
-// `.vault-table` is suppressed in print by the pricing rule, so these two now measure what
-// the family actually receives: the section plus the invitation that replaced its table.
-await onePage('vault-guide.html?print=family', '#urn-vaults', '.uv-card, .print-invite', 'vault-guide urn vault section incl. invite');
+// vault-guide.html's family PDF is a photo + price sheet since 2026-11-11 (operator: "just
+// the photo and the prices", then "a few per page so the photo is still large"): `#famSheet`,
+// built by the page script from the vault cards, four to a `.fs-page`. The urn-vault
+// section and its invitation are data-pdf="drop" there now, so the old two checks would
+// measure nothing; this one checks the first sheet page holds together on one page.
+await onePage('vault-guide.html?print=family', '#famSheet .fs-page', '.fs-card', 'vault-guide price sheet, first page');
 // NO `?print=family` on this one, deliberately: `#all-pricing` is `data-pdf="drop"`, so it
 // is not in the family PDF at all and the check would measure a display:none element and
 // self-report as hollow. What it gates is the FULL print — the page a family gets from
@@ -606,12 +608,24 @@ for (const g of GUIDES) {
 
   const page = await browser.newPage({ viewport: { width: 816, height: PAGE_PX } });
   await page.goto(pathToFileURL(path.resolve(g)).href, { waitUntil: 'networkidle' });
-  const screen = await page.evaluate(() => ({
-    sup: [...document.querySelectorAll('[data-print-suppress]')].filter((e) => e.getBoundingClientRect().height > 0).length,
-    supTotal: document.querySelectorAll('[data-print-suppress]').length,
-    inv: [...document.querySelectorAll('.print-invite')].filter((e) => e.getBoundingClientRect().height > 0).length,
-    invTotal: document.querySelectorAll('.print-invite').length,
-  }));
+  // `.print-catalog` (vault-guide.html, 2026-11-10) is a block that is print-only BY
+  // DESIGN: on screen its product cards are replaced by the Compare the Vaults grid,
+  // which the page's script builds from those same cards. Its price chips are therefore
+  // hidden on screen for a reason that has nothing to do with the pricing rule, so they
+  // are left out of the screen count here, and in exchange every one of them must show
+  // up as a price in the on-screen grid (`catalogShown`), or the gate fails just the same.
+  const screen = await page.evaluate(() => {
+    const sup = [...document.querySelectorAll('[data-print-suppress]')].filter((e) => !e.closest('.print-catalog'));
+    const cat = [...document.querySelectorAll('.print-catalog [data-print-suppress]')].map((e) => e.textContent.trim());
+    const grid = [...document.querySelectorAll('#cmpGrid .cmp-price')].filter((e) => e.getBoundingClientRect().height > 0).map((e) => e.textContent.trim());
+    return {
+      sup: sup.filter((e) => e.getBoundingClientRect().height > 0).length,
+      supTotal: sup.length,
+      catalogMissing: cat.filter((p, i) => grid.filter((q) => q === p).length < cat.filter((q) => q === p).length).length,
+      inv: [...document.querySelectorAll('.print-invite')].filter((e) => e.getBoundingClientRect().height > 0).length,
+      invTotal: document.querySelectorAll('.print-invite').length,
+    };
+  });
   await page.emulateMedia({ media: 'print' });
   const print = await page.evaluate(() => ({
     sup: [...document.querySelectorAll('[data-print-suppress]')].filter((e) => e.getBoundingClientRect().height > 0).length,
@@ -623,6 +637,7 @@ for (const g of GUIDES) {
   if (print.sup !== 0) problems.push(`${print.sup} suppressed element(s) still print`);
   if (print.inv !== screen.invTotal) problems.push(`${screen.invTotal - print.inv} invitation(s) do not print`);
   if (screen.supTotal && screen.sup !== screen.supTotal) problems.push('the rule leaked onto SCREEN — priced tables are hidden on the website');
+  if (screen.catalogMissing) problems.push(`${screen.catalogMissing} print-catalog price(s) missing from the on-screen comparison`);
   if (screen.invTotal && screen.inv !== 0) problems.push('invitation blocks are visible on SCREEN');
   if (drifted.length) problems.push(drifted.join('; '));
 

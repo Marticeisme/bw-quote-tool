@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Burial Vault Guide · Bonney Watson</title>
+<!-- ?family: the navigation-free link handed to a family. Same test as urns-guide.html and
+     guides.html (keep the regex identical): hides the All Guides button and the footer. -->
+<script>if(/[?&]family(=|&|$)/.test(location.search))document.documentElement.classList.add('family-view');</script>
+<style>html.family-view .header-back,html.family-view .site-footer{display:none;}</style>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -80,8 +84,8 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--whit
 .tier-card p{font-size:13px;color:var(--text-light);line-height:1.5;}
 .tier-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-bottom:10px;}
 .tier-badge.premium{background:#f0e6d0;color:#8b6914;}
-.tier-badge.triune{background:#dce8f0;color:#466e86;}
-.tier-badge.standard{background:#e8eae6;color:#5a6a5a;}
+.tier-badge.standard{background:#dce8f0;color:#466e86;}
+.tier-badge.basic{background:#e8eae6;color:#5a6a5a;}
 
 /* ── PRODUCT CARDS ── */
 .products-wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
@@ -354,7 +358,331 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
   .header-back{padding:5px 10px;font-size:11.5px;white-space:normal;}
   .header-inner a{white-space:normal;}
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PRESENTATION LAYER (2026-11-10). Operator: "a visual guide I show on the screen
+   when I'm with a family", not something people read. So on SCREEN each section is
+   a slide: one headline, then pictures. The long text (intro paragraphs, section
+   blurbs, the product cards) stays in the markup for PRINT and the family PDF only,
+   which read exactly the same markup they always have. New screen-only sections
+   carry data-pdf="drop" and are hidden in print below.
+   ════════════════════════════════════════════════════════════════════════════ */
+#how,#protection,#compare,#personal,#urn-vaults,#graveside,#all-pricing,#cmpSide{scroll-margin-top:52px;}
+.cmp-chip:focus-visible,.cmp-open:focus-visible,.quick-nav a:focus-visible,.header-full:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
+.header-full{background:transparent;font-family:'Source Sans 3',sans-serif;cursor:pointer;}
+
+@media screen{
+  html{scroll-snap-type:y proximity;}
+  .section-header{padding:44px 24px 22px;}
+  .section-header .kicker{font-size:12.5px;}
+  .section-header h2{font-size:44px;margin-bottom:0;}
+  .section-header p{display:none;}
+  .vault-intro-text{display:none;}
+  .vault-intro{max-width:1240px;padding:34px 28px 40px;}
+  .vault-intro-grid{display:block;}
+  .tier-card p{display:none;}
+}
+/* Each section fills the screen it is shown on. */
+@media screen and (min-width:900px){
+  .vault-intro,#protection,#compare,#personal,#urn-vaults,#graveside,#all-pricing{min-height:calc(100vh - 52px);scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;}
+  #urn-vaults,#compare{justify-content:flex-start;}
+}
+
+/* ── Slide nav: dots down the right edge on a wide screen, pills otherwise ── */
+@media screen and (min-width:1100px){
+  .quick-nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:150;display:flex;flex-direction:column;gap:12px;background:none;border:0;padding:0;text-align:right;}
+  .quick-nav a{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:0;padding:0;border:0;border-radius:0;background:none!important;color:var(--navy);font-size:12.5px;}
+  .quick-nav a::after{content:'';flex:none;width:12px;height:12px;border-radius:50%;background:#cfd8e0;border:2px solid #fff;box-shadow:0 0 0 1px #b5c2cd;transition:background .2s,transform .2s;}
+  .quick-nav a.on::after{background:var(--orange);box-shadow:0 0 0 1px var(--orange);transform:scale(1.2);}
+  .quick-nav a span{opacity:0;transform:translateX(6px);transition:opacity .15s,transform .15s;background:var(--navy-deep);color:#fff;padding:5px 10px;border-radius:6px;white-space:nowrap;}
+  .quick-nav a:hover span,.quick-nav a:focus-visible span{opacity:1;transform:none;}
+}
+
+
+/* ── Slide 2: three levels ── */
+@media screen{
+  .tiers-row{max-width:1150px;gap:28px;}
+  .tier-card.is-link{cursor:pointer;}
+  .tier-card.is-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px;}
+  .tier-card img{height:min(38vh,300px);}
+  .tier-card h3{font-size:24px;}
+  .tier-card .tier-badge{font-size:11.5px;}
+}
+.tier-go{display:inline-block;margin-top:8px;font-size:14px;font-weight:700;color:var(--orange);}
+
+/* ── Slide 3: our vaults (built from the .print-catalog cards) ── */
+@media screen{.print-catalog{display:none;}}
+.cmp-wrap{max-width:1180px;margin:0 auto 40px;padding:0 24px;}
+.cmp-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.cmp-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.cmp-chip{font:600 15px/1 'Source Sans 3',sans-serif;color:var(--navy);background:var(--white);border:1.5px solid var(--gray-mid);border-radius:24px;padding:11px 18px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.cmp-chip:hover{border-color:var(--navy);}
+.cmp-chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;}
+.cmp-chip .n{font-weight:400;opacity:.7;}
+.cmp-sort{font:600 14px/1 'Source Sans 3',sans-serif;color:var(--text);background:var(--offwhite);border:1px solid var(--gray-mid);border-radius:8px;padding:11px 14px;cursor:pointer;}
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;}
+.cmp-card{position:relative;background:var(--white);border:1px solid var(--gray-mid);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.cmp-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.1);}
+.cmp-card.picked{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);}
+.cmp-open{all:unset;display:block;cursor:pointer;flex:1;}
+.cmp-img{display:block;position:relative;overflow:hidden;aspect-ratio:4/3;background:linear-gradient(180deg,#eef1f5 0%,#d8dde4 100%);}
+.cmp-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.cmp-img img.contain{object-fit:contain;padding:12px;}
+.cmp-body{display:block;padding:12px 14px 4px;}
+.cmp-body .tier-badge{margin-bottom:6px;}
+.cmp-name{display:block;font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:700;color:var(--navy);line-height:1.15;}
+.cmp-price{display:block;font-size:22px;font-weight:700;color:var(--orange);margin:4px 0 2px;font-variant-numeric:tabular-nums;}
+.cmp-warr{display:inline-block;font-size:13px;font-weight:700;color:#2c6145;background:#e9f3ed;border-radius:12px;padding:3px 9px;margin:2px 0 4px;}
+.cmp-warr-note{font-size:12.5px;color:var(--text-light);text-align:center;margin-top:12px;}
+.cmp-foot{display:flex;align-items:center;justify-content:flex-end;padding:6px 12px 12px;}
+.cmp-pick{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;padding:7px 10px;border-radius:8px;background:var(--offwhite);}
+.cmp-pick input{width:18px;height:18px;accent-color:var(--orange);cursor:pointer;}
+.cmp-empty{grid-column:1/-1;text-align:center;color:var(--text-light);padding:30px 0;}
+.cmp-note{font-size:14px;color:var(--orange-dark);min-height:20px;margin-top:8px;text-align:right;}
+.cmp-side{margin-top:24px;background:var(--cream);border:1px solid var(--warm-border);border-radius:16px;padding:20px;}
+.cmp-side-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.cmp-side-head h3{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--navy);}
+.cmp-side-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.cmp-cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:16px;}
+.cmp-col{background:var(--white);border:1px solid var(--warm-border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+.cmp-col .cmp-img{aspect-ratio:16/10;}
+.cmp-col-body{padding:12px 16px 16px;}
+.cmp-row{border-top:1px solid var(--rule);padding:8px 0;margin-top:8px;font-size:15px;line-height:1.45;color:var(--text);}
+.cmp-row ul{list-style:none;}
+.cmp-row li{padding:2px 0 2px 16px;position:relative;}
+.cmp-row li::before{content:'';position:absolute;left:0;top:10px;width:7px;height:7px;border-radius:50%;background:var(--orange);opacity:.65;}
+.cmp-remove{all:unset;cursor:pointer;font-size:13px;font-weight:700;color:var(--orange-dark);margin-top:6px;}
+.cmp-tray{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;background:var(--navy-deep);color:#fff;border-radius:40px;padding:8px 8px 8px 20px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:15px;font-weight:600;max-width:calc(100vw - 24px);}
+.cmp-tray[hidden]{display:none;}
+.cmp-tray span{white-space:nowrap;}
+.cmp-tray button{font:700 14px/1 'Source Sans 3',sans-serif;border:0;border-radius:30px;padding:12px 17px;cursor:pointer;white-space:nowrap;}
+.cmp-tray .go{background:var(--orange);color:#fff;}
+.cmp-tray .go:disabled{background:#6d8597;cursor:default;}
+.cmp-tray .clear{background:rgba(255,255,255,.12);color:#fff;}
+
+/* The vault viewer: photo first, big. */
+@media screen and (min-width:769px){
+  .product-modal{max-width:1040px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);align-items:stretch;}
+  .product-modal-img{height:100%;min-height:440px;aspect-ratio:auto;border-radius:14px 0 0 14px;}
+  .product-modal-body{display:flex;flex-direction:column;justify-content:center;padding:36px 32px;}
+}
+@media screen{
+  .product-modal-name{font-size:36px;}
+  .product-modal-price{font-size:30px;}
+  .product-modal-tier{font-size:12px;}
+  .product-modal-desc{display:none;}
+  .product-modal-specs li{font-size:16px;}
+}
+.uv-card.is-link{cursor:pointer;}
+.uv-card.is-link:focus-visible{outline:3px solid var(--orange);outline-offset:3px;}
+
+/* ── Slide 4: personalized lids ── */
+.pl-grid{max-width:1180px;margin:0 auto 40px;padding:0 24px;display:grid;grid-template-columns:1.45fr 1fr;grid-template-rows:1fr 1fr;gap:16px;height:min(60vh,560px);}
+.pl-grid figure{margin:0;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--warm-border);}
+.pl-grid img{width:100%;height:100%;object-fit:cover;display:block;}
+.pl-grid .pl-hero{grid-row:1/3;display:flex;align-items:center;}
+.pl-grid .pl-hero img{object-fit:contain;height:auto;}
+
+/* ── Photos ── */
+.photo-band{max-width:1180px;margin:0 auto 28px;padding:0 24px;}
+.photo-fig{margin:0;border-radius:14px;overflow:hidden;background:var(--offwhite);border:1px solid var(--warm-border);position:relative;}
+.photo-fig img{width:100%;display:block;aspect-ratio:16/6;object-fit:cover;max-height:42vh;}
+@media screen and (min-width:900px){#urn-vaults .uv-grid{grid-template-columns:repeat(4,1fr);max-width:1180px;gap:16px;}#urn-vaults .photo-fig img{max-height:32vh;}#urn-vaults .uv-card-img{aspect-ratio:4/3;}}
+.photo-fig figcaption{position:absolute;left:14px;bottom:12px;font-size:14px;font-weight:600;color:#fff;background:rgba(20,32,42,.7);padding:6px 12px;border-radius:20px;}
+
+
+/* ── Phone and narrow tablet ── */
+
+@media(max-width:768px){
+  .section-header h2{font-size:32px;}
+  .vault-intro{padding:20px 16px 28px;}
+  .cmp-wrap,.photo-band,.pl-grid{padding:0 16px;}
+  .cmp-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .cmp-name{font-size:18px;}
+  .cmp-price{font-size:18px;}
+  .cmp-body{padding:10px 10px 2px;}
+  .cmp-foot{padding:4px 8px 10px;justify-content:flex-start;}
+  .cmp-pick{font-size:13px;}
+  .cmp-chip{font-size:13.5px;padding:9px 13px;}
+  .cmp-side{padding:14px;}
+  .cmp-cols{grid-auto-columns:minmax(78%,1fr);}
+  .pl-grid{grid-template-columns:1fr;grid-template-rows:auto;height:auto;}
+  .pl-grid .pl-hero{grid-row:auto;}
+  .pl-grid img{aspect-ratio:16/9;height:auto;}
+  .pl-grid .pl-hero img{aspect-ratio:auto;}
+  .photo-fig img{aspect-ratio:4/3;}
+  .cmp-tray{font-size:13px;padding-left:14px;}
+}
+
+/* The family PDF: four vaults to a page, photos large enough to see what each one is. */
+@media print{
+  html[data-print-mode="family"] .fam-sheet{display:block!important;padding:4px 32px 0;}
+  .fs-page{break-after:page;page-break-after:always;}
+  .fs-page:last-child{break-after:auto;page-break-after:auto;}
+  .fs-h{font-family:'Cormorant Garamond',serif;font-size:18pt;font-weight:700;color:#33505f;margin:4px 0 8px;}
+  .fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .fs-card{background:#fff;border:1px solid #d9d3c7;border-radius:8px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;}
+  .fs-card img{display:block;width:100%;height:250px;object-fit:contain;background:linear-gradient(180deg,#f1f3f5,#dde2e7);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fs-body{padding:8px 12px 10px;}
+  .fs-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+  .fs-name{font-family:'Cormorant Garamond',serif;font-size:16pt;font-weight:700;color:#33505f;line-height:1.1;}
+  .fs-price{font-size:15pt;font-weight:700;color:#c23a0d;white-space:nowrap;}
+  .fs-body .tier-badge{font-size:7pt;padding:2px 8px;margin:4px 0 0;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fs-made{font-size:10.5pt;color:#45525a;line-height:1.3;margin-top:4px;}
+  .fs-detail{font-size:9pt;color:#6b7680;line-height:1.2;margin-top:2px;}
+}
+/* Print: the long text, the printed catalog and the price tables print as they always
+   have. Every screen-only slide drops out, so Ctrl+P stays 6 pages and the family PDF 2. */
+@media print{
+  .tier-go,#compare,.cmp-tray,#personal,.photo-band,.header-full{display:none!important;}
+}
+
+/* ── Slide 1: what happens over time. Three graves side by side, one clock. ── */
+.tl-title{text-align:center;font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;color:var(--navy);line-height:1.15;}
+.tl-title::after{content:'';display:block;width:50px;height:2.5px;background:var(--orange);border-radius:2px;margin:14px auto 22px;}
+.tl-panels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
+.tl-panel{background:#fff;border:1px solid var(--gray-mid);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;}
+.tl-panel.is-vault{border-color:#9cc4ad;box-shadow:0 0 0 2px rgba(63,125,90,.18);}
+.tl-head{font:700 17px/1.2 'Source Sans 3',sans-serif;color:var(--navy);text-align:center;padding:12px 10px;background:var(--offwhite);border-bottom:1px solid var(--gray-mid);}
+.tl-panel.is-vault .tl-head{background:#e9f3ed;color:#2c6145;}
+.tl-panel svg{display:block;width:100%;height:auto;max-height:calc(100vh - 360px);}
+/* Fill the screen it's shown on (operator 2026-11-11: "so much white space"). The three
+   graves are sized from the screen HEIGHT (each drawing is 400x420, and about 330px goes to
+   the title, labels and controls), then capped by the width, so on a big monitor or TV
+   they grow instead of floating in a fixed 1240px column. The 112px leaves room for the
+   slide dots on the right. */
+@media screen and (min-width:900px){
+  .vault-intro{max-width:none;padding:12px 64px 16px;}
+  .tl-title{font-size:clamp(36px,3.2vw,56px);}
+  .tl-title::after{margin:10px auto 16px;}
+  .tl-panels,.tl-controls{width:min(calc((100vh - 330px) * 2.857 + 36px), calc(100vw - 128px));margin-left:auto;margin-right:auto;}
+  .tl-panel svg{max-height:none;}
+  .tl-head{font-size:clamp(16px,1.15vw,22px);padding:10px;}
+  .tl-state{font-size:clamp(17px,1.2vw,24px);min-height:50px;}
+}
+/* Big screens (a large monitor or a TV): every slide grows to fill the display instead of
+   sitting in a 1180px column. Below 1500px wide nothing here applies. */
+@media screen and (min-width:1500px){
+  .section-header{padding:28px 24px 18px;}
+  .section-header h2{font-size:clamp(44px,3vw,60px);}
+  .section-header .kicker{font-size:clamp(12.5px,.8vw,16px);}
+  /* three levels */
+  .tiers-row{max-width:min(calc(100vw - 128px),calc((100vh - 420px) * 2.6));gap:32px;}
+  .tier-card img{height:calc(100vh - 470px);min-height:260px;}
+  .tier-card h3{font-size:clamp(24px,1.7vw,34px);}
+  .tier-card .tier-badge{font-size:clamp(11.5px,.75vw,15px);}
+  .tier-go{font-size:clamp(14px,.9vw,18px);}
+  /* our vaults: wider grid, bigger cards */
+  .cmp-wrap{max-width:calc(100vw - 128px);}
+  .cmp-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:20px;}
+  .cmp-name{font-size:clamp(23px,1.45vw,30px);}
+  .cmp-price{font-size:clamp(22px,1.4vw,28px);}
+  .cmp-chip{font-size:clamp(15px,.9vw,18px);padding:12px 20px;}
+  .cmp-cols{grid-auto-columns:minmax(300px,1fr);}
+  /* personalized lids */
+  .pl-grid{max-width:calc(100vw - 128px);height:calc(100vh - 250px);}
+  /* urn vaults: all seven in one row under the photos */
+  #urn-vaults .photo-band,#urn-vaults .sp-grid{max-width:calc(100vw - 128px);}
+  .cmp-grid .cmp-img{aspect-ratio:16/10;}
+  #urn-vaults .photo-fig img{max-height:34vh;}
+  #urn-vaults .uv-grid{grid-template-columns:repeat(7,minmax(0,1fr));max-width:calc(100vw - 128px);gap:16px;}
+  .uv-card-name{font-size:clamp(18px,1.15vw,24px);}
+  .uv-card-price{font-size:clamp(22px,1.3vw,28px);}
+  /* at the graveside: the photo as large as the screen allows */
+  #graveside .gsc{max-width:min(calc(100vw - 128px),calc((100vh - 330px) * 1.62));}
+  #graveside .gsp-stage{height:calc(100vh - 360px);}
+  .gsp-thumbs img{height:clamp(64px,7vh,110px);}
+  .gsp-thumbs span{font-size:clamp(14px,.85vw,18px);}
+}
+.tl-state{display:flex;align-items:center;justify-content:center;gap:9px;min-height:54px;padding:10px 12px;font:700 18px/1.2 'Source Sans 3',sans-serif;color:var(--text);text-align:center;border-top:1px solid var(--gray-mid);transition:background .3s,color .3s;}
+.tl-state .dot{flex:none;width:12px;height:12px;border-radius:50%;background:#9fb0bd;}
+.tl-state.ok{color:#2c6145;background:#f1f8f3;}.tl-state.ok .dot{background:#3f7d5a;}
+.tl-state.warn{color:#8a5a12;background:#fdf6ea;}.tl-state.warn .dot{background:#d9922b;}
+.tl-state.bad{color:#9c3a1b;background:#fcf0ec;}.tl-state.bad .dot{background:#c2502c;}
+.tl-controls{display:flex;align-items:center;gap:18px;margin-top:18px;}
+.tl-play{flex:none;display:inline-flex;align-items:center;gap:9px;font:700 17px/1 'Source Sans 3',sans-serif;color:#fff;background:var(--orange);border:0;border-radius:40px;padding:14px 24px;cursor:pointer;box-shadow:0 4px 14px rgba(232,70,16,.3);}
+.tl-play:hover{background:var(--orange-dark);}
+.tl-play:focus-visible,.tl-stops button:focus-visible,.gsc-steps button:focus-visible{outline:3px solid var(--navy);outline-offset:3px;}
+.tl-play-ico{font-size:14px;}
+.tl-rail{flex:1;min-width:0;}
+.tl-rail input[type=range]{width:100%;accent-color:var(--orange);height:28px;cursor:pointer;display:block;}
+.tl-stops{display:flex;justify-content:space-between;}
+.tl-stops button{all:unset;cursor:pointer;font:600 15px/1.2 'Source Sans 3',sans-serif;color:var(--text-light);padding:4px 2px;}
+.tl-stops button.on{color:var(--navy);text-decoration:underline;text-decoration-color:var(--orange);text-decoration-thickness:3px;text-underline-offset:6px;}
+.drop{animation:vfDrop 2.8s linear infinite;animation-delay:var(--d,0s);opacity:0;}
+@keyframes vfDrop{0%{transform:translateY(0);opacity:0}8%{opacity:.95}82%{opacity:.95}100%{transform:translateY(var(--stop,200px));opacity:0}}
+@media (prefers-reduced-motion:reduce){.drop{animation:none;opacity:.8;transform:translateY(calc(var(--stop,200px) * .6));}}
+.tl-marker{transition:transform .2s linear;transform-box:fill-box;transform-origin:50% 100%;}
+
+/* ── The graveside: real photos, one at a time ── */
+.gsc,.sp-grid,.pl-grid,.cmp-wrap,.photo-band,.tl{width:100%;box-sizing:border-box;}
+.gsc{max-width:1240px;margin:0 auto 24px;padding:0 24px;}
+#graveside .section-header{padding:18px 24px 12px;}
+#graveside .section-header h2{font-size:38px;}
+.gsp-stage{position:relative;border-radius:16px;overflow:hidden;background:#1e2a33;height:min(calc(100vh - 300px),660px);}
+.gsp-stage img{width:100%;height:100%;object-fit:cover;object-position:50% 55%;display:block;transition:opacity .25s;}
+.gsp-stage img.fade{opacity:0;}
+.gsp-cap{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:16px;padding:60px 28px 22px;background:linear-gradient(rgba(10,18,25,0),rgba(10,18,25,.82));color:#fff;pointer-events:none;}
+.gsp-cap .gsc-words strong{color:#fff;font-size:36px;}
+.gsp-cap .gsc-words em{color:rgba(255,255,255,.9);}
+.gsc-n{flex:none;width:46px;height:46px;border-radius:50%;background:var(--orange);color:#fff;font:700 21px/46px 'Source Sans 3',sans-serif;text-align:center;}
+.gsc-words strong{display:block;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--navy);line-height:1.1;}
+.gsc-words em{display:block;font-style:normal;font-size:18px;margin-top:3px;}
+.gsc-words em:empty{display:none;}
+.gsp-arrow{position:absolute;top:50%;transform:translateY(-50%);width:56px;height:56px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:var(--navy);font:400 40px/52px 'Source Sans 3',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.gsp-arrow.prev{left:16px;}
+.gsp-arrow.next{right:16px;}
+.gsp-arrow:disabled{opacity:.3;cursor:default;}
+.gsp-arrow:focus-visible{outline:3px solid var(--orange);outline-offset:2px;}
+.gsc-controls{display:flex;align-items:center;gap:16px;margin-top:14px;}
+.gsc-steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1;}
+.gsp-thumbs button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:block;border-radius:10px;overflow:hidden;border:3px solid transparent;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.gsp-thumbs button[aria-current="step"]{border-color:var(--orange);}
+.gsp-thumbs img{width:100%;height:64px;object-fit:cover;display:block;}
+.gsp-thumbs span{display:block;font:600 14px/1 'Source Sans 3',sans-serif;color:var(--navy);padding:7px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gsp-thumbs b{color:var(--orange);margin-right:3px;}
+
+/* ── Real photos ── */
+.sp-grid{max-width:1180px;margin:0 auto 40px;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.sp-grid .photo-fig img{aspect-ratio:16/10;max-height:none;height:100%;}
+
+@media screen and (max-width:899px){
+  .tl-title{font-size:32px;}
+  .tl-panels{grid-template-columns:1fr;gap:12px;}
+  .tl-panel svg{max-height:none;}
+  .tl-controls{flex-direction:column;align-items:stretch;gap:10px;}
+  .tl-play{justify-content:center;}
+  .tl-stops button{font-size:13px;}
+  .gsc{padding:0 12px;}
+  .gsp-stage{height:auto;aspect-ratio:4/3;}
+  .gsp-cap{padding:34px 14px 12px;gap:10px;}
+  .gsp-cap .gsc-words strong{font-size:22px;}
+  .gsc-words em{font-size:14px;}
+  .gsc-n{width:34px;height:34px;font-size:16px;line-height:34px;}
+  .gsp-arrow{width:42px;height:42px;font-size:30px;line-height:38px;}
+  .gsp-arrow.prev{left:8px;}.gsp-arrow.next{right:8px;}
+  .gsc-controls{flex-direction:column;align-items:stretch;gap:10px;}
+  .gsc-steps{gap:6px;}
+  .gsp-thumbs img{height:48px;}
+  .gsp-thumbs span{font-size:12px;padding:5px 6px;}
+  .sp-grid{grid-template-columns:1fr;padding:0 16px;}
+}
+
+/* Print: the three graves print at "many years later" with their verdicts; every
+   control and the screen-only slides drop out. */
+@media print{
+  .tl-title,.tl-controls,#graveside{display:none!important;}
+  .tl-panels{gap:4px;}
+  .tl-panel{border-radius:4px;}
+  .tl-panel svg{max-height:none;}
+  .tl-head{font-size:6.5pt;padding:2px;}
+  .tl-state{font-size:6.5pt;min-height:0;padding:2px;gap:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .tl-state .dot{width:6px;height:6px;}
+  html[data-print-mode="family"] .tl-head,html[data-print-mode="family"] .tl-state{font-size:10pt;line-height:1.15;}
+  .drop{animation:none!important;opacity:0!important;}
+}
 </style>
+<noscript><style>@media screen{.print-catalog{display:block!important;}#compare .cmp-wrap,.tl-controls,.gsc-controls{display:none;}}</style></noscript>
 <!-- BW:PRINT-CSS:START (generated by scripts/build_guide_print_system.mjs) -->
 <link rel="stylesheet" media="print" href="guide-print.css">
 <!-- BW:PRINT-CSS:END -->
@@ -411,6 +739,7 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
     <span class="header-est">Est. 1868</span>
     <span class="header-title">Burial Vault Guide</span>
     <div class="header-spacer"></div>
+    <button type="button" class="header-back header-full" id="fsBtn">Full screen</button>
     <a href="guides.html" class="header-back">All Guides</a>
   </div>
 </header>
@@ -434,45 +763,59 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
   <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
   <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
   <h1>Burial Vault Selection Guide</h1>
-  <p class="cover-sub">What a burial vault is, what each one is made of, and what it costs.</p>
+  <p class="cover-sub">What a burial vault does, what each one is made of, and what it costs.</p>
   <div class="cover-rule"></div>
 </section>
 
 <!-- ═══ QUICK NAV ═══ -->
-<nav class="quick-nav">
-  <a href="#protection">Protection Levels</a>
-  <a href="#premium">Premium</a>
-  <a href="#triune">Triune Series</a>
-  <a href="#std">Standard</a>
-  <a href="#urn-vaults">Urn Vaults</a>
-  <a href="#all-pricing">All Pricing</a>
+<nav class="quick-nav" id="slideNav" aria-label="Slides">
+  <a href="#how"><span>What a vault does</span></a>
+  <a href="#protection"><span>Three levels</span></a>
+  <a href="#compare"><span>Our vaults</span></a>
+  <a href="#personal"><span>Personalized lids</span></a>
+  <a href="#urn-vaults"><span>Urn vaults</span></a>
+  <a href="#graveside"><span>At the graveside</span></a>
+  <a href="#all-pricing"><span>All prices</span></a>
 </nav>
 
 <!-- ═══════════════════════════════════════════ -->
 <!-- WHAT IS A BURIAL VAULT?                     -->
 <!-- ═══════════════════════════════════════════ -->
-<div class="vault-intro">
+<div class="vault-intro" id="how" data-pdf="drop">
   <div class="vault-intro-grid">
     <div class="vault-intro-text">
       <div class="kicker">Understanding Burial Vaults</div>
       <h2>What Is a Burial Vault?</h2>
-      <p>A burial vault is a concrete container that goes into the grave, and the casket goes inside it. It's lined and sealed, so it keeps water out, and it carries the weight of the earth above it along with the mowers and backhoes that pass over the grave. It's also what stops the ground settling into a dip. That's why the cemetery asks for one.</p>
+      <p>A burial vault is a concrete container that goes into the grave, and the casket goes inside it. It's lined and sealed to resist water, and it carries the weight of the earth above it along with the mowers and backhoes that pass over the grave. It's also what stops the ground settling into a dip. That's why the cemetery asks for one.</p>
       <p data-pdf="drop">The vault is one of several charges beyond the cemetery space itself. The <a href="cemetery-property-guide.html" style="color:var(--orange);font-weight:700;text-decoration:none">Cemetery Property Guide</a> explains how it fits with the space, opening and closing, endowment care, and the rest.</p>
-      <p data-pdf="drop">They're made of high-strength concrete with a metal or plastic liner inside. That's as much as you can do to protect a casket in the ground.</p>
+      <p data-pdf="drop">They're made of high-strength concrete with a metal or plastic liner inside.</p>
       <div class="vault-intro-callout">
         <h3>If it isn't lined and sealed, it isn't a burial vault.</h3>
         <p>The other thing you'll hear about is an outer burial container, sometimes called a gravebox. That's a plain concrete box with drainage holes in it, so ground water runs straight through. It holds the ground up, but it doesn't keep water out, and it isn't lined or sealed. That's the whole difference between the two.</p>
       </div>
     </div>
+    <!-- WHAT A VAULT DOES. Our own drawing (2026-11-10), replacing the manufacturer's
+         illustration (vault-images/page02_img0.jpg, kept on disk). Three cases, the same
+         three the old picture's labels named: nothing, a plain concrete box, a lined and
+         sealed vault. Every caption is built from what this page already says (weight of
+         the earth and the mowers, settling into a dip, water, lined and sealed). No new
+         claims. In print it shows its current state plus the three-line legend. -->
     <div class="vault-intro-visual">
-      <div class="vault-intro-img">
-        <img loading="lazy" src="vault-images/page02_img0.jpg" alt="Illustration showing why burial vaults matter: heavy equipment passes over graves while vaults protect the casket underground">
-      </div>
-      <div class="vault-intro-labels">
-        <div class="vault-intro-label">No Outer Burial Container<span>No protection</span></div>
-        <div class="vault-intro-label">Unlined Outer Container<span>Limited protection</span></div>
-        <div class="vault-intro-label">Lined &amp; Sealed Vault<span>Full protection</span></div>
-      </div>
+      <figure class="tl" id="tl">
+        <h2 class="tl-title">What happens over time</h2>
+        <div class="tl-panels" id="tlPanels">
+          <div class="tl-panel" data-kind="none"><div class="tl-head">Nothing around the casket</div><svg viewBox="0 0 400 420" role="img" aria-label="A grave with nothing around the casket"></svg><div class="tl-state" aria-live="polite"></div></div>
+          <div class="tl-panel" data-kind="box"><div class="tl-head">Plain concrete box</div><svg viewBox="0 0 400 420" role="img" aria-label="A grave with a plain concrete box"></svg><div class="tl-state" aria-live="polite"></div></div>
+          <div class="tl-panel is-vault" data-kind="vault"><div class="tl-head">Lined, sealed vault</div><svg viewBox="0 0 400 420" role="img" aria-label="A grave with a lined, sealed vault"></svg><div class="tl-state" aria-live="polite"></div></div>
+        </div>
+        <div class="tl-controls">
+          <button type="button" class="tl-play" id="tlPlay"><span class="tl-play-ico" aria-hidden="true">&#9654;</span> <span class="tl-play-txt">Play</span></button>
+          <div class="tl-rail">
+            <input type="range" id="tlTime" min="0" max="100" value="0" step="1" aria-label="Time since the burial" aria-valuetext="Burial day">
+            <div class="tl-stops"><button type="button" data-t="0">Burial day</button><button type="button" data-t="50">Years later</button><button type="button" data-t="100">Many years later</button></div>
+          </div>
+        </div>
+      </figure>
     </div>
   </div>
 </div>
@@ -480,11 +823,11 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- PROTECTION LEVELS                           -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="protection">
+<div id="protection" data-pdf="drop">
   <div class="section-header">
     <div class="kicker">Understanding Protection</div>
     <h2>Three Levels of Vault Construction</h2>
-    <p>There are three levels. All three are reinforced concrete. What changes between them is what the concrete is lined with on the inside and covered with on the outside.</p>
+    <p>Wilbert makes them in three levels: Basic, Standard and Premium. All three are reinforced concrete. What changes is how much reinforcement there is and what the liner is made of.</p>
     <div class="rule"></div>
   </div>
 
@@ -493,35 +836,98 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
       <img loading="lazy" src="vault-images/page04_img0_478x541.jpg" alt="Premium protection cutaway">
       <div class="tier-card-body">
         <span class="tier-badge premium">Premium</span>
-        <h3>Bronze or Copper Lined</h3>
-        <p>Reinforced concrete inside a bronze or copper shell, with a metal liner inside that.</p>
+        <h3>Bronze or Copper</h3>
+        <p>Double- or triple-reinforced, with a bronze or copper liner. The Wilbert Bronze has bronze outside too.</p>
+        <span class="tier-go" aria-hidden="true">See these vaults &rarr;</span>
       </div>
     </div>
     <div class="tier-card">
-      <img loading="lazy" src="vault-images/page04_img1_478x538.jpg" alt="Triune protection cutaway">
-      <div class="tier-card-body">
-        <span class="tier-badge triune">Triune</span>
-        <h3>Metal-Lined Concrete</h3>
-        <p>Reinforced concrete with a liner of stainless steel, copper or bronze inside it.</p>
-      </div>
-    </div>
-    <div class="tier-card">
-      <img loading="lazy" src="vault-images/page04_img2_478x534.jpg" alt="Standard protection cutaway">
+      <img loading="lazy" src="vault-images/page04_img1_478x538.jpg" alt="Standard protection cutaway">
       <div class="tier-card-body">
         <span class="tier-badge standard">Standard</span>
-        <h3>Reinforced Concrete</h3>
-        <p>Reinforced concrete with a textured outer shell. No metal liner.</p>
+        <h3>Stainless Steel Lined</h3>
+        <p>Double-reinforced concrete with a stainless steel liner inside.</p>
+        <span class="tier-go" aria-hidden="true">See these vaults &rarr;</span>
+      </div>
+    </div>
+    <div class="tier-card">
+      <img loading="lazy" src="vault-images/page04_img2_478x534.jpg" alt="Basic protection cutaway">
+      <div class="tier-card-body">
+        <span class="tier-badge basic">Basic</span>
+        <h3>Plastic-Lined Concrete</h3>
+        <p>Single-reinforced concrete with a high-impact plastic liner inside. No metal.</p>
+        <span class="tier-go" aria-hidden="true">See these vaults &rarr;</span>
       </div>
     </div>
   </div>
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- PREMIUM TIER                                -->
+<!-- COMPARE THE VAULTS (screen only)            -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- Built by the script at the bottom FROM the .product-card blocks below, so a price
+     or a description lives in exactly one place. Those cards are .print-catalog: hidden
+     on screen, printed as before. Change a vault there, never here. -->
+<section id="compare" data-pdf="drop">
+  <div class="section-header">
+    <div class="kicker">Side by Side</div>
+    <h2>Compare the Vaults</h2>
+    <p>These are the casket vaults we carry. Tap one for the details, or tick Compare on two or three to see them next to each other.</p>
+    <div class="rule"></div>
+  </div>
+  <div class="cmp-wrap">
+    <div class="cmp-bar">
+      <div class="cmp-chips" role="group" aria-label="Show">
+        <button type="button" class="cmp-chip" data-filter="all" aria-pressed="true">All <span class="n"></span></button>
+        <button type="button" class="cmp-chip" data-filter="premium" aria-pressed="false">Premium <span class="n"></span></button>
+        <button type="button" class="cmp-chip" data-filter="standard" aria-pressed="false">Standard <span class="n"></span></button>
+        <button type="button" class="cmp-chip" data-filter="basic" aria-pressed="false">Basic <span class="n"></span></button>
+        <button type="button" class="cmp-chip" data-filter="veteran" aria-pressed="false">Veterans <span class="n"></span></button>
+        <a class="cmp-chip" href="#urn-vaults">Urn vaults &darr;</a>
+      </div>
+      <button type="button" class="cmp-sort" id="cmpSort" aria-pressed="false">Price: highest first</button>
+    </div>
+    <div class="cmp-grid" id="cmpGrid" aria-live="polite"></div>
+    <div class="cmp-note" id="cmpNote" aria-live="polite"></div>
+    <!-- Warranty years are Wilbert's (see the vault cards). Worded as Wilbert's warranty on
+         the vault, never as a promise of protection: FTC Funeral Rule 16 CFR 453.4(e)(2). -->
+    <p class="cmp-warr-note">Warranties are Wilbert's written warranties on the vault itself.</p>
+    <div class="cmp-side" id="cmpSide" hidden>
+      <div class="cmp-side-head">
+        <h3>Side by side</h3>
+        <button type="button" class="cmp-sort" id="cmpClear2">Clear</button>
+      </div>
+      <div class="cmp-side-scroll"><div class="cmp-cols" id="cmpCols"></div></div>
+    </div>
+  </div>
+</section>
+<div class="cmp-tray" id="cmpTray" hidden role="region" aria-label="Vaults picked to compare">
+  <span id="cmpCount">1 picked</span>
+  <button type="button" class="go" id="cmpGo">See side by side</button>
+  <button type="button" class="clear" id="cmpClear">Clear</button>
+</div>
+
+<!-- PERSONALIZED LIDS (screen only). Wilbert photos (operator: cleared for use,
+     2026-11-10) and one of ours, cropped so no name and no neighbouring marker shows. -->
+<section id="personal" data-pdf="drop">
+  <div class="section-header">
+    <div class="kicker">Personalizing</div>
+    <h2>Personalized Lids</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="pl-grid">
+    <figure class="pl-hero"><img loading="lazy" src="vault-images/personalized-lid-collage.jpg" alt="A Stainless Steel Triune vault with a photo collage on the lid panel"></figure>
+    <figure><img loading="lazy" src="vault-images/service-signing-lid.jpg" alt="A girl signing a personalized vault lid at the graveside"></figure>
+    <figure><img loading="lazy" src="vault-images/graveside-vault-lid.jpg" alt="A personalized vault lid with a sunset scene, on the lawn beside the grave"></figure>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PREMIUM PROTECTION (Wilbert's grouping)    -->
 <!-- ═══════════════════════════════════════════ -->
 <!-- FAMILY PDF: the three product line-ups condense to one block. See the note in
      scripts/build_guide_pdfs.mjs and docs/PDF_AUDIT.md Tier 3. -->
-<div id="premium" data-pdf="summary">
+<div id="premium" class="print-catalog" data-pdf="drop">
   <div class="pdf-summary">
     <div class="section-header">
       <div class="kicker">What we carry</div>
@@ -531,16 +937,16 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
     </div>
     <div class="costs">
       <ul class="charge-list">
-        <li><strong>Wilbert Bronze</strong><span>Premium. Cast bronze outside, reinforced concrete underneath, bronze lining inside. A personalization panel is included. The most expensive vault we carry</span></li>
-        <li><strong>Triune series</strong><span>Bronze, Copper, Stainless Steel, Cameo Rose, and the Veteran Triune in navy with patriotic accents. Reinforced concrete with a metal liner</span></li>
-        <li><strong>Standard series</strong><span>Tribute, Venetian, Continental, Monticello, and the Veteran Salute. Reinforced concrete with a decorative outer shell, no metal liner</span></li>
+        <li><strong>Premium</strong><span>The Wilbert Bronze, triple-reinforced with bronze inside and out and a personalization panel, the most expensive vault we carry. The Bronze and Copper Triune, double-reinforced with a bronze or copper liner</span></li>
+        <li><strong>Standard</strong><span>Stainless Steel Triune, Cameo Rose, and the Veteran Triune in navy with patriotic accents. Double-reinforced concrete with a stainless steel liner</span></li>
+        <li><strong>Basic</strong><span>Tribute, Venetian, Continental, Monticello, and the Veteran Salute. Single-reinforced concrete with a decorative outer shell and a plastic liner</span></li>
       </ul>
     </div>
   </div>
   <div class="section-header">
     <div class="kicker">Premium Protection</div>
-    <h2>The Wilbert Bronze</h2>
-    <p>Wilbert's top-of-the-line vault: solid bronze over reinforced concrete.</p>
+    <h2>Bronze and Copper</h2>
+    <p>The Wilbert Bronze is triple-reinforced, with bronze inside and out. The Bronze and Copper Triune are double-reinforced, with a bronze or copper liner.</p>
     <div class="rule"></div>
   </div>
 
@@ -555,28 +961,15 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <div class="product-price" data-print-suppress="chip">$29,815</div>
         <p class="product-desc">This is the most expensive vault we carry. Cast bronze on the outside, reinforced concrete underneath, bronze lining inside. A personalization panel is included.</p>
         <ul class="product-features">
+          <li>Triple-reinforced</li>
           <li>Solid bronze exterior shell</li>
           <li>Reinforced concrete core</li>
           <li>Bronze-lined interior</li>
           <li>Personalization panel included</li>
+          <li>100-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- TRIUNE SERIES                               -->
-<!-- ═══════════════════════════════════════════ -->
-<div id="triune" data-pdf="drop">
-  <div class="section-header">
-    <div class="kicker">Metal-Lined Protection</div>
-    <h2>The Triune Series</h2>
-    <p>Reinforced concrete with a metal liner inside and a decorative shell outside. The lid panel on these can be personalized.</p>
-    <div class="rule"></div>
-  </div>
-
-  <div class="products-wrap">
 
     <!-- Bronze Triune -->
     <div class="product-card">
@@ -584,15 +977,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page06_img0_1653x1279.jpg" alt="Bronze Triune Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge triune">Triune Series</span>
+        <span class="tier-badge premium">Premium Protection</span>
         <h2>Bronze Triune</h2>
         <div class="product-price" data-print-suppress="chip">$8,605</div>
         <p class="product-desc">Reinforced concrete with a bronze liner and a textured outer shell. The panel on the lid can carry artwork or an image you choose.</p>
         <ul class="product-features">
+          <li>Double-reinforced</li>
           <li>Bronze interior liner</li>
           <li>Reinforced concrete shell</li>
           <li>Decorative outer shell</li>
           <li>Customizable lid panel</li>
+          <li>75-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -603,18 +998,36 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page07_img0_1653x1279.jpg" alt="Copper Triune Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge triune">Triune Series</span>
+        <span class="tier-badge premium">Premium Protection</span>
         <h2>Copper Triune</h2>
         <div class="product-price" data-print-suppress="chip">$7,655</div>
         <p class="product-desc">The same vault with a copper liner instead of bronze. The lid panel can be personalized.</p>
         <ul class="product-features">
+          <li>Double-reinforced</li>
           <li>Copper interior liner</li>
           <li>Reinforced concrete shell</li>
           <li>Decorative outer shell</li>
           <li>Customizable lid panel</li>
+          <li>75-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- STANDARD PROTECTION (Wilbert's grouping)   -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="standard" class="print-catalog" data-pdf="drop">
+  <div class="section-header">
+    <div class="kicker">Standard Protection</div>
+    <h2>Stainless Steel Lined</h2>
+    <p>Double-reinforced concrete with a stainless steel liner inside and a decorative shell outside. The lid panel on these can be personalized.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="products-wrap">
 
     <!-- Stainless Steel Triune -->
     <div class="product-card">
@@ -622,15 +1035,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page08_img0_1653x1279.jpg" alt="Stainless Steel Triune Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge triune">Triune Series</span>
+        <span class="tier-badge standard">Standard Protection</span>
         <h2>Stainless Steel Triune</h2>
         <div class="product-price" data-print-suppress="chip">$6,925</div>
         <p class="product-desc">The same vault with a stainless steel liner. The lid panel can hold a photo collage or artwork.</p>
         <ul class="product-features">
+          <li>Double-reinforced</li>
           <li>Stainless steel interior liner</li>
           <li>Reinforced concrete shell</li>
           <li>Decorative outer shell</li>
           <li>Customizable lid panel</li>
+          <li>75-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -641,15 +1056,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page09_img0_1653x1279.jpg" alt="Cameo Rose Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge triune">Triune Series</span>
+        <span class="tier-badge standard">Standard Protection</span>
         <h2>Cameo Rose</h2>
         <div class="product-price" data-print-suppress="chip">$6,925</div>
         <p class="product-desc">Reinforced concrete with a stainless steel liner and a rose-toned exterior. It has a mirrored panel with a cameo medallion and a nameplate.</p>
         <ul class="product-features">
+          <li>Double-reinforced</li>
           <li>Stainless steel interior liner</li>
           <li>Rose-pink outer shell</li>
           <li>Cameo medallion detail</li>
           <li>Personalization nameplate</li>
+          <li>75-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -660,15 +1077,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page10_img0_1653x1279.jpg" alt="Veteran Triune Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge triune">Triune Series</span>
+        <span class="tier-badge standard">Standard Protection</span>
         <h2>Veteran Triune <span class="veteran-flag">Veteran</span></h2>
         <div class="product-price" data-print-suppress="chip">$6,925</div>
         <p class="product-desc">Reinforced concrete with a stainless steel liner, a navy blue exterior and a military seal medallion. This is the veterans' version of the Triune.</p>
         <ul class="product-features">
+          <li>Double-reinforced</li>
           <li>Stainless steel interior liner</li>
           <li>Navy blue exterior</li>
           <li>Military seal medallion</li>
           <li>Personalization nameplate</li>
+          <li>75-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -677,13 +1096,13 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
-<!-- STANDARD                                    -->
+<!-- BASIC PROTECTION (Wilbert's grouping)      -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="std" data-pdf="drop">
+<div id="basic" class="print-catalog" data-pdf="drop">
   <div class="section-header">
-    <div class="kicker">Reinforced Concrete</div>
-    <h2>Standard Protection</h2>
-    <p>Reinforced concrete, no metal liner, in several finishes.</p>
+    <div class="kicker">Basic Protection</div>
+    <h2>Plastic Lined</h2>
+    <p>Single-reinforced concrete with a plastic liner, in several finishes.</p>
     <div class="rule"></div>
   </div>
 
@@ -695,7 +1114,7 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img src="vault-images/tribute.png" alt="Tribute Burial Vault" style="object-fit:contain;background:linear-gradient(180deg,#fdfeff 0%,#bfcecc 100%);padding:20px;">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Tribute</h2>
         <div class="product-price" data-print-suppress="chip">$4,615</div>
         <p class="product-desc">Reinforced concrete with a decorative outer shell, and it can be personalized. This one sits in the middle on price.</p>
@@ -703,6 +1122,7 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
           <li>Reinforced concrete construction</li>
           <li>Decorative outer shell</li>
           <li>Personalization available</li>
+          <li>50-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -713,15 +1133,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page11_img0_1654x1279.jpg" alt="Venetian Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Venetian</h2>
         <div class="product-price" data-print-suppress="chip">$3,985</div>
-        <p class="product-desc">Reinforced concrete with a marbled finish, a decorative outer shell and a nameplate. A lot of families choose this one.</p>
+        <p class="product-desc">Single-reinforced concrete with a high-impact plastic liner, a marbled finish and a decorative outer shell. A lot of families choose this one.</p>
         <ul class="product-features">
-          <li>Reinforced concrete construction</li>
+          <li>Single-reinforced</li>
+          <li>High-impact polystyrene liner</li>
           <li>Marble-tone exterior</li>
           <li>Decorative outer shell</li>
-          <li>Personalization nameplate</li>
+          <li>Can carry images, emblems or a photo</li>
+          <li>65-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -732,12 +1154,13 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page12_img0_1653x1279.jpg" alt="Venetian in White">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Venetian</h2>
         <div class="product-price" style="font-size:16px;color:var(--text-light);font-weight:500;">Also available in white</div>
         <p class="product-desc">The same Venetian in white, shown here with a photo and floral artwork on the lid panel.</p>
         <ul class="product-features">
-          <li>Same construction as standard Venetian</li>
+          <li>Same single-reinforced, lined construction</li>
+          <li>65-year Wilbert warranty</li>
           <li>White outer shell</li>
           <li>Photo personalization shown</li>
         </ul>
@@ -750,15 +1173,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page13_img0_1658x1258.jpg" alt="Continental Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Continental</h2>
         <div class="product-price" data-print-suppress="chip">$2,825</div>
-        <p class="product-desc">Reinforced concrete with a textured outer shell and carrying handles built in. One of the less expensive ones.</p>
+        <p class="product-desc">Single-reinforced concrete with a high-impact plastic liner, a textured outer shell and carrying handles built in. One of the less expensive ones.</p>
         <ul class="product-features">
-          <li>Reinforced concrete construction</li>
+          <li>Single-reinforced</li>
+          <li>High-impact polystyrene liner</li>
           <li>Textured outer shell</li>
           <li>Integrated carrying handles</li>
-          <li>Personalization nameplate</li>
+          <li>Nameplate and ornaments available</li>
+          <li>55-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -769,15 +1194,17 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/page15_img0_1653x1279.jpg" alt="Veteran Salute Burial Vault">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Veteran Salute <span class="veteran-flag">Veteran</span></h2>
         <div class="product-price" data-print-suppress="chip">$2,305</div>
-        <p class="product-desc">The same reinforced concrete in a blue-gray finish, with a photo plaque and a nameplate. This is the veterans' version, and one of the less expensive ones.</p>
+        <p class="product-desc">The veterans' version of the Monticello: single-reinforced concrete with a high-impact plastic liner, in a blue-gray finish with a photo plaque and a nameplate.</p>
         <ul class="product-features">
-          <li>Reinforced concrete construction</li>
+          <li>Single-reinforced</li>
+          <li>High-impact polystyrene liner</li>
           <li>Blue-gray exterior</li>
           <li>Photo personalization plaque</li>
           <li>Personalization nameplate</li>
+          <li>50-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -788,14 +1215,15 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
         <img loading="lazy" src="vault-images/monticello-gold.png" alt="Monticello Burial Vault" style="object-fit:contain;background:linear-gradient(180deg,#f2f6f4 0%,#c7d9cf 100%);padding:20px;">
       </div>
       <div class="product-info">
-        <span class="tier-badge standard">Standard Protection</span>
+        <span class="tier-badge basic">Basic Protection</span>
         <h2>Monticello</h2>
         <div class="product-price" data-print-suppress="chip">$2,305</div>
-        <p class="product-desc">This is the vault most families here choose. Reinforced concrete, plain, no liner.</p>
+        <p class="product-desc">This is the vault most families here choose. Single-reinforced concrete with a high-impact plastic liner inside.</p>
         <ul class="product-features">
-          <li>Reinforced concrete construction</li>
+          <li>Single-reinforced</li>
+          <li>High-impact polystyrene liner</li>
           <li>Textured gold exterior</li>
-          <li>Plain, unadorned design</li>
+          <li>50-year Wilbert warranty</li>
         </ul>
       </div>
     </div>
@@ -806,12 +1234,18 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- ═══════════════════════════════════════════ -->
 <!-- URN VAULTS                                  -->
 <!-- ═══════════════════════════════════════════ -->
-<div id="urn-vaults">
+<div id="urn-vaults" data-pdf="drop">
   <div class="section-header">
     <div class="kicker">Cremation Options</div>
     <h2>Urn Vaults</h2>
     <p>Smaller vaults, for an urn going into the ground. Same three levels of construction as the casket vaults.</p>
     <div class="rule"></div>
+  </div>
+
+  <!-- Our own photo, cropped below the marker rows so nothing in it can be read. -->
+  <div class="photo-band sp-grid" data-pdf="drop">
+    <figure class="photo-fig"><img loading="lazy" src="vault-images/graveside-urn-vault.jpg" alt="An open urn vault and its lid at the graveside, ready for the service"><figcaption>An urn vault at the graveside</figcaption></figure>
+    <figure class="photo-fig"><img loading="lazy" src="vault-images/service-urn-vault.jpg" alt="Family seated at a graveside service for an urn, the urn vault on a draped table in front"><figcaption>An urn service</figcaption></figure>
   </div>
 
   <div class="uv-grid">
@@ -929,6 +1363,38 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 
 
 <!-- ═══════════════════════════════════════════ -->
+<!-- AT THE GRAVESIDE (2026-11-10, screen only)  -->
+<!-- ═══════════════════════════════════════════ -->
+<!-- Real graveside services, one photo at a time. Wilbert's photos (operator: Wilbert
+     images are cleared for use, 2026-11-10): three from wilbertprecast.com, one from
+     wilbert.com. The names printed on two of the lids are painted out. Arrow keys or
+     the thumbnails step through; Play runs it. -->
+<section id="graveside" data-pdf="drop">
+  <div class="section-header">
+    <div class="kicker">The Day of the Burial</div>
+    <h2>At the Graveside</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="gsc">
+    <div class="gsp-stage">
+      <img id="gspImg" src="vault-images/graveside-service-tent.jpg" alt="Family and friends seated under the tent at the graveside, the casket and vault on the lowering device in front of them">
+      <div class="gsp-cap"><span class="gsc-n" id="gscN">1</span><span class="gsc-words"><strong id="gscT">Family and friends gather</strong><em id="gscS">Under the tent, right at the grave.</em></span></div>
+      <button type="button" class="gsp-arrow prev" id="gspPrev" aria-label="Previous photo">&#8249;</button>
+      <button type="button" class="gsp-arrow next" id="gspNext" aria-label="Next photo">&#8250;</button>
+    </div>
+    <div class="gsc-controls">
+      <button type="button" class="tl-play" id="gscPlay"><span class="tl-play-ico" aria-hidden="true">&#9654;</span> <span class="tl-play-txt">Play</span></button>
+      <ol class="gsc-steps gsp-thumbs" id="gscSteps">
+        <li><button type="button" data-step="0" data-src="vault-images/graveside-service-tent.jpg" data-title="Family and friends gather" data-sub="Under the tent, right at the grave." data-alt="Family and friends seated under the tent at the graveside, the casket and vault on the lowering device in front of them" aria-current="step"><img loading="lazy" src="vault-images/graveside-service-tent.jpg" alt=""><span><b>1</b> Gathering</span></button></li>
+        <li><button type="button" data-step="1" data-src="vault-images/graveside-goodbye.jpg" data-title="Saying goodbye" data-sub="" data-alt="A couple placing roses on the casket beside a personalized vault lid, the officiant standing nearby"><img loading="lazy" src="vault-images/graveside-goodbye.jpg" alt=""><span><b>2</b> Goodbye</span></button></li>
+        <li><button type="button" data-step="2" data-src="vault-images/service-personalized-lid.jpg" data-title="The vault lid" data-sub="A personalized lid can be part of the service." data-alt="Family at the graveside looking at a personalized vault lid in front of the casket"><img loading="lazy" src="vault-images/service-personalized-lid.jpg" alt=""><span><b>3</b> The lid</span></button></li>
+        <li><button type="button" data-step="3" data-src="vault-images/graveside-lowering.jpg" data-title="The lowering" data-sub="You're welcome to stay and watch." data-alt="Family watching as the vault is lowered into the grave"><img loading="lazy" src="vault-images/graveside-lowering.jpg" alt=""><span><b>4</b> Lowering</span></button></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
 <!-- ALL PRICING SUMMARY                         -->
 <!-- ═══════════════════════════════════════════ -->
 <!-- FAMILY PDF: dropped. After the pricing rule this section is a heading and an
@@ -944,16 +1410,16 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
       </thead>
       <tbody>
         <tr><td>Wilbert Bronze</td><td>Premium (Bronze-lined)</td><td>$29,815</td></tr>
-        <tr><td>Bronze Triune</td><td>Triune (Bronze-lined)</td><td>$8,605</td></tr>
-        <tr><td>Copper Triune</td><td>Triune (Copper-lined)</td><td>$7,655</td></tr>
-        <tr><td>Stainless Steel Triune</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
-        <tr><td>Cameo Rose</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
-        <tr><td class="vet">*Veteran Triune</td><td>Triune (SS-lined)</td><td>$6,925</td></tr>
-        <tr><td>Tribute</td><td>Standard</td><td>$4,615</td></tr>
-        <tr><td>Venetian</td><td>Standard</td><td>$3,985</td></tr>
-        <tr><td>Continental</td><td>Standard</td><td>$2,825</td></tr>
-        <tr><td class="vet">*Veteran Salute</td><td>Standard</td><td>$2,305</td></tr>
-        <tr><td>Monticello</td><td>Standard</td><td>$2,305</td></tr>
+        <tr><td>Bronze Triune</td><td>Premium (Bronze-lined)</td><td>$8,605</td></tr>
+        <tr><td>Copper Triune</td><td>Premium (Copper-lined)</td><td>$7,655</td></tr>
+        <tr><td>Stainless Steel Triune</td><td>Standard (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td>Cameo Rose</td><td>Standard (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td class="vet">*Veteran Triune</td><td>Standard (SS-lined)</td><td>$6,925</td></tr>
+        <tr><td>Tribute</td><td>Basic</td><td>$4,615</td></tr>
+        <tr><td>Venetian</td><td>Basic (Plastic-lined)</td><td>$3,985</td></tr>
+        <tr><td>Continental</td><td>Basic (Plastic-lined)</td><td>$2,825</td></tr>
+        <tr><td class="vet">*Veteran Salute</td><td>Basic (Plastic-lined)</td><td>$2,305</td></tr>
+        <tr><td>Monticello</td><td>Basic (Plastic-lined)</td><td>$2,305</td></tr>
       </tbody>
     </table>
 
@@ -994,9 +1460,15 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 <!-- FAMILY PDF ONLY. This guide has no `.cta` block at all, so without this the
      condensed cut would end on a price table with no way to act on it. Shown only by
      guide-print.css §8g. -->
+<!-- FAMILY PDF ONLY: the price sheet. Filled by the script at the bottom from the
+     .product-card and .uv-card blocks, so a price lives in one place. Hidden on screen and
+     in an ordinary Ctrl+P (it is a .pdf-summary). Exact prices print here on purpose
+     (operator 2026-11-11), unlike the price-range rule the other guides follow. -->
+<section class="fam-sheet pdf-summary" id="famSheet"></section>
+
 <div class="fam-next pdf-summary">
-  <h2>I'll price the exact one</h2>
-  <p>The vault is one line on a cemetery quote, and which one you choose moves it more than anything else on the sheet. Tell me the level you have in mind and I'll put the exact figure in writing, alongside the rest of the arrangement, with no obligation.</p>
+  <h2>Questions? Call or email me.</h2>
+  <p>All vault prices are subject to applicable sales tax.</p>
   <p class="fam-sign"><strong>Martice Morrison</strong> &middot; (206) 445-9794 &middot; mmorrison@bonneywatson.com</p>
 </div>
 
@@ -1042,87 +1514,658 @@ body:not(.modal-printing) .uv-card-price{font-size:10pt}
 </div>
 
 <script>
-(function(){
-  var overlay = document.getElementById('productModal');
-  var modalImg = document.getElementById('modalImg');
-  var modalName = document.getElementById('modalName');
-  var modalTier = document.getElementById('modalTier');
-  var modalPrice = document.getElementById('modalPrice');
-  var modalDesc = document.getElementById('modalDesc');
-  var modalSpecs = document.getElementById('modalSpecs');
+/* vault-guide.html interactive layer (2026-11-10).
+   1. The "what a vault does" figure.  2. Our vaults, built from the .product-card
+   blocks (the one place each vault's price and words live).  3. The vault viewer,
+   shared by casket and urn vaults.  4. The graveside photo sequence, then the
+   presenting controls (slide nav, PageDown/PageUp/Space, arrow keys on the graveside
+   photos, full screen).  5. ?family carries onto links to other guides. */
+(function () {
+  'use strict';
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-  document.querySelectorAll('.product-card').forEach(function(card){
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', function(){
-      var img = card.querySelector('.product-img img');
-      var name = card.querySelector('.product-info h2');
-      var tier = card.querySelector('.tier-badge');
-      var price = card.querySelector('.product-price');
-      var desc = card.querySelector('.product-desc');
-      var features = card.querySelectorAll('.product-features li');
+  /* ───────────── 1. WHAT HAPPENS OVER TIME ─────────────
+     Three graves drawn from one template as a technical cutaway (soil grain, rocks,
+     speckled concrete, granite, a casket with its hardware), so the only difference
+     between them is what is around the casket. One clock drives all three. What changes
+     is what this page says: with nothing, the weight rests on the casket, the ground
+     settles into a dip and water gets in; a plain box holds the ground up but fills with
+     water (its drain hole plugs with mud) and its flat lid can crack; a lined, sealed vault
+     resists water and keeps the ground level. Sources: first-hand account of opening
+     30-year-old graves (sites.rootsweb.com/~mocemete/vault-facts.html), Wilbert ("protection
+     from water and earth pressure"). Never "keeps water out": see the FTC note below. */
+  var tlWrap = $('#tl');
+  var tlSet = null, tlPlayer = null;
+  if (tlWrap) {
+    var Y0 = 112;
+    var sm = function (a, b, t) { t = Math.max(0, Math.min(1, (t - a) / (b - a))); return t * t * (3 - 2 * t); };
+    var bump = function (x) { return (x > 80 && x < 320) ? 0.5 * (1 + Math.cos(Math.PI * (x - 200) / 120)) : 0; };
+    var rnd = function (i) { var x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x); };
+    var STATES = {
+      none:  [['Looks fine today', ''], ['The ground is sinking', 'warn'], ['Sunken, and wet', 'bad']],
+      box:   [['Looks fine today', ''], ['Water gets in', 'warn'], ['Level, but full of water', 'bad']],
+      // FTC Funeral Rule 16 CFR 453.4(e)(2): no protective claim that isn't so. A sealed vault
+      // RESISTS water; it is never "watertight" or "no change" (operator ruling 2026-11-11).
+      vault: [['Looks fine today', 'ok'], ['Still level', 'ok'], ['Still level, resists water', 'ok']]
+    };
+    var DROPS = [36, 84, 140, 200, 258, 316, 364];
+    var lg = function (id, x2, y2, stops) {
+      return '<linearGradient id="' + id + '" x1="0" y1="0" x2="' + x2 + '" y2="' + y2 + '">' +
+        stops.map(function (s) { return '<stop offset="' + s[0] + '" stop-color="' + s[1] + '"' + (s[2] != null ? ' stop-opacity="' + s[2] + '"' : '') + '/>'; }).join('') + '</linearGradient>';
+    };
+    var noise = function (id, freq, oct, seed, rgb, a, b) {
+      return '<filter id="' + id + '" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="' + freq + '" numOctaves="' + oct + '" seed="' + seed + '" result="n"/>' +
+        '<feColorMatrix in="n" type="matrix" values="0 0 0 0 ' + rgb[0] + ' 0 0 0 0 ' + rgb[1] + ' 0 0 0 0 ' + rgb[2] + ' 0 0 0 ' + a + ' ' + b + '"/>' +
+        '</filter>';
+    };
+    var panels = $$('.tl-panel', tlWrap).map(function (el, k) {
+      var kind = el.getAttribute('data-kind'), P = 'tl' + k, svgEl = $('svg', el), i;
+      var U = function (id) { return 'url(#' + P + id + ')'; };
+      // ── background: soft far lawn and a treeline, so it reads as a cemetery ──
+      var trees = '', tx;
+      for (tx = -10, i = 0; tx < 420; tx += 18 + rnd(i * 3) * 16, i++) {
+        var tr = 14 + rnd(i * 7) * 16, ty = 96 - rnd(i * 5) * 14;
+        trees += '<circle cx="' + tx.toFixed(0) + '" cy="' + ty.toFixed(0) + '" r="' + tr.toFixed(0) + '"/>';
+      }
+      // ── rocks: irregular, shaded, outside the grave cut ──
+      var rocks = '';
+      for (i = 0; i < 14; i++) {
+        var left = rnd(i * 3 + 1) < .5, rx = left ? 8 + rnd(i * 7 + 2) * 72 : 324 + rnd(i * 5 + 3) * 68, ry = 170 + rnd(i * 11 + 4) * 236;
+        var w = 3 + rnd(i * 13 + 5) * 6, h = w * (.55 + rnd(i * 17) * .3), n = 7, pts = [], a;
+        for (a = 0; a < n; a++) { var ang = a / n * Math.PI * 2, rr = .78 + rnd(i * 31 + a) * .32; pts.push((rx + Math.cos(ang) * w * rr).toFixed(1) + ',' + (ry + Math.sin(ang) * h * rr).toFixed(1)); }
+        rocks += '<polygon points="' + pts.join(' ') + '" fill="' + U('R') + '" stroke="#2a2018" stroke-opacity=".35" stroke-width=".6"/>' +
+                 '<ellipse cx="' + (rx - w * .25).toFixed(1) + '" cy="' + (ry - h * .3).toFixed(1) + '" rx="' + (w * .35).toFixed(1) + '" ry="' + (h * .25).toFixed(1) + '" fill="#fff" opacity=".22"/>';
+      }
+      // ── clumps of mixed soil in the backfill (the grave is refilled with all three layers) ──
+      var clumps = '', cc = ['#3f2b1c', '#6e4e31', '#957149', '#5a3f28', '#a07a50'];
+      for (i = 0; i < 110; i++) {
+        var cx2 = 92 + rnd(i * 41 + 7) * 216, cy2 = 160 + rnd(i * 43 + 9) * 244, cw = 2.5 + rnd(i * 47) * 9, ch = cw * (.45 + rnd(i * 53) * .4);
+        var cpts = [], ca;
+        for (ca = 0; ca < 6; ca++) { var cang = ca / 6 * Math.PI * 2 + rnd(i * 7 + ca), crr = .7 + rnd(i * 29 + ca) * .45; cpts.push((cx2 + Math.cos(cang) * cw * crr).toFixed(1) + ',' + (cy2 + Math.sin(cang) * ch * crr).toFixed(1)); }
+        clumps += '<polygon points="' + cpts.join(' ') + '" fill="' + cc[i % 5] + '" opacity="' + (.5 + rnd(i * 61) * .35).toFixed(2) + '"/>';
+      }
+      // ── roots under the sod ──
+      var roots = '<g stroke="#2a1b10" stroke-width=".7" fill="none" opacity=".5" stroke-linecap="round">';
+      for (i = 0; i < 34; i++) {
+        var rx0 = 4 + i * 11.6 + rnd(i * 61) * 6, rl = 10 + rnd(i * 67) * 22;
+        roots += '<path d="M' + rx0.toFixed(1) + ',118 q' + ((rnd(i * 71) - .5) * 8).toFixed(1) + ',' + (rl / 2).toFixed(1) + ' ' + ((rnd(i * 73) - .5) * 6).toFixed(1) + ',' + rl.toFixed(1) + '"/>';
+      }
+      roots += '</g>';
+      // neighbouring flush markers, level, on graves either side
+      var nb = function (x) { return '<rect x="' + x + '" y="108" width="34" height="7" rx="1" fill="' + U('G') + '"/><rect x="' + x + '" y="108" width="34" height="1.6" fill="#c3c9ce"/>'; };
 
-      modalImg.src = img ? img.src : '';
-      modalImg.alt = name ? name.textContent : '';
-      modalName.textContent = name ? name.textContent.replace(/Veteran$/, '').trim() : '';
-      modalTier.textContent = tier ? tier.textContent : '';
-      modalPrice.textContent = price ? price.textContent : '';
-      modalDesc.textContent = desc ? desc.textContent : '';
+      var shape = 'M105,262 H295 V390 Q295,400 285,400 H115 Q105,400 105,390 Z';
+      var lidV = 'M99,268 H301 V257 Q300,249 291,247 Q200,235 109,247 Q100,249 99,257 Z';
+      var container = '', lid = '';
+      if (kind === 'vault') {
+        container =
+          '<path d="' + shape + '" fill="' + U('C') + '" stroke="#6f757b" stroke-width="1"/>' +
+          '<path d="' + shape + '" fill="#fff" filter="' + U('Cn') + '" clip-path="' + U('cv') + '"/>' +
+          '<rect x="105" y="262" width="9" height="136" fill="#fff" opacity=".18"/><rect x="286" y="262" width="9" height="136" fill="#000" opacity=".12"/>' +
+          '<path d="M101,398 H299 L295,402 H105 Z" fill="#8e9398"/>' +
+          '<rect x="114" y="266" width="172" height="126" rx="6" fill="' + U('M') + '" stroke="#8d969e" stroke-width="1.2"/>' +
+          '<rect x="120" y="271" width="160" height="116" rx="4" fill="' + U('I') + '"/>' +
+          '<rect x="138" y="272" width="10" height="114" fill="#fff" opacity=".35"/>';
+        lid =
+          '<path d="' + lidV + '" fill="' + U('C') + '" stroke="#6f757b" stroke-width="1"/>' +
+          '<path d="' + lidV + '" fill="#fff" filter="' + U('Cn') + '" clip-path="' + U('cl') + '"/>' +
+          '<path d="M110,248 Q200,237 290,248" stroke="#fff" stroke-width="1.6" fill="none" opacity=".6"/>' +
+          '<rect x="99" y="264" width="202" height="4" fill="#9ea4a9"/>' +
+          '<rect x="105" y="267.5" width="190" height="3" fill="#24292d"/>';
+      }
+      if (kind === 'box') {
+        container =
+          '<path d="' + shape + '" fill="' + U('Cr') + '" stroke="#6e7276" stroke-width="1"/>' +
+          '<path d="' + shape + '" fill="#fff" filter="' + U('Cn') + '" clip-path="' + U('cv') + '"/>' +
+          '<rect x="111" y="266" width="178" height="128" rx="2" fill="#9d958a"/>' +
+          '<rect x="111" y="266" width="178" height="128" rx="2" fill="#fff" filter="' + U('Cn') + '" opacity=".8"/>' +
+          '<rect x="111" y="266" width="178" height="16" fill="' + U('Sh') + '"/>' +
+          '<g fill="#2e2117"><rect x="141" y="392" width="7" height="8" rx="1"/><rect x="183" y="392" width="7" height="8" rx="1"/><rect x="224" y="392" width="7" height="8" rx="1"/><rect x="264" y="392" width="7" height="8" rx="1"/></g>' +
+          '<rect class="t-film" x="111" y="388" width="178" height="4" fill="#5d9fd0" opacity="0"/>' +
+          // cracks spread through the thin walls over the years, first hairlines, then open
+          // cracks with water seeping through them and a spalled corner
+          '<g class="t-boxcracks1" opacity="0" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M111,300 L118,309 L115,318 L126,331 L122,342" stroke="#3a3632" stroke-width="1.1"/>' +
+            '<path d="M289,286 L282,297 L285,305 L276,318" stroke="#3a3632" stroke-width="1.1"/>' +
+            '<path d="M196,266 L193,276 L199,285 L195,296" stroke="#3a3632" stroke-width="1"/>' +
+            '<path d="M104,329 L107,332 L108.5,329.5 L112,333 M296,311 L293,314 L291.5,311.5 L288,315" stroke="#2a2724" stroke-width="1.4"/>' +
+          '</g>' +
+          '<g class="t-boxcracks2" opacity="0" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M122,342 L130,355 L127,366 L138,380 L134,393 M126,331 L140,334 L149,346" fill="none" stroke="#2a2622" stroke-width="1.5"/>' +
+            '<path d="M276,318 L280,332 L271,347 L275,362 L266,377 L270,393 M280,332 L292,340" fill="none" stroke="#2a2622" stroke-width="1.5"/>' +
+            '<path d="M195,296 L203,308 L198,318 M246,266 L242,281 L251,292 L247,303" fill="none" stroke="#2f2b27" stroke-width="1.2"/>' +
+            '<path d="M104,329 L107,332 L108.5,329.5 L112,333 M104,368 L107,371 L109,368 L112,372 M104,347 L107,349 L109,346 L112,349 M296,311 L293,314 L291.5,311.5 L288,315 M296,352 L293,355 L291,352 L288,356 M296,330 L293,333 L291,330 L288,334" fill="none" stroke="#1f1c19" stroke-width="2.1"/>' +
+            // wet streaks running down from the open cracks
+            '<path d="M118,309 L118,388 M127,366 L127,388 M282,297 L282,388 M271,347 L271,388" stroke="#2c4a63" stroke-opacity=".35" stroke-width="4"/>' +
+            // a spalled corner at the bottom right, rebar-free concrete broken away
+            '<path d="M295,384 L295,400 L281,400 Q287,394 289,388 Z" fill="#4a3624"/>' +
+            '<path d="M289,388 Q287,394 281,400" fill="none" stroke="#6e6a64" stroke-width="1"/>' +
+          '</g>';
+        lid =
+          '<rect x="101" y="246" width="198" height="12" rx="1.2" fill="' + U('Cr') + '" stroke="#6e7276" stroke-width="1"/>' +
+          '<rect x="101" y="246" width="198" height="12" rx="1.2" fill="#fff" filter="' + U('Cn') + '"/>' +
+          '<rect x="101" y="246" width="198" height="2" fill="#fff" opacity=".35"/>' +
+          '<path d="M101,258 L108,258 L104,255 Z M290,258 L299,258 L299,254 Z" fill="#7d7f80"/>' +
+          '<rect x="105" y="258" width="190" height="4" fill="#2e2117" opacity=".9"/>' +
+          '<g class="t-lidcrack" opacity="0" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+            // a crack right through the lid, a second one starting, and a chipped corner
+            '<path d="M176,246 L182,249 L179,252 L186,255 L183,258" stroke="#232323" stroke-width="2"/>' +
+            '<path d="M256,246 L252,250 L258,254 L255,258" stroke="#2b2b2b" stroke-width="1.4"/>' +
+            '<path d="M120,246 L125,250 L122,253" stroke="#2b2b2b" stroke-width="1.1"/>' +
+            '<path d="M101,252 L101,258 L109,258 Q104,256 101,252 Z" fill="#4a3624" stroke="none"/>' +
+          '</g>';
+      }
+      var clips = '<clipPath id="' + P + 'cs"><use href="#' + P + 'soil"/></clipPath><clipPath id="' + P + 'cv"><path d="' + shape + '"/></clipPath>' +
+                  '<clipPath id="' + P + 'cl"><path d="' + lidV + '"/></clipPath><clipPath id="' + P + 'cc"><rect x="90" y="150" width="220" height="254"/></clipPath>';
 
-      modalSpecs.innerHTML = '';
-      features.forEach(function(f){
-        var li = document.createElement('li');
-        li.textContent = f.textContent;
-        modalSpecs.appendChild(li);
+      svgEl.setAttribute('shape-rendering', 'geometricPrecision');
+      svgEl.innerHTML =
+        '<defs>' +
+          lg(P + 'K', 0, 1, [[0, '#cfdde7'], [.7, '#eef3f6'], [1, '#f6f8f5']]) +
+          lg(P + 'S', 0, 1, [[0, '#2f2016'], [.12, '#3e2a1c'], [1, '#4a3322']]) +
+          lg(P + 'S2', 0, 1, [[0, '#6a4a2f'], [1, '#5c4029']]) +
+          lg(P + 'S3', 0, 1, [[0, '#94724c'], [1, '#7f603f']]) +
+          lg(P + 'C', 0, 1, [[0, '#e3e5e6'], [.45, '#c9ccce'], [1, '#a4a8ab']]) +
+          lg(P + 'Cr', 0, 1, [[0, '#cbc7bf'], [1, '#9b978f']]) +
+          lg(P + 'M', 1, 0, [[0, '#a7afb7'], [.3, '#e9edf0'], [.5, '#ffffff'], [.75, '#d6dbdf'], [1, '#a2abb3']]) +
+          lg(P + 'I', 0, 1, [[0, '#aeb6bd'], [.15, '#dde2e6'], [1, '#eef1f3']]) +
+          lg(P + 'Sh', 0, 1, [[0, '#000', .4], [1, '#000', 0]]) +
+          lg(P + 'W', 0, 1, [[0, '#86512f'], [.5, '#6d3e22'], [1, '#4c2914']]) +
+          lg(P + 'L', 0, 1, [[0, '#c48a5d'], [.4, '#9a643d'], [1, '#6e4124']]) +
+          lg(P + 'Mo', 0, 1, [[0, '#7a4728'], [.5, '#a46d44'], [1, '#55301a']]) +
+          lg(P + 'H', 0, 1, [[0, '#ffffff'], [.45, '#d0d5da'], [1, '#868e95']]) +
+          lg(P + 'G', 0, 1, [[0, '#8d949a'], [1, '#575e63']]) +
+          lg(P + 'Fl', 0, 1, [[0, '#6eaee0', .55], [1, '#2f6596', .78]]) +
+          '<radialGradient id="' + P + 'R" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#b3aca0"/><stop offset="1" stop-color="#5b534a"/></radialGradient>' +
+          noise(P + 'N', 1.15, 2, k + 3, [.08, .05, .03], 1.9, -.95) +
+          noise(P + 'Nl', 1.4, 1, k + 11, [.85, .75, .6], 1.6, -1.05) +
+          noise(P + 'Cn', 1.4, 2, k + 5, [.25, .25, .25], 1.3, -.55) +
+          noise(P + 'Gn', 1.8, 2, k + 7, [.95, .95, .95], 1.5, -.7) +
+          clips +
+          '<filter id="' + P + 'B" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>' +
+          '<filter id="' + P + 'Tb" x="-5%" y="-50%" width="110%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>' +
+        '</defs>' +
+        // sky, treeline, far lawn
+        '<rect width="400" height="125" fill="' + U('K') + '"/>' +
+        '<g fill="#9fb59a" opacity=".55" filter="' + U('Tb') + '">' + trees + '</g>' +
+        '<g fill="#7f9c76" opacity=".55" transform="translate(9,8)" filter="' + U('Tb') + '">' + trees + '</g>' +
+        '<linearGradient id="' + P + 'FL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3c084"/><stop offset=".35" stop-color="#8fb06f"/><stop offset="1" stop-color="#6f8f52"/></linearGradient>' +
+        '<rect y="98" width="400" height="64" fill="' + U('FL') + '"/>' +
+        // ground: topsoil, subsoil and clay layers, each with fine grain
+        '<path class="t-soil" id="' + P + 'soil" fill="' + U('S') + '"/>' +
+        '<g clip-path="' + U('cs') + '">' +
+          '<path d="M0,162 C60,156 110,168 170,161 C230,154 290,168 350,160 C372,157 390,160 400,159 V420 H0 Z" fill="' + U('S2') + '"/>' +
+          '<path d="M0,292 C50,286 120,298 180,290 C250,282 320,297 400,288 V420 H0 Z" fill="' + U('S3') + '"/>' +
+          '<path d="M0,162 C60,156 110,168 170,161 C230,154 290,168 350,160 C372,157 390,160 400,159 M0,292 C50,286 120,298 180,290 C250,282 320,297 400,288" stroke="#1f150d" stroke-opacity=".28" stroke-width="1.2" fill="none"/>' +
+          // the grave cut, refilled: mixed soil and clumps
+          '<path class="t-fill" fill="#6a4b30" fill-opacity=".5"/>' +
+          '<g clip-path="' + U('cc') + '">' + clumps + '</g>' +
+          '<rect width="400" height="420" fill="#fff" filter="' + U('N') + '"/>' +
+          '<rect width="400" height="420" fill="#fff" filter="' + U('Nl') + '"/>' +
+        '</g>' +
+        '<path d="M90,122 V404 M310,122 V404" stroke="#1a110a" stroke-opacity=".35" stroke-width="1.1" stroke-dasharray="1 0"/>' +
+        rocks + roots +
+        (kind === 'none' ? '<radialGradient id="' + P + 'Wt" cx=".5" cy=".72" r=".62"><stop offset="0" stop-color="#140e09" stop-opacity=".82"/><stop offset=".55" stop-color="#1a120b" stop-opacity=".5"/><stop offset="1" stop-color="#1f1610" stop-opacity="0"/></radialGradient>' +
+                           '<ellipse class="t-sat" cx="200" cy="345" rx="128" ry="135" fill="' + U('Wt') + '" opacity="0"/>' +
+                           '<ellipse class="t-halo" cx="200" cy="372" rx="118" ry="40" fill="#2a3d4f" filter="' + U('B') + '" opacity="0"/>' : '') +
+        container +
+        '<g class="t-casket">' +
+          // plinth
+          '<rect x="123" y="374" width="154" height="10" rx="2" fill="#4a2814"/><rect x="123" y="374" width="154" height="2" fill="#7a4a2a"/>' +
+          // body
+          '<path d="M126,322 L127,371 Q128,375 132,375 H268 Q272,375 273,371 L274,322 Z" fill="' + U('W') + '" stroke="#341d0f" stroke-width=".8"/>' +
+          '<path d="M140,333 C170,330 200,336 232,332 C246,330 256,333 262,332 M138,360 C168,357 196,362 226,359 C244,357 254,360 262,359 M142,346 C176,344 210,349 260,346" stroke="#2a160a" stroke-opacity=".22" stroke-width=".7" fill="none"/>' +
+          '<rect x="135" y="329" width="130" height="38" rx="3" fill="none" stroke="#a36e45" stroke-opacity=".55" stroke-width="1.2"/>' +
+          '<rect x="136.5" y="330.5" width="127" height="35" rx="2.5" fill="none" stroke="#2c170a" stroke-opacity=".45" stroke-width=".8"/>' +
+          (kind === 'box' ? '<rect class="t-stain" x="126" y="346" width="148" height="29" rx="6" fill="#1c2a33" opacity="0"/>' : '') +
+          // top moulding and crown
+          '<rect x="119" y="317" width="162" height="7" rx="2.5" fill="' + U('Mo') + '" stroke="#341d0f" stroke-width=".6"/>' +
+          '<path class="t-crown" fill="' + U('L') + '" stroke="#341d0f" stroke-width=".8"/>' +
+          '<path class="t-sheen" d="M138,311 C162,301 238,301 262,311" stroke="#fff" stroke-opacity=".35" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+          // swing-bar handles: three lugs and a bar
+          '<g><rect x="141" y="339" width="7" height="12" rx="2" fill="' + U('H') + '" stroke="#5b636a" stroke-width=".5"/><rect x="196.5" y="339" width="7" height="12" rx="2" fill="' + U('H') + '" stroke="#5b636a" stroke-width=".5"/><rect x="252" y="339" width="7" height="12" rx="2" fill="' + U('H') + '" stroke="#5b636a" stroke-width=".5"/>' +
+          '<rect x="136" y="346" width="128" height="4.5" rx="2.2" fill="' + U('H') + '" stroke="#5b636a" stroke-width=".5"/><rect x="138" y="352" width="124" height="2" rx="1" fill="#000" opacity=".25"/></g>' +
+          (kind === 'none' ? '<path class="t-cracks" d="M150,312 L160,320 L155,328 L166,334 M234,310 L226,320 L238,328 M198,306 L206,316 L199,325" stroke="#24140a" stroke-width="2" fill="none" opacity="0"/>' +
+                             '<path class="t-collapse" d="M122,318 L146,326 L168,314 L196,338 L222,316 L248,332 L278,318 L278,323 L122,323 Z" fill="#5c4330" opacity="0"/>' : '') +
+        '</g>' +
+        (kind === 'box' ? '<rect class="t-flood" x="111" y="390" width="178" height="2" fill="' + U('Fl') + '" opacity="0"/>' +
+                          '<line class="t-floodtop" x1="112" x2="288" y1="390" y2="390" stroke="#cfe8fa" stroke-width="1.8" opacity="0"/>' : '') +
+        lid +
+        (kind === 'none' ? '<path class="t-slump" d="M100,124 C118,184 116,244 126,312 M300,124 C284,184 286,244 274,312 M152,150 C170,194 180,236 188,300 M248,150 C230,194 222,236 212,300" stroke="#1b1008" stroke-width="2" fill="none" stroke-dasharray="7 5" opacity="0"/>' : '') +
+        '<g class="t-drops" fill="#6aa6d6"></g>' +
+        // sod: a dark root mat under the grass
+        '<path class="t-lawn" stroke="#3e5f27" stroke-width="12" fill="none"/>' +
+        nb(26) + nb(340) +
+        '<g class="t-blades" stroke-width="1.1" stroke-linecap="round"></g>' +
+        (kind === 'none' ? '<ellipse class="t-puddle" cx="200" cy="140" rx="0" ry="4.5" fill="#8fbde0" opacity="0"/>' : '') +
+        '<g class="t-marker tl-marker">' +
+          '<rect x="164" y="106" width="72" height="10" rx="1.2" fill="#4c5358"/>' +
+          '<rect x="165" y="103" width="70" height="9" rx="1.5" fill="' + U('G') + '"/>' +
+          '<rect x="165" y="103" width="70" height="9" rx="1.5" fill="#fff" filter="' + U('Gn') + '"/>' +
+          '<rect x="165" y="103" width="70" height="2.2" rx="1" fill="#c7cdd2"/>' +
+          '<path d="M176,104.5 L232,104.5" stroke="#fff" stroke-opacity=".5" stroke-width=".8"/>' +
+          '<rect x="181" y="107.2" width="38" height="1.3" fill="#e6e9eb" opacity=".75"/><rect x="187" y="109.6" width="26" height="1.2" fill="#e6e9eb" opacity=".75"/>' +
+        '</g>';
+      var drops = $('.t-drops', svgEl);
+      DROPS.forEach(function (x, j) {
+        var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'drop');
+        g.style.setProperty('--d', ((j * 0.77 + k * 0.31) % 2.8).toFixed(2) + 's');
+        var stop = 290;
+        if (kind === 'vault' && x > 99 && x < 301) stop = 128;
+        if (kind === 'none' && x > 122 && x < 278) stop = 190;
+        g.style.setProperty('--stop', stop + 'px');
+        g.innerHTML = '<path d="M' + x + ',118 q-3.2,5 -3.2,7.5 a3.2,3.2 0 0 0 6.4,0 q0,-2.5 -3.2,-7.5z"/>';
+        drops.appendChild(g);
       });
-
-      overlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      return { el: el, kind: kind, svg: svgEl, state: $('.tl-state', el), q: function (c) { return $('.' + c, svgEl); }, last: -1 };
     });
+
+    var drawPanel = function (p, t) {
+      var D = p.kind === 'none' ? 36 * sm(0.12, 1, t) : 0;
+      var surf = function (x) { return Y0 + D * bump(x); };
+      var top = 'M0,' + Y0 + ' L80,' + Y0, x, i;
+      for (x = 88; x <= 312; x += 8) top += ' L' + x + ',' + surf(x).toFixed(1);
+      top += ' L320,' + Y0 + ' L400,' + Y0;
+      p.q('t-soil').setAttribute('d', top + ' L400,420 L0,420 Z');
+      p.q('t-lawn').setAttribute('d', top);
+      var f = 'M90,' + surf(90).toFixed(1);
+      for (x = 98; x <= 310; x += 8) f += ' L' + x + ',' + surf(x).toFixed(1);
+      p.q('t-fill').setAttribute('d', f + ' L310,404 L90,404 Z');
+      if (p.kind === 'none' || !p.bladesDone) {
+        var b = '', brown = p.kind === 'none' ? sm(0.45, 1, t) : 0;
+        var greens = [[74, 116, 48], [98, 144, 62], [126, 170, 84], [64, 100, 42], [112, 158, 72]], dry = [158, 142, 86];
+        for (x = 1, i = 0; x < 400; x += 2.1, i++) {
+          var y = surf(x) - 5, h = 5 + rnd(i) * 9, dx = (rnd(i + 99) - .5) * 5;
+          var dead = brown * bump(x), g1 = greens[i % 5];
+          var c = 'rgb(' + g1.map(function (v, n) { return Math.round(v + (dry[n] - v) * dead); }).join(',') + ')';
+          b += '<line x1="' + x.toFixed(1) + '" y1="' + y.toFixed(1) + '" x2="' + (x + dx).toFixed(1) + '" y2="' + (y - h).toFixed(1) + '" stroke="' + c + '"/>';
+        }
+        p.q('t-blades').innerHTML = b; p.bladesDone = true;
+      }
+      p.q('t-marker').style.transform = D ? 'translateY(' + (D * 0.94).toFixed(1) + 'px) rotate(' + (-7 * sm(0.4, 1, t)).toFixed(1) + 'deg)' : 'none';
+      var cy = 296 + (p.kind === 'none' ? 20 * sm(0.2, 0.7, t) : 0);
+      p.q('t-crown').setAttribute('d', 'M122,320 C122,308 136,' + cy.toFixed(1) + ' 200,' + cy.toFixed(1) + ' C264,' + cy.toFixed(1) + ' 278,308 278,320 Z');
+      p.q('t-sheen').setAttribute('opacity', p.kind === 'none' ? 1 - sm(0.2, 0.6, t) : 1);
+      if (p.kind === 'none') {
+        p.q('t-cracks').setAttribute('opacity', sm(0.28, 0.6, t));
+        p.q('t-collapse').setAttribute('opacity', sm(0.55, 0.9, t));
+        p.q('t-slump').setAttribute('opacity', 0.7 * sm(0.3, 0.85, t));
+        p.q('t-halo').setAttribute('opacity', 0.5 * sm(0.25, 1, t));
+        p.q('t-sat').setAttribute('opacity', sm(0.2, 1, t));
+        // the casket is crushed flat by the weight of the earth, from the lid down
+        var crush = 1 - 0.58 * sm(0.5, 0.95, t), cg = p.q('t-casket');
+        cg.style.transformBox = 'fill-box'; cg.style.transformOrigin = '50% 100%';
+        cg.style.transform = crush < 1 ? 'scaleY(' + crush.toFixed(3) + ') skewX(' + (-3 * sm(0.5, 0.95, t)).toFixed(2) + 'deg)' : 'none';
+        var pu = p.q('t-puddle'), pk = sm(0.62, 1, t);
+        pu.setAttribute('rx', (64 * pk).toFixed(1)); pu.setAttribute('cy', (Y0 + D - 4).toFixed(1)); pu.setAttribute('opacity', pk * 0.9);
+      }
+      if (p.kind === 'box') {
+        var hgt = 3 + 12 * sm(0.12, 1, t), film = p.q('t-film');
+        film.setAttribute('height', hgt.toFixed(1)); film.setAttribute('y', (392 - hgt).toFixed(1)); film.setAttribute('opacity', 0.65 * sm(0.08, 0.4, t));
+        p.q('t-stain').setAttribute('opacity', 0.5 * sm(0.2, 1, t));
+        // years later the water stands over the casket: 3px on day one, ~100px of a 126px box at the end
+        var fh = 2 + 98 * sm(0.15, 1, t), fy = (392 - fh).toFixed(1), fl = p.q('t-flood'), ft = p.q('t-floodtop');
+        fl.setAttribute('height', fh.toFixed(1)); fl.setAttribute('y', fy); fl.setAttribute('opacity', 0.5 * sm(0.1, 0.35, t));
+        ft.setAttribute('y1', fy); ft.setAttribute('y2', fy); ft.setAttribute('opacity', 0.9 * sm(0.1, 0.35, t));
+        p.q('t-lidcrack').setAttribute('opacity', sm(0.45, 0.85, t));
+        p.q('t-boxcracks1').setAttribute('opacity', sm(0.25, 0.55, t));
+        p.q('t-boxcracks2').setAttribute('opacity', sm(0.6, 0.95, t));
+      }
+      var stage = t < 0.2 ? 0 : t < 0.7 ? 1 : 2;
+      if (stage !== p.last) {
+        var st = STATES[p.kind][stage];
+        p.state.className = 'tl-state' + (st[1] ? ' ' + st[1] : '');
+        p.state.innerHTML = '<span class="dot" aria-hidden="true"></span>' + st[0];
+        p.last = stage;
+      }
+    };
+    var range = $('#tlTime'), stops = $$('.tl-stops button', tlWrap), playBtn = $('#tlPlay');
+    tlSet = function (t) {
+      panels.forEach(function (p) { drawPanel(p, t); });
+      range.value = Math.round(t * 100);
+      var lab = t < 0.25 ? 'Burial day' : t < 0.75 ? 'Years later' : 'Many years later';
+      range.setAttribute('aria-valuetext', lab);
+      stops.forEach(function (b) { b.classList.toggle('on', b.textContent === lab); });
+    };
+    var anim = null;
+    var setPlayLabel = function (playing) {
+      $('.tl-play-txt', playBtn).textContent = playing ? 'Pause' : (+range.value >= 100 ? 'Replay' : 'Play');
+      $('.tl-play-ico', playBtn).innerHTML = playing ? '&#10073;&#10073;' : '&#9654;';
+    };
+    var stopPlay = function () { if (anim) cancelAnimationFrame(anim); anim = null; setPlayLabel(false); };
+    tlPlayer = function () {
+      if (anim) { stopPlay(); return; }
+      var from = +range.value >= 100 ? 0 : +range.value / 100, t0 = performance.now(), dur = reduce ? 1 : 6500 * (1 - from);
+      setPlayLabel(true);
+      (function step(now) {
+        var k = Math.min(1, (now - t0) / dur), t = from + (1 - from) * k;
+        tlSet(t);
+        if (k < 1) anim = requestAnimationFrame(step); else { anim = null; setPlayLabel(false); }
+      })(t0);
+    };
+    playBtn.addEventListener('click', tlPlayer);
+    range.addEventListener('input', function () { stopPlay(); tlSet(+range.value / 100); setPlayLabel(false); });
+    stops.forEach(function (b) { b.addEventListener('click', function () { stopPlay(); tlSet(+b.getAttribute('data-t') / 100); setPlayLabel(false); }); });
+    tlSet(0);
+    // Print shows the end of the story.
+    window.addEventListener('beforeprint', function () { stopPlay(); tlWrap.dataset.before = range.value; tlSet(1); });
+    window.addEventListener('afterprint', function () { tlSet(+(tlWrap.dataset.before || 0) / 100); setPlayLabel(false); });
+    if (/[?&]print=/.test(location.search)) tlSet(1);
+  }
+
+  /* ───────────── 2. COMPARE THE VAULTS ───────────── */
+  var LEVEL = { premium: 'Premium', standard: 'Standard', basic: 'Basic' };
+  var warrantyOf = function (d) {   // e.g. "75-year warranty", read from the card's own list
+    var w = (d.feats || []).filter(function (f) { return /Wilbert warranty$/.test(f); })[0];
+    return w ? w.replace(/ Wilbert warranty$/, ' warranty') : '';
+  };
+  var vaults = [], variants = [];
+  $$('.print-catalog .product-card').forEach(function (c, i) {
+    var sec = c.closest('.print-catalog').id;
+    var level = sec === 'premium' ? 'premium' : sec === 'standard' ? 'standard' : 'basic';
+    var h2 = $('.product-info h2', c), priceEl = $('.product-price', c), img = $('.product-img img', c);
+    var d = {
+      level: level, order: i,
+      name: h2.textContent.replace(/Veteran\s*$/, '').trim(),
+      vet: !!$('.veteran-flag', h2),
+      badge: ($('.tier-badge', c) || {}).textContent || LEVEL[level],
+      price: priceEl.textContent.trim(),
+      num: +priceEl.textContent.replace(/[^0-9.]/g, '') || 0,
+      desc: $('.product-desc', c).textContent.trim(),
+      feats: $$('.product-features li', c).map(function (li) { return li.textContent.trim(); }),
+      img: img.getAttribute('src'),
+      contain: /contain/.test(img.getAttribute('style') || ''),
+      also: ''
+    };
+    if (priceEl.hasAttribute('data-print-suppress')) vaults.push(d); else variants.push(d);
+  });
+  variants.forEach(function (v) {
+    vaults.forEach(function (d) { if (d.name === v.name) d.also = v.price; });   // "Also available in white"
+  });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  var grid = $('#cmpGrid'), side = $('#cmpSide'), cols = $('#cmpCols'), tray = $('#cmpTray'),
+      note = $('#cmpNote'), sortBtn = $('#cmpSort');
+  var cmp = { filter: 'all', asc: false, picked: [] };
+  function matches(d, f) { return f === 'all' || (f === 'veteran' ? d.vet : d.level === f); }
+
+  function renderGrid() {
+    if (!grid) return;
+    var list = vaults.filter(function (d) { return matches(d, cmp.filter); });
+    list.sort(function (a, b) { return cmp.asc ? (a.num - b.num || b.order - a.order) : (b.num - a.num || a.order - b.order); });
+    grid.innerHTML = list.length ? '' : '<p class="cmp-empty">Nothing in this group.</p>';
+    list.forEach(function (d) {
+      var i = vaults.indexOf(d), on = cmp.picked.indexOf(i) >= 0;
+      var a = document.createElement('article');
+      a.className = 'cmp-card' + (on ? ' picked' : '');
+      a.innerHTML =
+        '<button type="button" class="cmp-open" aria-label="Details: ' + esc(d.name) + ', ' + esc(d.price) + '">' +
+          '<span class="cmp-img"><img loading="lazy" src="' + esc(d.img) + '" alt="' + esc(d.name) + ' burial vault"' + (d.contain ? ' class="contain"' : '') + '></span>' +
+          '<span class="cmp-body"><span class="tier-badge ' + d.level + '">' + LEVEL[d.level] + '</span>' + (d.vet ? ' <span class="veteran-flag" style="margin-left:4px">Veteran</span>' : '') +
+          '<span class="cmp-name">' + esc(d.name) + '</span><span class="cmp-price">' + esc(d.price) + '</span>' +
+          (warrantyOf(d) ? '<span class="cmp-warr">' + esc(warrantyOf(d)) + '</span>' : '') + '</span>' +
+        '</button>' +
+        '<div class="cmp-foot">' +
+          '<label class="cmp-pick"><input type="checkbox"' + (on ? ' checked' : '') + ' aria-label="Compare ' + esc(d.name) + '"> Compare</label></div>';
+      $('.cmp-open', a).addEventListener('click', function () { openModal(d, this); });
+      $('input', a).addEventListener('change', function () { togglePick(i, this); });
+      grid.appendChild(a);
+    });
+    $$('.cmp-chip[data-filter]').forEach(function (b) {
+      var f = b.getAttribute('data-filter');
+      b.setAttribute('aria-pressed', String(f === cmp.filter));
+      $('.n', b).textContent = vaults.filter(function (d) { return matches(d, f); }).length;
+    });
+    sortBtn.setAttribute('aria-pressed', String(cmp.asc));
+    sortBtn.textContent = cmp.asc ? 'Price: lowest first' : 'Price: highest first';
+  }
+  function togglePick(i, box) {
+    var k = cmp.picked.indexOf(i);
+    note.textContent = '';
+    if (k >= 0) cmp.picked.splice(k, 1);
+    else if (cmp.picked.length >= 3) { box.checked = false; note.textContent = 'You can compare up to three at a time. Untick one first.'; return; }
+    else cmp.picked.push(i);
+    renderGrid(); renderSide();
+  }
+  function renderSide() {
+    if (!side) return;
+    var n = cmp.picked.length;
+    $('#cmpCount').textContent = n + ' picked';
+    var go = $('#cmpGo');
+    go.disabled = n < 2; go.textContent = n < 2 ? 'Pick one more' : 'See side by side';
+    side.hidden = n < 2;
+    updateTray();
+    cols.innerHTML = '';
+    cmp.picked.forEach(function (i) {
+      var d = vaults[i], c = document.createElement('div');
+      c.className = 'cmp-col';
+      c.innerHTML =
+        '<span class="cmp-img"><img src="' + esc(d.img) + '" alt="' + esc(d.name) + '"' + (d.contain ? ' class="contain"' : '') + '></span>' +
+        '<div class="cmp-col-body"><span class="tier-badge ' + d.level + '">' + LEVEL[d.level] + '</span>' +
+        '<span class="cmp-name">' + esc(d.name) + '</span><span class="cmp-price">' + esc(d.price) + '</span>' +
+        '<div class="cmp-row"><ul>' + d.feats.concat(d.also ? [d.also] : []).map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul></div>' +
+        '<button type="button" class="cmp-remove">Remove</button></div>';
+      $('.cmp-remove', c).addEventListener('click', function () { cmp.picked.splice(cmp.picked.indexOf(i), 1); note.textContent = ''; renderGrid(); renderSide(); });
+      cols.appendChild(c);
+    });
+  }
+  // The tray floats only while the comparison is on screen and the side-by-side is not.
+  var vis = { section: false, side: false };
+  function updateTray() { if (tray) tray.hidden = !(cmp.picked.length && vis.section && !vis.side); }
+  function clearPicks() { cmp.picked = []; note.textContent = ''; renderGrid(); renderSide(); }
+  if (grid) {
+    $$('.cmp-chip[data-filter]').forEach(function (b) {
+      b.addEventListener('click', function () { cmp.filter = b.getAttribute('data-filter'); renderGrid(); });
+    });
+    sortBtn.addEventListener('click', function () { cmp.asc = !cmp.asc; renderGrid(); });
+    $('#cmpClear').addEventListener('click', clearPicks);
+    $('#cmpClear2').addEventListener('click', clearPicks);
+    $('#cmpGo').addEventListener('click', function () { side.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { es.forEach(function (e) { vis.section = e.isIntersecting; }); updateTray(); }, { rootMargin: '-35% 0px -35% 0px' }).observe($('#compare'));
+      new IntersectionObserver(function (es) { es.forEach(function (e) { vis.side = e.isIntersecting; }); updateTray(); }, { threshold: 0.25 }).observe(side);
+    } else { vis.section = true; }
+    renderGrid(); renderSide();
+  }
+  // The three protection levels open the comparison on that level.
+  $$('.tier-card').forEach(function (card) {
+    var b = $('.tier-badge', card); if (!b || !grid) return;
+    var level = ['premium', 'standard', 'basic'].filter(function (l) { return b.classList.contains(l); })[0];
+    if (!level) return;
+    card.classList.add('is-link'); card.setAttribute('role', 'button'); card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', 'See the ' + LEVEL[level] + ' vaults');
+    function go() { cmp.filter = level; renderGrid(); $('#compare').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }
+    card.addEventListener('click', go);
+    card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   });
 
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  overlay.addEventListener('click', function(e){
-    if(e.target === overlay) closeModal();
-  });
-  document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
-  });
+  /* ── The family PDF: four vaults to a page, large photos, built from the vault cards ── */
+  var famSheet = $('#famSheet');
+  if (famSheet) {
+    var fsCard = function (img, name, price, badge, made, detail) {
+      return '<div class="fs-card"><img src="' + esc(img) + '" alt=""><div class="fs-body">' +
+        '<div class="fs-top"><span class="fs-name">' + esc(name) + '</span><span class="fs-price">' + esc(price) + '</span></div>' +
+        (badge || '') + (made ? '<div class="fs-made">' + esc(made) + '</div>' : '') +
+        (detail ? '<div class="fs-detail">' + esc(detail) + '</div>' : '') + '</div></div>';
+    };
+    var madeOf = function (d) {   // reinforcement and liner, straight from the card's own list
+      var r = d.feats.filter(function (f) { return /reinforced$/i.test(f); })[0], l = d.feats.filter(function (f) { return /liner$|lined interior$/i.test(f); })[0];
+      return [r, l, warrantyOf(d)].filter(Boolean).join(' · ');
+    };
+    var burial = vaults.map(function (d) {
+      return fsCard(d.img, d.name, d.price, '<span class="tier-badge ' + d.level + '">' + LEVEL[d.level] + '</span>', madeOf(d), d.also ? d.also.replace(/^Also available/, 'Also') : '');
+    });
+    var urns = $$('.uv-card').map(function (c) {
+      var note = $('.uv-card-note', c);
+      return fsCard($('.uv-card-img', c).getAttribute('src'), $('.uv-card-name', c).textContent.replace(/Veteran\s*$/, '').trim(),
+        $('.uv-card-price', c).textContent.trim(), '', $('.uv-card-construction', c).textContent.trim(),
+        note ? note.textContent.replace(/^Also available in /, '').replace(/ size at .*/, ' size, same price') : '');
+    });
+    var pages = function (cards, title) {
+      var out = '';
+      for (var i = 0; i < cards.length; i += 4) {
+        out += '<div class="fs-page">' + (i === 0 ? '<h2 class="fs-h">' + title + '</h2>' : '') +
+               '<div class="fs-grid">' + cards.slice(i, i + 4).join('') + '</div></div>';
+      }
+      return out;
+    };
+    famSheet.innerHTML = pages(burial, 'Burial Vaults') + pages(urns, 'Urn Vaults');
+  }
 
-  function closeModal(){
+  /* ───────────── 3. THE PRODUCT MODAL ───────────── */
+  var overlay = $('#productModal'), modalImg = $('#modalImg'), modalName = $('#modalName'),
+      modalTier = $('#modalTier'), modalPrice = $('#modalPrice'), modalDesc = $('#modalDesc'),
+      modalSpecs = $('#modalSpecs'), lastFocus = null;
+  function openModal(d, from) {
+    lastFocus = from || document.activeElement;
+    modalImg.src = d.img; modalImg.alt = d.name;
+    modalName.textContent = d.name;
+    modalTier.textContent = d.badge;
+    modalPrice.textContent = d.price;
+    modalDesc.textContent = d.desc;
+    modalSpecs.innerHTML = '';
+    d.feats.concat(d.also ? [d.also] : []).forEach(function (f) {
+      var li = document.createElement('li'); li.textContent = f; modalSpecs.appendChild(li);
+    });
+    overlay.classList.add('active');
+    overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', d.name);
+    document.body.style.overflow = 'hidden';
+    $('#modalClose').focus();
+  }
+  function closeModal() {
     overlay.classList.remove('active');
     document.body.style.overflow = '';
     document.body.classList.remove('modal-printing');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
-
-  document.getElementById('modalPrint').addEventListener('click', function(){
-    document.getElementById('psImg').src = modalImg.src;
-    document.getElementById('psName').textContent = modalName.textContent;
-    document.getElementById('psPrice').textContent = modalPrice.textContent;
-    document.getElementById('psDesc').textContent = modalDesc.textContent;
-    document.getElementById('psEyebrow').textContent = modalTier.textContent || 'Burial Vaults';
-    document.getElementById('psTier').textContent = modalTier.textContent ? modalTier.textContent + ' · Prices shown pre-tax and subject to change.' : 'Prices shown pre-tax and subject to change.';
-
-    var specsList = document.getElementById('psSpecs');
+  $('#modalClose').setAttribute('aria-label', 'Close');
+  $('#modalClose').addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+  });
+  // Urn vault cards open the same sheet.
+  $$('.uv-card').forEach(function (c) {
+    var nameEl = $('.uv-card-name', c), con = $('.uv-card-construction', c).textContent.trim(),
+        noteEl = $('.uv-card-note', c), img = $('.uv-card-img', c);
+    var d = {
+      name: nameEl.textContent.replace(/Veteran\s*$/, '').trim(), badge: 'Urn Vault',
+      price: $('.uv-card-price', c).textContent.trim(),
+      desc: 'A smaller vault for an urn going into the ground. ' + con + '.',
+      feats: [con], also: noteEl ? noteEl.textContent.trim() : '', img: img.getAttribute('src')
+    };
+    c.classList.add('is-link'); c.setAttribute('role', 'button'); c.setAttribute('tabindex', '0');
+    c.setAttribute('aria-label', 'Details: ' + d.name + ', ' + d.price);
+    c.addEventListener('click', function () { openModal(d, c); });
+    c.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(d, c); } });
+  });
+  $('#modalPrint').addEventListener('click', function () {
+    $('#psImg').src = modalImg.src;
+    $('#psName').textContent = modalName.textContent;
+    $('#psPrice').textContent = modalPrice.textContent;
+    $('#psDesc').textContent = modalDesc.textContent;
+    $('#psEyebrow').textContent = modalTier.textContent || 'Burial Vaults';
+    $('#psTier').textContent = modalTier.textContent ? modalTier.textContent + ' · Prices shown pre-tax and subject to change.' : 'Prices shown pre-tax and subject to change.';
+    var specsList = $('#psSpecs');
     specsList.innerHTML = '';
-    modalSpecs.querySelectorAll('li').forEach(function(li){
-      var row = document.createElement('li');
-      var bullet = document.createElement('span');
-      bullet.className = 'ps-spec-bullet';
-      var val = document.createElement('span');
-      val.className = 'ps-spec-value';
-      val.textContent = li.textContent;
-      row.appendChild(bullet);
-      row.appendChild(val);
-      specsList.appendChild(row);
+    $$('li', modalSpecs).forEach(function (li) {
+      var row = document.createElement('li'), bullet = document.createElement('span'), val = document.createElement('span');
+      bullet.className = 'ps-spec-bullet'; val.className = 'ps-spec-value'; val.textContent = li.textContent;
+      row.appendChild(bullet); row.appendChild(val); specsList.appendChild(row);
     });
-
     document.body.classList.add('modal-printing');
-    setTimeout(function(){ window.print(); }, 100);
-    window.addEventListener('afterprint', function handler(){
+    setTimeout(function () { window.print(); }, 100);
+    window.addEventListener('afterprint', function handler() {
       document.body.classList.remove('modal-printing');
       window.removeEventListener('afterprint', handler);
     });
   });
+
+  /* ───────────── 4. AT THE GRAVESIDE: real photos, one at a time ───────────── */
+  var gscBtns = $$('#gscSteps button'), gspImg = $('#gspImg'), gscAt = 0, gscGo = null, gscTimer = null;
+  if (gscBtns.length) {
+    gscGo = function (i) {
+      i = Math.max(0, Math.min(gscBtns.length - 1, i)); gscAt = i;
+      var b = gscBtns[i];
+      gscBtns.forEach(function (x) { if (x === b) x.setAttribute('aria-current', 'step'); else x.removeAttribute('aria-current'); });
+      $('#gscN').textContent = i + 1;
+      $('#gscT').textContent = b.getAttribute('data-title');
+      $('#gscS').textContent = b.getAttribute('data-sub');
+      $('#gspPrev').disabled = i === 0;
+      $('#gspNext').disabled = i === gscBtns.length - 1;
+      var src = b.getAttribute('data-src');
+      if (gspImg.getAttribute('src') === src) return;
+      gspImg.classList.add('fade');
+      setTimeout(function () { gspImg.src = src; gspImg.alt = b.getAttribute('data-alt'); gspImg.classList.remove('fade'); }, reduce ? 0 : 200);
+    };
+    var gscPlayBtn = $('#gscPlay');
+    var gscLabel = function (on) {
+      $('.tl-play-txt', gscPlayBtn).textContent = on ? 'Pause' : (gscAt >= gscBtns.length - 1 ? 'Replay' : 'Play');
+      $('.tl-play-ico', gscPlayBtn).innerHTML = on ? '&#10073;&#10073;' : '&#9654;';
+    };
+    var gscStop = function () { clearInterval(gscTimer); gscTimer = null; gscLabel(false); };
+    gscPlayBtn.addEventListener('click', function () {
+      if (gscTimer) { gscStop(); return; }
+      if (gscAt >= gscBtns.length - 1) gscGo(0);
+      gscLabel(true);
+      gscTimer = setInterval(function () {
+        if (gscAt >= gscBtns.length - 1) { gscStop(); return; }
+        gscGo(gscAt + 1);
+        if (gscAt >= gscBtns.length - 1) gscStop();
+      }, reduce ? 1500 : 3600);
+    });
+    gscBtns.forEach(function (b, i) { b.addEventListener('click', function () { gscStop(); gscGo(i); }); });
+    $('#gspPrev').addEventListener('click', function () { gscStop(); gscGo(gscAt - 1); });
+    $('#gspNext').addEventListener('click', function () { gscStop(); gscGo(gscAt + 1); });
+    gscGo(0);
+  }
+
+  /* ───────────── PRESENTING: slide nav, arrow keys, full screen ───────────── */
+  var slides = $$('.quick-nav a').map(function (a) { return { a: a, el: $(a.getAttribute('href')) }; }).filter(function (x) { return x.el; });
+  function current() {
+    var y = window.innerHeight * 0.35, at = 0;
+    slides.forEach(function (x, i) { if (x.el.getBoundingClientRect().top <= y) at = i; });
+    return at;
+  }
+  function markNav() { var c = current(); slides.forEach(function (x, i) { x.a.classList.toggle('on', i === c); }); }
+  window.addEventListener('scroll', markNav, { passive: true });
+  markNav();
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    slides[i].el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (overlay.classList.contains('active')) return;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    var c = current(), inGs = slides[c] && slides[c].el.id === 'graveside';
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      if (inGs && gscGo) { e.preventDefault(); gscGo(gscAt + (e.key === 'ArrowRight' ? 1 : -1)); }
+      return;
+    }
+    if (e.key === 'PageDown' || (e.key === ' ' && tag !== 'BUTTON' && tag !== 'A')) { e.preventDefault(); go(c + 1); }
+    else if (e.key === 'PageUp') { e.preventDefault(); go(c - 1); }
+  });
+  var fsBtn = $('#fsBtn');
+  if (fsBtn) {
+    if (!document.fullscreenEnabled) fsBtn.hidden = true;
+    fsBtn.addEventListener('click', function () {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(function () {});
+    });
+    document.addEventListener('fullscreenchange', function () { fsBtn.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; });
+  }
+
+  /* ───────────── 5. FAMILY VIEW ───────────── */
+  if (document.documentElement.classList.contains('family-view')) {
+    $$('a[href]').forEach(function (a) {
+      var h = a.getAttribute('href');
+      if (/^[a-z0-9-]+-guide\.html(#.*)?$/i.test(h)) a.setAttribute('href', h.replace(/(\.html)/, '$1?family'));
+    });
+  }
 })();
 </script>
 

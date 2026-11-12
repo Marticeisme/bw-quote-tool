@@ -3033,3 +3033,28 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: rendered a quote PDF and a Family Packet cover for "José Ñúñez-O'Brien · Nguyễn Văn" (reads "José
   Nuñez-O'Brien · Nguyen Van", no blanks); test-fq-pdf-vs-print builds all three quote types. test-fq-subtotal-print
   has 3 failures on the Combined summary panel that fail identically without this change.
+
+## 2026-11-11: Burial Vault Guide rebuilt as a presentation
+
+- vault-guide.html is now a slide-style presentation shown to families on a screen: What happens over
+  time (three drawn graves, nothing / plain concrete box / lined sealed vault, with Play and a burial-day
+  to many-years slider), Three Levels, Compare the Vaults (grid, filters, side by side, detail view),
+  Personalized Lids, Urn Vaults, At the Graveside (four real service photos, step through or Play), All
+  Prices. Slide dots, PageDown/PageUp, Full screen button; slides scale to large monitors. ?family hides
+  All Guides and the footer. The long text stays in the page for print only.
+- Vault facts from wilbert.com product pages: reinforcement and liner per vault; levels renamed to
+  Wilbert's Premium / Standard / Basic. Monticello is lined (HIPS) and has no nameplate; Salute is the
+  Monticello's veterans' version. Warranty years from Wilbert licensee sites (wilbert.com no longer lists
+  them): Wilbert Bronze 100, Triunes 75, Venetian 65, Continental 55, Monticello / Tribute / Salute 50
+  (last two per Martice). Urn vaults: none shown.
+- Wording rule (FTC Funeral Rule 16 CFR 453.4(e)(2)): vaults "resist water", never "keep water out",
+  "watertight" or "no change". Old "keeps water out" and "as much as you can do to protect a casket"
+  lines removed.
+- Prices unchanged; all 20 checked against the 11/04/2026 price list and the tool's qVault list.
+- Photos: Wilbert's (cleared for use by Martice) from wilbert.com and wilbertprecast.com, names printed on
+  two lids painted out; two of ours from D:\Cemetery Photos Misc, cropped below the marker rows.
+- Family PDF (Burial Vault Guide.pdf) is now a photo + price sheet, four vaults to a page, 5 pages, exact
+  prices (this guide only); verify_guide_pages cap 5 and a new price-sheet check.
+- Verified: 200-check Playwright run (laptop + phone, every control, ?family, print), verify_guide_pages,
+  verify_family_type, verify_print_header, verify_table_alignment, verify_photo_first all passing; slide
+  fit checked at 1024x768 to 2560x1440.
