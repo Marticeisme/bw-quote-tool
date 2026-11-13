@@ -4330,6 +4330,18 @@ tr:hover td{background:var(--navy-100);}
           <label>Benefit Name & Address</label>
           <input type="text" id="ricBenefit" placeholder="For the benefit of..." style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
         </div>
+        <div class="q-row" style="margin-top:8px;">
+          <label>Marker Color</label>
+          <input type="text" id="ricMarkerColor" list="ricMarkerColorList" placeholder="e.g. Misty Pink (goes in Remarks)" style="flex:1;padding:8px 10px;border:1px solid var(--gray-mid);border-radius:6px;font-size:13px;">
+          <datalist id="ricMarkerColorList">
+            <option value="Cloud White"><option value="Misty Pink"><option value="PC Violet">
+            <option value="Cascade Gray"><option value="Classic Gray">
+            <option value="Absolute Black"><option value="Barrell Gray"><option value="Blue Pearl">
+            <option value="Balmoral Red"><option value="Barre Gray"><option value="Cherrywood">
+            <option value="American Bouquet"><option value="Gorman Green">
+            <option value="Crystal White"><option value="Emerald Pearl">
+          </datalist>
+        </div>
       </div>
     </div>
 
@@ -5222,7 +5234,8 @@ tr:hover td{background:var(--navy-100);}
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--text);">Disposition Type</label><br>
           <label style="margin-right:12px;cursor:pointer;"><input type="radio" name="gaDisposition" value="Burial" checked style="margin-right:4px;">Burial</label>
-          <label style="cursor:pointer;"><input type="radio" name="gaDisposition" value="Cremation" style="margin-right:4px;">Cremation</label>
+          <label style="margin-right:12px;cursor:pointer;"><input type="radio" name="gaDisposition" value="Cremation" style="margin-right:4px;">Cremation</label>
+          <label style="cursor:pointer;" title="Body donation, terramation, or anything that is not burial or cremation"><input type="radio" name="gaDisposition" value="Other" style="margin-right:4px;">Other (body donation)</label>
         </div>
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--text);">Date</label>
@@ -5907,10 +5920,34 @@ function gaImportFromFH() {
 // ── GA custom-item review: unrecognized custom line items get a destination dropdown ──
 // "obituary" and "flower allowance" are auto-mapped; every other custom line is listed here
 // so Martice assigns where it goes (never silently dropped).
+// Every keyword printGAContract() looks up with findLine(). A custom line that one of these
+// lookups lands on is ALREADY placed on the contract by the mapper, so it must not also be offered
+// for assignment: Binder's custom "1 Hour Additional Funeral Director Time" was auto-placed as
+// Funeral Director Time AND assigned to Left Other, adding a second $205 (11/13). Keep this list in
+// step with the findLine() calls in printGAContract().
+var GA_AUTO_KWS = ['Additional Ceremony Hour','Additional Mileage','Additional Time','Autopsy','Basic Services',
+  'Chapel Rental','County','Cremation & Processing','Cremation Fee','Delivery of Remains','Disinterment','Embalming',
+  'Expedite Cremation','Family Witness Cremation','Forwarding of Remains','Funeral Director Time','Hair Dressing',
+  'Horse-Drawn Hearse','International Processing','Laying in Ceremony','Limited Preparation','Long Term Shelter',
+  'Mailing of Certified Death','Mailing of Cremated','Meeting with a Funeral Director','Motorcycle Escort',
+  'Natural Organic Reduction','Other Preparation of Deceased','Preparation of Body Prior','Receiving of Remains',
+  'Release from Storage','Shelter of Remains','Transfer of Deceased','Transfer of Remains to Keepsakes',
+  'Use of Flower Vehicle','Use of Hearse','Use of Utility Vehicle'];
+// The custom lines the mapper places on its own (same first-match rule as findLine).
+function gaAutoPlacedCustom(lines) {
+  var out = [];
+  GA_AUTO_KWS.forEach(function(kw) {
+    var k = kw.toLowerCase();
+    var l = lines.find(function(x){ return String(x.label || '').toLowerCase().includes(k); });
+    if (l && l.custom && out.indexOf(l) < 0) out.push(l);
+  });
+  return out;
+}
 function gaUnrecognizedCustomLines() {
   var lines = gaLines();
+  var auto = gaAutoPlacedCustom(lines);
   return lines.filter(function(l){
-    return l.custom && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
+    return l.custom && auto.indexOf(l) < 0 && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
   });
 }
 function gaRenderCustomReview() {
@@ -6267,8 +6304,12 @@ async function printGAContract() {
   // Custom-item assignments from the builder review field (unrecognized custom lines).
   var assignedP3 = [];                       // {group, label, amt} for chosen Page 3 rows
   var assignedLeftTotal = 0, assignedRightTotal = 0;
+  // A review row left over from before this fix (or a stale review box) for a line the mapper
+  // already placed is skipped, never counted twice.
+  var _gaAutoLabels = gaAutoPlacedCustom(lines).map(function(l){ return l.label; });
   ((typeof gaGetCustomAssignments === 'function') ? gaGetCustomAssignments() : []).forEach(function(c){
     if (!c.amt) return;
+    if (_gaAutoLabels.indexOf(c.label) >= 0) { console.warn('[GA] custom line already placed by the mapper, assignment skipped:', c.label); return; }
     if (c.dest === 'left')       { leftOther.push({label:c.label, amt:c.amt});  assignedLeftTotal  += c.amt; }
     else if (c.dest === 'right') { rightOther.push({label:c.label, amt:c.amt}); assignedRightTotal += c.amt; }
     else if (c.dest && c.dest.indexOf('p3:') === 0) { assignedP3.push({group: parseInt(c.dest.slice(3),10), label:c.label, amt:c.amt}); }
@@ -6568,7 +6609,8 @@ async function printGAContract() {
     setTF('1002-14 - SIG - Funeral Recipient Signature Date', dateStr);
 
     // Disposition checkboxes: Box43=Burial, Box44=Cremation, Box45=Other (terramation)
-    if (terramationAmt > 0) { checkBox('Check Box45'); }
+    // "Other" on the GA tab (body donation) ticks Box45 too; it had to be ticked by hand (Binder 11/13).
+    if (terramationAmt > 0 || disposition === 'Other') { checkBox('Check Box45'); }
     else if (isBurial) { checkBox('Check Box43'); }
     else          { checkBox('Check Box44'); }
 
@@ -20815,7 +20857,22 @@ async function generateRICContractCore(clientData) {
     // vertically under the "Remarks:" label. Word-wrap the disclosure + custom remarks
     // across all five so nothing gets clipped on a single line.
     var _achDisc = 'ACH bank withdrawals required to receive 0 percent financing and discount if applicable.';
-    var _customRem = clientData ? (clientData.remarks || (clientData.benefit ? 'For the benefit of: ' + clientData.benefit : '')) : '';
+    // Remarks lead with "For the benefit of <name>." and the marker color (the memorial row shows
+    // only size + stone group), then whatever was typed. Typed remarks used to REPLACE the benefit
+    // line, which is how Woicik's RIC lost "For the benefit of Rodney James Hall" (11/13).
+    // Rebuilt RIC only: its remarks wrap by measured width across all five lines. The old form's
+    // fixed-count wrap keeps the old rule so the other counselors' contracts do not change.
+    var _customRem = '';
+    if (clientData && !_ricNew) {
+      _customRem = clientData.remarks || (clientData.benefit ? 'For the benefit of: ' + clientData.benefit : '');
+    } else if (clientData) {
+      var _remTyped = String(clientData.remarks || '').trim();
+      var _remParts = [];
+      if (clientData.benefit && !/benefit\s+of/i.test(_remTyped)) _remParts.push('For the benefit of ' + String(clientData.benefit).replace(/[.\s]+$/, '') + '.');
+      if (clientData.markerColor && !/marker colou?r/i.test(_remTyped)) _remParts.push('Marker color: ' + String(clientData.markerColor).replace(/[.\s]+$/, '') + '.');
+      if (_remTyped) _remParts.push(_remTyped);
+      _customRem = _remParts.join(' ');
+    }
     var _remarksText;
     if (_ricNew) {
       // Rebuilt RIC: only when there is a payment plan (paid-in-full contracts printed it too).
@@ -20999,6 +21056,8 @@ async function generateRICContractCore(clientData) {
         if (dim)         return dim + ' Bronze Marker';
         return core.replace(/Companion/gi, 'Comp');
       }
+      // A stone group already says granite; drop the word so size + group fit the row.
+      if (/\bGroup\s+\d/i.test(core)) core = core.replace(/\s+Granite\b/i, '');
       return core.replace(/Companion/gi, 'Comp');
     }
     // Format base label: bronze base ends with "— Base" → "Granite Base for Bronze", UNLESS a manual
@@ -21040,12 +21099,27 @@ async function generateRICContractCore(clientData) {
       return parts.join(' + ');
     }
 
-    var markerItem   = combineLines(markerLines);
+    // Keep the stone group on the marker row ("Group 1 Non-Tariffed"): cleanLabel strips "— Group N",
+    // which left a bare "Non-Tariffed"/"Tariffed" that read as a different product (Woicik 11/13).
+    var markerItem   = combineLines(markerLines.map(function(l) {
+      var c = {}; for (var k in l) c[k] = l[k];
+      c.label = String(l.label).replace(/\s*[-—]\s*(Group\s+\d+(?:\s+(?:Non-)?Tariffed)?)/i, ' $1');
+      return c;
+    }));
     var baseItem     = combineLines(baseLines);
     var installItem  = combineLines(installLines);
     var vaultItem    = combineLines(vaultLines);
     var vaultSetItem = combineLines(vaultSetLines);
 
+    // Other Merchandise rows are ~116 pt wide. A final-date inscription prints as "Final
+    // Inscription" (Martice 11/13: "Final Date Inscription (Rodney, added after his passing)" was
+    // clipped even at 5.5 pt), and a long custom label drops its "(…)" side notes.
+    function shortMerchLabel(s) {
+      if (/\bfinal[\s-]*(date|inscription)\b/i.test(s)) return 'Final Inscription' + ((s.match(/(?:^|\s)[×x]\s*\d+\s*$/) || [''])[0]);
+      if (s.length > 40) s = s.replace(/\s*\([^)]*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+      return s;
+    }
+    otherOverflow = otherOverflow.map(function(l){ var c = {}; for (var k in l) c[k] = l[k]; c.label = shortMerchLabel(l.label); return c; });
     // overflow1 = all vase-related items combined; overflow2 = remaining other merch
     var overflow1 = null, overflow2 = null;
     if (vaseRelatedLines.length) {
@@ -21112,6 +21186,13 @@ async function generateRICContractCore(clientData) {
     var ricFpStr   = el('ricFirstPmt') && el('ricFirstPmt').value ? el('ricFirstPmt').value : fpStr;
     var ricPayMeth = el('ricPayMethod') ? el('ricPayMethod').value : 'Cash';
     var ricUnpaid  = Math.round(Math.max(0, grandTotal - ricDown) * 100) / 100;
+    // Paid in full (nothing financed): ACH is never the method on a full-payment RIC, and the ACH
+    // authorization page is left off below. A leftover ACH choice prints as Check.
+    var ricPaidInFull = !(ricMonths > 0 && ricUnpaid > 0);
+    if (ricPaidInFull && ricPayMeth === 'ACH') {
+      console.warn('[RIC] paid in full: payment method ACH changed to Check');
+      ricPayMeth = 'Check';
+    }
     var ricTotPmts = (ricMonths && ricRateRaw === 0) ? ricUnpaid : ricMonths ? Math.round(ricMo * ricMonths * 100) / 100 : ricUnpaid;
 
     // Override financial totals with RIC tab values
@@ -21307,6 +21388,20 @@ async function generateRICContractCore(clientData) {
       })();
     }
 
+    // Warn before the download when a merchandise description cannot fit its box even at 5.5 pt:
+    // the viewer clips it (an overflow "+" in Acrobat) and the counselor finds out at signing.
+    var _ricClipped = [];
+    if (helvetica) {
+      ['Description of Interment Rights','Memorial Description','Mem Base Description','Notes 1','Notes 2','Notes 3',
+       'Other Merch 1 Description','Other Merch 2 Description','Discount Notes'].forEach(function(fn) {
+        try {
+          var f = form.getTextField(fn), v = f.getText() || ''; if (!v) return;
+          var room = Math.min.apply(null, f.acroField.getWidgets().map(function(w){ return w.getRectangle().width; })) - 4;
+          if (helvetica.widthOfTextAtSize(v, 5.5) > room) _ricClipped.push('• ' + v);
+        } catch(e) {}
+      });
+    }
+
     // Update field appearances so values display without clicking
     try {
       if (!helvetica) helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
@@ -21368,8 +21463,9 @@ async function generateRICContractCore(clientData) {
     // nothing said to the counselor. A LOAD failure now propagates to this function's own
     // catch, which alerts and names the file; a field-FILL failure (a renamed checkbox,
     // updateFieldAppearances, dropButtonWidgets) keeps the warn-and-continue behavior.
-    var achBytes = await bwTemplate('ACH_PDF_B64');
-    try {
+    // Left off a paid-in-full RIC: no monthly payments, so no bank authorization to sign.
+    var achBytes = ricPaidInFull ? null : await bwTemplate('ACH_PDF_B64');
+    if (achBytes) try {
       var achDoc = await PDFLib.PDFDocument.load(achBytes, { ignoreEncryption: true });
       var achForm = achDoc.getForm();
       function setA(name, value) {
@@ -21396,7 +21492,13 @@ async function generateRICContractCore(clientData) {
         else if (fpDay === '20') achForm.getCheckBox('Check Box8').check();          // 20th of the month
         else if (fpDay === '25') achForm.getCheckBox('Payment Check Box 3').check(); // 25th of the Month
       } catch(e) {}
-      try { achForm.updateFieldAppearances(helvetica); } catch(e) {}
+      // Draw with a font embedded in THIS document. `helvetica` belongs to the main RIC doc; handing
+      // it to another doc's form leaves the appearances pointing at a font object that never comes
+      // across, so some viewers print the values blank (11/13, Woicik rules page).
+      try {
+        var achFont = await achDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        achForm.updateFieldAppearances(achFont);
+      } catch(e) {}
       try { dropButtonWidgets(achDoc, achForm); } catch(e) {}
       var achPages = await pdfDoc.copyPages(achDoc, achDoc.getPageIndices());
       achPages.forEach(function(p){ pdfDoc.addPage(p); });
@@ -21428,7 +21530,12 @@ async function generateRICContractCore(clientData) {
       // our full "MM/DD/YYYY" (e.g. "07/05/2026") ran past the field's right edge and got visibly
       // clipped to "07/05/202" at the auto-fit size. Force a smaller fixed size so it fits.
       try { rulesForm.getTextField('Date1_af_date').setFontSize(8); } catch(e) {}
-      try { rulesForm.updateFieldAppearances(helvetica); } catch(e) {}
+      // Font embedded in the rules doc itself (see the ACH note above). Times-Roman matches the
+      // template's own purchaser line.
+      try {
+        var rulesFont = await rulesDoc.embedFont(PDFLib.StandardFonts.TimesRoman);
+        rulesForm.updateFieldAppearances(rulesFont);
+      } catch(e) {}
       try { dropButtonWidgets(rulesDoc, rulesForm); } catch(e) {}
       // Flatten before merging — the main RIC template also has a field literally named
       // "Address" (though not Phone/State/Zip), and merging live AcroForm fields with the same
@@ -21461,6 +21568,10 @@ async function generateRICContractCore(clientData) {
     try { repairMergedPageDefects(pdfDoc, helvetica); } catch(e) { console.warn('[RIC] Merged-page defect repair failed:', e.message); }
 
     var outBytes = await pdfDoc.save();
+    if (_ricClipped.length) {
+      alert('Heads up: these descriptions are too long for their boxes on the RIC and will print cut off. ' +
+            'Shorten the line label in the quote and download again:\n\n' + _ricClipped.join('\n'));
+    }
     var blob = new Blob([outBytes], { type: 'application/pdf' });
     var url  = URL.createObjectURL(blob);
     var a    = document.createElement('a');
@@ -21560,7 +21671,13 @@ function ricImportFromQuote() {
     if (el('ricFirstPmtDay'))   el('ricFirstPmtDay').value   = String(fpDay);
     if (el('ricFirstPmtYear'))  el('ricFirstPmtYear').value  = fpYearStr;
     if (el('ricFirstPmt'))      el('ricFirstPmt').value       = fpMonthStr + ' ' + fpDay + ', ' + fpYearStr;
-    if (el('ricPayMethod') && (!fd.rate || fd.rate === 0)) el('ricPayMethod').value = 'ACH';
+    // ACH only for a 0% payment plan. Paid in full (no months, or nothing left after the down
+    // payment) is Check or Credit Card: "we don't do ACH for full payments on RICs" (Martice 11/13).
+    var _fdFinanced = (parseInt(fd.months) || 0) > 0 && Math.round(((_ricPricing.total || 0) - (parseFloat(fd.downAmt) || 0)) * 100) > 0;
+    if (el('ricPayMethod')) {
+      if (!_fdFinanced) el('ricPayMethod').value = 'Check';
+      else if (!fd.rate || fd.rate === 0) el('ricPayMethod').value = 'ACH';
+    }
     // Show financing panel
     var finHtml = '<strong style="color:var(--navy);">Cemetery Quote Financing:</strong><br>';
     finHtml += 'Total: <strong>$' + (_ricPricing.total||0).toLocaleString('en-US',{minimumFractionDigits:2}) + '</strong>';
@@ -21573,6 +21690,7 @@ function ricImportFromQuote() {
   } else {
     if (el('ricCemFinancingDisplay')) {
       var totStr = (_ricPricing && _ricPricing.total) ? '$' + _ricPricing.total.toLocaleString('en-US',{minimumFractionDigits:2}) : 'n/a';
+      if (el('ricPayMethod') && (el('ricPayMethod').value === 'ACH' || el('ricPayMethod').value === 'Cash')) el('ricPayMethod').value = 'Check';   // paid in full: never ACH
       el('ricCemFinancingDisplay').innerHTML = '<strong style="color:var(--navy);">Cemetery Quote Total: ' + totStr + '</strong><br><span style="color:var(--text-light);">No payment plan selected in cemetery quote. Set up financing in the Cemetery Quote Builder first.</span>';
     }
   }
@@ -21705,7 +21823,7 @@ function ricClearAll() {
   bwStampsClear('ric');
   if (typeof bwClearModuleLink === 'function') bwClearModuleLink('ric');
   ['ricName','ricStreet','ricCity','ricZip','ricPhone','ricDayPhone','ricControlNo',
-   'ricLocation','ricBenefit','ricDOB1','ricDOB2','ricCoPurchaser',
+   'ricLocation','ricBenefit','ricMarkerColor','ricDOB1','ricDOB2','ricCoPurchaser',
    'ricDownAmt','ricFinMonths','ricFinRate','ricMonthlyAmt','ricFirstPmt','ricRemarks']
     .forEach(function(id){ if(el(id)) el(id).value=''; });
   el('ricState').value = 'WA';
@@ -21777,6 +21895,7 @@ async function generateRICFromTab() {
       controlNo:    el('ricControlNo').value.trim(),
       location:     el('ricLocation').value.trim(),
       benefit:      el('ricBenefit').value.trim(),
+      markerColor:  el('ricMarkerColor') ? el('ricMarkerColor').value.trim() : '',
       remarks:      el('ricRemarks') ? el('ricRemarks').value.trim() : '',
       contractDate: el('ricContractDate') ? el('ricContractDate').value : '',
       contractTime: el('ricContractTime') ? el('ricContractTime').value : '',
