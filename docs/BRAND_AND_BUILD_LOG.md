@@ -3071,3 +3071,23 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   keep $1,610. Commit f99b6109.
 - Verified: syntax check clean, test-price-index-golden 6/6, in-page read shows $1,610 in all three places,
   verify_catalogs ALL PAGES OK, rebuilt PDFs read $1,610.00.
+
+## 2026-11-13: RIC + GA contract fixes (Woicik, Binder)
+
+- From Martice's ops session after hand-patching the Woicik RIC and the Binder GA. Commit 9a7ac715.
+- RIC Rules page printed the address, city, state, zip and phone BLANK in his viewer: the Rules and ACH forms were
+  drawn with the main contract's embedded Helvetica, which left a font with no name. Each attached form now
+  embeds its own font (Rules = Times-Roman, like the purchaser line). Affected every counselor's RIC.
+- Paid-in-full RIC: method defaults to Check, a leftover ACH prints as Check, ACH page left off ("we don't do
+  ACH for full payments on RICs"). Old and rebuilt forms.
+- Other Merchandise: final-date inscription prints "Final Inscription"; an alert before the download names any
+  description still too long for its box. Marker row keeps "Group 1 Non-Tariffed" (was a bare "Non-Tariffed").
+- Rebuilt RIC remarks: "For the benefit of <name>." + "Marker color: <color>." (new Marker Color field) + typed
+  remarks. Old form remarks unchanged.
+- GA: custom lines the mapper already places are no longer offered for assignment (Binder's FD time was counted
+  twice, +$205). New disposition "Other (body donation)" ticks Check Box45. Shelter of Remains still folds into
+  Other Preparations per the 2026-06-22 addendum, pending his ruling.
+- Contract Date on the RIC tab already drives every RIC date; redate by regenerating.
+- Verified: syntax check clean; test-ric-woicik-round 35/35, test-ga-custom-autoplaced 8/8 (fails on the old
+  code), test-ga-rental-casket, test-ric-line-qty, test-ric-rebuilt, test-ric-remarks-fit all passing; rendered
+  pages checked. NOT checked in Acrobat yet.
