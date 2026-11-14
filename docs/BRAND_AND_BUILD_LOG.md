@@ -3091,3 +3091,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: syntax check clean; test-ric-woicik-round 35/35, test-ga-custom-autoplaced 8/8 (fails on the old
   code), test-ga-rental-casket, test-ric-line-qty, test-ric-rebuilt, test-ric-remarks-fit all passing; rendered
   pages checked. NOT checked in Acrobat yet.
+
+## 2026-11-14: RIC long lines, ACH day box, ACH remark rule, ClearPoint double count
+
+- Acrobat check of the 11/13 round: the Rules page now shows the address, city, state, zip, phone and dates.
+- RIC long descriptions: no longer cut off (or an empty box with an overflow "+" in Acrobat). A description too
+  long for one line prints whole on two lines in its row; that row is printed onto the page because Acrobat
+  redraws text boxes itself and cannot fit two lines in an ~11 pt row. Still too long at 4.5 pt: warned.
+- ACH page "20th of the month" box printed unchecked in Acrobat on every financed RIC set to the 20th (all
+  counselors): it shared the field name "Check Box8" with RIC page 1. Renamed on the ACH copy.
+- Ruling (Martice): "ACH bank withdrawals required..." prints when a 0% plan is selected or any discount is on
+  the contract; not on an interest plan or paid in full without a discount. Both forms.
+- ClearPoint custom-item review had the same double count as GA ($205 over on a test quote). Fixed the same way.
+- Randy on the old RIC is intended: the rebuilt RIC stays Martice-only until Ray approves it.
+- Verified: syntax check clean; test-ric-woicik-round 53/53, test-ga-custom-autoplaced 11/11 (CP case fails on the
+  old code), test-ric-remarks-fit 28/28, test-ric-rebuilt, test-ric-line-qty, test-ga-rental-casket,
+  test-clearpoint-fields, test-clearpoint-nojs all passing; Acrobat checked by eye.
+- Open: paid-in-full + discount prints the ACH line but still defaults to Check with no ACH page; Martice to say
+  which. GA Shelter of Remains still folds into Other Preparations (2026-06-22 addendum) pending his ruling.
