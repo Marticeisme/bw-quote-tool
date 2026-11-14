@@ -5933,10 +5933,19 @@ var GA_AUTO_KWS = ['Additional Ceremony Hour','Additional Mileage','Additional T
   'Natural Organic Reduction','Other Preparation of Deceased','Preparation of Body Prior','Receiving of Remains',
   'Release from Storage','Shelter of Remains','Transfer of Deceased','Transfer of Remains to Keepsakes',
   'Use of Flower Vehicle','Use of Hearse','Use of Utility Vehicle'];
+// Same for the ClearPoint mapper (keep in step with the findLine() calls in its print function).
+var CP_AUTO_KWS = ['Additional Ceremony Hour','Additional Mileage','Additional Time','Autopsy','Basic Services',
+  'Chapel Rental','County','Cremation & Processing','Cremation Fee','Delivery of Remains','Disinterment','Embalming',
+  'Expedite Cremation','Family Witness','Forwarding of Remains','Funeral Director Time','Hair Dressing',
+  'Horse-Drawn Hearse','International Processing','Keepsake','Laying in Ceremony','Limited Preparation',
+  'Long Term Shelter','Mailing of Certified Death','Mailing of Cremated','Meeting with a Funeral Director',
+  'Motorcycle Escort','Natural Organic Reduction','Other Preparation of Deceased','Preparation Prior',
+  'Receiving of Remains','Release from Storage','Shelter of Remains','Transfer of Deceased','Use of Flower Vehicle',
+  'Use of Hearse','Use of Utility Vehicle'];
 // The custom lines the mapper places on its own (same first-match rule as findLine).
-function gaAutoPlacedCustom(lines) {
+function gaAutoPlacedCustom(lines, kws) {
   var out = [];
-  GA_AUTO_KWS.forEach(function(kw) {
+  (kws || GA_AUTO_KWS).forEach(function(kw) {
     var k = kw.toLowerCase();
     var l = lines.find(function(x){ return String(x.label || '').toLowerCase().includes(k); });
     if (l && l.custom && out.indexOf(l) < 0) out.push(l);
@@ -20873,17 +20882,16 @@ async function generateRICContractCore(clientData) {
       if (_remTyped) _remParts.push(_remTyped);
       _customRem = _remParts.join(' ');
     }
-    var _remarksText;
-    if (_ricNew) {
-      // Rebuilt RIC: only when there is a payment plan (paid-in-full contracts printed it too).
-      var _planMonths = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value) || finMonths) : finMonths;
-      var _planDown   = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value) || 0) : downAmt;
-      var _financed   = _planMonths > 0 && Math.round((grandTotal - _planDown) * 100) > 0;
-      if (!_financed) _achDisc = '';
-      _remarksText = [_achDisc, _customRem].filter(Boolean).join('  ');
-    } else {
-      _remarksText = _customRem ? _achDisc + '  ' + _customRem : _achDisc;
-    }
+    // The ACH disclosure prints when ACH is required (Martice 11/14): a 0% payment plan, or any
+    // discount on the contract. Not on an interest plan with no discount, and not on a paid-in-full
+    // contract with no discount. Both forms.
+    var _planMonths = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value) || finMonths) : finMonths;
+    var _planDown   = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value) || 0) : downAmt;
+    var _financed   = _planMonths > 0 && Math.round((grandTotal - _planDown) * 100) > 0;
+    var _planRate   = el('ricFinRate') ? (parseFloat(el('ricFinRate').value) || 0) : finRate * 100;
+    var _hasDisc    = discLines.some(function(l){ return Math.abs(l.amount || 0) > 0; });
+    if (!((_financed && _planRate === 0) || _hasDisc)) _achDisc = '';
+    var _remarksText = [_achDisc, _customRem].filter(Boolean).join('  ');
     // Per-line widths (chars): Notes 5 is narrower than 6-9 because "Remarks:" label sits
     // beside it. Conservative caps at fontSize 8 (Helvetica ~4pt/char average).
     var _remCaps = [48, 60, 60, 60, 60];   // Notes 5, 6, 7, 8, 9
@@ -21390,14 +21398,36 @@ async function generateRICContractCore(clientData) {
 
     // Warn before the download when a merchandise description cannot fit its box even at 5.5 pt:
     // the viewer clips it (an overflow "+" in Acrobat) and the counselor finds out at signing.
-    var _ricClipped = [];
+    // A description that will not fit on one line at 5.5 pt is drawn on TWO lines inside its box
+    // (largest size that fits, 4.5 pt floor; Martice 11/14: long lines were still cut off). The two
+    // lines are drawn by hand after updateFieldAppearances: pdf-lib's own multiline layout sits too
+    // low in these ~11 pt boxes and cuts the second line. Still too long at 4.5 pt: warned.
+    var _ricClipped = [], _ricTwoLine = [];
     if (helvetica) {
       ['Description of Interment Rights','Memorial Description','Mem Base Description','Notes 1','Notes 2','Notes 3',
        'Other Merch 1 Description','Other Merch 2 Description','Discount Notes'].forEach(function(fn) {
         try {
           var f = form.getTextField(fn), v = f.getText() || ''; if (!v) return;
-          var room = Math.min.apply(null, f.acroField.getWidgets().map(function(w){ return w.getRectangle().width; })) - 4;
-          if (helvetica.widthOfTextAtSize(v, 5.5) > room) _ricClipped.push('• ' + v);
+          var rects = f.acroField.getWidgets().map(function(w){ return w.getRectangle(); });
+          var room = Math.min.apply(null, rects.map(function(r){ return r.width; })) - 4;
+          var boxH = Math.min.apply(null, rects.map(function(r){ return r.height; }));
+          if (helvetica.widthOfTextAtSize(v, 5.5) <= room) return;
+          var words = v.split(/\s+/).filter(Boolean);
+          function twoLines(size) {
+            var a = '', i = 0;
+            while (i < words.length) {
+              var next = a ? a + ' ' + words[i] : words[i];
+              if (a && helvetica.widthOfTextAtSize(next, size) > room) break;
+              a = next; i++;
+            }
+            var b = words.slice(i).join(' ');
+            if (helvetica.widthOfTextAtSize(a, size) > room || helvetica.widthOfTextAtSize(b, size) > room) return null;
+            return [a, b];
+          }
+          var size = Math.min(7, Math.floor(boxH / 1.9 * 4) / 4), lines = twoLines(size);
+          while (!lines && size > 4.5) { size -= 0.25; lines = twoLines(size); }
+          if (lines) _ricTwoLine.push({ field: f, lines: lines, size: size });
+          else _ricClipped.push('• ' + v);
         } catch(e) {}
       });
     }
@@ -21409,6 +21439,23 @@ async function generateRICContractCore(clientData) {
     } catch(efua) {
       try { form.updateFieldAppearances(); } catch(e2) {}
     }
+    // Two-line descriptions (measured above) are printed onto the page and that one box is removed.
+    // Acrobat redraws text boxes itself and its own wrap needs more height than these ~11 pt rows
+    // have: a drawn appearance, a fixed size and Auto+multiline all showed an empty box with an
+    // overflow "+" (checked in Acrobat 11/14). Baselines centered on the box, leading = font size.
+    _ricTwoLine.forEach(function(job) {
+      try {
+        var s = job.size, pages = pdfDoc.getPages();
+        job.field.acroField.getWidgets().forEach(function(w) {
+          var r = w.getRectangle(), pref = w.P();
+          var pg = pages.find(function(p){ return p.ref === pref; }) || pages[0];
+          var y1 = r.y + r.height / 2 + 0.25 * s;
+          pg.drawText(job.lines[0], { x: r.x + 2, y: y1,     size: s, font: helvetica, color: PDFLib.rgb(0, 0, 0) });
+          pg.drawText(job.lines[1], { x: r.x + 2, y: y1 - s, size: s, font: helvetica, color: PDFLib.rgb(0, 0, 0) });
+        });
+        form.removeField(job.field);
+      } catch(e) { console.warn('[RIC] two-line description failed:', e.message); }
+    });
 
     if (!_ricNew) {
       // Draw signing-block day/year overlays — the bottom "Signed this __ day of __" and
@@ -21492,6 +21539,10 @@ async function generateRICContractCore(clientData) {
         else if (fpDay === '20') achForm.getCheckBox('Check Box8').check();          // 20th of the month
         else if (fpDay === '25') achForm.getCheckBox('Payment Check Box 3').check(); // 25th of the Month
       } catch(e) {}
+      // The 20th box is named "Check Box8" on the ACH template AND on RIC page 1. Acrobat joins
+      // same-named fields, so the ACH box took page 1's unchecked state and printed blank (seen
+      // 11/14). Give the ACH copy its own name before the pages are merged.
+      try { achForm.getCheckBox('Check Box8').acroField.dict.set(PDFLib.PDFName.of('T'), PDFLib.PDFHexString.fromText('ACH 20th of the month')); } catch(e) {}
       // Draw with a font embedded in THIS document. `helvetica` belongs to the main RIC doc; handing
       // it to another doc's form leaves the appearances pointing at a font object that never comes
       // across, so some viewers print the values blank (11/13, Woicik rules page).
@@ -22371,8 +22422,9 @@ function cpImportFromFH() {
 // Mirrors the GA tool so nothing is silently dropped from the ClearPoint contract.
 function cpUnrecognizedCustomLines() {
   var lines = cpGetLines();
+  var auto = gaAutoPlacedCustom(lines, CP_AUTO_KWS);   // already placed by the mapper: never offered twice
   return lines.filter(function(l){
-    return l.custom && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
+    return l.custom && auto.indexOf(l) < 0 && !/obituary/i.test(l.label) && !/flower allowance/i.test(l.label) && Math.abs(l.amount) > 0;
   });
 }
 function cpRenderCustomReview() {
@@ -22693,8 +22745,10 @@ async function generateClearPointContract() {
     // custom FH lines aren't silently dropped). Routes: left / right / ca1 / ca2 / omit.
     var cpAssignedCA1 = null, cpAssignedCA2 = null;
     var cpAssignedLeftTotal = 0, cpAssignedRightTotal = 0, cpAssignedCATotal = 0;
+    var _cpAutoLabels = gaAutoPlacedCustom(lines, CP_AUTO_KWS).map(function(l){ return l.label; });
     ((typeof cpGetCustomAssignments === 'function') ? cpGetCustomAssignments() : []).forEach(function(c){
       if (!c.amt) return;
+      if (_cpAutoLabels.indexOf(c.label) >= 0) { console.warn('[CP] custom line already placed by the mapper, assignment skipped:', c.label); return; }
       if (c.dest === 'left')        { leftOther.push({label:c.label, amt:c.amt}); cpAssignedLeftTotal  += c.amt; }
       else if (c.dest === 'right')  { rightMerch.push({label:c.label, amt:c.amt}); cpAssignedRightTotal += c.amt; }
       else if (c.dest === 'ca1')    { cpAssignedCA1 = c; cpAssignedCATotal += c.amt; }

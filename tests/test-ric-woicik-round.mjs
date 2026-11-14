@@ -4,7 +4,10 @@
 //   - paid in full: payment method prints Check (never ACH) and the ACH page is left off
 //   - financed at 0%: ACH as before, ACH page present
 //   - a final-date inscription custom line prints "Final Inscription" on Other Merchandise
-//   - a label too long for its box raises a warning before the download
+//   - a label too long for one line is drawn on two lines inside its box (checked by eye too)
+//   - paid in full: no ACH disclosure in remarks (both forms)
+//   - the ACH page's 20th-of-month box has its own name (it shared 'Check Box8' with page 1,
+//     so Acrobat showed it unchecked)
 //   - the marker row keeps its stone group ("Group 1 Non-Tariffed")
 //   - rebuilt remarks lead with "For the benefit of <name>." and "Marker color: <color>."
 // The rules-page font check (no nameless font) runs on the saved PDFs with PyMuPDF.
@@ -33,7 +36,7 @@ const READ = `(async function(b64){
            remarks: [5,6,7,8,9].map(function(n){ return g('Notes ' + n) || ''; }).join(' ') };
 })`;
 
-async function run(browser, who, plan) {
+async function run(browser, who, plan, opts = {}) {
   const ctx = await browser.newContext({ acceptDownloads: true });
   await ctx.route(/gstatic\.com\/firebasejs/, r => r.abort());
   const page = await ctx.newPage();
@@ -46,7 +49,7 @@ async function run(browser, who, plan) {
   await page.evaluate(w => _fbAuth.signInWithEmailAndPassword(w + '@bwquote.local', 'pw'), who);
   await page.waitForFunction(() => window._fbQuotesReady === true, { timeout: 20000 });
   const dl = page.waitForEvent('download', { timeout: 120000 });
-  const method = await page.evaluate(async ({ plan, LONG_LABEL }) => {
+  const method = await page.evaluate(async ({ plan, LONG_LABEL, opts }) => {
     show('cem-quote', null);
     const g = el('qGarden');
     g.value = [...g.options].find(o => /^21\|/.test(o.value) || /Garden 21/.test(o.text)).value;
@@ -59,10 +62,18 @@ async function run(browser, who, plan) {
     rows[0].querySelector('.cl-amt').value = '575';
     rows[1].querySelector('.cl-desc').value = LONG_LABEL;
     rows[1].querySelector('.cl-amt').value = '300';
+    if (opts.disc) {   // a flat $100 discount row
+      addCemDiscount();
+      const dr = [...document.querySelectorAll('.disc-mode')].pop().closest('div');
+      const mode = dr.querySelector('.disc-mode'); mode.value = 'flat'; if (typeof cemDiscModeChange === 'function') cemDiscModeChange(mode);
+      dr.querySelector('.disc-amt').value = '100';
+      const n = dr.querySelector('.disc-note'); if (n) n.value = 'Courtesy Discount';
+    }
     cemUpdate();
     if (plan) {
-      const total = _cemTotal, down = Math.round(total * 0.1 * 100) / 100;
-      _finData = { downPct: 0.1, downAmt: down, months: 60, rate: 0, monthly: Math.round((total - down) / 60 * 100) / 100 };
+      const total = _cemTotal, down = Math.round(total * 0.1 * 100) / 100, r = (opts.rate || 0) / 100, n = 60, P = total - down;
+      const monthly = r ? Math.round(P * (r / 12) / (1 - Math.pow(1 + r / 12, -n)) * 100) / 100 : Math.round(P / n * 100) / 100;
+      _finData = { downPct: 0.1, downAmt: down, months: n, rate: r, monthly };
     } else { _finData = null; }
     show('ric-contract', null);
     ricImportFromQuote();
@@ -77,9 +88,9 @@ async function run(browser, who, plan) {
     const m = el('ricPayMethod').value;
     generateRICFromTab();
     return m;
-  }, { plan, LONG_LABEL });
+  }, { plan, LONG_LABEL, opts });
   const d = await dl;
-  const file = `${OUT}/${who}-${plan ? 'financed' : 'paid'}.pdf`;
+  const file = `${OUT}/${who}-${plan ? 'financed' : 'paid'}${opts.rate ? '-interest' : ''}${opts.disc ? '-disc' : ''}.pdf`;
   await d.saveAs(file);
   const b64 = fs.readFileSync(file).toString('base64');
   const r = await page.evaluate(`(${READ})(${JSON.stringify(b64)})`);
@@ -88,7 +99,7 @@ async function run(browser, who, plan) {
 }
 
 const browser = await chromium.launch();
-const files = [];
+const files = [], twoLine = [];
 for (const who of ['martice', 'randy']) {
   const rebuilt = who === 'martice';
   console.log(`\n${who} (${rebuilt ? 'rebuilt' : 'old'} RIC), paid in full`);
@@ -98,7 +109,9 @@ for (const who of ['martice', 'randy']) {
   ok('Payment method prints Check', p.cash === 'Check', p.cash);
   ok('Other Merch prints "Final Inscription"', [p.om1, p.om2].includes('Final Inscription'), [p.om1, p.om2]);
   ok('marker row keeps "Group 1 Non-Tariffed"', /Group 1 Non-Tariffed/.test(p.memo || ''), p.memo);
-  ok('too-long label warned before download', p.dialogs.some(m => m.includes(LONG_LABEL)), p.dialogs);
+  ok('long label: no warning (it fits on two lines)', !p.dialogs.length, p.dialogs);
+  twoLine.push(p.file);
+  ok('no ACH disclosure in paid-in-full remarks', !/ACH bank withdrawals/.test(p.remarks), p.remarks);
   if (rebuilt) {
     ok('remarks lead with the benefit line', p.remarks.trim().startsWith('For the benefit of Avery James Example.'), p.remarks);
     ok('remarks carry the marker color', p.remarks.includes('Marker color: Misty Pink.'), p.remarks);
@@ -112,7 +125,19 @@ for (const who of ['martice', 'randy']) {
   ok('RIC tab defaults the method to ACH', f.method === 'ACH', f.method);
   ok('Payment method prints ACH', f.cash === 'ACH', f.cash);
   ok('paid-in-full RIC is exactly the ACH page shorter', p.pages === f.pages - 1, [p.pages, f.pages]);
+  ok('0% plan: ACH disclosure in remarks', /ACH bank withdrawals required/.test(f.remarks), f.remarks);
   ok('no page errors', f.errs.length === 0, f.errs.slice(0, 3));
+
+  // ACH disclosure rule (Martice 11/14): it prints when ACH is required, a 0% plan or a discount.
+  console.log(`\n${who}, financed 60 months at 8%, no discount`);
+  const i = await run(browser, who, true, { rate: 8 });
+  ok('interest plan, no discount: no ACH disclosure', !/ACH bank withdrawals/.test(i.remarks), i.remarks);
+  ok('no page errors', i.errs.length === 0, i.errs.slice(0, 3));
+
+  console.log(`\n${who}, paid in full with a $100 discount`);
+  const pd = await run(browser, who, false, { disc: true });
+  ok('discount on the contract: ACH disclosure prints', /ACH bank withdrawals required/.test(pd.remarks), pd.remarks);
+  ok('no page errors', pd.errs.length === 0, pd.errs.slice(0, 3));
 }
 await browser.close();
 
@@ -133,15 +158,23 @@ for fn in sys.argv[1:]:
                     if s['text'].strip() and not s['font']:
                         bad.append([p.number, s['text'][:30]])
     last = d[-1].get_text()
+    p1 = ' '.join(d[0].get_text().split())
+    names = [w.field_name for w in d[0].widgets()]
     ach = any(w.field_name == 'Charge Amount' for p in d for w in p.widgets())
-    out[fn] = {'bad': bad, 'ach': ach, 'rules_has_address': ('100 Example Way' in last and 'Lake Tapps' in last and '98391' in last)}
+    day20 = [w.field_value for p in d for w in p.widgets() if w.field_name == 'ACH 20th of the month']
+    out[fn] = {'bad': bad, 'ach': ach, 'day20': day20, 'p1': p1, 'om2field': 'Other Merch 2 Description' in names, 'rules_has_address': ('100 Example Way' in last and 'Lake Tapps' in last and '98391' in last)}
 print(json.dumps(out))`;
 fs.writeFileSync(OUT + '/fonts.py', py);
 const res = JSON.parse(execSync('python ' + OUT + '/fonts.py ' + files.map(f => '"' + f + '"').join(' '), { stdio: ['ignore', 'pipe', 'ignore'] }).toString());
 for (const [fn, r] of Object.entries(res)) {
   ok(`${fn}: no nameless-font text`, r.bad.length === 0, r.bad.slice(0, 5));
   ok(`${fn}: rules page shows address/city/zip`, r.rules_has_address);
+  if (/paid/.test(fn)) {
+    ok(`${fn}: long label printed whole on the page`, r.p1.includes(LONG_LABEL), r.p1.slice(0, 80));
+    ok(`${fn}: its box removed (Acrobat cannot redraw it blank)`, !r.om2field);
+  }
   ok(`${fn}: ACH page ${/financed/.test(fn) ? 'attached' : 'left off'}`, r.ach === /financed/.test(fn), r.ach);
+  if (/financed/.test(fn)) ok(`${fn}: ACH 20th box is its own field and checked`, r.day20.length === 1 && r.day20[0] === 'Yes', r.day20);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

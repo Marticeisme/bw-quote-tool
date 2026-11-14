@@ -88,6 +88,37 @@ ok('stale assignment skipped: total still matches', Math.abs(num(r.grand) - r.to
 console.log('\ndisposition Other (body donation)');
 r = await gen('Other', null);
 ok('Check Box45 ticked, Burial/Cremation not', r.b45 === true && r.b43 === false && r.b44 === false, [r.b43, r.b44, r.b45]);
+// ClearPoint had the same double count: its custom-item review offered lines its mapper places.
+console.log('\nClearPoint: same custom FD-time line, every offered line assigned Left Other');
+await page.evaluate(() => show('cp-contract', null));
+const cp = await page.evaluate((lines) => {
+  cpClearAll();
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+  set('cpFirstName', 'Aaron'); set('cpLastName', 'Prescott'); set('cpPhone', '(206) 555-0142');
+  set('cpContractDate', '2026-11-14'); set('cpContractNum', '7712045');
+  document.querySelector('input[name="cpDisposition"][value="Cremation"]').checked = true;
+  document.querySelector('input[name="cpGuaranteed"][value="yes"]').checked = true;
+  window._cpPricing = { lines: JSON.parse(JSON.stringify(lines)), total: 0 };
+  cpRenderCustomReview();
+  const offered = [...document.querySelectorAll('#cpCustomReview [data-cp-cust-label]')].map(s => decodeURIComponent(s.getAttribute('data-cp-cust-label')));
+  document.querySelectorAll('#cpCustomReview select').forEach(s => { s.value = 'left'; });
+  return { offered, total: Math.round((lines.reduce((t, l) => t + l.amount, 0) + _bwTaxOfLines(lines)) * 100) / 100 };
+}, LINES);
+ok('CP: FD-time custom line is NOT offered', !cp.offered.includes(FD_CUSTOM.label), cp.offered);
+ok('CP: the unrecognized custom line still is', cp.offered.includes(OTHER_CUSTOM.label), cp.offered);
+{
+  const dl = page.waitForEvent('download', { timeout: 90000 });
+  const r = await page.evaluate(async () => { try { await window.generateClearPointContract(); return 'ok'; } catch (e) { return 'threw: ' + e.message; } });
+  if (r !== 'ok') throw new Error(r);
+  const chunks = []; for await (const c of await (await dl).createReadStream()) chunks.push(c);
+  const fp = await page.evaluate(async (b64) => {
+    const raw = atob(b64), arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    const f = (await PDFLib.PDFDocument.load(arr, { ignoreEncryption: true })).getForm();
+    try { return f.getTextField('FPTotal').getText(); } catch (e) { return 'missing'; }
+  }, Buffer.concat(chunks).toString('base64'));
+  ok('CP: FUNERAL PLAN TOTAL = the quote total (no second $205)', Math.abs(num(fp) - cp.total) < 0.005, [fp, cp.total]);
+}
 ok('no page errors', errs.length === 0, errs.slice(0, 3));
 
 await browser.close();

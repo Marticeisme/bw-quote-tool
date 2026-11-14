@@ -152,7 +152,8 @@ console.log('\n5. An interest plan (20% down, 72 months at 8%): the disclosure b
 {
   const r = await ric(browser, 'For the benefit of: Avery Example', '2065550199', { downPct: 0.20, months: 72, rate: 8 });
   const m = r.money, r2 = x => Math.round(x * 100) / 100;
-  ok('the ACH line is there', r.lines[0].text.startsWith('ACH bank withdrawals'), r.lines[0].text);
+  // Martice 11/14: the ACH line prints only when ACH is required (a 0% plan or a discount).
+  ok('no ACH line on an interest plan with no discount', !r.lines.some(l => /ACH bank withdrawals/.test(l.text)), r.lines.map(l => l.text));
   ok('total of payments = payment x 72, more than the amount financed', m.TotalPayments === r2(m.PaymentAmount1 * 72) && m.TotalPayments > m.UnpaidBalance, m);
   ok('(d) finance charge = total of payments - amount financed', m.FCAmount > 0 && m.FCAmount === r2(m.TotalPayments - m.UnpaidBalance), m);
   ok('(f) total sale price = cash price + finance charge', m['Total Sales Price'] === r2(m.TotalCP + m.FCAmount), m);
