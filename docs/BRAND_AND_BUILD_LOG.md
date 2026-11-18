@@ -3109,3 +3109,22 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   test-clearpoint-fields, test-clearpoint-nojs all passing; Acrobat checked by eye.
 - Open: paid-in-full + discount prints the ACH line but still defaults to Check with no ACH page; Martice to say
   which. GA Shelter of Remains still folds into Other Preparations (2026-06-22 addendum) pending his ruling.
+
+## 2026-11-18: Catalogs: every Passare-priced urn, Artful Ashes galleries, casket filters
+
+- Rule (Martice): a urn gets a catalog card only if we price it in Passare; photos when we have them. Passare's urn
+  list (read 11/18, read-only) matches the quote tool exactly.
+- Added Granville Signature (Horizontal, Vertical, Memento Keepsake, Memento Frame) and Classic (Horizontal,
+  Keepsake) with design galleries, plus Oberg American Pride / Grecian Blue Brass / Blue Loving Doves urns, hearts,
+  token and keepsake. Photos from the vendor PDFs in Downloads (Granville brochures; Raj catalog = Oberg's product
+  numbers). Signature Vertical holds 165 cu in. American Pride Keepsake = the small urn, not the heart (his ruling).
+- 21 priced urns with no photo show a "Photo coming soon" tile (data-photo="pending"). Martice photographs them
+  11/19; drop <item>.jpg in scratch/urn-photos/ and rerun `python scripts/vendor_urn_cards.py` +
+  `node scripts/build_catalog_pdfs.mjs urns-guide keepsake-urns-guide`.
+- Shipped with it: the 11/16 Artful Ashes color galleries and the casket filters (Size, Finish, Wood Tone, Stain,
+  Interior, Features, oversize tags).
+- Counts: 180 urns, 112 keepsakes. All five catalog PDFs rebuilt.
+- Verified: verify_catalogs 6/6 OK, test-catalog-filter-print 124/124, syntax check clean, screenshots checked.
+- Not in this push: the quote tool's oversize casket line, the "more than 70 acres" guide edits and the Planning
+  Ahead presentation (all still uncommitted in worktree elegant-ramanujan-d1be89). Cremation Guide.pdf is stale
+  against its page on main (pre-existing).
