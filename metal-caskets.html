@@ -18,6 +18,23 @@
 @font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400;src:url('fonts/SourceSans3-400.woff') format('woff');}
 @font-face{font-family:'Source Sans 3';font-style:normal;font-weight:600;src:url('fonts/SourceSans3-600.woff') format('woff');}
 @font-face{font-family:'Source Sans 3';font-style:normal;font-weight:700;src:url('fonts/SourceSans3-700.woff') format('woff');}
+/* casket-facets:css */
+.product-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.ptag{display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(61,90,122,.08);color:var(--navy-dark);font-size:11px;font-weight:600;line-height:1.5;letter-spacing:.01em;}
+.ptag-size{background:var(--orange);color:#fff;}
+.filter-bar{flex-wrap:wrap;}
+.filter-bar .facets{order:10;flex:1 1 100%;}
+.product-modal-feats{margin:-8px 0 18px;}
+.product-modal-feats h4{font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:0 0 6px;}
+.product-modal-feats ul{list-style:none;padding:0;margin:0;columns:2;column-gap:20px;}
+.product-modal-feats li{font-size:13px;color:var(--text);padding:3px 0 3px 14px;position:relative;break-inside:avoid;}
+.product-modal-feats li:before{content:'';position:absolute;left:2px;top:10px;width:5px;height:5px;border-radius:50%;background:var(--orange);}
+.product-modal-feats .pmf-size{font-weight:600;color:var(--navy-dark);}
+@media(max-width:600px){.product-modal-feats ul{columns:1;}}
+/* eleven filters wrap to ~4 rows on a phone; a sticky bar that tall hides the cards */
+@media(max-width:768px){.filter-bar{position:static;}}
+@media print{.product-tags{display:none!important;}}
+/* casket-facets:css-end */
 </style>
 <style>
 :root {
@@ -510,7 +527,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 
   <div class="section-wrap">
     <div class="product-grid" id="productGrid">
-        <div class="product-card" data-name="apollo silver" data-item="221502" data-price="1130.0" data-color="silver">
+        <div class="product-card" data-name="apollo silver" data-item="221502" data-price="1130.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221502.jpg" alt="Apollo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Silver</div>
@@ -528,7 +545,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo blue" data-item="221503" data-price="1130.0" data-color="blue">
+        <div class="product-card" data-name="apollo blue" data-item="221503" data-price="1130.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221503.jpg" alt="Apollo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Blue</div>
@@ -546,7 +563,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo copper" data-item="221504" data-price="1130.0" data-color="brown">
+        <div class="product-card" data-name="apollo copper" data-item="221504" data-price="1130.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221504.jpg" alt="Apollo Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Copper</div>
@@ -564,7 +581,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo white/pink" data-item="221505" data-price="1130.0" data-color="white">
+        <div class="product-card" data-name="apollo white/pink" data-item="221505" data-price="1130.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221505.jpg" alt="Apollo White/Pink" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo White/Pink</div>
@@ -582,7 +599,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="apollo flat black" data-item="244327" data-price="1130.0" data-color="black">
+        <div class="product-card" data-name="apollo flat black" data-item="244327" data-price="1130.0" data-color="black" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/244327.jpg" alt="Apollo Flat Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Apollo Flat Black</div>
@@ -600,7 +617,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio mandarin" data-item="287954" data-price="1695.0" data-color="red">
+        <div class="product-card" data-name="scorpio mandarin" data-item="287954" data-price="1695.0" data-color="red" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/287954.jpg" alt="Scorpio Mandarin" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio Mandarin</div>
@@ -618,7 +635,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio grey" data-item="287998" data-price="1695.0" data-color="grey">
+        <div class="product-card" data-name="scorpio grey" data-item="287998" data-price="1695.0" data-color="grey" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/287998.jpg" alt="Scorpio Grey" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio Grey</div>
@@ -636,7 +653,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio blue" data-item="288000" data-price="1695.0" data-color="blue">
+        <div class="product-card" data-name="scorpio blue" data-item="288000" data-price="1695.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/288000.jpg" alt="Scorpio Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio Blue</div>
@@ -654,7 +671,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio sand" data-item="288002" data-price="1695.0" data-color="gold">
+        <div class="product-card" data-name="scorpio sand" data-item="288002" data-price="1695.0" data-color="gold" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/288002.jpg" alt="Scorpio Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio Sand</div>
@@ -672,7 +689,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio white/gold" data-item="288003" data-price="1695.0" data-color="white">
+        <div class="product-card" data-name="scorpio white/gold" data-item="288003" data-price="1695.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/288003.jpg" alt="Scorpio White/Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio White/Gold</div>
@@ -690,7 +707,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="scorpio white/silver" data-item="288171" data-price="1695.0" data-color="white">
+        <div class="product-card" data-name="scorpio white/silver" data-item="288171" data-price="1695.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/288171.jpg" alt="Scorpio White/Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Scorpio White/Silver</div>
@@ -708,7 +725,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo blue" data-item="279127" data-price="1995.0" data-color="blue">
+        <div class="product-card" data-name="virgo blue" data-item="279127" data-price="1995.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279127.jpg" alt="Virgo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Blue</div>
@@ -726,7 +743,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo silver" data-item="279131" data-price="1995.0" data-color="silver">
+        <div class="product-card" data-name="virgo silver" data-item="279131" data-price="1995.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279131.jpg" alt="Virgo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Silver</div>
@@ -744,7 +761,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo white/gold" data-item="279133" data-price="1995.0" data-color="white">
+        <div class="product-card" data-name="virgo white/gold" data-item="279133" data-price="1995.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279133.jpg" alt="Virgo White/Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo White/Gold</div>
@@ -762,7 +779,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo white/copper" data-item="279134" data-price="1995.0" data-color="white">
+        <div class="product-card" data-name="virgo white/copper" data-item="279134" data-price="1995.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279134.jpg" alt="Virgo White/Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo White/Copper</div>
@@ -780,7 +797,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="virgo copper" data-item="279135" data-price="1995.0" data-color="brown">
+        <div class="product-card" data-name="virgo copper" data-item="279135" data-price="1995.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279135.jpg" alt="Virgo Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Virgo Copper</div>
@@ -798,7 +815,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo black" data-item="278913" data-price="2005.0" data-color="black">
+        <div class="product-card" data-name="argo black" data-item="278913" data-price="2005.0" data-color="black" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/278913.jpg" alt="Argo Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Black</div>
@@ -809,6 +826,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#278913</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -816,7 +834,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 28 ngs" data-item="283328" data-price="2005.0" data-color="brown">
+        <div class="product-card" data-name="artemis copper 28 ngs" data-item="283328" data-price="2005.0" data-color="brown" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283328.jpg" alt="Artemis Copper 28 NGS" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 28 NGS</div>
@@ -827,6 +845,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283328</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -834,7 +853,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius ocean blue" data-item="281900" data-price="2205.0" data-color="blue">
+        <div class="product-card" data-name="aquarius ocean blue" data-item="281900" data-price="2205.0" data-color="blue" data-size="Standard size" data-finish="Dual tone" data-ifab="Velvet" data-icol="Light Blue" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/281900.jpg" alt="Aquarius Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Ocean Blue</div>
@@ -845,6 +864,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#281900</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -852,7 +872,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius ruby rose" data-item="281903" data-price="2205.0" data-color="red">
+        <div class="product-card" data-name="aquarius ruby rose" data-item="281903" data-price="2205.0" data-color="red" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Brushed Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/281903.jpg" alt="Aquarius Ruby Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Ruby Rose</div>
@@ -863,6 +883,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#281903</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -870,7 +891,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aquarius floral gold" data-item="281902" data-price="2290.0" data-color="ivory">
+        <div class="product-card" data-name="aquarius floral gold" data-item="281902" data-price="2290.0" data-color="ivory" data-size="Standard size" data-finish="Dual tone" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/281902.jpg" alt="Aquarius Floral Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aquarius Floral Gold</div>
@@ -881,6 +902,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">190 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#281902</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -888,7 +910,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 28" data-item="283324" data-price="2410.0" data-color="brown">
+        <div class="product-card" data-name="artemis copper 28" data-item="283324" data-price="2410.0" data-color="brown" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283324.jpg" alt="Artemis Copper 28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 28</div>
@@ -899,6 +921,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283324</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -906,7 +929,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini silver" data-item="217298" data-price="2445.0" data-color="silver">
+        <div class="product-card" data-name="gemini silver" data-item="217298" data-price="2445.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/217298.jpg" alt="Gemini Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Silver</div>
@@ -924,7 +947,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini white/pink" data-item="217379" data-price="2445.0" data-color="white">
+        <div class="product-card" data-name="gemini white/pink" data-item="217379" data-price="2445.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/217379.jpg" alt="Gemini White/Pink" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini White/Pink</div>
@@ -942,7 +965,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini white" data-item="217383" data-price="2445.0" data-color="white">
+        <div class="product-card" data-name="gemini white" data-item="217383" data-price="2445.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/217383.jpg" alt="Gemini White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini White</div>
@@ -960,7 +983,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini copper" data-item="217387" data-price="2445.0" data-color="brown">
+        <div class="product-card" data-name="gemini copper" data-item="217387" data-price="2445.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/217387.jpg" alt="Gemini Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Copper</div>
@@ -978,7 +1001,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="gemini blue" data-item="217389" data-price="2445.0" data-color="blue">
+        <div class="product-card" data-name="gemini blue" data-item="217389" data-price="2445.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/217389.jpg" alt="Gemini Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Gemini Blue</div>
@@ -996,7 +1019,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra blue" data-item="221506" data-price="2675.0" data-color="blue">
+        <div class="product-card" data-name="spectra blue" data-item="221506" data-price="2675.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221506.jpg" alt="Spectra Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Blue</div>
@@ -1014,7 +1037,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra silver" data-item="221507" data-price="2675.0" data-color="silver">
+        <div class="product-card" data-name="spectra silver" data-item="221507" data-price="2675.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/221507.jpg" alt="Spectra Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Silver</div>
@@ -1032,7 +1055,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra white" data-item="223045" data-price="2675.0" data-color="white">
+        <div class="product-card" data-name="spectra white" data-item="223045" data-price="2675.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/223045.jpg" alt="Spectra White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra White</div>
@@ -1050,7 +1073,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra black" data-item="256354" data-price="2675.0" data-color="black">
+        <div class="product-card" data-name="spectra black" data-item="256354" data-price="2675.0" data-color="black" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/256354.jpg" alt="Spectra Black" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Black</div>
@@ -1068,7 +1091,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="spectra orchid" data-item="258362" data-price="2675.0" data-color="purple">
+        <div class="product-card" data-name="spectra orchid" data-item="258362" data-price="2675.0" data-color="purple" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/258362.jpg" alt="Spectra Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Spectra Orchid</div>
@@ -1086,7 +1109,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis copper 32" data-item="283323" data-price="2815.0" data-color="brown">
+        <div class="product-card" data-name="artemis copper 32" data-item="283323" data-price="2815.0" data-color="brown" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283323.jpg" alt="Artemis Copper 32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Copper 32</div>
@@ -1097,6 +1120,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 32.25 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#283323</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1104,7 +1128,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 28 ngs" data-item="283327" data-price="2960.0" data-color="grey">
+        <div class="product-card" data-name="artemis grey 28 ngs" data-item="283327" data-price="2960.0" data-color="grey" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283327.jpg" alt="Artemis Grey 28 NGS" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 28 NGS</div>
@@ -1115,6 +1139,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283327</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1122,7 +1147,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries blue" data-item="234314" data-price="3040.0" data-color="blue">
+        <div class="product-card" data-name="aries blue" data-item="234314" data-price="3040.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/234314.jpg" alt="Aries Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Blue</div>
@@ -1140,7 +1165,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries orchid" data-item="234316" data-price="3040.0" data-color="purple">
+        <div class="product-card" data-name="aries orchid" data-item="234316" data-price="3040.0" data-color="purple" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/234316.jpg" alt="Aries Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Orchid</div>
@@ -1158,7 +1183,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries silver" data-item="234318" data-price="3040.0" data-color="silver">
+        <div class="product-card" data-name="aries silver" data-item="234318" data-price="3040.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/234318.jpg" alt="Aries Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Silver</div>
@@ -1176,7 +1201,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries copper" data-item="234320" data-price="3040.0" data-color="brown">
+        <div class="product-card" data-name="aries copper" data-item="234320" data-price="3040.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/234320.jpg" alt="Aries Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries Copper</div>
@@ -1194,7 +1219,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="pisces white" data-item="257953" data-price="3045.0" data-color="white">
+        <div class="product-card" data-name="pisces white" data-item="257953" data-price="3045.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/257953.jpg" alt="Pisces White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Pisces White</div>
@@ -1212,7 +1237,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="golden tribute" data-item="273663" data-price="3045.0" data-color="gold">
+        <div class="product-card" data-name="golden tribute" data-item="273663" data-price="3045.0" data-color="gold" data-size="Standard size" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Reversible pillow &amp; overthrow|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Reversible Pillow and Overthrow|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/273663.jpg" alt="Golden Tribute" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Golden Tribute</div>
@@ -1223,6 +1248,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">210 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Reversible pillow</span></div>
             <div class="product-meta">#273663</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1230,7 +1256,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 platinum-28" data-item="283969" data-price="3045.0" data-color="silver">
+        <div class="product-card" data-name="on8 platinum-28" data-item="283969" data-price="3045.0" data-color="silver" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283969.jpg" alt="ON8 Platinum-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Platinum-28</div>
@@ -1241,6 +1267,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283969</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1248,7 +1275,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 auburn sunset-28" data-item="283976" data-price="3045.0" data-color="brown">
+        <div class="product-card" data-name="on8 auburn sunset-28" data-item="283976" data-price="3045.0" data-color="brown" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Velvet" data-icol="Champagne" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283976.jpg" alt="ON8 Auburn Sunset-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Auburn Sunset-28</div>
@@ -1259,6 +1286,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283976</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1266,7 +1294,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on8 violet bouquet-28" data-item="283979" data-price="3045.0" data-color="purple">
+        <div class="product-card" data-name="on8 violet bouquet-28" data-item="283979" data-price="3045.0" data-color="purple" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Velvet" data-icol="Natural" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283979.jpg" alt="ON8 Violet Bouquet-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON8 Violet Bouquet-28</div>
@@ -1277,6 +1305,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283979</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1284,7 +1313,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white ngs-28" data-item="274278" data-price="3075.0" data-color="white">
+        <div class="product-card" data-name="hercules white ngs-28" data-item="274278" data-price="3075.0" data-color="white" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274278.jpg" alt="Hercules White NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White NGS-28</div>
@@ -1295,6 +1324,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#274278</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1302,7 +1332,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="aries white" data-item="234322" data-price="3125.0" data-color="white">
+        <div class="product-card" data-name="aries white" data-item="234322" data-price="3125.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/234322.jpg" alt="Aries White" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Aries White</div>
@@ -1320,7 +1350,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="pisces silver" data-item="257956" data-price="3130.0" data-color="silver">
+        <div class="product-card" data-name="pisces silver" data-item="257956" data-price="3130.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-bvf="Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/257956.jpg" alt="Pisces Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Pisces Silver</div>
@@ -1338,7 +1368,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue ngs-28" data-item="274281" data-price="3160.0" data-color="blue">
+        <div class="product-card" data-name="hercules blue ngs-28" data-item="274281" data-price="3160.0" data-color="blue" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274281.jpg" alt="Hercules Blue NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue NGS-28</div>
@@ -1349,6 +1379,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#274281</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1356,7 +1387,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo orchid" data-item="278912" data-price="3170.0" data-color="purple">
+        <div class="product-card" data-name="argo orchid" data-item="278912" data-price="3170.0" data-color="purple" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/278912.jpg" alt="Argo Orchid" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Orchid</div>
@@ -1367,6 +1398,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#278912</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1374,7 +1406,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo silver" data-item="278920" data-price="3170.0" data-color="silver">
+        <div class="product-card" data-name="argo silver" data-item="278920" data-price="3170.0" data-color="silver" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/278920.jpg" alt="Argo Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Silver</div>
@@ -1385,6 +1417,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#278920</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1392,7 +1425,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="argo sand" data-item="278921" data-price="3170.0" data-color="gold">
+        <div class="product-card" data-name="argo sand" data-item="278921" data-price="3170.0" data-color="gold" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Dual Tone Finish|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/278921.jpg" alt="Argo Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Argo Sand</div>
@@ -1403,6 +1436,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#278921</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1410,7 +1444,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black ngs-28" data-item="265527" data-price="3295.0" data-color="black">
+        <div class="product-card" data-name="hercules black ngs-28" data-item="265527" data-price="3295.0" data-color="black" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/265527.jpg" alt="Hercules Black NGS-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black NGS-28</div>
@@ -1421,6 +1455,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#265527</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1428,7 +1463,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="triton grey" data-item="100151" data-price="3300.0" data-color="grey">
+        <div class="product-card" data-name="triton grey" data-item="100151" data-price="3300.0" data-color="grey" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/100151.jpg" alt="Triton Grey" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Triton Grey</div>
@@ -1446,7 +1481,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules orchid-32" data-item="265530" data-price="3345.0" data-color="purple">
+        <div class="product-card" data-name="hercules orchid-32" data-item="265530" data-price="3345.0" data-color="purple" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/265530.jpg" alt="Hercules Orchid-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Orchid-32</div>
@@ -1457,6 +1492,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#265530</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1464,7 +1500,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white-32" data-item="274280" data-price="3345.0" data-color="white">
+        <div class="product-card" data-name="hercules white-32" data-item="274280" data-price="3345.0" data-color="white" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274280.jpg" alt="Hercules White-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White-32</div>
@@ -1475,6 +1511,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#274280</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1482,7 +1519,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="triton brown" data-item="100153" data-price="3370.0" data-color="brown">
+        <div class="product-card" data-name="triton brown" data-item="100153" data-price="3370.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/100153.jpg" alt="Triton Brown" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Triton Brown</div>
@@ -1500,7 +1537,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 28" data-item="283326" data-price="3590.0" data-color="grey">
+        <div class="product-card" data-name="artemis grey 28" data-item="283326" data-price="3590.0" data-color="grey" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283326.jpg" alt="Artemis Grey 28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 28</div>
@@ -1511,6 +1548,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#283326</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1518,7 +1556,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q02 graytone" data-item="148026" data-price="3645.0" data-color="grey">
+        <div class="product-card" data-name="q02 graytone" data-item="148026" data-price="3645.0" data-color="grey" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148026.jpg" alt="Q02 Graytone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q02 Graytone</div>
@@ -1536,7 +1574,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules white-28" data-item="274279" data-price="3660.0" data-color="white">
+        <div class="product-card" data-name="hercules white-28" data-item="274279" data-price="3660.0" data-color="white" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274279.jpg" alt="Hercules White-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules White-28</div>
@@ -1547,6 +1585,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#274279</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1554,7 +1593,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q02 earthtone" data-item="148028" data-price="3715.0" data-color="brown">
+        <div class="product-card" data-name="q02 earthtone" data-item="148028" data-price="3715.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148028.jpg" alt="Q02 Earthtone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q02 Earthtone</div>
@@ -1572,7 +1611,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue-28" data-item="274282" data-price="3745.0" data-color="blue">
+        <div class="product-card" data-name="hercules blue-28" data-item="274282" data-price="3745.0" data-color="blue" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274282.jpg" alt="Hercules Blue-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue-28</div>
@@ -1583,6 +1622,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#274282</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1590,7 +1630,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules silver-28" data-item="265525" data-price="3865.0" data-color="silver">
+        <div class="product-card" data-name="hercules silver-28" data-item="265525" data-price="3865.0" data-color="silver" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/265525.jpg" alt="Hercules Silver-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Silver-28</div>
@@ -1601,6 +1641,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#265525</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1608,7 +1649,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 revere silver" data-item="148029" data-price="4050.0" data-color="silver">
+        <div class="product-card" data-name="q88 revere silver" data-item="148029" data-price="4050.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148029.jpg" alt="Q88 Revere Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Revere Silver</div>
@@ -1626,7 +1667,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 churchill blue" data-item="148030" data-price="4050.0" data-color="blue">
+        <div class="product-card" data-name="q88 churchill blue" data-item="148030" data-price="4050.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148030.jpg" alt="Q88 Churchill Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Churchill Blue</div>
@@ -1644,7 +1685,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black-28" data-item="265526" data-price="4050.0" data-color="black">
+        <div class="product-card" data-name="hercules black-28" data-item="265526" data-price="4050.0" data-color="black" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/265526.jpg" alt="Hercules Black-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black-28</div>
@@ -1655,6 +1696,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#265526</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1662,7 +1704,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 misty rose" data-item="148035" data-price="4135.0" data-color="pink">
+        <div class="product-card" data-name="q88 misty rose" data-item="148035" data-price="4135.0" data-color="pink" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148035.jpg" alt="Q88 Misty Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Misty Rose</div>
@@ -1680,7 +1722,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q88 roman" data-item="148031" data-price="4145.0" data-color="brown">
+        <div class="product-card" data-name="q88 roman" data-item="148031" data-price="4145.0" data-color="brown" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148031.jpg" alt="Q88 Roman" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q88 Roman</div>
@@ -1698,7 +1740,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q01 heirloom pewter" data-item="242475" data-price="4170.0" data-color="grey">
+        <div class="product-card" data-name="q01 heirloom pewter" data-item="242475" data-price="4170.0" data-color="grey" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/242475.jpg" alt="Q01 Heirloom Pewter" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q01 Heirloom Pewter</div>
@@ -1716,7 +1758,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qd3 galaxy" data-item="148052" data-price="4245.0" data-color="grey">
+        <div class="product-card" data-name="qd3 galaxy" data-item="148052" data-price="4245.0" data-color="grey" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148052.jpg" alt="QD3 Galaxy" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QD3 Galaxy</div>
@@ -1734,7 +1776,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q98 emeraldtone" data-item="279864" data-price="4270.0" data-color="green">
+        <div class="product-card" data-name="q98 emeraldtone" data-item="279864" data-price="4270.0" data-color="green" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/279864.jpg" alt="Q98 Emeraldtone" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q98 Emeraldtone</div>
@@ -1752,7 +1794,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="p90 golden rose" data-item="258112" data-price="4305.0" data-color="purple">
+        <div class="product-card" data-name="p90 golden rose" data-item="258112" data-price="4305.0" data-color="purple" data-size="Standard size" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Memory Safe® keepsake drawer|Choice of lace or overlay|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="Dual Overlay (Lace or Tailored) Feature|7 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/258112.jpg" alt="P90 Golden Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">P90 Golden Rose</div>
@@ -1763,6 +1805,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#258112</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1770,7 +1813,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="qa2 ivory gold" data-item="148040" data-price="4405.0" data-color="white">
+        <div class="product-card" data-name="qa2 ivory gold" data-item="148040" data-price="4405.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148040.jpg" alt="QA2 Ivory Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">QA2 Ivory Gold</div>
@@ -1788,7 +1831,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="q01 ivory" data-item="252031" data-price="4410.0" data-color="white">
+        <div class="product-card" data-name="q01 ivory" data-item="252031" data-price="4410.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/252031.jpg" alt="Q01 Ivory" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Q01 Ivory</div>
@@ -1806,7 +1849,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s01 sand" data-item="242739" data-price="4625.0" data-color="gold">
+        <div class="product-card" data-name="s01 sand" data-item="242739" data-price="4625.0" data-color="gold" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/242739.jpg" alt="S01 Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S01 Sand</div>
@@ -1824,7 +1867,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="s01 ocean blue" data-item="252121" data-price="4635.0" data-color="blue">
+        <div class="product-card" data-name="s01 ocean blue" data-item="252121" data-price="4635.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/252121.jpg" alt="S01 Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">S01 Ocean Blue</div>
@@ -1842,7 +1885,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nd5 athena" data-item="147837" data-price="4665.0" data-color="white">
+        <div class="product-card" data-name="nd5 athena" data-item="147837" data-price="4665.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147837.jpg" alt="ND5 Athena" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ND5 Athena</div>
@@ -1860,7 +1903,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nd2 mercury" data-item="148013" data-price="4760.0" data-color="silver">
+        <div class="product-card" data-name="nd2 mercury" data-item="148013" data-price="4760.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148013.jpg" alt="ND2 Mercury" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ND2 Mercury</div>
@@ -1878,7 +1921,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="artemis grey 32" data-item="283322" data-price="4800.0" data-color="grey">
+        <div class="product-card" data-name="artemis grey 32" data-item="283322" data-price="4800.0" data-color="grey" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/283322.jpg" alt="Artemis Grey 32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Artemis Grey 32</div>
@@ -1889,6 +1932,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 32.25 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#283322</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1896,7 +1940,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 midnight" data-item="271817" data-price="4860.0" data-color="black">
+        <div class="product-card" data-name="m39 midnight" data-item="271817" data-price="4860.0" data-color="black" data-size="Standard size" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/271817.jpg" alt="M39 Midnight" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Midnight</div>
@@ -1914,7 +1958,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 neopolitan blue" data-item="271819" data-price="4860.0" data-color="blue">
+        <div class="product-card" data-name="m39 neopolitan blue" data-item="271819" data-price="4860.0" data-color="blue" data-size="Standard size" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/271819.jpg" alt="M39 Neopolitan Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Neopolitan Blue</div>
@@ -1932,7 +1976,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 carnation" data-item="273920" data-price="4860.0" data-color="white">
+        <div class="product-card" data-name="m39 carnation" data-item="273920" data-price="4860.0" data-color="white" data-size="Standard size" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/273920.jpg" alt="M39 Carnation" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Carnation</div>
@@ -1950,7 +1994,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 huntington green" data-item="278177" data-price="4860.0" data-color="green">
+        <div class="product-card" data-name="m39 huntington green" data-item="278177" data-price="4860.0" data-color="green" data-size="Standard size" data-ifab="Velvet" data-icol="Champagne" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/278177.jpg" alt="M39 Huntington Green" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Huntington Green</div>
@@ -1968,7 +2012,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="os9 primrose-28" data-item="220680" data-price="4875.0" data-color="white">
+        <div class="product-card" data-name="os9 primrose-28" data-item="220680" data-price="4875.0" data-color="white" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/220680.jpg" alt="OS9 Primrose-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OS9 Primrose-28</div>
@@ -1979,6 +2023,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#220680</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -1986,7 +2031,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="os9 antique blue-28" data-item="220682" data-price="4875.0" data-color="blue">
+        <div class="product-card" data-name="os9 antique blue-28" data-item="220682" data-price="4875.0" data-color="blue" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Crepe" data-icol="Light Blue" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/220682.jpg" alt="OS9 Antique Blue-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OS9 Antique Blue-28</div>
@@ -1997,6 +2042,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span></div>
             <div class="product-meta">#220682</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2004,7 +2050,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules black-32" data-item="265532" data-price="4930.0" data-color="black">
+        <div class="product-card" data-name="hercules black-32" data-item="265532" data-price="4930.0" data-color="black" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/265532.jpg" alt="Hercules Black-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Black-32</div>
@@ -2015,6 +2061,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#265532</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2022,7 +2069,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 auburn" data-item="271815" data-price="4975.0" data-color="red">
+        <div class="product-card" data-name="m39 auburn" data-item="271815" data-price="4975.0" data-color="red" data-size="Standard size" data-ifab="Velvet" data-icol="Champagne" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/271815.jpg" alt="M39 Auburn" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Auburn</div>
@@ -2040,7 +2087,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n85 franklin silver" data-item="148001" data-price="5005.0" data-color="silver">
+        <div class="product-card" data-name="n85 franklin silver" data-item="148001" data-price="5005.0" data-color="silver" data-size="Standard size" data-ifab="Crepe" data-icol="Silver" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148001.jpg" alt="N85 Franklin Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N85 Franklin Silver</div>
@@ -2058,7 +2105,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n84 antique blue" data-item="148004" data-price="5005.0" data-color="blue">
+        <div class="product-card" data-name="n84 antique blue" data-item="148004" data-price="5005.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148004.jpg" alt="N84 Antique Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N84 Antique Blue</div>
@@ -2076,7 +2123,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="hercules blue-32" data-item="274283" data-price="5015.0" data-color="blue">
+        <div class="product-card" data-name="hercules blue-32" data-item="274283" data-price="5015.0" data-color="blue" data-size="Oversize, needs an oversize vault" data-iw="32" data-ifab="Crepe" data-icol="Ivory" data-feat="Family Choices® personalization" data-bvf="Optional Decorative Kit Personalization|Oversize Burial Vault Required|Living Memorial® Program|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/274283.jpg" alt="Hercules Blue-32" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Hercules Blue-32</div>
@@ -2087,6 +2134,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">87.75 in L x 33 in W x 23.5 in H</div>
             <div class="product-detail">231 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 32 in. interior · oversize vault</span></div>
             <div class="product-meta">#274283</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2094,7 +2142,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 platinum" data-item="211993" data-price="5020.0" data-color="silver">
+        <div class="product-card" data-name="ot9 platinum" data-item="211993" data-price="5020.0" data-color="silver" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/211993.jpg" alt="OT9 Platinum" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Platinum</div>
@@ -2105,6 +2153,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#211993</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2112,7 +2161,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 auburn sunset" data-item="216580" data-price="5020.0" data-color="brown">
+        <div class="product-card" data-name="ot9 auburn sunset" data-item="216580" data-price="5020.0" data-color="brown" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/216580.jpg" alt="OT9 Auburn Sunset" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Auburn Sunset</div>
@@ -2123,6 +2172,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#216580</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2130,7 +2180,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o77 ocean blue" data-item="147852" data-price="5090.0" data-color="blue">
+        <div class="product-card" data-name="o77 ocean blue" data-item="147852" data-price="5090.0" data-color="blue" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Light Blue" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Dual Tone Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147852.jpg" alt="O77 Ocean Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O77 Ocean Blue</div>
@@ -2141,6 +2191,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">212 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#147852</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2148,7 +2199,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o77 cottage rose" data-item="147853" data-price="5090.0" data-color="red">
+        <div class="product-card" data-name="o77 cottage rose" data-item="147853" data-price="5090.0" data-color="red" data-size="Standard size" data-finish="Dual tone" data-ifab="Crepe" data-icol="Ivory" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Dual Tone Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147853.jpg" alt="O77 Cottage Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O77 Cottage Rose</div>
@@ -2159,6 +2210,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.25 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">212 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span></div>
             <div class="product-meta">#147853</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2166,7 +2218,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nv1 burnished silver" data-item="286125" data-price="5105.0" data-color="silver">
+        <div class="product-card" data-name="nv1 burnished silver" data-item="286125" data-price="5105.0" data-color="silver" data-size="Standard size" data-finish="Brushed" data-ifab="Woven" data-icol="Ivory" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization" data-bvf="7 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Brushed Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/286125.jpg" alt="NV1 Burnished Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NV1 Burnished Silver</div>
@@ -2177,6 +2229,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#286125</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2184,7 +2237,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nv1 tuscany silver" data-item="286130" data-price="5105.0" data-color="purple">
+        <div class="product-card" data-name="nv1 tuscany silver" data-item="286130" data-price="5105.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Woven" data-icol="Ivory" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization" data-bvf="7 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Brushed Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/286130.jpg" alt="NV1 Tuscany Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NV1 Tuscany Silver</div>
@@ -2195,6 +2248,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#286130</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2202,7 +2256,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="oc1 finch" data-item="280218" data-price="5165.0" data-color="blue">
+        <div class="product-card" data-name="oc1 finch" data-item="280218" data-price="5165.0" data-color="blue" data-size="Standard size" data-ifab="Woven" data-icol="Ivory" data-feat="Choice of lace or overlay|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="Dual Overlay (Lace or Tailored) Feature|1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/280218.jpg" alt="OC1 Finch" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OC1 Finch</div>
@@ -2220,7 +2274,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nl1 claret" data-item="251960" data-price="5175.0" data-color="red">
+        <div class="product-card" data-name="nl1 claret" data-item="251960" data-price="5175.0" data-color="red" data-size="Standard size" data-ifab="Woven" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/251960.jpg" alt="NL1 Claret" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NL1 Claret</div>
@@ -2238,7 +2292,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="nl1 indigo blue" data-item="251972" data-price="5175.0" data-color="blue">
+        <div class="product-card" data-name="nl1 indigo blue" data-item="251972" data-price="5175.0" data-color="blue" data-size="Standard size" data-ifab="Woven" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/251972.jpg" alt="NL1 Indigo Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">NL1 Indigo Blue</div>
@@ -2256,7 +2310,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="m39 revere silver" data-item="271821" data-price="5175.0" data-color="silver">
+        <div class="product-card" data-name="m39 revere silver" data-item="271821" data-price="5175.0" data-color="silver" data-size="Standard size" data-ifab="Velvet" data-icol="Ivory" data-feat="Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/271821.jpg" alt="M39 Revere Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">M39 Revere Silver</div>
@@ -2274,7 +2328,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="p68 churchill blue" data-item="148018" data-price="5530.0" data-color="blue">
+        <div class="product-card" data-name="p68 churchill blue" data-item="148018" data-price="5530.0" data-color="blue" data-size="Standard size" data-ifab="Crepe" data-icol="Light Blue" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/148018.jpg" alt="P68 Churchill Blue" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">P68 Churchill Blue</div>
@@ -2292,7 +2346,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 primrose" data-item="147820" data-price="5810.0" data-color="white">
+        <div class="product-card" data-name="j37 primrose" data-item="147820" data-price="5810.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Embroidered overthrow or cap panel|Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Embroidered Overthrow and Cap Panel|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147820.jpg" alt="J37 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Primrose</div>
@@ -2310,7 +2364,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ot9 violet bouquet" data-item="241566" data-price="5830.0" data-color="purple">
+        <div class="product-card" data-name="ot9 violet bouquet" data-item="241566" data-price="5830.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Natural" data-feat="Family Choices® personalization" data-bvf="3 Family Choices® Personalization Features Available|Living Memorial® Program|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/241566.jpg" alt="OT9 Violet Bouquet" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OT9 Violet Bouquet</div>
@@ -2321,6 +2375,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.13 in W x 23.5 in H</div>
             <div class="product-detail">230 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#241566</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2328,7 +2383,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 antique gold" data-item="147988" data-price="5895.0" data-color="gold">
+        <div class="product-card" data-name="j37 antique gold" data-item="147988" data-price="5895.0" data-color="gold" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147988.jpg" alt="J37 Antique Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Antique Gold</div>
@@ -2346,7 +2401,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="on9 merlot-28" data-item="246018" data-price="5895.0" data-color="red">
+        <div class="product-card" data-name="on9 merlot-28" data-item="246018" data-price="5895.0" data-color="red" data-size="Oversize, fits a standard vault" data-iw="28" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/246018.jpg" alt="ON9 Merlot-28" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">ON9 Merlot-28</div>
@@ -2357,6 +2412,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 29 in W x 23.63 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag ptag-size">Oversize · 28 in. interior</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#246018</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2364,7 +2420,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="j37 amethyst" data-item="147814" data-price="6015.0" data-color="purple">
+        <div class="product-card" data-name="j37 amethyst" data-item="147814" data-price="6015.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Embroidered overthrow or cap panel|Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Embroidered Overthrow and Cap Panel|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147814.jpg" alt="J37 Amethyst" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">J37 Amethyst</div>
@@ -2375,6 +2431,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147814</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2382,7 +2439,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 merlot" data-item="239723" data-price="6090.0" data-color="red">
+        <div class="product-card" data-name="n01 merlot" data-item="239723" data-price="6090.0" data-color="red" data-size="Standard size" data-ifab="Crepe" data-icol="Rosetan" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="1 Family Choices® Personalization Features Available|Family Choices® Personalization LifeView Decorative Casket Panel|Memory Safe® Drawer|Living Memorial® Program|Accepts Decorative Casket Panel|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/239723.jpg" alt="N01 Merlot" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Merlot</div>
@@ -2393,6 +2450,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#239723</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2400,7 +2458,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o61 burnished silver" data-item="273553" data-price="6150.0" data-color="grey">
+        <div class="product-card" data-name="o61 burnished silver" data-item="273553" data-price="6150.0" data-color="grey" data-size="Standard size" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Reversible pillow &amp; overthrow|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Reversible Pillow and Overthrow|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/273553.jpg" alt="O61 Burnished Silver" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O61 Burnished Silver</div>
@@ -2411,6 +2469,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">210 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Reversible pillow</span></div>
             <div class="product-meta">#273553</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2418,7 +2477,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 midnight with red" data-item="279141" data-price="6165.0" data-color="black">
+        <div class="product-card" data-name="n01 midnight with red" data-item="279141" data-price="6165.0" data-color="black" data-size="Standard size" data-ifab="Velvet" data-icol="Black with Red Trim" data-feat="Memory Safe® keepsake drawer|Military / veterans emblem|Family Choices® personalization" data-bvf="1 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Military Branch Embroidery Emblem, Family Choices LifeSymbols or Display Medallions design feature (1)|Memorial Record® System">
           <div class="product-img"><img src="casket-images/metal/279141.jpg" alt="N01 Midnight with Red" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Midnight with Red</div>
@@ -2429,6 +2488,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Veterans emblem</span></div>
             <div class="product-meta">#279141</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2436,7 +2496,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 midnight with gold" data-item="279142" data-price="6165.0" data-color="black">
+        <div class="product-card" data-name="n01 midnight with gold" data-item="279142" data-price="6165.0" data-color="black" data-size="Standard size" data-ifab="Velvet" data-icol="Black with Gold Trim" data-feat="Memory Safe® keepsake drawer|Military / veterans emblem|Family Choices® personalization" data-bvf="1 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Military Branch Embroidery Emblem, Family Choices LifeSymbols or Display Medallions design feature (1)|Memorial Record® System">
           <div class="product-img"><img src="casket-images/metal/279142.jpg" alt="N01 Midnight with Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Midnight with Gold</div>
@@ -2447,6 +2507,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Veterans emblem</span></div>
             <div class="product-meta">#279142</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2454,7 +2515,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 neopolitan" data-item="279144" data-price="6165.0" data-color="blue">
+        <div class="product-card" data-name="n01 neopolitan" data-item="279144" data-price="6165.0" data-color="blue" data-size="Standard size" data-ifab="Velvet" data-icol="Blue with Silver Trim" data-feat="Memory Safe® keepsake drawer|Military / veterans emblem|Family Choices® personalization" data-bvf="1 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Military Branch Embroidery Emblem, Family Choices LifeSymbols or Display Medallions design feature (1)|Memorial Record® System">
           <div class="product-img"><img src="casket-images/metal/279144.jpg" alt="N01 Neopolitan" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Neopolitan</div>
@@ -2465,6 +2526,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Veterans emblem</span></div>
             <div class="product-meta">#279144</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2472,7 +2534,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="n01 sydney" data-item="279143" data-price="6395.0" data-color="blue">
+        <div class="product-card" data-name="n01 sydney" data-item="279143" data-price="6395.0" data-color="blue" data-size="Standard size" data-ifab="Velvet" data-icol="Blue with Silver Trim" data-feat="Memory Safe® keepsake drawer|Military / veterans emblem|Family Choices® personalization" data-bvf="1 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Military Branch Embroidery Emblem, Family Choices LifeSymbols or Display Medallions design feature (1)|Memorial Record® System">
           <div class="product-img"><img src="casket-images/metal/279143.jpg" alt="N01 Sydney" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">N01 Sydney</div>
@@ -2483,6 +2545,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.13 in L x 28.25 in W x 23.5 in H</div>
             <div class="product-detail">208 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span><span class="ptag">Veterans emblem</span></div>
             <div class="product-meta">#279143</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2490,7 +2553,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="a40 primrose" data-item="147723" data-price="6425.0" data-color="white">
+        <div class="product-card" data-name="a40 primrose" data-item="147723" data-price="6425.0" data-color="white" data-size="Standard size" data-ifab="Crepe" data-icol="Moss Pink" data-feat="Embroidered overthrow or cap panel|Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Embroidered Overthrow and Cap Panel|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147723.jpg" alt="A40 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">A40 Primrose</div>
@@ -2508,7 +2571,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="c47 silver rose" data-item="147765" data-price="7165.0" data-color="purple">
+        <div class="product-card" data-name="c47 silver rose" data-item="147765" data-price="7165.0" data-color="purple" data-size="Standard size" data-ifab="Velvet" data-icol="Natural" data-feat="Embroidered overthrow or cap panel" data-bvf="Living Memorial® Program|Embroidered Overthrow and Cap Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147765.jpg" alt="C47 Silver Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">C47 Silver Rose</div>
@@ -2526,7 +2589,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="jf9 golden pearl" data-item="185489" data-price="7195.0" data-color="white">
+        <div class="product-card" data-name="jf9 golden pearl" data-item="185489" data-price="7195.0" data-color="white" data-size="Standard size" data-finish="Dual tone" data-ifab="Velvet" data-icol="Eggshell" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Accepts Decorative Casket Panel|Premium Pearlescent Dual-Tone Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/185489.jpg" alt="JF9 Golden Pearl" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">JF9 Golden Pearl</div>
@@ -2537,6 +2600,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">220 lbs</div>
+            <div class="product-tags"><span class="ptag">Dual tone finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#185489</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2544,7 +2608,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z65 primrose bronze" data-item="280184" data-price="7720.0" data-color="white">
+        <div class="product-card" data-name="z65 primrose bronze" data-item="280184" data-price="7720.0" data-color="white" data-size="Standard size" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="3 Family Choices® Personalization Features Available|Memory Safe® Drawer|Elegant Urn Corner Design|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/280184.jpg" alt="Z65 Primrose Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z65 Primrose Bronze</div>
@@ -2555,6 +2619,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#280184</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2562,7 +2627,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="u04 blue mist" data-item="147903" data-price="7940.0" data-color="blue">
+        <div class="product-card" data-name="u04 blue mist" data-item="147903" data-price="7940.0" data-color="blue" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Light Blue" data-feat="Embroidered overthrow or cap panel|Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Basic Series Chromium Stainless Steel|Embroidered Cap Panel Design|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147903.jpg" alt="U04 Blue Mist" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">U04 Blue Mist</div>
@@ -2573,6 +2638,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147903</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2580,7 +2646,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug2 golden rose" data-item="202001" data-price="8400.0" data-color="purple">
+        <div class="product-card" data-name="ug2 golden rose" data-item="202001" data-price="8400.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="4 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Basic Series Chromium Stainless Steel|Accepts Decorative Casket Panel|Brushed Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/202001.jpg" alt="UG2 Golden Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG2 Golden Rose</div>
@@ -2591,6 +2657,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#202001</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2598,7 +2665,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="u46 tapestry rose" data-item="147901" data-price="8595.0" data-color="purple">
+        <div class="product-card" data-name="u46 tapestry rose" data-item="147901" data-price="8595.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Embroidered overthrow or cap panel|Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Basic Series Chromium Stainless Steel|Embroidered Overthrow and Cap Panel|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147901.jpg" alt="U46 Tapestry Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">U46 Tapestry Rose</div>
@@ -2609,6 +2676,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147901</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2616,7 +2684,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug1 silver sapphire" data-item="185491" data-price="8755.0" data-color="blue">
+        <div class="product-card" data-name="ug1 silver sapphire" data-item="185491" data-price="8755.0" data-color="blue" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Silver" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel|Antique-finish hardware" data-bvf="4 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Basic Series Chromium Stainless Steel|Antique Hardware|Accepts Decorative Casket Panel|Brushed Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/185491.jpg" alt="UG1 Silver Sapphire" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG1 Silver Sapphire</div>
@@ -2627,6 +2695,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#185491</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2634,7 +2703,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="ug1 golden sand" data-item="185493" data-price="8755.0" data-color="gold">
+        <div class="product-card" data-name="ug1 golden sand" data-item="185493" data-price="8755.0" data-color="gold" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Family Choices® personalization|Accepts a decorative lid panel|Antique-finish hardware" data-bvf="4 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Basic Series Chromium Stainless Steel|Antique Hardware|Accepts Decorative Casket Panel|Brushed Finish|Charpente® Interior System|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/185493.jpg" alt="UG1 Golden Sand" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">UG1 Golden Sand</div>
@@ -2645,6 +2714,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">195 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#185493</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2652,7 +2722,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y33 primrose" data-item="147944" data-price="10840.0" data-color="white">
+        <div class="product-card" data-name="y33 primrose" data-item="147944" data-price="10840.0" data-color="white" data-size="Standard size" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Memory Safe® keepsake drawer|Choice of lace or overlay|Family Choices® personalization|Accepts a decorative lid panel" data-bvf="Dual Overlay (Lace or Tailored) Feature|3 Family Choices® Personalization Features Available|Memory Safe® Drawer|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Accepts Decorative Casket Panel|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147944.jpg" alt="Y33 Primrose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y33 Primrose</div>
@@ -2663,6 +2733,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
+            <div class="product-tags"><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#147944</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2670,7 +2741,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="or6 renaissance rose" data-item="147868" data-price="11285.0" data-color="purple">
+        <div class="product-card" data-name="or6 renaissance rose" data-item="147868" data-price="11285.0" data-color="purple" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Moss Pink" data-feat="Accepts a decorative lid panel" data-bvf="Living Memorial® Program|Premium Series Chrome/Nickel Stainless Steel|Copper Finish Hardware with Rose Details|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147868.jpg" alt="OR6 Renaissance Rose" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OR6 Renaissance Rose</div>
@@ -2681,6 +2752,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.88 in L x 28.88 in W x 23.38 in H</div>
             <div class="product-detail">180 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147868</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2688,7 +2760,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="or7 greyson" data-item="147870" data-price="11285.0" data-color="grey">
+        <div class="product-card" data-name="or7 greyson" data-item="147870" data-price="11285.0" data-color="grey" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Silver" data-feat="Accepts a decorative lid panel|Gold-finish hardware" data-bvf="Living Memorial® Program|Premium Series Chrome/Nickel Stainless Steel|Fluted Gold Bars|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147870.jpg" alt="OR7 Greyson" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">OR7 Greyson</div>
@@ -2699,6 +2771,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.88 in L x 28.88 in W x 23.38 in H</div>
             <div class="product-detail">180 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147870</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2706,7 +2779,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y35 mediterranean copper" data-item="147930" data-price="11945.0" data-color="brown">
+        <div class="product-card" data-name="y35 mediterranean copper" data-item="147930" data-price="11945.0" data-color="brown" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Religious motif|Accepts a decorative lid panel" data-bvf="Memory Safe® Drawer|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Religious Motif|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147930.jpg" alt="Y35 Mediterranean Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y35 Mediterranean Copper</div>
@@ -2717,6 +2790,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span><span class="ptag">Religious motif</span></div>
             <div class="product-meta">#147930</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2724,7 +2798,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="y39 aegean copper" data-item="147935" data-price="12080.0" data-color="brown">
+        <div class="product-card" data-name="y39 aegean copper" data-item="147935" data-price="12080.0" data-color="brown" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Accepts a decorative lid panel" data-bvf="Memory Safe® Drawer|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147935.jpg" alt="Y39 Aegean Copper" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Y39 Aegean Copper</div>
@@ -2735,6 +2809,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#147935</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2742,7 +2817,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="o39 aegean bronze" data-item="147862" data-price="13400.0" data-color="brown">
+        <div class="product-card" data-name="o39 aegean bronze" data-item="147862" data-price="13400.0" data-color="brown" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Accepts a decorative lid panel" data-bvf="Memory Safe® Drawer|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147862.jpg" alt="O39 Aegean Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">O39 Aegean Bronze</div>
@@ -2753,6 +2828,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">83.5 in L x 28.5 in W x 23.5 in H</div>
             <div class="product-detail">260 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#147862</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2760,7 +2836,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z64 venetian bronze" data-item="147961" data-price="18490.0" data-color="brown">
+        <div class="product-card" data-name="z64 venetian bronze" data-item="147961" data-price="18490.0" data-color="brown" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Memory Safe® keepsake drawer|Accepts a decorative lid panel" data-bvf="Memory Safe® Drawer|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|Cap Rim and Base Mold Beading|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147961.jpg" alt="Z64 Venetian Bronze" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z64 Venetian Bronze</div>
@@ -2771,6 +2847,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span><span class="ptag">Memory Safe® drawer</span></div>
             <div class="product-meta">#147961</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2778,7 +2855,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             </label>
           </div>
         </div>
-        <div class="product-card" data-name="z64 classic gold" data-item="147957" data-price="23930.0" data-color="black">
+        <div class="product-card" data-name="z64 classic gold" data-item="147957" data-price="23930.0" data-color="black" data-size="Standard size" data-finish="Brushed" data-ifab="Velvet" data-icol="Champagne" data-feat="Accepts a decorative lid panel|Gold-finish hardware" data-bvf="Elegant Urn Corner Design|Living Memorial® Program|Semi-precious metal, naturally resistant to rust and corrosion|24-Karat Gold Plated Hardware|Accepts Decorative Casket Panel|Brushed Finish|Memorial Record® System|Limited Warranty">
           <div class="product-img"><img src="casket-images/metal/147957.jpg" alt="Z64 Classic Gold" loading="lazy"></div>
           <div class="product-body">
             <div class="product-name">Z64 Classic Gold</div>
@@ -2789,6 +2866,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
             <div class="product-detail">Burial</div>
             <div class="product-detail">84 in L x 29 in W x 24 in H</div>
             <div class="product-detail">300 lbs</div>
+            <div class="product-tags"><span class="ptag">Brushed finish</span></div>
             <div class="product-meta">#147957</div>
             <label class="compare-toggle">
               <input type="checkbox" class="compare-cb">
@@ -2826,6 +2904,11 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     for (var i=0;i<d.length;i++){ var t=d[i].textContent.trim(); if (/Interior$/.test(t)) return t.replace(/\s*Interior$/,'').replace(/\s+/g,' ').trim(); }
     return '';
   }
+  /* casket-facets:helpers */
+  var SIZE_ORDER = ['Standard size', 'Oversize, fits a standard vault', 'Oversize, needs an oversize vault'];
+  var TONE_ORDER = ['Light', 'Medium', 'Dark', 'Grey', 'White'];
+  function listAttr(card, a){ var v=card.getAttribute(a)||''; return v ? v.split('|') : []; }
+  function facetVals(f, card){ var v=f.value(card); return Array.isArray(v) ? v.filter(Boolean) : (v ? [v] : []); }
   // Price bands. One ladder covers every catalog — a keepsake page lands in the
   // bottom three bands and a casket page in the top five; empty bands never appear
   // because facet values are derived from the cards actually present.
@@ -2849,9 +2932,13 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     return PRICE_ORDER[PRICE_ORDER.length - 1];
   }
   var FACETS = [
+    { key:'size', label:'Size', value:function(card){ return card.getAttribute('data-size')||''; }, order:SIZE_ORDER },
     { key:'material', label:'Gauge/Material', value:firstDetail },
-    { key:'fabric',   label:'Interior Fabric', value:fabric },
-    { key:'color',    label:'Color', value:function(card){ var c=card.getAttribute('data-color')||''; return c ? (COLOR_LABELS[c]||c) : ''; } },
+    { key:'color', label:'Color', value:function(card){ var c=card.getAttribute('data-color')||''; return c ? (COLOR_LABELS[c]||c) : ''; } },
+    { key:'finish', label:'Finish', value:function(card){ return listAttr(card,'data-finish'); } },
+    { key:'fabric', label:'Interior Fabric', value:function(card){ return card.getAttribute('data-ifab')||''; } },
+    { key:'icolor', label:'Interior Color', value:function(card){ return card.getAttribute('data-icol')||''; } },
+    { key:'feat', label:'Features', value:function(card){ return listAttr(card,'data-feat'); } },
     { key:'price', label:'Price', value:priceBand, order:PRICE_ORDER }
   ];
 
@@ -2875,7 +2962,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
   FACETS.forEach(function(f){
     selected[f.key] = {};
     var counts = {};
-    allCards.forEach(function(card){ var v=f.value(card); if(v){ counts[v]=(counts[v]||0)+1; } });
+    allCards.forEach(function(card){ facetVals(f, card).forEach(function(v){ counts[v]=(counts[v]||0)+1; }); });
     var values = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a] || a.localeCompare(b); });
     // Count-descending is right for materials and colours and wrong for price bands,
     // which have to read cheapest-first; an explicit f.order wins when present.
@@ -2921,7 +3008,7 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
       if(q && name.indexOf(q)===-1 && item.indexOf(q)===-1) return false;
       for(var i=0;i<FACETS.length;i++){
         var f=FACETS[i], sel=selected[f.key];
-        if(Object.keys(sel).length && !sel[f.value(card)]) return false;
+        if(Object.keys(sel).length && !facetVals(f, card).some(function(v){ return sel[v]; })) return false;
       }
       return true;
     }
@@ -3335,10 +3422,10 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
      to span multiple catalog pages. -->
 <script>
 (function(){
-  var ROW_LABELS = ['Price', 'Construction', 'Interior', 'Finish', 'Suitable for', 'Dimensions', 'Weight', 'Item #'];
+  var ROW_LABELS = ['Price', 'Construction', 'Interior', 'Finish', 'Suitable for', 'Dimensions', 'Weight', 'Size', 'Features', 'Item #'];
   // Item # is always unique per product, so it's excluded from difference highlighting —
   // it would "differ" on every comparison and that's not an interesting distinction.
-  var DIFF_ELIGIBLE = [true, true, true, true, true, true, true, false];
+  var DIFF_ELIGIBLE = [true, true, true, true, true, true, true, true, true, false];
   var MAX_COMPARE = 4;
   var selected = [];
   var currentView = 'specs'; // 'specs' | 'photos'
@@ -3382,9 +3469,20 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
     };
   }
 
+  /* casket-facets:compare */
+  function bwCasketExtra(sku){
+    var c = document.querySelector('.product-card[data-item="' + sku + '"]');
+    if (!c) return ['\u2014', '\u2014'];
+    var s = c.getAttribute('data-size') || '\u2014', iw = c.getAttribute('data-iw');
+    if (iw) s += ' (' + iw + ' in. interior)';
+    var f = (c.getAttribute('data-finish') ? c.getAttribute('data-finish').split('|').map(function(x){ return x + ' finish'; }) : [])
+      .concat(c.getAttribute('data-feat') ? c.getAttribute('data-feat').split('|') : []);
+    return [s, f.length ? f.join(', ') : '\u2014'];
+  }
   function rowValues(data){
     var vals = [data.price];
     for (var i = 0; i < 6; i++) vals.push(data.details[i] || '—');
+    vals = vals.concat(bwCasketExtra(data.sku));
     vals.push(data.item);
     return vals;
   }
@@ -3693,5 +3791,34 @@ body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offw
 </script>
 
 <script src="guide-nav.js" defer></script>
+<script>
+/* casket-facets:modal — full Batesville feature list under the specs in the product modal */
+(function(){
+  var specs = document.getElementById('modalSpecs');
+  if (!specs) return;
+  var box = document.getElementById('modalFeats');
+  if (!box){ box = document.createElement('div'); box.id='modalFeats'; box.className='product-modal-feats'; specs.parentNode.insertBefore(box, specs.nextSibling); }
+  function sizeLine(card){
+    var s = card.getAttribute('data-size')||'', iw = card.getAttribute('data-iw');
+    if (!s || s.indexOf('Oversize') !== 0) return '';
+    return 'Oversize' + (iw ? ' \u2014 ' + iw + ' in. interior width' : '') + (s.indexOf('needs') > -1 ? ' (needs an oversize burial vault)' : ' (fits a standard burial vault)');
+  }
+  document.querySelectorAll('.product-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      var list = (card.getAttribute('data-bvf')||'').split('|').filter(Boolean);
+      var sz = sizeLine(card);
+      box.innerHTML = '';
+      if (!list.length && !sz){ box.hidden = true; return; }
+      box.hidden = false;
+      var h = document.createElement('h4'); h.textContent = 'Batesville features'; box.appendChild(h);
+      var ul = document.createElement('ul');
+      if (sz){ var l0=document.createElement('li'); l0.className='pmf-size'; l0.textContent=sz; ul.appendChild(l0); }
+      list.forEach(function(t){ if (t === 'Oversize Burial Vault Required') return; var li=document.createElement('li'); li.textContent=t; ul.appendChild(li); });
+      box.appendChild(ul);
+    });
+  });
+})();
+</script>
+<!-- casket-facets:modal-end -->
 </body>
 </html>

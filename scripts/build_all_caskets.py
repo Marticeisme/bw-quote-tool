@@ -111,6 +111,13 @@ def main():
     write('all-caskets.html', s)
     print('wrote all-caskets.html')
 
+    # Size / finish / interior / features facets, card tags, Compare rows and the modal
+    # feature list. The cards above were copied already tagged from metal/wood; this
+    # re-applies the all-caskets FACETS list over the one written here.
+    sys.path.insert(0, 'scripts')
+    import casket_facets
+    casket_facets.main(['all-caskets.html'])
+
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
     main()
