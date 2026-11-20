@@ -1654,7 +1654,7 @@ tr:hover td{background:var(--navy-100);}
                   <label style="display:block;cursor:pointer;"><input type="checkbox" id="qNGrItemRecording" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Recording Fee <span data-fee="RECORDING:all"></span></label>
                   <label style="display:block;cursor:pointer;"><input type="checkbox" id="qNGrItemOC" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Niche Inurnment O&amp;C <span data-fee="OC:niche_inurnment"></span></label>
                   <label style="display:block;cursor:pointer;"><input type="checkbox" id="qNGrItemInscription" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Shutter Inscription (In-shop) <span data-fee="INSCRIPTION:all"></span></label>
-                  <label id="qNGrItemInterludeRow" style="display:none;cursor:pointer;"><input type="checkbox" id="qNGrItemInterlude" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Interlude Urn $655 <span style="color:var(--navy);font-weight:700;">(required in Garden of Meditation)</span></label>
+                  <label id="qNGrItemInterludeRow" style="display:none;cursor:pointer;"><input type="checkbox" id="qNGrItemInterlude" checked onchange="cemUpdateD()" style="width:12px;height:12px;accent-color:var(--navy);vertical-align:-2px;"> Interlude Urn $665 <span style="color:var(--navy);font-weight:700;">(required in Garden of Meditation)</span></label>
                 </div>
               </div>
             </div>
@@ -9016,7 +9016,8 @@ function cemUpdate() {
       lines.push({label: 'Niche ECF (10%)', amount: nicheEcf * nicheQ, taxable: false, isSpace: true});
     }
     // The Interlude Urn is REQUIRED in the Garden of Meditation Niches only — merchandise,
-    // $655 each, taxable (operator, 2026-08-07). The row only exists in the granite box
+    // $665 each (was $655; Martice 2026-11-18, matches Passare + URN_DATA), taxable
+    // (operator, 2026-08-07). The row only exists in the granite box
     // because that columbarium classifies granite (BW_NICHE_TYPE).
     var medNiche = nicheName === 'Garden of Meditation Niches';
     if (el('qNGrItemInterludeRow')) el('qNGrItemInterludeRow').style.display = medNiche ? 'block' : 'none';
@@ -9037,7 +9038,7 @@ function cemUpdate() {
       if (pkgItemN('qNGrItemRecording'))   { ngrTotal += bwFee('RECORDING:all') * ngrQ; lines.push({label: 'Recording Fee – Inurnment' + (ngrQ > 1 ? ' \xd7' + ngrQ : ''), amount: bwFee('RECORDING:all') * ngrQ, taxable: false}); }
       if (pkgItemN('qNGrItemOC'))          { ngrTotal += bwFee('OC:niche_inurnment') * ngrQ; lines.push({label: 'Niche Inurnment O&C' + (ngrQ > 1 ? ' \xd7' + ngrQ : ''), amount: bwFee('OC:niche_inurnment') * ngrQ, taxable: false}); }
       if (pkgItemN('qNGrItemInscription')) { ngrTotal += bwFee('INSCRIPTION:all') * ngrQ; lines.push({label: 'Shutter Inscription – In-shop' + (ngrQ > 1 ? ' \xd7' + ngrQ : ''), amount: bwFee('INSCRIPTION:all') * ngrQ, taxable: true}); }
-      if (medNiche && pkgItemN('qNGrItemInterlude')) { ngrTotal += 655 * ngrQ; lines.push({label: 'Interlude Urn' + (ngrQ > 1 ? ' \xd7' + ngrQ : ''), amount: 655 * ngrQ, taxable: true}); }
+      if (medNiche && pkgItemN('qNGrItemInterlude')) { ngrTotal += 665 * ngrQ; lines.push({label: 'Interlude Urn' + (ngrQ > 1 ? ' \xd7' + ngrQ : ''), amount: 665 * ngrQ, taxable: true}); }
       setDisp('qNicheGraniteDisp', ngrTotal);
     } else { setDisp('qNicheGraniteDisp', 0); }
   } else {
