@@ -3128,3 +3128,11 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Not in this push: the quote tool's oversize casket line, the "more than 70 acres" guide edits and the Planning
   Ahead presentation (all still uncommitted in worktree elegant-ramanujan-d1be89). Cremation Guide.pdf is stale
   against its page on main (pre-existing).
+
+## 2026-11-20: Garden of Meditation niche bundle: Interlude Urn $665
+
+- The Meditation-only Interlude Urn row in the Granite Front Niche Arrangement billed $655. Passare, Ray's price
+  list and the funeral-side urn list all say $665 (Martice, relayed 11/18 from the Property Cards session). The
+  label, the calc and the comment now say $665.
+- Verified: syntax check clean; read-only Playwright quote for 2 Meditation niches billed "Interlude Urn x2"
+  $1,330, taxable; test-niche-maus-type, test-prices-source, test-september-promo, test-space-dropdowns all pass.
