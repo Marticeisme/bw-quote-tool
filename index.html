@@ -20886,7 +20886,7 @@ async function generateRICContractCore(clientData) {
     // The ACH disclosure prints when ACH is required (Martice 11/14): a 0% payment plan, or any
     // discount on the contract. Not on an interest plan with no discount, and not on a paid-in-full
     // contract with no discount. Both forms.
-    var _planMonths = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value) || finMonths) : finMonths;
+    var _planMonths = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value) || (clientData ? 0 : finMonths)) : finMonths;
     var _planDown   = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value) || 0) : downAmt;
     var _financed   = _planMonths > 0 && Math.round((grandTotal - _planDown) * 100) > 0;
     var _planRate   = el('ricFinRate') ? (parseFloat(el('ricFinRate').value) || 0) : finRate * 100;
@@ -21176,7 +21176,7 @@ async function generateRICContractCore(clientData) {
     setF('DPAmount',        downAmt ? fmtC(downAmt) : '');
     setF('TotalDP',         downAmt ? fmtC(downAmt) : '');
     setF('UnpaidBalance',   fmtC(unpaid));
-    setF('Finance Charge',  _finData && _finData.rate ? String(Math.round(_finData.rate * 100)) + '.00' : '0.00');
+    setF('Finance Charge',  _finData && _finData.rate ? (_finData.rate * 100).toFixed(2) : '0.00');
     // Rebuilt RIC only (the old path keeps 0.00 / the cash price): the real finance charge on an interest plan.
     var fc0 = (_ricNew && finMonths && finRate > 0) ? Math.max(0, Math.round((totPmts - unpaid) * 100) / 100) : 0;
     setF('FCAmount',        fmtC(fc0));
@@ -21189,7 +21189,10 @@ async function generateRICContractCore(clientData) {
     setF('TotalSalesPrice_TIL', fmtC(grandTotal + fc0));
     // Payment schedule — use RIC tab fields if available, else auto-calculate
     var ricDown    = el('ricDownAmt')   ? (parseFloat(el('ricDownAmt').value)   || 0) : downAmt;
-    var ricMonths  = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value)    || finMonths) : finMonths;
+    // From the RIC tab (clientData set), the tab's Number of Payments is the plan: blank means paid in
+    // full. It used to fall back to the quote's plan, so clearing it on the tab still printed
+    // "60 x $193.39", ACH and the ACH remark on a contract whose boxes said paid in full (11/20).
+    var ricMonths  = el('ricFinMonths') ? (parseInt(el('ricFinMonths').value)    || (clientData ? 0 : finMonths)) : finMonths;
     var ricRateRaw = el('ricFinRate')   ? (parseFloat(el('ricFinRate').value)    || 0) : (_finData ? _finData.rate * 100 : 0);
     var ricMo      = el('ricMonthlyAmt') && el('ricMonthlyAmt').value ? parseFloat(el('ricMonthlyAmt').value.replace(/,/g,'')) : monthly;
     var ricFpStr   = el('ricFirstPmt') && el('ricFirstPmt').value ? el('ricFirstPmt').value : fpStr;
@@ -21202,7 +21205,11 @@ async function generateRICContractCore(clientData) {
       console.warn('[RIC] paid in full: payment method ACH changed to Check');
       ricPayMeth = 'Check';
     }
-    var ricTotPmts = (ricMonths && ricRateRaw === 0) ? ricUnpaid : ricMonths ? Math.round(ricMo * ricMonths * 100) / 100 : ricUnpaid;
+    // Total of Payments on an interest plan = the EXACT monthly payment x months, to the cent: the way
+    // Accounting's FINANCING CALCULATOR.xlsx (F = G*B - E, no rounding) and PHX - FINANCING TERMS figure it,
+    // and the fillable RIC. It used the payment already rounded to the cent, a few cents off theirs.
+    var ricMoExact = (ricMonths && ricRateRaw > 0) ? finMonthly(ricUnpaid, ricMonths, ricRateRaw / 100) : ricMo;
+    var ricTotPmts = (ricMonths && ricRateRaw === 0) ? ricUnpaid : ricMonths ? Math.round(ricMoExact * ricMonths * 100) / 100 : ricUnpaid;
 
     // Override financial totals with RIC tab values
     setF('DPAmount',        ricDown ? fmtC(ricDown) : '');
@@ -21222,9 +21229,12 @@ async function generateRICContractCore(clientData) {
     setF('TotalDP_TIL',          ricDown ? fmtC(ricDown) : '');
     setF('TotalSalesPrice_TIL',  fmtC(grandTotal + ricFC));
     setF('Cash', ricPayMeth);
-    setF('Finance Charge',  String(Math.round(ricRateRaw)) + '.00');
+    // The plan's rate as entered: 4.5 prints 4.50 (it was rounded to a whole number, "5.00").
+    setF('Finance Charge',  ricPaidInFull ? '0.00' : ricRateRaw.toFixed(2));
 
-    if (ricMonths) {
+    // Payment schedule only when something is financed: a down payment equal to the total used to
+    // print "24 x $0.00" on a paid-in-full contract.
+    if (ricMonths && !ricPaidInFull) {
       setF('Terms', String(ricMonths));
       setF('PaymentAmount1', fmtC(ricMo));
       setF('Date of First Payment', ricFpStr);
@@ -21706,7 +21716,8 @@ function ricImportFromQuote() {
   // Populate payment fields from financing data
   if (_ricPricing.finData) {
     var fd = _ricPricing.finData;
-    if (el('ricDownAmt'))   el('ricDownAmt').value   = fd.downAmt  || '';
+    // to the cent: the quote keeps total x 10% unrounded, which showed in this box as 1289.2110000000002
+    if (el('ricDownAmt'))   el('ricDownAmt').value   = fd.downAmt ? String(Math.round(fd.downAmt * 100) / 100) : '';
     if (el('ricFinMonths')) el('ricFinMonths').value  = fd.months   || '';
     if (el('ricFinRate'))   el('ricFinRate').value    = fd.rate ? (fd.rate * 100).toFixed(1) : '0';
     // First payment: find next 10th, 20th, or 25th (~30 days out)
@@ -21716,7 +21727,9 @@ function ricImportFromQuote() {
     var fpDay = PDAYS.reduce(function(best, d) {
       return (Math.abs(d - fp.getDate()) < Math.abs(best - fp.getDate())) ? d : best;
     }, PDAYS[0]);
-    if (fp.getDate() > 25) { fp.setMonth(fp.getMonth() + 1); fpDay = 10; }
+    // setDate(1) first: Jan 30 + one month is "Feb 30", which JavaScript rolls into March, so a
+    // contract signed Dec 30 got a first payment of March 10 and skipped February (11/20).
+    if (fp.getDate() > 25) { fp.setDate(1); fp.setMonth(fp.getMonth() + 1); fpDay = 10; }
     var fpMonthStr = MONTHS[fp.getMonth()];
     var fpYearStr  = String(fp.getFullYear());
     if (el('ricFirstPmtMonth')) el('ricFirstPmtMonth').value = fpMonthStr;
@@ -21853,6 +21866,14 @@ function ricCalcFinancing() {
     }
   }
   if (el('ricMonthlyAmt')) el('ricMonthlyAmt').value = monthly ? fmtRIC(monthly) : '';
+  // Payment method follows the plan: a 0% plan requires ACH; nothing financed is never ACH (Check).
+  // A plan typed here (not imported from the quote) used to stay on Check at 0%.
+  var pm = el('ricPayMethod');
+  if (pm) {
+    var financed = months > 0 && Math.round(unpaid * 100) > 0;
+    if (financed && rate === 0) pm.value = 'ACH';
+    else if (!financed && pm.value === 'ACH') pm.value = 'Check';
+  }
   var sumEl = el('ricFinancingSummary');
   if (sumEl && total > 0) {
     sumEl.style.display = 'block';

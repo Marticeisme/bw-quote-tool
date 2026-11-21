@@ -154,7 +154,10 @@ console.log('\n5. An interest plan (20% down, 72 months at 8%): the disclosure b
   const m = r.money, r2 = x => Math.round(x * 100) / 100;
   // Martice 11/14: the ACH line prints only when ACH is required (a 0% plan or a discount).
   ok('no ACH line on an interest plan with no discount', !r.lines.some(l => /ACH bank withdrawals/.test(l.text)), r.lines.map(l => l.text));
-  ok('total of payments = payment x 72, more than the amount financed', m.TotalPayments === r2(m.PaymentAmount1 * 72) && m.TotalPayments > m.UnpaidBalance, m);
+  // Accounting's FINANCING CALCULATOR.xlsx: exact (unrounded) payment x 72, to the cent (11/21)
+  const exact = m.UnpaidBalance * (0.08 / 12) / (1 - Math.pow(1 + 0.08 / 12, -72));
+  ok('total of payments = exact payment x 72 (Accounting\'s calculator), more than the amount financed',
+     m.TotalPayments === r2(exact * 72) && Math.abs(m.PaymentAmount1 - r2(exact)) < 0.005 && m.TotalPayments > m.UnpaidBalance, m);
   ok('(d) finance charge = total of payments - amount financed', m.FCAmount > 0 && m.FCAmount === r2(m.TotalPayments - m.UnpaidBalance), m);
   ok('(f) total sale price = cash price + finance charge', m['Total Sales Price'] === r2(m.TotalCP + m.FCAmount), m);
   ok('the disclosure box copies all four', m.FCAmount_TIL === m.FCAmount && m.UnpaidBalance_TIL === m.UnpaidBalance &&
