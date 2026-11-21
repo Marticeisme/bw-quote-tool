@@ -3136,3 +3136,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   label, the calc and the comment now say $665.
 - Verified: syntax check clean; read-only Playwright quote for 2 Meditation niches billed "Interlude Urn x2"
   $1,330, taxable; test-niche-maus-type, test-prices-source, test-september-promo, test-space-dropdowns all pass.
+
+## 2026-11-21: RIC financing fixes (Ray: "could not get the financing portion to work")
+
+- Ray texted 11/20 that Laura approved the new forms but the RIC financing would not work. Stress test: 31 tool cases
+  plus the fillable filled by hand in real Acrobat. Commit fdc723ef.
+- Root cause on the forms: the Number of Payments and APR dropdowns did not commit on pick. Picking 60 months or 6%
+  recalculated nothing until you clicked elsewhere. Fixed (Ff CommitOnSelChange) in both tool RIC templates
+  (RIC_REBUILT_PDF, RIC_PDF_B64; manifest updated) and in fixed copies of the fillable RICs (scratch, local; Downloads
+  not replaced yet). The fillable build (scratch/ric-rebuild/fillable.py) now sets it.
+- Tool RIC: APR box prints 4.50 (was 5.00); down = total no longer prints "24 x $0.00"; a cleared Number of Payments
+  no longer falls back to the quote's plan; a 0% plan typed on the RIC tab defaults to ACH; first-payment month-end
+  rollover (Dec 30 gave Mar 10); imported down payment rounded to the cent.
+- Total of Payments = exact payment x months, per Accounting's FINANCING CALCULATOR.xlsx and PHX - FINANCING TERMS
+  (no rounding). Rulings: keep the exact formula (not the 7-place factors, 0-4 cents apart); APR stays the plan
+  rate even with the first payment about two months out.
+- Verified: syntax check clean; test-ric-financing 31/31 (5 break on the old code), test-ric-remarks-fit 28,
+  test-ric-woicik-round 53, test-ric-rebuilt 22, test-ric-line-qty 26; Acrobat by hand on the fillable (before and
+  after); generated RIC carries the commit flag.
