@@ -330,6 +330,8 @@ const FOUNDATIONS = [
   [32, 20, 730], [32, 24, 850], [36, 24, 990], [40, 20, 895], [36, 36, 1445], [44, 20, 1005],
   [48, 20, 1170], [48, 24, 1310], [54, 24, 1350], [56, 22, 1350], [60, 26, 1650], [66, 26, 1815], [72, 26, 1980]
 ];
+// P5 is one matched set: tablet AND base polished all over, one charge. PCM quotes it that way
+// ("P5 Serp Top (with matching P5 base)"); Martice 11/21: "one $960 set".
 const POLISH = { P2: 0, P3: 770, P5: 960 }, MARGIN = 1060, FOUND_ROCK = 0.10, PARAGON = 685;
 // Flat markers: the sizes the park allows (markers-guide.html). row = FLUSH_SIZES index;
 // prices [Group 1, Group 1 Tariffed, Group 2] and the install fee.
@@ -379,8 +381,6 @@ const BRONZE = [
 ];
 const BRONZE_GROUPS = { Standard: 'Bronze (Matthews or Coldspring)', Expressions: 'Expressions in Bronze', Veterans: 'Veterans' };
 const BRONZE_VASES = ['floral', 'hammer', 'veteran'];
-// Fully polished upright base: PCM's top polish tier, P5 "all polished" (Martice 11/21: "the highest one").
-const BASE_P5 = 960;
 const TAX = 0.104;
 
 // Granite: tile = upright-images/granite/<key>.jpg, hex = its average (drawn while it loads).
@@ -399,7 +399,7 @@ const HEX = {}; [G2, G1, G1T].forEach(l => l.forEach(c => { HEX[c[0]] = c[1]; })
 const GROUP_OF = {}; G1.forEach(c => GROUP_OF[c[0]] = 0); G1T.forEach(c => GROUP_OF[c[0]] = 1); G2.forEach(c => GROUP_OF[c[0]] = 2);
 const colorName = k => k === 'Cats_Eye' ? "Cat's Eye" : k === 'Classic_Gray' ? 'Classic Gray (Cascade Gray)' : k.replace(/_/g, ' ');
 const TOPS = { serp: 'Serpentine', oval: 'Oval', flat: 'Flat' };
-const POLISH_TEXT = { P2: ['P2, standard', 'Polished front and back'], P3: ['P3', 'Top polished too'], P5: ['P5', 'Polished all over'] };
+const POLISH_TEXT = { P2: ['P2, standard', 'Polished front and back'], P3: ['P3', 'Top polished too'], P5: ['P5', 'Tablet and base polished all over'] };
 
 const bronzeOf = st => BRONZE.find(b => b.k === st.bk) || BRONZE[0];
 // granite flats: how many vase blocks. A companion can have one under one side or one under each
@@ -424,6 +424,8 @@ let state = Object.assign({}, DEFAULTS);
   state.top = TOPS[q.get('top')] ? q.get('top') : DEFAULTS.top;
   state.p = q.get('p') in POLISH ? q.get('p') : DEFAULTS.p;
   state.m = n('m', 0, 2, 0);
+  if (state.m === 2) { state.m = 0; state.p = 'P5'; }   // older links: the all-polished base is part of P5 now
+  if (state.p === 'P5') state.m = 0;
   state.f = q.get('f') === 'rock' ? 'rock' : 'sawn';
   state.v = n('v', 0, 2, 0);
   state.fs = n('fs', 0, FLATS.length - 1, 0);
@@ -452,8 +454,7 @@ function calc(st = state) {
     const s = UPRIGHTS[st.s], f = foundationFor(s);
     lines.push({ label: (s.comp ? 'Companion upright' : 'Upright') + ', ' + s.tw + '″ × ' + s.th + '″ tablet', sub: s.tt + '″ thick on a ' + s.bw + '″ base · ' + colorName(st.c) + ' · ' + TOPS[st.top].toLowerCase() + ' top', amount: s.price });
     if (POLISH[st.p]) lines.push({ label: 'Tablet finish ' + st.p, sub: POLISH_TEXT[st.p][1].toLowerCase(), amount: POLISH[st.p] });
-    if (st.m === 1) lines.push({ label: 'Polished margin on the base', amount: MARGIN });
-    if (st.m === 2) lines.push({ label: 'Base polished all over (P5)', amount: BASE_P5 });
+    if (st.m === 1 && st.p !== 'P5') lines.push({ label: 'Polished margin on the base', amount: MARGIN });
     lines.push({ label: 'Foundation ' + f.fw + '″ × ' + f.fd + '″', sub: 'Barrell Gray', amount: f.price });
     if (st.f === 'rock') lines.push({ label: 'Rock-pitched foundation sides', sub: 'adds 10%', amount: r2(f.price * FOUND_ROCK) });
     if (st.v) lines.push({ label: (st.v === 2 ? 'Two Paragon vases' : 'One Paragon vase'), sub: whole(PARAGON) + ' each', amount: PARAGON * st.v });
@@ -761,7 +762,7 @@ function buildUpright(st) {
   const yb = y0 + M.FH;
   grp.add(prism(rectOutline(s.bw, s.bd), s.bh,
     (u, v, t) => new THREE.Vector3(u - s.bw / 2, yb + t, v + M.bz0), (nu, nv) => new THREE.Vector3(nu, 0, nv),
-    { cap1: 'polished', wall: () => st.m === 2 ? 'polished' : 'rock', band: st.m === 1 ? 2 : 0, amp: 0.6, capNormal: d => d > 0 ? up : up.clone().negate() }, mats));
+    { cap1: 'polished', wall: () => st.p === 'P5' ? 'polished' : 'rock', band: st.m === 1 && st.p !== 'P5' ? 2 : 0, amp: 0.6, capNormal: d => d > 0 ? up : up.clone().negate() }, mats));
   // tablet: outline is the front shape (x, y), swept back by its thickness
   const yt = yb + s.bh, zFront = M.tz + s.tt;
   const wallFin = (i, n) => {
@@ -937,7 +938,7 @@ function uprightFrontSvg(st, opts = {}) {
   o.push(`<rect x="${fx - 12}" y="${-M.reveal}" width="${f.fw + 24}" height="${M.reveal + 2}" fill="#8db271"/>`);
   o.push(`<rect x="${fx}" y="${-FH}" width="${f.fw}" height="${FH}" fill="url(#${id}f)" stroke="#7d8790" stroke-width=".1"/>`);
   o.push(`<rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="url(#${id}s)"/><rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="#fff" opacity="${st.m ? 0 : .2}"/>`);
-  if (st.m === 1) o.push(`<rect x="${bx}" y="${-ty + 2}" width="${s.bw}" height="${s.bh - 2}" fill="#fff" opacity=".2"/>`);
+  if (st.m === 1 && st.p !== 'P5') o.push(`<rect x="${bx}" y="${-ty + 2}" width="${s.bw}" height="${s.bh - 2}" fill="#fff" opacity=".2"/>`);
   const outer = tabletOutline(st.top, s.tw, s.th).map(p => R(tx + p[0], ty + p[1]));
   o.push(`<path d="${poly(outer)}" fill="url(#${id}s)" stroke="${st.p === 'P5' ? '#fff' : '#cfd3d6'}" stroke-width="${st.p === 'P5' ? .15 : .6}" stroke-opacity=".6"/>`);
   (st.v === 2 ? [-1, 1] : st.v === 1 ? [-1] : []).forEach(sx => {
@@ -1027,7 +1028,8 @@ function stepsHtml() {
     h.push(H('Granite'), swatches(G2, st.c, 'c'), `<div class="cname">${colorName(st.c)}</div>`);
     h.push(H('Top'), opts(Object.keys(TOPS).map(k => ({ v: k, b: TOPS[k] })), st.top, 'top', 'c3'));
     h.push(H('Tablet finish'), opts(['P2', 'P3', 'P5'].map(k => ({ v: k, b: POLISH_TEXT[k][0], s: POLISH_TEXT[k][1], p: POLISH[k] ? '+' + whole(POLISH[k]) : 'Included' })), st.p, 'p', 'c3'));
-    h.push(H('Base'), opts([{ v: 0, b: 'Standard', s: 'Rough sides', p: 'Included' }, { v: 1, b: 'Polished margin', s: 'Smooth top band', p: '+' + whole(MARGIN) }, { v: 2, b: 'All polished', s: 'P5 base', p: '+' + whole(BASE_P5) }], st.m, 'm', 'c3'));
+    if (st.p === 'P5') h.push(H('Base'), '<div class="note">Polished all over, as part of P5.</div>');
+    else h.push(H('Base'), opts([{ v: 0, b: 'Standard', s: 'Rough sides', p: 'Included' }, { v: 1, b: 'Polished margin', s: 'Smooth top band', p: '+' + whole(MARGIN) }], st.m, 'm', 'c2'));
     const f = foundationFor(UPRIGHTS[st.s]);
     h.push(H('Foundation'), opts([{ v: 'sawn', b: 'Sawn sides', p: 'Included' }, { v: 'rock', b: 'Rough sides', p: '+' + money(r2(f.price * FOUND_ROCK)).replace('.00', '') }], st.f, 'f', 'c2'),
       `<div class="note">${f.fw}″ × ${f.fd}″ Barrell Gray. The monument company confirms the final size.</div>`);
@@ -1085,6 +1087,7 @@ $('steps').addEventListener('click', e => {
   const b = e.target.closest('.opt, .sw'); if (!b) return;
   const key = b.parentElement.getAttribute('data-key'), raw = b.getAttribute('data-v');
   state[key] = /^(s|m|v|fs|fn|bcore)$/.test(key) ? +raw : raw;
+  if (state.p === 'P5') state.m = 0;
   update();
 });
 $('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.type = b.getAttribute('data-t'); cmpFilter = 'all'; update(); });

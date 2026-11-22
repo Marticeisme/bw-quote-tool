@@ -166,3 +166,6 @@ Real WMP photos must be checked for readable names before use (repo is public).
   asked the Property Cards session.
 - Flat 3D: orbits around the stone's face, camera stops at 68 degrees from overhead, flush stones
   cast no shadow (they read as floating).
+- P5 = ONE matched set, tablet AND base polished all over, one $960 (Martice 11/21, "one $960 set";
+  Nathan's quotes always pair a P5 tablet with a matching P5 base). The separate all-polished base
+  option is gone; with P5 the base step says so and a polished margin does not apply.

@@ -27969,8 +27969,8 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
   var KEY = 'bw_upright_import', MAX_AGE = 30 * 60 * 1000, TAG = 'upright-import';
   // 2026 PCM Markers Price Book upgrades and the Paragon vase (Martice 2026-11-21). Same figures
   // as memorial-designer.html; scratch/test-memorial-designer.mjs checks they agree.
-  var UP_POLISH = { P3: [770, 'Upright tablet finish P3 (polished front, back and top)'], P5: [960, 'Upright tablet finish P5 (all polished)'] };
-  var UP_MARGIN = 1060, UP_VASE = 685, UP_FOUND_ROCK = 0.10, VB_SET = 175, UP_BASE_P5 = 960;
+  var UP_POLISH = { P3: [770, 'Upright tablet finish P3 (polished front, back and top)'], P5: [960, 'Upright P5, tablet and base polished all over'] };
+  var UP_MARGIN = 1060, UP_VASE = 685, UP_FOUND_ROCK = 0.10, VB_SET = 175;
   var TABLET_FINISH = {
     P2: 'P2, BRP (polished front and back, rock-pitched top and sides)',
     P3: 'P3, BRP (polished front, back and top, rock-pitched sides)',
@@ -28097,8 +28097,8 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
       sub += fp;
       clearVaseBlock();
       if (UP_POLISH[p.p]) sub += addLine(UP_POLISH[p.p][1], UP_POLISH[p.p][0]);
-      if (p.m === 1) sub += addLine('Polished margin on the upright base', UP_MARGIN);
-      if (p.m === 2) sub += addLine('Upright base polished all over (P5)', UP_BASE_P5);
+      // P5 is one matched set (tablet + base); a polished margin does not apply to it
+      if (p.m === 1 && p.p !== 'P5') sub += addLine('Polished margin on the upright base', UP_MARGIN);
       if (p.f === 'rock') sub += addLine('Rock-pitched foundation sides (+10%)', r2(fp * UP_FOUND_ROCK));
       if (p.vases) sub += addLine(p.vases === 2 ? 'Two Paragon vases (2 × $685)' : 'One Paragon vase', UP_VASE * p.vases);
     }
@@ -28146,7 +28146,7 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
     setField('anoMkUprightSize', row[0]);
     setField('anoMkTabletShape', (p.topName || '') + ' top');
     setField('anoMkTabletFinish', TABLET_FINISH[p.p] || '');
-    setField('anoMkBaseFinish', 'Polished top, BRP' + (p.m ? ', 2" polished margin' : ''));
+    setField('anoMkBaseFinish', p.p === 'P5' ? 'P5 (all polished, matching the tablet)' : 'Polished top, BRP' + (p.m ? ', 2" polished margin' : ''));
     setField('anoMkUprightFoundation', p.found.w + 'x' + p.found.d + 'x4 Barrell Gray, polished top, ' + (p.f === 'rock' ? 'rock-pitched' : 'sawn') + ' sides');
     if (p.vases) {
       setField('anoMkVaseOption', p.vases === 2 ? 'Two vases' : 'One vase');
