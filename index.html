@@ -27951,5 +27951,160 @@ var FQ_FONTS = {
 };
 function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
 </script>
+<script>
+// ═══ UPRIGHT HEADSTONE IMPORT (from upright-headstone.html) ═══════════════════════════════════
+// The visualizer's staff buttons leave the design in localStorage 'bw_upright_import' and open
+// #cem-quote. This fills the Cemetery Quote (Pre-Need or At-Need) with the same pieces: the
+// upright from UPRIGHT_SIZES in Group 2, its foundation from qFoundation, and custom lines for the
+// polish upgrade, polished margin, rock-pitched foundation sides and Paragon vases. For At-Need it
+// also fills the empty Memorial Order fields on the CIRGAS tab; the CIRGAS prices still come from
+// that tab's own "Import from Cemetery Quote", as always.
+// Every price is rebuilt from this file's tables; the visualizer's subtotal is only compared, and
+// a mismatch is reported rather than trusted. NOTHING IS SAVED: the quote is filled on screen and
+// the counselor saves it the usual way.
+(function() {
+  var KEY = 'bw_upright_import', MAX_AGE = 30 * 60 * 1000, TAG = 'upright-import';
+  // 2026 PCM Markers Price Book upgrades and the Paragon vase (Martice 2026-11-21). Same figures
+  // as upright-headstone.html; scratch/test-upright-visualizer.mjs checks they agree.
+  var UP_POLISH = { P3: [770, 'Upright tablet finish P3 (polished front, back and top)'], P5: [960, 'Upright tablet finish P5 (all polished)'] };
+  var UP_MARGIN = 1060, UP_VASE = 685, UP_FOUND_ROCK = 0.10;
+  var TABLET_FINISH = {
+    P2: 'P2, BRP (polished front and back, rock-pitched top and sides)',
+    P3: 'P3, BRP (polished front, back and top, rock-pitched sides)',
+    P5: 'P5 (all polished)'
+  };
+  function r2(v) { return Math.round(v * 100) / 100; }
+  function money(v) { return '$' + r2(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function readPending() {
+    try {
+      var raw = localStorage.getItem(KEY); if (!raw) return null;
+      var p = JSON.parse(raw);
+      if (!p || p.v !== 1 || !(Date.now() - p.ts < MAX_AGE)) { localStorage.removeItem(KEY); return null; }
+      return p;
+    } catch (e) { return null; }
+  }
+  function setVal(id, v) { var e = el(id); if (!e) return false; e.value = String(v); return e.value === String(v); }
+  function fillIfEmpty(id, v) { var e = el(id); if (e && v && !String(e.value || '').trim()) e.value = v; }
+  function importedRows() { var box = el('cemCustomLines'); return box ? box.querySelectorAll('.custom-line-row[data-src="' + TAG + '"]') : []; }
+  function addLine(desc, amt) {
+    addCemLine();
+    var rows = el('cemCustomLines').querySelectorAll('.custom-line-row'), row = rows[rows.length - 1];
+    row.setAttribute('data-src', TAG);
+    row.querySelector('.cl-desc').value = desc;
+    row.querySelector('.cl-amt').value = String(amt);
+    row.querySelector('.cl-tax').value = 'taxable';
+    return amt;
+  }
+  function foundationOption(w, d) {
+    var sel = el('qFoundation'); if (!sel) return null;
+    var want = w + '×' + d + '×4';
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].text.indexOf(want) !== -1) return sel.options[i];
+    return null;
+  }
+
+  // Fills the quote from a visualizer payload. opts.confirmReplace (default true) asks before
+  // replacing a marker/foundation already on the quote. Returns { ok, sub, expected, message }.
+  window.bwUprightImportRun = function(p, opts) {
+    opts = opts || {};
+    var row = UPRIGHT_SIZES[p.s];
+    // rows 0-5 single, 6-9 companion (the visualizer's own size order)
+    if (!row || p.s > 9 || !/^Tablet /.test(row[0])) return { ok: false, message: 'Unknown upright size ' + p.s + '.' };
+    var hasMarker = (typeof markerItems !== 'undefined' && markerItems.length) || val('qFoundation') || importedRows().length;
+    if (hasMarker && opts.confirmReplace !== false &&
+        !confirm('This cemetery quote already has a marker or foundation on it. Replace them with the upright from the visualizer?')) {
+      return { ok: false, message: 'Cancelled.' };
+    }
+    // Quote type
+    var typeEl = el(p.need === 'atneed' ? 'cemTypeAN' : 'cemTypePN');
+    if (typeEl && !typeEl.checked) { typeEl.checked = true; cemQuoteTypeChange(); }
+    // Upright, Group 2, through the marker panel's own add, so the line reads like a hand-built one
+    setVal('qMarkerType', 'upright'); populateMarkerSizes();
+    setVal('qMarkerSize', p.s); populateMarkerColors();
+    setVal('qMarkerColor', 'g2');
+    if (el('qty_marker')) el('qty_marker').value = '1';
+    markerItems.length = 0;
+    markerAdd();
+    var item = markerItems[markerItems.length - 1];
+    if (!item) return { ok: false, message: 'The upright could not be added to the quote.' };
+    item.name += ', ' + p.color + ', ' + String(p.topName || '').toLowerCase() + ' top';
+    markerRender();
+    var sub = item.price + item.install;
+    // Foundation
+    var opt = foundationOption(p.found.w, p.found.d);
+    if (!opt) return { ok: false, message: 'Foundation ' + p.found.w + '×' + p.found.d + '×4 is not in the Foundation list.' };
+    el('qFoundation').value = opt.value;
+    if (el('qty_foundation')) el('qty_foundation').value = '1';
+    var fp = parseFloat(opt.value) || 0;
+    sub += fp;
+    // Custom lines (replacing any from an earlier import)
+    Array.prototype.forEach.call(importedRows(), function(r) { r.remove(); });
+    if (UP_POLISH[p.p]) sub += addLine(UP_POLISH[p.p][1], UP_POLISH[p.p][0]);
+    if (p.m) sub += addLine('Polished margin on the upright base', UP_MARGIN);
+    if (p.f === 'rock') sub += addLine('Rock-pitched foundation sides (+10%)', r2(fp * UP_FOUND_ROCK));
+    if (p.vases) sub += addLine(p.vases === 2 ? 'Two Paragon vases (2 × $685)' : 'One Paragon vase', UP_VASE * p.vases);
+    sub = r2(sub);
+    cemUpdate();
+    if (p.need === 'atneed') fillAnMemorialOrder(p, row);
+    if (typeof bwMarkDirty === 'function') bwMarkDirty();
+    var ok = Math.abs(sub - p.sub) < 0.005;
+    return { ok: ok, sub: sub, expected: p.sub,
+      message: ok ? 'Upright imported: ' + money(sub) + ' before tax, matching the visualizer.'
+                  : 'Upright imported, but the quote comes to ' + money(sub) + ' before tax and the visualizer showed ' + money(p.sub) + '. Check the prices before sending.' };
+  };
+
+  // Memorial Order on the CIRGAS tab: only empty fields are filled, so nothing typed there is lost.
+  function fillAnMemorialOrder(p, row) {
+    if (!el('anMkEnabled')) return;
+    if (!el('anMkEnabled').checked) { el('anMkEnabled').checked = true; anMkToggle(); }
+    var up = el('anoMkCatUpright');
+    if (up && !up.checked) { up.checked = true; anoMkCategoryChange(); }
+    fillIfEmpty('anoMkManufacturer', 'PCM');
+    fillIfEmpty('anoMkMonumentType', 'Upright');
+    fillIfEmpty('anoMkGraniteColor', p.color + ' (Group 2)');
+    fillIfEmpty('anoMkUprightSize', row[0]);
+    fillIfEmpty('anoMkTabletShape', (p.topName || '') + ' top');
+    fillIfEmpty('anoMkTabletFinish', TABLET_FINISH[p.p] || '');
+    fillIfEmpty('anoMkBaseFinish', 'Polished top, BRP' + (p.m ? ', 2" polished margin' : ''));
+    fillIfEmpty('anoMkUprightFoundation', p.found.w + 'x' + p.found.d + 'x4 Barrell Gray, polished top, ' + (p.f === 'rock' ? 'rock-pitched' : 'sawn') + ' sides');
+    if (p.vases) {
+      fillIfEmpty('anoMkVaseOption', p.vases === 2 ? 'Two vases' : 'One vase');
+      fillIfEmpty('anoMkVaseType', 'Paragon metal vase');
+    } else fillIfEmpty('anoMkVaseOption', 'No vase');
+  }
+
+  // Waits for sign-in (the quote store and the sections exist only then), claims the payload so a
+  // reload or a second tab can't import it twice, then asks before touching the quote.
+  var _waiting = false;
+  function check() {
+    if (_waiting || !readPending()) return;
+    _waiting = true;
+    var started = Date.now();
+    (function poll() {
+      var ready = window._bwUser && typeof markerAdd === 'function' && el('qMarkerType') && el('cemCustomLines');
+      if (!ready) {
+        if (Date.now() - started < 10 * 60 * 1000) return setTimeout(poll, 500);
+        _waiting = false; return;
+      }
+      var p = readPending();
+      _waiting = false;
+      if (!p) return;
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      try { show('cem-quote', _bwNavElFor('cem-quote')); } catch (e) {}
+      setTimeout(function() {
+        var what = (p.need === 'atneed' ? 'an At-Need' : 'a Pre-Need') + ' cemetery quote';
+        if (!confirm('Import the upright headstone from the visualizer into ' + what + '?\n\n' +
+                     (UPRIGHT_SIZES[p.s] || [''])[0] + ', ' + p.color + '\nVisualizer total with tax: ' + money(p.total))) return;
+        var r = window.bwUprightImportRun(p);
+        if (!r.ok && r.message !== 'Cancelled.') alert(r.message);
+        else if (r.ok && typeof showQuoteToast === 'function') showQuoteToast(r.message);
+      }, 250);
+    })();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
+  // A quote tool tab that is already open hears about it here (window.open reuses that tab and
+  // only changes its hash, which reloads nothing).
+  window.addEventListener('storage', function(e) { if (e.key === KEY && e.newValue) check(); });
+})();
+</script>
 </body>
 </html>

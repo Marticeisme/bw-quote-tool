@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design an Upright Headstone · Bonney Watson</title>
+<!-- ?family: the navigation-free link handed to a family. Same test as the other guides (keep the
+     regex identical): hides the All Guides button, the footer and every staff-only control. -->
+<script>if(/[?&]family(=|&|$)/.test(location.search))document.documentElement.classList.add('family-view');</script>
+<style>html.family-view .header-back,html.family-view .site-footer,html.family-view .staff-only{display:none!important;}</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  UPRIGHT HEADSTONE VISUALIZER (2026-11-21). Spec: docs/superpowers/specs/2026-11-21-upright-headstone-visualizer-design.md
+
+  PRICES ARE COPIES. The tablet+base prices are the Group 2 column of UPRIGHT_SIZES in index.html
+  (rows 0-5, the single sizes) and the foundations are the qFoundation list. The quote tool is the
+  source; scratch/test-upright-visualizer.mjs fails if these drift. The import into a quote
+  recomputes every price from the tool's own tables and warns if the total differs.
+  Upgrades (P3 / P5 / polished margin, rock-pitched foundation +10%) are from the 2026 PCM Markers
+  Price Book, same book and price level as UPRIGHT_SIZES. Paragon vase $685 each (Martice 11/21).
+  Uprights are ALWAYS Group 2 (Martice's rule), so no other granite group is offered.
+-->
+<style>
+:root{
+  --navy:#466e86; --navy-dark:#33505f; --navy-deep:#1e3a55; --orange:#e84610; --orange-dark:#c23a0d;
+  --white:#fff; --offwhite:#f4f6f8; --cream:#f8f6f2; --warm-border:#e6e1d7; --rule:#ddd6c8;
+  --gray-light:#f0f4f8; --gray-mid:#c8d4de; --gray-dark:#5a6a7a;
+  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --muted:#8a99a8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.55;}
+h1,h2,h3,.serif{font-family:'Cormorant Garamond',serif;font-variant-numeric:lining-nums;color:var(--text-dark);}
+button{font-family:inherit;}
+
+/* header (house) */
+.site-header{background:var(--navy);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.header-inner{max-width:1280px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;}
+.header-logo{height:22px;width:auto;flex-shrink:0;}
+.header-est{font-family:'Cormorant Garamond',serif;font-size:12px;color:rgba(255,255,255,.55);font-style:italic;white-space:nowrap;}
+.header-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;}
+.header-spacer{flex:1;}
+.header-back{color:#fff;font-size:12px;font-weight:600;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.3);border-radius:6px;white-space:nowrap;background:none;cursor:pointer;}
+.header-back:hover{background:rgba(255,255,255,.12);}
+
+.cover{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-dark) 100%);color:#fff;text-align:center;padding:30px 24px 26px;}
+.cover-logo{height:24px;width:auto;display:block;margin:0 auto 12px;}
+.cover-kicker{font-size:11px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.7);}
+.cover h1{font-size:36px;font-weight:600;color:#fff;margin:4px 0 6px;}
+.cover-sub{font-size:15px;color:rgba(255,255,255,.85);max-width:640px;margin:0 auto;}
+.cover-rule{width:60px;height:3px;background:var(--orange);margin:14px auto 0;border-radius:2px;}
+
+/* tabs */
+.tabs{max-width:1280px;margin:0 auto;padding:14px 24px 0;display:flex;gap:6px;}
+.tab{padding:9px 18px;border:1px solid var(--gray-mid);border-bottom:none;border-radius:8px 8px 0 0;background:#e9eef2;color:var(--navy-dark);font-weight:700;font-size:14px;cursor:pointer;}
+.tab[aria-selected="true"]{background:#fff;color:var(--orange);border-color:var(--gray-mid);}
+.panel{max-width:1280px;margin:0 auto;padding:0 24px 30px;}
+.panel[hidden]{display:none;}
+.sheet{background:#fff;border:1px solid var(--gray-mid);border-radius:0 10px 10px 10px;padding:20px;}
+
+/* design layout */
+.design{display:grid;grid-template-columns:330px minmax(0,1fr) 320px;gap:20px;align-items:start;}
+.controls h3{font-size:19px;font-weight:600;margin:14px 0 6px;display:flex;align-items:baseline;gap:8px;}
+.controls h3:first-child{margin-top:0;}
+.controls h3 .n{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;color:#fff;background:var(--orange);border-radius:10px;padding:1px 7px;}
+.opts{display:grid;gap:6px;}
+.opts.two{grid-template-columns:1fr 1fr;}
+.opts.three{grid-template-columns:1fr 1fr 1fr;}
+.opt{border:1.5px solid var(--gray-mid);background:#fff;border-radius:8px;padding:7px 9px;text-align:left;cursor:pointer;font-size:13px;color:var(--text);line-height:1.3;}
+.opt b{display:block;color:var(--text-dark);font-size:13.5px;}
+.opt small{display:block;color:var(--text-light);font-size:11.5px;}
+.opt .p{color:var(--orange-dark);font-weight:700;font-size:12px;}
+.opt[aria-pressed="true"]{border-color:var(--orange);background:#fff6f2;box-shadow:0 0 0 1px var(--orange) inset;}
+.opt:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+.sw{border:2px solid transparent;border-radius:50%;padding:2px;background:none;cursor:pointer;aspect-ratio:1;}
+.sw img{width:100%;height:100%;border-radius:50%;display:block;object-fit:cover;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+.sw[aria-pressed="true"]{border-color:var(--orange);}
+.colorname{font-size:13px;margin-top:6px;color:var(--text-dark);font-weight:600;}
+.sizegrp{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-dark);margin:8px 0 4px;}
+.sizegrp:first-of-type{margin-top:0;}
+.hint a{color:var(--orange-dark);font-weight:700;}
+/* compare view */
+.cmpbar{display:flex;gap:6px;padding:10px 12px 0;flex-wrap:wrap;align-items:center;}
+.cmpbar .opt{padding:4px 10px;font-size:12px;font-weight:600;}
+.cmpbar span{font-size:12px;color:var(--text-light);margin-left:auto;}
+.cmpgrid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 12px 12px;}
+.cmpcard{border:1.5px solid var(--gray-mid);border-radius:10px;background:#fff;padding:8px 8px 7px;cursor:pointer;text-align:center;font-size:12px;line-height:1.3;}
+.cmpcard:hover{border-color:var(--navy);}
+.cmpcard[aria-pressed="true"]{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset;background:#fff6f2;}
+.cmpcard svg{display:block;margin:0 auto 5px;}
+.cmpcard b{display:block;color:var(--text-dark);font-size:13px;}
+.cmpcard .k{color:var(--text-light);}
+.cmpcard .t{color:var(--orange-dark);font-weight:700;font-size:13px;}
+.cmpcard .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--navy);border-radius:8px;padding:0 6px;margin-bottom:3px;}
+.cmpcard .tag.c{background:var(--orange);}
+.hint{font-size:12px;color:var(--text-light);margin-top:4px;}
+
+.stage{position:sticky;top:64px;}
+.viewbar{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+.viewbar .opt{padding:5px 10px;font-size:12.5px;font-weight:600;}
+.viewbar label{font-size:12.5px;display:flex;gap:5px;align-items:center;margin-left:auto;cursor:pointer;}
+.drawing{background:linear-gradient(#eef3f7,#fbfcfd 70%);border:1px solid var(--gray-mid);border-radius:10px;overflow:hidden;}
+.drawing svg{display:block;width:100%;height:auto;}
+.under{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-top:10px;align-items:start;}
+.zoom{border:1px solid var(--gray-mid);border-radius:10px;overflow:hidden;background:#f5f7f9;}
+.zoom svg{display:block;width:100%;height:auto;}
+.zoomcap{font-size:11px;font-weight:700;color:var(--navy-dark);padding:5px 8px;background:#fff;border-top:1px solid var(--gray-mid);}
+.legend{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.leg{border:1px solid var(--gray-mid);border-radius:8px;background:#fff;overflow:hidden;font-size:12px;}
+.leg svg{display:block;width:100%;height:46px;}
+.leg img{display:block;width:100%;height:46px;object-fit:cover;}
+.real{margin-top:12px;border:1px solid var(--gray-mid);border-radius:10px;background:#fff;overflow:hidden;}
+.real .rh{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy-dark);padding:8px 12px 0;}
+.real figure{margin:0;}
+.real img{display:block;width:100%;height:auto;max-height:360px;object-fit:contain;background:#f3f4f5;}
+.real figcaption{font-size:13px;color:var(--text);padding:6px 12px 10px;}
+.real .two{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--gray-mid);}
+.real .credit{font-size:10.5px;color:var(--muted);padding:0 12px 8px;}
+.finish-grid .leg img{height:90px;}
+.photorow{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin:10px 0;}
+.leg div{padding:4px 7px;}
+.leg b{color:var(--text-dark);}
+.changed{margin-top:10px;font-size:13.5px;background:#fff6f2;border-left:3px solid var(--orange);padding:8px 12px;border-radius:0 8px 8px 0;color:var(--text-dark);}
+
+.quote{border:1px solid var(--gray-mid);border-radius:10px;background:#fff;padding:14px 16px;position:sticky;top:64px;}
+.quote h3{font-size:21px;margin-bottom:6px;}
+.qt{width:100%;border-collapse:collapse;font-size:13px;}
+.qt td{padding:5px 0;border-bottom:1px solid #eef1f4;vertical-align:top;}
+.qt td.r{text-align:right;white-space:nowrap;padding-left:10px;font-variant-numeric:tabular-nums;}
+.qt tr.sub td{border-bottom:none;padding-top:9px;color:var(--text-light);}
+.qt tr.tax td{color:var(--text-light);}
+.qt tr.tot td{border-top:2px solid var(--navy);border-bottom:none;font-weight:700;font-size:16px;color:var(--text-dark);padding-top:8px;}
+.qt tr.tot td.r{color:var(--orange-dark);}
+.qnote{font-size:11.5px;color:var(--text-light);margin-top:8px;}
+.actions{display:grid;gap:6px;margin-top:12px;}
+.btn{border:none;border-radius:8px;padding:9px 12px;font-weight:700;font-size:13.5px;cursor:pointer;}
+.btn.pri{background:var(--orange);color:#fff;}
+.btn.pri:hover{background:var(--orange-dark);}
+.btn.sec{background:#fff;color:var(--navy-dark);border:1.5px solid var(--navy);}
+.btn.sec:hover{background:var(--gray-light);}
+.staffbox{margin-top:12px;border-top:1px dashed var(--gray-mid);padding-top:10px;}
+.staffbox .lbl{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.staffbox .row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:9px 16px;border-radius:8px;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.3);opacity:0;transition:opacity .2s;pointer-events:none;z-index:300;}
+.toast.on{opacity:1;}
+
+/* explanation */
+.explain{max-width:880px;margin:0 auto;}
+.explain h2{font-size:28px;font-weight:600;margin:18px 0 6px;}
+.explain h2:first-child{margin-top:0;}
+.explain p{margin:6px 0;}
+.explain ul{margin:6px 0 6px 20px;}
+.explain li{margin:3px 0;}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0;}
+.part{border:1px solid var(--gray-mid);border-radius:10px;padding:12px;background:#fbfcfd;}
+.part h3{font-size:20px;font-weight:600;}
+.finish-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0;}
+.finish-grid .leg svg{height:70px;}
+.codes{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0;}
+.codes th,.codes td{border-bottom:1px solid #e6ebef;padding:6px 8px;text-align:left;vertical-align:top;}
+.codes th{font-size:12px;color:var(--navy-dark);text-transform:uppercase;letter-spacing:.06em;}
+.codes td:first-child{font-weight:700;color:var(--text-dark);white-space:nowrap;}
+.figure{margin:10px 0;border:1px solid var(--gray-mid);border-radius:10px;overflow:hidden;background:#fff;}
+.figure img{display:block;width:100%;height:auto;}
+.figure figcaption{font-size:12.5px;color:var(--text-light);padding:6px 10px;border-top:1px solid var(--gray-mid);}
+.photos2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.callout{background:var(--cream);border:1px solid var(--warm-border);border-radius:10px;padding:12px 14px;margin:10px 0;}
+
+/* footer (house) */
+.site-footer{background:var(--cream);border-top:1px solid var(--rule);padding:30px 24px;text-align:center;}
+.site-footer .footer-logo{height:24px;width:auto;margin:0 auto 10px;display:block;}
+.site-footer .footer-text{font-size:13px;color:var(--text);margin-bottom:4px;}
+.site-footer .footer-url{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);text-decoration:none;}
+.site-footer .footer-legal{font-size:11px;color:var(--muted);margin-top:6px;}
+.site-footer a.back{color:var(--navy);text-decoration:none;font-weight:600;font-size:12px;}
+
+.print-only{display:none;}
+
+@media(max-width:1180px){
+  .design{grid-template-columns:300px minmax(0,1fr);}
+  .quote-col{grid-column:1 / -1;}
+  .quote,.stage{position:static;}
+}
+@media(max-width:780px){
+  .design{grid-template-columns:1fr;}
+  .under{grid-template-columns:1fr;}
+  .parts,.finish-grid,.photos2{grid-template-columns:1fr;}
+  .cover h1{font-size:28px;}
+  .header-est{display:none;}
+  .header-inner{padding:10px 12px;gap:10px;}
+  .header-title{font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .swatches{grid-template-columns:repeat(8,1fr);}
+  .tabs,.panel{padding-left:12px;padding-right:12px;}
+}
+
+/* print: the family's quote on one page */
+@media print{
+  @page{size:letter;margin:.45in;}
+  body{background:#fff;font-size:11.5px;}
+  .site-header,.cover,.tabs,.controls,.viewbar,.actions,.staffbox,.site-footer,.toast,#tab-explain,.zoom,.changed,.hint,.real{display:none!important;}
+  .panel{padding:0;max-width:none;}
+  .sheet{border:none;padding:0;}
+  .print-only{display:block;}
+  .design{display:block;}
+  .stage,.quote{position:static;}
+  /* 3/4 view and the measured front view side by side, finish samples under them */
+  .stage{display:grid;grid-template-columns:1.45fr 1fr;gap:10px;align-items:center;}
+  .drawing{grid-column:1;grid-row:1;border:1px solid #ccd;break-inside:avoid;}
+  .drawing svg{max-height:3.5in;}
+  .printviews{grid-column:2;grid-row:1;display:block!important;margin:0!important;}
+  .printviews>div:first-child{display:none;}
+  .under{grid-column:1 / -1;grid-row:2;grid-template-columns:1fr;margin-top:0;}
+  .legend .leg svg{height:22px;}
+  .legend .leg div{padding:2px 6px;font-size:10px;}
+  .qt td{padding:3px 0;}
+  .quote h3{font-size:17px;margin-bottom:2px;}
+  .quote{border:1px solid #ccd;margin-top:8px;break-inside:avoid;}
+  .ph{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--navy);padding-bottom:6px;margin-bottom:8px;}
+  .ph img{height:26px;}
+  .ph .t{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--text-dark);}
+  .ph .d{font-size:11px;color:var(--text-light);text-align:right;}
+  .pfoot{margin-top:10px;font-size:10.5px;color:var(--text-light);text-align:center;border-top:1px solid #dde;padding-top:6px;}
+  #frontPrint svg{display:block;width:100%;height:auto;max-height:3.5in;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <img src="logo.svg" alt="Bonney Watson" class="header-logo">
+    <span class="header-est">Est. 1868</span>
+    <span class="header-title">Upright Headstone</span>
+    <div class="header-spacer"></div>
+    <a href="guides.html" class="header-back">All Guides</a>
+  </div>
+</header>
+
+<section class="cover">
+  <img src="logo.svg" alt="Bonney Watson" class="cover-logo">
+  <div class="cover-kicker">BONNEY WATSON FAMILY GUIDE</div>
+  <h1>Design an Upright Headstone</h1>
+  <p class="cover-sub">Pick the size, the granite and the finish. The drawing changes as you go, and the price adds up line by line.</p>
+  <div class="cover-rule"></div>
+</section>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-design" aria-controls="tab-design" aria-selected="true">Design &amp; Price</button>
+  <button class="tab" role="tab" id="t-explain" aria-controls="tab-explain" aria-selected="false">How an Upright Works</button>
+</nav>
+
+<!-- ═══ DESIGN ═══ -->
+<div class="panel" id="tab-design" role="tabpanel" aria-labelledby="t-design">
+ <div class="sheet">
+  <div class="print-only ph">
+    <img src="logo-navy.svg" alt="Bonney Watson">
+    <div class="t">Upright Headstone Quote</div>
+    <div class="d" id="printDate"></div>
+  </div>
+  <div class="design">
+   <div class="controls">
+    <h3><span class="n">1</span>Size</h3>
+    <div class="sizegrp">Single, for one person</div>
+    <div class="opts two" id="optSize"></div>
+    <div class="sizegrp">Companion, for two people</div>
+    <div class="opts two" id="optSizeComp"></div>
+    <p class="hint">Width × height of the tablet, and how thick it is. The base and foundation are sized to match. <a href="#" id="toCompare">Compare every size side by side</a></p>
+
+    <h3><span class="n">2</span>Granite</h3>
+    <div class="swatches" id="optColor"></div>
+    <div class="colorname" id="colorName"></div>
+
+    <h3><span class="n">3</span>Top shape</h3>
+    <div class="opts three" id="optTop"></div>
+
+    <h3><span class="n">4</span>Tablet finish</h3>
+    <div class="opts" id="optPolish"></div>
+
+    <h3><span class="n">5</span>Base</h3>
+    <div class="opts" id="optMargin"></div>
+
+    <h3><span class="n">6</span>Foundation</h3>
+    <div class="opts two" id="optFound"></div>
+    <p class="hint" id="foundHint"></p>
+
+    <h3><span class="n">7</span>Vases</h3>
+    <div class="opts three" id="optVase"></div>
+   </div>
+
+   <div class="stage">
+    <div class="viewbar">
+      <button class="opt" id="v3d" aria-pressed="true">3/4 view</button>
+      <button class="opt" id="vfront" aria-pressed="false">Front view, measured</button>
+      <button class="opt" id="vcompare" aria-pressed="false">Compare sizes</button>
+      <label><input type="checkbox" id="showLabels" checked> Show labels</label>
+    </div>
+    <div class="drawing" id="drawing"></div>
+    <div class="under">
+      <div class="zoom"><div id="zoom"></div><div class="zoomcap">Close-up of the top corner</div></div>
+      <div>
+        <div class="legend" id="legend"></div>
+        <div class="changed" id="changed" hidden></div>
+      </div>
+    </div>
+    <div class="real" id="real"></div>
+    <div class="print-only printviews" style="margin-top:8px;"><div></div><div id="frontPrint"></div></div>
+   </div>
+
+   <div class="quote-col">
+    <div class="quote">
+      <h3>Your price</h3>
+      <table class="qt" id="qt"></table>
+      <p class="qnote">10.4% sales tax applies to every line, installation included. The monument company confirms the final foundation size. Lettering, the design and any photo are settled on your proof.</p>
+      <div class="actions">
+        <button class="btn pri" id="printBtn">Print or save as PDF</button>
+        <button class="btn sec" id="copyBtn">Copy a link to this design</button>
+      </div>
+      <div class="staffbox staff-only">
+        <div class="lbl">Staff</div>
+        <div class="actions" style="margin-top:0;">
+          <button class="btn sec" id="famLinkBtn">Copy the family link</button>
+          <div class="row">
+            <button class="btn sec" id="impPN" title="Opens the quote tool and fills a Pre-Need cemetery quote">Import to Pre-Need</button>
+            <button class="btn sec" id="impAN" title="Opens the quote tool and fills an At-Need cemetery quote and the CIRGAS Memorial Order">Import to At-Need</button>
+          </div>
+        </div>
+      </div>
+    </div>
+   </div>
+  </div>
+  <div class="print-only pfoot">Bonney Watson · Washington Memorial Park · 16445 International Blvd, SeaTac, WA 98188 · 206-445-9794 · bonneywatson.com</div>
+ </div>
+</div>
+
+<!-- ═══ EXPLANATION ═══ -->
+<div class="panel" id="tab-explain" role="tabpanel" aria-labelledby="t-explain" hidden>
+ <div class="sheet"><div class="explain">
+  <h2>The three pieces</h2>
+  <p>An upright headstone is built in layers. Each one has a job.</p>
+  <div class="parts">
+    <div class="part"><h3>Tablet</h3><p>The upright stone that carries the name, the dates and the design. You'll also hear it called the die. It sits on the base and is pinned or set so it stays put.</p></div>
+    <div class="part"><h3>Base</h3><p>The granite block the tablet stands on. It's wider and deeper than the tablet, so the headstone is steady and looks finished from every side.</p></div>
+    <div class="part"><h3>Foundation</h3><p>A 4-inch slab of Barrell Gray granite under the base, set level with the lawn. It's a little wider and longer than the base and keeps the headstone from settling or shifting.</p></div>
+  </div>
+  <p><b>Single or companion.</b> A single upright is for one person. A companion upright is one wide tablet, 36 or 48 inches across, with room for two names, so a couple shares one headstone on a longer base. The Compare sizes view on the Design tab draws every size side by side at the same scale.</p>
+  <p>Uprights here are made by Pacific Coast Memorials, and they're all Group 2 granite. Every color on the Design tab is the same price for the same size.</p>
+
+  <h2>Finishes, and what they look like</h2>
+  <p>Granite can be finished three ways. The finish changes how the stone catches the light, so it's one of the easiest differences to see.</p>
+  <div class="finish-grid" id="finishGrid"></div>
+  <div class="photorow">
+    <figure class="figure"><img src="upright-images/photos/p2.jpg" alt="A black upright with a polished face, rock-pitched top and sides, on a rock-pitched base with a polished top"><figcaption>P2, the standard finish: a polished face framed by a rock-pitched top and sides, on a rock-pitched base with a polished top.</figcaption></figure>
+    <figure class="figure"><img src="upright-images/photos/p3.jpg" alt="A gray upright with a polished face and a polished top, rock-pitched sides"><figcaption>P3: the top is polished too. The sides stay rock pitched.</figcaption></figure>
+  </div>
+  <figure class="figure"><img src="upright-images/photos/margin.jpg" alt="A base with a smooth polished band along the top of its rock-pitched front"><figcaption>A polished margin: the smooth band along the top of a rock-pitched base.</figcaption></figure>
+  <p style="font-size:12px;color:var(--muted);">Photos of blank stones from Design Memorials (Pacific Coast Memorials).</p>
+  <p>Monument makers write the finish as a short code. Here's what each one means on a tablet:</p>
+  <table class="codes">
+    <tr><th>Code</th><th>What's polished</th><th>The rest</th><th>Price</th></tr>
+    <tr><td>P2</td><td>Front and back</td><td>Top and sides rock pitched</td><td>Included</td></tr>
+    <tr><td>P3</td><td>Front, back and top</td><td>Sides rock pitched</td><td>Adds $770</td></tr>
+    <tr><td>P5</td><td>Every side but the bottom (all polished)</td><td>Nothing left rough</td><td>Adds $960</td></tr>
+  </table>
+  <p>The base comes with a polished top and rock-pitched sides. A <b>polished margin</b> adds a smooth 2-inch polished band along the top edges of the base, so the rough sides get a clean frame. That adds $1,060.</p>
+  <p>The foundation has a polished top and sawn sides. Rock-pitched sides on the foundation add 10% to the foundation price.</p>
+
+  <h2>Top shapes</h2>
+  <p>Serpentine, oval and flat tops are all the same price. A custom shape is quoted separately.</p>
+  <figure class="figure"><img src="upright-images/pcm-top-shapes.png" alt="A flat top, an oval top and a serpentine top upright, from the Pacific Coast Memorials price book"><figcaption>Flat, oval and serpentine tops. Image: Pacific Coast Memorials.</figcaption></figure>
+  <ul>
+    <li><b>Serpentine</b> curves up from the shoulders into a rounded top. It's the most common upright shape.</li>
+    <li><b>Oval</b> is a gentle arc that drops about 2 inches at the ends.</li>
+    <li><b>Flat</b> is straight across.</li>
+  </ul>
+
+  <h2>Vases</h2>
+  <p>The vases I quote for uprights are Paragon metal vases, $685 each. They sit on the foundation in front of the base, one at each end, or just one if you'd like. Non-permanent vases aren't allowed in the park, so a vase you'll keep using has to be one we install.</p>
+
+  <h2>What the price includes</h2>
+  <ul>
+    <li>The tablet and base in the granite, size and finish you pick</li>
+    <li>Any standard design or emblem from the design book</li>
+    <li>The names, the dates and one line of epitaph</li>
+    <li>Your proof, plus two rounds of changes</li>
+    <li>The foundation and the installation, each on its own line</li>
+  </ul>
+  <div class="callout"><b>Nothing gets made until you've approved the proof.</b> The proof is a drawing of your headstone with the lettering laid out, so you see exactly what will be cut before the stone is made.</div>
+
+  <h2>What you choose later, at added cost</h2>
+  <p>These get settled on the proof. I'll price each one when you pick it.</p>
+  <ul>
+    <li>More lines of epitaph, or lettering and a design on the back</li>
+    <li>Shape carving, where part of the design is carved so it stands out from the stone</li>
+    <li>Etching a portrait or a scene into the stone. Laser and hand diamond etching are done on Absolute Black.</li>
+    <li>A ceramic photo, color or black and white, set into the tablet</li>
+  </ul>
+  <div class="photos2">
+    <figure class="figure"><img src="marker-images/diamond-etching.jpg" alt="A hand diamond etched portrait on black granite"><figcaption>Hand diamond etching on black granite.</figcaption></figure>
+    <figure class="figure"><img src="marker-images/ceramic-steel-portrait.jpg" alt="A ceramic photo on a steel backing"><figcaption>A ceramic photo on a steel backing.</figcaption></figure>
+  </div>
+
+  <h2>Where uprights go</h2>
+  <p>Uprights are allowed in Section 6, in the upright blocks of Section 23 and in Cascade Court. Before we order, the superintendent checks the space so we know it can hold the headstone.</p>
+
+  <h2>The warranty</h2>
+  <p>Pacific Coast Memorials replaces any part of the stone that cracks or breaks down from weather, and fixes its own mistakes at no charge. It doesn't cover vandalism, earthquakes, floods or wind, so it's worth adding the headstone to your homeowner's insurance.</p>
+ </div></div>
+</div>
+
+<footer class="site-footer">
+  <img src="logo-navy.svg" alt="Bonney Watson" class="footer-logo">
+  <div class="footer-text">Serving Seattle families since 1868 &middot; Washington Memorial Park</div>
+  <a href="https://www.bonneywatson.com" target="_blank" rel="noopener" class="footer-url">bonneywatson.com</a>
+  <div class="footer-legal">16445 International Blvd, SeaTac, WA 98188 &middot; 206-445-9794</div>
+  <div style="margin-top:10px;"><a class="back" href="guides.html">&larr; Return to All Guides</a></div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ───────────── 1. PRICES (copies; see the note in <head>) ───────────── */
+// [tablet W, T(hick), H] / [base W, D, H] / Group 2 price. Index = UPRIGHT_SIZES row in index.html.
+var SIZES = [
+  { tw: 18, tt: 6, th: 24, bw: 26, bd: 12, bh: 6, price: 3810 },
+  { tw: 20, tt: 6, th: 18, bw: 26, bd: 12, bh: 6, price: 3465 },
+  { tw: 20, tt: 6, th: 28, bw: 28, bd: 12, bh: 6, price: 4440 },
+  { tw: 20, tt: 8, th: 28, bw: 28, bd: 14, bh: 8, price: 5915 },
+  { tw: 24, tt: 6, th: 18, bw: 30, bd: 12, bh: 6, price: 3975 },
+  { tw: 24, tt: 8, th: 36, bw: 30, bd: 14, bh: 8, price: 9005 },
+  // companion (two-person) uprights, UPRIGHT_SIZES rows 6-9
+  { tw: 36, tt: 6, th: 24, bw: 48, bd: 12, bh: 6, price: 6355, comp: true },
+  { tw: 36, tt: 8, th: 24, bw: 48, bd: 14, bh: 8, price: 10120, comp: true },
+  { tw: 48, tt: 8, th: 28, bw: 60, bd: 14, bh: 8, price: 14315, comp: true },
+  { tw: 48, tt: 8, th: 36, bw: 60, bd: 14, bh: 8, price: 16460, comp: true }
+];
+// The qFoundation list in index.html: [width, depth, price]. Pillow/slant-only 28x16 left out.
+var FOUNDATIONS = [
+  [32, 20, 730], [32, 24, 850], [36, 24, 990], [40, 20, 895], [36, 36, 1445], [44, 20, 1005],
+  [48, 20, 1170], [48, 24, 1310], [54, 24, 1350], [56, 22, 1350], [60, 26, 1650], [66, 26, 1815], [72, 26, 1980]
+];
+var INSTALL = 795, TAX = 0.104, VASE = 685;
+var POLISH = { P2: 0, P3: 770, P5: 960 };
+var MARGIN = 1060, FOUND_ROCK = 0.10;
+
+// Group 2 (2026 PCM Markers Price Book, the Group 2 column). Tile = upright-images/granite/<key>.jpg;
+// hex = the tile's average, drawn under it while the photo loads. Blue Pearl is Group 2 on the
+// book's Vase and Flush sheets but sits in the Group 3 column on its Upright sheet; kept here as
+// Group 2, as the quote tool labels it. Academy Black, Impala Black, Night Black and Wiscont White
+// have no PCM-site photo, so their tiles come from marker-images/colors.
+var COLORS = [
+  ['Absolute_Black', '#11100e'], ['Academy_Black', '#393633'], ['Aurora', '#38312f'], ['Bahama_Blue', '#444351'],
+  ['Barrell_Gray', '#b5b6b5'], ['Black_Galaxy', '#171515'], ['Blue_Pearl', '#515b69'], ['Cats_Eye', '#51392e'],
+  ['Georgia_Gray', '#959696'], ['Himalayan_Blue', '#655d5a'], ['Impala_Black', '#43444b'], ['Imperial_Red', '#613522'],
+  ['New_Mahogany', '#5c5043'], ['Night_Black', '#272728'], ['Paradiso', '#63554c'], ['Sapphire_Brown', '#56504d'],
+  ['Sentinel_Red', '#744030'], ['Sierra_White', '#b4b5b1'], ['Silver_Bronze', '#414142'], ['Tan_Brown', '#372d29'],
+  ['Tropical_Green', '#313222'], ['Twilight_Red', '#5f4133'], ['Wiscont_White', '#d0d1d8']
+];
+var COLOR_HEX = {}; COLORS.forEach(function (c) { COLOR_HEX[c[0]] = c[1]; });
+function colorName(k) { return k === 'Cats_Eye' ? "Cat's Eye" : k.replace(/_/g, ' '); }
+var FOUND_COLOR = 'Barrell_Gray';
+
+var TOPS = { serp: 'Serpentine', oval: 'Oval', flat: 'Flat' };
+var POLISH_TEXT = {
+  P2: { name: 'P2, standard', say: 'Polished front and back. Rock-pitched top and sides.' },
+  P3: { name: 'P3, polished top', say: 'Polished front, back and top. Rock-pitched sides.' },
+  P5: { name: 'P5, all polished', say: 'Every side polished. No rough edges.' }
+};
+
+function foundationFor(s) {
+  // Smallest listed foundation at least 4in wider and 10in deeper than the base (room for the
+  // vases in front). The monument company confirms the final size.
+  var ok = FOUNDATIONS.filter(function (f) { return f[0] >= s.bw + 4 && f[1] >= s.bd + 10; });
+  ok.sort(function (a, b) { return a[0] * a[1] - b[0] * b[1]; });
+  return { fw: ok[0][0], fd: ok[0][1], price: ok[0][2] };
+}
+
+/* ───────────── 2. STATE (lives in the URL) ───────────── */
+var DEFAULTS = { s: 2, c: 'Absolute_Black', top: 'serp', p: 'P2', m: 0, f: 'sawn', v: 0 };
+var state = readState();
+function readState() {
+  var q = new URLSearchParams(location.search), st = {};
+  st.s = parseInt(q.get('s'), 10); if (!(st.s >= 0 && st.s < SIZES.length)) st.s = DEFAULTS.s;
+  st.c = q.get('c'); if (!COLOR_HEX[st.c]) st.c = DEFAULTS.c;
+  st.top = q.get('top'); if (!TOPS[st.top]) st.top = DEFAULTS.top;
+  st.p = q.get('p'); if (!(st.p in POLISH)) st.p = DEFAULTS.p;
+  st.m = q.get('m') === '1' ? 1 : 0;
+  st.f = q.get('f') === 'rock' ? 'rock' : 'sawn';
+  st.v = parseInt(q.get('v'), 10); if (!(st.v >= 0 && st.v <= 2)) st.v = DEFAULTS.v;
+  return st;
+}
+function stateQuery(family) {
+  var q = new URLSearchParams();
+  if (family) q.set('family', '');
+  q.set('s', state.s); q.set('c', state.c); q.set('top', state.top); q.set('p', state.p);
+  q.set('m', state.m); q.set('f', state.f); q.set('v', state.v);
+  return q.toString().replace(/^family=&/, 'family&');
+}
+function isFamily() { return document.documentElement.classList.contains('family-view'); }
+function writeUrl() {
+  try { history.replaceState(null, '', location.pathname + '?' + stateQuery(isFamily()) + location.hash); } catch (e) {}
+}
+
+/* ───────────── 3. PRICE ───────────── */
+function r2(v) { return Math.round(v * 100) / 100; }
+function money(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function inch(n) { return n + '″'; }
+function calc(st) {
+  st = st || state;
+  var s = SIZES[st.s], f = foundationFor(s), lines = [];
+  lines.push({ key: 'stone', label: (s.comp ? 'Companion tablet ' : 'Tablet ') + s.tw + '″ × ' + s.tt + '″ × ' + s.th + '″ on a ' + s.bw + '″ × ' + s.bd + '″ × ' + s.bh + '″ base, ' + colorName(st.c) + ', ' + TOPS[st.top].toLowerCase() + ' top', amount: s.price });
+  if (POLISH[st.p]) lines.push({ key: 'polish', label: 'Tablet finish ' + POLISH_TEXT[st.p].name.replace(/^P\d, /, st.p + ', '), amount: POLISH[st.p] });
+  if (st.m) lines.push({ key: 'margin', label: 'Polished margin on the base', amount: MARGIN });
+  lines.push({ key: 'found', label: 'Foundation ' + f.fw + '″ × ' + f.fd + '″ × 4″, Barrell Gray', amount: f.price });
+  if (st.f === 'rock') lines.push({ key: 'foundrock', label: 'Rock-pitched foundation sides (adds 10%)', amount: r2(f.price * FOUND_ROCK) });
+  if (st.v) lines.push({ key: 'vase', label: (st.v === 2 ? 'Two Paragon vases' : 'One Paragon vase') + ' (' + money(VASE).replace('.00', '') + ' each)', amount: VASE * st.v });
+  lines.push({ key: 'install', label: 'Installation', amount: INSTALL });
+  var sub = r2(lines.reduce(function (a, l) { return a + l.amount; }, 0));
+  var tax = r2(sub * TAX);
+  return { size: s, found: f, lines: lines, sub: sub, tax: tax, total: r2(sub + tax) };
+}
+
+/* ───────────── 4. DRAWING ───────────── */
+// Units are inches. Oblique view: depth (z, away from the viewer) runs up and to the right.
+var CX = 0.55, CY = 0.33;
+function P(x, y, z) { return [x + z * CX, -y - z * CY]; }
+function pts(arr) { return arr.map(function (p) { return p[0].toFixed(2) + ',' + p[1].toFixed(2); }).join(' '); }
+function poly(arr) { return 'M' + pts(arr).replace(/ /g, ' L') + 'Z'; }
+
+function topHeight(shape, w, h, x) {
+  var dx = x - w / 2;
+  if (shape === 'flat') return h;
+  if (shape === 'oval') {
+    var s = 2, R = (w * w / 4 + s * s) / (2 * s);
+    return h - (R - Math.sqrt(Math.max(0, R * R - dx * dx)));
+  }
+  // serpentine: flat shoulders at the ends rising through an S-curve to a rounded crown
+  var d = Math.min(3.5, h * 0.16), t = Math.min(1, Math.abs(dx) / (w / 2));
+  var u = t <= 0.3 ? 0 : (t - 0.3) / 0.7;
+  return h - d * (u * u * (3 - 2 * u));
+}
+// Front-face outline of the tablet, clockwise from bottom-left (y up). insetSide / insetTop make the
+// polished face that sits inside a rock-pitched rim.
+function tabletProfile(shape, w, h, insetSide, insetTop) {
+  var a = [], N = 40, x0 = insetSide, x1 = w - insetSide;
+  a.push([x0, 0]);
+  for (var i = 0; i <= N; i++) { var x = x0 + (x1 - x0) * i / N; a.push([x, topHeight(shape, w, h, x) - insetTop]); }
+  a.push([x1, 0]);
+  return a;
+}
+function rectProfile(w, h) { return [[0, 0], [0, h], [w, h], [w, 0]]; }
+
+// Extrude a front profile (local x,y) placed at (ox,oy,oz) back by depth d. Returns the projected
+// front polygon plus the visible top and side bands as single paths (one fill each, no seams).
+function extrude(prof, ox, oy, oz, d) {
+  var top = [], side = [];
+  for (var i = 0; i < prof.length; i++) {
+    var p = prof[i], q = prof[(i + 1) % prof.length];
+    var ex = q[0] - p[0], ey = q[1] - p[1], nx = -ey, ny = ex, len = Math.hypot(nx, ny) || 1;
+    if ((nx * CX + ny * CY) / len <= 1e-6) continue;              // faces away from the viewer
+    var quad = [P(ox + p[0], oy + p[1], oz), P(ox + q[0], oy + q[1], oz), P(ox + q[0], oy + q[1], oz + d), P(ox + p[0], oy + p[1], oz + d)];
+    (nx / len > 0.9 ? side : top).push(poly(quad));
+  }
+  return {
+    front: poly(prof.map(function (p) { return P(ox + p[0], oy + p[1], oz); })),
+    top: top.join(' '), side: side.join(' ')
+  };
+}
+
+// One face: finish = polished | rock | sawn; light = front | top | side.
+function face(d, finish, light, stone) {
+  if (!d) return '';
+  var pat = 'url(#pat-' + stone + ')', base = '<path d="' + d + '" fill="' + COLOR_HEX[stone] + '"/><path d="' + d + '" fill="' + pat + '"/>';
+  var shade = light === 'top' ? '<path d="' + d + '" fill="#fff" opacity=".16"/>' : light === 'side' ? '<path d="' + d + '" fill="#000" opacity=".26"/>' : '';
+  if (finish === 'rock') return '<g filter="url(#rock)">' + base + '<path d="' + d + '" fill="#fff" opacity=".34"/>' + shade + '</g>';
+  if (finish === 'sawn') return '<g>' + base + '<path d="' + d + '" fill="#fff" opacity=".24"/><path d="' + d + '" fill="url(#sawnLines)"/>' + shade + '</g>';
+  // polished: sheen plus a crisp light edge, which is what sets it apart from a rock-pitched neighbor.
+  // Front faces only: a curved top is many small quads, and edging each one drew stripes.
+  var edge = light === 'front' ? ' stroke="#fff" stroke-opacity=".45" stroke-width=".12" stroke-linejoin="round"' : '';
+  return '<g>' + base + shade + '<path d="' + d + '" fill="url(#sheen)"' + edge + '/></g>';
+}
+
+function defs(stone) {
+  function pat(k) {
+    // One photo per tile, big enough that a tablet face never shows a repeat or a mirror line.
+    // upright-images/granite/*.jpg are seamless tiles (offset-and-blend, no mirroring) made from
+    // the 576px PCM color photos, so a 12in tile repeats at about the real grain size.
+    // Built at 20 units per inch and scaled down: Chrome rasterizes a pattern tile at its own
+    // unit size, so a tile drawn in inches comes out 12 px wide and blocky.
+    var Z = 20, T = 12 * Z, href = 'upright-images/granite/' + k + '.jpg';
+    return '<pattern id="pat-' + k + '" patternUnits="userSpaceOnUse" patternTransform="scale(' + (1 / Z) + ')" width="' + T + '" height="' + T + '">'
+      + '<image href="' + href + '" x="0" y="0" width="' + T + '" height="' + T + '" preserveAspectRatio="xMidYMid slice"/>'
+      + '</pattern>';
+  }
+  return '<defs>' + pat(stone) + (stone === FOUND_COLOR ? '' : pat(FOUND_COLOR))
+    + '<linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">'
+    + '<stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".28" stop-color="#fff" stop-opacity=".04"/>'
+    + '<stop offset=".52" stop-color="#fff" stop-opacity=".16"/><stop offset=".62" stop-color="#fff" stop-opacity="0"/>'
+    + '<stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>'
+    + '<pattern id="sawnLines" patternUnits="userSpaceOnUse" width="4" height=".5"><rect width="4" height=".09" fill="#000" opacity=".10"/></pattern>'
+    + '<filter id="rock" x="-8%" y="-8%" width="116%" height="116%" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">'
+    + '<feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="3" seed="11" result="n"/>'
+    + '<feDisplacementMap in="SourceGraphic" in2="n" scale=".75" xChannelSelector="R" yChannelSelector="G" result="d"/>'
+    + '<feDiffuseLighting in="n" surfaceScale="1.6" diffuseConstant="1" lighting-color="#fff" result="l"><feDistantLight azimuth="230" elevation="55"/></feDiffuseLighting>'
+    // chipped relief: the stone times (0.45 + 0.7 x light), so shadows never go solid black
+    + '<feComposite in="d" in2="l" operator="arithmetic" k1=".7" k2=".45" k3="0" k4="0" result="lit"/>'
+    + '<feComposite in="lit" in2="d" operator="in"/></filter>'
+    + '<linearGradient id="bronze" x1="0" y1="0" x2="1" y2="0">'
+    + '<stop offset="0" stop-color="#4a331b"/><stop offset=".3" stop-color="#a77c45"/><stop offset=".45" stop-color="#e8c98e"/>'
+    + '<stop offset=".62" stop-color="#9c7341"/><stop offset="1" stop-color="#3f2b16"/></linearGradient>'
+    + '<linearGradient id="lawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9cc58a"/><stop offset="1" stop-color="#6f9f5d"/></linearGradient>'
+    + '</defs>';
+}
+
+// Model: every piece's position in inches, shared by both views and the import.
+function model(st) {
+  var s = SIZES[st.s], f = foundationFor(s), FH = 4;
+  var bx = (f.fw - s.bw) / 2, bz = f.fd - s.bd - 2;            // base sits 2in from the back
+  var tx = bx + (s.bw - s.tw) / 2, tz = bz + (s.bd - s.tt) / 2;
+  var vz = bz / 2, vxs = st.v === 2 ? [3.2, f.fw - 3.2] : st.v === 1 ? [3.2] : [];
+  return { s: s, f: f, FH: FH, bx: bx, bz: bz, tx: tx, tz: tz, ty: FH + s.bh, vz: vz, vxs: vxs };
+}
+function tabletRim(st) {
+  // how wide the rock-pitched rim is on the tablet face: [sides, top]
+  return st.p === 'P5' ? [0, 0] : st.p === 'P3' ? [0.8, 0] : [0.8, 0.8];
+}
+
+function vase3d(cx, cz, y0) {
+  var c = P(cx, y0, cz), t = P(cx, y0 + 10, cz), r = 2, rb = 1.6, ry = 0.75;
+  return '<g>'
+    + '<ellipse cx="' + c[0] + '" cy="' + c[1] + '" rx="' + (rb + .3) + '" ry="' + ry + '" fill="#000" opacity=".25"/>'
+    + '<path d="M' + (c[0] - rb) + ',' + c[1] + ' L' + (t[0] - r * .82) + ',' + (t[1] + 1.2) + ' L' + (t[0] - r) + ',' + t[1] + ' L' + (t[0] + r) + ',' + t[1] + ' L' + (t[0] + r * .82) + ',' + (t[1] + 1.2) + ' L' + (c[0] + rb) + ',' + c[1] + ' A' + rb + ',' + ry + ' 0 0 1 ' + (c[0] - rb) + ',' + c[1] + 'Z" fill="url(#bronze)" stroke="#3a2812" stroke-width=".12"/>'
+    + '<ellipse cx="' + t[0] + '" cy="' + t[1] + '" rx="' + r + '" ry="' + ry + '" fill="#2e2112" stroke="#d9b675" stroke-width=".22"/>'
+    + '</g>';
+}
+
+function draw3d(st, labels) {
+  var M = model(st), s = M.s, f = M.f, out = [], stone = st.c, rim = tabletRim(st);
+  // lawn
+  var lw = [P(-14, 0, -10), P(f.fw + 14, 0, -10), P(f.fw + 14, 0, f.fd + 16), P(-14, 0, f.fd + 16)];
+  out.push('<path d="' + poly(lw) + '" fill="url(#lawn)"/>');
+  // foundation: polished top, sawn or rock-pitched sides
+  var fe = extrude(rectProfile(f.fw, M.FH), 0, 0, 0, f.fd);
+  out.push(face(fe.top, 'polished', 'top', FOUND_COLOR), face(fe.side, st.f, 'side', FOUND_COLOR), face(fe.front, st.f, 'front', FOUND_COLOR));
+  // base: polished top, rock-pitched front and sides, optional 2in polished margin
+  var be = extrude(rectProfile(s.bw, s.bh), M.bx, M.FH, M.bz, s.bd);
+  out.push(face(be.top, 'polished', 'top', stone), face(be.side, 'rock', 'side', stone), face(be.front, 'rock', 'front', stone));
+  if (st.m) {
+    var mh = 2, y1 = M.FH + s.bh, y0 = y1 - mh;
+    out.push(face(poly([P(M.bx, y0, M.bz), P(M.bx, y1, M.bz), P(M.bx + s.bw, y1, M.bz), P(M.bx + s.bw, y0, M.bz)]), 'polished', 'front', stone));
+    out.push(face(poly([P(M.bx + s.bw, y0, M.bz), P(M.bx + s.bw, y1, M.bz), P(M.bx + s.bw, y1, M.bz + s.bd), P(M.bx + s.bw, y0, M.bz + s.bd)]), 'polished', 'side', stone));
+  }
+  // tablet
+  var prof = tabletProfile(st.top, s.tw, s.th, 0, 0);
+  var te = extrude(prof, M.tx, M.ty, M.tz, s.tt);
+  var topFin = st.p === 'P2' ? 'rock' : 'polished', sideFin = st.p === 'P5' ? 'polished' : 'rock';
+  out.push(face(te.top, topFin, 'top', stone), face(te.side, sideFin, 'side', stone));
+  if (rim[0] || rim[1]) {
+    out.push(face(te.front, 'rock', 'front', stone));
+    var inner = tabletProfile(st.top, s.tw, s.th, rim[0], rim[1]);
+    out.push(face(poly(inner.map(function (p) { return P(M.tx + p[0], M.ty + p[1], M.tz); })), 'polished', 'front', stone));
+  } else {
+    out.push(face(te.front, 'polished', 'front', stone));
+  }
+  // vases, nearest last
+  M.vxs.forEach(function (vx) { out.push(vase3d(vx, M.vz, M.FH)); });
+
+  var anchors = [];
+  if (labels) {
+    var cxTop = s.tw / 2, yTop = topHeight(st.top, s.tw, s.th, cxTop);
+    anchors.push({ p: P(M.tx + s.tw * 0.3, M.ty + s.th * 0.55, M.tz), side: 'L', t: 'Polished face', sub: 'front and back' });
+    anchors.push({ p: P(M.tx + cxTop, M.ty + yTop, M.tz + s.tt / 2), side: 'R', t: st.p === 'P2' ? 'Rock-pitched top' : 'Polished top', sub: st.p === 'P2' ? 'rough, chipped by hand' : st.p === 'P3' ? 'P3 upgrade' : 'P5, all polished' });
+    anchors.push({ p: P(M.tx + s.tw, M.ty + s.th * 0.45, M.tz + s.tt / 2), side: 'R', t: st.p === 'P5' ? 'Polished sides' : 'Rock-pitched sides', sub: st.p === 'P5' ? 'smooth and shiny' : 'rough, chipped by hand' });
+    anchors.push({ p: P(M.bx + s.bw * 0.2, M.FH + s.bh * (st.m ? 0.82 : 0.45), M.bz), side: 'L', t: st.m ? 'Polished margin' : 'Base sides rock pitched', sub: st.m ? '2″ band on the base' : 'with a polished top' });
+    anchors.push({ p: P(f.fw * 0.84, M.FH * 0.5, 0), side: 'R', t: 'Foundation, ' + (st.f === 'rock' ? 'rock-pitched sides' : 'sawn sides'), sub: 'polished top, set level with the lawn' });
+    if (M.vxs.length) anchors.push({ p: P(M.vxs[0], M.FH + 6, M.vz), side: 'L', t: 'Paragon vase', sub: 'metal, on the foundation' });
+  }
+  return { body: out.join(''), anchors: anchors, M: M };
+}
+
+function bounds3d(M) {
+  var s = M.s, f = M.f, c = [];
+  [[-1, -1, -1], [f.fw + 1, -1, -1], [f.fw + 1, -1, f.fd + 1], [-1, -1, f.fd + 1]].forEach(function (q) { c.push(P(q[0], q[1], q[2])); });
+  c.push(P(M.tx - 1, M.ty + s.th + 1.5, M.tz), P(M.tx + s.tw + 1, M.ty + s.th + 1.5, M.tz + s.tt + 1));
+  var xs = c.map(function (p) { return p[0]; }), ys = c.map(function (p) { return p[1]; });
+  return { x0: Math.min.apply(0, xs), x1: Math.max.apply(0, xs), y0: Math.min.apply(0, ys), y1: Math.max.apply(0, ys) };
+}
+
+// Label size follows the drawing: a 66in companion foundation would otherwise shrink them to nothing.
+function labelScale(b) { return Math.max(1, (b.x1 - b.x0) / 44); }
+function callouts(anchors, b) {
+  var u = labelScale(b), fs = 1.7 * u, out = [], maxY = -1e9;
+  ['L', 'R'].forEach(function (side) {
+    var list = anchors.filter(function (a) { return a.side === side; }).sort(function (a, b) { return a.p[1] - b.p[1]; });
+    var lx = side === 'L' ? b.x0 - 3 * u : b.x1 + 1.5 * u, last = -1e9;
+    list.forEach(function (a) {
+      var y = Math.max(a.p[1], last + 4.8 * u); last = y; maxY = Math.max(maxY, y + 2.6 * u);
+      var ex = side === 'L' ? lx + 0.6 * u : lx - 0.6 * u, anchor = side === 'L' ? 'end' : 'start';
+      out.push('<polyline points="' + a.p[0].toFixed(2) + ',' + a.p[1].toFixed(2) + ' ' + ex.toFixed(2) + ',' + y.toFixed(2) + ' ' + lx.toFixed(2) + ',' + y.toFixed(2) + '" fill="none" stroke="#e84610" stroke-width="' + (0.16 * u).toFixed(2) + '"/>');
+      out.push('<circle cx="' + a.p[0].toFixed(2) + '" cy="' + a.p[1].toFixed(2) + '" r="' + (0.45 * u).toFixed(2) + '" fill="#e84610" stroke="#fff" stroke-width="' + (0.12 * u).toFixed(2) + '"/>');
+      var tx = side === 'L' ? lx - 0.6 * u : lx + 0.6 * u;
+      out.push('<text x="' + tx.toFixed(2) + '" y="' + (y + 0.15 * u).toFixed(2) + '" text-anchor="' + anchor + '" font-family="Source Sans 3,Segoe UI,Arial" font-size="' + fs.toFixed(2) + '" font-weight="700" fill="#1a2332">' + a.t + '</text>');
+      out.push('<text x="' + tx.toFixed(2) + '" y="' + (y + 1.95 * u).toFixed(2) + '" text-anchor="' + anchor + '" font-family="Source Sans 3,Segoe UI,Arial" font-size="' + (fs * 0.8).toFixed(2) + '" fill="#5a6a7a">' + a.sub + '</text>');
+    });
+  });
+  return { svg: out.join(''), maxY: maxY };
+}
+
+function render3d(st, labels) {
+  var d = draw3d(st, labels), b = bounds3d(d.M), u = labelScale(b);
+  var cl = labels ? callouts(d.anchors, b) : { svg: '', maxY: -1e9 };
+  var padL = labels ? 24 * u : 3, padR = labels ? 25 * u : 3, y1 = Math.max(b.y1 + 2, cl.maxY);
+  var vb = [b.x0 - padL, b.y0 - 2 * u, (b.x1 - b.x0) + padL + padR, y1 - (b.y0 - 2 * u)];
+  return {
+    svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb.map(function (v) { return v.toFixed(2); }).join(' ') + '" role="img" aria-label="Upright headstone, three-quarter view">'
+      + defs(st.c) + '<g id="scene3d">' + d.body + '</g>' + cl.svg + '</svg>',
+    M: d.M
+  };
+}
+
+function zoomSvg(st, M) {
+  // A close-up of the tablet's top-right corner: rim, top and side finish side by side.
+  var s = M.s, c = P(M.tx + s.tw, M.ty + topHeight(st.top, s.tw, s.th, s.tw), M.tz + s.tt * 0.5);
+  var w = 11, h = 11;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (c[0] - w * 0.62).toFixed(2) + ' ' + (c[1] - h * 0.35).toFixed(2) + ' ' + w + ' ' + h + '" role="img" aria-label="Close-up of the top corner">'
+    + '<rect x="-999" y="-999" width="3000" height="3000" fill="#eef3f7"/><use href="#scene3d"/></svg>';
+}
+
+function dim(x1, y1, x2, y2, text, off, vertical) {
+  var o = [], fs = 1.6;
+  if (vertical) {
+    var x = x1 + off;
+    o.push('<line x1="' + x1 + '" y1="' + y1 + '" x2="' + (x + .6) + '" y2="' + y1 + '" stroke="#8a99a8" stroke-width=".08"/>');
+    o.push('<line x1="' + x2 + '" y1="' + y2 + '" x2="' + (x + .6) + '" y2="' + y2 + '" stroke="#8a99a8" stroke-width=".08"/>');
+    o.push('<line x1="' + x + '" y1="' + y1 + '" x2="' + x + '" y2="' + y2 + '" stroke="#33505f" stroke-width=".14" marker-start="url(#ar)" marker-end="url(#ar)"/>');
+    o.push('<text x="' + (x + 0.9) + '" y="' + ((y1 + y2) / 2 + fs * 0.35) + '" font-family="Source Sans 3,Segoe UI,Arial" font-size="' + fs + '" font-weight="700" fill="#33505f">' + text + '</text>');
+  } else {
+    var y = y1 + off;
+    o.push('<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x1 + '" y2="' + (y + (off < 0 ? -.6 : .6)) + '" stroke="#8a99a8" stroke-width=".08"/>');
+    o.push('<line x1="' + x2 + '" y1="' + y2 + '" x2="' + x2 + '" y2="' + (y + (off < 0 ? -.6 : .6)) + '" stroke="#8a99a8" stroke-width=".08"/>');
+    o.push('<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="#33505f" stroke-width=".14" marker-start="url(#ar)" marker-end="url(#ar)"/>');
+    o.push('<text x="' + ((x1 + x2) / 2) + '" y="' + (y + (off < 0 ? -0.6 : 2.1)) + '" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="' + fs + '" font-weight="700" fill="#33505f">' + text + '</text>');
+  }
+  return o.join('');
+}
+
+var CMP_K = 3.1;   // px per inch in the compare view: every size drawn to this one scale
+function renderFront(st, mini) {
+  var M = model(st), s = M.s, f = M.f, stone = st.c, rim = tabletRim(st), o = [];
+  function R(x, y) { return [x, -y]; }
+  function rp(x, y, w, h) { return poly([R(x, y), R(x, y + h), R(x + w, y + h), R(x + w, y)]); }
+  o.push('<rect x="-20" y="0" width="' + (f.fw + 40) + '" height="1.2" fill="#7fae6b"/>');
+  o.push(face(rp(0, 0, f.fw, M.FH), st.f, 'front', FOUND_COLOR));
+  o.push(face(rp(M.bx, M.FH, s.bw, s.bh), 'rock', 'front', stone));
+  if (st.m) o.push(face(rp(M.bx, M.FH + s.bh - 2, s.bw, 2), 'polished', 'front', stone));
+  var outer = tabletProfile(st.top, s.tw, s.th, 0, 0).map(function (p) { return R(M.tx + p[0], M.ty + p[1]); });
+  if (rim[0] || rim[1]) {
+    o.push(face(poly(outer), 'rock', 'front', stone));
+    o.push(face(poly(tabletProfile(st.top, s.tw, s.th, rim[0], rim[1]).map(function (p) { return R(M.tx + p[0], M.ty + p[1]); })), 'polished', 'front', stone));
+  } else o.push(face(poly(outer), 'polished', 'front', stone));
+  M.vxs.forEach(function (vx) {
+    o.push('<path d="M' + (vx - 1.6) + ',' + (-M.FH) + ' L' + (vx - 1.65) + ',' + (-M.FH - 8.8) + ' L' + (vx - 2) + ',' + (-M.FH - 10) + ' L' + (vx + 2) + ',' + (-M.FH - 10) + ' L' + (vx + 1.65) + ',' + (-M.FH - 8.8) + ' L' + (vx + 1.6) + ',' + (-M.FH) + 'Z" fill="url(#bronze)" stroke="#3a2812" stroke-width=".12"/>');
+  });
+  var topY = -(M.ty + s.th);
+  if (mini) {
+    var mv = [-1.5, topY - 1.5, f.fw + 3, -topY + 1.5 + 1.4];
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + Math.round(mv[2] * CMP_K) + '" height="' + Math.round(mv[3] * CMP_K) + '" viewBox="' + mv.map(function (v) { return v.toFixed(2); }).join(' ') + '" aria-hidden="true">'
+      + defs(stone) + o.join('') + '</svg>';
+  }
+  o.push(dim(M.tx, topY, M.tx + s.tw, topY, inch(s.tw) + ' tablet', -2.4));
+  o.push(dim(M.tx + s.tw, -M.ty, M.tx + s.tw, topY, inch(s.th) + ' tall', f.fw - M.tx - s.tw + 2.5, true));
+  o.push(dim(M.bx + s.bw, -M.FH, M.bx + s.bw, -(M.FH + s.bh), inch(s.bh), f.fw - M.bx - s.bw + 2.5, true));
+  o.push(dim(M.bx, 0, M.bx + s.bw, 0, inch(s.bw) + ' base', 3.4));
+  o.push(dim(0, 0, f.fw, 0, inch(f.fw) + ' foundation', 7.6));
+  var vb = [-4, topY - 5.5, f.fw + 18, -topY + 5.5 + 11];
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb.map(function (v) { return v.toFixed(2); }).join(' ') + '" role="img" aria-label="Upright headstone, front view with measurements">'
+    + defs(stone).replace('</defs>', '<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9z" fill="#33505f"/></marker></defs>')
+    + o.join('') + '</svg>';
+}
+
+// Little finish samples for the legend and the explanation tab.
+// Rename every id (and its url(#)/href=# references) so a copy of a drawing elsewhere on the page
+// never points at the original, which may sit in a hidden tab where Chrome will not paint it.
+function prefixIds(svg, p) {
+  return svg.replace(/ id="([^"]+)"/g, ' id="' + p + '$1"').replace(/url\(#([^)]+)\)/g, 'url(#' + p + '$1)').replace(/href="#([^"]+)"/g, 'href="#' + p + '$1"');
+}
+function sample(finish, stone, label, sub) {
+  var d = 'M1,1 L39,1 L39,13 L1,13Z';
+  return '<div class="leg"><svg viewBox="0 0 40 14" preserveAspectRatio="none">' + defs(stone) + face(d, finish, 'front', stone) + '</svg>'
+    + '<div><b>' + label + '</b><br>' + sub + '</div></div>';
+}
+
+/* ───────────── 5. UI ───────────── */
+function $(id) { return document.getElementById(id); }
+function optButtons(host, items, cur, onPick) {
+  host.innerHTML = items.map(function (it) {
+    return '<button type="button" class="opt" data-v="' + it.v + '" aria-pressed="' + (String(it.v) === String(cur)) + '"><b>' + it.b + '</b>' + (it.small ? '<small>' + it.small + '</small>' : '') + (it.p ? '<span class="p">' + it.p + '</span>' : '') + '</button>';
+  }).join('');
+  host.onclick = function (e) {
+    var b = e.target.closest('.opt'); if (!b) return;
+    onPick(b.getAttribute('data-v'));
+  };
+}
+
+var view = '3d', lastChange = '', cmpFilter = 'all';
+
+// Real photos (blank in-stock stones from Design Memorials / Pacific Coast Memorials, cropped into
+// upright-images/photos/). Martice 11/21: a drawn texture alone doesn't show a family the difference.
+var PHOTO_DIR = 'upright-images/photos/';
+function photoChips(long) {
+  var c = [
+    ['close-polished.jpg', 'Polished', long ? 'Ground and buffed until it shines. See the light reflecting off the stone.' : 'smooth and shiny'],
+    ['close-rock.jpg', 'Rock pitch', long ? 'Chipped by hand into a rough, natural edge. It reads lighter than the polished face.' : 'rough, chipped by hand'],
+    ['close-sawn.jpg', 'Sawn', long ? 'Cut smooth by the saw but not polished. Flat and even, with no shine.' : 'smooth, not shiny']
+  ];
+  return c.map(function (x) {
+    return '<div class="leg"><img src="' + PHOTO_DIR + x[0] + '" alt="' + x[1] + ' granite, close up"><div><b>' + x[1] + '</b><br>' + x[2] + '</div></div>';
+  }).join('');
+}
+// "Real stone" panel under the drawing: follows the tablet finish and the margin choice.
+var REAL = {
+  P2: ['p2.jpg', 'A real P2 tablet: the polished face is framed by a rock-pitched top and sides. The base below it is rock pitched with a polished top.'],
+  P3: ['p3.jpg', 'A real P3 tablet: the top is polished too, so it\'s smooth all the way over. The sides stay rock pitched.'],
+  P5: ['p2.jpg', 'P5 polishes every side. Picture the smooth, shiny face in this photo carried over the top and down both sides, with none of the rough edge you see here.']
+};
+function renderReal(st) {
+  var r = REAL[st.p], out = '<div class="rh">Real stone</div><figure><img src="' + PHOTO_DIR + r[0] + '" alt=""><figcaption>' + r[1] + '</figcaption></figure>';
+  if (st.m) out += '<figure style="border-top:1px solid var(--gray-mid)"><img src="' + PHOTO_DIR + 'margin.jpg" alt=""><figcaption>The polished margin: the smooth band along the top of the rock-pitched base.</figcaption></figure>';
+  out += '<div class="credit">Photos of blank stones: Design Memorials (Pacific Coast Memorials). Colors differ from yours.</div>';
+  var key = st.p + st.m;
+  if ($('real').getAttribute('data-k') !== key) { $('real').innerHTML = out; $('real').setAttribute('data-k', key); }
+}
+// Every size, front view, one scale, in the family's granite and finish, each with its total for
+// the options they've picked. Tapping one picks that size.
+function compareHtml(st) {
+  var bar = '<div class="cmpbar">'
+    + [['all', 'All sizes'], ['single', 'Single'], ['comp', 'Companion']].map(function (x) {
+      return '<button type="button" class="opt cmpf" data-f="' + x[0] + '" aria-pressed="' + (cmpFilter === x[0]) + '">' + x[1] + '</button>';
+    }).join('') + '<span>All drawn to the same scale, with your granite, finish and vases.</span></div>';
+  var cards = SIZES.map(function (s, i) {
+    if ((cmpFilter === 'single' && s.comp) || (cmpFilter === 'comp' && !s.comp)) return '';
+    var o = {}; for (var k in st) o[k] = st[k]; o.s = i;
+    var c = calc(o);
+    return '<button type="button" class="cmpcard" data-s="' + i + '" aria-pressed="' + (i === st.s) + '">'
+      + '<span class="tag' + (s.comp ? ' c' : '') + '">' + (s.comp ? 'Companion' : 'Single') + '</span>'
+      + renderFront(o, true)
+      + '<b>' + s.tw + '″ × ' + s.th + '″</b><span class="k">' + s.tt + '″ thick · ' + s.bw + '″ base</span><br>'
+      + '<span class="t">' + money(c.total) + '</span><br><span class="k">installed, with tax</span></button>';
+  }).join('');
+  return bar + '<div class="cmpgrid">' + cards + '</div>';
+}
+function update(changeNote) {
+  if (changeNote !== undefined) lastChange = changeNote;
+  var st = state, c = calc(st);
+  function sizeItems(comp) {
+    return SIZES.map(function (s, i) { return { s: s, i: i }; }).filter(function (x) { return !!x.s.comp === comp; }).map(function (x) {
+      return { v: x.i, b: x.s.tw + '″ × ' + x.s.th + '″', small: x.s.tt + '″ thick tablet', p: money(x.s.price).replace('.00', '') };
+    });
+  }
+  function pickSize(v) {
+    var was = !!SIZES[state.s].comp; state.s = +v;
+    update(was !== !!SIZES[state.s].comp
+      ? (SIZES[state.s].comp ? 'Companion size: one wide tablet with room for two names.' : 'Single size, for one person.')
+      : 'Size changed. The base and foundation changed with it.');
+  }
+  optButtons($('optSize'), sizeItems(false), st.s, pickSize);
+  optButtons($('optSizeComp'), sizeItems(true), st.s, pickSize);
+  // swatches are built once (init); rebuilding them re-decoded 23 photos on every click
+  Array.prototype.forEach.call($('optColor').children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === st.c)); });
+  $('colorName').textContent = colorName(st.c) + ' · Group 2 granite';
+  optButtons($('optTop'), ['serp', 'oval', 'flat'].map(function (k) { return { v: k, b: TOPS[k], small: 'Included' }; }), st.top,
+    function (v) { state.top = v; update(TOPS[v] + ' top. All three shapes are the same price.'); });
+  optButtons($('optPolish'), ['P2', 'P3', 'P5'].map(function (k) {
+    return { v: k, b: POLISH_TEXT[k].name, small: POLISH_TEXT[k].say, p: POLISH[k] ? 'Adds ' + money(POLISH[k]).replace('.00', '') : 'Included' };
+  }), st.p, function (v) {
+    state.p = v;
+    update(v === 'P2' ? 'P2: look at the top and the sides. They\'re rough and chipped, around a polished face.'
+      : v === 'P3' ? 'P3: the top is now polished and smooth. The sides stay rough.'
+      : 'P5: every side is polished. The rough rim around the face is gone.');
+  });
+  optButtons($('optMargin'), [
+    { v: 0, b: 'Standard base', small: 'Polished top, rock-pitched sides', p: 'Included' },
+    { v: 1, b: 'With a polished margin', small: 'A smooth 2″ band along the top edges', p: 'Adds ' + money(MARGIN).replace('.00', '') }
+  ], st.m, function (v) { state.m = +v; update(+v ? 'Polished margin: see the smooth band along the top of the base.' : 'Standard base: rough sides with a polished top.'); });
+  var f = c.found;
+  optButtons($('optFound'), [
+    { v: 'sawn', b: 'Sawn sides', small: 'Smooth, not shiny', p: 'Included' },
+    { v: 'rock', b: 'Rock-pitched sides', small: 'Rough, chipped edge', p: 'Adds ' + money(r2(f.price * FOUND_ROCK)).replace('.00', '') }
+  ], st.f, function (v) { state.f = v; update(v === 'rock' ? 'Foundation edges are now rock pitched.' : 'Foundation edges are sawn smooth.'); });
+  $('foundHint').textContent = f.fw + '″ × ' + f.fd + '″ × 4″ Barrell Gray foundation for this size. The monument company confirms the final size.';
+  optButtons($('optVase'), [
+    { v: 0, b: 'None', small: '' }, { v: 1, b: 'One', small: 'Paragon', p: money(VASE).replace('.00', '') }, { v: 2, b: 'Two', small: 'Paragon', p: money(VASE * 2).replace('.00', '') }
+  ], st.v, function (v) { state.v = +v; update(+v ? (+v === 2 ? 'Two Paragon metal vases, on the foundation in front of the base.' : 'One Paragon metal vase, on the foundation in front of the base.') : 'No vases.'); });
+
+  var labels = $('showLabels').checked;
+  var r3 = render3d(st, labels);
+  $('drawing').innerHTML = view === '3d' ? r3.svg : view === 'front' ? renderFront(st) : compareHtml(st);
+  if (view !== '3d') {
+    // keep #scene3d in the page for the close-up
+    $('drawing').insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' + r3.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') + '</svg>');
+  }
+  $('zoom').innerHTML = zoomSvg(st, r3.M);
+  $('frontPrint').innerHTML = prefixIds(renderFront(st), 'p-');
+  if (!$('legend').firstChild) $('legend').innerHTML = photoChips();
+  renderReal(st);
+  $('changed').hidden = !lastChange; $('changed').textContent = lastChange;
+
+  $('qt').innerHTML = c.lines.map(function (l) { return '<tr><td>' + l.label + '</td><td class="r">' + money(l.amount) + '</td></tr>'; }).join('')
+    + '<tr class="sub"><td>Subtotal</td><td class="r">' + money(c.sub) + '</td></tr>'
+    + '<tr class="tax"><td>Sales tax 10.4%</td><td class="r">' + money(c.tax) + '</td></tr>'
+    + '<tr class="tot"><td>Total</td><td class="r" id="qtTotal">' + money(c.total) + '</td></tr>';
+  writeUrl();
+}
+
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('on'); }, 2600); }
+function copy(text, ok) {
+  function fallback() { window.prompt('Copy this link:', text); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(ok); }, fallback);
+  else fallback();
+}
+function pageUrl(family) { return location.origin + location.pathname + '?' + stateQuery(family); }
+
+// Hand-off to the quote tool: index.html reads this on load (bwUprightImportCheck) and rebuilds
+// every price from its own tables. Nothing here writes to the database.
+function importTo(need) {
+  var c = calc(), M = model(state);
+  var payload = {
+    v: 1, ts: Date.now(), need: need, s: state.s, c: state.c, color: colorName(state.c), top: state.top, topName: TOPS[state.top],
+    p: state.p, m: state.m, f: state.f, vases: state.v,
+    found: { w: M.f.fw, d: M.f.fd, price: M.f.price },
+    sub: c.sub, total: c.total
+  };
+  try { localStorage.setItem('bw_upright_import', JSON.stringify(payload)); }
+  catch (e) { alert('This browser blocked the hand-off to the quote tool (storage is off). Enter the headstone by hand.'); return; }
+  var w = window.open('index.html#cem-quote', 'bwQuoteTool');
+  if (!w) location.href = 'index.html#cem-quote';
+}
+
+function init() {
+  $('printDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  function setView(v) {
+    view = v;
+    [['v3d', '3d'], ['vfront', 'front'], ['vcompare', 'compare']].forEach(function (x) { $(x[0]).setAttribute('aria-pressed', String(x[1] === v)); });
+    update();
+  }
+  $('v3d').onclick = function () { setView('3d'); };
+  $('vfront').onclick = function () { setView('front'); };
+  $('vcompare').onclick = function () { setView('compare'); };
+  $('toCompare').onclick = function (e) { e.preventDefault(); setView('compare'); $('drawing').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  $('drawing').addEventListener('click', function (e) {
+    var f = e.target.closest('.cmpf'); if (f) { cmpFilter = f.getAttribute('data-f'); update(); return; }
+    var c = e.target.closest('.cmpcard');
+    if (c) { var i = +c.getAttribute('data-s'), s = SIZES[i]; state.s = i; update((s.comp ? 'Companion ' : 'Single ') + s.tw + '″ × ' + s.th + '″ picked. Switch to the 3/4 view to see it up close.'); }
+  });
+  $('showLabels').onchange = function () { update(); };
+  $('printBtn').onclick = function () { window.print(); };
+  // The printed quote always shows the 3/4 view (the front view prints beside it).
+  var viewBeforePrint = null;
+  window.addEventListener('beforeprint', function () { if (view !== '3d') { viewBeforePrint = view; view = '3d'; update(); } });
+  window.addEventListener('afterprint', function () { if (viewBeforePrint) { view = viewBeforePrint; viewBeforePrint = null; update(); } });
+  $('copyBtn').onclick = function () { copy(pageUrl(isFamily()), 'Link copied. It opens this exact design.'); };
+  $('famLinkBtn').onclick = function () { copy(pageUrl(true), 'Family link copied. It opens without staff controls.'); };
+  $('impPN').onclick = function () { importTo('preneed'); };
+  $('impAN').onclick = function () { importTo('atneed'); };
+  var tabs = [$('t-design'), $('t-explain')];
+  tabs.forEach(function (t) {
+    t.onclick = function () {
+      tabs.forEach(function (x) { var on = x === t; x.setAttribute('aria-selected', on); $(x.getAttribute('aria-controls')).hidden = !on; });
+      try { history.replaceState(null, '', location.pathname + location.search + (t.id === 't-explain' ? '#explain' : '')); } catch (e) {}
+    };
+  });
+  if (location.hash === '#explain') $('t-explain').click();
+  $('finishGrid').innerHTML = photoChips(true);
+  $('optColor').innerHTML = COLORS.map(function (k) {
+    return '<button type="button" class="sw" data-v="' + k[0] + '" aria-pressed="false" title="' + colorName(k[0]) + '" aria-label="' + colorName(k[0]) + '"><img src="upright-images/granite/' + k[0] + '.jpg" alt=""></button>';
+  }).join('');
+  $('optColor').onclick = function (e) { var b = e.target.closest('.sw'); if (b) { state.c = b.getAttribute('data-v'); update('Granite: ' + colorName(state.c) + '. Same price as every other color here.'); } };
+  update('');
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+// for the test script
+window.__upright = { calc: calc, SIZES: SIZES, FOUNDATIONS: FOUNDATIONS, foundationFor: foundationFor, state: function () { return state; } };
+})();
+</script>
+</body>
+</html>
