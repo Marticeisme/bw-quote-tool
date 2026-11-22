@@ -169,3 +169,8 @@ Real WMP photos must be checked for readable names before use (repo is public).
 - P5 = ONE matched set, tablet AND base polished all over, one $960 (Martice 11/21, "one $960 set";
   Nathan's quotes always pair a P5 tablet with a matching P5 base). The separate all-polished base
   option is gone; with P5 the base step says so and a polished margin does not apply.
+- Bronze looks (Matthews examples + Coldspring research, 11/21): dark oxidized field, gold leaf
+  border, raised gold lettering, a name plate per person over a large family name on companions
+  (vase core between the plates); VA bronzes plain with an emblem; Expressions in Bronze = a
+  photo-realistic picture laser-etched from the family's photo (shown as a sepia photo panel).
+  Names on the faces are placeholders. 56x16 companion base = 60x20 (Martice: price list is right).

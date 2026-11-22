@@ -297,7 +297,9 @@ figcaption b{color:var(--text-dark);}
     <li>Uprights are allowed in Section 6, parts of Section 23 and Cascade Court.</li>
   </ul>
   <h2>A flat marker</h2>
-  <p>A granite marker set level with the lawn. The top is polished and the sides are sawn. A vase goes in its own 12 by 12 granite block next to it.</p>
+  <p>A granite marker set level with the lawn. The top is polished and the sides are sawn. A vase goes in its own 12 by 12 granite block below it.</p>
+  <h2>A bronze marker</h2>
+  <p>Cast bronze with raised letters, mounted on a granite or concrete base that's set level with the lawn. Some sizes have a vase that screws into the bronze. Expressions in Bronze adds a picture from your own photo, etched into the bronze.</p>
   <h2>What the price includes</h2>
   <p>The stone, any standard design or emblem, the names, the dates, one line of epitaph, your proof, installation and sales tax.</p>
  </div></div>
@@ -813,16 +815,17 @@ function flatLayout(st) {
     const [bw, bl] = b.bz;
     if (b.pair === 'stack') {
       const z0 = -base[1] / 2 + 2 + bl / 2;
-      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: z0 }, { kind: 'bronze', w: bw, l: bl, x: 0, z: z0 + bl + 1.5 });
+      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: z0, style: 'va' }, { kind: 'bronze', w: bw, l: bl, x: 0, z: z0 + bl + 1.5, style: 'va' });
       if (core) V.push({ x: 0, z: base[1] / 2 - 5, kind: st.bv });
     } else if (b.pair === 'side') {
       const dx = core ? (bw / 2 + 7) : (bw / 2 + 1.5);
-      P.push({ kind: 'bronze', w: bw, l: bl, x: -dx, z: 0 }, { kind: 'bronze', w: bw, l: bl, x: dx, z: 0 });
+      P.push({ kind: 'bronze', w: bw, l: bl, x: -dx, z: 0, style: 'va' }, { kind: 'bronze', w: bw, l: bl, x: dx, z: 0, style: 'va' });
       if (core) V.push({ x: 0, z: 0, kind: st.bv });
     } else {
-      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: 0 });
+      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: 0, style: b.grp === 'Veterans' ? 'va' : b.grp === 'Expressions' ? 'expr' : 'std', comp: !!b.comp && b.k !== 'half', core });
       // the vase core: centered on a companion, at one end of a single (cast into the bronze)
-      if (core) V.push({ x: b.comp && b.k !== 'half' ? 0 : bw / 2 - 4, z: b.k === 'half' || b.k === 'full' || b.k === 'lawn' ? -bl / 2 + 5 : 0, kind: st.bv });
+      // companion: between the two name plates, above the family name; otherwise at one end
+      if (core) V.push({ x: b.comp && b.k !== 'half' ? 0 : bw / 2 - 4, z: b.comp && b.k !== 'half' ? -bl / 2 + 4.2 : b.k === 'half' || b.k === 'full' || b.k === 'lawn' ? -bl / 2 + 5 : 0, kind: st.bv });
     }
   } else {
     const fl = FLATS[st.fs], n = vaseBlocks(st);
@@ -838,16 +841,114 @@ function flatLayout(st) {
   P.forEach(p => { p.x -= cx; p.z -= cz; }); V.forEach(v => { v.x -= cx; v.z -= cz; });
   return { P, V, W: x1 - x0, L: z1 - z0 };
 }
-const bronzeMat = () => new THREE.MeshStandardMaterial({ color: 0x6e4f2c, roughness: 0.45, metalness: 0.85 });
-function bronzePlate(w, l, x, z, y) {
-  // a cast plate with a raised border and a darker field, like the Matthews and Coldspring castings
-  const g = new THREE.Group(), m = bronzeMat(), dark = new THREE.MeshStandardMaterial({ color: 0x4a3420, roughness: 0.6, metalness: 0.8 });
-  const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, l), m); plate.position.set(x, y + 0.25, z); g.add(plate);
-  const field = new THREE.Mesh(new THREE.BoxGeometry(w - 2.2, 0.08, l - 2.2), dark); field.position.set(x, y + 0.52, z); g.add(field);
-  [[0, -(l / 2 - 0.55), w - 0.2, 0.7], [0, l / 2 - 0.55, w - 0.2, 0.7], [-(w / 2 - 0.55), 0, 0.7, l - 0.2], [w / 2 - 0.55, 0, 0.7, l - 0.2]].forEach(([dx, dz, bw, bl]) => {
-    const r = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.22, bl), m); r.position.set(x + dx, y + 0.6, z + dz); g.add(r);
+// ── Bronze faces ──
+// Drawn like the Matthews and Coldspring castings (Matthews examples, 11/21): a dark oxidized field,
+// a bright raised border with leaves along it, raised gold lettering, and on a companion a small
+// name plate for each person over a large family name. Government (VA) bronzes are plainer: a thin
+// raised rim, the emblem at the top and centered lines. Expressions in Bronze (Coldspring) carries a
+// photo-realistic picture laser-etched into the bronze from the family's own photo, shown here as a
+// sepia photo panel. The names are placeholders, only there to show where lettering goes.
+// One canvas feeds both the color and the raised relief (bright = raised).
+const bronzeFaceCache = {};
+function bronzeFace(w, l, style, comp, core) {
+  const key = [w, l, style, comp, core].join(':');
+  if (bronzeFaceCache[key]) return bronzeFaceCache[key];
+  const K = Math.min(22, 1500 / Math.max(w, l)), W = Math.round(w * K), H = Math.round(l * K);
+  const col = document.createElement('canvas'), bump = document.createElement('canvas');
+  col.width = bump.width = W; col.height = bump.height = H;
+  const c = col.getContext('2d'), m = bump.getContext('2d');
+  const GOLD = '#c9a35a', GOLD2 = '#e8cf8f', FIELD = '#2a2018';
+  // field: dark, finely pebbled
+  c.fillStyle = FIELD; c.fillRect(0, 0, W, H); m.fillStyle = '#202020'; m.fillRect(0, 0, W, H);
+  for (let i = 0; i < W * H / 18; i++) {
+    const x = Math.random() * W, y = Math.random() * H, r = Math.random() * 1.4 + 0.4;
+    c.fillStyle = 'rgba(90,70,45,' + (0.15 + Math.random() * 0.25) + ')'; c.fillRect(x, y, r, r);
+    m.fillStyle = 'rgba(70,70,70,' + (0.3 + Math.random() * 0.4) + ')'; m.fillRect(x, y, r, r);
+  }
+  const both = fn => { fn(c, true); fn(m, false); };
+  const gold = (ctx, isCol, a = 1) => { ctx.fillStyle = isCol ? GOLD : 'rgba(235,235,235,' + a + ')'; ctx.strokeStyle = ctx.fillStyle; };
+  const B = (style === 'va' ? 0.45 : 1.15) * K;           // border width
+  // border band
+  both((ctx, isCol) => { gold(ctx, isCol); ctx.fillRect(0, 0, W, B); ctx.fillRect(0, H - B, W, B); ctx.fillRect(0, 0, B, H); ctx.fillRect(W - B, 0, B, H); });
+  if (style !== 'va') {
+    // leaves along the border, then a fine inner line
+    both((ctx, isCol) => {
+      ctx.save();
+      const leaf = (x, y, ang) => { ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.beginPath(); ctx.ellipse(0, 0, B * 0.42, B * 0.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); };
+      ctx.fillStyle = isCol ? '#7d5f2e' : 'rgba(150,150,150,1)';
+      const step = B * 0.85;
+      for (let x = B; x < W - B; x += step) { leaf(x, B / 2, 0.6); leaf(x + step / 2, B / 2, -0.6); leaf(x, H - B / 2, -0.6); leaf(x + step / 2, H - B / 2, 0.6); }
+      for (let y = B; y < H - B; y += step) { leaf(B / 2, y, 2.2); leaf(B / 2, y + step / 2, 0.9); leaf(W - B / 2, y, 0.9); leaf(W - B / 2, y + step / 2, 2.2); }
+      ctx.strokeStyle = isCol ? GOLD2 : '#f0f0f0'; ctx.lineWidth = Math.max(1, K * 0.12);
+      ctx.strokeRect(B + K * 0.35, B + K * 0.35, W - 2 * B - K * 0.7, H - 2 * B - K * 0.7);
+      ctx.restore();
+    });
+  }
+  const text = (str, x, y, size, weight = 600, family = 'Georgia, \'Times New Roman\', serif') => both((ctx, isCol) => {
+    gold(ctx, isCol); ctx.font = weight + ' ' + Math.round(size * K) + 'px ' + family; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (isCol) { ctx.fillStyle = GOLD2; } ctx.fillText(str, x, y);
   });
-  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } });
+  const plateBox = (x, y, bw, bh) => both((ctx, isCol) => { ctx.strokeStyle = isCol ? GOLD : '#e0e0e0'; ctx.lineWidth = Math.max(1, K * 0.18); ctx.strokeRect(x, y, bw, bh); });
+  const rose = (x, y, r) => both((ctx, isCol) => {
+    ctx.fillStyle = isCol ? GOLD : '#dcdcdc';
+    for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.beginPath(); ctx.ellipse(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45, r * 0.42, r * 0.28, a, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = isCol ? GOLD2 : '#f5f5f5'; ctx.beginPath(); ctx.arc(x, y, r * 0.3, 0, Math.PI * 2); ctx.fill();
+  });
+  const cx = W / 2, inner = l - 2 * (B / K);
+  if (style === 'va') {
+    // government style: emblem at the top, centered lines
+    both((ctx, isCol) => { gold(ctx, isCol); const r = K * 1.1, y = H * 0.2; ctx.beginPath(); ctx.arc(cx, y, r, 0, Math.PI * 2); ctx.lineWidth = K * 0.15; ctx.stroke(); ctx.fillRect(cx - K * 0.12, y - r * 0.7, K * 0.24, r * 1.4); ctx.fillRect(cx - r * 0.45, y - r * 0.3, r * 0.9, K * 0.24); });
+    text('FULL NAME', cx, H * 0.42, 1.5, 700, 'Arial, sans-serif');
+    text('BRANCH · WAR', cx, H * 0.58, 1.05, 600, 'Arial, sans-serif');
+    text('YEAR – YEAR', cx, H * 0.74, 1.05, 600, 'Arial, sans-serif');
+  } else if (style === 'expr') {
+    // Expressions in Bronze: a laser-etched photo panel (a soft sepia landscape stands in for the family's photo)
+    const pw = Math.min(W * (comp ? 0.34 : 0.56), H * 1.25), ph = H * (comp ? 0.5 : 0.44), px = cx - pw / 2, py = H * 0.13;
+    c.save(); c.beginPath(); c.rect(px, py, pw, ph); c.clip();
+    const sky = c.createLinearGradient(0, py, 0, py + ph); sky.addColorStop(0, '#d9c49a'); sky.addColorStop(0.55, '#a98a5a'); sky.addColorStop(1, '#5e4628');
+    c.fillStyle = sky; c.fillRect(px, py, pw, ph);
+    c.filter = 'blur(' + Math.max(1, K * 0.15) + 'px)';
+    c.fillStyle = '#7d6440'; c.beginPath(); c.moveTo(px, py + ph * 0.7); c.bezierCurveTo(px + pw * 0.25, py + ph * 0.42, px + pw * 0.45, py + ph * 0.62, px + pw * 0.62, py + ph * 0.5); c.bezierCurveTo(px + pw * 0.8, py + ph * 0.4, px + pw * 0.9, py + ph * 0.55, px + pw, py + ph * 0.5); c.lineTo(px + pw, py + ph); c.lineTo(px, py + ph); c.fill();
+    c.fillStyle = '#4e3a22'; c.beginPath(); c.moveTo(px, py + ph * 0.85); c.bezierCurveTo(px + pw * 0.3, py + ph * 0.7, px + pw * 0.6, py + ph * 0.9, px + pw, py + ph * 0.78); c.lineTo(px + pw, py + ph); c.lineTo(px, py + ph); c.fill();
+    c.fillStyle = '#3a2a17';
+    for (let i = 0; i < 5; i++) { const tx = px + pw * (0.12 + i * 0.07), ty = py + ph * (0.8 - (i % 2) * 0.04), th = ph * (0.22 + (i % 3) * 0.05); c.beginPath(); c.moveTo(tx, ty - th); c.lineTo(tx - th * 0.25, ty); c.lineTo(tx + th * 0.25, ty); c.fill(); }
+    c.filter = 'none'; c.restore();
+    m.fillStyle = '#6a6a6a'; m.fillRect(px, py, pw, ph);              // the photo is etched flat, not raised
+    both((ctx, isCol) => { ctx.strokeStyle = isCol ? GOLD : '#e8e8e8'; ctx.lineWidth = Math.max(1, K * 0.22); ctx.strokeRect(px, py, pw, ph); });
+    if (comp) {
+      const nw = W * 0.2, nh = H * 0.3, ny = H * 0.2;
+      [W * 0.17, W * 0.83].forEach(x => { plateBox(x - nw / 2, ny, nw, nh); text('First Name', x, ny + nh * 0.32, Math.min(1.1, inner * 0.09)); text('YEAR – YEAR', x, ny + nh * 0.7, Math.min(0.85, inner * 0.07)); });
+      text('FAMILY NAME', cx, H * 0.8, Math.min(2.4, inner * 0.17), 600);
+    } else {
+      text('FULL NAME', cx, H * 0.75, Math.min(1.8, inner * 0.14), 600);
+      text('YEAR – YEAR', cx, H * 0.88, Math.min(1, inner * 0.08), 600);
+    }
+  } else if (comp) {
+    // companion: a name plate for each person over a large family name, roses at the ends
+    const pw = W * 0.24, ph = H * 0.3, py = H * 0.16;
+    [W * 0.27, W * 0.73].forEach(x => { plateBox(x - pw / 2, py, pw, ph); text('First Name', x, py + ph * 0.32, Math.min(1.1, inner * 0.09)); text('YEAR – YEAR', x, py + ph * 0.7, Math.min(0.85, inner * 0.07)); });
+    // with a vase core between the plates the family name drops a little and gets smaller
+    text('FAMILY NAME', cx, H * (core ? 0.76 : 0.7), Math.min(3, inner * (core ? 0.17 : 0.24)), 600);
+    rose(B + K * 2.2, H / 2, K * 1.3); rose(W - B - K * 2.2, H / 2, K * 1.3);
+  } else {
+    // single: name, dates, an emblem above
+    rose(cx, H * 0.24, K * Math.min(1.4, inner * 0.1));
+    text('FULL NAME', cx, H * 0.52, Math.min(2.2, inner * 0.17), 600);
+    text('YEAR – YEAR', cx, H * 0.74, Math.min(1.2, inner * 0.09), 600);
+  }
+  const map = new THREE.CanvasTexture(col); map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 8;
+  const bumpMap = new THREE.CanvasTexture(bump);
+  return (bronzeFaceCache[key] = { map, bumpMap, url: () => col.toDataURL('image/jpeg', 0.85) });
+}
+function bronzePlate(w, l, x, z, y, style, comp, core) {
+  const face = bronzeFace(w, l, style, comp, core);
+  const side = new THREE.MeshStandardMaterial({ color: 0x5a4024, roughness: 0.5, metalness: 0.85 });
+  const top = new THREE.MeshStandardMaterial({ map: face.map, bumpMap: face.bumpMap, bumpScale: 2.2, roughness: 0.42, metalness: 0.7 });
+  // BoxGeometry faces: +x, -x, +y (top), -y, +z, -z
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.6, l), [side, side, top, side, side, side]);
+  plate.position.set(x, y + 0.3, z);
+  plate.receiveShadow = true;
+  const g = new THREE.Group(); g.add(plate);
   return g;
 }
 let concreteCache = null;
@@ -868,7 +969,7 @@ function buildFlat(st) {
     return m;
   };
   L.P.forEach(p => {
-    if (p.kind === 'bronze') grp.add(bronzePlate(p.w, p.l, p.x, p.z, top));
+    if (p.kind === 'bronze') grp.add(bronzePlate(p.w, p.l, p.x, p.z, top, p.style, p.comp, p.core));
     else if (p.kind === 'concrete') grp.add(slab(p, concreteMats(), true));
     else grp.add(slab(p, materials(p.kind === 'base' ? 'Barrell_Gray' : st.fc)));
   });
@@ -965,7 +1066,7 @@ function flatTopSvg(st, opts = {}) {
   o.push(`<rect x="${x0 - 8}" y="${y0 - 8}" width="${L.W + 16}" height="${L.L + 16}" fill="#8db271" rx="2"/>`);
   L.P.forEach(p => {
     const r = `x="${p.x - p.w / 2}" y="${p.z - p.l / 2}" width="${p.w}" height="${p.l}"`;
-    if (p.kind === 'bronze') o.push(`<rect ${r} fill="#6e4f2c" stroke="#c9a35a" stroke-width=".5"/><rect x="${p.x - p.w / 2 + 1.1}" y="${p.z - p.l / 2 + 1.1}" width="${p.w - 2.2}" height="${p.l - 2.2}" fill="#4a3420"/>`);
+    if (p.kind === 'bronze') o.push(`<image href="${bronzeFace(p.w, p.l, p.style, p.comp, p.core).url()}" ${r} preserveAspectRatio="none"/>`);
     else if (p.kind === 'concrete') o.push(`<rect ${r} fill="#bdb9b0" stroke="#000" stroke-opacity=".25" stroke-width=".12"/>`);
     else o.push(`<rect ${r} fill="url(#${id}${p.kind === 'base' ? 'b' : 's'})" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
   });
@@ -974,7 +1075,7 @@ function flatTopSvg(st, opts = {}) {
     const main = L.P[0];
     o.push(svgDims(main.x - main.w / 2, main.z - main.l / 2, main.x + main.w / 2, main.z - main.l / 2, fmtIn(main.w) + (st.fm === 'bronze' ? ' base' : ''), -3, false, 2));
     o.push(svgDims(main.x - main.w / 2, main.z + main.l / 2, main.x - main.w / 2, main.z - main.l / 2, fmtIn(main.l), -6.5, true, 2));
-    if (st.fm === 'bronze') { const b = L.P[1]; o.push(`<text x="${b.x}" y="${b.z + 0.7}" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="1.7" font-weight="700" fill="#f3dfb2">${b.w}″ × ${b.l}″ bronze</text>`); }
+    if (st.fm === 'bronze') { const b = L.P[1]; o.push(svgDims(b.x - b.w / 2, b.z + b.l / 2 + (L.P[0].l - b.l) / 2, b.x + b.w / 2, b.z + b.l / 2 + (L.P[0].l - b.l) / 2, fmtIn(b.w) + ' × ' + fmtIn(b.l) + ' bronze', 3, false, 1.7)); }
     const blk = L.P.find(p => p.kind === 'block');
     if (blk) o.push(svgDims(blk.x - 6, blk.z + 6, blk.x + 6, blk.z + 6, '12″ vase block', 3, false, 1.6));
   }
