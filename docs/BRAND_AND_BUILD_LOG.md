@@ -3169,3 +3169,12 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   missing from the sizes; Martice: it's a companion, too big for one grave.
 - Bronze Markers.pdf rebuilt (5pp, unchanged length). Verified: verify_guides_page ALL OK; page and PDF pages 2-3
   rendered and checked by eye; old sizes (64x20, 60x16) gone from the PDF text.
+
+## 2026-11-21: Memorial Designer merged (staff only)
+
+- Branch upright-visualizer (9f5551db..8a71ec2b) merged to main. memorial-designer.html: 3D upright headstones and
+  flat granite and bronze markers with full installed price, import to the cemetery quote (sidebar item in
+  index.html). three.js 0.160 vendored in vendor/three/; textures and photos in upright-images/.
+- Staff only: gated by the quote tool sign-in, no guides.html card, no family link.
+- Verified on the merged tree: syntax check clean (index.html, designer module, import map), test-memorial-designer
+  239/239, verify_guides_page ALL OK, designer rendered and looked at; signed out it shows only the Staff only gate.
