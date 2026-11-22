@@ -27958,7 +27958,8 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
 // 'bw_upright_import' and open #cem-quote. This fills the Cemetery Quote (Pre-Need or At-Need):
 //   upright: the upright from UPRIGHT_SIZES in Group 2, its foundation from qFoundation, and custom
 //            lines for the polish upgrade, polished margin, rock-pitched foundation, Paragon vases;
-//   flat:    the flush marker from FLUSH_SIZES in its group, and the 12x12 vase block + vase.
+//   flat:    granite: the flush marker from FLUSH_SIZES in its group, and one or two 12x12 vase
+//            blocks + vases; bronze: the qBronze option itself, and its vase when it has a core.
 // For At-Need it also fills the empty Memorial Order fields on the CIRGAS tab; the CIRGAS prices
 // still come from that tab's own "Import from Cemetery Quote", as always.
 // Every price is rebuilt from this file's tables; the designer's subtotal is only compared, and
@@ -27969,7 +27970,7 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
   // 2026 PCM Markers Price Book upgrades and the Paragon vase (Martice 2026-11-21). Same figures
   // as memorial-designer.html; scratch/test-memorial-designer.mjs checks they agree.
   var UP_POLISH = { P3: [770, 'Upright tablet finish P3 (polished front, back and top)'], P5: [960, 'Upright tablet finish P5 (all polished)'] };
-  var UP_MARGIN = 1060, UP_VASE = 685, UP_FOUND_ROCK = 0.10, VB_SET = 175;
+  var UP_MARGIN = 1060, UP_VASE = 685, UP_FOUND_ROCK = 0.10, VB_SET = 175, UP_BASE_P5 = 960;
   var TABLET_FINISH = {
     P2: 'P2, BRP (polished front and back, rock-pitched top and sides)',
     P3: 'P3, BRP (polished front, back and top, rock-pitched sides)',
@@ -28014,6 +28015,23 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
     if (item) { item.name += extra; markerRender(); }
     return item;
   }
+  function clearBronze() {
+    if (typeof bronzeItems !== 'undefined') { bronzeItems.length = 0; if (typeof bronzeRender === 'function') bronzeRender(); }
+    setVal('qBronze', '');
+  }
+  function clearMarker() {
+    if (typeof markerItems !== 'undefined') { markerItems.length = 0; if (typeof markerRender === 'function') markerRender(); }
+    setVal('qMarkerType', ''); if (typeof populateMarkerSizes === 'function') populateMarkerSizes();
+  }
+  // the qBronze option with this exact value and label (Standard and Expressions share labels)
+  function bronzeOption(value, label) {
+    var sel = el('qBronze'); if (!sel) return -1;
+    for (var i = 0; i < sel.options.length; i++) {
+      var o = sel.options[i];
+      if (o.value === value && o.text.replace(/ — \$[\d,]+$/, '') === label) return i;
+    }
+    return -1;
+  }
   function clearVaseBlock() {
     setVal('qVBGroup', ''); if (typeof vbPopulateSizes === 'function') vbPopulateSizes();
     setVal('qVase', '');
@@ -28023,12 +28041,12 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
   // replacing a marker/foundation already on the quote. Returns { ok, sub, expected, message }.
   window.bwUprightImportRun = function(p, opts) {
     opts = opts || {};
-    var flat = p.type === 'flat';
-    var row = flat ? FLUSH_SIZES[p.row] : UPRIGHT_SIZES[p.s];
+    var flat = p.type === 'flat', bronze = flat && p.fm === 'bronze';
+    var row = bronze ? [p.bronze.name] : flat ? FLUSH_SIZES[p.row] : UPRIGHT_SIZES[p.s];
     if (!row) return { ok: false, message: 'Unknown memorial size.' };
     // uprights: rows 0-5 single, 6-9 companion (the designer's own order)
     if (!flat && (p.s > 9 || !/^Tablet /.test(row[0]))) return { ok: false, message: 'Unknown upright size ' + p.s + '.' };
-    var hasMarker = (typeof markerItems !== 'undefined' && markerItems.length) || val('qFoundation') || val('qVBGroup') || val('qVase') || importedRows().length;
+    var hasMarker = (typeof markerItems !== 'undefined' && markerItems.length) || (typeof bronzeItems !== 'undefined' && bronzeItems.length) || val('qFoundation') || val('qVBGroup') || val('qVase') || importedRows().length;
     if (hasMarker && opts.confirmReplace !== false &&
         !confirm('This cemetery quote already has a marker, foundation or vase on it. Replace them with the memorial from the designer?')) {
       return { ok: false, message: 'Cancelled.' };
@@ -28037,19 +28055,37 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
     if (typeEl && !typeEl.checked) { typeEl.checked = true; cemQuoteTypeChange(); }
     Array.prototype.forEach.call(importedRows(), function(r) { r.remove(); });
     var sub = 0, item;
-    if (flat) {
+    if (bronze) {
+      var bi = bronzeOption(p.bronze.value, p.bronze.opt);
+      if (bi < 0) return { ok: false, message: 'The bronze "' + p.bronze.opt + '" is not in the Bronze list.' };
+      clearMarker(); setVal('qFoundation', ''); clearVaseBlock();
+      bronzeItems.length = 0;
+      el('qBronze').selectedIndex = bi;
+      if (el('qty_bronze')) el('qty_bronze').value = '1';
+      bronzeAdd();
+      sub += parseFloat(p.bronze.value.split('|')[0]) || 0;
+      if (p.vase) {
+        if (!setVal('qVase', p.vase.price)) return { ok: false, message: 'The ' + p.vase.name + ' is not in the Vase list.' };
+        if (el('qty_vase')) el('qty_vase').value = '1';
+        sub += p.vase.price;
+      }
+    } else if (flat) {
+      clearBronze();
       item = addMarker('flush', p.row, p.group, ', ' + p.color);
       if (!item) return { ok: false, message: 'The marker could not be added to the quote.' };
       sub += item.price + item.install;
       setVal('qFoundation', '');
       if (p.vase) {
+        var n = p.n === 2 ? 2 : 1;      // a companion can carry a vase under each side
         setVal('qVBGroup', p.group); vbPopulateSizes(); setVal('qVBSize', 0);
-        if (el('qty_vb')) el('qty_vb').value = '1';
-        sub += (VASE_BLOCK_SIZES[0][MARKER_COLOR_IDX[p.group]] || 0) + VB_SET;
+        if (el('qty_vb')) el('qty_vb').value = String(n);
+        sub += ((VASE_BLOCK_SIZES[0][MARKER_COLOR_IDX[p.group]] || 0) + VB_SET) * n;
         if (!setVal('qVase', p.vase.price)) return { ok: false, message: 'The ' + p.vase.name + ' is not in the Vase list.' };
-        sub += p.vase.price;
+        if (el('qty_vase')) el('qty_vase').value = String(n);
+        sub += p.vase.price * n;
       } else clearVaseBlock();
     } else {
+      clearBronze();
       item = addMarker('upright', p.s, 'g2', ', ' + p.color + ', ' + String(p.topName || '').toLowerCase() + ' top');
       if (!item) return { ok: false, message: 'The upright could not be added to the quote.' };
       sub += item.price + item.install;
@@ -28061,7 +28097,8 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
       sub += fp;
       clearVaseBlock();
       if (UP_POLISH[p.p]) sub += addLine(UP_POLISH[p.p][1], UP_POLISH[p.p][0]);
-      if (p.m) sub += addLine('Polished margin on the upright base', UP_MARGIN);
+      if (p.m === 1) sub += addLine('Polished margin on the upright base', UP_MARGIN);
+      if (p.m === 2) sub += addLine('Upright base polished all over (P5)', UP_BASE_P5);
       if (p.f === 'rock') sub += addLine('Rock-pitched foundation sides (+10%)', r2(fp * UP_FOUND_ROCK));
       if (p.vases) sub += addLine(p.vases === 2 ? 'Two Paragon vases (2 × $685)' : 'One Paragon vase', UP_VASE * p.vases);
     }
@@ -28084,12 +28121,23 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
     if (!el('anMkEnabled').checked) { el('anMkEnabled').checked = true; anMkToggle(); }
     var cat = el(flat ? 'anoMkCatFlat' : 'anoMkCatUpright');
     if (cat && !cat.checked) { cat.checked = true; anoMkCategoryChange(); }
-    fillIfEmpty('anoMkManufacturer', 'PCM');
+    fillIfEmpty('anoMkManufacturer', flat && p.fm === 'bronze' ? 'Matthews or Coldspring' : 'PCM');
+    if (flat && p.fm === 'bronze') {
+      var bb = p.bronze;
+      setField('anoMkMonumentType', 'Flat bronze marker');
+      setField('anoMkBronzeSize', (bb.pair ? '2 × ' : '') + bb.bz[0] + 'x' + bb.bz[1]);
+      setField('anoMkFlatSize', '');
+      setField('anoMkFoundationSize', bb.base[0] + 'x' + bb.base[1] + (bb.concrete ? ' concrete' : ' Barrell Gray granite') + ' base');
+      setField('anoMkGraniteColor', bb.concrete ? 'Concrete base' : 'Barrell Gray base');
+      setField('anoMkVaseOption', p.vase ? 'Vase core' : 'No vase');
+      setField('anoMkVaseType', p.vase ? p.vase.name : '');
+      return;
+    }
     if (flat) {
       setField('anoMkMonumentType', 'Flat granite marker');
       setField('anoMkGraniteColor', p.color + ' (' + ({ g1nt: 'Group 1', g1t: 'Group 1 Tariffed', g2: 'Group 2' }[p.group] || p.group) + ')');
       setField('anoMkFlatSize', p.w + 'x' + p.l + 'x4');
-      setField('anoMkVaseOption', p.vase ? '12x12x4 granite vase block' : 'No vase');
+      setField('anoMkVaseOption', p.vase ? (p.n === 2 ? 'Two 12x12x4 granite vase blocks' : '12x12x4 granite vase block') : 'No vase');
       setField('anoMkVaseType', p.vase ? p.vase.name : '');
       return;
     }
@@ -28126,7 +28174,7 @@ function _fqB64ToBytes(b){var bin=atob(b),u=new Uint8Array(bin.length);for(var i
       try { show('cem-quote', _bwNavElFor('cem-quote')); } catch (e) {}
       setTimeout(function() {
         var what = (p.need === 'atneed' ? 'an At-Need' : 'a Pre-Need') + ' cemetery quote';
-        var desc = p.type === 'flat' ? 'Flat marker ' + p.w + 'x' + p.l + ', ' + p.color : (UPRIGHT_SIZES[p.s] || [''])[0] + ', ' + p.color;
+        var desc = p.type === 'flat' ? (p.fm === 'bronze' ? 'Bronze ' + p.bronze.name : 'Flat marker ' + p.w + 'x' + p.l + ', ' + p.color) : (UPRIGHT_SIZES[p.s] || [''])[0] + ', ' + p.color;
         if (!confirm('Import the memorial from the designer into ' + what + '?\n\n' + desc + '\nDesigner total with tax: ' + money(p.total))) return;
         var r = window.bwUprightImportRun(p);
         if (!r.ok && r.message !== 'Cancelled.') alert(r.message);

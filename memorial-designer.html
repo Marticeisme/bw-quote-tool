@@ -58,8 +58,9 @@ button{font-family:inherit;cursor:pointer;}
 .panel{max-width:1500px;margin:0 auto;padding:0 20px 24px;}
 .sheet{background:#fff;border:1px solid var(--gray-mid);border-radius:0 10px 10px 10px;padding:16px;}
 
-/* design: big viewer left, choices right */
-.design{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start;}
+/* design: choices left, big viewer right (Martice 11/21). On a phone the viewer stays on top. */
+.design{display:grid;grid-template-columns:400px minmax(0,1fr);gap:18px;align-items:start;}
+.side{order:-1;}
 .viewer{position:sticky;top:58px;}
 .vbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
 .seg{display:inline-flex;border:1.5px solid var(--navy);border-radius:8px;overflow:hidden;}
@@ -144,6 +145,7 @@ figcaption b{color:var(--text-dark);}
 
 @media(max-width:1000px){
   .design{grid-template-columns:1fr;}
+  .side{order:0;}
   .viewer{position:static;}
   .stage{height:62vh;min-height:340px;}
   .photos,.photos.c3,.simple{grid-template-columns:1fr;}
@@ -349,6 +351,36 @@ const FLAT_VASES = {
   hammer:  { name: 'Doric bronze vase, Hammered or Grecian', price: 1405 },
   veteran: { name: 'Bronze Grecian or Veterans vase', price: 1340 }
 };
+// Bronze flat markers: the quote tool's qBronze list (Standard, Expressions in Bronze, Veterans).
+// v = [total, memorial, base, install] exactly as the option value; opt = the option's label, used to
+// find it on import. Bronze and base sizes from the 11/04 cemetery price list. A vase-core version
+// takes one of the bronze vases (qVase), screwed into the core.
+const BRONZE = [
+  { k: 's2414', grp: 'Standard', name: 'Single 24″ × 14″', opt: 'Single 24×14 (No Vase)', v: [4105, 2810, 800, 495], bz: [24, 14], base: [28, 18] },
+  { k: 's2816', grp: 'Standard', name: 'Single 28″ × 16″', opt: 'Single 28×16 (No Vase)', v: [4820, 3335, 990, 495], bz: [28, 16], base: [32, 20] },
+  { k: 's2816c', grp: 'Standard', name: 'Single 28″ × 16″, concrete base', opt: 'Single 28×16 Concrete (No Vase)', v: [3830, 3335, 0, 495], bz: [28, 16], base: [28, 16], concrete: true },
+  { k: 'c4414', grp: 'Standard', name: 'Companion 44″ × 14″', comp: 1, opt: 'Companion 44×14 (No Vase)', v: [7645, 5560, 1290, 795], core: { opt: 'Companion 44×14 (w/Vase Core)', v: [7860, 5715, 1350, 795] }, bz: [44, 14], base: [48, 18] },
+  { k: 'c5616', grp: 'Standard', name: 'Companion 56″ × 16″', comp: 1, opt: 'Companion 56×16 (No Vase)', v: [9600, 8805, 0, 795], core: { opt: 'Companion 56×16 (w/Vase Core)', v: [9755, 8960, 0, 795] }, bz: [56, 16], base: [60, 20] },
+  { k: 'c6020', grp: 'Standard', name: 'Companion 60″ × 20″', comp: 1, opt: 'Companion 60×20 (No Vase)', v: [12315, 11520, 0, 795], core: { opt: 'Companion 60×20 (w/Vase Core)', v: [12475, 11680, 0, 795] }, bz: [60, 20], base: [64, 24] },
+  { k: 'half', grp: 'Standard', name: 'Half ledger 24″ × 30″', comp: 1, opt: 'Half Ledger – No Vase Core', v: [6525, 6030, 0, 495], core: { opt: 'Half Ledger – w/Vase Core', v: [6780, 6285, 0, 495] }, bz: [24, 30], base: [28, 34] },
+  { k: 'full', grp: 'Standard', name: 'Full ledger 32″ × 72″', opt: 'Full Ledger – No Vase Core', v: [25060, 24265, 0, 795], core: { opt: 'Full Ledger – w/Vase Core', v: [25220, 24425, 0, 795] }, bz: [32, 72], base: [36, 76] },
+  { k: 'lawn', grp: 'Standard', name: 'Lawn crypt 16″ × 24″', opt: 'Lawn Crypt (No Vase)', v: [4280, 3265, 520, 495], core: { opt: 'Lawn Crypt (w/Vase Core)', v: [4785, 3425, 865, 495] }, bz: [16, 24], base: [20, 28] },
+  { k: 'second', grp: 'Standard', name: 'Second-right marker 16″ × 8″', note: 'Below the primary marker', opt: '2nd Right Memorial', v: [2145, 1650, 0, 495], bz: [16, 8], base: [16, 8] },
+  { k: 'e2414', grp: 'Expressions', name: 'Single 24″ × 14″', opt: 'Single 24×14 (No Vase)', v: [6560, 5265, 800, 495], core: { opt: 'Single 24×14 (w/Vase Core)', v: [6715, 5420, 800, 495] }, bz: [24, 14], base: [28, 18] },
+  { k: 'e2816', grp: 'Expressions', name: 'Single 28″ × 16″', opt: 'Single 28×16 (No Vase)', v: [7170, 5685, 990, 495], bz: [28, 16], base: [32, 20] },
+  { k: 'e2816c', grp: 'Expressions', name: 'Single 28″ × 16″, concrete base', opt: 'Single 28×16 Concrete (No Vase)', v: [6180, 5685, 0, 495], bz: [28, 16], base: [28, 16], concrete: true },
+  { k: 'e4414', grp: 'Expressions', name: 'Companion 44″ × 14″', comp: 1, opt: 'Companion 44×14 (No Vase)', v: [10055, 7970, 1290, 795], core: { opt: 'Companion 44×14 (w/Vase Core)', v: [10275, 8130, 1350, 795] }, bz: [44, 14], base: [48, 18] },
+  { k: 'e5616', grp: 'Expressions', name: 'Companion 56″ × 16″', comp: 1, opt: 'Companion 56×16 (No Vase)', v: [11175, 10380, 0, 795], core: { opt: 'Companion 56×16 (w/Vase Core)', v: [11330, 10535, 0, 795] }, bz: [56, 16], base: [60, 20] },
+  { k: 'vafree', grp: 'Veterans', name: 'VA bronze, base and install', note: 'The VA supplies the bronze', opt: "Veteran's Free Bronze from VA – Base & Install", v: [1185, 0, 690, 495], bz: [24, 12], base: [28, 16] },
+  { k: 'vamatch', grp: 'Veterans', name: 'Government match 24″ × 12″', opt: "Veteran's Match Bronze", v: [3190, 2005, 690, 495], bz: [24, 12], base: [28, 16] },
+  { k: 'va1', grp: 'Veterans', name: 'VA match, 1 space', note: 'Two bronzes, one above the other', opt: 'VA Match: 1 Space, No Vase', v: [3725, 2005, 1225, 495], core: { opt: 'VA Match: 1 Space, w/Vase Core', v: [4340, 2005, 1540, 795], base: [28, 38] }, bz: [24, 12], pair: 'stack', base: [28, 30] },
+  { k: 'va1b', grp: 'Veterans', name: 'VA match, 1 space, 2 bronze', opt: 'VA Match: 1 Space, 2 Bronze – No Vase', v: [3985, 2005, 1485, 495], bz: [24, 12], pair: 'stack', base: [28, 38] },
+  { k: 'va2', grp: 'Veterans', name: 'VA match, 2 spaces', note: 'Two bronzes side by side', opt: 'VA Match: 2 Spaces, No Vase', v: [4010, 2005, 1210, 795], core: { opt: 'VA Match: 2 Spaces, w/Vase Core', v: [4465, 2005, 1665, 795], base: [62, 16] }, bz: [24, 12], pair: 'side', base: [54, 16] }
+];
+const BRONZE_GROUPS = { Standard: 'Bronze (Matthews or Coldspring)', Expressions: 'Expressions in Bronze', Veterans: 'Veterans' };
+const BRONZE_VASES = ['floral', 'hammer', 'veteran'];
+// Fully polished upright base: PCM's top polish tier, P5 "all polished" (Martice 11/21: "the highest one").
+const BASE_P5 = 960;
 const TAX = 0.104;
 
 // Granite: tile = upright-images/granite/<key>.jpg, hex = its average (drawn while it loads).
@@ -369,6 +401,11 @@ const colorName = k => k === 'Cats_Eye' ? "Cat's Eye" : k === 'Classic_Gray' ? '
 const TOPS = { serp: 'Serpentine', oval: 'Oval', flat: 'Flat' };
 const POLISH_TEXT = { P2: ['P2, standard', 'Polished front and back'], P3: ['P3', 'Top polished too'], P5: ['P5', 'Polished all over'] };
 
+const bronzeOf = st => BRONZE.find(b => b.k === st.bk) || BRONZE[0];
+// granite flats: how many vase blocks. A companion can have one under one side or one under each
+// side; vases are never centered across two spaces (Martice 11/21).
+const canTwoVases = fl => !!(fl.comp || fl.note === 'Single or companion');
+const vaseBlocks = st => st.fv === 'none' ? 0 : (canTwoVases(FLATS[st.fs]) ? st.fn : 1);
 function foundationFor(s) {
   // smallest listed foundation at least 4in wider and 10in deeper than the base (room for vases)
   const ok = FOUNDATIONS.filter(f => f[0] >= s.bw + 4 && f[1] >= s.bd + 10).sort((a, b) => a[0] * a[1] - b[0] * b[1]);
@@ -376,7 +413,7 @@ function foundationFor(s) {
 }
 
 /* ═════════════ 2. STATE ═════════════ */
-const DEFAULTS = { type: 'upright', s: 2, c: 'Absolute_Black', top: 'serp', p: 'P2', m: 0, f: 'sawn', v: 0, fs: 0, fc: 'Absolute_Black', fv: 'none' };
+const DEFAULTS = { type: 'upright', s: 2, c: 'Absolute_Black', top: 'serp', p: 'P2', m: 0, f: 'sawn', v: 0, fs: 0, fc: 'Absolute_Black', fv: 'none', fn: 1, fm: 'granite', bk: 's2414', bcore: 0, bv: 'floral' };
 let state = Object.assign({}, DEFAULTS);
 (function readUrl() {
   const q = new URLSearchParams(location.search);
@@ -386,16 +423,21 @@ let state = Object.assign({}, DEFAULTS);
   state.c = G2.some(c => c[0] === q.get('c')) ? q.get('c') : DEFAULTS.c;
   state.top = TOPS[q.get('top')] ? q.get('top') : DEFAULTS.top;
   state.p = q.get('p') in POLISH ? q.get('p') : DEFAULTS.p;
-  state.m = q.get('m') === '1' ? 1 : 0;
+  state.m = n('m', 0, 2, 0);
   state.f = q.get('f') === 'rock' ? 'rock' : 'sawn';
   state.v = n('v', 0, 2, 0);
   state.fs = n('fs', 0, FLATS.length - 1, 0);
   state.fc = HEX[q.get('fc')] ? q.get('fc') : DEFAULTS.fc;
   state.fv = FLAT_VASES[q.get('fv')] ? q.get('fv') : 'none';
+  state.fn = n('fn', 1, 2, 1);
+  state.fm = q.get('fm') === 'bronze' ? 'bronze' : 'granite';
+  state.bk = BRONZE.some(b => b.k === q.get('bk')) ? q.get('bk') : DEFAULTS.bk;
+  state.bcore = n('bcore', 0, 1, 0);
+  state.bv = BRONZE_VASES.includes(q.get('bv')) ? q.get('bv') : DEFAULTS.bv;
 })();
 function writeUrl() {
   const q = new URLSearchParams();
-  ['type', 's', 'c', 'top', 'p', 'm', 'f', 'v', 'fs', 'fc', 'fv'].forEach(k => q.set(k, state[k]));
+  ['type', 's', 'c', 'top', 'p', 'm', 'f', 'v', 'fs', 'fc', 'fv', 'fn', 'fm', 'bk', 'bcore', 'bv'].forEach(k => q.set(k, state[k]));
   if (/[?&]dev(=|&|$)/.test(location.search)) q.set('dev', '1');
   try { history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash); } catch (e) {}
 }
@@ -410,19 +452,28 @@ function calc(st = state) {
     const s = UPRIGHTS[st.s], f = foundationFor(s);
     lines.push({ label: (s.comp ? 'Companion upright' : 'Upright') + ', ' + s.tw + '″ × ' + s.th + '″ tablet', sub: s.tt + '″ thick on a ' + s.bw + '″ base · ' + colorName(st.c) + ' · ' + TOPS[st.top].toLowerCase() + ' top', amount: s.price });
     if (POLISH[st.p]) lines.push({ label: 'Tablet finish ' + st.p, sub: POLISH_TEXT[st.p][1].toLowerCase(), amount: POLISH[st.p] });
-    if (st.m) lines.push({ label: 'Polished margin on the base', amount: MARGIN });
+    if (st.m === 1) lines.push({ label: 'Polished margin on the base', amount: MARGIN });
+    if (st.m === 2) lines.push({ label: 'Base polished all over (P5)', amount: BASE_P5 });
     lines.push({ label: 'Foundation ' + f.fw + '″ × ' + f.fd + '″', sub: 'Barrell Gray', amount: f.price });
     if (st.f === 'rock') lines.push({ label: 'Rock-pitched foundation sides', sub: 'adds 10%', amount: r2(f.price * FOUND_ROCK) });
     if (st.v) lines.push({ label: (st.v === 2 ? 'Two Paragon vases' : 'One Paragon vase'), sub: whole(PARAGON) + ' each', amount: PARAGON * st.v });
     lines.push({ label: 'Installation', amount: UPRIGHT_INSTALL });
   } else {
-    const fl = FLATS[st.fs], g = GROUP_OF[st.fc];
-    lines.push({ label: (fl.ledger ? 'Ledger ' : fl.comp ? 'Companion flat marker ' : 'Flat marker ') + fl.w + '″ × ' + fl.l + '″', sub: colorName(st.fc) + ' · ' + GROUP_NAMES[g], amount: fl.p[g] });
-    lines.push({ label: 'Installation', amount: fl.inst });
-    if (st.fv !== 'none') {
-      lines.push({ label: 'Vase block 12″ × 12″', sub: colorName(st.fc), amount: VASE_BLOCK[g] });
-      lines.push({ label: 'Vase block setting', amount: VASE_BLOCK_SET });
-      lines.push({ label: FLAT_VASES[st.fv].name, amount: FLAT_VASES[st.fv].price });
+    if (st.fm === 'bronze') {
+      const b = bronzeOf(st), core = !!(st.bcore && b.core), v = core ? b.core.v : b.v, base = (core && b.core.base) || b.base;
+      if (v[1]) lines.push({ label: (b.grp === 'Expressions' ? 'Expressions in Bronze, ' : b.grp === 'Veterans' ? '' : 'Bronze marker, ') + b.name.replace(/, concrete base$/, ''), sub: (b.pair ? 'two 24″ × 12″ bronzes' : '') + (core ? (b.pair ? ', ' : '') + 'with a vase core' : ''), amount: v[1] });
+      if (v[2]) lines.push({ label: 'Base ' + base[0] + '″ × ' + base[1] + '″', sub: b.concrete ? 'concrete' : 'Barrell Gray granite', amount: v[2] });
+      lines.push({ label: 'Installation', amount: v[3] });
+      if (core) lines.push({ label: FLAT_VASES[st.bv].name, amount: FLAT_VASES[st.bv].price });
+    } else {
+      const fl = FLATS[st.fs], g = GROUP_OF[st.fc], n = vaseBlocks(st);
+      lines.push({ label: (fl.ledger ? 'Ledger ' : fl.comp ? 'Companion flat marker ' : 'Flat marker ') + fl.w + '″ × ' + fl.l + '″', sub: colorName(st.fc) + ' · ' + GROUP_NAMES[g], amount: fl.p[g] });
+      lines.push({ label: 'Installation', amount: fl.inst });
+      if (n) {
+        lines.push({ label: (n === 2 ? 'Two vase blocks' : 'Vase block') + ' 12″ × 12″', sub: colorName(st.fc), amount: VASE_BLOCK[g] * n });
+        lines.push({ label: n === 2 ? 'Vase block setting, two' : 'Vase block setting', amount: VASE_BLOCK_SET * n });
+        lines.push({ label: (n === 2 ? 'Two ' : '') + FLAT_VASES[st.fv].name + (n === 2 ? 's' : ''), sub: n === 2 ? whole(FLAT_VASES[st.fv].price) + ' each' : '', amount: FLAT_VASES[st.fv].price * n });
+      }
     }
   }
   const sub = r2(lines.reduce((a, l) => a + l.amount, 0)), tax = r2(sub * TAX);
@@ -710,7 +761,7 @@ function buildUpright(st) {
   const yb = y0 + M.FH;
   grp.add(prism(rectOutline(s.bw, s.bd), s.bh,
     (u, v, t) => new THREE.Vector3(u - s.bw / 2, yb + t, v + M.bz0), (nu, nv) => new THREE.Vector3(nu, 0, nv),
-    { cap1: 'polished', wall: () => 'rock', band: st.m ? 2 : 0, amp: 0.6, capNormal: d => d > 0 ? up : up.clone().negate() }, mats));
+    { cap1: 'polished', wall: () => st.m === 2 ? 'polished' : 'rock', band: st.m === 1 ? 2 : 0, amp: 0.6, capNormal: d => d > 0 ? up : up.clone().negate() }, mats));
   // tablet: outline is the front shape (x, y), swept back by its thickness
   const yt = yb + s.bh, zFront = M.tz + s.tt;
   const wallFin = (i, n) => {
@@ -752,21 +803,75 @@ function flatVase(kind) {
   return g;
 }
 
-function buildFlat(st) {
-  const fl = FLATS[st.fs], mats = materials(st.fc), grp = new THREE.Group(), up = new THREE.Vector3(0, 1, 0);
-  // set into the lawn: the polished top sits half an inch above the grass, the sawn sides below
-  const top = 0.5, T = 4;
-  const slab = (w, l, cx) => prism(rectOutline(w, l), T,
-    (u, v, t) => new THREE.Vector3(cx + u - w / 2, top - T + t, v - l / 2), (nu, nv) => new THREE.Vector3(nu, 0, nv),
-    { cap1: 'polished', wall: () => 'sawn', amp: 0, capNormal: d => d > 0 ? up : up.clone().negate() }, mats);
-  const hasVase = st.fv !== 'none', gap = 4;
-  const total = fl.w + (hasVase ? gap + 12 : 0), mx = -total / 2 + fl.w / 2;
-  grp.add(slab(fl.w, fl.l, mx));
-  if (hasVase) {
-    const bx = mx + fl.w / 2 + gap + 6;
-    grp.add(slab(12, 12, bx));
-    const v = flatVase(st.fv); v.position.set(bx, top, 0); grp.add(v);
+// Plan of a flat memorial, inches: x to the right, z toward the viewer ("below" on the drawing).
+function flatLayout(st) {
+  const P = [], V = [], gap = 4;
+  if (st.fm === 'bronze') {
+    const b = bronzeOf(st), core = !!(st.bcore && b.core), base = (core && b.core.base) || b.base;
+    P.push({ kind: b.concrete ? 'concrete' : 'base', w: base[0], l: base[1], x: 0, z: 0 });
+    const [bw, bl] = b.bz;
+    if (b.pair === 'stack') {
+      const z0 = -base[1] / 2 + 2 + bl / 2;
+      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: z0 }, { kind: 'bronze', w: bw, l: bl, x: 0, z: z0 + bl + 1.5 });
+      if (core) V.push({ x: 0, z: base[1] / 2 - 5, kind: st.bv });
+    } else if (b.pair === 'side') {
+      const dx = core ? (bw / 2 + 7) : (bw / 2 + 1.5);
+      P.push({ kind: 'bronze', w: bw, l: bl, x: -dx, z: 0 }, { kind: 'bronze', w: bw, l: bl, x: dx, z: 0 });
+      if (core) V.push({ x: 0, z: 0, kind: st.bv });
+    } else {
+      P.push({ kind: 'bronze', w: bw, l: bl, x: 0, z: 0 });
+      // the vase core: centered on a companion, at one end of a single (cast into the bronze)
+      if (core) V.push({ x: b.comp && b.k !== 'half' ? 0 : bw / 2 - 4, z: b.k === 'half' || b.k === 'full' || b.k === 'lawn' ? -bl / 2 + 5 : 0, kind: st.bv });
+    }
+  } else {
+    const fl = FLATS[st.fs], n = vaseBlocks(st);
+    P.push({ kind: 'granite', w: fl.w, l: fl.l, x: 0, z: 0 });
+    // blocks sit below the marker: one centered on a single; under one side, or one under each side, on a companion
+    const xs = n === 0 ? [] : !canTwoVases(fl) ? [0] : n === 2 ? [-fl.w / 4, fl.w / 4] : [-fl.w / 4];
+    xs.forEach(x => { const z = fl.l / 2 + gap + 6; P.push({ kind: 'block', w: 12, l: 12, x, z }); V.push({ x, z, kind: st.fv }); });
   }
+  // center the whole arrangement
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+  P.forEach(p => { x0 = Math.min(x0, p.x - p.w / 2); x1 = Math.max(x1, p.x + p.w / 2); z0 = Math.min(z0, p.z - p.l / 2); z1 = Math.max(z1, p.z + p.l / 2); });
+  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  P.forEach(p => { p.x -= cx; p.z -= cz; }); V.forEach(v => { v.x -= cx; v.z -= cz; });
+  return { P, V, W: x1 - x0, L: z1 - z0 };
+}
+const bronzeMat = () => new THREE.MeshStandardMaterial({ color: 0x6e4f2c, roughness: 0.45, metalness: 0.85 });
+function bronzePlate(w, l, x, z, y) {
+  // a cast plate with a raised border and a darker field, like the Matthews and Coldspring castings
+  const g = new THREE.Group(), m = bronzeMat(), dark = new THREE.MeshStandardMaterial({ color: 0x4a3420, roughness: 0.6, metalness: 0.8 });
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, l), m); plate.position.set(x, y + 0.25, z); g.add(plate);
+  const field = new THREE.Mesh(new THREE.BoxGeometry(w - 2.2, 0.08, l - 2.2), dark); field.position.set(x, y + 0.52, z); g.add(field);
+  [[0, -(l / 2 - 0.55), w - 0.2, 0.7], [0, l / 2 - 0.55, w - 0.2, 0.7], [-(w / 2 - 0.55), 0, 0.7, l - 0.2], [w / 2 - 0.55, 0, 0.7, l - 0.2]].forEach(([dx, dz, bw, bl]) => {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.22, bl), m); r.position.set(x + dx, y + 0.6, z + dz); g.add(r);
+  });
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } });
+  return g;
+}
+let concreteCache = null;
+function concreteMats() {
+  if (concreteCache) return concreteCache;
+  const m = new THREE.MeshStandardMaterial({ color: 0xb9b5ab, roughness: 0.95 });
+  return (concreteCache = [m, m, m]);
+}
+function buildFlat(st) {
+  const L = flatLayout(st), grp = new THREE.Group(), up = new THREE.Vector3(0, 1, 0);
+  // set into the lawn: the polished top sits a quarter inch above the grass, the sides below it
+  const top = 0.25, T = 4;
+  const slab = (p, mats, concrete) => {
+    const m = prism(rectOutline(p.w, p.l), T,
+      (u, v, t) => new THREE.Vector3(p.x + u - p.w / 2, top - T + t, p.z + v - p.l / 2), (nu, nv) => new THREE.Vector3(nu, 0, nv),
+      { cap1: concrete ? 'sawn' : 'polished', wall: () => 'sawn', amp: 0, capNormal: d => d > 0 ? up : up.clone().negate() }, mats);
+    m.castShadow = false;            // a flush stone casts no shadow; one made it look like it floated
+    return m;
+  };
+  L.P.forEach(p => {
+    if (p.kind === 'bronze') grp.add(bronzePlate(p.w, p.l, p.x, p.z, top));
+    else if (p.kind === 'concrete') grp.add(slab(p, concreteMats(), true));
+    else grp.add(slab(p, materials(p.kind === 'base' ? 'Barrell_Gray' : st.fc)));
+  });
+  L.V.forEach(v => { const m = flatVase(v.kind); m.position.set(v.x, top + (st.fm === 'bronze' ? 0.5 : 0), v.z); grp.add(m); });
   return grp;
 }
 
@@ -780,7 +885,7 @@ function rebuild3D() {
   stoneGroup = state.type === 'upright' ? buildUpright(state) : buildFlat(state);
   scene.add(stoneGroup);
   ground.position.y = 0;
-  const key = state.type + (state.type === 'upright' ? state.s : state.fs);
+  const key = state.type + (state.type === 'upright' ? state.s : state.fm + (state.fm === 'bronze' ? state.bk + state.bcore : state.fs + state.fv + state.fn));
   if (key !== lastFrameKey) { frame(); lastFrameKey = key; }
   needsRender = true;
 }
@@ -791,8 +896,10 @@ function frame() {
   // fit both the height and the width of the view, so a narrow phone screen does not crop the stone
   const vHalf = THREE.MathUtils.degToRad(camera.fov / 2), hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
   const dist = R / Math.sin(Math.min(vHalf, hHalf)) * (flat ? 0.95 : 1.0);
-  const az = THREE.MathUtils.degToRad(state.type === 'upright' ? 32 : 25), el = THREE.MathUtils.degToRad(state.type === 'upright' ? 14 : 34);
+  const az = THREE.MathUtils.degToRad(state.type === 'upright' ? 32 : 25), el = THREE.MathUtils.degToRad(state.type === 'upright' ? 14 : 40);
+  if (flat) c.y = 0.3;                 // turn around the stone's face, not a point buried in the lawn
   controls.target.copy(c);
+  controls.maxPolarAngle = flat ? THREE.MathUtils.degToRad(68) : Math.PI * 0.495;
   camera.position.set(c.x + dist * Math.cos(el) * Math.sin(az), c.y + dist * Math.sin(el), c.z + dist * Math.cos(el) * Math.cos(az));
   controls.minDistance = dist * 0.35; controls.maxDistance = dist * 2.2;
   camera.near = dist / 50; camera.far = dist * 20; camera.updateProjectionMatrix();
@@ -830,7 +937,7 @@ function uprightFrontSvg(st, opts = {}) {
   o.push(`<rect x="${fx - 12}" y="${-M.reveal}" width="${f.fw + 24}" height="${M.reveal + 2}" fill="#8db271"/>`);
   o.push(`<rect x="${fx}" y="${-FH}" width="${f.fw}" height="${FH}" fill="url(#${id}f)" stroke="#7d8790" stroke-width=".1"/>`);
   o.push(`<rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="url(#${id}s)"/><rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="#fff" opacity="${st.m ? 0 : .2}"/>`);
-  if (st.m) o.push(`<rect x="${bx}" y="${-ty + 2}" width="${s.bw}" height="${s.bh - 2}" fill="#fff" opacity=".2"/>`);
+  if (st.m === 1) o.push(`<rect x="${bx}" y="${-ty + 2}" width="${s.bw}" height="${s.bh - 2}" fill="#fff" opacity=".2"/>`);
   const outer = tabletOutline(st.top, s.tw, s.th).map(p => R(tx + p[0], ty + p[1]));
   o.push(`<path d="${poly(outer)}" fill="url(#${id}s)" stroke="${st.p === 'P5' ? '#fff' : '#cfd3d6'}" stroke-width="${st.p === 'P5' ? .15 : .6}" stroke-opacity=".6"/>`);
   (st.v === 2 ? [-1, 1] : st.v === 1 ? [-1] : []).forEach(sx => {
@@ -851,23 +958,28 @@ function uprightFrontSvg(st, opts = {}) {
   return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Front view with measurements"><defs>${patDef(id + 's', st.c)}${patDef(id + 'f', 'Barrell_Gray')}${ARROW}</defs>${o.join('')}</svg>`;
 }
 function flatTopSvg(st, opts = {}) {
-  const fl = FLATS[st.fs], id = 'f' + (opts.id || ''), o = [], hasV = st.fv !== 'none', gap = 4;
-  const total = fl.w + (hasV ? gap + 12 : 0), x0 = -total / 2;
-  o.push(`<rect x="${x0 - 8}" y="${-fl.l / 2 - 8}" width="${total + 16}" height="${fl.l + 16}" fill="#8db271" rx="2"/>`);
-  o.push(`<rect x="${x0}" y="${-fl.l / 2}" width="${fl.w}" height="${fl.l}" fill="url(#${id}s)" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
-  if (hasV) {
-    const bx = x0 + fl.w + gap;
-    o.push(`<rect x="${bx}" y="-6" width="12" height="12" fill="url(#${id}s)" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
-    o.push(`<circle cx="${bx + 6}" cy="0" r="3.4" fill="#7a5a32" stroke="#c9a35a" stroke-width=".25"/>`);
-  }
+  // seen from above, from the same layout as the 3D view
+  const L = flatLayout(st), id = 'f' + (opts.id || ''), o = [];
+  const x0 = -L.W / 2, y0 = -L.L / 2;
+  o.push(`<rect x="${x0 - 8}" y="${y0 - 8}" width="${L.W + 16}" height="${L.L + 16}" fill="#8db271" rx="2"/>`);
+  L.P.forEach(p => {
+    const r = `x="${p.x - p.w / 2}" y="${p.z - p.l / 2}" width="${p.w}" height="${p.l}"`;
+    if (p.kind === 'bronze') o.push(`<rect ${r} fill="#6e4f2c" stroke="#c9a35a" stroke-width=".5"/><rect x="${p.x - p.w / 2 + 1.1}" y="${p.z - p.l / 2 + 1.1}" width="${p.w - 2.2}" height="${p.l - 2.2}" fill="#4a3420"/>`);
+    else if (p.kind === 'concrete') o.push(`<rect ${r} fill="#bdb9b0" stroke="#000" stroke-opacity=".25" stroke-width=".12"/>`);
+    else o.push(`<rect ${r} fill="url(#${id}${p.kind === 'base' ? 'b' : 's'})" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
+  });
+  L.V.forEach(v => o.push(`<circle cx="${v.x}" cy="${v.z}" r="3.2" fill="#7a5a32" stroke="#c9a35a" stroke-width=".25"/>`));
   if (!opts.mini) {
-    o.push(svgDims(x0, -fl.l / 2, x0 + fl.w, -fl.l / 2, fmtIn(fl.w), -3, false, 2));
-    o.push(svgDims(x0, fl.l / 2, x0, -fl.l / 2, fmtIn(fl.l), -6.5, true, 2));
-    if (hasV) o.push(svgDims(x0 + fl.w + gap, 6, x0 + fl.w + gap + 12, 6, '12″ vase block', 4, false, 1.6));
+    const main = L.P[0];
+    o.push(svgDims(main.x - main.w / 2, main.z - main.l / 2, main.x + main.w / 2, main.z - main.l / 2, fmtIn(main.w) + (st.fm === 'bronze' ? ' base' : ''), -3, false, 2));
+    o.push(svgDims(main.x - main.w / 2, main.z + main.l / 2, main.x - main.w / 2, main.z - main.l / 2, fmtIn(main.l), -6.5, true, 2));
+    if (st.fm === 'bronze') { const b = L.P[1]; o.push(`<text x="${b.x}" y="${b.z + 0.7}" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="1.7" font-weight="700" fill="#f3dfb2">${b.w}″ × ${b.l}″ bronze</text>`); }
+    const blk = L.P.find(p => p.kind === 'block');
+    if (blk) o.push(svgDims(blk.x - 6, blk.z + 6, blk.x + 6, blk.z + 6, '12″ vase block', 3, false, 1.6));
   }
-  const vb = opts.mini ? [x0 - 9, -fl.l / 2 - 9, total + 18, fl.l + 18] : [x0 - 16, -fl.l / 2 - 12, total + 28, fl.l + 26];
+  const vb = opts.mini ? [x0 - 9, y0 - 9, L.W + 18, L.L + 18] : [x0 - 16, y0 - 12, L.W + 32, L.L + 26];
   const size = opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Top view with measurements"><defs>${patDef(id + 's', st.fc)}${ARROW}</defs>${o.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Top view with measurements"><defs>${patDef(id + 's', st.fc)}${patDef(id + 'b', 'Barrell_Gray')}${ARROW}</defs>${o.join('')}</svg>`;
 }
 function measuredHtml() {
   const svg = state.type === 'upright' ? uprightFrontSvg(state) : flatTopSvg(state);
@@ -877,17 +989,18 @@ function measuredHtml() {
 let cmpFilter = 'all';
 function compareHtml() {
   const isU = state.type === 'upright';
-  const list = isU ? UPRIGHTS : FLATS;
-  const k = isU ? 3.3 : 2.6;
+  const isB = !isU && state.fm === 'bronze';
+  const list = isU ? UPRIGHTS : isB ? BRONZE : FLATS;
+  const k = isU ? 3.3 : isB ? 2.2 : 2.6;
   const filters = isU ? [['all', 'All'], ['single', 'Single'], ['comp', 'Companion']] : [['all', 'All']];
   const bar = `<div style="display:flex;gap:6px;align-items:center;padding:10px 12px 0;flex-wrap:wrap">${filters.length > 1 ? filters.map(f => `<button class="opt cmpf" data-f="${f[0]}" aria-pressed="${cmpFilter === f[0]}" style="padding:4px 10px;font-weight:600">${f[1]}</button>`).join('') : ''}<span style="font-size:12.5px;color:#5a6a7a;margin-left:auto">${isU ? 'Front views' : 'Seen from above'}, all at the same scale, in your granite and options. Tap one to pick it.</span></div>`;
   const cards = list.map((it, i) => {
     if (isU && ((cmpFilter === 'single' && it.comp) || (cmpFilter === 'comp' && !it.comp))) return '';
-    const st = Object.assign({}, state, isU ? { s: i } : { fs: i });
-    const sel = isU ? state.s === i : state.fs === i;
+    const st = Object.assign({}, state, isU ? { s: i } : isB ? { bk: it.k, bcore: 0 } : { fs: i });
+    const sel = isU ? state.s === i : isB ? state.bk === it.k : state.fs === i;
     const svg = isU ? uprightFrontSvg(st, { mini: true, k, id: 'c' + i }) : flatTopSvg(st, { mini: true, k, id: 'c' + i });
-    const title = isU ? `${it.tw}″ × ${it.th}″` : `${it.w}″ × ${it.l}″`;
-    const tag = isU ? (it.comp ? 'Companion' : 'Single') : (it.ledger ? 'Ledger' : it.comp ? 'Companion' : 'Single');
+    const title = isU ? `${it.tw}″ × ${it.th}″` : isB ? it.name : `${it.w}″ × ${it.l}″`;
+    const tag = isU ? (it.comp ? 'Companion' : 'Single') : isB ? (it.grp === 'Expressions' ? 'Expressions' : it.grp === 'Veterans' ? 'Veterans' : it.comp ? 'Companion' : 'Single') : (it.ledger ? 'Ledger' : it.comp ? 'Companion' : it.note ? 'Single or companion' : 'Single');
     return `<button class="cmpcard" data-i="${i}" aria-pressed="${sel}" style="border:1.5px solid ${sel ? '#e84610' : '#c8d4de'};background:${sel ? '#fff6f2' : '#fff'};border-radius:10px;padding:8px;text-align:center;font-size:12px;line-height:1.3">
       <span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:${tag === 'Single' ? '#466e86' : '#e84610'};border-radius:8px;padding:0 6px;margin-bottom:4px">${tag}</span>${svg}
       <b style="display:block;color:#1a2332;font-size:13px;margin-top:4px">${title}</b><span style="color:#c23a0d;font-weight:700;font-size:13px">${money(calc(st).total)}</span></button>`;
@@ -914,17 +1027,31 @@ function stepsHtml() {
     h.push(H('Granite'), swatches(G2, st.c, 'c'), `<div class="cname">${colorName(st.c)}</div>`);
     h.push(H('Top'), opts(Object.keys(TOPS).map(k => ({ v: k, b: TOPS[k] })), st.top, 'top', 'c3'));
     h.push(H('Tablet finish'), opts(['P2', 'P3', 'P5'].map(k => ({ v: k, b: POLISH_TEXT[k][0], s: POLISH_TEXT[k][1], p: POLISH[k] ? '+' + whole(POLISH[k]) : 'Included' })), st.p, 'p', 'c3'));
-    h.push(H('Base'), opts([{ v: 0, b: 'Standard', s: 'Rough sides', p: 'Included' }, { v: 1, b: 'Polished margin', s: 'Smooth top band', p: '+' + whole(MARGIN) }], st.m, 'm', 'c2'));
+    h.push(H('Base'), opts([{ v: 0, b: 'Standard', s: 'Rough sides', p: 'Included' }, { v: 1, b: 'Polished margin', s: 'Smooth top band', p: '+' + whole(MARGIN) }, { v: 2, b: 'All polished', s: 'P5 base', p: '+' + whole(BASE_P5) }], st.m, 'm', 'c3'));
     const f = foundationFor(UPRIGHTS[st.s]);
     h.push(H('Foundation'), opts([{ v: 'sawn', b: 'Sawn sides', p: 'Included' }, { v: 'rock', b: 'Rough sides', p: '+' + money(r2(f.price * FOUND_ROCK)).replace('.00', '') }], st.f, 'f', 'c2'),
       `<div class="note">${f.fw}″ × ${f.fd}″ Barrell Gray. The monument company confirms the final size.</div>`);
     h.push(H('Paragon vases'), opts([{ v: 0, b: 'None' }, { v: 1, b: 'One', p: whole(PARAGON) }, { v: 2, b: 'Two', p: whole(PARAGON * 2) }], st.v, 'v', 'c3'));
   } else {
-    const g = GROUP_OF[st.fc];
-    h.push(H('Size'), opts(FLATS.map((fl, i) => ({ v: i, b: `${fl.w}″ × ${fl.l}″`, s: fl.note || (fl.comp ? 'Companion' : 'Single'), p: 'from ' + whole(fl.p[0]) })), st.fs, 'fs', 'c3'));
-    h.push(H('Granite'), '<div class="grp">Group 1</div>', swatches(G1.concat(G1T), st.fc, 'fc'), '<div class="grp">Group 2</div>', swatches(G2, st.fc, 'fc'), `<div class="cname">${colorName(st.fc)} · ${GROUP_NAMES[g]}</div>`);
-    h.push(H('Vase'), opts([{ v: 'none', b: 'No vase' }].concat(Object.keys(FLAT_VASES).map(k => ({ v: k, b: FLAT_VASES[k].name.replace(/ vase/i, ''), p: whole(FLAT_VASES[k].price) }))), st.fv, 'fv', 'c2'),
-      st.fv !== 'none' ? `<div class="note">Plus a 12″ granite vase block in the same stone (${whole(VASE_BLOCK[g])}) and ${whole(VASE_BLOCK_SET)} to set it.</div>` : '');
+    h.push(H('Material'), opts([{ v: 'granite', b: 'Granite' }, { v: 'bronze', b: 'Bronze', s: 'On a granite or concrete base' }], st.fm, 'fm', 'c2'));
+    if (st.fm === 'bronze') {
+      Object.keys(BRONZE_GROUPS).forEach(gk => {
+        const items = BRONZE.filter(b => b.grp === gk).map(b => ({ v: b.k, b: b.name, s: b.note || '', p: whole(b.v[0]) }));
+        h.push(`<div class="grp">${BRONZE_GROUPS[gk]}</div>`, opts(items, st.bk, 'bk', 'c2'));
+      });
+      const b = bronzeOf(st);
+      if (b.core) {
+        h.push(H('Vase'), opts([{ v: 0, b: 'No vase' }, { v: 1, b: 'With a vase core', p: '+' + whole(b.core.v[0] - b.v[0]) + ' + vase' }], st.bcore, 'bcore', 'c2'));
+        if (st.bcore) h.push(opts(BRONZE_VASES.map(k => ({ v: k, b: FLAT_VASES[k].name.replace(/ vase$/i, ''), p: whole(FLAT_VASES[k].price) })), st.bv, 'bv', 'c3'));
+      } else h.push(H('Vase'), '<div class="note">This size has no vase core.</div>');
+    } else {
+      const g = GROUP_OF[st.fc], fl = FLATS[st.fs];
+      h.push(H('Size'), opts(FLATS.map((fl, i) => ({ v: i, b: `${fl.w}″ × ${fl.l}″`, s: fl.note || (fl.comp ? 'Companion' : 'Single'), p: 'from ' + whole(fl.p[0]) })), st.fs, 'fs', 'c3'));
+      h.push(H('Granite'), '<div class="grp">Group 1</div>', swatches(G1.concat(G1T), st.fc, 'fc'), '<div class="grp">Group 2</div>', swatches(G2, st.fc, 'fc'), `<div class="cname">${colorName(st.fc)} · ${GROUP_NAMES[g]}</div>`);
+      h.push(H('Vase'), opts([{ v: 'none', b: 'No vase' }].concat(Object.keys(FLAT_VASES).map(k => ({ v: k, b: FLAT_VASES[k].name.replace(/ vase/i, ''), p: whole(FLAT_VASES[k].price) }))), st.fv, 'fv', 'c2'));
+      if (st.fv !== 'none' && canTwoVases(fl)) h.push(opts([{ v: 1, b: 'One vase', s: 'Under one side' }, { v: 2, b: 'Two vases', s: 'One under each side' }], st.fn, 'fn', 'c2'));
+      if (st.fv !== 'none') h.push(`<div class="note">Each vase sits in its own 12″ granite block in the same stone (${whole(VASE_BLOCK[g])}), plus ${whole(VASE_BLOCK_SET)} to set it.</div>`);
+    }
   }
   return h.join('');
 }
@@ -957,14 +1084,15 @@ function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add
 $('steps').addEventListener('click', e => {
   const b = e.target.closest('.opt, .sw'); if (!b) return;
   const key = b.parentElement.getAttribute('data-key'), raw = b.getAttribute('data-v');
-  state[key] = /^(s|m|v|fs)$/.test(key) ? +raw : raw;
+  state[key] = /^(s|m|v|fs|fn|bcore)$/.test(key) ? +raw : raw;
   update();
 });
 $('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.type = b.getAttribute('data-t'); cmpFilter = 'all'; update(); });
 $('viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; view = b.getAttribute('data-v'); update({ geom: false }); if (view === '3d') { resize(); needsRender = true; } });
 $('flat2d').addEventListener('click', e => {
   const f = e.target.closest('.cmpf'); if (f) { cmpFilter = f.getAttribute('data-f'); update({ geom: false }); return; }
-  const c = e.target.closest('.cmpcard'); if (c) { state[state.type === 'upright' ? 's' : 'fs'] = +c.getAttribute('data-i'); update(); }
+  const c = e.target.closest('.cmpcard');
+  if (c) { const i = +c.getAttribute('data-i'); if (state.type === 'upright') state.s = i; else if (state.fm === 'bronze') { state.bk = BRONZE[i].k; state.bcore = 0; } else state.fs = i; update(); }
 });
 $('resetView').addEventListener('click', () => { if (stoneGroup) frame(); });
 $('resetBtn').addEventListener('click', () => { const t = state.type; state = Object.assign({}, DEFAULTS, { type: t }); view = '3d'; cmpFilter = 'all'; lastFrameKey = ''; update(); toast('Started over.'); });
@@ -993,8 +1121,13 @@ function importTo(need) {
     const f = foundationFor(UPRIGHTS[state.s]);
     Object.assign(payload, { s: state.s, c: state.c, color: colorName(state.c), top: state.top, topName: TOPS[state.top], p: state.p, m: state.m, f: state.f, vases: state.v, found: { w: f.fw, d: f.fd, price: f.price } });
   } else {
-    const fl = FLATS[state.fs], g = GROUP_OF[state.fc];
-    Object.assign(payload, { row: fl.row, w: fl.w, l: fl.l, group: GROUP_KEYS[g], color: colorName(state.fc), vase: state.fv === 'none' ? null : { key: state.fv, name: FLAT_VASES[state.fv].name, price: FLAT_VASES[state.fv].price } });
+    if (state.fm === 'bronze') {
+      const b = bronzeOf(state), core = !!(state.bcore && b.core), v = core ? b.core.v : b.v, base = (core && b.core.base) || b.base;
+      Object.assign(payload, { fm: 'bronze', bronze: { opt: core ? b.core.opt : b.opt, value: v.join('|'), name: b.name, bz: b.bz, pair: b.pair || null, base, concrete: !!b.concrete, grp: b.grp }, vase: core ? { key: state.bv, name: FLAT_VASES[state.bv].name, price: FLAT_VASES[state.bv].price } : null, n: core ? 1 : 0 });
+    } else {
+      const fl = FLATS[state.fs], g = GROUP_OF[state.fc];
+      Object.assign(payload, { fm: 'granite', row: fl.row, w: fl.w, l: fl.l, group: GROUP_KEYS[g], color: colorName(state.fc), n: vaseBlocks(state), vase: state.fv === 'none' ? null : { key: state.fv, name: FLAT_VASES[state.fv].name, price: FLAT_VASES[state.fv].price } });
+    }
   }
   try { localStorage.setItem('bw_upright_import', JSON.stringify(payload)); }
   catch (e) { alert('This browser blocked the hand-off to the quote tool. Enter the memorial by hand.'); return; }
@@ -1028,7 +1161,7 @@ else {
   } catch (e) { $('gateMsg').textContent = 'Sign-in could not be checked. Open the quote tool and sign in first.'; $('gateLink').hidden = false; }
 }
 
-window.__md = { calc, state: () => state, setState: s => { Object.assign(state, s); update(); }, UPRIGHTS, FLATS, FOUNDATIONS, foundationFor, VASE_BLOCK, FLAT_VASES, view: () => view };
+window.__md = { BRONZE, flatLayout, calc, state: () => state, setState: s => { Object.assign(state, s); update(); }, UPRIGHTS, FLATS, FOUNDATIONS, foundationFor, VASE_BLOCK, FLAT_VASES, view: () => view };
 </script>
 </body>
 </html>

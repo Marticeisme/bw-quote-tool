@@ -151,3 +151,18 @@ Real WMP photos must be checked for readable names before use (repo is public).
 - At-Need import REPLACES the CIRGAS Memorial Order stone fields (a previous family's values
   survived the earlier fill-if-empty); lettering and instructions are untouched.
 - Test: scratch/test-memorial-designer.mjs (129 checks, firebase traffic aborted).
+
+## Round 3 (Martice, 2026-11-21 evening)
+- Choices column on the LEFT, 3D on the right (phone: 3D on top).
+- Granite flat vase block sits BELOW the marker. Companions: one vase block under ONE side (never
+  centered across two spaces) or two, one under each side; import sets qty_vb / qty_vase.
+- Bronze flat markers: every qBronze option in Standard, Expressions in Bronze and Veterans, drawn
+  on its base (Barrell Gray granite or concrete), vase core where the size offers one (bronze vases).
+  Sizes from the 11/04 price list (note: bronze-markers-guide says the 56x16 sits on a 64x20 base,
+  the price list says 60x20; the designer follows the price list). Not included: urn-garden
+  Cremorial scrolls, installation-only, niche/crypt scrolls and plaques.
+- Upright base "All polished" (P5) +$960 (Martice: "I imagine it's the highest one"; PCM's top
+  polish tier). Nathan's emails were not reachable (the connected Gmail is the HMIAF account);
+  asked the Property Cards session.
+- Flat 3D: orbits around the stone's face, camera stops at 68 degrees from overhead, flush stones
+  cast no shadow (they read as floating).
