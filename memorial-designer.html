@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Memorial Designer · Bonney Watson</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  MEMORIAL DESIGNER (staff only), 2026-11-21. Upright headstones and flat granite markers in 3D,
+  with a live price and an import into the Cemetery Quote. Spec:
+  docs/superpowers/specs/2026-11-21-upright-headstone-visualizer-design.md
+
+  STAFF ONLY (Martice 11/21: competitors would use it). The page shows nothing until the quote
+  tool's own Firebase sign-in is present on this browser; it is not linked from guides.html and
+  has no family link. The repo is public, so this stops casual access, not a determined reader.
+
+  PRICES ARE COPIES of index.html: UPRIGHT_SIZES (Group 2 column), FLUSH_SIZES, VASE_BLOCK_SIZES,
+  the qFoundation and qVase lists. scratch/test-memorial-designer.mjs fails if they drift, and
+  the import rebuilds every price from the tool's own tables.
+  Upgrades (P3 / P5 / polished margin / rock-pitched foundation +10%) from the 2026 PCM Markers
+  Price Book. Paragon vase $685 each (Martice 11/21). Uprights are ALWAYS Group 2.
+-->
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --navy:#466e86; --navy-dark:#33505f; --navy-deep:#1e3a55; --orange:#e84610; --orange-dark:#c23a0d;
+  --offwhite:#f4f6f8; --cream:#f8f6f2; --rule:#ddd6c8; --gray-light:#f0f4f8; --gray-mid:#c8d4de;
+  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --muted:#8a99a8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.5;}
+h1,h2,h3{font-family:'Cormorant Garamond',serif;font-variant-numeric:lining-nums;color:var(--text-dark);font-weight:600;}
+button{font-family:inherit;cursor:pointer;}
+[hidden]{display:none!important;}
+
+/* gate */
+#gate{position:fixed;inset:0;background:var(--navy-dark);display:flex;align-items:center;justify-content:center;padding:24px;z-index:1000;}
+#gate .box{background:#fff;border-radius:12px;padding:28px 30px;max-width:420px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35);}
+#gate img{height:24px;margin-bottom:14px;}
+#gate h2{font-size:26px;margin-bottom:6px;}
+#gate p{color:var(--text-light);margin-bottom:16px;}
+#gate a{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;padding:9px 18px;border-radius:8px;}
+
+/* header */
+.head{background:var(--navy);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.head-in{max-width:1500px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:14px;}
+.head img{height:20px;}
+.head .t{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;}
+.head .staff{font-size:10.5px;font-weight:700;letter-spacing:.12em;background:rgba(255,255,255,.15);border-radius:10px;padding:2px 8px;}
+.head .sp{flex:1;}
+.head a{color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:5px 11px;}
+.tabs{max-width:1500px;margin:0 auto;padding:12px 20px 0;display:flex;gap:6px;}
+.tab{padding:8px 16px;border:1px solid var(--gray-mid);border-bottom:none;border-radius:8px 8px 0 0;background:#e6ecf1;color:var(--navy-dark);font-weight:700;font-size:14px;}
+.tab[aria-selected="true"]{background:#fff;color:var(--orange-dark);}
+.panel{max-width:1500px;margin:0 auto;padding:0 20px 24px;}
+.sheet{background:#fff;border:1px solid var(--gray-mid);border-radius:0 10px 10px 10px;padding:16px;}
+
+/* design: big viewer left, choices right */
+.design{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start;}
+.viewer{position:sticky;top:58px;}
+.vbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+.seg{display:inline-flex;border:1.5px solid var(--navy);border-radius:8px;overflow:hidden;}
+.seg button{border:none;background:#fff;color:var(--navy-dark);font-weight:700;font-size:13px;padding:6px 13px;}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff;}
+.seg.big button{font-size:14.5px;padding:8px 18px;}
+.vbar .sp{flex:1;}
+.lnk{border:1.5px solid var(--gray-mid);background:#fff;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--navy-dark);}
+.lnk:hover{border-color:var(--navy);}
+.stage{position:relative;height:calc(100vh - 150px);min-height:440px;border:1px solid var(--gray-mid);border-radius:12px;overflow:hidden;background:linear-gradient(#dfe9f1 0%,#f3f6f9 55%,#e9efe4 100%);}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;}
+#gl:active{cursor:grabbing;}
+#flat2d{position:absolute;inset:0;overflow:auto;background:#fbfcfd;}
+#flat2d svg{display:block;margin:0 auto;}
+.total{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);border:1px solid var(--gray-mid);border-radius:10px;padding:7px 12px;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.total .k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-light);}
+.total .v{font-size:22px;font-weight:700;color:var(--orange-dark);font-variant-numeric:tabular-nums;line-height:1.1;}
+.hint{position:absolute;right:12px;bottom:12px;font-size:12px;color:var(--text-light);background:rgba(255,255,255,.85);border-radius:8px;padding:4px 9px;}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:14px;}
+
+.side h3{font-size:19px;margin:14px 0 6px;display:flex;align-items:baseline;gap:7px;}
+.side h3:first-child{margin-top:0;}
+.side h3 .n{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:700;color:#fff;background:var(--orange);border-radius:10px;padding:1px 7px;}
+.grp{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-dark);margin:6px 0 4px;}
+.opts{display:grid;gap:6px;}
+.opts.c2{grid-template-columns:1fr 1fr;}
+.opts.c3{grid-template-columns:1fr 1fr 1fr;}
+.opt{border:1.5px solid var(--gray-mid);background:#fff;border-radius:8px;padding:6px 9px;text-align:left;font-size:13px;color:var(--text);line-height:1.25;}
+.opt b{display:block;color:var(--text-dark);font-size:13.5px;}
+.opt small{display:block;color:var(--text-light);font-size:11.5px;}
+.opt .p{color:var(--orange-dark);font-weight:700;font-size:12px;}
+.opt[aria-pressed="true"]{border-color:var(--orange);background:#fff6f2;box-shadow:0 0 0 1px var(--orange) inset;}
+.opt:focus-visible,.sw:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+.sws{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.sw{border:2px solid transparent;border-radius:50%;padding:2px;background:none;aspect-ratio:1;}
+.sw img{width:100%;height:100%;border-radius:50%;display:block;object-fit:cover;box-shadow:0 1px 3px rgba(0,0,0,.35);}
+.sw[aria-pressed="true"]{border-color:var(--orange);}
+.cname{font-size:13px;font-weight:600;color:var(--text-dark);margin-top:5px;}
+.note{font-size:12px;color:var(--text-light);margin-top:4px;}
+
+.price{margin-top:16px;border-top:2px solid var(--navy);padding-top:10px;}
+.price h3{margin-top:0;}
+.qt{width:100%;border-collapse:collapse;font-size:13px;}
+.qt td{padding:4px 0;border-bottom:1px solid #eef1f4;vertical-align:top;}
+.qt td.r{text-align:right;white-space:nowrap;padding-left:10px;font-variant-numeric:tabular-nums;}
+.qt tr.sub td{border-bottom:none;padding-top:8px;color:var(--text-light);}
+.qt tr.tax td{color:var(--text-light);}
+.qt tr.tot td{border-top:2px solid var(--navy);border-bottom:none;font-weight:700;font-size:16px;color:var(--text-dark);padding-top:7px;}
+.qt tr.tot td.r{color:var(--orange-dark);}
+.qnote{font-size:11.5px;color:var(--text-light);margin-top:6px;}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+.btn{border:none;border-radius:8px;padding:9px 10px;font-weight:700;font-size:13.5px;}
+.btn.pri{background:var(--orange);color:#fff;}
+.btn.sec{background:#fff;color:var(--navy-dark);border:1.5px solid var(--navy);}
+.imp{margin-top:10px;border-top:1px dashed var(--gray-mid);padding-top:8px;}
+.imp .lbl{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+
+/* real stone + how it works tabs */
+.read{max-width:980px;margin:0 auto;}
+.read h2{font-size:27px;margin:16px 0 6px;}
+.read h2:first-child{margin-top:0;}
+.read p{margin:6px 0;}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0;}
+.photos.c3{grid-template-columns:1fr 1fr 1fr;}
+figure{margin:0;border:1px solid var(--gray-mid);border-radius:10px;overflow:hidden;background:#fff;}
+figure img{display:block;width:100%;height:auto;}
+.photos.tall img{height:420px;object-fit:contain;background:#eef0f2;}
+.photos.c3 img{height:230px;object-fit:cover;}
+.photos.row3 img{height:250px;object-fit:cover;}
+.photos.row3 img.contain{object-fit:contain;background:#fff;}
+figcaption{font-size:13.5px;padding:7px 10px;color:var(--text);}
+figcaption b{color:var(--text-dark);}
+.credit{font-size:11.5px;color:var(--muted);margin-top:8px;}
+.simple{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:10px 0;}
+.simple div{border:1px solid var(--gray-mid);border-radius:10px;padding:12px;background:#fbfcfd;}
+.simple h3{font-size:21px;margin-bottom:2px;}
+.read ul{margin:6px 0 6px 20px;}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:9px 16px;border-radius:8px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:300;}
+.toast.on{opacity:1;}
+.print-only{display:none;}
+
+@media(max-width:1000px){
+  .design{grid-template-columns:1fr;}
+  .viewer{position:static;}
+  .stage{height:62vh;min-height:340px;}
+  .photos,.photos.c3,.simple{grid-template-columns:1fr;}
+  .tabs,.panel{padding-left:10px;padding-right:10px;}
+  .head .staff{display:none;}
+}
+@media(max-width:600px){
+  .hint{display:none;}
+  .head .t{font-size:16px;}
+  .head a{padding:4px 8px;font-size:12px;}
+  .photos.tall img{height:340px;}
+}
+
+/* print: one page for the family to take home */
+@media print{
+  @page{size:letter;margin:.45in;}
+  body{background:#fff;font-size:11.5px;}
+  .head,.tabs,.side .steps,.vbar,.hint,.acts,.imp,.toast,#tab-real,#tab-how,#gate{display:none!important;}
+  .panel{padding:0;max-width:none;}
+  .sheet{border:none;padding:0;}
+  .print-only{display:block!important;}
+  .design{display:block;}
+  .viewer{position:static;}
+  .stage{display:none!important;}
+  .pviews{display:grid!important;grid-template-columns:1.3fr 1fr;gap:10px;align-items:center;margin-bottom:8px;}
+  .pviews img{width:100%;height:auto;max-height:3.9in;object-fit:contain;border:1px solid #ccd;border-radius:8px;}
+  .pviews svg{width:100%;height:auto;max-height:3.9in;}
+  .ph{display:flex!important;align-items:center;justify-content:space-between;border-bottom:3px solid var(--navy);padding-bottom:6px;margin-bottom:8px;}
+  .ph img{height:24px;}
+  .ph .t{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--text-dark);}
+  .ph .d{font-size:11px;color:var(--text-light);text-align:right;}
+  .price{border-top:none;margin-top:0;break-inside:avoid;}
+  .pfoot{margin-top:10px;font-size:10.5px;color:var(--text-light);text-align:center;border-top:1px solid #dde;padding-top:6px;}
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <img src="logo-navy.svg" alt="Bonney Watson">
+    <h2>Staff only</h2>
+    <p id="gateMsg">Checking your sign-in…</p>
+    <a href="index.html" id="gateLink" hidden>Open the quote tool</a>
+  </div>
+</div>
+
+<div id="app" hidden>
+<header class="head"><div class="head-in">
+  <img src="logo.svg" alt="Bonney Watson">
+  <span class="t">Memorial Designer</span>
+  <span class="staff">STAFF ONLY</span>
+  <span class="sp"></span>
+  <a href="index.html#cem-quote">Quote tool</a>
+</div></header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-design" aria-controls="tab-design" aria-selected="true">Design &amp; Price</button>
+  <button class="tab" role="tab" id="t-real" aria-controls="tab-real" aria-selected="false">Real Stone</button>
+  <button class="tab" role="tab" id="t-how" aria-controls="tab-how" aria-selected="false">How It Works</button>
+</nav>
+
+<!-- ═══ DESIGN ═══ -->
+<div class="panel" id="tab-design" role="tabpanel">
+ <div class="sheet">
+  <div class="ph print-only" style="display:none">
+    <img src="logo-navy.svg" alt="Bonney Watson">
+    <div class="t" id="printTitle">Memorial Quote</div>
+    <div class="d" id="printDate"></div>
+  </div>
+  <div class="pviews print-only" style="display:none"><img id="printShot" alt=""><div id="printMeasured"></div></div>
+  <div class="design">
+   <div class="viewer">
+    <div class="vbar">
+      <div class="seg big" id="typeSeg"><button data-t="upright" aria-pressed="true">Upright headstone</button><button data-t="flat" aria-pressed="false">Flat marker</button></div>
+      <span class="sp"></span>
+      <div class="seg" id="viewSeg"><button data-v="3d" aria-pressed="true">3D</button><button data-v="measured" aria-pressed="false">Measured</button><button data-v="compare" aria-pressed="false">Compare sizes</button></div>
+      <button class="lnk" id="resetView" title="Put the 3D view back to the starting angle">Reset view</button>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="gl"></canvas>
+      <div id="flat2d" hidden></div>
+      <div class="loading" id="loading">Loading the 3D view…</div>
+      <div class="total"><div class="k">Total, installed, with tax</div><div class="v" id="totalChip">$0.00</div></div>
+      <div class="hint" id="hint">Drag to turn · scroll or pinch to zoom</div>
+    </div>
+   </div>
+
+   <div class="side">
+    <div class="steps" id="steps"></div>
+    <div class="price">
+      <h3>Price</h3>
+      <table class="qt" id="qt"></table>
+      <p class="qnote" id="qnote"></p>
+      <div class="acts">
+        <button class="btn pri" id="printBtn">Print</button>
+        <button class="btn sec" id="resetBtn">Start over</button>
+      </div>
+      <div class="imp">
+        <div class="lbl">Add to a cemetery quote</div>
+        <div class="acts" style="margin-top:0">
+          <button class="btn sec" id="impPN">Pre-Need quote</button>
+          <button class="btn sec" id="impAN">At-Need quote</button>
+        </div>
+      </div>
+    </div>
+   </div>
+  </div>
+  <div class="pfoot print-only" style="display:none">Bonney Watson · Washington Memorial Park · 16445 International Blvd, SeaTac, WA 98188 · 206-445-9794</div>
+ </div>
+</div>
+
+<!-- ═══ REAL STONE ═══ -->
+<div class="panel" id="tab-real" role="tabpanel" hidden>
+ <div class="sheet"><div class="read">
+  <h2>Real uprights</h2>
+  <div class="photos tall">
+    <figure><img src="upright-images/photos/p2.jpg" alt="Black upright, polished face, rock-pitched top and sides, rock-pitched base"><figcaption><b>P2, the standard finish.</b> Polished face. Rough top and sides. Rough base with a polished top.</figcaption></figure>
+    <figure><img src="upright-images/photos/p3.jpg" alt="Gray upright with a polished face and polished top"><figcaption><b>P3.</b> The top is polished too. The sides stay rough.</figcaption></figure>
+    <figure><img src="upright-images/photos/p3-black.jpg" alt="Black speckled upright with a polished face and polished top"><figcaption><b>P3</b> in a speckled black, on a base with sawn sides.</figcaption></figure>
+    <figure><img src="upright-images/photos/companion.jpg" alt="Wide white companion upright on a rock-pitched base"><figcaption><b>A companion upright.</b> One wide tablet for two names.</figcaption></figure>
+  </div>
+  <h2>Up close</h2>
+  <div class="photos c3">
+    <figure><img src="upright-images/photos/close-polished.jpg" alt="Polished granite reflecting light"><figcaption><b>Polished.</b> Smooth and shiny. It reflects light.</figcaption></figure>
+    <figure><img src="upright-images/photos/close-rock.jpg" alt="Rock-pitched top above a polished face"><figcaption><b>Rock pitch</b> (top) next to <b>polished</b> (bottom).</figcaption></figure>
+    <figure><img src="upright-images/photos/close-sawn.jpg" alt="Polished base top above a sawn side"><figcaption><b>Polished</b> top over a <b>sawn</b> side: smooth, no shine.</figcaption></figure>
+  </div>
+  <div class="photos row3" style="grid-template-columns:1fr 2fr;">
+    <figure><img src="upright-images/photos/margin.jpg" alt="Polished band along the top of a rough base"><figcaption><b>Polished margin.</b> A smooth band along the top of the rough base.</figcaption></figure>
+    <figure><img class="contain" src="upright-images/pcm-top-shapes.png" alt="Flat, oval and serpentine top uprights"><figcaption><b>Top shapes:</b> flat, oval and serpentine. Same price.</figcaption></figure>
+  </div>
+  <p class="credit">Photos of blank stones from Design Memorials (Pacific Coast Memorials). Colors vary.</p>
+ </div></div>
+</div>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<div class="panel" id="tab-how" role="tabpanel" hidden>
+ <div class="sheet"><div class="read">
+  <h2>An upright headstone</h2>
+  <div class="simple">
+    <div><h3>Tablet</h3><p>The stone that stands up and carries the name.</p></div>
+    <div><h3>Base</h3><p>The block the tablet sits on.</p></div>
+    <div><h3>Foundation</h3><p>The granite slab underneath, level with the lawn.</p></div>
+  </div>
+  <ul>
+    <li><b>Polished</b> is smooth and shiny. <b>Rock pitch</b> is rough, chipped by hand. <b>Sawn</b> is smooth but not shiny.</li>
+    <li>The standard tablet (P2) is polished on the front and back, with a rough top and sides.</li>
+    <li>Uprights are allowed in Section 6, parts of Section 23 and Cascade Court.</li>
+  </ul>
+  <h2>A flat marker</h2>
+  <p>A granite marker set level with the lawn. The top is polished and the sides are sawn. A vase goes in its own 12 by 12 granite block next to it.</p>
+  <h2>What the price includes</h2>
+  <p>The stone, any standard design or emblem, the names, the dates, one line of epitaph, your proof, installation and sales tax.</p>
+ </div></div>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from './vendor/three/OrbitControls.js';
+
+/* ═════════════ 1. PRICES (copies of index.html; see the note in <head>) ═════════════ */
+// Uprights: index = UPRIGHT_SIZES row. [tablet W, T, H] / [base W, D, H] / Group 2 price.
+const UPRIGHTS = [
+  { tw: 18, tt: 6, th: 24, bw: 26, bd: 12, bh: 6, price: 3810 },
+  { tw: 20, tt: 6, th: 18, bw: 26, bd: 12, bh: 6, price: 3465 },
+  { tw: 20, tt: 6, th: 28, bw: 28, bd: 12, bh: 6, price: 4440 },
+  { tw: 20, tt: 8, th: 28, bw: 28, bd: 14, bh: 8, price: 5915 },
+  { tw: 24, tt: 6, th: 18, bw: 30, bd: 12, bh: 6, price: 3975 },
+  { tw: 24, tt: 8, th: 36, bw: 30, bd: 14, bh: 8, price: 9005 },
+  { tw: 36, tt: 6, th: 24, bw: 48, bd: 12, bh: 6, price: 6355, comp: true },
+  { tw: 36, tt: 8, th: 24, bw: 48, bd: 14, bh: 8, price: 10120, comp: true },
+  { tw: 48, tt: 8, th: 28, bw: 60, bd: 14, bh: 8, price: 14315, comp: true },
+  { tw: 48, tt: 8, th: 36, bw: 60, bd: 14, bh: 8, price: 16460, comp: true }
+];
+const UPRIGHT_INSTALL = 795;
+// qFoundation: [width, depth, price] (pillow/slant-only 28x16 left out)
+const FOUNDATIONS = [
+  [32, 20, 730], [32, 24, 850], [36, 24, 990], [40, 20, 895], [36, 36, 1445], [44, 20, 1005],
+  [48, 20, 1170], [48, 24, 1310], [54, 24, 1350], [56, 22, 1350], [60, 26, 1650], [66, 26, 1815], [72, 26, 1980]
+];
+const POLISH = { P2: 0, P3: 770, P5: 960 }, MARGIN = 1060, FOUND_ROCK = 0.10, PARAGON = 685;
+// Flat markers: the sizes the park allows (markers-guide.html). row = FLUSH_SIZES index;
+// prices [Group 1, Group 1 Tariffed, Group 2] and the install fee.
+const FLATS = [
+  { row: 6, w: 28, l: 16, p: [1705, 2045, 2290], inst: 495 },
+  { row: 7, w: 32, l: 20, p: [2175, 2610, 3015], inst: 495 },
+  { row: 8, w: 28, l: 34, p: [2735, 3280, 4110], inst: 495, note: 'Single or companion' },
+  { row: 11, w: 44, l: 20, p: [2765, 3315, 4110], inst: 795, comp: true },
+  { row: 12, w: 60, l: 20, p: [3275, 3930, 5230], inst: 795, comp: true },
+  { row: 13, w: 36, l: 72, p: [7770, 9320, 15250], inst: 795, ledger: true, note: 'Full ledger' }
+];
+const GROUP_KEYS = ['g1nt', 'g1t', 'g2'], GROUP_NAMES = ['Group 1', 'Group 1 Tariffed', 'Group 2'];
+// 12x12x4 granite vase block (VASE_BLOCK_SIZES row 0) by group, its setting fee, and the four vases
+// (qVase values; vase-guide.html).
+const VASE_BLOCK = [525, 630, 800], VASE_BLOCK_SET = 175;
+const FLAT_VASES = {
+  zinc:    { name: 'Gray zinc vase', price: 315 },
+  floral:  { name: 'Doric bronze vase, Floral Innocence', price: 1445 },
+  hammer:  { name: 'Doric bronze vase, Hammered or Grecian', price: 1405 },
+  veteran: { name: 'Bronze Grecian or Veterans vase', price: 1340 }
+};
+const TAX = 0.104;
+
+// Granite: tile = upright-images/granite/<key>.jpg, hex = its average (drawn while it loads).
+// Group 2 per the 2026 PCM book; Classic Gray is also listed as Cascade Gray (markers-guide).
+const G2 = [
+  ['Absolute_Black', '#11100e'], ['Academy_Black', '#393633'], ['Aurora', '#38312f'], ['Bahama_Blue', '#444351'],
+  ['Barrell_Gray', '#b5b6b5'], ['Black_Galaxy', '#171515'], ['Blue_Pearl', '#515b69'], ['Cats_Eye', '#51392e'],
+  ['Georgia_Gray', '#959696'], ['Himalayan_Blue', '#655d5a'], ['Impala_Black', '#43444b'], ['Imperial_Red', '#613522'],
+  ['New_Mahogany', '#5c5043'], ['Night_Black', '#272728'], ['Paradiso', '#63554c'], ['Sapphire_Brown', '#56504d'],
+  ['Sentinel_Red', '#744030'], ['Sierra_White', '#b4b5b1'], ['Silver_Bronze', '#414142'], ['Tan_Brown', '#372d29'],
+  ['Tropical_Green', '#313222'], ['Twilight_Red', '#5f4133'], ['Wiscont_White', '#d0d1d8']
+];
+const G1 = [['Cloud_White', '#a3a6a8'], ['Misty_Pink', '#9c857e'], ['PC_Violet', '#6c6a70']];
+const G1T = [['Classic_Gray', '#a1a2a2']];
+const HEX = {}; [G2, G1, G1T].forEach(l => l.forEach(c => { HEX[c[0]] = c[1]; }));
+const GROUP_OF = {}; G1.forEach(c => GROUP_OF[c[0]] = 0); G1T.forEach(c => GROUP_OF[c[0]] = 1); G2.forEach(c => GROUP_OF[c[0]] = 2);
+const colorName = k => k === 'Cats_Eye' ? "Cat's Eye" : k === 'Classic_Gray' ? 'Classic Gray (Cascade Gray)' : k.replace(/_/g, ' ');
+const TOPS = { serp: 'Serpentine', oval: 'Oval', flat: 'Flat' };
+const POLISH_TEXT = { P2: ['P2, standard', 'Polished front and back'], P3: ['P3', 'Top polished too'], P5: ['P5', 'Polished all over'] };
+
+function foundationFor(s) {
+  // smallest listed foundation at least 4in wider and 10in deeper than the base (room for vases)
+  const ok = FOUNDATIONS.filter(f => f[0] >= s.bw + 4 && f[1] >= s.bd + 10).sort((a, b) => a[0] * a[1] - b[0] * b[1]);
+  return { fw: ok[0][0], fd: ok[0][1], price: ok[0][2] };
+}
+
+/* ═════════════ 2. STATE ═════════════ */
+const DEFAULTS = { type: 'upright', s: 2, c: 'Absolute_Black', top: 'serp', p: 'P2', m: 0, f: 'sawn', v: 0, fs: 0, fc: 'Absolute_Black', fv: 'none' };
+let state = Object.assign({}, DEFAULTS);
+(function readUrl() {
+  const q = new URLSearchParams(location.search);
+  const n = (k, lo, hi, d) => { const v = parseInt(q.get(k), 10); return v >= lo && v <= hi ? v : d; };
+  state.type = q.get('type') === 'flat' ? 'flat' : 'upright';
+  state.s = n('s', 0, UPRIGHTS.length - 1, DEFAULTS.s);
+  state.c = G2.some(c => c[0] === q.get('c')) ? q.get('c') : DEFAULTS.c;
+  state.top = TOPS[q.get('top')] ? q.get('top') : DEFAULTS.top;
+  state.p = q.get('p') in POLISH ? q.get('p') : DEFAULTS.p;
+  state.m = q.get('m') === '1' ? 1 : 0;
+  state.f = q.get('f') === 'rock' ? 'rock' : 'sawn';
+  state.v = n('v', 0, 2, 0);
+  state.fs = n('fs', 0, FLATS.length - 1, 0);
+  state.fc = HEX[q.get('fc')] ? q.get('fc') : DEFAULTS.fc;
+  state.fv = FLAT_VASES[q.get('fv')] ? q.get('fv') : 'none';
+})();
+function writeUrl() {
+  const q = new URLSearchParams();
+  ['type', 's', 'c', 'top', 'p', 'm', 'f', 'v', 'fs', 'fc', 'fv'].forEach(k => q.set(k, state[k]));
+  if (/[?&]dev(=|&|$)/.test(location.search)) q.set('dev', '1');
+  try { history.replaceState(null, '', location.pathname + '?' + q.toString() + location.hash); } catch (e) {}
+}
+
+/* ═════════════ 3. PRICE ═════════════ */
+const r2 = v => Math.round(v * 100) / 100;
+const money = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const whole = v => '$' + v.toLocaleString('en-US');
+function calc(st = state) {
+  const lines = [];
+  if (st.type === 'upright') {
+    const s = UPRIGHTS[st.s], f = foundationFor(s);
+    lines.push({ label: (s.comp ? 'Companion upright' : 'Upright') + ', ' + s.tw + '″ × ' + s.th + '″ tablet', sub: s.tt + '″ thick on a ' + s.bw + '″ base · ' + colorName(st.c) + ' · ' + TOPS[st.top].toLowerCase() + ' top', amount: s.price });
+    if (POLISH[st.p]) lines.push({ label: 'Tablet finish ' + st.p, sub: POLISH_TEXT[st.p][1].toLowerCase(), amount: POLISH[st.p] });
+    if (st.m) lines.push({ label: 'Polished margin on the base', amount: MARGIN });
+    lines.push({ label: 'Foundation ' + f.fw + '″ × ' + f.fd + '″', sub: 'Barrell Gray', amount: f.price });
+    if (st.f === 'rock') lines.push({ label: 'Rock-pitched foundation sides', sub: 'adds 10%', amount: r2(f.price * FOUND_ROCK) });
+    if (st.v) lines.push({ label: (st.v === 2 ? 'Two Paragon vases' : 'One Paragon vase'), sub: whole(PARAGON) + ' each', amount: PARAGON * st.v });
+    lines.push({ label: 'Installation', amount: UPRIGHT_INSTALL });
+  } else {
+    const fl = FLATS[st.fs], g = GROUP_OF[st.fc];
+    lines.push({ label: (fl.ledger ? 'Ledger ' : fl.comp ? 'Companion flat marker ' : 'Flat marker ') + fl.w + '″ × ' + fl.l + '″', sub: colorName(st.fc) + ' · ' + GROUP_NAMES[g], amount: fl.p[g] });
+    lines.push({ label: 'Installation', amount: fl.inst });
+    if (st.fv !== 'none') {
+      lines.push({ label: 'Vase block 12″ × 12″', sub: colorName(st.fc), amount: VASE_BLOCK[g] });
+      lines.push({ label: 'Vase block setting', amount: VASE_BLOCK_SET });
+      lines.push({ label: FLAT_VASES[st.fv].name, amount: FLAT_VASES[st.fv].price });
+    }
+  }
+  const sub = r2(lines.reduce((a, l) => a + l.amount, 0)), tax = r2(sub * TAX);
+  return { lines, sub, tax, total: r2(sub + tax) };
+}
+
+/* ═════════════ 4. 3D ═════════════ */
+const canvas = document.getElementById('gl');
+let renderer = null, scene, camera, controls, stoneGroup = null, ground, needsRender = true, glOk = true;
+const texLoader = new THREE.TextureLoader();
+const texCache = {}, matCache = {};
+
+function initGL() {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+  } catch (e) { glOk = false; return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  // Reflections: a neutral gray sky and ground with a soft bright patch for the sun. Neutral on
+  // purpose: a green lawn in the reflection made polished black read as a green stone.
+  const ec = document.createElement('canvas'); ec.width = 512; ec.height = 256;
+  const ex = ec.getContext('2d'), eg = ex.createLinearGradient(0, 0, 0, 256);
+  eg.addColorStop(0, '#7d8791'); eg.addColorStop(0.4, '#c9cfd4'); eg.addColorStop(0.5, '#e6e8ea'); eg.addColorStop(0.56, '#6e7073'); eg.addColorStop(1, '#3c3d3f');
+  ex.fillStyle = eg; ex.fillRect(0, 0, 512, 256);
+  const sg = ex.createRadialGradient(150, 70, 0, 150, 70, 60); sg.addColorStop(0, 'rgba(255,255,250,1)'); sg.addColorStop(1, 'rgba(255,255,250,0)');
+  ex.fillStyle = sg; ex.fillRect(60, 0, 180, 150);
+  const et = new THREE.CanvasTexture(ec); et.mapping = THREE.EquirectangularReflectionMapping; et.colorSpace = THREE.SRGBColorSpace;
+  scene.environment = pmrem.fromEquirectangular(et).texture;
+  camera = new THREE.PerspectiveCamera(30, 1, 1, 3000);
+  controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.maxPolarAngle = Math.PI * 0.495;
+  controls.addEventListener('change', () => { needsRender = true; });
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x6d8a58, 0.55));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.1);
+  sun.position.set(-70, 140, 110);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -170, right: 170, top: 170, bottom: -170, near: 10, far: 600 });
+  sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.6;
+  scene.add(sun);
+  // lawn: a soft grass texture so the stone has something real to sit on
+  const gc = document.createElement('canvas'); gc.width = gc.height = 256;
+  const gx = gc.getContext('2d'); gx.fillStyle = '#7ea364'; gx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 9000; i++) { const s = Math.random(); gx.fillStyle = `rgba(${s < .5 ? '60,95,45' : '160,195,120'},${0.05 + Math.random() * 0.12})`; gx.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 2 + Math.random() * 4); }
+  const gt = new THREE.CanvasTexture(gc); gt.wrapS = gt.wrapT = THREE.RepeatWrapping; gt.repeat.set(40, 40); gt.colorSpace = THREE.SRGBColorSpace;
+  ground = new THREE.Mesh(new THREE.CircleGeometry(600, 64), new THREE.MeshStandardMaterial({ map: gt, roughness: 1 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
+  scene.add(ground);
+  new ResizeObserver(resize).observe(canvas.parentElement);
+  resize();
+  (function loop() { requestAnimationFrame(loop); if (controls.update() || needsRender) { renderer.render(scene, camera); needsRender = false; } })();
+}
+function resize() {
+  if (!renderer) return;
+  const r = canvas.parentElement.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+  needsRender = true;
+}
+
+// Granite textures. Rock-pitched and sawn granite read lighter than the polished face (the
+// crushed crystals scatter light), so those finishes use a lightened copy of the same photo.
+function graniteTex(key, lighten) {
+  const id = key + ':' + lighten;
+  if (texCache[id]) return texCache[id];
+  const tex = new THREE.Texture();
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const img = new Image();
+  img.onload = () => {
+    if (lighten) {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.fillStyle = `rgba(255,255,255,${lighten})`; x.fillRect(0, 0, c.width, c.height);
+      tex.image = c;
+    } else tex.image = img;
+    tex.needsUpdate = true; needsRender = true;
+  };
+  img.src = 'upright-images/granite/' + key + '.jpg';
+  texCache[id] = tex;
+  return tex;
+}
+function materials(key) {
+  if (matCache[key]) return matCache[key];
+  const polished = new THREE.MeshPhysicalMaterial({ map: graniteTex(key, 0), roughness: 0.1, clearcoat: 0.8, clearcoatRoughness: 0.05, envMapIntensity: 1.0 });
+  const rock = new THREE.MeshStandardMaterial({ map: graniteTex(key, 0.34), roughness: 0.95, flatShading: true });
+  const sawn = new THREE.MeshStandardMaterial({ map: graniteTex(key, 0.22), roughness: 0.8 });
+  return (matCache[key] = [polished, rock, sawn]);
+}
+const FIN = { polished: 0, rock: 1, sawn: 2 };
+
+// ── Rock-pitch relief: hand-chipped stone is a field of shallow scooped chips with ridges between
+// them. A cellular (Worley) pattern gives that; it is a pure function of position, so every
+// copy of a shared edge vertex moves the same way and no seams open.
+function hash3(i, j, k) {
+  let h = (i * 374761393 + j * 668265263 + k * 1274126177) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return [((h & 0x3ff) / 1023), (((h >>> 10) & 0x3ff) / 1023), (((h >>> 20) & 0x3ff) / 1023)];
+}
+function chip(x, y, z) {
+  const C = 3.0, fx = Math.floor(x / C), fy = Math.floor(y / C), fz = Math.floor(z / C);
+  let d1 = 1e9, d2 = 1e9;
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) {
+    const r = hash3(fx + i, fy + j, fz + k);
+    const px = (fx + i + r[0]) * C, py = (fy + j + r[1]) * C, pz = (fz + k + r[2]) * C;
+    const d = Math.hypot(x - px, y - py, z - pz);
+    if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+  }
+  const ridge = Math.min(1, (d2 - d1) / (C * 0.55));        // 0 on a ridge, 1 in a chip's middle
+  const grain = (Math.sin(x * 2.3 + y * 1.7) * Math.sin(y * 2.1 - z * 1.9) * Math.sin(z * 2.7 + x * 1.3) + 1) / 2;
+  return 0.55 + 0.45 * (1 - ridge) - 0.25 * ridge * ridge + 0.12 * grain;
+}
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+// A prism: a closed 2D outline (u,v) swept along t in [0, H]. map(u, v, t) places it in 3D.
+// opt.cap0 / opt.cap1: finish of the t=0 / t=H faces (null = not built);
+// opt.wall(edgeIndex, n2) -> finish for that edge's wall; opt.skipWall(n2) to leave a wall out;
+// opt.band: polished band of this many inches at the t=H end of the walls (polished margin);
+// opt.amp: rock relief depth in inches. Returns a mesh with [polished, rock, sawn] groups.
+function prism(outline, H, map, nmap, opt, mats) {
+  // resample the outline so the walls are dense enough to carry relief
+  const pts = [], edgeOf = [];
+  const N = outline.length;
+  let area = 0; for (let i = 0; i < N; i++) { const a = outline[i], b = outline[(i + 1) % N]; area += a[0] * b[1] - b[0] * a[1]; }
+  const sgn = area > 0 ? 1 : -1;
+  const edgeN = [];
+  for (let i = 0; i < N; i++) {
+    const a = outline[i], b = outline[(i + 1) % N], du = b[0] - a[0], dv = b[1] - a[1], L = Math.hypot(du, dv) || 1;
+    edgeN.push([sgn * dv / L, -sgn * du / L]);
+    const steps = Math.max(1, Math.ceil(L / 0.4));
+    for (let k = 0; k < steps; k++) { pts.push([a[0] + du * k / steps, a[1] + dv * k / steps]); edgeOf.push(i); }
+  }
+  const P = pts.length;
+  const edgeFin = edgeN.map((n, i) => opt.skipWall && opt.skipWall(n) ? null : opt.wall(i, n));
+  // per point: smoothed normal (shading + relief direction) and how far it is from a non-rock wall
+  const pN = [], pW = [], pS = [0];
+  for (let i = 1; i <= P; i++) pS.push(pS[i - 1] + Math.hypot(pts[i % P][0] - pts[i - 1][0], pts[i % P][1] - pts[i - 1][1]));
+  for (let i = 0; i < P; i++) {
+    const eA = edgeOf[(i - 1 + P) % P], eB = edgeOf[i], na = edgeN[eA], nb = edgeN[eB];
+    let nx = na[0] + nb[0], ny = na[1] + nb[1]; const l = Math.hypot(nx, ny) || 1; pN.push([nx / l, ny / l]);
+  }
+  for (let i = 0; i < P; i++) {
+    // distance along the outline to the nearest point of a non-rock (or absent) wall
+    let best = 1e9;
+    for (let j = 0; j < P; j++) {
+      const fa = edgeFin[edgeOf[(j - 1 + P) % P]], fb = edgeFin[edgeOf[j]];
+      if (fa === 'rock' && fb === 'rock') continue;
+      let d = Math.abs(pS[i] - pS[j]); d = Math.min(d, pS[P] - d); if (d < best) best = d;
+    }
+    pW.push(smooth(0, 1.4, best));
+  }
+  // push a triangle facing the way its normals point (the map functions differ in handedness)
+  function tri(g, A, B, C) {
+    const ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], vx = C[0] - A[0], vy = C[1] - A[1], vz = C[2] - A[2];
+    const cx = uy * vz - uz * vy, cy = uz * vx - ux * vz, cz = ux * vy - uy * vx;
+    const d = cx * (A[3] + B[3] + C[3]) + cy * (A[4] + B[4] + C[4]) + cz * (A[5] + B[5] + C[5]);
+    if (d < 0) g.push(...A, ...C, ...B); else g.push(...A, ...B, ...C);
+  }
+  const tSteps = Math.max(1, Math.ceil(H / 0.4));
+  const groups = [[], [], []];   // each: flat array of [x,y,z, nx,ny,nz, u,v]
+  const band = opt.band || 0;
+  function vtx(i, t, finish, sharpN) {
+    const [u, v] = pts[i % P];
+    let nrm = sharpN || pN[i % P];
+    let p = map(u, v, t);
+    if (finish === 'rock' && opt.amp) {
+      let w = pW[i % P];
+      if (opt.cap0) w *= smooth(0, 1.2, t);
+      if (opt.cap1) w *= smooth(0, 1.2, H - band - t);
+      if (w > 0) {
+        const n3 = nmap(pN[i % P][0], pN[i % P][1]);
+        const a = opt.amp * w * chip(p.x, p.y, p.z);
+        p = p.clone().addScaledVector(n3, a);
+      }
+    }
+    const n3 = nmap(nrm[0], nrm[1]);
+    return [p.x, p.y, p.z, n3.x, n3.y, n3.z, pS[i] / 12, t / 12];
+  }
+  for (let i = 0; i < P; i++) {
+    const fin = edgeFin[edgeOf[i]]; if (!fin) continue;
+    const n = edgeN[edgeOf[i]];
+    // keep curves smooth, corners sharp
+    const prevN = edgeN[edgeOf[(i - 1 + P) % P]], nextN = edgeN[edgeOf[(i + 1) % P]];
+    const smoothA = n[0] * prevN[0] + n[1] * prevN[1] > 0.85, smoothB = n[0] * nextN[0] + n[1] * nextN[1] > 0.85;
+    for (let k = 0; k < tSteps; k++) {
+      const t0 = H * k / tSteps, t1 = H * (k + 1) / tSteps;
+      let f = fin;
+      if (band && (t0 + t1) / 2 > H - band) f = 'polished';
+      const nA = smoothA ? null : n, nB = smoothB ? null : n;
+      const a = vtx(i, t0, f, nA), b = vtx(i + 1, t0, f, nB), c = vtx(i + 1, t1, f, nB), d = vtx(i, t1, f, nA);
+      const g = groups[FIN[f]];
+      tri(g, a, b, c); tri(g, a, c, d);
+    }
+  }
+  // caps
+  const contour = pts.map(p => new THREE.Vector2(p[0], p[1]));
+  const tris = THREE.ShapeUtils.triangulateShape(contour, []);
+  [[0, opt.cap0, -1], [H, opt.cap1, 1]].forEach(([t, fin, dir]) => {
+    if (!fin) return;
+    const cn = opt.capNormal(dir);
+    const g = groups[FIN[fin]];
+    tris.forEach(tr => {
+      const vs = tr.map(i => { const p = map(pts[i][0], pts[i][1], t); return [p.x, p.y, p.z, cn.x, cn.y, cn.z, pts[i][0] / 12, pts[i][1] / 12]; });
+      // orient each triangle to face along the cap normal
+      const e1 = new THREE.Vector3(vs[1][0] - vs[0][0], vs[1][1] - vs[0][1], vs[1][2] - vs[0][2]);
+      const e2 = new THREE.Vector3(vs[2][0] - vs[0][0], vs[2][1] - vs[0][1], vs[2][2] - vs[0][2]);
+      if (e1.cross(e2).dot(cn) < 0) vs.reverse();
+      vs.forEach(v => g.push(...v));
+    });
+  });
+  // assemble with groups
+  const total = groups.reduce((a, g) => a + g.length / 8, 0);
+  const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), uv = new Float32Array(total * 2);
+  const geo = new THREE.BufferGeometry();
+  let o = 0;
+  groups.forEach((g, gi) => {
+    const start = o;
+    for (let i = 0; i < g.length; i += 8) { pos.set(g.slice(i, i + 3), o * 3); nor.set(g.slice(i + 3, i + 6), o * 3); uv.set(g.slice(i + 6, i + 8), o * 2); o++; }
+    if (o > start) geo.addGroup(start, o - start, gi);
+  });
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  const mesh = new THREE.Mesh(geo, mats);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  return mesh;
+}
+
+// Top of the tablet as heights along its width.
+function topHeight(shape, w, h, x) {
+  const dx = x - w / 2;
+  if (shape === 'flat') return h;
+  if (shape === 'oval') { const s = 2, R = (w * w / 4 + s * s) / (2 * s); return h - (R - Math.sqrt(Math.max(0, R * R - dx * dx))); }
+  const d = Math.min(3.5, h * 0.16), t = Math.min(1, Math.abs(dx) / (w / 2)), u = t <= 0.3 ? 0 : (t - 0.3) / 0.7;
+  return h - d * (u * u * (3 - 2 * u));
+}
+function tabletOutline(shape, w, h) {
+  // counter-clockwise from bottom-left, in (x, y)
+  const a = [[0, 0], [w, 0]];
+  const N = shape === 'flat' ? 1 : 36;
+  for (let i = N; i >= 0; i--) { const x = w * i / N; a.push([x, topHeight(shape, w, h, x)]); }
+  return a.filter((p, i, arr) => i === 0 || Math.hypot(p[0] - arr[i - 1][0], p[1] - arr[i - 1][1]) > 1e-6);
+}
+const rectOutline = (w, d) => [[0, 0], [w, 0], [w, d], [0, d]];
+
+// Paragon 4x10 (Everlife product drawing): rolled 4in rim, short neck, round shoulder, body
+// tapering to a waist, ring collar, flared 3 3/4in foot. [radius, height] in inches.
+const PARAGON_PROFILE = [[0, 0], [1.87, 0], [1.87, 0.3], [1.72, 0.62], [1.38, 1.05], [1.22, 1.3], [1.45, 1.42], [1.47, 1.72], [1.24, 1.86],
+  [1.2, 2.1], [1.34, 3.2], [1.6, 4.6], [1.8, 5.9], [1.86, 6.7], [1.78, 7.5], [1.5, 8.05], [1.42, 8.25], [1.62, 8.45], [1.92, 8.65],
+  [2.0, 8.95], [2.0, 9.62], [1.88, 9.92], [1.58, 10], [1.5, 9.85], [1.5, 8.9], [0, 8.9]];
+
+function vaseMaterial(key) {
+  // Paragon vases are die-cast aluminum in granite-look finishes; shown in the stone's own color.
+  return new THREE.MeshStandardMaterial({ map: graniteTex(key, 0.08), roughness: 0.42, metalness: 0.25, side: THREE.DoubleSide });
+}
+function lathe(profile, mat) {
+  const g = new THREE.LatheGeometry(profile.map(p => new THREE.Vector2(p[0], p[1])), 56);
+  const m = new THREE.Mesh(g, mat); m.castShadow = true; m.receiveShadow = true; return m;
+}
+
+function model(st) {
+  const s = UPRIGHTS[st.s], f = foundationFor(s), FH = 4, reveal = 1.5;
+  // foundation centred on x=0; z from -fd/2 (back) to +fd/2 (front); base 2in from the back
+  const bz0 = -f.fd / 2 + 2, bzFront = bz0 + s.bd;
+  return { s, f, FH, reveal, bz0, bzFront, tz: bz0 + (s.bd - s.tt) / 2, vaseZ: (bzFront + f.fd / 2) / 2, vaseX: f.fw / 2 - 3.2 };
+}
+
+function buildUpright(st) {
+  const M = model(st), s = M.s, f = M.f, mats = materials(st.c), fmats = materials('Barrell_Gray');
+  const grp = new THREE.Group();
+  const y0 = M.reveal - M.FH;            // foundation shows 1.5in above the lawn
+  const up = new THREE.Vector3(0, 1, 0);
+  // foundation: polished top; sawn or rock-pitched sides
+  grp.add(prism(rectOutline(f.fw, f.fd), M.FH,
+    (u, v, t) => new THREE.Vector3(u - f.fw / 2, y0 + t, v - f.fd / 2), (nu, nv) => new THREE.Vector3(nu, 0, nv),
+    { cap1: 'polished', wall: () => st.f, amp: st.f === 'rock' ? 0.45 : 0, capNormal: d => d > 0 ? up : up.clone().negate() }, fmats));
+  // base: polished top, rock-pitched sides, optional 2in polished margin
+  const yb = y0 + M.FH;
+  grp.add(prism(rectOutline(s.bw, s.bd), s.bh,
+    (u, v, t) => new THREE.Vector3(u - s.bw / 2, yb + t, v + M.bz0), (nu, nv) => new THREE.Vector3(nu, 0, nv),
+    { cap1: 'polished', wall: () => 'rock', band: st.m ? 2 : 0, amp: 0.6, capNormal: d => d > 0 ? up : up.clone().negate() }, mats));
+  // tablet: outline is the front shape (x, y), swept back by its thickness
+  const yt = yb + s.bh, zFront = M.tz + s.tt;
+  const wallFin = (i, n) => {
+    if (st.p === 'P5') return 'polished';
+    if (st.p === 'P3' && n[1] > 0.45) return 'polished';   // the top
+    return 'rock';
+  };
+  grp.add(prism(tabletOutline(st.top, s.tw, s.th), s.tt,
+    (u, v, t) => new THREE.Vector3(u - s.tw / 2, yt + v, zFront - t), (nu, nv) => new THREE.Vector3(nu, nv, 0),
+    { cap0: 'polished', cap1: 'polished', wall: wallFin, skipWall: n => n[1] < -0.9, amp: 0.7,
+      capNormal: d => new THREE.Vector3(0, 0, d < 0 ? 1 : -1) }, mats));
+  // Paragon vases on the foundation, in front of the base corners
+  const vm = vaseMaterial(st.c);
+  (st.v === 2 ? [-1, 1] : st.v === 1 ? [-1] : []).forEach(sx => {
+    const v = lathe(PARAGON_PROFILE, vm); v.position.set(sx * M.vaseX, yb, M.vaseZ); grp.add(v);
+  });
+  return grp;
+}
+
+// Flat-marker vases: upright in a ring set into the block (vase-guide.html photos).
+function flatVase(kind) {
+  const g = new THREE.Group();
+  const bronze = new THREE.MeshStandardMaterial({ color: 0x7a5a32, roughness: 0.42, metalness: 0.85 });
+  const zinc = new THREE.MeshStandardMaterial({ color: 0x6f7478, roughness: 0.5, metalness: 0.7 });
+  const brass = new THREE.MeshStandardMaterial({ color: 0xc9a35a, roughness: 0.3, metalness: 0.9 });
+  const mat = kind === 'zinc' ? zinc : bronze;
+  const r = kind === 'zinc' ? 2.4 : 2.1, h = kind === 'zinc' ? 8 : 9;
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.5, 0.35, 48), mat); ring.position.y = 0.17; g.add(ring);
+  if (kind === 'floral') {
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.6, 2.2, 32), mat); stem.position.y = 1.4; g.add(stem);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.88, h - 2.2, 48, 1, true), mat); body.position.y = 2.5 + (h - 2.2) / 2; g.add(body);
+  } else {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.95, h, 48, 1, true), mat); body.position.y = 0.35 + h / 2; g.add(body);
+    if (kind === 'veteran') [0.25, 0.85].forEach(f => { const b = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.03, r + 0.03, 0.35, 48, 1, true), brass); b.position.y = 0.35 + h * f; g.add(b); });
+  }
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(r, 0.12, 8, 48), kind === 'zinc' ? zinc : brass); lip.rotation.x = Math.PI / 2; lip.position.y = h + (kind === 'floral' ? 0.3 : 0.35); g.add(lip);
+  const inside = new THREE.Mesh(new THREE.CircleGeometry(r - 0.1, 32), new THREE.MeshStandardMaterial({ color: 0x1d1d1d })); inside.rotation.x = -Math.PI / 2; inside.position.y = h - 1.5; g.add(inside);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.material.side = THREE.DoubleSide; } });
+  return g;
+}
+
+function buildFlat(st) {
+  const fl = FLATS[st.fs], mats = materials(st.fc), grp = new THREE.Group(), up = new THREE.Vector3(0, 1, 0);
+  // set into the lawn: the polished top sits half an inch above the grass, the sawn sides below
+  const top = 0.5, T = 4;
+  const slab = (w, l, cx) => prism(rectOutline(w, l), T,
+    (u, v, t) => new THREE.Vector3(cx + u - w / 2, top - T + t, v - l / 2), (nu, nv) => new THREE.Vector3(nu, 0, nv),
+    { cap1: 'polished', wall: () => 'sawn', amp: 0, capNormal: d => d > 0 ? up : up.clone().negate() }, mats);
+  const hasVase = st.fv !== 'none', gap = 4;
+  const total = fl.w + (hasVase ? gap + 12 : 0), mx = -total / 2 + fl.w / 2;
+  grp.add(slab(fl.w, fl.l, mx));
+  if (hasVase) {
+    const bx = mx + fl.w / 2 + gap + 6;
+    grp.add(slab(12, 12, bx));
+    const v = flatVase(st.fv); v.position.set(bx, top, 0); grp.add(v);
+  }
+  return grp;
+}
+
+let lastFrameKey = '';
+function rebuild3D() {
+  if (!renderer) return;
+  if (stoneGroup) {
+    scene.remove(stoneGroup);
+    stoneGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+  }
+  stoneGroup = state.type === 'upright' ? buildUpright(state) : buildFlat(state);
+  scene.add(stoneGroup);
+  ground.position.y = 0;
+  const key = state.type + (state.type === 'upright' ? state.s : state.fs);
+  if (key !== lastFrameKey) { frame(); lastFrameKey = key; }
+  needsRender = true;
+}
+function frame() {
+  const box = new THREE.Box3().setFromObject(stoneGroup), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
+  const flat = state.type === 'flat';
+  const R = (flat ? Math.max(size.x, size.z) * 0.5 : Math.max(size.x, size.y * 1.15, size.z) * 0.58);
+  // fit both the height and the width of the view, so a narrow phone screen does not crop the stone
+  const vHalf = THREE.MathUtils.degToRad(camera.fov / 2), hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
+  const dist = R / Math.sin(Math.min(vHalf, hHalf)) * (flat ? 0.95 : 1.0);
+  const az = THREE.MathUtils.degToRad(state.type === 'upright' ? 32 : 25), el = THREE.MathUtils.degToRad(state.type === 'upright' ? 14 : 34);
+  controls.target.copy(c);
+  camera.position.set(c.x + dist * Math.cos(el) * Math.sin(az), c.y + dist * Math.sin(el), c.z + dist * Math.cos(el) * Math.cos(az));
+  controls.minDistance = dist * 0.35; controls.maxDistance = dist * 2.2;
+  camera.near = dist / 50; camera.far = dist * 20; camera.updateProjectionMatrix();
+  controls.update(); needsRender = true;
+}
+
+/* ═════════════ 5. MEASURED + COMPARE (2D, one scale) ═════════════ */
+const fmtIn = n => n + '″';
+function svgDims(x1, y1, x2, y2, text, off, vertical, fs = 1.7) {
+  const o = [];
+  if (vertical) {
+    const x = x1 + off;
+    o.push(`<line x1="${x1}" y1="${y1}" x2="${x + .6}" y2="${y1}" stroke="#8a99a8" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x + .6}" y2="${y2}" stroke="#8a99a8" stroke-width=".08"/>`);
+    o.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#33505f" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
+    o.push(`<text x="${x + 0.9}" y="${(y1 + y2) / 2 + fs * .35}" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#33505f">${text}</text>`);
+  } else {
+    const y = y1 + off, s = off < 0 ? -1 : 1;
+    o.push(`<line x1="${x1}" y1="${y1}" x2="${x1}" y2="${y + .6 * s}" stroke="#8a99a8" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x2}" y2="${y + .6 * s}" stroke="#8a99a8" stroke-width=".08"/>`);
+    o.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#33505f" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
+    o.push(`<text x="${(x1 + x2) / 2}" y="${y + (s < 0 ? -0.6 : 2.2)}" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#33505f">${text}</text>`);
+  }
+  return o.join('');
+}
+const ARROW = '<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9z" fill="#33505f"/></marker>';
+function patDef(id, key) {
+  const Z = 20, T = 12 * Z;
+  return `<pattern id="${id}" patternUnits="userSpaceOnUse" patternTransform="scale(${1 / Z})" width="${T}" height="${T}"><image href="upright-images/granite/${key}.jpg" width="${T}" height="${T}"/></pattern>`;
+}
+const poly = pts => 'M' + pts.map(p => p[0].toFixed(2) + ',' + p[1].toFixed(2)).join(' L') + 'Z';
+
+function uprightFrontSvg(st, opts = {}) {
+  const M = model(st), s = M.s, f = M.f, id = 'u' + (opts.id || ''), o = [];
+  const R = (x, y) => [x, -y];
+  const fx = -f.fw / 2, bx = -s.bw / 2, tx = -s.tw / 2, FH = M.FH, ty = FH + s.bh;
+  o.push(`<rect x="${fx - 12}" y="${-M.reveal}" width="${f.fw + 24}" height="${M.reveal + 2}" fill="#8db271"/>`);
+  o.push(`<rect x="${fx}" y="${-FH}" width="${f.fw}" height="${FH}" fill="url(#${id}f)" stroke="#7d8790" stroke-width=".1"/>`);
+  o.push(`<rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="url(#${id}s)"/><rect x="${bx}" y="${-ty}" width="${s.bw}" height="${s.bh}" fill="#fff" opacity="${st.m ? 0 : .2}"/>`);
+  if (st.m) o.push(`<rect x="${bx}" y="${-ty + 2}" width="${s.bw}" height="${s.bh - 2}" fill="#fff" opacity=".2"/>`);
+  const outer = tabletOutline(st.top, s.tw, s.th).map(p => R(tx + p[0], ty + p[1]));
+  o.push(`<path d="${poly(outer)}" fill="url(#${id}s)" stroke="${st.p === 'P5' ? '#fff' : '#cfd3d6'}" stroke-width="${st.p === 'P5' ? .15 : .6}" stroke-opacity=".6"/>`);
+  (st.v === 2 ? [-1, 1] : st.v === 1 ? [-1] : []).forEach(sx => {
+    const pts = PARAGON_PROFILE.slice(0, -2).map(p => [sx * M.vaseX + p[0], -(FH + p[1])]);
+    const mirror = PARAGON_PROFILE.slice(0, -2).reverse().map(p => [sx * M.vaseX - p[0], -(FH + p[1])]);
+    o.push(`<path d="${poly(pts.concat(mirror))}" fill="url(#${id}s)" stroke="#000" stroke-opacity=".35" stroke-width=".1"/>`);
+  });
+  const topY = -(ty + s.th);
+  if (!opts.mini) {
+    o.push(svgDims(tx, topY, tx + s.tw, topY, fmtIn(s.tw) + ' tablet', -2.6));
+    o.push(svgDims(tx + s.tw, -ty, tx + s.tw, topY, fmtIn(s.th) + ' tall', f.fw / 2 - s.tw / 2 + 3, true));
+    o.push(svgDims(bx + s.bw, -FH, bx + s.bw, -ty, fmtIn(s.bh), f.fw / 2 - s.bw / 2 + 3, true));
+    o.push(svgDims(bx, 0, bx + s.bw, 0, fmtIn(s.bw) + ' base', 3.6));
+    o.push(svgDims(fx, 0, fx + f.fw, 0, fmtIn(f.fw) + ' × ' + fmtIn(f.fd) + ' foundation', 7.8));
+  }
+  const pad = opts.mini ? 1.5 : 4, vb = opts.mini ? [fx - pad, topY - pad, f.fw + 2 * pad, -topY + pad + 2] : [fx - 4, topY - 6, f.fw + 20, -topY + 17];
+  const size = opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Front view with measurements"><defs>${patDef(id + 's', st.c)}${patDef(id + 'f', 'Barrell_Gray')}${ARROW}</defs>${o.join('')}</svg>`;
+}
+function flatTopSvg(st, opts = {}) {
+  const fl = FLATS[st.fs], id = 'f' + (opts.id || ''), o = [], hasV = st.fv !== 'none', gap = 4;
+  const total = fl.w + (hasV ? gap + 12 : 0), x0 = -total / 2;
+  o.push(`<rect x="${x0 - 8}" y="${-fl.l / 2 - 8}" width="${total + 16}" height="${fl.l + 16}" fill="#8db271" rx="2"/>`);
+  o.push(`<rect x="${x0}" y="${-fl.l / 2}" width="${fl.w}" height="${fl.l}" fill="url(#${id}s)" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
+  if (hasV) {
+    const bx = x0 + fl.w + gap;
+    o.push(`<rect x="${bx}" y="-6" width="12" height="12" fill="url(#${id}s)" stroke="#000" stroke-opacity=".3" stroke-width=".12"/>`);
+    o.push(`<circle cx="${bx + 6}" cy="0" r="3.4" fill="#7a5a32" stroke="#c9a35a" stroke-width=".25"/>`);
+  }
+  if (!opts.mini) {
+    o.push(svgDims(x0, -fl.l / 2, x0 + fl.w, -fl.l / 2, fmtIn(fl.w), -3, false, 2));
+    o.push(svgDims(x0, fl.l / 2, x0, -fl.l / 2, fmtIn(fl.l), -6.5, true, 2));
+    if (hasV) o.push(svgDims(x0 + fl.w + gap, 6, x0 + fl.w + gap + 12, 6, '12″ vase block', 4, false, 1.6));
+  }
+  const vb = opts.mini ? [x0 - 9, -fl.l / 2 - 9, total + 18, fl.l + 18] : [x0 - 16, -fl.l / 2 - 12, total + 28, fl.l + 26];
+  const size = opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Top view with measurements"><defs>${patDef(id + 's', st.fc)}${ARROW}</defs>${o.join('')}</svg>`;
+}
+function measuredHtml() {
+  const svg = state.type === 'upright' ? uprightFrontSvg(state) : flatTopSvg(state);
+  const what = state.type === 'upright' ? 'Front view, measured' : 'From above, measured';
+  return `<div style="padding:10px 14px 0;font-weight:700;color:#33505f;font-size:13px;">${what}</div><div style="padding:6px 14px 70px;height:calc(100% - 30px)">${svg.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div>`;
+}
+let cmpFilter = 'all';
+function compareHtml() {
+  const isU = state.type === 'upright';
+  const list = isU ? UPRIGHTS : FLATS;
+  const k = isU ? 3.3 : 2.6;
+  const filters = isU ? [['all', 'All'], ['single', 'Single'], ['comp', 'Companion']] : [['all', 'All']];
+  const bar = `<div style="display:flex;gap:6px;align-items:center;padding:10px 12px 0;flex-wrap:wrap">${filters.length > 1 ? filters.map(f => `<button class="opt cmpf" data-f="${f[0]}" aria-pressed="${cmpFilter === f[0]}" style="padding:4px 10px;font-weight:600">${f[1]}</button>`).join('') : ''}<span style="font-size:12.5px;color:#5a6a7a;margin-left:auto">${isU ? 'Front views' : 'Seen from above'}, all at the same scale, in your granite and options. Tap one to pick it.</span></div>`;
+  const cards = list.map((it, i) => {
+    if (isU && ((cmpFilter === 'single' && it.comp) || (cmpFilter === 'comp' && !it.comp))) return '';
+    const st = Object.assign({}, state, isU ? { s: i } : { fs: i });
+    const sel = isU ? state.s === i : state.fs === i;
+    const svg = isU ? uprightFrontSvg(st, { mini: true, k, id: 'c' + i }) : flatTopSvg(st, { mini: true, k, id: 'c' + i });
+    const title = isU ? `${it.tw}″ × ${it.th}″` : `${it.w}″ × ${it.l}″`;
+    const tag = isU ? (it.comp ? 'Companion' : 'Single') : (it.ledger ? 'Ledger' : it.comp ? 'Companion' : 'Single');
+    return `<button class="cmpcard" data-i="${i}" aria-pressed="${sel}" style="border:1.5px solid ${sel ? '#e84610' : '#c8d4de'};background:${sel ? '#fff6f2' : '#fff'};border-radius:10px;padding:8px;text-align:center;font-size:12px;line-height:1.3">
+      <span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:${tag === 'Single' ? '#466e86' : '#e84610'};border-radius:8px;padding:0 6px;margin-bottom:4px">${tag}</span>${svg}
+      <b style="display:block;color:#1a2332;font-size:13px;margin-top:4px">${title}</b><span style="color:#c23a0d;font-weight:700;font-size:13px">${money(calc(st).total)}</span></button>`;
+  }).join('');
+  return bar + `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 12px 80px">${cards}</div>`;
+}
+
+/* ═════════════ 6. UI ═════════════ */
+const $ = id => document.getElementById(id);
+let view = '3d';
+function opts(items, cur, key, cls = '') {
+  return `<div class="opts ${cls}" data-key="${key}">` + items.map(it => `<button type="button" class="opt" data-v="${it.v}" aria-pressed="${String(it.v) === String(cur)}"><b>${it.b}</b>${it.s ? `<small>${it.s}</small>` : ''}${it.p ? `<span class="p">${it.p}</span>` : ''}</button>`).join('') + '</div>';
+}
+function swatches(list, cur, key) {
+  return `<div class="sws" data-key="${key}">` + list.map(c => `<button type="button" class="sw" data-v="${c[0]}" aria-pressed="${c[0] === cur}" title="${colorName(c[0])}" aria-label="${colorName(c[0])}"><img src="upright-images/granite/${c[0]}.jpg" alt=""></button>`).join('') + '</div>';
+}
+function stepsHtml() {
+  const st = state, h = [];
+  let n = 1;
+  const H = t => `<h3><span class="n">${n++}</span>${t}</h3>`;
+  if (st.type === 'upright') {
+    const sz = comp => UPRIGHTS.map((s, i) => ({ s, i })).filter(x => !!x.s.comp === comp).map(x => ({ v: x.i, b: `${x.s.tw}″ × ${x.s.th}″`, s: `${x.s.tt}″ thick`, p: whole(x.s.price) }));
+    h.push(H('Size'), '<div class="grp">Single</div>', opts(sz(false), st.s, 's', 'c3'), '<div class="grp">Companion, two names</div>', opts(sz(true), st.s, 's', 'c2'));
+    h.push(H('Granite'), swatches(G2, st.c, 'c'), `<div class="cname">${colorName(st.c)}</div>`);
+    h.push(H('Top'), opts(Object.keys(TOPS).map(k => ({ v: k, b: TOPS[k] })), st.top, 'top', 'c3'));
+    h.push(H('Tablet finish'), opts(['P2', 'P3', 'P5'].map(k => ({ v: k, b: POLISH_TEXT[k][0], s: POLISH_TEXT[k][1], p: POLISH[k] ? '+' + whole(POLISH[k]) : 'Included' })), st.p, 'p', 'c3'));
+    h.push(H('Base'), opts([{ v: 0, b: 'Standard', s: 'Rough sides', p: 'Included' }, { v: 1, b: 'Polished margin', s: 'Smooth top band', p: '+' + whole(MARGIN) }], st.m, 'm', 'c2'));
+    const f = foundationFor(UPRIGHTS[st.s]);
+    h.push(H('Foundation'), opts([{ v: 'sawn', b: 'Sawn sides', p: 'Included' }, { v: 'rock', b: 'Rough sides', p: '+' + money(r2(f.price * FOUND_ROCK)).replace('.00', '') }], st.f, 'f', 'c2'),
+      `<div class="note">${f.fw}″ × ${f.fd}″ Barrell Gray. The monument company confirms the final size.</div>`);
+    h.push(H('Paragon vases'), opts([{ v: 0, b: 'None' }, { v: 1, b: 'One', p: whole(PARAGON) }, { v: 2, b: 'Two', p: whole(PARAGON * 2) }], st.v, 'v', 'c3'));
+  } else {
+    const g = GROUP_OF[st.fc];
+    h.push(H('Size'), opts(FLATS.map((fl, i) => ({ v: i, b: `${fl.w}″ × ${fl.l}″`, s: fl.note || (fl.comp ? 'Companion' : 'Single'), p: 'from ' + whole(fl.p[0]) })), st.fs, 'fs', 'c3'));
+    h.push(H('Granite'), '<div class="grp">Group 1</div>', swatches(G1.concat(G1T), st.fc, 'fc'), '<div class="grp">Group 2</div>', swatches(G2, st.fc, 'fc'), `<div class="cname">${colorName(st.fc)} · ${GROUP_NAMES[g]}</div>`);
+    h.push(H('Vase'), opts([{ v: 'none', b: 'No vase' }].concat(Object.keys(FLAT_VASES).map(k => ({ v: k, b: FLAT_VASES[k].name.replace(/ vase/i, ''), p: whole(FLAT_VASES[k].price) }))), st.fv, 'fv', 'c2'),
+      st.fv !== 'none' ? `<div class="note">Plus a 12″ granite vase block in the same stone (${whole(VASE_BLOCK[g])}) and ${whole(VASE_BLOCK_SET)} to set it.</div>` : '');
+  }
+  return h.join('');
+}
+function priceHtml() {
+  const c = calc();
+  $('qt').innerHTML = c.lines.map(l => `<tr><td>${l.label}${l.sub ? `<br><small style="color:#5a6a7a">${l.sub}</small>` : ''}</td><td class="r">${money(l.amount)}</td></tr>`).join('')
+    + `<tr class="sub"><td>Subtotal</td><td class="r">${money(c.sub)}</td></tr><tr class="tax"><td>Sales tax 10.4%</td><td class="r">${money(c.tax)}</td></tr><tr class="tot"><td>Total</td><td class="r" id="qtTotal">${money(c.total)}</td></tr>`;
+  $('totalChip').textContent = money(c.total);
+  $('qnote').textContent = state.type === 'upright'
+    ? 'Tax applies to every line, installation included. The monument company confirms the final foundation size.'
+    : 'Tax applies to every line, installation included.';
+}
+function setPressed(seg, attr, val) { seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.getAttribute(attr) === val))); }
+function update(opts = {}) {
+  $('steps').innerHTML = stepsHtml();
+  priceHtml();
+  setPressed($('typeSeg'), 'data-t', state.type);
+  setPressed($('viewSeg'), 'data-v', view);
+  const is3d = view === '3d' && glOk;
+  $('gl').hidden = !is3d; $('hint').hidden = !is3d; $('resetView').hidden = !is3d;
+  $('flat2d').hidden = is3d;
+  if (!is3d) $('flat2d').innerHTML = view === 'compare' ? compareHtml() : measuredHtml();
+  if (opts.geom !== false) rebuild3D();
+  // the print drawing is kept current, so its granite photos have loaded before anyone prints
+  $('printMeasured').innerHTML = state.type === 'upright' ? uprightFrontSvg(state, { id: 'p' }) : flatTopSvg(state, { id: 'p' });
+  writeUrl();
+}
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2600); }
+
+$('steps').addEventListener('click', e => {
+  const b = e.target.closest('.opt, .sw'); if (!b) return;
+  const key = b.parentElement.getAttribute('data-key'), raw = b.getAttribute('data-v');
+  state[key] = /^(s|m|v|fs)$/.test(key) ? +raw : raw;
+  update();
+});
+$('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.type = b.getAttribute('data-t'); cmpFilter = 'all'; update(); });
+$('viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; view = b.getAttribute('data-v'); update({ geom: false }); if (view === '3d') { resize(); needsRender = true; } });
+$('flat2d').addEventListener('click', e => {
+  const f = e.target.closest('.cmpf'); if (f) { cmpFilter = f.getAttribute('data-f'); update({ geom: false }); return; }
+  const c = e.target.closest('.cmpcard'); if (c) { state[state.type === 'upright' ? 's' : 'fs'] = +c.getAttribute('data-i'); update(); }
+});
+$('resetView').addEventListener('click', () => { if (stoneGroup) frame(); });
+$('resetBtn').addEventListener('click', () => { const t = state.type; state = Object.assign({}, DEFAULTS, { type: t }); view = '3d'; cmpFilter = 'all'; lastFrameKey = ''; update(); toast('Started over.'); });
+
+// tabs
+const tabs = [$('t-design'), $('t-real'), $('t-how')];
+tabs.forEach(t => t.addEventListener('click', () => {
+  tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); $(x.getAttribute('aria-controls')).hidden = !on; });
+  if (t.id === 't-design') { resize(); needsRender = true; }
+}));
+
+// print: a still of the 3D view beside the measured drawing, then the price
+function preparePrint() {
+  $('printDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  $('printTitle').textContent = state.type === 'upright' ? 'Upright Headstone Quote' : 'Flat Marker Quote';
+  if (renderer && stoneGroup) { renderer.render(scene, camera); $('printShot').src = canvas.toDataURL('image/png'); }
+}
+window.addEventListener('beforeprint', preparePrint);
+$('printBtn').addEventListener('click', () => { preparePrint(); setTimeout(() => window.print(), 60); });
+
+// import into the quote tool (staff): index.html reads this after sign-in and asks first
+function importTo(need) {
+  const c = calc();
+  const payload = { v: 2, ts: Date.now(), need, type: state.type, sub: c.sub, total: c.total };
+  if (state.type === 'upright') {
+    const f = foundationFor(UPRIGHTS[state.s]);
+    Object.assign(payload, { s: state.s, c: state.c, color: colorName(state.c), top: state.top, topName: TOPS[state.top], p: state.p, m: state.m, f: state.f, vases: state.v, found: { w: f.fw, d: f.fd, price: f.price } });
+  } else {
+    const fl = FLATS[state.fs], g = GROUP_OF[state.fc];
+    Object.assign(payload, { row: fl.row, w: fl.w, l: fl.l, group: GROUP_KEYS[g], color: colorName(state.fc), vase: state.fv === 'none' ? null : { key: state.fv, name: FLAT_VASES[state.fv].name, price: FLAT_VASES[state.fv].price } });
+  }
+  try { localStorage.setItem('bw_upright_import', JSON.stringify(payload)); }
+  catch (e) { alert('This browser blocked the hand-off to the quote tool. Enter the memorial by hand.'); return; }
+  const w = window.open('index.html#cem-quote', 'bwQuoteTool');
+  if (!w) location.href = 'index.html#cem-quote';
+}
+$('impPN').addEventListener('click', () => importTo('preneed'));
+$('impAN').addEventListener('click', () => importTo('atneed'));
+
+/* ═════════════ 7. STAFF GATE, THEN START ═════════════ */
+function start() {
+  $('gate').hidden = true; $('app').hidden = false;
+  initGL();
+  if (!glOk) { view = 'measured'; $('viewSeg').querySelector('[data-v="3d"]').disabled = true; }
+  $('loading').hidden = true;
+  update();
+}
+const devLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /[?&]dev(=|&|$)/.test(location.search);
+if (devLocal) start();
+else {
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyAqSuZ0mC_YLHvQC_lld_5uHfXYCR5jvAk", authDomain: "bw-quote-tool-5025a.firebaseapp.com",
+      databaseURL: "https://bw-quote-tool-5025a-default-rtdb.firebaseio.com", projectId: "bw-quote-tool-5025a",
+      storageBucket: "bw-quote-tool-5025a.firebasestorage.app", messagingSenderId: "449058699880", appId: "1:449058699880:web:3c42bd5d45fa21607099dd"
+    });
+    firebase.auth().onAuthStateChanged(u => {
+      if (u) start();
+      else { $('gateMsg').textContent = 'Sign in to the quote tool on this computer first, then open the designer again.'; $('gateLink').hidden = false; }
+    });
+  } catch (e) { $('gateMsg').textContent = 'Sign-in could not be checked. Open the quote tool and sign in first.'; $('gateLink').hidden = false; }
+}
+
+window.__md = { calc, state: () => state, setState: s => { Object.assign(state, s); update(); }, UPRIGHTS, FLATS, FOUNDATIONS, foundationFor, VASE_BLOCK, FLAT_VASES, view: () => view };
+</script>
+</body>
+</html>

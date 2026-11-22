@@ -126,3 +126,28 @@ orange #e84610 accents, house footer. Tabs: Design | Explanation | Photos.
 Drawing details (reuse the front-view `draw()` from build_damte_uprights.py), swatch-to-color
 mapping from the markers-guide Group 2 swatches, print layout, guides.html link placement.
 Real WMP photos must be checked for readable names before use (repo is public).
+
+## Rebuild after Martice's review (2026-11-21, supersedes the parts above it contradicts)
+- STAFF ONLY: "we don't want the families having access ... competitors would use it". Page is
+  `memorial-designer.html`, noindex, shows nothing until the quote tool's Firebase sign-in is
+  present (dev bypass only on localhost with ?dev). Not on guides.html; no ?family mode; no
+  copy-link buttons (it is printed for reference, never emailed). Opened from the quote tool's
+  sidebar (Cemetery > Memorial Designer). The repo is public, so this stops casual access only.
+- Real 3D (three.js 0.160, vendored in vendor/three): drag to rotate, scroll/pinch to zoom,
+  Reset view. Rock pitch is real geometry (cellular chip relief), polished faces reflect a
+  neutral sky (a green-lawn reflection made black read green), sawn is matte.
+- Paragon vases modeled from Everlife's product drawing (4in rolled rim, neck, shoulder, waist,
+  ring collar, 3 3/4in flared foot, 10in tall); die-cast aluminum in granite-look finishes,
+  shown in the stone's color.
+- FLAT MARKERS added (Upright | Flat switch): the six sizes the park allows per markers-guide
+  (28x16, 32x20, 28x34 single or companion, 44x20 and 60x20 companion, 36x72 full ledger);
+  Group 1, Group 1 Tariffed (Classic Gray, also listed as Cascade Gray) and Group 2, priced from
+  FLUSH_SIZES; polished top, sawn sides; vase = 12x12x4 block in the same granite + $175 setting
+  + one of the four vase-guide vases. Import fills marker, vase block and qVase.
+- Design tab is the stone only: big sticky 3D view with the total, choices + price on the right,
+  Print and Start over. Real Stone is its own tab (whole-stone photos, close-ups that pair two
+  finishes; no flat-marker photos). How It Works is a few plain sentences. The "what you choose
+  later, at added cost" section is gone: this is a baseline for at-need and pre-need families.
+- At-Need import REPLACES the CIRGAS Memorial Order stone fields (a previous family's values
+  survived the earlier fill-if-empty); lettering and instructions are untouched.
+- Test: scratch/test-memorial-designer.mjs (129 checks, firebase traffic aborted).
