@@ -3154,3 +3154,18 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: syntax check clean; test-ric-financing 31/31 (5 break on the old code), test-ric-remarks-fit 28,
   test-ric-woicik-round 53, test-ric-rebuilt 22, test-ric-line-qty 26; Acrobat by hand on the fillable (before and
   after); generated RIC carries the commit flag.
+
+## 2026-11-21: Bronze Markers guide: base sizes match the 11/04 price list
+
+- Found by the Memorial Designer session (the designer already follows the price list). Every change below is
+  against scratch/review-1104/pricelist.txt.
+- 56x16 bronze companion: base is 60x20, not 64x20 (B181/B182; Martice confirmed 11/21). Fixed in the scale-guide
+  tile label, its drawn base (295px to 276px wide, same 4.6px/inch as the rest) and the two-graves rules paragraph.
+- Two 24x12 government bronzes on one base across two graves: 54x16 no vase / 62x16 with a vase core (B168/B169),
+  was 60x16 / 64x20 with a 6" vase hole. Martice ruled: follow the price list.
+- Two 24x12 government bronzes on one base in one grave (two rights): now 28x30 no vase or 28x38 with a vase core
+  (B165/B166), was 28x38 only. Martice ruled: list both.
+- 60x20 bronze companion on a 64x24 base (B183/B184) added to the two-graves rules. It was priced in the table but
+  missing from the sizes; Martice: it's a companion, too big for one grave.
+- Bronze Markers.pdf rebuilt (5pp, unchanged length). Verified: verify_guides_page ALL OK; page and PDF pages 2-3
+  rendered and checked by eye; old sizes (64x20, 60x16) gone from the PDF text.
