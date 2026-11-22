@@ -3178,3 +3178,26 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Staff only: gated by the quote tool sign-in, no guides.html card, no family link.
 - Verified on the merged tree: syntax check clean (index.html, designer module, import map), test-memorial-designer
   239/239, verify_guides_page ALL OK, designer rendered and looked at; signed out it shows only the Staff only gate.
+
+## 2026-11-21: Planning Ahead presentation (unlinked, laptop on a TV)
+
+- New page planning-ahead.html + planning-ahead-images/ (66 photos). Martice's on-screen pre-need presentation,
+  funeral and cemetery. Opened by URL only: no guides.html card, no family link. No prices, no PDF.
+- Opening: "What brings you in today?" picks a track (already have a place here, family already resting here,
+  planning for Mom or Dad, just the funeral side, starting from scratch, just looking at one thing), then "Have you
+  done this before?". Keys 1-6 on Home pick a track; Change keeps every answer. Cemetery first, then the funeral side.
+- Picture questions feed the Circle of Protection wheel and a results screen: the plan in plain words per person,
+  Faith and tradition (17 tradition guides, each partner their own), Still to decide, and the matching reading guides
+  opened on screen. Owners get "Already yours"; family pins and a tour pause on the 2025 King County aerial.
+- Explainers: How planning ahead works (funeral home vs cemetery; GA guaranteed, cash advances at the time, ClearPoint
+  doesn't lock prices, cemetery purchases ahead of time are always locked, pay both together), a full Inman section,
+  side by sides (ground vs mausoleum, estate vs single space, urn garden vs full space, flat vs upright, glass vs
+  granite), Flowers at the grave (Love's Buds & Blooms floral placement), Tahoma National.
+- Photo rules held: real photos for cemetery property (the lawn crypt cutaway is the one drawing he asked for), real
+  markers only (Moon, Dydasco, Baker, uprights), no flag leads. Outside photos: Return Home (terramation partner),
+  the Lee upright from designmemorials.com, three Buds & Blooms bouquets from her site. Martice OK'd all for the site.
+- Guide edits: "more than 70 acres" in cemetery-property-guide and terramation-guide; markers-guide benches line now
+  "Sections 6 and 23, select areas of Section 20, and family estates" (Rose Urn Garden benches are a different type).
+  Their four PDFs rebuilt (text and page counts unchanged; the edits sit in web-only sections).
+- Verified: syntax check clean; 13 Playwright scripts, 170 checks, all pass; crop audit of all 157 photo boxes,
+  flagged ones looked at and fixed; screens checked by eye at 1920x1080.
