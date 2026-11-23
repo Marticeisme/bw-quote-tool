@@ -26,9 +26,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 :root{
-  --navy:#466e86; --navy-dark:#33505f; --navy-deep:#1e3a55; --orange:#e84610; --orange-dark:#c23a0d;
-  --offwhite:#f4f6f8; --cream:#f8f6f2; --rule:#ddd6c8; --gray-light:#f0f4f8; --gray-mid:#c8d4de;
-  --text:#3a4453; --text-dark:#1a2332; --text-light:#5a6a7a; --muted:#8a99a8;
+  --navy:#1c2c36; --navy-dark:#273d4a; --navy-deep:#1c2c36; --orange:#e84610; --orange-dark:#c23a0d;
+  --offwhite:#f2f5f6; --cream:#f8f6f2; --rule:#ddd6c8; --gray-light:#f0f4f8; --gray-mid:#dde5e9;
+  --text:#4a5a64; --text-dark:#16242c; --text-light:#6d818c; --muted:#a3b7c3;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Source Sans 3',sans-serif;font-size:15px;background:var(--offwhite);color:var(--text);line-height:1.5;}
@@ -53,7 +53,7 @@ button{font-family:inherit;cursor:pointer;}
 .head .sp{flex:1;}
 .head a{color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:5px 11px;}
 .tabs{max-width:1500px;margin:0 auto;padding:12px 20px 0;display:flex;gap:6px;}
-.tab{padding:8px 16px;border:1px solid var(--gray-mid);border-bottom:none;border-radius:8px 8px 0 0;background:#e6ecf1;color:var(--navy-dark);font-weight:700;font-size:14px;}
+.tab{padding:8px 16px;border:1px solid var(--gray-mid);border-bottom:none;border-radius:8px 8px 0 0;background:#e3e9ec;color:var(--navy-dark);font-weight:700;font-size:14px;}
 .tab[aria-selected="true"]{background:#fff;color:var(--orange-dark);}
 .panel{max-width:1500px;margin:0 auto;padding:0 20px 24px;}
 .sheet{background:#fff;border:1px solid var(--gray-mid);border-radius:0 10px 10px 10px;padding:16px;}
@@ -159,26 +159,77 @@ figcaption b{color:var(--text-dark);}
   .photos.tall img{height:340px;}
 }
 
-/* print: one page for the family to take home */
+/* print: the quote tool's own quote sheet (index.html _fqSheetCSS, _FQ2 colors), so a printed
+   memorial quote looks like every other quote (Martice 11/22). Local woff fonts, not Google's
+   variable fonts, which Chrome embeds as Type3 in a saved PDF. pq- prefix: the page's own .note,
+   .grp and .sheet rules must not reach it. */
+@font-face{font-family:'BWSerif';font-weight:600;font-style:normal;font-display:swap;src:url(fonts/SourceSerif4-600.woff) format('woff');}
+@font-face{font-family:'BWSerif';font-weight:700;font-style:normal;font-display:swap;src:url(fonts/SourceSerif4-700.woff) format('woff');}
+@font-face{font-family:'BWSans';font-weight:400;font-style:normal;font-display:swap;src:url(fonts/SourceSans3-400.woff) format('woff');}
+@font-face{font-family:'BWSans';font-weight:600;font-style:normal;font-display:swap;src:url(fonts/SourceSans3-600.woff) format('woff');}
+@font-face{font-family:'BWSans';font-weight:700;font-style:normal;font-display:swap;src:url(fonts/SourceSans3-700.woff) format('woff');}
+#pq{display:none;--slate:#4B6E81;--orange:#E5480F;--cream:#FDFCFA;--ink:#33414A;--muted:#8a9299;--grey:#6a767d;
+  --line:#EFE9DC;--hair:#DBD3C4;--head:#3B4A52;--bodytx:#5A666D;--subtle:#9AA1A7;--contactb:#7A848B;
+  --mastsub:#D3DDE3;--bandfine:#C3D0D7;--recontop:#DCD4C5;
+  font-family:'BWSans','Source Sans 3',system-ui,sans-serif;color:var(--bodytx);line-height:normal;}
+#pq .pq-serif{font-family:'BWSerif','Source Serif 4',Georgia,serif;}
+#pq .pq-sheet{width:612pt;min-height:790pt;margin:0 auto;background:var(--cream);display:flex;flex-direction:column;}
+#pq .pq-body{flex:1 1 auto;padding:0 40pt;}
+#pq .pq-mast{height:85pt;background:var(--slate);display:flex;align-items:center;justify-content:space-between;gap:24pt;padding:0 40pt;}
+#pq .pq-mast img{height:39pt;width:auto;display:block;}
+#pq .pq-mast-r{text-align:right;min-width:0;}
+#pq .pq-mast-t{font-weight:700;font-size:25pt;line-height:1.1;color:#fff;white-space:nowrap;}
+#pq .pq-mast-s{font-size:9pt;line-height:1.3;color:var(--mastsub);margin-top:3pt;}
+#pq .pq-key{height:2.25pt;background:var(--orange);}
+#pq .pq-kick{font-weight:700;text-transform:uppercase;color:var(--orange);font-size:8.25pt;letter-spacing:.2em;}
+#pq .pq-eyebrow{font-weight:700;text-transform:uppercase;color:var(--orange);font-size:8.25pt;letter-spacing:.24em;padding-top:18pt;}
+#pq .pq-fam{font-weight:600;font-size:27pt;line-height:1.12;color:var(--head);margin:3.75pt 0 0;}
+#pq .pq-venue{font-size:10.1pt;color:var(--grey);margin-top:4.5pt;}
+#pq .pq-band{margin-top:13pt;min-height:76pt;background:var(--slate);display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;padding:16.5pt 19.5pt 14pt;}
+#pq .pq-band-t{font-weight:600;font-size:18pt;line-height:1;color:#fff;}
+#pq .pq-band-d{font-size:9.75pt;line-height:1.3;color:var(--mastsub);margin-top:6pt;max-width:300pt;}
+#pq .pq-band-r{text-align:right;white-space:nowrap;}
+#pq .pq-band-l{font-size:7.9pt;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mastsub);}
+#pq .pq-band-v{font-weight:700;font-size:28.5pt;line-height:1.05;color:#fff;margin-top:4pt;}
+#pq .pq-band-fine{font-size:7.9pt;color:var(--bandfine);margin-top:4pt;}
+#pq .pq-views{display:grid;grid-template-columns:1.25fr 1fr;gap:12pt;align-items:center;margin-top:12pt;}
+#pq .pq-views img{width:auto;max-width:100%;justify-self:center;height:1.95in;object-fit:contain;display:block;border:0.7pt solid var(--hair);background:#fff;}
+#pq .pq-views svg{width:100%;height:1.95in;display:block;}
+#pq .pq-surface{padding-top:12pt;}
+#pq .pq-sect{display:flex;align-items:baseline;justify-content:space-between;gap:16pt;}
+#pq .pq-sect h2{font-weight:600;font-size:16.5pt;line-height:1;color:var(--head);margin:0;}
+#pq .pq-sect-tag{font-size:9.4pt;color:var(--muted);}
+#pq .pq-sect-rule{height:1.5pt;background:var(--slate);margin-top:6pt;}
+#pq .pq-grp{padding-top:10pt;}
+#pq .pq-row{display:flex;align-items:baseline;justify-content:space-between;gap:20pt;padding:5.25pt 0 3.2pt;border-bottom:0.5pt solid var(--line);line-height:1.15;}
+#pq .pq-row-n{font-size:10.5pt;font-weight:600;color:var(--ink);}
+#pq .pq-row-note{font-size:9.4pt;font-weight:400;color:var(--subtle);margin-left:5pt;}
+#pq .pq-row-a{font-size:10.5pt;font-weight:600;color:var(--slate);font-variant-numeric:tabular-nums;white-space:nowrap;}
+#pq .pq-subt{display:flex;align-items:baseline;justify-content:flex-end;gap:20pt;padding:8.25pt 0 6pt;line-height:1.1;}
+#pq .pq-subt-l{font-size:9.4pt;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+#pq .pq-subt-v{font-size:11pt;font-weight:600;color:var(--head);font-variant-numeric:tabular-nums;min-width:80pt;text-align:right;}
+#pq .pq-recon{margin-top:8pt;border-top:1pt solid var(--recontop);padding-top:10.5pt;}
+#pq .pq-recon-tax{display:flex;justify-content:flex-end;gap:16.5pt;font-size:10.5pt;color:var(--bodytx);padding-bottom:4pt;line-height:1.1;}
+#pq .pq-recon-tax span:last-child{font-variant-numeric:tabular-nums;min-width:80pt;text-align:right;}
+#pq .pq-recon-tot{display:flex;align-items:baseline;justify-content:flex-end;gap:16.5pt;padding-top:6pt;line-height:1.1;}
+#pq .pq-recon-tot .l{font-size:9pt;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+#pq .pq-recon-tot .v{font-size:11.25pt;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums;min-width:80pt;text-align:right;}
+#pq .pq-recon-note{text-align:right;font-size:8.6pt;color:var(--subtle);margin-top:2pt;}
+#pq .pq-note{margin-top:11pt;}
+#pq .pq-note .pq-kick{font-size:7.9pt;letter-spacing:.22em;}
+#pq .pq-note p{font-size:9.75pt;line-height:1.55;color:var(--bodytx);margin:5pt 0 0;}
+#pq .pq-foot{margin-top:10pt;padding:11pt 40pt 12pt;border-top:1pt solid var(--hair);display:flex;align-items:flex-start;justify-content:space-between;gap:24pt;}
+#pq .pq-foot-name{font-size:12pt;font-weight:700;color:var(--orange);line-height:1.2;}
+#pq .pq-foot-role{font-size:9.4pt;color:var(--grey);margin-top:3pt;}
+#pq .pq-foot-r{text-align:right;}
+#pq .pq-foot-contact{font-size:10.1pt;font-weight:700;color:var(--slate);line-height:1.2;min-height:12.2pt;}
+#pq .pq-foot-addr{font-size:9pt;color:var(--contactb);margin-top:3pt;}
 @media print{
-  @page{size:letter;margin:.45in;}
-  body{background:#fff;font-size:11.5px;}
-  .head,.tabs,.side .steps,.vbar,.hint,.acts,.imp,.toast,#tab-real,#tab-how,#gate{display:none!important;}
-  .panel{padding:0;max-width:none;}
-  .sheet{border:none;padding:0;}
-  .print-only{display:block!important;}
-  .design{display:block;}
-  .viewer{position:static;}
-  .stage{display:none!important;}
-  .pviews{display:grid!important;grid-template-columns:1.3fr 1fr;gap:10px;align-items:center;margin-bottom:8px;}
-  .pviews img{width:100%;height:auto;max-height:3.9in;object-fit:contain;border:1px solid #ccd;border-radius:8px;}
-  .pviews svg{width:100%;height:auto;max-height:3.9in;}
-  .ph{display:flex!important;align-items:center;justify-content:space-between;border-bottom:3px solid var(--navy);padding-bottom:6px;margin-bottom:8px;}
-  .ph img{height:24px;}
-  .ph .t{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--text-dark);}
-  .ph .d{font-size:11px;color:var(--text-light);text-align:right;}
-  .price{border-top:none;margin-top:0;break-inside:avoid;}
-  .pfoot{margin-top:10px;font-size:10.5px;color:var(--text-light);text-align:center;border-top:1px solid #dde;padding-top:6px;}
+  @page{size:letter;margin:0;}
+  html,body{background:#fff!important;margin:0;padding:0;}
+  #app,#gate,#toast{display:none!important;}
+  #pq{display:block!important;}
+  #pq,#pq *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
 </style>
 </head>
@@ -192,6 +243,29 @@ figcaption b{color:var(--text-dark);}
     <a href="index.html" id="gateLink" hidden>Open the quote tool</a>
   </div>
 </div>
+
+<!-- ═══ PRINT: the quote tool's quote sheet ═══ -->
+<div id="pq" aria-hidden="true"><div class="pq-sheet">
+  <div class="pq-mast"><img src="logo.svg" alt="Bonney Watson"><div class="pq-mast-r"><div class="pq-mast-t pq-serif" id="pqTitle">Memorial Quote</div><div class="pq-mast-s" id="pqScope"></div></div></div>
+  <div class="pq-key"></div>
+  <div class="pq-body">
+    <div class="pq-eyebrow">Prepared with care for</div>
+    <h1 class="pq-fam pq-serif">Your Family</h1>
+    <div class="pq-venue" id="pqVenue">Washington Memorial Park</div>
+    <div class="pq-band"><div><div class="pq-band-t pq-serif">Your memorial</div><div class="pq-band-d" id="pqDesc"></div></div>
+      <div class="pq-band-r"><div class="pq-band-l">Estimated total</div><div class="pq-band-v pq-serif" id="pqTotal"></div><div class="pq-band-fine">includes sales tax</div></div></div>
+    <div class="pq-views"><img id="printShot" alt=""><div id="printMeasured"></div></div>
+    <div class="pq-surface"><div class="pq-sect"><h2 class="pq-serif">Memorial</h2><span class="pq-sect-tag">Washington Memorial Park</span></div><div class="pq-sect-rule"></div>
+      <div class="pq-grp"><div class="pq-kick" id="pqKick"></div><div id="pqRows"></div></div>
+      <div class="pq-subt"><span class="pq-subt-l">Memorial subtotal</span><span class="pq-subt-v" id="pqSubtotal"></span></div></div>
+    <div class="pq-recon"><div class="pq-recon-tax"><span>Sales tax (10.4%)</span><span id="pqTax"></span></div>
+      <div class="pq-recon-tot"><span class="l">Total</span><span class="v" id="pqGrand"></span></div>
+      <div class="pq-recon-note">Tax applies to every line, installation included.</div></div>
+    <div class="pq-note"><div class="pq-kick">A note</div><p id="pqNote"></p></div>
+  </div>
+  <div class="pq-foot"><div><div class="pq-foot-name" id="pqAdvName">Bonney Watson</div><div class="pq-foot-role" id="pqAdvRole">Washington Memorial Park</div></div>
+    <div class="pq-foot-r"><div class="pq-foot-contact" id="pqAdvContact"></div><div class="pq-foot-addr">16445 International Blvd, SeaTac, WA 98188 &nbsp;·&nbsp; Available 24 hours</div></div></div>
+</div></div>
 
 <div id="app" hidden>
 <header class="head"><div class="head-in">
@@ -211,12 +285,6 @@ figcaption b{color:var(--text-dark);}
 <!-- ═══ DESIGN ═══ -->
 <div class="panel" id="tab-design" role="tabpanel">
  <div class="sheet">
-  <div class="ph print-only" style="display:none">
-    <img src="logo-navy.svg" alt="Bonney Watson">
-    <div class="t" id="printTitle">Memorial Quote</div>
-    <div class="d" id="printDate"></div>
-  </div>
-  <div class="pviews print-only" style="display:none"><img id="printShot" alt=""><div id="printMeasured"></div></div>
   <div class="design">
    <div class="viewer">
     <div class="vbar">
@@ -254,7 +322,6 @@ figcaption b{color:var(--text-dark);}
     </div>
    </div>
   </div>
-  <div class="pfoot print-only" style="display:none">Bonney Watson · Washington Memorial Park · 16445 International Blvd, SeaTac, WA 98188 · 206-445-9794</div>
  </div>
 </div>
 
@@ -1014,18 +1081,18 @@ function svgDims(x1, y1, x2, y2, text, off, vertical, fs = 1.7) {
   const o = [];
   if (vertical) {
     const x = x1 + off;
-    o.push(`<line x1="${x1}" y1="${y1}" x2="${x + .6}" y2="${y1}" stroke="#8a99a8" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x + .6}" y2="${y2}" stroke="#8a99a8" stroke-width=".08"/>`);
-    o.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#33505f" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
-    o.push(`<text x="${x + 0.9}" y="${(y1 + y2) / 2 + fs * .35}" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#33505f">${text}</text>`);
+    o.push(`<line x1="${x1}" y1="${y1}" x2="${x + .6}" y2="${y1}" stroke="#a3b7c3" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x + .6}" y2="${y2}" stroke="#a3b7c3" stroke-width=".08"/>`);
+    o.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#273d4a" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
+    o.push(`<text x="${x + 0.9}" y="${(y1 + y2) / 2 + fs * .35}" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#273d4a">${text}</text>`);
   } else {
     const y = y1 + off, s = off < 0 ? -1 : 1;
-    o.push(`<line x1="${x1}" y1="${y1}" x2="${x1}" y2="${y + .6 * s}" stroke="#8a99a8" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x2}" y2="${y + .6 * s}" stroke="#8a99a8" stroke-width=".08"/>`);
-    o.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#33505f" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
-    o.push(`<text x="${(x1 + x2) / 2}" y="${y + (s < 0 ? -0.6 : 2.2)}" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#33505f">${text}</text>`);
+    o.push(`<line x1="${x1}" y1="${y1}" x2="${x1}" y2="${y + .6 * s}" stroke="#a3b7c3" stroke-width=".08"/><line x1="${x2}" y1="${y2}" x2="${x2}" y2="${y + .6 * s}" stroke="#a3b7c3" stroke-width=".08"/>`);
+    o.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#273d4a" stroke-width=".15" marker-start="url(#ar)" marker-end="url(#ar)"/>`);
+    o.push(`<text x="${(x1 + x2) / 2}" y="${y + (s < 0 ? -0.6 : 2.2)}" text-anchor="middle" font-family="Source Sans 3,Segoe UI,Arial" font-size="${fs}" font-weight="700" fill="#273d4a">${text}</text>`);
   }
   return o.join('');
 }
-const ARROW = '<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9z" fill="#33505f"/></marker>';
+const ARROW = '<marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,1 L10,5 L0,9z" fill="#273d4a"/></marker>';
 function patDef(id, key) {
   const Z = 20, T = 12 * Z;
   return `<pattern id="${id}" patternUnits="userSpaceOnUse" patternTransform="scale(${1 / Z})" width="${T}" height="${T}"><image href="upright-images/granite/${key}.jpg" width="${T}" height="${T}"/></pattern>`;
@@ -1056,7 +1123,7 @@ function uprightFrontSvg(st, opts = {}) {
     o.push(svgDims(fx, 0, fx + f.fw, 0, fmtIn(f.fw) + ' × ' + fmtIn(f.fd) + ' foundation', 7.8));
   }
   const pad = opts.mini ? 1.5 : 4, vb = opts.mini ? [fx - pad, topY - pad, f.fw + 2 * pad, -topY + pad + 2] : [fx - 4, topY - 6, f.fw + 20, -topY + 17];
-  const size = opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
+  const size = opts.at ? ` x="${(opts.at[0] + vb[0]).toFixed(2)}" y="${(opts.at[1] + vb[1]).toFixed(2)}" width="${vb[2].toFixed(2)}" height="${vb[3].toFixed(2)}"` : opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Front view with measurements"><defs>${patDef(id + 's', st.c)}${patDef(id + 'f', 'Barrell_Gray')}${ARROW}</defs>${o.join('')}</svg>`;
 }
 function flatTopSvg(st, opts = {}) {
@@ -1079,35 +1146,214 @@ function flatTopSvg(st, opts = {}) {
     const blk = L.P.find(p => p.kind === 'block');
     if (blk) o.push(svgDims(blk.x - 6, blk.z + 6, blk.x + 6, blk.z + 6, '12″ vase block', 3, false, 1.6));
   }
-  const vb = opts.mini ? [x0 - 9, y0 - 9, L.W + 18, L.L + 18] : [x0 - 16, y0 - 12, L.W + 32, L.L + 26];
-  const size = opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
+  const mp = opts.pad == null ? 9 : opts.pad, vb = opts.mini ? [x0 - mp, y0 - mp, L.W + 2 * mp, L.L + 2 * mp] : [x0 - 16, y0 - 12, L.W + 32, L.L + 26];
+  const size = opts.at ? ` x="${(opts.at[0] + vb[0]).toFixed(2)}" y="${(opts.at[1] + vb[1]).toFixed(2)}" width="${vb[2].toFixed(2)}" height="${vb[3].toFixed(2)}"` : opts.mini ? ` width="${Math.round(vb[2] * opts.k)}" height="${Math.round(vb[3] * opts.k)}"` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg"${size} viewBox="${vb.map(v => v.toFixed(2)).join(' ')}" role="img" aria-label="Top view with measurements"><defs>${patDef(id + 's', st.fc)}${patDef(id + 'b', 'Barrell_Gray')}${ARROW}</defs>${o.join('')}</svg>`;
 }
 function measuredHtml() {
   const svg = state.type === 'upright' ? uprightFrontSvg(state) : flatTopSvg(state);
   const what = state.type === 'upright' ? 'Front view, measured' : 'From above, measured';
-  return `<div style="padding:10px 14px 0;font-weight:700;color:#33505f;font-size:13px;">${what}</div><div style="padding:6px 14px 70px;height:calc(100% - 30px)">${svg.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div>`;
+  return `<div style="padding:10px 14px 0;font-weight:700;color:#273d4a;font-size:13px;">${what}</div><div style="padding:6px 14px 70px;height:calc(100% - 30px)">${svg.replace('<svg ', '<svg style="width:100%;height:100%" ')}</div>`;
 }
-let cmpFilter = 'all';
-function compareHtml() {
-  const isU = state.type === 'upright';
-  const isB = !isU && state.fm === 'bronze';
-  const list = isU ? UPRIGHTS : isB ? BRONZE : FLATS;
-  const k = isU ? 3.3 : isB ? 2.2 : 2.6;
-  const filters = isU ? [['all', 'All'], ['single', 'Single'], ['comp', 'Companion']] : [['all', 'All']];
-  const bar = `<div style="display:flex;gap:6px;align-items:center;padding:10px 12px 0;flex-wrap:wrap">${filters.length > 1 ? filters.map(f => `<button class="opt cmpf" data-f="${f[0]}" aria-pressed="${cmpFilter === f[0]}" style="padding:4px 10px;font-weight:600">${f[1]}</button>`).join('') : ''}<span style="font-size:12.5px;color:#5a6a7a;margin-left:auto">${isU ? 'Front views' : 'Seen from above'}, all at the same scale, in your granite and options. Tap one to pick it.</span></div>`;
-  const cards = list.map((it, i) => {
-    if (isU && ((cmpFilter === 'single' && it.comp) || (cmpFilter === 'comp' && !it.comp))) return '';
-    const st = Object.assign({}, state, isU ? { s: i } : isB ? { bk: it.k, bcore: 0 } : { fs: i });
+// Compare sizes (Martice 11/22: the old cards "doesn't actually help compare at all").
+// Side by side: every size on one lawn, one scale, sized to fill the pane, a 1 ft grid
+// behind it, the price under each. Overlay: every outline stacked on the current pick.
+let cmpFilter = 'all', cmpMode = 'lineup';
+const CMP_FONT = 'Source Sans 3,Segoe UI,Arial';
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function cmpItems() {
+  const isU = state.type === 'upright', isB = !isU && state.fm === 'bronze';
+  if (isB && !BRONZE_GROUPS[cmpFilter]) cmpFilter = bronzeOf(state).grp;
+  const list = isU ? UPRIGHTS : isB ? BRONZE : FLATS, items = [];
+  list.forEach((it, i) => {
     const sel = isU ? state.s === i : isB ? state.bk === it.k : state.fs === i;
-    const svg = isU ? uprightFrontSvg(st, { mini: true, k, id: 'c' + i }) : flatTopSvg(st, { mini: true, k, id: 'c' + i });
-    const title = isU ? `${it.tw}″ × ${it.th}″` : isB ? it.name : `${it.w}″ × ${it.l}″`;
-    const tag = isU ? (it.comp ? 'Companion' : 'Single') : isB ? (it.grp === 'Expressions' ? 'Expressions' : it.grp === 'Veterans' ? 'Veterans' : it.comp ? 'Companion' : 'Single') : (it.ledger ? 'Ledger' : it.comp ? 'Companion' : it.note ? 'Single or companion' : 'Single');
-    return `<button class="cmpcard" data-i="${i}" aria-pressed="${sel}" style="border:1.5px solid ${sel ? '#e84610' : '#c8d4de'};background:${sel ? '#fff6f2' : '#fff'};border-radius:10px;padding:8px;text-align:center;font-size:12px;line-height:1.3">
-      <span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:${tag === 'Single' ? '#466e86' : '#e84610'};border-radius:8px;padding:0 6px;margin-bottom:4px">${tag}</span>${svg}
-      <b style="display:block;color:#1a2332;font-size:13px;margin-top:4px">${title}</b><span style="color:#c23a0d;font-weight:700;font-size:13px">${money(calc(st).total)}</span></button>`;
-  }).join('');
-  return bar + `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:10px 12px 80px">${cards}</div>`;
+    // the overlay always keeps the pick: it is what every other outline is measured against
+    const keep = sel && cmpMode === 'overlay';
+    if (!keep && isU && ((cmpFilter === 'single' && it.comp) || (cmpFilter === 'comp' && !it.comp))) return;
+    if (!keep && isB && it.grp !== cmpFilter) return;
+    // the pick keeps its own options, so its price is the quote's price
+    const st = sel ? Object.assign({}, state) : Object.assign({}, state, isU ? { s: i } : isB ? { bk: it.k, bcore: 0 } : { fs: i });
+    const o = { i, it, st, sel, total: calc(st).total };
+    if (isU) {
+      const M = model(st);
+      o.title = `${it.tw}″ × ${it.th}″ × ${it.tt}″`; o.tag = it.comp ? 'Companion' : 'Single';
+      o.w = M.f.fw + 3; o.top = M.FH + it.bh + it.th + 1.5; o.bot = 2; o.h = o.top + o.bot;
+      o.fw = M.f.fw;
+    } else {
+      const L = flatLayout(st), pad = 2;
+      o.w = L.W + 2 * pad; o.h = L.L + 2 * pad;
+      if (isB) {
+        o.title = (it.pair ? '2 × ' : '') + `${it.bz[0]}″ × ${it.bz[1]}″` + (it.concrete ? ', concrete' : '');
+        o.tag = it.name.replace(/ \d+″.*$/, '');
+        const core = !!(st.bcore && it.core), base = (core && it.core.base) || it.base;
+        o.ow = base[0]; o.ol = base[1];
+      } else {
+        o.title = `${it.w}″ × ${it.l}″`; o.tag = it.ledger ? 'Ledger' : it.comp ? 'Companion' : it.note ? 'Single or companion' : 'Single';
+        o.ow = it.w; o.ol = it.l;
+      }
+    }
+    o.textPx = Math.max(o.title.length * 7.4, (o.tag.length + money(o.total).length + 3) * 6.6);
+    items.push(o);
+  });
+  return { isU, isB, items };
+}
+function cmpBox() {
+  const b = $('flat2d');
+  const bar = b.querySelector('.cmpbar'), barH = bar ? bar.offsetHeight + 12 : 50;
+  return { W: Math.max(320, (b.clientWidth || 900) - 30), H: Math.max(260, (b.clientHeight || 620) - barH - 74) };
+}
+function lineupSvg(isU, items) {
+  if (!isU) items = items.slice().sort((a, b) => a.h - b.h || a.w - b.w);
+  const { W, H: H0 } = cmpBox(), LABEL = 40, LEFT = isU ? 40 : 0, n = items.length, TOPBAR = isU ? 0 : 26, H = H0 - TOPBAR;
+  // r rows: split the sizes in order, then find the largest scale (px per inch) at which every row,
+  // labels included, fits the width, and (useH) the rows fit the height
+  const layout = (r, useH) => {
+    let k = 4, rows, rowTop, rowBot;
+    for (let pass = 0; pass < 5; pass++) {
+      const slot = items.map(o => Math.max(o.w, o.textPx / k) + 18 / k);
+      const target = slot.reduce((a, b) => a + b, 0) / r;
+      rows = [];
+      let cur = [], cw = 0;
+      items.forEach((o, j) => {
+        if (cur.length && cw + slot[j] / 2 > target && rows.length < r - 1) { rows.push(cur); cur = []; cw = 0; }
+        cur.push(j); cw += slot[j];
+      });
+      rows.push(cur);
+      rowTop = rows.map(rw => Math.max(...rw.map(j => isU ? items[j].top : items[j].h)));
+      rowBot = rows.map(rw => isU ? Math.max(...rw.map(j => items[j].bot)) : 0);
+      const sumH = rowTop.reduce((a, b) => a + b, 0) + rowBot.reduce((a, b) => a + b, 0);
+      const fits = kk => rows.every(rw => rw.reduce((a, j) => a + Math.max(items[j].w * kk, items[j].textPx) + 18, 0) <= W - LEFT);
+      let lo = 0.5, hi = 16;
+      for (let it = 0; it < 30; it++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
+      k = useH ? Math.min(lo, (H - rows.length * LABEL) / sumH) : lo;
+    }
+    const slot = items.map(o => Math.max(o.w, o.textPx / k) + 18 / k);
+    return { rows, slot, rowW: rows.map(rw => rw.reduce((a, j) => a + slot[j], 0)), rowTop, rowBot, k };
+  };
+  let best = null;
+  for (let r = 1; r <= n; r++) { const c = layout(r, true); if (!best || c.k > best.k * 1.02) best = c; }
+  if (best.k < 2.6) {
+    // too small to read (a phone): the fewest rows that are a readable size, and the pane scrolls
+    best = null;
+    for (let r = 1; r <= n; r++) { const c = layout(r, false); if (c.k >= 3.2) { best = c; break; } if (!best || c.k > best.k) best = c; }
+  }
+  const { rows, slot, rowW, rowTop, rowBot, k } = best, px = v => v / k;
+  const maxW = Math.max(...rowW), left = px(LEFT), out = [];
+  let y = px(TOPBAR);
+  if (!isU) out.push(`<g stroke="#273d4a" stroke-width="2" vector-effect="non-scaling-stroke"><line x1="${px(2)}" y1="${px(13)}" x2="${px(2) + 12}" y2="${px(13)}" vector-effect="non-scaling-stroke"/><line x1="${px(2)}" y1="${px(7)}" x2="${px(2)}" y2="${px(19)}" vector-effect="non-scaling-stroke"/><line x1="${px(2) + 12}" y1="${px(7)}" x2="${px(2) + 12}" y2="${px(19)}" vector-effect="non-scaling-stroke"/></g><text x="${px(8) + 12}" y="${px(17)}" font-family="${CMP_FONT}" font-size="${px(12)}" font-weight="700" fill="#273d4a">1 foot</text>`);
+  rows.forEach((rw, ri) => {
+    const x0 = left + (maxW - rowW[ri]) / 2, x1 = x0 + rowW[ri];
+    const top = y, ground = y + rowTop[ri], bottom = ground + rowBot[ri];
+    if (isU) {
+      out.push(`<rect x="${x0}" y="${top}" width="${rowW[ri]}" height="${ground - 1.5 - top}" fill="#eef2f4"/>`);
+      out.push(`<rect x="${x0}" y="${ground - 1.5}" width="${rowW[ri]}" height="${bottom - ground + 1.5}" fill="#8db271"/>`);
+      for (let f = 1; 12 * f < rowTop[ri] - 1.5; f++) {
+        const gy = ground - 1.5 - 12 * f;
+        out.push(`<line x1="${x0}" y1="${gy}" x2="${x1}" y2="${gy}" stroke="#a3b7c3" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`);
+        out.push(`<text x="${x0 - px(6)}" y="${gy + px(4)}" text-anchor="end" font-family="${CMP_FONT}" font-size="${px(11.5)}" font-weight="600" fill="#6d818c">${f} ft</text>`);
+      }
+    } else {
+      // each flat gets its own lawn patch (drawn with the stone below)
+    }
+    let x = x0;
+    rw.forEach(j => {
+      const o = items[j], cx = x + slot[j] / 2, sx = x, sw = slot[j];
+      const nested = isU ? uprightFrontSvg(o.st, { mini: true, k: 1, id: 'c' + o.i, at: [cx, ground] })
+        : flatTopSvg(o.st, { mini: true, k: 1, pad: 2, id: 'c' + o.i, at: [cx, top + o.h / 2] });
+      const ib = isU ? bottom : top + o.h, ly = ib + px(16);
+      let lawn = '';
+      if (!isU) {
+        const lx0 = cx - o.w / 2, ly0 = top, lx1 = lx0 + o.w, ly1 = top + o.h;
+        lawn = `<rect x="${lx0}" y="${ly0}" width="${o.w}" height="${o.h}" fill="#8db271" rx="${px(5)}"/>`;
+      }
+      out.push(`<g class="cmpcard" data-i="${o.i}" aria-pressed="${o.sel}" role="button" style="cursor:pointer">`
+        + `<rect x="${sx}" y="${top}" width="${sw}" height="${bottom - top + px(LABEL)}" fill="transparent"/>`
+        + (o.sel ? `<rect x="${sx + px(3)}" y="${ib + px(2)}" width="${sw - px(6)}" height="${px(LABEL - 4)}" rx="${px(6)}" fill="#fff1ea"/>` : '')
+        + lawn + nested
+        + `<text x="${cx}" y="${ly}" text-anchor="middle" font-family="${CMP_FONT}" font-size="${px(13)}" font-weight="700" fill="#16242c">${esc(o.title)}</text>`
+        + `<text x="${cx}" y="${ly + px(16)}" text-anchor="middle" font-family="${CMP_FONT}" font-size="${px(12.5)}" fill="#6d818c">${esc(o.tag)} · <tspan class="cmpprice" font-weight="700" fill="#c23a0d">${money(o.total)}</tspan></text>`
+        + (o.sel ? `<rect x="${sx + px(2)}" y="${top + px(2)}" width="${sw - px(4)}" height="${ib - top + px(LABEL - 4)}" rx="${px(8)}" fill="none" stroke="#e84610" stroke-width="2.5" vector-effect="non-scaling-stroke"/>` : '')
+        + `</g>`);
+      x += slot[j];
+    });
+    y = bottom + px(LABEL);
+  });
+  const vw = left + maxW, vh = y;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(vw * k)}" height="${Math.round(vh * k)}" viewBox="0 0 ${vw.toFixed(2)} ${vh.toFixed(2)}" role="img" aria-label="Every size side by side at one scale">${out.join('')}</svg>`;
+}
+function placeLabels(labels, lh) {
+  // push a label down until it clears every label already placed
+  const placed = [];
+  labels.forEach(l => {
+    const hit = p => l.x < p.x + p.w && l.x + l.w > p.x && l.y - lh < p.y && l.y > p.y - lh;
+    let guard = 0;
+    while (placed.some(hit) && guard++ < 40) l.y += lh;
+    placed.push(l);
+  });
+  return labels;
+}
+function overlaySvg(isU, isB, items) {
+  const { W, H } = cmpBox(), sel = items.find(o => o.sel) || null, out = [];
+  // biggest first, so a smaller outline stays clickable on top of a bigger one
+  const order = items.slice().sort((a, b) => isU ? (b.it.bw * (b.it.th + b.it.bh)) - (a.it.bw * (a.it.th + a.it.bh)) : b.ow * b.ol - a.ow * a.ol);
+  let x0, x1, y0, y1;
+  if (isU) {
+    const half = Math.max(...items.map(o => Math.max(o.it.bw, o.it.tw) / 2), sel ? sel.fw / 2 + 1.5 : 0);
+    x0 = -half; x1 = half; y0 = -Math.max(...items.map(o => o.top)); y1 = 2;
+  } else {
+    const hw = Math.max(...items.map(o => o.ow / 2), sel ? sel.w / 2 : 0), hl = Math.max(...items.map(o => o.ol / 2), sel ? sel.h / 2 : 0);
+    x0 = -hw - 2; x1 = hw + 2; y0 = -hl - 2; y1 = hl + 2;
+  }
+  const LBL = 150;   // px of label room on the right
+  const k = Math.min((W - LBL) / (x1 - x0), (H - 24) / (y1 - y0), 16), px = v => v / k;
+  x1 += px(LBL); y0 -= px(12); y1 += px(12);
+  if (isU) {
+    out.push(`<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${-1.5 - y0}" fill="#eef2f4"/><rect x="${x0}" y="-1.5" width="${x1 - x0}" height="${y1 + 1.5}" fill="#8db271"/>`);
+    for (let f = 1; -1.5 - 12 * f > y0 + px(12); f++) {
+      const gy = -1.5 - 12 * f;
+      out.push(`<line x1="${x0}" y1="${gy}" x2="${x1}" y2="${gy}" stroke="#a3b7c3" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><text x="${x1 - px(6)}" y="${gy - px(4)}" text-anchor="end" font-family="${CMP_FONT}" font-size="${px(11.5)}" font-weight="600" fill="#6d818c">${f} ft</text>`);
+    }
+  } else {
+    out.push(`<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="#8db271"/>`);
+    for (let gx = 12; gx < x1; gx += 12) out.push(`<line x1="${gx}" y1="${y0}" x2="${gx}" y2="${y1}" stroke="#fff" stroke-opacity=".3" vector-effect="non-scaling-stroke"/>`);
+    for (let gx = -12; gx > x0; gx -= 12) out.push(`<line x1="${gx}" y1="${y0}" x2="${gx}" y2="${y1}" stroke="#fff" stroke-opacity=".3" vector-effect="non-scaling-stroke"/>`);
+    for (let gy = 0; gy < y1; gy += 12) out.push(`<line x1="${x0}" y1="${gy}" x2="${x1}" y2="${gy}" stroke="#fff" stroke-opacity=".3" vector-effect="non-scaling-stroke"/>`);
+    for (let gy = -12; gy > y0; gy -= 12) out.push(`<line x1="${x0}" y1="${gy}" x2="${x1}" y2="${gy}" stroke="#fff" stroke-opacity=".3" vector-effect="non-scaling-stroke"/>`);
+  }
+  if (sel) out.push(isU ? uprightFrontSvg(sel.st, { mini: true, k: 1, id: 'ov', at: [0, 0] }) : flatTopSvg(sel.st, { mini: true, k: 1, pad: 0.6, id: 'ov', at: [0, 0] }));
+  const labels = [], lh = px(15);
+  order.forEach(o => {
+    let d, lx, ly;
+    if (isU) {
+      const it = o.it, M = model(o.st), yb = -(M.FH + it.bh);
+      const tab = tabletOutline(state.top, it.tw, it.th).map(p => [p[0] - it.tw / 2, yb - p[1]]);
+      d = poly([[-it.bw / 2, -M.FH], [it.bw / 2, -M.FH], [it.bw / 2, yb], [-it.bw / 2, yb]]) + ' ' + poly(tab);
+      lx = it.tw / 2 + px(5); ly = yb - it.th + px(5);
+    } else {
+      d = poly([[-o.ow / 2, -o.ol / 2], [o.ow / 2, -o.ol / 2], [o.ow / 2, o.ol / 2], [-o.ow / 2, o.ol / 2]]);
+      lx = o.ow / 2 + px(5); ly = -o.ol / 2 + px(12);
+    }
+    out.push(`<path class="cmpcard cmpo" data-i="${o.i}" aria-pressed="${o.sel}" d="${d}" fill="transparent" stroke="${o.sel ? '#e84610' : '#1c2c36'}" stroke-width="${o.sel ? 3 : 1.6}" vector-effect="non-scaling-stroke" style="cursor:pointer"/>`);
+    labels.push({ o, x: lx, y: ly, w: px(o.title.length * 7.2 + 8) });
+  });
+  placeLabels(labels.sort((a, b) => a.y - b.y), lh).forEach(l => {
+    out.push(`<text class="cmpcard" data-i="${l.o.i}" x="${l.x}" y="${l.y}" font-family="${CMP_FONT}" font-size="${px(12.5)}" font-weight="700" fill="${l.o.sel ? '#c23a0d' : '#16242c'}" stroke="#fff" stroke-width="${px(3)}" paint-order="stroke" style="cursor:pointer">${esc(l.o.title)}</text>`);
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round((x1 - x0) * k)}" height="${Math.round((y1 - y0) * k)}" viewBox="${x0.toFixed(2)} ${y0.toFixed(2)} ${(x1 - x0).toFixed(2)} ${(y1 - y0).toFixed(2)}" role="img" aria-label="Every outline on top of the current pick">${out.join('')}</svg>`;
+}
+function compareHtml() {
+  const { isU, isB, items } = cmpItems();
+  const filters = isU ? [['all', 'All'], ['single', 'Single'], ['comp', 'Companion']] : isB ? Object.keys(BRONZE_GROUPS).map(g => [g, g === 'Standard' ? 'Bronze' : g]) : [];
+  const btn = (cls, attr, v, label, on) => `<button class="opt ${cls}" ${attr}="${v}" aria-pressed="${on}" style="padding:4px 10px;font-weight:600">${label}</button>`;
+  const say = cmpMode === 'overlay'
+    ? 'Every outline drawn on top of your pick, at one scale. Tap an outline to pick it.'
+    : `Every size at one scale, in your ${isB ? 'options' : 'granite and options'}. Tap one to pick it.`;
+  const bar = `<div class="cmpbar" style="display:flex;gap:6px;align-items:center;padding:10px 12px 0;flex-wrap:wrap">`
+    + btn('cmpm', 'data-m', 'lineup', 'Side by side', cmpMode === 'lineup') + btn('cmpm', 'data-m', 'overlay', 'Overlay', cmpMode === 'overlay')
+    + (filters.length ? '<span style="width:10px"></span>' + filters.map(f => btn('cmpf', 'data-f', f[0], f[1], cmpFilter === f[0])).join('') : '')
+    + `<span style="font-size:12.5px;color:#6d818c;margin-left:auto">${say}</span></div>`;
+  const svg = cmpMode === 'overlay' ? overlaySvg(isU, isB, items) : lineupSvg(isU, items);
+  return bar + `<div style="padding:10px 14px 70px">${svg}</div>`;
 }
 
 /* ═════════════ 6. UI ═════════════ */
@@ -1160,7 +1406,7 @@ function stepsHtml() {
 }
 function priceHtml() {
   const c = calc();
-  $('qt').innerHTML = c.lines.map(l => `<tr><td>${l.label}${l.sub ? `<br><small style="color:#5a6a7a">${l.sub}</small>` : ''}</td><td class="r">${money(l.amount)}</td></tr>`).join('')
+  $('qt').innerHTML = c.lines.map(l => `<tr><td>${l.label}${l.sub ? `<br><small style="color:#6d818c">${l.sub}</small>` : ''}</td><td class="r">${money(l.amount)}</td></tr>`).join('')
     + `<tr class="sub"><td>Subtotal</td><td class="r">${money(c.sub)}</td></tr><tr class="tax"><td>Sales tax 10.4%</td><td class="r">${money(c.tax)}</td></tr><tr class="tot"><td>Total</td><td class="r" id="qtTotal">${money(c.total)}</td></tr>`;
   $('totalChip').textContent = money(c.total);
   $('qnote').textContent = state.type === 'upright'
@@ -1177,6 +1423,7 @@ function update(opts = {}) {
   $('gl').hidden = !is3d; $('hint').hidden = !is3d; $('resetView').hidden = !is3d;
   $('flat2d').hidden = is3d;
   if (!is3d) $('flat2d').innerHTML = view === 'compare' ? compareHtml() : measuredHtml();
+  if (!is3d && view === 'compare' && $('flat2d').scrollHeight > $('flat2d').clientHeight + 1) $('flat2d').innerHTML = compareHtml();
   if (opts.geom !== false) rebuild3D();
   // the print drawing is kept current, so its granite photos have loaded before anyone prints
   $('printMeasured').innerHTML = state.type === 'upright' ? uprightFrontSvg(state, { id: 'p' }) : flatTopSvg(state, { id: 'p' });
@@ -1194,10 +1441,13 @@ $('steps').addEventListener('click', e => {
 $('typeSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; state.type = b.getAttribute('data-t'); cmpFilter = 'all'; update(); });
 $('viewSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; view = b.getAttribute('data-v'); update({ geom: false }); if (view === '3d') { resize(); needsRender = true; } });
 $('flat2d').addEventListener('click', e => {
+  const m = e.target.closest('.cmpm'); if (m) { cmpMode = m.getAttribute('data-m'); update({ geom: false }); return; }
   const f = e.target.closest('.cmpf'); if (f) { cmpFilter = f.getAttribute('data-f'); update({ geom: false }); return; }
   const c = e.target.closest('.cmpcard');
-  if (c) { const i = +c.getAttribute('data-i'); if (state.type === 'upright') state.s = i; else if (state.fm === 'bronze') { state.bk = BRONZE[i].k; state.bcore = 0; } else state.fs = i; update(); }
+  if (c) { const i = +c.getAttribute('data-i'); if (state.type === 'upright') state.s = i; else if (state.fm === 'bronze') { if (state.bk !== BRONZE[i].k) { state.bk = BRONZE[i].k; state.bcore = 0; } } else state.fs = i; update(); }
 });
+let cmpRaf = 0;
+new ResizeObserver(() => { if (view !== 'compare' || $('flat2d').hidden) return; cancelAnimationFrame(cmpRaf); cmpRaf = requestAnimationFrame(() => { $('flat2d').innerHTML = compareHtml(); }); }).observe($('flat2d'), { box: 'border-box' });
 $('resetView').addEventListener('click', () => { if (stoneGroup) frame(); });
 $('resetBtn').addEventListener('click', () => { const t = state.type; state = Object.assign({}, DEFAULTS, { type: t }); view = '3d'; cmpFilter = 'all'; lastFrameKey = ''; update(); toast('Started over.'); });
 
@@ -1209,10 +1459,50 @@ tabs.forEach(t => t.addEventListener('click', () => {
 }));
 
 // print: a still of the 3D view beside the measured drawing, then the price
+// load the print fonts now: a font first asked for at print time is not there in time
+if (document.fonts) ["600 10px BWSerif", "700 10px BWSerif", "400 10px BWSans", "600 10px BWSans", "700 10px BWSans"].forEach(f => document.fonts.load(f).catch(() => {}));
+// the counselor who opened the designer from the quote tool, for the footer (same as its quotes)
+function printAdvisor() {
+  try {
+    const o = window.opener;
+    if (o && !o.closed && typeof o.bwCurrentAdvisor === 'function') {
+      const a = o.bwCurrentAdvisor();
+      return { name: a.name, contact: [a.email, a.phone].filter(Boolean).join('  ·  ') };
+    }
+  } catch (e) { /* opener on another origin, or gone */ }
+  return null;
+}
 function preparePrint() {
-  $('printDate').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  $('printTitle').textContent = state.type === 'upright' ? 'Upright Headstone Quote' : 'Flat Marker Quote';
+  const now = new Date(), valid = new Date(now.getTime() + 30 * 864e5);
+  const long = d => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const short = d => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const c = calc(), adv = printAdvisor(), first = c.lines[0];
+  const kind = state.type === 'upright' ? 'Upright Headstone' : state.fm === 'bronze' ? 'Bronze Marker' : 'Flat Granite Marker';
+  $('pqTitle').textContent = kind + ' Quote';
+  $('pqScope').textContent = 'Washington Memorial Park · ' + long(now) + ' · Valid through ' + short(valid);
+  $('pqVenue').textContent = 'Washington Memorial Park' + (adv ? ' · Prepared by ' + adv.name + ', Family Service Director' : '');
+  $('pqDesc').textContent = first.label + (first.sub ? ', ' + first.sub : '') + '.';
+  $('pqTotal').textContent = money(c.total);
+  $('pqKick').textContent = kind;
+  $('pqRows').innerHTML = c.lines.map(l => '<div class="pq-row"><div class="pq-row-n">' + esc(l.label) + (l.sub ? '<span class="pq-row-note">' + esc(l.sub) + '</span>' : '') + '</div><div class="pq-row-a">' + money(l.amount) + '</div></div>').join('');
+  $('pqSubtotal').textContent = money(c.sub);
+  $('pqTax').textContent = money(c.tax);
+  $('pqGrand').textContent = money(c.total);
+  $('pqNote').textContent = 'This is an estimate prepared for your planning - not a contract, and nothing here requires a decision today. Prices are valid for 30 days and subject to change. Please take the time you need; we are here to answer any question, whenever you are ready.'
+    + (state.type === 'upright' ? ' The monument company confirms the final foundation size.' : '');
+  $('pqAdvName').textContent = adv ? adv.name : 'Bonney Watson';
+  $('pqAdvRole').textContent = adv ? 'Family Service Director · Bonney Watson' : 'Washington Memorial Park';
+  $('pqAdvContact').textContent = adv ? adv.contact : '';
   if (renderer && stoneGroup) { renderer.render(scene, camera); $('printShot').src = canvas.toDataURL('image/png'); }
+  fitPrint();
+}
+function fitPrint() {
+  const pq = $('pq'), sheet = pq.querySelector('.pq-sheet'), body = pq.querySelector('.pq-body');
+  body.style.zoom = '';
+  pq.style.cssText = 'display:block;position:absolute;left:-10000px;top:0;';
+  const page = 790 * 96 / 72, over = sheet.offsetHeight - page;
+  if (over > 0) body.style.zoom = String(Math.max(0.7, (body.offsetHeight - over - 4) / body.offsetHeight));
+  pq.style.cssText = '';
 }
 window.addEventListener('beforeprint', preparePrint);
 $('printBtn').addEventListener('click', () => { preparePrint(); setTimeout(() => window.print(), 60); });
