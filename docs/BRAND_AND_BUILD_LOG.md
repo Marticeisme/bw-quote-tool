@@ -3219,3 +3219,9 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   home says "here at the park"; "What matters most to them" grammar.
 - Verified: syntax check clean; 13 Playwright scripts, 170 checks; both scenario walks (8 + 18) clean; crop
   audit; screens checked by eye at 1920x1080.
+
+## 2026-11-22: Quote tool sidebar: Planning Ahead link
+
+- Resources group: new "Planning Ahead" item under Family Guides & Resources, opens planning-ahead.html in a new
+  tab (shield icon, for the Circle of Protection). The presentation itself stays unlinked from family-facing pages.
+- Verified: syntax check clean (9 blocks); link present under Resources with its icon drawn; no page errors.
