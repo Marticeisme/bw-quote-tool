@@ -3225,3 +3225,18 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Resources group: new "Planning Ahead" item under Family Guides & Resources, opens planning-ahead.html in a new
   tab (shield icon, for the Circle of Protection). The presentation itself stays unlinked from family-facing pages.
 - Verified: syntax check clean (9 blocks); link present under Resources with its icon drawn; no page errors.
+
+## 2026-11-22: Memorial Designer: compare sizes, quote tool colors and print, sidebar
+
+- Compare sizes rebuilt (Martice: the old cards "doesn't actually help compare at all"). Side by side: every size
+  in one drawing at one scale, sized to fill the pane (uprights on a shared ground with 1/2/3 ft lines; flats with
+  a 1 foot scale bar), price under each, tap to pick. Overlay: every outline stacked on the current pick, which
+  always stays in. Bronze opens on the pick's own group; VA sizes say which one they are. Scrolls on a phone.
+- Chrome moved off BW navy #466e86 onto the quote tool's slate ramp (#1c2c36 / #273d4a, index.html :root).
+- Print is now the quote tool's own quote sheet (_fqSheetCSS look): slate masthead, orange keyline, estimated-total
+  band, the 3D still and measured drawing, line items, tax and total, the same note, advisor footer (from the quote
+  tool that opened the designer). Local woff fonts preloaded (no Type3), fitted to one Letter page.
+- Sidebar: Memorial Designer moved from Cemetery to the end of Resources (after Planning Ahead, rebased on 9aead866).
+- Verified: syntax clean (index.html 9 blocks, designer module), test-memorial-designer 248/248 (worktree copy
+  scratch/bronze-fix, the main checkout copy is the old 239), every compare state at 1400 and 390 wide, print PDFs
+  for upright/granite/bronze all one page, sidebar rendered.
