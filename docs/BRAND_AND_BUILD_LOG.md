@@ -3201,3 +3201,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   Their four PDFs rebuilt (text and page counts unchanged; the edits sit in web-only sections).
 - Verified: syntax check clean; 13 Playwright scripts, 170 checks, all pass; crop audit of all 157 photo boxes,
   flagged ones looked at and fixed; screens checked by eye at 1920x1080.
+
+## 2026-11-22: Planning Ahead: photo library, real markers, 25 family scenarios
+
+- Photos from the office photo library and Martice's marker photos (D:\Cemetery Photos Misc\Markers): pro shots
+  for the SeaTac chapel, stained glass and the park's big trees; the new Mountain View island; a row of uprights
+  in the gardens; a memorial bench. Every marker is now a real one installed at the park: bronze on granite
+  (2026 photo), flat granite, companion, side by side (PCM example set). No catalog, digital or proof markers.
+  Moon/Baker/Dydasco/Eshete packet photos removed (quality; the Dydasco "bronze" was granite with a photo).
+- Added "Sharing a family grave" (an urn as an added right in Mom's or Dad's grave: casket + up to two urns, each with its own
+  opening and closing, recording and usually an urn vault) as a place card, an owner card and a guide.
+- Walked 26 real, anonymized family scenarios (from the Property Cards logs) through the presentation. Fixes:
+  the Mom or Dad track asks what they already have here; "already in the family" when it isn't theirs;
+  "The marker that's already there, add the final date"; niche rights (most hold two, the Mountain View island
+  family niches four, Veterans Court of Honor one); "Plan for someone else too" keeps the first plan on screen;
+  a family can have more than one service; a rental casket goes with an urn (not "pick one"); nothing kept at
+  home says "here at the park"; "What matters most to them" grammar.
+- Verified: syntax check clean; 13 Playwright scripts, 170 checks; both scenario walks (8 + 18) clean; crop
+  audit; screens checked by eye at 1920x1080.

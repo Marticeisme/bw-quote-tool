@@ -423,7 +423,7 @@ const IMG = {
   mvcRoom: 'mvc-island-images/mvc-room.jpg', radWall: 'glass-niche-images/rad-wall.jpg', serWall: 'glass-niche-images/ser-wall.jpg',
   tgPath: 'granite-niche-images/tgmp-terrace.jpg', roacCourt: 'granite-niche-images/roac-courtyard.jpg',
   urnFull: 'urn-images/100095.jpeg', urnCompanion: 'urn-images/238323.jpeg', urnBio: 'urn-images/282715.jpeg', urnScatter: 'urn-images/282957.jpeg',
-  keepsake: 'keepsake-images/Atlas_Onyx_Keepsake.jpeg', bronze: P+'marker-bronze-real.jpg', graniteMarker: P+'marker-granite-real.jpg',
+  keepsake: 'keepsake-images/Atlas_Onyx_Keepsake.jpeg', bronze: P+'marker-bronze-granite-base.jpg'   /* real bronze on a granite base at the park (Martice's photo, 2026) */, graniteMarker: 'pcm-example-images/marker-136.jpg',
   // Our crematory, on site at Washington Memorial Park (from Martice's BNI deck, 2026-11-13)
   crematory: P+'crematory-chambers.jpg', crematoryWitness: P+'crematory-witness-room.jpg',
   // Return Home (our terramation partner), from returnhome.com 2026-11-13
@@ -434,8 +434,8 @@ const IMG = {
   urnVault: 'vault-images/service-urn-vault.jpg', urnVaultGrave: 'vault-images/graveside-urn-vault.jpg',
   woodCasket: 'casket-images/wood/269152.jpg', metalCasket: 'casket-images/metal/221502.jpg', cremCasket: 'casket-images/cremation/242414.jpg',
   lugFountains: 'urn-garden-images/lug-lake-fountains.jpg', lugMarkers: 'urn-garden-images/lug-marker-row.jpg', lugPosts: 'urn-garden-images/lug-posts-fountain.jpg',
-  bronzeComp: P+'marker-flat-pair-real.jpg', graniteComp: P+'marker-companion-real.jpg', portrait: 'marker-images/ceramic-steel-portrait.jpg',
-  crypts: 'property-images/mausoleum-crypt-fronts.jpg', upright: P+'upright-monuments.jpg', gcmWall: P+'gcm-crypt-wall.jpg', comFamily: 'property-images/com-chapel-family.jpg', groundSpace: 'property-images/ground-burial-space.jpg',
+  bronzeComp: 'pcm-example-images/marker-153.jpg', graniteComp: 'pcm-example-images/marker-139.jpg', portrait: 'marker-images/ceramic-steel-portrait.jpg',
+  crypts: 'property-images/mausoleum-crypt-fronts.jpg', upright: P+'upright-garden.jpg', mvcIsland: P+'mvc-new-island.jpg', bench: P+'memorial-bench.jpg', gcmWall: P+'gcm-crypt-wall.jpg', comFamily: 'property-images/com-chapel-family.jpg', groundSpace: 'property-images/ground-burial-space.jpg',
   tVisit: 'terramation-images/visitation-room.jpg', tSoil: 'terramation-images/soil-burlap-bags.jpg', tTree: 'terramation-images/memorial-lawn-tree.jpg', tStraw: 'terramation-images/organics-straw.jpg',
   flCasket: 'flower-images/T267-3A.jpg', flStanding: 'flower-images/T12Z102A.jpg', flWreath: 'flower-images/T239-4A.jpg', flHeart: 'flower-images/T283-7A.jpg',
   flCross: 'flower-images/T244-2A.jpg', flUrn: 'flower-images/TSY01-1A.jpg', flKeep: 'flower-images/TSY01-4A.jpg'
@@ -512,9 +512,12 @@ const OPT = {
   thome:{b:'Planted or kept by family', s:'A garden, a tree, a special place', img:IMG.rhSapling, g:'terramation', tag:'Terramation'},
   'm-bronze':{b:'A flat bronze marker', s:'Cast bronze on a granite base', img:IMG.bronze, g:'markers', fit:true},
   'm-granite-flat':{b:'A flat granite marker', s:'Solid stone, many colors', img:IMG.graniteMarker, g:'markers'},
+  famgrave:{b:"In a family member's grave", s:'An urn added beside Mom or Dad', img:IMG.groundSpace, g:'family-grave', tag:'Cremation'},
+  'o-famright':{b:'A right in a family grave', s:"Already bought, in Mom's or Dad's grave", img:IMG.groundSpace, g:'family-grave'},
+  'm-existing':{b:"The marker that's already there", s:'Add a name or the final date to it', img:'pcm-example-images/marker-153.jpg', g:'markers'},
   'm-upright':{b:'An upright monument', s:'Allowed in a few areas of the park', img:IMG.upright, g:'markers'},
   'v-visit':{b:'A place to visit', s:'Somewhere the family can come back to', img:IMG.nicheVisit},
-  'v-together':{b:'Being together', s:'Resting beside the people we love', img:IMG.comFamily},
+  'v-together':{b:'Being together', s:'Resting beside the people we love', img:'pcm-example-images/marker-153.jpg'},
   'v-faith':{b:'Faith and tradition', s:'Honoring what we believe', img:IMG.stained},
   'v-gather':{b:'A gathering that feels like us', s:'Stories, photos, food, the people we love', img:IMG.display},
   'v-simple':{b:'Keeping it simple', s:'No more than it needs to be', img:IMG.tree},
@@ -592,7 +595,7 @@ const OPT = {
 const VALUES = ['v-visit','v-together','v-faith','v-gather','v-simple','v-earth','v-cost','v-settled'];
 const FITS = {
   'v-visit':['ground','lawncrypt','estate','mausoleum','glass','granite','urnground','scatter','tpark'],
-  'v-together':['ground','estate','lawncrypt','mausoleum','glass','granite','urnground'],
+  'v-together':['ground','estate','lawncrypt','mausoleum','glass','granite','urnground','famgrave'],
   'v-faith':['b-full','c-full','c-witness','vn-church'],
   'v-gather':['b-full','c-full','c-memorial','reception','catering','t-video','t-photos','t-music'],
   'v-simple':['b-none','c-direct','b-private','c-private','vw-none'],
@@ -630,8 +633,9 @@ const MEM_EXTRA = {'m-glass':{b:'Name plate and keepsakes', g:'niche-memorial'},
    like. optsFor(q, person) gives the cards that make sense for that person's answers.
    ===================================================================================== */
 const SVC_BY = {burial:['b-full','b-graveside','b-private','b-none'], cremation:['c-full','c-memorial','c-private','c-witness','c-direct'], terramation:['t-layin','t-none']};
-const PLACE_BY = {burial:['ground','lawncrypt','estate','mausoleum'], cremation:['glass','granite','urnground','scatter','home'], terramation:['tpark','thome']};
-const OWN_PLACE = {'o-grave':'ground', 'o-lawncrypt':'lawncrypt', 'o-estate':'estate', 'o-crypt':'mausoleum', 'o-glass':'glass', 'o-granite':'granite', 'o-urnground':'urnground'};
+const PLACE_BY = {burial:['ground','lawncrypt','estate','mausoleum'], cremation:['glass','granite','urnground','famgrave','scatter','home'], terramation:['tpark','thome']};
+const OWN_PLACE = {'o-famright':'famgrave', 'o-grave':'ground', 'o-lawncrypt':'lawncrypt', 'o-estate':'estate', 'o-crypt':'mausoleum', 'o-glass':'glass', 'o-granite':'granite', 'o-urnground':'urnground'};
+const ownWord = () => other() ? 'already in the family' : 'already yours';
 const owned = i => selP('own', i).filter(v => OWN_PLACE[v]).map(v => OWN_PLACE[v]);
 // Every place for this person: what they own plus what they highlighted. A grave or estate they
 // own, with cremation only, holds an urn: urn vault and the urn opening and closing.
@@ -655,14 +659,14 @@ function optsFor(q, i) {
   if (q === 'touches') return ['flowers','reception','catering','t-video','t-photos','t-music','t-register','t-obit'];
   if (q === 'keep') return d.length ? ['ks-print', ...(d.includes('cremation') ? ['ks-urn','ks-glass'] : [])] : [];
   if (q === 'place') return owned(i).length ? [] : d.flatMap(x => PLACE_BY[x] || []);
-  if (q === 'memorial') { const p = effPlace(i); return ['ground','urnground','lawncrypt','estate'].some(x => p.includes(x)) ? ['m-bronze','m-granite-flat','m-upright'] : []; }
+  if (q === 'memorial') { const p = effPlace(i); return ['ground','urnground','lawncrypt','estate','famgrave'].some(x => p.includes(x)) ? [...(owned(i).length || p.includes('famgrave') ? ['m-existing'] : []), 'm-bronze','m-granite-flat','m-upright'] : []; }
   return [];
 }
 const QUESTIONS = [
   { id:'parents', short:'Mom, Dad, or both', title:()=>'Are we planning for Mom, Dad, or both?',
     sub:()=>"When you plan for a parent, the job is to carry out what they'd want.", opts:()=>['p-mom','p-dad','p-both'] },
   { id:'own', multi:true, short:'What you have here', title:()=>you('What do you already have here?','What do you each already have here?',`What ${plural() ? 'do' : 'does'} ${they()} already have here?`),
-    sub:()=>"Highlight what's already yours. Then we'll go over what's still needed to finish it." },
+    sub:()=>other() ? "Highlight what the family already has here, even if it's in someone else's name. Then we'll go over what's still needed." : "Highlight what's already yours. Then we'll go over what's still needed to finish it." },
   { id:'pins', screen:'pins', short:'Family already here', title:()=>'Who in your family is already here?' },
   { id:'tour', screen:'tour', short:'The tour', title:()=>"Let's go see it", when:()=>people().some(i => selP('place', i).length) || A.pins.length > 0 },
   { id:'bridge', screen:'bridge', short:'The funeral home', title:()=>"That's the cemetery side. Now the funeral home." },
@@ -674,10 +678,10 @@ const QUESTIONS = [
     sub:()=>"If they can sign, their wishes are settled in writing. If they can't, Washington law decides who signs. If you'll sign for them, bring the power of attorney paperwork and I'll have it reviewed. A medical or financial one usually isn't enough.", opts:()=>['a-yes','a-no','a-unsure'] },
   { id:'medicaid', short:'Medicaid', when:()=>other(), title:()=>`${isThey()} on Medicaid, or likely to need nursing home care?`,
     sub:()=>'If so, there are rules that protect money set aside for a funeral and cemetery property.', opts:()=>['md-yes','md-no','md-unsure'] },
-  { id:'values', multi:true, short:'What matters most', title:()=>you('What matters most to you?','What matters most to the two of you?',`What matters most to ${they()}?`),
+  { id:'values', multi:true, short:'What matters most', title:()=>you('What matters most to you?','What matters most to the two of you?',`What matters most to ${them()}?`),
     sub:()=>"Highlight as many as you like. I'll point out the choices that fit as we go.", opts:()=>VALUES },
   { id:'faith', multi:true, short:'Faith and tradition', when:()=>(A.values || []).includes('v-faith'),
-    title:()=>you('Is there a faith or tradition we should plan around?','Is there a faith or tradition we should plan around?',`Is there a faith or tradition we should plan around for ${they()}?`),
+    title:()=>you('Is there a faith or tradition we should plan around?','Is there a faith or tradition we should plan around?',`Is there a faith or tradition we should plan around for ${them()}?`),
     sub:()=>'Highlight any that fit. Whatever your family needs, we make room for it.', opts:()=>TRADS },
   { id:'disp', multi:true, short:'Burial or cremation', title:()=>you('How would you like to be cared for?','How would you like to be cared for?',`How would ${they()} like to be cared for?`),
     sub:()=>you("Highlight anything you'd like to see. There's no wrong answer.","Highlight anything you'd like to see. You don't have to choose the same thing.",wishSub(`Highlight anything you think ${they()} would want, or that you'd like to see.`)),
@@ -690,7 +694,7 @@ const QUESTIONS = [
     sub:()=>"Some families find it helps. Others would rather remember them as they were. Both are right." },
   { id:'merch', multi:true, short:'The casket or urn', title:()=>'What kind of casket or urn?',
     sub:()=>'Pick the kind for now. The style comes later, when you see them in person.' },
-  { id:'touches', multi:true, short:'Personal touches', title:()=>you('What would make the day feel like you?','What would make the day feel like each of you?',`What would make the day feel like ${they()}?`),
+  { id:'touches', multi:true, short:'Personal touches', title:()=>you('What would make the day feel like you?','What would make the day feel like each of you?',`What would make the day feel like ${them()}?`),
     sub:()=>wishSub("Highlight anything you'd like to see. All of it can be added later, too.") },
   { id:'keep', multi:true, short:'Keepsakes', title:()=>'Something for the family to keep?',
     sub:()=>'Small things the family can hold on to.' },
@@ -711,7 +715,7 @@ const CEM = ['disp', 'place', 'tour', 'memorial'], FUN = ['service', 'venue', 'v
 const TRACKS = {
   own:{b:'We already have a place here', s:'Finishing your plan', img:IMG.bronzeComp, steps:[...HEAD, 'own', ...CEM, 'bridge', ...FUN, ...TAIL]},
   family:{b:'Family is already resting here', s:'A place near them', img:IMG.nicheVisit, steps:[...HEAD, 'pins', ...CEM, 'bridge', ...FUN, ...TAIL]},
-  parent:{b:"I'm planning for Mom or Dad", s:'Honoring their wishes', img:IMG.display, steps:['parents', ...HEAD.slice(1), ...CEM, 'bridge', ...FUN, ...TAIL]},
+  parent:{b:"I'm planning for Mom or Dad", s:'Honoring their wishes', img:IMG.display, steps:['parents', ...HEAD.slice(1), 'own', ...CEM, 'bridge', ...FUN, ...TAIL]},
   funeral:{b:'Just the funeral side', s:'The cemetery is taken care of', img:IMG.chapelSet, steps:[...HEAD, 'disp', ...FUN, ...TAIL]},
   scratch:{b:'Starting from scratch', s:'Everything, explained', img:IMG.bigTree, steps:[...HEAD, ...CEM, 'bridge', ...FUN, ...TAIL]},
   one:{b:'Just looking at one thing', s:'One guide, then what goes with it', img:IMG.urnHands, steps:[]}
@@ -725,7 +729,7 @@ const Q_OF = {};
 const optForGuide = g => Object.keys(Q_OF).find(v => OPT[v] && OPT[v].g === g);
 const GOES_WITH = {
   'glass-niche':['niche-placing', 'niche-memorial', 'urns', 'glass-vs-granite'], 'granite-niche':['niche-placing', 'glass-vs-granite', 'urns'],
-  'urn-ground':['vault', 'markers', 'urns'], 'ground-burial':['oc-other', 'vault', 'markers', 'caskets'], 'lawn-crypt':['oc-other', 'markers', 'caskets'],
+  'urn-ground':['vault', 'markers', 'urns', 'family-grave'], 'family-grave':['vault', 'markers', 'urns'], 'ground-burial':['oc-other', 'vault', 'markers', 'caskets'], 'lawn-crypt':['oc-other', 'markers', 'caskets'],
   'family-estate':['oc-other', 'vault', 'markers'], 'mausoleum':['oc-other', 'caskets'], 'scattering':['cremation', 'urns'],
   'cremation':['urns', 'svc-c-memorial', 'glass-niche', 'urn-ground'], 'caskets':['vault', 'svc-b-full'], 'urns':['glass-niche', 'urn-ground', 'keepsakes'],
   'vault':['oc-other', 'ground-burial'], 'markers':['ground-burial', 'urn-ground', 'grave-flowers'], 'veterans':['markers', 'ground-burial'],
@@ -775,7 +779,7 @@ function categories(i) {
   c.push({id:'oc', side:'cemetery', label:'Opening and closing', q:'place',
     items: oc.map(g => ({b:g === 'niche-placing' ? 'Placing the urn' : 'Opening and closing', img:g === 'niche-placing' ? IMG.nicheTable : IMG.vaultLower, g})),
     na: place.includes('tpark') ? 'We go over it together' : onlyT || allHome ? 'Not needed' : ''});
-  const vault = [(place.includes('ground') || place.includes('estate')) && {b:'A burial vault', img:IMG.vaultGrave, g:'vault'}, place.includes('urnground') && {b:'An urn vault', img:IMG.urnVault, g:'vault'}].filter(Boolean);
+  const vault = [(place.includes('ground') || place.includes('estate')) && {b:'A burial vault', img:IMG.vaultGrave, g:'vault'}, (place.includes('urnground') || place.includes('famgrave')) && {b:'An urn vault', img:IMG.urnVault, g:'vault'}].filter(Boolean);
   c.push({id:'vault', side:'cemetery', label:'Vault', q:'place', items:vault, na: !vault.length && (place.length || onlyT) ? 'Not needed' : ''});
   const mem = memorials(i);
   c.push({id:'memorial', side:'cemetery', label:'Memorial', q:'memorial',
@@ -788,15 +792,18 @@ const WHY = {service:'A time for family and friends to say goodbye, planned your
   casket:'Chosen now, so no one has to choose in a hurry.', travel:"If it happens far from home, it covers getting you back.",
   property:'A place your family can come back to, chosen by you.', oc:'The work of the day itself: preparing the space, and closing it after.',
   vault:'The cemetery asks for one so the ground stays level.', memorial:"What your family comes back to."};
-const sliceText = c => c.items.length ? c.items.map(x => x.owned ? `${x.b} (already yours)` : x.b).join(', ') : c.na || '';
+const sliceText = c => c.items.length ? c.items.map(x => x.owned ? `${x.b} (${ownWord()})` : x.b).join(', ') : c.na || '';
 // "Still to decide": pieces with nothing highlighted, and questions with more than one choice.
-const PICK_ONE = ['disp', 'service', 'viewing', 'merch', 'place', 'memorial'];
+const PICK_ONE = ['disp', 'viewing', 'place', 'memorial'];
+const CASKETS = ['k-wood', 'k-metal', 'k-crem'], URNS = ['u-full', 'u-companion', 'u-scatter', 'u-bio'];
 function stillOpen() {
   const out = [];
   people().forEach(i => {
     const who = two() ? `${nm(i)}: ` : '';
     categories(i).forEach(c => { if (!sliceDone(c)) out.push(who + c.label); });
     PICK_ONE.forEach(q => { if (selP(q, i).length > 1) out.push(`${who}${qById(q).short}, pick one`); });
+    if (selP('merch', i).filter(v => CASKETS.includes(v)).length > 1) out.push(`${who}The casket, pick one`);
+    if (selP('merch', i).filter(v => URNS.includes(v)).length > 1) out.push(`${who}The urn, pick one`);
     if (owned(i).length) {
       const need = categories(i).filter(c => ['oc', 'vault', 'memorial'].includes(c.id) && c.items.length).map(c => c.label.toLowerCase());
       if (need.length) out.push(`${who}For what you already have: ${need.join(', ')}`);
@@ -1209,12 +1216,12 @@ const GUIDES = {
       link:{href:'urns-guide.html', t:'Open the Urn Catalog'}}},
   'glass-niche':{side:'cemetery', title:'Glass-front niches', img:IMG.glassRoom, kicker:'Where you rest', map:'glass', vs:'glass-vs-granite',
     h:'Glass-front niches', s:'Indoors, out of the weather. The urn and the things that tell your story stay in view behind glass.',
-    deep:{k:'Four places to choose from', h:'Where the glass-front niches are', lead:'All four are indoors, so you can visit in any weather. Every niche here holds two urns.',
+    deep:{k:'Four places to choose from', h:'Where the glass-front niches are', lead:'All four are indoors, so you can visit in any weather. Most niches hold two urns, and the large family niches on the Mountain View island hold four.',
       steps:[{img:IMG.eclFace,h:'Eternal Light Columbarium',p:'Inside the Eternal Light Mausoleum, attached to the Chapel of Memories.'},
-             {img:IMG.mvcBldg,h:'Mountain View Columbarium',p:'A building of its own, with a new island of niches.'},
+             {img:IMG.mvcIsland,h:'Mountain View Columbarium',p:'A building of its own, with a new island of niches.'},
              {img:IMG.radWall,h:'Radiance',p:'A wall of niches inside the Chapel of Memories.'},
              {img:IMG.serWall,h:'Serenity',p:'A second wall inside the Chapel of Memories.'}],
-      faq:[{q:'How many urns fit in one niche?',a:'Two. Every niche at Washington Memorial Park carries the right to place two urns, so a couple shares one. The only exception is the Veterans Court of Honor, where a niche holds one.'},
+      faq:[{q:'How many urns fit in one niche?',a:'Most hold two, so a couple shares one. The four large family niches on the Mountain View island hold four. The Veterans Court of Honor niches hold one.'},
            {q:'What can go inside with the urn?',a:"Photographs, keepsakes, a folded flag, a rosary. It's yours to fill."},
            {q:'Glass or granite, which is better?',a:"Neither one is better. They're built for the same purpose and cared for the same way. The real choice is whether the urn and the keepsakes should be seen."}],
       link:{href:'glass-front-niches-guide.html', t:'Open the full Glass-Front Niches guide'}}},
@@ -1377,6 +1384,18 @@ const GUIDES = {
            {q:'Does the urn have to be a certain size?',a:'At the Garden of Meditation, yes. The niche fits two Interlude Urns, which is why it holds two people.'},
            {q:'Glass or granite, which is better?',a:"Neither one is better. They're built for the same purpose and cared for the same way. The real choice is whether the urn and the keepsakes should be seen."}],
       link:{href:'granite-niches-guide.html', t:'Open the full Granite Niches guide'}}},
+  'family-grave':{side:'cemetery', title:"Sharing a family grave", img:IMG.groundSpace, kicker:'Where you rest', vs:'urngarden-vs-plot',
+    h:'Sharing a family grave', s:"A grave can hold the casket burial and up to two urns. It's one of the most common ways families stay together here.",
+    deep:{k:'How it works', h:'More than one person in one grave', lead:"Each person placed in a grave is a right of interment. The first is usually the casket burial. Up to two more can be urns.",
+      steps:[{n:1,h:'The first right',p:'Usually the casket burial of Mom or Dad.'},
+             {n:2,h:'Up to two urns',p:"Each one is an added right in that same grave, Mom's or Dad's. Never between two graves."},
+             {n:3,h:'What each one needs',p:'Its own opening and closing, its own recording, and usually an urn vault.'},
+             {n:4,h:'The name',p:"Added to the marker that's already there, or on a new companion marker."}],
+      faq:[{q:"Do we already own a right in that grave?",a:"Maybe. Families often bought one years ago and forgot. I check the records first, so you never pay twice."},
+           {q:'Who can sign for it?',a:"Whoever holds the rights to that grave. If it's still in a parent's name, I'll check who can sign before anything is done."},
+           {q:'Will any urn fit?',a:'Most do. Some urns are too large for a standard urn vault, so we check the size first.'},
+           {q:'Can the urn go between Mom and Dad?',a:"No. An added right goes in one grave, Mom's or Dad's. If you'd rather have a space of your own nearby, I'll show you what's open on the map."}],
+      link:{href:'urn-placement-guide.html', t:'Open the Urn Placement guide'}}},
   'urn-ground':{side:'cemetery', title:'An urn in the ground', img:IMG.lugFountains, kicker:'Where you rest', map:'urnground', vs:'urngarden-vs-plot',
     h:'An urn in the ground', s:'In a garden built for urns, marked the way any grave is. The spaces, the planting and the memorials are all scaled to an urn.',
     deep:{k:'Two urn gardens, and one more way', h:'Where an urn can be buried', lead:'Every urn placed in the ground goes into an urn vault, which supports the ground above it.',
@@ -1429,7 +1448,8 @@ const GUIDES = {
       steps:[{img:IMG.graniteMarker,h:'Flat granite',p:'Solid stone in many colors, with designs, etching and photo portraits.'},
              {img:IMG.bronze,h:'Flat bronze',p:'Cast bronze, always set on a granite or concrete base a little larger than the bronze.',fit:true},
              {img:IMG.graniteComp,h:'Companion',p:'One marker shared by two people, with room for both names.',fit:true},
-             {img:IMG.upright,h:'Upright monuments',p:'Allowed only in a few areas of the park.'}],
+             {img:IMG.upright,h:'Upright monuments',p:'Allowed only in a few areas of the park.'},
+             {img:IMG.bench,h:'A memorial bench',p:'In Sections 6 and 23, select areas of Section 20, and family estates.'}],
       faq:[{q:'Can a photo go on it?',a:'Yes. Ceramic photo portraits and etched images are both possible on granite.'},
            {q:'What about a veteran\'s marker?',a:'The VA provides one. A bronze government marker sits on a granite base, and a spouse can often be matched beside it.'},
            {q:'Can we buy a marker somewhere else?',a:'Yes, as long as it meets the cemetery\'s marker rules. I can walk you through them.'}],
@@ -1446,6 +1466,7 @@ const PLACE_ROWS = {
   mausoleum:[['Setting','Indoors, or outdoors in a garden mausoleum.'],['What you see','A crypt front with the name lettered on it.'],['For two','Side by side, or end to end.']],
   glass:[['Setting','Indoors, heated and lit.'],['What you see','The urn and keepsakes.'],['Name','A plate or engraved strip.']],
   granite:[['Setting','Outdoors, in a courtyard or garden.'],['What you see','Engraved stone.'],['Name','Cut into the granite.']],
+  famgrave:[['Setting',"The grave of someone you love, Mom's or Dad's."],['What you see','Their marker, with your name added or a companion marker.'],['For two','A grave can hold the casket and up to two urns.']],
   urnground:[['Setting','An urn garden or a family space.'],['What you see','A flat marker in the lawn.'],['Name','On the marker.']],
   scatter:[['Setting','A garden made for it.'],['What you see','The garden itself.'],['Name','On the memorial.']]};
 const COMPARE = {
@@ -1453,10 +1474,10 @@ const COMPARE = {
     cols:()=>[{v:'burial',t:'Burial',img:IMG.lawn,rows:[['What happens','The body is laid to rest in a casket.'],['Where','A space in our gardens, or a mausoleum crypt.'],['A service?','Yes, with a viewing, at graveside, or both.'],['A place to visit','Yes, always.']]},
           {v:'cremation',t:'Cremation',img:IMG.urnHands,rows:[['What happens','The body is cremated. The remains come home in an urn.'],['Where','A niche, an urn garden, a scattering garden, or at home.'],['A service?','Yes, before cremation, after it, or both.'],['A place to visit','If the urn is placed here, yes.']]},
           {v:'terramation',t:'Terramation',img:IMG.rhSoil,rows:[['What happens','The body is gently turned to soil over about two months.'],['Where','The soil goes home with family, or to a protected greenbelt.'],['A service?','A laying-in ceremony at the vessel.'],['A place to visit','A garden or tree, if you plant one.']]}]},
-  'compare-place':{q:'place', h:'Where you can rest', s:()=>cardOpts(qById('place')).some(v => ['glass', 'granite'].includes(v)) ? 'Every niche here holds two urns.' : 'Each one side by side, all here at Washington Memorial Park.',
+  'compare-place':{q:'place', h:'Where you can rest', s:()=>cardOpts(qById('place')).some(v => ['glass', 'granite'].includes(v)) ? 'Most niches here hold two urns.' : 'Each one side by side, all here at Washington Memorial Park.',
     cols:()=>cardOpts(qById('place')).filter(v => PLACE_ROWS[v]).map(v => ({v, t:OPT[v].b, img:OPT[v].img, rows:PLACE_ROWS[v]}))},
   'glass-vs-granite':{q:'place', h:'Glass front or granite front', s:"The same kind of property, closed two different ways. Neither one is better; the real choice is whether the urn and the keepsakes should be seen.",
-    cols:()=>[{v:'glass',t:'Glass front',img:IMG.glassRoom,rows:[['Setting','Always inside a building, heated and lit.'],['What you see','The urn itself, and the keepsakes beside it.'],['Personal items','On display: photographs, keepsakes, a flag, a rosary.'],['The name','On a plate or engraved strip.'],['For two','Every niche holds two urns.']]},
+    cols:()=>[{v:'glass',t:'Glass front',img:IMG.glassRoom,rows:[['Setting','Always inside a building, heated and lit.'],['What you see','The urn itself, and the keepsakes beside it.'],['Personal items','On display: photographs, keepsakes, a flag, a rosary.'],['The name','On a plate or engraved strip.'],['For two','Most hold two urns. The Mountain View family niches hold four.']]},
               {v:'granite',t:'Granite front',img:IMG.roacCourt,pos:'center 78%',rows:[['Setting','Always outside: a courtyard, a garden wall, a terrace.'],['What you see','Engraved stone. What is inside stays private.'],['Personal items','Not visible. The Garden of Meditation allows no photos.'],['The name','Cut into the granite, or on a bronze plate.'],['For two','Two rights come with every niche.']]}]},
   'travel-compare':{q:'none', h:'If it happens far from home', s:"You only have to be wrong about it once. That's really the whole argument.",
     cols:()=>[{t:'Without the plan', img:null, rows:[['The first call',"A funeral home the family's never heard of, in a place they may not know, sometimes in another language, while they're grieving."],['Getting them home','Runs into the thousands, before a dollar of the funeral here.'],['When you pay','In the worst week of your life.']]},
@@ -1509,12 +1530,12 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 // most of itself to cropping, so below FIT_BELOW it is shown whole over a soft blurred copy
 // of itself (class "fit"). FOCUS moves the crop point for wide photos whose subject is not
 // in the middle. Both are keyed by the photo's path.
-const SHAPE = {"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.316,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
-Object.assign(SHAPE, {[P + 'bb-fresh-bouquet.jpg']:0.8, [P + 'bb-sunflowers.jpg']:0.8, [P + 'bb-fall-colors.jpg']:0.8, [P + 'marker-asian-upright.jpg']:1.49, [P + 'marker-granite-real.jpg']:1.558, [P + 'marker-flat-pair-real.jpg']:2.817, [P + 'marker-bronze-real.jpg']:2.53, [P + 'marker-companion-real.jpg']:2.228, [P + 'upright-monuments.jpg']:1.667, [P + 'gcm-crypt-wall.jpg']:0.75});   // photos added 2026-11-21
+const SHAPE = {"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.498,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
+Object.assign(SHAPE, {[P + 'bb-fresh-bouquet.jpg']:0.8, [P + 'bb-sunflowers.jpg']:0.8, [P + 'bb-fall-colors.jpg']:0.8, [P + 'marker-asian-upright.jpg']:1.49, ['pcm-example-images/marker-136.jpg']:1.333, ['pcm-example-images/marker-153.jpg']:1.667, [P + 'marker-bronze-granite-base.jpg']:1.427, ['pcm-example-images/marker-139.jpg']:1.333, [P + 'upright-garden.jpg']:1.498,  [P + 'mvc-new-island.jpg']:1.22, [P + 'memorial-bench.jpg']:1.498, [P + 'gcm-crypt-wall.jpg']:0.75});   // photos added 2026-11-21
 const FIT_BELOW = 0.9;
-const FOCUS = {[IMG.privateView]:'center 8%', [IMG.roses]:'center 30%'};
+const FOCUS = {[P + 'upright-garden.jpg']:'center 78%', [IMG.privateView]:'center 8%', [IMG.roses]:'center 30%'};
 // Real marker photos always show whole: a cropped name or date reads as a mistake (crop audit 2026-11-21).
-const WHOLE = new Set(['marker-granite-real.jpg', 'marker-flat-pair-real.jpg', 'marker-bronze-real.jpg', 'marker-companion-real.jpg', 'marker-asian-upright.jpg'].map(f => P + f));
+const WHOLE = new Set([...['marker-asian-upright.jpg'].map(f => P + f), P + 'marker-bronze-granite-base.jpg', ...['136', '139', '153'].map(n => 'pcm-example-images/marker-' + n + '.jpg')]);
 const fitCls = src => (SHAPE[src] || 1.5) < FIT_BELOW || WHOLE.has(src) ? ' fit' : '';
 const bg = src => !src ? 'background:linear-gradient(135deg,#466e86,#1e3a55)' : `background-image:url('${src}')${FOCUS[src] ? `;background-position:${FOCUS[src]}` : ''}`;
 
@@ -1649,7 +1670,7 @@ function stepHTML(q) {
   if (q.screen === 'pins') {
     const rows = A.pins.map((p, k) => `<div class="prow"><span class="pn">♥</span><input data-pinname="${k}" value="${esc(p.name)}" placeholder="Who is here? (optional)" autocomplete="off"><button data-unpin="${k}">Remove</button></div>`).join('');
     return `<div class="mapwrap pinpick"><div class="mapbox">${mapSVG('ground')}</div><div class="wlist"><div class="kicker">Washington Memorial Park</div><h2>${esc(q.title())}</h2>
-     <p class="s">Show me on the map where they rest, and I'll mark it. Add as many as you like.</p>${rows}
+     <p class="s">Show me on the map where they rest, and I'll mark it. Then I'll show you the open spaces nearest them.</p>${rows}
      <div class="actions"><button class="btn ghost" data-go="wheel">Your plan</button>${nextBtn(A.pins.length ? 'Next' : 'Skip for now')}</div></div></div>`;
   }
   if (q.screen === 'tour') {
@@ -1781,7 +1802,7 @@ function readingGuides() {
 }
 function rtHTML(x) {
   const g = GUIDES[x.g] || {};
-  return `<button class="rt" ${x.g ? `data-guide="${x.g}"` : ''}><div class="ph${x.contain ? ' contain' : x.fit ? ' fit' : fitCls(x.img || g.img)}" style="${bg(x.img || g.img)}"></div><b>${esc(x.b)}</b>${x.owned ? '<span class="ownb">Already yours</span>' : ''}${x.g ? '<small>Look at it ›</small>' : ''}</button>`;
+  return `<button class="rt" ${x.g ? `data-guide="${x.g}"` : ''}><div class="ph${x.contain ? ' contain' : x.fit ? ' fit' : fitCls(x.img || g.img)}" style="${bg(x.img || g.img)}"></div><b>${esc(x.b)}</b>${x.owned ? `<span class="ownb">${ownWord().replace(/^a/, 'A')}</span>` : ''}${x.g ? '<small>Look at it ›</small>' : ''}</button>`;
 }
 /* THE PLAN IN PLAIN WORDS: a few sentences built from their answers, one block per person. */
 const low = t => t ? t.charAt(0).toLowerCase() + t.slice(1) : '';
@@ -1796,14 +1817,14 @@ function plainWords(i) {
   if (disp.length === 1) out.push(`<b>${esc(subj)} ${wants}</b> ${esc(D[disp[0]])}.`);
   else if (disp.length > 1) out.push(`<b>Still choosing</b> between ${esc(andJoin(disp.map(d => D[d]), 'or'))}.`);
   const svc = selP('service', i).map(L), ven = selP('venue', i).map(v => { const t = L(v); return /^at /.test(t) ? t : 'at ' + t; });
-  if (svc.length) out.push(`<b>The goodbye:</b> ${esc(andJoin(svc, svc.length > 1 ? 'or' : 'and'))}${ven.length ? ', ' + esc(andJoin(ven, 'or')) : ''}.`);
+  if (svc.length) out.push(`<b>The goodbye:</b> ${esc(andJoin(svc))}${ven.length ? ', ' + esc(andJoin(ven)) : ''}.`);
   const merch = selP('merch', i).map(L);
-  if (merch.length) out.push(`<b>Casket or urn:</b> ${esc(andJoin(merch, 'or'))}.`);
-  const own = selP('own', i).filter(v => OWN_PLACE[v]).map(v => low(OPT[v].b).replace(/^an? /, 'the '));
+  if (merch.length) { const mv = selP('merch', i), k = mv.filter(v => !URNS.includes(v)).map(L), u = mv.filter(v => URNS.includes(v)).map(L); out.push(`<b>Casket or urn:</b> ${esc([k.length ? andJoin(k, 'or') : '', u.length ? andJoin(u, 'or') : ''].filter(Boolean).join(' and '))}.`); }
+  const own = selP('own', i).filter(v => OWN_PLACE[v]).map(v => v === 'o-famright' ? 'the family grave' : low(OPT[v].b).replace(/^an? /, 'the '));
   const place = selP('place', i).map(L);
-  if (own.length) out.push(`<b>To rest:</b> in ${esc(andJoin(own))} already yours here.`);
-  else if (place.length) out.push(`<b>To rest:</b> ${esc(andJoin(place, place.length > 1 ? 'or' : 'and'))}, here at the park.`);
-  const mem = memorials(i).map(m => low(m.b));
+  if (own.length) out.push(other() ? `<b>To rest:</b> in ${esc(andJoin(own.map(x => x.replace(/^the /, "the family's "))))} here.` : `<b>To rest:</b> in ${esc(andJoin(own))}${own.includes('the family grave') ? ", where the right is already yours" : ' already yours here'}.`);
+  else if (place.length) { const away = selP('place', i).every(v => ['home', 'thome'].includes(v)); out.push(`<b>To rest:</b> ${esc(andJoin(place, place.length > 1 ? 'or' : 'and'))}${away ? '' : ', here at the park'}.`); }
+  const mem = memorials(i).map(m => m.v === 'm-existing' ? "the marker that's already there, with the name or date added" : low(m.b));
   if (mem.length) out.push(`<b>Remembered with:</b> ${esc(andJoin(mem, mem.length > 1 ? 'or' : 'and'))}.`);
   const touch = [...selP('touches', i), ...selP('keep', i)].map(L);
   if (touch.length) out.push(`<b>Personal touches:</b> ${esc(andJoin(touch))}.`);
@@ -1826,18 +1847,25 @@ function tradHTML() {
     : `<div class="tts">${[...new Set(per.flatMap(x => x.t))].map(tile).join('')}</div>`;
   return `<div class="res-sec"><h3>Faith and tradition</h3><p>How we'll honor what matters to your family.</p></div><div class="trads${split ? ' two' : ''}">${body}</div>`;
 }
+// Plans finished earlier in this visit (never stored; "Start over" clears them too).
+let EARLIER = [];
+function snapshotPlan() {
+  const head = i => two() ? `${nm(i)}'s plan` : other() ? (theirName() ? `${theirName().charAt(0).toUpperCase() + theirName().slice(1)}'s plan` : 'Their plan') : 'Your plan';
+  return people().map(i => ({h: head(i), lines: plainWords(i)})).filter(b => b.lines.length);
+}
 function plainHTML() {
   const blocks = people().map(i => ({i, lines: plainWords(i)})).filter(b => b.lines.length);
-  if (!blocks.length) return '';
+  const earlier = EARLIER.length ? `<div class="res-sec"><h3>Also planned today</h3></div><div class="plain${EARLIER.length > 1 ? ' two' : ''}">${EARLIER.map(b => `<div class="pw" style="border-left-color:var(--navy)"><h4>${esc(b.h)}</h4>${b.lines.map(l => `<p>${l}</p>`).join('')}</div>`).join('')}</div>` : '';
+  if (!blocks.length) return earlier;
   const head = i => two() ? `${esc(nm(i))}'s plan` : other() ? (theirName() ? `${esc(theirName().charAt(0).toUpperCase() + theirName().slice(1))}'s plan` : 'Their plan') : 'Your plan';
-  return `<div class="res-sec"><h3>In plain words</h3></div><div class="plain${blocks.length > 1 ? ' two' : ''}">${blocks.map(b => `<div class="pw"><h4>${head(b.i)}</h4>${b.lines.map(l => `<p>${l}</p>`).join('')}</div>`).join('')}</div>`;
+  return earlier + `<div class="res-sec"><h3>In plain words</h3></div><div class="plain${blocks.length > 1 ? ' two' : ''}">${blocks.map(b => `<div class="pw"><h4>${head(b.i)}</h4>${b.lines.map(l => `<p>${l}</p>`).join('')}</div>`).join('')}</div>`;
 }
 function yoursHTML() {
   const p = path(), guides = readingGuides();
   const rows = people().map(i => resultRows(i));
   const vals = (A.values || []).map(x => OPT[x].b);
   const any = rows.some(r => r.some(c => c.items.length));
-  const h = you("Here's what you highlighted", "Here's what each of you highlighted", `Here's what you highlighted for ${they()}`);
+  const h = you("Here's what you highlighted", "Here's what each of you highlighted", `Here's what you highlighted for ${them()}`);
   const sub = any ? 'Tap any picture to look at it again. The guides below go into more detail, and each one opens right here.'
     : "Nothing's highlighted yet. That's fine: we can go back to the questions any time.";
   const sideTag = s => `<div class="side"><i style="background:${s === 'funeral' ? 'var(--orange)' : 'var(--navy)'}"></i>${s === 'funeral' ? 'Funeral home' : 'Cemetery'}</div>`;
@@ -1855,7 +1883,7 @@ function yoursHTML() {
   return `<div class="res"><div class="res-head"><div><div class="kicker">Your plan so far</div><h2>${esc(h)}</h2><p class="s">${esc(sub)}</p>
      ${vals.length ? `<p class="vals"><span>What matters most</span>${vals.map(v => `<b class="chip">${esc(v)}</b>`).join('')}</p>` : ''}
      <div class="actions">${p.length ? `<button class="btn primary" data-go="pathStart">Walk through all ${p.length} together</button>` : `<button class="btn primary" data-go="resumeQs">Back to the questions</button>`}
-       ${guides.length ? '<button class="btn ghost" data-go="toGuides">The guides ↓</button>' : ''}${p.length ? '<button class="btn ghost" data-go="resumeQs">Change answers</button>' : ''}<button class="btn ghost" data-go="park">See the park</button><button class="btn ghost" data-go="close">We're done</button></div></div>
+       ${guides.length ? '<button class="btn ghost" data-go="toGuides">The guides ↓</button>' : ''}${p.length ? '<button class="btn ghost" data-go="resumeQs">Change answers</button>' : ''}<button class="btn ghost" data-go="park">See the park</button><button class="btn ghost" data-go="another">Plan for someone else too</button><button class="btn ghost" data-go="close">We're done</button></div></div>
      <button class="res-wheel" data-go="wheel" title="Circle of Protection">${wheelSVG()}Circle of Protection</button></div>
    ${plainHTML()}
    ${tradHTML()}
@@ -2021,7 +2049,8 @@ function go(what) {
   if (what === 'close') return show({t:'close'});
   if (what === 'toGuides') { const g = stage.querySelector('.screen.on #resGuides'); if (g) g.scrollIntoView({behavior:'smooth', block:'start'}); return; }
   if (what === 'lib') return show({t:'lib'});
-  if (what === 'restart') { A = fresh(); hist = []; cur = null; return show({t:'home'}, false); }
+  if (what === 'another') { EARLIER = [...EARLIER, ...snapshotPlan()]; const keep = A.before; A = fresh(); A.before = keep; hist = []; return show({t:'track'}); }
+  if (what === 'restart') { EARLIER = []; A = fresh(); hist = []; cur = null; return show({t:'home'}, false); }
   if (what === 'deeper') { cur.deep = true; stage.querySelector('.screen.on')?.classList.add('deep'); return; }
   if (what === 'shallow') { cur.deep = false; stage.querySelector('.screen.on')?.classList.remove('deep'); return; }
 }
