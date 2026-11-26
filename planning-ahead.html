@@ -65,6 +65,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
 .btn.armed{background:#c23a0d !important;border-color:#c23a0d !important;color:#fff !important;}
 .btn.ghost{border:1.5px solid rgba(255,255,255,.55);color:#fff;background:rgba(255,255,255,.06);}
 .btn.ghost:hover{background:rgba(255,255,255,.16);}
+/* On-screen Back beside Next (Martice 11-25: going backwards shouldn't need the keyboard) */
+.btn.back{display:inline-flex;align-items:center;gap:6px;padding-left:18px;}
+.btn.back svg{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;}
 .inset-photo{position:absolute;right:7vw;top:50%;transform:translateY(-50%);width:34vw;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.5);border:8px solid #fff;}
 .inset-photo.tall{width:auto;height:72vh;max-width:34vw;object-fit:cover;}
 .globe{position:absolute;right:6vw;top:50%;transform:translateY(-50%);width:min(40vw,70vh);opacity:.9;}
@@ -377,6 +380,94 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
   #chrome .logo{height:30px;}
   .cbtn .t{display:none;}
 }
+
+/* ── the end of the visit (11-25): plan marks, did we miss anything, what's next ── */
+.res.plan{padding:8vh 4vw 0;}
+.pgrid{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);gap:3vw;align-items:start;}
+.pwheel{position:sticky;top:0;display:flex;flex-direction:column;align-items:center;gap:1.6vh;padding-top:4vh;}
+.pwheel .wheel{width:min(30vw,60vh);}
+.pwheel .sl{pointer-events:none;}
+.pcount{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,2vw,38px);}
+.pmain h2{font-family:'Cormorant Garamond',serif;font-size:var(--fs-q);font-weight:600;line-height:1.08;}
+.pmain .s{font-size:var(--fs-sub);color:rgba(255,255,255,.78);margin-top:.8vh;}
+.plist{margin-top:1.6vh;display:grid;gap:.5vh;}
+.pside{display:flex;align-items:center;gap:10px;margin:.9vh 0 0;font-size:clamp(12px,.85vw,15px);letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.62);}
+.pside i{width:12px;height:12px;border-radius:3px;}
+.plrow{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr) auto;gap:12px;align-items:center;padding:.5vh .6vw .5vh 0;border-radius:12px;background:rgba(255,255,255,.07);border:2px solid transparent;}
+.plrow .pl{display:grid;grid-template-columns:12px minmax(0,1fr);gap:14px;align-items:center;text-align:left;padding:.45vh 1vw;color:#fff;border-radius:10px;}
+.plrow .pl:hover{background:rgba(255,255,255,.06);}
+.plrow .pl i{width:12px;height:12px;border-radius:50%;}
+.plrow .pt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.plrow .pt b{font-size:clamp(15px,1.2vw,22px);}
+.plrow .pt small{font-size:clamp(11px,.75vw,14px);color:rgba(255,255,255,.55);line-height:1.25;}
+.plrow .pv{font-size:clamp(14px,1vw,19px);color:#e3ebf0;line-height:1.3;}
+.plrow .pp{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;}
+.plrow .pv{display:flex;flex-direction:column;gap:2px;}
+.plrow .pv > .pi,.plrow .pv > .pn{align-self:flex-start;}
+.plrow .pi{color:#e3ebf0;font-size:clamp(14px,1vw,19px);text-align:left;padding:2px 10px 2px 0;border-radius:6px;}
+.plrow .pi[data-guide]:hover{color:#fff;text-decoration:underline;text-underline-offset:3px;}
+.plrow .pi + .pi::before{content:'· ';color:rgba(255,255,255,.45);}
+.plrow .pv:has(> .pi + .pi){flex-direction:row;flex-wrap:wrap;}
+.plrow .ownb{margin-left:8px;font-size:.72em;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#9fd3b6;}
+.plrow .pn{font-size:clamp(14px,1vw,19px);}
+.plrow .pp em{font-style:normal;display:inline-block;width:1.5em;height:1.5em;line-height:1.5em;border-radius:50%;text-align:center;font-weight:800;font-size:.8em;margin-right:6px;background:var(--navy);}
+.plrow .pp em.p1{background:var(--orange);}
+.plrow.dim{background:rgba(255,255,255,.03);}
+.plrow.dim .pt b,.plrow.dim .pn{color:rgba(255,255,255,.5);}
+.plrow.dim .pn{font-style:italic;}
+.plrow.auto{opacity:.6;}
+.plrow.m-done{border-color:#5d88a2;}
+.plrow.m-think{border-color:var(--orange);}
+.plrow.m-no{border-color:rgba(255,255,255,.18);}
+.pm{display:flex;gap:6px;}
+.mk{padding:7px 13px;border-radius:999px;border:1.5px solid rgba(255,255,255,.32);color:rgba(255,255,255,.85);font-weight:700;font-size:clamp(12px,.85vw,16px);white-space:nowrap;}
+.mk:hover{background:rgba(255,255,255,.1);}
+.mk.on.k-done{background:var(--navy);border-color:#5d88a2;color:#fff;}
+.mk.on.k-think{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mk.on.k-no{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45);color:#fff;}
+.pna{font-size:clamp(12px,.85vw,15px);color:rgba(255,255,255,.5);font-style:italic;padding-right:8px;}
+.pmain .actions{position:sticky;bottom:0;z-index:2;margin-top:.6vh;padding:1.8vh 0 3vh;background:linear-gradient(rgba(15,29,41,0),var(--ink) 30%);}
+.res.plan > .res-sec:first-of-type,.res.plan > .plain{margin-top:3vh;}
+.res.plan > :last-child{margin-bottom:9vh;}
+.res.missed,.res.nexts{padding:16vh 7vw 8vh;}
+.res .mh{font-family:'Cormorant Garamond',serif;font-size:var(--fs-hero);font-weight:600;line-height:1.05;}
+.res.missed .s{font-size:var(--fs-sub);color:rgba(255,255,255,.78);margin-top:1vh;}
+.mqs{margin-top:5vh;display:grid;grid-template-columns:1fr 1fr;gap:2.2vh 2.4vw;}
+.mq{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,2vw,40px);line-height:1.22;padding:2.4vh 1.8vw;border-left:4px solid var(--orange);background:rgba(255,255,255,.05);border-radius:0 12px 12px 0;}
+.res.missed .actions,.res.nexts .actions{margin-top:5vh;}
+.nsteps{margin-top:6vh;display:grid;gap:1.6vw;}
+.nst{background:rgba(255,255,255,.06);border-radius:16px;padding:4vh 1.8vw;min-height:32vh;display:flex;flex-direction:column;}
+.nst .num{width:2.4em;height:2.4em;border-radius:50%;background:var(--orange);font-weight:800;font-size:clamp(18px,1.4vw,26px);display:grid;place-items:center;margin-bottom:2.4vh;}
+.nst h3{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,2.2vw,42px);font-weight:600;line-height:1.1;margin-bottom:1.4vh;}
+.nst p{font-size:var(--fs-body);color:rgba(255,255,255,.82);line-height:1.45;}
+.nread{margin-top:auto;padding-top:2vh;align-self:flex-start;color:var(--orange-soft);font-weight:700;font-size:var(--fs-body);}
+/* the FSD sheet: hidden on screen, the only thing that prints */
+#sheet{display:none;}
+@media print{
+  @page{size:letter;margin:.45in .5in;}
+  html,body{height:auto !important;overflow:visible !important;background:#fff !important;}
+  body > *:not(#sheet){display:none !important;}
+  #sheet{display:block !important;color:#1c2c36;font:10.5pt/1.35 'Source Sans 3',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #sheet .sband{display:flex;align-items:center;gap:18px;background:#1c2c36;color:#fff;padding:12px 18px;border-bottom:4px solid #e84610;}
+  #sheet .sband img{height:34px;}
+  #sheet .sband b{display:block;font:600 17pt 'Cormorant Garamond',serif;}
+  #sheet .sband span{font-size:9pt;letter-spacing:.08em;opacity:.85;}
+  #sheet .smeta{margin:10px 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:2px 18px;}
+  #sheet h2{font:600 14pt 'Cormorant Garamond',serif;color:#466e86;margin:12px 0 4px;border-bottom:1px solid #ddd6c8;}
+  #sheet .srow{break-inside:avoid;padding:5px 0 6px;border-bottom:1px solid #eee8de;}
+  #sheet .shd{display:grid;grid-template-columns:1.25in 1fr auto;gap:10px;align-items:baseline;}
+  #sheet .spk{color:#33505f;}
+  #sheet .smk{font-size:9pt;white-space:nowrap;}
+  #sheet .sbx{display:inline-block;width:11px;height:11px;border:1px solid #1c2c36;margin:0 3px 0 8px;text-align:center;line-height:10px;font-size:9px;vertical-align:-1px;}
+  #sheet .sbx.on{background:#1c2c36;color:#fff;}
+  #sheet ul{margin:3px 0 0 18px;}
+  #sheet .sopen{list-style:none;margin-left:0;}
+  #sheet p{margin-top:2px;}
+  #sheet .sauto{margin-top:6px;color:#6b7a89;}
+  #sheet .sfam{break-inside:avoid;}
+  #sheet .sln{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:end;margin-top:12px;}
+  #sheet .sln i{font-style:normal;border-bottom:1px solid #6b7a89;min-height:16px;}
+}
 </style>
 </head>
 <body>
@@ -391,6 +482,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
   <button class="cbtn" id="bHome" title="Home (H)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span class="t">Home</span></button>
 </div>
 <div id="stage"></div>
+<div id="sheet" aria-hidden="true"></div>
 <div id="reader" role="dialog" aria-label="Reading guide"><div class="rbar"><button class="btn primary" id="rClose">‹ Back to the presentation</button><span class="rtitle" id="rTitle"></span><span class="sp"></span><a class="cbtn" id="rNew" target="_blank" rel="noopener">Open in a new tab ↗</a></div><iframe id="rFrame" title="Reading guide"></iframe></div>
 
 <script>
@@ -428,6 +520,8 @@ const IMG = {
   crematory: P+'crematory-chambers.jpg', crematoryWitness: P+'crematory-witness-room.jpg',
   // Return Home (our terramation partner), from returnhome.com 2026-11-13
   rhCeremony: P+'rh-laying-in-ceremony.jpg', rhVessel: P+'rh-vessel-flowers.jpg', rhSoil: P+'rh-soil-sapling.jpg', rhSapling: P+'rh-sapling-forest.jpg',
+  // Office Archive photo library, By Garden set (added 11/23; no people)
+  gardenPrayer: P+'garden-of-prayer.jpg', koreanMonument: P+'korean-monument-gethsemane.jpg', graveSetup: P+'graveside-setup.jpg',
   tBurial: P+'terramation-soil-burial.jpg', // a family placing the soil here at WMP (BNI deck, OK'd 2026-11-13)
   vaultGrave: 'vault-images/graveside-service-tent.jpg', vaultLower: 'vault-images/graveside-lowering.jpg',
   vaultLid: 'vault-images/graveside-vault-lid.jpg', vaultGoodbye: 'vault-images/graveside-goodbye.jpg', vaultSigning: 'vault-images/service-signing-lid.jpg',
@@ -450,7 +544,7 @@ const IMG = {
 const PER = new Set(['faith', 'own', 'disp', 'service', 'venue', 'viewing', 'merch', 'touches', 'keep', 'place', 'memorial']);
 // track: what brought them in (TRACKS). before: have you done this before (yes/no).
 // parents: Mom, Dad or both. pins: where family already rests, tapped on the aerial (never stored).
-const fresh = () => ({who:undefined, names:['', ''], mode:'both', ps:[{}, {}], seen:{}, track:undefined, before:undefined, parents:undefined, pins:[]});
+const fresh = () => ({who:undefined, names:['', ''], mode:'both', ps:[{}, {}], seen:{}, track:undefined, before:undefined, parents:undefined, pins:[], marks:{}});
 let A = fresh();
 const two = () => A.who === 'two' || A.who === 'parents';
 const bothParents = () => A.who === 'parents';
@@ -487,7 +581,7 @@ const OPT = {
   terramation:{b:'Terramation', s:'Gently returned to the earth as soil', img:IMG.rhSoil, g:'terramation'},
   'b-full':{b:'A viewing and funeral, then burial', s:'Family and friends gather first', img:IMG.chapelSet, g:'svc-b-full', tag:'Burial'},
   'b-graveside':{b:'A graveside service', s:'Everyone gathers at the cemetery', img:IMG.vaultGrave, g:'svc-b-graveside', tag:'Burial'},
-  'b-private':{b:'A private family burial', s:'Immediate family only, at the graveside', img:IMG.vaultGoodbye, g:'svc-b-private', tag:'Burial'},
+  'b-private':{b:'A private family burial', s:'Immediate family only, at the graveside', img:IMG.graveSetup, g:'svc-b-private', tag:'Burial'},
   'b-none':{b:'Burial without a service', s:'No service, just the burial', img:IMG.hearse, g:'svc-b-none', tag:'Burial'},
   'c-full':{b:'A viewing and service, then cremation', s:'Gather with your loved one present', img:IMG.chapelCasket, g:'svc-c-full', tag:'Cremation'},
   'c-memorial':{b:'A memorial service with the urn', s:'Held after cremation', img:IMG.urnStand, g:'svc-c-memorial', tag:'Cremation'},
@@ -562,8 +656,8 @@ const OPT = {
   'tr-cambodian':{b:'Cambodian', img:IMG.crematoryWitness, g:'tr-cambodian'},
   'tr-japanese':{b:'Japanese', img:IMG.glassRoom, g:'tr-japanese'},
   'tr-chinese':{b:'Chinese', img:IMG.drone, g:'tr-chinese'},
-  'tr-korean':{b:'Korean', img:IMG.lawn, g:'tr-korean'},
-  'tr-pacific':{b:'Pacific Islander', s:'Samoan, Tongan, Micronesian', img:IMG.vaultGrave, g:'tr-pacific'},
+  'tr-korean':{b:'Korean', img:IMG.koreanMonument, g:'tr-korean'},
+  'tr-pacific':{b:'Pacific Islander', s:'Samoan, Tongan, Micronesian', img:IMG.gardenPrayer, g:'tr-pacific'},
   'tr-filipino':{b:'Filipino', img:IMG.fwHosp, g:'tr-filipino'},
   'tr-latino':{b:'Latino', s:'Mexican and Central American', img:IMG.roses, g:'tr-latino'},
   'tr-catholic':{b:'Catholic', img:IMG.comFamily, g:'tr-catholic'},
@@ -979,17 +1073,17 @@ const GUIDES = {
          {img:P+'marker-asian-upright.jpg',h:'A marker in your language',p:'We letter markers in Chinese, Vietnamese, Korean and other Asian languages.'},   // designmemorials.com upright (Martice OK'd the site as a source, 11-21)
          {img:IMG.pond,h:'Qingming and every visit after',p:'A place your family can come back to and care for.'}],
         [{q:'Can we avoid red, or anything else?', a:"Yes. Tell me what to avoid, colors included, and we'll plan around it."}, F.leader, F.lang]),
-      ...T('tr-korean', IMG.lawn, 'A Korean goodbye', 'A memorial altar, the days of mourning, and a place to come back to at Chuseok.',
+      ...T('tr-korean', IMG.koreanMonument, 'A Korean goodbye', 'A memorial altar, the days of mourning, and a place to come back to at Chuseok.',
         [{img:IMG.seatacChapel,h:'Your church or ours',p:'Your own church can lead the service, here in our chapel or where you worship.'},
          {img:IMG.fwHosp,h:'The altar and the gathering',p:'A memorial altar with the photo, your own food, and services that can go overnight.'},
-         {img:IMG.lawn,h:'Korean church property in Gethsemane',p:'A lot of Korean churches bought property in the middle left of Garden 23, Gethsemane, some time ago. You can choose anywhere in the park.'}],
+         {img:IMG.koreanMonument,h:'Korean church property in Gethsemane',p:'A lot of Korean churches bought property in the middle left of Garden 23, Gethsemane, some time ago. You can choose anywhere in the park.'}],
         [{q:'Can the marker be in Korean?', a:'Yes. We letter markers in Korean.'}, F.lang], {map:'korean'}),
-      ...T('tr-pacific', IMG.vaultGrave, 'A Pacific Islander goodbye', "The gathering, the fine mats, the food, the singing. There's room here for all of it.",
+      ...T('tr-pacific', IMG.gardenPrayer, 'A Pacific Islander goodbye', "The gathering, the fine mats, the food, the singing. There's room here for all of it.",
         [{img:IMG.seatacChapel,h:'Days, not hours',p:'Services can go overnight, and you can bring your own food.'},
-         {img:IMG.vaultGrave,h:'Everyone at the graveside',p:'Your family can help shovel the dirt to close the grave.'},
-         {img:IMG.bigTree,h:'Where many families rest',p:'The top right of Garden 20, the Garden of Light, for many Samoan families, and Garden 21, the Garden of Prayer, for many Tongan and Pacific Islander families. You can be buried anywhere in the park.'}],
+         {img:IMG.graveSetup,h:'Everyone at the graveside',p:'Your family can help shovel the dirt to close the grave.'},
+         {img:IMG.gardenPrayer,h:'Where many families rest',p:'The top right of Garden 20, the Garden of Light, for many Samoan families, and Garden 21, the Garden of Prayer, for many Tongan and Pacific Islander families. You can be buried anywhere in the park.'}],
         [{q:'Can we take our loved one home to the islands?', a:'Yes. We arrange it, including the paperwork another country needs.'},
-         {q:'Can the whole family be together?', a:'Yes. A family estate keeps everyone in one place.'}], {map:'pacific'}),
+         {q:'Can the whole family be together?', a:'Yes. A family estate keeps everyone in one place.'}], {map:'pacific', inset:true}),
       ...T('tr-filipino', IMG.fwHosp, 'A Filipino goodbye', 'The wake, the rosary each night, the novena and the 40th day. We make room for all of it.',
         [{img:IMG.chapelSet,h:'The wake',p:'As many nights as you need, with your own food. Services can go overnight.'},
          {img:IMG.mChapel,h:'The funeral Mass',p:'At your own parish, then to the cemetery for the committal.'},
@@ -1307,7 +1401,7 @@ const GUIDES = {
            {q:'Can the service be at our church?',a:'Yes. Your church, a hall, the graveside. Wherever fits, with the burial here afterward.'},
            {q:'When does the burial usually happen?',a:'Most burial services take place 5 to 10 days after the death, which gives family time to travel and the obituary time to run.'}],
       link:{href:'burial-guide.html', t:'Open the full Burial Guide'}}},
-  'svc-b-private':{side:'funeral', title:'A private family burial', img:IMG.vaultGoodbye, kicker:'The service',
+  'svc-b-private':{side:'funeral', title:'A private family burial', img:IMG.graveSetup, kicker:'The service',
     h:'A private family burial', s:'Immediate family only, a brief gathering at the graveside, no formal service. Some families hold a larger memorial later.',
     deep:{k:'How it works', h:'What the day looks like', lead:'Every service here can be as simple or as personal as you want it to be.',
       steps:[{img:IMG.seatacChapel,h:'Our SeaTac chapel',p:'Attached to our main building at Washington Memorial Park, steps from the cemetery.'},
@@ -1426,7 +1520,7 @@ const GUIDES = {
   'oc-other':{side:'cemetery', title:'Opening and closing', img:IMG.vaultLower, kicker:'Opening and closing',
     h:'Opening and closing', s:'The work of the day itself: preparing the space before the service, and closing it afterward. Our own cemetery staff do it.',
     deep:{k:'On the day', h:'What happens at the grave', lead:'The space is ready before anyone arrives.',
-      steps:[{img:IMG.vaultGrave,h:'Before the service',p:'The grave is opened and the vault is set, with a tent and seating in place.'},
+      steps:[{img:IMG.graveSetup,h:'Before the service',p:'The grave is opened and the vault is set, with a tent and seating in place.'},
              {img:IMG.vaultSigning,h:'During',p:"Some families sign or decorate the vault lid before it's closed."},
              {img:IMG.vaultLower,h:'The lowering',p:'You can stay for the lowering, or leave before it.'},
              {img:IMG.vaultLid,h:'Closing',p:'The vault is closed and the grave is filled after everyone has gone.'}],
@@ -1530,7 +1624,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 // most of itself to cropping, so below FIT_BELOW it is shown whole over a soft blurred copy
 // of itself (class "fit"). FOCUS moves the crop point for wide photos whose subject is not
 // in the middle. Both are keyed by the photo's path.
-const SHAPE = {"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.498,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
+const SHAPE = {"planning-ahead-images/garden-of-prayer.jpg":0.75,"planning-ahead-images/korean-monument-gethsemane.jpg":1.333,"planning-ahead-images/graveside-setup.jpg":2.198,"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.498,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
 Object.assign(SHAPE, {[P + 'bb-fresh-bouquet.jpg']:0.8, [P + 'bb-sunflowers.jpg']:0.8, [P + 'bb-fall-colors.jpg']:0.8, [P + 'marker-asian-upright.jpg']:1.49, ['pcm-example-images/marker-136.jpg']:1.333, ['pcm-example-images/marker-153.jpg']:1.667, [P + 'marker-bronze-granite-base.jpg']:1.427, ['pcm-example-images/marker-139.jpg']:1.333, [P + 'upright-garden.jpg']:1.498,  [P + 'mvc-new-island.jpg']:1.22, [P + 'memorial-bench.jpg']:1.498, [P + 'gcm-crypt-wall.jpg']:0.75});   // photos added 2026-11-21
 const FIT_BELOW = 0.9;
 const FOCUS = {[P + 'upright-garden.jpg']:'center 78%', [IMG.privateView]:'center 8%', [IMG.roses]:'center 30%'};
@@ -1539,6 +1633,8 @@ const WHOLE = new Set([...['marker-asian-upright.jpg'].map(f => P + f), P + 'mar
 const fitCls = src => (SHAPE[src] || 1.5) < FIT_BELOW || WHOLE.has(src) ? ' fit' : '';
 const bg = src => !src ? 'background:linear-gradient(135deg,#466e86,#1e3a55)' : `background-image:url('${src}')${FOCUS[src] ? `;background-position:${FOCUS[src]}` : ''}`;
 
+// The on-screen Back: same as the top-bar Back and the Left arrow. Only shown when there's somewhere to go back to.
+const backBtn = () => hist.length ? `<button class="btn ghost back" data-go="backOut" title="Back (Left arrow)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back</button>` : '';
 function show(screen, push = true) { if (push && cur) hist.push(cur); cur = screen; render(); }
 function back() { if (hist.length) { cur = hist.pop(); render(); } }
 function render() {
@@ -1554,11 +1650,12 @@ function render() {
   else if (s.t === 'q') { el.innerHTML = questionHTML(s.id); where = 'A few questions'; }
   else if (s.t === 'cmp') { el.innerHTML = compareHTML(s.id); where = 'Side by side'; }
   else if (s.t === 'wheel') { el.innerHTML = wheelHTML(false); where = 'Your plan'; }
-  else if (s.t === 'yours') { el.innerHTML = yoursHTML(); where = 'What you highlighted'; }
+  else if (s.t === 'yours') { el.innerHTML = yoursHTML(); where = 'Your plan'; }
   else if (s.t === 'guide') { el.innerHTML = guideHTML(s.id, {pos:s.pos}); where = s.pos != null ? 'Your guide' : 'Guide'; if (s.deep) el.classList.add('deep'); }
   else if (s.t === 'map') { el.innerHTML = mapHTML(s.focus); where = 'The park'; }
   else if (s.t === 'lib') { el.innerHTML = libHTML(); where = 'Every guide'; }
-  else if (s.t === 'close') { el.innerHTML = closeHTML(); where = 'Your plan'; }
+  else if (s.t === 'missed') { el.innerHTML = missedHTML(); where = 'Your plan'; }
+  else if (s.t === 'close') { el.innerHTML = closeHTML(); where = 'What we\'ll do next'; }
   document.getElementById('where').textContent = where;
   document.getElementById('bBack').hidden = !hist.length;
   const old = stage.querySelector('.screen.on');
@@ -1587,14 +1684,14 @@ function guideHTML(id, opt = {}) {
   if (opt.intro) {
     bar = `<button class="btn ghost" data-go="skipwhy">Skip to the questions</button>` + mapBtn +
           (g.deep ? `<button class="btn ghost" data-go="deeper">Go deeper</button>` : '') +
-          `<button class="btn primary" data-go="introNext">Next</button>`;
+          backBtn() + `<button class="btn primary" data-go="introNext">Next</button>`;
   } else {
     const ov = A.track === 'one' && pos == null ? optForGuide(id) : null;
     const added = ov && people().some(i => selP(Q_OF[ov], i).includes(ov));
     bar = vsBtn + mapBtn + (g.deep ? `<button class="btn ghost" data-go="deeper">How it works</button>` : '') +
           (ov ? `<button class="btn ${added ? 'primary' : 'ghost'}" data-add="${ov}">${added ? 'In your plan ✓' : 'Add this to the plan'}</button>` : '') +
           (A.track === 'one' && pos == null ? `<button class="btn ghost" data-go="wholePlan">See the whole plan</button>` : '') +
-          (pos != null ? `<button class="btn primary" data-go="pathNext">${pos + 1 < p.length ? 'Next' : 'Finish'}</button>` : `<button class="btn primary" data-go="backOut">Back</button>`);
+          (pos != null ? backBtn() + `<button class="btn primary" data-go="pathNext">${pos + 1 < p.length ? 'Next' : 'Finish'}</button>` : `<button class="btn primary" data-go="backOut">Back</button>`);
   }
   const count = pos != null ? `<div class="gcount">${pos + 1} of ${p.length} · ${esc(g.kicker || '')}</div>` : '';
   const navyBg = `<div class="bg" style="background:radial-gradient(ellipse at 70% 50%,#2a4a64,#0f1d29)"></div>`;
@@ -1659,7 +1756,7 @@ function questionHTML(id) {
    ${q.unsure ? `<button class="card ico unsure" data-unsure="${q.unsure}"><div class="ph"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path class="o" d="M9.2 9.3a2.9 2.9 0 0 1 5.6 1c0 2-2.8 2.5-2.8 4.4"/><circle class="dot" cx="12" cy="17.6" r="1.1"/></svg></div><div class="lab"><b>Not sure yet</b><span>See them side by side</span></div></button>` : ''}
    </div>${names}
    <div class="qbar"><span class="qcount">${q.multi ? (n ? `${n} highlighted` : 'Highlight as many as you like') : (n ? '' : 'Highlight one')}</span>
-     <button class="btn ghost" data-go="wheel">Your plan</button>
+     <button class="btn ghost" data-go="wheel">Your plan</button>${backBtn()}
      <button class="btn primary" data-go="qNext">${n ? (at === qs.length - 1 ? 'See your plan' : 'Next') : 'Skip for now'}</button></div>
    <div class="qdots">${qs.map((x, i) => `<i class="${i < at ? 'done' : i === at ? 'now' : ''}" title="${esc(x.short)}" data-jump="${x.id}" role="button" tabindex="0" aria-label="${esc(x.short)}"></i>`).join('')}</div></div>`;
 }
@@ -1671,7 +1768,7 @@ function stepHTML(q) {
     const rows = A.pins.map((p, k) => `<div class="prow"><span class="pn">♥</span><input data-pinname="${k}" value="${esc(p.name)}" placeholder="Who is here? (optional)" autocomplete="off"><button data-unpin="${k}">Remove</button></div>`).join('');
     return `<div class="mapwrap pinpick"><div class="mapbox">${mapSVG('ground')}</div><div class="wlist"><div class="kicker">Washington Memorial Park</div><h2>${esc(q.title())}</h2>
      <p class="s">Show me on the map where they rest, and I'll mark it. Then I'll show you the open spaces nearest them.</p>${rows}
-     <div class="actions"><button class="btn ghost" data-go="wheel">Your plan</button>${nextBtn(A.pins.length ? 'Next' : 'Skip for now')}</div></div></div>`;
+     <div class="actions"><button class="btn ghost" data-go="wheel">Your plan</button>${backBtn()}${nextBtn(A.pins.length ? 'Next' : 'Skip for now')}</div></div></div>`;
   }
   if (q.screen === 'tour') {
     const keys = [...new Set(people().flatMap(i => selP('place', i)).flatMap(p => (MAP_FOCUS[p] || {pins:[]}).pins))];
@@ -1679,23 +1776,23 @@ function stepHTML(q) {
       ...A.pins.map(p => `<div class="mrow"><span class="pn">♥</span><b>${esc(p.name || 'Family')}</b></div>`)].join('');
     return `<div class="mapwrap"><div class="mapbox">${mapSVG({h:'', s:'', pins:keys})}</div><div class="wlist"><div class="kicker">Before we go on</div><h2>${esc(q.title())}</h2>
      <p class="s">Everything you highlighted is marked here. When we come back in, we'll pick up right where we left off.</p>
-     <div class="mrows">${list}</div><div class="actions"><button class="btn ghost" data-go="wheel">Your plan</button>${nextBtn("We're back")}</div></div></div>`;
+     <div class="mrows">${list}</div><div class="actions"><button class="btn ghost" data-go="wheel">Your plan</button>${backBtn()}${nextBtn("We're back")}</div></div></div>`;
   }
   return `<div class="bg" style="${bg(IMG.chapelSet)}"></div><div class="shade"></div>
   <div class="copy"><div class="kicker">The funeral home</div><h1 class="headline">${esc(q.title())}</h1>
   <p class="sub">They're two parts of one plan, and you can pay for both together. You can do both today, or come back for the funeral side another day.</p>
-  <div class="actions"><button class="btn ghost" data-guide="plan-sides">How the two sides work</button><button class="btn ghost" data-go="wheel">Your plan</button>${nextBtn('Next')}</div></div>`;
+  <div class="actions"><button class="btn ghost" data-guide="plan-sides">How the two sides work</button><button class="btn ghost" data-go="wheel">Your plan</button>${backBtn()}${nextBtn('Next')}</div></div>`;
 }
 /* The opening: what brought them in, then how much to explain. */
 function trackHTML() {
   return `<div class="qwrap"><h1 class="qtitle">What brings you in today?</h1><p class="qsub">There's no wrong answer, and we can change it any time.</p>
    <div class="cards" style="grid-template-columns:repeat(3,min(24vw,33vh))">${Object.keys(TRACKS).map(t => { const o = TRACKS[t];
-     return `<button class="card ico${A.track === t ? ' picked' : ''}" data-track="${t}"><span class="tick">✓</span><div class="ph"><svg viewBox="0 0 24 24" aria-hidden="true">${TRACK_ICO[t]}</svg></div><div class="lab"><b>${esc(o.b)}</b><span>${esc(o.s)}</span></div></button>`; }).join('')}</div></div>`;
+     return `<button class="card ico${A.track === t ? ' picked' : ''}" data-track="${t}"><span class="tick">✓</span><div class="ph"><svg viewBox="0 0 24 24" aria-hidden="true">${TRACK_ICO[t]}</svg></div><div class="lab"><b>${esc(o.b)}</b><span>${esc(o.s)}</span></div></button>`; }).join('')}</div>${hist.length ? `<div class="qbar">${backBtn()}</div>` : ''}</div>`;
 }
 function beforeHTML() {
   const c = (v, b, big) => `<button class="card big${A.before === v ? ' picked' : ''}" data-before="${v}"><span class="tick">✓</span><div class="ph">${big}</div><div class="lab"><b>${esc(b)}</b></div></button>`;
   return `<div class="qwrap"><h1 class="qtitle">Have you done this before?</h1><p class="qsub">Planned a funeral, bought cemetery property, or made arrangements for someone you love.</p>
-   <div class="cards" style="grid-template-columns:repeat(2,min(30vw,48vh))">${c('yes', "Yes, I've been through it", '✓')}${c('no', 'No, this is all new', '+')}</div></div>`;
+   <div class="cards" style="grid-template-columns:repeat(2,min(30vw,48vh))">${c('yes', "Yes, I've been through it", '✓')}${c('no', 'No, this is all new', '+')}</div>${hist.length ? `<div class="qbar">${backBtn()}</div>` : ''}</div>`;
 }
 function compareHTML(id) {
   const c = COMPARE[id]; const cols = c.cols();
@@ -1716,7 +1813,7 @@ function pairChips(id) {
   const list = PAIRS.filter(([, vs]) => vs.every(v => on.has(v))).map(([g]) => `<button data-guide="${g}">${esc(GUIDES[g].btn)}</button>`).join('');
   return list ? `<div class="pairs"><span>Two at a time</span>${list}</div>` : '';
 }
-function wheelSVG(size = 560, mini = false) {
+function wheelSVG(size = 560, mini = false, marks = false) {
   const rings = people().map(i => categories(i));
   const n = rings[0].length, cx = size / 2, cy = size / 2, R = size / 2 - (mini ? 1 : 8), RI = mini ? 0 : R * 0.34;
   const bands = rings.length === 2 && !mini ? [[R * 0.68, R], [RI, R * 0.66]] : [[RI, R]];
@@ -1726,7 +1823,7 @@ function wheelSVG(size = 560, mini = false) {
     const [r0, r1] = bands[ri];
     let fi = 0, ci = 0;
     cats.forEach((c, i) => {
-      const filled = c.items.length > 0, na = !filled && !!c.na;
+      const filled = c.items.length > 0, na = !filled && !!c.na, mk = marks ? A.marks[c.id] : null;
       const a0 = -Math.PI / 2 + (i / n) * 2 * Math.PI + 0.012, a1 = -Math.PI / 2 + ((i + 1) / n) * 2 * Math.PI - 0.012;
       const pt = (rr, a) => `${(cx + rr * Math.cos(a)).toFixed(2)},${(cy + rr * Math.sin(a)).toFixed(2)}`;
       const d = r0 ? `M${pt(r0, a0)} L${pt(r1, a0)} A${r1},${r1} 0 0 1 ${pt(r1, a1)} L${pt(r0, a1)} A${r0},${r0} 0 0 0 ${pt(r0, a0)}Z`
@@ -1740,9 +1837,10 @@ function wheelSVG(size = 560, mini = false) {
           const words = c.label.split(' ');
           const lines = words.length > 1 && c.label.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : [c.label];
           const fs = rings.length === 2 ? 14 : 16;
-          out += `<text x="${lx}" y="${ly - (lines.length - 1) * fs * .55 - (filled ? fs * .5 : 0)}" text-anchor="middle" fill="#fff" font-size="${fs}" font-weight="700">${lines.map((l, k) => `<tspan x="${lx}" dy="${k ? fs * 1.15 : 0}">${esc(l)}</tspan>`).join('')}</text>`;
-          if (filled) out += `<text x="${lx}" y="${ly + (lines.length - 1) * fs * .55 + fs * 1.1}" text-anchor="middle" fill="#fff" font-size="${c.items.length > 1 ? fs - 1 : fs + 4}" font-weight="700">${c.items.length > 1 ? c.items.length + ' highlighted' : '✓'}</text>`;
-        } else if (filled) out += `<text x="${lx}" y="${ly + 6}" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">✓</text>`;
+          out += `<text x="${lx}" y="${ly - (lines.length - 1) * fs * .55 - ((marks ? mk : filled) ? fs * .5 : 0)}" text-anchor="middle" fill="#fff" font-size="${fs}" font-weight="700">${lines.map((l, k) => `<tspan x="${lx}" dy="${k ? fs * 1.15 : 0}">${esc(l)}</tspan>`).join('')}</text>`;
+          if (marks && mk) out += `<text x="${lx}" y="${ly + (lines.length - 1) * fs * .55 + fs * 1.1}" text-anchor="middle" fill="#fff" font-size="${fs + 4}" font-weight="700">${MARK_SYM[mk]}</text>`;
+          else if (!marks && filled) out += `<text x="${lx}" y="${ly + (lines.length - 1) * fs * .55 + fs * 1.1}" text-anchor="middle" fill="#fff" font-size="${c.items.length > 1 ? fs - 1 : fs + 4}" font-weight="700">${c.items.length > 1 ? c.items.length + ' highlighted' : '✓'}</text>`;
+        } else if (!marks && filled) out += `<text x="${lx}" y="${ly + 6}" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">✓</text>`;
       }
     });
   });
@@ -1764,7 +1862,7 @@ function wheelHTML(intro) {
   const valLine = !intro && vals.length ? `<p class="vals"><span>What matters most</span>${vals.map(esc).join(' · ')}</p>` : '';
   return `<div class="wheelwrap">${wheelSVG()}<div class="wlist"><h2>${title}</h2><p class="s">${esc(sub)}</p>${valLine}<div class="wrows">${rows}</div>
    <div class="legend"><span><i style="background:#e84610"></i>Funeral home</span><span><i style="background:#466e86"></i>Cemetery</span></div>
-   <div class="actions">${go}${!intro ? `<button class="btn ghost" data-go="restart">Start over</button>` : ''}</div></div></div>`;
+   <div class="actions">${backBtn()}${go}${!intro ? `<button class="btn ghost" data-go="restart">Start over</button>` : ''}</div></div></div>`;
 }
 function mapHTML(fk) {
   const f = MAP_FOCUS[fk] || MAP_FOCUS.all;
@@ -1860,36 +1958,86 @@ function plainHTML() {
   const head = i => two() ? `${esc(nm(i))}'s plan` : other() ? (theirName() ? `${esc(theirName().charAt(0).toUpperCase() + theirName().slice(1))}'s plan` : 'Their plan') : 'Your plan';
   return earlier + `<div class="res-sec"><h3>In plain words</h3></div><div class="plain${blocks.length > 1 ? ' two' : ''}">${blocks.map(b => `<div class="pw"><h4>${head(b.i)}</h4>${b.lines.map(l => `<p>${l}</p>`).join('')}</div>`).join('')}</div>`;
 }
+/* THE END OF THE VISIT (Martice 11-25): "a visual ice breaker and to make sure we're covering everything fully".
+   Families only ever see this in an appointment with an FSD. Every piece of a complete plan is listed, theirs
+   highlighted, and each row gets a mark as it's talked through. Marks live for this visit only. */
+const MARKS = [['done', 'Covered'], ['think', 'Still thinking'], ['no', 'Not for us']];
+const MARK_SYM = {done:'✓', think:'?', no:'–'};
+const ROW_GUIDE = {care:'compare-disp', property:'compare-place', oc:'oc-other', vault:'vault', memorial:'markers', service:'compare-service',
+  touches:'tributes', casket:'caskets', travel:'travel', vet:'veterans', wishes:'their-wishes'};
+const ROW_ORDER = ['care', 'property', 'oc', 'vault', 'memorial', 'service', 'casket', 'touches', 'travel'];   // cemetery first, as in his appointments
+const AUTO_NA = /^(Not needed|Already taken care of|No casket needed)$/;
+function planRows() {
+  const per = people().map(i => resultRows(i));
+  const rows = per[0].map((c, k) => ({id:c.id, side:c.id === 'care' ? 'plan' : c.side, label:c.label, why:WHY[c.id] || '',
+    per:people().map(i => ({i, items:per[i][k].items, na:per[i][k].na || ''}))}));
+  rows.sort((a, b) => ROW_ORDER.indexOf(a.id) - ROW_ORDER.indexOf(b.id));
+  if (faithSel().length) rows.push({id:'faith', side:'plan', label:'Faith and tradition', why:'How we honor what matters to your family.',
+    per:people().map(i => ({i, items:selP('faith', i).map(v => ({b:OPT[v].b, g:OPT[v].g})), na:''}))});
+  if (A.vet === 'yes') rows.push({id:'vet', side:'cemetery', label:'Veterans', why:'The benefits that come with their service.',
+    per:[{i:0, items:[{b:'Honoring their service', g:'veterans'}], na:''}]});
+  if (other()) rows.push({id:'wishes', side:'plan', label:'Their wishes and who signs', why:'Honoring what they want, and who can sign for it.',
+    per:[{i:0, items:[{b:'Their wishes', g:'their-wishes'}, ...(['md-yes', 'md-unsure'].includes(A.medicaid) ? [{b:'Medicaid', g:'medicaid'}] : [])], na:''}]});
+  const disp = selU('disp'), onlyUrns = disp.length > 0 && disp.every(d => d === 'cremation');
+  rows.forEach(r => {
+    r.has = r.per.some(p => p.items.length);
+    r.auto = !r.has && r.per.every(p => AUTO_NA.test(p.na));
+    const g = (r.per.flatMap(p => p.items).find(x => x.g && GUIDES[x.g]) || {}).g;
+    r.g = g || (r.id === 'casket' && onlyUrns ? 'urns' : ROW_GUIDE[r.id]);
+  });
+  return rows;
+}
+const planCount = rows => { const need = rows.filter(r => !r.auto); return {done:need.filter(r => A.marks[r.id]).length, total:need.length}; };
+const sideCol = sd => sd === 'funeral' ? 'var(--orange)' : sd === 'cemetery' ? 'var(--navy)' : '#c9d6df';
+function prowHTML(r) {
+  const m = A.marks[r.id];
+  // Each pick is its own button, so "Reception" opens Reception; owned property keeps its badge (owners are the most common visit).
+  const item = x => `<button class="pi"${x.g && GUIDES[x.g] ? ` data-guide="${x.g}"` : ''}>${esc(x.b)}${x.owned ? `<span class="ownb">${ownWord().replace(/^a/, 'A')}</span>` : ''}</button>`;
+  const pick = p => p.items.length ? p.items.map(item).join('') : `<span class="pn">${esc(p.na || 'Not chosen yet')}</span>`;
+  const val = r.auto ? `<span class="pn">${esc(r.per[0].na)}</span>`
+    : two() && r.per.length > 1 && r.has ? r.per.map(p => `<span class="pp"><em class="p${p.i}" title="${esc(nm(p.i))}">${esc(initial(p.i))}</em>${pick(p)}</span>`).join('')
+    : pick(r.per.find(p => p.items.length) || r.per[0]);
+  const marks = r.auto ? '<span class="pna">Nothing to go over</span>'
+    : MARKS.map(([k, l]) => `<button class="mk k-${k}${m === k ? ' on' : ''}" data-mark="${r.id}:${k}" aria-pressed="${m === k}">${l}</button>`).join('');
+  return `<div class="plrow${r.has ? '' : ' dim'}${r.auto ? ' auto' : ''}${m ? ' m-' + m : ''}" data-cat="${r.id}">
+    <button class="pl"${r.g && GUIDES[r.g] ? ` data-guide="${r.g}"` : ''}><i style="background:${sideCol(r.side)}"></i><span class="pt"><b>${esc(r.label)}</b><small>${esc(r.why)}</small></span></button><div class="pv">${val}</div>
+    <div class="pm">${marks}</div></div>`;
+}
 function yoursHTML() {
-  const p = path(), guides = readingGuides();
-  const rows = people().map(i => resultRows(i));
-  const vals = (A.values || []).map(x => OPT[x].b);
-  const any = rows.some(r => r.some(c => c.items.length));
-  const h = you("Here's what you highlighted", "Here's what each of you highlighted", `Here's what you highlighted for ${them()}`);
-  const sub = any ? 'Tap any picture to look at it again. The guides below go into more detail, and each one opens right here.'
-    : "Nothing's highlighted yet. That's fine: we can go back to the questions any time.";
-  const sideTag = s => `<div class="side"><i style="background:${s === 'funeral' ? 'var(--orange)' : 'var(--navy)'}"></i>${s === 'funeral' ? 'Funeral home' : 'Cemetery'}</div>`;
-  const col = (c, i) => `<div class="rcol">${two() ? `<div class="rwho"><i class="p${i}">${esc(initial(i))}</i>${esc(nm(i))}</div>` : ''}
-     ${c.items.length ? `<div class="rtiles">${c.items.map(rtHTML).join('')}</div>` : `<div class="rnone">${esc(c.na || 'Nothing highlighted')}</div>`}</div>`;
-  const blk = side => rows[0].map((c, k) => {
-    if (c.side !== side || !people().some(i => rows[i][k].items.length || rows[i][k].na)) return '';
-    const has = people().some(i => rows[i][k].items.length);
-    return `<div class="rrow${has ? '' : ' na'}" data-cat="${c.id}"><h4>${esc(c.label)}</h4>
-      <div class="rcols${two() && has ? ' two' : ''}">${has ? people().map(i => col(rows[i][k], i)).join('') : `<div class="rnone">${esc(c.na)}</div>`}</div></div>`;
-  }).join('') + (side === 'cemetery' && A.vet === 'yes' ? `<div class="rrow" data-cat="vet"><h4>Veterans</h4><div class="rcols"><div class="rtiles">${rtHTML({b:'Honoring your service', img:IMG.vetsFlags, g:'veterans'})}</div></div></div>` : '');
-  const body = ['cemetery', 'funeral'].map(sd => `<div class="rside"><div class="rside-h">${sideTag(sd)}</div>${blk(sd) || '<div class="rnone">Nothing highlighted yet</div>'}</div>`).join('');
+  const rows = planRows(), n = planCount(rows), any = rows.some(r => r.has);
+  const h = other() ? `Everything in a complete plan for ${them()}` : 'Everything in a complete plan';
+  const sub = any ? "Tap any row to look at it. As we talk each one through, I'll mark it." : "Nothing's highlighted yet. That's fine: we can go back to the questions any time.";
+  const grp = (sd, name) => { const rs = rows.filter(r => r.side === sd); return rs.length ? `${name ? `<div class="pside"><i style="background:${sideCol(sd)}"></i>${name}</div>` : ''}${rs.map(prowHTML).join('')}` : ''; };
+  const open = [...new Set([...rows.filter(r => A.marks[r.id] === 'think').map(r => r.label), ...stillOpen()])];
+  const guides = readingGuides();
   const glist = guides.map(l => `<button class="gl" data-read="${esc(l.href)}" data-title="${esc(l.t)}"><div class="ph${fitCls(l.img)}" style="${bg(l.img)}"></div>
      <div class="tx"><small>Reading guide</small><b>${esc(l.t)}</b><span>Open it here ›</span></div></button>`).join('');
-  return `<div class="res"><div class="res-head"><div><div class="kicker">Your plan so far</div><h2>${esc(h)}</h2><p class="s">${esc(sub)}</p>
-     ${vals.length ? `<p class="vals"><span>What matters most</span>${vals.map(v => `<b class="chip">${esc(v)}</b>`).join('')}</p>` : ''}
-     <div class="actions">${p.length ? `<button class="btn primary" data-go="pathStart">Walk through all ${p.length} together</button>` : `<button class="btn primary" data-go="resumeQs">Back to the questions</button>`}
-       ${guides.length ? '<button class="btn ghost" data-go="toGuides">The guides ↓</button>' : ''}${p.length ? '<button class="btn ghost" data-go="resumeQs">Change answers</button>' : ''}<button class="btn ghost" data-go="park">See the park</button><button class="btn ghost" data-go="another">Plan for someone else too</button><button class="btn ghost" data-go="close">We're done</button></div></div>
-     <button class="res-wheel" data-go="wheel" title="Circle of Protection">${wheelSVG()}Circle of Protection</button></div>
+  const acts = any ? `<button class="btn ghost" data-go="resumeQs">Change answers</button><button class="btn ghost" data-go="another">Plan for someone else too</button><button class="btn primary" data-go="missed">Did we miss anything?</button>`
+    : `<button class="btn primary" data-go="resumeQs">Back to the questions</button>`;
+  return `<div class="res plan"><div class="pgrid"><div class="pwheel">${wheelSVG(560, false, true)}<div class="pcount"><b>${n.done} of ${n.total}</b> talked through</div></div>
+   <div class="pmain"><div class="kicker">Let's go over your plan</div><h2>${esc(h)}</h2><p class="s">${esc(sub)}</p>${valsHTML()}
+   <div class="plist">${grp('plan', '')}${grp('cemetery', 'Cemetery')}${grp('funeral', 'Funeral home')}</div>
+   <div class="actions">${backBtn()}${acts}</div></div></div>
    ${plainHTML()}
-   ${tradHTML()}
-   ${(() => { const o = stillOpen(); return o.length ? `<div class="res-sec"><h3>Still to decide</h3></div><ul class="todo">${o.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''; })()}
-   ${any ? `<div class="res-sec"><h3>What you highlighted</h3></div><div class="rboard">${body}</div>` : ''}
+   ${open.length ? `<div class="res-sec"><h3>Still to decide</h3></div><ul class="todo">${open.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
    ${guides.length ? `<div class="res-sec" id="resGuides"><h3>Go deeper in our guides</h3><p>${guides.length === 1 ? 'The full guide' : `The ${guides.length} full guides`} that go with what you highlighted.</p></div><div class="gls">${glist}</div>` : ''}</div>`;
+}
+// What matters most, echoed at the end (Martice 11-13).
+const valsHTML = () => (A.values || []).length ? `<p class="vals"><span>What matters most</span>${A.values.map(x => `<b class="chip">${esc(OPT[x].b)}</b>`).join('')}</p>` : '';
+function refreshPlan() {
+  const on = stage.querySelector('.screen.on'); if (!on) return;
+  const sc = on.querySelector('.res'), top = sc ? sc.scrollTop : 0;
+  on.innerHTML = yoursHTML(); wire(on); drawMini();
+  const nsc = on.querySelector('.res'); if (nsc) nsc.scrollTop = top;
+}
+/* "Did we miss anything?" (his ask, 11-25): open questions, nothing to tap. */
+const MISSED = ["Is there anyone else in your family we should plan for while you're here?", 'Does anyone else need to be part of these decisions?',
+  "Is there anything about your faith, your culture or your family's way of doing things we haven't talked about?",
+  "Have you been to a service you loved, or one you didn't? What stood out?", 'What questions do you have for me?'];
+function missedHTML() {
+  return `<div class="res missed"><div class="kicker">Before we go on</div><h2 class="mh">Did we miss anything?</h2><p class="s">Anything at all. This is the time for it.</p>
+  <div class="mqs">${MISSED.map(q => `<div class="mq">${esc(q)}</div>`).join('')}</div>
+  <div class="actions">${backBtn()}<button class="btn ghost" data-go="another">Plan for someone else too</button><button class="btn primary" data-go="close">Here's what we'll do next</button></div></div>`;
 }
 function openReader(href, title) {
   const r = document.getElementById('reader');
@@ -1905,17 +2053,108 @@ function closeReader() {
 function libHTML() {
   const groups = [['plan','Planning ahead'],['tradition','Faith and tradition'],['funeral','Funeral home'],['cemetery','Cemetery']];
   return `<div class="listwrap"><h2>Every guide</h2><p class="s">Jump to anything, any time.</p>
-   <div class="actions">${A.track === 'one' ? '<button class="btn primary" data-go="wholePlan">See the whole plan</button>' : ''}<button class="btn ghost" data-go="park">See the park</button></div>
+   <div class="actions">${backBtn()}${A.track === 'one' ? '<button class="btn primary" data-go="wholePlan">See the whole plan</button>' : ''}<button class="btn ghost" data-go="park">See the park</button></div>
    ${groups.map(([side, name]) => `<div class="libsec">${name}</div><div class="tiles">${Object.keys(GUIDES).filter(id => GUIDES[id].side === side).map(id => tileHTML({g:id, contain:GUIDES[id].inset && GUIDES[id].img && GUIDES[id].img.includes('flower-images')})).join('')}</div>`).join('')}</div>`;
 }
+/* "Here's what we'll do next": the hand-off into the tour, the quote and the paperwork. No prices. */
+function nextSteps() {
+  const rows = planRows(), has = sd => rows.some(r => r.side === sd && r.has);
+  const places = people().flatMap(i => selP('place', i)).filter(p => !['home', 'thome'].includes(p));
+  const owns = people().some(i => owned(i).length);
+  const st = [];
+  if (A.track !== 'funeral' && places.length) st.push({h:'See it in person', p:"We'll walk out and look at the spaces you highlighted."});
+  else if (A.track !== 'funeral' && owns) st.push({h:'See it in person', p:other() ? "We'll go see the family's place." : "We'll go see your family's place."});
+  st.push({h:'Put your plan in writing', p:`I'll put together the quote for everything we talked about${has('cemetery') && has('funeral') ? ', both sides together' : ''}.`});
+  st.push({h:'Who decides', p:other() ? `Who signs today, and who makes decisions for ${them()} later.` : 'Who signs today, and who you want making decisions later.',
+    read:{href:'who-decides-guide.html', t:'Who Decides'}});
+  st.push({h:'Make it official', p:'Sign today in person, or later through DocuSign. Then make sure ' + (other() ? 'the family knows' : 'your family knows') + ' where the papers are kept.'});
+  return st;
+}
 function closeHTML() {
-  return `<div class="bg" style="${bg(IMG.pond)}"></div><div class="shade"></div>
-  <div class="copy"><div class="kicker">Before you go</div><h1 class="headline">Do you feel clear on what matters to you?</h1>
-  ${(A.values || []).length ? `<p class="vals big"><span>${esc(you('You told me', 'You told me', 'You told me'))}</span>${(A.values || []).map(x => esc(OPT[x].b)).join(' · ')}</p>` : ''}
-  <p class="sub">${you('Whatever you decide, tell your family where your plan and your papers are kept. A plan only works if someone knows it exists.','Whatever you decide, tell your family where your plans and your papers are kept. A plan only works if someone knows it exists.','Whatever you decide, make sure the family knows where the plan and the papers are kept. A plan only works if someone knows it exists.')}</p>
-  <div class="actions"><button class="btn ghost" data-go="yours">Everything you highlighted</button><button class="btn ghost" data-go="wheel">Your plan</button><button class="btn primary" data-go="restart">Start over</button></div></div>`;
+  const st = nextSteps();
+  return `<div class="res nexts"><div class="kicker">From here</div><h2 class="mh">Here's what we'll do next</h2>${valsHTML()}
+  <div class="nsteps" style="grid-template-columns:repeat(${st.length},minmax(0,1fr))">${st.map((x, k) => `<div class="nst"><div class="num">${k + 1}</div><h3>${esc(x.h)}</h3><p>${esc(x.p)}</p>${x.read ? `<button class="nread" data-read="${x.read.href}" data-title="${esc(x.read.t)}">Open the guide ›</button>` : ''}</div>`).join('')}</div>
+  <div class="actions">${backBtn()}<button class="btn ghost" data-go="print">Print my sheet</button><button class="btn ghost" data-go="restart">Start over</button></div></div>`;
 }
 
+/* THE FSD SHEET (print only; never on the TV). Talking points use only facts already in this page's guides or
+   Martice's rulings (memory, 2026-11-11 to 11-25). Chrome's print preview flashes on the TV, so nothing here is
+   anything the family shouldn't see. No prices, no links. */
+const TALK = {
+  care:{pts:['Burial, cremation here on site, or terramation with Return Home.', 'Families can be in the room for a cremation and press the button to begin it.',
+    'Not sure yet? The side by side compares all three.'],
+    miss:"Two people can choose differently. Ask each person.", pull:'Cremation or Burial guide; Terramation Guide'},
+  property:{pts:['Confirm the exact space on the tour before any paperwork.',
+    'A grave can hold a casket plus up to two urns, each with its own opening and closing and recording. Most niches hold two urns; the four large Mountain View island family niches hold four; the Veterans Court of Honor niches hold one.',
+    'Anything at the cemetery done ahead of time is locked in at today\'s price.', 'Already own property here? Check whose name the rights are in.'],
+    miss:'Who else will be placed here someday, and whose name the rights go in.', pull:'Cemetery Property Guide; the guide for the space they chose'},
+  oc:{pts:['Every burial or placement has its own opening and closing, and its recording.', 'Done ahead of time, it\'s locked in at today\'s price.',
+    'In a niche, this is placing the urn.'],
+    miss:'A second person or an urn added later needs its own opening and closing.', pull:'Opening and closing; Placing the urn'},
+  vault:{pts:['The cemetery asks for one so the ground stays level.', 'A vault is lined and sealed to resist water. Never say it keeps water out.',
+    'An urn in the ground usually goes in an urn vault. Some urns don\'t fit a standard urn vault.', 'A lawn crypt doesn\'t need a vault. A family estate does.'],
+    miss:'Check the urn against the urn vault before the urn is chosen.', pull:'Burial Vault Guide'},
+  memorial:{pts:['Flat bronze or granite markers in most areas. Upright monuments only in a few areas of the park.',
+    'We letter markers in Vietnamese, Chinese, Korean and other Asian languages.', 'Already a marker on the space? It may only need the name or the final date added.',
+    'Benches: Section 6, Section 23, select areas of Garden 20, and family estates.'],
+    miss:'A companion marker already in place, waiting for the second date.', pull:'Granite Marker Sizes and Colors; Bronze Markers; Marker Photos and Etching'},
+  service:{pts:['Where: our SeaTac chapel, the smaller chapel inside the Chapel of Memories, their own church, or the graveside.',
+    'Services can go overnight, and families can bring their own food.', 'Families can always help shovel some dirt at the graveside.', 'Our reception rooms are included.'],
+    miss:'A viewing, and whether close family wants private time first.', pull:'Burial Guide or Cremation Guide; the service guide they picked'},
+  casket:{pts:['Wood, metal and cremation caskets, and rental caskets for a viewing before cremation.',
+    'The urn depends on where it goes: a niche, an urn vault in the ground, scattering, or home.',
+    'Keepsakes: keepsake urns, Legacy Touch fingerprint jewelry, Artful Ashes glass.'],
+    miss:'Some urns don\'t fit a standard urn vault.', pull:'Wood Caskets; Metal Caskets; Cremation Containers and Rental Caskets; Urn Catalog; Keepsake Urn Catalog'},
+  touches:{pts:['A video tribute, photos and keepsakes, music, the register book, the obituary.',
+    'Flowers through Love\'s Buds & Blooms in SeaTac, including flowers at the grave on set dates.', 'Catering through Arista, in our reception rooms.'],
+    miss:'Flowers at the grave after the service, on the dates that matter.', pull:'Sympathy Flowers; Flowers at the grave'},
+  travel:{pts:['The Inman Travel Plan covers bringing them home if death happens far from home.', 'If it happens, call Inman first. One call starts everything.',
+    'It\'s part of the funeral side of the plan.'],
+    miss:'Anyone who travels often or spends part of the year away.', pull:'Travel Plan by Inman'},
+  faith:{pts:['We never turn anyone away. We make room for what the family needs.',
+    'Ritual washing in our prep room. Chanting and incense are welcome. Families bring whatever they want to the witness room.',
+    'Services can go overnight. We ship loved ones overseas.', 'We use translation services. Never say staff speak a language.',
+    'Never promise a Qibla-facing grave, a burial without a casket, or a separate section.'],
+    miss:'Who leads the rites, and the dates that matter after.', pull:'The guide for their tradition'},
+  vet:{pts:['Start with the DD-214. It opens everything else.', 'The Veterans Court of Honor niches hold one.'],
+    miss:'Whether the DD-214 is on hand.', pull:'Veterans Guide'},
+  wishes:{pts:['Frame it as honoring their wishes.', 'Who decides follows RCW 68.50.160. A designated agent named in a signed, witnessed document comes first.',
+    'A power of attorney doesn\'t cover disposition unless it says so.', 'If Medicaid is in the picture, go over the Medicaid guide.'],
+    miss:'Whether they can sign for themselves.', pull:'Who Decides; Medicaid and Planning Ahead'}
+};
+const PAYING = ['Both sides can be paid together, on the same card.',
+  'Funeral: a Global Atlantic plan, written guaranteed. Single pay or 2, 3, 5, 8 or 10 years, by age. Cash advances aren\'t guaranteed.',
+  'ClearPoint when the health answers rule out Global Atlantic or passing is near. ClearPoint doesn\'t lock in prices.',
+  'Cemetery: 10% or more down. The 0% plans need automatic payments. The first payment skips a month. Cemetery prices are locked in when done ahead.'];
+function sheetHTML() {
+  const rows = planRows(), today = new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  const who = other() ? (theirName() || 'Someone they love') : people().map(i => (A.names[i] || '').trim()).filter(Boolean).join(' and ');
+  const vals = (A.values || []).map(x => OPT[x].b), faith = faithSel().map(v => OPT[v].b);
+  const box = on => `<span class="sbx${on ? ' on' : ''}">${on ? '✓' : ''}</span>`;
+  const pickTxt = r => r.per.map(p => (two() && r.per.length > 1 ? `${initial(p.i)}: ` : '') + (p.items.length ? p.items.map(x => x.b).join(' · ') : p.na || 'Not chosen yet')).join('   ');
+  const blk = r => { const t = TALK[r.id] || {pts:[]}, m = A.marks[r.id];
+    return `<div class="srow"><div class="shd"><b>${esc(r.label)}</b><span class="spk">${esc(pickTxt(r))}</span>
+      <span class="smk">${MARKS.map(([k, l]) => `${box(m === k)}${esc(l)}`).join(' ')}</span></div>
+      ${t.pts.length ? `<ul>${t.pts.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${t.miss ? `<p><b>Often missed:</b> ${esc(t.miss)}</p>` : ''}${t.pull ? `<p><b>Pull up next:</b> ${esc(t.pull)}</p>` : ''}</div>`; };
+  const auto = rows.filter(r => r.auto);
+  const open = [...new Set([...rows.filter(r => A.marks[r.id] === 'think').map(r => r.label), ...stillOpen()])];
+  const line = (label, val) => `<div class="sln"><span>${esc(label)}</span><i>${esc(val || '')}</i></div>`;
+  const pins = A.pins.map(p => p.name).filter(Boolean);
+  return `<div class="sband"><img src="logo.svg" alt="Bonney Watson"><div><b>Planning Ahead</b><span>FSD sheet · ${esc(today)}</span></div></div>
+   <div class="smeta">${who ? `<p><b>Plan for:</b> ${esc(who)}</p>` : ''}${A.track && TRACKS[A.track] ? `<p><b>What brought them in:</b> ${esc(TRACKS[A.track].b)}</p>` : ''}
+   ${vals.length ? `<p><b>What matters most:</b> ${esc(vals.join(' · '))}</p>` : ''}${faith.length ? `<p><b>Faith and tradition:</b> ${esc(faith.join(' · '))}</p>` : ''}</div>
+   <h2>The plan, piece by piece</h2>${rows.filter(r => !r.auto).map(blk).join('')}
+   ${auto.length ? `<p class="sauto"><b>Nothing to go over:</b> ${esc(auto.map(r => `${r.label} (${r.per[0].na.toLowerCase()})`).join(', '))}</p>` : ''}
+   ${open.length ? `<h2>Still to decide</h2><ul class="sopen">${open.map(x => `<li>${box(false)}${esc(x)}</li>`).join('')}</ul>` : ''}
+   <h2>Paying for it</h2><ul>${PAYING.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+   <div class="sfam"><h2>About your family</h2>
+   ${line('This plan is for', who)}${line('Loved ones already resting here', pins.join(', '))}
+   ${line('Who should know about this plan: name', '')}${line('Phone', '')}${line('Name', '')}${line('Phone', '')}
+   ${line('Where the papers will be kept', '')}${line('Notes', '')}${line('', '')}${line('', '')}</div>`;
+}
+const fillSheet = () => { document.getElementById('sheet').innerHTML = sheetHTML(); };
+window.addEventListener('beforeprint', fillSheet);
 /* ── behavior ── */
 const INTRO = ['why-wishes', 'why-calm', 'why-1868'];
 function toggle(qid, v) {
@@ -1978,7 +2217,9 @@ function openSlice(id) {
 function openGuide(id, pos) {
   const g = GUIDES[id];
   if (g && g.compare) return show({t:'cmp', id});
-  show({t:'guide', id, pos: pos != null ? +pos : undefined});
+  // From the plan screen, someone new to all this sees "How it works" first (as the old walk-through did).
+  const deep = cur && cur.t === 'yours' && A.before === 'no' && !!(g && g.deep);
+  show({t:'guide', id, pos: pos != null ? +pos : undefined, deep});
 }
 function wire(el) {
   el.querySelectorAll('[data-look]').forEach(b => {
@@ -1991,6 +2232,11 @@ function wire(el) {
   el.querySelectorAll('[data-name]').forEach(inp => { inp.addEventListener('input', () => { A.names[+inp.dataset.name] = inp.value.slice(0, 30); }); inp.addEventListener('keydown', e => e.stopPropagation()); });
   el.querySelectorAll('[data-unsure]').forEach(b => b.addEventListener('click', () => show({t:'cmp', id:b.dataset.unsure})));
   el.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { const [q, v] = b.dataset.pick.split(':'); toggle(q, v); refreshQuestion(); }));
+  el.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); const [id, k] = b.dataset.mark.split(':');
+    if (A.marks[id] === k) delete A.marks[id]; else A.marks[id] = k;
+    refreshPlan();
+  }));
   el.querySelectorAll('[data-slice]').forEach(b => b.addEventListener('click', () => openSlice(b.dataset.slice)));
   el.querySelectorAll('[data-guide]').forEach(b => b.addEventListener('click', () => openGuide(b.dataset.guide, b.dataset.pos)));
   el.querySelectorAll('[data-map]').forEach(b => b.addEventListener('click', () => show({t:'map', focus:b.dataset.map})));
@@ -2047,6 +2293,8 @@ function go(what) {
   if (what === 'pathStart') { const p = path(); return p.length ? show({t:'guide', id:p[0], pos:0, deep:deepFor(p[0])}) : show({t:'wheel'}); }
   if (what === 'pathNext') { const p = path(); const i = (cur.pos || 0) + 1; return i < p.length ? show({t:'guide', id:p[i], pos:i, deep:deepFor(p[i])}) : show({t:'close'}); }
   if (what === 'close') return show({t:'close'});
+  if (what === 'missed') return show({t:'missed'});
+  if (what === 'print') { fillSheet(); return window.print(); }
   if (what === 'toGuides') { const g = stage.querySelector('.screen.on #resGuides'); if (g) g.scrollIntoView({behavior:'smooth', block:'start'}); return; }
   if (what === 'lib') return show({t:'lib'});
   if (what === 'another') { EARLIER = [...EARLIER, ...snapshotPlan()]; const keep = A.before; A = fresh(); A.before = keep; hist = []; return show({t:'track'}); }

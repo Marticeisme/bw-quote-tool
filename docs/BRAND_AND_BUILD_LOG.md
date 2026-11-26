@@ -3240,3 +3240,20 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: syntax clean (index.html 9 blocks, designer module), test-memorial-designer 248/248 (worktree copy
   scratch/bronze-fix, the main checkout copy is the old 239), every compare state at 1400 and 390 wide, print PDFs
   for upright/granite/bronze all one page, sidebar rendered.
+
+## 2026-11-25: Planning Ahead: a clear end to the visit, on-screen Back, photos that fit
+
+- New end of the visit (his framing: "a visual ice breaker and to make sure we're covering everything fully"):
+  "Let's go over your plan" lists every piece of the Circle of Protection, cemetery first, the family's picks
+  highlighted; each row gets Covered / Still thinking / Not for us (brand navy / orange / gray) and the wheel shows
+  the marks with "N of M talked through". Then "Did we miss anything?" (five open questions) and "Here's what we'll
+  do next" (see it in person, the quote, who decides, signing). The 14-guide walk-through is gone from the screen.
+- "Print my sheet": an FSD-only sheet (print stylesheet, never shown on the TV): talking points, what's often
+  missed and what to pull up next for each piece, paying rules, and an "About your family" fill-in. No prices,
+  no links. Talking points drawn only from the guides and his rulings; he approved them.
+- On-screen Back beside Next on every question, guide, the plan, the wheel, the library and the end screens.
+- Photos that didn't fit: Pacific Islander guide now shows the Garden of Prayer (Garden 21) and an empty graveside
+  set-up instead of a graveside crowd; Korean guide shows the Korean community monument in Gethsemane; the
+  private family burial no longer leads with a flag-draped vault. All from the office photo library's By Garden set.
+- Verified: syntax check clean; 13 Playwright scripts (170 checks) + ending.mjs (31) + back checks (15), all pass,
+  no console errors; crop audit; screens and the printed sheet checked by eye.
