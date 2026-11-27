@@ -3299,3 +3299,15 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: syntax check clean; a RIC downloaded from the tool shows the Control # at 18 pt and Contract No blank;
   suites test-ric-rebuilt 24, test-ric-remarks-fit 28, test-ric-line-qty 26, test-ric-financing 31,
   test-ric-woicik-round 53, all pass. Not opened in Acrobat itself.
+
+## 2026-11-27: RIC consent page: I Agree and I Decline are separate boxes
+
+- Martice: "fix the i agree box". On the Electronic Document Consent page, each buyer's I Agree and I Decline were
+  one check box (same on-state "Yes"), so checking one checked both. Commit e1921ef5.
+- Quote tool: both RIC templates (RIC_REBUILT_PDF and today's RIC_PDF_B64) now use the on-states "Agree" and
+  "Decline". The fields keep no value. If a value is set, the generator's propagateChildValues strips the boxes'
+  appearances and pdf-lib redraws them as "Yes", which brings the bug back (caught by a tool download in testing).
+- The four RIC fillables in Downloads got the same fix (not in the repo).
+- Verified: test-ric-rebuilt checks separate Agree/Decline boxes on a downloaded RIC for both forms. It fails on
+  the old templates and passes now (26). test-ric-remarks-fit 28, test-ric-line-qty 26, test-ric-financing 31,
+  test-ric-woicik-round 53 pass. Syntax check clean. Not clicked in Acrobat itself.
