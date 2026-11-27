@@ -62,7 +62,8 @@ async function ric(browser, who, { untick = false, rate = 0 } = {}) {
   const num = (n) => +String(txt(n) || '0').replace(/[$,]/g, '');
   const size = (n) => { try { const f = form.getTextField(n); const m = (f.acroField.getDefaultAppearance() || '').match(/([\d.]+)\s+Tf/);
     return { pt: m ? +m[1] : 0, h: f.acroField.getWidgets()[0].getRectangle().height }; } catch (e) { return null; } };
-  return { switchShown, errs, has, txt, num, size, pages: doc.getPageCount() };
+  const ons = (n) => { try { return form.getCheckBox(n).acroField.getWidgets().map((w) => String(w.getOnValue())); } catch (e) { return null; } };
+  return { switchShown, errs, has, txt, num, size, ons, pages: doc.getPageCount() };
 }
 
 const browser = await chromium.launch();
@@ -87,6 +88,9 @@ console.log('\n1. Martice: the rebuilt RIC, filled');
   ok('O/C and recording descriptions', /Lawn Interment/.test(r.txt('Opening/Closing Description')) && r.txt('Recording Fee Description') === 'Interment',
     [r.txt('Opening/Closing Description'), r.txt('Recording Fee Description')]);
   ok('day phone formatted', r.txt('Day Telephone No') === '(206) 555-0199', r.txt('Day Telephone No'));
+  // Martice 11/27: I Agree and I Decline were one box (both on-state Yes): checking one checked both
+  ok('consent I Agree / I Decline are separate boxes', JSON.stringify([r.ons('Insured AgreeDisagree'), r.ons('Owner AgreeDisagree')])
+    === JSON.stringify([['/Agree', '/Decline'], ['/Agree', '/Decline']]), [r.ons('Insured AgreeDisagree'), r.ons('Owner AgreeDisagree')]);
   ok('no page errors', r.errs.length === 0, r.errs);
 }
 
@@ -95,6 +99,9 @@ console.log('\n2. Martice with the switch unticked: today\'s form');
   const r = await ric(browser, 'martice', { untick: true });
   ok('today\'s form is used', !r.has('City') && r.has('Text3'));
   ok('no "$" written (today\'s form prints its own)', /^[\d,]+\.\d\d$/.test(r.txt('TotalCP')), r.txt('TotalCP'));
+  // Martice 11/27: I Agree and I Decline were one box (both on-state Yes): checking one checked both
+  ok('consent I Agree / I Decline are separate boxes', JSON.stringify([r.ons('Insured AgreeDisagree'), r.ons('Owner AgreeDisagree')])
+    === JSON.stringify([['/Agree', '/Decline'], ['/Agree', '/Decline']]), [r.ons('Insured AgreeDisagree'), r.ons('Owner AgreeDisagree')]);
   ok('no page errors', r.errs.length === 0, r.errs);
 }
 
