@@ -5944,6 +5944,49 @@ var CP_AUTO_KWS = ['Additional Ceremony Hour','Additional Mileage','Additional T
   'Motorcycle Escort','Natural Organic Reduction','Other Preparation of Deceased','Preparation Prior',
   'Receiving of Remains','Release from Storage','Shelter of Remains','Transfer of Deceased','Use of Flower Vehicle',
   'Use of Hearse','Use of Utility Vehicle'];
+// Urn / keepsake MERCHANDISE line for the GA and ClearPoint urn rows. Was: label contains "urn", so
+// a package that named its urns by product ("Grecian Blue", "Grecian Blue Heart", "Grecian Blue
+// Token", saved FH quote 10/20) had all three dropped from both contracts ($435 short, tax still
+// charged). Now also: keepsake words, or a product whose every word is in one URN_DATA name.
+function bwIsUrnLine(l) {
+  if (!l || l.isDiscount) return false;
+  var lb = String(l.label || '').toLowerCase();
+  if (lb.indexOf('allowance') >= 0 || lb.indexOf('engraving') >= 0) return false;
+  if (lb.indexOf('urn') >= 0) return true;
+  if (/transfer (of remains )?to keepsake/.test(lb)) return false;          // a service, not merchandise
+  if (/\b(keepsakes?|mementos?|tokens?|lockets?|pendants?)\b/.test(lb)) return true;
+  var words = lb.replace(/\(#?[\w-]+\)/g, ' ').split(/[^a-z0-9]+/).filter(Boolean);
+  if (words.length < 2 || typeof URN_DATA === 'undefined') return false;
+  return URN_DATA.some(function(u){ var n = ' ' + String(u.n).toLowerCase().replace(/[^a-z0-9]+/g, ' ') + ' ';
+    return words.every(function(w){ return n.indexOf(' ' + w + ' ') >= 0; }); });
+}
+// Remove pages (0-based indexes) from a pdf-lib document AND the AcroForm fields whose widgets were
+// only on those pages (removePage alone leaves them in /Fields and /CO pointing at nothing).
+function bwRemovePagesAndFields(doc, idxs) {
+  var P = PDFLib, ctx = doc.context, N = function(s){ return P.PDFName.of(s); };
+  var look = function(r){ return r ? ctx.lookup(r) : undefined; };
+  var pages = doc.getPages(), gonePages = {}, goneAnnots = {};
+  idxs.forEach(function(i){
+    if (!pages[i]) return;
+    gonePages[pages[i].ref.toString()] = true;
+    var a = pages[i].node.Annots(); if (a) for (var k = 0; k < a.size(); k++) goneAnnots[a.get(k).toString()] = true;
+  });
+  idxs.slice().sort(function(a, b){ return b - a; }).forEach(function(i){ if (i < doc.getPageCount()) doc.removePage(i); });
+  var onlyGone = function(ref) {
+    var d = look(ref); if (!(d instanceof P.PDFDict)) return false;
+    var kids = look(d.get(N('Kids')));
+    if (kids instanceof P.PDFArray && kids.size()) { for (var k = 0; k < kids.size(); k++) if (!onlyGone(kids.get(k))) return false; return true; }
+    var p = d.get(N('P'));
+    return !!((p && gonePages[p.toString()]) || goneAnnots[ref.toString()]);
+  };
+  var af = look(doc.catalog.get(N('AcroForm'))); if (!af) return;
+  var fields = look(af.get(N('Fields'))); if (!(fields instanceof P.PDFArray)) return;
+  var kept = P.PDFArray.withContext(ctx), gone = {};
+  for (var i = 0; i < fields.size(); i++) { var r = fields.get(i); if (onlyGone(r)) gone[r.toString()] = true; else kept.push(r); }
+  af.set(N('Fields'), kept);
+  var co = look(af.get(N('CO')));
+  if (co instanceof P.PDFArray) { var c2 = P.PDFArray.withContext(ctx); for (var j = 0; j < co.size(); j++) if (!gone[co.get(j).toString()]) c2.push(co.get(j)); af.set(N('CO'), c2); }
+}
 // The custom lines the mapper places on its own (same first-match rule as findLine).
 function gaAutoPlacedCustom(lines, kws) {
   var out = [];
@@ -6091,6 +6134,9 @@ async function printGAContract() {
   var viewingLines  = lines.filter(function(l){
     if (l.isDiscount) return false;
     var lbl = l.label.toLowerCase();
+    // "Limited Preparation for Viewing Un-Embalmed" is a preparation charge, already on Other Prep
+    // via findLine('Limited Preparation'); counting it here too added a second $535 (11/26).
+    if (lbl.includes('limited preparation')) return false;
     return lbl.includes('viewing') || lbl.includes('visitation');
   });
   var viewingTotal  = Math.max(0, sumLines(viewingLines));
@@ -6204,7 +6250,7 @@ async function printGAContract() {
 
   var urnFbLines = lines.filter(function(l){
     var lb = l.label.toLowerCase();
-    return (lb.startsWith('urn:') || lb.includes('urn')) && !lb.includes('allowance');
+    return ((lb.startsWith('urn:') || lb.includes('urn')) && !lb.includes('allowance')) || bwIsUrnLine(l);   // + urns named by product (11/26)
   });
   var urnTotalAmt, urnLabel;
   if (urnFbLines.length) {
@@ -6976,6 +7022,12 @@ async function printGAContract() {
     var _gaPaid = gv('gaPaidOther');
     if (_gaPaid === 'Yes') setExclCheckbox('A4176-PG1-46', '1');       // premiums paid by other = Yes
     else if (_gaPaid === 'No') setExclCheckbox('A4176-PG1-46', '2');   // = No
+
+    // Pages 9-11 are the BW Cremation Authorization. Martice 11/26: "Cremation authorization should go
+    // in if applicable": keep them only on a Cremation disposition (same rule as the ClearPoint packet).
+    if (disposition !== 'Cremation' && fullDoc.getPageCount() === 11) {
+      try { bwRemovePagesAndFields(fullDoc, [8, 9, 10]); } catch(e) { console.warn('GA: could not drop the cremation authorization pages:', e.message); }
+    }
 
     var filledBytes = await fullDoc.save();
     var blob        = new Blob([filledBytes], { type: 'application/pdf' });
@@ -20528,7 +20580,10 @@ async function generateRICContractCore(clientData) {
     // Categorise lines
     // Match both "2nd Right" and "Second Right" — the cemetery builder labels them as
     // "Second Right – ..." while older code (and the Compare-Options builder) used "2nd Right".
-    var mainSpace = exemptLines.find(function(l){ return l.isSpace && !l.label.match(/2nd|3rd|ECF|Right|Second|Third/i); });
+    // "(Uprights)" is a quote-only garden note (Martice 11/26: contracts show just the location), so
+    // drop it before testing — its "rights" tripped the bare /Right/ test and the main space lost row 1
+    // while its money stayed in the subtotal. "Right" etc. now match only as whole words.
+    var mainSpace = exemptLines.find(function(l){ var lb = String(l.label || '').replace(/\s*\(?\buprights?\b\)?/ig, ''); return l.isSpace && !/\b(2nd|3rd|Right|Second|Third)\b|ECF/i.test(lb); });
     // ECF is labelled per space type: gardens say "Endowment Care Fund (ECF)" but niches and
     // mausoleums say "Niche ECF (10%)" / "Mausoleum ECF (10%)". Matching only "Endowment Care"
     // dropped those entirely — the amount still landed in exemptSub, so the rows silently failed
@@ -22165,7 +22220,9 @@ function anImportFromCemeteryQuote() {
   // service type (Lawn Interment, Ground Inurnment, Mausoleum Entombment, etc.), which per
   // _anCategorizeLine's 'oc' bucket ARE the O&C equivalent. Match the same pattern here so this
   // actually fires for real quotes instead of only a label that basically never occurs.
-  var ocLine = _anPricing.lines.find(function(l){ return !l.isDiscount && !l.isSpace && /interment|entombment|inurnment|opening|o&c/i.test(l.label); });
+  // Skip fee/setting lines: on a niche quote "Recording Fee – Inurnment" came first and became the
+  // Open/Close, so the IOA showed it as the interment type and WITNESS LOWERING instead of PLACEMENT.
+  var ocLine = _anPricing.lines.find(function(l){ return !l.isDiscount && !l.isSpace && /interment|entombment|inurnment|opening|o&c/i.test(l.label) && !_anNotService.test(l.label); });
   if (ocLine && el('anOpenClose') && !el('anOpenClose').value) el('anOpenClose').value = ocLine.label;
   // Double Depth / Oversize Vault → IOA boxes (M29/P29). Auto-detect from a double-depth O&C line
   // and an oversize vault, still overridable in the Interment Order & Authorization panel.
@@ -22629,7 +22686,8 @@ async function generateClearPointContract() {
     var mailingAmt     = amt(findLine('Mailing of Cremated'));
     var deliveryAmt    = amt(findLine('Delivery of Remains'));
     var storageAmt     = amt(findLine('Release from Storage'));
-    var keepsakesAmt   = amt(findLine('Keepsake'));
+    // The transfer SERVICE only ("Transfer to Keepsakes (×n)"): a bare 'Keepsake' also hit keepsake urns.
+    var keepsakesAmt   = amt(lines.find(function(l){ return /transfer (of remains )?to keepsake/i.test(l.label); }));
     // GPL p9-p13 items added to the FH quote 2026-10-01 (mirrors printGAContract)
     var fwdRecvAmt      = amt(findLine('Forwarding of Remains')) + amt(findLine('Receiving of Remains')) + amt(findLine('International Processing'));
     var terramationAmt  = amt(findLine('Natural Organic Reduction'));
@@ -22644,7 +22702,9 @@ async function generateClearPointContract() {
     var motoEscortAmt  = amt(findLine('Motorcycle Escort'));
     var limousineAmt   = amt(findLine('Horse-Drawn Hearse'));
 
-    var viewingTotal = Math.max(0, sumLines(lines.filter(function(l){ if(l.isDiscount)return false; var lb=l.label.toLowerCase(); return lb.includes('viewing')||lb.includes('visitation'); })));
+    // Limited Preparation for Viewing is a prep charge already placed via findLine('Limited Preparation'):
+    // counting its "viewing" here too added a second $535 (11/26).
+    var viewingTotal = Math.max(0, sumLines(lines.filter(function(l){ if(l.isDiscount)return false; var lb=l.label.toLowerCase(); if (lb.includes('limited preparation')) return false; return lb.includes('viewing')||lb.includes('visitation'); })));
     var funeralSvcLines = lines.filter(function(l){ if(l.isDiscount)return false; var lb=l.label.toLowerCase(); return lb.includes('funeral ceremony')||lb.includes('funeral / memorial')||lb.includes('ceremony within')||lb.includes('limited memorial')||lb.includes('memorial service')||lb.includes('use of facilities'); });
     var funeralSvcTotal = Math.max(0, sumLines(funeralSvcLines));
     var gravesideTotal  = Math.max(0, sumLines(lines.filter(function(l){ return !l.isDiscount && l.label.toLowerCase().includes('graveside'); })));
@@ -22689,7 +22749,7 @@ async function generateClearPointContract() {
     }
     var urnFbLines = lines.filter(function(l){
       var lb = l.label.toLowerCase();
-      return (lb.indexOf('urn:') === 0 || lb.indexOf('urn') >= 0) && lb.indexOf('allowance') < 0 && lb.indexOf('engraving') < 0 && !l.isDiscount;
+      return bwIsUrnLine(l);   // same rule as before ("urn", no allowance/engraving/discount) + urns named by product (11/26)
     });
     var urnTotalAmt, urnLabel;
     if (urnFbLines.length) {
