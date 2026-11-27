@@ -3281,3 +3281,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   fixed tool; suites test-ric-rebuilt 22, test-ric-line-qty 26, test-ric-financing 31, test-ric-remarks-fit 28,
   test-ric-woicik-round 53, test-clearpoint-fields 72, test-clearpoint-nojs 27, test-ga-custom-autoplaced 11,
   test-ga-rental-casket 7, test-fh-plan-tax 10, test-ground-inurnment-oc 46, test-atneed-commission 57, all pass.
+
+
+## 2026-11-27: RIC: Contract No left blank, Control # printed larger
+
+- From a real printed RIC (no customer details recorded here). Martice: "Contract number should be blank, control #
+  and contract number are different. The ric control# font should be a lot bigger." Commit 882a69c3.
+- Quote tool (rebuilt RIC): no longer copies the Control # into Contract No. This reverses the 10/18 choice that
+  they were the same number.
+- RIC_REBUILT_PDF.pdf: the Control # box went from 14 pt to 24 pt tall with 18 pt red type, the old RIC's size. The
+  tool used to print it at 9 pt. Its built-in script no longer copies into Contract No; the copy into the ACH form's
+  "Contract or Control #" box stays. Manifest bytes and sha updated.
+- The same Control # fix went into the four RIC fillables in Downloads (Rebuilt, No SSN, both E-Sign). Those files
+  are not in the repo. Earlier 11/27 the Rules & Regulations page in those four went from 13.3 x 17.2 in to Letter,
+  and the E-Sign pair got the Topaz signing flow (purchaser, co-purchaser, FSD; Start Signing button; I Agree checks
+  itself; I Agree/I Decline no longer linked).
+- Verified: syntax check clean; a RIC downloaded from the tool shows the Control # at 18 pt and Contract No blank;
+  suites test-ric-rebuilt 24, test-ric-remarks-fit 28, test-ric-line-qty 26, test-ric-financing 31,
+  test-ric-woicik-round 53, all pass. Not opened in Acrobat itself.
