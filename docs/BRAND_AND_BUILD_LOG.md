@@ -3257,3 +3257,27 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
   private family burial no longer leads with a flag-draped vault. All from the office photo library's By Garden set.
 - Verified: syntax check clean; 13 Playwright scripts (170 checks) + ending.mjs (31) + back checks (15), all pass,
   no console errors; crop audit; screens and the printed sheet checked by eye.
+
+## 2026-11-26: Contract fixes from the 40 conversion tests (SharePoint app work)
+
+- 40 real saved contracts / FH quotes (names stripped) run through the tool on fake Firebase and compared with the
+  Power App's written maps. Each bug was proven on a saved record before fixing (Martice: "make sure the 535 is
+  actually a double charge"). Commit 6ba9c829.
+- GA + ClearPoint: "Limited Preparation for Viewing Un-Embalmed" (one $535 GPL line) was counted as prep and again as
+  visitation: contracts $535 over the quote. Visitation now skips it. No saved GA/CP contract had it; 4 saved FH
+  quotes did, none contracted.
+- GA + ClearPoint: urns a package named by product ("Grecian Blue", "... Heart", "... Token") were dropped ($435
+  short, tax still charged). New bwIsUrnLine (urn / keepsake words / URN_DATA product). ClearPoint Keepsake Transfer
+  looks up the transfer service only.
+- RIC: "(Uprights)" tripped the /Right/ test, so row 1 printed blank while its money stayed in the total. Martice:
+  Uprights on quotes only, contracts show the location. The real 11/24 contracted RIC with this label printed row 1
+  blank: flagged to Martice, not touched.
+- CIRGAS import: Open/Close pre-fill no longer picks "Recording Fee – Inurnment" on niche quotes (two saved at-need
+  records have it; flagged, not touched).
+- Ruling: GA cremation authorization (pp 9-11) only on a Cremation disposition, like ClearPoint; burial GA = 8 pages.
+- Not fixed (no record uses it): GA looks for "Transfer of Remains to Keepsakes"; the builder writes "Transfer to
+  Keepsakes (×n)".
+- Verified: syntax check clean; conversion compares RIC 10/10, CIRGAS 10/10 + 3, ClearPoint 12/12, GA 11/11 on the
+  fixed tool; suites test-ric-rebuilt 22, test-ric-line-qty 26, test-ric-financing 31, test-ric-remarks-fit 28,
+  test-ric-woicik-round 53, test-clearpoint-fields 72, test-clearpoint-nojs 27, test-ga-custom-autoplaced 11,
+  test-ga-rental-casket 7, test-fh-plan-tax 10, test-ground-inurnment-oc 46, test-atneed-commission 57, all pass.
