@@ -20987,7 +20987,8 @@ async function generateRICContractCore(clientData) {
         : /@/.test(clientData.dayPhone || '') ? clientData.dayPhone : formatPhone(clientData.dayPhone || ''));
       setF('Control #', clientData.controlNo || '');
       if (_ricNew) {
-        setF('Contract No', clientData.controlNo || '');   // the same number as the Control No.
+        // Contract No is NOT the Control No. (Martice 11/27: "control # and contract number are different"):
+        // the tool leaves it blank for the contract number.
         // "Seller agrees to convey the above-described Interment Rights to: Name and address" — the purchaser
         var _cityLine = [clientData.city, [clientData.state || 'WA', clientData.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
         setF('Name & Address', [clientData.name, clientData.street, _cityLine].filter(Boolean).join(', '));

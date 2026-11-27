@@ -86,7 +86,7 @@ async function ric(browser, remarks, day = '2065550199', plan = null) {
   const money = Object.fromEntries(['TotalCP', 'UnpaidBalance', 'FCAmount', 'TotalPayments', 'Total Sales Price', 'FCAmount_TIL',
     'UnpaidBalance_TIL', 'TotalPayments_TIL', 'TotalSalesPrice_TIL', 'PaymentAmount1'].map(n => [n, num(n)]));
   const nameAddr = form.getTextField('Name & Address').getText() || '';
-  const contractNo = form.getTextField('Contract No').getText();
+  const contractNo = form.getTextField('Contract No').getText() || '';
   const dayPhone = form.getTextField('Day Telephone No').getText();
   const dayF = form.getTextField('Day Telephone No');
   const dayInfo = { text: dayPhone, width: dayF.acroField.getWidgets()[0].getRectangle().width,
@@ -113,7 +113,7 @@ console.log('\n1. A long remark on a 0% plan: every word prints, in order, insid
   ok('one size for all five lines, between 5 and 8 pt', sizes.length === 1 && sizes[0] >= 5 && sizes[0] <= 8, sizes);
   ok('the size is below 8 pt (this remark does not fit at 8)', sizes[0] < 8, sizes);
   ok('disclosure box Finance Charge reads $0.00 (rebuilt form writes the $)', r.fcTil === '$0.00', r.fcTil);
-  ok('Contract No. prints the Control No.', r.contractNo === 'C-12345', r.contractNo);
+  ok('Contract No. is left blank (it is not the Control No.; Martice 11/27)', r.contractNo === '', r.contractNo);
   ok('day phone typed as digits prints formatted', r.dayPhone === '(206) 555-0199', r.dayPhone);
   ok('0% plan: total of payments = amount financed', r.money.TotalPayments === r.money.UnpaidBalance && r.money.UnpaidBalance > 0, r.money);
   ok('0% plan: total sale price = cash price', r.money['Total Sales Price'] === r.money.TotalCP, r.money);

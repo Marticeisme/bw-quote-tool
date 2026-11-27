@@ -5,7 +5,7 @@
 // RIC until Ray approves the switch for everyone (Martice: "rays approval is to fully replace it with
 // the current ric and all fsds not me"). This suite pins both halves:
 //   1. martice: the switch shows, the rebuilt form is used and filled (dates, city/state/zip, "$" on
-//      money boxes, Contract No, conveyance name & address, O/C and recording descriptions)
+//      money boxes, Contract No left blank, conveyance name & address, O/C and recording descriptions)
 //   2. martice with the switch unticked: today's form
 //   3. another FSD: the switch is hidden and today's form comes out with today's values
 //   4. an interest plan on the rebuilt form: finance charge and total sale price add up
@@ -60,7 +60,9 @@ async function ric(browser, who, { untick = false, rate = 0 } = {}) {
   const has = (n) => { try { form.getField(n); return true; } catch (e) { return false; } };
   const txt = (n) => { try { return form.getTextField(n).getText() || ''; } catch (e) { return null; } };
   const num = (n) => +String(txt(n) || '0').replace(/[$,]/g, '');
-  return { switchShown, errs, has, txt, num, pages: doc.getPageCount() };
+  const size = (n) => { try { const f = form.getTextField(n); const m = (f.acroField.getDefaultAppearance() || '').match(/([\d.]+)\s+Tf/);
+    return { pt: m ? +m[1] : 0, h: f.acroField.getWidgets()[0].getRectangle().height }; } catch (e) { return null; } };
+  return { switchShown, errs, has, txt, num, size, pages: doc.getPageCount() };
 }
 
 const browser = await chromium.launch();
@@ -76,7 +78,11 @@ console.log('\n1. Martice: the rebuilt RIC, filled');
     && r.txt('Accepted Day') === '5th' && r.txt('Accepted Month') === 'November' && r.txt('Accepted Year') === '2026',
     ['Signed Day', 'Month', 'Signed Year', 'Accepted Day', 'Accepted Month', 'Accepted Year'].map(r.txt));
   ok('money boxes carry "$"', /^\$[\d,]+\.\d\d$/.test(r.txt('TotalCP')) && /^\$/.test(r.txt('NonTax1')) && /^\$/.test(r.txt('PaymentAmount1')), [r.txt('TotalCP'), r.txt('NonTax1')]);
-  ok('Contract No = Control #', r.txt('Contract No') === 'T-24680');
+  // Martice 11/27: "control # and contract number are different" -> Contract No stays blank;
+  // "the ric control# font should be a lot bigger" -> 18 pt (the old RIC's size) in a 24 pt box
+  ok('Control # filled', r.txt('Control #') === 'T-24680', r.txt('Control #'));
+  ok('Contract No left blank (it is not the Control #)', r.txt('Contract No') === '', r.txt('Contract No'));
+  ok('Control # prints at 18 pt in the taller box', r.size('Control #') && r.size('Control #').pt === 18 && r.size('Control #').h === 24, r.size('Control #'));
   ok('conveyance name and address', r.txt('Name & Address') === 'Avery Example, 100 Example Way, SeaTac, WA 98188', r.txt('Name & Address'));
   ok('O/C and recording descriptions', /Lawn Interment/.test(r.txt('Opening/Closing Description')) && r.txt('Recording Fee Description') === 'Interment',
     [r.txt('Opening/Closing Description'), r.txt('Recording Fee Description')]);
