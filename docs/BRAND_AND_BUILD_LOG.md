@@ -3311,3 +3311,21 @@ other session included. Full suite 4218 passed / 0 failed across 54 suites.
 - Verified: test-ric-rebuilt checks separate Agree/Decline boxes on a downloaded RIC for both forms. It fails on
   the old templates and passes now (26). test-ric-remarks-fit 28, test-ric-line-qty 26, test-ric-financing 31,
   test-ric-woicik-round 53 pass. Syntax check clean. Not clicked in Acrobat itself.
+
+## 2026-11-27: Planning Ahead: ideas from a competitor audit, built our way
+
+Audited another company's cemetery selection deck (kept out of the repo) and built the ideas worth having, with
+our own words, real WMP photos and facts from our guides only. Nothing copied.
+- "When you need it, or before you need it": a side by side now opens "why plan ahead".
+- "Everything it takes" on 8 place guides: round real photos of what each choice needs (space, opening and
+  closing, vault or "no vault needed", marker or the name on the front), each opening its guide, plus a plain
+  comparison line (a condo, a house on a street, your own home, moving in with family).
+- "On the day": opening and closing now walks the whole day at the grave (gathering, signing the lid, the
+  lowering, helping shovel, closing); new crypt and urn-in-the-ground versions; an "On the day" button on each place.
+- Marker sizes drawn to scale (granite, and bronze on its base) with what comes with each kind; a guide for the
+  name on a niche or crypt (glass, granite, Garden of Meditation bronze plates, crypt fronts). No prices.
+- A 2x2 shortcut on All guides: burial or cremation, in the ground or above it.
+- Underground cutaways for a burial vault (now the vault guide's lead picture) and an urn vault, in the same style
+  as the lawn crypt drawing. A real family estate photo from the office photo library.
+- Verified: syntax check clean; 19 Playwright scripts, 245 checks, no console errors; crop audit; every new
+  screen checked by eye at 1920x1080.

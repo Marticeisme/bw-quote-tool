@@ -381,6 +381,37 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
   .cbtn .t{display:none;}
 }
 
+/* ── round 2 (11-27): everything it takes, before vs when, sizes to scale, the 2x2 shortcut ── */
+.kit{margin-top:2.2vh;}
+.kit-h{font-size:clamp(11px,.8vw,14px);letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--orange-soft);margin-bottom:1vh;}
+.kit-row{display:flex;gap:1.2vw;flex-wrap:wrap;}
+.kit-i{display:flex;flex-direction:column;align-items:center;gap:.7vh;width:clamp(86px,7vw,130px);color:#fff;text-align:center;}
+.kit-ph{width:clamp(64px,5.2vw,98px);height:clamp(64px,5.2vw,98px);border-radius:50%;background-size:cover;background-position:center;border:3px solid rgba(255,255,255,.85);box-shadow:0 6px 18px rgba(0,0,0,.45);display:grid;place-items:center;}
+.kit-i.none .kit-ph{background:rgba(70,110,134,.55);}
+.kit-ph svg{width:46%;height:46%;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.kit-i b{font-size:clamp(12px,.88vw,16px);line-height:1.2;font-weight:700;}
+button.kit-i:hover .kit-ph{transform:scale(1.06);}
+.kit-home{margin-top:1.4vh;font-style:italic;font-size:clamp(14px,1.05vw,19px);color:rgba(255,255,255,.85);}
+.ahead{position:absolute;left:7vw;right:7vw;top:13vh;}
+.ahead-grid{display:grid;grid-template-columns:1fr 1fr;gap:2vw;margin-top:4vh;}
+.ahead-col{border-radius:16px;padding:2.6vh 2vw;background:rgba(15,29,41,.72);}
+.ahead-col.yes{background:rgba(70,110,134,.82);}
+.ahead-h{display:flex;align-items:center;gap:14px;font-family:'Cormorant Garamond',serif;font-size:clamp(26px,2.4vw,44px);font-weight:600;margin-bottom:1.6vh;}
+.ahead-ic{width:1.4em;height:1.4em;border-radius:50%;display:grid;place-items:center;font-family:'Source Sans 3',sans-serif;font-size:.7em;font-weight:800;background:rgba(255,255,255,.18);}
+.ahead-col.yes .ahead-ic{background:var(--orange);}
+.ahead-r{font-size:clamp(16px,1.35vw,24px);line-height:1.35;padding:1.1vh 0;border-top:1px solid rgba(255,255,255,.16);}
+.shade.full{background:linear-gradient(rgba(15,29,41,.78),rgba(15,29,41,.9));}
+.sizes-wrap{position:absolute;left:5vw;right:5vw;top:11vh;}
+.sizes-wrap .sub{max-width:none;}
+.sizes{width:100%;height:auto;max-height:56vh;margin-top:2vh;}
+.sizes-note{font-size:clamp(13px,1vw,18px);color:rgba(255,255,255,.78);margin-top:1vh;}
+.hub{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2vw;margin:2.4vh 0 1vh;}
+.hub-t{position:relative;height:clamp(110px,15vh,180px);border-radius:14px;overflow:hidden;text-align:left;color:#fff;}
+.hub-ph{position:absolute;inset:0;background-size:cover;background-position:center;transition:transform .3s;}
+.hub-t:hover .hub-ph{transform:scale(1.05);}
+.hub-l{position:absolute;left:0;right:0;bottom:0;padding:1.2vh 1vw;background:linear-gradient(transparent,rgba(15,29,41,.9));display:flex;flex-direction:column;}
+.hub-l small{font-size:clamp(11px,.8vw,14px);letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--orange-soft);}
+.hub-l b{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,1.7vw,32px);font-weight:600;}
 /* ── the end of the visit (11-25): plan marks, did we miss anything, what's next ── */
 .res.plan{padding:8vh 4vw 0;}
 .pgrid{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);gap:3vw;align-items:start;}
@@ -521,6 +552,7 @@ const IMG = {
   // Return Home (our terramation partner), from returnhome.com 2026-11-13
   rhCeremony: P+'rh-laying-in-ceremony.jpg', rhVessel: P+'rh-vessel-flowers.jpg', rhSoil: P+'rh-soil-sapling.jpg', rhSapling: P+'rh-sapling-forest.jpg',
   // Office Archive photo library, By Garden set (added 11/23; no people)
+  estate: P+'family-estate.jpg', // a real WMP family estate (photo library, Family Service set, 11-27)
   gardenPrayer: P+'garden-of-prayer.jpg', koreanMonument: P+'korean-monument-gethsemane.jpg', graveSetup: P+'graveside-setup.jpg',
   tBurial: P+'terramation-soil-burial.jpg', // a family placing the soil here at WMP (BNI deck, OK'd 2026-11-13)
   vaultGrave: 'vault-images/graveside-service-tent.jpg', vaultLower: 'vault-images/graveside-lowering.jpg',
@@ -595,7 +627,7 @@ const OPT = {
   catering:{b:'Catering', s:'Breakfast, lunch or light fare, served for you', img:IMG.catering, g:'catering'},
   ground:{b:'In the ground', s:'A space in one of our gardens', img:IMG.lawn, g:'ground-burial', tag:'Burial'},
   lawncrypt:{b:'A lawn crypt', s:'In the ground, no vault needed', img:P+'lawn-crypt-underground-card.svg', g:'lawn-crypt', tag:'Burial'},
-  estate:{b:'A family estate', s:'A private lot, so the family rests together', img:null, g:'family-estate', tag:'Burial'},
+  estate:{b:'A family estate', s:'A private lot, so the family rests together', img:IMG.estate, g:'family-estate', tag:'Burial'},
   mausoleum:{b:'In a mausoleum', s:'Above ground, in a crypt', img:IMG.mChapel, g:'mausoleum', tag:'Burial'},
   glass:{b:'A glass-front niche', s:'Indoors, the urn and keepsakes in view', img:IMG.glassRoom, g:'glass-niche', tag:'Cremation'},
   granite:{b:'A granite niche', s:'Outdoors, behind engraved stone', img:IMG.roacCourt, g:'granite-niche', tag:'Cremation'},
@@ -674,7 +706,7 @@ const OPT = {
   // what an owner already has here (the "We already have a place here" track)
   'o-grave':{b:'A grave', s:'A space in one of our gardens', img:IMG.groundSpace, g:'ground-burial'},
   'o-lawncrypt':{b:'A lawn crypt', s:'In the Praying Hands section', img:P+'lawn-crypt-underground-card.svg', g:'lawn-crypt'},
-  'o-estate':{b:'A family estate', s:'A private family lot', img:null, g:'family-estate'},
+  'o-estate':{b:'A family estate', s:'A private family lot', img:IMG.estate, g:'family-estate'},
   'o-crypt':{b:'A crypt', s:'In one of our mausoleums', img:IMG.mChapel, g:'mausoleum'},
   'o-glass':{b:'A glass-front niche', s:'Indoors', img:IMG.glassRoom, g:'glass-niche'},
   'o-granite':{b:'A granite niche', s:'Outdoors, behind stone', img:IMG.roacCourt, g:'granite-niche'},
@@ -1126,14 +1158,14 @@ const GUIDES = {
     };
   })(),
   // The one drawing allowed for cemetery property: what's UNDER a lawn crypt can't be photographed (Martice asked for it 11-15).
-  'lawn-crypt':{side:'cemetery', title:'A lawn crypt', img:P+'lawn-crypt-underground.svg', kicker:'Where you rest', map:'lawncrypt',
+  'lawn-crypt':{side:'cemetery', title:'A lawn crypt', img:P+'lawn-crypt-underground.svg', kicker:'Where you rest', map:'lawncrypt', vs:'oc-other',
     h:'A lawn crypt', s:"In the Praying Hands section of Garden 21, the Garden of Prayer. Two concrete liners are already in the ground, so there's no vault to buy.",
     deep:{k:'How it works', h:"What's under the lawn", lead:'At the surface it looks like any other lawn space. The difference is underneath.',
-      steps:[{n:1,h:'Already in the ground',p:'Two concrete liners are put in ahead of time, in the Praying Hands section of Garden 21.'},
-             {n:2,h:'No vault needed',p:"A lawn crypt doesn't need one, so none is bought."},
-             {n:3,h:'A bronze marker',p:'Set flat in the lawn, with or without a vase.'}],
+      steps:[{img:IMG.gardenPrayer,h:'Already in the ground',p:'Two concrete liners are put in ahead of time, in the Praying Hands section of Garden 21.'},
+             {img:P+'lawn-crypt-underground.svg',h:'No vault needed',p:"A lawn crypt doesn't need one, so none is bought."},
+             {img:IMG.bronze,h:'A bronze marker',p:'Set flat in the lawn, with or without a vase.',fit:true}],
       faq:[{q:'Where are the lawn crypts?',a:"In the Praying Hands section of Garden 21, the Garden of Prayer. I'll show you when we tour the park."}]}},
-  'family-estate':{side:'cemetery', title:'A family estate', img:null, blank:true, kicker:'Where you rest', map:'estate', vs:'estate-vs-ground', // PHOTOS COMING from Martice
+  'family-estate':{side:'cemetery', title:'A family estate', img:IMG.estate, kicker:'Where you rest', map:'estate', vs:['estate-vs-ground', 'oc-other'],
     h:'A family estate', s:'A private lot outdoors in the gardens, set apart so your family can rest together. What it looks like is up to you.',
     deep:{k:'How it works', h:'Your family, in one place', lead:'A family estate is a small section of the park that belongs to one family.',
       steps:[{n:1,h:'Set apart',p:'An outdoor lot of its own in the gardens, set apart by a wall, gates or hedges.'},
@@ -1308,7 +1340,7 @@ const GUIDES = {
       faq:[{q:'Can I bring an urn from somewhere else?',a:"Yes. You can always supply your own, and we don't charge a fee for using it."},
            {q:'Does the urn show in a niche?',a:"In a glass-front niche, yes. The urn is part of what visitors see. In a granite niche it's out of sight."}],
       link:{href:'urns-guide.html', t:'Open the Urn Catalog'}}},
-  'glass-niche':{side:'cemetery', title:'Glass-front niches', img:IMG.glassRoom, kicker:'Where you rest', map:'glass', vs:'glass-vs-granite',
+  'glass-niche':{side:'cemetery', title:'Glass-front niches', img:IMG.glassRoom, kicker:'Where you rest', map:'glass', vs:['glass-vs-granite', 'niche-placing', 'name-plates'],
     h:'Glass-front niches', s:'Indoors, out of the weather. The urn and the things that tell your story stay in view behind glass.',
     deep:{k:'Four places to choose from', h:'Where the glass-front niches are', lead:'All four are indoors, so you can visit in any weather. Most niches hold two urns, and the large family niches on the Mountain View island hold four.',
       steps:[{img:IMG.eclFace,h:'Eternal Light Columbarium',p:'Inside the Eternal Light Mausoleum, attached to the Chapel of Memories.'},
@@ -1319,12 +1351,13 @@ const GUIDES = {
            {q:'What can go inside with the urn?',a:"Photographs, keepsakes, a folded flag, a rosary. It's yours to fill."},
            {q:'Glass or granite, which is better?',a:"Neither one is better. They're built for the same purpose and cared for the same way. The real choice is whether the urn and the keepsakes should be seen."}],
       link:{href:'glass-front-niches-guide.html', t:'Open the full Glass-Front Niches guide'}}},
-  'niche-placing':{side:'cemetery', title:'Placing the urn', img:IMG.nicheTable, kicker:'Opening and closing',
+  'niche-placing':{side:'cemetery', title:'Placing the urn', btn:'On the day', img:IMG.nicheTable, kicker:'Opening and closing',
     h:'Placing the urn', s:'On the day, the niche is opened, the urn is placed inside, and the niche is closed again.',
     deep:{k:'How it works', h:'What opening and closing covers', lead:"It's the work of placing the urn, and our own cemetery staff do it.",
       steps:[{img:IMG.eclOpen,h:'The niche is opened',p:'The front is removed.'},
              {img:IMG.eclInPlace,h:'The urn is placed',p:'Along with anything you chose to keep with it.'},
-             {img:IMG.eclFront,h:'The niche is closed',p:'The front goes back on and the name goes on it.'}],
+             {img:IMG.eclFront,h:'The niche is closed',p:'The front goes back on and the name goes on it.'},
+             {img:IMG.nicheBouquet,h:'Coming back',p:'You can bring flowers and sit a while.'}],
       faq:[{q:'Is this the same as buying the niche?',a:'No. The niche is the property itself. Opening and closing is the service of placing the urn, which happens when the time comes.'}]}},
   'niche-memorial':{side:'cemetery', title:'Remembered in a niche', img:IMG.eclCloseup, kicker:'Memorial',
     h:'Your name, and what you loved', s:'The name goes on a plate or engraved strip. Inside, the photographs and keepsakes tell the rest.',
@@ -1444,7 +1477,7 @@ const GUIDES = {
            {q:'Where else can it go?',a:'Your own garden is yours to plant. Anywhere else, ask the owner or the agency first.'},
            {q:'Is the soil safe?',a:"Washington requires it to pass testing before it's released. People plant gardens and trees in it."}],
       link:{href:'terramation-guide.html', t:'Open the Terramation Guide'}}},
-  'ground-burial':{side:'cemetery', title:'Ground burial', img:IMG.path, kicker:'Where you rest', map:'ground', vs:['ground-vs-mausoleum', 'estate-vs-ground'],
+  'ground-burial':{side:'cemetery', title:'Ground burial', img:IMG.path, kicker:'Where you rest', map:'ground', vs:['ground-vs-mausoleum', 'estate-vs-ground', 'oc-other'],
     h:'A place in our gardens', s:'Each numbered garden has its own outlook. Most use flat markers, so the lawn stays open. A few areas allow upright monuments.',
     deep:{k:'What you own', h:'A right, not the land', lead:'You receive a Certificate of Interment Rights: the exclusive right to use one space as a resting place. The cemetery keeps and cares for the grounds.',
       steps:[{img:IMG.lawn,h:'One casket per space',p:'A couple who both choose burial need two spaces, side by side.'},
@@ -1455,7 +1488,7 @@ const GUIDES = {
            {q:'What is a lawn crypt?',a:"A chamber already installed underground in a designated section, so the ground doesn't have to be opened the same way later. Available in limited areas."},
            {q:'Where can we put an upright monument?',a:'Only in a few areas of the park. Everywhere else uses flat markers.'}],
       link:{href:'cemetery-property-guide.html', t:'Open the Cemetery Property Guide'}}},
-  'mausoleum':{side:'cemetery', title:'Mausoleums', img:IMG.mChapel, kicker:'Where you rest', map:'mausoleum', vs:'ground-vs-mausoleum',
+  'mausoleum':{side:'cemetery', title:'Mausoleums', img:IMG.mChapel, kicker:'Where you rest', map:'mausoleum', vs:['ground-vs-mausoleum', 'day-crypt', 'name-plates'],
     h:'Resting above ground', s:'A crypt in a mausoleum, for families who would rather not be in the ground. Indoors in the Chapel of Memories, or outdoors in a garden court.',
     deep:{k:'Our mausoleums', h:'Indoors or out', lead:'Entombment means the casket is placed in a crypt above ground. No outer burial container is needed.',
       steps:[{img:IMG.corridor,h:'Chapel of Memories',p:'Indoors, out of the weather, with its own small chapel inside.'},
@@ -1467,7 +1500,7 @@ const GUIDES = {
            {q:'Do we choose the level?',a:'Yes. Crypts are stacked in tiers, so you choose the building, the wall and the level.'},
            {q:'Can we visit any time?',a:'The mausoleums are open whenever the park is, and the indoor ones let you visit out of the rain.'}],
       link:{href:'terrace-garden-guide.html', t:'Open the Terrace Garden guide'}}},
-  'granite-niche':{side:'cemetery', title:'Granite-front niches', img:IMG.roac, kicker:'Where you rest', map:'granite', vs:'glass-vs-granite',
+  'granite-niche':{side:'cemetery', title:'Granite-front niches', img:IMG.roac, kicker:'Where you rest', map:'granite', vs:['glass-vs-granite', 'niche-placing', 'name-plates'],
     h:'Granite-front niches', s:'Outdoors, in the open air. The urn rests behind a stone front, with the name and dates engraved into the granite.',
     deep:{k:'Three places to choose from', h:'Where the granite niches are', lead:'Two rights of interment come with the niche at all three, so two people share one.',
       steps:[{img:'granite-niche-images/roac-courtyard.jpg',h:'Rock of Ages Columbarium',p:'A granite courtyard under a timber pavilion: seven double-sided walls and two memorial benches.'},
@@ -1478,7 +1511,7 @@ const GUIDES = {
            {q:'Does the urn have to be a certain size?',a:'At the Garden of Meditation, yes. The niche fits two Interlude Urns, which is why it holds two people.'},
            {q:'Glass or granite, which is better?',a:"Neither one is better. They're built for the same purpose and cared for the same way. The real choice is whether the urn and the keepsakes should be seen."}],
       link:{href:'granite-niches-guide.html', t:'Open the full Granite Niches guide'}}},
-  'family-grave':{side:'cemetery', title:"Sharing a family grave", img:IMG.groundSpace, kicker:'Where you rest', vs:'urngarden-vs-plot',
+  'family-grave':{side:'cemetery', title:"Sharing a family grave", img:IMG.groundSpace, kicker:'Where you rest', vs:['urngarden-vs-plot', 'day-urn'],
     h:'Sharing a family grave', s:"A grave can hold the casket burial and up to two urns. It's one of the most common ways families stay together here.",
     deep:{k:'How it works', h:'More than one person in one grave', lead:"Each person placed in a grave is a right of interment. The first is usually the casket burial. Up to two more can be urns.",
       steps:[{n:1,h:'The first right',p:'Usually the casket burial of Mom or Dad.'},
@@ -1490,12 +1523,13 @@ const GUIDES = {
            {q:'Will any urn fit?',a:'Most do. Some urns are too large for a standard urn vault, so we check the size first.'},
            {q:'Can the urn go between Mom and Dad?',a:"No. An added right goes in one grave, Mom's or Dad's. If you'd rather have a space of your own nearby, I'll show you what's open on the map."}],
       link:{href:'urn-placement-guide.html', t:'Open the Urn Placement guide'}}},
-  'urn-ground':{side:'cemetery', title:'An urn in the ground', img:IMG.lugFountains, kicker:'Where you rest', map:'urnground', vs:'urngarden-vs-plot',
+  'urn-ground':{side:'cemetery', title:'An urn in the ground', img:IMG.lugFountains, kicker:'Where you rest', map:'urnground', vs:['urngarden-vs-plot', 'day-urn'],
     h:'An urn in the ground', s:'In a garden built for urns, marked the way any grave is. The spaces, the planting and the memorials are all scaled to an urn.',
     deep:{k:'Two urn gardens, and one more way', h:'Where an urn can be buried', lead:'Every urn placed in the ground goes into an urn vault, which supports the ground above it.',
       steps:[{img:IMG.lugFountains,h:'Lake Urn Garden',p:'On the lake shore at the south end of the park, with two fountains and magnolias above.'},
              {img:IMG.lugPosts,h:'Boulders and posts by the water',p:'The only place in the park with urns in boulders near the lake, and cremation posts.'},
-             {img:IMG.lugMarkers,h:'Marked like any grave',p:'Bronze memorials along the walkway, each over an urn placed beneath it.'}],
+             {img:IMG.lugMarkers,h:'Marked like any grave',p:'Bronze memorials along the walkway, each over an urn placed beneath it.'},
+             {img:P+'urn-vault-underground.svg',h:'Under the lawn',p:'The urn vault supports the ground above it.'}],
       faq:[{q:'Is there another urn garden?',a:'Yes. The Rose Urn Garden, in the Garden of Flowers. Each space there carries two rights, so a couple shares one.'},
            {q:'Can an urn go in with family in a lawn space?',a:"Yes. An urn can share a space with a casket, or join one that's already used."},
            {q:'How many urns fit in one space?',a:"It depends on the garden. Rose Urn Garden spaces carry two rights, Lake Urn Garden ground spaces carry one. I'll confirm it on the exact space."},
@@ -1517,16 +1551,18 @@ const GUIDES = {
              {n:2,h:'Scattering somewhere special',p:'Puget Sound, rivers and lakes are allowed; private land needs the owner\'s permission.'},
              {n:3,h:'A place here later',p:'A niche, an urn garden or a scattering garden can be chosen now and used whenever the family is ready.'}],
       faq:[{q:'Can we split the remains?',a:'Yes. Keepsake urns hold a small portion, so more than one person can keep some close.'}]}},
-  'oc-other':{side:'cemetery', title:'Opening and closing', img:IMG.vaultLower, kicker:'Opening and closing',
+  'oc-other':{side:'cemetery', title:'Opening and closing', btn:'On the day', img:IMG.vaultLower, kicker:'Opening and closing',
     h:'Opening and closing', s:'The work of the day itself: preparing the space before the service, and closing it afterward. Our own cemetery staff do it.',
     deep:{k:'On the day', h:'What happens at the grave', lead:'The space is ready before anyone arrives.',
       steps:[{img:IMG.graveSetup,h:'Before the service',p:'The grave is opened and the vault is set, with a tent and seating in place.'},
-             {img:IMG.vaultSigning,h:'During',p:"Some families sign or decorate the vault lid before it's closed."},
+             {img:IMG.vaultGrave,h:'Everyone gathers',p:'Family and friends gather under the tent, right at the grave.'},
+             {img:IMG.vaultSigning,h:'A last goodbye',p:"Some families sign or decorate the vault lid before it's closed."},
              {img:IMG.vaultLower,h:'The lowering',p:'You can stay for the lowering, or leave before it.'},
+             {img:IMG.groundSpace,h:'Help close the grave',p:'Your family can always help shovel some dirt, if you want to.'},
              {img:IMG.vaultLid,h:'Closing',p:'The vault is closed and the grave is filled after everyone has gone.'}],
       faq:[{q:'Is this the same as buying the space?',a:'No. The space is the property. Opening and closing is the work of the day, for each person placed.'},
            {q:'Does the day of the week matter?',a:'Yes. Weekends, holidays and later-afternoon times are handled differently, so if the day is flexible, tell me.'}]}},
-  'vault':{side:'cemetery', title:'Burial vaults', img:IMG.vaultGrave, kicker:'Vault',
+  'vault':{side:'cemetery', title:'Burial vaults', img:P+'vault-underground.svg', kicker:'Vault',
     h:'The burial vault', s:"The cemetery asks for one so the ground doesn't settle into a dip. A vault is lined and sealed to resist water, and carries the weight of the earth above it.",
     deep:{k:'Three levels', h:'How vaults differ', lead:'All three are reinforced concrete. What changes is the reinforcement and the liner inside.',
       steps:[{n:1,h:'Basic',p:'Single-reinforced concrete with a high-impact plastic liner.'},
@@ -1536,11 +1572,11 @@ const GUIDES = {
            {q:'Can the lid be personalized?',a:'Yes. Lids can carry a name, an emblem or a design, and families sometimes sign them at the graveside.'},
            {q:'What about an urn?',a:'An urn in the ground goes into an urn vault for the same reason.'}],
       link:{href:'vault-guide.html', t:'Open the Vault presentation'}}},
-  'markers':{side:'cemetery', title:'Markers and monuments', img:IMG.graniteMarker, inset:true, portrait:false, kicker:'Memorial', map:'ground', vs:'flat-vs-upright',
+  'markers':{side:'cemetery', title:'Markers and monuments', img:IMG.graniteMarker, inset:true, portrait:false, kicker:'Memorial', map:'ground', vs:['flat-vs-upright', 'marker-sizes'],
     h:'The marker', s:"It's what your family comes back to. Most of the park uses flat markers, in granite or bronze, for one person or for two.",
     deep:{k:'The choices', h:'Granite or bronze, flat or upright', lead:"Both last. Granite is what most families choose here, because there's more you can do with it.",
-      steps:[{img:IMG.graniteMarker,h:'Flat granite',p:'Solid stone in many colors, with designs, etching and photo portraits.'},
-             {img:IMG.bronze,h:'Flat bronze',p:'Cast bronze, always set on a granite or concrete base a little larger than the bronze.',fit:true},
+      steps:[{img:IMG.graniteMarker,h:'Flat granite',p:'Solid stone in many colors. Comes with the standard engraving and setting it.'},
+             {img:IMG.bronze,h:'Flat bronze',p:'Cast bronze. Comes with the granite or concrete base it sits on, and installing it.',fit:true},
              {img:IMG.graniteComp,h:'Companion',p:'One marker shared by two people, with room for both names.',fit:true},
              {img:IMG.upright,h:'Upright monuments',p:'Allowed only in a few areas of the park.'},
              {img:IMG.bench,h:'A memorial bench',p:'In Sections 6 and 23, select areas of Section 20, and family estates.'}],
@@ -1549,6 +1585,127 @@ const GUIDES = {
            {q:'Can we buy a marker somewhere else?',a:'Yes, as long as it meets the cemetery\'s marker rules. I can walk you through them.'}],
       link:{href:'markers-guide.html', t:'Open the Granite Marker Guide'}}},
 };
+/* =====================================================================================
+   ROUND 2 (2026-11-27, Martice: "do them all" from the NorthStar audit, nothing from the don't-copy list).
+   Every fact below comes from this page's guides, the repo's *-guide.html pages or his rulings. No prices.
+   ===================================================================================== */
+/* EVERYTHING IT TAKES: each place, and the pieces that go with it. `home` is the plain comparison to a kind of home. */
+const KIT_HOMES = {
+  condo:"Think of it like a condo: your own space, in a building you share.",
+  street:"Think of it like a house on a street: your own space, with neighbors around you.",
+  home:"Think of it like your own home: a lot that's only your family's.",
+  family:"Think of it like moving in with family: a place in a grave your family already has."
+};
+const KIT = {
+  'ground-burial':{home:'street', items:[{b:'The space', img:IMG.groundSpace, g:'ground-burial'}, {b:'Opening and closing', img:IMG.graveSetup, g:'oc-other'}, {b:'A burial vault', img:IMG.vaultLid, g:'vault'}, {b:'A marker', img:IMG.graniteMarker, g:'markers'}]},
+  'lawn-crypt':{home:'street', items:[{b:'The space, in Garden 21', img:IMG.gardenPrayer, g:'lawn-crypt'}, {b:'Opening and closing', img:IMG.graveSetup, g:'oc-other'}, {b:'No vault needed', none:true}, {b:'A bronze marker', img:IMG.bronze, g:'markers'}]},
+  'family-estate':{home:'home', items:[{b:'The estate', img:IMG.estate, g:'family-estate'}, {b:'Opening and closing, for each burial', img:IMG.graveSetup, g:'oc-other'}, {b:'A vault, for each burial', img:IMG.vaultLid, g:'vault'}, {b:'What goes on it is up to you', img:IMG.bench, g:'markers'}]},
+  'mausoleum':{home:'condo', items:[{b:'The crypt', img:IMG.corridor, g:'mausoleum'}, {b:'Opening and closing', img:IMG.mChapel, g:'day-crypt'}, {b:'No vault needed', none:true}, {b:'The name on the crypt front', img:IMG.crypts, g:'name-plates'}]},
+  'glass-niche':{home:'condo', items:[{b:'The niche', img:IMG.glassRoom, g:'glass-niche'}, {b:'Placing the urn', img:IMG.eclOpen, g:'niche-placing'}, {b:'The name on it', img:IMG.eclFront, g:'name-plates'}, {b:'What you keep inside', img:IMG.eclCloseup, g:'niche-memorial'}]},
+  'granite-niche':{home:'condo', items:[{b:'The niche', img:IMG.roac, g:'granite-niche'}, {b:'Placing the urn', img:IMG.nicheTable, g:'niche-placing'}, {b:'The name, engraved', img:IMG.roacCourt, g:'name-plates'}]},
+  'urn-ground':{home:'street', items:[{b:'The space', img:IMG.lugFountains, g:'urn-ground'}, {b:'Opening and closing', img:IMG.urnVault, g:'day-urn'}, {b:'An urn vault', img:IMG.urnVaultGrave, g:'vault'}, {b:'A marker', img:IMG.lugMarkers, g:'markers'}]},
+  'family-grave':{home:'family', items:[{b:'A right in the grave', img:IMG.groundSpace, g:'family-grave'}, {b:'Its own opening and closing', img:IMG.urnVault, g:'day-urn'}, {b:'Usually an urn vault', img:IMG.urnVaultGrave, g:'vault'}, {b:'The name added to the marker', img:IMG.bronzeComp, g:'markers'}]}
+};
+function kitHTML(id) {
+  const k = KIT[id]; if (!k) return '';
+  const it = x => x.none
+    ? `<div class="kit-i none"><span class="kit-ph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span><b>${esc(x.b)}</b></div>`
+    : `<button class="kit-i" data-guide="${x.g}"><span class="kit-ph" style="${bg(x.img)}"></span><b>${esc(x.b)}</b></button>`;
+  return `<div class="kit"><div class="kit-h">Everything it takes</div><div class="kit-row">${k.items.map(it).join('')}</div>${k.home ? `<p class="kit-home">${esc(KIT_HOMES[k.home])}</p>` : ''}</div>`;
+}
+
+/* BEFORE YOU NEED IT, OR WHEN YOU NEED IT: one side by side to open "why plan ahead". Our words, his rules:
+   cemetery prices are locked in when done ahead; never "planning without paying"; a signed plan can't be undone by survivors. */
+const AHEAD_ROWS = [
+  ['Decided in a few days, while grieving', 'Decided calmly, with time to think'],
+  ['The family guesses what you would have wanted', 'Your wishes, in writing'],
+  ['Washington law decides who makes the decisions', 'You name who decides'],
+  ["Cemetery prices are whatever they are that day", 'Cemetery prices locked in today'],
+  ['Paid all at once, at the time', 'Paid over time, if you like'],
+  ['"Did we do the right thing?"', '"We knew exactly what they wanted."']
+];
+function aheadHTML() {
+  const col = (cls, h, rows) => `<div class="ahead-col ${cls}"><div class="ahead-h"><span class="ahead-ic">${cls === 'no' ? '✕' : '✓'}</span>${esc(h)}</div>${rows.map(r => `<div class="ahead-r">${esc(r)}</div>`).join('')}</div>`;
+  return `<div class="bg" style="${bg(IMG.lawn)}"></div><div class="shade"></div>
+   <div class="ahead"><div class="kicker">Why plan ahead</div><h1 class="headline">When you need it, or before you need it</h1>
+   <div class="ahead-grid">${col('no', 'When you need it', AHEAD_ROWS.map(r => r[0]))}${col('yes', 'Before you need it', AHEAD_ROWS.map(r => r[1]))}</div></div>`;
+}
+
+/* MARKER SIZES, TO SCALE: outlines at true relative size on our lawn. Sizes from markers-guide.html and
+   bronze-markers-guide.html (inches, width x height; bronze shown on the base it has to sit on). No prices. */
+const SIZES = {
+  granite:[{w:28, h:16, t:'Single'}, {w:32, h:20, t:'Single'}, {w:28, h:34, t:'Single or companion'}, {w:44, h:20, t:'Companion, two graves'}, {w:60, h:20, t:'Companion, two graves'}],
+  bronze:[{w:24, h:12, bw:28, bh:16, t:'Government bronze'}, {w:24, h:14, bw:28, bh:18, t:'Single'}, {w:28, h:16, bw:32, bh:20, t:'Single'}, {w:44, h:14, bw:48, bh:18, t:'Companion, two graves'}, {w:56, h:16, bw:64, bh:20, t:'Companion, two graves'}]
+};
+function sizesSVG() {
+  const S = 5.2, gap = 48, W = 1700;
+  const row = (list, y, kind) => {
+    let x = 40, out = '';
+    list.forEach(m => {
+      const ow = (m.bw || m.w) * S, oh = (m.bh || m.h) * S;
+      if (kind === 'bronze') {
+        out += `<rect x="${x}" y="${y}" width="${ow}" height="${oh}" rx="3" fill="#8f8c86" stroke="#d8d4cc" stroke-width="2"/>`;
+        out += `<rect x="${x + (ow - m.w * S) / 2}" y="${y + (oh - m.h * S) / 2}" width="${m.w * S}" height="${m.h * S}" rx="2" fill="#a8763e" stroke="#e2b77b" stroke-width="2"/>`;
+      } else out += `<rect x="${x}" y="${y}" width="${ow}" height="${oh}" rx="3" fill="#4f5358" stroke="#c9ccd0" stroke-width="2"/>`;
+      out += `<text x="${x + ow / 2}" y="${y + oh + 34}" text-anchor="middle" font-size="26" font-weight="700" fill="#fff">${m.w}" × ${m.h}"</text>`;
+      out += `<text x="${x + ow / 2}" y="${y + oh + 60}" text-anchor="middle" font-size="19" fill="rgba(255,255,255,.78)">${esc(m.t)}</text>`;
+      if (m.bw) out += `<text x="${x + ow / 2}" y="${y + oh + 84}" text-anchor="middle" font-size="17" fill="rgba(255,255,255,.6)">on a ${m.bw}" × ${m.bh}" base</text>`;
+      x += ow + gap;
+    });
+    return out;
+  };
+  return `<svg class="sizes" viewBox="0 0 ${W} 640" role="img" aria-label="Marker sizes drawn to scale"><g font-family="Source Sans 3, Segoe UI, sans-serif">
+    <text x="40" y="36" font-size="24" font-weight="800" letter-spacing="4" fill="#f08a5d">GRANITE</text>${row(SIZES.granite, 60, 'granite')}
+    <text x="40" y="384" font-size="24" font-weight="800" letter-spacing="4" fill="#f08a5d">BRONZE, ON ITS BASE</text>${row(SIZES.bronze, 408, 'bronze')}</g></svg>`;
+}
+function sizesHTML() {
+  return `<div class="bg" style="${bg(IMG.lawn)}"></div><div class="shade full"></div>
+   <div class="sizes-wrap"><div class="kicker">Memorial</div><h1 class="headline">Marker sizes, to scale</h1>
+   <p class="sub">Every size here is drawn at the same scale, so you can see how they compare on the lawn.</p>
+   ${sizesSVG()}
+   <p class="sizes-note">Full ledgers (36" × 72" granite, 32" × 72" bronze) are six feet long, too long to draw at this scale. The Lake Urn Garden uses 15" × 10" singles.</p></div>`;
+}
+
+/* The new guides. */
+Object.assign(GUIDES, {
+  'why-ahead':{side:'plan', title:'When you need it, or before', img:IMG.lawn, kicker:'Why plan ahead', h:'When you need it, or before you need it', s:'', custom:aheadHTML},
+  'marker-sizes':{side:'cemetery', title:'Marker sizes, to scale', btn:'Sizes, to scale', img:IMG.bronzeComp, kicker:'Memorial', h:'Marker sizes, to scale', s:'', custom:sizesHTML,
+    deep:{k:'What comes with it', h:"What's included with a marker", lead:'Nothing is hidden: here is what each kind comes with.',
+      steps:[{img:IMG.graniteMarker,h:'Granite',p:'The stone, the standard engraving of names, dates and wording, and setting it on its foundation.',fit:true},
+             {img:IMG.bronze,h:'Bronze',p:'The cast bronze, the granite or concrete base it sits on, and installing it.',fit:true},
+             {img:IMG.portrait,h:'Extras you can add',p:'Ceramic photo portraits and etching on granite. On bronze, a vase core on the sizes that have one; the vase itself is extra.'}],
+      faq:[{q:'Why does bronze sit on a base?',a:"The base is a few inches larger than the bronze on every side. It keeps the marker level as the ground settles, and it's what the mowers ride on."},
+           {q:'What can go on a grave with two people?',a:'It depends on how many rights the grave carries and whether the marker spans one grave or two. I\'ll walk you through the choices for your space.'},
+           {q:'What about a veteran\'s marker?',a:'The VA provides a 24" × 12" bronze. A matching one for a husband or wife can be set beside it.'}],
+      link:{href:'markers-guide.html', t:'Open the Granite Marker Guide'}}},
+  'name-plates':{side:'cemetery', title:'The name on a niche or crypt', btn:'The name on it', img:IMG.eclFront, kicker:'Memorial',
+    h:'The name on a niche or a crypt', s:'Above ground, the name goes on the front instead of a marker in the lawn.',
+    deep:{k:'How it looks', h:'Four ways the name goes on', lead:'Each place has its own way.',
+      steps:[{img:IMG.eclFront,h:'Glass-front niches',p:'The name goes on a plate or an engraved strip, not cut into the glass.'},
+             {img:IMG.roacCourt,h:'Granite-front niches',p:'The name, dates and a short line are engraved into the granite itself.'},
+             {img:'granite-niche-images/gomn-wall.jpg',h:'Garden of Meditation',p:"Bronze plates on polished black granite. Photos aren't allowed there."},
+             {img:IMG.crypts,h:'Crypt fronts',p:'Engraved granite or bronze, with the name and dates.'}],
+      faq:[{q:'How many names can go on a niche?',a:'Up to two inscriptions on the niche front, one for each person.'},
+           {q:'Can a photo go on it?',a:"Inside a glass-front niche, yes, with the urn and keepsakes. The Garden of Meditation doesn't allow photos."}]}},
+  'day-crypt':{side:'cemetery', title:'On the day: a crypt', btn:'On the day', img:IMG.corridor, kicker:'On the day',
+    h:'A crypt, on the day', s:'The casket is placed in a crypt above ground. No vault is needed.',
+    deep:{k:'On the day', h:'What happens at the mausoleum', lead:'Our own cemetery staff prepare the crypt before anyone arrives.',
+      steps:[{img:IMG.mChapel,h:'A service close by',p:'Our smaller chapel is inside the Chapel of Memories mausoleum.'},
+             {img:IMG.crypts,h:'The crypt is ready',p:'The crypt is opened and prepared before the service.'},
+             {img:IMG.corridor,h:'The casket is placed',p:'The casket is placed in the crypt, above ground.'},
+             {img:IMG.gcmWall,h:'The front goes back on',p:'Engraved granite or bronze, with the name and dates.'}],
+      faq:[{q:'Is a vault needed?',a:'No. Entombment in a crypt needs no outer burial container.'},
+           {q:'Indoors or outdoors?',a:'Both. The Chapel of Memories and Eternal Light are indoors; the Terrace Garden and Garden Court crypts are outdoors.'}]}},
+  'day-urn':{side:'cemetery', title:'On the day: an urn in the ground', btn:'On the day', img:IMG.urnVaultGrave, kicker:'On the day',
+    h:'An urn in the ground, on the day', s:'The urn goes into an urn vault, which supports the ground above it.',
+    deep:{k:'On the day', h:'What happens at the space', lead:'Our own cemetery staff prepare the space before anyone arrives.',
+      steps:[{img:IMG.urnVault,h:'Family gathers',p:'Your family and friends gather right at the space.'},
+             {img:IMG.urnVaultGrave,h:'Into the urn vault',p:'The urn is placed in its urn vault.'},
+             {img:P+'urn-vault-underground.svg',h:'Under the lawn',p:'The urn vault supports the ground above it.'},
+             {img:IMG.lugMarkers,h:'Marked like any grave',p:'A flat bronze or granite memorial goes over it.'}],
+      faq:[{q:'Can we help close the space?',a:'Yes. Your family can always help shovel some dirt, if you want to.'},
+           {q:'Does an urn need a vault?',a:'In the ground, yes. Every urn placed in the ground goes into an urn vault.'}]}}
+});
 
 /* =====================================================================================
    COMPARISONS ("Not sure yet"). Same detail, same image size, side by side.
@@ -1624,10 +1781,10 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 // most of itself to cropping, so below FIT_BELOW it is shown whole over a soft blurred copy
 // of itself (class "fit"). FOCUS moves the crop point for wide photos whose subject is not
 // in the middle. Both are keyed by the photo's path.
-const SHAPE = {"planning-ahead-images/garden-of-prayer.jpg":0.75,"planning-ahead-images/korean-monument-gethsemane.jpg":1.333,"planning-ahead-images/graveside-setup.jpg":2.198,"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.498,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
+const SHAPE = {"planning-ahead-images/family-estate.jpg":1.494,"planning-ahead-images/vault-underground.svg":1.778,"planning-ahead-images/urn-vault-underground.svg":1.778,"planning-ahead-images/garden-of-prayer.jpg":0.75,"planning-ahead-images/korean-monument-gethsemane.jpg":1.333,"planning-ahead-images/graveside-setup.jpg":2.198,"planning-ahead-images/wmp-drone-gardens.jpg":1.501,"planning-ahead-images/wmp-lawn-trees.jpg":1.498,"planning-ahead-images/garden-path-hedges.jpg":1.5,"planning-ahead-images/big-tree-lawn.jpg":1.498,"property-images/com-chapel-family.jpg":1.779,"planning-ahead-images/personal-display.jpg":1.236,"planning-ahead-images/keepsake-fingerprint-pendant.jpg":0.511,"planning-ahead-images/keepsake-fingerprint-range.jpg":0.802,"planning-ahead-images/register-books.jpg":1.745,"planning-ahead-images/casket-personalized.jpg":1.105,"planning-ahead-images/artful-ashes-heart.jpg":1.4,"planning-ahead-images/history-storefront.jpg":1.338,"planning-ahead-images/lone-tree.jpg":1.498,"planning-ahead-images/urn-in-hands.jpg":0.668,"planning-ahead-images/rh-laying-in-ceremony.jpg":1.333,"planning-ahead-images/crematory-chambers.jpg":1.497,"planning-ahead-images/terramation-soil-burial.jpg":1.333,"planning-ahead-images/crematory-witness-room.jpg":1.453,"planning-ahead-images/rh-vessel-flowers.jpg":1.5,"planning-ahead-images/rh-soil-sapling.jpg":1.499,"planning-ahead-images/rh-sapling-forest.jpg":1.5,"planning-ahead-images/roses.jpg":1.498,"planning-ahead-images/urn-on-stand.jpg":1.2,"planning-ahead-images/private-viewing-ai.jpg":1.07,"planning-ahead-images/chapel-casket-flowers.jpg":1.498,"planning-ahead-images/chapel-set-for-service.jpg":1.498,"planning-ahead-images/seatac-chapel.jpg":1.498,"planning-ahead-images/casket-room.jpg":1.498,"planning-ahead-images/hearse-funeral-home.jpg":1.498,"planning-ahead-images/seatac-exterior.jpg":1.505,"planning-ahead-images/fw-exterior.jpg":1.778,"planning-ahead-images/fw-hospitality.jpg":1.501,"planning-ahead-images/urn-catalog-hands.jpg":1.498,"planning-ahead-images/catering-cover.jpg":1.116,"planning-ahead-images/glass-niche-room.jpg":1.498,"planning-ahead-images/mausoleum-stained-glass.jpg":1.497,"planning-ahead-images/mausoleum-corridor.jpg":0.668,"planning-ahead-images/mausoleum-chapel.jpg":1.498,"planning-ahead-images/niche-urn-table.jpg":1.498,"planning-ahead-images/niche-visit.jpg":1.498,"planning-ahead-images/niche-bouquet.jpg":1.773,"planning-ahead-images/mvc-building.jpg":1.498,"planning-ahead-images/lakeside-cremation-garden.jpg":1.499,"planning-ahead-images/ossuary-court.jpg":1.5,"planning-ahead-images/roac-pavilion.jpg":1.498,"planning-ahead-images/granite-niche-wall.jpg":1.498,"planning-ahead-images/terrace-pool.jpg":1.778,"planning-ahead-images/boulders-rhodies.jpg":1.502,"planning-ahead-images/hearse-mausoleum.jpg":1.498,"planning-ahead-images/pond-fountain.jpg":1.31,"planning-ahead-images/veterans-flags.jpg":1.5,"planning-ahead-images/veterans-flags-drone.jpg":1.5,"planning-ahead-images/veterans-garden-plaza.jpg":1.507,"ecl-images/ecl-face.jpg":0.937,"ecl-images/ecl-open-niches.jpg":1.212,"ecl-images/ecl-in-place.jpg":0.834,"glass-niche-images/ecl-niche-closeup.jpg":1.502,"glass-niche-images/ecl-niche-front.jpg":0.758,"mvc-island-images/mvc-room.jpg":0.937,"glass-niche-images/rad-wall.jpg":0.75,"glass-niche-images/ser-wall.jpg":0.75,"granite-niche-images/tgmp-terrace.jpg":0.798,"granite-niche-images/roac-courtyard.jpg":1.333,"urn-images/100095.jpeg":1.0,"urn-images/238323.jpeg":1.0,"urn-images/282715.jpeg":1.0,"urn-images/282957.jpeg":1.0,"keepsake-images/Atlas_Onyx_Keepsake.jpeg":1.0,"bronze-images/bronze-single.webp":1.403,"pcm-single-images/1106.webp":1.75,"terramation-images/laying-in-vessel.jpg":0.517,"vault-images/graveside-service-tent.jpg":1.47,"vault-images/graveside-lowering.jpg":1.506,"vault-images/graveside-vault-lid.jpg":1.69,"vault-images/graveside-goodbye.jpg":1.4,"vault-images/service-signing-lid.jpg":1.5,"vault-images/service-urn-vault.jpg":1.5,"vault-images/graveside-urn-vault.jpg":2.162,"casket-images/wood/269152.jpg":1.0,"casket-images/metal/221502.jpg":1.0,"casket-images/cremation/242414.jpg":1.0,"urn-garden-images/lug-lake-fountains.jpg":1.86,"urn-garden-images/lug-marker-row.jpg":0.9,"urn-garden-images/lug-posts-fountain.jpg":0.894,"bronze-images/bronze-companion.webp":1.403,"pcm-companion-images/2100.webp":1.75,"marker-images/ceramic-steel-portrait.jpg":1.333,"property-images/mausoleum-crypt-fronts.jpg":1.333,"property-images/ground-burial-space.jpg":1.333,"terramation-images/visitation-room.jpg":2.206,"terramation-images/soil-burlap-bags.jpg":1.55,"terramation-images/memorial-lawn-tree.jpg":1.498,"terramation-images/organics-straw.jpg":1.041,"flower-images/T267-3A.jpg":1.386,"flower-images/T12Z102A.jpg":0.907,"flower-images/T239-4A.jpg":0.541,"flower-images/T283-7A.jpg":0.477,"flower-images/T244-2A.jpg":0.497,"flower-images/TSY01-1A.jpg":1.048,"flower-images/TSY01-4A.jpg":0.767,"granite-niche-images/gomn-wall.jpg":1.852,"granite-niche-images/tgn-niche-bank.jpg":0.834};
 Object.assign(SHAPE, {[P + 'bb-fresh-bouquet.jpg']:0.8, [P + 'bb-sunflowers.jpg']:0.8, [P + 'bb-fall-colors.jpg']:0.8, [P + 'marker-asian-upright.jpg']:1.49, ['pcm-example-images/marker-136.jpg']:1.333, ['pcm-example-images/marker-153.jpg']:1.667, [P + 'marker-bronze-granite-base.jpg']:1.427, ['pcm-example-images/marker-139.jpg']:1.333, [P + 'upright-garden.jpg']:1.498,  [P + 'mvc-new-island.jpg']:1.22, [P + 'memorial-bench.jpg']:1.498, [P + 'gcm-crypt-wall.jpg']:0.75});   // photos added 2026-11-21
 const FIT_BELOW = 0.9;
-const FOCUS = {[P + 'upright-garden.jpg']:'center 78%', [IMG.privateView]:'center 8%', [IMG.roses]:'center 30%'};
+const FOCUS = {[P + 'vault-underground.svg']:'80% 60%', [P + 'urn-vault-underground.svg']:'80% 55%', [P + 'upright-garden.jpg']:'center 78%', [IMG.privateView]:'center 8%', [IMG.roses]:'center 30%'};
 // Real marker photos always show whole: a cropped name or date reads as a mistake (crop audit 2026-11-21).
 const WHOLE = new Set([...['marker-asian-upright.jpg'].map(f => P + f), P + 'marker-bronze-granite-base.jpg', ...['136', '139', '153'].map(n => 'pcm-example-images/marker-' + n + '.jpg')]);
 const fitCls = src => (SHAPE[src] || 1.5) < FIT_BELOW || WHOLE.has(src) ? ' fit' : '';
@@ -1694,12 +1851,13 @@ function guideHTML(id, opt = {}) {
           (pos != null ? backBtn() + `<button class="btn primary" data-go="pathNext">${pos + 1 < p.length ? 'Next' : 'Finish'}</button>` : `<button class="btn primary" data-go="backOut">Back</button>`);
   }
   const count = pos != null ? `<div class="gcount">${pos + 1} of ${p.length} · ${esc(g.kicker || '')}</div>` : '';
+  if (g.custom) return `${g.custom()}${count}<div class="guide-bar">${bar}</div>${g.deep ? deeperHTML(g.deep) : ''}`;
   const navyBg = `<div class="bg" style="background:radial-gradient(ellipse at 70% 50%,#2a4a64,#0f1d29)"></div>`;
   const heroBg = g.blank ? navyBg : g.plain ? navyBg + GLOBE : g.inset ? navyBg + `<img class="inset-photo${g.portrait === false ? '' : ' tall'}" src="${g.img}" alt="">` : `<div class="bg${fitCls(g.img)}" style="${bg(g.img)}"></div>`;
   return `${heroBg}
   <div class="shade${g.inset || g.plain ? '' : ' bottom'}"></div>
   <div class="copy"${g.inset || g.plain ? ' style="max-width:min(50vw,900px)"' : ''}>${g.kicker ? `<div class="kicker">${esc(g.kicker)}</div>` : ''}<h1 class="headline">${esc(g.h)}</h1>
-   <p class="sub">${esc(g.s)}</p>${g.cite ? `<div class="cite">${esc(g.cite)}</div>` : ''}
+   <p class="sub">${esc(g.s)}</p>${g.cite ? `<div class="cite">${esc(g.cite)}</div>` : ''}${kitHTML(id)}
    ${A.track === 'one' && opt.pos == null && !opt.intro && GOES_WITH[id] ? `<div class="gwith"><span>What goes with it</span>${GOES_WITH[id].filter(x => GUIDES[x]).map(x => `<button data-guide="${x}">${esc(GUIDES[x].title || GUIDES[x].h)}</button>`).join('')}</div>` : ''}
    ${ready ? '' : `<div class="soon">Full presentation coming next${g.link ? ' · the reading guide is ready now' : ''}</div>${g.link ? `<div><a class="ext" style="color:#fff" href="${g.link.href}" target="_blank" rel="noopener">${esc(g.link.t)} ↗</a></div>` : ''}`}
   </div>${count}<div class="guide-bar">${bar}</div>
@@ -2050,10 +2208,15 @@ function closeReader() {
   const r = document.getElementById('reader');
   r.classList.remove('on'); document.getElementById('rFrame').src = 'about:blank';
 }
+// Burial or cremation, in the ground or above it: four doors into the cemetery guides.
+const HUB = [['Burial', 'In the ground', IMG.lawn, 'ground-burial'], ['Burial', 'Above ground', IMG.mChapel, 'mausoleum'],
+  ['Cremation', 'In the ground', IMG.lugFountains, 'urn-ground'], ['Cremation', 'Above ground', IMG.glassRoom, 'glass-vs-granite']];
+const hubHTML = () => `<div class="hub">${HUB.map(([a, b, img, g]) => `<button class="hub-t" data-guide="${g}"><span class="hub-ph" style="${bg(img)}"></span><span class="hub-l"><small>${esc(a)}</small><b>${esc(b)}</b></span></button>`).join('')}</div>`;
 function libHTML() {
   const groups = [['plan','Planning ahead'],['tradition','Faith and tradition'],['funeral','Funeral home'],['cemetery','Cemetery']];
   return `<div class="listwrap"><h2>Every guide</h2><p class="s">Jump to anything, any time.</p>
    <div class="actions">${backBtn()}${A.track === 'one' ? '<button class="btn primary" data-go="wholePlan">See the whole plan</button>' : ''}<button class="btn ghost" data-go="park">See the park</button></div>
+   ${hubHTML()}
    ${groups.map(([side, name]) => `<div class="libsec">${name}</div><div class="tiles">${Object.keys(GUIDES).filter(id => GUIDES[id].side === side).map(id => tileHTML({g:id, contain:GUIDES[id].inset && GUIDES[id].img && GUIDES[id].img.includes('flower-images')})).join('')}</div>`).join('')}</div>`;
 }
 /* "Here's what we'll do next": the hand-off into the tour, the quote and the paperwork. No prices. */
@@ -2156,7 +2319,7 @@ function sheetHTML() {
 const fillSheet = () => { document.getElementById('sheet').innerHTML = sheetHTML(); };
 window.addEventListener('beforeprint', fillSheet);
 /* ── behavior ── */
-const INTRO = ['why-wishes', 'why-calm', 'why-1868'];
+const INTRO = ['why-ahead', 'why-wishes', 'why-calm', 'why-1868'];
 function toggle(qid, v) {
   if (PER.has(qid)) {
     const elig = targets().filter(i => optsFor(qid, i).includes(v));
