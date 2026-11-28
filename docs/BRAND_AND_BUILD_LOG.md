@@ -3329,3 +3329,26 @@ our own words, real WMP photos and facts from our guides only. Nothing copied.
   as the lawn crypt drawing. A real family estate photo from the office photo library.
 - Verified: syntax check clean; 19 Playwright scripts, 245 checks, no console errors; crop audit; every new
   screen checked by eye at 1920x1080.
+
+## 2026-11-27: Planning Ahead: his live review, round 3
+
+- More than one plan in a visit: tap everyone in the plan (me, a spouse or partner, Mom, Dad, someone else) and it
+  runs one plan per couple, Mom and Dad first, with "Next: ..." between them; "Mom and Dad, and us too" on the parents
+  track. The two of us now says it works even if the spouse isn't there.
+- The tour moved to the end of the questions, with "Go see it now" on the cemetery bridge. Back from a tour of more
+  than one place: "Which are still in the running?" to rule some out.
+- Plan screen: the wheel starts dim and fills as each piece is talked through; the next row is tagged Up next. The
+  wheel names its halves (CEMETERY, FUNERAL HOME) on every screen.
+- Memorial choices follow where they rest: benches and uprights only on ground spaces and family estates; flat
+  granite only on lawn crypts (his ruling: no bronze there); niche name plates and inscriptions; crypt lettering and
+  the bronze name bar. Keepsakes add No and Let the family decide; caskets and urns add Not sure yet.
+- Fuller side by sides: burial, cremation or terramation (eight rows incl. timing and the cost, honestly, no numbers)
+  and the kinds of services (five rows each). Faith and tradition as plain name tiles. "Keeping it simple" renamed
+  "Small and quiet". Value tags on photos bigger and readable.
+- Garden of Meditation niches get their own guide from pin 8; Gardens 14 and 15 named on the park map; the
+  repeating why-plan screens folded into one side by side with the RCW 68.50.160 line.
+- Receptions are in our chapel at cloth-covered tables (his word): reception room wording and photo replaced.
+- Photos: Garden 21 first on lawn crypts (cutaway inside), travel icons, a real keepsake table, register book, the
+  remodeled chapel, our obituaries page, Legacy Touch pendants (partner), Love's Buds & Blooms arrangements with
+  their logo on both flower guides, a real open crypt and engraved crypt front.
+- Verified: syntax check clean; 21 Playwright scripts, 293 checks, no console errors; crop audit; screens by eye.
